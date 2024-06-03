@@ -1,26 +1,38 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { config } from './ormconfig';
+import { dbConfig } from './ormconfig';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
-
-const isProd = process.env.NODE_ENV === 'production';
-
+import { AppResolver } from './resolvers/App.resolver';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(config),
+    ConfigModule.forRoot({
+      envFilePath: ['.env.local', '.env'],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ...dbConfig(configService),
+      }),
+    }),
     TypeOrmModule.forFeature([]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      imports: [DataloaderModule],
-      inject: [DataloaderService],
-      useFactory: (dataloaderService: DataloaderService) => {
+      imports: [DataloaderModule, ConfigModule],
+      inject: [DataloaderService, ConfigService],
+      useFactory: (
+        dataloaderService: DataloaderService,
+        configService: ConfigService,
+      ) => {
+        const isProd = configService.get('NODE_ENV') === 'production';
         return {
           debug: !isProd,
           playground: !isProd,
@@ -33,6 +45,6 @@ const isProd = process.env.NODE_ENV === 'production';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppResolver],
 })
 export class AppModule {}

@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { DataSource, EntityTarget, In } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import { DataSource, EntityTarget, In } from 'typeorm';
 import * as DataLoader from 'dataloader';
 
 export interface IDataloaders {}
@@ -27,6 +27,6 @@ export class DataloaderService {
   }
 
   createLoaders(): IDataloaders {
-    return {}
+    return {};
   }
 }
