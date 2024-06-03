@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  db:
+    image: postgis/postgis:13-3.3
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    container_name: rebuildr_db_container
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
