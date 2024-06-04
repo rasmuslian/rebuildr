@@ -28,6 +28,15 @@
 
 ## Installation
 
+Install 1 password cli in order to populate you're environment file on start.
+With brew:
+
+```bash
+$ brew install 1password-cli --cask
+```
+
+Install dependencies
+
 ```bash
 $ npm install
 ```
