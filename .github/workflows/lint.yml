@@ -19,7 +19,7 @@ jobs:
         run: npm run type-check
       - name: Linting
         run: npm run lint
-
+  app:
     defaults:
       run:
         working-directory: ./rebuildr-app
