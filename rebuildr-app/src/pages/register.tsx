@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { gql } from "src/apollo/__generated__/gql";
 import { Button } from "src/components/button";
-import { Input } from "src/components/input";
+import { HiddenInput } from "src/components/inputs/hiddenInput";
+import { Input } from "src/components/inputs/input";
 import { Text, textStyles } from "../components/text";
 
 const REGISTER_USER = gql(`
@@ -51,7 +52,7 @@ export const Register = () => {
           onChange={setEmail}
           disabled={registering}
         />
-        <Input
+        <HiddenInput
           placeholder="Lösenord"
           onChange={setPassword}
           disabled={registering}
