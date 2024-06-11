@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "op run --env-file=\".env.local.1p\" -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
@@ -20,11 +20,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:run": "npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
+    "migration:run": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
     "migration:show": "npm run typeorm migration:show -- -d ./src/ormconfig-migrations.ts",
-    "migration:revert": "npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
-    "migration:generate": "npm run typeorm migration:generate -- -d ./src/ormconfig-migrations.ts",
-    "migration:create": "npm run typeorm migration:create"
+    "migration:revert": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
+    "migration:generate": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:generate -- -d ./src/ormconfig-migrations.ts",
+    "migration:create": "npm run typeorm migration:create ./migration/"
   },
   "dependencies": {
     "@apollo/server": "^4.10.4",
@@ -35,6 +35,7 @@
     "@nestjs/graphql": "^12.1.1",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.2",
+    "bcrypt": "^5.1.1",
     "dataloader": "^2.2.2",
     "graphql": "^16.8.1",
     "pg": "^8.11.5",

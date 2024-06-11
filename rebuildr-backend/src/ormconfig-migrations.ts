@@ -18,7 +18,11 @@ import { DataSource } from 'typeorm';
 
 // Initialize a mini-NestJS application so we can use configuration here. It might be cleaner to just use dotenv directly. I'm not exactly a fan of this.
 @Module({
-  imports: [ConfigModule.forRoot({ envFilePath: ['.env.local', '.env'] })],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: ['.env.local.1p'],
+    }),
+  ],
 })
 class DataSourceAppModule {}
 

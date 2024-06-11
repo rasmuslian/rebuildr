@@ -2,6 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type RegisterUserResponse {
+  message: String!
+}
+
 type Query {
   sayHello: String!
+}
+
+type Mutation {
+  registerUser(input: RegisterUserInput!): RegisterUserResponse!
+}
+
+input RegisterUserInput {
+  email: String!
+  password: String!
 }

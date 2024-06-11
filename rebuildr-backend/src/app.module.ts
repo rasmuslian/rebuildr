@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConfig } from './ormconfig';
@@ -10,11 +9,16 @@ import { join } from 'path';
 import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
 import { AppResolver } from './resolvers/App.resolver';
+import { AuthService } from './services/auth.service';
+import { AuthResolver } from './resolvers/auth.resolver';
+import { User } from './entities/user.entity';
+import { UserService } from './services/user.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local.1p'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -23,7 +27,7 @@ import { AppResolver } from './resolvers/App.resolver';
         ...dbConfig(configService),
       }),
     }),
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([User]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
@@ -45,6 +49,6 @@ import { AppResolver } from './resolvers/App.resolver';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver],
+  providers: [AppService, AppResolver, AuthResolver, AuthService, UserService],
 })
 export class AppModule {}
