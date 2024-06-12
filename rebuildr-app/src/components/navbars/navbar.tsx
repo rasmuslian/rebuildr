@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet, View, Image, Pressable } from "react-native";
 import Colors from "src/styles/colors";
-import { Button } from "./button";
-import { Text } from "./text";
+import { Button } from "../button";
+import { Text } from "../text";
 import logo from "assets/images/logo.png";
 import { useNavigation } from "@react-navigation/native";
 

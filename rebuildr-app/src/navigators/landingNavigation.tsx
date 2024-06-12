@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Navbar } from "src/components/navbar";
+import { Navbar } from "src/components/navbars/navbar";
 import { Landing } from "src/pages/landing";
 import { Login } from "src/pages/login";
 import { Register } from "src/pages/register";

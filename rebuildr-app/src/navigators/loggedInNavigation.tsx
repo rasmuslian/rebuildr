@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { gql } from "src/apollo/__generated__/gql";
-import { LoggedInNavbar } from "src/components/loggedInNavbar";
+import { LoggedInNavbar } from "src/components/navbars/loggedInNavbar";
 import { Landing } from "src/pages/landing";
 
 const LOGGED_IN_NAVIGATION = gql(`
