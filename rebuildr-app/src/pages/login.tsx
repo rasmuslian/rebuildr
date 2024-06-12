@@ -8,7 +8,8 @@ import { gql } from "src/apollo/__generated__/gql";
 import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
-import { Text, textStyles } from "src/components/text";
+import { Page } from "src/components/page";
+import { Text } from "src/components/text";
 
 const LOGIN = gql(`
   mutation Login($input: LoginInput!) {
@@ -47,8 +48,7 @@ export const Login = () => {
     });
   };
   return (
-    <View style={styles.container}>
-      <Text style={[textStyles.title, styles.title]}>Logga in</Text>
+    <Page title="Logga in">
       <View style={styles.loginContainer}>
         <Input
           onChange={setEmail}
@@ -69,19 +69,11 @@ export const Login = () => {
           onPress={() => navigate("Register")}
         />
       </View>
-    </View>
+    </Page>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 64,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    marginBottom: 40,
-  },
   loginContainer: {
     borderWidth: 1,
     borderStyle: "solid",

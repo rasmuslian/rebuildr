@@ -5,7 +5,8 @@ import { gql } from "src/apollo/__generated__/gql";
 import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
-import { Text, textStyles } from "../components/text";
+import { Page } from "src/components/page";
+import { Text } from "../components/text";
 
 const REGISTER_USER = gql(`
   mutation RegisterUser($input: RegisterUserInput!) {
@@ -43,9 +44,7 @@ export const Register = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[textStyles.title, styles.title]}>Registrera konto</Text>
-
+    <Page title="Registrera konto">
       <View style={styles.formContainer}>
         <Input
           placeholder="E-post"
@@ -62,18 +61,11 @@ export const Register = () => {
         </Button>
       </View>
       <Text>{error?.message || data?.registerUser.message}</Text>
-    </View>
+    </Page>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    display: "flex",
-  },
-  title: {
-    marginBottom: 40,
-  },
   formContainer: {
     borderWidth: 1,
     borderColor: "#000000",

@@ -1,17 +1,6 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
-import { Text, textStyles } from "src/components/text";
+import { Page } from "src/components/page";
 
 export const Landing = () => {
-  return (
-    <View style={styles.container}>
-      <Text style={textStyles.title}>Landing</Text>
-    </View>
-  );
+  return <Page title="Landing"></Page>;
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-  },
-});
