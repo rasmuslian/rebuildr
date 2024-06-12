@@ -24,16 +24,14 @@ const LOGIN = gql(`
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loggingIn, setLoggingIn] = useState(false);
   const { navigate } = useNavigation();
 
   const [login, { error, loading }] = useMutation(LOGIN);
 
   const onLogin = async () => {
-    if (loggingIn) {
+    if (loading) {
       return;
     }
-    setLoggingIn(true);
     await login({
       variables: {
         input: {
@@ -47,7 +45,6 @@ export const Login = () => {
         navigate("Landing");
       },
     });
-    setLoggingIn(false);
   };
   return (
     <View style={styles.container}>
@@ -56,12 +53,12 @@ export const Login = () => {
         <Input
           onChange={setEmail}
           placeholder={"E-post address"}
-          disabled={loggingIn}
+          disabled={loading}
         />
         <HiddenInput
           onChange={setPassword}
           placeholder={"Lösenord"}
-          disabled={loggingIn}
+          disabled={loading}
         />
         <Button onPress={onLogin} disabled={loading}>
           <Text>Logga in</Text>
