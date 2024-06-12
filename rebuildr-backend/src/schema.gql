@@ -2,19 +2,36 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type User {
+  id: ID!
+  email: String!
+}
+
 type RegisterUserResponse {
   message: String!
 }
 
+type LoginResponse {
+  user: User!
+  accessToken: String!
+}
+
 type Query {
   sayHello: String!
+  me: User!
 }
 
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
+  login(input: LoginInput!): LoginResponse!
 }
 
 input RegisterUserInput {
+  email: String!
+  password: String!
+}
+
+input LoginInput {
   email: String!
   password: String!
 }

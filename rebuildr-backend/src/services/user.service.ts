@@ -18,4 +18,8 @@ export class UserService {
       throw new Error('Error when creating new user');
     }
   }
+
+  async findOne(id: string) {
+    return await this.userRepository.findOneByOrFail({ id });
+  }
 }

@@ -14,11 +14,21 @@ import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
 import { AppController } from './app.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { jwtConstants } from './auth/constants';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { UserResolver } from './resolvers/user.resolver';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: ['.env.local.1p'],
+    }),
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -49,6 +59,14 @@ import { AppController } from './app.controller';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver, AuthResolver, AuthService, UserService],
+  providers: [
+    JwtStrategy,
+    AppResolver,
+    AppService,
+    AuthResolver,
+    AuthService,
+    UserResolver,
+    UserService,
+  ],
 })
 export class AppModule {}

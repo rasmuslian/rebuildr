@@ -16,7 +16,7 @@ export const Input = ({
       onChangeText={onChange}
       placeholder={placeholder}
       value={value}
-      editable={!disabled}
+      readOnly={disabled}
       selectTextOnFocus={disabled}
     />
   );

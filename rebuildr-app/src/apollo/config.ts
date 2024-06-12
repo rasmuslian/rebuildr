@@ -12,6 +12,9 @@ const config: CodegenConfig = {
       },
     },
   },
+  hooks: {
+    afterOneFileWrite: ["prettier --write"],
+  },
 };
 
 export default config;

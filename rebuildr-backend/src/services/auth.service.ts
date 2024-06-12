@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { RegisterUserInput } from 'src/resolvers/auth.resolver';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { LoginInput, RegisterUserInput } from 'src/resolvers/auth.resolver';
 import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from 'src/auth/constants';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
+    private jwtService: JwtService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
@@ -26,17 +29,13 @@ export class AuthService {
     if (!validMail) {
       return { message: 'Invalid mail' };
     }
-    //validate password
-    //check if user exist
+
     const emailTaken = await this.userRepository.existsBy({
       email: input.email,
     });
     if (emailTaken) {
       return { message: 'Email already in use' };
     }
-
-    //check that email is unique
-    console.log('email: ', input.email);
 
     //hash password
     const hash = await bcrypt.hash(input.password, 10);
@@ -47,5 +46,22 @@ export class AuthService {
       password: hash,
     });
     return { message: '' };
+  }
+
+  async login(input: LoginInput) {
+    const user = await this.userRepository.findOneByOrFail({
+      email: input.email,
+    });
+    const passwordCorrect = await bcrypt.compare(input.password, user.password);
+    if (!passwordCorrect) {
+      throw new UnauthorizedException();
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: jwtConstants.expiresIn,
+    });
+
+    return { user: user, accessToken: accessToken };
   }
 }

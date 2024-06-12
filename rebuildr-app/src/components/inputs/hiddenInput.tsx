@@ -16,7 +16,7 @@ export const HiddenInput = ({
       onChangeText={onChange}
       placeholder={placeholder}
       value={value}
-      editable={!disabled}
+      readOnly={disabled}
       selectTextOnFocus={disabled}
       secureTextEntry={true}
     />
