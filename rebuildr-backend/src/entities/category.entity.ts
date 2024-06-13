@@ -1,11 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 @ObjectType()
@@ -19,10 +13,9 @@ export class Category {
   name: string;
 
   @Field(() => String, { nullable: true })
-  @Column({ name: 'parentId', nullable: true })
+  @Column({ nullable: true })
   parentId?: string;
 
   @ManyToOne(() => Category, (cat) => cat.id, { nullable: true })
-  @JoinColumn({ name: 'parentId' })
   parent?: Category;
 }

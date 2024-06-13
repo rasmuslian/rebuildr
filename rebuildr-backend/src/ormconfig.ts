@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export const dbConfig = (configService: ConfigService) => {
   const isProd = configService.get('NODE_ENV') === 'production';
@@ -11,6 +12,7 @@ export const dbConfig = (configService: ConfigService) => {
     username: configService.get('DB_USER'),
     password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_NAME'),
+    namingStrategy: new SnakeNamingStrategy(),
     synchronize: false,
     logging: false,
     ssl: isProd

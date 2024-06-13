@@ -21,10 +21,9 @@ export class Product {
   title: string;
 
   @Field(() => Date)
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Field(() => Category)
   @ManyToOne(() => Category, (cat) => cat.id)
   category: Category;
 
