@@ -24,7 +24,7 @@
     "migration:show": "npm run typeorm migration:show -- -d ./src/ormconfig-migrations.ts",
     "migration:revert": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
     "migration:generate": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:generate -- -d ./src/ormconfig-migrations.ts",
-    "migration:create": "npm run typeorm migration:create ./migration/"
+    "migration:create": "npm run typeorm migration:create"
   },
   "dependencies": {
     "@apollo/server": "^4.10.4",

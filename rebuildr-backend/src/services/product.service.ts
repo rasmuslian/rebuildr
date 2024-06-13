@@ -1,0 +1,39 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from 'src/entities/category.entity';
+import { Product } from 'src/entities/product.entity';
+import { User } from 'src/entities/user.entity';
+import { Repository } from 'typeorm';
+
+@Injectable()
+export class ProductService {
+  constructor(
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+
+  async create(input: { title: string; categoryId: string; userId: string }) {
+    const product = new Product();
+
+    const category = await this.categoryRepository.findOneBy({
+      id: input.categoryId,
+    });
+    if (!category) {
+      throw new Error('Invalid category');
+    }
+
+    const user = await this.userRepository.findOneBy({ id: input.userId });
+    if (!user) {
+      throw new Error('Invalid user');
+    }
+
+    product.title = input.title;
+    product.category = category;
+    product.user = user;
+    return await this.productRepository.save(product);
+  }
+}

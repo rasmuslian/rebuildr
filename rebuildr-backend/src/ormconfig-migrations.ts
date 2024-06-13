@@ -30,5 +30,10 @@ export const dataSource = (async () => {
   const app = await NestFactory.create(DataSourceAppModule, { logger: false });
   const configService = app.get(ConfigService);
 
-  return new DataSource(dbConfig(configService));
+  const migrations = './migration/*{.ts,.js}';
+
+  return new DataSource({
+    ...dbConfig(configService),
+    migrations: [migrations],
+  });
 })();
