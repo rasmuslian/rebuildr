@@ -27,9 +27,12 @@ export class Product {
   @Column()
   categoryId: string;
 
-  @ManyToOne(() => Category, (cat) => cat.id)
+  @ManyToOne(() => Category, (cat) => cat.id, { nullable: false })
   category: Category;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @Column()
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.id, { nullable: false })
   user: User;
 }
