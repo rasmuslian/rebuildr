@@ -27,6 +27,20 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
+  DateTime: { input: any; output: any };
+};
+
+export type Category = {
+  __typename?: "Category";
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+  parentId?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type CreateProductInput = {
+  categoryId: Scalars["String"]["input"];
+  title: Scalars["String"]["input"];
 };
 
 export type LoginInput = {
@@ -42,8 +56,13 @@ export type LoginResponse = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  createProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
+};
+
+export type MutationCreateProductArgs = {
+  input: CreateProductInput;
 };
 
 export type MutationLoginArgs = {
@@ -54,8 +73,17 @@ export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
 };
 
+export type Product = {
+  __typename?: "Product";
+  category: Category;
+  createdAt: Scalars["DateTime"]["output"];
+  id: Scalars["ID"]["output"];
+  title: Scalars["String"]["output"];
+};
+
 export type Query = {
   __typename?: "Query";
+  getCategories: Array<Category>;
   me: User;
   sayHello: Scalars["String"]["output"];
 };
@@ -103,6 +131,31 @@ export type RegisterUserMutationVariables = Exact<{
 export type RegisterUserMutation = {
   __typename?: "Mutation";
   registerUser: { __typename?: "RegisterUserResponse"; message: string };
+};
+
+export type GetCategoriesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetCategoriesQuery = {
+  __typename?: "Query";
+  getCategories: Array<{
+    __typename?: "Category";
+    id: string;
+    name: string;
+    parentId?: string | null;
+  }>;
+};
+
+export type CreateProductMutationVariables = Exact<{
+  input: CreateProductInput;
+}>;
+
+export type CreateProductMutation = {
+  __typename?: "Mutation";
+  createProduct: {
+    __typename?: "Product";
+    title: string;
+    category: { __typename?: "Category"; name: string };
+  };
 };
 
 export const LoggedInNavigationDocument = {
@@ -247,4 +300,95 @@ export const RegisterUserDocument = {
 } as unknown as DocumentNode<
   RegisterUserMutation,
   RegisterUserMutationVariables
+>;
+export const GetCategoriesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetCategories" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "getCategories" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "parentId" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetCategoriesQuery, GetCategoriesQueryVariables>;
+export const CreateProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "category" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateProductMutation,
+  CreateProductMutationVariables
 >;

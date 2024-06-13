@@ -24,6 +24,9 @@ export class Product {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column()
+  categoryId: string;
+
   @ManyToOne(() => Category, (cat) => cat.id)
   category: Category;
 

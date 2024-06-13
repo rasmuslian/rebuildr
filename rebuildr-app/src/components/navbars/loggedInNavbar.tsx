@@ -24,19 +24,22 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
   };
 
   return (
-    <View style={style.container}>
+    <View style={styles.container}>
       <Pressable onPress={() => navigate("Landing")}>
         <Image source={logo} />
       </Pressable>
       <Text>{me.email}</Text>
-      <Button onPress={onLogout} icon={"person"}>
-        <Text>Logga ut</Text>
-      </Button>
+      <View style={styles.ctaButtons}>
+        <Button onPress={() => navigate("Sell")} title={"Sälj"}></Button>
+        <Button onPress={onLogout} icon={"person"}>
+          <Text>Logga ut</Text>
+        </Button>
+      </View>
     </View>
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     height: 88,
     justifyContent: "space-between",
@@ -45,5 +48,9 @@ const style = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.blue,
     paddingHorizontal: 34,
+  },
+  ctaButtons: {
+    flexDirection: "row",
+    gap: 4,
   },
 });

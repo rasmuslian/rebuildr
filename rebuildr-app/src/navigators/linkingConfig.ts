@@ -3,6 +3,7 @@ const config = {
     Landing: "/",
     Login: "/login",
     Register: "/register",
+    Sell: "/sell",
   },
 };
 

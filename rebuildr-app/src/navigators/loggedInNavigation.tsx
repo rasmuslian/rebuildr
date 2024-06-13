@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { gql } from "src/apollo/__generated__/gql";
 import { LoggedInNavbar } from "src/components/navbars/loggedInNavbar";
 import { Landing } from "src/pages/landing";
+import { Sell } from "src/pages/sell";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -26,6 +27,7 @@ export const LoggedInNavigation = () => {
       screenOptions={{ header: () => <LoggedInNavbar me={data.me} /> }}
     >
       <Stack.Screen name="Landing" component={Landing} />
+      <Stack.Screen name="Sell" component={Sell} />
     </Stack.Navigator>
   );
 };

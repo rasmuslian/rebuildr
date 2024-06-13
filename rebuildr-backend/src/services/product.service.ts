@@ -31,9 +31,17 @@ export class ProductService {
       throw new Error('Invalid user');
     }
 
+    if (!input.title) {
+      throw new Error('Invalid input');
+    }
+
     product.title = input.title;
     product.category = category;
     product.user = user;
     return await this.productRepository.save(product);
+  }
+
+  async getCategory(product: Product) {
+    return await this.categoryRepository.findOneBy({ id: product.categoryId });
   }
 }

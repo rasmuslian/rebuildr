@@ -1,7 +1,16 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Field, InputType, Mutation, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Field,
+  InputType,
+  Mutation,
+  ResolveField,
+  Resolver,
+  Root,
+} from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { ProductService } from 'src/services/product.service';
@@ -15,7 +24,7 @@ export class CreateProductInput {
   categoryId: string;
 }
 
-@Resolver()
+@Resolver(() => Product)
 export class ProductResolver {
   constructor(private productService: ProductService) {}
 
@@ -30,5 +39,10 @@ export class ProductResolver {
       categoryId: input.categoryId,
       userId: _user.id,
     });
+  }
+
+  @ResolveField(() => Category)
+  async category(@Root() _product: Product) {
+    return this.productService.getCategory(_product);
   }
 }

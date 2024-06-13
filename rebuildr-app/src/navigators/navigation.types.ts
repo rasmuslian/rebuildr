@@ -10,4 +10,5 @@ export type LandingStackParamList = {
   Landing: undefined;
   Login: undefined;
   Register: undefined;
+  Sell: undefined;
 };

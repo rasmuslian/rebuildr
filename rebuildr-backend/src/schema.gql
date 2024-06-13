@@ -26,6 +26,7 @@ type Product {
   id: ID!
   title: String!
   createdAt: DateTime!
+  category: Category!
 }
 
 """
