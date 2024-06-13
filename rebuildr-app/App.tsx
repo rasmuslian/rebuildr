@@ -13,9 +13,11 @@ export default function App() {
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
 
   useEffect(() => {
-    initializeApollo().then((_client) => {
-      setClient(_client);
-    });
+    initializeApollo()
+      .then((_client) => {
+        setClient(_client);
+      })
+      .catch((e) => console.log("e :>> ", e));
   }, []);
 
   if (!client) {
