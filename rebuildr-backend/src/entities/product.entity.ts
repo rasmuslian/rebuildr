@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -35,4 +35,8 @@ export class Product {
 
   @ManyToOne(() => User, (user) => user.id, { nullable: false })
   user: User;
+
+  @Field(() => Float)
+  @Column('decimal')
+  price: number;
 }

@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
+  Float,
   InputType,
   Mutation,
   ResolveField,
@@ -22,6 +23,9 @@ export class CreateProductInput {
 
   @Field()
   categoryId: string;
+
+  @Field(() => Float)
+  price: number;
 }
 
 @Resolver(() => Product)
@@ -38,6 +42,7 @@ export class ProductResolver {
       title: input.title,
       categoryId: input.categoryId,
       userId: _user.id,
+      price: input.price,
     });
   }
 

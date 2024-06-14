@@ -26,6 +26,7 @@ type Product {
   id: ID!
   title: String!
   createdAt: DateTime!
+  price: Float!
   category: Category!
 }
 
@@ -59,4 +60,5 @@ input LoginInput {
 input CreateProductInput {
   title: String!
   categoryId: String!
+  price: Float!
 }

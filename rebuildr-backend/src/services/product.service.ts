@@ -16,7 +16,12 @@ export class ProductService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(input: { title: string; categoryId: string; userId: string }) {
+  async create(input: {
+    title: string;
+    categoryId: string;
+    userId: string;
+    price: number;
+  }) {
     const product = new Product();
 
     const category = await this.categoryRepository.findOneBy({
@@ -38,6 +43,7 @@ export class ProductService {
     product.title = input.title;
     product.category = category;
     product.user = user;
+    product.price = input.price;
     return await this.productRepository.save(product);
   }
 
