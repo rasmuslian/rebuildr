@@ -7,6 +7,7 @@ import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
 import { Picker } from "@react-native-picker/picker";
 import { Text } from "../components/text";
+import { NumberInput } from "src/components/inputs/numberInput";
 
 const GET_ALL_CATEGORIES = gql(`
   query GetCategories {
@@ -22,6 +23,7 @@ const CREATE_PRODUCT = gql(`
   mutation CreateProduct($input: CreateProductInput!) {
     createProduct(input: $input) {
       title
+      price
       category {
         name
       }
@@ -45,9 +47,11 @@ export const Sell = () => {
   >();
   const [selectedChildCategory, setSelectedChildCategory] =
     useState<Category>();
+  const [price, setPrice] = useState("");
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
+    price: number;
   }>();
 
   useQuery(GET_ALL_CATEGORIES, {
@@ -106,8 +110,15 @@ export const Sell = () => {
 
     const category = selectedChildCategory ?? selectedRootCategory;
 
-    if (!category || !title) {
+    if (!category || !title || price === undefined) {
       //Invalid inputs!
+      return;
+    }
+
+    const transformedValue = price.replace(",", ".");
+    const toFloat = parseFloat(transformedValue);
+    if (isNaN(toFloat)) {
+      //invalid number
       return;
     }
 
@@ -116,6 +127,7 @@ export const Sell = () => {
         input: {
           title: title,
           categoryId: category.id,
+          price: toFloat,
         },
       },
       onCompleted: (data) => {
@@ -125,6 +137,7 @@ export const Sell = () => {
         setTitle("");
         setSelectedChildCategory(undefined);
         setSelectedRootCategory(undefined);
+        setPrice(undefined);
       },
     });
   };
@@ -134,6 +147,9 @@ export const Sell = () => {
       <Page title={"Vara skapad!"}>
         <Text>title: {createdProduct.title}</Text>
         <Text>category: {createdProduct.category.name}</Text>
+        <Text>
+          price: {createdProduct.price.toString().replace(".", ",")} kr
+        </Text>
         <Button
           title="Skapa en till"
           onPress={() => setCreatedProduct(undefined)}
@@ -184,6 +200,11 @@ export const Sell = () => {
           onChange={setTitle}
           placeholder={"Titel på objektet"}
           value={title}
+        />
+        <NumberInput
+          onChange={setPrice}
+          value={price}
+          placeholder={"Ange pris"}
         />
         <Button
           title="Publicera"

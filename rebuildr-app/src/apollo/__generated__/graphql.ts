@@ -40,6 +40,7 @@ export type Category = {
 
 export type CreateProductInput = {
   categoryId: Scalars["String"]["input"];
+  price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
 };
 
@@ -78,6 +79,7 @@ export type Product = {
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
+  price: Scalars["Float"]["output"];
   title: Scalars["String"]["output"];
 };
 
@@ -154,6 +156,7 @@ export type CreateProductMutation = {
   createProduct: {
     __typename?: "Product";
     title: string;
+    price: number;
     category: { __typename?: "Category"; name: string };
   };
 };
@@ -371,6 +374,7 @@ export const CreateProductDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "category" },
