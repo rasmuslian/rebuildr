@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
-import { gql } from "src/apollo/__generated__/gql";
+import { gql } from "src/gql/gql";
 import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";

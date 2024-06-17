@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { gql } from "src/apollo/__generated__";
+import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";

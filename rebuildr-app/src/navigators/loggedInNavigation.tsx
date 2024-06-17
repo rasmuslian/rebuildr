@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { gql } from "src/apollo/__generated__/gql";
+import { gql } from "src/gql/gql";
 import { LoggedInNavbar } from "src/components/navbars/loggedInNavbar";
 import { Landing } from "src/pages/landing";
 import { Sell } from "src/pages/sell";
