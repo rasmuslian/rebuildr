@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { IconType, Svg } from "src/components/svg";
+import { IconType, Icon } from "src/components/icons/icon";
 import { Text } from "./text";
 
 interface ButtonProps extends PropsWithChildren {
@@ -21,7 +21,7 @@ export const Button = ({
     <Pressable onPress={onPress} disabled={disabled}>
       <View style={style.container}>
         <Text>{title}</Text>
-        {icon && <Svg icon={icon} />}
+        {icon && <Icon iconType="Person" />}
         {children}
       </View>
     </Pressable>
