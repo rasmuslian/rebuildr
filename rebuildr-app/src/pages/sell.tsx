@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -39,9 +39,6 @@ interface Category {
 
 export const Sell = () => {
   const [title, setTitle] = useState("");
-  const [categories, setCategories] = useState<
-    (Category & { children: Category[] })[]
-  >([]);
   const [selectedRootCategory, setSelectedRootCategory] = useState<
     Category & { children: Category[] }
   >();
@@ -54,54 +51,55 @@ export const Sell = () => {
     price: number;
   }>();
 
-  useQuery(SELL_QUERY, {
-    onCompleted: (data) => {
-      const rootCategories = data.getCategories.reduce(
+  const { data } = useQuery(SELL_QUERY);
+
+  const [createProduct, { loading: creatingProduct }] =
+    useMutation(CREATE_PRODUCT);
+
+  const categories: (Category & { children: Category[] })[] = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+    const rootCategories = data.getCategories.reduce(
+      (
+        _rootCategories: {
+          id: string;
+          name: string;
+          parentId?: string;
+        }[],
+        cat,
+      ) => {
+        if (!cat.parentId) {
+          return [..._rootCategories, cat];
+        }
+        return _rootCategories;
+      },
+      [],
+    );
+
+    return rootCategories.map((root) => {
+      const children = data.getCategories.reduce(
         (
-          _rootCategories: {
+          _children: {
             id: string;
             name: string;
             parentId?: string;
           }[],
           cat,
         ) => {
-          if (!cat.parentId) {
-            return [..._rootCategories, cat];
+          if (cat.parentId === root.id) {
+            return [..._children, cat];
           }
-          return _rootCategories;
+          return _children;
         },
         [],
       );
-
-      const _categories = rootCategories.map((root) => {
-        const children = data.getCategories.reduce(
-          (
-            _children: {
-              id: string;
-              name: string;
-              parentId?: string;
-            }[],
-            cat,
-          ) => {
-            if (cat.parentId === root.id) {
-              return [..._children, cat];
-            }
-            return _children;
-          },
-          [],
-        );
-        return {
-          ...root,
-          children: children,
-        };
-      });
-
-      setCategories(_categories);
-    },
-  });
-
-  const [createProduct, { loading: creatingProduct }] =
-    useMutation(CREATE_PRODUCT);
+      return {
+        ...root,
+        children: children,
+      };
+    });
+  }, [data]);
 
   const onPublish = () => {
     if (creatingProduct) {
