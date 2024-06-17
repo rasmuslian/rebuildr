@@ -19,8 +19,8 @@ const documents = {
     types.LoginDocument,
   "\n  mutation RegisterUser($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      message\n    }\n  }\n":
     types.RegisterUserDocument,
-  "\n  query GetCategories {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n":
-    types.GetCategoriesDocument,
+  "\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n":
+    types.SellQueryDocument,
   "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      title\n      price\n      category {\n        name\n      }\n    }\n  }\n":
     types.CreateProductDocument,
 };
@@ -61,8 +61,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query GetCategories {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n",
-): (typeof documents)["\n  query GetCategories {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n"];
+  source: "\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n",
+): (typeof documents)["\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

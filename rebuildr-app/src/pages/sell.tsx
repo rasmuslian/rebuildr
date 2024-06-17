@@ -9,8 +9,8 @@ import { Picker } from "@react-native-picker/picker";
 import { Text } from "../components/text";
 import { NumberInput } from "src/components/inputs/numberInput";
 
-const GET_ALL_CATEGORIES = gql(`
-  query GetCategories {
+const SELL_QUERY = gql(`
+  query SellQuery {
     getCategories {
       id
       name
@@ -54,7 +54,7 @@ export const Sell = () => {
     price: number;
   }>();
 
-  useQuery(GET_ALL_CATEGORIES, {
+  useQuery(SELL_QUERY, {
     onCompleted: (data) => {
       const rootCategories = data.getCategories.reduce(
         (

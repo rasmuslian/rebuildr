@@ -135,9 +135,9 @@ export type RegisterUserMutation = {
   registerUser: { __typename?: "RegisterUserResponse"; message: string };
 };
 
-export type GetCategoriesQueryVariables = Exact<{ [key: string]: never }>;
+export type SellQueryQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetCategoriesQuery = {
+export type SellQueryQuery = {
   __typename?: "Query";
   getCategories: Array<{
     __typename?: "Category";
@@ -304,13 +304,13 @@ export const RegisterUserDocument = {
   RegisterUserMutation,
   RegisterUserMutationVariables
 >;
-export const GetCategoriesDocument = {
+export const SellQueryDocument = {
   kind: "Document",
   definitions: [
     {
       kind: "OperationDefinition",
       operation: "query",
-      name: { kind: "Name", value: "GetCategories" },
+      name: { kind: "Name", value: "SellQuery" },
       selectionSet: {
         kind: "SelectionSet",
         selections: [
@@ -330,7 +330,7 @@ export const GetCategoriesDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<GetCategoriesQuery, GetCategoriesQueryVariables>;
+} as unknown as DocumentNode<SellQueryQuery, SellQueryQueryVariables>;
 export const CreateProductDocument = {
   kind: "Document",
   definitions: [
