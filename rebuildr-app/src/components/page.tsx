@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
-import { textStyles, Text } from "./text";
+import { Title } from "./texts/text";
 
 interface PageProps extends PropsWithChildren {
   title?: string;
@@ -9,7 +9,11 @@ interface PageProps extends PropsWithChildren {
 export const Page = ({ title, children }: PageProps) => {
   return (
     <View style={styles.container}>
-      {title && <Text style={[textStyles.title, styles.title]}>{title}</Text>}
+      {title && (
+        <Title style={[styles.title]} size={"large"}>
+          {title}
+        </Title>
+      )}
       {children}
     </View>
   );

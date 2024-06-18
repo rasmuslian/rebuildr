@@ -5,8 +5,8 @@ import React from "react";
 import { ActivityIndicator } from "react-native";
 import { Page } from "src/components/page";
 import { LandingStackParamList } from "src/navigators/navigation.types";
-import { Text } from "src/components/text";
 import { gql } from "src/gql";
+import { Body } from "src/components/texts/text";
 
 const DETAILED_PRODUCT_QUERY = gql(`
   query DetailedProduct($input: GetProductInput!) {
@@ -40,9 +40,9 @@ export const ProductDetails = ({
   }
   return (
     <Page title={data.product.title}>
-      <Text>Pris {data.product.price} kr</Text>
-      <Text>Kategori {data.product.category.name}</Text>
-      <Text>Säljare {data.product.user.email}</Text>
+      <Body>Pris {data.product.price} kr</Body>
+      <Body>Kategori {data.product.category.name}</Body>
+      <Body>Säljare {data.product.user.email}</Body>
     </Page>
   );
 };

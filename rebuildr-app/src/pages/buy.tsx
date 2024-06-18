@@ -4,7 +4,7 @@ import React from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { Button } from "src/components/button";
 import { Page } from "src/components/page";
-import { Text, textStyles } from "src/components/text";
+import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 
 const BUY_QUERY = gql(
@@ -32,13 +32,13 @@ export const Buy = () => {
             style={styles.card}
             onPress={() => navigate("ProductDetails", { productId: p.id })}
           >
-            <Text style={textStyles.title}>{p.title}</Text>
-            <Text>{p.price} kr</Text>
+            <Title>{p.title}</Title>
+            <Body>{p.price} kr</Body>
           </Pressable>
         ))}
       </View>
       <Button onPress={() => console.log("hej")}>
-        <Text>Visa fler</Text>
+        <Body>Visa fler</Body>
       </Button>
     </Page>
   );

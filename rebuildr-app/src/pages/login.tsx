@@ -9,7 +9,7 @@ import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
-import { Text } from "src/components/text";
+import { Body } from "src/components/texts/text";
 
 const LOGIN = gql(`
   mutation Login($input: LoginInput!) {
@@ -61,9 +61,9 @@ export const Login = () => {
           disabled={loading}
         />
         <Button onPress={onLogin} disabled={loading}>
-          <Text>Logga in</Text>
+          <Body>Logga in</Body>
         </Button>
-        <Text>{error && "Felaktig e-post eller lösenord"}</Text>
+        <Body>{error && "Felaktig e-post eller lösenord"}</Body>
         <Button
           title={"Registrera ett konto"}
           onPress={() => navigate("Register")}

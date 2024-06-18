@@ -6,8 +6,8 @@ import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
 import { Picker } from "@react-native-picker/picker";
-import { Text } from "../components/text";
 import { NumberInput } from "src/components/inputs/numberInput";
+import { Body } from "src/components/texts/text";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -143,11 +143,11 @@ export const Sell = () => {
   if (createdProduct) {
     return (
       <Page title={"Vara skapad!"}>
-        <Text>title: {createdProduct.title}</Text>
-        <Text>category: {createdProduct.category.name}</Text>
-        <Text>
+        <Body>title: {createdProduct.title}</Body>
+        <Body>category: {createdProduct.category.name}</Body>
+        <Body>
           price: {createdProduct.price.toString().replace(".", ",")} kr
-        </Text>
+        </Body>
         <Button
           title="Skapa en till"
           onPress={() => setCreatedProduct(undefined)}

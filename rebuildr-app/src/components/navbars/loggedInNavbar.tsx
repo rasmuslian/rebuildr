@@ -2,12 +2,12 @@ import React from "react";
 import { StyleSheet, View, Image, Pressable } from "react-native";
 import Colors from "src/styles/colors";
 import { Button } from "../button";
-import { Text } from "../text";
 import logo from "assets/images/logo.png";
 import { useNavigation } from "@react-navigation/native";
 import { isLoggedInVar } from "src/apollo/apollo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useApolloClient } from "@apollo/client";
+import { Body } from "../texts/text";
 
 interface LoggedInNavbarProps {
   me: { email: string };
@@ -28,11 +28,11 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
       <Pressable onPress={() => navigate("Landing")}>
         <Image source={logo} />
       </Pressable>
-      <Text>{me.email}</Text>
+      <Body>{me.email}</Body>
       <View style={styles.ctaButtons}>
         <Button onPress={() => navigate("Sell")} title={"Sälj"}></Button>
-        <Button onPress={onLogout} icon={"person"}>
-          <Text>Logga ut</Text>
+        <Button onPress={onLogout} icon={"Person"}>
+          <Body>Logga ut</Body>
         </Button>
       </View>
     </View>

@@ -6,7 +6,7 @@ import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
-import { Text } from "../components/text";
+import { Body } from "src/components/texts/text";
 
 const REGISTER_USER = gql(`
   mutation RegisterUser($input: RegisterUserInput!) {
@@ -57,10 +57,10 @@ export const Register = () => {
           disabled={registering}
         />
         <Button onPress={onSubmit} disabled={registering}>
-          <Text>Skicka</Text>
+          <Body>Skicka</Body>
         </Button>
       </View>
-      <Text>{error?.message || data?.registerUser.message}</Text>
+      <Body>{error?.message || data?.registerUser.message}</Body>
     </Page>
   );
 };
