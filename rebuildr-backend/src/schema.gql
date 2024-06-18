@@ -26,7 +26,7 @@ type Product {
   id: ID!
   title: String!
   createdAt: DateTime!
-  price: Float!
+  price: Int!
   category: Category!
   user: User!
 }

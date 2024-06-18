@@ -113,9 +113,8 @@ export const Sell = () => {
       return;
     }
 
-    const transformedValue = price.replace(",", ".");
-    const toFloat = parseFloat(transformedValue);
-    if (isNaN(toFloat)) {
+    const toInt = parseInt(price);
+    if (isNaN(toInt)) {
       //invalid number
       return;
     }
@@ -125,7 +124,7 @@ export const Sell = () => {
         input: {
           title: title,
           categoryId: category.id,
-          price: toFloat,
+          price: toInt,
         },
       },
       onCompleted: (data) => {
@@ -145,9 +144,7 @@ export const Sell = () => {
       <Page title={"Vara skapad!"}>
         <Body>title: {createdProduct.title}</Body>
         <Body>category: {createdProduct.category.name}</Body>
-        <Body>
-          price: {createdProduct.price.toString().replace(".", ",")} kr
-        </Body>
+        <Body>price: {createdProduct.price} kr</Body>
         <Button
           title="Skapa en till"
           onPress={() => setCreatedProduct(undefined)}

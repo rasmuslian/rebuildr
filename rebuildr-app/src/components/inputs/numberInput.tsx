@@ -18,7 +18,7 @@ export const NumberInput = ({
       onChange(undefined);
     }
     //verify that value is a decimal number where separator is ','
-    const isNumberRegex = new RegExp(/^\d+([\, | \.]\d*)?$/);
+    const isNumberRegex = new RegExp(/^[0-9]*$/);
     if (!isNumberRegex.test(value)) {
       return;
     }
