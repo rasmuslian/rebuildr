@@ -19,9 +19,11 @@ const documents = {
     types.BuyQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
+  "\n  query DetailedProduct($input: GetProductInput!) {\n    product(input: $input) {\n      title\n      price\n      user {\n        email\n      }\n      category {\n        name\n      }\n    }\n  }\n":
+    types.DetailedProductDocument,
   "\n  mutation RegisterUser($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      message\n    }\n  }\n":
     types.RegisterUserDocument,
-  "\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n":
+  "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n  }\n":
     types.SellQueryDocument,
   "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      title\n      price\n      category {\n        name\n      }\n    }\n  }\n":
     types.CreateProductDocument,
@@ -63,14 +65,20 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  query DetailedProduct($input: GetProductInput!) {\n    product(input: $input) {\n      title\n      price\n      user {\n        email\n      }\n      category {\n        name\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query DetailedProduct($input: GetProductInput!) {\n    product(input: $input) {\n      title\n      price\n      user {\n        email\n      }\n      category {\n        name\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n  mutation RegisterUser($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      message\n    }\n  }\n",
 ): (typeof documents)["\n  mutation RegisterUser($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      message\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n",
-): (typeof documents)["\n  query SellQuery {\n    getCategories {\n      id\n      name\n      parentId\n    }\n  }\n"];
+  source: "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n  }\n",
+): (typeof documents)["\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

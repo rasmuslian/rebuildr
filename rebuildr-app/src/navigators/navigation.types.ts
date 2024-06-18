@@ -12,9 +12,11 @@ export type LandingStackParamList = {
   Register: undefined;
   Sell: undefined;
   Buy: undefined;
+  ProductDetails: { productId: string };
 };
 export type LoggedInStackParamList = {
   Landing: undefined;
   Sell: undefined;
   Buy: undefined;
+  ProductDetails: { productId: string };
 };

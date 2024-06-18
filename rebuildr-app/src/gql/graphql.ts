@@ -44,6 +44,10 @@ export type CreateProductInput = {
   title: Scalars["String"]["input"];
 };
 
+export type GetProductInput = {
+  id: Scalars["String"]["input"];
+};
+
 export type LoginInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
@@ -81,14 +85,20 @@ export type Product = {
   id: Scalars["ID"]["output"];
   price: Scalars["Float"]["output"];
   title: Scalars["String"]["output"];
+  user: User;
 };
 
 export type Query = {
   __typename?: "Query";
-  getCategories: Array<Category>;
+  categories: Array<Category>;
   me: User;
+  product: Product;
   products: Array<Product>;
   sayHello: Scalars["String"]["output"];
+};
+
+export type QueryProductArgs = {
+  input: GetProductInput;
 };
 
 export type RegisterUserInput = {
@@ -139,6 +149,21 @@ export type LoginMutation = {
   };
 };
 
+export type DetailedProductQueryVariables = Exact<{
+  input: GetProductInput;
+}>;
+
+export type DetailedProductQuery = {
+  __typename?: "Query";
+  product: {
+    __typename?: "Product";
+    title: string;
+    price: number;
+    user: { __typename?: "User"; email: string };
+    category: { __typename?: "Category"; name: string };
+  };
+};
+
 export type RegisterUserMutationVariables = Exact<{
   input: RegisterUserInput;
 }>;
@@ -152,7 +177,7 @@ export type SellQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type SellQueryQuery = {
   __typename?: "Query";
-  getCategories: Array<{
+  categories: Array<{
     __typename?: "Category";
     id: string;
     name: string;
@@ -290,6 +315,81 @@ export const LoginDocument = {
     },
   ],
 } as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
+export const DetailedProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "DetailedProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "GetProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "product" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "user" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "category" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DetailedProductQuery,
+  DetailedProductQueryVariables
+>;
 export const RegisterUserDocument = {
   kind: "Document",
   definitions: [
@@ -356,7 +456,7 @@ export const SellQueryDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "getCategories" },
+            name: { kind: "Name", value: "categories" },
             selectionSet: {
               kind: "SelectionSet",
               selections: [

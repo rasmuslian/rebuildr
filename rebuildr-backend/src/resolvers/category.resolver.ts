@@ -7,7 +7,7 @@ export class CategoryResolver {
   constructor(private categoryService: CategoryService) {}
 
   @Query(() => [Category])
-  getCategories() {
+  categories() {
     return this.categoryService.findAll();
   }
 }

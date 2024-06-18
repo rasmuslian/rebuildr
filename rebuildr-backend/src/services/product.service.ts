@@ -47,11 +47,15 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async getCategory(product: Product) {
+  async findCategory(product: Product) {
     return await this.categoryRepository.findOneBy({ id: product.categoryId });
   }
 
-  async getAll() {
+  async findAll() {
     return await this.productRepository.find();
+  }
+
+  async findOne(id: string) {
+    return await this.productRepository.findOneBy({ id });
   }
 }

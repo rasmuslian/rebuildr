@@ -1,10 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { gql } from "src/gql/gql";
+import { gql } from "src/gql";
 import { LoggedInNavbar } from "src/components/navbars/loggedInNavbar";
 import { Landing } from "src/pages/landing";
 import { Sell } from "src/pages/sell";
 import { Buy } from "src/pages/buy";
+import { ProductDetails } from "src/pages/productDetails";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -30,6 +31,7 @@ export const LoggedInNavigation = () => {
       <Stack.Screen name="Landing" component={Landing} />
       <Stack.Screen name="Sell" component={Sell} />
       <Stack.Screen name="Buy" component={Buy} />
+      <Stack.Screen name="ProductDetails" component={ProductDetails} />
     </Stack.Navigator>
   );
 };

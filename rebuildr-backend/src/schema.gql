@@ -28,6 +28,7 @@ type Product {
   createdAt: DateTime!
   price: Float!
   category: Category!
+  user: User!
 }
 
 """
@@ -38,8 +39,13 @@ scalar DateTime
 type Query {
   sayHello: String!
   me: User!
+  product(input: GetProductInput!): Product!
   products: [Product!]!
-  getCategories: [Category!]!
+  categories: [Category!]!
+}
+
+input GetProductInput {
+  id: String!
 }
 
 type Mutation {

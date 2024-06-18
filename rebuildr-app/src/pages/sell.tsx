@@ -11,7 +11,7 @@ import { NumberInput } from "src/components/inputs/numberInput";
 
 const SELL_QUERY = gql(`
   query SellQuery {
-    getCategories {
+    categories {
       id
       name
       parentId
@@ -60,7 +60,7 @@ export const Sell = () => {
     if (!data) {
       return [];
     }
-    const rootCategories = data.getCategories.reduce(
+    const rootCategories = data.categories.reduce(
       (
         _rootCategories: {
           id: string;
@@ -78,7 +78,7 @@ export const Sell = () => {
     );
 
     return rootCategories.map((root) => {
-      const children = data.getCategories.reduce(
+      const children = data.categories.reduce(
         (
           _children: {
             id: string;

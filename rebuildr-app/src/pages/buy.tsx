@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client";
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { Button } from "src/components/button";
 import { Page } from "src/components/page";
 import { Text, textStyles } from "src/components/text";
@@ -19,16 +20,21 @@ const BUY_QUERY = gql(
 );
 
 export const Buy = () => {
+  const { navigate } = useNavigation();
   const { data } = useQuery(BUY_QUERY);
 
   return (
     <Page title="Köp">
       <View style={styles.productsContainer}>
         {data?.products.map((p) => (
-          <View key={p.id} style={styles.card}>
+          <Pressable
+            key={p.id}
+            style={styles.card}
+            onPress={() => navigate("ProductDetails", { productId: p.id })}
+          >
             <Text style={textStyles.title}>{p.title}</Text>
             <Text>{p.price} kr</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
       <Button onPress={() => console.log("hej")}>
