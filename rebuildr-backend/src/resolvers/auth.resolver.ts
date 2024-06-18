@@ -8,6 +8,9 @@ import {
 } from '@nestjs/graphql';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from 'src/services/auth.service';
+import { z } from 'zod';
+import { UsePipes } from '@nestjs/common';
+import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 
 @InputType()
 export class RegisterUserInput {
@@ -17,6 +20,11 @@ export class RegisterUserInput {
   @Field(() => String)
   password: string;
 }
+const registerUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 @ObjectType()
 export class RegisterUserResponse {
   @Field(() => String)
@@ -45,6 +53,7 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => RegisterUserResponse)
+  @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
     return await this.authService.registerUser(input);
   }

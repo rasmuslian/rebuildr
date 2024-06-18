@@ -22,13 +22,6 @@ export class AuthService {
     if (!input.email || !input.password) {
       throw new Error('Invalid input');
     }
-    const emailRegex = new RegExp(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    );
-    const validMail = emailRegex.test(input.email);
-    if (!validMail) {
-      return { message: 'Invalid mail' };
-    }
 
     const emailTaken = await this.userRepository.existsBy({
       email: input.email,
