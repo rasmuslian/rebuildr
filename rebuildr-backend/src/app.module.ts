@@ -8,7 +8,6 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
-import { AppResolver } from './resolvers/App.resolver';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
@@ -67,7 +66,6 @@ import { Category } from './entities/category.entity';
   controllers: [AppController],
   providers: [
     JwtStrategy,
-    AppResolver,
     AppService,
     AuthResolver,
     AuthService,
