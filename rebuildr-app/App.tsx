@@ -1,20 +1,34 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  ApolloClient,
+  ApolloProvider,
+  NormalizedCacheObject,
+} from "@apollo/client";
+import { NavigationContainer } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { initializeApollo } from "src/apollo/apollo";
+import { linking } from "src/navigators/linkingConfig";
+import { RootNavigation } from "src/navigators/rootNavigation";
 
 export default function App() {
+  const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
+
+  useEffect(() => {
+    initializeApollo()
+      .then((_client) => {
+        setClient(_client);
+      })
+      .catch((e) => console.log("e :>> ", e));
+  }, []);
+
+  if (!client) {
+    return null;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ApolloProvider client={client}>
+      <NavigationContainer linking={linking}>
+        <RootNavigation />
+      </NavigationContainer>
+    </ApolloProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConfig } from './ormconfig';
@@ -10,11 +9,32 @@ import { join } from 'path';
 import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
 import { AppResolver } from './resolvers/App.resolver';
+import { AuthService } from './services/auth.service';
+import { AuthResolver } from './resolvers/auth.resolver';
+import { User } from './entities/user.entity';
+import { UserService } from './services/user.service';
+import { AppController } from './app.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { jwtConstants } from './auth/constants';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { UserResolver } from './resolvers/user.resolver';
+import { ProductResolver } from './resolvers/product.resolver';
+import { ProductService } from './services/product.service';
+import { CategoryService } from './services/category.service';
+import { CategoryResolver } from './resolvers/category.resolver';
+import { Product } from './entities/product.entity';
+import { Category } from './entities/category.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local.1p'],
+    }),
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -23,7 +43,7 @@ import { AppResolver } from './resolvers/App.resolver';
         ...dbConfig(configService),
       }),
     }),
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([User, Product, Category]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
@@ -45,6 +65,18 @@ import { AppResolver } from './resolvers/App.resolver';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver],
+  providers: [
+    JwtStrategy,
+    AppResolver,
+    AppService,
+    AuthResolver,
+    AuthService,
+    UserResolver,
+    UserService,
+    ProductResolver,
+    ProductService,
+    CategoryResolver,
+    CategoryService,
+  ],
 })
 export class AppModule {}

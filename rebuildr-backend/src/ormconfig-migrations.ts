@@ -18,7 +18,11 @@ import { DataSource } from 'typeorm';
 
 // Initialize a mini-NestJS application so we can use configuration here. It might be cleaner to just use dotenv directly. I'm not exactly a fan of this.
 @Module({
-  imports: [ConfigModule.forRoot({ envFilePath: ['.env.local', '.env'] })],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: ['.env.local.1p'],
+    }),
+  ],
 })
 class DataSourceAppModule {}
 
@@ -26,5 +30,10 @@ export const dataSource = (async () => {
   const app = await NestFactory.create(DataSourceAppModule, { logger: false });
   const configService = app.get(ConfigService);
 
-  return new DataSource(dbConfig(configService));
+  const migrations = './migration/*{.ts,.js}';
+
+  return new DataSource({
+    ...dbConfig(configService),
+    migrations: [migrations],
+  });
 })();

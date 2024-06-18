@@ -1,0 +1,65 @@
+import {
+  Args,
+  Field,
+  InputType,
+  Mutation,
+  ObjectType,
+  Resolver,
+} from '@nestjs/graphql';
+import { User } from 'src/entities/user.entity';
+import { AuthService } from 'src/services/auth.service';
+import { z } from 'zod';
+import { UsePipes } from '@nestjs/common';
+import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+
+@InputType()
+export class RegisterUserInput {
+  @Field(() => String)
+  email: string;
+
+  @Field(() => String)
+  password: string;
+}
+const registerUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+@ObjectType()
+export class RegisterUserResponse {
+  @Field(() => String)
+  message: string;
+}
+
+@InputType()
+export class LoginInput {
+  @Field(() => String)
+  email: string;
+
+  @Field(() => String)
+  password: string;
+}
+@ObjectType()
+class LoginResponse {
+  @Field(() => User)
+  user: User;
+
+  @Field(() => String)
+  accessToken: string;
+}
+
+@Resolver()
+export class AuthResolver {
+  constructor(private readonly authService: AuthService) {}
+
+  @Mutation(() => RegisterUserResponse)
+  @UsePipes(new ZodValidationPipe(registerUserSchema))
+  async registerUser(@Args('input') input: RegisterUserInput) {
+    return await this.authService.registerUser(input);
+  }
+
+  @Mutation(() => LoginResponse)
+  async login(@Args('input') input: LoginInput) {
+    return await this.authService.login(input);
+  }
+}

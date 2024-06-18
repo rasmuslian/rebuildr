@@ -1,0 +1,6 @@
+import React from "react";
+import { Page } from "src/components/page";
+
+export const Landing = () => {
+  return <Page title="Landing"></Page>;
+};
