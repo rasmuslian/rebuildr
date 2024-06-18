@@ -14,7 +14,7 @@ export const Navbar = () => {
       <Pressable onPress={() => navigate("Landing")}>
         <Image source={logo} />
       </Pressable>
-      <Button onPress={() => navigate("Login")} icon={"person"}>
+      <Button onPress={() => navigate("Login")} icon={"Person"}>
         <Text>Logga in</Text>
       </Button>
     </View>

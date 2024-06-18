@@ -50,4 +50,8 @@ export class ProductService {
   async getCategory(product: Product) {
     return await this.categoryRepository.findOneBy({ id: product.categoryId });
   }
+
+  async getAll() {
+    return await this.productRepository.find();
+  }
 }

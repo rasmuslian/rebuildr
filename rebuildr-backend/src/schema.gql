@@ -38,6 +38,7 @@ scalar DateTime
 type Query {
   sayHello: String!
   me: User!
+  products: [Product!]!
   getCategories: [Category!]!
 }
 

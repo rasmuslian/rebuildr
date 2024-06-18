@@ -4,6 +4,7 @@ const config = {
     Login: "/login",
     Register: "/register",
     Sell: "/sell",
+    Buy: "/buy",
   },
 };
 

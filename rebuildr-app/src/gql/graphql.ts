@@ -87,6 +87,7 @@ export type Query = {
   __typename?: "Query";
   getCategories: Array<Category>;
   me: User;
+  products: Array<Product>;
   sayHello: Scalars["String"]["output"];
 };
 
@@ -111,6 +112,18 @@ export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
   me: { __typename?: "User"; email: string };
+};
+
+export type BuyQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type BuyQueryQuery = {
+  __typename?: "Query";
+  products: Array<{
+    __typename?: "Product";
+    id: string;
+    title: string;
+    price: number;
+  }>;
 };
 
 export type LoginMutationVariables = Exact<{
@@ -189,6 +202,33 @@ export const LoggedInNavigationDocument = {
   LoggedInNavigationQuery,
   LoggedInNavigationQueryVariables
 >;
+export const BuyQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "BuyQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "products" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<BuyQueryQuery, BuyQueryQueryVariables>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [

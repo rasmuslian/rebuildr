@@ -20,7 +20,7 @@ export const Button = ({
   return (
     <Pressable onPress={onPress} disabled={disabled}>
       <View style={style.container}>
-        <Text>{title}</Text>
+        {title && <Text>{title}</Text>}
         {icon && <Icon iconType="Person" />}
         {children}
       </View>

@@ -5,6 +5,7 @@ import {
   Float,
   InputType,
   Mutation,
+  Query,
   ResolveField,
   Resolver,
   Root,
@@ -31,6 +32,11 @@ export class CreateProductInput {
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(private productService: ProductService) {}
+
+  @Query(() => [Product])
+  async products() {
+    return this.productService.getAll();
+  }
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
