@@ -40,6 +40,8 @@ type Message {
   id: ID!
   createdAt: DateTime!
   body: String!
+  senderId: ID!
+  receiverId: ID!
 }
 
 type Query {
@@ -47,10 +49,16 @@ type Query {
   product(input: GetProductInput!): Product!
   products: [Product!]!
   categories: [Category!]!
+  conversation(input: ConversationInput!): [Message!]!
 }
 
 input GetProductInput {
   id: String!
+}
+
+input ConversationInput {
+  otherUserId: String!
+  productId: String!
 }
 
 type Mutation {

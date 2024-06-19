@@ -24,12 +24,14 @@ export class Message {
   @Column()
   body: string;
 
+  @Field(() => ID)
   @Column()
   senderId: string;
 
   @ManyToOne(() => User, (user) => user.id)
   sender: User;
 
+  @Field(() => ID)
   @Column()
   receiverId: string;
 

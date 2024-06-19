@@ -14,6 +14,28 @@ export class MessageService {
     private productRepository: Repository<Product>,
   ) {}
 
+  async findConversation(input: {
+    primaryUserId: string;
+    otherUserId: string;
+    productId: string;
+  }) {
+    return await this.messageRepository.find({
+      where: [
+        {
+          senderId: input.primaryUserId,
+          receiverId: input.otherUserId,
+          productId: input.productId,
+        },
+        {
+          senderId: input.otherUserId,
+          receiverId: input.primaryUserId,
+          productId: input.productId,
+        },
+      ],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
   async create(input: {
     senderId: string;
     receiverId: string;

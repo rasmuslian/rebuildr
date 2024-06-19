@@ -1,10 +1,26 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Field, InputType, Mutation, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Field,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
+} from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Message } from 'src/entities/message.entity';
 import { User } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
+
+@InputType()
+class ConversationInput {
+  @Field()
+  otherUserId: string;
+
+  @Field()
+  productId: string;
+}
 
 @InputType()
 class CreateMessageInput {
@@ -19,6 +35,19 @@ class CreateMessageInput {
 @Resolver()
 export class MessageResolver {
   constructor(private messageService: MessageService) {}
+
+  @Query(() => [Message])
+  @UseGuards(GqlAuthGuard)
+  async conversation(
+    @CurrentUser() _user: User,
+    @Args('input') input: ConversationInput,
+  ) {
+    return this.messageService.findConversation({
+      primaryUserId: _user.id,
+      otherUserId: input.otherUserId,
+      productId: input.productId,
+    });
+  }
 
   @Mutation(() => Message)
   @UseGuards(GqlAuthGuard)
