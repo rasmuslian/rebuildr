@@ -44,12 +44,19 @@ type Message {
   receiverId: ID!
 }
 
+type ConversationsResponse {
+  otherUser: User!
+  product: Product!
+  latestMessageAt: DateTime!
+}
+
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
   products: [Product!]!
   categories: [Category!]!
   conversation(input: ConversationInput!): [Message!]!
+  conversations: [ConversationsResponse!]!
 }
 
 input GetProductInput {

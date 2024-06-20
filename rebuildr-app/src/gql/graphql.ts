@@ -38,6 +38,24 @@ export type Category = {
   parentId?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type ConversationInput = {
+  otherUserId: Scalars["String"]["input"];
+  productId: Scalars["String"]["input"];
+};
+
+export type ConversationsResponse = {
+  __typename?: "ConversationsResponse";
+  latestMessageAt: Scalars["DateTime"]["output"];
+  otherUser: User;
+  product: Product;
+};
+
+export type CreateMessageInput = {
+  body: Scalars["String"]["input"];
+  productId: Scalars["String"]["input"];
+  receiverId: Scalars["String"]["input"];
+};
+
 export type CreateProductInput = {
   categoryId: Scalars["String"]["input"];
   price: Scalars["Float"]["input"];
@@ -59,11 +77,25 @@ export type LoginResponse = {
   user: User;
 };
 
+export type Message = {
+  __typename?: "Message";
+  body: Scalars["String"]["output"];
+  createdAt: Scalars["DateTime"]["output"];
+  id: Scalars["ID"]["output"];
+  receiverId: Scalars["ID"]["output"];
+  senderId: Scalars["ID"]["output"];
+};
+
 export type Mutation = {
   __typename?: "Mutation";
+  createMessage: Message;
   createProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
+};
+
+export type MutationCreateMessageArgs = {
+  input: CreateMessageInput;
 };
 
 export type MutationCreateProductArgs = {
@@ -83,7 +115,7 @@ export type Product = {
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
-  price: Scalars["Float"]["output"];
+  price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
   user: User;
 };
@@ -91,10 +123,15 @@ export type Product = {
 export type Query = {
   __typename?: "Query";
   categories: Array<Category>;
+  conversation: Array<Message>;
+  conversations: Array<ConversationsResponse>;
   me: User;
   product: Product;
   products: Array<Product>;
-  sayHello: Scalars["String"]["output"];
+};
+
+export type QueryConversationArgs = {
+  input: ConversationInput;
 };
 
 export type QueryProductArgs = {
@@ -117,6 +154,13 @@ export type User = {
   id: Scalars["ID"]["output"];
 };
 
+export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type MeQueryQuery = {
+  __typename?: "Query";
+  me: { __typename?: "User"; id: string; email: string };
+};
+
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
@@ -133,6 +177,43 @@ export type BuyQueryQuery = {
     id: string;
     title: string;
     price: number;
+  }>;
+};
+
+export type ConversationQueryQueryVariables = Exact<{
+  input: ConversationInput;
+}>;
+
+export type ConversationQueryQuery = {
+  __typename?: "Query";
+  conversation: Array<{
+    __typename?: "Message";
+    id: string;
+    senderId: string;
+    receiverId: string;
+    createdAt: any;
+    body: string;
+  }>;
+};
+
+export type SendMessageMutationVariables = Exact<{
+  input: CreateMessageInput;
+}>;
+
+export type SendMessageMutation = {
+  __typename?: "Mutation";
+  createMessage: { __typename?: "Message"; createdAt: any; body: string };
+};
+
+export type ConversationsQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type ConversationsQueryQuery = {
+  __typename?: "Query";
+  conversations: Array<{
+    __typename?: "ConversationsResponse";
+    latestMessageAt: any;
+    otherUser: { __typename?: "User"; id: string; email: string };
+    product: { __typename?: "Product"; id: string; title: string };
   }>;
 };
 
@@ -157,9 +238,10 @@ export type DetailedProductQuery = {
   __typename?: "Query";
   product: {
     __typename?: "Product";
+    id: string;
     title: string;
     price: number;
-    user: { __typename?: "User"; email: string };
+    user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
 };
@@ -199,6 +281,32 @@ export type CreateProductMutation = {
   };
 };
 
+export const MeQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "MeQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<MeQueryQuery, MeQueryQueryVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -254,6 +362,169 @@ export const BuyQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<BuyQueryQuery, BuyQueryQueryVariables>;
+export const ConversationQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "ConversationQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ConversationInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "conversation" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "senderId" } },
+                { kind: "Field", name: { kind: "Name", value: "receiverId" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "body" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ConversationQueryQuery,
+  ConversationQueryQueryVariables
+>;
+export const SendMessageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "SendMessage" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateMessageInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createMessage" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "body" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SendMessageMutation, SendMessageMutationVariables>;
+export const ConversationsQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "ConversationsQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "conversations" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "otherUser" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "latestMessageAt" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "product" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ConversationsQueryQuery,
+  ConversationsQueryQueryVariables
+>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [
@@ -357,6 +628,7 @@ export const DetailedProductDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
                 {
@@ -365,6 +637,7 @@ export const DetailedProductDocument = {
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "email" } },
                     ],
                   },

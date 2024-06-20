@@ -6,6 +6,9 @@ import { Landing } from "src/pages/landing";
 import { Sell } from "src/pages/sell";
 import { Buy } from "src/pages/buy";
 import { ProductDetails } from "src/pages/productDetails";
+import { Conversation } from "src/pages/conversation";
+import { LoggedInStackParamList } from "./navigation.types";
+import { Conversations } from "src/pages/conversations";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -16,7 +19,7 @@ const LOGGED_IN_NAVIGATION = gql(`
 `);
 
 export const LoggedInNavigation = () => {
-  const Stack = createNativeStackNavigator();
+  const Stack = createNativeStackNavigator<LoggedInStackParamList>();
 
   const { data } = useQuery(LOGGED_IN_NAVIGATION);
 
@@ -32,6 +35,8 @@ export const LoggedInNavigation = () => {
       <Stack.Screen name="Sell" component={Sell} />
       <Stack.Screen name="Buy" component={Buy} />
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
+      <Stack.Screen name="Conversation" component={Conversation} />
+      <Stack.Screen name="Conversations" component={Conversations} />
     </Stack.Navigator>
   );
 };

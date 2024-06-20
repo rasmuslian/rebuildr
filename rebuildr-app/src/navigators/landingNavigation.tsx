@@ -5,9 +5,10 @@ import { Landing } from "src/pages/landing";
 import { Login } from "src/pages/login";
 import { ProductDetails } from "src/pages/productDetails";
 import { Register } from "src/pages/register";
+import { LandingStackParamList } from "./navigation.types";
 
 export const LandingNavigation = () => {
-  const Stack = createNativeStackNavigator();
+  const Stack = createNativeStackNavigator<LandingStackParamList>();
   return (
     <Stack.Navigator screenOptions={{ header: () => <Navbar /> }}>
       <Stack.Screen name="Landing" component={Landing} />

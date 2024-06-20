@@ -1,12 +1,13 @@
 import React, { PropsWithChildren } from "react";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Title } from "./texts/text";
 
 interface PageProps extends PropsWithChildren {
   title?: string;
+  loading?: boolean;
 }
 
-export const Page = ({ title, children }: PageProps) => {
+export const Page = ({ title, loading, children }: PageProps) => {
   return (
     <View style={styles.container}>
       {title && (
@@ -14,7 +15,7 @@ export const Page = ({ title, children }: PageProps) => {
           {title}
         </Title>
       )}
-      {children}
+      {loading ? <ActivityIndicator size="large" /> : children}
     </View>
   );
 };

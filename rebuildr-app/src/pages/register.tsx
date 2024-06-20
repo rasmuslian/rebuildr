@@ -6,7 +6,7 @@ import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
-import { Body } from "src/components/texts/text";
+import { Body, Title } from "src/components/texts/text";
 
 const REGISTER_USER = gql(`
   mutation RegisterUser($input: RegisterUserInput!) {
@@ -19,47 +19,53 @@ const REGISTER_USER = gql(`
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [registering, setRegistering] = useState(false);
+  const [createdUser, setCreatedUser] = useState(false);
 
-  const [registerUser, { data, error }] = useMutation(REGISTER_USER);
+  const [registerUser, { data, error, loading }] = useMutation(REGISTER_USER);
 
   const onSubmit = () => {
-    if (registering) {
+    if (loading) {
       return;
     }
 
-    setRegistering(true);
     //TODO: validate input
 
     registerUser({
       variables: { input: { email: email, password: password } },
+      onCompleted: (data) => {
+        if (!data.registerUser.message) {
+          setCreatedUser(true);
+          //Reset
+          setEmail("");
+          setPassword("");
+        }
+      },
     });
-
-    if (!error && !data.registerUser.message) {
-      //Reset
-      setEmail("");
-      setPassword("");
-    }
-    setRegistering(false);
   };
 
   return (
     <Page title="Registrera konto">
-      <View style={styles.formContainer}>
-        <Input
-          placeholder="E-post"
-          onChange={setEmail}
-          disabled={registering}
-        />
-        <HiddenInput
-          placeholder="Lösenord"
-          onChange={setPassword}
-          disabled={registering}
-        />
-        <Button onPress={onSubmit} disabled={registering}>
-          <Body>Skicka</Body>
-        </Button>
-      </View>
+      {createdUser ? (
+        <Title>Skapat användare!</Title>
+      ) : (
+        <View style={styles.formContainer}>
+          <Input
+            placeholder="E-post"
+            onChange={setEmail}
+            disabled={loading}
+            value={email}
+          />
+          <HiddenInput
+            placeholder="Lösenord"
+            onChange={setPassword}
+            value={password}
+            disabled={loading}
+          />
+          <Button onPress={onSubmit} disabled={loading}>
+            <Body>Skicka</Body>
+          </Button>
+        </View>
+      )}
       <Body>{error?.message || data?.registerUser.message}</Body>
     </Page>
   );

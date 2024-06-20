@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 export class MessageService {
   constructor(
@@ -12,6 +12,7 @@ export class MessageService {
     private userRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private dataSource: DataSource,
   ) {}
 
   async findConversation(input: {
@@ -34,6 +35,36 @@ export class MessageService {
       ],
       order: { createdAt: 'ASC' },
     });
+  }
+
+  async findConversations(input: { id: string }) {
+    return await this.dataSource.query<
+      { otherUser: User; product: Product; latestMessageAt: Date }[]
+    >(`
+    SELECT
+      row_to_json(other) as "otherUser",
+      row_to_json(product) as product,
+      max(conversations.created_at) as "latestMessageAt"
+    FROM (
+      SELECT
+        CASE WHEN '${input.id}' = receiver_id THEN
+          sender_id
+        ELSE
+          receiver_id
+      END other_user_id,
+      *
+      FROM
+        message m
+    WHERE
+      receiver_id = '${input.id}' OR sender_id = '${input.id}') AS conversations
+    LEFT JOIN "user" other on other.id = other_user_id
+    LEFT JOIN product on product.id = product_id
+    GROUP BY
+      other.id,
+      product.id
+    ORDER BY
+      "latestMessageAt"
+    `);
   }
 
   async create(input: {

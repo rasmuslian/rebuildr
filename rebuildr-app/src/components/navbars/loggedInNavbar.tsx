@@ -30,6 +30,10 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
       </Pressable>
       <Body>{me.email}</Body>
       <View style={styles.ctaButtons}>
+        <Button
+          onPress={() => navigate("Conversations")}
+          title={"Meddelanden"}
+        />
         <Button onPress={() => navigate("Sell")} title={"Sälj"}></Button>
         <Button onPress={onLogout} icon={"Person"}>
           <Body>Logga ut</Body>

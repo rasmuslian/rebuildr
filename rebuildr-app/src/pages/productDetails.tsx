@@ -7,13 +7,17 @@ import { Page } from "src/components/page";
 import { LandingStackParamList } from "src/navigators/navigation.types";
 import { gql } from "src/gql";
 import { Body } from "src/components/texts/text";
+import { Button } from "src/components/button";
+import { isLoggedInVar } from "src/apollo/apollo";
 
 const DETAILED_PRODUCT_QUERY = gql(`
   query DetailedProduct($input: GetProductInput!) {
     product(input: $input) {
+      id
       title
       price
       user {
+        id
         email
       }
       category {
@@ -43,6 +47,17 @@ export const ProductDetails = ({
       <Body>Pris {data.product.price} kr</Body>
       <Body>Kategori {data.product.category.name}</Body>
       <Body>Säljare {data.product.user.email}</Body>
+      {isLoggedInVar() && (
+        <Button
+          onPress={() =>
+            navigation.navigate("Conversation", {
+              otherUserId: data.product.user.id,
+              productId: data.product.id,
+            })
+          }
+          title="Skicka meddelande"
+        />
+      )}
     </Page>
   );
 };

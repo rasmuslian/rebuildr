@@ -19,4 +19,6 @@ export type LoggedInStackParamList = {
   Sell: undefined;
   Buy: undefined;
   ProductDetails: { productId: string };
+  Conversation: { otherUserId: string; productId: string };
+  Conversations: undefined;
 };

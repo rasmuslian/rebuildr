@@ -9,9 +9,11 @@ export const Input = ({
   placeholder,
   value,
   disabled,
+  ...props
 }: InputProps) => {
   return (
     <TextInput
+      {...props}
       style={baseInputStyles.container}
       onChangeText={onChange}
       placeholder={placeholder}
