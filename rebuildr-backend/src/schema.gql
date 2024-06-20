@@ -44,6 +44,11 @@ type Message {
   receiverId: ID!
 }
 
+type ConversationResponse {
+  otherUser: User!
+  messages: [Message!]!
+}
+
 type ConversationsResponse {
   otherUser: User!
   product: Product!
@@ -55,7 +60,7 @@ type Query {
   product(input: GetProductInput!): Product!
   products: [Product!]!
   categories: [Category!]!
-  conversation(input: ConversationInput!): [Message!]!
+  conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationsResponse!]!
 }
 

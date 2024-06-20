@@ -43,6 +43,12 @@ export type ConversationInput = {
   productId: Scalars["String"]["input"];
 };
 
+export type ConversationResponse = {
+  __typename?: "ConversationResponse";
+  messages: Array<Message>;
+  otherUser: User;
+};
+
 export type ConversationsResponse = {
   __typename?: "ConversationsResponse";
   latestMessageAt: Scalars["DateTime"]["output"];
@@ -123,7 +129,7 @@ export type Product = {
 export type Query = {
   __typename?: "Query";
   categories: Array<Category>;
-  conversation: Array<Message>;
+  conversation: ConversationResponse;
   conversations: Array<ConversationsResponse>;
   me: User;
   product: Product;
@@ -150,6 +156,7 @@ export type RegisterUserResponse = {
 
 export type User = {
   __typename?: "User";
+  createdAt: Scalars["DateTime"]["output"];
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
 };
@@ -186,14 +193,17 @@ export type ConversationQueryQueryVariables = Exact<{
 
 export type ConversationQueryQuery = {
   __typename?: "Query";
-  conversation: Array<{
-    __typename?: "Message";
-    id: string;
-    senderId: string;
-    receiverId: string;
-    createdAt: any;
-    body: string;
-  }>;
+  conversation: {
+    __typename?: "ConversationResponse";
+    otherUser: { __typename?: "User"; id: string; email: string };
+    messages: Array<{
+      __typename?: "Message";
+      id: string;
+      receiverId: string;
+      createdAt: any;
+      body: string;
+    }>;
+  };
 };
 
 export type SendMessageMutationVariables = Exact<{
@@ -404,11 +414,36 @@ export const ConversationQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "senderId" } },
-                { kind: "Field", name: { kind: "Name", value: "receiverId" } },
-                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
-                { kind: "Field", name: { kind: "Name", value: "body" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "otherUser" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "messages" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "receiverId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "createdAt" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "body" } },
+                    ],
+                  },
+                },
               ],
             },
           },

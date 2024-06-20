@@ -24,6 +24,15 @@ class ConversationInput {
   productId: string;
 }
 
+@ObjectType()
+class ConversationResponse {
+  @Field(() => User)
+  otherUser: User;
+
+  @Field(() => [Message])
+  messages: Message[];
+}
+
 @InputType()
 class CreateMessageInput {
   @Field()
@@ -50,7 +59,7 @@ class ConversationsResponse {
 export class MessageResolver {
   constructor(private messageService: MessageService) {}
 
-  @Query(() => [Message])
+  @Query(() => ConversationResponse)
   @UseGuards(GqlAuthGuard)
   async conversation(
     @CurrentUser() _user: User,

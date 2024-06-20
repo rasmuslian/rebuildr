@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { User } from './user.entity';
+import { Expose, Type } from 'class-transformer';
 
 @Entity()
 @ObjectType()
@@ -16,6 +17,8 @@ export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Type(() => Date)
+  @Expose({ name: 'created_at' })
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
@@ -24,6 +27,7 @@ export class Message {
   @Column()
   body: string;
 
+  @Expose({ name: 'sender_id' })
   @Field(() => ID)
   @Column()
   senderId: string;
@@ -31,6 +35,7 @@ export class Message {
   @ManyToOne(() => User, (user) => user.id)
   sender: User;
 
+  @Expose({ name: 'receiver_id' })
   @Field(() => ID)
   @Column()
   receiverId: string;
@@ -38,6 +43,7 @@ export class Message {
   @ManyToOne(() => User, (user) => user.id)
   receiver: User;
 
+  @Expose({ name: 'product_id' })
   @Column()
   productId: string;
 

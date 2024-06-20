@@ -13,11 +13,16 @@ import { useMutation, useQuery } from "@apollo/client";
 const CONVERSATION_QUERY = gql(`
   query ConversationQuery($input: ConversationInput!) {
     conversation(input: $input) {
-      id
-      senderId
-      receiverId
-      createdAt
-      body
+      otherUser {
+        id
+        email
+      }
+      messages {
+        id
+        receiverId
+        createdAt
+        body
+      }
     }
   }
 `);
@@ -61,10 +66,13 @@ export const Conversation = ({
   };
 
   return (
-    <Page title="Konversation med" loading={loadingConversation}>
+    <Page
+      title={`Konversation med ${data?.conversation.otherUser.email}`}
+      loading={loadingConversation}
+    >
       <View>
         <View style={styles.chatContainer}>
-          {data?.conversation.map((message) => (
+          {data?.conversation.messages.map((message) => (
             <View style={styles.messageContainer} key={message.id}>
               <Body style={styles.date}>
                 {dayjs(message.createdAt).format("DD MM hh:mm")}

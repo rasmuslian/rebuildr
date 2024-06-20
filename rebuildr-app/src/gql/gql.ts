@@ -19,7 +19,7 @@ const documents = {
     types.LoggedInNavigationDocument,
   "\n    query BuyQuery {\n      products {\n        id\n        title\n        price\n      }\n    }\n  ":
     types.BuyQueryDocument,
-  "\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      id\n      senderId\n      receiverId\n      createdAt\n      body\n    }\n  }\n":
+  "\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      otherUser {\n        id\n        email\n      }\n      messages {\n        id\n        receiverId\n        createdAt\n        body\n      }\n    }\n  }\n":
     types.ConversationQueryDocument,
   "\nmutation SendMessage($input: CreateMessageInput!) {\n  createMessage(input: $input) {\n    createdAt\n    body  \n  }\n}\n":
     types.SendMessageDocument,
@@ -73,8 +73,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      id\n      senderId\n      receiverId\n      createdAt\n      body\n    }\n  }\n",
-): (typeof documents)["\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      id\n      senderId\n      receiverId\n      createdAt\n      body\n    }\n  }\n"];
+  source: "\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      otherUser {\n        id\n        email\n      }\n      messages {\n        id\n        receiverId\n        createdAt\n        body\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      otherUser {\n        id\n        email\n      }\n      messages {\n        id\n        receiverId\n        createdAt\n        body\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
