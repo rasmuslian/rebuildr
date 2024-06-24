@@ -61,6 +61,7 @@ export const Conversation = ({
           body: message,
         },
       },
+      refetchQueries: [CONVERSATION_QUERY],
     });
     setMessage("");
   };
