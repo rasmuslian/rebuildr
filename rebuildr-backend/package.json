@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "npm run migration:run:prod && nest start",
     "start:dev": "op run --env-file=\".env.local.1p\" -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
@@ -20,6 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
+    "migration:run:prod": "npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
     "migration:run": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
     "migration:show": "npm run typeorm migration:show -- -d ./src/ormconfig-migrations.ts",
     "migration:revert": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
