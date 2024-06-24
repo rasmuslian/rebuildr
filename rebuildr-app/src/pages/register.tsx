@@ -19,7 +19,6 @@ const REGISTER_USER = gql(`
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [createdUser, setCreatedUser] = useState(false);
 
   const [registerUser, { data, error, loading }] = useMutation(REGISTER_USER);
 
@@ -34,7 +33,6 @@ export const Register = () => {
       variables: { input: { email: email, password: password } },
       onCompleted: (data) => {
         if (!data.registerUser.message) {
-          setCreatedUser(true);
           //Reset
           setEmail("");
           setPassword("");
@@ -45,7 +43,7 @@ export const Register = () => {
 
   return (
     <Page title="Registrera konto">
-      {createdUser ? (
+      {data && !data.registerUser.message ? (
         <Title>Skapat användare!</Title>
       ) : (
         <View style={styles.formContainer}>
