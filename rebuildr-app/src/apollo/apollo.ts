@@ -12,7 +12,10 @@ import { onError } from "@apollo/client/link/error";
 export const isLoggedInVar = makeVar(false);
 
 const httpLink = createHttpLink({
-  uri: process.env.NODE_ENV === "development" ? "http://localhost:3000/graphql" : "https://rebuildr-backend-6a7ah.ondigitalocean.app/graphql",
+  uri:
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/graphql"
+      : "https://rebuildr-backend-6a7ah.ondigitalocean.app/graphql",
 });
 
 const authLink = setContext(async (_, { headers }) => {
