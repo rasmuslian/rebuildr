@@ -21,7 +21,10 @@ export class RegisterUserInput {
   password: string;
 }
 const registerUserSchema = z.object({
-  email: z.string().email(),
+  email: z
+    .string()
+    .email()
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(1),
 });
 
