@@ -156,16 +156,8 @@ export type RegisterUserResponse = {
 
 export type User = {
   __typename?: "User";
-  createdAt: Scalars["DateTime"]["output"];
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
-};
-
-export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
-
-export type MeQueryQuery = {
-  __typename?: "Query";
-  me: { __typename?: "User"; id: string; email: string };
 };
 
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
@@ -240,11 +232,11 @@ export type LoginMutation = {
   };
 };
 
-export type DetailedProductQueryVariables = Exact<{
+export type ProductDetailsQueryVariables = Exact<{
   input: GetProductInput;
 }>;
 
-export type DetailedProductQuery = {
+export type ProductDetailsQuery = {
   __typename?: "Query";
   product: {
     __typename?: "Product";
@@ -291,32 +283,6 @@ export type CreateProductMutation = {
   };
 };
 
-export const MeQueryDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "MeQuery" },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "me" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<MeQueryQuery, MeQueryQueryVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -621,13 +587,13 @@ export const LoginDocument = {
     },
   ],
 } as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
-export const DetailedProductDocument = {
+export const ProductDetailsDocument = {
   kind: "Document",
   definitions: [
     {
       kind: "OperationDefinition",
       operation: "query",
-      name: { kind: "Name", value: "DetailedProduct" },
+      name: { kind: "Name", value: "ProductDetails" },
       variableDefinitions: [
         {
           kind: "VariableDefinition",
@@ -694,10 +660,7 @@ export const DetailedProductDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<
-  DetailedProductQuery,
-  DetailedProductQueryVariables
->;
+} as unknown as DocumentNode<ProductDetailsQuery, ProductDetailsQueryVariables>;
 export const RegisterUserDocument = {
   kind: "Document",
   definitions: [

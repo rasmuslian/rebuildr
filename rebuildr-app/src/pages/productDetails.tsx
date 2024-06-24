@@ -10,8 +10,8 @@ import { Body } from "src/components/texts/text";
 import { Button } from "src/components/button";
 import { isLoggedInVar } from "src/apollo/apollo";
 
-const DETAILED_PRODUCT_QUERY = gql(`
-  query DetailedProduct($input: GetProductInput!) {
+const PRODUCT_DETAILS_QUERY = gql(`
+  query ProductDetails($input: GetProductInput!) {
     product(input: $input) {
       id
       title
@@ -35,7 +35,7 @@ export const ProductDetails = ({
     navigation.goBack();
   }
 
-  const { data } = useQuery(DETAILED_PRODUCT_QUERY, {
+  const { data } = useQuery(PRODUCT_DETAILS_QUERY, {
     variables: { input: { id: route.params.productId } },
   });
 
