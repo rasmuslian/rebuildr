@@ -3,7 +3,12 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { LoginInput, RegisterUserInput } from 'src/resolvers/auth.resolver';
+import {
+  LoginInput,
+  RegisterUserInput,
+  ResendVerificationMailInput,
+  VerifyMailInput,
+} from 'src/resolvers/auth.resolver';
 import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -33,26 +38,75 @@ export class AuthService {
 
   async registerUser(input: RegisterUserInput) {
     //validate input
-    if (!input.email || !input.password) {
+    if (!input.email) {
       throw new Error('Invalid input');
     }
 
-    const emailTaken = await this.userRepository.existsBy({
+    let existingUser = await this.userRepository.findOneBy({
       email: input.email,
     });
-    if (emailTaken) {
-      return { message: 'Email already in use' };
+    if (!existingUser) {
+      //create user
+      const password = await bcrypt.hash(input.password, 10);
+      existingUser = await this.userService.createUser({
+        email: input.email,
+        password: password,
+      });
+    } else if (existingUser.verified) {
+      return { message: 'User with email already exist' };
     }
 
-    //hash password
-    const hash = await bcrypt.hash(input.password, 10);
+    //generate token
+    const token = crypto.randomBytes(10).toString('hex');
+    const verifiedEmailToken = await bcrypt.hash(token, 10);
+    await this.userRepository.update(
+      { id: existingUser.id },
+      { verifyEmailToken: verifiedEmailToken },
+    );
 
-    //create user
-    await this.userService.createUser({
-      email: input.email,
-      password: hash,
-    });
+    //TODO: send verification mail
+
     return { message: '' };
+  }
+
+  async verifyMail(input: VerifyMailInput) {
+    const user = await this.userRepository.findOneBy({ id: input.email });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const matchingTokens = await bcrypt.compare(
+      input.verifyEmailToken,
+      user.verifyEmailToken,
+    );
+
+    if (!matchingTokens) {
+      throw new UnauthorizedException();
+    }
+
+    await this.userRepository.update({ id: user.id }, { verified: true });
+
+    //create accessToken
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: jwtConstants.expiresIn,
+    });
+
+    return { user: user, accessToken: accessToken };
+  }
+
+  async resendVerificationMail(input: ResendVerificationMailInput) {
+    //user exist?
+    //[no] return invalid
+
+    //verified?
+    //[yes] return "user exist"
+
+    //create new token for user
+    //send new mail
+    //return {""}
+    console.log('input :>> ', input);
   }
 
   async login(input: LoginInput) {

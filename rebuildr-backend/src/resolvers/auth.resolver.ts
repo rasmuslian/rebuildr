@@ -25,11 +25,38 @@ const registerUserSchema = z.object({
     .string()
     .email()
     .transform((value) => value.toLowerCase()),
-  password: z.string().min(1),
+  password: z.string(),
 });
 
 @ObjectType()
 export class RegisterUserResponse {
+  @Field(() => String)
+  message: string;
+}
+
+@InputType()
+export class ResendVerificationMailInput {
+  @Field(() => String)
+  email: string;
+}
+const resendVerificationMailSchema = z.object({
+  email: z
+    .string()
+    .email()
+    .transform((value) => value.toLowerCase()),
+});
+
+@InputType()
+export class VerifyMailInput {
+  @Field(() => String)
+  email: string;
+
+  @Field(() => String)
+  verifyEmailToken: string;
+}
+
+@ObjectType()
+class ResendVerificationMailResponse {
   @Field(() => String)
   message: string;
 }
@@ -80,6 +107,19 @@ export class AuthResolver {
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
     return await this.authService.registerUser(input);
+  }
+
+  @Mutation(() => LoginResponse)
+  async verifyMail(@Args('input') input: VerifyMailInput) {
+    return await this.authService.verifyMail(input);
+  }
+
+  @Mutation(() => ResendVerificationMailResponse)
+  @UsePipes(new ZodValidationPipe(resendVerificationMailSchema))
+  async resendVerificationMail(
+    @Args('input') input: ResendVerificationMailInput,
+  ) {
+    return await this.authService.resendVerificationMail(input);
   }
 
   @Mutation(() => LoginResponse)

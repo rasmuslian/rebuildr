@@ -46,6 +46,10 @@ type RegisterUserResponse {
   message: String!
 }
 
+type ResendVerificationMailResponse {
+  message: String!
+}
+
 type LoginResponse {
   user: User!
   accessToken: String!
@@ -118,6 +122,8 @@ input ConversationInput {
 
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
+  verifyMail(input: VerifyMailInput!): LoginResponse!
+  resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   login(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   updateUser(input: UpdateUserInput!): User!
@@ -131,6 +137,15 @@ type Mutation {
 input RegisterUserInput {
   email: String!
   password: String!
+}
+
+input VerifyMailInput {
+  email: String!
+  verifyEmailToken: String!
+}
+
+input ResendVerificationMailInput {
+  email: String!
 }
 
 input LoginInput {

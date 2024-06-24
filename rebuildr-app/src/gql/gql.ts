@@ -15,6 +15,8 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n":
     types.GetNewTokensDocument,
+  "\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n":
+    types.MeQueryDocument,
   "\n  query LoggedInNavigation {\n    me {\n      id\n      email\n      role\n    }\n  }\n":
     types.LoggedInNavigationDocument,
   "\n  query AccountQuery {\n    me {\n      id\n      email\n      address\n      role\n    }\n  }\n":
@@ -45,10 +47,14 @@ const documents = {
     types.ProductsCategoryDocument,
   "\n  mutation RegisterUser($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      message\n    }\n  }\n":
     types.RegisterUserDocument,
+  "\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  ":
+    types.ResendVerificationMailDocument,
   "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      id\n      email\n      address\n    }\n  }\n":
     types.SellQueryDocument,
   "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n":
     types.CreateProductDocument,
+  "\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n    }\n  }\n":
+    types.VerifyMailDocument,
 };
 
 /**
@@ -71,6 +77,12 @@ export function gql(source: string): unknown;
 export function gql(
   source: "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n",
 ): (typeof documents)["\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n",
+): (typeof documents)["\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -165,6 +177,12 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      id\n      email\n      address\n    }\n  }\n",
 ): (typeof documents)["\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      id\n      email\n      address\n    }\n  }\n"];
 /**
@@ -173,6 +191,12 @@ export function gql(
 export function gql(
   source: "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n",
 ): (typeof documents)["\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n    }\n  }\n",
+): (typeof documents)["\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

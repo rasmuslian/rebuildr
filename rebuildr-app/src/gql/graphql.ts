@@ -147,9 +147,13 @@ export type Mutation = {
   getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
   login: LoginResponse;
+  newPassword: LoginResponse;
   registerUser: RegisterUserResponse;
+  resendVerificationMail: ResendVerificationMailResponse;
+  resetPassword: ResetPasswordResponse;
   showProduct: Product;
   updateUser: User;
+  verifyMail: LoginResponse;
 };
 
 export type MutationCreateMessageArgs = {
@@ -176,8 +180,20 @@ export type MutationLoginArgs = {
   input: LoginInput;
 };
 
+export type MutationNewPasswordArgs = {
+  input: NewPasswordInput;
+};
+
 export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
+};
+
+export type MutationResendVerificationMailArgs = {
+  input: ResendVerificationMailInput;
+};
+
+export type MutationResetPasswordArgs = {
+  input: ResetPasswordInput;
 };
 
 export type MutationShowProductArgs = {
@@ -186,6 +202,16 @@ export type MutationShowProductArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
+};
+
+export type MutationVerifyMailArgs = {
+  input: VerifyMailInput;
+};
+
+export type NewPasswordInput = {
+  email: Scalars["String"]["input"];
+  password: Scalars["String"]["input"];
+  resetPasswordToken: Scalars["String"]["input"];
 };
 
 export type Product = {
@@ -247,6 +273,24 @@ export type RegisterUserResponse = {
   message: Scalars["String"]["output"];
 };
 
+export type ResendVerificationMailInput = {
+  email: Scalars["String"]["input"];
+};
+
+export type ResendVerificationMailResponse = {
+  __typename?: "ResendVerificationMailResponse";
+  message: Scalars["String"]["output"];
+};
+
+export type ResetPasswordInput = {
+  email: Scalars["String"]["input"];
+};
+
+export type ResetPasswordResponse = {
+  __typename?: "ResetPasswordResponse";
+  message: Scalars["String"]["output"];
+};
+
 export type ShowProductInput = {
   id: Scalars["String"]["input"];
 };
@@ -268,6 +312,11 @@ export enum UserRoleEnum {
   User = "USER",
 }
 
+export type VerifyMailInput = {
+  email: Scalars["String"]["input"];
+  verifyEmailToken: Scalars["String"]["input"];
+};
+
 export type GetNewTokensMutationVariables = Exact<{
   input: GetNewTokensInput;
 }>;
@@ -279,6 +328,13 @@ export type GetNewTokensMutation = {
     accessToken: string;
     refreshToken: string;
   };
+};
+
+export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type MeQueryQuery = {
+  __typename?: "Query";
+  me: { __typename?: "User"; id: string; email: string };
 };
 
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
@@ -457,6 +513,18 @@ export type RegisterUserMutation = {
   registerUser: { __typename?: "RegisterUserResponse"; message: string };
 };
 
+export type ResendVerificationMailMutationVariables = Exact<{
+  input: ResendVerificationMailInput;
+}>;
+
+export type ResendVerificationMailMutation = {
+  __typename?: "Mutation";
+  resendVerificationMail: {
+    __typename?: "ResendVerificationMailResponse";
+    message: string;
+  };
+};
+
 export type SellQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type SellQueryQuery = {
@@ -491,6 +559,15 @@ export type CreateProductMutation = {
       category: { __typename?: "Category"; name: string };
     };
   };
+};
+
+export type VerifyMailMutationVariables = Exact<{
+  input: VerifyMailInput;
+}>;
+
+export type VerifyMailMutation = {
+  __typename?: "Mutation";
+  verifyMail: { __typename?: "LoginResponse"; accessToken: string };
 };
 
 export const GetNewTokensDocument = {
@@ -551,6 +628,32 @@ export const GetNewTokensDocument = {
   GetNewTokensMutation,
   GetNewTokensMutationVariables
 >;
+export const MeQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "MeQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<MeQueryQuery, MeQueryQueryVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -1379,6 +1482,60 @@ export const RegisterUserDocument = {
   RegisterUserMutation,
   RegisterUserMutationVariables
 >;
+export const ResendVerificationMailDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "ResendVerificationMail" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ResendVerificationMailInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "resendVerificationMail" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "message" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ResendVerificationMailMutation,
+  ResendVerificationMailMutationVariables
+>;
 export const SellQueryDocument = {
   kind: "Document",
   definitions: [
@@ -1499,3 +1656,54 @@ export const CreateProductDocument = {
   CreateProductMutation,
   CreateProductMutationVariables
 >;
+export const VerifyMailDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "VerifyMail" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "VerifyMailInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "verifyMail" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "accessToken" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<VerifyMailMutation, VerifyMailMutationVariables>;
