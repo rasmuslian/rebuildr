@@ -1,34 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import FormData from 'form-data';
-import Mailgun, {
-  Interfaces,
-  Enums,
-  MailgunClientOptions,
-  MessagesSendResult,
-} from 'mailgun.js';
+import handlebars from 'handlebars';
+import mjml from 'mjml';
+import Mailgun, { Interfaces } from 'mailgun.js';
+import * as fs from 'fs';
 
-// ('72fccdd7-1f6fcc04');
+const verifyEmailTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/verify-email.mjml`,
+  'utf8',
+);
+
 @Injectable()
 export class MailService {
   private mailgun: Interfaces.IMailgunClient;
+  private baseUrl: string;
 
   constructor() {
     const mailgun = new Mailgun(FormData);
 
     this.mailgun = mailgun.client({
       username: 'api',
-      key: process.env.MAILGUN_API_KEY || '72fccdd7-1f6fcc04',
+      key: process.env.MAILGUN_API_KEY,
     });
+    this.baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:8081'
+        : 'https://rebuildr-frontend-ee5eu.ondigitalocean.app/';
   }
 
-  async sendVerifyEmail() {
-    const data = {
-      to: 'emil.stolpe@swace.se',
-      from: 'rebuildr <no-reply@rebuildr.com>',
-      subject: 'subject',
-      text: 'verify',
-      html: '<h1>Verify</h1>',
+  async sendVerifyEmail(input: { email: string; token: string }) {
+    const context = {
+      token: input.token,
+      email: encodeURIComponent(input.email),
+      baseUrl: this.baseUrl,
     };
-    // this.mailgun.messages.create(data);
+    const handlebarsTemplate = handlebars.compile(
+      mjml(verifyEmailTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: 'rebuildr <no-reply@rebuildr.com>',
+      subject: 'Email verification',
+      text: 'verify',
+      html,
+    };
+    // TODO: insert correct domain
+    this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
   }
 }

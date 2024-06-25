@@ -34,6 +34,7 @@ import { FileResolver } from './resolvers/file.resolver';
 import { RefreshToken } from './entities/refreshToken.entity';
 import { CaslAbilityFactory } from './casl/caslAbility.factory';
 import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
+import { MailService } from './services/mail.service';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
     FileService,
     CaslAbilityFactory,
     GqlOptionalAuthGuard,
+    MailService,
   ],
 })
 export class AppModule {}

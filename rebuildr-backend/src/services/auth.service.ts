@@ -10,6 +10,7 @@ import {
   VerifyMailInput,
 } from 'src/resolvers/auth.resolver';
 import { UserService } from './user.service';
+import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
@@ -34,6 +35,7 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    private mailService: MailService,
   ) {}
 
   async registerUser(input: RegisterUserInput) {
@@ -64,7 +66,10 @@ export class AuthService {
       { verifyEmailToken: verifiedEmailToken },
     );
 
-    //TODO: send verification mail
+    await this.mailService.sendVerifyEmail({
+      email: input.email,
+      token: verifiedEmailToken,
+    });
 
     return { message: '' };
   }
