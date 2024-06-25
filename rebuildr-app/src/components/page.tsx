@@ -1,16 +1,21 @@
 import React, { PropsWithChildren } from "react";
-import { StyleSheet, View } from "react-native";
-import { textStyles, Text } from "./text";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Title } from "./texts/text";
 
 interface PageProps extends PropsWithChildren {
   title?: string;
+  loading?: boolean;
 }
 
-export const Page = ({ title, children }: PageProps) => {
+export const Page = ({ title, loading, children }: PageProps) => {
   return (
     <View style={styles.container}>
-      {title && <Text style={[textStyles.title, styles.title]}>{title}</Text>}
-      {children}
+      {title && (
+        <Title style={[styles.title]} size={"large"}>
+          {title}
+        </Title>
+      )}
+      {loading ? <ActivityIndicator size="large" /> : children}
     </View>
   );
 };

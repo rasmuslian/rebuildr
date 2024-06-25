@@ -6,12 +6,12 @@ import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
 import { Picker } from "@react-native-picker/picker";
-import { Text } from "../components/text";
 import { NumberInput } from "src/components/inputs/numberInput";
+import { Body } from "src/components/texts/text";
 
 const SELL_QUERY = gql(`
   query SellQuery {
-    getCategories {
+    categories {
       id
       name
       parentId
@@ -60,7 +60,7 @@ export const Sell = () => {
     if (!data) {
       return [];
     }
-    const rootCategories = data.getCategories.reduce(
+    const rootCategories = data.categories.reduce(
       (
         _rootCategories: {
           id: string;
@@ -78,7 +78,7 @@ export const Sell = () => {
     );
 
     return rootCategories.map((root) => {
-      const children = data.getCategories.reduce(
+      const children = data.categories.reduce(
         (
           _children: {
             id: string;
@@ -113,9 +113,8 @@ export const Sell = () => {
       return;
     }
 
-    const transformedValue = price.replace(",", ".");
-    const toFloat = parseFloat(transformedValue);
-    if (isNaN(toFloat)) {
+    const toInt = parseInt(price);
+    if (isNaN(toInt)) {
       //invalid number
       return;
     }
@@ -125,7 +124,7 @@ export const Sell = () => {
         input: {
           title: title,
           categoryId: category.id,
-          price: toFloat,
+          price: toInt,
         },
       },
       onCompleted: (data) => {
@@ -143,11 +142,9 @@ export const Sell = () => {
   if (createdProduct) {
     return (
       <Page title={"Vara skapad!"}>
-        <Text>title: {createdProduct.title}</Text>
-        <Text>category: {createdProduct.category.name}</Text>
-        <Text>
-          price: {createdProduct.price.toString().replace(".", ",")} kr
-        </Text>
+        <Body>title: {createdProduct.title}</Body>
+        <Body>category: {createdProduct.category.name}</Body>
+        <Body>price: {createdProduct.price} kr</Body>
         <Button
           title="Skapa en till"
           onPress={() => setCreatedProduct(undefined)}

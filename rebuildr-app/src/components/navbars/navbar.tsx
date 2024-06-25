@@ -2,9 +2,9 @@ import React from "react";
 import { StyleSheet, View, Image, Pressable } from "react-native";
 import Colors from "src/styles/colors";
 import { Button } from "../button";
-import { Text } from "../text";
 import logo from "assets/images/logo.png";
 import { useNavigation } from "@react-navigation/native";
+import { Body } from "../texts/text";
 
 export const Navbar = () => {
   const { navigate } = useNavigation();
@@ -14,8 +14,8 @@ export const Navbar = () => {
       <Pressable onPress={() => navigate("Landing")}>
         <Image source={logo} />
       </Pressable>
-      <Button onPress={() => navigate("Login")} icon={"person"}>
-        <Text>Logga in</Text>
+      <Button onPress={() => navigate("Login")} icon={"Person"}>
+        <Body>Logga in</Body>
       </Button>
     </View>
   );

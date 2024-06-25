@@ -5,6 +5,7 @@ import {
   Float,
   InputType,
   Mutation,
+  Query,
   ResolveField,
   Resolver,
   Root,
@@ -15,6 +16,7 @@ import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { ProductService } from 'src/services/product.service';
+import { UserService } from 'src/services/user.service';
 
 @InputType()
 export class CreateProductInput {
@@ -28,9 +30,28 @@ export class CreateProductInput {
   price: number;
 }
 
+@InputType()
+export class GetProductInput {
+  @Field()
+  id: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private userService: UserService,
+  ) {}
+
+  @Query(() => Product)
+  async product(@Args('input') input: GetProductInput) {
+    return this.productService.findOne(input.id);
+  }
+
+  @Query(() => [Product])
+  async products() {
+    return this.productService.findAll();
+  }
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
@@ -48,6 +69,11 @@ export class ProductResolver {
 
   @ResolveField(() => Category)
   async category(@Root() _product: Product) {
-    return this.productService.getCategory(_product);
+    return this.productService.findCategory(_product);
+  }
+
+  @ResolveField(() => User)
+  async user(@Root() _product: Product) {
+    return this.userService.findOne(_product.userId);
   }
 }

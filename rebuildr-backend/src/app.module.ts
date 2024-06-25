@@ -8,7 +8,6 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
-import { AppResolver } from './resolvers/App.resolver';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
@@ -25,6 +24,9 @@ import { CategoryService } from './services/category.service';
 import { CategoryResolver } from './resolvers/category.resolver';
 import { Product } from './entities/product.entity';
 import { Category } from './entities/category.entity';
+import { Message } from './entities/message.entity';
+import { MessageResolver } from './resolvers/message.resolver';
+import { MessageService } from './services/message.service';
 
 @Module({
   imports: [
@@ -43,7 +45,7 @@ import { Category } from './entities/category.entity';
         ...dbConfig(configService),
       }),
     }),
-    TypeOrmModule.forFeature([User, Product, Category]),
+    TypeOrmModule.forFeature([User, Product, Category, Message]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
@@ -67,7 +69,6 @@ import { Category } from './entities/category.entity';
   controllers: [AppController],
   providers: [
     JwtStrategy,
-    AppResolver,
     AppService,
     AuthResolver,
     AuthService,
@@ -77,6 +78,8 @@ import { Category } from './entities/category.entity';
     ProductService,
     CategoryResolver,
     CategoryService,
+    MessageResolver,
+    MessageService,
   ],
 })
 export class AppModule {}

@@ -26,8 +26,9 @@ type Product {
   id: ID!
   title: String!
   createdAt: DateTime!
-  price: Float!
+  price: Int!
   category: Category!
+  user: User!
 }
 
 """
@@ -35,16 +36,48 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Message {
+  id: ID!
+  createdAt: DateTime!
+  body: String!
+  senderId: ID!
+  receiverId: ID!
+}
+
+type ConversationResponse {
+  otherUser: User!
+  messages: [Message!]!
+}
+
+type ConversationOverviewResponse {
+  otherUser: User!
+  product: Product!
+  latestMessageAt: DateTime!
+}
+
 type Query {
-  sayHello: String!
   me: User!
-  getCategories: [Category!]!
+  product(input: GetProductInput!): Product!
+  products: [Product!]!
+  categories: [Category!]!
+  conversation(input: ConversationInput!): ConversationResponse!
+  conversations: [ConversationOverviewResponse!]!
+}
+
+input GetProductInput {
+  id: String!
+}
+
+input ConversationInput {
+  otherUserId: String!
+  productId: String!
 }
 
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   login(input: LoginInput!): LoginResponse!
   createProduct(input: CreateProductInput!): Product!
+  createMessage(input: CreateMessageInput!): Message!
 }
 
 input RegisterUserInput {
@@ -61,4 +94,10 @@ input CreateProductInput {
   title: String!
   categoryId: String!
   price: Float!
+}
+
+input CreateMessageInput {
+  receiverId: String!
+  productId: String!
+  body: String!
 }

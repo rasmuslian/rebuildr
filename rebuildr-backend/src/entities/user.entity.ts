@@ -20,6 +20,6 @@ export class User {
   @Column()
   password: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 }
