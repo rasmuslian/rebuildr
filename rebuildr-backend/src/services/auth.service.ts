@@ -104,14 +104,30 @@ export class AuthService {
   async resendVerificationMail(input: ResendVerificationMailInput) {
     //user exist?
     //[no] return invalid
+    const user = await this.userRepository.findOneBy({ email: input.email });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
 
     //verified?
     //[yes] return "user exist"
+    if (user.verified) {
+      return { message: 'User already verified' };
+    }
 
     //create new token for user
+    const token = crypto.randomBytes(10).toString('hex');
+    const verifiedEmailToken = await bcrypt.hash(token, 10);
+    await this.userRepository.update(
+      { id: user.id },
+      { verifyEmailToken: verifiedEmailToken },
+    );
     //send new mail
-    //return {""}
-    console.log('input :>> ', input);
+    await this.mailService.sendVerifyEmail({
+      email: input.email,
+      token: verifiedEmailToken,
+    });
+    return { message: '' };
   }
 
   async login(input: LoginInput) {

@@ -27,11 +27,14 @@ const RESEND_VERIFICATION_MAIL = gql(`
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verificationResent, setVerificationResent] = useState(false);
 
   const [registerUser, { data: registerData, error, loading }] =
     useMutation(REGISTER_USER);
-  const [resendVerificationMail, { loading: resendingVerificationRequest }] =
-    useMutation(RESEND_VERIFICATION_MAIL);
+  const [
+    resendVerificationMail,
+    { data: resendVerificationMailData, loading: resendingVerificationRequest },
+  ] = useMutation(RESEND_VERIFICATION_MAIL);
 
   const onSubmit = () => {
     if (loading) {
@@ -52,6 +55,7 @@ export const Register = () => {
 
     resendVerificationMail({
       variables: { input: { email: email } },
+      onCompleted: () => setVerificationResent(true),
     });
   };
 
@@ -68,6 +72,15 @@ export const Register = () => {
               onPress={onResendVerificationMail}
               title="Skicka mail igen"
             />
+          )}
+          {verificationResent &&
+          resendVerificationMailData &&
+          resendVerificationMailData.resendVerificationMail.message ? (
+            <Body>
+              {resendVerificationMailData.resendVerificationMail.message}
+            </Body>
+          ) : (
+            <Body>Nytt verifikationsmail skickat!</Body>
           )}
         </View>
       ) : (
