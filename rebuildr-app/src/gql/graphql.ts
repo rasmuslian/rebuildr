@@ -43,17 +43,17 @@ export type ConversationInput = {
   productId: Scalars["String"]["input"];
 };
 
+export type ConversationOverviewResponse = {
+  __typename?: "ConversationOverviewResponse";
+  latestMessageAt: Scalars["DateTime"]["output"];
+  otherUser: User;
+  product: Product;
+};
+
 export type ConversationResponse = {
   __typename?: "ConversationResponse";
   messages: Array<Message>;
   otherUser: User;
-};
-
-export type ConversationsResponse = {
-  __typename?: "ConversationsResponse";
-  latestMessageAt: Scalars["DateTime"]["output"];
-  otherUser: User;
-  product: Product;
 };
 
 export type CreateMessageInput = {
@@ -130,7 +130,7 @@ export type Query = {
   __typename?: "Query";
   categories: Array<Category>;
   conversation: ConversationResponse;
-  conversations: Array<ConversationsResponse>;
+  conversations: Array<ConversationOverviewResponse>;
   me: User;
   product: Product;
   products: Array<Product>;
@@ -212,7 +212,7 @@ export type ConversationsQueryQueryVariables = Exact<{ [key: string]: never }>;
 export type ConversationsQueryQuery = {
   __typename?: "Query";
   conversations: Array<{
-    __typename?: "ConversationsResponse";
+    __typename?: "ConversationOverviewResponse";
     latestMessageAt: any;
     otherUser: { __typename?: "User"; id: string; email: string };
     product: { __typename?: "Product"; id: string; title: string };

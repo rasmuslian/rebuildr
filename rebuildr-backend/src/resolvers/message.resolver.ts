@@ -44,7 +44,7 @@ class CreateMessageInput {
 }
 
 @ObjectType()
-class ConversationsResponse {
+class ConversationOverviewResponse {
   @Field(() => User)
   otherUser: User;
 
@@ -72,7 +72,7 @@ export class MessageResolver {
     });
   }
 
-  @Query(() => [ConversationsResponse])
+  @Query(() => [ConversationOverviewResponse])
   @UseGuards(GqlAuthGuard)
   async conversations(@CurrentUser() _user: User) {
     return this.messageService.findConversations({ id: _user.id });

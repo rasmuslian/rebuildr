@@ -49,7 +49,7 @@ type ConversationResponse {
   messages: [Message!]!
 }
 
-type ConversationsResponse {
+type ConversationOverviewResponse {
   otherUser: User!
   product: Product!
   latestMessageAt: DateTime!
@@ -61,7 +61,7 @@ type Query {
   products: [Product!]!
   categories: [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
-  conversations: [ConversationsResponse!]!
+  conversations: [ConversationOverviewResponse!]!
 }
 
 input GetProductInput {
