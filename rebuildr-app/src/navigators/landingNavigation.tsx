@@ -5,6 +5,7 @@ import { Login } from "src/pages/login";
 import { ProductDetails } from "src/pages/productDetails";
 import { Products } from "src/pages/products";
 import { Register } from "src/pages/register";
+import { VerifyMail } from "src/pages/verifyMail";
 import { LandingStackParamList } from "./navigation.types";
 
 export const LandingNavigation = () => {
@@ -16,6 +17,7 @@ export const LandingNavigation = () => {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
       <Stack.Screen name="Products" component={Products} />
+      <Stack.Screen name="VerifyMail" component={VerifyMail} />
     </Stack.Navigator>
   );
 };

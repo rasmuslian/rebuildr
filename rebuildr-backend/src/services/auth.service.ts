@@ -139,8 +139,15 @@ export class AuthService {
         refreshToken: true,
       },
     });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
     const passwordCorrect = await bcrypt.compare(input.password, user.password);
     if (!passwordCorrect) {
+      throw new UnauthorizedException();
+    }
+
+    if (!user.verified) {
       throw new UnauthorizedException();
     }
 

@@ -18,6 +18,7 @@ export type LandingStackParamList = {
     distance?: number;
     categoryId?: string;
   };
+  VerifyMail: { email: string; token: string };
 };
 export type LoggedInStackParamList = {
   Landing: undefined;
