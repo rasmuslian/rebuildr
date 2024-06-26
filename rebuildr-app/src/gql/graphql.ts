@@ -98,6 +98,7 @@ export type Mutation = {
   createProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
+  updateUser: User;
 };
 
 export type MutationCreateMessageArgs = {
@@ -114,6 +115,10 @@ export type MutationLoginArgs = {
 
 export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
+};
+
+export type MutationUpdateUserArgs = {
+  input: UpdateUserInput;
 };
 
 export type Product = {
@@ -154,8 +159,13 @@ export type RegisterUserResponse = {
   message: Scalars["String"]["output"];
 };
 
+export type UpdateUserInput = {
+  address: Scalars["String"]["input"];
+};
+
 export type User = {
   __typename?: "User";
+  address?: Maybe<Scalars["String"]["output"]>;
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
 };
@@ -165,6 +175,22 @@ export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
   me: { __typename?: "User"; email: string };
+};
+
+export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type AccountQueryQuery = {
+  __typename?: "Query";
+  me: { __typename?: "User"; email: string; address?: string | null };
+};
+
+export type UpdateAccountMutationVariables = Exact<{
+  input: UpdateUserInput;
+}>;
+
+export type UpdateAccountMutation = {
+  __typename?: "Mutation";
+  updateUser: { __typename?: "User"; email: string; address?: string | null };
 };
 
 export type BuyQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -310,6 +336,87 @@ export const LoggedInNavigationDocument = {
 } as unknown as DocumentNode<
   LoggedInNavigationQuery,
   LoggedInNavigationQueryVariables
+>;
+export const AccountQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AccountQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AccountQueryQuery, AccountQueryQueryVariables>;
+export const UpdateAccountDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateAccount" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateUserInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateUser" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateAccountMutation,
+  UpdateAccountMutationVariables
 >;
 export const BuyQueryDocument = {
   kind: "Document",

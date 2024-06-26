@@ -8,6 +8,7 @@ const config = {
     ProductDetails: "/product/:productId",
     Conversations: "/chat",
     Conversation: "/chat/:otherUserId/:productId",
+    Account: "/account",
   },
 };
 

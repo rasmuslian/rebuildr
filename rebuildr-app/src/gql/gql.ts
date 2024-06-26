@@ -15,6 +15,10 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n":
     types.LoggedInNavigationDocument,
+  "\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n":
+    types.AccountQueryDocument,
+  "\n  mutation UpdateAccount($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      email\n      address\n    }\n  }\n  ":
+    types.UpdateAccountDocument,
   "\n    query BuyQuery {\n      products {\n        id\n        title\n        price\n      }\n    }\n  ":
     types.BuyQueryDocument,
   "\n  query ConversationQuery($input: ConversationInput!) {\n    conversation(input: $input) {\n      otherUser {\n        id\n        email\n      }\n      messages {\n        id\n        receiverId\n        createdAt\n        body\n      }\n    }\n  }\n":
@@ -55,6 +59,18 @@ export function gql(source: string): unknown;
 export function gql(
   source: "\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n",
 ): (typeof documents)["\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n",
+): (typeof documents)["\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation UpdateAccount($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      email\n      address\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation UpdateAccount($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      email\n      address\n    }\n  }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

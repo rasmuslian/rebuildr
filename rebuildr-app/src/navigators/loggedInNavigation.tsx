@@ -9,6 +9,7 @@ import { ProductDetails } from "src/pages/productDetails";
 import { Conversation } from "src/pages/conversation";
 import { LoggedInStackParamList } from "./navigation.types";
 import { Conversations } from "src/pages/conversations";
+import { Account } from "src/pages/account";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -37,6 +38,7 @@ export const LoggedInNavigation = () => {
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
       <Stack.Screen name="Conversation" component={Conversation} />
       <Stack.Screen name="Conversations" component={Conversations} />
+      <Stack.Screen name="Account" component={Account} />
     </Stack.Navigator>
   );
 };
