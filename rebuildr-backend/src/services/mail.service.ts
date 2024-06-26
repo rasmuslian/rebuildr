@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import FormData from 'form-data';
 import handlebars from 'handlebars';
-const mjml = require('mjml'); // eslint-disable-line
+import mjml from 'mjml';
 import Mailgun, { Interfaces } from 'mailgun.js';
 import * as fs from 'fs';
 
