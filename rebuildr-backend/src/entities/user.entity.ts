@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -22,4 +23,11 @@ export class User {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  address?: string;
+
+  @Column('geometry', { nullable: true })
+  addressLocation?: Point;
 }
