@@ -56,8 +56,11 @@ export class User {
   role: UserRoleEnum;
 
   @Column({ nullable: true })
-  verifyEmailToken: string;
+  verifyEmailToken?: string;
 
   @Column({ default: false })
   verified: boolean;
+
+  @Column({ nullable: true })
+  resetPasswordToken?: string;
 }

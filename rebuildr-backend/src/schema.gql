@@ -61,6 +61,10 @@ type GetNewTokensResponse {
   refreshToken: String!
 }
 
+type ResetPasswordResponse {
+  message: String!
+}
+
 type Message {
   id: ID!
   createdAt: DateTime!
@@ -126,6 +130,8 @@ type Mutation {
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   login(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
+  resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
+  newPassword(input: NewPasswordInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
@@ -156,6 +162,16 @@ input LoginInput {
 input GetNewTokensInput {
   accessToken: String!
   refreshToken: String!
+}
+
+input ResetPasswordInput {
+  email: String!
+}
+
+input NewPasswordInput {
+  email: String!
+  password: String!
+  resetPasswordToken: String!
 }
 
 input UpdateUserInput {

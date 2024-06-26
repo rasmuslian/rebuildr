@@ -25,7 +25,7 @@ const registerUserSchema = z.object({
     .string()
     .email()
     .transform((value) => value.toLowerCase()),
-  password: z.string(),
+  password: z.string().min(1),
 });
 
 @ObjectType()
@@ -99,6 +99,32 @@ class GetNewTokensResponse {
   refreshToken: string;
 }
 
+@InputType()
+export class ResetPasswordInput {
+  @Field(() => String)
+  email: string;
+}
+@ObjectType()
+class ResetPasswordResponse {
+  @Field(() => String)
+  message: string;
+}
+
+@InputType()
+export class NewPasswordInput {
+  @Field(() => String)
+  email: string;
+
+  @Field(() => String)
+  password: string;
+
+  @Field(() => String)
+  resetPasswordToken: string;
+}
+const newPasswordSchema = z.object({
+  password: z.string().min(1),
+});
+
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
@@ -130,5 +156,16 @@ export class AuthResolver {
   @Mutation(() => GetNewTokensResponse)
   async getNewTokens(@Args('input') input: GetNewTokensInput) {
     return this.authService.getNewTokens(input.accessToken, input.refreshToken);
+  }
+
+  @Mutation(() => ResetPasswordResponse)
+  async resetPassword(@Args('input') input: ResetPasswordInput) {
+    return await this.authService.resetPassword(input);
+  }
+
+  @Mutation(() => LoginResponse)
+  @UsePipes(new ZodValidationPipe(newPasswordSchema))
+  async newPassword(@Args('input') input: NewPasswordInput) {
+    return await this.authService.newPassword(input);
   }
 }

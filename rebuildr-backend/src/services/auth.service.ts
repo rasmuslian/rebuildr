@@ -5,8 +5,10 @@ import {
 } from '@nestjs/common';
 import {
   LoginInput,
+  NewPasswordInput,
   RegisterUserInput,
   ResendVerificationMailInput,
+  ResetPasswordInput,
   VerifyMailInput,
 } from 'src/resolvers/auth.resolver';
 import { UserService } from './user.service';
@@ -90,7 +92,10 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    await this.userRepository.update({ id: user.id }, { verified: true });
+    await this.userRepository.update(
+      { id: user.id },
+      { verified: true, verifyEmailToken: null },
+    );
 
     //create accessToken
     const payload = { sub: user.id, email: user.email };
@@ -216,5 +221,51 @@ export class AuthService {
     await this.refreshTokenRepository.save(refreshToken);
 
     return { accessToken, refreshToken: token };
+  }
+
+  async resetPassword(input: ResetPasswordInput) {
+    const email = input.email.toLowerCase();
+    const user = await this.userRepository.findOneBy({ email: email });
+
+    if (user) {
+      const token = crypto.randomBytes(10).toString('hex');
+      const resetPasswordToken = await bcrypt.hash(token, 10);
+      await this.userRepository.update(
+        { id: user.id },
+        { resetPasswordToken: resetPasswordToken },
+      );
+      await this.mailService.sendResetPasswordEmail({
+        email: email,
+        token: resetPasswordToken,
+      });
+    }
+
+    return { message: '' };
+  }
+
+  async newPassword(input: NewPasswordInput) {
+    const user = await this.userRepository.findOneBy({ email: input.email });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const matchingTokens = input.resetPasswordToken === user.resetPasswordToken;
+    if (!matchingTokens) {
+      throw new UnauthorizedException();
+    }
+
+    const password = await bcrypt.hash(input.password, 10);
+    await this.userRepository.update(
+      { email: input.email },
+      { password: password, resetPasswordToken: null },
+    );
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: jwtConstants.expiresIn,
+    });
+
+    return { user: user, accessToken: accessToken };
   }
 }

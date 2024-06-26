@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import FormData from 'form-data';
 import handlebars from 'handlebars';
-import mjml from 'mjml';
+const mjml = require('mjml'); // eslint-disable-line
 import Mailgun, { Interfaces } from 'mailgun.js';
 import * as fs from 'fs';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
+  'utf8',
+);
+const resetPasswordTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/reset-password.mjml`,
   'utf8',
 );
 
@@ -46,6 +50,27 @@ export class MailService {
       html,
     };
     // TODO: insert correct domain
-    this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
+    // this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
+  }
+
+  async sendResetPasswordEmail(input: { email: string; token: string }) {
+    const context = {
+      token: input.token,
+      email: encodeURIComponent(input.email),
+      baseUrl: this.baseUrl,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(resetPasswordTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: 'rebuildr <no-reply@rebuildr.com>',
+      subject: 'Reset password',
+      test: 'Reset password',
+      html,
+    };
+    // TODO: insert correct domain
+    // this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
   }
 }

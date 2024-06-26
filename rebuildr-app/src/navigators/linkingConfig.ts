@@ -10,6 +10,8 @@ const config = {
     Account: "/account",
     Products: "/products/",
     VerifyMail: "/verifyMail/:email/:token",
+    ResetPassword: "/reset-password",
+    NewPassword: "/new-password/:email/:token",
   },
 };
 

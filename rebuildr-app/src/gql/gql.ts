@@ -33,6 +33,8 @@ const documents = {
     types.LandingQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      refreshToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
+  "\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n    }\n  }\n":
+    types.NewPasswordDocument,
   "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n":
     types.ProductDetailsDocument,
   "\n  mutation DeleteProduct($input: DeleteProductInput!) {\n    deleteProduct(input: $input) {\n      title\n    }\n  }\n  ":
@@ -49,6 +51,8 @@ const documents = {
     types.RegisterUserDocument,
   "\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  ":
     types.ResendVerificationMailDocument,
+  "\n  mutation ResetPassword($input: ResetPasswordInput!) {\n    resetPassword(input: $input){\n      message\n    }\n  }\n":
+    types.ResetPasswordDocument,
   "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      id\n      email\n      address\n    }\n  }\n":
     types.SellQueryDocument,
   "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n":
@@ -135,6 +139,12 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n    }\n  }\n",
+): (typeof documents)["\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n",
 ): (typeof documents)["\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n"];
 /**
@@ -179,6 +189,12 @@ export function gql(
 export function gql(
   source: "\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  ",
 ): (typeof documents)["\n  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {\n    resendVerificationMail(input: $input) {\n      message\n    }\n  }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation ResetPassword($input: ResetPasswordInput!) {\n    resetPassword(input: $input){\n      message\n    }\n  }\n",
+): (typeof documents)["\n  mutation ResetPassword($input: ResetPasswordInput!) {\n    resetPassword(input: $input){\n      message\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
