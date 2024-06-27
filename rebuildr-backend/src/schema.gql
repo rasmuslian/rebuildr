@@ -57,6 +57,10 @@ type ConversationOverviewResponse {
   latestMessageAt: DateTime!
 }
 
+type GetAddressResponse {
+  address: String!
+}
+
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
@@ -64,6 +68,7 @@ type Query {
   categories: [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
+  locationToAddress(input: GetAddressInput!): GetAddressResponse!
 }
 
 input GetProductInput {
@@ -73,6 +78,11 @@ input GetProductInput {
 input ConversationInput {
   otherUserId: String!
   productId: String!
+}
+
+input GetAddressInput {
+  latitude: Float!
+  longitude: Float!
 }
 
 type Mutation {
