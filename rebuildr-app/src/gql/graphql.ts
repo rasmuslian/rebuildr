@@ -63,6 +63,7 @@ export type CreateMessageInput = {
 };
 
 export type CreateProductInput = {
+  address: Scalars["String"]["input"];
   categoryId: Scalars["String"]["input"];
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
@@ -123,6 +124,7 @@ export type MutationUpdateUserArgs = {
 
 export type Product = {
   __typename?: "Product";
+  address: Scalars["String"]["output"];
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
@@ -202,6 +204,7 @@ export type BuyQueryQuery = {
     id: string;
     title: string;
     price: number;
+    address: string;
   }>;
 };
 
@@ -269,6 +272,7 @@ export type ProductDetailsQuery = {
     id: string;
     title: string;
     price: number;
+    address: string;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
@@ -293,6 +297,7 @@ export type SellQueryQuery = {
     name: string;
     parentId?: string | null;
   }>;
+  me: { __typename?: "User"; email: string; address?: string | null };
 };
 
 export type CreateProductMutationVariables = Exact<{
@@ -437,6 +442,7 @@ export const BuyQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
             },
           },
@@ -739,6 +745,7 @@ export const ProductDetailsDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "user" },
@@ -841,6 +848,17 @@ export const SellQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "parentId" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
             },
           },

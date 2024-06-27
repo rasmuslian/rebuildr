@@ -14,6 +14,7 @@ const BUY_QUERY = gql(
         id
         title
         price
+        address
       }
     }
   `,
@@ -34,6 +35,7 @@ export const Buy = () => {
           >
             <Title>{p.title}</Title>
             <Body>{p.price} kr</Body>
+            <Body>Address: {p.address}</Body>
           </Pressable>
         ))}
       </View>
@@ -48,14 +50,14 @@ const styles = StyleSheet.create({
   productsContainer: {
     display: "flex",
     flexDirection: "row",
-    width: 360, //Roughly size of two products
+    width: 420, //Roughly size of two products
     flexWrap: "wrap",
     gap: 4,
     justifyContent: "center",
     marginBottom: 12,
   },
   card: {
-    width: 168, //size of one product,
+    width: 200, //size of one product,
     padding: 4,
     borderWidth: 1,
     borderColor: "#000",
