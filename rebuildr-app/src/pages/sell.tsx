@@ -129,7 +129,15 @@ export const Sell = () => {
     setGetAddressLoading(true);
     //Cant use this function unless permission is granted. Request it again
     if (!status.granted) {
-      await requestPermission();
+      await requestPermission()
+        .then((r) => {
+          if (!r.granted) {
+            throw new Error("Location permission denied");
+          }
+        })
+        .catch((e) => {
+          setGetAddressLoading(false);
+        });
     }
 
     const position = await Location.getCurrentPositionAsync();
