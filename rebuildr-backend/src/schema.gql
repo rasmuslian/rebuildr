@@ -28,6 +28,7 @@ type Product {
   title: String!
   createdAt: DateTime!
   price: Int!
+  address: String!
   category: Category!
   user: User!
 }
@@ -100,6 +101,7 @@ input CreateProductInput {
   title: String!
   categoryId: String!
   price: Float!
+  address: String!
 }
 
 input CreateMessageInput {

@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
@@ -39,4 +40,11 @@ export class Product {
   @Field(() => Int)
   @Column()
   price: number;
+
+  @Field(() => String)
+  @Column()
+  address: string;
+
+  @Column('geometry')
+  addressLocation: Point;
 }

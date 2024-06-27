@@ -15,8 +15,10 @@ import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
+import z from 'zod';
 
 @InputType()
 export class CreateProductInput {
@@ -28,7 +30,16 @@ export class CreateProductInput {
 
   @Field(() => Float)
   price: number;
+
+  @Field(() => String)
+  address: string;
 }
+const createProductSchema = z.object({
+  title: z.string(),
+  categoryId: z.string(),
+  price: z.number(),
+  address: z.string(),
+});
 
 @InputType()
 export class GetProductInput {
@@ -57,13 +68,15 @@ export class ProductResolver {
   @UseGuards(GqlAuthGuard)
   async createProduct(
     @CurrentUser() _user: User,
-    @Args('input') input: CreateProductInput,
+    @Args('input', new ZodValidationPipe(createProductSchema))
+    input: CreateProductInput,
   ) {
     return this.productService.create({
       title: input.title,
       categoryId: input.categoryId,
       userId: _user.id,
       price: input.price,
+      address: input.address,
     });
   }
 

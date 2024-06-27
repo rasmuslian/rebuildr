@@ -21,6 +21,7 @@ export class ProductService {
     categoryId: string;
     userId: string;
     price: number;
+    address: string;
   }) {
     const product = new Product();
 
@@ -36,14 +37,13 @@ export class ProductService {
       throw new Error('Invalid user');
     }
 
-    if (!input.title) {
-      throw new Error('Invalid input');
-    }
-
     product.title = input.title;
     product.category = category;
     product.user = user;
     product.price = input.price;
+    product.address = input.address;
+    //TODO: calculate correct coordinate from 'address'
+    product.addressLocation = { type: 'Point', coordinates: [1.23, 4.56] };
     return await this.productRepository.save(product);
   }
 
