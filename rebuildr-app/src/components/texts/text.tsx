@@ -1,15 +1,25 @@
 import React from "react";
 import { TextProps, Text, TextStyle } from "react-native";
+import Colors, { TextColors } from "src/styles/colors";
 import { BodySize, HeadlineSize, textStyles, TitleSize } from "./textStyles";
 
-type Props = TextProps;
+type Props = { color?: TextColors } & TextProps;
 
 type TitleProps = { size?: TitleSize } & Props;
 type HeadlineProps = { size?: HeadlineSize } & Props;
 type BodyProps = { size?: BodySize } & Props;
 
-const Base = ({ textStyle, ...props }: Props & { textStyle: TextStyle }) => {
-  return <Text {...props} style={[textStyle, props.style]} />;
+const Base = ({
+  textStyle,
+  color = "primary",
+  ...props
+}: Props & { textStyle: TextStyle }) => {
+  return (
+    <Text
+      {...props}
+      style={[textStyle, { color: Colors.text[color] }, props.style]}
+    />
+  );
 };
 
 export const Title = ({ size = "medium", ...props }: TitleProps) => (

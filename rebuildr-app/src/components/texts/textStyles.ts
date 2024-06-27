@@ -32,9 +32,8 @@ export const textStyles = {
   headline: {
     default: {
       ...titleBase,
-      fontSize: 20,
-      lineHeight: 24,
-      textTransform: "uppercase",
+      fontSize: 32,
+      lineHeight: 59,
       letterSpacing: -0.2,
     },
     sub: {
