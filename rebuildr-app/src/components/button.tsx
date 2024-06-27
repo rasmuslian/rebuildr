@@ -25,7 +25,7 @@ export const Button = ({
       {!loading && (
         <View style={style.container}>
           {title && <Body>{title}</Body>}
-          {icon && <Icon iconType="Person" />}
+          {icon && <Icon iconType={icon} />}
           {children}
         </View>
       )}

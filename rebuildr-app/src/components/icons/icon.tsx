@@ -1,8 +1,9 @@
 import React from "react";
 import { SvgProps } from "react-native-svg";
 import { PersonIcon } from "./personIcon";
+import { PinIcon } from "./pinIcon";
 
-export type IconType = "Person";
+export type IconType = "Person" | "Pin";
 
 export interface IconProps extends SvgProps {
   height?: number;
@@ -17,6 +18,8 @@ export const Icon = ({
   switch (iconType) {
     case "Person":
       return <PersonIcon {...props} />;
+    case "Pin":
+      return <PinIcon {...props} />;
     default:
       break;
   }
