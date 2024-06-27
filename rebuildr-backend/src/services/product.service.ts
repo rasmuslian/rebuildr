@@ -4,6 +4,7 @@ import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
+import { GeocodingService } from './geocoding.service';
 
 @Injectable()
 export class ProductService {
@@ -14,6 +15,7 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private geocodingService: GeocodingService,
   ) {}
 
   async create(input: {
@@ -42,8 +44,13 @@ export class ProductService {
     product.user = user;
     product.price = input.price;
     product.address = input.address;
-    //TODO: calculate correct coordinate from 'address'
-    product.addressLocation = { type: 'Point', coordinates: [1.23, 4.56] };
+    const location = await this.geocodingService.addressToLocation(
+      input.address,
+    );
+    product.addressLocation = {
+      type: 'Point',
+      coordinates: [location.latitude, location.longitude],
+    };
     return await this.productRepository.save(product);
   }
 

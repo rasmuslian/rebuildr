@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
+import { GeocodingService } from './geocoding.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private geocodingService: GeocodingService,
   ) {}
 
   async createUser(user: { email: string; password: string }) {
@@ -30,8 +32,14 @@ export class UserService {
     }
 
     user.address = input.address;
-    //TODO: get coordinates of address to create a point
-    user.addressLocation = { type: 'Point', coordinates: [1.98, 2.76] };
+    const location = await this.geocodingService.addressToLocation(
+      input.address,
+    );
+
+    user.addressLocation = {
+      type: 'Point',
+      coordinates: [location.latitude, location.longitude],
+    };
 
     return await this.userRepository.save(user);
   }

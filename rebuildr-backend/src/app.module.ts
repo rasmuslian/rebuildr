@@ -27,6 +27,7 @@ import { Category } from './entities/category.entity';
 import { Message } from './entities/message.entity';
 import { MessageResolver } from './resolvers/message.resolver';
 import { MessageService } from './services/message.service';
+import { GeocodingService } from './services/geocoding.service';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { MessageService } from './services/message.service';
     CategoryService,
     MessageResolver,
     MessageService,
+    GeocodingService,
   ],
 })
 export class AppModule {}
