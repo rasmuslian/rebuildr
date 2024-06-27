@@ -21,14 +21,17 @@ export const Button = ({
 }: ButtonProps) => {
   return (
     <Pressable onPress={onPress} disabled={disabled || loading}>
-      {loading && <ActivityIndicator />}
-      {!loading && (
-        <View style={style.container}>
-          {title && <Body>{title}</Body>}
-          {icon && <Icon iconType={icon} />}
-          {children}
-        </View>
-      )}
+      <View style={style.container}>
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <>
+            {title && <Body>{title}</Body>}
+            {icon && <Icon iconType={icon} />}
+            {children}
+          </>
+        )}
+      </View>
     </Pressable>
   );
 };
