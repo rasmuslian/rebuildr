@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { gql } from "src/gql";
@@ -8,6 +8,7 @@ import { Page } from "src/components/page";
 import { Picker } from "@react-native-picker/picker";
 import { NumberInput } from "src/components/inputs/numberInput";
 import { Body } from "src/components/texts/text";
+import * as Location from "expo-location";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -35,6 +36,14 @@ const CREATE_PRODUCT = gql(`
   }
 `);
 
+const LOCATION_TO_ADDRESS_QUERY = gql(`
+  query LocationToAddress($input: GetAddressInput!) {
+    locationToAddress(input: $input) {
+      address
+    }
+  }
+  `);
+
 interface Category {
   id: string;
   name: string;
@@ -50,13 +59,20 @@ export const Sell = () => {
     useState<Category>();
   const [price, setPrice] = useState("");
   const [address, setAddress] = useState("");
+  const [getAddressLoading, setGetAddressLoading] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
     price: number;
   }>();
+  const [status, requestPermission] = Location.useForegroundPermissions();
 
-  const { data, loading } = useQuery(SELL_QUERY);
+  const { data, loading } = useQuery(SELL_QUERY, {
+    onCompleted: (data) => setAddress(data.me.address ?? ""),
+  });
+  const [getAddress, { error: locationToAddressError }] = useLazyQuery(
+    LOCATION_TO_ADDRESS_QUERY,
+  );
 
   const [createProduct, { loading: creatingProduct }] =
     useMutation(CREATE_PRODUCT);
@@ -105,6 +121,36 @@ export const Sell = () => {
       };
     });
   }, [data]);
+
+  const onGetMyLocation = async () => {
+    if (getAddressLoading) {
+      return;
+    }
+    setGetAddressLoading(true);
+    //Cant use this function unless permission is granted. Request it again
+    if (!status.granted) {
+      await requestPermission();
+    }
+
+    const position = await Location.getCurrentPositionAsync();
+
+    getAddress({
+      variables: {
+        input: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        },
+      },
+      onCompleted: (data) => {
+        setAddress(data.locationToAddress.address);
+        setGetAddressLoading(false);
+      },
+      onError: () => {
+        setAddress(address);
+        setGetAddressLoading(false);
+      },
+    });
+  };
 
   const onPublish = () => {
     if (creatingProduct) {
@@ -209,11 +255,25 @@ export const Sell = () => {
           value={price}
           placeholder={"Ange pris"}
         />
-        <Input
-          value={address}
-          onChange={setAddress}
-          placeholder={data?.me.address ?? "Adress"}
-        />
+        <View style={styles.locationInputContainer}>
+          <View style={styles.inputAndButtonContainer}>
+            <Input
+              value={address}
+              onChange={setAddress}
+              placeholder={"Ange var varan finns"}
+              disabled={getAddressLoading}
+            />
+            <Button
+              icon="Pin"
+              onPress={onGetMyLocation}
+              loading={getAddressLoading}
+            />
+          </View>
+          {locationToAddressError && (
+            <Body size="small">Ett fel uppstod vid hämtning av address</Body>
+          )}
+        </View>
+
         <Button
           title="Publicera"
           onPress={onPublish}
@@ -231,5 +291,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
     padding: 20,
+  },
+  locationInputContainer: {
+    gap: 4,
+  },
+  inputAndButtonContainer: {
+    flexDirection: "row",
+    gap: 8,
   },
 });
