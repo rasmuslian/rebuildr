@@ -19,13 +19,13 @@ const LANDING_QUERY = gql(`
   }
 `);
 
-const distances = [0, 1, 2, 5, 7, 10, 20, 50];
+const distances = [3, 5, 10, 30, 50, 100];
 const offsetIncrement = 90;
 
 export const Landing = () => {
   const [searchString, setSearchString] = useState("");
   const [address, setAddress] = useState("");
-  const [distance, setDistance] = useState(0);
+  const [distance, setDistance] = useState();
   const [sliderOffset, setSliderOffset] = useState(0);
 
   const { navigate } = useNavigation();
@@ -89,9 +89,11 @@ export const Landing = () => {
                   setDistance(v);
                 }}
               >
+                <Picker.Item label={"Avstånd från dig"} value={0} />
                 {distances.map((dist, i) => (
-                  <Picker.Item key={i} label={`+ ${dist} km`} value={dist} />
+                  <Picker.Item key={i} label={`< ${dist} km`} value={dist} />
                 ))}
+                <Picker.Item label={"Obegränsat"} value={0} />
               </Picker>
             </View>
             <Button
@@ -114,8 +116,11 @@ export const Landing = () => {
         <View style={styles.sliderContainer}>
           <View style={[styles.categoriesContainer, { right: sliderOffset }]}>
             {data?.rootCategories.map((category) => (
-              <Pressable onPress={() => onPressCategory(category.id)}>
-                <View key={category.id} style={styles.categoryCard}>
+              <Pressable
+                onPress={() => onPressCategory(category.id)}
+                key={category.id}
+              >
+                <View style={styles.categoryCard}>
                   <Icon iconType="Pin" />
                   <Body>{category.name}</Body>
                 </View>
