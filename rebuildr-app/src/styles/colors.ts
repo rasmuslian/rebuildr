@@ -10,6 +10,7 @@ type ColorsType = {
   brand: string;
   blue: string;
   borderGray: string;
+  inactiveGray: string;
   green: string;
   white: string;
   purple: string;
@@ -20,6 +21,7 @@ const Colors: ColorsType = {
   brand: "#F8F1E3",
   blue: "#6666FF",
   borderGray: "#ABABAB",
+  inactiveGray: "#C1C1C1",
   green: "#00493E",
   white: "#FFFFFF",
   purple: "#863CFF",

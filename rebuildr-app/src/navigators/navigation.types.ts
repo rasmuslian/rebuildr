@@ -11,15 +11,23 @@ export type LandingStackParamList = {
   Login: undefined;
   Register: undefined;
   Sell: undefined;
-  Buy: undefined;
   ProductDetails: { productId: string };
+  Products: {
+    searchString?: string;
+    address?: string;
+    distance?: number;
+  };
 };
 export type LoggedInStackParamList = {
   Landing: undefined;
   Sell: undefined;
-  Buy: undefined;
   ProductDetails: { productId: string };
   Conversation: { otherUserId: string; productId: string };
   Conversations: undefined;
   Account: undefined;
+  Products: {
+    searchString?: string;
+    address?: string;
+    distance?: number;
+  };
 };
