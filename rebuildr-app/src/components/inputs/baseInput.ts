@@ -17,5 +17,6 @@ export const baseInputStyles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderRadius: 8,
+    backgroundColor: Colors.white,
   },
 });

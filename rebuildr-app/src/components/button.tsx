@@ -1,11 +1,20 @@
-import React, { PropsWithChildren } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  View,
+} from "react-native";
 import { IconType, Icon } from "src/components/icons/icon";
+import { TextColors } from "src/styles/colors";
 import { Body } from "./texts/text";
 
-interface ButtonProps extends PropsWithChildren {
+interface ButtonProps extends PressableProps {
   onPress: () => void;
   title?: string;
+  titleColor?: TextColors;
+  backgroundColor?: string;
   icon?: IconType;
   disabled?: boolean;
   loading?: boolean;
@@ -14,19 +23,21 @@ interface ButtonProps extends PropsWithChildren {
 export const Button = ({
   onPress,
   title,
+  titleColor,
   icon,
   disabled,
   loading,
+  backgroundColor,
   children,
 }: ButtonProps) => {
   return (
     <Pressable onPress={onPress} disabled={disabled || loading}>
-      <View style={style.container}>
+      <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {loading ? (
           <ActivityIndicator />
         ) : (
           <>
-            {title && <Body>{title}</Body>}
+            {title && <Body color={titleColor}>{title}</Body>}
             {icon && <Icon iconType={icon} />}
             {children}
           </>
@@ -36,7 +47,7 @@ export const Button = ({
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
     borderStyle: "solid",

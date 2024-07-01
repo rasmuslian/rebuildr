@@ -53,13 +53,13 @@ export const textStyles = {
   body: {
     default: {
       ...textBase,
-      fontSize: 16,
+      fontSize: 14,
       lineHeight: 22,
-      letterSpacing: -0.2,
+      letterSpacing: 0,
     },
     small: {
       ...textBase,
-      fontSize: 14,
+      fontSize: 12,
       lineHeight: 20,
       letterSpacing: -0.16,
     },
