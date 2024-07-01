@@ -45,13 +45,16 @@ const createProductSchema = z.object({
 @InputType()
 class ProductsInput {
   @Field({ nullable: true })
-  searchString: string;
+  searchString?: string;
 
   @Field({ nullable: true })
-  address: string;
+  address?: string;
 
   @Field({ nullable: true })
-  distance: number;
+  distance?: number;
+
+  @Field({ nullable: true })
+  categoryId?: string;
 }
 
 @InputType()

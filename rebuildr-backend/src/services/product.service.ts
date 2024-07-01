@@ -58,6 +58,7 @@ export class ProductService {
     searchString?: string;
     address?: string;
     distance?: number;
+    categoryId?: string;
   }) {
     const query = this.productRepository.createQueryBuilder('product');
 
@@ -91,6 +92,13 @@ export class ProductService {
         'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
       );
       query.setParameter('origin', origin);
+    }
+    //Will find products matching the category. Also includes all products where 'categoryId' is the parent of their category
+    if (input.categoryId) {
+      query.leftJoin('category', 'c', 'category_id = c.id');
+      query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
+        categoryId: input.categoryId,
+      });
     }
 
     return await query.getMany();

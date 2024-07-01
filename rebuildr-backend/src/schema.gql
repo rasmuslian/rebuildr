@@ -65,7 +65,9 @@ type Query {
   me: User!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!): [Product!]!
+  category(input: CategoryInput!): Category!
   categories: [Category!]!
+  rootCategories: [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
@@ -79,6 +81,11 @@ input ProductsInput {
   searchString: String
   address: String
   distance: Float
+  categoryId: String
+}
+
+input CategoryInput {
+  id: String!
 }
 
 input ConversationInput {

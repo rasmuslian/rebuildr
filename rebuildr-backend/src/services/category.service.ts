@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -16,5 +16,11 @@ export class CategoryService {
 
   async findAll() {
     return await this.categoryRepository.find();
+  }
+
+  async findAllRoot() {
+    return await this.categoryRepository.findBy({
+      parentId: IsNull(),
+    });
   }
 }
