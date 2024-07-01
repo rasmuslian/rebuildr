@@ -20,13 +20,11 @@ const LANDING_QUERY = gql(`
 `);
 
 const distances = [3, 5, 10, 30, 50, 100];
-const offsetIncrement = 90;
 
 export const Landing = () => {
   const [searchString, setSearchString] = useState("");
   const [address, setAddress] = useState("");
   const [distance, setDistance] = useState();
-  const [sliderOffset, setSliderOffset] = useState(0);
 
   const { navigate } = useNavigation();
 
@@ -105,37 +103,74 @@ export const Landing = () => {
           </View>
         </View>
       </View>
-      <View style={styles.categoriesSlider}>
-        <Pressable
-          onPress={() => setSliderOffset(sliderOffset - offsetIncrement)}
-        >
-          <View style={styles.arrow}>
-            <Icon iconType="LeftChevron" />
-          </View>
-        </Pressable>
-        <View style={styles.sliderContainer}>
-          <View style={[styles.categoriesContainer, { right: sliderOffset }]}>
-            {data?.rootCategories.map((category) => (
-              <Pressable
-                onPress={() => onPressCategory(category.id)}
-                key={category.id}
-              >
-                <View style={styles.categoryCard}>
-                  <Icon iconType="Pin" />
-                  <Body>{category.name}</Body>
-                </View>
-              </Pressable>
-            ))}
-          </View>
+      {data?.rootCategories && (
+        <CategorySlider
+          categories={data.rootCategories}
+          onSelect={(categoryId) => onPressCategory(categoryId)}
+        />
+      )}
+    </View>
+  );
+};
+
+interface CategorySliderProps {
+  onSelect: (categoryId: string) => void;
+  categories: { id: string; name: string }[];
+}
+const offsetIncrement = 100;
+
+const CategorySlider = ({ onSelect, categories }: CategorySliderProps) => {
+  const [sliderOffset, setSliderOffset] = useState(0);
+  const [sliderWidth, setSliderWidth] = useState(0);
+  const [sliderWindowWidth, setSliderWindowWidth] = useState(0);
+
+  const onRight = () => {
+    if (sliderWidth + sliderOffset - sliderWindowWidth <= 0) {
+      return;
+    }
+    setSliderOffset(sliderOffset - offsetIncrement);
+  };
+
+  const onLeft = () => {
+    if (sliderOffset >= 0) {
+      return;
+    }
+    setSliderOffset(sliderOffset + offsetIncrement);
+  };
+
+  return (
+    <View style={styles.categoriesSlider}>
+      <Pressable onPress={onLeft}>
+        <View style={styles.arrow}>
+          <Icon iconType="LeftChevron" />
         </View>
-        <Pressable
-          onPress={() => setSliderOffset(sliderOffset + offsetIncrement)}
+      </Pressable>
+      <View
+        style={styles.sliderContainer}
+        onLayout={(v) => setSliderWindowWidth(v.nativeEvent.layout.width)}
+      >
+        <View
+          style={[
+            styles.categoriesContainer,
+            { transform: `translateX(${sliderOffset}px)` },
+          ]}
+          onLayout={(v) => setSliderWidth(v.nativeEvent.layout.width)}
         >
-          <View style={styles.arrow}>
-            <Icon iconType="RightChevron" />
-          </View>
-        </Pressable>
+          {categories.map((category) => (
+            <Pressable onPress={() => onSelect(category.id)} key={category.id}>
+              <View style={styles.categoryCard}>
+                <Icon iconType="Pin" />
+                <Body>{category.name}</Body>
+              </View>
+            </Pressable>
+          ))}
+        </View>
       </View>
+      <Pressable onPress={onRight}>
+        <View style={styles.arrow}>
+          <Icon iconType="RightChevron" />
+        </View>
+      </Pressable>
     </View>
   );
 };
@@ -165,7 +200,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     width: 653,
-    // height: 249,
     backgroundColor: Colors.brand,
     paddingVertical: 28,
     paddingHorizontal: 24,
@@ -186,6 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.brand,
     flexDirection: "row",
     paddingHorizontal: 38,
+    justifyContent: "space-between",
   },
   sliderContainer: {
     overflow: "hidden",
@@ -195,9 +230,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     position: "absolute",
+    transformOrigin: "left",
   },
   categoryCard: {
     padding: 16,
+    width: 100,
     justifyContent: "space-between",
     alignItems: "center",
     gap: 8,
