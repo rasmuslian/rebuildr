@@ -16,6 +16,7 @@ export type LandingStackParamList = {
     searchString?: string;
     address?: string;
     distance?: number;
+    categoryId?: string;
   };
 };
 export type LoggedInStackParamList = {
@@ -29,5 +30,6 @@ export type LoggedInStackParamList = {
     searchString?: string;
     address?: string;
     distance?: number;
+    categoryId?: string;
   };
 };

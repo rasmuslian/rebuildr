@@ -18,6 +18,15 @@ const PRODUCTS_QUERY = gql(`
   }
 `);
 
+const PRODUCTS_CATEGORY_QUERY = gql(`
+  query ProductsCategory($input: CategoryInput!) {
+    category(input: $input) {
+      id
+      name
+    }
+  }
+  `);
+
 export const Products = ({ route }) => {
   const navigation = useNavigation();
 
@@ -25,6 +34,7 @@ export const Products = ({ route }) => {
   const address = route.params?.address ?? "";
   const _distance = parseInt(route.params?.distance);
   const distance = isNaN(_distance) ? 0 : _distance;
+  const categoryId = route.params?.categoryId;
 
   const { data, loading } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -32,23 +42,35 @@ export const Products = ({ route }) => {
         searchString: searchString,
         address: address,
         distance: distance,
+        categoryId: categoryId,
       },
     },
+  });
+  const { data: categoryData } = useQuery(PRODUCTS_CATEGORY_QUERY, {
+    variables: {
+      input: {
+        id: categoryId,
+      },
+    },
+    skip: !categoryId,
   });
 
   const onRemoveFilter = (input: {
     removeSearchString?: boolean;
     removeAddress?: boolean;
     removeDistance?: boolean;
+    removeCategory?: boolean;
   }) => {
     if (loading) {
       return;
     }
 
+    //Setting params will trigger a rerender which in turn will fetch products again
     navigation.setParams({
       searchString: input.removeSearchString ? undefined : searchString,
       address: input.removeAddress ? undefined : address,
       distance: input.removeDistance ? undefined : distance,
+      categoryId: input.removeCategory ? undefined : categoryId,
     });
   };
 
@@ -61,6 +83,12 @@ export const Products = ({ route }) => {
             <Button
               title={searchString}
               onPress={() => onRemoveFilter({ removeSearchString: true })}
+            />
+          )}
+          {categoryData && (
+            <Button
+              title={categoryData.category.name}
+              onPress={() => onRemoveFilter({ removeCategory: true })}
             />
           )}
           {!!address && !distance && (
