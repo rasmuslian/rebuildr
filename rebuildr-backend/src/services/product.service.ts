@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Point, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 
 @Injectable()
@@ -54,12 +54,46 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async findCategory(product: Product) {
-    return await this.categoryRepository.findOneBy({ id: product.categoryId });
-  }
+  async findAll(input: {
+    searchString?: string;
+    address?: string;
+    distance?: number;
+  }) {
+    const query = this.productRepository.createQueryBuilder('product');
 
-  async findAll() {
-    return await this.productRepository.find();
+    if (input.searchString) {
+      query.andWhere('position(LOWER(:searchString) in LOWER(title)) > 0', {
+        searchString: input.searchString,
+      });
+    }
+    if (input.address) {
+      //find coordinates of address
+      const location = await this.geocodingService.addressToLocation(
+        input.address,
+      );
+      const origin: Point = {
+        type: 'Point',
+        coordinates: [location.latitude, location.longitude],
+      };
+
+      //If distance is included, only select products whose distance to origin is less than input.distance
+      if (input.distance) {
+        //convert from km to meters
+        const distance = input.distance * 1000;
+        query.andWhere(
+          'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location))) <= :distance',
+          { origin, distance },
+        );
+        query.setParameter('distance', distance);
+      }
+
+      query.orderBy(
+        'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+      );
+      query.setParameter('origin', origin);
+    }
+
+    return await query.getMany();
   }
 
   async findOne(id: string) {

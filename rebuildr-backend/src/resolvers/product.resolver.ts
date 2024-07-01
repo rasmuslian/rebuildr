@@ -16,6 +16,7 @@ import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { CategoryService } from 'src/services/category.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
@@ -42,6 +43,18 @@ const createProductSchema = z.object({
 });
 
 @InputType()
+class ProductsInput {
+  @Field({ nullable: true })
+  searchString: string;
+
+  @Field({ nullable: true })
+  address: string;
+
+  @Field({ nullable: true })
+  distance: number;
+}
+
+@InputType()
 export class GetProductInput {
   @Field()
   id: string;
@@ -52,6 +65,7 @@ export class ProductResolver {
   constructor(
     private productService: ProductService,
     private userService: UserService,
+    private categoryService: CategoryService,
   ) {}
 
   @Query(() => Product)
@@ -60,8 +74,8 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  async products() {
-    return this.productService.findAll();
+  async products(@Args('input') input: ProductsInput) {
+    return this.productService.findAll({ ...input });
   }
 
   @Mutation(() => Product)
@@ -82,7 +96,7 @@ export class ProductResolver {
 
   @ResolveField(() => Category)
   async category(@Root() _product: Product) {
-    return this.productService.findCategory(_product);
+    return this.categoryService.findOne(_product.categoryId);
   }
 
   @ResolveField(() => User)

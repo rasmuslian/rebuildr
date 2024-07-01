@@ -10,6 +10,10 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
   ) {}
 
+  async findOne(id: string) {
+    return await this.categoryRepository.findOneBy({ id });
+  }
+
   async findAll() {
     return await this.categoryRepository.find();
   }
