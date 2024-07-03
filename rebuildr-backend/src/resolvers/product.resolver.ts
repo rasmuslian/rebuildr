@@ -15,8 +15,11 @@ import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { CategoryService } from 'src/services/category.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
+import z from 'zod';
 
 @InputType()
 export class CreateProductInput {
@@ -28,6 +31,30 @@ export class CreateProductInput {
 
   @Field(() => Float)
   price: number;
+
+  @Field(() => String)
+  address: string;
+}
+const createProductSchema = z.object({
+  title: z.string(),
+  categoryId: z.string(),
+  price: z.number(),
+  address: z.string(),
+});
+
+@InputType()
+class ProductsInput {
+  @Field({ nullable: true })
+  searchString?: string;
+
+  @Field({ nullable: true })
+  address?: string;
+
+  @Field({ nullable: true })
+  distance?: number;
+
+  @Field({ nullable: true })
+  categoryId?: string;
 }
 
 @InputType()
@@ -41,6 +68,7 @@ export class ProductResolver {
   constructor(
     private productService: ProductService,
     private userService: UserService,
+    private categoryService: CategoryService,
   ) {}
 
   @Query(() => Product)
@@ -49,27 +77,29 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  async products() {
-    return this.productService.findAll();
+  async products(@Args('input') input: ProductsInput) {
+    return this.productService.findAll({ ...input });
   }
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async createProduct(
     @CurrentUser() _user: User,
-    @Args('input') input: CreateProductInput,
+    @Args('input', new ZodValidationPipe(createProductSchema))
+    input: CreateProductInput,
   ) {
     return this.productService.create({
       title: input.title,
       categoryId: input.categoryId,
       userId: _user.id,
       price: input.price,
+      address: input.address,
     });
   }
 
   @ResolveField(() => Category)
   async category(@Root() _product: Product) {
-    return this.productService.findCategory(_product);
+    return this.categoryService.findOne(_product.categoryId);
   }
 
   @ResolveField(() => User)

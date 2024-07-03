@@ -1,34 +1,58 @@
-import React, { PropsWithChildren } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  View,
+} from "react-native";
 import { IconType, Icon } from "src/components/icons/icon";
+import Colors, { ButtonColors, TextColors } from "src/styles/colors";
 import { Body } from "./texts/text";
 
-interface ButtonProps extends PropsWithChildren {
+interface ButtonProps extends PressableProps {
   onPress: () => void;
   title?: string;
+  titleColor?: TextColors;
+  backgroundColor?: ButtonColors;
   icon?: IconType;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export const Button = ({
   onPress,
   title,
+  titleColor,
   icon,
   disabled,
+  loading,
+  backgroundColor,
   children,
 }: ButtonProps) => {
   return (
-    <Pressable onPress={onPress} disabled={disabled}>
-      <View style={style.container}>
-        {title && <Body>{title}</Body>}
-        {icon && <Icon iconType="Person" />}
-        {children}
+    <Pressable onPress={onPress} disabled={disabled || loading}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: Colors.button[backgroundColor] },
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <>
+            {title && <Body color={titleColor}>{title}</Body>}
+            {icon && <Icon iconType={icon} />}
+            {children}
+          </>
+        )}
       </View>
     </Pressable>
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
     borderStyle: "solid",

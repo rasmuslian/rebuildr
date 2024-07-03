@@ -4,9 +4,6 @@ import Colors from "src/styles/colors";
 import { Button } from "../button";
 import logo from "assets/images/logo.png";
 import { useNavigation } from "@react-navigation/native";
-import { isLoggedInVar } from "src/apollo/apollo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useApolloClient } from "@apollo/client";
 import { Body } from "../texts/text";
 
 interface LoggedInNavbarProps {
@@ -15,13 +12,6 @@ interface LoggedInNavbarProps {
 
 export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
   const { navigate } = useNavigation();
-  const client = useApolloClient();
-
-  const onLogout = async () => {
-    await client.clearStore();
-    await AsyncStorage.removeItem("access_token");
-    isLoggedInVar(false);
-  };
 
   return (
     <View style={styles.container}>
@@ -35,8 +25,8 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
           title={"Meddelanden"}
         />
         <Button onPress={() => navigate("Sell")} title={"Sälj"}></Button>
-        <Button onPress={onLogout} icon={"Person"}>
-          <Body>Logga ut</Body>
+        <Button onPress={() => navigate("Account")} icon={"Person"}>
+          <Body>Mitt konto</Body>
         </Button>
       </View>
     </View>

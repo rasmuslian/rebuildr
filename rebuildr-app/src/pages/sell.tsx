@@ -16,6 +16,10 @@ const SELL_QUERY = gql(`
       name
       parentId
     }
+    me {
+      email
+      address
+    }
   }
 `);
 
@@ -45,13 +49,16 @@ export const Sell = () => {
   const [selectedChildCategory, setSelectedChildCategory] =
     useState<Category>();
   const [price, setPrice] = useState("");
+  const [address, setAddress] = useState("");
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
     price: number;
   }>();
 
-  const { data } = useQuery(SELL_QUERY);
+  const { data, loading } = useQuery(SELL_QUERY, {
+    onCompleted: (data) => setAddress(data.me.address ?? ""),
+  });
 
   const [createProduct, { loading: creatingProduct }] =
     useMutation(CREATE_PRODUCT);
@@ -106,9 +113,10 @@ export const Sell = () => {
       return;
     }
 
-    const category = selectedChildCategory ?? selectedRootCategory;
+    const category = selectedChildCategory;
+    const productAddress = address || data?.me.address;
 
-    if (!category || !title || price === undefined) {
+    if (!category || !title || price === undefined || !productAddress) {
       //Invalid inputs!
       return;
     }
@@ -125,6 +133,7 @@ export const Sell = () => {
           title: title,
           categoryId: category.id,
           price: toInt,
+          address: productAddress,
         },
       },
       onCompleted: (data) => {
@@ -135,6 +144,7 @@ export const Sell = () => {
         setSelectedChildCategory(undefined);
         setSelectedRootCategory(undefined);
         setPrice(undefined);
+        setAddress("");
       },
     });
   };
@@ -154,7 +164,7 @@ export const Sell = () => {
   }
 
   return (
-    <Page title={"Vad vill du sälja?"}>
+    <Page title={"Vad vill du sälja?"} loading={loading}>
       <View style={styles.formContainer}>
         <Picker
           selectedValue={selectedRootCategory?.id}
@@ -201,6 +211,11 @@ export const Sell = () => {
           value={price}
           placeholder={"Ange pris"}
         />
+        <Input
+          value={address}
+          onChange={setAddress}
+          placeholder={"Ange var varan finns"}
+        />
         <Button
           title="Publicera"
           onPress={onPublish}
@@ -218,5 +233,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
     padding: 20,
+  },
+  locationInputContainer: {
+    gap: 4,
+  },
+  inputAndButtonContainer: {
+    flexDirection: "row",
+    gap: 8,
   },
 });

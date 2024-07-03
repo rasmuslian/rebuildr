@@ -38,6 +38,10 @@ export type Category = {
   parentId?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type CategoryInput = {
+  id: Scalars["String"]["input"];
+};
+
 export type ConversationInput = {
   otherUserId: Scalars["String"]["input"];
   productId: Scalars["String"]["input"];
@@ -63,6 +67,7 @@ export type CreateMessageInput = {
 };
 
 export type CreateProductInput = {
+  address: Scalars["String"]["input"];
   categoryId: Scalars["String"]["input"];
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
@@ -98,6 +103,7 @@ export type Mutation = {
   createProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
+  updateUser: User;
 };
 
 export type MutationCreateMessageArgs = {
@@ -116,8 +122,13 @@ export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
 };
 
+export type MutationUpdateUserArgs = {
+  input: UpdateUserInput;
+};
+
 export type Product = {
   __typename?: "Product";
+  address: Scalars["String"]["output"];
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
@@ -126,14 +137,27 @@ export type Product = {
   user: User;
 };
 
+export type ProductsInput = {
+  address?: InputMaybe<Scalars["String"]["input"]>;
+  categoryId?: InputMaybe<Scalars["String"]["input"]>;
+  distance?: InputMaybe<Scalars["Float"]["input"]>;
+  searchString?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type Query = {
   __typename?: "Query";
   categories: Array<Category>;
+  category: Category;
   conversation: ConversationResponse;
   conversations: Array<ConversationOverviewResponse>;
   me: User;
   product: Product;
   products: Array<Product>;
+  rootCategories: Array<Category>;
+};
+
+export type QueryCategoryArgs = {
+  input: CategoryInput;
 };
 
 export type QueryConversationArgs = {
@@ -142,6 +166,10 @@ export type QueryConversationArgs = {
 
 export type QueryProductArgs = {
   input: GetProductInput;
+};
+
+export type QueryProductsArgs = {
+  input: ProductsInput;
 };
 
 export type RegisterUserInput = {
@@ -154,8 +182,13 @@ export type RegisterUserResponse = {
   message: Scalars["String"]["output"];
 };
 
+export type UpdateUserInput = {
+  address: Scalars["String"]["input"];
+};
+
 export type User = {
   __typename?: "User";
+  address?: Maybe<Scalars["String"]["output"]>;
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
 };
@@ -167,16 +200,20 @@ export type LoggedInNavigationQuery = {
   me: { __typename?: "User"; email: string };
 };
 
-export type BuyQueryQueryVariables = Exact<{ [key: string]: never }>;
+export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
 
-export type BuyQueryQuery = {
+export type AccountQueryQuery = {
   __typename?: "Query";
-  products: Array<{
-    __typename?: "Product";
-    id: string;
-    title: string;
-    price: number;
-  }>;
+  me: { __typename?: "User"; email: string; address?: string | null };
+};
+
+export type UpdateAccountMutationVariables = Exact<{
+  input: UpdateUserInput;
+}>;
+
+export type UpdateAccountMutation = {
+  __typename?: "Mutation";
+  updateUser: { __typename?: "User"; email: string; address?: string | null };
 };
 
 export type ConversationQueryQueryVariables = Exact<{
@@ -219,6 +256,13 @@ export type ConversationsQueryQuery = {
   }>;
 };
 
+export type LandingQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type LandingQueryQuery = {
+  __typename?: "Query";
+  rootCategories: Array<{ __typename?: "Category"; id: string; name: string }>;
+};
+
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
@@ -243,9 +287,34 @@ export type ProductDetailsQuery = {
     id: string;
     title: string;
     price: number;
+    address: string;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
+};
+
+export type ProductsQueryQueryVariables = Exact<{
+  input: ProductsInput;
+}>;
+
+export type ProductsQueryQuery = {
+  __typename?: "Query";
+  products: Array<{
+    __typename?: "Product";
+    id: string;
+    title: string;
+    address: string;
+    price: number;
+  }>;
+};
+
+export type ProductsCategoryQueryVariables = Exact<{
+  input: CategoryInput;
+}>;
+
+export type ProductsCategoryQuery = {
+  __typename?: "Query";
+  category: { __typename?: "Category"; id: string; name: string };
 };
 
 export type RegisterUserMutationVariables = Exact<{
@@ -267,6 +336,7 @@ export type SellQueryQuery = {
     name: string;
     parentId?: string | null;
   }>;
+  me: { __typename?: "User"; email: string; address?: string | null };
 };
 
 export type CreateProductMutationVariables = Exact<{
@@ -311,25 +381,24 @@ export const LoggedInNavigationDocument = {
   LoggedInNavigationQuery,
   LoggedInNavigationQueryVariables
 >;
-export const BuyQueryDocument = {
+export const AccountQueryDocument = {
   kind: "Document",
   definitions: [
     {
       kind: "OperationDefinition",
       operation: "query",
-      name: { kind: "Name", value: "BuyQuery" },
+      name: { kind: "Name", value: "AccountQuery" },
       selectionSet: {
         kind: "SelectionSet",
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "products" },
+            name: { kind: "Name", value: "me" },
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
             },
           },
@@ -337,7 +406,62 @@ export const BuyQueryDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<BuyQueryQuery, BuyQueryQueryVariables>;
+} as unknown as DocumentNode<AccountQueryQuery, AccountQueryQueryVariables>;
+export const UpdateAccountDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateAccount" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateUserInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateUser" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateAccountMutation,
+  UpdateAccountMutationVariables
+>;
 export const ConversationQueryDocument = {
   kind: "Document",
   definitions: [
@@ -526,6 +650,32 @@ export const ConversationsQueryDocument = {
   ConversationsQueryQuery,
   ConversationsQueryQueryVariables
 >;
+export const LandingQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "LandingQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rootCategories" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<LandingQueryQuery, LandingQueryQueryVariables>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [
@@ -632,6 +782,7 @@ export const ProductDetailsDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "user" },
@@ -661,6 +812,115 @@ export const ProductDetailsDocument = {
     },
   ],
 } as unknown as DocumentNode<ProductDetailsQuery, ProductDetailsQueryVariables>;
+export const ProductsQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "ProductsQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ProductsInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "products" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ProductsQueryQuery, ProductsQueryQueryVariables>;
+export const ProductsCategoryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "ProductsCategory" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CategoryInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "category" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ProductsCategoryQuery,
+  ProductsCategoryQueryVariables
+>;
 export const RegisterUserDocument = {
   kind: "Document",
   definitions: [
@@ -734,6 +994,17 @@ export const SellQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "parentId" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
             },
           },

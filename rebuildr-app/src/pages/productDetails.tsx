@@ -16,6 +16,7 @@ const PRODUCT_DETAILS_QUERY = gql(`
       id
       title
       price
+      address
       user {
         id
         email
@@ -46,6 +47,7 @@ export const ProductDetails = ({
     <Page title={data.product.title}>
       <Body>Pris {data.product.price} kr</Body>
       <Body>Kategori {data.product.category.name}</Body>
+      <Body>Produkten finns på adressen: {data.product.address}</Body>
       <Body>Säljare {data.product.user.email}</Body>
       {isLoggedInVar() && (
         <Button

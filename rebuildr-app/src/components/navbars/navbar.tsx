@@ -28,7 +28,7 @@ const style = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     width: "100%",
-    backgroundColor: Colors.orange,
+    backgroundColor: Colors.brand,
     paddingHorizontal: 34,
   },
 });

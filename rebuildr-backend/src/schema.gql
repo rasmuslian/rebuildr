@@ -5,6 +5,7 @@
 type User {
   id: ID!
   email: String!
+  address: String
 }
 
 type RegisterUserResponse {
@@ -27,6 +28,7 @@ type Product {
   title: String!
   createdAt: DateTime!
   price: Int!
+  address: String!
   category: Category!
   user: User!
 }
@@ -58,13 +60,26 @@ type ConversationOverviewResponse {
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
-  products: [Product!]!
+  products(input: ProductsInput!): [Product!]!
+  category(input: CategoryInput!): Category!
   categories: [Category!]!
+  rootCategories: [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
 }
 
 input GetProductInput {
+  id: String!
+}
+
+input ProductsInput {
+  searchString: String
+  address: String
+  distance: Float
+  categoryId: String
+}
+
+input CategoryInput {
   id: String!
 }
 
@@ -76,6 +91,7 @@ input ConversationInput {
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   login(input: LoginInput!): LoginResponse!
+  updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): Product!
   createMessage(input: CreateMessageInput!): Message!
 }
@@ -90,10 +106,15 @@ input LoginInput {
   password: String!
 }
 
+input UpdateUserInput {
+  address: String!
+}
+
 input CreateProductInput {
   title: String!
   categoryId: String!
   price: Float!
+  address: String!
 }
 
 input CreateMessageInput {
