@@ -39,7 +39,7 @@ const documents = {
     types.RegisterUserDocument,
   "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      email\n      address\n    }\n  }\n":
     types.SellQueryDocument,
-  "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      title\n      price\n      category {\n        name\n      }\n    }\n  }\n":
+  "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n":
     types.CreateProductDocument,
 };
 
@@ -139,8 +139,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      title\n      price\n      category {\n        name\n      }\n    }\n  }\n",
-): (typeof documents)["\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      title\n      price\n      category {\n        name\n      }\n    }\n  }\n"];
+  source: "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n",
+): (typeof documents)["\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

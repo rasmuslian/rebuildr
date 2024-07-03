@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import {
+  CreateProductResponse,
+  FileInputType,
+} from 'src/resolvers/product.resolver';
 import { Point, Repository } from 'typeorm';
+import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 
 @Injectable()
@@ -16,6 +21,7 @@ export class ProductService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
+    private fileService: FileService,
   ) {}
 
   async create(input: {
@@ -24,7 +30,8 @@ export class ProductService {
     userId: string;
     price: number;
     address: string;
-  }) {
+    images?: FileInputType[];
+  }): Promise<CreateProductResponse> {
     const product = new Product();
 
     const category = await this.categoryRepository.findOneBy({
@@ -51,7 +58,19 @@ export class ProductService {
       type: 'Point',
       coordinates: [location.latitude, location.longitude],
     };
-    return await this.productRepository.save(product);
+    const images = await Promise.all(
+      input.images?.map((image) => {
+        return this.fileService.create(image.mimeType);
+      }) ?? [],
+    );
+
+    product.images = images.map((image) => image.file);
+    const createdProduct = await this.productRepository.save(product);
+
+    return {
+      product: createdProduct,
+      presignedPutUrls: images.map((image) => image.signedUrl),
+    };
   }
 
   async findAll(input: {

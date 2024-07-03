@@ -5,6 +5,7 @@ import {
   Float,
   InputType,
   Mutation,
+  ObjectType,
   Query,
   ResolveField,
   Resolver,
@@ -22,6 +23,11 @@ import { UserService } from 'src/services/user.service';
 import z from 'zod';
 
 @InputType()
+export class FileInputType {
+  @Field(() => String)
+  mimeType: string;
+}
+@InputType()
 export class CreateProductInput {
   @Field()
   title: string;
@@ -34,13 +40,25 @@ export class CreateProductInput {
 
   @Field(() => String)
   address: string;
+
+  @Field(() => [FileInputType], { nullable: true })
+  images?: FileInputType[];
 }
 const createProductSchema = z.object({
   title: z.string(),
   categoryId: z.string(),
   price: z.number(),
   address: z.string(),
+  images: z.array(z.object({ mimeType: z.string() })).nullable(),
 });
+@ObjectType()
+export class CreateProductResponse {
+  @Field(() => Product)
+  product: Product;
+
+  @Field(() => [String])
+  presignedPutUrls: string[];
+}
 
 @InputType()
 class ProductsInput {
@@ -81,7 +99,7 @@ export class ProductResolver {
     return this.productService.findAll({ ...input });
   }
 
-  @Mutation(() => Product)
+  @Mutation(() => CreateProductResponse)
   @UseGuards(GqlAuthGuard)
   async createProduct(
     @CurrentUser() _user: User,
@@ -94,6 +112,7 @@ export class ProductResolver {
       userId: _user.id,
       price: input.price,
       address: input.address,
+      images: input.images,
     });
   }
 

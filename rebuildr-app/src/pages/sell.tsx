@@ -8,6 +8,7 @@ import { Page } from "src/components/page";
 import { Picker } from "@react-native-picker/picker";
 import { NumberInput } from "src/components/inputs/numberInput";
 import { Body } from "src/components/texts/text";
+import * as ImagePicker from "expo-image-picker";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -26,11 +27,14 @@ const SELL_QUERY = gql(`
 const CREATE_PRODUCT = gql(`
   mutation CreateProduct($input: CreateProductInput!) {
     createProduct(input: $input) {
-      title
-      price
-      category {
-        name
+      product {
+        title
+        price
+        category {
+          name
+        }
       }
+      presignedPutUrls
     }
   }
 `);
@@ -50,11 +54,14 @@ export const Sell = () => {
     useState<Category>();
   const [price, setPrice] = useState("");
   const [address, setAddress] = useState("");
+  const nrMaxImages = 5;
+  const [images, setImages] = useState<{ uri: string; mimeType: string }[]>([]);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
     price: number;
   }>();
+  const mediaHook = ImagePicker.useMediaLibraryPermissions();
 
   const { data, loading } = useQuery(SELL_QUERY, {
     onCompleted: (data) => setAddress(data.me.address ?? ""),
@@ -108,6 +115,29 @@ export const Sell = () => {
     });
   }, [data]);
 
+  const onAddPicture = async () => {
+    const nrImagesLeft = nrMaxImages - images.length;
+    if (nrImagesLeft === 0) {
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: true,
+      selectionLimit: nrImagesLeft,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+    if (result.canceled) {
+      return;
+    }
+
+    const files = result.assets
+      .filter((asset) => !!asset.mimeType)
+      .map((asset) => ({
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+      }));
+    setImages(files);
+  };
+
   const onPublish = () => {
     if (creatingProduct) {
       return;
@@ -134,10 +164,36 @@ export const Sell = () => {
           categoryId: category.id,
           price: toInt,
           address: productAddress,
+          images: images.map((image) => ({ mimeType: image.mimeType })),
         },
       },
       onCompleted: (data) => {
-        setCreatedProduct(data.createProduct);
+        setCreatedProduct(data.createProduct.product);
+
+        //send all images
+        Promise.all(
+          data.createProduct.presignedPutUrls.map(async (url, i) => {
+            const image = images[i];
+            const file = await fetch(image.uri);
+            const blob = await file.blob();
+            if (!image) {
+              return;
+            }
+            return fetch(url, {
+              method: "PUT",
+              body: blob,
+              headers: {
+                "Content-Type": image.mimeType,
+              },
+            });
+          }),
+        )
+          .then((v) => {
+            //TODO: do something here
+            console.log("v :>> ", v);
+          })
+          //TODO: do something here
+          .catch((e) => console.log("e :>> ", e));
 
         //reset
         setTitle("");
@@ -145,6 +201,7 @@ export const Sell = () => {
         setSelectedRootCategory(undefined);
         setPrice(undefined);
         setAddress("");
+        setImages([]);
       },
     });
   };
@@ -216,6 +273,13 @@ export const Sell = () => {
           onChange={setAddress}
           placeholder={"Ange var varan finns"}
         />
+        <View>
+          <Body>
+            Lägg till bilder ({images.length}/{nrMaxImages})
+          </Body>
+          <Button onPress={onAddPicture} title="+" />
+        </View>
+
         <Button
           title="Publicera"
           onPress={onPublish}

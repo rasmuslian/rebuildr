@@ -28,6 +28,8 @@ import { Message } from './entities/message.entity';
 import { MessageResolver } from './resolvers/message.resolver';
 import { MessageService } from './services/message.service';
 import { GeocodingService } from './services/geocoding.service';
+import { FileService } from './services/file.service';
+import { File } from './entities/file.entity';
 
 @Module({
   imports: [
@@ -46,7 +48,7 @@ import { GeocodingService } from './services/geocoding.service';
         ...dbConfig(configService),
       }),
     }),
-    TypeOrmModule.forFeature([User, Product, Category, Message]),
+    TypeOrmModule.forFeature([User, Product, Category, Message, File]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
@@ -82,6 +84,7 @@ import { GeocodingService } from './services/geocoding.service';
     MessageResolver,
     MessageService,
     GeocodingService,
+    FileService,
   ],
 })
 export class AppModule {}

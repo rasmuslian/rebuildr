@@ -4,11 +4,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
 import { User } from './user.entity';
+import { File } from './file.entity';
 
 @Entity()
 @ObjectType()
@@ -47,4 +49,7 @@ export class Product {
 
   @Column('geometry')
   addressLocation: Point;
+
+  @OneToMany(() => File, (file) => file.product, { nullable: true })
+  images: File[];
 }

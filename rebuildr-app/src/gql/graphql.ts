@@ -69,8 +69,19 @@ export type CreateMessageInput = {
 export type CreateProductInput = {
   address: Scalars["String"]["input"];
   categoryId: Scalars["String"]["input"];
+  images?: InputMaybe<Array<FileInputType>>;
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
+};
+
+export type CreateProductResponse = {
+  __typename?: "CreateProductResponse";
+  presignedPutUrls: Array<Scalars["String"]["output"]>;
+  product: Product;
+};
+
+export type FileInputType = {
+  mimeType: Scalars["String"]["input"];
 };
 
 export type GetProductInput = {
@@ -100,7 +111,7 @@ export type Message = {
 export type Mutation = {
   __typename?: "Mutation";
   createMessage: Message;
-  createProduct: Product;
+  createProduct: CreateProductResponse;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
   updateUser: User;
@@ -346,10 +357,14 @@ export type CreateProductMutationVariables = Exact<{
 export type CreateProductMutation = {
   __typename?: "Mutation";
   createProduct: {
-    __typename?: "Product";
-    title: string;
-    price: number;
-    category: { __typename?: "Category"; name: string };
+    __typename?: "CreateProductResponse";
+    presignedPutUrls: Array<string>;
+    product: {
+      __typename?: "Product";
+      title: string;
+      price: number;
+      category: { __typename?: "Category"; name: string };
+    };
   };
 };
 
@@ -1055,17 +1070,33 @@ export const CreateProductDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "category" },
+                  name: { kind: "Name", value: "product" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
-                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                      { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "name" },
+                            },
+                          ],
+                        },
+                      },
                     ],
                   },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "presignedPutUrls" },
                 },
               ],
             },
