@@ -308,15 +308,19 @@ export const Sell = () => {
             </Pressable>
           </View>
         ))}
-        <Body>
-          Lägg till bilder ({images.length}/{nrMaxImages})
-        </Body>
-        <Button onPress={onAddPicture} title="+" />
+        <View style={styles.addImageContainer}>
+          <Body>
+            Lägg till bilder ({images.length}/{nrMaxImages})
+          </Body>
+          <Button onPress={onAddPicture} title="+" />
+        </View>
 
         <Button
           title="Publicera"
+          titleColor="white"
           onPress={onPublish}
           disabled={creatingProduct}
+          backgroundColor="purple"
         />
       </View>
     </Page>
@@ -354,5 +358,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 5,
+  },
+  addImageContainer: {
+    flexDirection: "row",
+    // justifyContent: "space-between",
+    alignItems: "center",
+    gap: 10,
   },
 });
