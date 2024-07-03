@@ -22,14 +22,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow RebuildR to use your location."
-        }
-      ]
-    ]
+    }
   }
 }

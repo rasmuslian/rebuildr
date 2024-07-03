@@ -73,16 +73,6 @@ export type CreateProductInput = {
   title: Scalars["String"]["input"];
 };
 
-export type GetAddressInput = {
-  latitude: Scalars["Float"]["input"];
-  longitude: Scalars["Float"]["input"];
-};
-
-export type GetAddressResponse = {
-  __typename?: "GetAddressResponse";
-  address: Scalars["String"]["output"];
-};
-
 export type GetProductInput = {
   id: Scalars["String"]["input"];
 };
@@ -160,7 +150,6 @@ export type Query = {
   category: Category;
   conversation: ConversationResponse;
   conversations: Array<ConversationOverviewResponse>;
-  locationToAddress: GetAddressResponse;
   me: User;
   product: Product;
   products: Array<Product>;
@@ -173,10 +162,6 @@ export type QueryCategoryArgs = {
 
 export type QueryConversationArgs = {
   input: ConversationInput;
-};
-
-export type QueryLocationToAddressArgs = {
-  input: GetAddressInput;
 };
 
 export type QueryProductArgs = {
@@ -366,15 +351,6 @@ export type CreateProductMutation = {
     price: number;
     category: { __typename?: "Category"; name: string };
   };
-};
-
-export type LocationToAddressQueryVariables = Exact<{
-  input: GetAddressInput;
-}>;
-
-export type LocationToAddressQuery = {
-  __typename?: "Query";
-  locationToAddress: { __typename?: "GetAddressResponse"; address: string };
 };
 
 export const LoggedInNavigationDocument = {
@@ -1101,58 +1077,4 @@ export const CreateProductDocument = {
 } as unknown as DocumentNode<
   CreateProductMutation,
   CreateProductMutationVariables
->;
-export const LocationToAddressDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "LocationToAddress" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "input" },
-          },
-          type: {
-            kind: "NonNullType",
-            type: {
-              kind: "NamedType",
-              name: { kind: "Name", value: "GetAddressInput" },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "locationToAddress" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "input" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "input" },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "address" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<
-  LocationToAddressQuery,
-  LocationToAddressQueryVariables
 >;
