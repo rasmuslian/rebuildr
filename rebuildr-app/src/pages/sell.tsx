@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@apollo/client";
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Image, Pressable } from "react-native";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { NumberInput } from "src/components/inputs/numberInput";
 import { Body } from "src/components/texts/text";
 import * as ImagePicker from "expo-image-picker";
+import Colors from "src/styles/colors";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -55,7 +56,7 @@ export const Sell = () => {
   const [price, setPrice] = useState("");
   const [address, setAddress] = useState("");
   const nrMaxImages = 5;
-  const [images, setImages] = useState<{ uri: string; mimeType: string }[]>([]);
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
@@ -129,13 +130,13 @@ export const Sell = () => {
       return;
     }
 
-    const files = result.assets
-      .filter((asset) => !!asset.mimeType)
-      .map((asset) => ({
-        uri: asset.uri,
-        mimeType: asset.mimeType,
-      }));
-    setImages(files);
+    const files = result.assets.filter((asset) => !!asset.mimeType);
+    setImages([...images, ...files]);
+  };
+
+  const onRemoveImage = (indexToRemove: number) => {
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+    setImages(updatedImages);
   };
 
   const onPublish = () => {
@@ -273,12 +274,27 @@ export const Sell = () => {
           onChange={setAddress}
           placeholder={"Ange var varan finns"}
         />
-        <View>
-          <Body>
-            Lägg till bilder ({images.length}/{nrMaxImages})
-          </Body>
-          <Button onPress={onAddPicture} title="+" />
-        </View>
+        {images.map((image, i) => (
+          <View key={i} style={styles.imageContainer}>
+            <Image
+              resizeMode="center"
+              style={styles.image}
+              width={image.width}
+              height={image.height}
+              source={{ uri: image.uri }}
+            />
+            <Pressable
+              onPress={() => onRemoveImage(i)}
+              style={styles.removeImage}
+            >
+              <Body size="small">Ta bort</Body>
+            </Pressable>
+          </View>
+        ))}
+        <Body>
+          Lägg till bilder ({images.length}/{nrMaxImages})
+        </Body>
+        <Button onPress={onAddPicture} title="+" />
 
         <Button
           title="Publicera"
@@ -304,5 +320,22 @@ const styles = StyleSheet.create({
   inputAndButtonContainer: {
     flexDirection: "row",
     gap: 8,
+  },
+  imageContainer: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    borderRadius: 20,
+    backgroundColor: Colors.white,
+    padding: 10,
+  },
+  image: {
+    width: "100%",
+    height: 100,
+  },
+  removeImage: {
+    position: "absolute",
+    right: 20,
+    bottom: 5,
   },
 });
