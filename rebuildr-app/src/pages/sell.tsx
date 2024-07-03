@@ -57,19 +57,19 @@ export const Sell = () => {
   const [address, setAddress] = useState("");
   const nrMaxImages = 5;
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [creatingProduct, setCreatingProduct] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
     category: { name: string };
     price: number;
   }>();
-  const mediaHook = ImagePicker.useMediaLibraryPermissions();
+  const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
 
   const { data, loading } = useQuery(SELL_QUERY, {
     onCompleted: (data) => setAddress(data.me.address ?? ""),
   });
 
-  const [createProduct, { loading: creatingProduct }] =
-    useMutation(CREATE_PRODUCT);
+  const [createProduct] = useMutation(CREATE_PRODUCT);
 
   const categories: (Category & { children: Category[] })[] = useMemo(() => {
     if (!data) {
@@ -121,6 +121,19 @@ export const Sell = () => {
     if (nrImagesLeft === 0) {
       return;
     }
+
+    //If permission to use file media library is denied, ask again and return if still denied.
+    if (!status.granted) {
+      if (!status.canAskAgain) {
+        return;
+      }
+
+      const newRequest = await requestPermission();
+      if (!newRequest.granted) {
+        return;
+      }
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: true,
       selectionLimit: nrImagesLeft,
@@ -158,6 +171,7 @@ export const Sell = () => {
       return;
     }
 
+    setCreatingProduct(true);
     createProduct({
       variables: {
         input: {
@@ -168,33 +182,33 @@ export const Sell = () => {
           images: images.map((image) => ({ mimeType: image.mimeType })),
         },
       },
-      onCompleted: (data) => {
+      onCompleted: async (data) => {
         setCreatedProduct(data.createProduct.product);
 
-        //send all images
-        Promise.all(
-          data.createProduct.presignedPutUrls.map(async (url, i) => {
-            const image = images[i];
-            const file = await fetch(image.uri);
-            const blob = await file.blob();
-            if (!image) {
-              return;
-            }
-            return fetch(url, {
-              method: "PUT",
-              body: blob,
-              headers: {
-                "Content-Type": image.mimeType,
-              },
-            });
-          }),
-        )
-          .then((v) => {
-            //TODO: do something here
-            console.log("v :>> ", v);
-          })
-          //TODO: do something here
-          .catch((e) => console.log("e :>> ", e));
+        try {
+          //send all images
+          await Promise.all(
+            data.createProduct.presignedPutUrls.map(async (url, i) => {
+              const image = images[i];
+              const file = await fetch(image.uri);
+              const blob = await file.blob();
+              if (!image) {
+                return;
+              }
+              return fetch(url, {
+                method: "PUT",
+                body: blob,
+                headers: {
+                  "Content-Type": image.mimeType,
+                },
+              });
+            }),
+          );
+        } catch (e) {
+          console.log("Error when uploading images :>> ", e);
+        }
+
+        setCreatingProduct(false);
 
         //reset
         setTitle("");
@@ -203,6 +217,9 @@ export const Sell = () => {
         setPrice(undefined);
         setAddress("");
         setImages([]);
+      },
+      onError: () => {
+        setCreatingProduct(false);
       },
     });
   };
