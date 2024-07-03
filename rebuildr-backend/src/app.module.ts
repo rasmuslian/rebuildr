@@ -28,7 +28,6 @@ import { Message } from './entities/message.entity';
 import { MessageResolver } from './resolvers/message.resolver';
 import { MessageService } from './services/message.service';
 import { GeocodingService } from './services/geocoding.service';
-import { GeocodingResolver } from './resolvers/geocoding.resolver';
 
 @Module({
   imports: [
@@ -82,7 +81,6 @@ import { GeocodingResolver } from './resolvers/geocoding.resolver';
     CategoryService,
     MessageResolver,
     MessageService,
-    GeocodingResolver,
     GeocodingService,
   ],
 })
