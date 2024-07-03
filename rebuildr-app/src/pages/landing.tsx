@@ -98,7 +98,7 @@ export const Landing = () => {
               title="Hitta"
               onPress={onSearch}
               titleColor="white"
-              backgroundColor={Colors.purple}
+              backgroundColor="purple"
             />
           </View>
         </View>

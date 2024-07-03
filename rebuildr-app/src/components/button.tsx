@@ -7,14 +7,14 @@ import {
   View,
 } from "react-native";
 import { IconType, Icon } from "src/components/icons/icon";
-import { TextColors } from "src/styles/colors";
+import Colors, { ButtonColors, TextColors } from "src/styles/colors";
 import { Body } from "./texts/text";
 
 interface ButtonProps extends PressableProps {
   onPress: () => void;
   title?: string;
   titleColor?: TextColors;
-  backgroundColor?: string;
+  backgroundColor?: ButtonColors;
   icon?: IconType;
   disabled?: boolean;
   loading?: boolean;
@@ -32,7 +32,12 @@ export const Button = ({
 }: ButtonProps) => {
   return (
     <Pressable onPress={onPress} disabled={disabled || loading}>
-      <View style={[styles.container, { backgroundColor: backgroundColor }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: Colors.button[backgroundColor] },
+        ]}
+      >
         {loading ? (
           <ActivityIndicator />
         ) : (

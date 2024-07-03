@@ -3,8 +3,12 @@ type TextColorsType = {
   brand: string;
   white: string;
 };
-
 export type TextColors = keyof TextColorsType;
+
+type ButtonColorsType = {
+  purple: string;
+};
+export type ButtonColors = keyof ButtonColorsType;
 
 type ColorsType = {
   brand: string;
@@ -13,8 +17,8 @@ type ColorsType = {
   inactiveGray: string;
   green: string;
   white: string;
-  purple: string;
   text: TextColorsType;
+  button: ButtonColorsType;
 };
 
 const Colors: ColorsType = {
@@ -24,11 +28,13 @@ const Colors: ColorsType = {
   inactiveGray: "#C1C1C1",
   green: "#00493E",
   white: "#FFFFFF",
-  purple: "#863CFF",
   text: {
     primary: "#040404",
     brand: "#F2E6D1",
     white: "#FFFFFF",
+  },
+  button: {
+    purple: "#863CFF",
   },
 };
 
