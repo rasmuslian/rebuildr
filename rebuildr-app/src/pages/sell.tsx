@@ -10,6 +10,11 @@ import { NumberInput } from "src/components/inputs/numberInput";
 import { Body } from "src/components/texts/text";
 import * as ImagePicker from "expo-image-picker";
 import Colors from "src/styles/colors";
+import {
+  ImageResult,
+  manipulateAsync,
+  SaveFormat,
+} from "expo-image-manipulator";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -46,6 +51,9 @@ interface Category {
   parentId?: string;
 }
 
+const IMAGE_WIDTH = 300;
+const IMAGE_CONTAINER_WIDTH = IMAGE_WIDTH + 20;
+
 export const Sell = () => {
   const [title, setTitle] = useState("");
   const [selectedRootCategory, setSelectedRootCategory] = useState<
@@ -56,7 +64,9 @@ export const Sell = () => {
   const [price, setPrice] = useState("");
   const [address, setAddress] = useState("");
   const nrMaxImages = 5;
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [images, setImages] = useState<(ImageResult & { mimeType: string })[]>(
+    [],
+  );
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
@@ -116,9 +126,8 @@ export const Sell = () => {
     });
   }, [data]);
 
-  const onAddPicture = async () => {
-    const nrImagesLeft = nrMaxImages - images.length;
-    if (nrImagesLeft === 0) {
+  const onAddImage = async () => {
+    if (nrMaxImages - images.length === 0) {
       return;
     }
 
@@ -134,17 +143,41 @@ export const Sell = () => {
       }
     }
 
+    //select image from system
     const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      selectionLimit: nrImagesLeft,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
     if (result.canceled) {
       return;
     }
 
-    const files = result.assets.filter((asset) => !!asset.mimeType);
-    setImages([...images, ...files]);
+    //ignore files whose mimeType could not be determined
+    const filteredResults = result.assets.filter((asset) => !!asset.mimeType);
+
+    //compress the images
+    const manipulatedImages = await Promise.all(
+      filteredResults.map(async (filterResult) => {
+        const actions =
+          filterResult.width > IMAGE_WIDTH
+            ? [{ resize: { width: IMAGE_WIDTH } }]
+            : [];
+
+        const mimeType =
+          filterResult.mimeType === "image/png" ? "image/png" : "image/jpeg";
+        const manipulatedImage = await manipulateAsync(
+          filterResult.uri,
+          actions,
+          {
+            compress: 0.7,
+            format: mimeType === "image/png" ? SaveFormat.PNG : SaveFormat.JPEG,
+          },
+        );
+
+        return { ...manipulatedImage, mimeType };
+      }),
+    );
+
+    setImages([...images, ...manipulatedImages]);
   };
 
   const onRemoveImage = (indexToRemove: number) => {
@@ -291,28 +324,31 @@ export const Sell = () => {
           onChange={setAddress}
           placeholder={"Ange var varan finns"}
         />
-        {images.map((image, i) => (
-          <View key={i} style={styles.imageContainer}>
-            <Image
-              resizeMode="center"
-              style={styles.image}
-              width={image.width}
-              height={image.height}
-              source={{ uri: image.uri }}
-            />
-            <Pressable
-              onPress={() => onRemoveImage(i)}
-              style={styles.removeImage}
-            >
-              <Body size="small">Ta bort</Body>
-            </Pressable>
-          </View>
-        ))}
+        <View style={styles.imagesContainer}>
+          {images.map((image, i) => (
+            <View key={i} style={styles.imageContainer}>
+              <Image
+                resizeMode="center"
+                style={{
+                  height: image.height,
+                  width: image.width,
+                }}
+                source={{ uri: image.uri }}
+              />
+              <Pressable
+                onPress={() => onRemoveImage(i)}
+                style={styles.removeImage}
+              >
+                <Body size="small">Ta bort</Body>
+              </Pressable>
+            </View>
+          ))}
+        </View>
         <View style={styles.addImageContainer}>
           <Body>
             Lägg till bilder ({images.length}/{nrMaxImages})
           </Body>
-          <Button onPress={onAddPicture} title="+" />
+          <Button onPress={onAddImage} title="+" />
         </View>
 
         <Button
@@ -342,17 +378,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
+  imagesContainer: {
+    flexDirection: "row",
+    maxWidth: IMAGE_CONTAINER_WIDTH * 2 + 10,
+    gap: 10,
+    flexWrap: "wrap",
+  },
   imageContainer: {
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
     borderRadius: 20,
     backgroundColor: Colors.white,
-    padding: 10,
-  },
-  image: {
-    width: "100%",
-    height: 100,
+    minHeight: 260,
+    width: IMAGE_CONTAINER_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
   },
   removeImage: {
     position: "absolute",
@@ -361,7 +402,6 @@ const styles = StyleSheet.create({
   },
   addImageContainer: {
     flexDirection: "row",
-    // justifyContent: "space-between",
     alignItems: "center",
     gap: 10,
   },
