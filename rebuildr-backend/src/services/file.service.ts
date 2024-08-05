@@ -53,6 +53,10 @@ export class FileService {
     return await this.fileRepository.findBy({ productId });
   }
 
+  async findOneByProduct(productId: string) {
+    return await this.fileRepository.findOneBy({ productId });
+  }
+
   async getPresignedGetUrl(fileId: string) {
     const cmd = new GetObjectCommand({
       Bucket: 'rebuildr-staging',

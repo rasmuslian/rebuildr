@@ -133,4 +133,10 @@ export class ProductResolver {
   async images(@Root() _product: Product) {
     return this.fileService.findByProduct(_product.id);
   }
+
+  //TODO: fetch actual mainImage and not just the first image
+  @ResolveField(() => File, { nullable: true })
+  async mainImage(@Root() _product: Product) {
+    return this.fileService.findOneByProduct(_product.id);
+  }
 }

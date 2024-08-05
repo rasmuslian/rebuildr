@@ -31,7 +31,7 @@ const documents = {
     types.LoginDocument,
   "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n  }\n":
     types.ProductDetailsDocument,
-  "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n    }\n  }\n":
+  "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n":
     types.ProductsQueryDocument,
   "\n  query ProductsCategory($input: CategoryInput!) {\n    category(input: $input) {\n      id\n      name\n    }\n  }\n  ":
     types.ProductsCategoryDocument,
@@ -115,8 +115,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n    }\n  }\n",
-): (typeof documents)["\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n    }\n  }\n"];
+  source: "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

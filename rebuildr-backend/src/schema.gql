@@ -36,6 +36,7 @@ type Product {
   category: Category!
   user: User!
   images: [File!]!
+  mainImage: File
 }
 
 """

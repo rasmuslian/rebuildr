@@ -55,7 +55,7 @@ export const ProductDetails = ({
             <View style={styles.imageContainer}>
               <Image
                 alt="Beskrivande bild av produkten"
-                resizeMode="center"
+                resizeMode="contain"
                 style={styles.image}
                 defaultSource={{ uri: "../../assets/images/logo.png" }}
                 source={{ uri: img.presignedGetUrl }}
@@ -99,5 +99,6 @@ const styles = StyleSheet.create({
   image: {
     height: 120,
     width: 300,
+    borderRadius: 5,
   },
 });

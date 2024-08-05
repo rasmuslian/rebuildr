@@ -149,6 +149,7 @@ export type Product = {
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
   images: Array<File>;
+  mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
   user: User;
@@ -323,6 +324,7 @@ export type ProductsQueryQuery = {
     title: string;
     address: string;
     price: number;
+    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }>;
 };
 
@@ -893,6 +895,19 @@ export const ProductsQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "mainImage" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
