@@ -1,10 +1,15 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { File } from '../entities/file.entity';
 
+const SIGNED_URL_EXPIRATION = 3600;
 @Injectable()
 export class FileService {
   private s3: S3Client;
@@ -35,10 +40,27 @@ export class FileService {
       Bucket: 'rebuildr-staging',
       Key: file.id,
     });
-    const signedUrl = await getSignedUrl(this.s3, cmd, { expiresIn: 3600 });
+    const signedUrl = await getSignedUrl(this.s3, cmd, {
+      expiresIn: SIGNED_URL_EXPIRATION,
+    });
     return {
       file,
       signedUrl,
     };
+  }
+
+  async findByProduct(productId: string) {
+    return await this.fileRepository.findBy({ productId });
+  }
+
+  async getPresignedGetUrl(fileId: string) {
+    const cmd = new GetObjectCommand({
+      Bucket: 'rebuildr-staging',
+      Key: fileId,
+    });
+
+    return await getSignedUrl(this.s3, cmd, {
+      expiresIn: SIGNED_URL_EXPIRATION,
+    });
   }
 }

@@ -80,6 +80,11 @@ export type CreateProductResponse = {
   product: Product;
 };
 
+export type File = {
+  __typename?: "File";
+  presignedGetUrl: Scalars["String"]["output"];
+};
+
 export type FileInputType = {
   mimeType: Scalars["String"]["input"];
 };
@@ -143,6 +148,7 @@ export type Product = {
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["ID"]["output"];
+  images: Array<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
   user: User;
@@ -299,6 +305,7 @@ export type ProductDetailsQuery = {
     title: string;
     price: number;
     address: string;
+    images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
@@ -798,6 +805,19 @@ export const ProductDetailsDocument = {
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "images" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "user" },

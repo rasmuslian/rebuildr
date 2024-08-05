@@ -23,6 +23,10 @@ type Category {
   parentId: String
 }
 
+type File {
+  presignedGetUrl: String!
+}
+
 type Product {
   id: ID!
   title: String!
@@ -31,6 +35,7 @@ type Product {
   address: String!
   category: Category!
   user: User!
+  images: [File!]!
 }
 
 """

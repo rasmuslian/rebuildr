@@ -16,8 +16,10 @@ import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import { File } from 'src/entities/file.entity';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 import { CategoryService } from 'src/services/category.service';
+import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
@@ -87,6 +89,7 @@ export class ProductResolver {
     private productService: ProductService,
     private userService: UserService,
     private categoryService: CategoryService,
+    private fileService: FileService,
   ) {}
 
   @Query(() => Product)
@@ -124,5 +127,10 @@ export class ProductResolver {
   @ResolveField(() => User)
   async user(@Root() _product: Product) {
     return this.userService.findOne(_product.userId);
+  }
+
+  @ResolveField(() => [File])
+  async images(@Root() _product: Product) {
+    return this.fileService.findByProduct(_product.id);
   }
 }

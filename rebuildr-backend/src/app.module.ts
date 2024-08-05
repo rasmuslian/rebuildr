@@ -30,6 +30,7 @@ import { MessageService } from './services/message.service';
 import { GeocodingService } from './services/geocoding.service';
 import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
+import { FileResolver } from './resolvers/file.resolver';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { File } from './entities/file.entity';
     MessageResolver,
     MessageService,
     GeocodingService,
+    FileResolver,
     FileService,
   ],
 })

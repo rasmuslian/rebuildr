@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, View, Image, StyleSheet } from "react-native";
 import { Page } from "src/components/page";
 import { LandingStackParamList } from "src/navigators/navigation.types";
 import { gql } from "src/gql";
@@ -17,6 +17,9 @@ const PRODUCT_DETAILS_QUERY = gql(`
       title
       price
       address
+      images {
+        presignedGetUrl
+      }
       user {
         id
         email
@@ -43,10 +46,28 @@ export const ProductDetails = ({
   if (!data) {
     return <ActivityIndicator size="large" />;
   }
+
   return (
     <Page title={data.product.title}>
+      <View style={styles.imagesContainer}>
+        {data.product.images.length ? (
+          data.product.images.map((img) => (
+            <View style={styles.imageContainer}>
+              <Image
+                alt="Beskrivande bild av produkten"
+                resizeMode="center"
+                style={styles.image}
+                defaultSource={{ uri: "../../assets/images/logo.png" }}
+                source={{ uri: img.presignedGetUrl }}
+              />
+            </View>
+          ))
+        ) : (
+          <Body>-- Inga bilder att visa -- </Body>
+        )}
+      </View>
       <Body>Pris {data.product.price} kr</Body>
-      <Body>Kategori {data.product.category.name}</Body>
+      <Body>Kategori: {data.product.category.name}</Body>
       <Body>Produkten finns på adressen: {data.product.address}</Body>
       <Body>Säljare {data.product.user.email}</Body>
       {isLoggedInVar() && (
@@ -63,3 +84,20 @@ export const ProductDetails = ({
     </Page>
   );
 };
+
+const styles = StyleSheet.create({
+  imagesContainer: {
+    marginBottom: 40,
+    gap: 10,
+  },
+  imageContainer: {
+    borderStyle: "solid",
+    borderColor: "#000",
+    borderRadius: 5,
+    borderWidth: 1,
+  },
+  image: {
+    height: 120,
+    width: 300,
+  },
+});

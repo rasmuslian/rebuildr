@@ -1,3 +1,4 @@
+import { ObjectType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +9,7 @@ import {
 import { Product } from './product.entity';
 
 @Entity()
+@ObjectType()
 export class File {
   @PrimaryGeneratedColumn('uuid')
   id: string;
