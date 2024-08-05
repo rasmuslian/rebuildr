@@ -24,7 +24,6 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
           onPress={() => navigate("Conversations")}
           title={"Meddelanden"}
         />
-        <Button onPress={() => navigate("Sell")} title={"Sälj"}></Button>
         <Button onPress={() => navigate("Account")} icon={"Person"}>
           <Body>Mitt konto</Body>
         </Button>
