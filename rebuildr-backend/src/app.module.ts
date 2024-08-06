@@ -31,6 +31,7 @@ import { GeocodingService } from './services/geocoding.service';
 import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
 import { FileResolver } from './resolvers/file.resolver';
+import { RefreshToken } from './entities/refreshToken.entity';
 
 @Module({
   imports: [
@@ -49,7 +50,14 @@ import { FileResolver } from './resolvers/file.resolver';
         ...dbConfig(configService),
       }),
     }),
-    TypeOrmModule.forFeature([User, Product, Category, Message, File]),
+    TypeOrmModule.forFeature([
+      User,
+      Product,
+      Category,
+      Message,
+      File,
+      RefreshToken,
+    ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],

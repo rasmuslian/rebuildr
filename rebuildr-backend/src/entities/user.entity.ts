@@ -3,9 +3,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { RefreshToken } from './refreshToken.entity';
 
 @Entity()
 @ObjectType()
@@ -30,4 +32,7 @@ export class User {
 
   @Column('geometry', { nullable: true })
   addressLocation?: Point;
+
+  @OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshToken?: RefreshToken;
 }

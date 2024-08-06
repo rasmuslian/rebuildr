@@ -51,7 +51,7 @@ export const Account = () => {
 
   const onLogout = async () => {
     await client.clearStore();
-    await AsyncStorage.removeItem("access_token");
+    await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
     isLoggedInVar(false);
   };
 
