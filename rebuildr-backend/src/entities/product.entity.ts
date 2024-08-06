@@ -47,7 +47,7 @@ export class Product {
   @Column()
   address: string;
 
-  @Column('geometry')
+  @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
   addressLocation: Point;
 
   @OneToMany(() => File, (file) => file.product, { nullable: true })

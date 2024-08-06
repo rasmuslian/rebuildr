@@ -28,6 +28,10 @@ export class User {
   @Column({ nullable: true })
   address?: string;
 
-  @Column('geometry', { nullable: true })
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
   addressLocation?: Point;
 }
