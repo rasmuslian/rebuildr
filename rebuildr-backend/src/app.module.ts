@@ -31,6 +31,7 @@ import { GeocodingService } from './services/geocoding.service';
 import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
 import { FileResolver } from './resolvers/file.resolver';
+import { CaslAbilityFactory } from './casl/caslAbility.factory';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { FileResolver } from './resolvers/file.resolver';
     GeocodingService,
     FileResolver,
     FileService,
+    CaslAbilityFactory,
   ],
 })
 export class AppModule {}
