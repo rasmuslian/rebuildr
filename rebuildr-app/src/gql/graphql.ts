@@ -209,20 +209,31 @@ export type User = {
   address?: Maybe<Scalars["String"]["output"]>;
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
+  role: UserRoleEnum;
 };
+
+export enum UserRoleEnum {
+  Admin = "ADMIN",
+  User = "USER",
+}
 
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
-  me: { __typename?: "User"; email: string };
+  me: { __typename?: "User"; email: string; role: UserRoleEnum };
 };
 
 export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type AccountQueryQuery = {
   __typename?: "Query";
-  me: { __typename?: "User"; email: string; address?: string | null };
+  me: {
+    __typename?: "User";
+    email: string;
+    address?: string | null;
+    role: UserRoleEnum;
+  };
 };
 
 export type UpdateAccountMutationVariables = Exact<{
@@ -394,6 +405,7 @@ export const LoggedInNavigationDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
             },
           },
@@ -423,6 +435,7 @@ export const AccountQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
             },
           },

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -6,6 +6,12 @@ import {
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+export enum UserRoleEnum {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+registerEnumType(UserRoleEnum, { name: 'UserRoleEnum' });
 
 @Entity()
 @ObjectType()
@@ -34,4 +40,8 @@ export class User {
     nullable: true,
   })
   addressLocation?: Point;
+
+  @Field(() => UserRoleEnum)
+  @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
+  role: UserRoleEnum;
 }

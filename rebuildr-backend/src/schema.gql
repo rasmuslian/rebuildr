@@ -6,6 +6,12 @@ type User {
   id: ID!
   email: String!
   address: String
+  role: UserRoleEnum!
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
 }
 
 type RegisterUserResponse {
