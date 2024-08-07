@@ -29,11 +29,11 @@ export const ResetPassword = () => {
   return (
     <Page title="Reset password">
       {!data && (
-        <Body>Skriv in dig e-postadress för att återställa lösenordet</Body>
+        <Body>Skriv in din E-postadress för att återställa lösenordet</Body>
       )}
       {!data && !loading && (
         <>
-          <Input placeholder="Nytt lösenord" onChange={setMail} value={email} />
+          <Input placeholder="E-postadress" onChange={setMail} value={email} />
           <Button onPress={onResetRequest} title="Skicka" disabled={!email} />
         </>
       )}

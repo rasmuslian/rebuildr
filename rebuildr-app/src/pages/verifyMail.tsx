@@ -27,7 +27,6 @@ export const VerifyMail = ({ route }) => {
       onCompleted: async (data) => {
         await AsyncStorage.setItem("access_token", data.verifyMail.accessToken);
         isLoggedInVar(true);
-        navigate("Landing");
       },
     });
   }, [navigate, route.params, verifyMail]);

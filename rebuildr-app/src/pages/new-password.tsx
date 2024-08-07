@@ -44,7 +44,6 @@ export const NewPassword = ({ route }) => {
           data.newPassword.accessToken,
         );
         isLoggedInVar(true);
-        navigate("Landing");
       },
     });
   };

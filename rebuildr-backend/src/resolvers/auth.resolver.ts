@@ -122,7 +122,9 @@ export class NewPasswordInput {
   resetPasswordToken: string;
 }
 const newPasswordSchema = z.object({
+  email: z.string().min(1),
   password: z.string().min(1),
+  resetPasswordToken: z.string().min(1),
 });
 
 @Resolver()

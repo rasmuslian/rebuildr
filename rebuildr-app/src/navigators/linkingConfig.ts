@@ -9,9 +9,9 @@ const config = {
     Conversation: "/chat/:otherUserId/:productId",
     Account: "/account",
     Products: "/products/",
-    VerifyMail: "/verifyMail/:email/:token",
+    VerifyMail: "/verify-email",
     ResetPassword: "/reset-password",
-    NewPassword: "/new-password/:email/:token",
+    NewPassword: "/new-password",
   },
 };
 

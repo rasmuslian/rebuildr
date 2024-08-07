@@ -21,7 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 type AccessTokenPayload = {
   sub: string;
@@ -62,22 +62,22 @@ export class AuthService {
 
     //generate token
     const token = crypto.randomBytes(10).toString('hex');
-    const verifiedEmailToken = await bcrypt.hash(token, 10);
+    const tokenHash = await bcrypt.hash(token, 10);
     await this.userRepository.update(
       { id: existingUser.id },
-      { verifyEmailToken: verifiedEmailToken },
+      { verifyEmailToken: tokenHash },
     );
 
     await this.mailService.sendVerifyEmail({
       email: input.email,
-      token: verifiedEmailToken,
+      token: token,
     });
 
     return { message: '' };
   }
 
   async verifyMail(input: VerifyMailInput) {
-    const user = await this.userRepository.findOneBy({ id: input.email });
+    const user = await this.userRepository.findOneBy({ email: input.email });
 
     if (!user) {
       throw new UnauthorizedException();
@@ -122,15 +122,15 @@ export class AuthService {
 
     //create new token for user
     const token = crypto.randomBytes(10).toString('hex');
-    const verifiedEmailToken = await bcrypt.hash(token, 10);
+    const tokenHash = await bcrypt.hash(token, 10);
     await this.userRepository.update(
       { id: user.id },
-      { verifyEmailToken: verifiedEmailToken },
+      { verifyEmailToken: tokenHash },
     );
     //send new mail
     await this.mailService.sendVerifyEmail({
       email: input.email,
-      token: verifiedEmailToken,
+      token: token,
     });
     return { message: '' };
   }
@@ -229,14 +229,14 @@ export class AuthService {
 
     if (user) {
       const token = crypto.randomBytes(10).toString('hex');
-      const resetPasswordToken = await bcrypt.hash(token, 10);
+      const tokenHash = await bcrypt.hash(token, 10);
       await this.userRepository.update(
         { id: user.id },
-        { resetPasswordToken: resetPasswordToken },
+        { resetPasswordToken: tokenHash },
       );
       await this.mailService.sendResetPasswordEmail({
         email: email,
-        token: resetPasswordToken,
+        token: token,
       });
     }
 
@@ -246,11 +246,14 @@ export class AuthService {
   async newPassword(input: NewPasswordInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
-    if (!user) {
+    if (!user || !user.resetPasswordToken) {
       throw new UnauthorizedException();
     }
 
-    const matchingTokens = input.resetPasswordToken === user.resetPasswordToken;
+    const matchingTokens = await bcrypt.compare(
+      input.resetPasswordToken,
+      user.resetPasswordToken,
+    );
     if (!matchingTokens) {
       throw new UnauthorizedException();
     }
