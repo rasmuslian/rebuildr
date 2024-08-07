@@ -83,6 +83,18 @@ export class GetProductInput {
   id: string;
 }
 
+@InputType()
+export class DeleteProductInput {
+  @Field()
+  id: string;
+}
+
+@ObjectType()
+export class DeleteProductResponse {
+  @Field()
+  title: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -117,6 +129,15 @@ export class ProductResolver {
       address: input.address,
       images: input.images,
     });
+  }
+
+  @Mutation(() => DeleteProductResponse)
+  @UseGuards(GqlAuthGuard)
+  async deleteProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: DeleteProductInput,
+  ) {
+    return this.productService.delete(input.id, _user.id);
   }
 
   @ResolveField(() => Category)

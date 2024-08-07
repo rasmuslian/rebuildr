@@ -7,6 +7,7 @@ export type TextColors = keyof TextColorsType;
 
 type ButtonColorsType = {
   purple: string;
+  red: string;
 };
 export type ButtonColors = keyof ButtonColorsType;
 
@@ -35,6 +36,7 @@ const Colors: ColorsType = {
   },
   button: {
     purple: "#863CFF",
+    red: "#FF0000",
   },
 };
 

@@ -1,6 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
+import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import {
@@ -20,8 +26,11 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
   async create(input: {
@@ -125,5 +134,26 @@ export class ProductService {
 
   async findOne(id: string) {
     return await this.productRepository.findOneBy({ id });
+  }
+
+  async delete(id: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOneBy({ id });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+    const ability = this.caslAbilityFactory.createForUser(user);
+    const allowed = ability.can('delete', product);
+    if (!allowed) {
+      throw new ForbiddenException();
+    }
+
+    //delete all connected messages before deleting product
+    await this.messageRepository.delete({ productId: product.id });
+    await this.productRepository.delete(product.id);
+
+    return { title: product.title };
   }
 }

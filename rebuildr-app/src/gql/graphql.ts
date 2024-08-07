@@ -80,6 +80,15 @@ export type CreateProductResponse = {
   product: Product;
 };
 
+export type DeleteProductInput = {
+  id: Scalars["String"]["input"];
+};
+
+export type DeleteProductResponse = {
+  __typename?: "DeleteProductResponse";
+  title: Scalars["String"]["output"];
+};
+
 export type File = {
   __typename?: "File";
   presignedGetUrl: Scalars["String"]["output"];
@@ -117,6 +126,7 @@ export type Mutation = {
   __typename?: "Mutation";
   createMessage: Message;
   createProduct: CreateProductResponse;
+  deleteProduct: DeleteProductResponse;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
   updateUser: User;
@@ -128,6 +138,10 @@ export type MutationCreateMessageArgs = {
 
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
+};
+
+export type MutationDeleteProductArgs = {
+  input: DeleteProductInput;
 };
 
 export type MutationLoginArgs = {
@@ -321,6 +335,16 @@ export type ProductDetailsQuery = {
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
+  me: { __typename?: "User"; id: string; role: UserRoleEnum };
+};
+
+export type DeleteProductMutationVariables = Exact<{
+  input: DeleteProductInput;
+}>;
+
+export type DeleteProductMutation = {
+  __typename?: "Mutation";
+  deleteProduct: { __typename?: "DeleteProductResponse"; title: string };
 };
 
 export type ProductsQueryQueryVariables = Exact<{
@@ -857,11 +881,76 @@ export const ProductDetailsDocument = {
               ],
             },
           },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "role" } },
+              ],
+            },
+          },
         ],
       },
     },
   ],
 } as unknown as DocumentNode<ProductDetailsQuery, ProductDetailsQueryVariables>;
+export const DeleteProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "DeleteProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "DeleteProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "deleteProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteProductMutation,
+  DeleteProductMutationVariables
+>;
 export const ProductsQueryDocument = {
   kind: "Document",
   definitions: [

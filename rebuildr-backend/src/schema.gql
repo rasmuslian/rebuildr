@@ -2,27 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
-  id: ID!
-  email: String!
-  address: String
-  role: UserRoleEnum!
-}
-
-enum UserRoleEnum {
-  USER
-  ADMIN
-}
-
-type RegisterUserResponse {
-  message: String!
-}
-
-type LoginResponse {
-  user: User!
-  accessToken: String!
-}
-
 type Category {
   id: ID!
   name: String!
@@ -50,9 +29,25 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type CreateProductResponse {
-  product: Product!
-  presignedPutUrls: [String!]!
+type User {
+  id: ID!
+  email: String!
+  address: String
+  role: UserRoleEnum!
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
+}
+
+type RegisterUserResponse {
+  message: String!
+}
+
+type LoginResponse {
+  user: User!
+  accessToken: String!
 }
 
 type Message {
@@ -61,6 +56,15 @@ type Message {
   body: String!
   senderId: ID!
   receiverId: ID!
+}
+
+type CreateProductResponse {
+  product: Product!
+  presignedPutUrls: [String!]!
+}
+
+type DeleteProductResponse {
+  title: String!
 }
 
 type ConversationResponse {
@@ -110,6 +114,7 @@ type Mutation {
   login(input: LoginInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
+  deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
   createMessage(input: CreateMessageInput!): Message!
 }
 
@@ -137,6 +142,10 @@ input CreateProductInput {
 
 input FileInputType {
   mimeType: String!
+}
+
+input DeleteProductInput {
+  id: String!
 }
 
 input CreateMessageInput {

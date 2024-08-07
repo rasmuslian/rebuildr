@@ -3,9 +3,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Product } from './product.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -40,6 +42,9 @@ export class User {
     nullable: true,
   })
   addressLocation?: Point;
+
+  @OneToMany(() => Product, (product) => product)
+  products: Product[];
 
   @Field(() => UserRoleEnum)
   @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
