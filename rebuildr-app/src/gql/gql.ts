@@ -13,9 +13,9 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-  "\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n":
+  "\n  query LoggedInNavigation {\n    me {\n      email\n      role\n    }\n  }\n":
     types.LoggedInNavigationDocument,
-  "\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n":
+  "\n  query AccountQuery {\n    me {\n      email\n      address\n      role\n    }\n  }\n":
     types.AccountQueryDocument,
   "\n  mutation UpdateAccount($input: UpdateUserInput!) {\n    updateUser(input: $input) {\n      email\n      address\n    }\n  }\n  ":
     types.UpdateAccountDocument,
@@ -61,14 +61,14 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n",
-): (typeof documents)["\n  query LoggedInNavigation {\n    me {\n      email\n    }\n  }\n"];
+  source: "\n  query LoggedInNavigation {\n    me {\n      email\n      role\n    }\n  }\n",
+): (typeof documents)["\n  query LoggedInNavigation {\n    me {\n      email\n      role\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n",
-): (typeof documents)["\n  query AccountQuery {\n    me {\n      email\n      address\n    }\n  }\n"];
+  source: "\n  query AccountQuery {\n    me {\n      email\n      address\n      role\n    }\n  }\n",
+): (typeof documents)["\n  query AccountQuery {\n    me {\n      email\n      address\n      role\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

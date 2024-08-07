@@ -5,16 +5,25 @@ import { Button } from "../button";
 import logo from "assets/images/logo.png";
 import { useNavigation } from "@react-navigation/native";
 import { Body } from "../texts/text";
+import { UserRoleEnum } from "src/gql/graphql";
 
 interface LoggedInNavbarProps {
-  me: { email: string };
+  me: { email: string; role: UserRoleEnum };
 }
 
 export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
   const { navigate } = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            me.role === UserRoleEnum.Admin ? Colors.button.purple : Colors.blue,
+        },
+      ]}
+    >
       <Pressable onPress={() => navigate("Landing")}>
         <Image source={logo} />
       </Pressable>
