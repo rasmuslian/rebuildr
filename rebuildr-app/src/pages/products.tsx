@@ -38,6 +38,7 @@ export const Products = ({ route }) => {
   const _distance = parseInt(route.params?.distance);
   const distance = isNaN(_distance) ? 0 : _distance;
   const categoryId = route.params?.categoryId;
+  const selectionCategories = route.params?.selectionCategories;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -46,6 +47,7 @@ export const Products = ({ route }) => {
         address: address,
         distance: distance,
         categoryId: categoryId,
+        selectionCategories: selectionCategories,
       },
     },
   });
@@ -76,6 +78,7 @@ export const Products = ({ route }) => {
     removeAddress?: boolean;
     removeDistance?: boolean;
     removeCategory?: boolean;
+    removeSelectionCategories?: boolean;
   }) => {
     if (loading) {
       return;
@@ -87,6 +90,9 @@ export const Products = ({ route }) => {
       address: input.removeAddress ? undefined : address,
       distance: input.removeDistance ? undefined : distance,
       categoryId: input.removeCategory ? undefined : categoryId,
+      selectionCategories: input.removeSelectionCategories
+        ? undefined
+        : selectionCategories,
     });
   };
 
@@ -118,6 +124,14 @@ export const Products = ({ route }) => {
               title={`<${distance}km från ${address}`}
               onPress={() =>
                 onRemoveFilter({ removeAddress: true, removeDistance: true })
+              }
+            />
+          )}
+          {selectionCategories && (
+            <Button
+              title="Utvalda kategorier"
+              onPress={() =>
+                onRemoveFilter({ removeSelectionCategories: true })
               }
             />
           )}

@@ -190,6 +190,7 @@ export type ProductsInput = {
   categoryId?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
+  selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type Query = {

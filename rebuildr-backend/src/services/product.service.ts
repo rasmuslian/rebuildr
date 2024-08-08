@@ -88,6 +88,7 @@ export class ProductService {
       address?: string;
       distance?: number;
       categoryId?: string;
+      selectionCategories?: boolean;
     },
     _user?: User,
   ) {
@@ -137,11 +138,16 @@ export class ProductService {
       query.setParameter('origin', origin);
     }
     //Will find products matching the category. Also includes all products where 'categoryId' is the parent of their category
-    if (input.categoryId) {
+    if (input.categoryId || input.selectionCategories) {
       query.leftJoin('category', 'c', 'category_id = c.id');
-      query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
-        categoryId: input.categoryId,
-      });
+
+      if (input.categoryId) {
+        query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
+          categoryId: input.categoryId,
+        });
+      } else {
+        query.andWhere('c.in_selection');
+      }
     }
 
     return await query.getMany();
