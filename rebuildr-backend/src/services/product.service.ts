@@ -140,7 +140,10 @@ export class ProductService {
     const user = await this.userRepository.findOneBy({
       id: userId,
     });
-    const product = await this.productRepository.findOneBy({ id });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { images: true },
+    });
     if (!user || !product) {
       throw new BadRequestException();
     }
@@ -150,9 +153,13 @@ export class ProductService {
       throw new ForbiddenException();
     }
 
-    //delete all connected messages before deleting product
-    await this.messageRepository.delete({ productId: product.id });
-    await this.productRepository.delete(product.id);
+    try {
+      await this.fileService.deleteMany(product.images);
+      await this.messageRepository.delete({ productId: product.id });
+      await this.productRepository.delete(product.id);
+    } catch (e) {
+      throw new Error(e);
+    }
 
     return { title: product.title };
   }
