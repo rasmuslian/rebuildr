@@ -18,4 +18,7 @@ export class Category {
 
   @ManyToOne(() => Category, (cat) => cat.id)
   parent?: Category;
+
+  @Column({ default: false })
+  inSelection: boolean;
 }

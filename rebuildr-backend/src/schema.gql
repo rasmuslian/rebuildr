@@ -99,6 +99,7 @@ input ProductsInput {
   address: String
   distance: Float
   categoryId: String
+  selectionCategories: Boolean
 }
 
 input CategoryInput {
