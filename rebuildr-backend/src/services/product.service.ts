@@ -8,7 +8,7 @@ import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   CreateProductResponse,
   FileInputType,
@@ -82,13 +82,28 @@ export class ProductService {
     };
   }
 
-  async findAll(input: {
-    searchString?: string;
-    address?: string;
-    distance?: number;
-    categoryId?: string;
-  }) {
+  async findAll(
+    input: {
+      searchString?: string;
+      address?: string;
+      distance?: number;
+      categoryId?: string;
+    },
+    _user?: User,
+  ) {
     const query = this.productRepository.createQueryBuilder('product');
+
+    if (_user) {
+      const user = await this.userRepository.findOneBy({ id: _user.id });
+      if (!user) {
+        throw new Error('Invalid user');
+      }
+      if (user.role !== UserRoleEnum.ADMIN) {
+        query.andWhere('hidden_reason IS NULL');
+      }
+    } else {
+      query.andWhere('hidden_reason IS NULL');
+    }
 
     if (input.searchString) {
       query.andWhere('position(LOWER(:searchString) in LOWER(title)) > 0', {

@@ -23,6 +23,7 @@ import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
+import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 
 @InputType()
 export class FileInputType {
@@ -124,8 +125,12 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  async products(@Args('input') input: ProductsInput) {
-    return this.productService.findAll({ ...input });
+  @UseGuards(GqlOptionalAuthGuard)
+  async products(
+    @Args('input') input: ProductsInput,
+    @CurrentUser() user?: User,
+  ) {
+    return this.productService.findAll({ ...input }, user);
   }
 
   @Mutation(() => CreateProductResponse)

@@ -32,6 +32,7 @@ import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
 import { FileResolver } from './resolvers/file.resolver';
 import { CaslAbilityFactory } from './casl/caslAbility.factory';
+import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { CaslAbilityFactory } from './casl/caslAbility.factory';
     FileResolver,
     FileService,
     CaslAbilityFactory,
+    GqlOptionalAuthGuard,
   ],
 })
 export class AppModule {}
