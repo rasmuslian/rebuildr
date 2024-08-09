@@ -25,6 +25,10 @@ const documents = {
     types.SendMessageDocument,
   "\n  query ConversationsQuery {\n    conversations {\n      otherUser {\n        id\n        email\n      }\n      latestMessageAt\n      product {\n        id\n        title\n      }\n    }\n  }\n":
     types.ConversationsQueryDocument,
+  "\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      children {\n        id\n        name\n        inSelection\n      }\n    }\n  }\n":
+    types.EditCategoriesQueryDocument,
+  "\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      name\n      inSelection\n    }\n  }\n  ":
+    types.UpdateCategoryDocument,
   "\n  query LandingQuery {\n    rootCategories {\n      id\n      name\n    }\n  }\n":
     types.LandingQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        email\n      }\n    }\n  }\n":
@@ -99,6 +103,18 @@ export function gql(
 export function gql(
   source: "\n  query ConversationsQuery {\n    conversations {\n      otherUser {\n        id\n        email\n      }\n      latestMessageAt\n      product {\n        id\n        title\n      }\n    }\n  }\n",
 ): (typeof documents)["\n  query ConversationsQuery {\n    conversations {\n      otherUser {\n        id\n        email\n      }\n      latestMessageAt\n      product {\n        id\n        title\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      children {\n        id\n        name\n        inSelection\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      children {\n        id\n        name\n        inSelection\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      name\n      inSelection\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      name\n      inSelection\n    }\n  }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

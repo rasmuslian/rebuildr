@@ -6,6 +6,8 @@ type Category {
   id: ID!
   name: String!
   parentId: String
+  inSelection: Boolean!
+  children: [Category!]!
 }
 
 type File {
@@ -119,6 +121,7 @@ type Mutation {
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
+  updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
 }
 
@@ -159,6 +162,11 @@ input HideProductInput {
 
 input ShowProductInput {
   id: String!
+}
+
+input UpdateCategoryInput {
+  id: String!
+  inSelection: Boolean
 }
 
 input CreateMessageInput {

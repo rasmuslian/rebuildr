@@ -1,5 +1,6 @@
 import { AbilityBuilder, createMongoAbility } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
+import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 
@@ -22,6 +23,10 @@ export class CaslAbilityFactory {
     }
     can('delete', Product, { userId: user.id });
 
+    //Category
+    if (isAdmin) {
+      can('manage', Category);
+    }
     return build();
   }
 }

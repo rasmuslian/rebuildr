@@ -34,4 +34,5 @@ export type LoggedInStackParamList = {
     categoryId?: string;
     selectionCategories?: boolean;
   };
+  EditCategories: undefined;
 };

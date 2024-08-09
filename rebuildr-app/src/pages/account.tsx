@@ -1,5 +1,6 @@
 import { useApolloClient, useMutation, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
@@ -32,6 +33,7 @@ const UPDATE_ACCOUNT = gql(`
 export const Account = () => {
   const [address, setAddress] = useState("");
   const client = useApolloClient();
+  const { navigate } = useNavigation();
 
   const { data, loading } = useQuery(ACCOUNT_QUERY);
   const [
@@ -57,10 +59,11 @@ export const Account = () => {
     isLoggedInVar(false);
   };
 
+  const isAdmin = data?.me.role === UserRoleEnum.Admin;
   return (
     <Page title="Mitt konto" loading={loading}>
       <View>
-        <Title size="small">{`Inloggad som ${data?.me.email} ${data?.me.role === UserRoleEnum.Admin && "(Administratör)"}`}</Title>
+        <Title size="small">{`Inloggad som ${data?.me.email} ${isAdmin && "(Administratör)"}`}</Title>
         <View style={styles.updateAddressContainer}>
           <Body>Adress</Body>
           <Input
@@ -78,6 +81,12 @@ export const Account = () => {
           />
           {updateAccountData && <Body>Ändringarna sparade!</Body>}
         </View>
+        {isAdmin && (
+          <Button
+            title="Redigera kategorier"
+            onPress={() => navigate("EditCategories")}
+          />
+        )}
         <Button title={"Logga ut"} onPress={onLogout} />
       </View>
     </Page>
