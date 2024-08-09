@@ -94,6 +94,7 @@ export class ProductService {
   ) {
     const query = this.productRepository.createQueryBuilder('product');
 
+    //Only admin will see hidden products
     if (_user) {
       const user = await this.userRepository.findOneBy({ id: _user.id });
       if (!user) {
@@ -146,7 +147,8 @@ export class ProductService {
           categoryId: input.categoryId,
         });
       } else {
-        query.andWhere('c.in_selection');
+        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
+        query.andWhere('c.in_selection OR parent.in_selection');
       }
     }
 
