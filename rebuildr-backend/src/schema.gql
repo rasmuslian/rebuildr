@@ -18,6 +18,7 @@ type Product {
   createdAt: DateTime!
   price: Int!
   address: String!
+  hiddenReason: String
   category: Category!
   user: User!
   images: [File!]!
@@ -115,6 +116,8 @@ type Mutation {
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
+  hideProduct(input: HideProductInput!): Product!
+  showProduct(input: ShowProductInput!): Product!
   createMessage(input: CreateMessageInput!): Message!
 }
 
@@ -145,6 +148,15 @@ input FileInputType {
 }
 
 input DeleteProductInput {
+  id: String!
+}
+
+input HideProductInput {
+  id: String!
+  reason: String!
+}
+
+input ShowProductInput {
   id: String!
 }
 

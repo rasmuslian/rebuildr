@@ -163,4 +163,47 @@ export class ProductService {
 
     return { title: product.title };
   }
+
+  async hide(id: string, reason: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOneBy({
+      id,
+    });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', product, 'hiddenReason')) {
+      throw new ForbiddenException();
+    }
+
+    if (product.hiddenReason) {
+      throw new BadRequestException('Product already hidden');
+    }
+    product.hiddenReason = reason;
+    return this.productRepository.save(product);
+  }
+
+  async show(id: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOneBy({
+      id,
+    });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', product, 'hiddenReason')) {
+      throw new ForbiddenException();
+    }
+
+    product.hiddenReason = null;
+    return await this.productRepository.save(product);
+  }
 }

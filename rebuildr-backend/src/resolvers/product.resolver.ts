@@ -95,6 +95,20 @@ export class DeleteProductResponse {
   title: string;
 }
 
+@InputType()
+export class HideProductInput {
+  @Field()
+  id: string;
+
+  @Field()
+  reason: string;
+}
+
+@InputType()
+class ShowProductInput {
+  @Field()
+  id: string;
+}
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -138,6 +152,24 @@ export class ProductResolver {
     @Args('input') input: DeleteProductInput,
   ) {
     return this.productService.delete(input.id, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async hideProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: HideProductInput,
+  ) {
+    return this.productService.hide(input.id, input.reason, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async showProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: ShowProductInput,
+  ) {
+    return this.productService.show(input.id, _user.id);
   }
 
   @ResolveField(() => Category)

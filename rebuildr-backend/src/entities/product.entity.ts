@@ -52,4 +52,8 @@ export class Product {
 
   @OneToMany(() => File, (file) => file.product, { nullable: true })
   images: File[];
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  hiddenReason?: string;
 }

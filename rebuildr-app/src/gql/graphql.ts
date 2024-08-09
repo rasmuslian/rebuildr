@@ -102,6 +102,11 @@ export type GetProductInput = {
   id: Scalars["String"]["input"];
 };
 
+export type HideProductInput = {
+  id: Scalars["String"]["input"];
+  reason: Scalars["String"]["input"];
+};
+
 export type LoginInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
@@ -127,8 +132,10 @@ export type Mutation = {
   createMessage: Message;
   createProduct: CreateProductResponse;
   deleteProduct: DeleteProductResponse;
+  hideProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
+  showProduct: Product;
   updateUser: User;
 };
 
@@ -144,12 +151,20 @@ export type MutationDeleteProductArgs = {
   input: DeleteProductInput;
 };
 
+export type MutationHideProductArgs = {
+  input: HideProductInput;
+};
+
 export type MutationLoginArgs = {
   input: LoginInput;
 };
 
 export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
+};
+
+export type MutationShowProductArgs = {
+  input: ShowProductInput;
 };
 
 export type MutationUpdateUserArgs = {
@@ -161,6 +176,7 @@ export type Product = {
   address: Scalars["String"]["output"];
   category: Category;
   createdAt: Scalars["DateTime"]["output"];
+  hiddenReason?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   images: Array<File>;
   mainImage?: Maybe<File>;
@@ -212,6 +228,10 @@ export type RegisterUserInput = {
 export type RegisterUserResponse = {
   __typename?: "RegisterUserResponse";
   message: Scalars["String"]["output"];
+};
+
+export type ShowProductInput = {
+  id: Scalars["String"]["input"];
 };
 
 export type UpdateUserInput = {
@@ -331,6 +351,7 @@ export type ProductDetailsQuery = {
     title: string;
     price: number;
     address: string;
+    hiddenReason?: string | null;
     images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
@@ -345,6 +366,24 @@ export type DeleteProductMutationVariables = Exact<{
 export type DeleteProductMutation = {
   __typename?: "Mutation";
   deleteProduct: { __typename?: "DeleteProductResponse"; title: string };
+};
+
+export type HideProductMutationVariables = Exact<{
+  input: HideProductInput;
+}>;
+
+export type HideProductMutation = {
+  __typename?: "Mutation";
+  hideProduct: { __typename?: "Product"; id: string };
+};
+
+export type ShowProductMutationVariables = Exact<{
+  input: ShowProductInput;
+}>;
+
+export type ShowProductMutation = {
+  __typename?: "Mutation";
+  showProduct: { __typename?: "Product"; id: string };
 };
 
 export type ProductsQueryQueryVariables = Exact<{
@@ -846,6 +885,10 @@ export const ProductDetailsDocument = {
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 {
                   kind: "Field",
+                  name: { kind: "Name", value: "hiddenReason" },
+                },
+                {
+                  kind: "Field",
                   name: { kind: "Name", value: "images" },
                   selectionSet: {
                     kind: "SelectionSet",
@@ -951,6 +994,108 @@ export const DeleteProductDocument = {
   DeleteProductMutation,
   DeleteProductMutationVariables
 >;
+export const HideProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "HideProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "HideProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "hideProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<HideProductMutation, HideProductMutationVariables>;
+export const ShowProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "ShowProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ShowProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "showProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ShowProductMutation, ShowProductMutationVariables>;
 export const ProductsQueryDocument = {
   kind: "Document",
   definitions: [
