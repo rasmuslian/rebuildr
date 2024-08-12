@@ -22,4 +22,8 @@ export class Category {
   @Field(() => Boolean)
   @Column({ default: false })
   inSelection: boolean;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  inSeason: boolean;
 }

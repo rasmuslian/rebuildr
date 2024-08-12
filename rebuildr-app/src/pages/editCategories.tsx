@@ -13,10 +13,12 @@ const EDIT_CATEGORIES_QUERY = gql(`
       id
       name
       inSelection
+      inSeason
       children {
         id
         name
         inSelection
+        inSeason
       }
     }
   }
@@ -26,8 +28,8 @@ const UPDATE_CATEGORY = gql(`
   mutation UpdateCategory($input: UpdateCategoryInput!) {
     updateCategory(input: $input) {
       id
-      name
       inSelection
+      inSeason
     }
   }
   `);
@@ -39,12 +41,17 @@ export const EditCategories = () => {
   const onPressSelected = (category: {
     id: string;
     name: string;
-    inSelection: string;
+    inSelection: boolean;
   }) => {
     updateCategory({
       variables: {
         input: { id: category.id, inSelection: !category.inSelection },
       },
+    });
+  };
+  const onPressSeasonal = (category: { id: string; inSeason: boolean }) => {
+    updateCategory({
+      variables: { input: { id: category.id, inSeason: !category.inSeason } },
     });
   };
 
@@ -73,7 +80,7 @@ export const EditCategories = () => {
             </View>
           ))}
         </View>
-        <View style={{ flex: 1, alignSelf: "stretch" }}>
+        <View style={{ alignSelf: "stretch" }}>
           <Body>Utvalda</Body>
           <View style={{ flex: 1, justifyContent: "space-between" }}>
             {flatCategories.map((category, i) => (
@@ -81,6 +88,18 @@ export const EditCategories = () => {
                 key={category.id}
                 onPress={() => onPressSelected(category)}
                 backgroundColor={!!category.inSelection ? "purple" : undefined}
+              />
+            ))}
+          </View>
+        </View>
+        <View style={{ alignSelf: "stretch" }}>
+          <Body>Säsong</Body>
+          <View style={{ flex: 1, justifyContent: "space-between" }}>
+            {flatCategories.map((category, i) => (
+              <Button
+                key={category.id}
+                onPress={() => onPressSeasonal(category)}
+                backgroundColor={!!category.inSeason ? "purple" : undefined}
               />
             ))}
           </View>

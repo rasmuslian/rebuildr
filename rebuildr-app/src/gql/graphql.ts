@@ -35,6 +35,7 @@ export type Category = {
   __typename?: "Category";
   children: Array<Category>;
   id: Scalars["ID"]["output"];
+  inSeason: Scalars["Boolean"]["output"];
   inSelection: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
   parentId?: Maybe<Scalars["String"]["output"]>;
@@ -197,6 +198,7 @@ export type ProductsInput = {
   categoryId?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
+  seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
   selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
@@ -244,6 +246,7 @@ export type ShowProductInput = {
 
 export type UpdateCategoryInput = {
   id: Scalars["String"]["input"];
+  inSeason?: InputMaybe<Scalars["Boolean"]["input"]>;
   inSelection?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
@@ -341,11 +344,13 @@ export type EditCategoriesQueryQuery = {
     id: string;
     name: string;
     inSelection: boolean;
+    inSeason: boolean;
     children: Array<{
       __typename?: "Category";
       id: string;
       name: string;
       inSelection: boolean;
+      inSeason: boolean;
     }>;
   }>;
 };
@@ -359,8 +364,8 @@ export type UpdateCategoryMutation = {
   updateCategory: {
     __typename?: "Category";
     id: string;
-    name: string;
     inSelection: boolean;
+    inSeason: boolean;
   };
 };
 
@@ -814,6 +819,7 @@ export const EditCategoriesQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "inSelection" } },
+                { kind: "Field", name: { kind: "Name", value: "inSeason" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "children" },
@@ -825,6 +831,10 @@ export const EditCategoriesQueryDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "inSelection" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "inSeason" },
                       },
                     ],
                   },
@@ -883,8 +893,8 @@ export const UpdateCategoryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "inSelection" } },
+                { kind: "Field", name: { kind: "Name", value: "inSeason" } },
               ],
             },
           },

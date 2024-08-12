@@ -89,6 +89,7 @@ export class ProductService {
       distance?: number;
       categoryId?: string;
       selectionCategories?: boolean;
+      seasonalCategories?: boolean;
     },
     _user?: User,
   ) {
@@ -138,17 +139,25 @@ export class ProductService {
       );
       query.setParameter('origin', origin);
     }
-    //Will find products matching the category. Also includes all products where 'categoryId' is the parent of their category
-    if (input.categoryId || input.selectionCategories) {
+
+    //Include products based on category criterias
+    if (
+      input.categoryId ||
+      input.selectionCategories ||
+      input.seasonalCategories
+    ) {
       query.leftJoin('category', 'c', 'category_id = c.id');
 
       if (input.categoryId) {
         query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
           categoryId: input.categoryId,
         });
-      } else {
+      } else if (input.selectionCategories) {
         query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
         query.andWhere('c.in_selection OR parent.in_selection');
+      } else {
+        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
+        query.andWhere('c.in_season OR parent.in_season');
       }
     }
 

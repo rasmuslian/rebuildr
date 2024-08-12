@@ -12,8 +12,8 @@ export const PointUpIcon = ({
   return (
     <Svg
       {...svgProps}
-      width="30"
-      height="30"
+      width={width}
+      height={height}
       viewBox="0 0 30 30"
       fill="none"
       color={color}

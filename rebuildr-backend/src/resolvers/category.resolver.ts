@@ -28,6 +28,9 @@ class UpdateCategoryInput {
 
   @Field(() => Boolean, { nullable: true })
   inSelection?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  inSeason?: boolean;
 }
 @Resolver(() => Category)
 export class CategoryResolver {

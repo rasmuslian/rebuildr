@@ -37,7 +37,10 @@ export class CategoryService {
     return await this.categoryRepository.findBy({ parentId });
   }
 
-  async update(input: { id: string; inSelection?: boolean }, userId: string) {
+  async update(
+    input: { id: string; inSelection?: boolean; inSeason?: boolean },
+    userId: string,
+  ) {
     const user = await this.userRepository.findOneBy({ id: userId });
     const category = await this.categoryRepository.findOneBy({ id: input.id });
     if (!user || !category) {
@@ -48,7 +51,8 @@ export class CategoryService {
       throw new ForbiddenException();
     }
 
-    category.inSelection = input.inSelection;
+    category.inSelection = input.inSelection ?? category.inSelection;
+    category.inSeason = input.inSeason ?? category.inSeason;
 
     return await this.categoryRepository.save(category);
   }

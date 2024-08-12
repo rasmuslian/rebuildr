@@ -39,6 +39,7 @@ export const Products = ({ route }) => {
   const distance = isNaN(_distance) ? 0 : _distance;
   const categoryId = route.params?.categoryId;
   const selectionCategories = route.params?.selectionCategories;
+  const seasonalCategories = route.params?.seasonalCategories;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -48,6 +49,7 @@ export const Products = ({ route }) => {
         distance: distance,
         categoryId: categoryId,
         selectionCategories: selectionCategories,
+        seasonalCategories: seasonalCategories,
       },
     },
   });
@@ -59,7 +61,7 @@ export const Products = ({ route }) => {
           id: categoryId,
         },
       },
-      skip: !categoryId,
+      skip: true,
     },
   );
 
@@ -79,6 +81,7 @@ export const Products = ({ route }) => {
     removeDistance?: boolean;
     removeCategory?: boolean;
     removeSelectionCategories?: boolean;
+    removeSeasonalCategories?: boolean;
   }) => {
     if (loading) {
       return;
@@ -93,6 +96,9 @@ export const Products = ({ route }) => {
       selectionCategories: input.removeSelectionCategories
         ? undefined
         : selectionCategories,
+      seasonalCategories: input.removeSeasonalCategories
+        ? undefined
+        : seasonalCategories,
     });
   };
 
@@ -133,6 +139,12 @@ export const Products = ({ route }) => {
               onPress={() =>
                 onRemoveFilter({ removeSelectionCategories: true })
               }
+            />
+          )}
+          {seasonalCategories && (
+            <Button
+              title="Säsongskategorier"
+              onPress={() => onRemoveFilter({ removeSeasonalCategories: true })}
             />
           )}
         </View>

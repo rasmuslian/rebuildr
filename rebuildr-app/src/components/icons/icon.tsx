@@ -5,6 +5,7 @@ import { PersonIcon } from "./personIcon";
 import { PinIcon } from "./pinIcon";
 import { PointUpIcon } from "./pointUpIcon";
 import { RightChevronIcon } from "./rightChevronIcon";
+import { SeasonIcon } from "./seasonIcon";
 import { TilesIcon } from "./tilesIcon";
 
 export type IconType =
@@ -13,7 +14,8 @@ export type IconType =
   | "LeftChevron"
   | "RightChevron"
   | "PointUpIcon"
-  | "TilesIcon";
+  | "TilesIcon"
+  | "SeasonIcon";
 
 export interface IconProps extends SvgProps {
   height?: number;
@@ -38,6 +40,8 @@ export const Icon = ({
       return <PointUpIcon {...props} />;
     case "TilesIcon":
       return <TilesIcon {...props} />;
+    case "SeasonIcon":
+      return <SeasonIcon {...props} />;
     default:
       break;
   }

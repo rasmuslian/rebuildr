@@ -50,6 +50,11 @@ export const Landing = () => {
       selectionCategories: true,
     });
   };
+  const onPressSeasonalCategories = () => {
+    navigate("Products", {
+      seasonalCategories: true,
+    });
+  };
 
   return (
     <View>
@@ -118,6 +123,7 @@ export const Landing = () => {
           categories={data.rootCategories}
           onSelect={(categoryId) => onPressCategory(categoryId)}
           onSelectSelection={onPressSelectionCategories}
+          onSelectSeasonal={onPressSeasonalCategories}
         />
       )}
     </View>
@@ -127,6 +133,7 @@ export const Landing = () => {
 interface CategorySliderProps {
   onSelect: (categoryId: string) => void;
   onSelectSelection: () => void;
+  onSelectSeasonal: () => void;
   categories: { id: string; name: string }[];
 }
 const offsetIncrement = 100;
@@ -134,6 +141,7 @@ const offsetIncrement = 100;
 const CategorySlider = ({
   onSelect,
   onSelectSelection,
+  onSelectSeasonal,
   categories,
 }: CategorySliderProps) => {
   const [sliderOffset, setSliderOffset] = useState(0);
@@ -176,6 +184,12 @@ const CategorySlider = ({
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
               <Icon iconType="PointUpIcon" />
               <Body>Utvalda</Body>
+            </View>
+          </Pressable>
+          <Pressable onPress={onSelectSeasonal}>
+            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+              <Icon iconType="SeasonIcon" />
+              <Body>Säsong</Body>
             </View>
           </Pressable>
           {categories.map((category) => (
