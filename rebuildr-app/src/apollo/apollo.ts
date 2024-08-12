@@ -68,35 +68,32 @@ export const initializeApollo = async () => {
 
   const errorLink = onError(
     ({ graphQLErrors, operation, forward, networkError }) => {
-      if (graphQLErrors)
+      if (graphQLErrors) {
         graphQLErrors.forEach(({ message, locations, path, extensions }) => {
           console.log(
             `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
           );
-
-          if (extensions.code === "UNAUTHENTICATED") {
-            return fromPromise(
-              renewTokens().catch((e) => {
-                console.log("e :>> ", e);
-                isLoggedInVar(false);
-              }),
-            )
-              .filter((value) => Boolean(value))
-              .flatMap((accessToken) => {
-                const oldHeaders = operation.getContext().headers;
-                operation.setContext({
-                  Headers: {
-                    ...oldHeaders,
-                    authorization: `Bearer ${accessToken}`,
-                  },
-                });
-
-                return forward(operation);
-              });
-          }
         });
+      }
 
       if (networkError) console.log(`[Network error]: ${networkError}`);
+
+      for (const err of graphQLErrors) {
+        if (err.extensions.code === "UNAUTHENTICATED") {
+          return fromPromise(renewTokens().catch((e) => isLoggedInVar(false)))
+            .filter((value) => Boolean(value))
+            .flatMap((accessToken) => {
+              const oldHeaders = operation.getContext().headers;
+              operation.setContext({
+                Headers: {
+                  ...oldHeaders,
+                  authorization: `Bearer ${accessToken}`,
+                },
+              });
+              return forward(operation);
+            });
+        }
+      }
     },
   );
 
