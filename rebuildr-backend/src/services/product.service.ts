@@ -1,8 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
+import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   CreateProductResponse,
   FileInputType,
@@ -20,8 +26,11 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
   async create(input: {
@@ -73,13 +82,28 @@ export class ProductService {
     };
   }
 
-  async findAll(input: {
-    searchString?: string;
-    address?: string;
-    distance?: number;
-    categoryId?: string;
-  }) {
+  async findAll(
+    input: {
+      searchString?: string;
+      address?: string;
+      distance?: number;
+      categoryId?: string;
+    },
+    _user?: User,
+  ) {
     const query = this.productRepository.createQueryBuilder('product');
+
+    if (_user) {
+      const user = await this.userRepository.findOneBy({ id: _user.id });
+      if (!user) {
+        throw new Error('Invalid user');
+      }
+      if (user.role !== UserRoleEnum.ADMIN) {
+        query.andWhere('hidden_reason IS NULL');
+      }
+    } else {
+      query.andWhere('hidden_reason IS NULL');
+    }
 
     if (input.searchString) {
       query.andWhere('position(LOWER(:searchString) in LOWER(title)) > 0', {
@@ -125,5 +149,76 @@ export class ProductService {
 
   async findOne(id: string) {
     return await this.productRepository.findOneBy({ id });
+  }
+
+  async delete(id: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { images: true },
+    });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+    const ability = this.caslAbilityFactory.createForUser(user);
+    const allowed = ability.can('delete', product);
+    if (!allowed) {
+      throw new ForbiddenException();
+    }
+
+    try {
+      await this.fileService.deleteMany(product.images);
+      await this.messageRepository.delete({ productId: product.id });
+      await this.productRepository.delete(product.id);
+    } catch (e) {
+      throw new Error(e);
+    }
+
+    return { title: product.title };
+  }
+
+  async hide(id: string, reason: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOneBy({
+      id,
+    });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', product, 'hiddenReason')) {
+      throw new ForbiddenException();
+    }
+
+    if (product.hiddenReason) {
+      throw new BadRequestException('Product already hidden');
+    }
+    product.hiddenReason = reason;
+    return this.productRepository.save(product);
+  }
+
+  async show(id: string, userId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+    const product = await this.productRepository.findOneBy({
+      id,
+    });
+    if (!user || !product) {
+      throw new BadRequestException();
+    }
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', product, 'hiddenReason')) {
+      throw new ForbiddenException();
+    }
+
+    product.hiddenReason = null;
+    return await this.productRepository.save(product);
   }
 }

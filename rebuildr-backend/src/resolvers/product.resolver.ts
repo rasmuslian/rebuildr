@@ -23,6 +23,7 @@ import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
+import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 
 @InputType()
 export class FileInputType {
@@ -83,6 +84,32 @@ export class GetProductInput {
   id: string;
 }
 
+@InputType()
+export class DeleteProductInput {
+  @Field()
+  id: string;
+}
+
+@ObjectType()
+export class DeleteProductResponse {
+  @Field()
+  title: string;
+}
+
+@InputType()
+export class HideProductInput {
+  @Field()
+  id: string;
+
+  @Field()
+  reason: string;
+}
+
+@InputType()
+class ShowProductInput {
+  @Field()
+  id: string;
+}
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -98,8 +125,12 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  async products(@Args('input') input: ProductsInput) {
-    return this.productService.findAll({ ...input });
+  @UseGuards(GqlOptionalAuthGuard)
+  async products(
+    @Args('input') input: ProductsInput,
+    @CurrentUser() user?: User,
+  ) {
+    return this.productService.findAll({ ...input }, user);
   }
 
   @Mutation(() => CreateProductResponse)
@@ -117,6 +148,33 @@ export class ProductResolver {
       address: input.address,
       images: input.images,
     });
+  }
+
+  @Mutation(() => DeleteProductResponse)
+  @UseGuards(GqlAuthGuard)
+  async deleteProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: DeleteProductInput,
+  ) {
+    return this.productService.delete(input.id, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async hideProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: HideProductInput,
+  ) {
+    return this.productService.hide(input.id, input.reason, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async showProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: ShowProductInput,
+  ) {
+    return this.productService.show(input.id, _user.id);
   }
 
   @ResolveField(() => Category)

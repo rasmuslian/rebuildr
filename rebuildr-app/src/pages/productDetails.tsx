@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
@@ -9,6 +9,8 @@ import { gql } from "src/gql";
 import { Body } from "src/components/texts/text";
 import { Button } from "src/components/button";
 import { isLoggedInVar } from "src/apollo/apollo";
+import { UserRoleEnum } from "src/gql/graphql";
+import Colors from "src/styles/colors";
 
 const PRODUCT_DETAILS_QUERY = gql(`
   query ProductDetails($input: GetProductInput!) {
@@ -17,6 +19,7 @@ const PRODUCT_DETAILS_QUERY = gql(`
       title
       price
       address
+      hiddenReason
       images {
         presignedGetUrl
       }
@@ -28,8 +31,35 @@ const PRODUCT_DETAILS_QUERY = gql(`
         name
       }
     }
+    me {
+      id
+      role
+    }
   }
 `);
+
+const DELETE_PRODUCT = gql(`
+  mutation DeleteProduct($input: DeleteProductInput!) {
+    deleteProduct(input: $input) {
+      title
+    }
+  }
+  `);
+
+const HIDE_PRODUCT = gql(`
+  mutation HideProduct($input: HideProductInput!) {
+    hideProduct(input: $input) {
+      id
+    }
+  }
+  `);
+const SHOW_PRODUCT = gql(`
+  mutation ShowProduct($input: ShowProductInput!) {
+    showProduct(input: $input) {
+      id
+    }
+  }
+  `);
 
 export const ProductDetails = ({
   route,
@@ -39,16 +69,38 @@ export const ProductDetails = ({
     navigation.goBack();
   }
 
-  const { data } = useQuery(PRODUCT_DETAILS_QUERY, {
+  const { data, refetch } = useQuery(PRODUCT_DETAILS_QUERY, {
     variables: { input: { id: route.params.productId } },
   });
+  const [deleteProduct, { loading: deleting, error: deleteError }] =
+    useMutation(DELETE_PRODUCT, {
+      variables: { input: { id: route.params.productId } },
+      onCompleted: () =>
+        navigation.canGoBack()
+          ? navigation.goBack()
+          : navigation.navigate("Landing"),
+    });
+  const [hideProduct] = useMutation(HIDE_PRODUCT);
+  const [showProduct] = useMutation(SHOW_PRODUCT, {
+    variables: { input: { id: route.params.productId } },
+    onCompleted: () => refetch(),
+  });
 
-  if (!data) {
+  const onHideProduct = (reason: string) => {
+    hideProduct({
+      variables: { input: { id: route.params.productId, reason } },
+      onCompleted: () => refetch(),
+    });
+  };
+
+  if (!data || deleting) {
     return <ActivityIndicator size="large" />;
   }
 
   return (
-    <Page title={data.product.title}>
+    <Page
+      title={`${data.product.title}${data.product.hiddenReason ? "(dold)" : ""}`}
+    >
       <View style={styles.imagesContainer}>
         {data.product.images.length ? (
           data.product.images.map((img) => (
@@ -81,6 +133,30 @@ export const ProductDetails = ({
           title="Skicka meddelande"
         />
       )}
+      {data.me.role === UserRoleEnum.Admin && (
+        <View style={styles.adminContainer}>
+          <Body>Adminåtgärder</Body>
+          <View style={styles.buttonsContainer}>
+            {data.product.hiddenReason ? (
+              <Button onPress={showProduct} title="Visa produkt" />
+            ) : (
+              <Button
+                onPress={() => onHideProduct("Olämplig")}
+                title="Dölj vara"
+              />
+            )}
+            <Button
+              onPress={deleteProduct}
+              title="Ta bort vara"
+              backgroundColor="red"
+              titleColor="white"
+            />
+            {deleteError && (
+              <Body>Något gick fel när varan skulle tas bort</Body>
+            )}
+          </View>
+        </View>
+      )}
     </Page>
   );
 };
@@ -100,5 +176,19 @@ const styles = StyleSheet.create({
     height: 120,
     width: 300,
     borderRadius: 5,
+  },
+  adminContainer: {
+    marginTop: 40,
+    padding: 16,
+    borderBottomWidth: 2,
+    borderTopWidth: 2,
+    borderColor: Colors.borderGray,
+    borderStyle: "solid",
+    gap: 10,
+    alignItems: "center",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    gap: 10,
   },
 });

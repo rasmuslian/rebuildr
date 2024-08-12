@@ -15,6 +15,7 @@ const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
     me {
       email
+      role
     }
   }
 `);

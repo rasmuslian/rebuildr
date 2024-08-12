@@ -1,4 +1,5 @@
 import {
+  DeleteObjectsCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -47,6 +48,32 @@ export class FileService {
       file,
       signedUrl,
     };
+  }
+
+  async deleteMany(files: File[]) {
+    //Return if array is empty
+    if (!files.length) {
+      return;
+    }
+
+    const cmd = new DeleteObjectsCommand({
+      Bucket: 'rebuildr-staging',
+      Delete: {
+        Objects: files.map((file) => ({ Key: file.id })),
+      },
+    });
+
+    try {
+      const response = await this.s3.send(cmd);
+      if (response.Errors) {
+        //Errors contains errors encountered when deleting objects
+        throw new Error('Error when deleting objects');
+      }
+    } catch (e) {
+      throw new Error(e);
+    }
+
+    return await this.fileRepository.delete(files.map((f) => f.id));
   }
 
   async findByProduct(productId: string) {

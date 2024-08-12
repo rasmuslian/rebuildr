@@ -8,12 +8,14 @@ import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
+import { UserRoleEnum } from "src/gql/graphql";
 
 const ACCOUNT_QUERY = gql(`
   query AccountQuery {
     me {
       email
       address
+      role
     }
   }
 `);
@@ -58,7 +60,7 @@ export const Account = () => {
   return (
     <Page title="Mitt konto" loading={loading}>
       <View>
-        <Title size="small">Inloggad som {data?.me.email}</Title>
+        <Title size="small">{`Inloggad som ${data?.me.email} ${data?.me.role === UserRoleEnum.Admin && "(Administratör)"}`}</Title>
         <View style={styles.updateAddressContainer}>
           <Body>Adress</Body>
           <Input

@@ -1,0 +1,32 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from './constants';
+
+@Injectable()
+export class GqlOptionalAuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
+  async canActivate(context: ExecutionContext) {
+    const request = GqlExecutionContext.create(context).getContext().req;
+
+    const [type, token] = request.headers.authorization.split(' ') ?? [];
+    if (type !== 'Bearer') {
+      return true;
+    }
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: jwtConstants.secret,
+      });
+      request.user = { id: payload.sub, email: payload.sub };
+    } catch (e) {
+      throw new UnauthorizedException();
+    }
+
+    return true;
+  }
+}
