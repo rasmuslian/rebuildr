@@ -5,6 +5,7 @@ import {
   Float,
   InputType,
   Mutation,
+  ObjectType,
   Query,
   ResolveField,
   Resolver,
@@ -15,12 +16,20 @@ import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import { File } from 'src/entities/file.entity';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 import { CategoryService } from 'src/services/category.service';
+import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
+import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 
+@InputType()
+export class FileInputType {
+  @Field(() => String)
+  mimeType: string;
+}
 @InputType()
 export class CreateProductInput {
   @Field()
@@ -34,13 +43,25 @@ export class CreateProductInput {
 
   @Field(() => String)
   address: string;
+
+  @Field(() => [FileInputType], { nullable: true })
+  images?: FileInputType[];
 }
 const createProductSchema = z.object({
   title: z.string(),
   categoryId: z.string(),
   price: z.number(),
   address: z.string(),
+  images: z.array(z.object({ mimeType: z.string() })).nullable(),
 });
+@ObjectType()
+export class CreateProductResponse {
+  @Field(() => Product)
+  product: Product;
+
+  @Field(() => [String])
+  presignedPutUrls: string[];
+}
 
 @InputType()
 class ProductsInput {
@@ -63,12 +84,39 @@ export class GetProductInput {
   id: string;
 }
 
+@InputType()
+export class DeleteProductInput {
+  @Field()
+  id: string;
+}
+
+@ObjectType()
+export class DeleteProductResponse {
+  @Field()
+  title: string;
+}
+
+@InputType()
+export class HideProductInput {
+  @Field()
+  id: string;
+
+  @Field()
+  reason: string;
+}
+
+@InputType()
+class ShowProductInput {
+  @Field()
+  id: string;
+}
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
     private productService: ProductService,
     private userService: UserService,
     private categoryService: CategoryService,
+    private fileService: FileService,
   ) {}
 
   @Query(() => Product)
@@ -77,11 +125,15 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  async products(@Args('input') input: ProductsInput) {
-    return this.productService.findAll({ ...input });
+  @UseGuards(GqlOptionalAuthGuard)
+  async products(
+    @Args('input') input: ProductsInput,
+    @CurrentUser() user?: User,
+  ) {
+    return this.productService.findAll({ ...input }, user);
   }
 
-  @Mutation(() => Product)
+  @Mutation(() => CreateProductResponse)
   @UseGuards(GqlAuthGuard)
   async createProduct(
     @CurrentUser() _user: User,
@@ -94,7 +146,35 @@ export class ProductResolver {
       userId: _user.id,
       price: input.price,
       address: input.address,
+      images: input.images,
     });
+  }
+
+  @Mutation(() => DeleteProductResponse)
+  @UseGuards(GqlAuthGuard)
+  async deleteProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: DeleteProductInput,
+  ) {
+    return this.productService.delete(input.id, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async hideProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: HideProductInput,
+  ) {
+    return this.productService.hide(input.id, input.reason, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async showProduct(
+    @CurrentUser() _user: User,
+    @Args('input') input: ShowProductInput,
+  ) {
+    return this.productService.show(input.id, _user.id);
   }
 
   @ResolveField(() => Category)
@@ -105,5 +185,16 @@ export class ProductResolver {
   @ResolveField(() => User)
   async user(@Root() _product: Product) {
     return this.userService.findOne(_product.userId);
+  }
+
+  @ResolveField(() => [File])
+  async images(@Root() _product: Product) {
+    return this.fileService.findByProduct(_product.id);
+  }
+
+  //TODO: fetch actual mainImage and not just the first image
+  @ResolveField(() => File, { nullable: true })
+  async mainImage(@Root() _product: Product) {
+    return this.fileService.findOneByProduct(_product.id);
   }
 }

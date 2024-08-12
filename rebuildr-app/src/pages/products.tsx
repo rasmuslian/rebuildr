@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React from "react";
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -14,6 +14,9 @@ const PRODUCTS_QUERY = gql(`
       title
       address
       price
+      mainImage {
+        presignedGetUrl
+      }
     }
   }
 `);
@@ -36,7 +39,7 @@ export const Products = ({ route }) => {
   const distance = isNaN(_distance) ? 0 : _distance;
   const categoryId = route.params?.categoryId;
 
-  const { data, loading } = useQuery(PRODUCTS_QUERY, {
+  const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
       input: {
         searchString: searchString,
@@ -46,13 +49,26 @@ export const Products = ({ route }) => {
       },
     },
   });
-  const { data: categoryData } = useQuery(PRODUCTS_CATEGORY_QUERY, {
-    variables: {
-      input: {
-        id: categoryId,
+  const { data: categoryData, refetch: refetchCategories } = useQuery(
+    PRODUCTS_CATEGORY_QUERY,
+    {
+      variables: {
+        input: {
+          id: categoryId,
+        },
       },
+      skip: !categoryId,
     },
-    skip: !categoryId,
+  );
+
+  //This hook refetches products and categories when this screen comes into focus.
+  //Problem was when navigating here from deleting product, this page
+  //will show an unchanged list of products since this page was never unmounted.
+  useFocusEffect(() => {
+    if (refetch) {
+      refetch();
+      refetchCategories();
+    }
   });
 
   const onRemoveFilter = (input: {
@@ -117,6 +133,19 @@ export const Products = ({ route }) => {
               navigation.navigate("ProductDetails", { productId: p.id })
             }
           >
+            {p.mainImage ? (
+              <Image
+                alt="Huvudbild av produkten"
+                resizeMode="cover"
+                style={styles.image}
+                defaultSource={{ uri: "../../assets/images/logo.png" }}
+                source={{ uri: p.mainImage.presignedGetUrl }}
+              />
+            ) : (
+              <View style={[styles.noImage, styles.image]}>
+                <Body>Bild saknas</Body>
+              </View>
+            )}
             <Title>{p.title}</Title>
             <Body>{p.price} kr</Body>
             <Body>Address: {p.address}</Body>
@@ -149,17 +178,26 @@ const styles = StyleSheet.create({
   productsContainer: {
     display: "flex",
     flexDirection: "row",
-    width: 420, //Roughly size of two products
+    width: 620, //Roughly size of two products
     flexWrap: "wrap",
     gap: 4,
     marginBottom: 12,
   },
   card: {
-    width: 200, //size of one product,
+    width: 300, //size of one product,
     padding: 4,
     borderWidth: 1,
     borderColor: "#000",
     borderRadius: 5,
     borderStyle: "solid",
+  },
+  image: {
+    width: "100%",
+    height: 80,
+  },
+  noImage: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.inactiveGray,
   },
 });

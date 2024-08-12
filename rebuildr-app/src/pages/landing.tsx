@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useReactiveVar } from "@apollo/client";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
@@ -9,6 +9,7 @@ import { Input } from "src/components/inputs/input";
 import { Body, Headline } from "src/components/texts/text";
 import { gql } from "src/gql";
 import Colors from "src/styles/colors";
+import { isLoggedInVar } from "src/apollo/apollo";
 
 const LANDING_QUERY = gql(`
   query LandingQuery {
@@ -27,6 +28,7 @@ export const Landing = () => {
   const [distance, setDistance] = useState();
 
   const { navigate } = useNavigation();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
 
   const { data } = useQuery(LANDING_QUERY);
 
@@ -60,6 +62,9 @@ export const Landing = () => {
                 styles.tabButton,
                 { backgroundColor: Colors.inactiveGray },
               ]}
+              onPress={() =>
+                isLoggedIn ? navigate("Sell") : navigate("Login")
+              }
             >
               <Body>Sälj</Body>
             </Pressable>

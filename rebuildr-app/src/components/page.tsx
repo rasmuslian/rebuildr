@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
 import { Title } from "./texts/text";
 
 interface PageProps extends PropsWithChildren {
@@ -9,23 +9,23 @@ interface PageProps extends PropsWithChildren {
 
 export const Page = ({ title, loading, children }: PageProps) => {
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {title && (
         <Title style={[styles.title]} size={"large"}>
           {title}
         </Title>
       )}
       {loading ? <ActivityIndicator size="large" /> : children}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
+    marginVertical: 50,
   },
   title: {
-    marginTop: 40,
     marginBottom: 60,
   },
 });

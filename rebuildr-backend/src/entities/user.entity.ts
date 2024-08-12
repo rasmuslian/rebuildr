@@ -1,11 +1,19 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Product } from './product.entity';
+
+export enum UserRoleEnum {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+registerEnumType(UserRoleEnum, { name: 'UserRoleEnum' });
 
 @Entity()
 @ObjectType()
@@ -34,4 +42,11 @@ export class User {
     nullable: true,
   })
   addressLocation?: Point;
+
+  @OneToMany(() => Product, (product) => product)
+  products: Product[];
+
+  @Field(() => UserRoleEnum)
+  @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
+  role: UserRoleEnum;
 }

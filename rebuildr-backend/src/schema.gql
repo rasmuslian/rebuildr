@@ -2,10 +2,44 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Category {
+  id: ID!
+  name: String!
+  parentId: String
+}
+
+type File {
+  presignedGetUrl: String!
+}
+
+type Product {
+  id: ID!
+  title: String!
+  createdAt: DateTime!
+  price: Int!
+  address: String!
+  hiddenReason: String
+  category: Category!
+  user: User!
+  images: [File!]!
+  mainImage: File
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type User {
   id: ID!
   email: String!
   address: String
+  role: UserRoleEnum!
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
 }
 
 type RegisterUserResponse {
@@ -17,33 +51,21 @@ type LoginResponse {
   accessToken: String!
 }
 
-type Category {
-  id: ID!
-  name: String!
-  parentId: String
-}
-
-type Product {
-  id: ID!
-  title: String!
-  createdAt: DateTime!
-  price: Int!
-  address: String!
-  category: Category!
-  user: User!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type Message {
   id: ID!
   createdAt: DateTime!
   body: String!
   senderId: ID!
   receiverId: ID!
+}
+
+type CreateProductResponse {
+  product: Product!
+  presignedPutUrls: [String!]!
+}
+
+type DeleteProductResponse {
+  title: String!
 }
 
 type ConversationResponse {
@@ -92,7 +114,10 @@ type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   login(input: LoginInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): User!
-  createProduct(input: CreateProductInput!): Product!
+  createProduct(input: CreateProductInput!): CreateProductResponse!
+  deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
+  hideProduct(input: HideProductInput!): Product!
+  showProduct(input: ShowProductInput!): Product!
   createMessage(input: CreateMessageInput!): Message!
 }
 
@@ -115,6 +140,24 @@ input CreateProductInput {
   categoryId: String!
   price: Float!
   address: String!
+  images: [FileInputType!]
+}
+
+input FileInputType {
+  mimeType: String!
+}
+
+input DeleteProductInput {
+  id: String!
+}
+
+input HideProductInput {
+  id: String!
+  reason: String!
+}
+
+input ShowProductInput {
+  id: String!
 }
 
 input CreateMessageInput {
