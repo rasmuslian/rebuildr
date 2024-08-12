@@ -99,7 +99,7 @@ export const ProductDetails = ({
 
   return (
     <Page
-      title={`${data.product.title}${data.product.hiddenReason ? "(döljd)" : ""}`}
+      title={`${data.product.title}${data.product.hiddenReason ? "(dold)" : ""}`}
     >
       <View style={styles.imagesContainer}>
         {data.product.images.length ? (
