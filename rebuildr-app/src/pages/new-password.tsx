@@ -12,6 +12,7 @@ const NEW_PASSWORD = gql(`
   mutation NewPassword($input: NewPasswordInput!) {
     newPassword(input:$input) {
       accessToken
+      refreshToken
     }
   }
 `);
@@ -37,10 +38,10 @@ export const NewPassword = ({ route }) => {
         input: { email: email, resetPasswordToken: token, password: password },
       },
       onCompleted: async (data) => {
-        await AsyncStorage.setItem(
-          "access_token",
-          data.newPassword.accessToken,
-        );
+        await AsyncStorage.multiSet([
+          ["access_token", data.newPassword.accessToken],
+          ["refresh_token", data.newPassword.refreshToken],
+        ]);
         isLoggedInVar(true);
       },
     });

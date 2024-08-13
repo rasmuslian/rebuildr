@@ -438,7 +438,11 @@ export type NewPasswordMutationVariables = Exact<{
 
 export type NewPasswordMutation = {
   __typename?: "Mutation";
-  newPassword: { __typename?: "LoginResponse"; accessToken: string };
+  newPassword: {
+    __typename?: "LoginResponse";
+    accessToken: string;
+    refreshToken: string;
+  };
 };
 
 export type ProductDetailsQueryVariables = Exact<{
@@ -585,7 +589,11 @@ export type VerifyMailMutationVariables = Exact<{
 
 export type VerifyMailMutation = {
   __typename?: "Mutation";
-  verifyMail: { __typename?: "LoginResponse"; accessToken: string };
+  verifyMail: {
+    __typename?: "LoginResponse";
+    accessToken: string;
+    refreshToken: string;
+  };
 };
 
 export const GetNewTokensDocument = {
@@ -1108,6 +1116,10 @@ export const NewPasswordDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "accessToken" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "refreshToken" },
+                },
               ],
             },
           },
@@ -1822,6 +1834,10 @@ export const VerifyMailDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "accessToken" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "refreshToken" },
+                },
               ],
             },
           },

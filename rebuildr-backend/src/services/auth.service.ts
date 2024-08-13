@@ -98,25 +98,17 @@ export class AuthService {
       { verified: true, verifyEmailToken: null },
     );
 
-    //create accessToken
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: jwtConstants.expiresIn,
-    });
+    const { accessToken, refreshToken } = await this.createTokens(user);
 
-    return { user: user, accessToken: accessToken };
+    return { user: user, accessToken, refreshToken };
   }
 
   async resendVerificationMail(input: ResendVerificationMailInput) {
-    //user exist?
-    //[no] return invalid
     const user = await this.userRepository.findOneBy({ email: input.email });
     if (!user) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
 
-    //verified?
-    //[yes] return "user exist"
     if (user.verified) {
       return { message: 'User already verified' };
     }
@@ -265,11 +257,8 @@ export class AuthService {
       { password: password, resetPasswordToken: null },
     );
 
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: jwtConstants.expiresIn,
-    });
+    const { accessToken, refreshToken } = await this.createTokens(user);
 
-    return { user: user, accessToken: accessToken };
+    return { user: user, accessToken, refreshToken };
   }
 }

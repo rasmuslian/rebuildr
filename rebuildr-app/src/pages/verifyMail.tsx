@@ -11,6 +11,7 @@ const VERIFY_MAIL = gql(`
   mutation VerifyMail($input: VerifyMailInput!) {
     verifyMail(input: $input) {
       accessToken
+      refreshToken
     }
   }
 `);
@@ -24,7 +25,10 @@ export const VerifyMail = ({ route }) => {
     verifyMail({
       variables: { input: { email, verifyEmailToken: token } },
       onCompleted: async (data) => {
-        await AsyncStorage.setItem("access_token", data.verifyMail.accessToken);
+        await AsyncStorage.multiSet([
+          ["access_token", data.verifyMail.accessToken],
+          ["refresh_token", data.verifyMail.refreshToken],
+        ]);
         isLoggedInVar(true);
       },
     });
