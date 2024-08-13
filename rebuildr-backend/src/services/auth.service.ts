@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -145,15 +146,15 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
     const passwordCorrect = await bcrypt.compare(input.password, user.password);
     if (!passwordCorrect) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
 
     if (!user.verified) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
 
     const tokens = await this.createTokens(user, user.refreshToken);
