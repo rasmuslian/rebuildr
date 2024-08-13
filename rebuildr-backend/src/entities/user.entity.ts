@@ -3,11 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 import { Product } from './product.entity';
+import { RefreshToken } from './refreshToken.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -42,6 +44,9 @@ export class User {
     nullable: true,
   })
   addressLocation?: Point;
+
+  @OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshToken?: RefreshToken;
 
   @OneToMany(() => Product, (product) => product)
   products: Product[];

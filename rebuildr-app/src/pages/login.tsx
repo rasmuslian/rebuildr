@@ -15,6 +15,7 @@ const LOGIN = gql(`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
       accessToken
+      refreshToken
       user {
         email
       }
@@ -41,7 +42,10 @@ export const Login = () => {
         },
       },
       onCompleted: async (data) => {
-        await AsyncStorage.setItem("access_token", data.login.accessToken);
+        await AsyncStorage.multiSet([
+          ["access_token", data.login.accessToken],
+          ["refresh_token", data.login.refreshToken],
+        ]);
         isLoggedInVar(true);
         navigate("Landing");
       },

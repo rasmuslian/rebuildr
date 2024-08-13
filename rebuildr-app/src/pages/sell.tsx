@@ -24,6 +24,7 @@ const SELL_QUERY = gql(`
       parentId
     }
     me {
+      id
       email
       address
     }

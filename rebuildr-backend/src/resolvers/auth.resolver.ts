@@ -49,6 +49,27 @@ class LoginResponse {
 
   @Field(() => String)
   accessToken: string;
+
+  @Field(() => String)
+  refreshToken: string;
+}
+
+@InputType()
+class GetNewTokensInput {
+  @Field(() => String)
+  accessToken: string;
+
+  @Field(() => String)
+  refreshToken: string;
+}
+
+@ObjectType()
+class GetNewTokensResponse {
+  @Field(() => String)
+  accessToken: string;
+
+  @Field(() => String)
+  refreshToken: string;
 }
 
 @Resolver()
@@ -64,5 +85,10 @@ export class AuthResolver {
   @Mutation(() => LoginResponse)
   async login(@Args('input') input: LoginInput) {
     return await this.authService.login(input);
+  }
+
+  @Mutation(() => GetNewTokensResponse)
+  async getNewTokens(@Args('input') input: GetNewTokensInput) {
+    return this.authService.getNewTokens(input.accessToken, input.refreshToken);
   }
 }

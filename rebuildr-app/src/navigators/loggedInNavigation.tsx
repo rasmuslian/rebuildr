@@ -16,6 +16,7 @@ import { EditCategories } from "src/pages/editCategories";
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
     me {
+      id
       email
       role
     }

@@ -14,6 +14,7 @@ import { UserRoleEnum } from "src/gql/graphql";
 const ACCOUNT_QUERY = gql(`
   query AccountQuery {
     me {
+      id
       email
       address
       role
@@ -24,6 +25,7 @@ const ACCOUNT_QUERY = gql(`
 const UPDATE_ACCOUNT = gql(`
   mutation UpdateAccount($input: UpdateUserInput!) {
     updateUser(input: $input) {
+      id
       email
       address
     }
@@ -55,7 +57,7 @@ export const Account = () => {
 
   const onLogout = async () => {
     await client.clearStore();
-    await AsyncStorage.removeItem("access_token");
+    await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
     isLoggedInVar(false);
   };
 

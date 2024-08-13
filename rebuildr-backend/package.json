@@ -47,6 +47,7 @@
     "class-transformer": "^0.5.1",
     "core-js": "^3.37.1",
     "dataloader": "^2.2.2",
+    "dayjs": "^1.11.12",
     "graphql": "^16.8.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
