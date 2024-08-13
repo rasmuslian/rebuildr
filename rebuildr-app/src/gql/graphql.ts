@@ -391,6 +391,7 @@ export type LoginMutation = {
 
 export type ProductDetailsQueryVariables = Exact<{
   input: GetProductInput;
+  isLoggedIn: Scalars["Boolean"]["input"];
 }>;
 
 export type ProductDetailsQuery = {
@@ -406,7 +407,7 @@ export type ProductDetailsQuery = {
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
-  me: { __typename?: "User"; id: string; role: UserRoleEnum };
+  me?: { __typename?: "User"; id: string; role: UserRoleEnum };
 };
 
 export type DeleteProductMutationVariables = Exact<{
@@ -1015,6 +1016,20 @@ export const ProductDetailsDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "isLoggedIn" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Boolean" },
+            },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -1083,6 +1098,22 @@ export const ProductDetailsDocument = {
           {
             kind: "Field",
             name: { kind: "Name", value: "me" },
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "include" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "if" },
+                    value: {
+                      kind: "Variable",
+                      name: { kind: "Name", value: "isLoggedIn" },
+                    },
+                  },
+                ],
+              },
+            ],
             selectionSet: {
               kind: "SelectionSet",
               selections: [

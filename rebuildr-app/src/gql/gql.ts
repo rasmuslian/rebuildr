@@ -33,7 +33,7 @@ const documents = {
     types.LandingQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
-  "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n":
+  "\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n":
     types.ProductDetailsDocument,
   "\n  mutation DeleteProduct($input: DeleteProductInput!) {\n    deleteProduct(input: $input) {\n      title\n    }\n  }\n  ":
     types.DeleteProductDocument,
@@ -131,8 +131,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n",
-): (typeof documents)["\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n"];
+  source: "\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n",
+): (typeof documents)["\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
