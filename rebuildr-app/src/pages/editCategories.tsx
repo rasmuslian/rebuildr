@@ -66,7 +66,7 @@ export const EditCategories = () => {
     <Page title="Redigera kategorierna" loading={loading}>
       <View style={styles.tableContainer}>
         <View>
-          <Body>Namn</Body>
+          <Body style={styles.header}>Namn</Body>
           {data?.rootCategories.map((rootCategory, i) => (
             <View key={i} style={styles.familyContainer}>
               <View style={styles.parentRow}>
@@ -81,7 +81,7 @@ export const EditCategories = () => {
           ))}
         </View>
         <View style={{ alignSelf: "stretch" }}>
-          <Body>Utvalda</Body>
+          <Body style={styles.header}>Utvalda</Body>
           <View style={{ flex: 1, justifyContent: "space-between" }}>
             {flatCategories.map((category, i) => (
               <Button
@@ -93,7 +93,7 @@ export const EditCategories = () => {
           </View>
         </View>
         <View style={{ alignSelf: "stretch" }}>
-          <Body>Säsong</Body>
+          <Body style={styles.header}>Säsong</Body>
           <View style={{ flex: 1, justifyContent: "space-between" }}>
             {flatCategories.map((category, i) => (
               <Button
@@ -112,6 +112,10 @@ export const EditCategories = () => {
 const styles = StyleSheet.create({
   tableContainer: {
     flexDirection: "row",
+    gap: 10,
+  },
+  header: {
+    marginBottom: 10,
   },
   familyContainer: {
     display: "flex",
