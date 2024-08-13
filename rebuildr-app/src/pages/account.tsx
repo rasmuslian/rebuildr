@@ -62,7 +62,7 @@ export const Account = () => {
   return (
     <Page title="Mitt konto" loading={loading}>
       <View>
-        <Title size="small">{`Inloggad som ${data?.me.email} ${data?.me.role === UserRoleEnum.Admin && "(Administratör)"}`}</Title>
+        <Title size="small">{`Inloggad som ${data?.me.email} ${data?.me.role === UserRoleEnum.Admin ? "(Administratör)" : ""}`}</Title>
         <View style={styles.updateAddressContainer}>
           <Body>Adress</Body>
           <Input
