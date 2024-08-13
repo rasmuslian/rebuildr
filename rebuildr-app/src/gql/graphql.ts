@@ -285,7 +285,7 @@ export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
-  me: { __typename?: "User"; email: string; role: UserRoleEnum };
+  me: { __typename?: "User"; id: string; email: string; role: UserRoleEnum };
 };
 
 export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -294,6 +294,7 @@ export type AccountQueryQuery = {
   __typename?: "Query";
   me: {
     __typename?: "User";
+    id: string;
     email: string;
     address?: string | null;
     role: UserRoleEnum;
@@ -306,7 +307,12 @@ export type UpdateAccountMutationVariables = Exact<{
 
 export type UpdateAccountMutation = {
   __typename?: "Mutation";
-  updateUser: { __typename?: "User"; email: string; address?: string | null };
+  updateUser: {
+    __typename?: "User";
+    id: string;
+    email: string;
+    address?: string | null;
+  };
 };
 
 export type ConversationQueryQueryVariables = Exact<{
@@ -461,7 +467,12 @@ export type SellQueryQuery = {
     name: string;
     parentId?: string | null;
   }>;
-  me: { __typename?: "User"; email: string; address?: string | null };
+  me: {
+    __typename?: "User";
+    id: string;
+    email: string;
+    address?: string | null;
+  };
 };
 
 export type CreateProductMutationVariables = Exact<{
@@ -556,6 +567,7 @@ export const LoggedInNavigationDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
@@ -585,6 +597,7 @@ export const AccountQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
@@ -638,6 +651,7 @@ export const UpdateAccountDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
@@ -1393,6 +1407,7 @@ export const SellQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
