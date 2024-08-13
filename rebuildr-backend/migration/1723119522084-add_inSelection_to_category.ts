@@ -13,7 +13,7 @@ export class AddInSelectionToCategory1723119522084
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "user" ALTER COLUMN "address_location" TYPE geometry(GEOMETRY,0)`,
+      `ALTER TABLE "category" DROP COLUMN "in_selection"`,
     );
   }
 }
