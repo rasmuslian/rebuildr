@@ -25,6 +25,7 @@ export class MailService {
     this.mailgun = mailgun.client({
       username: 'api',
       key: process.env.MAILGUN_API_KEY,
+      url: 'https://api.eu.mailgun.net',
     });
     this.baseUrl =
       process.env.NODE_ENV === 'development'
@@ -49,8 +50,12 @@ export class MailService {
       text: 'verify',
       html,
     };
-    // TODO: insert correct domain
-    // this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
+    try {
+      await this.mailgun.messages.create('mg.rebuildr.se', data);
+    } catch (e) {
+      console.log('e :>> ', e);
+      throw new Error(e);
+    }
   }
 
   async sendResetPasswordEmail(input: { email: string; token: string }) {
@@ -70,7 +75,11 @@ export class MailService {
       test: 'Reset password',
       html,
     };
-    // TODO: insert correct domain
-    // this.mailgun.messages.create('<REBUILDR_DOMAIN>', data);
+    try {
+      await this.mailgun.messages.create('mg.rebuildr.se', data);
+    } catch (e) {
+      console.log('e :>> ', e);
+      throw new Error(e);
+    }
   }
 }
