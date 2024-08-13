@@ -80,7 +80,7 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
 
     const matchingTokens = await bcrypt.compare(
@@ -89,7 +89,7 @@ export class AuthService {
     );
 
     if (!matchingTokens) {
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
 
     await this.userRepository.update(
@@ -247,7 +247,7 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
     if (!user || !user.resetPasswordToken) {
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
 
     const matchingTokens = await bcrypt.compare(
@@ -255,7 +255,7 @@ export class AuthService {
       user.resetPasswordToken,
     );
     if (!matchingTokens) {
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
 
     const password = await bcrypt.hash(input.password, 10);

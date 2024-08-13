@@ -9,7 +9,7 @@
         <mj-text align="center" color="#343434" font-family="Roboto" font-size="16px" line-height="25px">
           Följ länken för att slutföra registreringen
         </mj-text>
-        <mj-button background-color="#863CFF" href="{{baseUrl}}/verify-email?email={{email}}&token={{token}}">
+        <mj-button background-color="#863CFF" href="{{verifyUrl}}">
           Slutför registrering
         </mj-button>
       </mj-column>

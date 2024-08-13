@@ -1,6 +1,5 @@
 import { useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
@@ -17,8 +16,8 @@ const VERIFY_MAIL = gql(`
 `);
 
 export const VerifyMail = ({ route }) => {
-  const { navigate } = useNavigation();
-  const [verifyMail] = useMutation(VERIFY_MAIL);
+  const [verifyMail, { error }] = useMutation(VERIFY_MAIL);
+
   useEffect(() => {
     const { email, token } = route.params;
 
@@ -29,14 +28,20 @@ export const VerifyMail = ({ route }) => {
         isLoggedInVar(true);
       },
     });
-  }, [navigate, route.params, verifyMail]);
+  }, [route.params, verifyMail]);
 
   return (
     <Page title="Verifiera mail">
-      <View>
-        <Body>Verifierar...</Body>
-        <ActivityIndicator />
-      </View>
+      {error ? (
+        <View>
+          <Body>Verifieringsmailet är inte längre giltigt</Body>
+        </View>
+      ) : (
+        <View>
+          <Body>Verifierar...</Body>
+          <ActivityIndicator />
+        </View>
+      )}
     </Page>
   );
 };

@@ -36,8 +36,8 @@ export class MailService {
   async sendVerifyEmail(input: { email: string; token: string }) {
     const context = {
       token: input.token,
-      email: encodeURIComponent(input.email),
-      baseUrl: this.baseUrl,
+      email: input.email,
+      verifyUrl: `${this.baseUrl}/verify-email?email=${encodeURIComponent(input.email)}&token=${input.token}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(verifyEmailTemplate).html,
@@ -61,8 +61,8 @@ export class MailService {
   async sendResetPasswordEmail(input: { email: string; token: string }) {
     const context = {
       token: input.token,
-      email: encodeURIComponent(input.email),
-      baseUrl: this.baseUrl,
+      email: input.email,
+      newPasswordUrl: `${this.baseUrl}/new-password?email=${encodeURIComponent(input.email)}&token=${input.token}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(resetPasswordTemplate).html,

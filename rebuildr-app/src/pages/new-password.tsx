@@ -1,6 +1,5 @@
 import { useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { Button } from "src/components/button";
@@ -18,7 +17,6 @@ const NEW_PASSWORD = gql(`
 `);
 
 export const NewPassword = ({ route }) => {
-  const { navigate } = useNavigation();
   const [password, setPassword] = useState("");
 
   const [newPassword, { loading, error }] = useMutation(NEW_PASSWORD);
@@ -57,7 +55,12 @@ export const NewPassword = ({ route }) => {
         placeholder={"Lösenord"}
       />
       <Button title="Skicka" onPress={onRequestNewPassword} />
-      {error && <Body>Något gick fel</Body>}
+      {error && (
+        <Body>
+          Något gick fel, verifieringsmailet kan ha blivit ogiltigt. Försök att
+          återställa lösenordet på nytt.
+        </Body>
+      )}
     </Page>
   );
 };
