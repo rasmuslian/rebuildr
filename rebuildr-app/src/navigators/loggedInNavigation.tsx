@@ -14,6 +14,7 @@ import { Products } from "src/pages/products";
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
     me {
+      id
       email
       role
     }

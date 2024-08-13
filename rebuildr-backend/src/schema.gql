@@ -49,6 +49,12 @@ type RegisterUserResponse {
 type LoginResponse {
   user: User!
   accessToken: String!
+  refreshToken: String!
+}
+
+type GetNewTokensResponse {
+  accessToken: String!
+  refreshToken: String!
 }
 
 type Message {
@@ -113,6 +119,7 @@ input ConversationInput {
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   login(input: LoginInput!): LoginResponse!
+  getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
@@ -129,6 +136,11 @@ input RegisterUserInput {
 input LoginInput {
   email: String!
   password: String!
+}
+
+input GetNewTokensInput {
+  accessToken: String!
+  refreshToken: String!
 }
 
 input UpdateUserInput {

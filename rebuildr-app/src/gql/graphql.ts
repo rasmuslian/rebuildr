@@ -98,6 +98,17 @@ export type FileInputType = {
   mimeType: Scalars["String"]["input"];
 };
 
+export type GetNewTokensInput = {
+  accessToken: Scalars["String"]["input"];
+  refreshToken: Scalars["String"]["input"];
+};
+
+export type GetNewTokensResponse = {
+  __typename?: "GetNewTokensResponse";
+  accessToken: Scalars["String"]["output"];
+  refreshToken: Scalars["String"]["output"];
+};
+
 export type GetProductInput = {
   id: Scalars["String"]["input"];
 };
@@ -115,6 +126,7 @@ export type LoginInput = {
 export type LoginResponse = {
   __typename?: "LoginResponse";
   accessToken: Scalars["String"]["output"];
+  refreshToken: Scalars["String"]["output"];
   user: User;
 };
 
@@ -132,6 +144,7 @@ export type Mutation = {
   createMessage: Message;
   createProduct: CreateProductResponse;
   deleteProduct: DeleteProductResponse;
+  getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
   login: LoginResponse;
   registerUser: RegisterUserResponse;
@@ -149,6 +162,10 @@ export type MutationCreateProductArgs = {
 
 export type MutationDeleteProductArgs = {
   input: DeleteProductInput;
+};
+
+export type MutationGetNewTokensArgs = {
+  input: GetNewTokensInput;
 };
 
 export type MutationHideProductArgs = {
@@ -251,11 +268,24 @@ export enum UserRoleEnum {
   User = "USER",
 }
 
+export type GetNewTokensMutationVariables = Exact<{
+  input: GetNewTokensInput;
+}>;
+
+export type GetNewTokensMutation = {
+  __typename?: "Mutation";
+  getNewTokens: {
+    __typename?: "GetNewTokensResponse";
+    accessToken: string;
+    refreshToken: string;
+  };
+};
+
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
-  me: { __typename?: "User"; email: string; role: UserRoleEnum };
+  me: { __typename?: "User"; id: string; email: string; role: UserRoleEnum };
 };
 
 export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -264,6 +294,7 @@ export type AccountQueryQuery = {
   __typename?: "Query";
   me: {
     __typename?: "User";
+    id: string;
     email: string;
     address?: string | null;
     role: UserRoleEnum;
@@ -276,7 +307,12 @@ export type UpdateAccountMutationVariables = Exact<{
 
 export type UpdateAccountMutation = {
   __typename?: "Mutation";
-  updateUser: { __typename?: "User"; email: string; address?: string | null };
+  updateUser: {
+    __typename?: "User";
+    id: string;
+    email: string;
+    address?: string | null;
+  };
 };
 
 export type ConversationQueryQueryVariables = Exact<{
@@ -335,6 +371,7 @@ export type LoginMutation = {
   login: {
     __typename?: "LoginResponse";
     accessToken: string;
+    refreshToken: string;
     user: { __typename?: "User"; email: string };
   };
 };
@@ -430,7 +467,12 @@ export type SellQueryQuery = {
     name: string;
     parentId?: string | null;
   }>;
-  me: { __typename?: "User"; email: string; address?: string | null };
+  me: {
+    __typename?: "User";
+    id: string;
+    email: string;
+    address?: string | null;
+  };
 };
 
 export type CreateProductMutationVariables = Exact<{
@@ -451,6 +493,64 @@ export type CreateProductMutation = {
   };
 };
 
+export const GetNewTokensDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "GetNewTokens" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "GetNewTokensInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "getNewTokens" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "accessToken" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "refreshToken" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetNewTokensMutation,
+  GetNewTokensMutationVariables
+>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -467,6 +567,7 @@ export const LoggedInNavigationDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
@@ -496,6 +597,7 @@ export const AccountQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
@@ -549,6 +651,7 @@ export const UpdateAccountDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
@@ -819,6 +922,10 @@ export const LoginDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "accessToken" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "refreshToken" },
+                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "user" },
@@ -1300,6 +1407,7 @@ export const SellQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
