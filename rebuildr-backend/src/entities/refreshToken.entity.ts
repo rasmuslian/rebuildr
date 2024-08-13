@@ -20,6 +20,9 @@ export class RefreshToken {
   @Column()
   expiresAt: Date;
 
+  @Column()
+  userId: string;
+
   @OneToOne(() => User, (user) => user.refreshToken)
   @JoinColumn()
   user: User;

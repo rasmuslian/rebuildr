@@ -149,7 +149,7 @@ export class AuthService {
       throw new NotFoundException();
     }
 
-    const tokens = await this.createTokens(user, user.refreshToken);
+    const tokens = await this.createTokens(user);
 
     return {
       user: user,
@@ -190,24 +190,26 @@ export class AuthService {
       return { accessToken: '', refreshToken: '' };
     }
 
-    const tokens = await this.createTokens(user, user.refreshToken);
+    const tokens = await this.createTokens(user);
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
   }
 
-  async createTokens(user: User, existingRefreshToken?: RefreshToken) {
+  async createTokens(user: User) {
     //create accessToken
     const payload: AccessTokenPayload = { sub: user.id, email: user.email };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: jwtConstants.expiresIn,
     });
 
+    //delete existing refresh token
+    await this.refreshTokenRepository.delete({ userId: user.id });
     //create refreshToken
     const token = crypto.randomBytes(20).toString('hex');
     const hash = await bcrypt.hash(token, 10);
-    const refreshToken = existingRefreshToken ?? new RefreshToken();
+    const refreshToken = new RefreshToken();
     refreshToken.token = hash;
     refreshToken.expiresAt = dayjs().add(60, 'day').toDate();
     refreshToken.user = user;
