@@ -346,13 +346,6 @@ export type GetNewTokensMutation = {
   };
 };
 
-export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
-
-export type MeQueryQuery = {
-  __typename?: "Query";
-  me: { __typename?: "User"; id: string; email: string };
-};
-
 export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
@@ -705,32 +698,6 @@ export const GetNewTokensDocument = {
   GetNewTokensMutation,
   GetNewTokensMutationVariables
 >;
-export const MeQueryDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "MeQuery" },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "me" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<MeQueryQuery, MeQueryQueryVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [

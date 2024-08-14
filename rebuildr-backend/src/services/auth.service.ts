@@ -52,7 +52,9 @@ export class AuthService {
       user.email = input.email;
       user.password = password;
       existingUser = await this.userRepository.save(user);
-    } else if (existingUser.verified) {
+    }
+
+    if (existingUser.verified) {
       return { message: 'User with email already exist' };
     }
 
