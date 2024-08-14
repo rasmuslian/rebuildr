@@ -18,4 +18,12 @@ export class Category {
 
   @ManyToOne(() => Category, (cat) => cat.id)
   parent?: Category;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  inSelection: boolean;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  inSeason: boolean;
 }

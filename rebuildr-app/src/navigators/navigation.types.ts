@@ -17,6 +17,8 @@ export type LandingStackParamList = {
     address?: string;
     distance?: number;
     categoryId?: string;
+    selectionCategories?: boolean;
+    seasonalCategories?: boolean;
   };
 };
 export type LoggedInStackParamList = {
@@ -31,5 +33,8 @@ export type LoggedInStackParamList = {
     address?: string;
     distance?: number;
     categoryId?: string;
+    selectionCategories?: boolean;
+    seasonalCategories?: boolean;
   };
+  EditCategories: undefined;
 };
