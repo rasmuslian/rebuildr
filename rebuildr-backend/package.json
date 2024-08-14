@@ -30,7 +30,7 @@
     "migration:create": "npm run typeorm migration:create"
   },
   "dependencies": {
-    "@apollo/server": "^4.10.4",
+    "@apollo/server": "^4.11.0",
     "@aws-sdk/client-s3": "^3.608.0",
     "@aws-sdk/credential-providers": "^3.606.0",
     "@aws-sdk/s3-request-presigner": "^3.608.0",
@@ -51,7 +51,7 @@
     "dataloader": "^2.2.2",
     "dayjs": "^1.11.12",
     "form-data": "^4.0.0",
-    "graphql": "^16.8.1",
+    "graphql": "^16.9.0",
     "handlebars": "^4.7.8",
     "mailgun.js": "^10.2.1",
     "mjml": "^4.15.3",

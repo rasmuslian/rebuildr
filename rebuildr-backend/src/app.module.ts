@@ -78,6 +78,7 @@ import { RolesGuard } from './auth/roles.guard';
           context: () => ({
             loaders: dataloaderService.createLoaders(),
           }),
+          hideSchemaDetailsFromClientErrors: isProd,
         };
       },
     }),
