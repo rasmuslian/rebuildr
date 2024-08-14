@@ -20,6 +20,9 @@ export type LandingStackParamList = {
     selectionCategories?: boolean;
     seasonalCategories?: boolean;
   };
+  VerifyMail: { email: string; token: string };
+  ResetPassword: undefined;
+  NewPassword: { email: string; token: string };
 };
 export type LoggedInStackParamList = {
   Landing: undefined;

@@ -34,6 +34,7 @@ import { FileResolver } from './resolvers/file.resolver';
 import { RefreshToken } from './entities/refreshToken.entity';
 import { CaslAbilityFactory } from './casl/caslAbility.factory';
 import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
+import { MailService } from './services/mail.service';
 import { RolesGuard } from './auth/roles.guard';
 
 @Module({
@@ -100,6 +101,7 @@ import { RolesGuard } from './auth/roles.guard';
     FileService,
     CaslAbilityFactory,
     GqlOptionalAuthGuard,
+    MailService,
     RolesGuard,
   ],
 })

@@ -12,14 +12,6 @@ export class UserService {
     private geocodingService: GeocodingService,
   ) {}
 
-  async createUser(user: { email: string; password: string }) {
-    try {
-      return await this.userRepository.save(user);
-    } catch (e) {
-      throw new Error('Error when creating new user');
-    }
-  }
-
   async findOne(id: string) {
     return await this.userRepository.findOneByOrFail({ id });
   }

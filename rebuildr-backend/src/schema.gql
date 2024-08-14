@@ -49,6 +49,10 @@ type RegisterUserResponse {
   message: String!
 }
 
+type ResendVerificationMailResponse {
+  message: String!
+}
+
 type LoginResponse {
   user: User!
   accessToken: String!
@@ -58,6 +62,10 @@ type LoginResponse {
 type GetNewTokensResponse {
   accessToken: String!
   refreshToken: String!
+}
+
+type ResetPasswordResponse {
+  message: String!
 }
 
 type Message {
@@ -123,8 +131,12 @@ input ConversationInput {
 
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
+  verifyMail(input: VerifyMailInput!): LoginResponse!
+  resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   login(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
+  resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
+  newPassword(input: NewPasswordInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
@@ -139,6 +151,15 @@ input RegisterUserInput {
   password: String!
 }
 
+input VerifyMailInput {
+  email: String!
+  verifyEmailToken: String!
+}
+
+input ResendVerificationMailInput {
+  email: String!
+}
+
 input LoginInput {
   email: String!
   password: String!
@@ -147,6 +168,16 @@ input LoginInput {
 input GetNewTokensInput {
   accessToken: String!
   refreshToken: String!
+}
+
+input ResetPasswordInput {
+  email: String!
+}
+
+input NewPasswordInput {
+  email: String!
+  password: String!
+  resetPasswordToken: String!
 }
 
 input UpdateUserInput {

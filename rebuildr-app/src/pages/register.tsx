@@ -1,12 +1,12 @@
 import { useMutation } from "@apollo/client";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
-import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
 import { Page } from "src/components/page";
 import { Body, Title } from "src/components/texts/text";
+import { HiddenInput } from "src/components/inputs/hiddenInput";
 
 const REGISTER_USER = gql(`
   mutation RegisterUser($input: RegisterUserInput!) {
@@ -16,11 +16,25 @@ const REGISTER_USER = gql(`
   }
 `);
 
+const RESEND_VERIFICATION_MAIL = gql(`
+  mutation ResendVerificationMail($input: ResendVerificationMailInput!) {
+    resendVerificationMail(input: $input) {
+      message
+    }
+  }
+  `);
+
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verificationResent, setVerificationResent] = useState(false);
 
-  const [registerUser, { data, error, loading }] = useMutation(REGISTER_USER);
+  const [registerUser, { data: registerData, error, loading }] =
+    useMutation(REGISTER_USER);
+  const [
+    resendVerificationMail,
+    { data: resendVerificationMailData, loading: resendingVerificationRequest },
+  ] = useMutation(RESEND_VERIFICATION_MAIL);
 
   const onSubmit = () => {
     if (loading) {
@@ -31,20 +45,44 @@ export const Register = () => {
 
     registerUser({
       variables: { input: { email: email, password: password } },
-      onCompleted: (data) => {
-        if (!data.registerUser.message) {
-          //Reset
-          setEmail("");
-          setPassword("");
-        }
-      },
+    });
+  };
+
+  const onResendVerificationMail = () => {
+    if (resendingVerificationRequest) {
+      return;
+    }
+
+    resendVerificationMail({
+      variables: { input: { email: email } },
+      onCompleted: () => setVerificationResent(true),
     });
   };
 
   return (
     <Page title="Registrera konto">
-      {data && !data.registerUser.message ? (
-        <Title>Skapat användare!</Title>
+      {registerData && !registerData.registerUser.message ? (
+        <View>
+          <Title>Verifikationsmail har skickats till {email}</Title>
+          <Body>Inte fått något mail? Titta i skräpposten</Body>
+          {resendingVerificationRequest ? (
+            <ActivityIndicator />
+          ) : (
+            <Button
+              onPress={onResendVerificationMail}
+              title="Skicka mail igen"
+            />
+          )}
+          {verificationResent &&
+          resendVerificationMailData &&
+          resendVerificationMailData.resendVerificationMail.message ? (
+            <Body>
+              {resendVerificationMailData.resendVerificationMail.message}
+            </Body>
+          ) : (
+            <Body>Nytt verifikationsmail skickat!</Body>
+          )}
+        </View>
       ) : (
         <View style={styles.formContainer}>
           <Input
@@ -64,7 +102,7 @@ export const Register = () => {
           </Button>
         </View>
       )}
-      <Body>{error?.message || data?.registerUser.message}</Body>
+      <Body>{error?.message || registerData?.registerUser.message}</Body>
     </Page>
   );
 };

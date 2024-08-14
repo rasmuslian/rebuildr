@@ -54,4 +54,13 @@ export class User {
   @Field(() => UserRoleEnum)
   @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
   role: UserRoleEnum;
+
+  @Column({ nullable: true })
+  verifyEmailToken?: string;
+
+  @Column({ default: false })
+  verified: boolean;
+
+  @Column({ nullable: true })
+  resetPasswordToken?: string;
 }

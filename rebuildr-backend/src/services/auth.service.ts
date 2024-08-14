@@ -1,10 +1,18 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
-import { LoginInput, RegisterUserInput } from 'src/resolvers/auth.resolver';
+import {
+  LoginInput,
+  NewPasswordInput,
+  RegisterUserInput,
+  ResendVerificationMailInput,
+  ResetPasswordInput,
+  VerifyMailInput,
+} from 'src/resolvers/auth.resolver';
 import { UserService } from './user.service';
+import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
@@ -13,7 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 type AccessTokenPayload = {
   sub: string;
@@ -30,28 +38,89 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    private mailService: MailService,
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    //validate input
-    if (!input.email || !input.password) {
-      throw new Error('Invalid input');
-    }
-
-    const emailTaken = await this.userRepository.existsBy({
+    let existingUser = await this.userRepository.findOneBy({
       email: input.email,
     });
-    if (emailTaken) {
-      return { message: 'Email already in use' };
+    if (!existingUser) {
+      //create user
+      const password = await bcrypt.hash(input.password, 10);
+      const user = new User();
+      user.email = input.email;
+      user.password = password;
+      existingUser = await this.userRepository.save(user);
     }
 
-    //hash password
-    const hash = await bcrypt.hash(input.password, 10);
+    if (existingUser.verified) {
+      return { message: 'User with email already exist' };
+    }
 
-    //create user
-    await this.userService.createUser({
+    //generate token
+    const token = crypto.randomBytes(10).toString('hex');
+    const tokenHash = await bcrypt.hash(token, 10);
+    await this.userRepository.update(
+      { id: existingUser.id },
+      { verifyEmailToken: tokenHash },
+    );
+
+    await this.mailService.sendVerifyEmail({
       email: input.email,
-      password: hash,
+      token: token,
+    });
+
+    return { message: '' };
+  }
+
+  async verifyMail(input: VerifyMailInput) {
+    const user = await this.userRepository.findOneBy({ email: input.email });
+
+    if (!user) {
+      throw new BadRequestException();
+    }
+
+    const matchingTokens = await bcrypt.compare(
+      input.verifyEmailToken,
+      user.verifyEmailToken,
+    );
+
+    if (!matchingTokens) {
+      throw new BadRequestException();
+    }
+
+    await this.userRepository.update(
+      { id: user.id },
+      { verified: true, verifyEmailToken: null },
+    );
+
+    const { accessToken, refreshToken } = await this.createTokens(user);
+
+    return { user: user, accessToken, refreshToken };
+  }
+
+  async resendVerificationMail(input: ResendVerificationMailInput) {
+    const user = await this.userRepository.findOneBy({ email: input.email });
+    if (!user) {
+      throw new BadRequestException();
+    }
+
+    if (user.verified) {
+      return { message: 'User already verified' };
+    }
+
+    //create new token for user
+    const token = crypto.randomBytes(10).toString('hex');
+    const tokenHash = await bcrypt.hash(token, 10);
+    await this.userRepository.update(
+      { id: user.id },
+      { verifyEmailToken: tokenHash },
+    );
+    //send new mail
+    await this.mailService.sendVerifyEmail({
+      email: input.email,
+      token: token,
     });
     return { message: '' };
   }
@@ -65,12 +134,19 @@ export class AuthService {
         refreshToken: true,
       },
     });
+    if (!user) {
+      throw new NotFoundException();
+    }
     const passwordCorrect = await bcrypt.compare(input.password, user.password);
     if (!passwordCorrect) {
-      throw new UnauthorizedException();
+      throw new NotFoundException();
     }
 
-    const tokens = await this.createTokens(user, user.refreshToken);
+    if (!user.verified) {
+      throw new NotFoundException();
+    }
+
+    const tokens = await this.createTokens(user);
 
     return {
       user: user,
@@ -111,14 +187,14 @@ export class AuthService {
       return { accessToken: '', refreshToken: '' };
     }
 
-    const tokens = await this.createTokens(user, user.refreshToken);
+    const tokens = await this.createTokens(user);
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
   }
 
-  async createTokens(user: User, existingRefreshToken?: RefreshToken) {
+  async createTokens(user: User) {
     //create accessToken
     const payload: AccessTokenPayload = {
       sub: user.id,
@@ -129,15 +205,63 @@ export class AuthService {
       expiresIn: jwtConstants.expiresIn,
     });
 
+    //delete existing refresh token
+    await this.refreshTokenRepository.delete({ userId: user.id });
     //create refreshToken
     const token = crypto.randomBytes(20).toString('hex');
     const hash = await bcrypt.hash(token, 10);
-    const refreshToken = existingRefreshToken ?? new RefreshToken();
+    const refreshToken = new RefreshToken();
     refreshToken.token = hash;
     refreshToken.expiresAt = dayjs().add(60, 'day').toDate();
     refreshToken.user = user;
     await this.refreshTokenRepository.save(refreshToken);
 
     return { accessToken, refreshToken: token };
+  }
+
+  async resetPassword(input: ResetPasswordInput) {
+    const email = input.email.toLowerCase();
+    const user = await this.userRepository.findOneBy({ email: email });
+
+    if (user) {
+      const token = crypto.randomBytes(10).toString('hex');
+      const tokenHash = await bcrypt.hash(token, 10);
+      await this.userRepository.update(
+        { id: user.id },
+        { resetPasswordToken: tokenHash },
+      );
+      await this.mailService.sendResetPasswordEmail({
+        email: email,
+        token: token,
+      });
+    }
+
+    return { message: '' };
+  }
+
+  async newPassword(input: NewPasswordInput) {
+    const user = await this.userRepository.findOneBy({ email: input.email });
+
+    if (!user || !user.resetPasswordToken) {
+      throw new BadRequestException();
+    }
+
+    const matchingTokens = await bcrypt.compare(
+      input.resetPasswordToken,
+      user.resetPasswordToken,
+    );
+    if (!matchingTokens) {
+      throw new BadRequestException();
+    }
+
+    const password = await bcrypt.hash(input.password, 10);
+    await this.userRepository.update(
+      { email: input.email },
+      { password: password, resetPasswordToken: null },
+    );
+
+    const { accessToken, refreshToken } = await this.createTokens(user);
+
+    return { user: user, accessToken, refreshToken };
   }
 }

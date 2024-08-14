@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Message } from 'src/entities/message.entity';
@@ -5,6 +6,7 @@ import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 
+@Injectable()
 export class MessageService {
   constructor(
     @InjectRepository(Message)

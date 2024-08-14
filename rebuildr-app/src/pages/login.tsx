@@ -67,7 +67,10 @@ export const Login = () => {
         <Button onPress={onLogin} disabled={loading}>
           <Body>Logga in</Body>
         </Button>
-        <Body>{error && "Felaktig e-post eller lösenord"}</Body>
+        <Button onPress={() => navigate("ResetPassword")}>
+          <Body>Glömt lösenordet</Body>
+        </Button>
+        {error && <Body>"Felaktig e-post eller lösenord"</Body>}
         <Button
           title={"Registrera ett konto"}
           onPress={() => navigate("Register")}
