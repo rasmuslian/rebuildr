@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import FormData from 'form-data';
 import handlebars from 'handlebars';
 import mjml from 'mjml';
@@ -54,7 +54,7 @@ export class MailService {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
     } catch (e) {
       console.log('e :>> ', e);
-      throw new Error(e);
+      throw new InternalServerErrorException();
     }
   }
 
@@ -79,7 +79,7 @@ export class MailService {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
     } catch (e) {
       console.log('e :>> ', e);
-      throw new Error(e);
+      throw new InternalServerErrorException();
     }
   }
 }

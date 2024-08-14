@@ -41,21 +41,16 @@ export class AuthService {
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    //validate input
-    if (!input.email) {
-      throw new Error('Invalid input');
-    }
-
     let existingUser = await this.userRepository.findOneBy({
       email: input.email,
     });
     if (!existingUser) {
       //create user
       const password = await bcrypt.hash(input.password, 10);
-      existingUser = await this.userService.createUser({
-        email: input.email,
-        password: password,
-      });
+      const user = new User();
+      user.email = input.email;
+      user.password = password;
+      existingUser = await this.userRepository.save(user);
     } else if (existingUser.verified) {
       return { message: 'User with email already exist' };
     }
@@ -105,7 +100,7 @@ export class AuthService {
   async resendVerificationMail(input: ResendVerificationMailInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
     if (!user) {
-      throw new NotFoundException();
+      throw new BadRequestException();
     }
 
     if (user.verified) {
