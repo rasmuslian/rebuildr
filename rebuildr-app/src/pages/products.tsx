@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { useCallback } from "react";
 import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
@@ -61,19 +61,23 @@ export const Products = ({ route }) => {
           id: categoryId,
         },
       },
-      skip: true,
+      skip: !categoryId,
     },
   );
 
   //This hook refetches products and categories when this screen comes into focus.
-  //Problem was when navigating here from deleting product, this page
+  //Problem was when navigating here after affecting the products, this page
   //will show an unchanged list of products since this page was never unmounted.
-  useFocusEffect(() => {
-    if (refetch) {
-      refetch();
-      refetchCategories();
-    }
-  });
+  useFocusEffect(
+    useCallback(() => {
+      if (refetch) {
+        refetch();
+      }
+      if (categoryId && refetchCategories) {
+        refetchCategories();
+      }
+    }, [categoryId, refetch, refetchCategories]),
+  );
 
   const onRemoveFilter = (input: {
     removeSearchString?: boolean;
