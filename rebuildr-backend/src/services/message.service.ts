@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
+import { BadUserInputException } from 'src/exceptions';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -109,7 +110,7 @@ export class MessageService {
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
     ]).catch(() => {
-      throw new Error('Invalid conversation');
+      throw BadUserInputException('Invalid conversation');
     });
 
     message.receiver = receiver;

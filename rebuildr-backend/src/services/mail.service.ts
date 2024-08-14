@@ -1,9 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import FormData from 'form-data';
 import handlebars from 'handlebars';
 import mjml from 'mjml';
 import Mailgun, { Interfaces } from 'mailgun.js';
 import * as fs from 'fs';
+import { InternalServerException } from 'src/exceptions';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
@@ -53,8 +54,7 @@ export class MailService {
     try {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
     } catch (e) {
-      console.log('e :>> ', e);
-      throw new InternalServerErrorException();
+      throw InternalServerException();
     }
   }
 
@@ -78,8 +78,7 @@ export class MailService {
     try {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
     } catch (e) {
-      console.log('e :>> ', e);
-      throw new InternalServerErrorException();
+      throw InternalServerException();
     }
   }
 }

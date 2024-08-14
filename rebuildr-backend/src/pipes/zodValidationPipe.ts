@@ -1,4 +1,5 @@
-import { BadRequestException, PipeTransform } from '@nestjs/common';
+import { PipeTransform } from '@nestjs/common';
+import { BadUserInputException } from 'src/exceptions';
 import { ZodSchema } from 'zod';
 
 export class ZodValidationPipe implements PipeTransform {
@@ -9,7 +10,7 @@ export class ZodValidationPipe implements PipeTransform {
       const parsedValue = this.schema.parse(value);
       return parsedValue;
     } catch (e) {
-      throw new BadRequestException('Invalid input');
+      throw BadUserInputException('Invalid input');
     }
   }
 }

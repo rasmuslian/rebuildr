@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
+import { BadUserInputException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 
@@ -20,7 +21,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id: input.id });
 
     if (!user) {
-      throw new Error('No user found');
+      throw BadUserInputException();
     }
 
     user.address = input.address;

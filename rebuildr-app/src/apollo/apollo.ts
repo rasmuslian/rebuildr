@@ -69,7 +69,7 @@ export const initializeApollo = async () => {
   const errorLink = onError(
     ({ graphQLErrors, operation, forward, networkError }) => {
       if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path, extensions }) => {
+        graphQLErrors.forEach(({ message, locations, path }) => {
           console.log(
             `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
           );

@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
 import { User } from 'src/entities/user.entity';
+import { BadUserInputException } from 'src/exceptions';
 import { IsNull, Repository } from 'typeorm';
 
 @Injectable()
@@ -40,7 +41,9 @@ export class CategoryService {
   }) {
     const category = await this.categoryRepository.findOneBy({ id: input.id });
     if (!category) {
-      throw new BadRequestException();
+      throw BadUserInputException(
+        'Failed to update categeory due to bad input',
+      );
     }
 
     category.inSelection = input.inSelection ?? category.inSelection;
