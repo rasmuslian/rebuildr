@@ -146,7 +146,7 @@ export class ProductService {
       input.selectionCategories ||
       input.seasonalCategories
     ) {
-      query.leftJoin('category', 'c', 'category_id = c.id');
+      query.innerJoin('category', 'c', 'category_id = c.id');
 
       if (input.categoryId) {
         query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
