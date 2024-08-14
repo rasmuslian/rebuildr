@@ -44,7 +44,7 @@ export const Account = () => {
   ] = useMutation(UPDATE_ACCOUNT);
 
   const onSave = () => {
-    if (updateAccountLoading) {
+    if (!data.me || updateAccountLoading) {
       return;
     }
 
@@ -52,7 +52,7 @@ export const Account = () => {
       return;
     }
 
-    updateAccount({ variables: { input: { address } } });
+    updateAccount({ variables: { input: { id: data.me.id, address } } });
   };
 
   const onLogout = async () => {

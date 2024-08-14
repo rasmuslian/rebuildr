@@ -313,6 +313,7 @@ export type UpdateCategoryInput = {
 
 export type UpdateUserInput = {
   address: Scalars["String"]["input"];
+  id: Scalars["String"]["input"];
 };
 
 export type User = {

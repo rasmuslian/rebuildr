@@ -14,6 +14,9 @@ import { UserService } from 'src/services/user.service';
 
 @InputType()
 class UpdateUserInput {
+  @Field()
+  id: string;
+
   @Field(() => String)
   address: string;
 }
@@ -33,6 +36,9 @@ export class UserResolver {
     @CurrentUser() _user: User,
     @Args('input') input: UpdateUserInput,
   ) {
-    return this.userService.update({ id: _user.id, address: input.address });
+    return this.userService.update(
+      { id: input.id, address: input.address },
+      _user.id,
+    );
   }
 }
