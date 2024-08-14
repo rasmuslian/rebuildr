@@ -33,7 +33,10 @@ export type Scalars = {
 
 export type Category = {
   __typename?: "Category";
+  children: Array<Category>;
   id: Scalars["ID"]["output"];
+  inSeason: Scalars["Boolean"]["output"];
+  inSelection: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
   parentId?: Maybe<Scalars["String"]["output"]>;
 };
@@ -152,6 +155,7 @@ export type Mutation = {
   resendVerificationMail: ResendVerificationMailResponse;
   resetPassword: ResetPasswordResponse;
   showProduct: Product;
+  updateCategory: Category;
   updateUser: User;
   verifyMail: LoginResponse;
 };
@@ -200,6 +204,10 @@ export type MutationShowProductArgs = {
   input: ShowProductInput;
 };
 
+export type MutationUpdateCategoryArgs = {
+  input: UpdateCategoryInput;
+};
+
 export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
 };
@@ -233,6 +241,8 @@ export type ProductsInput = {
   categoryId?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
+  seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
+  selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type Query = {
@@ -293,6 +303,12 @@ export type ResetPasswordResponse = {
 
 export type ShowProductInput = {
   id: Scalars["String"]["input"];
+};
+
+export type UpdateCategoryInput = {
+  id: Scalars["String"]["input"];
+  inSeason?: InputMaybe<Scalars["Boolean"]["input"]>;
+  inSelection?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type UpdateUserInput = {
@@ -411,6 +427,40 @@ export type ConversationsQueryQuery = {
   }>;
 };
 
+export type EditCategoriesQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type EditCategoriesQueryQuery = {
+  __typename?: "Query";
+  rootCategories: Array<{
+    __typename?: "Category";
+    id: string;
+    name: string;
+    inSelection: boolean;
+    inSeason: boolean;
+    children: Array<{
+      __typename?: "Category";
+      id: string;
+      name: string;
+      inSelection: boolean;
+      inSeason: boolean;
+    }>;
+  }>;
+};
+
+export type UpdateCategoryMutationVariables = Exact<{
+  input: UpdateCategoryInput;
+}>;
+
+export type UpdateCategoryMutation = {
+  __typename?: "Mutation";
+  updateCategory: {
+    __typename?: "Category";
+    id: string;
+    inSelection: boolean;
+    inSeason: boolean;
+  };
+};
+
 export type LandingQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LandingQueryQuery = {
@@ -447,6 +497,7 @@ export type NewPasswordMutation = {
 
 export type ProductDetailsQueryVariables = Exact<{
   input: GetProductInput;
+  isLoggedIn: Scalars["Boolean"]["input"];
 }>;
 
 export type ProductDetailsQuery = {
@@ -462,7 +513,7 @@ export type ProductDetailsQuery = {
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
   };
-  me: { __typename?: "User"; id: string; role: UserRoleEnum };
+  me?: { __typename?: "User"; id: string; role: UserRoleEnum };
 };
 
 export type DeleteProductMutationVariables = Exact<{
@@ -982,6 +1033,112 @@ export const ConversationsQueryDocument = {
   ConversationsQueryQuery,
   ConversationsQueryQueryVariables
 >;
+export const EditCategoriesQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "EditCategoriesQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rootCategories" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "inSelection" } },
+                { kind: "Field", name: { kind: "Name", value: "inSeason" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "children" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "inSelection" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "inSeason" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  EditCategoriesQueryQuery,
+  EditCategoriesQueryQueryVariables
+>;
+export const UpdateCategoryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateCategory" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateCategoryInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateCategory" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "inSelection" } },
+                { kind: "Field", name: { kind: "Name", value: "inSeason" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateCategoryMutation,
+  UpdateCategoryMutationVariables
+>;
 export const LandingQueryDocument = {
   kind: "Document",
   definitions: [
@@ -1150,6 +1307,20 @@ export const ProductDetailsDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "isLoggedIn" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Boolean" },
+            },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -1218,6 +1389,22 @@ export const ProductDetailsDocument = {
           {
             kind: "Field",
             name: { kind: "Name", value: "me" },
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "include" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "if" },
+                    value: {
+                      kind: "Variable",
+                      name: { kind: "Name", value: "isLoggedIn" },
+                    },
+                  },
+                ],
+              },
+            ],
             selectionSet: {
               kind: "SelectionSet",
               selections: [

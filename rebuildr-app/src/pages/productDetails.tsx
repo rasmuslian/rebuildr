@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
@@ -13,7 +13,7 @@ import { UserRoleEnum } from "src/gql/graphql";
 import Colors from "src/styles/colors";
 
 const PRODUCT_DETAILS_QUERY = gql(`
-  query ProductDetails($input: GetProductInput!) {
+  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {
     product(input: $input) {
       id
       title
@@ -31,7 +31,7 @@ const PRODUCT_DETAILS_QUERY = gql(`
         name
       }
     }
-    me {
+    me @include(if: $isLoggedIn) {
       id
       role
     }
@@ -68,9 +68,10 @@ export const ProductDetails = ({
   if (!route.params) {
     navigation.goBack();
   }
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
 
   const { data, refetch } = useQuery(PRODUCT_DETAILS_QUERY, {
-    variables: { input: { id: route.params.productId } },
+    variables: { input: { id: route.params.productId }, isLoggedIn },
   });
   const [deleteProduct, { loading: deleting, error: deleteError }] =
     useMutation(DELETE_PRODUCT, {
@@ -133,7 +134,7 @@ export const ProductDetails = ({
           title="Skicka meddelande"
         />
       )}
-      {data.me.role === UserRoleEnum.Admin && (
+      {data.me?.role === UserRoleEnum.Admin && (
         <View style={styles.adminContainer}>
           <Body>Adminåtgärder</Body>
           <View style={styles.buttonsContainer}>

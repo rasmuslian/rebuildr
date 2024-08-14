@@ -88,11 +88,14 @@ export class ProductService {
       address?: string;
       distance?: number;
       categoryId?: string;
+      selectionCategories?: boolean;
+      seasonalCategories?: boolean;
     },
     _user?: User,
   ) {
     const query = this.productRepository.createQueryBuilder('product');
 
+    //Only admin will see hidden products
     if (_user) {
       const user = await this.userRepository.findOneBy({ id: _user.id });
       if (!user) {
@@ -136,12 +139,26 @@ export class ProductService {
       );
       query.setParameter('origin', origin);
     }
-    //Will find products matching the category. Also includes all products where 'categoryId' is the parent of their category
-    if (input.categoryId) {
-      query.leftJoin('category', 'c', 'category_id = c.id');
-      query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
-        categoryId: input.categoryId,
-      });
+
+    //Include products based on category criterias
+    if (
+      input.categoryId ||
+      input.selectionCategories ||
+      input.seasonalCategories
+    ) {
+      query.innerJoin('category', 'c', 'category_id = c.id');
+
+      if (input.categoryId) {
+        query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
+          categoryId: input.categoryId,
+        });
+      } else if (input.selectionCategories) {
+        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
+        query.andWhere('c.in_selection OR parent.in_selection');
+      } else {
+        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
+        query.andWhere('c.in_season OR parent.in_season');
+      }
     }
 
     return await query.getMany();

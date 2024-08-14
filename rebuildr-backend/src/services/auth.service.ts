@@ -15,7 +15,7 @@ import { UserService } from './user.service';
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
@@ -26,6 +26,7 @@ import dayjs from 'dayjs';
 type AccessTokenPayload = {
   sub: string;
   email: string;
+  role: UserRoleEnum;
 };
 
 @Injectable()
@@ -193,7 +194,11 @@ export class AuthService {
 
   async createTokens(user: User) {
     //create accessToken
-    const payload: AccessTokenPayload = { sub: user.id, email: user.email };
+    const payload: AccessTokenPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: jwtConstants.expiresIn,
     });

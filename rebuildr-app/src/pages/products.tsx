@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { useCallback } from "react";
 import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
@@ -38,6 +38,8 @@ export const Products = ({ route }) => {
   const _distance = parseInt(route.params?.distance);
   const distance = isNaN(_distance) ? 0 : _distance;
   const categoryId = route.params?.categoryId;
+  const selectionCategories = route.params?.selectionCategories;
+  const seasonalCategories = route.params?.seasonalCategories;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -46,6 +48,8 @@ export const Products = ({ route }) => {
         address: address,
         distance: distance,
         categoryId: categoryId,
+        selectionCategories: selectionCategories,
+        seasonalCategories: seasonalCategories,
       },
     },
   });
@@ -62,20 +66,26 @@ export const Products = ({ route }) => {
   );
 
   //This hook refetches products and categories when this screen comes into focus.
-  //Problem was when navigating here from deleting product, this page
+  //Problem was when navigating here after affecting the products, this page
   //will show an unchanged list of products since this page was never unmounted.
-  useFocusEffect(() => {
-    if (refetch) {
-      refetch();
-      refetchCategories();
-    }
-  });
+  useFocusEffect(
+    useCallback(() => {
+      if (refetch) {
+        refetch();
+      }
+      if (categoryId && refetchCategories) {
+        refetchCategories();
+      }
+    }, [categoryId, refetch, refetchCategories]),
+  );
 
   const onRemoveFilter = (input: {
     removeSearchString?: boolean;
     removeAddress?: boolean;
     removeDistance?: boolean;
     removeCategory?: boolean;
+    removeSelectionCategories?: boolean;
+    removeSeasonalCategories?: boolean;
   }) => {
     if (loading) {
       return;
@@ -87,6 +97,12 @@ export const Products = ({ route }) => {
       address: input.removeAddress ? undefined : address,
       distance: input.removeDistance ? undefined : distance,
       categoryId: input.removeCategory ? undefined : categoryId,
+      selectionCategories: input.removeSelectionCategories
+        ? undefined
+        : selectionCategories,
+      seasonalCategories: input.removeSeasonalCategories
+        ? undefined
+        : seasonalCategories,
     });
   };
 
@@ -119,6 +135,20 @@ export const Products = ({ route }) => {
               onPress={() =>
                 onRemoveFilter({ removeAddress: true, removeDistance: true })
               }
+            />
+          )}
+          {selectionCategories && (
+            <Button
+              title="Utvalda kategorier"
+              onPress={() =>
+                onRemoveFilter({ removeSelectionCategories: true })
+              }
+            />
+          )}
+          {seasonalCategories && (
+            <Button
+              title="Säsongskategorier"
+              onPress={() => onRemoveFilter({ removeSeasonalCategories: true })}
             />
           )}
         </View>

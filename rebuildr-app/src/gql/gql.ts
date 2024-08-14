@@ -15,8 +15,6 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n":
     types.GetNewTokensDocument,
-  "\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n":
-    types.MeQueryDocument,
   "\n  query LoggedInNavigation {\n    me {\n      id\n      email\n      role\n    }\n  }\n":
     types.LoggedInNavigationDocument,
   "\n  query AccountQuery {\n    me {\n      id\n      email\n      address\n      role\n    }\n  }\n":
@@ -29,13 +27,17 @@ const documents = {
     types.SendMessageDocument,
   "\n  query ConversationsQuery {\n    conversations {\n      otherUser {\n        id\n        email\n      }\n      latestMessageAt\n      product {\n        id\n        title\n      }\n    }\n  }\n":
     types.ConversationsQueryDocument,
+  "\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      inSeason\n      children {\n        id\n        name\n        inSelection\n        inSeason\n      }\n    }\n  }\n":
+    types.EditCategoriesQueryDocument,
+  "\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      inSelection\n      inSeason\n    }\n  }\n  ":
+    types.UpdateCategoryDocument,
   "\n  query LandingQuery {\n    rootCategories {\n      id\n      name\n    }\n  }\n":
     types.LandingQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      refreshToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
   "\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
     types.NewPasswordDocument,
-  "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n":
+  "\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n":
     types.ProductDetailsDocument,
   "\n  mutation DeleteProduct($input: DeleteProductInput!) {\n    deleteProduct(input: $input) {\n      title\n    }\n  }\n  ":
     types.DeleteProductDocument,
@@ -85,12 +87,6 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n",
-): (typeof documents)["\n  query MeQuery {\n    me {\n      id\n      email\n    }\n  }\n"];
-/**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function gql(
   source: "\n  query LoggedInNavigation {\n    me {\n      id\n      email\n      role\n    }\n  }\n",
 ): (typeof documents)["\n  query LoggedInNavigation {\n    me {\n      id\n      email\n      role\n    }\n  }\n"];
 /**
@@ -127,6 +123,18 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      inSeason\n      children {\n        id\n        name\n        inSelection\n        inSeason\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query EditCategoriesQuery {\n    rootCategories {\n      id\n      name\n      inSelection\n      inSeason\n      children {\n        id\n        name\n        inSelection\n        inSeason\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      inSelection\n      inSeason\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      inSelection\n      inSeason\n    }\n  }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n  query LandingQuery {\n    rootCategories {\n      id\n      name\n    }\n  }\n",
 ): (typeof documents)["\n  query LandingQuery {\n    rootCategories {\n      id\n      name\n    }\n  }\n"];
 /**
@@ -145,8 +153,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n",
-): (typeof documents)["\n  query ProductDetails($input: GetProductInput!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me {\n      id\n      role\n    }\n  }\n"];
+  source: "\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n",
+): (typeof documents)["\n  query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {\n    product(input: $input) {\n      id\n      title\n      price\n      address\n      hiddenReason\n      images {\n        presignedGetUrl\n      }\n      user {\n        id\n        email\n      }\n      category {\n        name\n      }\n    }\n    me @include(if: $isLoggedIn) {\n      id\n      role\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

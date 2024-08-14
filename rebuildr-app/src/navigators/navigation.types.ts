@@ -17,6 +17,8 @@ export type LandingStackParamList = {
     address?: string;
     distance?: number;
     categoryId?: string;
+    selectionCategories?: boolean;
+    seasonalCategories?: boolean;
   };
   VerifyMail: { email: string; token: string };
   ResetPassword: undefined;
@@ -34,5 +36,8 @@ export type LoggedInStackParamList = {
     address?: string;
     distance?: number;
     categoryId?: string;
+    selectionCategories?: boolean;
+    seasonalCategories?: boolean;
   };
+  EditCategories: undefined;
 };

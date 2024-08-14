@@ -12,6 +12,7 @@ const config = {
     VerifyMail: "/verify-email",
     ResetPassword: "/reset-password",
     NewPassword: "/new-password",
+    EditCategories: "/account/edit-categories",
   },
 };
 

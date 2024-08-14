@@ -10,6 +10,8 @@ import { LoggedInStackParamList } from "./navigation.types";
 import { Conversations } from "src/pages/conversations";
 import { Account } from "src/pages/account";
 import { Products } from "src/pages/products";
+import { UserRoleEnum } from "src/gql/graphql";
+import { EditCategories } from "src/pages/editCategories";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -41,6 +43,9 @@ export const LoggedInNavigation = () => {
       <Stack.Screen name="Conversations" component={Conversations} />
       <Stack.Screen name="Account" component={Account} />
       <Stack.Screen name="Products" component={Products} />
+      {data.me.role === UserRoleEnum.Admin && (
+        <Stack.Screen name="EditCategories" component={EditCategories} />
+      )}
     </Stack.Navigator>
   );
 };

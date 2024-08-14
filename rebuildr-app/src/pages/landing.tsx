@@ -45,6 +45,16 @@ export const Landing = () => {
       categoryId: categoryId,
     });
   };
+  const onPressSelectionCategories = () => {
+    navigate("Products", {
+      selectionCategories: true,
+    });
+  };
+  const onPressSeasonalCategories = () => {
+    navigate("Products", {
+      seasonalCategories: true,
+    });
+  };
 
   return (
     <View>
@@ -112,6 +122,8 @@ export const Landing = () => {
         <CategorySlider
           categories={data.rootCategories}
           onSelect={(categoryId) => onPressCategory(categoryId)}
+          onSelectSelection={onPressSelectionCategories}
+          onSelectSeasonal={onPressSeasonalCategories}
         />
       )}
     </View>
@@ -120,11 +132,18 @@ export const Landing = () => {
 
 interface CategorySliderProps {
   onSelect: (categoryId: string) => void;
+  onSelectSelection: () => void;
+  onSelectSeasonal: () => void;
   categories: { id: string; name: string }[];
 }
 const offsetIncrement = 100;
 
-const CategorySlider = ({ onSelect, categories }: CategorySliderProps) => {
+const CategorySlider = ({
+  onSelect,
+  onSelectSelection,
+  onSelectSeasonal,
+  categories,
+}: CategorySliderProps) => {
   const [sliderOffset, setSliderOffset] = useState(0);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [sliderWindowWidth, setSliderWindowWidth] = useState(0);
@@ -161,10 +180,22 @@ const CategorySlider = ({ onSelect, categories }: CategorySliderProps) => {
           ]}
           onLayout={(v) => setSliderWidth(v.nativeEvent.layout.width)}
         >
+          <Pressable onPress={onSelectSelection}>
+            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+              <Icon iconType="PointUpIcon" />
+              <Body>Utvalda</Body>
+            </View>
+          </Pressable>
+          <Pressable onPress={onSelectSeasonal}>
+            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+              <Icon iconType="SeasonIcon" />
+              <Body>Säsong</Body>
+            </View>
+          </Pressable>
           {categories.map((category) => (
             <Pressable onPress={() => onSelect(category.id)} key={category.id}>
               <View style={styles.categoryCard}>
-                <Icon iconType="Pin" />
+                <Icon iconType="TilesIcon" />
                 <Body>{category.name}</Body>
               </View>
             </Pressable>
@@ -226,6 +257,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 38,
     justifyContent: "space-between",
+    paddingVertical: 22,
   },
   sliderContainer: {
     overflow: "hidden",
@@ -236,6 +268,8 @@ const styles = StyleSheet.create({
     gap: 12,
     position: "absolute",
     transformOrigin: "left",
+    alignItems: "center",
+    height: "100%",
   },
   categoryCard: {
     padding: 16,
@@ -244,5 +278,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     backgroundColor: "transparent",
+  },
+  specialCategoryCard: {
+    borderRadius: 8,
+    backgroundColor: "#F5EEFF",
+    borderWidth: 1,
+    borderColor: Colors.borderGray,
+    borderStyle: "solid",
   },
 });

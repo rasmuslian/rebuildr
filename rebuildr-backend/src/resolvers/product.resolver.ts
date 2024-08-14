@@ -76,6 +76,12 @@ class ProductsInput {
 
   @Field({ nullable: true })
   categoryId?: string;
+
+  @Field({ nullable: true })
+  selectionCategories?: boolean;
+
+  @Field({ nullable: true })
+  seasonalCategories?: boolean;
 }
 
 @InputType()
