@@ -10,9 +10,10 @@ import {
   Mutation,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 import { Category } from 'src/entities/category.entity';
-import { User } from 'src/entities/user.entity';
+import { UserRoleEnum } from 'src/entities/user.entity';
 import { CategoryService } from 'src/services/category.service';
 
 @InputType()
@@ -52,12 +53,10 @@ export class CategoryResolver {
   }
 
   @Mutation(() => Category)
-  @UseGuards(GqlAuthGuard)
-  updateCategory(
-    @CurrentUser() _user: User,
-    @Args('input') input: UpdateCategoryInput,
-  ) {
-    return this.categoryService.update({ ...input }, _user.id);
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  updateCategory(@Args('input') input: UpdateCategoryInput) {
+    return this.categoryService.update({ ...input });
   }
 
   @ResolveField(() => [Category])

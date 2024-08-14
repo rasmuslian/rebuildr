@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
@@ -37,18 +33,14 @@ export class CategoryService {
     return await this.categoryRepository.findBy({ parentId });
   }
 
-  async update(
-    input: { id: string; inSelection?: boolean; inSeason?: boolean },
-    userId: string,
-  ) {
-    const user = await this.userRepository.findOneBy({ id: userId });
+  async update(input: {
+    id: string;
+    inSelection?: boolean;
+    inSeason?: boolean;
+  }) {
     const category = await this.categoryRepository.findOneBy({ id: input.id });
-    if (!user || !category) {
+    if (!category) {
       throw new BadRequestException();
-    }
-    const ability = this.caslAbilityFactory.createForUser(user);
-    if (!ability.can('update', Category)) {
-      throw new ForbiddenException();
     }
 
     category.inSelection = input.inSelection ?? category.inSelection;
