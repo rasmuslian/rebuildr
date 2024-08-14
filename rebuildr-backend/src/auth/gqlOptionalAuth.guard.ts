@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
@@ -24,7 +19,7 @@ export class GqlOptionalAuthGuard implements CanActivate {
       });
       request.user = { id: payload.sub, email: payload.sub };
     } catch (e) {
-      throw new UnauthorizedException();
+      return true;
     }
 
     return true;
