@@ -73,6 +73,7 @@ export type CreateProductInput = {
   address: Scalars["String"]["input"];
   categoryId: Scalars["String"]["input"];
   images?: InputMaybe<Array<FileInputType>>;
+  isGiveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
 };
@@ -230,6 +231,7 @@ export type Product = {
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   images: Array<File>;
+  isGiveaway: Scalars["Boolean"]["output"];
   mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];

@@ -56,4 +56,8 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   hiddenReason?: string;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  isGiveaway: boolean;
 }

@@ -40,6 +40,7 @@ export class ProductService {
     price: number;
     address: string;
     images?: FileInputType[];
+    isGiveaway?: boolean;
   }): Promise<CreateProductResponse> {
     const product = new Product();
 
@@ -60,6 +61,7 @@ export class ProductService {
     product.user = user;
     product.price = input.price;
     product.address = input.address;
+    product.isGiveaway = input.isGiveaway;
     const location = await this.geocodingService.addressToLocation(
       input.address,
     );
