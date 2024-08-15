@@ -86,6 +86,9 @@ class ProductsInput {
 
   @Field({ nullable: true })
   seasonalCategories?: boolean;
+
+  @Field({ nullable: true })
+  giveaway?: boolean;
 }
 
 @InputType()

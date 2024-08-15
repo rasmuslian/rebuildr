@@ -55,6 +55,11 @@ export const Landing = () => {
       seasonalCategories: true,
     });
   };
+  const onPressGiveaway = () => {
+    navigate("Products", {
+      giveaway: true,
+    });
+  };
 
   return (
     <View>
@@ -124,6 +129,7 @@ export const Landing = () => {
           onSelect={(categoryId) => onPressCategory(categoryId)}
           onSelectSelection={onPressSelectionCategories}
           onSelectSeasonal={onPressSeasonalCategories}
+          onSelectGiveaway={onPressGiveaway}
         />
       )}
     </View>
@@ -134,6 +140,7 @@ interface CategorySliderProps {
   onSelect: (categoryId: string) => void;
   onSelectSelection: () => void;
   onSelectSeasonal: () => void;
+  onSelectGiveaway: () => void;
   categories: { id: string; name: string }[];
 }
 const offsetIncrement = 100;
@@ -142,6 +149,7 @@ const CategorySlider = ({
   onSelect,
   onSelectSelection,
   onSelectSeasonal,
+  onSelectGiveaway,
   categories,
 }: CategorySliderProps) => {
   const [sliderOffset, setSliderOffset] = useState(0);
@@ -182,20 +190,26 @@ const CategorySlider = ({
         >
           <Pressable onPress={onSelectSelection}>
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-              <Icon iconType="PointUpIcon" />
+              <Icon iconType="PointUp" />
               <Body>Utvalda</Body>
             </View>
           </Pressable>
           <Pressable onPress={onSelectSeasonal}>
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-              <Icon iconType="SeasonIcon" />
+              <Icon iconType="Season" />
               <Body>Säsong</Body>
+            </View>
+          </Pressable>
+          <Pressable onPress={onSelectGiveaway}>
+            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+              <Icon iconType="Gift" />
+              <Body>Bortskänkes</Body>
             </View>
           </Pressable>
           {categories.map((category) => (
             <Pressable onPress={() => onSelect(category.id)} key={category.id}>
               <View style={styles.categoryCard}>
-                <Icon iconType="TilesIcon" />
+                <Icon iconType="Tiles" />
                 <Body>{category.name}</Body>
               </View>
             </Pressable>

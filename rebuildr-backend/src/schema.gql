@@ -119,6 +119,7 @@ input ProductsInput {
   categoryId: String
   selectionCategories: Boolean
   seasonalCategories: Boolean
+  giveaway: Boolean
 }
 
 input CategoryInput {
