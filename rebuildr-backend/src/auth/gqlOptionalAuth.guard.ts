@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
+import { AccessTokenPayload, jwtConstants } from './constants';
 
 @Injectable()
 export class GqlOptionalAuthGuard implements CanActivate {
@@ -14,10 +14,17 @@ export class GqlOptionalAuthGuard implements CanActivate {
       return true;
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret,
-      });
-      request.user = { id: payload.sub, email: payload.sub };
+      const payload: AccessTokenPayload = await this.jwtService.verifyAsync(
+        token,
+        {
+          secret: jwtConstants.secret,
+        },
+      );
+      request.user = {
+        id: payload.sub,
+        email: payload.sub,
+        role: payload.role,
+      };
     } catch (e) {
       return true;
     }

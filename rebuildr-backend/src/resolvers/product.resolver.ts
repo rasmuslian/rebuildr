@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   Float,
   InputType,
@@ -24,6 +25,7 @@ import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
+import { AuthedUserType } from 'src/auth/constants';
 
 @InputType()
 export class FileInputType {
@@ -157,15 +159,15 @@ export class ProductResolver {
   @UseGuards(GqlOptionalAuthGuard)
   async products(
     @Args('input') input: ProductsInput,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: AuthedUserType,
   ) {
-    return this.productService.findAll({ ...input }, user);
+    return this.productService.findAll({ ...input }, user?.id);
   }
 
   @Mutation(() => CreateProductResponse)
   @UseGuards(GqlAuthGuard)
   async createProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input', new ZodValidationPipe(createProductSchema))
     input: CreateProductInput,
   ) {
@@ -178,7 +180,7 @@ export class ProductResolver {
   @Mutation(() => DeleteProductResponse)
   @UseGuards(GqlAuthGuard)
   async deleteProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: DeleteProductInput,
   ) {
     return this.productService.delete(input.id, _user.id);
@@ -187,7 +189,7 @@ export class ProductResolver {
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async hideProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: HideProductInput,
   ) {
     return this.productService.hide(input.id, input.reason, _user.id);
@@ -196,7 +198,7 @@ export class ProductResolver {
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async showProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: ShowProductInput,
   ) {
     return this.productService.show(input.id, _user.id);

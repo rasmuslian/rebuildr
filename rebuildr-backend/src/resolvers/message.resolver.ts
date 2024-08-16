@@ -8,6 +8,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
+import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Message } from 'src/entities/message.entity';
@@ -62,7 +63,7 @@ export class MessageResolver {
   @Query(() => ConversationResponse)
   @UseGuards(GqlAuthGuard)
   async conversation(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: ConversationInput,
   ) {
     return this.messageService.findConversation({
@@ -74,14 +75,14 @@ export class MessageResolver {
 
   @Query(() => [ConversationOverviewResponse])
   @UseGuards(GqlAuthGuard)
-  async conversations(@CurrentUser() _user: User) {
+  async conversations(@CurrentUser() _user: AuthedUserType) {
     return this.messageService.findConversations({ id: _user.id });
   }
 
   @Mutation(() => Message)
   @UseGuards(GqlAuthGuard)
   async createMessage(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: CreateMessageInput,
   ) {
     return this.messageService.create({

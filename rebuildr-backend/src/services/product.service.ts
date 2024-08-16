@@ -99,13 +99,13 @@ export class ProductService {
       seasonalCategories?: boolean;
       giveaway?: boolean;
     },
-    _user?: User,
+    userId?: string,
   ) {
     const query = this.productRepository.createQueryBuilder('product');
 
     //Only admin will see hidden products
-    if (_user) {
-      const user = await this.userRepository.findOneBy({ id: _user.id });
+    if (userId) {
+      const user = await this.userRepository.findOneBy({ id: userId });
       if (!user) {
         throw BadUserInputException('Invalid user');
       }
