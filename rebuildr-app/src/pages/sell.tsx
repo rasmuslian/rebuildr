@@ -16,6 +16,7 @@ import {
   SaveFormat,
 } from "expo-image-manipulator";
 import { ProductConditionEnum } from "src/gql/graphql";
+import { conditionTranslationMap } from "src/constants/constants";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -273,15 +274,6 @@ export const Sell = () => {
         setCreatingProduct(false);
       },
     });
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const conditionTranslationMap: { [key in ProductConditionEnum]: string } = {
-    [ProductConditionEnum.New]: "Nytt sick - Helt ny",
-    [ProductConditionEnum.VeryGood]: "Mycket bra skick - Som ny",
-    [ProductConditionEnum.Good]: "Bra skick - Sparsamt använd",
-    [ProductConditionEnum.Okay]: "Okej skick - Synligt använd",
-    [ProductConditionEnum.Bad]: "Funkar inte - kan fixas",
   };
 
   if (createdProduct) {

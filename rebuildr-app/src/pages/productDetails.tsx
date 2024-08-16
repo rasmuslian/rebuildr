@@ -11,6 +11,7 @@ import { Button } from "src/components/button";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { UserRoleEnum } from "src/gql/graphql";
 import Colors from "src/styles/colors";
+import { conditionTranslationMap } from "src/constants/constants";
 
 const PRODUCT_DETAILS_QUERY = gql(`
   query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -20,6 +21,10 @@ const PRODUCT_DETAILS_QUERY = gql(`
       price
       address
       hiddenReason
+      make
+      amount
+      dimensions
+      condition
       images {
         presignedGetUrl
       }
@@ -122,6 +127,10 @@ export const ProductDetails = ({
       <Body>Pris {data.product.price} kr</Body>
       <Body>Kategori: {data.product.category.name}</Body>
       <Body>Produkten finns på adressen: {data.product.address}</Body>
+      <Body>Fabrikat: {data.product.make || "Ej angett"}</Body>
+      <Body>Antal: {data.product.amount || "Ej angett"}</Body>
+      <Body>Mått: {data.product.dimensions || "Ej angett"}</Body>
+      <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
       <Body>Säljare {data.product.user.email}</Body>
       {isLoggedInVar() && (
         <Button

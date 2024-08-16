@@ -522,6 +522,10 @@ export type ProductDetailsQuery = {
     price: number;
     address: string;
     hiddenReason?: string | null;
+    make?: string | null;
+    amount?: string | null;
+    dimensions?: string | null;
+    condition: ProductConditionEnum;
     images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
@@ -1336,6 +1340,10 @@ export const ProductDetailsDocument = {
                   kind: "Field",
                   name: { kind: "Name", value: "hiddenReason" },
                 },
+                { kind: "Field", name: { kind: "Name", value: "make" } },
+                { kind: "Field", name: { kind: "Name", value: "amount" } },
+                { kind: "Field", name: { kind: "Name", value: "dimensions" } },
+                { kind: "Field", name: { kind: "Name", value: "condition" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "images" },
