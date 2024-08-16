@@ -35,6 +35,10 @@ type Product {
   address: String!
   hiddenReason: String
   isGiveaway: Boolean!
+  make: String
+  amount: String
+  dimensions: String
+  condition: ProductConditionEnum!
   category: Category!
   user: User!
   images: [File!]!
@@ -45,6 +49,14 @@ type Product {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+enum ProductConditionEnum {
+  NEW
+  VERY_GOOD
+  GOOD
+  OKAY
+  BAD
+}
 
 type RegisterUserResponse {
   message: String!
@@ -194,6 +206,10 @@ input CreateProductInput {
   address: String!
   images: [FileInputType!]
   isGiveaway: Boolean
+  make: String
+  amount: String
+  dimensions: String
+  condition: ProductConditionEnum!
 }
 
 input FileInputType {

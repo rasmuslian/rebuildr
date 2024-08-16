@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
-import { Product } from 'src/entities/product.entity';
+import { Product, ProductConditionEnum } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
@@ -38,6 +38,10 @@ export class ProductService {
     address: string;
     images?: FileInputType[];
     isGiveaway?: boolean;
+    make?: string;
+    amount?: string;
+    dimensions?: string;
+    condition: ProductConditionEnum;
   }): Promise<CreateProductResponse> {
     const product = new Product();
 
@@ -59,6 +63,10 @@ export class ProductService {
     product.price = input.price;
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;
+    product.make = input.make;
+    product.amount = input.amount;
+    product.dimensions = input.dimensions;
+    product.condition = input.condition;
     const location = await this.geocodingService.addressToLocation(
       input.address,
     );

@@ -15,6 +15,7 @@ import {
   manipulateAsync,
   SaveFormat,
 } from "expo-image-manipulator";
+import { ProductConditionEnum } from "src/gql/graphql";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -69,6 +70,13 @@ export const Sell = () => {
   const [images, setImages] = useState<(ImageResult & { mimeType: string })[]>(
     [],
   );
+  const [make, setMake] = useState("");
+  const [amount, setAmount] = useState("");
+  const [dimensions, setDimensions] = useState("");
+  const [condition, setCondition] = useState<
+    ProductConditionEnum | undefined
+  >();
+
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<{
     title: string;
@@ -195,7 +203,13 @@ export const Sell = () => {
     const category = selectedChildCategory;
     const productAddress = address || data?.me.address;
 
-    if (!category || !title || price === undefined || !productAddress) {
+    if (
+      !category ||
+      !title ||
+      price === undefined ||
+      !productAddress ||
+      condition === undefined
+    ) {
       //Invalid inputs!
       return;
     }
@@ -216,6 +230,7 @@ export const Sell = () => {
           address: productAddress,
           images: images.map((image) => ({ mimeType: image.mimeType })),
           isGiveaway: isGiveaway,
+          condition: condition,
         },
       },
       onCompleted: async (data) => {
@@ -258,6 +273,15 @@ export const Sell = () => {
         setCreatingProduct(false);
       },
     });
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const conditionTranslationMap: { [key in ProductConditionEnum]: string } = {
+    [ProductConditionEnum.New]: "Nytt sick - Helt ny",
+    [ProductConditionEnum.VeryGood]: "Mycket bra skick - Som ny",
+    [ProductConditionEnum.Good]: "Bra skick - Sparsamt använd",
+    [ProductConditionEnum.Okay]: "Okej skick - Synligt använd",
+    [ProductConditionEnum.Bad]: "Funkar inte - kan fixas",
   };
 
   if (createdProduct) {
@@ -333,6 +357,32 @@ export const Sell = () => {
           onChange={setAddress}
           placeholder={"Ange var varan finns"}
         />
+        <Input onChange={setMake} placeholder={"Ange fabrikat"} value={make} />
+        <Input onChange={setAmount} placeholder={"Ange antal"} value={amount} />
+        <Input
+          onChange={setDimensions}
+          placeholder={"Ange mått"}
+          value={dimensions}
+        />
+        <Picker
+          selectedValue={condition ?? "unselected"}
+          onValueChange={(v: ProductConditionEnum | "unselected") => {
+            if (v === "unselected") {
+              setCondition(undefined);
+            } else {
+              setCondition(v);
+            }
+          }}
+        >
+          <Picker.Item
+            key={"condition"}
+            value={"unselected"}
+            label={"I vilket skick är varan?"}
+          />
+          {Object.entries(conditionTranslationMap).map((c, i) => (
+            <Picker.Item key={i} value={c[0]} label={c[1]} />
+          ))}
+        </Picker>
         <View style={styles.imagesContainer}>
           {images.map((image, i) => (
             <View key={i} style={styles.imageContainer}>

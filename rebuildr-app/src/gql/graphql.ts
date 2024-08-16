@@ -71,9 +71,13 @@ export type CreateMessageInput = {
 
 export type CreateProductInput = {
   address: Scalars["String"]["input"];
+  amount?: InputMaybe<Scalars["String"]["input"]>;
   categoryId: Scalars["String"]["input"];
+  condition: ProductConditionEnum;
+  dimensions?: InputMaybe<Scalars["String"]["input"]>;
   images?: InputMaybe<Array<FileInputType>>;
   isGiveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
+  make?: InputMaybe<Scalars["String"]["input"]>;
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
 };
@@ -226,17 +230,29 @@ export type NewPasswordInput = {
 export type Product = {
   __typename?: "Product";
   address: Scalars["String"]["output"];
+  amount?: Maybe<Scalars["String"]["output"]>;
   category: Category;
+  condition: ProductConditionEnum;
   createdAt: Scalars["DateTime"]["output"];
+  dimensions?: Maybe<Scalars["String"]["output"]>;
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
   mainImage?: Maybe<File>;
+  make?: Maybe<Scalars["String"]["output"]>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
   user: User;
 };
+
+export enum ProductConditionEnum {
+  Bad = "BAD",
+  Good = "GOOD",
+  New = "NEW",
+  Okay = "OKAY",
+  VeryGood = "VERY_GOOD",
+}
 
 export type ProductsInput = {
   address?: InputMaybe<Scalars["String"]["input"]>;

@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -11,6 +11,16 @@ import {
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { File } from './file.entity';
+
+export enum ProductConditionEnum {
+  NEW = 'NEW',
+  VERY_GOOD = 'VERY_GOOD',
+  GOOD = 'GOOD',
+  OKAY = 'OKAY',
+  BAD = 'BAD',
+}
+
+registerEnumType(ProductConditionEnum, { name: 'ProductConditionEnum' });
 
 @Entity()
 @ObjectType()
@@ -60,4 +70,20 @@ export class Product {
   @Field(() => Boolean)
   @Column({ default: false })
   isGiveaway: boolean;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  make?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  amount?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  dimensions?: string;
+
+  @Field(() => ProductConditionEnum)
+  @Column('enum', { enum: ProductConditionEnum })
+  condition: ProductConditionEnum;
 }
