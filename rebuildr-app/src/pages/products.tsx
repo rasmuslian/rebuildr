@@ -40,7 +40,7 @@ export const Products = ({ route }) => {
   const categoryId = route.params?.categoryId;
   const selectionCategories = route.params?.selectionCategories;
   const seasonalCategories = route.params?.seasonalCategories;
-  const giveaway = route.params?.giveaway;
+  const giveaway = !!route.params?.giveaway;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
