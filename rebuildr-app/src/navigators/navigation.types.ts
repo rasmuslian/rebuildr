@@ -19,6 +19,7 @@ export type LandingStackParamList = {
     categoryId?: string;
     selectionCategories?: boolean;
     seasonalCategories?: boolean;
+    giveaway?: boolean;
   };
   VerifyMail: { email: string; token: string };
   ResetPassword: undefined;
@@ -38,6 +39,7 @@ export type LoggedInStackParamList = {
     categoryId?: string;
     selectionCategories?: boolean;
     seasonalCategories?: boolean;
+    giveaway?: boolean;
   };
   EditCategories: undefined;
 };

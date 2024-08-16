@@ -63,6 +63,7 @@ export const Sell = () => {
   const [selectedChildCategory, setSelectedChildCategory] =
     useState<Category>();
   const [price, setPrice] = useState("");
+  const [isGiveaway, setIsGiveaway] = useState(false);
   const [address, setAddress] = useState("");
   const nrMaxImages = 5;
   const [images, setImages] = useState<(ImageResult & { mimeType: string })[]>(
@@ -214,6 +215,7 @@ export const Sell = () => {
           price: toInt,
           address: productAddress,
           images: images.map((image) => ({ mimeType: image.mimeType })),
+          isGiveaway: isGiveaway,
         },
       },
       onCompleted: async (data) => {
@@ -319,6 +321,12 @@ export const Sell = () => {
           onChange={setPrice}
           value={price}
           placeholder={"Ange pris"}
+        />
+        <Button
+          title="Bortskänkes"
+          onPress={() => setIsGiveaway(!isGiveaway)}
+          backgroundColor={isGiveaway ? "purple" : undefined}
+          titleColor={isGiveaway ? "white" : undefined}
         />
         <Input
           value={address}

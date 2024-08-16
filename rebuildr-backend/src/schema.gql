@@ -34,6 +34,7 @@ type Product {
   price: Int!
   address: String!
   hiddenReason: String
+  isGiveaway: Boolean!
   category: Category!
   user: User!
   images: [File!]!
@@ -118,6 +119,7 @@ input ProductsInput {
   categoryId: String
   selectionCategories: Boolean
   seasonalCategories: Boolean
+  giveaway: Boolean
 }
 
 input CategoryInput {
@@ -191,6 +193,7 @@ input CreateProductInput {
   price: Float!
   address: String!
   images: [FileInputType!]
+  isGiveaway: Boolean
 }
 
 input FileInputType {

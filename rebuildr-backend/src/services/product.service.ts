@@ -37,6 +37,7 @@ export class ProductService {
     price: number;
     address: string;
     images?: FileInputType[];
+    isGiveaway?: boolean;
   }): Promise<CreateProductResponse> {
     const product = new Product();
 
@@ -57,6 +58,7 @@ export class ProductService {
     product.user = user;
     product.price = input.price;
     product.address = input.address;
+    product.isGiveaway = input.isGiveaway;
     const location = await this.geocodingService.addressToLocation(
       input.address,
     );
@@ -87,6 +89,7 @@ export class ProductService {
       categoryId?: string;
       selectionCategories?: boolean;
       seasonalCategories?: boolean;
+      giveaway?: boolean;
     },
     _user?: User,
   ) {
@@ -156,6 +159,10 @@ export class ProductService {
         query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
         query.andWhere('c.in_season OR parent.in_season');
       }
+    }
+
+    if (input.giveaway) {
+      query.andWhere('is_giveaway = TRUE');
     }
 
     return await query.getMany();

@@ -46,6 +46,9 @@ export class CreateProductInput {
 
   @Field(() => [FileInputType], { nullable: true })
   images?: FileInputType[];
+
+  @Field(() => Boolean, { nullable: true })
+  isGiveaway?: boolean;
 }
 const createProductSchema = z.object({
   title: z.string(),
@@ -53,6 +56,7 @@ const createProductSchema = z.object({
   price: z.number(),
   address: z.string(),
   images: z.array(z.object({ mimeType: z.string() })).nullable(),
+  isGiveaway: z.boolean().nullable(),
 });
 @ObjectType()
 export class CreateProductResponse {
@@ -82,6 +86,9 @@ class ProductsInput {
 
   @Field({ nullable: true })
   seasonalCategories?: boolean;
+
+  @Field({ nullable: true })
+  giveaway?: boolean;
 }
 
 @InputType()
@@ -153,6 +160,7 @@ export class ProductResolver {
       price: input.price,
       address: input.address,
       images: input.images,
+      isGiveaway: input.isGiveaway,
     });
   }
 

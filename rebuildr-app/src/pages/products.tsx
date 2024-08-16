@@ -40,6 +40,7 @@ export const Products = ({ route }) => {
   const categoryId = route.params?.categoryId;
   const selectionCategories = route.params?.selectionCategories;
   const seasonalCategories = route.params?.seasonalCategories;
+  const giveaway = !!route.params?.giveaway;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -50,6 +51,7 @@ export const Products = ({ route }) => {
         categoryId: categoryId,
         selectionCategories: selectionCategories,
         seasonalCategories: seasonalCategories,
+        giveaway: giveaway,
       },
     },
   });
@@ -86,6 +88,7 @@ export const Products = ({ route }) => {
     removeCategory?: boolean;
     removeSelectionCategories?: boolean;
     removeSeasonalCategories?: boolean;
+    removeGiveaway?: boolean;
   }) => {
     if (loading) {
       return;
@@ -103,6 +106,7 @@ export const Products = ({ route }) => {
       seasonalCategories: input.removeSeasonalCategories
         ? undefined
         : seasonalCategories,
+      giveaway: input.removeGiveaway ? undefined : giveaway,
     });
   };
 
@@ -149,6 +153,12 @@ export const Products = ({ route }) => {
             <Button
               title="Säsongskategorier"
               onPress={() => onRemoveFilter({ removeSeasonalCategories: true })}
+            />
+          )}
+          {giveaway && (
+            <Button
+              title="Bortskänkes"
+              onPress={() => onRemoveFilter({ removeGiveaway: true })}
             />
           )}
         </View>
