@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   LoginInput,
   NewPasswordInput,
@@ -22,6 +18,7 @@ import { jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
+import { BadUserInputException } from 'src/exceptions';
 
 type AccessTokenPayload = {
   sub: string;
@@ -77,8 +74,8 @@ export class AuthService {
   async verifyMail(input: VerifyMailInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
-    if (!user) {
-      throw new BadRequestException();
+    if (!user?.verifyEmailToken) {
+      throw BadUserInputException('Failed to verify user due to bad input');
     }
 
     const matchingTokens = await bcrypt.compare(
@@ -87,7 +84,7 @@ export class AuthService {
     );
 
     if (!matchingTokens) {
-      throw new BadRequestException();
+      throw BadUserInputException('Failed to verify user due to bad input');
     }
 
     await this.userRepository.update(
@@ -103,7 +100,7 @@ export class AuthService {
   async resendVerificationMail(input: ResendVerificationMailInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
     if (!user) {
-      throw new BadRequestException();
+      throw BadUserInputException();
     }
 
     if (user.verified) {
@@ -126,7 +123,7 @@ export class AuthService {
   }
 
   async login(input: LoginInput) {
-    const user = await this.userRepository.findOneOrFail({
+    const user = await this.userRepository.findOne({
       where: {
         email: input.email,
       },
@@ -135,15 +132,15 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new NotFoundException();
+      throw BadUserInputException('Invalid input');
     }
     const passwordCorrect = await bcrypt.compare(input.password, user.password);
     if (!passwordCorrect) {
-      throw new NotFoundException();
+      throw BadUserInputException('Invalid input');
     }
 
     if (!user.verified) {
-      throw new NotFoundException();
+      throw BadUserInputException('Invalid input');
     }
 
     const tokens = await this.createTokens(user);
@@ -169,7 +166,9 @@ export class AuthService {
       },
     });
     if (!user || !user.refreshToken) {
-      throw new BadRequestException();
+      throw BadUserInputException(
+        'Failed to refresh authentication user due to bad input',
+      );
     }
 
     const tokensMatch = await bcrypt.compare(
@@ -242,8 +241,10 @@ export class AuthService {
   async newPassword(input: NewPasswordInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
-    if (!user || !user.resetPasswordToken) {
-      throw new BadRequestException();
+    if (!user?.resetPasswordToken) {
+      throw BadUserInputException(
+        'Failed to set new password due to bad user input',
+      );
     }
 
     const matchingTokens = await bcrypt.compare(
@@ -251,7 +252,9 @@ export class AuthService {
       user.resetPasswordToken,
     );
     if (!matchingTokens) {
-      throw new BadRequestException();
+      throw BadUserInputException(
+        'Failed to set new password due to bad user input',
+      );
     }
 
     const password = await bcrypt.hash(input.password, 10);

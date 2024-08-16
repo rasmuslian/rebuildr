@@ -7,6 +7,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File } from '../entities/file.entity';
 
@@ -28,7 +29,7 @@ export class FileService {
         },
       });
     } catch (e) {
-      throw new Error(e);
+      throw InternalServerException();
     }
   }
 
@@ -67,10 +68,10 @@ export class FileService {
       const response = await this.s3.send(cmd);
       if (response.Errors) {
         //Errors contains errors encountered when deleting objects
-        throw new Error('Error when deleting objects');
+        throw new Error();
       }
     } catch (e) {
-      throw new Error(e);
+      throw InternalServerException('Error when deleting files');
     }
 
     return await this.fileRepository.delete(files.map((f) => f.id));

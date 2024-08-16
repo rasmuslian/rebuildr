@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
+import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
   CreateProductResponse,
   FileInputType,
@@ -47,12 +44,12 @@ export class ProductService {
       id: input.categoryId,
     });
     if (!category) {
-      throw new Error('Invalid category');
+      throw BadUserInputException('Invalid input');
     }
 
     const user = await this.userRepository.findOneBy({ id: input.userId });
     if (!user) {
-      throw new Error('Invalid user');
+      throw BadUserInputException('Invalid input');
     }
 
     product.title = input.title;
@@ -99,7 +96,7 @@ export class ProductService {
     if (_user) {
       const user = await this.userRepository.findOneBy({ id: _user.id });
       if (!user) {
-        throw new Error('Invalid user');
+        throw BadUserInputException('Invalid user');
       }
       if (user.role !== UserRoleEnum.ADMIN) {
         query.andWhere('hidden_reason IS NULL');
@@ -177,21 +174,17 @@ export class ProductService {
       relations: { images: true },
     });
     if (!user || !product) {
-      throw new BadRequestException();
+      throw BadUserInputException();
     }
     const ability = this.caslAbilityFactory.createForUser(user);
     const allowed = ability.can('delete', product);
     if (!allowed) {
-      throw new ForbiddenException();
+      throw ForbiddenException();
     }
 
-    try {
-      await this.fileService.deleteMany(product.images);
-      await this.messageRepository.delete({ productId: product.id });
-      await this.productRepository.delete(product.id);
-    } catch (e) {
-      throw new Error(e);
-    }
+    await this.fileService.deleteMany(product.images);
+    await this.messageRepository.delete({ productId: product.id });
+    await this.productRepository.delete(product.id);
 
     return { title: product.title };
   }
@@ -204,16 +197,16 @@ export class ProductService {
       id,
     });
     if (!user || !product) {
-      throw new BadRequestException();
+      throw BadUserInputException();
     }
 
     const ability = this.caslAbilityFactory.createForUser(user);
     if (!ability.can('update', product, 'hiddenReason')) {
-      throw new ForbiddenException();
+      throw ForbiddenException();
     }
 
     if (product.hiddenReason) {
-      throw new BadRequestException('Product already hidden');
+      throw BadUserInputException('Product already hidden');
     }
     product.hiddenReason = reason;
     return this.productRepository.save(product);
@@ -227,12 +220,12 @@ export class ProductService {
       id,
     });
     if (!user || !product) {
-      throw new BadRequestException();
+      throw BadUserInputException();
     }
 
     const ability = this.caslAbilityFactory.createForUser(user);
     if (!ability.can('update', product, 'hiddenReason')) {
-      throw new ForbiddenException();
+      throw ForbiddenException();
     }
 
     product.hiddenReason = null;

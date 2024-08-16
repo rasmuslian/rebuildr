@@ -10,6 +10,14 @@ export class CaslAbilityFactory {
     const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
     const isAdmin = user.role === UserRoleEnum.ADMIN;
 
+    //User
+    if (isAdmin) {
+      can('manage', User);
+    }
+    if (!isAdmin) {
+      can('update', User, { id: user.id });
+    }
+
     //Product
     can('create', Product);
     can('read', Product);

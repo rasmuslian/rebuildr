@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { User } from 'src/entities/user.entity';
+import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 
@@ -10,19 +12,24 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
 
   async findOne(id: string) {
     return await this.userRepository.findOneByOrFail({ id });
   }
 
-  async update(input: { id: string; address: string }) {
+  async update(input: { id: string; address: string }, requesterId: string) {
     const user = await this.userRepository.findOneBy({ id: input.id });
+    const requester = await this.userRepository.findOneBy({ id: requesterId });
 
-    if (!user) {
-      throw new Error('No user found');
+    if (!user || !requester) {
+      throw BadUserInputException();
     }
-
+    const ability = this.caslAbilityFactory.createForUser(requester);
+    if (!ability.can('update', user)) {
+      throw ForbiddenException();
+    }
     user.address = input.address;
     const location = await this.geocodingService.addressToLocation(
       input.address,
