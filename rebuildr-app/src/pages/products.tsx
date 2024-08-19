@@ -36,10 +36,10 @@ const PRODUCTS_CATEGORY_QUERY = gql(`
 export const Products = ({ route }) => {
   const navigation = useNavigation();
 
-  const searchString = route.params?.searchString ?? "";
-  const address = route.params?.address ?? "";
+  const searchString = route.params?.searchString;
+  const address = route.params?.address;
   const _distance = parseInt(route.params?.distance);
-  const distance = isNaN(_distance) ? 0 : _distance;
+  const distance = isNaN(_distance) ? undefined : _distance;
   const categoryId = route.params?.categoryId;
   const selectionCategories = route.params?.selectionCategories;
   const seasonalCategories = route.params?.seasonalCategories;

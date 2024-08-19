@@ -35,8 +35,8 @@ export const Landing = () => {
   const onSearch = () => {
     navigate("Products", {
       distance: distance,
-      searchString: searchString,
-      address: address,
+      searchString: searchString || undefined,
+      address: address || undefined,
     });
   };
 
