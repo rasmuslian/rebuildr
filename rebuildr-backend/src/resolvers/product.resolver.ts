@@ -121,6 +121,9 @@ class ProductsInput {
 
   @Field({ nullable: true })
   giveaway?: boolean;
+
+  @Field({ nullable: true })
+  condition?: ProductConditionEnum;
 }
 
 @InputType()

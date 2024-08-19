@@ -1,3 +1,5 @@
+import { ProductConditionEnum } from "src/gql/graphql";
+
 declare global {
   namespace ReactNavigation {
     interface RootParamList extends ParamList {}
@@ -20,6 +22,7 @@ export type LandingStackParamList = {
     selectionCategories?: boolean;
     seasonalCategories?: boolean;
     giveaway?: boolean;
+    condition?: ProductConditionEnum;
   };
   VerifyMail: { email: string; token: string };
   ResetPassword: undefined;
@@ -40,6 +43,7 @@ export type LoggedInStackParamList = {
     selectionCategories?: boolean;
     seasonalCategories?: boolean;
     giveaway?: boolean;
+    condition?: ProductConditionEnum;
   };
   EditCategories: undefined;
 };

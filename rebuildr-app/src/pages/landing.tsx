@@ -56,9 +56,7 @@ export const Landing = () => {
     });
   };
   const onPressGiveaway = () => {
-    navigate("Products", {
-      giveaway: true,
-    });
+    navigate("Products", { giveaway: true });
   };
 
   return (

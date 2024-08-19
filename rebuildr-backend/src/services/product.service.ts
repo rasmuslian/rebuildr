@@ -106,6 +106,7 @@ export class ProductService {
       selectionCategories?: boolean;
       seasonalCategories?: boolean;
       giveaway?: boolean;
+      condition?: ProductConditionEnum;
     },
     userId?: string,
   ) {
@@ -147,7 +148,6 @@ export class ProductService {
           'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location))) <= :distance',
           { origin, distance },
         );
-        query.setParameter('distance', distance);
       }
 
       query.orderBy(
@@ -179,6 +179,10 @@ export class ProductService {
 
     if (input.giveaway) {
       query.andWhere('is_giveaway = TRUE');
+    }
+
+    if (input.condition) {
+      query.andWhere('condition = :condition', { condition: input.condition });
     }
 
     return await query.getMany();

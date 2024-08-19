@@ -8,7 +8,12 @@ const config = {
     Conversations: "/chat",
     Conversation: "/chat/:otherUserId/:productId",
     Account: "/account",
-    Products: "/products/",
+    Products: {
+      path: "/products/",
+      parse: {
+        giveaway: Boolean,
+      },
+    },
     VerifyMail: "/verify-email",
     ResetPassword: "/reset-password",
     NewPassword: "/new-password",

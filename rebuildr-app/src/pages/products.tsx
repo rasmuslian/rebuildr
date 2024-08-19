@@ -6,6 +6,9 @@ import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import Colors from "src/styles/colors";
+import { Picker } from "@react-native-picker/picker";
+import { conditionTranslationMap } from "src/constants/constants";
+import { ProductConditionEnum } from "src/gql/graphql";
 
 const PRODUCTS_QUERY = gql(`
   query ProductsQuery($input: ProductsInput!) {
@@ -40,7 +43,8 @@ export const Products = ({ route }) => {
   const categoryId = route.params?.categoryId;
   const selectionCategories = route.params?.selectionCategories;
   const seasonalCategories = route.params?.seasonalCategories;
-  const giveaway = !!route.params?.giveaway;
+  const giveaway = route.params?.giveaway;
+  const condition: ProductConditionEnum = route.params?.condition;
 
   const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
     variables: {
@@ -52,6 +56,7 @@ export const Products = ({ route }) => {
         selectionCategories: selectionCategories,
         seasonalCategories: seasonalCategories,
         giveaway: giveaway,
+        condition: condition,
       },
     },
   });
@@ -89,6 +94,7 @@ export const Products = ({ route }) => {
     removeSelectionCategories?: boolean;
     removeSeasonalCategories?: boolean;
     removeGiveaway?: boolean;
+    removeCondition?: boolean;
   }) => {
     if (loading) {
       return;
@@ -107,6 +113,25 @@ export const Products = ({ route }) => {
         ? undefined
         : seasonalCategories,
       giveaway: input.removeGiveaway ? undefined : giveaway,
+      condition: input.removeCondition ? undefined : condition,
+    });
+  };
+
+  const onAddFilter = (input: { condition: ProductConditionEnum }) => {
+    if (loading) {
+      return;
+    }
+
+    //Setting params will trigger a rerender which in turn will fetch products again
+    navigation.setParams({
+      searchString: searchString,
+      address: address,
+      distance: distance,
+      categoryId: categoryId,
+      selectionCategories: selectionCategories,
+      seasonalCategories: seasonalCategories,
+      giveaway: giveaway,
+      condition: input.condition,
     });
   };
 
@@ -161,8 +186,35 @@ export const Products = ({ route }) => {
               onPress={() => onRemoveFilter({ removeGiveaway: true })}
             />
           )}
+          {condition && (
+            <Button
+              title={conditionTranslationMap[condition]}
+              onPress={() => onRemoveFilter({ removeCondition: true })}
+            />
+          )}
         </View>
         <Body>{data?.products.length} stycken träffar i din sökning</Body>
+      </View>
+      <View style={styles.filterContainer}>
+        <Picker
+          selectedValue={condition ?? "unselected"}
+          onValueChange={(v: ProductConditionEnum | "unselected") => {
+            if (v === "unselected") {
+              onRemoveFilter({ removeCondition: true });
+              return;
+            }
+            onAddFilter({ condition: v });
+          }}
+        >
+          <Picker.Item
+            key={"condition"}
+            value={"unselected"}
+            label={"Välj skick"}
+          />
+          {Object.entries(conditionTranslationMap).map((c, i) => (
+            <Picker.Item key={i} value={c[0]} label={c[1]} />
+          ))}
+        </Picker>
       </View>
       <View style={styles.productsContainer}>
         {data?.products.map((p) => (
@@ -203,7 +255,8 @@ const styles = StyleSheet.create({
   searchParams: {
     flexDirection: "row",
     paddingVertical: 12,
-    marginVertical: 20,
+    marginTop: 20,
+    marginBottom: 10,
     borderBottomWidth: 2,
     borderColor: Colors.borderGray,
     borderStyle: "solid",
@@ -214,6 +267,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  filterContainer: {
+    marginBottom: 20,
+    flexDirection: "row",
   },
   productsContainer: {
     display: "flex",
