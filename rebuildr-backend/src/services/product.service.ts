@@ -45,6 +45,7 @@ export class ProductService {
     depth?: number;
     volume?: number;
     condition: ProductConditionEnum;
+    description?: string;
   }): Promise<CreateProductResponse> {
     const product = new Product();
 
@@ -73,6 +74,7 @@ export class ProductService {
     product.depth = input.depth;
     product.volume = input.volume;
     product.condition = input.condition;
+    product.description = input.description;
     const location = await this.geocodingService.addressToLocation(
       input.address,
     );

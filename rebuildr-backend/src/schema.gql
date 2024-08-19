@@ -50,6 +50,7 @@ type Product {
   """Unit: liter"""
   volume: Int
   condition: ProductConditionEnum!
+  description: String
   category: Category!
   user: User!
   images: [File!]!
@@ -224,6 +225,7 @@ input CreateProductInput {
   depth: Float
   volume: Float
   condition: ProductConditionEnum!
+  description: String
 }
 
 input FileInputType {

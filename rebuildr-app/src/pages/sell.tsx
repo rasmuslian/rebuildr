@@ -17,6 +17,7 @@ import {
 } from "expo-image-manipulator";
 import { ProductConditionEnum } from "src/gql/graphql";
 import { conditionTranslationMap } from "src/constants/constants";
+import { FieldInput } from "src/components/inputs/fieldInput";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -81,6 +82,7 @@ export const Sell = () => {
   const [condition, setCondition] = useState<
     ProductConditionEnum | undefined
   >();
+  const [description, setDescription] = useState("");
 
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<{
@@ -260,6 +262,7 @@ export const Sell = () => {
           depth: depthToInt,
           volume: volumeToInt,
           condition: condition,
+          description: description,
         },
       },
       onCompleted: async (data) => {
@@ -414,6 +417,11 @@ export const Sell = () => {
             <Picker.Item key={i} value={c[0]} label={c[1]} />
           ))}
         </Picker>
+        <FieldInput
+          onChange={setDescription}
+          value={description}
+          placeholder={"Beskrivning..."}
+        />
         <View style={styles.imagesContainer}>
           {images.map((image, i) => (
             <View key={i} style={styles.imageContainer}>

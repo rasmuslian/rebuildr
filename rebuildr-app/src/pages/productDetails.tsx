@@ -28,6 +28,7 @@ const PRODUCT_DETAILS_QUERY = gql(`
       depth
       volume
       condition
+      description
       images {
         presignedGetUrl
       }
@@ -148,6 +149,7 @@ export const ProductDetails = ({
         {data.product.volume ? data.product.volume + "liter" : "Ej angett"}
       </Body>
       <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
+      <Body>Beskrivning: {data.product.description}</Body>
       <Body>Säljare {data.product.user.email}</Body>
       {isLoggedInVar() && (
         <Button

@@ -107,4 +107,8 @@ export class Product {
   @Field(() => ProductConditionEnum)
   @Column('enum', { enum: ProductConditionEnum })
   condition: ProductConditionEnum;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  description?: string;
 }

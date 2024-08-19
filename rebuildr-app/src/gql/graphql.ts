@@ -76,6 +76,7 @@ export type CreateProductInput = {
   categoryId: Scalars["String"]["input"];
   condition: ProductConditionEnum;
   depth?: InputMaybe<Scalars["Float"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
   height?: InputMaybe<Scalars["Float"]["input"]>;
   images?: InputMaybe<Array<FileInputType>>;
   isGiveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -240,6 +241,7 @@ export type Product = {
   createdAt: Scalars["DateTime"]["output"];
   /** Unit: millimeter */
   depth?: Maybe<Scalars["Int"]["output"]>;
+  description?: Maybe<Scalars["String"]["output"]>;
   /** Unit: millimeter */
   height?: Maybe<Scalars["Int"]["output"]>;
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
@@ -539,6 +541,7 @@ export type ProductDetailsQuery = {
     depth?: number | null;
     volume?: number | null;
     condition: ProductConditionEnum;
+    description?: string | null;
     images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
     user: { __typename?: "User"; id: string; email: string };
     category: { __typename?: "Category"; name: string };
@@ -1361,6 +1364,7 @@ export const ProductDetailsDocument = {
                 { kind: "Field", name: { kind: "Name", value: "depth" } },
                 { kind: "Field", name: { kind: "Name", value: "volume" } },
                 { kind: "Field", name: { kind: "Name", value: "condition" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "images" },

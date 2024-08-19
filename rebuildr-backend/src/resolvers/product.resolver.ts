@@ -70,6 +70,9 @@ export class CreateProductInput {
 
   @Field(() => ProductConditionEnum)
   condition: ProductConditionEnum;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
 }
 const createProductSchema = z.object({
   title: z.string(),
@@ -85,6 +88,7 @@ const createProductSchema = z.object({
   depth: z.number().optional(),
   volume: z.number().optional(),
   condition: z.nativeEnum(ProductConditionEnum),
+  description: z.string().optional(),
 });
 @ObjectType()
 export class CreateProductResponse {
