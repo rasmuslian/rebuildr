@@ -71,15 +71,18 @@ export type CreateMessageInput = {
 
 export type CreateProductInput = {
   address: Scalars["String"]["input"];
-  amount?: InputMaybe<Scalars["String"]["input"]>;
+  amount?: InputMaybe<Scalars["Float"]["input"]>;
+  brand?: InputMaybe<Scalars["String"]["input"]>;
   categoryId: Scalars["String"]["input"];
   condition: ProductConditionEnum;
-  dimensions?: InputMaybe<Scalars["String"]["input"]>;
+  depth?: InputMaybe<Scalars["Float"]["input"]>;
+  height?: InputMaybe<Scalars["Float"]["input"]>;
   images?: InputMaybe<Array<FileInputType>>;
   isGiveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
-  make?: InputMaybe<Scalars["String"]["input"]>;
   price: Scalars["Float"]["input"];
   title: Scalars["String"]["input"];
+  volume?: InputMaybe<Scalars["Float"]["input"]>;
+  width?: InputMaybe<Scalars["Float"]["input"]>;
 };
 
 export type CreateProductResponse = {
@@ -230,20 +233,27 @@ export type NewPasswordInput = {
 export type Product = {
   __typename?: "Product";
   address: Scalars["String"]["output"];
-  amount?: Maybe<Scalars["String"]["output"]>;
+  amount?: Maybe<Scalars["Int"]["output"]>;
+  brand?: Maybe<Scalars["String"]["output"]>;
   category: Category;
   condition: ProductConditionEnum;
   createdAt: Scalars["DateTime"]["output"];
-  dimensions?: Maybe<Scalars["String"]["output"]>;
+  /** Unit: millimeter */
+  depth?: Maybe<Scalars["Int"]["output"]>;
+  /** Unit: millimeter */
+  height?: Maybe<Scalars["Int"]["output"]>;
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
   mainImage?: Maybe<File>;
-  make?: Maybe<Scalars["String"]["output"]>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
   user: User;
+  /** Unit: liter */
+  volume?: Maybe<Scalars["Int"]["output"]>;
+  /** Unit: millimeter */
+  width?: Maybe<Scalars["Int"]["output"]>;
 };
 
 export enum ProductConditionEnum {
@@ -522,9 +532,12 @@ export type ProductDetailsQuery = {
     price: number;
     address: string;
     hiddenReason?: string | null;
-    make?: string | null;
-    amount?: string | null;
-    dimensions?: string | null;
+    brand?: string | null;
+    amount?: number | null;
+    height?: number | null;
+    width?: number | null;
+    depth?: number | null;
+    volume?: number | null;
     condition: ProductConditionEnum;
     images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
     user: { __typename?: "User"; id: string; email: string };
@@ -644,6 +657,7 @@ export type CreateProductMutation = {
     presignedPutUrls: Array<string>;
     product: {
       __typename?: "Product";
+      id: string;
       title: string;
       price: number;
       category: { __typename?: "Category"; name: string };
@@ -1340,9 +1354,12 @@ export const ProductDetailsDocument = {
                   kind: "Field",
                   name: { kind: "Name", value: "hiddenReason" },
                 },
-                { kind: "Field", name: { kind: "Name", value: "make" } },
+                { kind: "Field", name: { kind: "Name", value: "brand" } },
                 { kind: "Field", name: { kind: "Name", value: "amount" } },
-                { kind: "Field", name: { kind: "Name", value: "dimensions" } },
+                { kind: "Field", name: { kind: "Name", value: "height" } },
+                { kind: "Field", name: { kind: "Name", value: "width" } },
+                { kind: "Field", name: { kind: "Name", value: "depth" } },
+                { kind: "Field", name: { kind: "Name", value: "volume" } },
                 { kind: "Field", name: { kind: "Name", value: "condition" } },
                 {
                   kind: "Field",
@@ -1940,6 +1957,7 @@ export const CreateProductDocument = {
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "title" } },
                       { kind: "Field", name: { kind: "Name", value: "price" } },
                       {

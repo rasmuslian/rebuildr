@@ -73,15 +73,36 @@ export class Product {
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
-  make?: string;
+  brand?: string;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  amount?: string;
+  amount?: number;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
   @Column({ nullable: true })
-  dimensions?: string;
+  height?: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  width?: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  depth?: number;
+
+  @Field(() => Int, { nullable: true, description: 'Unit: liter' })
+  @Column({ nullable: true })
+  volume?: number;
 
   @Field(() => ProductConditionEnum)
   @Column('enum', { enum: ProductConditionEnum })

@@ -37,6 +37,7 @@ const CREATE_PRODUCT = gql(`
   mutation CreateProduct($input: CreateProductInput!) {
     createProduct(input: $input) {
       product {
+        id
         title
         price
         category {
@@ -71,9 +72,12 @@ export const Sell = () => {
   const [images, setImages] = useState<(ImageResult & { mimeType: string })[]>(
     [],
   );
-  const [make, setMake] = useState("");
+  const [brand, setBrand] = useState("");
   const [amount, setAmount] = useState("");
-  const [dimensions, setDimensions] = useState("");
+  const [width, setWidth] = useState("");
+  const [height, setHeight] = useState("");
+  const [depth, setDepth] = useState("");
+  const [volume, setVolume] = useState("");
   const [condition, setCondition] = useState<
     ProductConditionEnum | undefined
   >();
@@ -215,9 +219,27 @@ export const Sell = () => {
       return;
     }
 
-    const toInt = parseInt(price);
-    if (isNaN(toInt)) {
+    //returns number if 'numberString' is a number, otherwise returns undefined
+    const isNumber = (numberString?: string) => {
+      const number = parseInt(numberString);
+      if (isNaN(number)) {
+        //invalid number
+        return undefined;
+      }
+
+      return number;
+    };
+
+    const amountToInt = isNumber(amount);
+    const heightToInt = isNumber(height);
+    const widthToInt = isNumber(width);
+    const depthToInt = isNumber(depth);
+    const volumeToInt = isNumber(volume);
+
+    const priceToInt = isNumber(price);
+    if (priceToInt === undefined) {
       //invalid number
+      console.log("Invalid number");
       return;
     }
 
@@ -227,10 +249,16 @@ export const Sell = () => {
         input: {
           title: title,
           categoryId: category.id,
-          price: toInt,
+          price: priceToInt,
           address: productAddress,
           images: images.map((image) => ({ mimeType: image.mimeType })),
           isGiveaway: isGiveaway,
+          brand: brand,
+          amount: amountToInt,
+          height: heightToInt,
+          width: widthToInt,
+          depth: depthToInt,
+          volume: volumeToInt,
           condition: condition,
         },
       },
@@ -333,28 +361,39 @@ export const Sell = () => {
           placeholder={"Titel på objektet"}
           value={title}
         />
-        <NumberInput
-          onChange={setPrice}
-          value={price}
-          placeholder={"Ange pris"}
-        />
+        <NumberInput onChange={setPrice} value={price} placeholder={"Pris"} />
         <Button
           title="Bortskänkes"
           onPress={() => setIsGiveaway(!isGiveaway)}
           backgroundColor={isGiveaway ? "purple" : undefined}
           titleColor={isGiveaway ? "white" : undefined}
         />
-        <Input
-          value={address}
-          onChange={setAddress}
-          placeholder={"Ange var varan finns"}
+        <Input value={address} onChange={setAddress} placeholder={"Adress"} />
+        <Input onChange={setBrand} placeholder={"Fabrikat"} value={brand} />
+        <NumberInput
+          onChange={setAmount}
+          placeholder={"Antal"}
+          value={amount}
         />
-        <Input onChange={setMake} placeholder={"Ange fabrikat"} value={make} />
-        <Input onChange={setAmount} placeholder={"Ange antal"} value={amount} />
-        <Input
-          onChange={setDimensions}
-          placeholder={"Ange mått"}
-          value={dimensions}
+        <NumberInput
+          onChange={setHeight}
+          placeholder={"Höjd(mm)"}
+          value={height}
+        />
+        <NumberInput
+          onChange={setWidth}
+          placeholder={"Bredd(mm)"}
+          value={width}
+        />
+        <NumberInput
+          onChange={setDepth}
+          placeholder={"Djup(mm)"}
+          value={depth}
+        />
+        <NumberInput
+          onChange={setVolume}
+          placeholder={"Volym(liter)"}
+          value={volume}
         />
         <Picker
           selectedValue={condition ?? "unselected"}

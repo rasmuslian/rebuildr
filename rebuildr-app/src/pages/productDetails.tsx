@@ -21,9 +21,12 @@ const PRODUCT_DETAILS_QUERY = gql(`
       price
       address
       hiddenReason
-      make
+      brand
       amount
-      dimensions
+      height
+      width
+      depth
+      volume
       condition
       images {
         presignedGetUrl
@@ -127,9 +130,23 @@ export const ProductDetails = ({
       <Body>Pris {data.product.price} kr</Body>
       <Body>Kategori: {data.product.category.name}</Body>
       <Body>Produkten finns på adressen: {data.product.address}</Body>
-      <Body>Fabrikat: {data.product.make || "Ej angett"}</Body>
-      <Body>Antal: {data.product.amount || "Ej angett"}</Body>
-      <Body>Mått: {data.product.dimensions || "Ej angett"}</Body>
+      <Body>Fabrikat: {data.product.brand || "Ej angett"}</Body>
+      <Body>
+        Antal: {data.product.amount ? data.product.amount + "st" : "Ej angett"}
+      </Body>
+      <Body>
+        Höjd: {data.product.height ? data.product.height + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Bredd: {data.product.width ? data.product.width + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Djup: {data.product.depth ? data.product.depth + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Volym:{" "}
+        {data.product.volume ? data.product.volume + "liter" : "Ej angett"}
+      </Body>
       <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
       <Body>Säljare {data.product.user.email}</Body>
       {isLoggedInVar() && (

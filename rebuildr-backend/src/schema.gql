@@ -35,9 +35,20 @@ type Product {
   address: String!
   hiddenReason: String
   isGiveaway: Boolean!
-  make: String
-  amount: String
-  dimensions: String
+  brand: String
+  amount: Int
+
+  """Unit: millimeter"""
+  height: Int
+
+  """Unit: millimeter"""
+  width: Int
+
+  """Unit: millimeter"""
+  depth: Int
+
+  """Unit: liter"""
+  volume: Int
   condition: ProductConditionEnum!
   category: Category!
   user: User!
@@ -206,9 +217,12 @@ input CreateProductInput {
   address: String!
   images: [FileInputType!]
   isGiveaway: Boolean
-  make: String
-  amount: String
-  dimensions: String
+  brand: String
+  amount: Float
+  height: Float
+  width: Float
+  depth: Float
+  volume: Float
   condition: ProductConditionEnum!
 }
 

@@ -2,7 +2,6 @@ import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
-  Float,
   InputType,
   Mutation,
   ObjectType,
@@ -39,7 +38,7 @@ export class CreateProductInput {
   @Field()
   categoryId: string;
 
-  @Field(() => Float)
+  @Field()
   price: number;
 
   @Field(() => String)
@@ -52,13 +51,22 @@ export class CreateProductInput {
   isGiveaway?: boolean;
 
   @Field(() => String, { nullable: true })
-  make?: string;
+  brand?: string;
 
-  @Field(() => String, { nullable: true })
-  amount?: string;
+  @Field({ nullable: true })
+  amount?: number;
 
-  @Field(() => String, { nullable: true })
-  dimensions?: string;
+  @Field({ nullable: true })
+  height?: number;
+
+  @Field({ nullable: true })
+  width?: number;
+
+  @Field({ nullable: true })
+  depth?: number;
+
+  @Field({ nullable: true })
+  volume?: number;
 
   @Field(() => ProductConditionEnum)
   condition: ProductConditionEnum;
@@ -70,9 +78,12 @@ const createProductSchema = z.object({
   address: z.string(),
   images: z.array(z.object({ mimeType: z.string() })).optional(),
   isGiveaway: z.boolean().optional(),
-  make: z.string().optional(),
-  amount: z.string().optional(),
-  dimensions: z.string().optional(),
+  brand: z.string().optional(),
+  amount: z.number().optional(),
+  height: z.number().optional(),
+  width: z.number().optional(),
+  depth: z.number().optional(),
+  volume: z.number().optional(),
   condition: z.nativeEnum(ProductConditionEnum),
 });
 @ObjectType()
