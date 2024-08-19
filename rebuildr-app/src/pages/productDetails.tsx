@@ -151,7 +151,7 @@ export const ProductDetails = ({
       <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
       <Body>Beskrivning: {data.product.description}</Body>
       <Body>Säljare {data.product.user.email}</Body>
-      {isLoggedInVar() && (
+      {data.me?.id !== data.product.user.id && (
         <Button
           onPress={() =>
             navigation.navigate("Conversation", {
