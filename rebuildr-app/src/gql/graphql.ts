@@ -658,13 +658,7 @@ export type CreateProductMutation = {
   createProduct: {
     __typename?: "CreateProductResponse";
     presignedPutUrls: Array<string>;
-    product: {
-      __typename?: "Product";
-      id: string;
-      title: string;
-      price: number;
-      category: { __typename?: "Category"; name: string };
-    };
+    product: { __typename?: "Product"; title: string };
   };
 };
 
@@ -1961,22 +1955,7 @@ export const CreateProductDocument = {
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
-                      { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "title" } },
-                      { kind: "Field", name: { kind: "Name", value: "price" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "category" },
-                        selectionSet: {
-                          kind: "SelectionSet",
-                          selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "name" },
-                            },
-                          ],
-                        },
-                      },
                     ],
                   },
                 },

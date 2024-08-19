@@ -57,7 +57,7 @@ const documents = {
     types.ResetPasswordDocument,
   "\n  query SellQuery {\n    categories {\n      id\n      name\n      parentId\n    }\n    me {\n      id\n      email\n      address\n    }\n  }\n":
     types.SellQueryDocument,
-  "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        id\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n":
+  "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n      }\n      presignedPutUrls\n    }\n  }\n":
     types.CreateProductDocument,
   "\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
     types.VerifyMailDocument,
@@ -213,8 +213,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        id\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n",
-): (typeof documents)["\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        id\n        title\n        price\n        category {\n          name\n        }\n      }\n      presignedPutUrls\n    }\n  }\n"];
+  source: "\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n      }\n      presignedPutUrls\n    }\n  }\n",
+): (typeof documents)["\n  mutation CreateProduct($input: CreateProductInput!) {\n    createProduct(input: $input) {\n      product {\n        title\n      }\n      presignedPutUrls\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

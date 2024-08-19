@@ -38,12 +38,7 @@ const CREATE_PRODUCT = gql(`
   mutation CreateProduct($input: CreateProductInput!) {
     createProduct(input: $input) {
       product {
-        id
         title
-        price
-        category {
-          name
-        }
       }
       presignedPutUrls
     }
@@ -85,18 +80,14 @@ export const Sell = () => {
   const [description, setDescription] = useState("");
 
   const [creatingProduct, setCreatingProduct] = useState(false);
-  const [createdProduct, setCreatedProduct] = useState<{
-    title: string;
-    category: { name: string };
-    price: number;
-  }>();
   const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
 
   const { data, loading } = useQuery(SELL_QUERY, {
     onCompleted: (data) => setAddress(data.me.address ?? ""),
   });
 
-  const [createProduct] = useMutation(CREATE_PRODUCT);
+  const [createProduct, { data: createdProduct, reset }] =
+    useMutation(CREATE_PRODUCT);
 
   const categories: (Category & { children: Category[] })[] = useMemo(() => {
     if (!data) {
@@ -266,8 +257,6 @@ export const Sell = () => {
         },
       },
       onCompleted: async (data) => {
-        setCreatedProduct(data.createProduct.product);
-
         try {
           //send all images
           await Promise.all(
@@ -310,13 +299,8 @@ export const Sell = () => {
   if (createdProduct) {
     return (
       <Page title={"Vara skapad!"}>
-        <Body>title: {createdProduct.title}</Body>
-        <Body>category: {createdProduct.category.name}</Body>
-        <Body>price: {createdProduct.price} kr</Body>
-        <Button
-          title="Skapa en till"
-          onPress={() => setCreatedProduct(undefined)}
-        />
+        <Body>Titel: {createdProduct.createProduct.product.title}</Body>
+        <Button title="Skapa en till" onPress={reset} />
       </Page>
     );
   }
