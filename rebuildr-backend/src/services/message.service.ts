@@ -103,6 +103,9 @@ export class MessageService {
     productId: string;
     body: string;
   }) {
+    if (input.receiverId === input.senderId) {
+      throw BadUserInputException('Cannot send message on own product');
+    }
     const message = new Message();
 
     const [receiver, sender, product] = await Promise.all([

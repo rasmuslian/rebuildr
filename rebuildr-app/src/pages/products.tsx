@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback } from "react";
-import { Pressable, View, StyleSheet, Image } from "react-native";
+import { Pressable, View, StyleSheet, Image, ScrollView } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -111,7 +111,7 @@ export const Products = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.searchParams}>
         <View style={styles.searchFields}>
           <Title>Din sökning:</Title>
@@ -192,7 +192,7 @@ export const Products = ({ route }) => {
           </Pressable>
         ))}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

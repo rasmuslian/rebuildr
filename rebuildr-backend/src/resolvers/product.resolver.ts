@@ -2,7 +2,6 @@ import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
-  Float,
   InputType,
   Mutation,
   ObjectType,
@@ -14,7 +13,7 @@ import {
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { Category } from 'src/entities/category.entity';
-import { Product } from 'src/entities/product.entity';
+import { Product, ProductConditionEnum } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
@@ -24,6 +23,7 @@ import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
+import { AuthedUserType } from 'src/auth/constants';
 
 @InputType()
 export class FileInputType {
@@ -38,7 +38,7 @@ export class CreateProductInput {
   @Field()
   categoryId: string;
 
-  @Field(() => Float)
+  @Field()
   price: number;
 
   @Field(() => String)
@@ -49,14 +49,46 @@ export class CreateProductInput {
 
   @Field(() => Boolean, { nullable: true })
   isGiveaway?: boolean;
+
+  @Field(() => String, { nullable: true })
+  brand?: string;
+
+  @Field({ nullable: true })
+  amount?: number;
+
+  @Field({ nullable: true })
+  height?: number;
+
+  @Field({ nullable: true })
+  width?: number;
+
+  @Field({ nullable: true })
+  depth?: number;
+
+  @Field({ nullable: true })
+  volume?: number;
+
+  @Field(() => ProductConditionEnum)
+  condition: ProductConditionEnum;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
 }
 const createProductSchema = z.object({
   title: z.string(),
   categoryId: z.string(),
   price: z.number(),
   address: z.string(),
-  images: z.array(z.object({ mimeType: z.string() })).nullable(),
-  isGiveaway: z.boolean().nullable(),
+  images: z.array(z.object({ mimeType: z.string() })).optional(),
+  isGiveaway: z.boolean().optional(),
+  brand: z.string().optional(),
+  amount: z.number().optional(),
+  height: z.number().optional(),
+  width: z.number().optional(),
+  depth: z.number().optional(),
+  volume: z.number().optional(),
+  condition: z.nativeEnum(ProductConditionEnum),
+  description: z.string().optional(),
 });
 @ObjectType()
 export class CreateProductResponse {
@@ -141,33 +173,28 @@ export class ProductResolver {
   @UseGuards(GqlOptionalAuthGuard)
   async products(
     @Args('input') input: ProductsInput,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: AuthedUserType,
   ) {
-    return this.productService.findAll({ ...input }, user);
+    return this.productService.findAll({ ...input }, user?.id);
   }
 
   @Mutation(() => CreateProductResponse)
   @UseGuards(GqlAuthGuard)
   async createProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input', new ZodValidationPipe(createProductSchema))
     input: CreateProductInput,
   ) {
     return this.productService.create({
-      title: input.title,
-      categoryId: input.categoryId,
+      ...input,
       userId: _user.id,
-      price: input.price,
-      address: input.address,
-      images: input.images,
-      isGiveaway: input.isGiveaway,
     });
   }
 
   @Mutation(() => DeleteProductResponse)
   @UseGuards(GqlAuthGuard)
   async deleteProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: DeleteProductInput,
   ) {
     return this.productService.delete(input.id, _user.id);
@@ -176,7 +203,7 @@ export class ProductResolver {
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async hideProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: HideProductInput,
   ) {
     return this.productService.hide(input.id, input.reason, _user.id);
@@ -185,7 +212,7 @@ export class ProductResolver {
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async showProduct(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: ShowProductInput,
   ) {
     return this.productService.show(input.id, _user.id);

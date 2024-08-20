@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -11,6 +11,16 @@ import {
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { File } from './file.entity';
+
+export enum ProductConditionEnum {
+  NEW = 'NEW',
+  VERY_GOOD = 'VERY_GOOD',
+  GOOD = 'GOOD',
+  OKAY = 'OKAY',
+  BAD = 'BAD',
+}
+
+registerEnumType(ProductConditionEnum, { name: 'ProductConditionEnum' });
 
 @Entity()
 @ObjectType()
@@ -60,4 +70,45 @@ export class Product {
   @Field(() => Boolean)
   @Column({ default: false })
   isGiveaway: boolean;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  brand?: string;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  amount?: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  height?: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  width?: number;
+
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  depth?: number;
+
+  @Field(() => Int, { nullable: true, description: 'Unit: liter' })
+  @Column({ nullable: true })
+  volume?: number;
+
+  @Field(() => ProductConditionEnum)
+  @Column('enum', { enum: ProductConditionEnum })
+  condition: ProductConditionEnum;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  description?: string;
 }

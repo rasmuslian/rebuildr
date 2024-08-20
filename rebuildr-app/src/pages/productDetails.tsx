@@ -11,6 +11,7 @@ import { Button } from "src/components/button";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { UserRoleEnum } from "src/gql/graphql";
 import Colors from "src/styles/colors";
+import { conditionTranslationMap } from "src/constants/constants";
 
 const PRODUCT_DETAILS_QUERY = gql(`
   query ProductDetails($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -20,6 +21,14 @@ const PRODUCT_DETAILS_QUERY = gql(`
       price
       address
       hiddenReason
+      brand
+      amount
+      height
+      width
+      depth
+      volume
+      condition
+      description
       images {
         presignedGetUrl
       }
@@ -122,8 +131,27 @@ export const ProductDetails = ({
       <Body>Pris {data.product.price} kr</Body>
       <Body>Kategori: {data.product.category.name}</Body>
       <Body>Produkten finns på adressen: {data.product.address}</Body>
+      <Body>Fabrikat: {data.product.brand || "Ej angett"}</Body>
+      <Body>
+        Antal: {data.product.amount ? data.product.amount + "st" : "Ej angett"}
+      </Body>
+      <Body>
+        Höjd: {data.product.height ? data.product.height + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Bredd: {data.product.width ? data.product.width + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Djup: {data.product.depth ? data.product.depth + "mm" : "Ej angett"}
+      </Body>
+      <Body>
+        Volym:{" "}
+        {data.product.volume ? data.product.volume + "liter" : "Ej angett"}
+      </Body>
+      <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
+      <Body>Beskrivning: {data.product.description}</Body>
       <Body>Säljare {data.product.user.email}</Body>
-      {isLoggedInVar() && (
+      {data.me?.id !== data.product.user.id && (
         <Button
           onPress={() =>
             navigation.navigate("Conversation", {

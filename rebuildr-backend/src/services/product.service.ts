@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
-import { Product } from 'src/entities/product.entity';
+import { Product, ProductConditionEnum } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
@@ -38,6 +38,14 @@ export class ProductService {
     address: string;
     images?: FileInputType[];
     isGiveaway?: boolean;
+    brand?: string;
+    amount?: number;
+    height?: number;
+    width?: number;
+    depth?: number;
+    volume?: number;
+    condition: ProductConditionEnum;
+    description?: string;
   }): Promise<CreateProductResponse> {
     const product = new Product();
 
@@ -59,6 +67,14 @@ export class ProductService {
     product.price = input.price;
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;
+    product.brand = input.brand;
+    product.amount = input.amount;
+    product.height = input.height;
+    product.width = input.width;
+    product.depth = input.depth;
+    product.volume = input.volume;
+    product.condition = input.condition;
+    product.description = input.description;
     const location = await this.geocodingService.addressToLocation(
       input.address,
     );
@@ -91,13 +107,13 @@ export class ProductService {
       seasonalCategories?: boolean;
       giveaway?: boolean;
     },
-    _user?: User,
+    userId?: string,
   ) {
     const query = this.productRepository.createQueryBuilder('product');
 
     //Only admin will see hidden products
-    if (_user) {
-      const user = await this.userRepository.findOneBy({ id: _user.id });
+    if (userId) {
+      const user = await this.userRepository.findOneBy({ id: userId });
       if (!user) {
         throw BadUserInputException('Invalid user');
       }

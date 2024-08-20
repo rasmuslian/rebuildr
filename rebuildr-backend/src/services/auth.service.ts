@@ -11,20 +11,14 @@ import { UserService } from './user.service';
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRoleEnum } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from 'src/auth/constants';
+import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
-
-type AccessTokenPayload = {
-  sub: string;
-  email: string;
-  role: UserRoleEnum;
-};
 
 @Injectable()
 export class AuthService {

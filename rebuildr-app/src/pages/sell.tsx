@@ -15,6 +15,9 @@ import {
   manipulateAsync,
   SaveFormat,
 } from "expo-image-manipulator";
+import { ProductConditionEnum } from "src/gql/graphql";
+import { conditionTranslationMap } from "src/constants/constants";
+import { FieldInput } from "src/components/inputs/fieldInput";
 
 const SELL_QUERY = gql(`
   query SellQuery {
@@ -36,10 +39,6 @@ const CREATE_PRODUCT = gql(`
     createProduct(input: $input) {
       product {
         title
-        price
-        category {
-          name
-        }
       }
       presignedPutUrls
     }
@@ -69,19 +68,26 @@ export const Sell = () => {
   const [images, setImages] = useState<(ImageResult & { mimeType: string })[]>(
     [],
   );
+  const [brand, setBrand] = useState("");
+  const [amount, setAmount] = useState("");
+  const [width, setWidth] = useState("");
+  const [height, setHeight] = useState("");
+  const [depth, setDepth] = useState("");
+  const [volume, setVolume] = useState("");
+  const [condition, setCondition] = useState<
+    ProductConditionEnum | undefined
+  >();
+  const [description, setDescription] = useState("");
+
   const [creatingProduct, setCreatingProduct] = useState(false);
-  const [createdProduct, setCreatedProduct] = useState<{
-    title: string;
-    category: { name: string };
-    price: number;
-  }>();
   const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
 
   const { data, loading } = useQuery(SELL_QUERY, {
     onCompleted: (data) => setAddress(data.me.address ?? ""),
   });
 
-  const [createProduct] = useMutation(CREATE_PRODUCT);
+  const [createProduct, { data: createdProduct, reset }] =
+    useMutation(CREATE_PRODUCT);
 
   const categories: (Category & { children: Category[] })[] = useMemo(() => {
     if (!data) {
@@ -195,14 +201,38 @@ export const Sell = () => {
     const category = selectedChildCategory;
     const productAddress = address || data?.me.address;
 
-    if (!category || !title || price === undefined || !productAddress) {
+    if (
+      !category ||
+      !title ||
+      price === undefined ||
+      !productAddress ||
+      condition === undefined
+    ) {
       //Invalid inputs!
       return;
     }
 
-    const toInt = parseInt(price);
-    if (isNaN(toInt)) {
+    //returns number if 'numberString' is a number, otherwise returns undefined
+    const isNumber = (numberString?: string) => {
+      const number = parseInt(numberString);
+      if (isNaN(number)) {
+        //invalid number
+        return undefined;
+      }
+
+      return number;
+    };
+
+    const amountToInt = isNumber(amount);
+    const heightToInt = isNumber(height);
+    const widthToInt = isNumber(width);
+    const depthToInt = isNumber(depth);
+    const volumeToInt = isNumber(volume);
+
+    const priceToInt = isNumber(price);
+    if (priceToInt === undefined) {
       //invalid number
+      console.log("Invalid number");
       return;
     }
 
@@ -212,15 +242,21 @@ export const Sell = () => {
         input: {
           title: title,
           categoryId: category.id,
-          price: toInt,
+          price: priceToInt,
           address: productAddress,
           images: images.map((image) => ({ mimeType: image.mimeType })),
           isGiveaway: isGiveaway,
+          brand: brand,
+          amount: amountToInt,
+          height: heightToInt,
+          width: widthToInt,
+          depth: depthToInt,
+          volume: volumeToInt,
+          condition: condition,
+          description: description,
         },
       },
       onCompleted: async (data) => {
-        setCreatedProduct(data.createProduct.product);
-
         try {
           //send all images
           await Promise.all(
@@ -263,13 +299,8 @@ export const Sell = () => {
   if (createdProduct) {
     return (
       <Page title={"Vara skapad!"}>
-        <Body>title: {createdProduct.title}</Body>
-        <Body>category: {createdProduct.category.name}</Body>
-        <Body>price: {createdProduct.price} kr</Body>
-        <Button
-          title="Skapa en till"
-          onPress={() => setCreatedProduct(undefined)}
-        />
+        <Body>Titel: {createdProduct.createProduct.product.title}</Body>
+        <Button title="Skapa en till" onPress={reset} />
       </Page>
     );
   }
@@ -317,21 +348,63 @@ export const Sell = () => {
           placeholder={"Titel på objektet"}
           value={title}
         />
-        <NumberInput
-          onChange={setPrice}
-          value={price}
-          placeholder={"Ange pris"}
-        />
+        <NumberInput onChange={setPrice} value={price} placeholder={"Pris"} />
         <Button
           title="Bortskänkes"
           onPress={() => setIsGiveaway(!isGiveaway)}
           backgroundColor={isGiveaway ? "purple" : undefined}
           titleColor={isGiveaway ? "white" : undefined}
         />
-        <Input
-          value={address}
-          onChange={setAddress}
-          placeholder={"Ange var varan finns"}
+        <Input value={address} onChange={setAddress} placeholder={"Adress"} />
+        <Input onChange={setBrand} placeholder={"Fabrikat"} value={brand} />
+        <NumberInput
+          onChange={setAmount}
+          placeholder={"Antal"}
+          value={amount}
+        />
+        <NumberInput
+          onChange={setHeight}
+          placeholder={"Höjd(mm)"}
+          value={height}
+        />
+        <NumberInput
+          onChange={setWidth}
+          placeholder={"Bredd(mm)"}
+          value={width}
+        />
+        <NumberInput
+          onChange={setDepth}
+          placeholder={"Djup(mm)"}
+          value={depth}
+        />
+        <NumberInput
+          onChange={setVolume}
+          placeholder={"Volym(liter)"}
+          value={volume}
+        />
+        <Picker
+          selectedValue={condition ?? "unselected"}
+          onValueChange={(v: ProductConditionEnum | "unselected") => {
+            if (v === "unselected") {
+              setCondition(undefined);
+            } else {
+              setCondition(v);
+            }
+          }}
+        >
+          <Picker.Item
+            key={"condition"}
+            value={"unselected"}
+            label={"I vilket skick är varan?"}
+          />
+          {Object.entries(conditionTranslationMap).map((c, i) => (
+            <Picker.Item key={i} value={c[0]} label={c[1]} />
+          ))}
+        </Picker>
+        <FieldInput
+          onChange={setDescription}
+          value={description}
+          placeholder={"Beskrivning..."}
         />
         <View style={styles.imagesContainer}>
           {images.map((image, i) => (

@@ -7,6 +7,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
+import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { User } from 'src/entities/user.entity';
@@ -26,14 +27,14 @@ export class UserResolver {
 
   @Query(() => User)
   @UseGuards(GqlAuthGuard)
-  async me(@CurrentUser() _user: User) {
+  async me(@CurrentUser() _user: AuthedUserType) {
     return this.userService.findOne(_user.id);
   }
 
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async updateUser(
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
     @Args('input') input: UpdateUserInput,
   ) {
     return this.userService.update(
