@@ -269,6 +269,7 @@ export enum ProductConditionEnum {
 export type ProductsInput = {
   address?: InputMaybe<Scalars["String"]["input"]>;
   categoryId?: InputMaybe<Scalars["String"]["input"]>;
+  condition?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;

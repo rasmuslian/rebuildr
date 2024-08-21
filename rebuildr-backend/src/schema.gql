@@ -144,6 +144,7 @@ input ProductsInput {
   selectionCategories: Boolean
   seasonalCategories: Boolean
   giveaway: Boolean
+  condition: String
 }
 
 input CategoryInput {

@@ -35,8 +35,8 @@ export const Landing = () => {
   const onSearch = () => {
     navigate("Products", {
       distance: distance,
-      searchString: searchString,
-      address: address,
+      searchString: searchString || undefined,
+      address: address || undefined,
     });
   };
 
@@ -56,9 +56,7 @@ export const Landing = () => {
     });
   };
   const onPressGiveaway = () => {
-    navigate("Products", {
-      giveaway: true,
-    });
+    navigate("Products", { giveaway: true });
   };
 
   return (
