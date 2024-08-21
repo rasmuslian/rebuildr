@@ -11,6 +11,8 @@ const config = {
     Products: {
       path: "/products/",
       parse: {
+        selectionCategories: Boolean,
+        seasonalCategories: Boolean,
         giveaway: Boolean,
       },
     },
