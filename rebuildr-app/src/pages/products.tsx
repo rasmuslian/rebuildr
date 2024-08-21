@@ -86,53 +86,31 @@ export const Products = ({ route }) => {
     }, [categoryId, refetch, refetchCategories]),
   );
 
-  const onRemoveFilter = (input: {
-    removeSearchString?: boolean;
-    removeAddress?: boolean;
-    removeDistance?: boolean;
-    removeCategory?: boolean;
-    removeSelectionCategories?: boolean;
-    removeSeasonalCategories?: boolean;
-    removeGiveaway?: boolean;
-    removeCondition?: boolean;
+  const onSetFilter = (input: {
+    searchString?: string;
+    address?: string;
+    distance?: number;
+    categoryId?: string;
+    selectionCategories?: boolean;
+    seasonalCategories?: boolean;
+    giveaway?: boolean;
+    condition?: ProductConditionEnum;
   }) => {
     if (loading) {
       return;
     }
+    //returns the current params and upserts params from argument 'input'
+    const newFilterParams = Object.keys(input).reduce(
+      (filterParams, inputParam) => {
+        return {
+          ...filterParams,
+          [inputParam]: input[inputParam],
+        };
+      },
+      { ...route.params },
+    );
 
-    //Setting params will trigger a rerender which in turn will fetch products again
-    navigation.setParams({
-      searchString: input.removeSearchString ? undefined : searchString,
-      address: input.removeAddress ? undefined : address,
-      distance: input.removeDistance ? undefined : distance,
-      categoryId: input.removeCategory ? undefined : categoryId,
-      selectionCategories: input.removeSelectionCategories
-        ? undefined
-        : selectionCategories,
-      seasonalCategories: input.removeSeasonalCategories
-        ? undefined
-        : seasonalCategories,
-      giveaway: input.removeGiveaway ? undefined : giveaway,
-      condition: input.removeCondition ? undefined : condition,
-    });
-  };
-
-  const onAddFilter = (input: { condition: ProductConditionEnum }) => {
-    if (loading) {
-      return;
-    }
-
-    //Setting params will trigger a rerender which in turn will fetch products again
-    navigation.setParams({
-      searchString: searchString,
-      address: address,
-      distance: distance,
-      categoryId: categoryId,
-      selectionCategories: selectionCategories,
-      seasonalCategories: seasonalCategories,
-      giveaway: giveaway,
-      condition: input.condition,
-    });
+    navigation.setParams(newFilterParams);
   };
 
   return (
@@ -143,53 +121,51 @@ export const Products = ({ route }) => {
           {!!searchString && (
             <Button
               title={searchString}
-              onPress={() => onRemoveFilter({ removeSearchString: true })}
+              onPress={() => onSetFilter({ searchString: undefined })}
             />
           )}
           {categoryData && (
             <Button
               title={categoryData.category.name}
-              onPress={() => onRemoveFilter({ removeCategory: true })}
+              onPress={() => onSetFilter({ categoryId: undefined })}
             />
           )}
           {!!address && !distance && (
             <Button
               title={address}
-              onPress={() => onRemoveFilter({ removeAddress: true })}
+              onPress={() => onSetFilter({ address: undefined })}
             />
           )}
           {!!address && !!distance && (
             <Button
               title={`<${distance}km från ${address}`}
               onPress={() =>
-                onRemoveFilter({ removeAddress: true, removeDistance: true })
+                onSetFilter({ address: undefined, distance: undefined })
               }
             />
           )}
           {selectionCategories && (
             <Button
               title="Utvalda kategorier"
-              onPress={() =>
-                onRemoveFilter({ removeSelectionCategories: true })
-              }
+              onPress={() => onSetFilter({ selectionCategories: undefined })}
             />
           )}
           {seasonalCategories && (
             <Button
               title="Säsongskategorier"
-              onPress={() => onRemoveFilter({ removeSeasonalCategories: true })}
+              onPress={() => onSetFilter({ seasonalCategories: undefined })}
             />
           )}
           {giveaway && (
             <Button
               title="Bortskänkes"
-              onPress={() => onRemoveFilter({ removeGiveaway: true })}
+              onPress={() => onSetFilter({ giveaway: undefined })}
             />
           )}
           {condition && (
             <Button
               title={conditionTranslationMap[condition]}
-              onPress={() => onRemoveFilter({ removeCondition: true })}
+              onPress={() => onSetFilter({ condition: undefined })}
             />
           )}
         </View>
@@ -200,10 +176,10 @@ export const Products = ({ route }) => {
           selectedValue={condition ?? "unselected"}
           onValueChange={(v: ProductConditionEnum | "unselected") => {
             if (v === "unselected") {
-              onRemoveFilter({ removeCondition: true });
+              onSetFilter({ condition: undefined });
               return;
             }
-            onAddFilter({ condition: v });
+            onSetFilter({ condition: v });
           }}
         >
           <Picker.Item
