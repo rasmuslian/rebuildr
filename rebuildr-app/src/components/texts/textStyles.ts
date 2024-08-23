@@ -1,72 +1,88 @@
-import { TextStyle } from "react-native";
-
-const titleBase: TextStyle = {
-  fontWeight: "500",
-};
-
-const textBase: TextStyle = {
-  fontWeight: "400",
-};
+import Colors from "src/styles/colors";
 
 export const textStyles = {
-  title: {
-    large: {
-      ...titleBase,
-      fontSize: 26,
-      lineHeight: 32,
-      letterSpacing: -0.32,
-    },
-    medium: {
-      ...titleBase,
-      fontSize: 22,
-      lineHeight: 28,
-      letterSpacing: -0.32,
-    },
-    small: {
-      ...titleBase,
-      fontSize: 20,
-      lineHeight: 24,
-      letterSpacing: -0.2,
-    },
-  },
+  //Rubrik på en sektion eller sida.
   headline: {
     default: {
-      ...titleBase,
+      fontFamily: "Poppins-SemiBold",
       fontSize: 32,
-      lineHeight: 59,
-      letterSpacing: -0.2,
+      letterSpacing: -0.02,
     },
-    sub: {
-      ...titleBase,
+    //Samma som SectionTitle i skissen
+    section: {
+      fontFamily: "Poppins-SemiBold",
+      fontSize: 24,
+      letterSpacing: -0.02,
+    },
+  },
+  //Titel på stycken och komponenter ofta före brödtext
+  title: {
+    default: {
+      fontFamily: "Poppins-SemiBold",
+      fontSize: 18,
+      letterSpacing: -0.02,
+    },
+  },
+  button: {
+    default: {
+      fontFamily: "Poppins-SemiBold",
       fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: -0.16,
+      letterSpacing: 0.45,
     },
-    button: {
-      ...titleBase,
-      fontSize: 15,
-      lineHeight: 22,
-      letterSpacing: -0.2,
-      textTransform: "uppercase",
+    //Mindre text i buttonliknande komponenter. Används bara på kategorierna i slidern
+    detail: {
+      fontFamily: "Poppins-Medium",
+      fontSize: 12,
+      letterSpaceing: -0.02,
+    },
+    largeBold: {
+      fontFamily: "Poppins-Bold",
+      fontSize: 16,
+      letterSpacing: 0.45,
+    },
+    large: {
+      fontFamily: "Poppins-Medium",
+      fontSize: 16,
+      letterSpacing: 0.45,
     },
   },
   body: {
     default: {
-      ...textBase,
+      fontFamily: "Poppins-Medium",
       fontSize: 14,
-      lineHeight: 22,
+      letterSpacing: -0.02,
+    },
+  },
+  label: {
+    default: {
+      fontFamily: "Poppins-Medium",
+      fontSize: 16,
+      letterSpacing: -0.02,
+    },
+  },
+  input: {
+    default: {
+      fontFamily: "Inter-Regular",
+      fontSize: 14,
+      letterSpacing: 0,
+      color: Colors.text.pale,
+    },
+    label: {
+      fontFamily: "Poppins-Medium",
+      fontSize: 14,
       letterSpacing: 0,
     },
-    small: {
-      ...textBase,
+    select: {
+      fontFamily: "Poppins-Regular",
       fontSize: 12,
-      lineHeight: 20,
-      letterSpacing: -0.16,
+      letterSpacing: -0.02,
     },
   },
 } as const;
-
-export type TextTypes = keyof typeof textStyles;
-export type TitleSize = keyof typeof textStyles.title;
-export type HeadlineSize = keyof typeof textStyles.headline;
-export type BodySize = keyof typeof textStyles.body;
+export type TextType = keyof typeof textStyles;
+export type TitleType = keyof typeof textStyles.title;
+export type HeadlineType = keyof typeof textStyles.headline;
+export type BodyType = keyof typeof textStyles.body;
+export type LabelType = keyof typeof textStyles.label;
+export type ButtonType = keyof typeof textStyles.button;
+export type InputType = keyof typeof textStyles.input;

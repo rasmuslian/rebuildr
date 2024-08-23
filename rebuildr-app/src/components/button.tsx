@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { IconType, Icon } from "src/components/icons/icon";
 import Colors, { ButtonColors, TextColors } from "src/styles/colors";
-import { Body } from "./texts/text";
+import { Body, ButtonText } from "./texts/text";
 
 interface ButtonProps extends PressableProps {
   onPress: () => void;
@@ -18,6 +18,7 @@ interface ButtonProps extends PressableProps {
   icon?: IconType;
   disabled?: boolean;
   loading?: boolean;
+  shape?: "round" | "rectangle";
 }
 
 export const Button = ({
@@ -28,22 +29,34 @@ export const Button = ({
   disabled,
   loading,
   backgroundColor,
+  shape = "round",
   children,
+  ...props
 }: ButtonProps) => {
   return (
-    <Pressable onPress={onPress} disabled={disabled || loading}>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      style={props.style}
+    >
       <View
         style={[
           styles.container,
           { backgroundColor: Colors.button[backgroundColor] },
+          shape === "round" && styles.roundShape,
+          shape === "rectangle" && styles.rectangleShape,
         ]}
       >
         {loading ? (
           <ActivityIndicator />
         ) : (
           <>
-            {title && <Body color={titleColor}>{title}</Body>}
             {icon && <Icon iconType={icon} />}
+            {title && (
+              <ButtonText type="default" color={titleColor}>
+                {title}
+              </ButtonText>
+            )}
             {children}
           </>
         )}
@@ -54,12 +67,19 @@ export const Button = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1,
-    borderStyle: "solid",
-    borderRadius: 30,
     padding: 13,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    justifyContent: "center",
+  },
+  roundShape: {
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderRadius: 30,
+  },
+  rectangleShape: {
+    borderRadius: 8,
+    width: 191,
   },
 });

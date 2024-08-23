@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { Body } from "../texts/text";
+import { InputText } from "../texts/text";
+import { textStyles } from "../texts/textStyles";
 import { BaseInputProps, baseInputStyles } from "./baseInput";
 
 interface InputProps extends BaseInputProps {
@@ -17,10 +18,14 @@ export const Input = ({
 }: InputProps) => {
   return (
     <View style={props.style}>
-      {label && <Body style={styles.label}>{label}</Body>}
+      {label && (
+        <InputText style={styles.label} type="label">
+          {label}
+        </InputText>
+      )}
       <TextInput
         {...props}
-        style={baseInputStyles.container}
+        style={[baseInputStyles.container, textStyles.input.default]}
         onChangeText={onChange}
         placeholder={placeholder}
         value={value}
