@@ -14,6 +14,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import React, { useEffect, useState } from "react";
 import { initializeApollo } from "src/apollo/apollo";
+import { ScreenDimensionsProvider } from "src/contexts/screenDimensionsContext";
 import { linking } from "src/navigators/linkingConfig";
 import { RootNavigation } from "src/navigators/rootNavigation";
 
@@ -42,7 +43,9 @@ export default function App() {
   return (
     <ApolloProvider client={client}>
       <NavigationContainer linking={linking}>
-        <RootNavigation />
+        <ScreenDimensionsProvider>
+          <RootNavigation />
+        </ScreenDimensionsProvider>
       </NavigationContainer>
     </ApolloProvider>
   );
