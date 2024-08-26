@@ -1,15 +1,15 @@
 import { useQuery, useReactiveVar } from "@apollo/client";
-import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable, ImageBackground } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
-import { Body, Headline } from "src/components/texts/text";
+import { ButtonText, Headline, InputText } from "src/components/texts/text";
 import { gql } from "src/gql";
 import Colors from "src/styles/colors";
 import { isLoggedInVar } from "src/apollo/apollo";
+import { InputAndSelect } from "src/components/inputs/inputAndSelect";
 
 const LANDING_QUERY = gql(`
   query LandingQuery {
@@ -25,7 +25,7 @@ const distances = [3, 5, 10, 30, 50, 100];
 export const Landing = () => {
   const [searchString, setSearchString] = useState("");
   const [address, setAddress] = useState("");
-  const [distance, setDistance] = useState();
+  const [distance, setDistance] = useState<number>();
 
   const { navigate } = useNavigation();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -61,14 +61,17 @@ export const Landing = () => {
 
   return (
     <View>
-      <View style={styles.container}>
+      <ImageBackground
+        source={{ uri: "../../assets/images/main-background.png" }}
+        style={styles.container}
+      >
         <Headline style={styles.title} color="brand">
           Sveriges marknadsplats för återbrukat byggmaterial
         </Headline>
         <View style={styles.buySellContainer}>
           <View style={styles.buttons}>
             <Pressable style={styles.tabButton}>
-              <Body>Köp</Body>
+              <ButtonText type="largeBold">KÖP</ButtonText>
             </Pressable>
             <Pressable
               style={[
@@ -79,7 +82,7 @@ export const Landing = () => {
                 isLoggedIn ? navigate("Sell") : navigate("Login")
               }
             >
-              <Body>Sälj</Body>
+              <ButtonText type="large">SÄLJ</ButtonText>
             </Pressable>
           </View>
           <View style={styles.searchContainer}>
@@ -90,37 +93,38 @@ export const Landing = () => {
               placeholder={"Vad letar du efter?"}
               style={styles.input}
             />
-            <Input
+            <InputAndSelect
               label="Område"
               onChange={setAddress}
               value={address}
               placeholder={"Var letar du?"}
               style={styles.input}
+              options={distances.map((dist, i) => ({
+                value: dist,
+                label: `< ${dist} km`,
+              }))}
+              onSelect={(value) => setDistance(value)}
+              selectedValue={distance}
+              selectPlaceHolder={
+                <View style={styles.defaultSelectElement}>
+                  <InputText type="default" color="pale">
+                    Avstånd från
+                  </InputText>
+                  <Icon iconType="Pin" />
+                </View>
+              }
             />
-            <View style={styles.input}>
-              <Body>Distans</Body>
-              <Picker
-                selectedValue={distance}
-                onValueChange={(v) => {
-                  setDistance(v);
-                }}
-              >
-                <Picker.Item label={"Avstånd från dig"} value={0} />
-                {distances.map((dist, i) => (
-                  <Picker.Item key={i} label={`< ${dist} km`} value={dist} />
-                ))}
-                <Picker.Item label={"Obegränsat"} value={0} />
-              </Picker>
-            </View>
             <Button
-              title="Hitta"
+              title="HITTA"
               onPress={onSearch}
               titleColor="white"
               backgroundColor="purple"
+              shape="rectangle"
+              style={styles.searchButton}
             />
           </View>
         </View>
-      </View>
+      </ImageBackground>
       {data?.rootCategories && (
         <CategorySlider
           categories={data.rootCategories}
@@ -189,26 +193,26 @@ const CategorySlider = ({
           <Pressable onPress={onSelectSelection}>
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
               <Icon iconType="PointUp" />
-              <Body>Utvalda</Body>
+              <ButtonText type="detail">Utvalda</ButtonText>
             </View>
           </Pressable>
           <Pressable onPress={onSelectSeasonal}>
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
               <Icon iconType="Season" />
-              <Body>Säsong</Body>
+              <ButtonText type="detail">Säsong</ButtonText>
             </View>
           </Pressable>
           <Pressable onPress={onSelectGiveaway}>
             <View style={[styles.categoryCard, styles.specialCategoryCard]}>
               <Icon iconType="Gift" />
-              <Body>Bortskänkes</Body>
+              <ButtonText type="detail">Bortskänkes</ButtonText>
             </View>
           </Pressable>
           {categories.map((category) => (
             <Pressable onPress={() => onSelect(category.id)} key={category.id}>
               <View style={styles.categoryCard}>
                 <Icon iconType="Tiles" />
-                <Body>{category.name}</Body>
+                <ButtonText type="detail">{category.name}</ButtonText>
               </View>
             </Pressable>
           ))}
@@ -226,8 +230,9 @@ const CategorySlider = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.green,
-    height: 656,
+    height: 487,
     alignItems: "center",
+    zIndex: 1, //This ensures that components inside this section that is overlapping other sections will be on top of them.
   },
   title: {
     marginVertical: 40,
@@ -235,28 +240,38 @@ const styles = StyleSheet.create({
   buySellContainer: {},
   buttons: {
     flexDirection: "row",
-    marginLeft: 23,
-    gap: 24,
+    justifyContent: "center",
+    gap: 19,
   },
   tabButton: {
     paddingHorizontal: 52,
-    paddingTop: 16,
-    paddingBottom: 8,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.brand,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
+    height: 38,
+    marginBottom: -1,
   },
   searchContainer: {
     width: 653,
     backgroundColor: Colors.brand,
-    paddingVertical: 28,
+    paddingVertical: 24,
     paddingHorizontal: 24,
     alignContent: "center",
     justifyContent: "space-between",
     borderRadius: 8,
   },
+  searchButton: {
+    alignSelf: "center",
+    marginTop: 5,
+  },
   input: {
     marginBottom: 18,
+  },
+  defaultSelectElement: {
+    flexDirection: "row",
+    gap: 8,
   },
   arrow: {
     justifyContent: "center",
