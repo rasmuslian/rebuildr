@@ -1,21 +1,28 @@
 import Colors from "src/styles/colors";
 
 export const textStyles = {
-  //Rubrik på en sektion eller sida.
   headline: {
     default: {
       fontFamily: "Poppins-SemiBold",
       fontSize: 32,
       letterSpacing: -0.02,
+      medium: {
+        fontFamily: "Poppins-SemiBold",
+        fontSize: 26,
+        letterSpacing: -0.02,
+      },
+      small: {
+        fontFamily: "Poppins-SemiBold",
+        fontSize: 20,
+        letterSpacing: -0.02,
+      },
     },
-    //Samma som SectionTitle i skissen
     section: {
       fontFamily: "Poppins-SemiBold",
       fontSize: 24,
       letterSpacing: -0.02,
     },
   },
-  //Titel på stycken och komponenter ofta före brödtext
   title: {
     default: {
       fontFamily: "Poppins-SemiBold",
@@ -29,7 +36,6 @@ export const textStyles = {
       fontSize: 14,
       letterSpacing: 0.45,
     },
-    //Mindre text i buttonliknande komponenter. Används bara på kategorierna i slidern
     detail: {
       fontFamily: "Poppins-Medium",
       fontSize: 12,

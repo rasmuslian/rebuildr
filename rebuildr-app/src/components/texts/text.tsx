@@ -2,6 +2,10 @@ import React from "react";
 import { TextProps, Text, TextStyle } from "react-native";
 import Colors, { TextColors } from "src/styles/colors";
 import {
+  ResponsiveStyleType,
+  useResponsiveStyle,
+} from "src/hooks/useResponsiveStyles";
+import {
   BodyType,
   ButtonType,
   HeadlineType,
@@ -24,11 +28,14 @@ const Base = ({
   textStyle,
   color = "primary",
   ...props
-}: Props & { textStyle: TextStyle }) => {
+}: Props & {
+  textStyle: TextStyle & ResponsiveStyleType;
+}) => {
+  const responsiveStyle = useResponsiveStyle(textStyle);
   return (
     <Text
       {...props}
-      style={[textStyle, { color: Colors.text[color] }, props.style]}
+      style={[responsiveStyle, { color: Colors.text[color] }, props.style]}
     />
   );
 };

@@ -1,7 +1,7 @@
 import { useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ImageBackground } from "react-native";
+import { View, Pressable, ImageBackground, StyleSheet } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
@@ -10,6 +10,7 @@ import { gql } from "src/gql";
 import Colors from "src/styles/colors";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { InputAndSelect } from "src/components/inputs/inputAndSelect";
+import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 const LANDING_QUERY = gql(`
   query LandingQuery {
@@ -26,6 +27,7 @@ export const Landing = () => {
   const [searchString, setSearchString] = useState("");
   const [address, setAddress] = useState("");
   const [distance, setDistance] = useState<number>();
+  const styles = useResponsiveStyles(landingStyle);
 
   const { navigate } = useNavigation();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -157,6 +159,7 @@ const CategorySlider = ({
   const [sliderOffset, setSliderOffset] = useState(0);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [sliderWindowWidth, setSliderWindowWidth] = useState(0);
+  const styles = useResponsiveStyles(categorySliderStyles);
 
   const onRight = () => {
     if (sliderWidth + sliderOffset - sliderWindowWidth <= 0) {
@@ -227,12 +230,13 @@ const CategorySlider = ({
   );
 };
 
-const styles = StyleSheet.create({
+const landingStyle = StyleSheet.create({
   container: {
     backgroundColor: Colors.green,
     height: 487,
     alignItems: "center",
     zIndex: 1, //This ensures that components inside this section that is overlapping other sections will be on top of them.
+    padding: 10,
   },
   title: {
     marginVertical: 40,
@@ -261,6 +265,9 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "space-between",
     borderRadius: 8,
+    small: {
+      width: 453,
+    },
   },
   searchButton: {
     alignSelf: "center",
@@ -273,12 +280,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  arrow: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 37,
-    height: 100,
-  },
+});
+
+const categorySliderStyles = StyleSheet.create({
   categoriesSlider: {
     backgroundColor: Colors.brand,
     flexDirection: "row",
@@ -312,5 +316,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderGray,
     borderStyle: "solid",
+  },
+  arrow: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 37,
+    height: 100,
   },
 });
