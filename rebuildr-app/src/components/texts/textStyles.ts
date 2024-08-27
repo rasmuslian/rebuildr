@@ -84,6 +84,13 @@ export const textStyles = {
       letterSpacing: -0.02,
     },
   },
+  footer: {
+    default: {
+      fontFamily: "Poppins-Regular",
+      fontSize: 12,
+      letterSpacing: -0.02,
+    },
+  },
 } as const;
 export type TextType = keyof typeof textStyles;
 export type TitleType = keyof typeof textStyles.title;
@@ -92,3 +99,4 @@ export type BodyType = keyof typeof textStyles.body;
 export type LabelType = keyof typeof textStyles.label;
 export type ButtonType = keyof typeof textStyles.button;
 export type InputType = keyof typeof textStyles.input;
+export type FooterType = keyof typeof textStyles.footer;

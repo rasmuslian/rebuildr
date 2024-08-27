@@ -8,6 +8,7 @@ import {
 import {
   BodyType,
   ButtonType,
+  FooterType,
   HeadlineType,
   InputType,
   LabelType,
@@ -23,6 +24,7 @@ type BodyProps = { type?: BodyType } & Props;
 type LabelProps = { type?: LabelType } & Props;
 type ButtonProps = { type?: ButtonType } & Props;
 type InputProps = { type?: InputType } & Props;
+type FooterProps = { type?: FooterType } & Props;
 
 const Base = ({
   textStyle,
@@ -60,4 +62,7 @@ export const ButtonText = ({ type = "default", ...props }: ButtonProps) => {
 };
 export const InputText = ({ type = "default", ...props }: InputProps) => {
   return <Base {...props} textStyle={textStyles.input[type]} />;
+};
+export const FooterText = ({ type = "default", ...props }: FooterProps) => {
+  return <Base {...props} textStyle={textStyles.footer[type]} />;
 };
