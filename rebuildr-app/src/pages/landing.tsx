@@ -11,12 +11,30 @@ import Colors from "src/styles/colors";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { InputAndSelect } from "src/components/inputs/inputAndSelect";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
+import { Page } from "src/components/page";
+import { Section } from "src/components/layout/section";
+import { ProductCard } from "src/components/productCard";
+import { OrderProductsEnum } from "src/gql/graphql";
 
 const LANDING_QUERY = gql(`
-  query LandingQuery {
+  query LandingQuery($productsInput: ProductsInput!) {
     rootCategories {
       id
       name
+    }
+    products(input: $productsInput) {
+      id
+      title
+      description
+      user {
+        id
+        email
+      }
+      address
+      price
+      mainImage {
+        presignedGetUrl
+      }
     }
   }
 `);
@@ -32,7 +50,11 @@ export const Landing = () => {
   const { navigate } = useNavigation();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
 
-  const { data } = useQuery(LANDING_QUERY);
+  const { data } = useQuery(LANDING_QUERY, {
+    variables: {
+      productsInput: { limit: 4, orderBy: OrderProductsEnum.Latest },
+    },
+  });
 
   const onSearch = () => {
     navigate("Products", {
@@ -62,81 +84,112 @@ export const Landing = () => {
   };
 
   return (
-    <View>
-      <ImageBackground
-        source={{ uri: "../../assets/images/main-background.png" }}
-        style={styles.container}
-      >
-        <Headline style={styles.title} color="brand">
-          Sveriges marknadsplats för återbrukat byggmaterial
+    <Page>
+      <Section fullWidth>
+        <ImageBackground
+          source={{ uri: "../../assets/images/main-background.png" }}
+          style={styles.container}
+        >
+          <Headline style={styles.title} color="brand">
+            Sveriges marknadsplats för återbrukat byggmaterial
+          </Headline>
+          <View style={styles.buySellContainer}>
+            <View style={styles.buttons}>
+              <Pressable style={styles.tabButton}>
+                <ButtonText type="largeBold">KÖP</ButtonText>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.tabButton,
+                  { backgroundColor: Colors.inactiveGray },
+                ]}
+                onPress={() =>
+                  isLoggedIn ? navigate("Sell") : navigate("Login")
+                }
+              >
+                <ButtonText type="large">SÄLJ</ButtonText>
+              </Pressable>
+            </View>
+            <View style={styles.searchContainer}>
+              <Input
+                label="Vara"
+                onChange={setSearchString}
+                value={searchString}
+                placeholder={"Vad letar du efter?"}
+                style={styles.input}
+              />
+              <InputAndSelect
+                label="Område"
+                onChange={setAddress}
+                value={address}
+                placeholder={"Var letar du?"}
+                style={styles.input}
+                options={distances.map((dist, i) => ({
+                  value: dist,
+                  label: `< ${dist} km`,
+                }))}
+                onSelect={(value) => setDistance(value)}
+                selectedValue={distance}
+                selectPlaceHolder={
+                  <View style={styles.defaultSelectElement}>
+                    <InputText type="default" color="pale">
+                      Avstånd från
+                    </InputText>
+                    <Icon iconType="Pin" />
+                  </View>
+                }
+              />
+              <Button
+                title="HITTA"
+                onPress={onSearch}
+                titleColor="white"
+                backgroundColor="purple"
+                shape="rectangle"
+                style={styles.searchButton}
+              />
+            </View>
+          </View>
+        </ImageBackground>
+        {data?.rootCategories && (
+          <CategorySlider
+            categories={data.rootCategories}
+            onSelect={(categoryId) => onPressCategory(categoryId)}
+            onSelectSelection={onPressSelectionCategories}
+            onSelectSeasonal={onPressSeasonalCategories}
+            onSelectGiveaway={onPressGiveaway}
+          />
+        )}
+      </Section>
+      <Section>
+        <Headline type="section" style={{ marginBottom: 32 }}>
+          Nyinkomna varor nära dig
         </Headline>
-        <View style={styles.buySellContainer}>
-          <View style={styles.buttons}>
-            <Pressable style={styles.tabButton}>
-              <ButtonText type="largeBold">KÖP</ButtonText>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.tabButton,
-                { backgroundColor: Colors.inactiveGray },
-              ]}
-              onPress={() =>
-                isLoggedIn ? navigate("Sell") : navigate("Login")
-              }
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 24,
+            marginBottom: 24,
+          }}
+        >
+          {data?.products.map((product, i) => (
+            <View
+              key={i}
+              style={{
+                flex: 1,
+              }}
             >
-              <ButtonText type="large">SÄLJ</ButtonText>
-            </Pressable>
-          </View>
-          <View style={styles.searchContainer}>
-            <Input
-              label="Vara"
-              onChange={setSearchString}
-              value={searchString}
-              placeholder={"Vad letar du efter?"}
-              style={styles.input}
-            />
-            <InputAndSelect
-              label="Område"
-              onChange={setAddress}
-              value={address}
-              placeholder={"Var letar du?"}
-              style={styles.input}
-              options={distances.map((dist, i) => ({
-                value: dist,
-                label: `< ${dist} km`,
-              }))}
-              onSelect={(value) => setDistance(value)}
-              selectedValue={distance}
-              selectPlaceHolder={
-                <View style={styles.defaultSelectElement}>
-                  <InputText type="default" color="pale">
-                    Avstånd från
-                  </InputText>
-                  <Icon iconType="Pin" />
-                </View>
-              }
-            />
-            <Button
-              title="HITTA"
-              onPress={onSearch}
-              titleColor="white"
-              backgroundColor="purple"
-              shape="rectangle"
-              style={styles.searchButton}
-            />
-          </View>
+              <ProductCard {...product} />
+            </View>
+          ))}
         </View>
-      </ImageBackground>
-      {data?.rootCategories && (
-        <CategorySlider
-          categories={data.rootCategories}
-          onSelect={(categoryId) => onPressCategory(categoryId)}
-          onSelectSelection={onPressSelectionCategories}
-          onSelectSeasonal={onPressSeasonalCategories}
-          onSelectGiveaway={onPressGiveaway}
+        <Button
+          title="Se fler"
+          onPress={() => navigate("Products")}
+          style={{ alignSelf: "flex-end" }}
         />
-      )}
-    </View>
+      </Section>
+    </Page>
   );
 };
 

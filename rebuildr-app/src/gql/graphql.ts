@@ -231,6 +231,11 @@ export type NewPasswordInput = {
   resetPasswordToken: Scalars["String"]["input"];
 };
 
+export enum OrderProductsEnum {
+  Distance = "DISTANCE",
+  Latest = "LATEST",
+}
+
 export type Product = {
   __typename?: "Product";
   address: Scalars["String"]["output"];
@@ -272,6 +277,8 @@ export type ProductsInput = {
   condition?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
+  limit?: InputMaybe<Scalars["Float"]["input"]>;
+  orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
   seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
   selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -487,11 +494,23 @@ export type UpdateCategoryMutation = {
   };
 };
 
-export type LandingQueryQueryVariables = Exact<{ [key: string]: never }>;
+export type LandingQueryQueryVariables = Exact<{
+  productsInput: ProductsInput;
+}>;
 
 export type LandingQueryQuery = {
   __typename?: "Query";
   rootCategories: Array<{ __typename?: "Category"; id: string; name: string }>;
+  products: Array<{
+    __typename?: "Product";
+    id: string;
+    title: string;
+    description?: string | null;
+    address: string;
+    price: number;
+    user: { __typename?: "User"; id: string; email: string };
+    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+  }>;
 };
 
 export type LoginMutationVariables = Exact<{
@@ -1149,6 +1168,22 @@ export const LandingQueryDocument = {
       kind: "OperationDefinition",
       operation: "query",
       name: { kind: "Name", value: "LandingQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "productsInput" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ProductsInput" },
+            },
+          },
+        },
+      ],
       selectionSet: {
         kind: "SelectionSet",
         selections: [
@@ -1160,6 +1195,54 @@ export const LandingQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "products" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "productsInput" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "user" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "mainImage" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
