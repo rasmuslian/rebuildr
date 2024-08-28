@@ -1,7 +1,13 @@
 import { useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
-import { View, Pressable, ImageBackground, StyleSheet } from "react-native";
+import React, { ReactNode, useCallback, useRef, useState } from "react";
+import {
+  View,
+  Pressable,
+  ImageBackground,
+  StyleSheet,
+  FlatList,
+} from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
@@ -152,11 +158,45 @@ export const Landing = () => {
         </ImageBackground>
         {data?.rootCategories && (
           <CategorySlider
-            categories={data.rootCategories}
-            onSelect={(categoryId) => onPressCategory(categoryId)}
-            onSelectSelection={onPressSelectionCategories}
-            onSelectSeasonal={onPressSeasonalCategories}
-            onSelectGiveaway={onPressGiveaway}
+            elements={[
+              <Pressable onPress={onPressSelectionCategories}>
+                <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+                  <Icon iconType="PointUp" />
+                  <ButtonText type="detail" style={styles.cardText}>
+                    Utvalda
+                  </ButtonText>
+                </View>
+              </Pressable>,
+              <Pressable onPress={onPressSeasonalCategories}>
+                <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+                  <Icon iconType="Season" />
+                  <ButtonText type="detail" style={styles.cardText}>
+                    Säsong
+                  </ButtonText>
+                </View>
+              </Pressable>,
+              <Pressable onPress={onPressGiveaway}>
+                <View style={[styles.categoryCard, styles.specialCategoryCard]}>
+                  <Icon iconType="Gift" />
+                  <ButtonText type="detail" style={styles.cardText}>
+                    Bortskänkes
+                  </ButtonText>
+                </View>
+              </Pressable>,
+              ...data.rootCategories.map((category) => (
+                <Pressable
+                  onPress={() => onPressCategory(category.id)}
+                  key={category.id}
+                >
+                  <View style={styles.categoryCard}>
+                    <Icon iconType="Tiles" />
+                    <ButtonText type="detail" style={styles.cardText}>
+                      {category.name}
+                    </ButtonText>
+                  </View>
+                </Pressable>
+              )),
+            ]}
           />
         )}
       </Section>
@@ -194,87 +234,83 @@ export const Landing = () => {
 };
 
 interface CategorySliderProps {
-  onSelect: (categoryId: string) => void;
-  onSelectSelection: () => void;
-  onSelectSeasonal: () => void;
-  onSelectGiveaway: () => void;
-  categories: { id: string; name: string }[];
+  elements: ReactNode[];
 }
-const offsetIncrement = 100;
 
-const CategorySlider = ({
-  onSelect,
-  onSelectSelection,
-  onSelectSeasonal,
-  onSelectGiveaway,
-  categories,
-}: CategorySliderProps) => {
+const CategorySlider = ({ elements }: CategorySliderProps) => {
   const [sliderOffset, setSliderOffset] = useState(0);
-  const [sliderWidth, setSliderWidth] = useState(0);
-  const [sliderWindowWidth, setSliderWindowWidth] = useState(0);
   const styles = useResponsiveStyles(categorySliderStyles);
+  const flatlistRef = useRef<FlatList>();
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const conf = useRef({
+    itemVisiblePercentThreshold: 100,
+  });
 
   const onRight = () => {
-    if (sliderWidth + sliderOffset - sliderWindowWidth <= 0) {
+    if (!flatlistRef.current) {
       return;
     }
-    setSliderOffset(sliderOffset - offsetIncrement);
+
+    const nextIndex = sliderOffset + 1;
+    if (nextIndex >= elements.length || !canScrollRight) {
+      return;
+    }
+
+    flatlistRef.current.scrollToIndex({ index: nextIndex });
+    setSliderOffset(nextIndex);
   };
 
   const onLeft = () => {
-    if (sliderOffset >= 0) {
+    if (!flatlistRef.current) {
       return;
     }
-    setSliderOffset(sliderOffset + offsetIncrement);
+
+    const nextIndex = sliderOffset - 1;
+    if (nextIndex < 0 || !canScrollLeft) {
+      return;
+    }
+    flatlistRef.current.scrollToIndex({ index: nextIndex });
+    setSliderOffset(nextIndex);
   };
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }) => {
+      if ((viewableItems[0].index = 0)) {
+        setCanScrollLeft(false);
+      } else {
+        setCanScrollLeft(true);
+      }
+      if (
+        viewableItems[viewableItems.length - 1].index >=
+        elements.length - 1
+      ) {
+        setCanScrollRight(false);
+      } else {
+        setCanScrollRight(true);
+      }
+    },
+    [elements.length],
+  );
 
   return (
     <View style={styles.categoriesSlider}>
-      <Pressable onPress={onLeft}>
+      <Pressable onPress={() => onLeft()}>
         <View style={styles.arrow}>
           <Icon iconType="LeftChevron" />
         </View>
       </Pressable>
-      <View
-        style={styles.sliderContainer}
-        onLayout={(v) => setSliderWindowWidth(v.nativeEvent.layout.width)}
-      >
-        <View
-          style={[
-            styles.categoriesContainer,
-            { transform: `translateX(${sliderOffset}px)` },
-          ]}
-          onLayout={(v) => setSliderWidth(v.nativeEvent.layout.width)}
-        >
-          <Pressable onPress={onSelectSelection}>
-            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-              <Icon iconType="PointUp" />
-              <ButtonText type="detail">Utvalda</ButtonText>
-            </View>
-          </Pressable>
-          <Pressable onPress={onSelectSeasonal}>
-            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-              <Icon iconType="Season" />
-              <ButtonText type="detail">Säsong</ButtonText>
-            </View>
-          </Pressable>
-          <Pressable onPress={onSelectGiveaway}>
-            <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-              <Icon iconType="Gift" />
-              <ButtonText type="detail">Bortskänkes</ButtonText>
-            </View>
-          </Pressable>
-          {categories.map((category) => (
-            <Pressable onPress={() => onSelect(category.id)} key={category.id}>
-              <View style={styles.categoryCard}>
-                <Icon iconType="Tiles" />
-                <ButtonText type="detail">{category.name}</ButtonText>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-      <Pressable onPress={onRight}>
+      <FlatList
+        ref={flatlistRef}
+        data={elements}
+        renderItem={({ item }) => <>{item}</>}
+        horizontal
+        showsVerticalScrollIndicator={false}
+        viewabilityConfig={conf.current}
+        onViewableItemsChanged={onViewableItemsChanged}
+        ItemSeparatorComponent={() => <View style={styles.separator}></View>}
+      />
+      <Pressable onPress={() => onRight()}>
         <View style={styles.arrow}>
           <Icon iconType="RightChevron" />
         </View>
@@ -333,35 +369,16 @@ const landingStyle = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-});
-
-const categorySliderStyles = StyleSheet.create({
-  categoriesSlider: {
-    backgroundColor: Colors.brand,
-    flexDirection: "row",
-    paddingHorizontal: 38,
-    justifyContent: "space-between",
-    paddingVertical: 22,
-  },
-  sliderContainer: {
-    overflow: "hidden",
-    flex: 1,
-  },
-  categoriesContainer: {
-    flexDirection: "row",
-    gap: 12,
-    position: "absolute",
-    transformOrigin: "left",
-    alignItems: "center",
-    height: "100%",
-  },
   categoryCard: {
-    padding: 16,
+    paddingVertical: 16,
     width: 100,
     justifyContent: "space-between",
     alignItems: "center",
     gap: 8,
     backgroundColor: "transparent",
+  },
+  cardText: {
+    textAlign: "center",
   },
   specialCategoryCard: {
     borderRadius: 8,
@@ -370,10 +387,21 @@ const categorySliderStyles = StyleSheet.create({
     borderColor: Colors.borderGray,
     borderStyle: "solid",
   },
+});
+
+const categorySliderStyles = StyleSheet.create({
+  categoriesSlider: {
+    backgroundColor: Colors.brand,
+    flexDirection: "row",
+    paddingVertical: 22,
+  },
   arrow: {
     justifyContent: "center",
     alignItems: "center",
     width: 37,
     height: 100,
+  },
+  separator: {
+    marginHorizontal: 8,
   },
 });
