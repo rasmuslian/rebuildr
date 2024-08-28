@@ -11,7 +11,7 @@ import Colors from "src/styles/colors";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { InputAndSelect } from "src/components/inputs/inputAndSelect";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Section } from "src/components/layout/section";
 import { ProductCard } from "src/components/productCard";
 import { OrderProductsEnum } from "src/gql/graphql";

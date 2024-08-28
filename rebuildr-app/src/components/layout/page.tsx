@@ -6,8 +6,8 @@ import {
   StyleSheet,
   ViewStyle,
 } from "react-native";
-import { Footer } from "./footer";
-import { Headline } from "./texts/text";
+import { Footer } from "../footer";
+import { Headline } from "../texts/text";
 
 interface PageProps extends PropsWithChildren {
   title?: string;
