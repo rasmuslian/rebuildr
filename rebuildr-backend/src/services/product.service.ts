@@ -9,11 +9,11 @@ import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
   CreateProductResponse,
   FileInputType,
+  OrderProductsEnum,
 } from 'src/resolvers/product.resolver';
 import { Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
-
 @Injectable()
 export class ProductService {
   constructor(
@@ -107,6 +107,8 @@ export class ProductService {
       seasonalCategories?: boolean;
       giveaway?: boolean;
       condition?: ProductConditionEnum;
+      limit?: number;
+      orderBy?: OrderProductsEnum;
     },
     userId?: string,
   ) {
@@ -150,9 +152,11 @@ export class ProductService {
         );
       }
 
-      query.orderBy(
-        'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
-      );
+      if (input.orderBy === OrderProductsEnum.DISTANCE) {
+        query.orderBy(
+          'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+        );
+      }
       query.setParameter('origin', origin);
     }
 
@@ -183,6 +187,14 @@ export class ProductService {
 
     if (input.condition) {
       query.andWhere('condition = :condition', { condition: input.condition });
+    }
+
+    if (input.limit) {
+      query.limit(input.limit);
+    }
+
+    if (input.orderBy === OrderProductsEnum.LATEST) {
+      query.orderBy('created_at', 'DESC');
     }
 
     return await query.getMany();

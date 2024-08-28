@@ -145,6 +145,13 @@ input ProductsInput {
   seasonalCategories: Boolean
   giveaway: Boolean
   condition: String
+  limit: Float
+  orderBy: OrderProductsEnum
+}
+
+enum OrderProductsEnum {
+  DISTANCE
+  LATEST
 }
 
 input CategoryInput {

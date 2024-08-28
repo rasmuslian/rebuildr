@@ -6,6 +6,7 @@ import {
   Mutation,
   ObjectType,
   Query,
+  registerEnumType,
   ResolveField,
   Resolver,
   Root,
@@ -24,6 +25,12 @@ import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
+
+export enum OrderProductsEnum {
+  DISTANCE = 'DISTANCE',
+  LATEST = 'LATEST',
+}
+registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
 @InputType()
 export class FileInputType {
@@ -124,6 +131,12 @@ class ProductsInput {
 
   @Field({ nullable: true })
   condition?: ProductConditionEnum;
+
+  @Field({ nullable: true })
+  limit?: number;
+
+  @Field(() => OrderProductsEnum, { nullable: true })
+  orderBy?: OrderProductsEnum;
 }
 
 @InputType()
