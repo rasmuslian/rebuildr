@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
-import { User } from 'src/entities/user.entity';
+import { File } from 'src/entities/file.entity';
 import { BadUserInputException } from 'src/exceptions';
 import { IsNull, Repository } from 'typeorm';
 
@@ -11,9 +10,8 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-    private caslAbilityFactory: CaslAbilityFactory,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(File)
+    private fileRepository: Repository<File>,
   ) {}
 
   async findOne(id: string) {
@@ -50,5 +48,9 @@ export class CategoryService {
     category.inSeason = input.inSeason ?? category.inSeason;
 
     return await this.categoryRepository.save(category);
+  }
+
+  async findIcon(category: Category) {
+    return this.fileRepository.findOne({ where: { category: category } });
   }
 }

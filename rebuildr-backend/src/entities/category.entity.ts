@@ -1,5 +1,13 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { File } from './file.entity';
 
 @Entity()
 @ObjectType()
@@ -26,4 +34,11 @@ export class Category {
   @Field(() => Boolean)
   @Column({ default: false })
   inSeason: boolean;
+
+  @Column({ nullable: true })
+  iconId?: string;
+
+  @OneToOne(() => File, (file) => file.category, { nullable: true })
+  @JoinColumn()
+  icon?: File;
 }

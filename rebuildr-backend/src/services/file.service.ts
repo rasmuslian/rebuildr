@@ -33,6 +33,10 @@ export class FileService {
     }
   }
 
+  async findOne(id: string) {
+    return await this.fileRepository.findOneBy({ id });
+  }
+
   async create(mimeType: string) {
     let file = new File();
     file.mimeType = mimeType;

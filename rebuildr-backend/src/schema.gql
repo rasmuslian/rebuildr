@@ -2,15 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Category {
-  id: ID!
-  name: String!
-  parentId: String
-  inSelection: Boolean!
-  inSeason: Boolean!
-  children: [Category!]!
-}
-
 type User {
   id: ID!
   email: String!
@@ -21,10 +12,6 @@ type User {
 enum UserRoleEnum {
   USER
   ADMIN
-}
-
-type File {
-  presignedGetUrl: String!
 }
 
 type Product {
@@ -68,6 +55,21 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
+}
+
+type File {
+  id: ID!
+  presignedGetUrl: String!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  parentId: String
+  inSelection: Boolean!
+  inSeason: Boolean!
+  children: [Category!]!
+  icon: File
 }
 
 type RegisterUserResponse {
