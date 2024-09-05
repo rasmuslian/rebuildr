@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -25,6 +25,15 @@ export class CategoryService {
   async findAllRoot() {
     return await this.categoryRepository.findBy({
       parentId: IsNull(),
+    });
+  }
+
+  //TODO: What is a popular category? Find out and implement that instead of below functionality
+  async findPopular(limit?: number) {
+    return await this.categoryRepository.find({
+      where: { parentId: Not(IsNull()) },
+      take: limit,
+      order: { name: 'ASC' },
     });
   }
 

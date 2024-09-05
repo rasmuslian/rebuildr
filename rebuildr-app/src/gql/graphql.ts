@@ -34,6 +34,7 @@ export type Scalars = {
 export type Category = {
   __typename?: "Category";
   children: Array<Category>;
+  icon?: Maybe<File>;
   id: Scalars["ID"]["output"];
   inSeason: Scalars["Boolean"]["output"];
   inSelection: Scalars["Boolean"]["output"];
@@ -103,6 +104,7 @@ export type DeleteProductResponse = {
 
 export type File = {
   __typename?: "File";
+  id: Scalars["ID"]["output"];
   presignedGetUrl: Scalars["String"]["output"];
 };
 
@@ -236,6 +238,10 @@ export enum OrderProductsEnum {
   Latest = "LATEST",
 }
 
+export type PopularCategoriesInput = {
+  limit: Scalars["Int"]["input"];
+};
+
 export type Product = {
   __typename?: "Product";
   address: Scalars["String"]["output"];
@@ -291,6 +297,7 @@ export type Query = {
   conversation: ConversationResponse;
   conversations: Array<ConversationOverviewResponse>;
   me: User;
+  popularCategories: Array<Category>;
   product: Product;
   products: Array<Product>;
   rootCategories: Array<Category>;
@@ -302,6 +309,10 @@ export type QueryCategoryArgs = {
 
 export type QueryConversationArgs = {
   input: ConversationInput;
+};
+
+export type QueryPopularCategoriesArgs = {
+  input?: InputMaybe<PopularCategoriesInput>;
 };
 
 export type QueryProductArgs = {
@@ -496,6 +507,7 @@ export type UpdateCategoryMutation = {
 
 export type LandingQueryQueryVariables = Exact<{
   productsInput: ProductsInput;
+  popularCategoriesInput?: InputMaybe<PopularCategoriesInput>;
 }>;
 
 export type LandingQueryQuery = {
@@ -510,6 +522,12 @@ export type LandingQueryQuery = {
     price: number;
     user: { __typename?: "User"; id: string; email: string };
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+  }>;
+  popularCategories: Array<{
+    __typename?: "Category";
+    id: string;
+    name: string;
+    icon?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
   }>;
 };
 
@@ -1183,6 +1201,17 @@ export const LandingQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "popularCategoriesInput" },
+          },
+          type: {
+            kind: "NamedType",
+            name: { kind: "Name", value: "PopularCategoriesInput" },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -1236,6 +1265,41 @@ export const LandingQueryDocument = {
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "popularCategories" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "popularCategoriesInput" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "icon" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "presignedGetUrl" },

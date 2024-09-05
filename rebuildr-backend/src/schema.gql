@@ -130,6 +130,7 @@ type Query {
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
+  popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
 }
@@ -158,6 +159,10 @@ enum OrderProductsEnum {
 
 input CategoryInput {
   id: String!
+}
+
+input PopularCategoriesInput {
+  limit: Int!
 }
 
 input ConversationInput {

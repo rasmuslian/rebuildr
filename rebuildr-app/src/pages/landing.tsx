@@ -21,9 +21,10 @@ import { Page } from "src/components/layout/page";
 import { Section } from "src/components/layout/section";
 import { ProductCard } from "src/components/productCard";
 import { OrderProductsEnum } from "src/gql/graphql";
+import { PopularCategories } from "src/sections/popularCategories";
 
 const LANDING_QUERY = gql(`
-  query LandingQuery($productsInput: ProductsInput!) {
+  query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {
     rootCategories {
       id
       name
@@ -39,6 +40,14 @@ const LANDING_QUERY = gql(`
       address
       price
       mainImage {
+        presignedGetUrl
+      }
+    }
+    popularCategories(input: $popularCategoriesInput) {
+      id
+      name
+      icon {
+        id
         presignedGetUrl
       }
     }
@@ -59,6 +68,7 @@ export const Landing = () => {
   const { data } = useQuery(LANDING_QUERY, {
     variables: {
       productsInput: { limit: 4, orderBy: OrderProductsEnum.Latest },
+      popularCategoriesInput: { limit: 15 },
     },
   });
 
@@ -228,6 +238,12 @@ export const Landing = () => {
           onPress={() => navigate("Products")}
           style={{ alignSelf: "flex-end" }}
         />
+      </Section>
+      <Section>
+        <Headline type="section" style={{ marginBottom: 32 }}>
+          Populärt
+        </Headline>
+        <PopularCategories categories={data?.popularCategories ?? []} />
       </Section>
     </Page>
   );

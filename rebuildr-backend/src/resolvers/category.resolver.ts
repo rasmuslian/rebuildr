@@ -8,6 +8,7 @@ import {
   ResolveField,
   Root,
   Mutation,
+  Int,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -22,6 +23,12 @@ import { FileService } from 'src/services/file.service';
 class CategoryInput {
   @Field(() => String)
   id: string;
+}
+
+@InputType()
+class PopularCategoriesInput {
+  @Field(() => Int)
+  limit: number;
 }
 
 @InputType()
@@ -55,6 +62,13 @@ export class CategoryResolver {
   @Query(() => [Category])
   rootCategories() {
     return this.categoryService.findAllRoot();
+  }
+
+  @Query(() => [Category])
+  popularCategories(
+    @Args('input', { nullable: true }) input?: PopularCategoriesInput,
+  ) {
+    return this.categoryService.findPopular(input?.limit);
   }
 
   @Mutation(() => Category)
