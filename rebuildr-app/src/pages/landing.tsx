@@ -410,12 +410,18 @@ const categorySliderStyles = StyleSheet.create({
     backgroundColor: Colors.brand,
     flexDirection: "row",
     paddingVertical: 22,
+    small: {
+      marginHorizontal: 8,
+    },
   },
   arrow: {
     justifyContent: "center",
     alignItems: "center",
     width: 37,
     height: 100,
+    small: {
+      display: "none",
+    },
   },
   separator: {
     marginHorizontal: 8,
