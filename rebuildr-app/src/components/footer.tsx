@@ -1,24 +1,68 @@
 import React from "react";
 import { StyleSheet, View, Image } from "react-native";
 import Colors from "src/styles/colors";
-import { FooterText } from "./texts/text";
+import { Body, FooterText, Title } from "./texts/text";
 import logoWhite from "assets/images/logoWhite.png";
 import linkedIn from "assets/images/linkedIn.png";
 import instagram from "assets/images/instagram.png";
+import { Link } from "@react-navigation/native";
+
+const content = [
+  {
+    title: "Om företaget",
+    links: ["Tetur adipiscing", "Commodo consequat", "Laboriosam"],
+  },
+  {
+    title: "Så funkar det",
+    links: ["Tetur adipiscing", "Commodo consequat", "Laboriosam"],
+  },
+  {
+    title: "För företag",
+    links: ["Tetur adipiscing", "Commodo consequat", "Laboriosam"],
+  },
+  {
+    title: "Kontakt & hjälp",
+    links: ["Tetur adipiscing", "Commodo consequat", "Laboriosam"],
+  },
+];
 
 export const Footer = () => {
+  const renderLinkColumn = (title: string, links: string[]) => {
+    return (
+      <View style={styles.linkColumn}>
+        <Title type="small" color="white" upperCase>
+          {title}
+        </Title>
+        {links.map((link) => (
+          <Link to={{ screen: "Landing" }}>
+            <Body color="white">{link}</Body>
+          </Link>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <FooterText color="white">Följ oss på</FooterText>
-      <View style={styles.middlePart}>
-        <Image source={instagram} />
-        <Image source={linkedIn} />
-        <View style={styles.divider} />
-        <Image source={logoWhite} />
+      <View style={styles.linksContainer}>
+        {content.map((c) => renderLinkColumn(c.title, c.links))}
       </View>
-      <FooterText color="white">
-        © 2024 Rebuildr. All rights reserved.
-      </FooterText>
+      <View style={styles.lowerPart}>
+        <FooterText color="white" style={styles.fadeText}>
+          Följ oss på
+        </FooterText>
+        <View style={styles.logoAndSocialsPart}>
+          <View style={styles.socials}>
+            <Image source={instagram} />
+            <Image source={linkedIn} />
+          </View>
+          <Image source={logoWhite} />
+        </View>
+        <View style={styles.divider} />
+        <FooterText color="white" style={styles.fadeText}>
+          © 2024 Rebuildr. All rights reserved.
+        </FooterText>
+      </View>
     </View>
   );
 };
@@ -26,20 +70,37 @@ export const Footer = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.green,
-    height: 185,
     paddingHorizontal: 80,
-    justifyContent: "center",
-    gap: 20,
+    paddingVertical: 60,
   },
-  middlePart: {
+  linksContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    gap: 70,
+    marginBottom: 85,
+  },
+  linkColumn: {
+    gap: 20,
+    flex: 1,
+  },
+  lowerPart: {
+    gap: 17,
+  },
+  logoAndSocialsPart: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 18,
+  },
+  socials: {
+    flexDirection: "row",
+    gap: 12,
   },
   divider: {
     borderStyle: "solid",
     borderWidth: 0.5,
     borderColor: Colors.white,
-    flex: 1,
+    opacity: 0.4,
+  },
+  fadeText: {
+    opacity: 0.5,
   },
 });

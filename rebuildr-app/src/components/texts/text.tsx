@@ -16,7 +16,10 @@ import {
   TitleType,
 } from "./textStyles";
 
-type Props = { color?: TextColors } & TextProps;
+type Props = {
+  color?: TextColors;
+  upperCase?: boolean;
+} & TextProps;
 
 type TitleProps = { type?: TitleType } & Props;
 type HeadlineProps = { type?: HeadlineType } & Props;
@@ -29,15 +32,22 @@ type FooterProps = { type?: FooterType } & Props;
 const Base = ({
   textStyle,
   color = "primary",
+  upperCase,
   ...props
 }: Props & {
   textStyle: TextStyle & ResponsiveStyleType;
 }) => {
   const responsiveStyle = useResponsiveStyle(textStyle);
+
   return (
     <Text
       {...props}
-      style={[responsiveStyle, { color: Colors.text[color] }, props.style]}
+      style={[
+        responsiveStyle,
+        { color: Colors.text[color] },
+        upperCase && { textTransform: "uppercase" },
+        props.style,
+      ]}
     />
   );
 };
