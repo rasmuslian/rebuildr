@@ -34,8 +34,8 @@ export type Scalars = {
 export type Category = {
   __typename?: "Category";
   children: Array<Category>;
-  icon?: Maybe<File>;
   id: Scalars["ID"]["output"];
+  image?: Maybe<File>;
   inSeason: Scalars["Boolean"]["output"];
   inSelection: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
@@ -527,7 +527,7 @@ export type LandingQueryQuery = {
     __typename?: "Category";
     id: string;
     name: string;
-    icon?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
+    image?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
   }>;
 };
 
@@ -1295,7 +1295,7 @@ export const LandingQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "icon" },
+                  name: { kind: "Name", value: "image" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [

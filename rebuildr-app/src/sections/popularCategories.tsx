@@ -8,7 +8,7 @@ interface PopularCategoriesProps {
   categories: {
     id: string;
     name: string;
-    icon?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
+    image?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
   }[];
 }
 
@@ -28,9 +28,9 @@ export const PopularCategories = ({ categories }: PopularCategoriesProps) => {
       >
         <View style={styles.card}>
           <View style={styles.leftCard}>
-            {c.icon ? (
+            {c.image ? (
               <Image
-                source={{ uri: c.icon.presignedGetUrl }}
+                source={{ uri: c.image.presignedGetUrl }}
                 style={styles.image as ImageStyle}
               />
             ) : (

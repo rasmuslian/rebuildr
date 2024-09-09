@@ -69,7 +69,7 @@ type Category {
   inSelection: Boolean!
   inSeason: Boolean!
   children: [Category!]!
-  icon: File
+  image: File
 }
 
 type RegisterUserResponse {

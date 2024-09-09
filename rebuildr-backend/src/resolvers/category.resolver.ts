@@ -84,9 +84,9 @@ export class CategoryResolver {
   }
 
   @ResolveField(() => File, { nullable: true })
-  icon(@Root() _parentCategory: Category) {
-    return _parentCategory.iconId
-      ? this.fileService.findOne(_parentCategory.iconId)
+  image(@Root() _parentCategory: Category) {
+    return _parentCategory.imageId
+      ? this.fileService.findOne(_parentCategory.imageId)
       : null;
   }
 }

@@ -36,9 +36,9 @@ export class Category {
   inSeason: boolean;
 
   @Column({ nullable: true })
-  iconId?: string;
+  imageId?: string;
 
   @OneToOne(() => File, (file) => file.category, { nullable: true })
   @JoinColumn()
-  icon?: File;
+  image?: File;
 }

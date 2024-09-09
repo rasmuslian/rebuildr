@@ -58,8 +58,4 @@ export class CategoryService {
 
     return await this.categoryRepository.save(category);
   }
-
-  async findIcon(category: Category) {
-    return this.fileRepository.findOne({ where: { category: category } });
-  }
 }

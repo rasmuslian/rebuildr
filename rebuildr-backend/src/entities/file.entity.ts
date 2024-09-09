@@ -29,6 +29,6 @@ export class File {
   @ManyToOne(() => Product, (product) => product.id, { nullable: true })
   product?: Product;
 
-  @OneToOne(() => Category, (category) => category.icon, { nullable: true })
+  @OneToOne(() => Category, (category) => category.image, { nullable: true })
   category?: Category;
 }
