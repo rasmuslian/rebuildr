@@ -1,13 +1,7 @@
 import { useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import React, { ReactNode, useCallback, useRef, useState } from "react";
-import {
-  View,
-  Pressable,
-  ImageBackground,
-  StyleSheet,
-  FlatList,
-} from "react-native";
+import { View, Pressable, ImageBackground, FlatList } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
@@ -335,7 +329,7 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
   );
 };
 
-const landingStyle = StyleSheet.create({
+const landingStyle = {
   container: {
     backgroundColor: Colors.green,
     height: 487,
@@ -403,9 +397,9 @@ const landingStyle = StyleSheet.create({
     borderColor: Colors.borderGray,
     borderStyle: "solid",
   },
-});
+} as const;
 
-const categorySliderStyles = StyleSheet.create({
+const categorySliderStyles = {
   categoriesSlider: {
     backgroundColor: Colors.brand,
     flexDirection: "row",
@@ -426,4 +420,4 @@ const categorySliderStyles = StyleSheet.create({
   separator: {
     marginHorizontal: 8,
   },
-});
+} as const;

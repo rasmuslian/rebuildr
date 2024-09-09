@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { Pressable, View, Image, StyleSheet, ScrollView } from "react-native";
+import { Pressable, View, Image, ScrollView, ImageStyle } from "react-native";
 import { Body } from "src/components/texts/text";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import Colors from "src/styles/colors";
@@ -14,7 +14,7 @@ interface PopularCategoriesProps {
 
 export const PopularCategories = ({ categories }: PopularCategoriesProps) => {
   const { navigate } = useNavigation();
-  const style = useResponsiveStyles(styles);
+  const styles = useResponsiveStyles(responsiveStyles);
 
   const renderCategories = () => {
     return categories.map((c, i) => (
@@ -31,7 +31,7 @@ export const PopularCategories = ({ categories }: PopularCategoriesProps) => {
             {c.icon ? (
               <Image
                 source={{ uri: c.icon.presignedGetUrl }}
-                style={styles.image}
+                style={styles.image as ImageStyle}
               />
             ) : (
               <Body style={styles.noImage}>N/A</Body>
@@ -46,21 +46,21 @@ export const PopularCategories = ({ categories }: PopularCategoriesProps) => {
   return (
     <>
       {/* {Mobile view} */}
-      <ScrollView horizontal style={style.scrollContainer}>
+      <ScrollView horizontal style={styles.scrollContainer}>
         <View style={[styles.container, { maxWidth: 2000 }]}>
           {renderCategories()}
         </View>
       </ScrollView>
 
       {/* desktop view */}
-      <View style={[styles.container, style.noScrollContainer]}>
+      <View style={[styles.container, styles.noScrollContainer]}>
         {renderCategories()}
       </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
+const responsiveStyles = {
   scrollContainer: {
     display: "none",
     small: {
@@ -96,4 +96,4 @@ const styles = StyleSheet.create({
   },
   noImage: { textAlign: "center" },
   name: { marginVertical: 20, marginHorizontal: 16 },
-});
+} as const;

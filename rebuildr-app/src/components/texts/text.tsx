@@ -37,13 +37,13 @@ const Base = ({
 }: Props & {
   textStyle: TextStyle & ResponsiveStyleType;
 }) => {
-  const responsiveStyle = useResponsiveStyle(textStyle);
+  const styles = useResponsiveStyle(textStyle);
 
   return (
     <Text
       {...props}
       style={[
-        responsiveStyle,
+        styles,
         { color: Colors.text[color] },
         upperCase && { textTransform: "uppercase" },
         props.style,

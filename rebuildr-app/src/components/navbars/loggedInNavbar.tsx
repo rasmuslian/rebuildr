@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Image, Pressable } from "react-native";
+import { View, Image, Pressable } from "react-native";
 import Colors from "src/styles/colors";
 import { Button } from "../button";
 import logo from "assets/images/logo.png";
@@ -15,7 +15,7 @@ interface LoggedInNavbarProps {
 
 export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
   const { navigate } = useNavigation();
-  const responsiveStyles = useResponsiveStyles(styles);
+  const styles = useResponsiveStyles(responsiveStyles);
 
   return (
     <View style={[styles.container]}>
@@ -24,22 +24,22 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
       </Pressable>
       <View style={styles.ctaButtons}>
         <Link to={{ screen: "Account" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View style={styles.accountButton}>
             <Icon iconType="Person" />
-            <Body style={responsiveStyles.removeOnMobile}>{me.email}</Body>
+            <Body style={styles.removeOnMobile}>{me.email}</Body>
           </View>
         </Link>
         <Button
           onPress={() => navigate("Sell")}
           title="NY ANNONS"
-          style={responsiveStyles.removeOnMobile}
+          style={styles.removeOnMobile}
         />
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const responsiveStyles = {
   container: {
     height: 88,
     justifyContent: "space-between",
@@ -53,9 +53,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 20,
   },
+  accountButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
   removeOnMobile: {
     small: {
       display: "none",
     },
   },
-});
+} as const;
