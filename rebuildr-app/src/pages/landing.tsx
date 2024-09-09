@@ -1,6 +1,12 @@
-import { useQuery, useReactiveVar } from "@apollo/client";
+import { useLazyQuery, useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
-import React, { ReactNode, useCallback, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { View, Pressable, ImageBackground, FlatList } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
@@ -16,14 +22,28 @@ import { Section } from "src/components/layout/section";
 import { OrderProductsEnum } from "src/gql/graphql";
 import { PopularCategories } from "src/sections/popularCategories";
 import { RelevantProducts } from "src/sections/relevantProducts";
+import * as Location from "expo-location";
 
 const LANDING_QUERY = gql(`
-  query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {
+  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {
     rootCategories {
       id
       name
     }
-    products(input: $productsInput) {
+    popularCategories(input: $popularCategoriesInput) {
+      id
+      name
+      image {
+        id
+        presignedGetUrl
+      }
+    }
+  }
+`);
+
+const NEARBY_PRODUCTS_QUERY = gql(`
+  query NearbyProductsQuery($input: ProductsInput!) {
+  products(input: $input) {
       id
       title
       description
@@ -36,17 +56,9 @@ const LANDING_QUERY = gql(`
       mainImage {
         presignedGetUrl
       }
-    }
-    popularCategories(input: $popularCategoriesInput) {
-      id
-      name
-      image {
-        id
-        presignedGetUrl
-      }
-    }
+    } 
   }
-`);
+  `);
 
 const distances = [3, 5, 10, 30, 50, 100];
 
@@ -61,10 +73,38 @@ export const Landing = () => {
 
   const { data } = useQuery(LANDING_QUERY, {
     variables: {
-      productsInput: { limit: 4, orderBy: OrderProductsEnum.Latest },
       popularCategoriesInput: { limit: 15 },
     },
   });
+
+  const [fetchNearbyProducts, { data: nearbyProducts }] = useLazyQuery(
+    NEARBY_PRODUCTS_QUERY,
+  );
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        fetchNearbyProducts({
+          variables: { input: { limit: 4, orderBy: OrderProductsEnum.Latest } },
+        });
+        return;
+      }
+      const _location = await Location.getCurrentPositionAsync();
+      fetchNearbyProducts({
+        variables: {
+          input: {
+            limit: 4,
+            orderBy: OrderProductsEnum.Distance,
+            location: {
+              longitude: _location.coords.longitude,
+              latitude: _location.coords.latitude,
+            },
+          },
+        },
+      });
+    })();
+  }, [fetchNearbyProducts]);
 
   const onSearch = () => {
     navigate("Products", {
@@ -208,7 +248,7 @@ export const Landing = () => {
         <Headline type="section" style={{ marginBottom: 32 }}>
           Nyinkomna varor nära dig
         </Headline>
-        <RelevantProducts products={data?.products ?? []} />
+        <RelevantProducts products={nearbyProducts?.products ?? []} />
       </Section>
       <Section>
         <Headline type="section" style={{ marginBottom: 32 }}>

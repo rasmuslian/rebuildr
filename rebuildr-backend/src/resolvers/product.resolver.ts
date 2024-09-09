@@ -107,12 +107,22 @@ export class CreateProductResponse {
 }
 
 @InputType()
-class ProductsInput {
+class LocationType {
+  @Field()
+  longitude: number;
+  @Field()
+  latitude: number;
+}
+@InputType()
+export class ProductsInput {
   @Field({ nullable: true })
   searchString?: string;
 
   @Field({ nullable: true })
   address?: string;
+
+  @Field(() => LocationType, { nullable: true })
+  location?: LocationType;
 
   @Field({ nullable: true })
   distance?: number;

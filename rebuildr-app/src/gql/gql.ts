@@ -31,8 +31,10 @@ const documents = {
     types.EditCategoriesQueryDocument,
   "\n  mutation UpdateCategory($input: UpdateCategoryInput!) {\n    updateCategory(input: $input) {\n      id\n      inSelection\n      inSeason\n    }\n  }\n  ":
     types.UpdateCategoryDocument,
-  "\n  query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    products(input: $productsInput) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n":
+  "\n  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n":
     types.LandingQueryDocument,
+  "\n  query NearbyProductsQuery($input: ProductsInput!) {\n  products(input: $input) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  ":
+    types.NearbyProductsQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      refreshToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
   "\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
@@ -135,8 +137,14 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    products(input: $productsInput) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    products(input: $productsInput) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n"];
+  source: "\n  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {\n    rootCategories {\n      id\n      name\n    }\n    popularCategories(input: $popularCategoriesInput) {\n      id\n      name\n      image {\n        id\n        presignedGetUrl\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query NearbyProductsQuery($input: ProductsInput!) {\n  products(input: $input) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  ",
+): (typeof documents)["\n  query NearbyProductsQuery($input: ProductsInput!) {\n  products(input: $input) {\n      id\n      title\n      description\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

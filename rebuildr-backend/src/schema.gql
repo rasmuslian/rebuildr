@@ -142,6 +142,7 @@ input GetProductInput {
 input ProductsInput {
   searchString: String
   address: String
+  location: LocationType
   distance: Float
   categoryId: String
   selectionCategories: Boolean
@@ -150,6 +151,11 @@ input ProductsInput {
   condition: String
   limit: Float
   orderBy: OrderProductsEnum
+}
+
+input LocationType {
+  longitude: Float!
+  latitude: Float!
 }
 
 enum OrderProductsEnum {
