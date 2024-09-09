@@ -27,14 +27,14 @@ const content = [
 ];
 
 export const Footer = () => {
-  const renderLinkColumn = (title: string, links: string[]) => {
+  const renderLinkColumn = (title: string, links: string[], key: number) => {
     return (
-      <View style={styles.linkColumn}>
+      <View style={styles.linkColumn} key={key}>
         <Title type="small" color="white" upperCase>
           {title}
         </Title>
-        {links.map((link) => (
-          <Link to={{ screen: "Landing" }}>
+        {links.map((link, i) => (
+          <Link to={{ screen: "Landing" }} key={i}>
             <Body color="white">{link}</Body>
           </Link>
         ))}
@@ -45,7 +45,7 @@ export const Footer = () => {
   return (
     <View style={styles.container}>
       <View style={styles.linksContainer}>
-        {content.map((c) => renderLinkColumn(c.title, c.links))}
+        {content.map((c, i) => renderLinkColumn(c.title, c.links, i))}
       </View>
       <View style={styles.lowerPart}>
         <FooterText color="white" style={styles.fadeText}>
