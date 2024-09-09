@@ -10,7 +10,7 @@ interface ProductCardProps {
   description?: string;
   price: number;
   address: string;
-  mainImage?: { presignedGetUrl };
+  mainImage?: { presignedGetUrl: string };
   user: { email: string };
 }
 
@@ -28,7 +28,7 @@ export const ProductCard = ({
     <Pressable onPress={() => navigate("ProductDetails", { productId: id })}>
       {mainImage ? (
         <Image
-          source={mainImage.presignedGetUrl}
+          source={{ uri: mainImage.presignedGetUrl }}
           style={[styles.upperContainer, styles.image]}
         />
       ) : (

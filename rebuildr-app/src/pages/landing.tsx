@@ -13,9 +13,9 @@ import { InputAndSelect } from "src/components/inputs/inputAndSelect";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import { Page } from "src/components/layout/page";
 import { Section } from "src/components/layout/section";
-import { ProductCard } from "src/components/productCard";
 import { OrderProductsEnum } from "src/gql/graphql";
 import { PopularCategories } from "src/sections/popularCategories";
+import { RelevantProducts } from "src/sections/relevantProducts";
 
 const LANDING_QUERY = gql(`
   query LandingQuery($productsInput: ProductsInput!, $popularCategoriesInput: PopularCategoriesInput) {
@@ -40,7 +40,7 @@ const LANDING_QUERY = gql(`
     popularCategories(input: $popularCategoriesInput) {
       id
       name
-      icon {
+      image {
         id
         presignedGetUrl
       }
@@ -208,30 +208,7 @@ export const Landing = () => {
         <Headline type="section" style={{ marginBottom: 32 }}>
           Nyinkomna varor nära dig
         </Headline>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: 24,
-            marginBottom: 24,
-          }}
-        >
-          {data?.products.map((product, i) => (
-            <View
-              key={i}
-              style={{
-                flex: 1,
-              }}
-            >
-              <ProductCard {...product} />
-            </View>
-          ))}
-        </View>
-        <Button
-          title="Se fler"
-          onPress={() => navigate("Products")}
-          style={{ alignSelf: "flex-end" }}
-        />
+        <RelevantProducts products={data?.products ?? []} />
       </Section>
       <Section>
         <Headline type="section" style={{ marginBottom: 32 }}>
@@ -357,7 +334,7 @@ const landingStyle = {
     marginBottom: -1,
   },
   searchContainer: {
-    width: 653,
+    minWidth: 653,
     backgroundColor: Colors.brand,
     paddingVertical: 24,
     paddingHorizontal: 24,
@@ -365,7 +342,10 @@ const landingStyle = {
     justifyContent: "space-between",
     borderRadius: 8,
     small: {
-      width: 453,
+      minWidth: 453,
+    },
+    mobile: {
+      minWidth: 300,
     },
   },
   searchButton: {

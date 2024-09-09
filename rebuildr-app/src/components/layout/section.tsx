@@ -1,11 +1,13 @@
 import React from "react";
-import { View, ViewProps, StyleSheet } from "react-native";
+import { View, ViewProps } from "react-native";
+import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 interface SectionProps extends ViewProps {
   fullWidth?: boolean;
 }
 
 export const Section = ({ fullWidth, ...props }: SectionProps) => {
+  const styles = useResponsiveStyles(responsiveStyles);
   return (
     <View
       style={[
@@ -19,9 +21,12 @@ export const Section = ({ fullWidth, ...props }: SectionProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const responsiveStyles = {
   container: {
     marginHorizontal: 80,
     marginBottom: 56,
+    small: {
+      marginHorizontal: 40,
+    },
   },
-});
+} as const;

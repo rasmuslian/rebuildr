@@ -1,11 +1,12 @@
 import React from "react";
-import { StyleSheet, View, Image } from "react-native";
+import { View, Image } from "react-native";
 import Colors from "src/styles/colors";
 import { Body, FooterText, Title } from "./texts/text";
 import logoWhite from "assets/images/logoWhite.png";
 import linkedIn from "assets/images/linkedIn.png";
 import instagram from "assets/images/instagram.png";
 import { Link } from "@react-navigation/native";
+import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 const content = [
   {
@@ -27,6 +28,7 @@ const content = [
 ];
 
 export const Footer = () => {
+  const styles = useResponsiveStyles(responsiveStyles);
   const renderLinkColumn = (title: string, links: string[], key: number) => {
     return (
       <View style={styles.linkColumn} key={key}>
@@ -67,7 +69,7 @@ export const Footer = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const responsiveStyles = {
   container: {
     backgroundColor: Colors.green,
     paddingHorizontal: 80,
@@ -77,6 +79,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 70,
     marginBottom: 85,
+    flexWrap: "wrap",
+    small: {
+      display: "none",
+    },
   },
   linkColumn: {
     gap: 20,
@@ -103,4 +109,4 @@ const styles = StyleSheet.create({
   fadeText: {
     opacity: 0.5,
   },
-});
+} as const;
