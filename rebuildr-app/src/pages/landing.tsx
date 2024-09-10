@@ -61,12 +61,13 @@ const NEARBY_PRODUCTS_QUERY = gql(`
   }
   `);
 
-const distances = [3, 5, 10, 30, 50, 100];
+//0 indicates no distance
+const distances = [3, 5, 10, 30, 50, 100, 0];
 
 export const Landing = () => {
   const [searchString, setSearchString] = useState("");
   const [address, setAddress] = useState("");
-  const [distance, setDistance] = useState<number>();
+  const [distance, setDistance] = useState<number | undefined>();
   const styles = useResponsiveStyles(landingStyle);
 
   const { navigate } = useNavigation();
@@ -109,7 +110,7 @@ export const Landing = () => {
 
   const onSearch = () => {
     navigate("Products", {
-      distance: distance,
+      distance: !!address ? distance : undefined,
       searchString: searchString || undefined,
       address: address || undefined,
     });
@@ -177,9 +178,9 @@ export const Landing = () => {
                 style={styles.input}
                 options={distances.map((dist, i) => ({
                   value: dist,
-                  label: `< ${dist} km`,
+                  label: dist === 0 ? "Obegränsat" : `< ${dist} km`,
                 }))}
-                onSelect={(value) => setDistance(value)}
+                onSelect={(value) => setDistance(value || undefined)}
                 selectedValue={distance}
                 selectPlaceHolder={
                   <View style={styles.defaultSelectElement}>
