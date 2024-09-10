@@ -1,8 +1,11 @@
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { Pressable, View, Image, StyleSheet } from "react-native";
+import { Pressable, View, Image, ImageStyle } from "react-native";
 import Colors from "src/styles/colors";
 import { Body, Title } from "./texts/text";
+import { formatMetersToKm } from "src/utils/distanceHandling";
+import { Icon } from "./icons/icon";
+import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 interface ProductCardProps {
   id: string;
@@ -12,6 +15,7 @@ interface ProductCardProps {
   address: string;
   mainImage?: { presignedGetUrl: string };
   user: { email: string };
+  distance?: number;
 }
 
 export const ProductCard = ({
@@ -22,18 +26,29 @@ export const ProductCard = ({
   address,
   user,
   mainImage,
+  distance,
 }: ProductCardProps) => {
   const { navigate } = useNavigation();
+  const styles = useResponsiveStyles(responsiveStyles);
   return (
     <Pressable onPress={() => navigate("ProductDetails", { productId: id })}>
       {mainImage ? (
         <Image
           source={{ uri: mainImage.presignedGetUrl }}
-          style={[styles.upperContainer, styles.image]}
+          style={[
+            styles.upperContainer as ImageStyle,
+            styles.image as ImageStyle,
+          ]}
         />
       ) : (
         <View style={[styles.upperContainer, styles.noImage]}>
           <Body>Bild saknas</Body>
+        </View>
+      )}
+      {distance && (
+        <View style={styles.distanceContainer}>
+          <Icon iconType="CrossHair" />
+          <Body style={styles.distance}>{formatMetersToKm(distance)} km</Body>
         </View>
       )}
       <View style={styles.lowerContainer}>
@@ -46,20 +61,21 @@ export const ProductCard = ({
           <Body color="pale">Plats: {address}</Body>
         </View>
         <View style={styles.priceContainer}>
-          <Title style={styles.price}>Pris: {price} Kr</Title>
+          <Title>Pris: {price} Kr</Title>
         </View>
       </View>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
+const responsiveStyles = {
   upperContainer: {
     borderColor: Colors.borderGray,
     borderWidth: 1,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     borderStyle: "solid",
+    position: "relative",
   },
   image: {
     height: 261,
@@ -69,6 +85,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.inactiveGray,
     justifyContent: "center",
     alignItems: "center",
+  },
+  distanceContainer: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.white2,
+    opacity: 0.9,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+    small: {
+      display: "none",
+    },
+  },
+  distance: {
+    marginTop: 1,
   },
   lowerContainer: {
     borderColor: Colors.borderGray,
@@ -93,7 +128,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   priceContainer: {
-    // height: 42,
     borderColor: Colors.borderGray,
     borderTopWidth: 0.5,
     borderStyle: "solid",
@@ -101,8 +135,4 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 10,
   },
-  price: {
-    // marginBottom: 10,
-    // paddingHorizontal: 16,
-  },
-});
+} as const;

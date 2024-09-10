@@ -20,6 +20,7 @@ type ColorsType = {
   green: string;
   pale: string;
   white: string;
+  white2: string;
   text: TextColorsType;
   button: ButtonColorsType;
 };
@@ -32,6 +33,7 @@ const Colors: ColorsType = {
   green: "#00493E",
   pale: "#FDFAF6",
   white: "#FFFFFF",
+  white2: "#F6F6F6",
   text: {
     primary: "#040404",
     brand: "#F2E6D1",

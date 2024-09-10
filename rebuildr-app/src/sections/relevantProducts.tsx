@@ -1,8 +1,11 @@
 import { useNavigation } from "@react-navigation/native";
 import { ScrollView, View } from "react-native";
 import { Button } from "src/components/button";
+import { Icon } from "src/components/icons/icon";
 import { ProductCard } from "src/components/productCard";
+import { Body } from "src/components/texts/text";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
+import { formatMetersToKm } from "src/utils/distanceHandling";
 
 interface RelevantProductsProps {
   products: {
@@ -12,6 +15,7 @@ interface RelevantProductsProps {
     address: string;
     price: number;
     user: { __typename?: "User"; id: string; email: string };
+    distanceFromPosition?: number | null;
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }[];
 }
@@ -19,25 +23,35 @@ interface RelevantProductsProps {
 export const RelevantProducts = ({ products }: RelevantProductsProps) => {
   const { navigate } = useNavigation();
   const styles = useResponsiveStyles(responsiveStyles);
+
+  const renderProducts = () => {
+    return products.map((product, i) => (
+      <View key={i} style={styles.cardContainer}>
+        <ProductCard {...product} distance={product.distanceFromPosition} />
+        {product.distanceFromPosition && (
+          <View style={styles.distanceContainer}>
+            <Body>Avstånd från</Body>
+            <Icon iconType="CrossHair" />
+            <Body style={styles.distance}>
+              {formatMetersToKm(product.distanceFromPosition)} km
+            </Body>
+          </View>
+        )}
+      </View>
+    ));
+  };
+
   return (
     <View>
       <View style={[styles.container, styles.noScrollContainer]}>
-        {products.map((product, i) => (
-          <View key={i} style={styles.cardContainer}>
-            <ProductCard {...product} />
-          </View>
-        ))}
+        {renderProducts()}
       </View>
       <ScrollView
         horizontal
         style={(styles.container, styles.scrollContainer)}
         contentContainerStyle={{ gap: 24 }}
       >
-        {products.map((product, i) => (
-          <View key={i} style={styles.cardContainer}>
-            <ProductCard {...product} />
-          </View>
-        ))}
+        {renderProducts()}
       </ScrollView>
       <Button
         title="Se fler"
@@ -69,5 +83,16 @@ const responsiveStyles = {
   cardContainer: {
     flex: 1,
   },
+  distanceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 6,
+    display: "none",
+    small: {
+      display: undefined,
+    },
+  },
+  distance: { marginTop: 1 },
   button: { alignSelf: "flex-end" },
 } as const;
