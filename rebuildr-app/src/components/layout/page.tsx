@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Footer } from "../footer";
 import { Headline } from "../texts/text";
+import Colors from "src/styles/colors";
 
 interface PageProps extends PropsWithChildren {
   title?: string;
@@ -29,6 +30,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "space-between",
+    backgroundColor: Colors.white2,
   },
   title: {
     marginBottom: 60,

@@ -93,7 +93,7 @@ const responsiveStyles = {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.white2,
+    backgroundColor: Colors.white3,
     opacity: 0.9,
     paddingVertical: 6,
     paddingHorizontal: 11,
@@ -112,6 +112,7 @@ const responsiveStyles = {
     borderBottomRightRadius: 10,
     borderStyle: "solid",
     flex: 1,
+    backgroundColor: Colors.white,
   },
   textContainer: {
     paddingHorizontal: 16,
