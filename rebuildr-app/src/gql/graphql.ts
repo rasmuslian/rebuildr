@@ -258,6 +258,7 @@ export type Product = {
   /** Unit: millimeter */
   depth?: Maybe<Scalars["Int"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
+  distanceFromPosition?: Maybe<Scalars["Float"]["output"]>;
   /** Unit: millimeter */
   height?: Maybe<Scalars["Int"]["output"]>;
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
@@ -289,7 +290,6 @@ export type ProductsInput = {
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
   limit?: InputMaybe<Scalars["Float"]["input"]>;
-  /** Alternative to 'address' */
   location?: InputMaybe<LocationType>;
   orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
@@ -538,6 +538,7 @@ export type NearbyProductsQueryQuery = {
     id: string;
     title: string;
     description?: string | null;
+    distanceFromPosition?: number | null;
     address: string;
     price: number;
     user: { __typename?: "User"; id: string; email: string };
@@ -1312,6 +1313,10 @@ export const NearbyProductsQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "title" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "distanceFromPosition" },
+                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "user" },

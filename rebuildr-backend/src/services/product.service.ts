@@ -148,13 +148,17 @@ export class ProductService {
           { origin, distance },
         );
       }
+      query.addSelect(
+        'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+        'distance_from_position',
+      );
 
       if (input.orderBy === OrderProductsEnum.DISTANCE) {
         query.orderBy(
           'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
         );
-        query.setParameter('origin', origin);
       }
+      query.setParameter('origin', origin);
     }
 
     //Include products based on category criterias
@@ -194,7 +198,23 @@ export class ProductService {
       query.orderBy('created_at', 'DESC');
     }
 
-    return await query.getMany();
+    const result = await query.getRawMany();
+
+    //Mapping result into Product.
+    //Since we fetch with 'getRawMany' all fields which belong to the Product table
+    //will be snake case and prefixed with 'product_'
+    const mappedObjects = result.map((rawProduct) => {
+      const prodObj = Object.entries(rawProduct).reduce((acc, entry) => {
+        const [key, value] = entry;
+        const removedPrefix = key.replace(/^product_/, '');
+        const camelCaseKey = removedPrefix.replace(/(_\w)/g, function (match) {
+          return match[1].toUpperCase();
+        });
+        return { ...acc, [camelCaseKey]: value };
+      }, {});
+      return prodObj;
+    });
+    return mappedObjects;
   }
 
   async findOne(id: string) {

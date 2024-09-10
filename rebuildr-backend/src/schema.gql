@@ -38,6 +38,7 @@ type Product {
   volume: Int
   condition: ProductConditionEnum!
   description: String
+  distanceFromPosition: Float
   category: Category!
   user: User!
   images: [File!]!

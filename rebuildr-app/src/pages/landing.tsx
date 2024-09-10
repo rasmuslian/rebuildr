@@ -47,6 +47,7 @@ const NEARBY_PRODUCTS_QUERY = gql(`
       id
       title
       description
+      distanceFromPosition
       user {
         id
         email
