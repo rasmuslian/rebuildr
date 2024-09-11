@@ -37,6 +37,8 @@ import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
 import { MailService } from './services/mail.service';
 import { RolesGuard } from './auth/roles.guard';
 import { GeocodingResolver } from './resolvers/geocoding.resolver';
+import { Event } from './entities/event.entity';
+import { EventService } from './services/event.service';
 
 @Module({
   imports: [
@@ -62,6 +64,7 @@ import { GeocodingResolver } from './resolvers/geocoding.resolver';
       Message,
       File,
       RefreshToken,
+      Event,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -106,6 +109,7 @@ import { GeocodingResolver } from './resolvers/geocoding.resolver';
     MailService,
     RolesGuard,
     GeocodingResolver,
+    EventService,
   ],
 })
 export class AppModule {}

@@ -25,6 +25,7 @@ import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
+import { EventService } from 'src/services/event.service';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -181,6 +182,7 @@ class ShowProductInput {
   @Field()
   id: string;
 }
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -188,10 +190,16 @@ export class ProductResolver {
     private userService: UserService,
     private categoryService: CategoryService,
     private fileService: FileService,
+    private eventService: EventService,
   ) {}
 
   @Query(() => Product)
-  async product(@Args('input') input: GetProductInput) {
+  @UseGuards(GqlOptionalAuthGuard)
+  async product(
+    @Args('input') input: GetProductInput,
+    @CurrentUser() user?: AuthedUserType,
+  ) {
+    await this.eventService.recordProductVisit(input.id, user?.id);
     return this.productService.findOne(input.id);
   }
 
