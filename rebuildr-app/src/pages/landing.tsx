@@ -43,7 +43,7 @@ const LANDING_QUERY = gql(`
 
 const NEARBY_PRODUCTS_QUERY = gql(`
   query NearbyProductsQuery($input: ProductsInput!) {
-  products(input: $input) {
+    products(input: $input) {
       id
       title
       description
@@ -58,6 +58,14 @@ const NEARBY_PRODUCTS_QUERY = gql(`
         presignedGetUrl
       }
     } 
+  }
+  `);
+
+const LOCATION_TO_ADDRESS_QUERY = gql(`
+  query LocationToAddress($input: GetAddressInput!) {
+    locationToAddress(input: $input) {
+      address
+    }
   }
   `);
 
@@ -82,6 +90,8 @@ export const Landing = () => {
   const [fetchNearbyProducts, { data: nearbyProducts }] = useLazyQuery(
     NEARBY_PRODUCTS_QUERY,
   );
+  const [getAddress, { error: getAddressError, loading: getAddressLoading }] =
+    useLazyQuery(LOCATION_TO_ADDRESS_QUERY);
 
   useEffect(() => {
     (async () => {
@@ -92,21 +102,49 @@ export const Landing = () => {
         });
         return;
       }
-      const _location = await Location.getCurrentPositionAsync();
+      const position = await Location.getCurrentPositionAsync();
       fetchNearbyProducts({
         variables: {
           input: {
             limit: 4,
             orderBy: OrderProductsEnum.Distance,
             location: {
-              longitude: _location.coords.longitude,
-              latitude: _location.coords.latitude,
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
             },
           },
         },
       });
     })();
   }, [fetchNearbyProducts]);
+
+  const onGetMyLocation = async () => {
+    if (getAddressLoading) {
+      return;
+    }
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      throw new Error("Location permission denied");
+    }
+
+    const position = await Location.getCurrentPositionAsync();
+
+    getAddress({
+      variables: {
+        input: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        },
+      },
+      onCompleted: (data) => {
+        setAddress(data.locationToAddress.address);
+      },
+      onError: () => {
+        setAddress(address);
+      },
+    });
+  };
 
   const onSearch = () => {
     navigate("Products", {
@@ -191,14 +229,25 @@ export const Landing = () => {
                   </View>
                 }
               />
-              <Button
-                title="HITTA"
-                onPress={onSearch}
-                titleColor="white"
-                backgroundColor="purple"
-                shape="rectangle"
-                style={styles.searchButton}
-              />
+              <View style={styles.searchBottomContainer}>
+                <View style={styles.addresToLocationContainer}>
+                  <Icon iconType="CrossHair" />
+                  <Pressable onPress={() => onGetMyLocation()}>
+                    <InputText color={getAddressError ? "error" : "pale"}>
+                      Nära dig
+                    </InputText>
+                  </Pressable>
+                </View>
+                <Button
+                  title="HITTA"
+                  onPress={onSearch}
+                  titleColor="white"
+                  backgroundColor="purple"
+                  shape="rectangle"
+                  style={styles.searchButton}
+                />
+                <View style={styles.fillerView} />
+              </View>
             </View>
           </View>
         </ImageBackground>
@@ -388,6 +437,23 @@ const landingStyle = {
     },
     mobile: {
       minWidth: 300,
+    },
+  },
+  searchBottomContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  addresToLocationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  fillerView: {
+    flex: 1,
+    small: {
+      display: "none",
     },
   },
   searchButton: {

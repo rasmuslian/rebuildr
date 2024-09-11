@@ -124,6 +124,10 @@ type ConversationOverviewResponse {
   latestMessageAt: DateTime!
 }
 
+type GetAddressResponse {
+  address: String!
+}
+
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
@@ -134,6 +138,7 @@ type Query {
   popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
+  locationToAddress(input: GetAddressInput!): GetAddressResponse!
 }
 
 input GetProductInput {
@@ -175,6 +180,11 @@ input PopularCategoriesInput {
 input ConversationInput {
   otherUserId: String!
   productId: String!
+}
+
+input GetAddressInput {
+  latitude: Float!
+  longitude: Float!
 }
 
 type Mutation {

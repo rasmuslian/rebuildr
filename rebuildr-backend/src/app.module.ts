@@ -36,6 +36,7 @@ import { CaslAbilityFactory } from './casl/caslAbility.factory';
 import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
 import { MailService } from './services/mail.service';
 import { RolesGuard } from './auth/roles.guard';
+import { GeocodingResolver } from './resolvers/geocoding.resolver';
 
 @Module({
   imports: [
@@ -104,6 +105,7 @@ import { RolesGuard } from './auth/roles.guard';
     GqlOptionalAuthGuard,
     MailService,
     RolesGuard,
+    GeocodingResolver,
   ],
 })
 export class AppModule {}

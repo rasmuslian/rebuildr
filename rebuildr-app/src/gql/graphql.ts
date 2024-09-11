@@ -112,6 +112,16 @@ export type FileInputType = {
   mimeType: Scalars["String"]["input"];
 };
 
+export type GetAddressInput = {
+  latitude: Scalars["Float"]["input"];
+  longitude: Scalars["Float"]["input"];
+};
+
+export type GetAddressResponse = {
+  __typename?: "GetAddressResponse";
+  address: Scalars["String"]["output"];
+};
+
 export type GetNewTokensInput = {
   accessToken: Scalars["String"]["input"];
   refreshToken: Scalars["String"]["input"];
@@ -303,6 +313,7 @@ export type Query = {
   category: Category;
   conversation: ConversationResponse;
   conversations: Array<ConversationOverviewResponse>;
+  locationToAddress: GetAddressResponse;
   me: User;
   popularCategories: Array<Category>;
   product: Product;
@@ -316,6 +327,10 @@ export type QueryCategoryArgs = {
 
 export type QueryConversationArgs = {
   input: ConversationInput;
+};
+
+export type QueryLocationToAddressArgs = {
+  input: GetAddressInput;
 };
 
 export type QueryPopularCategoriesArgs = {
@@ -544,6 +559,15 @@ export type NearbyProductsQueryQuery = {
     user: { __typename?: "User"; id: string; email: string };
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }>;
+};
+
+export type LocationToAddressQueryVariables = Exact<{
+  input: GetAddressInput;
+}>;
+
+export type LocationToAddressQuery = {
+  __typename?: "Query";
+  locationToAddress: { __typename?: "GetAddressResponse"; address: string };
 };
 
 export type LoginMutationVariables = Exact<{
@@ -1353,6 +1377,60 @@ export const NearbyProductsQueryDocument = {
 } as unknown as DocumentNode<
   NearbyProductsQueryQuery,
   NearbyProductsQueryQueryVariables
+>;
+export const LocationToAddressDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "LocationToAddress" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "GetAddressInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "locationToAddress" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  LocationToAddressQuery,
+  LocationToAddressQueryVariables
 >;
 export const LoginDocument = {
   kind: "Document",

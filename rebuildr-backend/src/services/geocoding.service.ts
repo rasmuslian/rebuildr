@@ -1,6 +1,11 @@
-import { Client, GeocodeResult } from '@googlemaps/google-maps-services-js';
+import {
+  Client,
+  GeocodeResult,
+  Language,
+} from '@googlemaps/google-maps-services-js';
 import { Injectable } from '@nestjs/common';
-import { InternalServerException, BadUserInputException } from 'src/exceptions';
+import { BadUserInputException, InternalServerException } from 'src/exceptions';
+import { GetAddressInput } from 'src/resolvers/geocoding.resolver';
 
 @Injectable()
 export class GeocodingService {
@@ -28,5 +33,26 @@ export class GeocodingService {
       longitude: location.lng,
       latitude: location.lat,
     };
+  }
+
+  async locationToAddress(location: GetAddressInput) {
+    let result: GeocodeResult;
+    try {
+      const r = await this.client.reverseGeocode({
+        params: {
+          latlng: { lat: location.latitude, lng: location.longitude },
+          language: Language.sv,
+          key: process.env.GOOGLE_GEOCODING_API_KEY,
+        },
+      });
+      result = r.data.results[0];
+    } catch (e) {
+      throw InternalServerException();
+    }
+
+    if (!result) {
+      throw BadUserInputException('Could not find address');
+    }
+    return { address: result.formatted_address };
   }
 }

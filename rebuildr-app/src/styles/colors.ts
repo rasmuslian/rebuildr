@@ -3,6 +3,7 @@ type TextColorsType = {
   brand: string;
   white: string;
   pale: string;
+  error: string;
 };
 export type TextColors = keyof TextColorsType;
 
@@ -41,6 +42,7 @@ const Colors: ColorsType = {
     brand: "#F2E6D1",
     white: "#FFFFFF",
     pale: "#828282",
+    error: "#FF0000",
   },
   button: {
     purple: "#863CFF",
