@@ -60,7 +60,7 @@ export const InputAndSelect = <T extends string | number>({
   };
 
   return (
-    <View style={props.style}>
+    <View style={[styles.container, props.style]}>
       {label && (
         <InputText style={styles.label} type="label">
           {label}
@@ -68,17 +68,17 @@ export const InputAndSelect = <T extends string | number>({
       )}
       <View
         style={[
-          styles.container,
+          styles.inputContainer,
           inputFocused && {
             borderColor: Colors.blue,
             borderWidth: 2,
-            padding: 0,
+            padding: 0.25,
           },
         ]}
       >
         <TextInput
           {...props}
-          style={[styles.inputContainer, textStyles.input.default]}
+          style={[styles.input, textStyles.input.default]}
           onChangeText={onChange}
           placeholder={placeholder}
           value={value}
@@ -134,6 +134,9 @@ export const InputAndSelect = <T extends string | number>({
 
 export const styles = StyleSheet.create({
   container: {
+    zIndex: 1,
+  },
+  inputContainer: {
     minWidth: 300,
     borderColor: Colors.borderGray,
     borderStyle: "solid",
@@ -147,7 +150,7 @@ export const styles = StyleSheet.create({
   label: {
     marginBottom: 5,
   },
-  inputContainer: {
+  input: {
     flex: 1,
     padding: 10,
     outlineStyle: "none",
