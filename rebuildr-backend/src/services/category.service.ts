@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { File } from 'src/entities/file.entity';
+import { Event, EventType } from 'src/entities/event.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-    @InjectRepository(File)
-    private fileRepository: Repository<File>,
   ) {}
 
   async findOne(id: string) {
@@ -28,13 +26,34 @@ export class CategoryService {
     });
   }
 
-  //TODO: What is a popular category? Find out and implement that instead of below functionality
   async findPopular(limit?: number) {
-    return await this.categoryRepository.find({
-      where: { parentId: Not(IsNull()) },
-      take: limit,
-      order: { name: 'ASC' },
-    });
+    return await this.categoryRepository
+      .createQueryBuilder('c')
+      .where((qb) => {
+        //Finds id's of all categories
+        const categoryIds = qb
+          .subQuery()
+          .select('value')
+          .from((qb) => {
+            //Finds all events that has to do with categories.
+            //Group them by value (aka categoryId), count them and order by count
+            //to get most popular first
+            return qb
+              .subQuery()
+              .select('count(*), e.value::uuid')
+              .from(Event, 'e')
+              .where('type = :eventType', {
+                eventType: EventType.CATEGORY_VISIT,
+              })
+              .groupBy('value')
+              .orderBy('count', 'DESC')
+              .limit(limit);
+          }, 'ordered_events')
+          .getQuery();
+
+        return 'c.id IN ' + categoryIds;
+      })
+      .getMany();
   }
 
   async findChildren(parentId: string) {
