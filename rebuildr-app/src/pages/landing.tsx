@@ -11,7 +11,12 @@ import { View, Pressable, ImageBackground, FlatList } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
-import { ButtonText, Headline, InputText } from "src/components/texts/text";
+import {
+  ButtonText,
+  Headline,
+  InputText,
+  Title,
+} from "src/components/texts/text";
 import { gql } from "src/gql";
 import Colors from "src/styles/colors";
 import { isLoggedInVar } from "src/apollo/apollo";
@@ -207,6 +212,34 @@ export const Landing = () => {
                 value={searchString}
                 placeholder={"Vad letar du efter?"}
                 style={styles.input}
+                dropdown={
+                  <View style={styles.searchSuggestionsDropdownContainer}>
+                    <Title
+                      type="xs"
+                      style={styles.searchSuggestionDopdownTitle}
+                    >
+                      Populära sökningar
+                    </Title>
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                    >
+                      {data?.popularCategories.map((category) => (
+                        <Pressable
+                          key={category.id}
+                          onPress={() =>
+                            navigate("Products", { categoryId: category.id })
+                          }
+                        >
+                          <View style={styles.searchSuggestionDropdownCategory}>
+                            <ButtonText type="detail">
+                              {category.name}
+                            </ButtonText>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                }
               />
               <InputAndSelect
                 label="Område"
@@ -439,6 +472,22 @@ const landingStyle = {
       minWidth: 300,
     },
   },
+  searchSuggestionsDropdownContainer: {
+    backgroundColor: Colors.pale,
+    padding: 24,
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 10,
+  },
+  searchSuggestionDopdownTitle: { marginBottom: 20 },
+  searchSuggestionDropdownCategory: {
+    paddingVertical: 10,
+    paddingHorizontal: 17,
+    borderWidth: 2,
+    borderRadius: 8,
+    borderStyle: "solid",
+    borderColor: Colors.softGray,
+    backgroundColor: Colors.lavender,
+  },
   searchBottomContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -480,7 +529,7 @@ const landingStyle = {
   },
   specialCategoryCard: {
     borderRadius: 8,
-    backgroundColor: "#F5EEFF",
+    backgroundColor: Colors.lavender,
     borderWidth: 1,
     borderColor: Colors.borderGray,
     borderStyle: "solid",

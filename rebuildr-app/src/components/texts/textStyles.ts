@@ -29,9 +29,14 @@ export const textStyles = {
       fontSize: 18,
       letterSpacing: -0.02,
     },
-    small: {
+    s: {
       fontFamily: "Poppins-SemiBold",
       fontSize: 16,
+      letterSpacing: 0.45,
+    },
+    xs: {
+      fontFamily: "Poppins-SemiBold",
+      fontSize: 14,
       letterSpacing: 0.45,
     },
   },

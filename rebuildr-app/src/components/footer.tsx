@@ -32,7 +32,7 @@ export const Footer = () => {
   const renderLinkColumn = (title: string, links: string[], key: number) => {
     return (
       <View style={styles.linkColumn} key={key}>
-        <Title type="small" color="white" upperCase>
+        <Title type="s" color="white" upperCase>
           {title}
         </Title>
         {links.map((link, i) => (
