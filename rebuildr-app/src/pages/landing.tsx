@@ -103,7 +103,7 @@ export const Landing = () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         fetchNearbyProducts({
-          variables: { input: { limit: 4, orderBy: OrderProductsEnum.Latest } },
+          variables: { input: { limit: 6, orderBy: OrderProductsEnum.Latest } },
         });
         return;
       }
@@ -111,7 +111,7 @@ export const Landing = () => {
       fetchNearbyProducts({
         variables: {
           input: {
-            limit: 4,
+            limit: 6,
             orderBy: OrderProductsEnum.Distance,
             location: {
               longitude: position.coords.longitude,

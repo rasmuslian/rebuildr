@@ -32,36 +32,43 @@ export const ProductCard = ({
   const styles = useResponsiveStyles(responsiveStyles);
   return (
     <Pressable onPress={() => navigate("ProductDetails", { productId: id })}>
-      {mainImage ? (
-        <Image
-          source={{ uri: mainImage.presignedGetUrl }}
-          style={[
-            styles.upperContainer as ImageStyle,
-            styles.image as ImageStyle,
-          ]}
-        />
-      ) : (
-        <View style={[styles.upperContainer, styles.noImage]}>
-          <Body>Bild saknas</Body>
-        </View>
-      )}
-      {distance && (
-        <View style={styles.distanceContainer}>
-          <Icon iconType="CrossHair" />
-          <Body style={styles.distance}>{formatMetersToKm(distance)} km</Body>
-        </View>
-      )}
-      <View style={styles.lowerContainer}>
-        <View style={styles.textContainer}>
-          <Title>{title}</Title>
-          <Body color="pale" style={styles.description} numberOfLines={3}>
-            {description}
-          </Body>
-          <Body color="pale">Säljare: {user.email}</Body>
-          <Body color="pale">Plats: {address}</Body>
-        </View>
-        <View style={styles.priceContainer}>
-          <Title>Pris: {price} Kr</Title>
+      <View style={styles.container}>
+        {mainImage ? (
+          <Image
+            source={{ uri: mainImage.presignedGetUrl }}
+            style={[
+              styles.upperContainer as ImageStyle,
+              styles.image as ImageStyle,
+            ]}
+          />
+        ) : (
+          <View style={[styles.upperContainer, styles.noImage]}>
+            <Body>Bild saknas</Body>
+          </View>
+        )}
+        {distance && (
+          <View style={styles.distanceContainer}>
+            <Icon iconType="CrossHair" />
+            <Body style={styles.distance}>{formatMetersToKm(distance)} km</Body>
+          </View>
+        )}
+        <View style={styles.lowerContainer}>
+          <View style={styles.textContainer}>
+            <Title style={styles.title}>{title}</Title>
+            <Body color="pale" style={styles.description} numberOfLines={2}>
+              {description}
+            </Body>
+            <Body numberOfLines={1} color="pale">
+              Säljare: {user.email}
+            </Body>
+            <Body numberOfLines={1} color="pale">
+              Plats: {address}
+            </Body>
+          </View>
+          <View style={styles.priceContainer}>
+            <Title style={styles.hideOnSmall}>Pris: </Title>
+            <Title>{price} Kr</Title>
+          </View>
         </View>
       </View>
     </Pressable>
@@ -69,6 +76,15 @@ export const ProductCard = ({
 };
 
 const responsiveStyles = {
+  container: {
+    width: 302,
+    small: {
+      width: 222,
+    },
+    mobile: {
+      width: 146,
+    },
+  },
   upperContainer: {
     borderColor: Colors.borderGray,
     borderWidth: 1,
@@ -79,12 +95,24 @@ const responsiveStyles = {
   },
   image: {
     height: 261,
+    small: {
+      height: 182,
+    },
+    mobile: {
+      height: 126,
+    },
   },
   noImage: {
     height: 261,
     backgroundColor: Colors.inactiveGray,
     justifyContent: "center",
     alignItems: "center",
+    small: {
+      height: 182,
+    },
+    mobile: {
+      height: 126,
+    },
   },
   distanceContainer: {
     position: "absolute",
@@ -117,10 +145,30 @@ const responsiveStyles = {
   textContainer: {
     paddingHorizontal: 16,
     flex: 1,
+    mobile: {
+      paddingHorizontal: 8,
+    },
+  },
+  title: {
+    minHeight: 65,
+    small: {
+      fontFamily: "Poppins-Medium",
+      minHeight: 42,
+    },
+    mobile: {
+      minHeight: 35,
+    },
   },
   description: {
-    minHeight: 65,
+    minHeight: 42,
     marginBottom: 10,
+    small: {
+      minHeight: 35,
+      marginBottom: 2,
+    },
+    mobile: {
+      minHeight: 25,
+    },
   },
   divider: {
     borderColor: Colors.borderGray,
@@ -135,5 +183,11 @@ const responsiveStyles = {
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginTop: 10,
+    flexDirection: "row",
+  },
+  hideOnSmall: {
+    small: {
+      display: "none",
+    },
   },
 } as const;

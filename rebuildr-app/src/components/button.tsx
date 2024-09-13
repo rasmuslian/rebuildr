@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { IconType, Icon } from "src/components/icons/icon";
 import Colors, { ButtonColors, TextColors } from "src/styles/colors";
-import { Body, ButtonText } from "./texts/text";
+import { ButtonText } from "./texts/text";
 
 interface ButtonProps extends PressableProps {
   onPress: () => void;
@@ -67,7 +67,9 @@ export const Button = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 13,
+    minWidth: 90,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,

@@ -28,6 +28,12 @@ export const textStyles = {
       fontFamily: "Poppins-SemiBold",
       fontSize: 18,
       letterSpacing: -0.02,
+      small: {
+        fontSize: 16,
+      },
+      mobile: {
+        fontSize: 12,
+      },
     },
     s: {
       fontFamily: "Poppins-SemiBold",
@@ -67,6 +73,12 @@ export const textStyles = {
       fontFamily: "Poppins-Medium",
       fontSize: 14,
       letterSpacing: -0.02,
+      small: {
+        fontSize: 12,
+      },
+      mobile: {
+        fontSize: 8,
+      },
     },
   },
   label: {

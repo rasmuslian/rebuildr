@@ -26,7 +26,7 @@ export const RelevantProducts = ({ products }: RelevantProductsProps) => {
 
   const renderProducts = () => {
     return products.map((product, i) => (
-      <View key={i} style={styles.cardContainer}>
+      <View key={i}>
         <ProductCard {...product} distance={product.distanceFromPosition} />
         {product.distanceFromPosition && (
           <View style={styles.distanceContainer}>
@@ -43,14 +43,7 @@ export const RelevantProducts = ({ products }: RelevantProductsProps) => {
 
   return (
     <View>
-      <View style={[styles.container, styles.noScrollContainer]}>
-        {renderProducts()}
-      </View>
-      <ScrollView
-        horizontal
-        style={(styles.container, styles.scrollContainer)}
-        contentContainerStyle={{ gap: 24 }}
-      >
+      <ScrollView horizontal contentContainerStyle={styles.container}>
         {renderProducts()}
       </ScrollView>
       <Button
@@ -67,21 +60,11 @@ const responsiveStyles = {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 24,
-    marginBottom: 24,
-  },
-  scrollContainer: {
-    display: "none",
-    medium: {
-      display: undefined,
-    },
   },
   noScrollContainer: {
     medium: {
       display: "none",
     },
-  },
-  cardContainer: {
-    flex: 1,
   },
   distanceContainer: {
     flexDirection: "row",
@@ -94,5 +77,11 @@ const responsiveStyles = {
     },
   },
   distance: { marginTop: 1 },
-  button: { alignSelf: "flex-end" },
+  button: {
+    alignSelf: "flex-end",
+    marginTop: 24,
+    small: {
+      display: "none",
+    },
+  },
 } as const;
