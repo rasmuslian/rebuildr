@@ -1,8 +1,9 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { InputText } from "../texts/text";
 import { textStyles } from "../texts/textStyles";
 import { BaseInputProps, baseInputStyles } from "./baseInput";
+import { useOutsidePress } from "src/hooks/useOutsidePress";
 
 interface InputProps extends BaseInputProps {
   label?: string;
@@ -18,7 +19,10 @@ export const Input = ({
   dropdown,
   ...props
 }: InputProps) => {
-  const [showDropdown, setShowDropdown] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const ref = useRef();
+  useOutsidePress(ref, () => setShowDropdown(false));
+
   return (
     <View style={[props.style, { zIndex: showDropdown && 10 }]}>
       {label && (
@@ -36,16 +40,9 @@ export const Input = ({
         selectTextOnFocus={disabled}
         onFocus={() => setShowDropdown(!showDropdown)}
       />
-      {dropdown && (
-        <View style={{ position: "relative" }}>
-          <View
-            style={[
-              styles.dropdownContainer,
-              { display: !showDropdown ? "none" : undefined },
-            ]}
-          >
-            {dropdown}
-          </View>
+      {dropdown && showDropdown && (
+        <View style={{ position: "relative" }} ref={ref}>
+          <View style={[styles.dropdownContainer]}>{dropdown}</View>
         </View>
       )}
     </View>
@@ -61,12 +58,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     width: "100%",
     top: 4,
-  },
-  dropdownContainer2: {
-    overflow: "hidden",
-    width: "100%",
-    top: 4,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

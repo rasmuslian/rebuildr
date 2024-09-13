@@ -1,10 +1,11 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Colors from "src/styles/colors";
 import { Icon } from "../icons/icon";
 import { InputText } from "../texts/text";
 import { textStyles } from "../texts/textStyles";
 import { BaseInputProps } from "./baseInput";
+import { useOutsidePress } from "src/hooks/useOutsidePress";
 
 type InputAndSelectProps<T extends string | number> = {
   label?: string;
@@ -29,6 +30,11 @@ export const InputAndSelect = <T extends string | number>({
   const [inputFocused, setInputFocused] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionHover, setOptionHover] = useState<number | undefined>();
+  const ref = useRef();
+  useOutsidePress(ref, () => {
+    setInputFocused(false);
+    setShowOptions(false);
+  });
 
   const onPressOption = (optionIndex: number) => {
     setInputFocused(false);
@@ -66,68 +72,72 @@ export const InputAndSelect = <T extends string | number>({
           {label}
         </InputText>
       )}
-      <View
-        style={[
-          styles.inputContainer,
-          inputFocused && {
-            borderColor: Colors.blue,
-            borderWidth: 2,
-            padding: 0.25,
-          },
-        ]}
-      >
-        <TextInput
-          {...props}
-          style={[styles.input, textStyles.input.default]}
-          onChangeText={onChange}
-          placeholder={placeholder}
-          value={value}
-          readOnly={disabled}
-          selectTextOnFocus={!disabled}
-          onFocus={() => {
-            setInputFocused(true);
-            setShowOptions(false);
-          }}
-          onBlur={() => setInputFocused(false)}
-        />
-        <Pressable
-          onPress={() => {
-            setShowOptions(!showOptions);
-            setInputFocused(!showOptions);
-          }}
+      <View ref={ref}>
+        <View
+          style={[
+            styles.inputContainer,
+            inputFocused && {
+              borderColor: Colors.blue,
+              borderWidth: 2,
+              padding: 0.25,
+            },
+          ]}
         >
-          <View style={styles.selectContainer}>
-            <View style={styles.separator} />
-            {selectLabel()}
-            <Icon iconType="DownChevron" />
-          </View>
-        </Pressable>
-      </View>
-      {showOptions && (
-        <View style={styles.optionsContainer}>
-          {options.map((option, i) => (
-            <Pressable
-              onHoverIn={() => setOptionHover(i)}
-              onPress={() => onPressOption(i)}
-              key={i}
-            >
-              <View
-                style={[
-                  styles.option,
-                  i === options.length - 1 && { borderWidth: 0 },
-                ]}
-              >
-                <InputText
-                  type="select"
-                  color={i === optionHover ? undefined : "pale"}
-                >
-                  {option.label}
-                </InputText>
-              </View>
-            </Pressable>
-          ))}
+          <TextInput
+            {...props}
+            style={[styles.input, textStyles.input.default]}
+            onChangeText={onChange}
+            placeholder={placeholder}
+            value={value}
+            readOnly={disabled}
+            selectTextOnFocus={!disabled}
+            onFocus={() => {
+              setInputFocused(true);
+              setShowOptions(false);
+            }}
+            onBlur={() => setInputFocused(false)}
+          />
+          <Pressable
+            onPress={() => {
+              setShowOptions(!showOptions);
+              setInputFocused(!showOptions);
+            }}
+          >
+            <View style={styles.selectContainer}>
+              <View style={styles.separator} />
+              {selectLabel()}
+              <Icon iconType="DownChevron" />
+            </View>
+          </Pressable>
         </View>
-      )}
+        {showOptions && (
+          <View style={{ position: "relative" }}>
+            <View style={styles.optionsContainer}>
+              {options.map((option, i) => (
+                <Pressable
+                  onHoverIn={() => setOptionHover(i)}
+                  onPress={() => onPressOption(i)}
+                  key={i}
+                >
+                  <View
+                    style={[
+                      styles.option,
+                      i === options.length - 1 && { borderWidth: 0 },
+                    ]}
+                  >
+                    <InputText
+                      type="select"
+                      color={i === optionHover ? undefined : "pale"}
+                    >
+                      {option.label}
+                    </InputText>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -180,7 +190,7 @@ export const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     position: "absolute",
-    top: 70,
+    top: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.4,

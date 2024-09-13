@@ -221,7 +221,11 @@ export const Landing = () => {
                       Populära sökningar
                     </Title>
                     <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        gap: 8,
+                      }}
                     >
                       {data?.popularCategories.map((category) => (
                         <Pressable
