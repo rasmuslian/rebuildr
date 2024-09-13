@@ -66,7 +66,7 @@ export const InputAndSelect = <T extends string | number>({
   };
 
   return (
-    <View style={[styles.container, props.style]}>
+    <View style={props.style}>
       {label && (
         <InputText style={styles.label} type="label">
           {label}
@@ -143,9 +143,6 @@ export const InputAndSelect = <T extends string | number>({
 };
 
 export const styles = StyleSheet.create({
-  container: {
-    zIndex: 1,
-  },
   inputContainer: {
     minWidth: 300,
     borderColor: Colors.borderGray,

@@ -55,7 +55,6 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: "absolute",
-    overflow: "hidden",
     width: "100%",
     top: 4,
   },

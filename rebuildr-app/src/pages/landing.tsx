@@ -481,6 +481,10 @@ const landingStyle = {
     padding: 24,
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 30 },
+    shadowOpacity: 0.4,
+    shadowRadius: 60,
   },
   searchSuggestionDopdownTitle: { marginBottom: 20 },
   searchSuggestionDropdownCategory: {
