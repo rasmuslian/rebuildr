@@ -4,7 +4,7 @@ import Colors from "src/styles/colors";
 import { Button } from "../button";
 import logo from "assets/images/logo.png";
 import { Link, useNavigation } from "@react-navigation/native";
-import { Body } from "../texts/text";
+import { Body, InputText } from "../texts/text";
 import { UserRoleEnum } from "src/gql/graphql";
 import { Icon } from "../icons/icon";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
@@ -19,14 +19,26 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
 
   return (
     <View style={[styles.container]}>
-      <Pressable onPress={() => navigate("Landing")}>
-        <Image source={logo} />
-      </Pressable>
-      <View style={styles.ctaButtons}>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={[
+            styles.removeOnMobile,
+            {
+              marginRight: 32,
+            },
+          ]}
+        >
+          <Menu />
+        </View>
+        <Pressable onPress={() => navigate("Landing")}>
+          <Image source={logo} />
+        </Pressable>
+      </View>
+      <View style={[styles.ctaButtons, styles.removeOnMobile]}>
         <Link to={{ screen: "Account" }}>
           <View style={styles.accountButton}>
             <Icon iconType="Person" />
-            <Body style={styles.removeOnMobile}>{me.email}</Body>
+            <Body>{me.email}</Body>
           </View>
         </Link>
         <Button
@@ -34,6 +46,9 @@ export const LoggedInNavbar = ({ me }: LoggedInNavbarProps) => {
           title="NY ANNONS"
           style={styles.removeOnMobile}
         />
+      </View>
+      <View style={styles.removeOnDesktop}>
+        <Menu />
       </View>
     </View>
   );
@@ -47,6 +62,9 @@ const responsiveStyles = {
     flexDirection: "row",
     backgroundColor: Colors.brand,
     paddingHorizontal: 34,
+    small: {
+      paddingHorizontal: 22,
+    },
   },
   ctaButtons: {
     flexDirection: "row",
@@ -59,6 +77,56 @@ const responsiveStyles = {
     gap: 4,
   },
   removeOnMobile: {
+    small: {
+      display: "none",
+    },
+  },
+  removeOnDesktop: {
+    display: "none",
+    small: {
+      display: undefined,
+    },
+  },
+} as const;
+
+const Menu = () => {
+  const styles = useResponsiveStyles(menuStyles);
+  return (
+    <View style={styles.container}>
+      <Pressable>
+        <View style={styles.lines}>
+          <View style={styles.fullLine} />
+          <View style={styles.halfLine} />
+          <View style={styles.fullLine} />
+        </View>
+      </Pressable>
+      <InputText color="brandGreen" style={styles.text}>
+        Meny
+      </InputText>
+    </View>
+  );
+};
+
+const menuStyles = {
+  container: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
+  lines: { gap: 4, flex: 1, width: 26 },
+  fullLine: {
+    width: "100%",
+    borderStyle: "solid",
+    borderColor: Colors.brandGreen,
+    borderWidth: 1.5,
+  },
+  halfLine: {
+    width: "50%",
+    borderStyle: "solid",
+    borderColor: Colors.brandGreen,
+    borderWidth: 1.5,
+  },
+  text: {
     small: {
       display: "none",
     },
