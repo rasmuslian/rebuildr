@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body, Title } from "src/components/texts/text";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 

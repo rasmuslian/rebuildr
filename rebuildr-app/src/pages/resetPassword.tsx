@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 import { gql } from "src/gql";
 

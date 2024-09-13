@@ -8,7 +8,7 @@ import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
 import { Input } from "src/components/inputs/input";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 
 const LOGIN = gql(`
@@ -53,34 +53,40 @@ export const Login = () => {
   };
   return (
     <Page title="Logga in">
-      <View style={styles.loginContainer}>
-        <Input
-          onChange={setEmail}
-          placeholder={"E-post address"}
-          disabled={loading}
-        />
-        <HiddenInput
-          onChange={setPassword}
-          placeholder={"Lösenord"}
-          disabled={loading}
-        />
-        <Button onPress={onLogin} disabled={loading}>
-          <Body>Logga in</Body>
-        </Button>
-        <Button onPress={() => navigate("ResetPassword")}>
-          <Body>Glömt lösenordet</Body>
-        </Button>
-        {error && <Body>"Felaktig e-post eller lösenord"</Body>}
-        <Button
-          title={"Registrera ett konto"}
-          onPress={() => navigate("Register")}
-        />
+      <View style={styles.container}>
+        <View style={styles.loginContainer}>
+          <Input
+            onChange={setEmail}
+            placeholder={"E-post address"}
+            disabled={loading}
+          />
+          <HiddenInput
+            onChange={setPassword}
+            placeholder={"Lösenord"}
+            disabled={loading}
+          />
+          <Button onPress={onLogin} disabled={loading}>
+            <Body>Logga in</Body>
+          </Button>
+          <Button onPress={() => navigate("ResetPassword")}>
+            <Body>Glömt lösenordet</Body>
+          </Button>
+          {error && <Body>"Felaktig e-post eller lösenord"</Body>}
+          <Button
+            title={"Registrera ett konto"}
+            onPress={() => navigate("Register")}
+          />
+        </View>
       </View>
     </Page>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    flex: 1,
+  },
   loginContainer: {
     borderWidth: 1,
     borderStyle: "solid",

@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 import { gql } from "src/gql";
 

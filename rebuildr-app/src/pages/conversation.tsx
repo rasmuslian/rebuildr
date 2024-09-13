@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 import dayjs from "dayjs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -71,37 +71,39 @@ export const Conversation = ({
       title={`Konversation med ${data?.conversation.otherUser.email}`}
       loading={loadingConversation}
     >
-      <View>
-        <View style={styles.chatContainer}>
-          {data?.conversation.messages.map((message) => (
-            <View style={styles.messageContainer} key={message.id}>
-              <Body style={styles.date}>
-                {dayjs(message.createdAt).format("DD MM hh:mm")}
-              </Body>
-              <View
-                style={[
-                  styles.chatBubble,
-                  {
-                    alignSelf:
-                      message.receiverId === otherUserId
-                        ? "flex-end"
-                        : "flex-start",
-                  },
-                ]}
-              >
-                <Body style={styles.message}>{message.body}</Body>
+      <View style={styles.container}>
+        <View>
+          <View style={styles.chatContainer}>
+            {data?.conversation.messages.map((message) => (
+              <View style={styles.messageContainer} key={message.id}>
+                <Body style={styles.date}>
+                  {dayjs(message.createdAt).format("DD MM hh:mm")}
+                </Body>
+                <View
+                  style={[
+                    styles.chatBubble,
+                    {
+                      alignSelf:
+                        message.receiverId === otherUserId
+                          ? "flex-end"
+                          : "flex-start",
+                    },
+                  ]}
+                >
+                  <Body style={styles.message}>{message.body}</Body>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
-        <View style={styles.inputContainer}>
-          <Input
-            value={message}
-            onChange={setMessage}
-            placeholder={"Skriv..."}
-            onSubmitEditing={onSend}
-          />
-          <Button onPress={onSend} icon="Person" />
+            ))}
+          </View>
+          <View style={styles.inputContainer}>
+            <Input
+              value={message}
+              onChange={setMessage}
+              placeholder={"Skriv..."}
+              onSubmitEditing={onSend}
+            />
+            <Button onPress={onSend} icon="Person" />
+          </View>
         </View>
       </View>
     </Page>
@@ -109,6 +111,10 @@ export const Conversation = ({
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    marginVertical: 50,
+  },
   chatContainer: {
     gap: 10,
   },

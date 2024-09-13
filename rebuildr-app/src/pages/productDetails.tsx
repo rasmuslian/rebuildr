@@ -3,7 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
 import { ActivityIndicator, View, Image, StyleSheet } from "react-native";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { LandingStackParamList } from "src/navigators/navigation.types";
 import { gql } from "src/gql";
 import { Body } from "src/components/texts/text";
@@ -111,86 +111,92 @@ export const ProductDetails = ({
     <Page
       title={`${data.product.title}${data.product.hiddenReason ? "(dold)" : ""}`}
     >
-      <View style={styles.imagesContainer}>
-        {data.product.images.length ? (
-          data.product.images.map((img) => (
-            <View style={styles.imageContainer}>
-              <Image
-                alt="Beskrivande bild av produkten"
-                resizeMode="contain"
-                style={styles.image}
-                defaultSource={{ uri: "../../assets/images/logo.png" }}
-                source={{ uri: img.presignedGetUrl }}
+      <View style={styles.container}>
+        <View style={styles.imagesContainer}>
+          {data.product.images.length ? (
+            data.product.images.map((img, i) => (
+              <View style={styles.imageContainer} key={i}>
+                <Image
+                  alt="Beskrivande bild av produkten"
+                  resizeMode="contain"
+                  style={styles.image}
+                  defaultSource={{ uri: "../../assets/images/logo.png" }}
+                  source={{ uri: img.presignedGetUrl }}
+                />
+              </View>
+            ))
+          ) : (
+            <Body>-- Inga bilder att visa -- </Body>
+          )}
+        </View>
+        <Body>Pris {data.product.price} kr</Body>
+        <Body>Kategori: {data.product.category.name}</Body>
+        <Body>Produkten finns på adressen: {data.product.address}</Body>
+        <Body>Fabrikat: {data.product.brand || "Ej angett"}</Body>
+        <Body>
+          Antal:{" "}
+          {data.product.amount ? data.product.amount + "st" : "Ej angett"}
+        </Body>
+        <Body>
+          Höjd: {data.product.height ? data.product.height + "mm" : "Ej angett"}
+        </Body>
+        <Body>
+          Bredd: {data.product.width ? data.product.width + "mm" : "Ej angett"}
+        </Body>
+        <Body>
+          Djup: {data.product.depth ? data.product.depth + "mm" : "Ej angett"}
+        </Body>
+        <Body>
+          Volym:{" "}
+          {data.product.volume ? data.product.volume + "liter" : "Ej angett"}
+        </Body>
+        <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
+        <Body>Beskrivning: {data.product.description}</Body>
+        <Body>Säljare {data.product.user.email}</Body>
+        {data.me?.id !== data.product.user.id && (
+          <Button
+            onPress={() =>
+              navigation.navigate("Conversation", {
+                otherUserId: data.product.user.id,
+                productId: data.product.id,
+              })
+            }
+            title="Skicka meddelande"
+          />
+        )}
+        {data.me?.role === UserRoleEnum.Admin && (
+          <View style={styles.adminContainer}>
+            <Body>Adminåtgärder</Body>
+            <View style={styles.buttonsContainer}>
+              {data.product.hiddenReason ? (
+                <Button onPress={showProduct} title="Visa produkt" />
+              ) : (
+                <Button
+                  onPress={() => onHideProduct("Olämplig")}
+                  title="Dölj vara"
+                />
+              )}
+              <Button
+                onPress={deleteProduct}
+                title="Ta bort vara"
+                backgroundColor="red"
+                titleColor="white"
               />
+              {deleteError && (
+                <Body>Något gick fel när varan skulle tas bort</Body>
+              )}
             </View>
-          ))
-        ) : (
-          <Body>-- Inga bilder att visa -- </Body>
+          </View>
         )}
       </View>
-      <Body>Pris {data.product.price} kr</Body>
-      <Body>Kategori: {data.product.category.name}</Body>
-      <Body>Produkten finns på adressen: {data.product.address}</Body>
-      <Body>Fabrikat: {data.product.brand || "Ej angett"}</Body>
-      <Body>
-        Antal: {data.product.amount ? data.product.amount + "st" : "Ej angett"}
-      </Body>
-      <Body>
-        Höjd: {data.product.height ? data.product.height + "mm" : "Ej angett"}
-      </Body>
-      <Body>
-        Bredd: {data.product.width ? data.product.width + "mm" : "Ej angett"}
-      </Body>
-      <Body>
-        Djup: {data.product.depth ? data.product.depth + "mm" : "Ej angett"}
-      </Body>
-      <Body>
-        Volym:{" "}
-        {data.product.volume ? data.product.volume + "liter" : "Ej angett"}
-      </Body>
-      <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
-      <Body>Beskrivning: {data.product.description}</Body>
-      <Body>Säljare {data.product.user.email}</Body>
-      {data.me?.id !== data.product.user.id && (
-        <Button
-          onPress={() =>
-            navigation.navigate("Conversation", {
-              otherUserId: data.product.user.id,
-              productId: data.product.id,
-            })
-          }
-          title="Skicka meddelande"
-        />
-      )}
-      {data.me?.role === UserRoleEnum.Admin && (
-        <View style={styles.adminContainer}>
-          <Body>Adminåtgärder</Body>
-          <View style={styles.buttonsContainer}>
-            {data.product.hiddenReason ? (
-              <Button onPress={showProduct} title="Visa produkt" />
-            ) : (
-              <Button
-                onPress={() => onHideProduct("Olämplig")}
-                title="Dölj vara"
-              />
-            )}
-            <Button
-              onPress={deleteProduct}
-              title="Ta bort vara"
-              backgroundColor="red"
-              titleColor="white"
-            />
-            {deleteError && (
-              <Body>Något gick fel när varan skulle tas bort</Body>
-            )}
-          </View>
-        </View>
-      )}
     </Page>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
   imagesContainer: {
     marginBottom: 40,
     gap: 10,
