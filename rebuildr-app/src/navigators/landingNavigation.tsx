@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Navbar } from "src/components/navbars/navbar";
 import { Landing } from "src/pages/landing";
 import { Login } from "src/pages/login";
 import { NewPassword } from "src/pages/new-password";
@@ -9,6 +8,7 @@ import { Register } from "src/pages/register";
 import { ResetPassword } from "src/pages/resetPassword";
 import { VerifyMail } from "src/pages/verifyMail";
 import { LandingStackParamList } from "./navigation.types";
+import { Navbar } from "src/components/navbars/navbar";
 
 export const LandingNavigation = () => {
   const Stack = createNativeStackNavigator<LandingStackParamList>();

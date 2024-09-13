@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { gql } from "src/gql";
-import { LoggedInNavbar } from "src/components/navbars/loggedInNavbar";
 import { Landing } from "src/pages/landing";
 import { Sell } from "src/pages/sell";
 import { ProductDetails } from "src/pages/productDetails";
@@ -12,6 +11,7 @@ import { Account } from "src/pages/account";
 import { Products } from "src/pages/products";
 import { UserRoleEnum } from "src/gql/graphql";
 import { EditCategories } from "src/pages/editCategories";
+import { Navbar } from "src/components/navbars/navbar";
 
 const LOGGED_IN_NAVIGATION = gql(`
   query LoggedInNavigation {
@@ -33,9 +33,7 @@ export const LoggedInNavigation = () => {
   }
 
   return (
-    <Stack.Navigator
-      screenOptions={{ header: () => <LoggedInNavbar me={data.me} /> }}
-    >
+    <Stack.Navigator screenOptions={{ header: () => <Navbar me={data.me} /> }}>
       <Stack.Screen name="Landing" component={Landing} />
       <Stack.Screen name="Sell" component={Sell} />
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
