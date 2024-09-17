@@ -2,17 +2,55 @@ import {
   Client,
   GeocodeResult,
   Language,
+  PlaceAutocompleteResponseData,
+  PlaceAutocompleteType,
+  Status,
 } from '@googlemaps/google-maps-services-js';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { GetAddressInput } from 'src/resolvers/geocoding.resolver';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class GeocodingService {
   private client: Client;
+  private sessionToken: string;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     this.client = new Client({});
+    this.sessionToken = uuidv4();
+  }
+
+  async placesAutoComplete(s: string) {
+    if (!s) {
+      return { result: [] };
+    }
+
+    let response: PlaceAutocompleteResponseData;
+    try {
+      const r = await this.client.placeAutocomplete({
+        params: {
+          input: s,
+          key: this.configService.get('GOOGLE_PLACES_AUTOCOMPLETE_API_KEY'),
+          language: Language.sv,
+          // location: [59, 18], //utgår från ~stockholm
+          types: PlaceAutocompleteType.geocode,
+          components: ['country:se'],
+          sessiontoken: this.sessionToken,
+        },
+      });
+      response = r.data;
+    } catch (e) {
+      throw InternalServerException(e);
+    }
+    if (response.status !== Status.OK) {
+      throw InternalServerException(response.error_message);
+    }
+
+    return {
+      result: response.predictions.map((prediction) => prediction.description),
+    };
   }
 
   async addressToLocation(address: string) {
