@@ -39,6 +39,8 @@ import { RolesGuard } from './auth/roles.guard';
 import { GeocodingResolver } from './resolvers/geocoding.resolver';
 import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
 
 @Module({
   imports: [
@@ -79,13 +81,21 @@ import { EventService } from './services/event.service';
           debug: !isProd,
           playground: !isProd,
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-          context: () => ({
+          context: ({ req, res }) => ({
             loaders: dataloaderService.createLoaders(),
+            req,
+            res,
           }),
           hideSchemaDetailsFromClientErrors: isProd,
         };
       },
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 1000,
+        limit: 2,
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [
@@ -110,6 +120,7 @@ import { EventService } from './services/event.service';
     RolesGuard,
     GeocodingResolver,
     EventService,
+    GqlThrottlerGuard,
   ],
 })
 export class AppModule {}

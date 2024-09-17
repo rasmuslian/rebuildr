@@ -26,6 +26,7 @@ import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
+import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -204,7 +205,7 @@ export class ProductResolver {
   }
 
   @Query(() => [Product])
-  @UseGuards(GqlOptionalAuthGuard)
+  @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
   async products(
     @Args('input') input: ProductsInput,
     @CurrentUser() user?: AuthedUserType,
@@ -213,7 +214,7 @@ export class ProductResolver {
   }
 
   @Mutation(() => CreateProductResponse)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async createProduct(
     @CurrentUser() _user: AuthedUserType,
     @Args('input', new ZodValidationPipe(createProductSchema))

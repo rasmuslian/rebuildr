@@ -24,3 +24,11 @@ export const ForbiddenException = (message?: string) => {
     },
   });
 };
+
+export const ThrottleException = (message?: string) => {
+  return new GraphQLError(message ?? 'Too many requests', {
+    extensions: {
+      code: 'THROTTLE',
+    },
+  });
+};

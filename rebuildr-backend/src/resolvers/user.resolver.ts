@@ -11,6 +11,7 @@ import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { CurrentUser } from 'src/decorators/currentUser.decorator';
 import { User } from 'src/entities/user.entity';
+import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
 import { UserService } from 'src/services/user.service';
 
 @InputType()
@@ -32,7 +33,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async updateUser(
     @CurrentUser() _user: AuthedUserType,
     @Args('input') input: UpdateUserInput,

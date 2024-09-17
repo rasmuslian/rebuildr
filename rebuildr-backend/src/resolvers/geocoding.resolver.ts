@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
@@ -6,6 +7,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
+import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
 import { GeocodingService } from 'src/services/geocoding.service';
 
 @InputType()
@@ -26,6 +28,7 @@ class GetAddressResponse {
 export class GeocodingResolver {
   constructor(private geocodingService: GeocodingService) {}
 
+  @UseGuards(GqlThrottlerGuard)
   @Query(() => GetAddressResponse)
   async locationToAddress(@Args('input') input: GetAddressInput) {
     return this.geocodingService.locationToAddress(input);
