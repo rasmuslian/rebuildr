@@ -1,15 +1,12 @@
 import { useNavigation } from "@react-navigation/native";
 import { Pressable, View, Image, ScrollView, ImageStyle } from "react-native";
 import { Body } from "src/components/texts/text";
+import { LandingQueryQuery } from "src/gql/graphql";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import Colors from "src/styles/colors";
 
 interface PopularCategoriesProps {
-  categories: {
-    id: string;
-    name: string;
-    image?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
-  }[];
+  categories: LandingQueryQuery["popularCategories"];
 }
 
 export const PopularCategories = ({ categories }: PopularCategoriesProps) => {

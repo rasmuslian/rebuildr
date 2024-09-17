@@ -4,20 +4,12 @@ import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { ProductCard } from "src/components/productCard";
 import { Body } from "src/components/texts/text";
+import { NearbyProductsQueryQuery } from "src/gql/graphql";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import { formatMetersToKm } from "src/utils/distanceHandling";
 
 interface RelevantProductsProps {
-  products: {
-    id: string;
-    title: string;
-    description?: string | null;
-    address: string;
-    price: number;
-    user: { __typename?: "User"; id: string; email: string };
-    distanceFromPosition?: number | null;
-    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
-  }[];
+  products: NearbyProductsQueryQuery["products"];
 }
 
 export const RelevantProducts = ({ products }: RelevantProductsProps) => {
