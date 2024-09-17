@@ -190,9 +190,9 @@ export class ProductService {
       query.andWhere('condition = :condition', { condition: input.condition });
     }
 
-    if (input.limit) {
-      query.limit(input.limit);
-    }
+    //limit defaults to 20 and may not exceed 40
+    const limit = input.limit ?? 20;
+    query.limit(limit > 40 ? 40 : limit);
 
     if (input.orderBy === OrderProductsEnum.LATEST) {
       query.orderBy('created_at', 'DESC');

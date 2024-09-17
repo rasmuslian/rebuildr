@@ -26,7 +26,9 @@ export class CategoryService {
     });
   }
 
-  async findPopular(limit?: number) {
+  async findPopular(_limit?: number) {
+    //Limit defaults to 15 and may not exceed 30
+    const limit = _limit ?? 15;
     return await this.categoryRepository
       .createQueryBuilder('c')
       .where((qb) => {
@@ -47,7 +49,7 @@ export class CategoryService {
               })
               .groupBy('value')
               .orderBy('count', 'DESC')
-              .limit(limit);
+              .limit(limit > 30 ? 30 : limit);
           }, 'ordered_events')
           .getQuery();
 
