@@ -270,7 +270,15 @@ export const Landing = () => {
                 <View style={styles.addresToLocationContainer}>
                   <Icon iconType="CrossHair" />
                   <Pressable onPress={() => onGetMyLocation()}>
-                    <InputText color={getAddressError ? "error" : "pale"}>
+                    <InputText
+                      color={
+                        getAddressError?.graphQLErrors.every(
+                          (e) => e.extensions.code !== "THROTTLE",
+                        )
+                          ? "error"
+                          : "pale"
+                      }
+                    >
                       Nära dig
                     </InputText>
                   </Pressable>
