@@ -10,6 +10,20 @@ import { RightChevronIcon } from "./rightChevronIcon";
 import { SeasonIcon } from "./seasonIcon";
 import { MaterialIcon } from "./materialIcon";
 import { CrossHairIcon } from "./crossHairIcon";
+import { WoodIcon } from "./woodIcon";
+import { DoorIcon } from "./doorIcon";
+import { WindowIcon } from "./windowIcon";
+import { FloorIcon } from "./floorIcon";
+import { InteriorIcon } from "./interiorIcon";
+import { PaintIcon } from "./paintIcon";
+import { FastenersIcon } from "./fastenersIcon";
+import { RoofIcon } from "./roofIcon";
+import { TilesIcon } from "./tilesIcon";
+import { BathtubIcon } from "./bathtubIcon";
+import { OutletIcon } from "./outletIcon";
+import { TreeIcon } from "./treeIcon";
+import { DrillIcon } from "./drillIcon";
+import { WheelbarrowIcon } from "./wheelbarrowIcon";
 
 export type IconType =
   | "Person"
@@ -21,7 +35,21 @@ export type IconType =
   | "Season"
   | "Gift"
   | "DownChevron"
-  | "CrossHair";
+  | "CrossHair"
+  | "Wood"
+  | "Door"
+  | "Window"
+  | "Floor"
+  | "Interior"
+  | "Paint"
+  | "Fasteners"
+  | "Roof"
+  | "Tiles"
+  | "Bathtub"
+  | "Outlet"
+  | "Tree"
+  | "Drill"
+  | "Wheelbarrow";
 
 export interface IconProps extends SvgProps {
   height?: number;
@@ -51,6 +79,34 @@ export const Icon = ({ icon, ...props }: IconProps & { icon: IconType }) => {
       return <DownChevronIcon {...props} />;
     case "CrossHair":
       return <CrossHairIcon {...props} />;
+    case "Wood":
+      return <WoodIcon {...props} />;
+    case "Door":
+      return <DoorIcon {...props} />;
+    case "Window":
+      return <WindowIcon {...props} />;
+    case "Floor":
+      return <FloorIcon {...props} />;
+    case "Interior":
+      return <InteriorIcon {...props} />;
+    case "Paint":
+      return <PaintIcon {...props} />;
+    case "Fasteners":
+      return <FastenersIcon {...props} />;
+    case "Roof":
+      return <RoofIcon {...props} />;
+    case "Tiles":
+      return <TilesIcon {...props} />;
+    case "Bathtub":
+      return <BathtubIcon {...props} />;
+    case "Outlet":
+      return <OutletIcon {...props} />;
+    case "Tree":
+      return <TreeIcon {...props} />;
+    case "Drill":
+      return <DrillIcon {...props} />;
+    case "Wheelbarrow":
+      return <WheelbarrowIcon {...props} />;
     default:
       break;
   }
