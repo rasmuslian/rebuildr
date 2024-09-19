@@ -28,12 +28,14 @@ import { OrderProductsEnum } from "src/gql/graphql";
 import { PopularCategories } from "src/sections/popularCategories";
 import { RelevantProducts } from "src/sections/relevantProducts";
 import * as Location from "expo-location";
+import { getIconFromCategory } from "src/utils/getIconFromCategory";
 
 const LANDING_QUERY = gql(`
   query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {
     rootCategories {
       id
       name
+      icon
     }
     popularCategories(input: $popularCategoriesInput) {
       id
@@ -366,7 +368,7 @@ export const Landing = () => {
                   key={category.id}
                 >
                   <View style={styles.categoryCard}>
-                    <Icon icon="Material" />
+                    <Icon icon={getIconFromCategory(category.icon)} />
                     <ButtonText type="detail" style={styles.cardText}>
                       {category.name}
                     </ButtonText>
