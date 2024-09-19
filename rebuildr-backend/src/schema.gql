@@ -69,8 +69,27 @@ type Category {
   parentId: String
   inSelection: Boolean!
   inSeason: Boolean!
+  icon: CategoryIconEnum
   children: [Category!]!
   image: File
+}
+
+enum CategoryIconEnum {
+  MATERIAL
+  WOOD
+  DOOR
+  WINDOW
+  FLOOR
+  INTERIOR
+  PAINT
+  FASTENERS
+  ROOF
+  TILES
+  KITCHEN_BATHROOM
+  ELECTRICAL
+  OUTDOORS
+  TOOLS
+  WORKPLACE
 }
 
 type RegisterUserResponse {

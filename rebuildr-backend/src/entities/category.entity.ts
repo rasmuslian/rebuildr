@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
@@ -8,6 +8,25 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { File } from './file.entity';
+
+enum CategoryIconEnum {
+  MATERIAL = 'MATERIAL',
+  WOOD = 'WOOD',
+  DOOR = 'DOOR',
+  WINDOW = 'WINDOW',
+  FLOOR = 'FLOOR',
+  INTERIOR = 'INTERIOR',
+  PAINT = 'PAINT',
+  FASTENERS = 'FASTENERS',
+  ROOF = 'ROOF',
+  TILES = 'TILES',
+  KITCHEN_BATHROOM = 'KITCHEN_BATHROOM',
+  ELECTRICAL = 'ELECTRICAL',
+  OUTDOORS = 'OUTDOORS',
+  TOOLS = 'TOOLS',
+  WORKPLACE = 'WORKPLACE',
+}
+registerEnumType(CategoryIconEnum, { name: 'CategoryIconEnum' });
 
 @Entity()
 @ObjectType()
@@ -41,4 +60,8 @@ export class Category {
   @OneToOne(() => File, (file) => file.category, { nullable: true })
   @JoinColumn()
   image?: File;
+
+  @Field(() => CategoryIconEnum, { nullable: true })
+  @Column('enum', { enum: CategoryIconEnum, nullable: true })
+  icon?: CategoryIconEnum;
 }
