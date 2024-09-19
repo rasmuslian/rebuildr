@@ -1,8 +1,8 @@
-import React, { ReactElement, useRef, useState } from "react";
+import React, { ReactElement, ReactNode, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Colors from "src/styles/colors";
 import { Icon } from "../icons/icon";
-import { InputText } from "../texts/text";
+import { Body, InputText } from "../texts/text";
 import { textStyles } from "../texts/textStyles";
 import { BaseInputProps } from "./baseInput";
 import { useOutsidePress } from "src/hooks/useOutsidePress";
@@ -13,6 +13,7 @@ type InputAndSelectProps<T extends string | number> = {
   onSelect: (value: T) => void;
   selectedValue?: T;
   selectPlaceHolder?: ReactElement;
+  dropdown?: (collapseDropdown: () => void) => ReactElement;
 } & BaseInputProps;
 
 export const InputAndSelect = <T extends string | number>({
@@ -25,20 +26,24 @@ export const InputAndSelect = <T extends string | number>({
   onSelect,
   selectedValue,
   selectPlaceHolder,
+  dropdown,
   ...props
 }: InputAndSelectProps<T>) => {
   const [inputFocused, setInputFocused] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionHover, setOptionHover] = useState<number | undefined>();
+  const [showDropdown, setShowDropdown] = useState(false);
   const ref = useRef();
   useOutsidePress(ref, () => {
     setInputFocused(false);
     setShowOptions(false);
+    setShowDropdown(false);
   });
 
   const onPressOption = (optionIndex: number) => {
     setInputFocused(false);
     setShowOptions(false);
+    setShowDropdown(false);
     onSelect(options[optionIndex].value);
   };
 
@@ -66,7 +71,7 @@ export const InputAndSelect = <T extends string | number>({
   };
 
   return (
-    <View style={props.style}>
+    <View style={[props.style, { zIndex: showDropdown && 10 }]}>
       {label && (
         <InputText style={styles.label} type="label">
           {label}
@@ -94,13 +99,14 @@ export const InputAndSelect = <T extends string | number>({
             onFocus={() => {
               setInputFocused(true);
               setShowOptions(false);
+              setShowDropdown(true);
             }}
-            onBlur={() => setInputFocused(false)}
           />
           <Pressable
             onPress={() => {
               setShowOptions(!showOptions);
               setInputFocused(!showOptions);
+              setShowDropdown(false);
             }}
           >
             <View style={styles.selectContainer}>
@@ -110,6 +116,19 @@ export const InputAndSelect = <T extends string | number>({
             </View>
           </Pressable>
         </View>
+        {showDropdown && dropdown && (
+          <View style={{ position: "relative", zIndex: 1 }}>
+            <View
+              style={{
+                position: "absolute",
+                width: "70%",
+                top: 4,
+              }}
+            >
+              {dropdown(() => setShowDropdown(false))}
+            </View>
+          </View>
+        )}
         {showOptions && (
           <View style={{ position: "relative" }}>
             <View style={styles.optionsContainer}>

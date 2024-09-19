@@ -12,7 +12,6 @@ import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
 import { Input } from "src/components/inputs/input";
 import {
-  Body,
   ButtonText,
   Headline,
   InputText,
@@ -282,12 +281,28 @@ export const Landing = () => {
                     <Icon iconType="Pin" />
                   </View>
                 }
+                dropdown={
+                  locationSearchData?.locationSearch.result.length
+                    ? (collapseDropdown) => (
+                        <View style={styles.searchSuggestionsDropdownContainer}>
+                          {locationSearchData?.locationSearch.result.map(
+                            (data, i) => (
+                              <Pressable
+                                onPress={() => {
+                                  collapseDropdown();
+                                  setAddress(data);
+                                }}
+                                key={i}
+                              >
+                                <InputText>{data}</InputText>
+                              </Pressable>
+                            ),
+                          )}
+                        </View>
+                      )
+                    : undefined
+                }
               />
-              {locationSearchData?.locationSearch.result.map((data, i) => (
-                <Pressable onPress={() => setAddress(data)} key={i}>
-                  <Body>{data}</Body>
-                </Pressable>
-              ))}
               <View style={styles.searchBottomContainer}>
                 <View style={styles.addresToLocationContainer}>
                   <Icon iconType="CrossHair" />
