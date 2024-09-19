@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
 import { Category } from 'src/entities/category.entity';
-import { User } from 'src/entities/user.entity';
+import { Event, EventType } from 'src/entities/event.entity';
 import { BadUserInputException } from 'src/exceptions';
 import { IsNull, Repository } from 'typeorm';
 
@@ -11,9 +10,6 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-    private caslAbilityFactory: CaslAbilityFactory,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
   ) {}
 
   async findOne(id: string) {
@@ -28,6 +24,38 @@ export class CategoryService {
     return await this.categoryRepository.findBy({
       parentId: IsNull(),
     });
+  }
+
+  async findPopular(_limit?: number) {
+    //Limit defaults to 15 and may not exceed 30
+    const limit = _limit ?? 15;
+    return await this.categoryRepository
+      .createQueryBuilder('c')
+      .where((qb) => {
+        //Finds id's of all categories
+        const categoryIds = qb
+          .subQuery()
+          .select('value')
+          .from((qb) => {
+            //Finds all events that has to do with categories.
+            //Group them by value (aka categoryId), count them and order by count
+            //to get most popular first
+            return qb
+              .subQuery()
+              .select('count(*), e.value::uuid')
+              .from(Event, 'e')
+              .where('type = :eventType', {
+                eventType: EventType.CATEGORY_VISIT,
+              })
+              .groupBy('value')
+              .orderBy('count', 'DESC')
+              .limit(limit > 30 ? 30 : limit);
+          }, 'ordered_events')
+          .getQuery();
+
+        return 'c.id IN ' + categoryIds;
+      })
+      .getMany();
   }
 
   async findChildren(parentId: string) {

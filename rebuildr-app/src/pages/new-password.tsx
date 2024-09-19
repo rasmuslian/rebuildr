@@ -1,10 +1,11 @@
 import { useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useState } from "react";
+import React, { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { Button } from "src/components/button";
 import { HiddenInput } from "src/components/inputs/hiddenInput";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 import { gql } from "src/gql";
 
@@ -49,19 +50,27 @@ export const NewPassword = ({ route }) => {
 
   return (
     <Page title="Skapa nytt lösenord">
-      <Body>Ange nytt lösenord</Body>
-      <HiddenInput
-        onChange={setPassword}
-        value={password}
-        placeholder={"Lösenord"}
-      />
-      <Button title="Skicka" onPress={onRequestNewPassword} />
-      {error && (
-        <Body>
-          Något gick fel, verifieringsmailet kan ha blivit ogiltigt. Försök att
-          återställa lösenordet på nytt.
-        </Body>
-      )}
+      <View style={styles.container}>
+        <Body>Ange nytt lösenord</Body>
+        <HiddenInput
+          onChange={setPassword}
+          value={password}
+          placeholder={"Lösenord"}
+        />
+        <Button title="Skicka" onPress={onRequestNewPassword} />
+        {error && (
+          <Body>
+            Något gick fel, verifieringsmailet kan ha blivit ogiltigt. Försök
+            att återställa lösenordet på nytt.
+          </Body>
+        )}
+      </View>
     </Page>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
+});

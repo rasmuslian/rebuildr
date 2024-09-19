@@ -35,6 +35,7 @@ export type Category = {
   __typename?: "Category";
   children: Array<Category>;
   id: Scalars["ID"]["output"];
+  image?: Maybe<File>;
   inSeason: Scalars["Boolean"]["output"];
   inSelection: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
@@ -103,11 +104,22 @@ export type DeleteProductResponse = {
 
 export type File = {
   __typename?: "File";
+  id: Scalars["ID"]["output"];
   presignedGetUrl: Scalars["String"]["output"];
 };
 
 export type FileInputType = {
   mimeType: Scalars["String"]["input"];
+};
+
+export type GetAddressInput = {
+  latitude: Scalars["Float"]["input"];
+  longitude: Scalars["Float"]["input"];
+};
+
+export type GetAddressResponse = {
+  __typename?: "GetAddressResponse";
+  address: Scalars["String"]["output"];
 };
 
 export type GetNewTokensInput = {
@@ -128,6 +140,11 @@ export type GetProductInput = {
 export type HideProductInput = {
   id: Scalars["String"]["input"];
   reason: Scalars["String"]["input"];
+};
+
+export type LocationType = {
+  latitude: Scalars["Float"]["input"];
+  longitude: Scalars["Float"]["input"];
 };
 
 export type LoginInput = {
@@ -231,6 +248,15 @@ export type NewPasswordInput = {
   resetPasswordToken: Scalars["String"]["input"];
 };
 
+export enum OrderProductsEnum {
+  Distance = "DISTANCE",
+  Latest = "LATEST",
+}
+
+export type PopularCategoriesInput = {
+  limit: Scalars["Int"]["input"];
+};
+
 export type Product = {
   __typename?: "Product";
   address: Scalars["String"]["output"];
@@ -242,6 +268,7 @@ export type Product = {
   /** Unit: millimeter */
   depth?: Maybe<Scalars["Int"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
+  distanceFromPosition?: Maybe<Scalars["Float"]["output"]>;
   /** Unit: millimeter */
   height?: Maybe<Scalars["Int"]["output"]>;
   hiddenReason?: Maybe<Scalars["String"]["output"]>;
@@ -272,6 +299,9 @@ export type ProductsInput = {
   condition?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
+  limit?: InputMaybe<Scalars["Float"]["input"]>;
+  location?: InputMaybe<LocationType>;
+  orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
   seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
   selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -283,7 +313,9 @@ export type Query = {
   category: Category;
   conversation: ConversationResponse;
   conversations: Array<ConversationOverviewResponse>;
+  locationToAddress: GetAddressResponse;
   me: User;
+  popularCategories: Array<Category>;
   product: Product;
   products: Array<Product>;
   rootCategories: Array<Category>;
@@ -295,6 +327,14 @@ export type QueryCategoryArgs = {
 
 export type QueryConversationArgs = {
   input: ConversationInput;
+};
+
+export type QueryLocationToAddressArgs = {
+  input: GetAddressInput;
+};
+
+export type QueryPopularCategoriesArgs = {
+  input?: InputMaybe<PopularCategoriesInput>;
 };
 
 export type QueryProductArgs = {
@@ -487,11 +527,47 @@ export type UpdateCategoryMutation = {
   };
 };
 
-export type LandingQueryQueryVariables = Exact<{ [key: string]: never }>;
+export type LandingQueryQueryVariables = Exact<{
+  popularCategoriesInput?: InputMaybe<PopularCategoriesInput>;
+}>;
 
 export type LandingQueryQuery = {
   __typename?: "Query";
   rootCategories: Array<{ __typename?: "Category"; id: string; name: string }>;
+  popularCategories: Array<{
+    __typename?: "Category";
+    id: string;
+    name: string;
+    image?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
+  }>;
+};
+
+export type NearbyProductsQueryQueryVariables = Exact<{
+  input: ProductsInput;
+}>;
+
+export type NearbyProductsQueryQuery = {
+  __typename?: "Query";
+  products: Array<{
+    __typename?: "Product";
+    id: string;
+    title: string;
+    description?: string | null;
+    distanceFromPosition?: number | null;
+    address: string;
+    price: number;
+    user: { __typename?: "User"; id: string; email: string };
+    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+  }>;
+};
+
+export type LocationToAddressQueryVariables = Exact<{
+  input: GetAddressInput;
+}>;
+
+export type LocationToAddressQuery = {
+  __typename?: "Query";
+  locationToAddress: { __typename?: "GetAddressResponse"; address: string };
 };
 
 export type LoginMutationVariables = Exact<{
@@ -1149,6 +1225,19 @@ export const LandingQueryDocument = {
       kind: "OperationDefinition",
       operation: "query",
       name: { kind: "Name", value: "LandingQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "popularCategoriesInput" },
+          },
+          type: {
+            kind: "NamedType",
+            name: { kind: "Name", value: "PopularCategoriesInput" },
+          },
+        },
+      ],
       selectionSet: {
         kind: "SelectionSet",
         selections: [
@@ -1163,11 +1252,186 @@ export const LandingQueryDocument = {
               ],
             },
           },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "popularCategories" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "popularCategoriesInput" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "image" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
         ],
       },
     },
   ],
 } as unknown as DocumentNode<LandingQueryQuery, LandingQueryQueryVariables>;
+export const NearbyProductsQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "NearbyProductsQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "ProductsInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "products" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "title" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "distanceFromPosition" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "user" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "price" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "mainImage" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "presignedGetUrl" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  NearbyProductsQueryQuery,
+  NearbyProductsQueryQueryVariables
+>;
+export const LocationToAddressDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "LocationToAddress" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "GetAddressInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "locationToAddress" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  LocationToAddressQuery,
+  LocationToAddressQueryVariables
+>;
 export const LoginDocument = {
   kind: "Document",
   definitions: [

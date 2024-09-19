@@ -9,11 +9,12 @@ import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
   CreateProductResponse,
   FileInputType,
+  OrderProductsEnum,
+  ProductsInput,
 } from 'src/resolvers/product.resolver';
 import { Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
-
 @Injectable()
 export class ProductService {
   constructor(
@@ -97,19 +98,7 @@ export class ProductService {
     };
   }
 
-  async findAll(
-    input: {
-      searchString?: string;
-      address?: string;
-      distance?: number;
-      categoryId?: string;
-      selectionCategories?: boolean;
-      seasonalCategories?: boolean;
-      giveaway?: boolean;
-      condition?: ProductConditionEnum;
-    },
-    userId?: string,
-  ) {
+  async findAll(input: ProductsInput, userId?: string) {
     const query = this.productRepository.createQueryBuilder('product');
 
     //Only admin will see hidden products
@@ -130,16 +119,26 @@ export class ProductService {
         searchString: input.searchString,
       });
     }
+
+    //If address or location are included, use them to calculate
+    //an origin point for filtering and ordering
+    let origin: Point;
     if (input.address) {
-      //find coordinates of address
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
-      const origin: Point = {
+      origin = {
         type: 'Point',
         coordinates: [location.latitude, location.longitude],
       };
-
+    }
+    if (input.location) {
+      origin = {
+        type: 'Point',
+        coordinates: [input.location.latitude, input.location.longitude],
+      };
+    }
+    if (origin !== undefined) {
       //If distance is included, only select products whose distance to origin is less than input.distance
       if (input.distance) {
         //convert from km to meters
@@ -149,10 +148,16 @@ export class ProductService {
           { origin, distance },
         );
       }
-
-      query.orderBy(
+      query.addSelect(
         'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+        'distance_from_position',
       );
+
+      if (input.orderBy === OrderProductsEnum.DISTANCE) {
+        query.orderBy(
+          'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+        );
+      }
       query.setParameter('origin', origin);
     }
 
@@ -185,7 +190,31 @@ export class ProductService {
       query.andWhere('condition = :condition', { condition: input.condition });
     }
 
-    return await query.getMany();
+    //limit defaults to 20 and may not exceed 40
+    const limit = input.limit ?? 20;
+    query.limit(limit > 40 ? 40 : limit);
+
+    if (input.orderBy === OrderProductsEnum.LATEST) {
+      query.orderBy('created_at', 'DESC');
+    }
+
+    const result = await query.getRawMany();
+
+    //Mapping result into Product.
+    //Since we fetch with 'getRawMany' all fields which belong to the Product table
+    //will be snake case and prefixed with 'product_'
+    const mappedObjects = result.map((rawProduct) => {
+      const prodObj = Object.entries(rawProduct).reduce((acc, entry) => {
+        const [key, value] = entry;
+        const removedPrefix = key.replace(/^product_/, '');
+        const camelCaseKey = removedPrefix.replace(/(_\w)/g, function (match) {
+          return match[1].toUpperCase();
+        });
+        return { ...acc, [camelCaseKey]: value };
+      }, {});
+      return prodObj;
+    });
+    return mappedObjects;
   }
 
   async findOne(id: string) {

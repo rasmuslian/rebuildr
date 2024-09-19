@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "src/components/button";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Body } from "src/components/texts/text";
 import { gql } from "src/gql";
 import Colors from "src/styles/colors";
@@ -64,44 +64,48 @@ export const EditCategories = () => {
 
   return (
     <Page title="Redigera kategorierna" loading={loading}>
-      <View style={styles.tableContainer}>
-        <View>
-          <Body style={styles.header}>Namn</Body>
-          {data?.rootCategories.map((rootCategory, i) => (
-            <View key={i} style={styles.familyContainer}>
-              <View style={styles.parentRow}>
-                <Body color="white">{rootCategory.name}</Body>
-              </View>
-              {rootCategory.children.map((child, j) => (
-                <View style={styles.childRow} key={j}>
-                  <Body>{child.name}</Body>
+      <View style={styles.container}>
+        <View style={styles.tableContainer}>
+          <View>
+            <Body style={styles.header}>Namn</Body>
+            {data?.rootCategories.map((rootCategory, i) => (
+              <View key={i} style={styles.familyContainer}>
+                <View style={styles.parentRow}>
+                  <Body color="white">{rootCategory.name}</Body>
                 </View>
-              ))}
-            </View>
-          ))}
-        </View>
-        <View style={{ alignSelf: "stretch" }}>
-          <Body style={styles.header}>Utvalda</Body>
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            {flatCategories.map((category, i) => (
-              <Button
-                key={category.id}
-                onPress={() => onPressSelected(category)}
-                backgroundColor={!!category.inSelection ? "purple" : undefined}
-              />
+                {rootCategory.children.map((child, j) => (
+                  <View style={styles.childRow} key={j}>
+                    <Body>{child.name}</Body>
+                  </View>
+                ))}
+              </View>
             ))}
           </View>
-        </View>
-        <View style={{ alignSelf: "stretch" }}>
-          <Body style={styles.header}>Säsong</Body>
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            {flatCategories.map((category, i) => (
-              <Button
-                key={category.id}
-                onPress={() => onPressSeasonal(category)}
-                backgroundColor={!!category.inSeason ? "purple" : undefined}
-              />
-            ))}
+          <View style={{ alignSelf: "stretch" }}>
+            <Body style={styles.header}>Utvalda</Body>
+            <View style={{ flex: 1, justifyContent: "space-between" }}>
+              {flatCategories.map((category, i) => (
+                <Button
+                  key={category.id}
+                  onPress={() => onPressSelected(category)}
+                  backgroundColor={
+                    !!category.inSelection ? "purple" : undefined
+                  }
+                />
+              ))}
+            </View>
+          </View>
+          <View style={{ alignSelf: "stretch" }}>
+            <Body style={styles.header}>Säsong</Body>
+            <View style={{ flex: 1, justifyContent: "space-between" }}>
+              {flatCategories.map((category, i) => (
+                <Button
+                  key={category.id}
+                  onPress={() => onPressSeasonal(category)}
+                  backgroundColor={!!category.inSeason ? "purple" : undefined}
+                />
+              ))}
+            </View>
           </View>
         </View>
       </View>
@@ -110,6 +114,9 @@ export const EditCategories = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
   tableContainer: {
     flexDirection: "row",
     gap: 10,

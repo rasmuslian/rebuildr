@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback } from "react";
-import { Pressable, View, StyleSheet, Image, ScrollView } from "react-native";
+import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -9,6 +9,7 @@ import Colors from "src/styles/colors";
 import { Picker } from "@react-native-picker/picker";
 import { conditionTranslationMap } from "src/constants/constants";
 import { ProductConditionEnum } from "src/gql/graphql";
+import { Page } from "src/components/layout/page";
 
 const PRODUCTS_QUERY = gql(`
   query ProductsQuery($input: ProductsInput!) {
@@ -114,113 +115,115 @@ export const Products = ({ route }) => {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.searchParams}>
-        <View style={styles.searchFields}>
-          <Title>Din sökning:</Title>
-          {!!searchString && (
-            <Button
-              title={searchString}
-              onPress={() => onSetFilter({ searchString: undefined })}
-            />
-          )}
-          {categoryData && (
-            <Button
-              title={categoryData.category.name}
-              onPress={() => onSetFilter({ categoryId: undefined })}
-            />
-          )}
-          {!!address && !distance && (
-            <Button
-              title={address}
-              onPress={() => onSetFilter({ address: undefined })}
-            />
-          )}
-          {!!address && !!distance && (
-            <Button
-              title={`<${distance}km från ${address}`}
-              onPress={() =>
-                onSetFilter({ address: undefined, distance: undefined })
-              }
-            />
-          )}
-          {selectionCategories && (
-            <Button
-              title="Utvalda kategorier"
-              onPress={() => onSetFilter({ selectionCategories: undefined })}
-            />
-          )}
-          {seasonalCategories && (
-            <Button
-              title="Säsongskategorier"
-              onPress={() => onSetFilter({ seasonalCategories: undefined })}
-            />
-          )}
-          {giveaway && (
-            <Button
-              title="Bortskänkes"
-              onPress={() => onSetFilter({ giveaway: undefined })}
-            />
-          )}
-          {condition && (
-            <Button
-              title={conditionTranslationMap[condition]}
-              onPress={() => onSetFilter({ condition: undefined })}
-            />
-          )}
-        </View>
-        <Body>{data?.products.length} stycken träffar i din sökning</Body>
-      </View>
-      <View style={styles.filterContainer}>
-        <Picker
-          selectedValue={condition ?? "unselected"}
-          onValueChange={(v: ProductConditionEnum | "unselected") => {
-            if (v === "unselected") {
-              onSetFilter({ condition: undefined });
-              return;
-            }
-            onSetFilter({ condition: v });
-          }}
-        >
-          <Picker.Item
-            key={"condition"}
-            value={"unselected"}
-            label={"Välj skick"}
-          />
-          {Object.entries(conditionTranslationMap).map((c, i) => (
-            <Picker.Item key={i} value={c[0]} label={c[1]} />
-          ))}
-        </Picker>
-      </View>
-      <View style={styles.productsContainer}>
-        {data?.products.map((p) => (
-          <Pressable
-            key={p.id}
-            style={styles.card}
-            onPress={() =>
-              navigation.navigate("ProductDetails", { productId: p.id })
-            }
-          >
-            {p.mainImage ? (
-              <Image
-                alt="Huvudbild av produkten"
-                resizeMode="cover"
-                style={styles.image}
-                defaultSource={{ uri: "../../assets/images/logo.png" }}
-                source={{ uri: p.mainImage.presignedGetUrl }}
+    <Page>
+      <View style={styles.container}>
+        <View style={styles.searchParams}>
+          <View style={styles.searchFields}>
+            <Title>Din sökning:</Title>
+            {!!searchString && (
+              <Button
+                title={searchString}
+                onPress={() => onSetFilter({ searchString: undefined })}
               />
-            ) : (
-              <View style={[styles.noImage, styles.image]}>
-                <Body>Bild saknas</Body>
-              </View>
             )}
-            <Title>{p.title}</Title>
-            <Body>{p.price} kr</Body>
-            <Body>Address: {p.address}</Body>
-          </Pressable>
-        ))}
+            {categoryData && (
+              <Button
+                title={categoryData.category.name}
+                onPress={() => onSetFilter({ categoryId: undefined })}
+              />
+            )}
+            {!!address && !distance && (
+              <Button
+                title={address}
+                onPress={() => onSetFilter({ address: undefined })}
+              />
+            )}
+            {!!address && !!distance && (
+              <Button
+                title={`<${distance}km från ${address}`}
+                onPress={() =>
+                  onSetFilter({ address: undefined, distance: undefined })
+                }
+              />
+            )}
+            {selectionCategories && (
+              <Button
+                title="Utvalda kategorier"
+                onPress={() => onSetFilter({ selectionCategories: undefined })}
+              />
+            )}
+            {seasonalCategories && (
+              <Button
+                title="Säsongskategorier"
+                onPress={() => onSetFilter({ seasonalCategories: undefined })}
+              />
+            )}
+            {giveaway && (
+              <Button
+                title="Bortskänkes"
+                onPress={() => onSetFilter({ giveaway: undefined })}
+              />
+            )}
+            {condition && (
+              <Button
+                title={conditionTranslationMap[condition]}
+                onPress={() => onSetFilter({ condition: undefined })}
+              />
+            )}
+          </View>
+          <Body>{data?.products.length} stycken träffar i din sökning</Body>
+        </View>
+        <View style={styles.filterContainer}>
+          <Picker
+            selectedValue={condition ?? "unselected"}
+            onValueChange={(v: ProductConditionEnum | "unselected") => {
+              if (v === "unselected") {
+                onSetFilter({ condition: undefined });
+                return;
+              }
+              onSetFilter({ condition: v });
+            }}
+          >
+            <Picker.Item
+              key={"condition"}
+              value={"unselected"}
+              label={"Välj skick"}
+            />
+            {Object.entries(conditionTranslationMap).map((c, i) => (
+              <Picker.Item key={i} value={c[0]} label={c[1]} />
+            ))}
+          </Picker>
+        </View>
+        <View style={styles.productsContainer}>
+          {data?.products.map((p) => (
+            <Pressable
+              key={p.id}
+              style={styles.card}
+              onPress={() =>
+                navigation.navigate("ProductDetails", { productId: p.id })
+              }
+            >
+              {p.mainImage ? (
+                <Image
+                  alt="Huvudbild av produkten"
+                  resizeMode="cover"
+                  style={styles.image}
+                  defaultSource={{ uri: "../../assets/images/logo.png" }}
+                  source={{ uri: p.mainImage.presignedGetUrl }}
+                />
+              ) : (
+                <View style={[styles.noImage, styles.image]}>
+                  <Body>Bild saknas</Body>
+                </View>
+              )}
+              <Title>{p.title}</Title>
+              <Body>{p.price} kr</Body>
+              <Body>Address: {p.address}</Body>
+            </Pressable>
+          ))}
+        </View>
       </View>
-    </ScrollView>
+    </Page>
   );
 };
 

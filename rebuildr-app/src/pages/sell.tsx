@@ -4,7 +4,7 @@ import { StyleSheet, View, Image, Pressable } from "react-native";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
-import { Page } from "src/components/page";
+import { Page } from "src/components/layout/page";
 import { Picker } from "@react-native-picker/picker";
 import { NumberInput } from "src/components/inputs/numberInput";
 import { Body } from "src/components/texts/text";
@@ -307,145 +307,150 @@ export const Sell = () => {
 
   return (
     <Page title={"Vad vill du sälja?"} loading={loading}>
-      <View style={styles.formContainer}>
-        <Picker
-          selectedValue={selectedRootCategory?.id}
-          onValueChange={(v) => {
-            const selectedCategory = categories.find((cat) => cat.id === v);
-            setSelectedRootCategory(selectedCategory);
-          }}
-        >
-          <Picker.Item
-            key={"kategori"}
-            label={"Välj en kategori"}
-            value={"unselected"}
+      <View style={styles.container}>
+        <View style={styles.formContainer}>
+          <Picker
+            selectedValue={selectedRootCategory?.id}
+            onValueChange={(v) => {
+              const selectedCategory = categories.find((cat) => cat.id === v);
+              setSelectedRootCategory(selectedCategory);
+            }}
+          >
+            <Picker.Item
+              key={"kategori"}
+              label={"Välj en kategori"}
+              value={"unselected"}
+            />
+            {categories.map((cat) => (
+              <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+            ))}
+          </Picker>
+          <Picker
+            selectedValue={selectedChildCategory?.id}
+            onValueChange={(v) => {
+              const selectedCategory = selectedRootCategory.children.find(
+                (cat) => cat.id === v,
+              );
+              setSelectedChildCategory(selectedCategory);
+            }}
+            enabled={!!selectedRootCategory}
+          >
+            <Picker.Item
+              key={"underkategori"}
+              label={"Välj en underkategori"}
+              value={"unselected"}
+            />
+            {selectedRootCategory?.children.map((cat) => (
+              <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+            ))}
+          </Picker>
+          <Input
+            onChange={setTitle}
+            placeholder={"Titel på objektet"}
+            value={title}
           />
-          {categories.map((cat) => (
-            <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-          ))}
-        </Picker>
-        <Picker
-          selectedValue={selectedChildCategory?.id}
-          onValueChange={(v) => {
-            const selectedCategory = selectedRootCategory.children.find(
-              (cat) => cat.id === v,
-            );
-            setSelectedChildCategory(selectedCategory);
-          }}
-          enabled={!!selectedRootCategory}
-        >
-          <Picker.Item
-            key={"underkategori"}
-            label={"Välj en underkategori"}
-            value={"unselected"}
+          <NumberInput onChange={setPrice} value={price} placeholder={"Pris"} />
+          <Button
+            title="Bortskänkes"
+            onPress={() => setIsGiveaway(!isGiveaway)}
+            backgroundColor={isGiveaway ? "purple" : undefined}
+            titleColor={isGiveaway ? "white" : undefined}
           />
-          {selectedRootCategory?.children.map((cat) => (
-            <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-          ))}
-        </Picker>
-        <Input
-          onChange={setTitle}
-          placeholder={"Titel på objektet"}
-          value={title}
-        />
-        <NumberInput onChange={setPrice} value={price} placeholder={"Pris"} />
-        <Button
-          title="Bortskänkes"
-          onPress={() => setIsGiveaway(!isGiveaway)}
-          backgroundColor={isGiveaway ? "purple" : undefined}
-          titleColor={isGiveaway ? "white" : undefined}
-        />
-        <Input value={address} onChange={setAddress} placeholder={"Adress"} />
-        <Input onChange={setBrand} placeholder={"Fabrikat"} value={brand} />
-        <NumberInput
-          onChange={setAmount}
-          placeholder={"Antal"}
-          value={amount}
-        />
-        <NumberInput
-          onChange={setHeight}
-          placeholder={"Höjd(mm)"}
-          value={height}
-        />
-        <NumberInput
-          onChange={setWidth}
-          placeholder={"Bredd(mm)"}
-          value={width}
-        />
-        <NumberInput
-          onChange={setDepth}
-          placeholder={"Djup(mm)"}
-          value={depth}
-        />
-        <NumberInput
-          onChange={setVolume}
-          placeholder={"Volym(liter)"}
-          value={volume}
-        />
-        <Picker
-          selectedValue={condition ?? "unselected"}
-          onValueChange={(v: ProductConditionEnum | "unselected") => {
-            if (v === "unselected") {
-              setCondition(undefined);
-            } else {
-              setCondition(v);
-            }
-          }}
-        >
-          <Picker.Item
-            key={"condition"}
-            value={"unselected"}
-            label={"I vilket skick är varan?"}
+          <Input value={address} onChange={setAddress} placeholder={"Adress"} />
+          <Input onChange={setBrand} placeholder={"Fabrikat"} value={brand} />
+          <NumberInput
+            onChange={setAmount}
+            placeholder={"Antal"}
+            value={amount}
           />
-          {Object.entries(conditionTranslationMap).map((c, i) => (
-            <Picker.Item key={i} value={c[0]} label={c[1]} />
-          ))}
-        </Picker>
-        <FieldInput
-          onChange={setDescription}
-          value={description}
-          placeholder={"Beskrivning..."}
-        />
-        <View style={styles.imagesContainer}>
-          {images.map((image, i) => (
-            <View key={i} style={styles.imageContainer}>
-              <Image
-                resizeMode="center"
-                style={{
-                  height: image.height,
-                  width: image.width,
-                }}
-                source={{ uri: image.uri }}
-              />
-              <Pressable
-                onPress={() => onRemoveImage(i)}
-                style={styles.removeImage}
-              >
-                <Body size="small">Ta bort</Body>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-        <View style={styles.addImageContainer}>
-          <Body>
-            Lägg till bilder ({images.length}/{nrMaxImages})
-          </Body>
-          <Button onPress={onAddImage} title="+" />
-        </View>
+          <NumberInput
+            onChange={setHeight}
+            placeholder={"Höjd(mm)"}
+            value={height}
+          />
+          <NumberInput
+            onChange={setWidth}
+            placeholder={"Bredd(mm)"}
+            value={width}
+          />
+          <NumberInput
+            onChange={setDepth}
+            placeholder={"Djup(mm)"}
+            value={depth}
+          />
+          <NumberInput
+            onChange={setVolume}
+            placeholder={"Volym(liter)"}
+            value={volume}
+          />
+          <Picker
+            selectedValue={condition ?? "unselected"}
+            onValueChange={(v: ProductConditionEnum | "unselected") => {
+              if (v === "unselected") {
+                setCondition(undefined);
+              } else {
+                setCondition(v);
+              }
+            }}
+          >
+            <Picker.Item
+              key={"condition"}
+              value={"unselected"}
+              label={"I vilket skick är varan?"}
+            />
+            {Object.entries(conditionTranslationMap).map((c, i) => (
+              <Picker.Item key={i} value={c[0]} label={c[1]} />
+            ))}
+          </Picker>
+          <FieldInput
+            onChange={setDescription}
+            value={description}
+            placeholder={"Beskrivning..."}
+          />
+          <View style={styles.imagesContainer}>
+            {images.map((image, i) => (
+              <View key={i} style={styles.imageContainer}>
+                <Image
+                  resizeMode="center"
+                  style={{
+                    height: image.height,
+                    width: image.width,
+                  }}
+                  source={{ uri: image.uri }}
+                />
+                <Pressable
+                  onPress={() => onRemoveImage(i)}
+                  style={styles.removeImage}
+                >
+                  <Body>Ta bort</Body>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+          <View style={styles.addImageContainer}>
+            <Body>
+              Lägg till bilder ({images.length}/{nrMaxImages})
+            </Body>
+            <Button onPress={onAddImage} title="+" />
+          </View>
 
-        <Button
-          title="Publicera"
-          titleColor="white"
-          onPress={onPublish}
-          disabled={creatingProduct}
-          backgroundColor="purple"
-        />
+          <Button
+            title="Publicera"
+            titleColor="white"
+            onPress={onPublish}
+            disabled={creatingProduct}
+            backgroundColor="purple"
+          />
+        </View>
       </View>
     </Page>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
   formContainer: {
     borderColor: "#000",
     borderRadius: 20,

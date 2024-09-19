@@ -1,5 +1,6 @@
 import React from "react";
 import { SvgProps } from "react-native-svg";
+import { DownChevronIcon } from "./downChevronIcon";
 import { GiftIcon } from "./giftIcon";
 import { LeftChevronIcon } from "./leftChevronIcon";
 import { PersonIcon } from "./personIcon";
@@ -8,6 +9,7 @@ import { PointUpIcon } from "./pointUpIcon";
 import { RightChevronIcon } from "./rightChevronIcon";
 import { SeasonIcon } from "./seasonIcon";
 import { TilesIcon } from "./tilesIcon";
+import { CrossHairIcon } from "./crossHairIcon";
 
 export type IconType =
   | "Person"
@@ -17,7 +19,9 @@ export type IconType =
   | "PointUp"
   | "Tiles"
   | "Season"
-  | "Gift";
+  | "Gift"
+  | "DownChevron"
+  | "CrossHair";
 
 export interface IconProps extends SvgProps {
   height?: number;
@@ -46,6 +50,10 @@ export const Icon = ({
       return <SeasonIcon {...props} />;
     case "Gift":
       return <GiftIcon {...props} />;
+    case "DownChevron":
+      return <DownChevronIcon {...props} />;
+    case "CrossHair":
+      return <CrossHairIcon {...props} />;
     default:
       break;
   }

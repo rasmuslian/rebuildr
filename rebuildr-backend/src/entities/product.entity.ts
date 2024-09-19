@@ -111,4 +111,10 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   description?: string;
+
+  /**
+   * Field to be populated when product is fetched and a position is given as argument.
+   */
+  @Field({ nullable: true })
+  distanceFromPosition?: number;
 }

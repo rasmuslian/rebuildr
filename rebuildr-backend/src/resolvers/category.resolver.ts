@@ -8,18 +8,27 @@ import {
   ResolveField,
   Root,
   Mutation,
+  Int,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { Category } from 'src/entities/category.entity';
 import { UserRoleEnum } from 'src/entities/user.entity';
+import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
+import { FileService } from 'src/services/file.service';
 
 @InputType()
 class CategoryInput {
   @Field(() => String)
   id: string;
+}
+
+@InputType()
+class PopularCategoriesInput {
+  @Field(() => Int)
+  limit: number;
 }
 
 @InputType()
@@ -35,7 +44,10 @@ class UpdateCategoryInput {
 }
 @Resolver(() => Category)
 export class CategoryResolver {
-  constructor(private categoryService: CategoryService) {}
+  constructor(
+    private categoryService: CategoryService,
+    private fileService: FileService,
+  ) {}
 
   @Query(() => Category)
   category(@Args('input') input: CategoryInput) {
@@ -52,6 +64,13 @@ export class CategoryResolver {
     return this.categoryService.findAllRoot();
   }
 
+  @Query(() => [Category])
+  popularCategories(
+    @Args('input', { nullable: true }) input?: PopularCategoriesInput,
+  ) {
+    return this.categoryService.findPopular(input?.limit);
+  }
+
   @Mutation(() => Category)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -62,5 +81,12 @@ export class CategoryResolver {
   @ResolveField(() => [Category])
   children(@Root() _parentCategory: Category) {
     return this.categoryService.findChildren(_parentCategory.id);
+  }
+
+  @ResolveField(() => File, { nullable: true })
+  image(@Root() _parentCategory: Category) {
+    return _parentCategory.imageId
+      ? this.fileService.findOne(_parentCategory.imageId)
+      : null;
   }
 }

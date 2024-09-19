@@ -6,6 +6,7 @@ import {
   Mutation,
   ObjectType,
   Query,
+  registerEnumType,
   ResolveField,
   Resolver,
   Root,
@@ -24,6 +25,14 @@ import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
+import { EventService } from 'src/services/event.service';
+import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+
+export enum OrderProductsEnum {
+  DISTANCE = 'DISTANCE',
+  LATEST = 'LATEST',
+}
+registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
 @InputType()
 export class FileInputType {
@@ -100,12 +109,22 @@ export class CreateProductResponse {
 }
 
 @InputType()
-class ProductsInput {
+class LocationType {
+  @Field()
+  longitude: number;
+  @Field()
+  latitude: number;
+}
+@InputType()
+export class ProductsInput {
   @Field({ nullable: true })
   searchString?: string;
 
   @Field({ nullable: true })
   address?: string;
+
+  @Field(() => LocationType, { nullable: true })
+  location?: LocationType;
 
   @Field({ nullable: true })
   distance?: number;
@@ -124,6 +143,12 @@ class ProductsInput {
 
   @Field({ nullable: true })
   condition?: ProductConditionEnum;
+
+  @Field({ nullable: true })
+  limit?: number;
+
+  @Field(() => OrderProductsEnum, { nullable: true })
+  orderBy?: OrderProductsEnum;
 }
 
 @InputType()
@@ -158,6 +183,7 @@ class ShowProductInput {
   @Field()
   id: string;
 }
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -165,15 +191,21 @@ export class ProductResolver {
     private userService: UserService,
     private categoryService: CategoryService,
     private fileService: FileService,
+    private eventService: EventService,
   ) {}
 
   @Query(() => Product)
-  async product(@Args('input') input: GetProductInput) {
+  @UseGuards(GqlOptionalAuthGuard)
+  async product(
+    @Args('input') input: GetProductInput,
+    @CurrentUser() user?: AuthedUserType,
+  ) {
+    await this.eventService.recordProductVisit(input.id, user?.id);
     return this.productService.findOne(input.id);
   }
 
   @Query(() => [Product])
-  @UseGuards(GqlOptionalAuthGuard)
+  @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
   async products(
     @Args('input') input: ProductsInput,
     @CurrentUser() user?: AuthedUserType,
@@ -182,7 +214,7 @@ export class ProductResolver {
   }
 
   @Mutation(() => CreateProductResponse)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async createProduct(
     @CurrentUser() _user: AuthedUserType,
     @Args('input', new ZodValidationPipe(createProductSchema))

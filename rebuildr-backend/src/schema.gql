@@ -2,15 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Category {
-  id: ID!
-  name: String!
-  parentId: String
-  inSelection: Boolean!
-  inSeason: Boolean!
-  children: [Category!]!
-}
-
 type User {
   id: ID!
   email: String!
@@ -21,10 +12,6 @@ type User {
 enum UserRoleEnum {
   USER
   ADMIN
-}
-
-type File {
-  presignedGetUrl: String!
 }
 
 type Product {
@@ -51,6 +38,7 @@ type Product {
   volume: Int
   condition: ProductConditionEnum!
   description: String
+  distanceFromPosition: Float
   category: Category!
   user: User!
   images: [File!]!
@@ -68,6 +56,21 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
+}
+
+type File {
+  id: ID!
+  presignedGetUrl: String!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  parentId: String
+  inSelection: Boolean!
+  inSeason: Boolean!
+  children: [Category!]!
+  image: File
 }
 
 type RegisterUserResponse {
@@ -121,6 +124,10 @@ type ConversationOverviewResponse {
   latestMessageAt: DateTime!
 }
 
+type GetAddressResponse {
+  address: String!
+}
+
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
@@ -128,8 +135,10 @@ type Query {
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
+  popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
+  locationToAddress(input: GetAddressInput!): GetAddressResponse!
 }
 
 input GetProductInput {
@@ -139,21 +148,43 @@ input GetProductInput {
 input ProductsInput {
   searchString: String
   address: String
+  location: LocationType
   distance: Float
   categoryId: String
   selectionCategories: Boolean
   seasonalCategories: Boolean
   giveaway: Boolean
   condition: String
+  limit: Float
+  orderBy: OrderProductsEnum
+}
+
+input LocationType {
+  longitude: Float!
+  latitude: Float!
+}
+
+enum OrderProductsEnum {
+  DISTANCE
+  LATEST
 }
 
 input CategoryInput {
   id: String!
 }
 
+input PopularCategoriesInput {
+  limit: Int!
+}
+
 input ConversationInput {
   otherUserId: String!
   productId: String!
+}
+
+input GetAddressInput {
+  latitude: Float!
+  longitude: Float!
 }
 
 type Mutation {
