@@ -8,7 +8,7 @@ import { PinIcon } from "./pinIcon";
 import { PointUpIcon } from "./pointUpIcon";
 import { RightChevronIcon } from "./rightChevronIcon";
 import { SeasonIcon } from "./seasonIcon";
-import { TilesIcon } from "./tilesIcon";
+import { MaterialIcon } from "./materialIcon";
 import { CrossHairIcon } from "./crossHairIcon";
 
 export type IconType =
@@ -17,7 +17,7 @@ export type IconType =
   | "LeftChevron"
   | "RightChevron"
   | "PointUp"
-  | "Tiles"
+  | "Material"
   | "Season"
   | "Gift"
   | "DownChevron"
@@ -44,8 +44,8 @@ export const Icon = ({
       return <RightChevronIcon {...props} />;
     case "PointUp":
       return <PointUpIcon {...props} />;
-    case "Tiles":
-      return <TilesIcon {...props} />;
+    case "Material":
+      return <MaterialIcon {...props} />;
     case "Season":
       return <SeasonIcon {...props} />;
     case "Gift":

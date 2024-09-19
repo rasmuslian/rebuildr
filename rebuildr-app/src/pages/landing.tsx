@@ -34,6 +34,7 @@ const LANDING_QUERY = gql(`
     rootCategories {
       id
       name
+      icon
     }
     popularCategories(input: $popularCategoriesInput) {
       id
@@ -366,7 +367,7 @@ export const Landing = () => {
                   key={category.id}
                 >
                   <View style={styles.categoryCard}>
-                    <Icon iconType="Tiles" />
+                    <Icon iconType="Material" />
                     <ButtonText type="detail" style={styles.cardText}>
                       {category.name}
                     </ButtonText>
