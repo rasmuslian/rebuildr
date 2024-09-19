@@ -1,8 +1,8 @@
-import React, { ReactElement, ReactNode, useRef, useState } from "react";
+import React, { ReactElement, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Colors from "src/styles/colors";
 import { Icon } from "../icons/icon";
-import { Body, InputText } from "../texts/text";
+import { InputText } from "../texts/text";
 import { textStyles } from "../texts/textStyles";
 import { BaseInputProps } from "./baseInput";
 import { useOutsidePress } from "src/hooks/useOutsidePress";
