@@ -29,11 +29,8 @@ export interface IconProps extends SvgProps {
   color?: string;
 }
 
-export const Icon = ({
-  iconType,
-  ...props
-}: IconProps & { iconType: IconType }) => {
-  switch (iconType) {
+export const Icon = ({ icon, ...props }: IconProps & { icon: IconType }) => {
+  switch (icon) {
     case "Person":
       return <PersonIcon {...props} />;
     case "Pin":

@@ -23,7 +23,7 @@ export const RelevantProducts = ({ products }: RelevantProductsProps) => {
         {product.distanceFromPosition && (
           <View style={styles.distanceContainer}>
             <Body>Avstånd från</Body>
-            <Icon iconType="CrossHair" />
+            <Icon icon="CrossHair" />
             <Body style={styles.distance}>
               {formatMetersToKm(product.distanceFromPosition)} km
             </Body>

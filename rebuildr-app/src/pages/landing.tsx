@@ -34,7 +34,6 @@ const LANDING_QUERY = gql(`
     rootCategories {
       id
       name
-      icon
     }
     popularCategories(input: $popularCategoriesInput) {
       id
@@ -279,7 +278,7 @@ export const Landing = () => {
                     <InputText type="default" color="pale">
                       Avstånd från
                     </InputText>
-                    <Icon iconType="Pin" />
+                    <Icon icon="Pin" />
                   </View>
                 }
                 dropdown={
@@ -306,7 +305,7 @@ export const Landing = () => {
               />
               <View style={styles.searchBottomContainer}>
                 <View style={styles.addresToLocationContainer}>
-                  <Icon iconType="CrossHair" />
+                  <Icon icon="CrossHair" />
                   <Pressable onPress={() => onGetMyLocation()}>
                     <InputText
                       color={
@@ -339,7 +338,7 @@ export const Landing = () => {
             elements={[
               <Pressable onPress={onPressSelectionCategories}>
                 <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-                  <Icon iconType="PointUp" />
+                  <Icon icon="PointUp" />
                   <ButtonText type="detail" style={styles.cardText}>
                     Utvalda
                   </ButtonText>
@@ -347,7 +346,7 @@ export const Landing = () => {
               </Pressable>,
               <Pressable onPress={onPressSeasonalCategories}>
                 <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-                  <Icon iconType="Season" />
+                  <Icon icon="Season" />
                   <ButtonText type="detail" style={styles.cardText}>
                     Säsong
                   </ButtonText>
@@ -355,7 +354,7 @@ export const Landing = () => {
               </Pressable>,
               <Pressable onPress={onPressGiveaway}>
                 <View style={[styles.categoryCard, styles.specialCategoryCard]}>
-                  <Icon iconType="Gift" />
+                  <Icon icon="Gift" />
                   <ButtonText type="detail" style={styles.cardText}>
                     Bortskänkes
                   </ButtonText>
@@ -367,7 +366,7 @@ export const Landing = () => {
                   key={category.id}
                 >
                   <View style={styles.categoryCard}>
-                    <Icon iconType="Material" />
+                    <Icon icon="Material" />
                     <ButtonText type="detail" style={styles.cardText}>
                       {category.name}
                     </ButtonText>
@@ -458,7 +457,7 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
     <View style={styles.categoriesSlider}>
       <Pressable onPress={() => onLeft()}>
         <View style={styles.arrow}>
-          <Icon iconType="LeftChevron" />
+          <Icon icon="LeftChevron" />
         </View>
       </Pressable>
       <FlatList
@@ -473,7 +472,7 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
       />
       <Pressable onPress={() => onRight()}>
         <View style={styles.arrow}>
-          <Icon iconType="RightChevron" />
+          <Icon icon="RightChevron" />
         </View>
       </Pressable>
     </View>

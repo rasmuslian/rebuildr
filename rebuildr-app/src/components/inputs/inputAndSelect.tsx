@@ -112,7 +112,7 @@ export const InputAndSelect = <T extends string | number>({
             <View style={styles.selectContainer}>
               <View style={styles.separator} />
               {selectLabel()}
-              <Icon iconType="DownChevron" />
+              <Icon icon="DownChevron" />
             </View>
           </Pressable>
         </View>

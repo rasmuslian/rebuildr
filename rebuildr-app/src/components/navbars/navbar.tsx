@@ -38,14 +38,14 @@ export const Navbar = ({ me }: NavbarProps) => {
         {me ? (
           <Link to={{ screen: "Account" }}>
             <View style={styles.accountButton}>
-              <Icon iconType="Person" />
+              <Icon icon="Person" />
               <Body>{me.email}</Body>
             </View>
           </Link>
         ) : (
           <Link to={{ screen: "Login" }}>
             <View style={styles.accountButton}>
-              <Icon iconType="Person" />
+              <Icon icon="Person" />
               <Body>Logga in</Body>
             </View>
           </Link>
