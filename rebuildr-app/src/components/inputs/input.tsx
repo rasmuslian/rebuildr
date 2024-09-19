@@ -42,7 +42,7 @@ export const Input = ({
       />
       {dropdown && showDropdown && (
         <View style={{ position: "relative" }} ref={ref}>
-          <View style={[styles.dropdownContainer]}>{dropdown}</View>
+          <View style={styles.dropdownContainer}>{dropdown}</View>
         </View>
       )}
     </View>

@@ -74,6 +74,14 @@ const LOCATION_TO_ADDRESS_QUERY = gql(`
   }
   `);
 
+const LOCATION_SEARCH_QUERY = gql(`
+    query LocationSearchQuery($input: LocationSearchInput!) {
+      locationSearch(input: $input) {
+        result
+      }
+    }
+      `);
+
 //0 indicates no distance
 const distances = [3, 5, 10, 30, 50, 100, 0];
 
@@ -97,6 +105,9 @@ export const Landing = () => {
   );
   const [getAddress, { error: getAddressError, loading: getAddressLoading }] =
     useLazyQuery(LOCATION_TO_ADDRESS_QUERY);
+  const [locationSearch, { data: locationSearchData }] = useLazyQuery(
+    LOCATION_SEARCH_QUERY,
+  );
 
   useEffect(() => {
     (async () => {
@@ -149,6 +160,11 @@ export const Landing = () => {
         setAddress(address);
       },
     });
+  };
+
+  const onUpdateLocation = (s: string) => {
+    setAddress(s);
+    locationSearch({ variables: { input: { searchString: s } } });
   };
 
   const onSearch = () => {
@@ -247,7 +263,7 @@ export const Landing = () => {
               />
               <InputAndSelect
                 label="Område"
-                onChange={setAddress}
+                onChange={onUpdateLocation}
                 value={address}
                 placeholder={"Var letar du?"}
                 style={styles.input}
@@ -264,6 +280,27 @@ export const Landing = () => {
                     </InputText>
                     <Icon iconType="Pin" />
                   </View>
+                }
+                dropdown={
+                  locationSearchData?.locationSearch.result.length
+                    ? (collapseDropdown) => (
+                        <View style={styles.searchSuggestionsDropdownContainer}>
+                          {locationSearchData?.locationSearch.result.map(
+                            (data, i) => (
+                              <Pressable
+                                onPress={() => {
+                                  collapseDropdown();
+                                  setAddress(data);
+                                }}
+                                key={i}
+                              >
+                                <InputText>{data}</InputText>
+                              </Pressable>
+                            ),
+                          )}
+                        </View>
+                      )
+                    : undefined
                 }
               />
               <View style={styles.searchBottomContainer}>

@@ -37,6 +37,8 @@ const documents = {
     types.NearbyProductsQueryDocument,
   "\n  query LocationToAddress($input: GetAddressInput!) {\n    locationToAddress(input: $input) {\n      address\n    }\n  }\n  ":
     types.LocationToAddressDocument,
+  "\n    query LocationSearchQuery($input: LocationSearchInput!) {\n      locationSearch(input: $input) {\n        result\n      }\n    }\n      ":
+    types.LocationSearchQueryDocument,
   "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      refreshToken\n      user {\n        email\n      }\n    }\n  }\n":
     types.LoginDocument,
   "\n  mutation NewPassword($input: NewPasswordInput!) {\n    newPassword(input:$input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
@@ -153,6 +155,12 @@ export function gql(
 export function gql(
   source: "\n  query LocationToAddress($input: GetAddressInput!) {\n    locationToAddress(input: $input) {\n      address\n    }\n  }\n  ",
 ): (typeof documents)["\n  query LocationToAddress($input: GetAddressInput!) {\n    locationToAddress(input: $input) {\n      address\n    }\n  }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n    query LocationSearchQuery($input: LocationSearchInput!) {\n      locationSearch(input: $input) {\n        result\n      }\n    }\n      ",
+): (typeof documents)["\n    query LocationSearchQuery($input: LocationSearchInput!) {\n      locationSearch(input: $input) {\n        result\n      }\n    }\n      "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

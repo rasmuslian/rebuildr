@@ -24,6 +24,17 @@ class GetAddressResponse {
   address: string;
 }
 
+@InputType()
+class LocationSearchInput {
+  @Field()
+  searchString: string;
+}
+@ObjectType()
+class LocationSearchResponse {
+  @Field(() => [String])
+  result: string[];
+}
+
 @Resolver()
 export class GeocodingResolver {
   constructor(private geocodingService: GeocodingService) {}
@@ -32,5 +43,10 @@ export class GeocodingResolver {
   @Query(() => GetAddressResponse)
   async locationToAddress(@Args('input') input: GetAddressInput) {
     return this.geocodingService.locationToAddress(input);
+  }
+
+  @Query(() => LocationSearchResponse)
+  async locationSearch(@Args('input') input: LocationSearchInput) {
+    return this.geocodingService.placesAutoComplete(input.searchString);
   }
 }
