@@ -368,7 +368,11 @@ export const Landing = () => {
                   key={category.id}
                 >
                   <View style={styles.categoryCard}>
-                    <Icon icon={getIconFromCategory(category.icon)} />
+                    <Icon
+                      icon={getIconFromCategory(category.icon)}
+                      width={30}
+                      height={30}
+                    />
                     <ButtonText type="detail" style={styles.cardText}>
                       {category.name}
                     </ButtonText>
