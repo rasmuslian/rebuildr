@@ -34,7 +34,6 @@ export class GeocodingService {
           input: s,
           key: this.configService.get('GOOGLE_PLACES_AUTOCOMPLETE_API_KEY'),
           language: Language.sv,
-          // location: [59, 18], //utgår från ~stockholm
           types: PlaceAutocompleteType.geocode,
           components: ['country:se'],
           sessiontoken: this.sessionToken,
