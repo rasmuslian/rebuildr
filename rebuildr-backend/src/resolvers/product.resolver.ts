@@ -273,4 +273,9 @@ export class ProductResolver {
   async mainImage(@Root() _product: Product) {
     return this.fileService.findOneByProduct(_product.id);
   }
+
+  @ResolveField(() => [User])
+  async likedBy(@Root() _product: Product) {
+    return this.productService.getLikedByUser(_product);
+  }
 }

@@ -43,6 +43,7 @@ type Product {
   user: User!
   images: [File!]!
   mainImage: File
+  likedBy: [User!]!
 }
 
 """

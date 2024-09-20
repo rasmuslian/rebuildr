@@ -287,4 +287,13 @@ export class ProductService {
     product.hiddenReason = null;
     return await this.productRepository.save(product);
   }
+
+  async getLikedByUser(_product: Product) {
+    const productWithLikedBy = await this.productRepository.findOne({
+      where: { id: _product.id },
+      relations: { likedBy: true },
+    });
+
+    return productWithLikedBy.likedBy;
+  }
 }
