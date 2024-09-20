@@ -296,4 +296,21 @@ export class ProductService {
 
     return productWithLikedBy.likedBy;
   }
+
+  async likeProduct(productId: string, userId: string) {
+    const [product, user] = await Promise.all([
+      await this.productRepository.findOne({
+        where: { id: productId },
+        relations: { likedBy: true },
+      }),
+      await this.userRepository.findOneBy({ id: userId }),
+    ]);
+
+    if (!product || !user) {
+      throw BadUserInputException();
+    }
+
+    product.likedBy.push(user);
+    return await this.productRepository.save(product);
+  }
 }

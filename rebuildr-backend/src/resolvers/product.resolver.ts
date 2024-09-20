@@ -184,6 +184,12 @@ class ShowProductInput {
   id: string;
 }
 
+@InputType()
+class LikeProductInput {
+  @Field()
+  id: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -251,6 +257,15 @@ export class ProductResolver {
     @Args('input') input: ShowProductInput,
   ) {
     return this.productService.show(input.id, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async likeProduct(
+    @CurrentUser() _user: AuthedUserType,
+    @Args('input') input: LikeProductInput,
+  ) {
+    return this.productService.likeProduct(input.id, _user.id);
   }
 
   @ResolveField(() => Category)
