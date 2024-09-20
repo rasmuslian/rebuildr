@@ -200,7 +200,7 @@ export const Landing = () => {
     <Page>
       <Section fullWidth>
         <ImageBackground
-          source={{ uri: "../../assets/images/main-background.png" }}
+          source={require("../../assets/images/main-background.png")}
           style={styles.container}
         >
           <Headline style={styles.title} color="brand">
