@@ -3,6 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   Point,
@@ -111,6 +113,10 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   description?: string;
+
+  @ManyToMany(() => User, (user) => user.likedProducts)
+  @JoinTable()
+  likedBy: User[];
 
   /**
    * Field to be populated when product is fetched and a position is given as argument.

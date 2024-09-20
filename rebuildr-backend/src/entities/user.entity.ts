@@ -7,6 +7,7 @@ import {
   Point,
   PrimaryGeneratedColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refreshToken.entity';
@@ -63,4 +64,7 @@ export class User {
 
   @Column({ nullable: true })
   resetPasswordToken?: string;
+
+  @ManyToMany(() => Product, (product) => product.likedBy)
+  likedProducts: Product[];
 }
