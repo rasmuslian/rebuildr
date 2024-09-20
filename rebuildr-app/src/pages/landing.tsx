@@ -31,7 +31,7 @@ import * as Location from "expo-location";
 import { getIconFromCategory } from "src/utils/getIconFromCategory";
 
 const LANDING_QUERY = gql(`
-  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {
+  query LandingQuery($popularCategoriesInput: PopularCategoriesInput, $isLoggedIn: Boolean!) {
     rootCategories {
       id
       name
@@ -45,6 +45,10 @@ const LANDING_QUERY = gql(`
         presignedGetUrl
       }
     }
+    me @include(if: $isLoggedIn) {
+      id
+      role
+    }
   }
 `);
 
@@ -55,6 +59,9 @@ const NEARBY_PRODUCTS_QUERY = gql(`
       title
       description
       distanceFromPosition
+      likedBy {
+        id
+      }
       user {
         id
         email
@@ -99,6 +106,7 @@ export const Landing = () => {
   const { data } = useQuery(LANDING_QUERY, {
     variables: {
       popularCategoriesInput: { limit: 15 },
+      isLoggedIn,
     },
   });
 

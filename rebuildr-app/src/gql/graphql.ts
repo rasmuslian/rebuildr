@@ -303,6 +303,7 @@ export type Product = {
   id: Scalars["ID"]["output"];
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
+  likedBy: Array<User>;
   mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
@@ -562,6 +563,7 @@ export type UpdateCategoryMutation = {
 
 export type LandingQueryQueryVariables = Exact<{
   popularCategoriesInput?: InputMaybe<PopularCategoriesInput>;
+  isLoggedIn: Scalars["Boolean"]["input"];
 }>;
 
 export type LandingQueryQuery = {
@@ -578,6 +580,7 @@ export type LandingQueryQuery = {
     name: string;
     image?: { __typename?: "File"; id: string; presignedGetUrl: string } | null;
   }>;
+  me?: { __typename?: "User"; id: string; role: UserRoleEnum };
 };
 
 export type NearbyProductsQueryQueryVariables = Exact<{
@@ -594,6 +597,7 @@ export type NearbyProductsQueryQuery = {
     distanceFromPosition?: number | null;
     address: string;
     price: number;
+    likedBy: Array<{ __typename?: "User"; id: string }>;
     user: { __typename?: "User"; id: string; email: string };
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }>;
@@ -1287,6 +1291,20 @@ export const LandingQueryDocument = {
             name: { kind: "Name", value: "PopularCategoriesInput" },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "isLoggedIn" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Boolean" },
+            },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -1335,6 +1353,33 @@ export const LandingQueryDocument = {
                     ],
                   },
                 },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "me" },
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "include" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "if" },
+                    value: {
+                      kind: "Variable",
+                      name: { kind: "Name", value: "isLoggedIn" },
+                    },
+                  },
+                ],
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
             },
           },
@@ -1391,6 +1436,16 @@ export const NearbyProductsQueryDocument = {
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "distanceFromPosition" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "likedBy" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
                 },
                 {
                   kind: "Field",
