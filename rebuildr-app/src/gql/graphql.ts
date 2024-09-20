@@ -34,6 +34,7 @@ export type Scalars = {
 export type Category = {
   __typename?: "Category";
   children: Array<Category>;
+  icon?: Maybe<CategoryIconEnum>;
   id: Scalars["ID"]["output"];
   image?: Maybe<File>;
   inSeason: Scalars["Boolean"]["output"];
@@ -41,6 +42,24 @@ export type Category = {
   name: Scalars["String"]["output"];
   parentId?: Maybe<Scalars["String"]["output"]>;
 };
+
+export enum CategoryIconEnum {
+  Door = "DOOR",
+  Electrical = "ELECTRICAL",
+  Fasteners = "FASTENERS",
+  Floor = "FLOOR",
+  Interior = "INTERIOR",
+  KitchenBathroom = "KITCHEN_BATHROOM",
+  Material = "MATERIAL",
+  Outdoors = "OUTDOORS",
+  Paint = "PAINT",
+  Roof = "ROOF",
+  Tiles = "TILES",
+  Tools = "TOOLS",
+  Window = "WINDOW",
+  Wood = "WOOD",
+  Workplace = "WORKPLACE",
+}
 
 export type CategoryInput = {
   id: Scalars["String"]["input"];
@@ -547,7 +566,12 @@ export type LandingQueryQueryVariables = Exact<{
 
 export type LandingQueryQuery = {
   __typename?: "Query";
-  rootCategories: Array<{ __typename?: "Category"; id: string; name: string }>;
+  rootCategories: Array<{
+    __typename?: "Category";
+    id: string;
+    name: string;
+    icon?: CategoryIconEnum | null;
+  }>;
   popularCategories: Array<{
     __typename?: "Category";
     id: string;
@@ -1275,6 +1299,7 @@ export const LandingQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "icon" } },
               ],
             },
           },

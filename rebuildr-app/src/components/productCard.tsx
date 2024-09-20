@@ -48,7 +48,7 @@ export const ProductCard = ({
         )}
         {distance && (
           <View style={styles.distanceContainer}>
-            <Icon iconType="CrossHair" />
+            <Icon icon="CrossHair" />
             <Body style={styles.distance}>{formatMetersToKm(distance)} km</Body>
           </View>
         )}
