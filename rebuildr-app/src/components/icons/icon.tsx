@@ -8,7 +8,6 @@ import { PinIcon } from "./pinIcon";
 import { PointUpIcon } from "./pointUpIcon";
 import { RightChevronIcon } from "./rightChevronIcon";
 import { SeasonIcon } from "./seasonIcon";
-import { MaterialIcon } from "./materialIcon";
 import { CrossHairIcon } from "./crossHairIcon";
 import { WoodIcon } from "./woodIcon";
 import { DoorIcon } from "./doorIcon";
@@ -24,6 +23,7 @@ import { OutletIcon } from "./outletIcon";
 import { TreeIcon } from "./treeIcon";
 import { DrillIcon } from "./drillIcon";
 import { WheelbarrowIcon } from "./wheelbarrowIcon";
+import { MaterialIcon } from "./materialIcon";
 
 export type IconType =
   | "Person"
