@@ -202,6 +202,7 @@ export const Landing = () => {
         <ImageBackground
           source={require("../../assets/images/main-background.png")}
           style={styles.container}
+          imageStyle={{ height: "100%", width: "100%" }}
         >
           <Headline style={styles.title} color="brand">
             Sveriges marknadsplats för återbrukat byggmaterial
