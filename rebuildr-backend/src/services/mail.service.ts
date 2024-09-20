@@ -7,11 +7,11 @@ import * as fs from 'fs';
 import { InternalServerException } from 'src/exceptions';
 
 const verifyEmailTemplate = fs.readFileSync(
-  `../mail-templates/verify-email.mjml`,
+  `${__dirname}/../mail-templates/verify-email.mjml`,
   'utf8',
 );
 const resetPasswordTemplate = fs.readFileSync(
-  `../mail-templates/reset-password.mjml`,
+  `${__dirname}/../mail-templates/reset-password.mjml`,
   'utf8',
 );
 
