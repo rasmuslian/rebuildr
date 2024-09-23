@@ -1,12 +1,6 @@
 import { useLazyQuery, useQuery, useReactiveVar } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ReactNode, useCallback, useRef, useState } from "react";
 import { View, Pressable, ImageBackground, FlatList } from "react-native";
 import { Button } from "src/components/button";
 import { Icon } from "src/components/icons/icon";
@@ -24,14 +18,13 @@ import { InputAndSelect } from "src/components/inputs/inputAndSelect";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import { Page } from "src/components/layout/page";
 import { Section } from "src/components/layout/section";
-import { OrderProductsEnum } from "src/gql/graphql";
 import { PopularCategories } from "src/sections/popularCategories";
 import { RelevantProducts } from "src/sections/relevantProducts";
 import * as Location from "expo-location";
 import { getIconFromCategory } from "src/utils/getIconFromCategory";
 
 const LANDING_QUERY = gql(`
-  query LandingQuery($popularCategoriesInput: PopularCategoriesInput, $isLoggedIn: Boolean!) {
+  query LandingQuery($popularCategoriesInput: PopularCategoriesInput) {
     rootCategories {
       id
       name
@@ -45,35 +38,8 @@ const LANDING_QUERY = gql(`
         presignedGetUrl
       }
     }
-    me @include(if: $isLoggedIn) {
-      id
-      role
-    }
   }
 `);
-
-const NEARBY_PRODUCTS_QUERY = gql(`
-  query NearbyProductsQuery($input: ProductsInput!) {
-    products(input: $input) {
-      id
-      title
-      description
-      distanceFromPosition
-      likedBy {
-        id
-      }
-      user {
-        id
-        email
-      }
-      address
-      price
-      mainImage {
-        presignedGetUrl
-      }
-    } 
-  }
-  `);
 
 const LOCATION_TO_ADDRESS_QUERY = gql(`
   query LocationToAddress($input: GetAddressInput!) {
@@ -106,43 +72,14 @@ export const Landing = () => {
   const { data } = useQuery(LANDING_QUERY, {
     variables: {
       popularCategoriesInput: { limit: 15 },
-      isLoggedIn,
     },
   });
 
-  const [fetchNearbyProducts, { data: nearbyProducts }] = useLazyQuery(
-    NEARBY_PRODUCTS_QUERY,
-  );
   const [getAddress, { error: getAddressError, loading: getAddressLoading }] =
     useLazyQuery(LOCATION_TO_ADDRESS_QUERY);
   const [locationSearch, { data: locationSearchData }] = useLazyQuery(
     LOCATION_SEARCH_QUERY,
   );
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        fetchNearbyProducts({
-          variables: { input: { limit: 6, orderBy: OrderProductsEnum.Latest } },
-        });
-        return;
-      }
-      const position = await Location.getCurrentPositionAsync();
-      fetchNearbyProducts({
-        variables: {
-          input: {
-            limit: 6,
-            orderBy: OrderProductsEnum.Distance,
-            location: {
-              longitude: position.coords.longitude,
-              latitude: position.coords.latitude,
-            },
-          },
-        },
-      });
-    })();
-  }, [fetchNearbyProducts]);
 
   const onGetMyLocation = async () => {
     if (getAddressLoading) {
@@ -396,7 +333,7 @@ export const Landing = () => {
         <Headline type="section" style={{ marginBottom: 32 }}>
           Nyinkomna varor nära dig
         </Headline>
-        <RelevantProducts products={nearbyProducts?.products ?? []} />
+        <RelevantProducts />
       </Section>
       <Section>
         <Headline type="section" style={{ marginBottom: 32 }}>

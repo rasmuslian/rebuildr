@@ -289,8 +289,12 @@ export class ProductResolver {
     return this.fileService.findOneByProduct(_product.id);
   }
 
-  @ResolveField(() => [User])
-  async likedBy(@Root() _product: Product) {
-    return this.productService.getLikedByUser(_product);
+  @UseGuards(GqlOptionalAuthGuard)
+  @ResolveField(() => Boolean, { nullable: true })
+  async likedByUser(
+    @Root() _product: Product,
+    @CurrentUser() _user?: AuthedUserType,
+  ) {
+    return this.productService.isLikedBy(_product.id, _user?.id);
   }
 }

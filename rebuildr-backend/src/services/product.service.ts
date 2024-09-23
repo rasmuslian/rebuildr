@@ -288,13 +288,16 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async getLikedByUser(_product: Product) {
-    const productWithLikedBy = await this.productRepository.findOne({
-      where: { id: _product.id },
-      relations: { likedBy: true },
+  async isLikedBy(productId: string, userId?: string) {
+    if (!userId) {
+      return null;
+    }
+
+    const likedProductExists = await this.productRepository.exists({
+      where: { id: productId, likedBy: { id: userId } },
     });
 
-    return productWithLikedBy.likedBy;
+    return likedProductExists;
   }
 
   async likeProduct(productId: string, userId: string) {

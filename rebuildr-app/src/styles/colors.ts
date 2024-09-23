@@ -18,6 +18,7 @@ type ColorsType = {
   brand: string;
   blue: string;
   borderGray: string;
+  charcoal: string;
   softGray: string;
   inactiveGray: string;
   green: string;
@@ -35,6 +36,7 @@ const Colors: ColorsType = {
   brand: "#F8F1E3",
   blue: "#6666FF",
   borderGray: "#ABABAB",
+  charcoal: "#484848",
   softGray: "#C9C9C9",
   inactiveGray: "#C1C1C1",
   green: "#00493E",
