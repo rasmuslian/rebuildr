@@ -34,8 +34,8 @@ const RELEVANT_PRODUCTS_QUERY = gql(`
   `);
 
 const LIKE_PRODUCT = gql(`
-  mutation LikeProduct($input: LikeProductInput!) {
-    likeProduct(input: $input) {
+  mutation LikeProduct($input: SetLikeProductInput!) {
+    setLikeProduct(input: $input) {
       id
       likedByUser
     }
@@ -84,7 +84,11 @@ export const RelevantProducts = () => {
           distance={product.distanceFromPosition}
           liked={product.likedByUser}
           onLike={() =>
-            likeProduct({ variables: { input: { id: product.id } } })
+            likeProduct({
+              variables: {
+                input: { id: product.id, like: !product.likedByUser },
+              },
+            })
           }
         />
         {product.distanceFromPosition && (

@@ -161,10 +161,6 @@ export type HideProductInput = {
   reason: Scalars["String"]["input"];
 };
 
-export type LikeProductInput = {
-  id: Scalars["String"]["input"];
-};
-
 export type LocationSearchInput = {
   searchString: Scalars["String"]["input"];
 };
@@ -207,14 +203,13 @@ export type Mutation = {
   deleteProduct: DeleteProductResponse;
   getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
-  likeProduct: Product;
   login: LoginResponse;
   newPassword: LoginResponse;
   registerUser: RegisterUserResponse;
   resendVerificationMail: ResendVerificationMailResponse;
   resetPassword: ResetPasswordResponse;
+  setLikeProduct: Product;
   showProduct: Product;
-  unlikeProduct: Product;
   updateCategory: Category;
   updateUser: User;
   verifyMail: LoginResponse;
@@ -240,10 +235,6 @@ export type MutationHideProductArgs = {
   input: HideProductInput;
 };
 
-export type MutationLikeProductArgs = {
-  input: LikeProductInput;
-};
-
 export type MutationLoginArgs = {
   input: LoginInput;
 };
@@ -264,12 +255,12 @@ export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
 };
 
-export type MutationShowProductArgs = {
-  input: ShowProductInput;
+export type MutationSetLikeProductArgs = {
+  input: SetLikeProductInput;
 };
 
-export type MutationUnlikeProductArgs = {
-  input: LikeProductInput;
+export type MutationShowProductArgs = {
+  input: ShowProductInput;
 };
 
 export type MutationUpdateCategoryArgs = {
@@ -317,7 +308,6 @@ export type Product = {
   id: Scalars["ID"]["output"];
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
-  likedBy: Array<User>;
   likedByUser?: Maybe<Scalars["Boolean"]["output"]>;
   mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
@@ -420,6 +410,11 @@ export type ResetPasswordInput = {
 export type ResetPasswordResponse = {
   __typename?: "ResetPasswordResponse";
   message: Scalars["String"]["output"];
+};
+
+export type SetLikeProductInput = {
+  id: Scalars["String"]["input"];
+  like: Scalars["Boolean"]["input"];
 };
 
 export type ShowProductInput = {
@@ -820,12 +815,12 @@ export type RelevantProductsQueryQuery = {
 };
 
 export type LikeProductMutationVariables = Exact<{
-  input: LikeProductInput;
+  input: SetLikeProductInput;
 }>;
 
 export type LikeProductMutation = {
   __typename?: "Mutation";
-  likeProduct: {
+  setLikeProduct: {
     __typename?: "Product";
     id: string;
     likedByUser?: boolean | null;
@@ -2448,7 +2443,7 @@ export const LikeProductDocument = {
             kind: "NonNullType",
             type: {
               kind: "NamedType",
-              name: { kind: "Name", value: "LikeProductInput" },
+              name: { kind: "Name", value: "SetLikeProductInput" },
             },
           },
         },
@@ -2458,7 +2453,7 @@ export const LikeProductDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "likeProduct" },
+            name: { kind: "Name", value: "setLikeProduct" },
             arguments: [
               {
                 kind: "Argument",

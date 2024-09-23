@@ -229,7 +229,7 @@ type Mutation {
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
-  likeProduct(input: LikeProductInput!): Product!
+  setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
 }
@@ -307,8 +307,9 @@ input ShowProductInput {
   id: String!
 }
 
-input LikeProductInput {
+input SetLikeProductInput {
   id: String!
+  like: Boolean!
 }
 
 input UpdateCategoryInput {

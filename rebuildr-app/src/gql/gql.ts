@@ -67,7 +67,7 @@ const documents = {
     types.VerifyMailDocument,
   "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      description\n      distanceFromPosition\n      likedByUser\n      user {\n        id\n        email\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  ":
     types.RelevantProductsQueryDocument,
-  "\n  mutation LikeProduct($input: LikeProductInput!) {\n    likeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ":
+  "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ":
     types.LikeProductDocument,
 };
 
@@ -251,8 +251,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  mutation LikeProduct($input: LikeProductInput!) {\n    likeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ",
-): (typeof documents)["\n  mutation LikeProduct($input: LikeProductInput!) {\n    likeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  "];
+  source: "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  "];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

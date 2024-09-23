@@ -300,7 +300,7 @@ export class ProductService {
     return likedProductExists;
   }
 
-  async likeProduct(productId: string, userId: string) {
+  async setLikeProduct(productId: string, like: boolean, userId: string) {
     const [product, user] = await Promise.all([
       await this.productRepository.findOne({
         where: { id: productId },
@@ -313,7 +313,15 @@ export class ProductService {
       throw BadUserInputException();
     }
 
-    product.likedBy.push(user);
+    if (like) {
+      product.likedBy.some((likedByUser) => likedByUser.id === userId) ||
+        product.likedBy.push(user);
+    } else {
+      product.likedBy = product.likedBy.filter(
+        (likedByUser) => likedByUser.id !== userId,
+      );
+    }
+
     return await this.productRepository.save(product);
   }
 }
