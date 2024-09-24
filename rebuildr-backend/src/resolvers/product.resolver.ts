@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -27,6 +28,7 @@ import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+import { IDataloaders } from 'src/dataloader/dataloader.service';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -196,6 +198,7 @@ class SetLikeProductInput {
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
+    @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     private userService: UserService,
     private categoryService: CategoryService,
@@ -296,8 +299,12 @@ export class ProductResolver {
   @ResolveField(() => Boolean, { nullable: true })
   async likedByUser(
     @Root() _product: Product,
+    @Context() { loaders }: { loaders: IDataloaders },
     @CurrentUser() _user?: AuthedUserType,
   ) {
-    return this.productService.isLikedBy(_product.id, _user?.id);
+    return loaders.likedByUserLoader.load({
+      productId: _product.id,
+      userId: _user.id,
+    });
   }
 }
