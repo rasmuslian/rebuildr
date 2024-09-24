@@ -63,7 +63,7 @@ export class Product {
   addressLocation: Point;
 
   @OneToMany(() => File, (file) => file.product, { nullable: true })
-  images: File[];
+  images?: File[];
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })

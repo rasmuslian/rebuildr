@@ -280,8 +280,11 @@ export class ProductResolver {
   }
 
   @ResolveField(() => User)
-  async user(@Root() _product: Product) {
-    return this.userService.findOne(_product.userId);
+  async user(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.userLoader.load(_product.id);
   }
 
   @ResolveField(() => [File])
@@ -291,15 +294,18 @@ export class ProductResolver {
 
   //TODO: fetch actual mainImage and not just the first image
   @ResolveField(() => File, { nullable: true })
-  async mainImage(@Root() _product: Product) {
-    return this.fileService.findOneByProduct(_product.id);
+  async mainImage(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.mainImageLoader.load(_product.id);
   }
 
   @UseGuards(GqlOptionalAuthGuard)
   @ResolveField(() => Boolean, { nullable: true })
   async likedByUser(
     @Root() _product: Product,
-    @Context() { productLoaders }: { productLoaders: IProductLoaders },
+    @Context('productLoaders') productLoaders: IProductLoaders,
     @CurrentUser() _user?: AuthedUserType,
   ) {
     return productLoaders.likedByUserLoader.load({
