@@ -28,7 +28,7 @@ import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
-import { IDataloaders } from 'src/dataloader/dataloader.service';
+import { IProductLoaders } from 'src/dataloader/product.loader.service';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -299,10 +299,10 @@ export class ProductResolver {
   @ResolveField(() => Boolean, { nullable: true })
   async likedByUser(
     @Root() _product: Product,
-    @Context() { loaders }: { loaders: IDataloaders },
+    @Context() { productLoaders }: { productLoaders: IProductLoaders },
     @CurrentUser() _user?: AuthedUserType,
   ) {
-    return loaders.likedByUserLoader.load({
+    return productLoaders.likedByUserLoader.load({
       productId: _product.id,
       userId: _user.id,
     });

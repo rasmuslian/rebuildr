@@ -41,6 +41,7 @@ import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
+import { ProductLoaderService } from './dataloader/product.loader.service';
 
 @Module({
   imports: [
@@ -71,9 +72,10 @@ import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [DataloaderService, ConfigService],
+      inject: [DataloaderService, ProductLoaderService, ConfigService],
       useFactory: (
         dataloaderService: DataloaderService,
+        productLoaderService: ProductLoaderService,
         configService: ConfigService,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -83,6 +85,7 @@ import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
           context: ({ req, res }) => ({
             loaders: dataloaderService.createLoaders(),
+            productLoaders: productLoaderService.createLoaders(),
             req,
             res,
           }),
