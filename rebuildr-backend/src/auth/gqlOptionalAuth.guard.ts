@@ -22,7 +22,7 @@ export class GqlOptionalAuthGuard implements CanActivate {
       );
       request.user = {
         id: payload.sub,
-        email: payload.sub,
+        email: payload.email,
         role: payload.role,
       };
     } catch (e) {
