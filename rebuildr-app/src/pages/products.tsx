@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
@@ -10,6 +10,8 @@ import { Picker } from "@react-native-picker/picker";
 import { conditionTranslationMap } from "src/constants/constants";
 import { ProductConditionEnum } from "src/gql/graphql";
 import { Page } from "src/components/layout/page";
+import * as L from "leaflet";
+import "./map.css";
 
 const PRODUCTS_QUERY = gql(`
   query ProductsQuery($input: ProductsInput!) {
@@ -20,6 +22,10 @@ const PRODUCTS_QUERY = gql(`
       price
       mainImage {
         presignedGetUrl
+      }
+      location {
+        latitude
+        longitude
       }
     }
   }
@@ -114,6 +120,49 @@ export const Products = ({ route }) => {
     navigation.setParams(newFilterParams);
   };
 
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    const map = L.map("map").setView([59.308, 18.019], 14);
+
+    //Stadia_OSMBright
+    L.tileLayer(
+      "https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}",
+      {
+        minZoom: 0,
+        maxZoom: 20,
+        attribution:
+          '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        ext: "png",
+      },
+    ).addTo(map);
+
+    var marker = L.marker([59.308, 18.019]).addTo(map);
+
+    data.products.forEach((product) => {
+      L.marker([product.location.latitude, product.location.longitude]).addTo(
+        map,
+      );
+    });
+
+    var popup = L.popup();
+
+    function onMapClick(e) {
+      popup
+        .setLatLng(e.latlng)
+        .setContent("You clicked the map at " + e.latlng.toString())
+        .openOn(map);
+    }
+
+    map.on("click", onMapClick);
+
+    return () => {
+      map.remove();
+    };
+  }, [data]);
+
   return (
     <Page>
       <View style={styles.container}>
@@ -194,6 +243,8 @@ export const Products = ({ route }) => {
             ))}
           </Picker>
         </View>
+        <div id="map" />
+        {/* <div id="map" style={{ height: 422 }}/> */}
         <View style={styles.productsContainer}>
           {data?.products.map((p) => (
             <Pressable

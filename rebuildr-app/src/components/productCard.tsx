@@ -12,6 +12,7 @@ interface ProductCardProps {
   title: string;
   description?: string;
   price: number;
+  isGiveaway: boolean;
   address: string;
   mainImage?: { presignedGetUrl: string };
   user: { username: string };
@@ -25,6 +26,7 @@ export const ProductCard = ({
   title,
   description,
   price,
+  isGiveaway,
   address,
   user,
   mainImage,
@@ -78,8 +80,14 @@ export const ProductCard = ({
             </Body>
           </View>
           <View style={styles.priceContainer}>
-            <Title style={styles.hideOnSmall}>Pris: </Title>
-            <Title>{price} Kr</Title>
+            {isGiveaway ? (
+              <Title>Skänkes</Title>
+            ) : (
+              <>
+                <Title style={styles.hideOnSmall}>Pris: </Title>
+                <Title>{price} Kr</Title>
+              </>
+            )}
           </View>
         </View>
       </View>

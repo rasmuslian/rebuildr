@@ -161,6 +161,12 @@ export type HideProductInput = {
   reason: Scalars["String"]["input"];
 };
 
+export type LocationResponse = {
+  __typename?: "LocationResponse";
+  latitude: Scalars["Float"]["output"];
+  longitude: Scalars["Float"]["output"];
+};
+
 export type LocationSearchInput = {
   searchString: Scalars["String"]["input"];
 };
@@ -309,6 +315,7 @@ export type Product = {
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
   likedByUser?: Maybe<Scalars["Boolean"]["output"]>;
+  location: LocationResponse;
   mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
@@ -712,6 +719,11 @@ export type ProductsQueryQuery = {
     address: string;
     price: number;
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+    location: {
+      __typename?: "LocationResponse";
+      latitude: number;
+      longitude: number;
+    };
   }>;
 };
 
@@ -808,7 +820,8 @@ export type RelevantProductsQueryQuery = {
     likedByUser?: boolean | null;
     address: string;
     price: number;
-    user: { __typename?: "User"; id: string; username: string };
+    isGiveaway: boolean;
+    user: { __typename?: "User"; id: string; email: string };
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }>;
 };
@@ -1962,6 +1975,23 @@ export const ProductsQueryDocument = {
                     ],
                   },
                 },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "location" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "latitude" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "longitude" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -2413,6 +2443,7 @@ export const RelevantProductsQueryDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 { kind: "Field", name: { kind: "Name", value: "price" } },
+                { kind: "Field", name: { kind: "Name", value: "isGiveaway" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "mainImage" },

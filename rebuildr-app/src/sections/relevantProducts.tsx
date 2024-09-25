@@ -26,6 +26,7 @@ const RELEVANT_PRODUCTS_QUERY = gql(`
       }
       address
       price
+      isGiveaway
       mainImage {
         presignedGetUrl
       }
