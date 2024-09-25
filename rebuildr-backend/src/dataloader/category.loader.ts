@@ -10,7 +10,7 @@ export interface ICategoryLoaders {
 }
 
 @Injectable()
-export class CategoryLoaderService {
+export class CategoryLoader {
   constructor(private readonly dataSource: DataSource) {}
 
   private childrenLoader() {

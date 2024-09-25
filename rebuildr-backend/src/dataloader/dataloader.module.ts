@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DataloaderService } from './dataloader.service';
-import { ProductLoaderService } from './product.loader.service';
-import { CategoryLoaderService } from './category.loader.service';
+import { ProductLoader } from './product.loader';
+import { CategoryLoader } from './category.loader';
 
 @Module({
-  providers: [DataloaderService, ProductLoaderService, CategoryLoaderService],
-  exports: [DataloaderService, ProductLoaderService, CategoryLoaderService],
+  providers: [ProductLoader, CategoryLoader],
+  exports: [ProductLoader, CategoryLoader],
 })
 export class DataloaderModule {}

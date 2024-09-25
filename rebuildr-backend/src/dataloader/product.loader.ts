@@ -15,7 +15,7 @@ export interface IProductLoaders {
 }
 
 @Injectable()
-export class ProductLoaderService {
+export class ProductLoader {
   constructor(private readonly dataSource: DataSource) {}
 
   private likedByUserLoader() {

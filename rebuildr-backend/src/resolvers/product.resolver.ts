@@ -28,7 +28,7 @@ import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
-import { IProductLoaders } from 'src/dataloader/product.loader.service';
+import { IProductLoaders } from 'src/dataloader/product.loader';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',

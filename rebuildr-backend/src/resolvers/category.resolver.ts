@@ -19,7 +19,7 @@ import { UserRoleEnum } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
-import { ICategoryLoaders } from 'src/dataloader/category.loader.service';
+import { ICategoryLoaders } from 'src/dataloader/category.loader';
 
 @InputType()
 class CategoryInput {

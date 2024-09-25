@@ -6,7 +6,6 @@ import { dbConfig } from './ormconfig';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
@@ -41,8 +40,8 @@ import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
-import { ProductLoaderService } from './dataloader/product.loader.service';
-import { CategoryLoaderService } from './dataloader/category.loader.service';
+import { ProductLoader } from './dataloader/product.loader';
+import { CategoryLoader } from './dataloader/category.loader';
 
 @Module({
   imports: [
@@ -73,16 +72,10 @@ import { CategoryLoaderService } from './dataloader/category.loader.service';
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [
-        DataloaderService,
-        ProductLoaderService,
-        CategoryLoaderService,
-        ConfigService,
-      ],
+      inject: [ProductLoader, CategoryLoader, ConfigService],
       useFactory: (
-        dataloaderService: DataloaderService,
-        productLoaderService: ProductLoaderService,
-        categoryLoaderService: CategoryLoaderService,
+        productLoaderService: ProductLoader,
+        categoryLoaderService: CategoryLoader,
         configService: ConfigService,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -91,7 +84,6 @@ import { CategoryLoaderService } from './dataloader/category.loader.service';
           playground: !isProd,
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
           context: ({ req, res }) => ({
-            loaders: dataloaderService.createLoaders(),
             productLoaders: productLoaderService.createLoaders(),
             categoryLoaders: categoryLoaderService.createLoaders(),
             req,
