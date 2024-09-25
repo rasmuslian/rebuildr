@@ -33,20 +33,21 @@ export class AuthService {
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    let existingUser = await this.userRepository.findOneBy({
-      email: input.email,
+    let existingUser = await this.userRepository.findOne({
+      where: [{ email: input.email }, { username: input.username }],
     });
     if (!existingUser) {
       //create user
       const password = await bcrypt.hash(input.password, 10);
       const user = new User();
+      user.username = input.username;
       user.email = input.email;
       user.password = password;
       existingUser = await this.userRepository.save(user);
     }
 
     if (existingUser.verified) {
-      return { message: 'User with email already exist' };
+      return { message: 'User with email or username already exist' };
     }
 
     //generate token

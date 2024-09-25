@@ -236,6 +236,7 @@ type Mutation {
 }
 
 input RegisterUserInput {
+  username: String!
   email: String!
   password: String!
 }

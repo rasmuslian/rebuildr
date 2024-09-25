@@ -16,12 +16,16 @@ import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 @InputType()
 export class RegisterUserInput {
   @Field(() => String)
+  username: string;
+
+  @Field(() => String)
   email: string;
 
   @Field(() => String)
   password: string;
 }
 const registerUserSchema = z.object({
+  username: z.string().min(1),
   email: z
     .string()
     .email()

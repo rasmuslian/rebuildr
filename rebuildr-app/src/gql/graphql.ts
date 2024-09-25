@@ -387,6 +387,7 @@ export type QueryProductsArgs = {
 export type RegisterUserInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
+  username: Scalars["String"]["input"];
 };
 
 export type RegisterUserResponse = {
