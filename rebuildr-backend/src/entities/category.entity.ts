@@ -44,7 +44,7 @@ export class Category {
   @Column({ nullable: true })
   parentId?: string;
 
-  @ManyToOne(() => Category, (cat) => cat.id, { nullable: true })
+  @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
   parent?: Category;
 
   @OneToMany(() => Category, (cat) => cat.parent, { nullable: true })
