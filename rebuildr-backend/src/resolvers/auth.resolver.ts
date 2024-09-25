@@ -1,5 +1,6 @@
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -151,8 +152,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => LoginResponse)
-  async login(@Args('input') input: LoginInput) {
-    return await this.authService.login(input);
+  async login(@Args('input') input: LoginInput, @Context('req') req: any) {
+    return await this.authService.login(input, req);
   }
 
   @Mutation(() => GetNewTokensResponse)

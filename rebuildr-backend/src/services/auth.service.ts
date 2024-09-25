@@ -116,7 +116,7 @@ export class AuthService {
     return { message: '' };
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, req: any) {
     const user = await this.userRepository.findOne({
       where: {
         email: input.email,
@@ -138,6 +138,13 @@ export class AuthService {
     }
 
     const tokens = await this.createTokens(user);
+
+    //Since user is now authenticated, attach user to request to be used in later stages of the request
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
     return {
       user: user,
