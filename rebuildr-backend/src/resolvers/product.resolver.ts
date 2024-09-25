@@ -308,6 +308,9 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
     @CurrentUser() _user?: AuthedUserType,
   ) {
+    if (!_user) {
+      return null;
+    }
     return productLoaders.likedByUserLoader.load({
       productId: _product.id,
       userId: _user.id,
