@@ -195,6 +195,15 @@ class SetLikeProductInput {
   like: boolean;
 }
 
+@ObjectType()
+class LocationResponse {
+  @Field()
+  latitude: number;
+
+  @Field()
+  longitude: number;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -315,5 +324,14 @@ export class ProductResolver {
       productId: _product.id,
       userId: _user.id,
     });
+  }
+
+  @ResolveField(() => LocationResponse)
+  async location(@Root() _product: Product) {
+    console.log('_product :>> ', _product);
+    return {
+      latitude: _product.addressLocation.coordinates[0],
+      longitude: _product.addressLocation.coordinates[1],
+    };
   }
 }

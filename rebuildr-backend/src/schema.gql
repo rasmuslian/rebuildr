@@ -79,6 +79,7 @@ type Product {
   images: [File!]!
   mainImage: File
   likedByUser: Boolean
+  location: LocationResponse!
 }
 
 """
@@ -132,6 +133,11 @@ type CreateProductResponse {
 
 type DeleteProductResponse {
   title: String!
+}
+
+type LocationResponse {
+  latitude: Float!
+  longitude: Float!
 }
 
 type ConversationResponse {
