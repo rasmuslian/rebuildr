@@ -14,7 +14,7 @@ interface ProductCardProps {
   price: number;
   address: string;
   mainImage?: { presignedGetUrl: string };
-  user: { email: string };
+  user: { username: string };
   distance?: number;
   liked?: boolean;
   onLike?: () => void;
@@ -71,7 +71,7 @@ export const ProductCard = ({
               {description}
             </Body>
             <Body numberOfLines={1} color="pale">
-              Säljare: {user.email}
+              Säljare: {user.username}
             </Body>
             <Body numberOfLines={1} color="pale">
               Plats: {address}

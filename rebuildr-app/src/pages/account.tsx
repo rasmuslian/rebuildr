@@ -16,6 +16,7 @@ const ACCOUNT_QUERY = gql(`
   query AccountQuery {
     me {
       id
+      username
       email
       address
       role
@@ -27,6 +28,7 @@ const UPDATE_ACCOUNT = gql(`
   mutation UpdateAccount($input: UpdateUserInput!) {
     updateUser(input: $input) {
       id
+      username
       email
       address
     }
@@ -67,7 +69,7 @@ export const Account = () => {
     <Page title="Mitt konto" loading={loading}>
       <Section style={styles.container}>
         <View>
-          <Title>{`Inloggad som ${data?.me.email} ${isAdmin ? "(Administratör)" : ""}`}</Title>
+          <Title>{`Inloggad som ${data?.me.username} ${isAdmin ? "(Administratör)" : ""}`}</Title>
           <View style={styles.updateAddressContainer}>
             <Body>Adress</Body>
             <Input

@@ -13,7 +13,7 @@ const CONVERSATIONS_QUERY = gql(`
     conversations {
       otherUser {
         id
-        email
+        username
       }
       latestMessageAt
       product {
@@ -44,7 +44,7 @@ export const Conversations = () => {
                   })
                 }
               >
-                <Body>Köpare/säljare: {conversation.otherUser.email}</Body>
+                <Body>Köpare/säljare: {conversation.otherUser.username}</Body>
                 <Body>Produkt: {conversation.product.title}</Body>
                 <Body>
                   {dayjs(conversation.latestMessageAt).format("DD MMM hh:mm")}

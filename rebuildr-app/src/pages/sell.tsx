@@ -28,7 +28,6 @@ const SELL_QUERY = gql(`
     }
     me {
       id
-      email
       address
     }
   }

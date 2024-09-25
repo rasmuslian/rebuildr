@@ -438,6 +438,7 @@ export type User = {
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
   role: UserRoleEnum;
+  username: Scalars["String"]["output"];
 };
 
 export enum UserRoleEnum {
@@ -467,7 +468,7 @@ export type LoggedInNavigationQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoggedInNavigationQuery = {
   __typename?: "Query";
-  me: { __typename?: "User"; id: string; email: string; role: UserRoleEnum };
+  me: { __typename?: "User"; id: string; username: string; role: UserRoleEnum };
 };
 
 export type AccountQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -477,6 +478,7 @@ export type AccountQueryQuery = {
   me: {
     __typename?: "User";
     id: string;
+    username: string;
     email: string;
     address?: string | null;
     role: UserRoleEnum;
@@ -492,6 +494,7 @@ export type UpdateAccountMutation = {
   updateUser: {
     __typename?: "User";
     id: string;
+    username: string;
     email: string;
     address?: string | null;
   };
@@ -505,7 +508,7 @@ export type ConversationQueryQuery = {
   __typename?: "Query";
   conversation: {
     __typename?: "ConversationResponse";
-    otherUser: { __typename?: "User"; id: string; email: string };
+    otherUser: { __typename?: "User"; id: string; username: string };
     messages: Array<{
       __typename?: "Message";
       id: string;
@@ -532,7 +535,7 @@ export type ConversationsQueryQuery = {
   conversations: Array<{
     __typename?: "ConversationOverviewResponse";
     latestMessageAt: any;
-    otherUser: { __typename?: "User"; id: string; email: string };
+    otherUser: { __typename?: "User"; id: string; username: string };
     product: { __typename?: "Product"; id: string; title: string };
   }>;
 };
@@ -662,7 +665,7 @@ export type ProductDetailsQuery = {
     condition: ProductConditionEnum;
     description?: string | null;
     images: Array<{ __typename?: "File"; presignedGetUrl: string }>;
-    user: { __typename?: "User"; id: string; email: string };
+    user: { __typename?: "User"; id: string; username: string };
     category: { __typename?: "Category"; name: string };
   };
   me?: { __typename?: "User"; id: string; role: UserRoleEnum };
@@ -760,12 +763,7 @@ export type SellQueryQuery = {
     name: string;
     parentId?: string | null;
   }>;
-  me: {
-    __typename?: "User";
-    id: string;
-    email: string;
-    address?: string | null;
-  };
+  me: { __typename?: "User"; id: string; address?: string | null };
 };
 
 export type CreateProductMutationVariables = Exact<{
@@ -809,7 +807,7 @@ export type RelevantProductsQueryQuery = {
     likedByUser?: boolean | null;
     address: string;
     price: number;
-    user: { __typename?: "User"; id: string; email: string };
+    user: { __typename?: "User"; id: string; username: string };
     mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
   }>;
 };
@@ -902,7 +900,7 @@ export const LoggedInNavigationDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
+                { kind: "Field", name: { kind: "Name", value: "username" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
             },
@@ -932,6 +930,7 @@ export const AccountQueryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "username" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
                 { kind: "Field", name: { kind: "Name", value: "role" } },
@@ -986,6 +985,7 @@ export const UpdateAccountDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "username" } },
                 { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
@@ -1048,7 +1048,10 @@ export const ConversationQueryDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
                     ],
                   },
                 },
@@ -1157,7 +1160,10 @@ export const ConversationsQueryDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
                     ],
                   },
                 },
@@ -1688,7 +1694,10 @@ export const ProductDetailsDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
                     ],
                   },
                 },
@@ -2206,7 +2215,6 @@ export const SellQueryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "email" } },
                 { kind: "Field", name: { kind: "Name", value: "address" } },
               ],
             },
@@ -2395,7 +2403,10 @@ export const RelevantProductsQueryDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
                     ],
                   },
                 },

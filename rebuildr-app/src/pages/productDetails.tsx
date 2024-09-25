@@ -34,7 +34,7 @@ const PRODUCT_DETAILS_QUERY = gql(`
       }
       user {
         id
-        email
+        username
       }
       category {
         name
@@ -152,7 +152,7 @@ export const ProductDetails = ({
         </Body>
         <Body>Skick: {conditionTranslationMap[data.product.condition]}</Body>
         <Body>Beskrivning: {data.product.description}</Body>
-        <Body>Säljare {data.product.user.email}</Body>
+        <Body>Säljare {data.product.user.username}</Body>
         {data.me?.id !== data.product.user.id && (
           <Button
             onPress={() =>

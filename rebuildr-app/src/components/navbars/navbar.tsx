@@ -10,7 +10,7 @@ import { Icon } from "../icons/icon";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 interface NavbarProps {
-  me?: { email: string; role: UserRoleEnum };
+  me?: { username: string; role: UserRoleEnum };
 }
 
 export const Navbar = ({ me }: NavbarProps) => {
@@ -39,7 +39,7 @@ export const Navbar = ({ me }: NavbarProps) => {
           <Link to={{ screen: "Account" }}>
             <View style={styles.accountButton}>
               <Icon icon="Person" />
-              <Body>{me.email}</Body>
+              <Body>{me.username}</Body>
             </View>
           </Link>
         ) : (

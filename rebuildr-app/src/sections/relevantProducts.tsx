@@ -22,7 +22,7 @@ const RELEVANT_PRODUCTS_QUERY = gql(`
       likedByUser
       user {
         id
-        email
+        username
       }
       address
       price
