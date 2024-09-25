@@ -47,7 +47,7 @@ export const RelevantProducts = () => {
   const styles = useResponsiveStyles(responsiveStyles);
 
   const [likeProduct] = useMutation(LIKE_PRODUCT);
-  const [fetchRelevantProducts, { data }] = useLazyQuery(
+  const [fetchRelevantProducts, { data, error, loading }] = useLazyQuery(
     RELEVANT_PRODUCTS_QUERY,
   );
 
@@ -104,8 +104,12 @@ export const RelevantProducts = () => {
     ));
   };
 
-  if (!data) {
+  if (loading) {
     return <ActivityIndicator size="large" />;
+  }
+
+  if (error) {
+    return <Body>Något gick fel vid inladdning av annonser</Body>;
   }
 
   return (
