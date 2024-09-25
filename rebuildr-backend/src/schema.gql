@@ -38,6 +38,7 @@ enum CategoryIconEnum {
 
 type User {
   id: ID!
+  username: String!
   email: String!
   address: String
   role: UserRoleEnum!
