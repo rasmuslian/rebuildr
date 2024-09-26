@@ -287,4 +287,41 @@ export class ProductService {
     product.hiddenReason = null;
     return await this.productRepository.save(product);
   }
+
+  async isLikedBy(productId: string, userId?: string) {
+    if (!userId) {
+      return null;
+    }
+
+    const likedProductExists = await this.productRepository.exists({
+      where: { id: productId, likedBy: { id: userId } },
+    });
+
+    return likedProductExists;
+  }
+
+  async setLikeProduct(productId: string, like: boolean, userId: string) {
+    const [product, user] = await Promise.all([
+      await this.productRepository.findOne({
+        where: { id: productId },
+        relations: { likedBy: true },
+      }),
+      await this.userRepository.findOneBy({ id: userId }),
+    ]);
+
+    if (!product || !user) {
+      throw BadUserInputException();
+    }
+
+    if (like) {
+      product.likedBy.some((likedByUser) => likedByUser.id === userId) ||
+        product.likedBy.push(user);
+    } else {
+      product.likedBy = product.likedBy.filter(
+        (likedByUser) => likedByUser.id !== userId,
+      );
+    }
+
+    return await this.productRepository.save(product);
+  }
 }

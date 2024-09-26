@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -43,8 +44,11 @@ export class Category {
   @Column({ nullable: true })
   parentId?: string;
 
-  @ManyToOne(() => Category, (cat) => cat.id)
+  @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
   parent?: Category;
+
+  @OneToMany(() => Category, (cat) => cat.parent, { nullable: true })
+  children?: Category[];
 
   @Field(() => Boolean)
   @Column({ default: false })

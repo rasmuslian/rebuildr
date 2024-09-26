@@ -2,8 +2,43 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type File {
+  id: ID!
+  presignedGetUrl: String!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  parentId: String
+  inSelection: Boolean!
+  inSeason: Boolean!
+  icon: CategoryIconEnum
+  children: [Category!]!
+  image: File
+}
+
+enum CategoryIconEnum {
+  MATERIAL
+  WOOD
+  DOOR
+  WINDOW
+  FLOOR
+  INTERIOR
+  PAINT
+  FASTENERS
+  ROOF
+  TILES
+  KITCHEN_BATHROOM
+  ELECTRICAL
+  OUTDOORS
+  TOOLS
+  WORKPLACE
+}
+
 type User {
   id: ID!
+  username: String!
   email: String!
   address: String
   role: UserRoleEnum!
@@ -43,6 +78,7 @@ type Product {
   user: User!
   images: [File!]!
   mainImage: File
+  likedByUser: Boolean
 }
 
 """
@@ -56,40 +92,6 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
-}
-
-type File {
-  id: ID!
-  presignedGetUrl: String!
-}
-
-type Category {
-  id: ID!
-  name: String!
-  parentId: String
-  inSelection: Boolean!
-  inSeason: Boolean!
-  icon: CategoryIconEnum
-  children: [Category!]!
-  image: File
-}
-
-enum CategoryIconEnum {
-  MATERIAL
-  WOOD
-  DOOR
-  WINDOW
-  FLOOR
-  INTERIOR
-  PAINT
-  FASTENERS
-  ROOF
-  TILES
-  KITCHEN_BATHROOM
-  ELECTRICAL
-  OUTDOORS
-  TOOLS
-  WORKPLACE
 }
 
 type RegisterUserResponse {
@@ -228,11 +230,13 @@ type Mutation {
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
+  setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
 }
 
 input RegisterUserInput {
+  username: String!
   email: String!
   password: String!
 }
@@ -303,6 +307,11 @@ input HideProductInput {
 
 input ShowProductInput {
   id: String!
+}
+
+input SetLikeProductInput {
+  id: String!
+  like: Boolean!
 }
 
 input UpdateCategoryInput {

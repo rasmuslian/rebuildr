@@ -19,6 +19,7 @@ import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
+import { RequestType } from 'src/app.module';
 
 @Injectable()
 export class AuthService {
@@ -33,20 +34,21 @@ export class AuthService {
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    let existingUser = await this.userRepository.findOneBy({
-      email: input.email,
+    let existingUser = await this.userRepository.findOne({
+      where: [{ email: input.email }, { username: input.username }],
     });
     if (!existingUser) {
       //create user
       const password = await bcrypt.hash(input.password, 10);
       const user = new User();
+      user.username = input.username;
       user.email = input.email;
       user.password = password;
       existingUser = await this.userRepository.save(user);
     }
 
     if (existingUser.verified) {
-      return { message: 'User with email already exist' };
+      return { message: 'User with email or username already exist' };
     }
 
     //generate token
@@ -116,7 +118,7 @@ export class AuthService {
     return { message: '' };
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, req: RequestType) {
     const user = await this.userRepository.findOne({
       where: {
         email: input.email,
@@ -138,6 +140,13 @@ export class AuthService {
     }
 
     const tokens = await this.createTokens(user);
+
+    //Since user is now authenticated, attach user to request to be used in later stages of the request
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
     return {
       user: user,

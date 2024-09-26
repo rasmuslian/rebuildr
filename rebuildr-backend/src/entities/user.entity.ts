@@ -7,9 +7,11 @@ import {
   Point,
   PrimaryGeneratedColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refreshToken.entity';
+import { userProtectedMiddleware } from 'src/middlewares/userProtected.middleware';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -26,6 +28,10 @@ export class User {
 
   @Field(() => String)
   @Column({ unique: true })
+  username: string;
+
+  @Field(() => String, { middleware: [userProtectedMiddleware] })
+  @Column({ unique: true })
   email: string;
 
   @Column()
@@ -34,7 +40,10 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String, {
+    nullable: true,
+    middleware: [userProtectedMiddleware],
+  })
   @Column({ nullable: true })
   address?: string;
 
@@ -51,7 +60,7 @@ export class User {
   @OneToMany(() => Product, (product) => product)
   products: Product[];
 
-  @Field(() => UserRoleEnum)
+  @Field(() => UserRoleEnum, { middleware: [userProtectedMiddleware] })
   @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
   role: UserRoleEnum;
 
@@ -63,4 +72,7 @@ export class User {
 
   @Column({ nullable: true })
   resetPasswordToken?: string;
+
+  @ManyToMany(() => Product, (product) => product.likedBy)
+  likedProducts: Product[];
 }

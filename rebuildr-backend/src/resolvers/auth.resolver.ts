@@ -1,5 +1,6 @@
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -11,9 +12,13 @@ import { AuthService } from 'src/services/auth.service';
 import { z } from 'zod';
 import { UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { RequestType } from 'src/app.module';
 
 @InputType()
 export class RegisterUserInput {
+  @Field(() => String)
+  username: string;
+
   @Field(() => String)
   email: string;
 
@@ -21,6 +26,7 @@ export class RegisterUserInput {
   password: string;
 }
 const registerUserSchema = z.object({
+  username: z.string().min(1),
   email: z
     .string()
     .email()
@@ -151,8 +157,11 @@ export class AuthResolver {
   }
 
   @Mutation(() => LoginResponse)
-  async login(@Args('input') input: LoginInput) {
-    return await this.authService.login(input);
+  async login(
+    @Args('input') input: LoginInput,
+    @Context('req') req: RequestType,
+  ) {
+    return await this.authService.login(input, req);
   }
 
   @Mutation(() => GetNewTokensResponse)

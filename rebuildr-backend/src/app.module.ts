@@ -6,7 +6,6 @@ import { dbConfig } from './ormconfig';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { DataloaderService } from './dataloader/dataloader.service';
 import { DataloaderModule } from './dataloader/dataloader.module';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
@@ -15,7 +14,7 @@ import { UserService } from './services/user.service';
 import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { jwtConstants } from './auth/constants';
+import { AuthedUserType, jwtConstants } from './auth/constants';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { UserResolver } from './resolvers/user.resolver';
 import { ProductResolver } from './resolvers/product.resolver';
@@ -41,6 +40,13 @@ import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
+import { ProductLoader } from './dataloader/product.loader';
+import { CategoryLoader } from './dataloader/category.loader';
+
+export type RequestType = {
+  user?: AuthedUserType;
+  [key: string]: any;
+};
 
 @Module({
   imports: [
@@ -71,9 +77,10 @@ import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [DataloaderService, ConfigService],
+      inject: [ProductLoader, CategoryLoader, ConfigService],
       useFactory: (
-        dataloaderService: DataloaderService,
+        productLoaderService: ProductLoader,
+        categoryLoaderService: CategoryLoader,
         configService: ConfigService,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -82,7 +89,8 @@ import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
           playground: !isProd,
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
           context: ({ req, res }) => ({
-            loaders: dataloaderService.createLoaders(),
+            productLoaders: productLoaderService.createLoaders(),
+            categoryLoaders: categoryLoaderService.createLoaders(),
             req,
             res,
           }),

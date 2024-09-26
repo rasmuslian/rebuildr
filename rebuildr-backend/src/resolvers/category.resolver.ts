@@ -9,6 +9,7 @@ import {
   Root,
   Mutation,
   Int,
+  Context,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -18,6 +19,7 @@ import { UserRoleEnum } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
+import { ICategoryLoaders } from 'src/dataloader/category.loader';
 
 @InputType()
 class CategoryInput {
@@ -79,14 +81,18 @@ export class CategoryResolver {
   }
 
   @ResolveField(() => [Category])
-  children(@Root() _parentCategory: Category) {
-    return this.categoryService.findChildren(_parentCategory.id);
+  children(
+    @Root() _parentCategory: Category,
+    @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
+  ) {
+    return categoryLoaders.childrenLoader.load(_parentCategory.id);
   }
 
   @ResolveField(() => File, { nullable: true })
-  image(@Root() _parentCategory: Category) {
-    return _parentCategory.imageId
-      ? this.fileService.findOne(_parentCategory.imageId)
-      : null;
+  image(
+    @Root() _parentCategory: Category,
+    @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
+  ) {
+    return categoryLoaders.imageLoader.load(_parentCategory.id);
   }
 }

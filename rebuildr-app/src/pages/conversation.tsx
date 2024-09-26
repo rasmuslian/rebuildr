@@ -15,7 +15,7 @@ const CONVERSATION_QUERY = gql(`
     conversation(input: $input) {
       otherUser {
         id
-        email
+        username
       }
       messages {
         id
@@ -68,7 +68,7 @@ export const Conversation = ({
 
   return (
     <Page
-      title={`Konversation med ${data?.conversation.otherUser.email}`}
+      title={`Konversation med ${data?.conversation.otherUser.username}`}
       loading={loadingConversation}
     >
       <View style={styles.container}>

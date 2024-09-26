@@ -14,8 +14,10 @@ interface ProductCardProps {
   price: number;
   address: string;
   mainImage?: { presignedGetUrl: string };
-  user: { email: string };
+  user: { username: string };
   distance?: number;
+  liked?: boolean;
+  onLike?: () => void;
 }
 
 export const ProductCard = ({
@@ -27,9 +29,12 @@ export const ProductCard = ({
   user,
   mainImage,
   distance,
+  liked,
+  onLike,
 }: ProductCardProps) => {
   const { navigate } = useNavigation();
   const styles = useResponsiveStyles(responsiveStyles);
+
   return (
     <Pressable onPress={() => navigate("ProductDetails", { productId: id })}>
       <View style={styles.container}>
@@ -52,6 +57,13 @@ export const ProductCard = ({
             <Body style={styles.distance}>{formatMetersToKm(distance)} km</Body>
           </View>
         )}
+        {liked !== undefined && (
+          <View style={styles.likeContainer}>
+            <Pressable onPress={onLike}>
+              <Body color="white">{liked ? "Gillad" : "Ogillad"}</Body>
+            </Pressable>
+          </View>
+        )}
         <View style={styles.lowerContainer}>
           <View style={styles.textContainer}>
             <Title style={styles.title}>{title}</Title>
@@ -59,7 +71,7 @@ export const ProductCard = ({
               {description}
             </Body>
             <Body numberOfLines={1} color="pale">
-              Säljare: {user.email}
+              Säljare: {user.username}
             </Body>
             <Body numberOfLines={1} color="pale">
               Plats: {address}
@@ -126,6 +138,19 @@ const responsiveStyles = {
     paddingVertical: 6,
     paddingHorizontal: 11,
     borderRadius: 8,
+    small: {
+      display: "none",
+    },
+  },
+  likeContainer: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    backgroundColor: Colors.charcoal,
+    opacity: 0.6,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
     small: {
       display: "none",
     },

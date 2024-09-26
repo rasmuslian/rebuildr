@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -27,6 +28,7 @@ import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+import { IProductLoaders } from 'src/dataloader/product.loader';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -184,9 +186,19 @@ class ShowProductInput {
   id: string;
 }
 
+@InputType()
+class SetLikeProductInput {
+  @Field()
+  id: string;
+
+  @Field()
+  like: boolean;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
+    @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     private userService: UserService,
     private categoryService: CategoryService,
@@ -253,14 +265,26 @@ export class ProductResolver {
     return this.productService.show(input.id, _user.id);
   }
 
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async setLikeProduct(
+    @CurrentUser() _user: AuthedUserType,
+    @Args('input') input: SetLikeProductInput,
+  ) {
+    return this.productService.setLikeProduct(input.id, input.like, _user.id);
+  }
+
   @ResolveField(() => Category)
   async category(@Root() _product: Product) {
     return this.categoryService.findOne(_product.categoryId);
   }
 
   @ResolveField(() => User)
-  async user(@Root() _product: Product) {
-    return this.userService.findOne(_product.userId);
+  async user(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.userLoader.load(_product.id);
   }
 
   @ResolveField(() => [File])
@@ -270,7 +294,26 @@ export class ProductResolver {
 
   //TODO: fetch actual mainImage and not just the first image
   @ResolveField(() => File, { nullable: true })
-  async mainImage(@Root() _product: Product) {
-    return this.fileService.findOneByProduct(_product.id);
+  async mainImage(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.mainImageLoader.load(_product.id);
+  }
+
+  @UseGuards(GqlOptionalAuthGuard)
+  @ResolveField(() => Boolean, { nullable: true })
+  async likedByUser(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+    @CurrentUser() _user?: AuthedUserType,
+  ) {
+    if (!_user) {
+      return null;
+    }
+    return productLoaders.likedByUserLoader.load({
+      productId: _product.id,
+      userId: _user.id,
+    });
   }
 }

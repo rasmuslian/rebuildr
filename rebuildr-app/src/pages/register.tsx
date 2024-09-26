@@ -25,6 +25,7 @@ const RESEND_VERIFICATION_MAIL = gql(`
   `);
 
 export const Register = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verificationResent, setVerificationResent] = useState(false);
@@ -44,7 +45,9 @@ export const Register = () => {
     //TODO: validate input
 
     registerUser({
-      variables: { input: { email: email, password: password } },
+      variables: {
+        input: { username: username, email: email, password: password },
+      },
     });
   };
 
@@ -85,6 +88,12 @@ export const Register = () => {
         </View>
       ) : (
         <View style={styles.formContainer}>
+          <Input
+            placeholder="Användarnamn"
+            onChange={setUsername}
+            disabled={loading}
+            value={username}
+          />
           <Input
             placeholder="E-post"
             onChange={setEmail}
