@@ -12,6 +12,7 @@ import { ProductConditionEnum } from "src/gql/graphql";
 import { Page } from "src/components/layout/page";
 import * as L from "leaflet";
 import "./map.css";
+import { ProductCard } from "src/components/productCard";
 
 const PRODUCTS_QUERY = gql(`
   query ProductsQuery($input: ProductsInput!) {
@@ -20,13 +21,20 @@ const PRODUCTS_QUERY = gql(`
         id
         title
         address
+        distanceFromPosition
         price
+        isGiveaway
+        likedByUser
         mainImage {
           presignedGetUrl
         }
         location {
           latitude
           longitude
+        }
+        user {
+          id
+          username
         }
       }
       origin {
@@ -70,6 +78,8 @@ export const Products = ({ route }) => {
         seasonalCategories: seasonalCategories,
         giveaway: giveaway,
         condition: condition,
+        limit: 2,
+        offset: 0,
       },
     },
   });
@@ -266,30 +276,11 @@ export const Products = ({ route }) => {
         <div id="map" />
         <View style={styles.productsContainer}>
           {data?.products.products.map((p) => (
-            <Pressable
-              key={p.id}
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate("ProductDetails", { productId: p.id })
-              }
-            >
-              {p.mainImage ? (
-                <Image
-                  alt="Huvudbild av produkten"
-                  resizeMode="cover"
-                  style={styles.image}
-                  defaultSource={{ uri: "../../assets/images/logo.png" }}
-                  source={{ uri: p.mainImage.presignedGetUrl }}
-                />
-              ) : (
-                <View style={[styles.noImage, styles.image]}>
-                  <Body>Bild saknas</Body>
-                </View>
-              )}
-              <Title>{p.title}</Title>
-              <Body>{p.price} kr</Body>
-              <Body>Address: {p.address}</Body>
-            </Pressable>
+            <ProductCard
+              {...p}
+              distance={p.distanceFromPosition}
+              liked={p.likedByUser}
+            />
           ))}
         </View>
       </View>

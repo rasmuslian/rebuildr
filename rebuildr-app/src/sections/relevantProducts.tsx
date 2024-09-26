@@ -1,4 +1,4 @@
-import { useLazyQuery, useMutation } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
@@ -36,20 +36,10 @@ const RELEVANT_PRODUCTS_QUERY = gql(`
   }
 `);
 
-const LIKE_PRODUCT = gql(`
-  mutation LikeProduct($input: SetLikeProductInput!) {
-    setLikeProduct(input: $input) {
-      id
-      likedByUser
-    }
-  }
-  `);
-
 export const RelevantProducts = () => {
   const { navigate } = useNavigation();
   const styles = useResponsiveStyles(responsiveStyles);
 
-  const [likeProduct] = useMutation(LIKE_PRODUCT);
   const [fetchRelevantProducts, { data, error, loading }] = useLazyQuery(
     RELEVANT_PRODUCTS_QUERY,
   );
@@ -86,13 +76,6 @@ export const RelevantProducts = () => {
           {...product}
           distance={product.distanceFromPosition}
           liked={product.likedByUser}
-          onLike={() =>
-            likeProduct({
-              variables: {
-                input: { id: product.id, like: !product.likedByUser },
-              },
-            })
-          }
         />
         {product.distanceFromPosition && (
           <View style={styles.distanceContainer}>

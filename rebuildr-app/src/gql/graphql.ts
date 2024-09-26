@@ -342,6 +342,7 @@ export type ProductsInput = {
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
   limit?: InputMaybe<Scalars["Float"]["input"]>;
   location?: InputMaybe<LocationType>;
+  offset?: InputMaybe<Scalars["Float"]["input"]>;
   orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
   seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -476,6 +477,19 @@ export type GetNewTokensMutation = {
     __typename?: "GetNewTokensResponse";
     accessToken: string;
     refreshToken: string;
+  };
+};
+
+export type LikeProductMutationVariables = Exact<{
+  input: SetLikeProductInput;
+}>;
+
+export type LikeProductMutation = {
+  __typename?: "Mutation";
+  setLikeProduct: {
+    __typename?: "Product";
+    id: string;
+    likedByUser?: boolean | null;
   };
 };
 
@@ -726,13 +740,17 @@ export type ProductsQueryQuery = {
       id: string;
       title: string;
       address: string;
+      distanceFromPosition?: number | null;
       price: number;
+      isGiveaway: boolean;
+      likedByUser?: boolean | null;
       mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
       location: {
         __typename?: "LocationResponse";
         latitude: number;
         longitude: number;
       };
+      user: { __typename?: "User"; id: string; username: string };
     }>;
     origin?: {
       __typename?: "LocationResponse";
@@ -844,19 +862,6 @@ export type RelevantProductsQueryQuery = {
   };
 };
 
-export type LikeProductMutationVariables = Exact<{
-  input: SetLikeProductInput;
-}>;
-
-export type LikeProductMutation = {
-  __typename?: "Mutation";
-  setLikeProduct: {
-    __typename?: "Product";
-    id: string;
-    likedByUser?: boolean | null;
-  };
-};
-
 export const GetNewTokensDocument = {
   kind: "Document",
   definitions: [
@@ -915,6 +920,58 @@ export const GetNewTokensDocument = {
   GetNewTokensMutation,
   GetNewTokensMutationVariables
 >;
+export const LikeProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "LikeProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "SetLikeProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "setLikeProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<LikeProductMutation, LikeProductMutationVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -1988,7 +2045,19 @@ export const ProductsQueryDocument = {
                         kind: "Field",
                         name: { kind: "Name", value: "address" },
                       },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distanceFromPosition" },
+                      },
                       { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "isGiveaway" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "likedByUser" },
+                      },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "mainImage" },
@@ -2015,6 +2084,23 @@ export const ProductsQueryDocument = {
                             {
                               kind: "Field",
                               name: { kind: "Name", value: "longitude" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "username" },
                             },
                           ],
                         },
@@ -2539,55 +2625,3 @@ export const RelevantProductsQueryDocument = {
   RelevantProductsQueryQuery,
   RelevantProductsQueryQueryVariables
 >;
-export const LikeProductDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "mutation",
-      name: { kind: "Name", value: "LikeProduct" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "input" },
-          },
-          type: {
-            kind: "NonNullType",
-            type: {
-              kind: "NamedType",
-              name: { kind: "Name", value: "SetLikeProductInput" },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "setLikeProduct" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "input" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "input" },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<LikeProductMutation, LikeProductMutationVariables>;
