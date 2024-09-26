@@ -14,7 +14,7 @@ import { UserService } from './services/user.service';
 import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { jwtConstants } from './auth/constants';
+import { AuthedUserType, jwtConstants } from './auth/constants';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { UserResolver } from './resolvers/user.resolver';
 import { ProductResolver } from './resolvers/product.resolver';
@@ -42,6 +42,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
 import { ProductLoader } from './dataloader/product.loader';
 import { CategoryLoader } from './dataloader/category.loader';
+
+export type RequestType = {
+  user?: AuthedUserType;
+  [key: string]: any;
+};
 
 @Module({
   imports: [

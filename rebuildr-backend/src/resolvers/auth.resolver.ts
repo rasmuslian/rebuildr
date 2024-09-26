@@ -12,6 +12,7 @@ import { AuthService } from 'src/services/auth.service';
 import { z } from 'zod';
 import { UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { RequestType } from 'src/app.module';
 
 @InputType()
 export class RegisterUserInput {
@@ -156,7 +157,10 @@ export class AuthResolver {
   }
 
   @Mutation(() => LoginResponse)
-  async login(@Args('input') input: LoginInput, @Context('req') req: any) {
+  async login(
+    @Args('input') input: LoginInput,
+    @Context('req') req: RequestType,
+  ) {
     return await this.authService.login(input, req);
   }
 

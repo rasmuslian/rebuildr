@@ -19,6 +19,7 @@ import { RefreshToken } from 'src/entities/refreshToken.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
+import { RequestType } from 'src/app.module';
 
 @Injectable()
 export class AuthService {
@@ -117,7 +118,7 @@ export class AuthService {
     return { message: '' };
   }
 
-  async login(input: LoginInput, req: any) {
+  async login(input: LoginInput, req: RequestType) {
     const user = await this.userRepository.findOne({
       where: {
         email: input.email,
