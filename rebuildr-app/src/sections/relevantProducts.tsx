@@ -15,24 +15,26 @@ import * as Location from "expo-location";
 const RELEVANT_PRODUCTS_QUERY = gql(`
   query RelevantProductsQuery($input: ProductsInput!) {
     products(input: $input) {
-      id
-      title
-      description
-      distanceFromPosition
-      likedByUser
-      user {
+      products {
         id
-        username
-      }
-      address
-      price
-      isGiveaway
-      mainImage {
-        presignedGetUrl
-      }
-    } 
+        title
+        description
+        distanceFromPosition
+        likedByUser
+        user {
+          id
+          username
+        }
+        address
+        price
+        isGiveaway
+        mainImage {
+          presignedGetUrl
+        }
+      } 
+    }
   }
-  `);
+`);
 
 const LIKE_PRODUCT = gql(`
   mutation LikeProduct($input: SetLikeProductInput!) {
@@ -78,7 +80,7 @@ export const RelevantProducts = () => {
   }, [fetchRelevantProducts]);
 
   const renderProducts = () => {
-    return data?.products.map((product, i) => (
+    return data?.products.products.map((product, i) => (
       <View key={i}>
         <ProductCard
           {...product}

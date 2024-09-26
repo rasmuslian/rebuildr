@@ -16,14 +16,20 @@ import "./map.css";
 const PRODUCTS_QUERY = gql(`
   query ProductsQuery($input: ProductsInput!) {
     products(input: $input) {
-      id
-      title
-      address
-      price
-      mainImage {
-        presignedGetUrl
+      products {
+        id
+        title
+        address
+        price
+        mainImage {
+          presignedGetUrl
+        }
+        location {
+          latitude
+          longitude
+        }
       }
-      location {
+      origin {
         latitude
         longitude
       }
@@ -125,7 +131,15 @@ export const Products = ({ route }) => {
       return;
     }
 
-    const map = L.map("map").setView([59.308, 18.019], 14);
+    const defaultCenter = { lat: 59.861365680637014, lng: 17.6392102780016 };
+    const center = data.products.origin
+      ? {
+          lat: data.products.origin.latitude,
+          lng: data.products.origin.longitude,
+        }
+      : defaultCenter;
+
+    const map = L.map("map").setView(center, 14);
 
     //Stadia_OSMBright
     L.tileLayer(
@@ -143,11 +157,14 @@ export const Products = ({ route }) => {
       iconUrl: "../../assets/images/my-position.png",
       iconAnchor: [5, 60],
     });
-    L.marker([59.308, 18.019], {
-      icon: myIcon,
-    }).addTo(map);
 
-    data.products.forEach((product) => {
+    if (data.products.origin) {
+      L.marker(center, {
+        icon: myIcon,
+      }).addTo(map);
+    }
+
+    data.products.products.forEach((product) => {
       const icon = L.divIcon({
         html: `<div><p>${product.price}</p></div><div class="triangle"/>`,
         iconSize: [30, 30],
@@ -221,7 +238,9 @@ export const Products = ({ route }) => {
               />
             )}
           </View>
-          <Body>{data?.products.length} stycken träffar i din sökning</Body>
+          <Body>
+            {data?.products.products.length} stycken träffar i din sökning
+          </Body>
         </View>
         <View style={styles.filterContainer}>
           <Picker
@@ -245,9 +264,8 @@ export const Products = ({ route }) => {
           </Picker>
         </View>
         <div id="map" />
-        {/* <div id="map" style={{ height: 422 }}/> */}
         <View style={styles.productsContainer}>
-          {data?.products.map((p) => (
+          {data?.products.products.map((p) => (
             <Pressable
               key={p.id}
               style={styles.card}

@@ -348,6 +348,13 @@ export type ProductsInput = {
   selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+export type ProductsResponse = {
+  __typename?: "ProductsResponse";
+  /** If address or location is supplied to Products(), this will have corresponding coordinates */
+  origin?: Maybe<LocationResponse>;
+  products: Array<Product>;
+};
+
 export type Query = {
   __typename?: "Query";
   categories: Array<Category>;
@@ -359,7 +366,7 @@ export type Query = {
   me: User;
   popularCategories: Array<Category>;
   product: Product;
-  products: Array<Product>;
+  products: ProductsResponse;
   rootCategories: Array<Category>;
 };
 
@@ -712,19 +719,27 @@ export type ProductsQueryQueryVariables = Exact<{
 
 export type ProductsQueryQuery = {
   __typename?: "Query";
-  products: Array<{
-    __typename?: "Product";
-    id: string;
-    title: string;
-    address: string;
-    price: number;
-    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
-    location: {
+  products: {
+    __typename?: "ProductsResponse";
+    products: Array<{
+      __typename?: "Product";
+      id: string;
+      title: string;
+      address: string;
+      price: number;
+      mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+      location: {
+        __typename?: "LocationResponse";
+        latitude: number;
+        longitude: number;
+      };
+    }>;
+    origin?: {
       __typename?: "LocationResponse";
       latitude: number;
       longitude: number;
-    };
-  }>;
+    } | null;
+  };
 };
 
 export type ProductsCategoryQueryVariables = Exact<{
@@ -811,19 +826,22 @@ export type RelevantProductsQueryQueryVariables = Exact<{
 
 export type RelevantProductsQueryQuery = {
   __typename?: "Query";
-  products: Array<{
-    __typename?: "Product";
-    id: string;
-    title: string;
-    description?: string | null;
-    distanceFromPosition?: number | null;
-    likedByUser?: boolean | null;
-    address: string;
-    price: number;
-    isGiveaway: boolean;
-    user: { __typename?: "User"; id: string; email: string };
-    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
-  }>;
+  products: {
+    __typename?: "ProductsResponse";
+    products: Array<{
+      __typename?: "Product";
+      id: string;
+      title: string;
+      description?: string | null;
+      distanceFromPosition?: number | null;
+      likedByUser?: boolean | null;
+      address: string;
+      price: number;
+      isGiveaway: boolean;
+      user: { __typename?: "User"; id: string; username: string };
+      mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+    }>;
+  };
 };
 
 export type LikeProductMutationVariables = Exact<{
@@ -1958,26 +1976,55 @@ export const ProductsQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "address" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "mainImage" },
+                  name: { kind: "Name", value: "products" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "presignedGetUrl" },
+                        name: { kind: "Name", value: "address" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "mainImage" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "presignedGetUrl" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "location" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "latitude" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "longitude" },
+                            },
+                          ],
+                        },
                       },
                     ],
                   },
                 },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "location" },
+                  name: { kind: "Name", value: "origin" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
@@ -2419,40 +2466,64 @@ export const RelevantProductsQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "distanceFromPosition" },
-                },
-                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "user" },
+                  name: { kind: "Name", value: "products" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "username" },
+                        name: { kind: "Name", value: "description" },
                       },
-                    ],
-                  },
-                },
-                { kind: "Field", name: { kind: "Name", value: "address" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
-                { kind: "Field", name: { kind: "Name", value: "isGiveaway" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "mainImage" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "presignedGetUrl" },
+                        name: { kind: "Name", value: "distanceFromPosition" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "likedByUser" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "username" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "address" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "isGiveaway" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "mainImage" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "presignedGetUrl" },
+                            },
+                          ],
+                        },
                       },
                     ],
                   },
