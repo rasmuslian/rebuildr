@@ -139,24 +139,25 @@ export const Products = ({ route }) => {
       },
     ).addTo(map);
 
-    var marker = L.marker([59.308, 18.019]).addTo(map);
+    const myIcon = L.icon({
+      iconUrl: "../../assets/images/my-position.png",
+      iconAnchor: [5, 60],
+    });
+    L.marker([59.308, 18.019], {
+      icon: myIcon,
+    }).addTo(map);
 
     data.products.forEach((product) => {
-      L.marker([product.location.latitude, product.location.longitude]).addTo(
-        map,
-      );
+      const icon = L.divIcon({
+        html: `<div><p>${product.price}</p></div><div class="triangle"/>`,
+        iconSize: [30, 30],
+        iconAnchor: [5, 60],
+        className: "test",
+      });
+      return L.marker([product.location.latitude, product.location.longitude], {
+        icon: icon,
+      }).addTo(map);
     });
-
-    var popup = L.popup();
-
-    function onMapClick(e) {
-      popup
-        .setLatLng(e.latlng)
-        .setContent("You clicked the map at " + e.latlng.toString())
-        .openOn(map);
-    }
-
-    map.on("click", onMapClick);
 
     return () => {
       map.remove();
