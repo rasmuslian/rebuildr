@@ -214,7 +214,13 @@ export class ProductService {
       }, {});
       return prodObj;
     });
-    return mappedObjects;
+
+    return {
+      products: mappedObjects,
+      origin: origin
+        ? { latitude: origin.coordinates[0], longitude: origin.coordinates[1] }
+        : null,
+    };
   }
 
   async findOne(id: string) {

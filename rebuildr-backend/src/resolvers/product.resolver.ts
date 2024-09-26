@@ -36,6 +36,15 @@ export enum OrderProductsEnum {
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
+@ObjectType()
+class LocationResponse {
+  @Field()
+  latitude: number;
+
+  @Field()
+  longitude: number;
+}
+
 @InputType()
 export class FileInputType {
   @Field(() => String)
@@ -153,6 +162,19 @@ export class ProductsInput {
   orderBy?: OrderProductsEnum;
 }
 
+@ObjectType()
+export class ProductsResponse {
+  @Field(() => [Product])
+  products: Product[];
+
+  @Field(() => LocationResponse, {
+    nullable: true,
+    description:
+      'If address or location is supplied to Products(), this will have corresponding coordinates',
+  })
+  origin?: LocationResponse;
+}
+
 @InputType()
 export class GetProductInput {
   @Field()
@@ -195,15 +217,6 @@ class SetLikeProductInput {
   like: boolean;
 }
 
-@ObjectType()
-class LocationResponse {
-  @Field()
-  latitude: number;
-
-  @Field()
-  longitude: number;
-}
-
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -225,7 +238,7 @@ export class ProductResolver {
     return this.productService.findOne(input.id);
   }
 
-  @Query(() => [Product])
+  @Query(() => ProductsResponse)
   @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
   async products(
     @Args('input') input: ProductsInput,

@@ -126,18 +126,27 @@ type Message {
   receiverId: ID!
 }
 
+type LocationResponse {
+  latitude: Float!
+  longitude: Float!
+}
+
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
 }
 
-type DeleteProductResponse {
-  title: String!
+type ProductsResponse {
+  products: [Product!]!
+
+  """
+  If address or location is supplied to Products(), this will have corresponding coordinates
+  """
+  origin: LocationResponse
 }
 
-type LocationResponse {
-  latitude: Float!
-  longitude: Float!
+type DeleteProductResponse {
+  title: String!
 }
 
 type ConversationResponse {
@@ -162,7 +171,7 @@ type LocationSearchResponse {
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
-  products(input: ProductsInput!): [Product!]!
+  products(input: ProductsInput!): ProductsResponse!
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
