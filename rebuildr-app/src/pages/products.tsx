@@ -277,12 +277,13 @@ export const Products = ({ route }) => {
         <div id="map" />
         <View style={styles.productsContainer}>
           {data?.products.products.map((p, i) => (
-            <ProductCard
-              key={i}
-              {...p}
-              distance={p.distanceFromPosition}
-              liked={p.likedByUser}
-            />
+            <View key={i}>
+              <ProductCard
+                {...p}
+                distance={p.distanceFromPosition}
+                liked={p.likedByUser}
+              />
+            </View>
           ))}
         </View>
         <View style={styles.offsetController}>
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   productsContainer: {
     display: "flex",
     flexDirection: "row",
-    width: 620, //Roughly size of two products
+    justifyContent: "space-between",
     flexWrap: "wrap",
     gap: 4,
     marginBottom: 12,
