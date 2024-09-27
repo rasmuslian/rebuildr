@@ -340,9 +340,7 @@ export type ProductsInput = {
   condition?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
-  limit?: InputMaybe<Scalars["Float"]["input"]>;
   location?: InputMaybe<LocationType>;
-  offset?: InputMaybe<Scalars["Float"]["input"]>;
   orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
   seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -354,6 +352,7 @@ export type ProductsResponse = {
   /** If address or location is supplied to Products(), this will have corresponding coordinates */
   origin?: Maybe<LocationResponse>;
   products: Array<Product>;
+  total: Scalars["Int"]["output"];
 };
 
 export type Query = {
@@ -397,6 +396,8 @@ export type QueryProductArgs = {
 
 export type QueryProductsArgs = {
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type RegisterUserInput = {
@@ -729,12 +730,15 @@ export type ShowProductMutation = {
 
 export type ProductsQueryQueryVariables = Exact<{
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
 }>;
 
 export type ProductsQueryQuery = {
   __typename?: "Query";
   products: {
     __typename?: "ProductsResponse";
+    total: number;
     products: Array<{
       __typename?: "Product";
       id: string;
@@ -2013,6 +2017,22 @@ export const ProductsQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "limit" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "offset" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -2027,6 +2047,22 @@ export const ProductsQueryDocument = {
                 value: {
                   kind: "Variable",
                   name: { kind: "Name", value: "input" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "limit" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "offset" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "offset" },
                 },
               },
             ],
@@ -2125,6 +2161,7 @@ export const ProductsQueryDocument = {
                     ],
                   },
                 },
+                { kind: "Field", name: { kind: "Name", value: "total" } },
               ],
             },
           },

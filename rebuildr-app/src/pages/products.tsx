@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React, { useCallback, useEffect } from "react";
-import { Pressable, View, StyleSheet, Image } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -15,8 +15,8 @@ import "./map.css";
 import { ProductCard } from "src/components/productCard";
 
 const PRODUCTS_QUERY = gql(`
-  query ProductsQuery($input: ProductsInput!) {
-    products(input: $input) {
+  query ProductsQuery($input: ProductsInput!, $limit: Int, $offset: Int) {
+    products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
         title
@@ -41,6 +41,7 @@ const PRODUCTS_QUERY = gql(`
         latitude
         longitude
       }
+      total
     }
   }
 `);
@@ -55,6 +56,8 @@ const PRODUCTS_CATEGORY_QUERY = gql(`
   `);
 
 export const Products = ({ route }) => {
+  const productsPerPage = 10;
+  const [offset, setOffset] = useState(0);
   const navigation = useNavigation();
 
   const searchString = route.params?.searchString;
@@ -67,7 +70,7 @@ export const Products = ({ route }) => {
   const giveaway = route.params?.giveaway;
   const condition: ProductConditionEnum = route.params?.condition;
 
-  const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
+  const { data, loading, refetch, fetchMore } = useQuery(PRODUCTS_QUERY, {
     variables: {
       input: {
         searchString: searchString,
@@ -78,9 +81,9 @@ export const Products = ({ route }) => {
         seasonalCategories: seasonalCategories,
         giveaway: giveaway,
         condition: condition,
-        limit: 2,
-        offset: 0,
       },
+      limit: productsPerPage,
+      offset: offset,
     },
   });
   const { data: categoryData, refetch: refetchCategories } = useQuery(
@@ -248,9 +251,7 @@ export const Products = ({ route }) => {
               />
             )}
           </View>
-          <Body>
-            {data?.products.products.length} stycken träffar i din sökning
-          </Body>
+          <Body>{data?.products.total} stycken träffar i din sökning</Body>
         </View>
         <View style={styles.filterContainer}>
           <Picker
@@ -275,13 +276,69 @@ export const Products = ({ route }) => {
         </View>
         <div id="map" />
         <View style={styles.productsContainer}>
-          {data?.products.products.map((p) => (
+          {data?.products.products.map((p, i) => (
             <ProductCard
+              key={i}
               {...p}
               distance={p.distanceFromPosition}
               liked={p.likedByUser}
             />
           ))}
+        </View>
+        <View style={styles.offsetController}>
+          <Pressable
+            onPress={() => {
+              if (offset <= 0) {
+                return;
+              }
+
+              setOffset(offset - 1);
+              fetchMore({ variables: { offset: offset - 1 } });
+            }}
+          >
+            <View>
+              <Body>Föregående</Body>
+            </View>
+          </Pressable>
+          {data &&
+            [...Array(Math.ceil(data.products.total / productsPerPage))].map(
+              (_, i) => {
+                const current = i === offset;
+                return (
+                  <Pressable
+                    key={i}
+                    onPress={() => {
+                      setOffset(i);
+                      fetchMore({ variables: { offset: i } });
+                    }}
+                  >
+                    <View
+                      style={current ? styles.offsetSelected : styles.offset}
+                    >
+                      <Body
+                        color={current ? "white" : "pale"}
+                        style={styles.offsetNumber}
+                      >
+                        {i + 1}
+                      </Body>
+                    </View>
+                  </Pressable>
+                );
+              },
+            )}
+          <Pressable
+            onPress={() => {
+              if (offset >= Math.floor(data.products.total / productsPerPage)) {
+                return;
+              }
+              setOffset(offset + 1);
+              fetchMore({ variables: { offset: offset + 1 } });
+            }}
+          >
+            <View>
+              <Body>Nästa</Body>
+            </View>
+          </Pressable>
         </View>
       </View>
     </Page>
@@ -291,6 +348,7 @@ export const Products = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 76,
+    marginBottom: 50,
   },
   searchParams: {
     flexDirection: "row",
@@ -319,22 +377,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 4,
     marginBottom: 12,
+    marginTop: 20,
   },
-  card: {
-    width: 300, //size of one product,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 5,
-    borderStyle: "solid",
-  },
-  image: {
-    width: "100%",
-    height: 80,
-  },
-  noImage: {
-    justifyContent: "center",
+  offsetController: {
+    flexDirection: "row",
+    gap: 20,
     alignItems: "center",
-    backgroundColor: Colors.inactiveGray,
+    alignSelf: "center",
+    marginTop: 20,
+  },
+  offsetNumber: { marginVertical: 6, marginHorizontal: 12 },
+  offset: {},
+  offsetSelected: {
+    backgroundColor: Colors.green,
+    borderRadius: 20,
   },
 });
