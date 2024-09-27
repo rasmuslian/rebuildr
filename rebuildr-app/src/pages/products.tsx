@@ -182,7 +182,7 @@ export const Products = ({ route }) => {
         html: `<div><p>${product.price}</p></div><div class="triangle"/>`,
         iconSize: [30, 30],
         iconAnchor: [5, 60],
-        className: "test",
+        className: "marker",
       });
       return L.marker([product.location.latitude, product.location.longitude], {
         icon: icon,
