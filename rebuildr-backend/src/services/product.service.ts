@@ -98,7 +98,12 @@ export class ProductService {
     };
   }
 
-  async findAll(input: ProductsInput, userId?: string) {
+  async findAll(
+    input: ProductsInput,
+    _limit?: number,
+    offset?: number,
+    userId?: string,
+  ) {
     const query = this.productRepository.createQueryBuilder('product');
 
     //Only admin will see hidden products
@@ -191,8 +196,10 @@ export class ProductService {
     }
 
     //limit defaults to 20 and may not exceed 40
-    const limit = input.limit ?? 20;
+    const limit = _limit ?? 20;
     query.limit(limit > 40 ? 40 : limit);
+    query.offset((offset ?? 0) * limit);
+    query.addSelect('count(*) over() as total');
 
     if (input.orderBy === OrderProductsEnum.LATEST) {
       query.orderBy('created_at', 'DESC');
@@ -220,6 +227,7 @@ export class ProductService {
       origin: origin
         ? { latitude: origin.coordinates[0], longitude: origin.coordinates[1] }
         : null,
+      total: result[0]?.total ?? 0,
     };
   }
 

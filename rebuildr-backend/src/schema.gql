@@ -143,6 +143,7 @@ type ProductsResponse {
   If address or location is supplied to Products(), this will have corresponding coordinates
   """
   origin: LocationResponse
+  total: Int!
 }
 
 type DeleteProductResponse {
@@ -171,7 +172,7 @@ type LocationSearchResponse {
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
-  products(input: ProductsInput!): ProductsResponse!
+  products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
@@ -196,7 +197,6 @@ input ProductsInput {
   seasonalCategories: Boolean
   giveaway: Boolean
   condition: String
-  limit: Float
   orderBy: OrderProductsEnum
 }
 

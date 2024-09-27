@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -155,9 +156,6 @@ export class ProductsInput {
   @Field({ nullable: true })
   condition?: ProductConditionEnum;
 
-  @Field({ nullable: true })
-  limit?: number;
-
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
 }
@@ -173,6 +171,9 @@ export class ProductsResponse {
       'If address or location is supplied to Products(), this will have corresponding coordinates',
   })
   origin?: LocationResponse;
+
+  @Field(() => Int)
+  total: number;
 }
 
 @InputType()
@@ -242,9 +243,11 @@ export class ProductResolver {
   @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
   async products(
     @Args('input') input: ProductsInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
     @CurrentUser() user?: AuthedUserType,
   ) {
-    return this.productService.findAll({ ...input }, user?.id);
+    return this.productService.findAll({ ...input }, limit, offset, user?.id);
   }
 
   @Mutation(() => CreateProductResponse)
@@ -341,7 +344,6 @@ export class ProductResolver {
 
   @ResolveField(() => LocationResponse)
   async location(@Root() _product: Product) {
-    console.log('_product :>> ', _product);
     return {
       latitude: _product.addressLocation.coordinates[0],
       longitude: _product.addressLocation.coordinates[1],
