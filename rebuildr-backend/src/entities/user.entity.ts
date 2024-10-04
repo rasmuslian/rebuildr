@@ -11,7 +11,8 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refreshToken.entity';
-import { userProtectedMiddleware } from 'src/middlewares/userProtected.middleware';
+import { RockerUser } from './rockerUser.entity';
+import { UserProtectedMiddleware } from '../middlewares/userProtected.middleware';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -30,7 +31,7 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Field(() => String, { middleware: [userProtectedMiddleware] })
+  @Field(() => String, { middleware: [UserProtectedMiddleware] })
   @Column({ unique: true })
   email: string;
 
@@ -42,7 +43,7 @@ export class User {
 
   @Field(() => String, {
     nullable: true,
-    middleware: [userProtectedMiddleware],
+    middleware: [UserProtectedMiddleware],
   })
   @Column({ nullable: true })
   address?: string;
@@ -60,7 +61,7 @@ export class User {
   @OneToMany(() => Product, (product) => product)
   products: Product[];
 
-  @Field(() => UserRoleEnum, { middleware: [userProtectedMiddleware] })
+  @Field(() => UserRoleEnum, { middleware: [UserProtectedMiddleware] })
   @Column('enum', { enum: UserRoleEnum, default: UserRoleEnum.USER })
   role: UserRoleEnum;
 
@@ -75,4 +76,7 @@ export class User {
 
   @ManyToMany(() => Product, (product) => product.likedBy)
   likedProducts: Product[];
+
+  @OneToOne(() => RockerUser, (ru) => ru.user)
+  rockerUser?: RockerUser;
 }

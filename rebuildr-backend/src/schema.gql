@@ -118,6 +118,18 @@ type ResetPasswordResponse {
   message: String!
 }
 
+type AuthenticateResponse {
+  status: AuthResponseStatusEnum!
+  qrCode: String
+  autoStartToken: String
+}
+
+enum AuthResponseStatusEnum {
+  SUCCESS
+  ERROR
+  PENDING
+}
+
 type Message {
   id: ID!
   createdAt: DateTime!
@@ -240,6 +252,7 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
+  authenticate(input: AuthenticateInput!): AuthenticateResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
@@ -283,6 +296,10 @@ input NewPasswordInput {
   email: String!
   password: String!
   resetPasswordToken: String!
+}
+
+input AuthenticateInput {
+  requestId: String!
 }
 
 input UpdateUserInput {

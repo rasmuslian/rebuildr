@@ -2,6 +2,7 @@ import { AbilityBuilder, createMongoAbility } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
 import { Category } from 'src/entities/category.entity';
 import { Product } from 'src/entities/product.entity';
+import { RockerUser } from 'src/entities/rockerUser.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 
 @Injectable()
@@ -35,6 +36,11 @@ export class CaslAbilityFactory {
     if (isAdmin) {
       can('manage', Category);
     }
+
+    //RockerUser
+    can('update', RockerUser, { userId: user.id });
+    can('read', RockerUser, { userId: user.id });
+
     return build();
   }
 }
