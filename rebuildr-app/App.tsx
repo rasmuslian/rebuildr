@@ -17,6 +17,7 @@ import { initializeApollo } from "src/apollo/apollo";
 import { ScreenDimensionsProvider } from "src/contexts/screenDimensionsContext";
 import { linking } from "src/navigators/linkingConfig";
 import { RootNavigation } from "src/navigators/rootNavigation";
+import { Helmet } from "react-helmet";
 
 export default function App() {
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
@@ -41,12 +42,27 @@ export default function App() {
   }
 
   return (
-    <ApolloProvider client={client}>
-      <NavigationContainer linking={linking}>
-        <ScreenDimensionsProvider>
-          <RootNavigation />
-        </ScreenDimensionsProvider>
-      </NavigationContainer>
-    </ApolloProvider>
+    <>
+      <Helmet>
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossOrigin=""
+        />
+        <script
+          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossOrigin=""
+        ></script>
+      </Helmet>
+      <ApolloProvider client={client}>
+        <NavigationContainer linking={linking}>
+          <ScreenDimensionsProvider>
+            <RootNavigation />
+          </ScreenDimensionsProvider>
+        </NavigationContainer>
+      </ApolloProvider>
+    </>
   );
 }

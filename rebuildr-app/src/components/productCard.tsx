@@ -6,18 +6,29 @@ import { Body, Title } from "./texts/text";
 import { formatMetersToKm } from "src/utils/distanceHandling";
 import { Icon } from "./icons/icon";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
+import { gql } from "src/gql";
+import { useMutation } from "@apollo/client";
+
+const LIKE_PRODUCT = gql(`
+  mutation LikeProduct($input: SetLikeProductInput!) {
+    setLikeProduct(input: $input) {
+      id
+      likedByUser
+    }
+  }
+  `);
 
 interface ProductCardProps {
   id: string;
   title: string;
   description?: string;
   price: number;
+  isGiveaway: boolean;
   address: string;
   mainImage?: { presignedGetUrl: string };
   user: { username: string };
   distance?: number;
   liked?: boolean;
-  onLike?: () => void;
 }
 
 export const ProductCard = ({
@@ -25,15 +36,17 @@ export const ProductCard = ({
   title,
   description,
   price,
+  isGiveaway,
   address,
   user,
   mainImage,
   distance,
   liked,
-  onLike,
 }: ProductCardProps) => {
   const { navigate } = useNavigation();
   const styles = useResponsiveStyles(responsiveStyles);
+
+  const [likeProduct] = useMutation(LIKE_PRODUCT);
 
   return (
     <Pressable onPress={() => navigate("ProductDetails", { productId: id })}>
@@ -59,7 +72,13 @@ export const ProductCard = ({
         )}
         {liked !== undefined && (
           <View style={styles.likeContainer}>
-            <Pressable onPress={onLike}>
+            <Pressable
+              onPress={() =>
+                likeProduct({
+                  variables: { input: { id: id, like: !liked } },
+                })
+              }
+            >
               <Body color="white">{liked ? "Gillad" : "Ogillad"}</Body>
             </Pressable>
           </View>
@@ -78,8 +97,14 @@ export const ProductCard = ({
             </Body>
           </View>
           <View style={styles.priceContainer}>
-            <Title style={styles.hideOnSmall}>Pris: </Title>
-            <Title>{price} Kr</Title>
+            {isGiveaway ? (
+              <Title>Skänkes</Title>
+            ) : (
+              <>
+                <Title style={styles.hideOnSmall}>Pris: </Title>
+                <Title>{price} Kr</Title>
+              </>
+            )}
           </View>
         </View>
       </View>

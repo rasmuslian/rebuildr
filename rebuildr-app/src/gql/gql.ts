@@ -15,6 +15,8 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n":
     types.GetNewTokensDocument,
+  "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ":
+    types.LikeProductDocument,
   "\n  query LoggedInNavigation {\n    me {\n      id\n      username\n      role\n    }\n  }\n":
     types.LoggedInNavigationDocument,
   "\n  query AccountQuery {\n    me {\n      id\n      username\n      email\n      address\n      role\n    }\n  }\n":
@@ -49,7 +51,7 @@ const documents = {
     types.HideProductDocument,
   "\n  mutation ShowProduct($input: ShowProductInput!) {\n    showProduct(input: $input) {\n      id\n    }\n  }\n  ":
     types.ShowProductDocument,
-  "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n":
+  "\n  query ProductsQuery($input: ProductsInput!, $limit: Int, $offset: Int) {\n    products(input: $input, limit: $limit, offset: $offset) {\n      products {\n        id\n        title\n        address\n        distanceFromPosition\n        price\n        isGiveaway\n        likedByUser\n        mainImage {\n          presignedGetUrl\n        }\n        location {\n          latitude\n          longitude\n        }\n        user {\n          id\n          username\n        }\n      }\n      origin {\n        latitude\n        longitude\n      }\n      total\n    }\n  }\n":
     types.ProductsQueryDocument,
   "\n  query ProductsCategory($input: CategoryInput!) {\n    category(input: $input) {\n      id\n      name\n    }\n  }\n  ":
     types.ProductsCategoryDocument,
@@ -65,10 +67,8 @@ const documents = {
     types.CreateProductDocument,
   "\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
     types.VerifyMailDocument,
-  "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      description\n      distanceFromPosition\n      likedByUser\n      user {\n        id\n        username\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  ":
+  "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n":
     types.RelevantProductsQueryDocument,
-  "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ":
-    types.LikeProductDocument,
 };
 
 /**
@@ -91,6 +91,12 @@ export function gql(source: string): unknown;
 export function gql(
   source: "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n",
 ): (typeof documents)["\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ",
+): (typeof documents)["\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -197,8 +203,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query ProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    }\n  }\n"];
+  source: "\n  query ProductsQuery($input: ProductsInput!, $limit: Int, $offset: Int) {\n    products(input: $input, limit: $limit, offset: $offset) {\n      products {\n        id\n        title\n        address\n        distanceFromPosition\n        price\n        isGiveaway\n        likedByUser\n        mainImage {\n          presignedGetUrl\n        }\n        location {\n          latitude\n          longitude\n        }\n        user {\n          id\n          username\n        }\n      }\n      origin {\n        latitude\n        longitude\n      }\n      total\n    }\n  }\n",
+): (typeof documents)["\n  query ProductsQuery($input: ProductsInput!, $limit: Int, $offset: Int) {\n    products(input: $input, limit: $limit, offset: $offset) {\n      products {\n        id\n        title\n        address\n        distanceFromPosition\n        price\n        isGiveaway\n        likedByUser\n        mainImage {\n          presignedGetUrl\n        }\n        location {\n          latitude\n          longitude\n        }\n        user {\n          id\n          username\n        }\n      }\n      origin {\n        latitude\n        longitude\n      }\n      total\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -245,14 +251,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      description\n      distanceFromPosition\n      likedByUser\n      user {\n        id\n        username\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  ",
-): (typeof documents)["\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      id\n      title\n      description\n      distanceFromPosition\n      likedByUser\n      user {\n        id\n        username\n      }\n      address\n      price\n      mainImage {\n        presignedGetUrl\n      }\n    } \n  }\n  "];
-/**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function gql(
-  source: "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ",
-): (typeof documents)["\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  "];
+  source: "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n",
+): (typeof documents)["\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

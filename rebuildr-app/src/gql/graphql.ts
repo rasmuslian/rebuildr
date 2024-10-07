@@ -161,6 +161,12 @@ export type HideProductInput = {
   reason: Scalars["String"]["input"];
 };
 
+export type LocationResponse = {
+  __typename?: "LocationResponse";
+  latitude: Scalars["Float"]["output"];
+  longitude: Scalars["Float"]["output"];
+};
+
 export type LocationSearchInput = {
   searchString: Scalars["String"]["input"];
 };
@@ -309,6 +315,7 @@ export type Product = {
   images: Array<File>;
   isGiveaway: Scalars["Boolean"]["output"];
   likedByUser?: Maybe<Scalars["Boolean"]["output"]>;
+  location: LocationResponse;
   mainImage?: Maybe<File>;
   price: Scalars["Int"]["output"];
   title: Scalars["String"]["output"];
@@ -333,12 +340,19 @@ export type ProductsInput = {
   condition?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Float"]["input"]>;
   giveaway?: InputMaybe<Scalars["Boolean"]["input"]>;
-  limit?: InputMaybe<Scalars["Float"]["input"]>;
   location?: InputMaybe<LocationType>;
   orderBy?: InputMaybe<OrderProductsEnum>;
   searchString?: InputMaybe<Scalars["String"]["input"]>;
   seasonalCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
   selectionCategories?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+export type ProductsResponse = {
+  __typename?: "ProductsResponse";
+  /** If address or location is supplied to Products(), this will have corresponding coordinates */
+  origin?: Maybe<LocationResponse>;
+  products: Array<Product>;
+  total: Scalars["Int"]["output"];
 };
 
 export type Query = {
@@ -352,7 +366,7 @@ export type Query = {
   me: User;
   popularCategories: Array<Category>;
   product: Product;
-  products: Array<Product>;
+  products: ProductsResponse;
   rootCategories: Array<Category>;
 };
 
@@ -382,6 +396,8 @@ export type QueryProductArgs = {
 
 export type QueryProductsArgs = {
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type RegisterUserInput = {
@@ -462,6 +478,19 @@ export type GetNewTokensMutation = {
     __typename?: "GetNewTokensResponse";
     accessToken: string;
     refreshToken: string;
+  };
+};
+
+export type LikeProductMutationVariables = Exact<{
+  input: SetLikeProductInput;
+}>;
+
+export type LikeProductMutation = {
+  __typename?: "Mutation";
+  setLikeProduct: {
+    __typename?: "Product";
+    id: string;
+    likedByUser?: boolean | null;
   };
 };
 
@@ -701,18 +730,38 @@ export type ShowProductMutation = {
 
 export type ProductsQueryQueryVariables = Exact<{
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
 }>;
 
 export type ProductsQueryQuery = {
   __typename?: "Query";
-  products: Array<{
-    __typename?: "Product";
-    id: string;
-    title: string;
-    address: string;
-    price: number;
-    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
-  }>;
+  products: {
+    __typename?: "ProductsResponse";
+    total: number;
+    products: Array<{
+      __typename?: "Product";
+      id: string;
+      title: string;
+      address: string;
+      distanceFromPosition?: number | null;
+      price: number;
+      isGiveaway: boolean;
+      likedByUser?: boolean | null;
+      mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+      location: {
+        __typename?: "LocationResponse";
+        latitude: number;
+        longitude: number;
+      };
+      user: { __typename?: "User"; id: string; username: string };
+    }>;
+    origin?: {
+      __typename?: "LocationResponse";
+      latitude: number;
+      longitude: number;
+    } | null;
+  };
 };
 
 export type ProductsCategoryQueryVariables = Exact<{
@@ -799,30 +848,21 @@ export type RelevantProductsQueryQueryVariables = Exact<{
 
 export type RelevantProductsQueryQuery = {
   __typename?: "Query";
-  products: Array<{
-    __typename?: "Product";
-    id: string;
-    title: string;
-    description?: string | null;
-    distanceFromPosition?: number | null;
-    likedByUser?: boolean | null;
-    address: string;
-    price: number;
-    user: { __typename?: "User"; id: string; username: string };
-    mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
-  }>;
-};
-
-export type LikeProductMutationVariables = Exact<{
-  input: SetLikeProductInput;
-}>;
-
-export type LikeProductMutation = {
-  __typename?: "Mutation";
-  setLikeProduct: {
-    __typename?: "Product";
-    id: string;
-    likedByUser?: boolean | null;
+  products: {
+    __typename?: "ProductsResponse";
+    products: Array<{
+      __typename?: "Product";
+      id: string;
+      title: string;
+      description?: string | null;
+      distanceFromPosition?: number | null;
+      likedByUser?: boolean | null;
+      address: string;
+      price: number;
+      isGiveaway: boolean;
+      user: { __typename?: "User"; id: string; username: string };
+      mainImage?: { __typename?: "File"; presignedGetUrl: string } | null;
+    }>;
   };
 };
 
@@ -884,6 +924,58 @@ export const GetNewTokensDocument = {
   GetNewTokensMutation,
   GetNewTokensMutationVariables
 >;
+export const LikeProductDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "LikeProduct" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "SetLikeProductInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "setLikeProduct" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<LikeProductMutation, LikeProductMutationVariables>;
 export const LoggedInNavigationDocument = {
   kind: "Document",
   definitions: [
@@ -1925,6 +2017,22 @@ export const ProductsQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "limit" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "offset" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -1941,27 +2049,119 @@ export const ProductsQueryDocument = {
                   name: { kind: "Name", value: "input" },
                 },
               },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "limit" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "offset" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "offset" },
+                },
+              },
             ],
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "address" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "mainImage" },
+                  name: { kind: "Name", value: "products" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "address" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distanceFromPosition" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "isGiveaway" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "likedByUser" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "mainImage" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "presignedGetUrl" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "location" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "latitude" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "longitude" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "username" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "origin" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "presignedGetUrl" },
+                        name: { kind: "Name", value: "latitude" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "longitude" },
                       },
                     ],
                   },
                 },
+                { kind: "Field", name: { kind: "Name", value: "total" } },
               ],
             },
           },
@@ -2389,39 +2589,64 @@ export const RelevantProductsQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "title" } },
-                { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "distanceFromPosition" },
-                },
-                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "user" },
+                  name: { kind: "Name", value: "products" },
                   selectionSet: {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "title" } },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "username" },
+                        name: { kind: "Name", value: "description" },
                       },
-                    ],
-                  },
-                },
-                { kind: "Field", name: { kind: "Name", value: "address" } },
-                { kind: "Field", name: { kind: "Name", value: "price" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "mainImage" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "presignedGetUrl" },
+                        name: { kind: "Name", value: "distanceFromPosition" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "likedByUser" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "username" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "address" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "price" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "isGiveaway" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "mainImage" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "presignedGetUrl" },
+                            },
+                          ],
+                        },
                       },
                     ],
                   },
@@ -2437,55 +2662,3 @@ export const RelevantProductsQueryDocument = {
   RelevantProductsQueryQuery,
   RelevantProductsQueryQueryVariables
 >;
-export const LikeProductDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "mutation",
-      name: { kind: "Name", value: "LikeProduct" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "input" },
-          },
-          type: {
-            kind: "NonNullType",
-            type: {
-              kind: "NamedType",
-              name: { kind: "Name", value: "SetLikeProductInput" },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "setLikeProduct" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "input" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "input" },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "likedByUser" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<LikeProductMutation, LikeProductMutationVariables>;

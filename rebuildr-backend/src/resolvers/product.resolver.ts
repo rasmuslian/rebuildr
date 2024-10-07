@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -35,6 +36,15 @@ export enum OrderProductsEnum {
   LATEST = 'LATEST',
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
+
+@ObjectType()
+class LocationResponse {
+  @Field()
+  latitude: number;
+
+  @Field()
+  longitude: number;
+}
 
 @InputType()
 export class FileInputType {
@@ -146,11 +156,24 @@ export class ProductsInput {
   @Field({ nullable: true })
   condition?: ProductConditionEnum;
 
-  @Field({ nullable: true })
-  limit?: number;
-
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
+}
+
+@ObjectType()
+export class ProductsResponse {
+  @Field(() => [Product])
+  products: Product[];
+
+  @Field(() => LocationResponse, {
+    nullable: true,
+    description:
+      'If address or location is supplied to Products(), this will have corresponding coordinates',
+  })
+  origin?: LocationResponse;
+
+  @Field(() => Int)
+  total: number;
 }
 
 @InputType()
@@ -216,13 +239,15 @@ export class ProductResolver {
     return this.productService.findOne(input.id);
   }
 
-  @Query(() => [Product])
+  @Query(() => ProductsResponse)
   @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
   async products(
     @Args('input') input: ProductsInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
     @CurrentUser() user?: AuthedUserType,
   ) {
-    return this.productService.findAll({ ...input }, user?.id);
+    return this.productService.findAll({ ...input }, limit, offset, user?.id);
   }
 
   @Mutation(() => CreateProductResponse)
@@ -315,5 +340,13 @@ export class ProductResolver {
       productId: _product.id,
       userId: _user.id,
     });
+  }
+
+  @ResolveField(() => LocationResponse)
+  async location(@Root() _product: Product) {
+    return {
+      latitude: _product.addressLocation.coordinates[0],
+      longitude: _product.addressLocation.coordinates[1],
+    };
   }
 }

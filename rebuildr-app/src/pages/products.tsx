@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import React, { useCallback } from "react";
-import { Pressable, View, StyleSheet, Image } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { Button } from "src/components/button";
@@ -10,17 +10,38 @@ import { Picker } from "@react-native-picker/picker";
 import { conditionTranslationMap } from "src/constants/constants";
 import { ProductConditionEnum } from "src/gql/graphql";
 import { Page } from "src/components/layout/page";
+import * as L from "leaflet";
+import "./map.css";
+import { ProductCard } from "src/components/productCard";
 
 const PRODUCTS_QUERY = gql(`
-  query ProductsQuery($input: ProductsInput!) {
-    products(input: $input) {
-      id
-      title
-      address
-      price
-      mainImage {
-        presignedGetUrl
+  query ProductsQuery($input: ProductsInput!, $limit: Int, $offset: Int) {
+    products(input: $input, limit: $limit, offset: $offset) {
+      products {
+        id
+        title
+        address
+        distanceFromPosition
+        price
+        isGiveaway
+        likedByUser
+        mainImage {
+          presignedGetUrl
+        }
+        location {
+          latitude
+          longitude
+        }
+        user {
+          id
+          username
+        }
       }
+      origin {
+        latitude
+        longitude
+      }
+      total
     }
   }
 `);
@@ -35,6 +56,8 @@ const PRODUCTS_CATEGORY_QUERY = gql(`
   `);
 
 export const Products = ({ route }) => {
+  const productsPerPage = 10;
+  const [offset, setOffset] = useState(0);
   const navigation = useNavigation();
 
   const searchString = route.params?.searchString;
@@ -47,7 +70,7 @@ export const Products = ({ route }) => {
   const giveaway = route.params?.giveaway;
   const condition: ProductConditionEnum = route.params?.condition;
 
-  const { data, loading, refetch } = useQuery(PRODUCTS_QUERY, {
+  const { data, loading, refetch, fetchMore } = useQuery(PRODUCTS_QUERY, {
     variables: {
       input: {
         searchString: searchString,
@@ -59,6 +82,8 @@ export const Products = ({ route }) => {
         giveaway: giveaway,
         condition: condition,
       },
+      limit: productsPerPage,
+      offset: offset,
     },
   });
   const { data: categoryData, refetch: refetchCategories } = useQuery(
@@ -113,6 +138,61 @@ export const Products = ({ route }) => {
 
     navigation.setParams(newFilterParams);
   };
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    const defaultCenter = { lat: 59.861365680637014, lng: 17.6392102780016 };
+    const center = data.products.origin
+      ? {
+          lat: data.products.origin.latitude,
+          lng: data.products.origin.longitude,
+        }
+      : defaultCenter;
+
+    const map = L.map("map").setView(center, 14);
+
+    //Stadia_OSMBright
+    L.tileLayer(
+      "https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}",
+      {
+        minZoom: 0,
+        maxZoom: 20,
+        attribution:
+          '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        ext: "png",
+      },
+    ).addTo(map);
+
+    const myIcon = L.icon({
+      iconUrl: "../../assets/images/my-position.png",
+      iconAnchor: [5, 60],
+    });
+
+    if (data.products.origin) {
+      L.marker(center, {
+        icon: myIcon,
+      }).addTo(map);
+    }
+
+    data.products.products.forEach((product) => {
+      const icon = L.divIcon({
+        html: `<div><p>${product.price}</p></div><div class="triangle"/>`,
+        iconSize: [30, 30],
+        iconAnchor: [5, 60],
+        className: "marker",
+      });
+      return L.marker([product.location.latitude, product.location.longitude], {
+        icon: icon,
+      }).addTo(map);
+    });
+
+    return () => {
+      map.remove();
+    };
+  }, [data]);
 
   return (
     <Page>
@@ -171,7 +251,7 @@ export const Products = ({ route }) => {
               />
             )}
           </View>
-          <Body>{data?.products.length} stycken träffar i din sökning</Body>
+          <Body>{data?.products.total} stycken träffar i din sökning</Body>
         </View>
         <View style={styles.filterContainer}>
           <Picker
@@ -194,33 +274,72 @@ export const Products = ({ route }) => {
             ))}
           </Picker>
         </View>
+        <div id="map" />
         <View style={styles.productsContainer}>
-          {data?.products.map((p) => (
-            <Pressable
-              key={p.id}
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate("ProductDetails", { productId: p.id })
-              }
-            >
-              {p.mainImage ? (
-                <Image
-                  alt="Huvudbild av produkten"
-                  resizeMode="cover"
-                  style={styles.image}
-                  defaultSource={{ uri: "../../assets/images/logo.png" }}
-                  source={{ uri: p.mainImage.presignedGetUrl }}
-                />
-              ) : (
-                <View style={[styles.noImage, styles.image]}>
-                  <Body>Bild saknas</Body>
-                </View>
-              )}
-              <Title>{p.title}</Title>
-              <Body>{p.price} kr</Body>
-              <Body>Address: {p.address}</Body>
-            </Pressable>
+          {data?.products.products.map((p, i) => (
+            <View key={i}>
+              <ProductCard
+                {...p}
+                distance={p.distanceFromPosition}
+                liked={p.likedByUser}
+              />
+            </View>
           ))}
+        </View>
+        <View style={styles.offsetController}>
+          <Pressable
+            onPress={() => {
+              if (offset <= 0) {
+                return;
+              }
+
+              setOffset(offset - 1);
+              fetchMore({ variables: { offset: offset - 1 } });
+            }}
+          >
+            <View>
+              <Body>Föregående</Body>
+            </View>
+          </Pressable>
+          {data &&
+            [...Array(Math.ceil(data.products.total / productsPerPage))].map(
+              (_, i) => {
+                const current = i === offset;
+                return (
+                  <Pressable
+                    key={i}
+                    onPress={() => {
+                      setOffset(i);
+                      fetchMore({ variables: { offset: i } });
+                    }}
+                  >
+                    <View
+                      style={current ? styles.offsetSelected : styles.offset}
+                    >
+                      <Body
+                        color={current ? "white" : "pale"}
+                        style={styles.offsetNumber}
+                      >
+                        {i + 1}
+                      </Body>
+                    </View>
+                  </Pressable>
+                );
+              },
+            )}
+          <Pressable
+            onPress={() => {
+              if (offset >= Math.floor(data.products.total / productsPerPage)) {
+                return;
+              }
+              setOffset(offset + 1);
+              fetchMore({ variables: { offset: offset + 1 } });
+            }}
+          >
+            <View>
+              <Body>Nästa</Body>
+            </View>
+          </Pressable>
         </View>
       </View>
     </Page>
@@ -230,6 +349,7 @@ export const Products = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 76,
+    marginBottom: 50,
   },
   searchParams: {
     flexDirection: "row",
@@ -254,26 +374,23 @@ const styles = StyleSheet.create({
   productsContainer: {
     display: "flex",
     flexDirection: "row",
-    width: 620, //Roughly size of two products
+    justifyContent: "space-between",
     flexWrap: "wrap",
     gap: 4,
     marginBottom: 12,
+    marginTop: 20,
   },
-  card: {
-    width: 300, //size of one product,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 5,
-    borderStyle: "solid",
-  },
-  image: {
-    width: "100%",
-    height: 80,
-  },
-  noImage: {
-    justifyContent: "center",
+  offsetController: {
+    flexDirection: "row",
+    gap: 20,
     alignItems: "center",
-    backgroundColor: Colors.inactiveGray,
+    alignSelf: "center",
+    marginTop: 20,
+  },
+  offsetNumber: { marginVertical: 6, marginHorizontal: 12 },
+  offset: {},
+  offsetSelected: {
+    backgroundColor: Colors.green,
+    borderRadius: 20,
   },
 });
