@@ -5,6 +5,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from '@nestjs/graphql';
 import { User } from 'src/entities/user.entity';
@@ -156,12 +157,26 @@ export class AuthenticateResponse {
   autoStartToken?: string;
 }
 
+@ObjectType()
+class PlaceholderResponse {
+  @Field()
+  message: string;
+}
+
 @Resolver()
 export class AuthResolver {
   constructor(
     private readonly authService: AuthService,
     private rockerService: RockerService,
   ) {}
+
+  //Tests need this to work. In an app there must exist atleast one Query() among all resolvers.
+  //This requirement is not met by signup.e2e-spec.ts which only uses this resolver.
+  @Query(() => PlaceholderResponse)
+  async placeholderQuery() {
+    console.log('This query is a placeholder');
+    return { message: 'Returning placeholder' };
+  }
 
   @Mutation(() => RegisterUserResponse)
   @UsePipes(new ZodValidationPipe(registerUserSchema))
