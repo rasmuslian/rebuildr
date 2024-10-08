@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import { AuthResponseStatusEnum } from 'src/apis/types/rocker-types';
+import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
@@ -13,7 +14,10 @@ export class RockerService {
     private rockerApi: RockerAPI,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
   ) {}
 
   async createForeignUser(user: User) {
@@ -69,5 +73,35 @@ export class RockerService {
       status: response.status,
       qrCode: response.authenticationInformation.qrCode,
     };
+  }
+
+  async createOffer(productId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: { user: true },
+    });
+
+    if (!product?.user?.rockerUserId) {
+      throw InternalServerException();
+    }
+    if (product.isGiveaway) {
+      //dont create offer on a giveaway item
+      throw InternalServerException();
+    }
+
+    const price = product.price;
+    //TODO: this is placeholder fee amount
+    const escrowValue = price - 10;
+    const fee = 10;
+
+    const response = await this.rockerApi.createOffer(
+      product.title,
+      product.user.rockerUserId,
+      escrowValue,
+      fee,
+      product.id,
+    );
+
+    return response;
   }
 }

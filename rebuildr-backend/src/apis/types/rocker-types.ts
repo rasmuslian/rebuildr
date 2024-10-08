@@ -62,3 +62,47 @@ export interface IPostAuthResponse {
     qrCode: string;
   };
 }
+
+export interface IMoneyObject {
+  amount: number;
+  currency: string;
+  unit: string;
+}
+
+export enum OfferStatusEnum {
+  AVAILABLE = 'AVAILABLE',
+  BOOKED = 'BOOKED',
+  IN_PAYOUT = 'IN_PAYOUT',
+  WAITING_ON_REVIEW = 'WAITING_ON_REVIEW',
+  FINISHED_SOLD = 'FINISHED_SOLD',
+  FINISHED_DELETED = 'FINISHED_DELETED',
+}
+
+export interface ICreateOfferRequest {
+  title: string;
+  description?: string;
+  sellerNote?: string;
+  sellerId: string;
+  payoutSpec: 'CONFIRMED_PAYOUT' | 'AUTO_PAYOUT' | 'NO_PAYOUT';
+  externalData: { [key: string]: any };
+  escrowValue: IMoneyObject;
+  serviceFee: IMoneyObject;
+}
+
+export interface IOfferResponse {
+  id: string;
+  status: OfferStatusEnum;
+  title: string;
+  price: IMoneyObject;
+  sellerId: string;
+  escrowValue: IMoneyObject;
+  serviceFee: {
+    actual: IMoneyObject;
+    original?: IMoneyObject;
+  };
+  serviceFeeRefundable: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  offerUrl: string;
+  externalData: { [key: string]: any };
+}
