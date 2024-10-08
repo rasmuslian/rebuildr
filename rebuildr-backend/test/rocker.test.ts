@@ -15,12 +15,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { Product } from 'src/entities/product.entity';
+import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
 
 describe('Rocker', () => {
   let rockerService: RockerService;
   let rockerAPI: RockerAPI;
-  let userRepository;
-  let productRepository;
+  let userRepository: mockRepositoryType;
+  let productRepository: mockRepositoryType;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -47,6 +48,10 @@ describe('Rocker', () => {
     rockerAPI = module.get<RockerAPI>(RockerAPI);
     userRepository = module.get(getRepositoryToken(User));
     productRepository = module.get(getRepositoryToken(Product));
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('create a rocker user', async () => {
@@ -186,12 +191,4 @@ describe('Rocker', () => {
     productRepository.findOne.mockResolvedValue(product);
     await rockerService.createOffer(product.id);
   });
-});
-
-const mockRepository = () => ({
-  find: jest.fn(),
-  findOne: jest.fn(),
-  findOneBy: jest.fn(),
-  save: jest.fn(),
-  create: jest.fn(),
 });
