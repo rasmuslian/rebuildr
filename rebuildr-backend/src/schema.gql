@@ -118,22 +118,6 @@ type ResetPasswordResponse {
   message: String!
 }
 
-type AuthenticateResponse {
-  status: AuthResponseStatusEnum!
-  qrCode: String
-  autoStartToken: String
-}
-
-enum AuthResponseStatusEnum {
-  SUCCESS
-  ERROR
-  PENDING
-}
-
-type PlaceholderResponse {
-  message: String!
-}
-
 type Message {
   id: ID!
   createdAt: DateTime!
@@ -185,8 +169,23 @@ type LocationSearchResponse {
   result: [String!]!
 }
 
+type AuthenticateResponse {
+  status: AuthResponseStatusEnum!
+  qrCode: String
+  autoStartToken: String
+}
+
+enum AuthResponseStatusEnum {
+  SUCCESS
+  ERROR
+  PENDING
+}
+
+type PlaceholderResponse {
+  message: String!
+}
+
 type Query {
-  placeholderQuery: PlaceholderResponse!
   me: User!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -198,6 +197,7 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+  placeholderQuery: PlaceholderResponse!
 }
 
 input GetProductInput {
@@ -257,7 +257,6 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
-  authenticate(input: AuthenticateInput!): AuthenticateResponse!
   updateUser(input: UpdateUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
@@ -266,6 +265,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
+  authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
 }
 
 input RegisterUserInput {
@@ -301,10 +301,6 @@ input NewPasswordInput {
   email: String!
   password: String!
   resetPasswordToken: String!
-}
-
-input AuthenticateInput {
-  requestId: String!
 }
 
 input UpdateUserInput {
@@ -361,4 +357,8 @@ input CreateMessageInput {
   receiverId: String!
   productId: String!
   body: String!
+}
+
+input AuthenticateRockerInput {
+  requestId: String!
 }

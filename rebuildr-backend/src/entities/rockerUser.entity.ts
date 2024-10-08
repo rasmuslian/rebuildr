@@ -18,7 +18,7 @@ export class RockerUser {
   id: string; //id used in Rocker
 
   @Column()
-  userId: string; //foreignUserId in Rocker
+  userId: string; //also used as foreignUserId in Rocker
 
   @OneToOne(() => User, (u) => u.rockerUser)
   @JoinColumn()

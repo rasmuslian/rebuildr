@@ -46,6 +46,7 @@ import { RockerService } from './services/rocker.service';
 import { RockerUser } from './entities/rockerUser.entity';
 import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
+import { RockerResolver } from './resolvers/rocker.resolver';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -141,6 +142,7 @@ export type RequestType = {
     GeocodingResolver,
     EventService,
     GqlThrottlerGuard,
+    RockerResolver,
     RockerService,
     RockerAPI,
   ],

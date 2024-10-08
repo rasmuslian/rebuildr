@@ -5,20 +5,14 @@ import {
   InputType,
   Mutation,
   ObjectType,
-  Query,
   Resolver,
 } from '@nestjs/graphql';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from 'src/services/auth.service';
 import { z } from 'zod';
-import { UseGuards, UsePipes } from '@nestjs/common';
+import { UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
 import { RequestType } from 'src/app.module';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
-import { AuthedUserType } from 'src/auth/constants';
-import { RockerService } from 'src/services/rocker.service';
-import { AuthResponseStatusEnum } from 'src/apis/types/rockerTypes';
 
 @InputType()
 export class RegisterUserInput {
@@ -139,44 +133,9 @@ const newPasswordSchema = z.object({
   resetPasswordToken: z.string().min(1),
 });
 
-@InputType()
-export class AuthenticateInput {
-  @Field()
-  requestId: string;
-}
-
-@ObjectType()
-export class AuthenticateResponse {
-  @Field(() => AuthResponseStatusEnum)
-  status: AuthResponseStatusEnum;
-
-  @Field(() => String, { nullable: true })
-  qrCode?: string;
-
-  @Field(() => String, { nullable: true })
-  autoStartToken?: string;
-}
-
-@ObjectType()
-class PlaceholderResponse {
-  @Field()
-  message: string;
-}
-
 @Resolver()
 export class AuthResolver {
-  constructor(
-    private readonly authService: AuthService,
-    private rockerService: RockerService,
-  ) {}
-
-  //Tests need this to work. In an app there must exist atleast one Query() among all resolvers.
-  //This requirement is not met by signup.e2e-spec.ts which only uses this resolver.
-  @Query(() => PlaceholderResponse)
-  async placeholderQuery() {
-    console.log('This query is a placeholder');
-    return { message: 'Returning placeholder' };
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => RegisterUserResponse)
   @UsePipes(new ZodValidationPipe(registerUserSchema))
@@ -219,14 +178,5 @@ export class AuthResolver {
   @UsePipes(new ZodValidationPipe(newPasswordSchema))
   async newPassword(@Args('input') input: NewPasswordInput) {
     return await this.authService.newPassword(input);
-  }
-
-  @Mutation(() => AuthenticateResponse)
-  @UseGuards(GqlAuthGuard)
-  async authenticate(
-    @Args('input') input: AuthenticateInput,
-    @CurrentUser() _user: AuthedUserType,
-  ) {
-    return await this.rockerService.authenticate(input.requestId, _user.id);
   }
 }

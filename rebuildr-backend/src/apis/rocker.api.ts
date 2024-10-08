@@ -23,9 +23,9 @@ export class RockerAPI {
    * Authenticate user
    * @param foreignUserId id of user in OUR database. Saved on User.id
    */
-  async authenticate(userId: string) {
+  async authenticate(foreignUserId: string) {
     const body = {
-      foreignUserId: userId,
+      foreignUserId,
       method: {
         methodType: 'BANK_ID_WITH_LAUNCH_INFO',
       },
@@ -67,9 +67,9 @@ export class RockerAPI {
    * @param foreignUserId id of user in OUR database. Saved on User.id
    * @param email User.email
    */
-  async createUser(userId: string, email: string) {
+  async createUser(foreignUserId: string, email: string) {
     const body = {
-      foreignUserId: userId,
+      foreignUserId,
       email,
     };
     const data = await fetch(this.url + '/merchant-api/v1/users', {

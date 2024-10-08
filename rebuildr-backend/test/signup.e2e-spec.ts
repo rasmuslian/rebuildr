@@ -29,6 +29,7 @@ import {
   UserTypeEnum,
 } from 'src/apis/types/rockerTypes';
 import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
+import { RockerResolver } from 'src/resolvers/rocker.resolver';
 
 jest.mock('bcrypt', () => {
   const originalModule = jest.requireActual('bcrypt');
@@ -61,7 +62,7 @@ const mockGuard = {
   getRequest: jest.fn(),
 };
 
-const mockRepository = {
+const mockRepository = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
   findOneBy: jest.fn(),
@@ -69,16 +70,16 @@ const mockRepository = {
   create: jest.fn(),
   update: jest.fn(),
   delete: jest.fn(),
-};
+});
 
 describe('Signup', () => {
   let app: INestApplication;
   let mailService: MailService;
   let jwtService: JwtService;
   let rockerAPI: RockerAPI;
-  let userRepository: typeof mockRepository;
-  let refreshTokenRepository: typeof mockRepository;
-  let rockerUserRepository: typeof mockRepository;
+  let userRepository: ReturnType<typeof mockRepository>;
+  let refreshTokenRepository: ReturnType<typeof mockRepository>;
+  let rockerUserRepository: ReturnType<typeof mockRepository>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -118,6 +119,7 @@ describe('Signup', () => {
       ],
       providers: [
         GqlAuthGuard,
+        RockerResolver,
         AuthResolver,
         JwtStrategy,
         AuthService,
@@ -127,15 +129,15 @@ describe('Signup', () => {
         RockerAPI,
         {
           provide: getRepositoryToken(User),
-          useFactory: () => mockRepository,
+          useFactory: mockRepository,
         },
         {
           provide: getRepositoryToken(RockerUser),
-          useFactory: () => mockRepository,
+          useFactory: mockRepository,
         },
         {
           provide: getRepositoryToken(RefreshToken),
-          useFactory: () => mockRepository,
+          useFactory: mockRepository,
         },
       ],
     })
@@ -283,8 +285,8 @@ describe('Signup', () => {
 
   it('authenticate user', async () => {
     const authenticateMutation = `
-      mutation Authenticate($input: AuthenticateInput!) {
-        authenticate(input: $input) {
+      mutation Authenticate($input: AuthenticateRockerInput!) {
+        authenticateRocker(input: $input) {
           status
           qrCode
           autoStartToken
@@ -342,7 +344,7 @@ describe('Signup', () => {
       })
       .expect(200)
       .expect((res) => {
-        expect(res.body.data.authenticate).toMatchObject({
+        expect(res.body.data.authenticateRocker).toMatchObject({
           status: AuthResponseStatusEnum.PENDING,
           qrCode: 'qrCode1',
           autoStartToken: 'autoStartToken',
@@ -362,7 +364,7 @@ describe('Signup', () => {
       })
       .expect(200)
       .expect((res) => {
-        expect(res.body.data.authenticate).toMatchObject({
+        expect(res.body.data.authenticateRocker).toMatchObject({
           status: AuthResponseStatusEnum.PENDING,
           qrCode: 'qrCode2',
         });
@@ -381,7 +383,7 @@ describe('Signup', () => {
       })
       .expect(200)
       .expect((res) => {
-        expect(res.body.data.authenticate).toMatchObject({
+        expect(res.body.data.authenticateRocker).toMatchObject({
           status: AuthResponseStatusEnum.SUCCESS,
         });
       });
