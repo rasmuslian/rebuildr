@@ -15,6 +15,7 @@ import {
 import { Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
+import { RockerService } from './rocker.service';
 @Injectable()
 export class ProductService {
   constructor(
@@ -29,6 +30,7 @@ export class ProductService {
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private caslAbilityFactory: CaslAbilityFactory,
+    private rockerService: RockerService,
   ) {}
 
   async create(input: {
@@ -65,7 +67,7 @@ export class ProductService {
     product.title = input.title;
     product.category = category;
     product.user = user;
-    product.price = input.price;
+    product.price = input.price; //TODO: minimum price?
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;
     product.brand = input.brand;
@@ -91,6 +93,11 @@ export class ProductService {
 
     product.images = images.map((image) => image.file);
     const createdProduct = await this.productRepository.save(product);
+
+    //create offer
+    if (!product.isGiveaway) {
+      await this.rockerService.createOffer(createdProduct.id);
+    }
 
     return {
       product: createdProduct,
