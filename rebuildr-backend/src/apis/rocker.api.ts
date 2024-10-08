@@ -3,7 +3,7 @@ import {
   IGetAuthResponse,
   IPostAuthResponse,
   IPostUsersResponse,
-} from './types/rockerTypes';
+} from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

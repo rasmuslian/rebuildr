@@ -4,7 +4,7 @@ import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { RockerAPI } from 'src/apis/rocker.api';
 import { RockerService } from 'src/services/rocker.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthResolver } from 'src/resolvers/auth.resolver';
@@ -18,17 +18,17 @@ import request from 'supertest';
 import * as bcrypt from 'bcrypt';
 import { MailService } from 'src/services/mail.service';
 import { ExecutionContext, INestApplication } from '@nestjs/common';
-import { RockerUser, RockerUserType } from 'src/entities/rockerUser.entity';
+import { RockerUser, RockerUserType } from 'src/entities/rocker-user.entity';
 import { AuthService } from 'src/services/auth.service';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
-import { RefreshToken } from 'src/entities/refreshToken.entity';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import {
   AuthResponseStatusEnum,
   IPostUsersResponse,
   RockerCountryEnum,
   UserTypeEnum,
-} from 'src/apis/types/rockerTypes';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
+} from 'src/apis/types/rocker-types';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RockerResolver } from 'src/resolvers/rocker.resolver';
 
 jest.mock('bcrypt', () => {

@@ -7,10 +7,10 @@ import {
   ObjectType,
   Query,
 } from '@nestjs/graphql';
-import { AuthResponseStatusEnum } from 'src/apis/types/rockerTypes';
+import { AuthResponseStatusEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { RockerService } from 'src/services/rocker.service';
 
 @InputType()

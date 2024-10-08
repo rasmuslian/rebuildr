@@ -11,7 +11,7 @@ import {
   Int,
   Context,
 } from '@nestjs/graphql';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { Category } from 'src/entities/category.entity';

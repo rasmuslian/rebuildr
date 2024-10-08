@@ -10,9 +10,9 @@ import {
   ManyToMany,
 } from 'typeorm';
 import { Product } from './product.entity';
-import { RefreshToken } from './refreshToken.entity';
-import { RockerUser } from './rockerUser.entity';
-import { UserProtectedMiddleware } from '../middlewares/userProtected.middleware';
+import { RefreshToken } from './refresh-token.entity';
+import { RockerUser } from './rocker-user.entity';
+import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 
 export enum UserRoleEnum {
   USER = 'USER',

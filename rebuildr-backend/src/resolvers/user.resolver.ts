@@ -8,10 +8,10 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { User } from 'src/entities/user.entity';
-import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 
 @InputType()

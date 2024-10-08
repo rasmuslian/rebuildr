@@ -5,14 +5,14 @@ import {
   IPostUsersResponse,
   RockerCountryEnum,
   UserTypeEnum,
-} from 'src/apis/types/rockerTypes';
+} from 'src/apis/types/rocker-types';
 import { User } from 'src/entities/user.entity';
 import { RockerAPI } from 'src/apis/rocker.api';
 import { RockerService } from 'src/services/rocker.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { CacheModule } from '@nestjs/cache-manager';
-import { RockerUser, RockerUserType } from 'src/entities/rockerUser.entity';
+import { RockerUser, RockerUserType } from 'src/entities/rocker-user.entity';
 import { ConfigModule } from '@nestjs/config';
 
 describe('Rocker', () => {

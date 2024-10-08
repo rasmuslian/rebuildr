@@ -14,7 +14,7 @@ import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
-import { RefreshToken } from 'src/entities/refreshToken.entity';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
