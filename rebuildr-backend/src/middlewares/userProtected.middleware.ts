@@ -1,7 +1,7 @@
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql';
 
 //Used to protect user fields to only be read by user whose id matches the user to be read
-export const userProtectedMiddleware: FieldMiddleware = async (
+export const UserProtectedMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
   next: NextFn,
 ) => {
