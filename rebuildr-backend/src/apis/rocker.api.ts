@@ -115,16 +115,16 @@ export class RockerAPI {
       },
       externalData: { productId },
     };
-    const data = await fetch(this.url + '/merchant-api/v1/offers', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: [
-        ['X-merchantId', this.merchantId],
-        ['X-Api-Key', this.apiKey],
-      ],
-    });
 
-    const response: IOfferResponse = await data.json();
+    const response: IOfferResponse = await fetchAux({
+      url: this.url + '/merchant-api/v1/offers',
+      method: 'POST',
+      body: body,
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
+    });
     return response;
   }
 }
