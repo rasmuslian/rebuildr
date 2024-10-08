@@ -41,6 +41,10 @@ describe('Rocker', () => {
           provide: getRepositoryToken(Product),
           useFactory: mockRepository,
         },
+        {
+          provide: getRepositoryToken(Product),
+          useFactory: mockRepository,
+        },
       ],
     }).compile();
 
