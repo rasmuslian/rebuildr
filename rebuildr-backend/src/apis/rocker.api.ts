@@ -6,6 +6,7 @@ import {
   RockerCountryEnum,
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
+import { fetchAux } from 'src/utility/fetchAux';
 
 @Injectable()
 export class RockerAPI {
@@ -31,15 +32,15 @@ export class RockerAPI {
         methodType: 'BANK_ID_WITH_LAUNCH_INFO',
       },
     };
-    const data = await fetch(this.url + '/merchant-api/v2/auth', {
+    const response: IPostAuthResponse = await fetchAux({
+      url: this.url + '/merchant-api/v2/auth',
       method: 'POST',
-      body: JSON.stringify(body),
-      headers: [
-        ['X-merchantId', this.merchantId],
-        ['X-Api-Key', this.apiKey],
-      ],
+      body: body,
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
     });
-    const response: IPostAuthResponse = await data.json();
     console.log('response in POST authenticate :>> ', response);
 
     return response;
@@ -50,7 +51,8 @@ export class RockerAPI {
    * @param authorizationToken Received from call to authenticate()
    */
   async authResult(authorizationToken: string) {
-    const data = await fetch(this.url + '/merchant-api/v2/auth', {
+    const response: IGetAuthResponse = await fetchAux({
+      url: this.url + '/merchant-api/v2/auth',
       method: 'GET',
       headers: {
         'X-merchantId': this.merchantId,
@@ -59,7 +61,6 @@ export class RockerAPI {
       },
     });
 
-    const response: IGetAuthResponse = await data.json();
     console.log('response in GET authenticate :>> ', response);
 
     return response;
@@ -77,16 +78,15 @@ export class RockerAPI {
       county: RockerCountryEnum.SE,
       externalData: {},
     };
-    const data = await fetch(this.url + '/merchant-api/v1/users', {
+    const response: IPostUsersResponse = await fetchAux({
+      url: this.url + '/merchant-api/v1/users',
       method: 'POST',
-      body: JSON.stringify(body),
-      headers: [
-        ['X-merchantId', this.merchantId],
-        ['X-Api-Key', this.apiKey],
-      ],
+      body: body,
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
     });
-
-    const response: IPostUsersResponse = await data.json();
     return response;
   }
 }
