@@ -31,6 +31,23 @@ export type Scalars = {
   DateTime: { input: any; output: any };
 };
 
+export enum AuthResponseStatusEnum {
+  Error = "ERROR",
+  Pending = "PENDING",
+  Success = "SUCCESS",
+}
+
+export type AuthenticateResponse = {
+  __typename?: "AuthenticateResponse";
+  autoStartToken?: Maybe<Scalars["String"]["output"]>;
+  qrCode?: Maybe<Scalars["String"]["output"]>;
+  status: AuthResponseStatusEnum;
+};
+
+export type AuthenticateRockerInput = {
+  requestId: Scalars["String"]["input"];
+};
+
 export type Category = {
   __typename?: "Category";
   children: Array<Category>;
@@ -204,6 +221,7 @@ export type Message = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  authenticateRocker: AuthenticateResponse;
   createMessage: Message;
   createProduct: CreateProductResponse;
   deleteProduct: DeleteProductResponse;
@@ -219,6 +237,10 @@ export type Mutation = {
   updateCategory: Category;
   updateUser: User;
   verifyMail: LoginResponse;
+};
+
+export type MutationAuthenticateRockerArgs = {
+  input: AuthenticateRockerInput;
 };
 
 export type MutationCreateMessageArgs = {
@@ -292,6 +314,11 @@ export enum OrderProductsEnum {
   Latest = "LATEST",
 }
 
+export type PlaceholderResponse = {
+  __typename?: "PlaceholderResponse";
+  message: Scalars["String"]["output"];
+};
+
 export type PopularCategoriesInput = {
   limit: Scalars["Int"]["input"];
 };
@@ -364,6 +391,7 @@ export type Query = {
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
   me: User;
+  placeholderQuery: PlaceholderResponse;
   popularCategories: Array<Category>;
   product: Product;
   products: ProductsResponse;
@@ -844,6 +872,7 @@ export type VerifyMailMutation = {
 
 export type RelevantProductsQueryQueryVariables = Exact<{
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
 }>;
 
 export type RelevantProductsQueryQuery = {
@@ -2569,6 +2598,14 @@ export const RelevantProductsQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "limit" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -2583,6 +2620,14 @@ export const RelevantProductsQueryDocument = {
                 value: {
                   kind: "Variable",
                   name: { kind: "Name", value: "input" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "limit" },
                 },
               },
             ],
