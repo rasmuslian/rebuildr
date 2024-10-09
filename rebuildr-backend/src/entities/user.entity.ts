@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
-import { RockerUser } from './rocker-user.entity';
 import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 
 export enum UserRoleEnum {
@@ -77,6 +76,6 @@ export class User {
   @ManyToMany(() => Product, (product) => product.likedBy)
   likedProducts: Product[];
 
-  @OneToOne(() => RockerUser, (ru) => ru.user)
-  rockerUser?: RockerUser;
+  @Column({ nullable: true })
+  rockerUserId?: string; //id used in Rocker
 }

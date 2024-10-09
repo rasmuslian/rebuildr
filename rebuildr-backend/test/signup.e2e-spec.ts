@@ -18,7 +18,6 @@ import request from 'supertest';
 import * as bcrypt from 'bcrypt';
 import { MailService } from 'src/services/mail.service';
 import { ExecutionContext, INestApplication } from '@nestjs/common';
-import { RockerUser, RockerUserType } from 'src/entities/rocker-user.entity';
 import { AuthService } from 'src/services/auth.service';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
@@ -79,7 +78,6 @@ describe('Signup', () => {
   let rockerAPI: RockerAPI;
   let userRepository: ReturnType<typeof mockRepository>;
   let refreshTokenRepository: ReturnType<typeof mockRepository>;
-  let rockerUserRepository: ReturnType<typeof mockRepository>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -132,10 +130,6 @@ describe('Signup', () => {
           useFactory: mockRepository,
         },
         {
-          provide: getRepositoryToken(RockerUser),
-          useFactory: mockRepository,
-        },
-        {
           provide: getRepositoryToken(RefreshToken),
           useFactory: mockRepository,
         },
@@ -152,7 +146,6 @@ describe('Signup', () => {
     rockerAPI = module.get<RockerAPI>(RockerAPI);
     jwtService = module.get<JwtService>(JwtService);
     refreshTokenRepository = module.get(getRepositoryToken(RefreshToken));
-    rockerUserRepository = module.get(getRepositoryToken(RockerUser));
   });
 
   afterEach(async () => {
@@ -234,7 +227,7 @@ describe('Signup', () => {
       role: UserRoleEnum.USER,
       verifyEmailToken: 'verifyEmalTokenHash',
     };
-    const rockerUser: IPostUsersResponse = {
+    const rockerUserResponse: IPostUsersResponse = {
       id: uuidv4(),
       country: RockerCountryEnum.SE,
       email: 'test@test.com',
@@ -245,7 +238,7 @@ describe('Signup', () => {
 
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     userRepository.findOneBy.mockResolvedValue(user);
-    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUser);
+    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUserResponse);
     (bcrypt.hash as jest.Mock).mockImplementation(() => 'refreshTokenHash');
     jest.spyOn(jwtService, 'signAsync').mockResolvedValue('ey123');
 
@@ -268,10 +261,9 @@ describe('Signup', () => {
         });
       });
 
-    expect(rockerUserRepository.save).toHaveBeenCalledWith({
-      id: rockerUser.id,
-      type: rockerUser.userType,
-      user: user,
+    userRepository.save.mockResolvedValue({
+      ...user,
+      rockerUserId: rockerUserResponse.id,
     });
     expect(userRepository.update).toHaveBeenCalledWith(
       { id: user.id },
@@ -299,14 +291,7 @@ describe('Signup', () => {
     const userId = uuidv4();
     user.id = userId;
     user.email = 'test@test.com';
-
-    const rockerUser = new RockerUser();
-    rockerUser.createdAt = new Date();
-    rockerUser.id = uuidv4();
-    rockerUser.type = RockerUserType.FOREIGN_USER;
-    rockerUser.user = user;
-    rockerUser.userId = user.id;
-    user.rockerUser = rockerUser;
+    user.rockerUserId = uuidv4();
 
     userRepository.findOne.mockResolvedValue(user);
 
@@ -387,8 +372,5 @@ describe('Signup', () => {
           status: AuthResponseStatusEnum.SUCCESS,
         });
       });
-
-    rockerUser.type = RockerUserType.AUTHENTICATED_USER;
-    expect(rockerUserRepository.save).toHaveBeenCalledWith(rockerUser);
   });
 });

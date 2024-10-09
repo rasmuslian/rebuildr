@@ -43,7 +43,6 @@ import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
 import { ProductLoader } from './dataloader/product.loader';
 import { CategoryLoader } from './dataloader/category.loader';
 import { RockerService } from './services/rocker.service';
-import { RockerUser } from './entities/rocker-user.entity';
 import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RockerResolver } from './resolvers/rocker.resolver';
@@ -84,7 +83,6 @@ export type RequestType = {
       File,
       RefreshToken,
       Event,
-      RockerUser,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,

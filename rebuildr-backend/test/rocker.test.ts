@@ -10,15 +10,12 @@ import { User } from 'src/entities/user.entity';
 import { RockerAPI } from 'src/apis/rocker.api';
 import { RockerService } from 'src/services/rocker.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { CacheModule } from '@nestjs/cache-manager';
-import { RockerUser, RockerUserType } from 'src/entities/rocker-user.entity';
 import { ConfigModule } from '@nestjs/config';
 
 describe('Rocker', () => {
   let rockerService: RockerService;
   let rockerAPI: RockerAPI;
-  let rockerUserRepository;
   let userRepository;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,13 +28,8 @@ describe('Rocker', () => {
       providers: [
         RockerService,
         RockerAPI,
-        CaslAbilityFactory,
         {
           provide: getRepositoryToken(User),
-          useFactory: mockRepository,
-        },
-        {
-          provide: getRepositoryToken(RockerUser),
           useFactory: mockRepository,
         },
       ],
@@ -45,7 +37,6 @@ describe('Rocker', () => {
 
     rockerService = module.get<RockerService>(RockerService);
     rockerAPI = module.get<RockerAPI>(RockerAPI);
-    rockerUserRepository = module.get(getRepositoryToken(RockerUser));
     userRepository = module.get(getRepositoryToken(User));
   });
 
@@ -53,7 +44,7 @@ describe('Rocker', () => {
     const user = new User();
     user.id = uuidv4();
     user.email = 'test@test.com';
-    const rockerUser: IPostUsersResponse = {
+    const rockerUserResponse: IPostUsersResponse = {
       id: uuidv4(),
       country: RockerCountryEnum.SE,
       email: 'test@test.com',
@@ -61,30 +52,23 @@ describe('Rocker', () => {
       updatedAt: new Date(),
       userType: UserTypeEnum.FOREIGN_USER,
     };
-    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUser);
-    rockerUserRepository.save.mockImplementation((rockerUser: RockerUser) => {
-      rockerUser.userId = rockerUser.user.id;
-      return rockerUser;
+    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUserResponse);
+    userRepository.save.mockResolvedValue({
+      ...user,
+      rockerUserId: rockerUserResponse.id,
     });
 
     const foreignUser = await rockerService.createForeignUser(user);
-    expect(foreignUser.id).toBe(rockerUser.id);
-    expect(foreignUser.userId).toBe(user.id);
-    expect(foreignUser.type).toBe(RockerUserType.FOREIGN_USER);
+    expect(foreignUser.id).toBe(user.id);
+    expect(foreignUser.rockerUserId).toBe(rockerUserResponse.id);
   });
 
   it('authenticate rocker user', async () => {
     const user = new User();
     user.id = uuidv4();
     user.email = 'test@test.com';
+    user.rockerUserId = uuidv4();
 
-    const rockerUser = new RockerUser();
-    rockerUser.createdAt = new Date();
-    rockerUser.id = uuidv4();
-    rockerUser.type = RockerUserType.FOREIGN_USER;
-    rockerUser.user = user;
-    rockerUser.userId = user.id;
-    user.rockerUser = rockerUser;
     const requestId = uuidv4();
 
     userRepository.findOne.mockResolvedValue(user);
@@ -139,10 +123,6 @@ describe('Rocker', () => {
 
     response = await rockerService.authenticate(requestId, user.id);
 
-    expect(rockerUserRepository.save).toHaveBeenCalledWith({
-      ...rockerUser,
-      type: RockerUserType.AUTHENTICATED_USER,
-    });
     expect(response).toMatchObject({
       status: AuthResponseStatusEnum.SUCCESS,
     });
