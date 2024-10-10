@@ -50,11 +50,11 @@ export class RockerAPI {
   async authResult(authorizationToken: string) {
     const data = await fetch(this.url + '/merchant-api/v2/auth', {
       method: 'GET',
-      headers: [
-        ['X-merchantId', this.merchantId],
-        ['X-Api-Key', this.apiKey],
-        ['Authorization', authorizationToken],
-      ],
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+        Authorization: 'Bearer ' + authorizationToken,
+      },
     });
 
     const response: IGetAuthResponse = await data.json();
