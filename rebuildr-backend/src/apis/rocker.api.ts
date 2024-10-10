@@ -14,10 +14,13 @@ export class RockerAPI {
   private merchantId: string;
   private apiKey: string;
   constructor(private configService: ConfigService) {
-    const isProd = this.configService.get('NODE_ENV') === 'production';
-    this.url = isProd
-      ? 'https://pay.rocker.com'
-      : 'https://pay-test.rocker.com';
+    //TODO: use production endpoint when we get into production
+    // const isProd = this.configService.get('NODE_ENV') === 'production';
+    // this.url = isProd
+    //   ? 'https://pay.rocker.com'
+    //   : 'https://pay-test.rocker.com';
+
+    this.url = 'https://pay-test.rocker.com';
     this.merchantId = this.configService.get('ROCKER_MERCHANT_ID');
     this.apiKey = this.configService.get('ROCKER_API_KEY');
   }
