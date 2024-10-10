@@ -78,7 +78,7 @@ export const BankId = ({ onAuthenticationSuccess }: Props) => {
     <View
       style={{ padding: 40, backgroundColor: Colors.white, borderRadius: 20 }}
     >
-      {!error ? (
+      {error ? (
         <Title>Något gick fel</Title>
       ) : (
         <>
