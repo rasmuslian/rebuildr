@@ -75,7 +75,7 @@ export class RockerAPI {
     const body = {
       foreignUserId,
       email,
-      county: RockerCountryEnum.SE,
+      country: RockerCountryEnum.SE,
       externalData: {},
     };
     const response: IPostUsersResponse = await fetchAux({

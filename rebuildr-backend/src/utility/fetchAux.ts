@@ -5,6 +5,7 @@ export const fetchAux = async (vars: {
   headers: { [key: string]: string };
 }) => {
   try {
+    console.log('fetch url: ', vars.url);
     const data = await fetch(vars.url, {
       method: vars.method,
       body: vars.body ? JSON.stringify(vars.body) : undefined,
@@ -14,11 +15,12 @@ export const fetchAux = async (vars: {
       },
     });
 
+    const response = await data.json();
+    console.log('fetch response: ', response);
     if (!data.ok) {
       throw new Error(`HTTP error: ${data.status}`);
     }
-
-    return await data.json();
+    return response;
   } catch (e) {
     throw new Error(e);
   }
