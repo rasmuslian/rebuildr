@@ -5,7 +5,11 @@ export const fetchAux = async (vars: {
   headers: { [key: string]: string };
 }) => {
   try {
-    console.log('fetch url: ', vars.url);
+    console.log('fetch: ', {
+      url: vars.url,
+      method: vars.method,
+      body: vars.body,
+    });
     const data = await fetch(vars.url, {
       method: vars.method,
       body: vars.body ? JSON.stringify(vars.body) : undefined,

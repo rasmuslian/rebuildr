@@ -44,7 +44,6 @@ export class RockerAPI {
         'X-Api-Key': this.apiKey,
       },
     });
-    console.log('response in POST authenticate :>> ', response);
 
     return response;
   }
@@ -63,8 +62,6 @@ export class RockerAPI {
         Authorization: 'Bearer ' + authorizationToken,
       },
     });
-
-    console.log('response in GET authenticate :>> ', response);
 
     return response;
   }
