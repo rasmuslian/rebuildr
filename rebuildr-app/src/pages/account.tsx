@@ -2,7 +2,7 @@ import { useApolloClient, useMutation, useQuery } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { isLoggedInVar } from "src/apollo/apollo";
 import { Button } from "src/components/button";
 import { Input } from "src/components/inputs/input";
@@ -11,6 +11,7 @@ import { Page } from "src/components/layout/page";
 import { Body, Title } from "src/components/texts/text";
 import { gql } from "src/gql";
 import { UserRoleEnum } from "src/gql/graphql";
+import { BankId } from "src/components/bankId";
 
 const ACCOUNT_QUERY = gql(`
   query AccountQuery {
@@ -36,6 +37,7 @@ const UPDATE_ACCOUNT = gql(`
   `);
 
 export const Account = () => {
+  const [showModal, setShowModal] = useState(false);
   const [address, setAddress] = useState("");
   const client = useApolloClient();
   const { navigate } = useNavigation();
@@ -98,6 +100,29 @@ export const Account = () => {
             title={"Meddelanden"}
           />
           <Button title={"Logga ut"} onPress={onLogout} />
+          <Body>
+            Autentisera dig med BankID för att kunna sälja och köpa produkter
+          </Body>
+          <Button title={"Autentisera"} onPress={() => setShowModal(true)} />
+          <Modal
+            transparent
+            style={{ justifyContent: "center", alignItems: "center", flex: 1 }}
+            visible={showModal}
+          >
+            <Pressable
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+              }}
+              onPress={() => {
+                setShowModal(false);
+              }}
+            >
+              <BankId onAuthenticationSuccess={() => setShowModal(false)} />
+            </Pressable>
+          </Modal>
         </View>
       </Section>
     </Page>

@@ -509,6 +509,20 @@ export type GetNewTokensMutation = {
   };
 };
 
+export type AuthenticateRockerAccountMutationVariables = Exact<{
+  input: AuthenticateRockerInput;
+}>;
+
+export type AuthenticateRockerAccountMutation = {
+  __typename?: "Mutation";
+  authenticateRocker: {
+    __typename?: "AuthenticateResponse";
+    status: AuthResponseStatusEnum;
+    qrCode?: string | null;
+    autoStartToken?: string | null;
+  };
+};
+
 export type LikeProductMutationVariables = Exact<{
   input: SetLikeProductInput;
 }>;
@@ -952,6 +966,65 @@ export const GetNewTokensDocument = {
 } as unknown as DocumentNode<
   GetNewTokensMutation,
   GetNewTokensMutationVariables
+>;
+export const AuthenticateRockerAccountDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "AuthenticateRockerAccount" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "AuthenticateRockerInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "authenticateRocker" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "status" } },
+                { kind: "Field", name: { kind: "Name", value: "qrCode" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "autoStartToken" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  AuthenticateRockerAccountMutation,
+  AuthenticateRockerAccountMutationVariables
 >;
 export const LikeProductDocument = {
   kind: "Document",
