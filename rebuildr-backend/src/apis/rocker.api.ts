@@ -3,6 +3,7 @@ import {
   IGetAuthResponse,
   IPostAuthResponse,
   IPostUsersResponse,
+  RockerCountryEnum,
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
 
@@ -73,6 +74,8 @@ export class RockerAPI {
     const body = {
       foreignUserId,
       email,
+      county: RockerCountryEnum.SE,
+      externalData: {},
     };
     const data = await fetch(this.url + '/merchant-api/v1/users', {
       method: 'POST',
