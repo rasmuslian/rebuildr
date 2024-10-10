@@ -31,7 +31,7 @@ export class MailService {
     this.baseUrl =
       process.env.NODE_ENV === 'development'
         ? 'http://localhost:8081'
-        : 'https://rebuildr-frontend-ee5eu.ondigitalocean.app/';
+        : 'https://rebuildr-frontend-ee5eu.ondigitalocean.app';
   }
 
   async sendVerifyEmail(input: { email: string; token: string }) {
