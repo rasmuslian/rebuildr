@@ -31,6 +31,23 @@ export type Scalars = {
   DateTime: { input: any; output: any };
 };
 
+export enum AuthResponseStatusEnum {
+  Error = "ERROR",
+  Pending = "PENDING",
+  Success = "SUCCESS",
+}
+
+export type AuthenticateResponse = {
+  __typename?: "AuthenticateResponse";
+  autoStartToken?: Maybe<Scalars["String"]["output"]>;
+  qrCode?: Maybe<Scalars["String"]["output"]>;
+  status: AuthResponseStatusEnum;
+};
+
+export type AuthenticateRockerInput = {
+  requestId: Scalars["String"]["input"];
+};
+
 export type Category = {
   __typename?: "Category";
   children: Array<Category>;
@@ -204,6 +221,7 @@ export type Message = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  authenticateRocker: AuthenticateResponse;
   createMessage: Message;
   createProduct: CreateProductResponse;
   deleteProduct: DeleteProductResponse;
@@ -219,6 +237,10 @@ export type Mutation = {
   updateCategory: Category;
   updateUser: User;
   verifyMail: LoginResponse;
+};
+
+export type MutationAuthenticateRockerArgs = {
+  input: AuthenticateRockerInput;
 };
 
 export type MutationCreateMessageArgs = {
@@ -292,6 +314,11 @@ export enum OrderProductsEnum {
   Latest = "LATEST",
 }
 
+export type PlaceholderResponse = {
+  __typename?: "PlaceholderResponse";
+  message: Scalars["String"]["output"];
+};
+
 export type PopularCategoriesInput = {
   limit: Scalars["Int"]["input"];
 };
@@ -364,6 +391,7 @@ export type Query = {
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
   me: User;
+  placeholderQuery: PlaceholderResponse;
   popularCategories: Array<Category>;
   product: Product;
   products: ProductsResponse;
@@ -478,6 +506,20 @@ export type GetNewTokensMutation = {
     __typename?: "GetNewTokensResponse";
     accessToken: string;
     refreshToken: string;
+  };
+};
+
+export type AuthenticateRockerAccountMutationVariables = Exact<{
+  input: AuthenticateRockerInput;
+}>;
+
+export type AuthenticateRockerAccountMutation = {
+  __typename?: "Mutation";
+  authenticateRocker: {
+    __typename?: "AuthenticateResponse";
+    status: AuthResponseStatusEnum;
+    qrCode?: string | null;
+    autoStartToken?: string | null;
   };
 };
 
@@ -844,6 +886,7 @@ export type VerifyMailMutation = {
 
 export type RelevantProductsQueryQueryVariables = Exact<{
   input: ProductsInput;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
 }>;
 
 export type RelevantProductsQueryQuery = {
@@ -923,6 +966,65 @@ export const GetNewTokensDocument = {
 } as unknown as DocumentNode<
   GetNewTokensMutation,
   GetNewTokensMutationVariables
+>;
+export const AuthenticateRockerAccountDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "AuthenticateRockerAccount" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "AuthenticateRockerInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "authenticateRocker" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "status" } },
+                { kind: "Field", name: { kind: "Name", value: "qrCode" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "autoStartToken" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  AuthenticateRockerAccountMutation,
+  AuthenticateRockerAccountMutationVariables
 >;
 export const LikeProductDocument = {
   kind: "Document",
@@ -2569,6 +2671,14 @@ export const RelevantProductsQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "limit" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -2583,6 +2693,14 @@ export const RelevantProductsQueryDocument = {
                 value: {
                   kind: "Variable",
                   name: { kind: "Name", value: "input" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "limit" },
                 },
               },
             ],

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import { Repository } from 'typeorm';

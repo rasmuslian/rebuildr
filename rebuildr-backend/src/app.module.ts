@@ -30,18 +30,22 @@ import { GeocodingService } from './services/geocoding.service';
 import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
 import { FileResolver } from './resolvers/file.resolver';
-import { RefreshToken } from './entities/refreshToken.entity';
-import { CaslAbilityFactory } from './casl/caslAbility.factory';
-import { GqlOptionalAuthGuard } from './auth/gqlOptionalAuth.guard';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { CaslAbilityFactory } from './casl/casl-ability.factory';
+import { GqlOptionalAuthGuard } from './auth/gql-optional-auth.guard';
 import { MailService } from './services/mail.service';
 import { RolesGuard } from './auth/roles.guard';
 import { GeocodingResolver } from './resolvers/geocoding.resolver';
 import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { GqlThrottlerGuard } from './guards/gqlThrottler.guard';
+import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
 import { ProductLoader } from './dataloader/product.loader';
 import { CategoryLoader } from './dataloader/category.loader';
+import { RockerService } from './services/rocker.service';
+import { RockerAPI } from './apis/rocker.api';
+import { CacheModule } from '@nestjs/cache-manager';
+import { RockerResolver } from './resolvers/rocker.resolver';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -54,9 +58,15 @@ export type RequestType = {
       envFilePath: ['.env.local.1p'],
     }),
     PassportModule,
-    JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: jwtConstants.expiresIn },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get('JWT_SECRET'),
+          signOptions: { expiresIn: jwtConstants.expiresIn },
+        };
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -104,6 +114,7 @@ export type RequestType = {
         limit: 2,
       },
     ]),
+    CacheModule.register(),
   ],
   controllers: [AppController],
   providers: [
@@ -129,6 +140,9 @@ export type RequestType = {
     GeocodingResolver,
     EventService,
     GqlThrottlerGuard,
+    RockerResolver,
+    RockerService,
+    RockerAPI,
   ],
 })
 export class AppModule {}

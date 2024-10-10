@@ -9,8 +9,8 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';

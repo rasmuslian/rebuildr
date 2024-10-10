@@ -10,8 +10,8 @@ import {
   ManyToMany,
 } from 'typeorm';
 import { Product } from './product.entity';
-import { RefreshToken } from './refreshToken.entity';
-import { UserProtectedMiddleware } from '../middlewares/userProtected.middleware';
+import { RefreshToken } from './refresh-token.entity';
+import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -75,4 +75,7 @@ export class User {
 
   @ManyToMany(() => Product, (product) => product.likedBy)
   likedProducts: Product[];
+
+  @Column({ nullable: true })
+  rockerUserId?: string; //id used in Rocker
 }

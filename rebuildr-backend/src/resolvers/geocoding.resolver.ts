@@ -7,7 +7,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
-import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { GeocodingService } from 'src/services/geocoding.service';
 
 @InputType()

@@ -35,6 +35,7 @@ export class CaslAbilityFactory {
     if (isAdmin) {
       can('manage', Category);
     }
+
     return build();
   }
 }

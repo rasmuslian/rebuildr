@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/caslAbility.factory';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
 import { Product, ProductConditionEnum } from 'src/entities/product.entity';

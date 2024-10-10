@@ -13,22 +13,22 @@ import {
   Resolver,
   Root,
 } from '@nestjs/graphql';
-import { GqlAuthGuard } from 'src/auth/gqlAuth.guard';
-import { CurrentUser } from 'src/decorators/currentUser.decorator';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Category } from 'src/entities/category.entity';
 import { Product, ProductConditionEnum } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
-import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import { UserService } from 'src/services/user.service';
 import z from 'zod';
-import { GqlOptionalAuthGuard } from 'src/auth/gqlOptionalAuth.guard';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
-import { GqlThrottlerGuard } from 'src/guards/gqlThrottler.guard';
+import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { IProductLoaders } from 'src/dataloader/product.loader';
 
 export enum OrderProductsEnum {

@@ -11,7 +11,7 @@ import { User } from 'src/entities/user.entity';
 import { AuthService } from 'src/services/auth.service';
 import { z } from 'zod';
 import { UsePipes } from '@nestjs/common';
-import { ZodValidationPipe } from 'src/pipes/zodValidationPipe';
+import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { RequestType } from 'src/app.module';
 
 @InputType()

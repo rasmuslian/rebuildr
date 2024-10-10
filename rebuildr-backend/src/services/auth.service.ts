@@ -7,7 +7,6 @@ import {
   ResetPasswordInput,
   VerifyMailInput,
 } from 'src/resolvers/auth.resolver';
-import { UserService } from './user.service';
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,22 +14,23 @@ import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
-import { RefreshToken } from 'src/entities/refreshToken.entity';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
 import { RequestType } from 'src/app.module';
+import { RockerService } from './rocker.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
     private jwtService: JwtService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private mailService: MailService,
+    private rockerService: RockerService,
   ) {}
 
   async registerUser(input: RegisterUserInput) {
@@ -82,6 +82,9 @@ export class AuthService {
     if (!matchingTokens) {
       throw BadUserInputException('Failed to verify user due to bad input');
     }
+
+    //create foreign user in rocker system
+    await this.rockerService.createForeignUser(user);
 
     await this.userRepository.update(
       { id: user.id },

@@ -15,6 +15,8 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n":
     types.GetNewTokensDocument,
+  "\n    mutation AuthenticateRockerAccount($input: AuthenticateRockerInput!) {\n     authenticateRocker(input: $input) {\n       status\n       qrCode\n       autoStartToken\n     }\n   }  \n   ":
+    types.AuthenticateRockerAccountDocument,
   "\n  mutation LikeProduct($input: SetLikeProductInput!) {\n    setLikeProduct(input: $input) {\n      id\n      likedByUser\n    }\n  }\n  ":
     types.LikeProductDocument,
   "\n  query LoggedInNavigation {\n    me {\n      id\n      username\n      role\n    }\n  }\n":
@@ -67,7 +69,7 @@ const documents = {
     types.CreateProductDocument,
   "\n  mutation VerifyMail($input: VerifyMailInput!) {\n    verifyMail(input: $input) {\n      accessToken\n      refreshToken\n    }\n  }\n":
     types.VerifyMailDocument,
-  "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n":
+  "\n  query RelevantProductsQuery($input: ProductsInput!, $limit: Int) {\n    products(input: $input, limit: $limit) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n":
     types.RelevantProductsQueryDocument,
 };
 
@@ -91,6 +93,12 @@ export function gql(source: string): unknown;
 export function gql(
   source: "\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n",
 ): (typeof documents)["\nmutation GetNewTokens($input: GetNewTokensInput!) {\n  getNewTokens(input: $input) {\n    accessToken\n    refreshToken\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n    mutation AuthenticateRockerAccount($input: AuthenticateRockerInput!) {\n     authenticateRocker(input: $input) {\n       status\n       qrCode\n       autoStartToken\n     }\n   }  \n   ",
+): (typeof documents)["\n    mutation AuthenticateRockerAccount($input: AuthenticateRockerInput!) {\n     authenticateRocker(input: $input) {\n       status\n       qrCode\n       autoStartToken\n     }\n   }  \n   "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -251,8 +259,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n",
-): (typeof documents)["\n  query RelevantProductsQuery($input: ProductsInput!) {\n    products(input: $input) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n"];
+  source: "\n  query RelevantProductsQuery($input: ProductsInput!, $limit: Int) {\n    products(input: $input, limit: $limit) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n",
+): (typeof documents)["\n  query RelevantProductsQuery($input: ProductsInput!, $limit: Int) {\n    products(input: $input, limit: $limit) {\n      products {\n        id\n        title\n        description\n        distanceFromPosition\n        likedByUser\n        user {\n          id\n          username\n        }\n        address\n        price\n        isGiveaway\n        mainImage {\n          presignedGetUrl\n        }\n      } \n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

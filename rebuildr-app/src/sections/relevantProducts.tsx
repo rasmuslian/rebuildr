@@ -13,8 +13,8 @@ import { formatMetersToKm } from "src/utils/distanceHandling";
 import * as Location from "expo-location";
 
 const RELEVANT_PRODUCTS_QUERY = gql(`
-  query RelevantProductsQuery($input: ProductsInput!) {
-    products(input: $input) {
+  query RelevantProductsQuery($input: ProductsInput!, $limit: Int) {
+    products(input: $input, limit: $limit) {
       products {
         id
         title
@@ -49,7 +49,7 @@ export const RelevantProducts = () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         fetchRelevantProducts({
-          variables: { input: { limit: 6, orderBy: OrderProductsEnum.Latest } },
+          variables: { input: { orderBy: OrderProductsEnum.Latest }, limit: 6 },
         });
         return;
       }
@@ -57,13 +57,13 @@ export const RelevantProducts = () => {
       fetchRelevantProducts({
         variables: {
           input: {
-            limit: 6,
             orderBy: OrderProductsEnum.Distance,
             location: {
               longitude: position.coords.longitude,
               latitude: position.coords.latitude,
             },
           },
+          limit: 6,
         },
       });
     })();

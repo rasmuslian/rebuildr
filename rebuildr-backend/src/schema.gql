@@ -169,6 +169,22 @@ type LocationSearchResponse {
   result: [String!]!
 }
 
+type AuthenticateResponse {
+  status: AuthResponseStatusEnum!
+  qrCode: String
+  autoStartToken: String
+}
+
+enum AuthResponseStatusEnum {
+  SUCCESS
+  ERROR
+  PENDING
+}
+
+type PlaceholderResponse {
+  message: String!
+}
+
 type Query {
   me: User!
   product(input: GetProductInput!): Product!
@@ -181,6 +197,7 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+  placeholderQuery: PlaceholderResponse!
 }
 
 input GetProductInput {
@@ -248,6 +265,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
+  authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
 }
 
 input RegisterUserInput {
@@ -339,4 +357,8 @@ input CreateMessageInput {
   receiverId: String!
   productId: String!
   body: String!
+}
+
+input AuthenticateRockerInput {
+  requestId: String!
 }

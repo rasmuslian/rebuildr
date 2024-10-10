@@ -19,6 +19,7 @@
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "~18.2.79",
     "dayjs": "^1.11.11",
     "expo": "~51.0.9",
@@ -29,6 +30,7 @@
     "expo-status-bar": "~1.12.1",
     "graphql": "^16.8.1",
     "leaflet": "^1.9.4",
+    "qrcode": "^1.5.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-helmet": "^6.1.0",
@@ -37,7 +39,8 @@
     "react-native-screens": "3.31.1",
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -47,6 +50,7 @@
     "@types/leaflet": "^1.9.12",
     "@types/react-helmet": "^6.1.11",
     "@types/react-native": "^0.73.0",
+    "@types/uuid": "^10.0.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "^7.0.0",
     "eslint-config-prettier": "^9.1.0",
