@@ -39,6 +39,7 @@ export class RockerAPI {
       ],
     });
     const response: IPostAuthResponse = await data.json();
+    console.log('response in POST authenticate :>> ', response);
 
     return response;
   }
@@ -58,6 +59,7 @@ export class RockerAPI {
     });
 
     const response: IGetAuthResponse = await data.json();
+    console.log('response in GET authenticate :>> ', response);
 
     return response;
   }

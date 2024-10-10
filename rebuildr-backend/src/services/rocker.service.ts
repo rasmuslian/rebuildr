@@ -61,6 +61,7 @@ export class RockerService {
       };
     }
     if (response.status === AuthResponseStatusEnum.ERROR) {
+      console.log('Authentication resulted in error');
       throw InternalServerException();
     }
 
