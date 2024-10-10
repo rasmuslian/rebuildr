@@ -22,6 +22,13 @@ export enum UserTypeEnum {
   INDIVIDUAL_USER = 'INDIVIDUAL_USER',
 }
 
+export interface ICreateForeignUserRequest {
+  foreignUserId: string;
+  country: RockerCountryEnum;
+  email: string;
+  externalData: object;
+}
+
 export interface IPostUsersResponse {
   id: string;
   country: RockerCountryEnum;
