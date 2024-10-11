@@ -104,4 +104,8 @@ export class RockerService {
 
     return response;
   }
+
+  async createPayment(offerId: string, buyerId: string) {
+    return await this.rockerApi.createPayment(offerId, buyerId);
+  }
 }
