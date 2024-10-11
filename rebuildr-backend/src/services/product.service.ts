@@ -94,11 +94,6 @@ export class ProductService {
     product.images = images.map((image) => image.file);
     const createdProduct = await this.productRepository.save(product);
 
-    //create offer
-    if (!product.isGiveaway) {
-      await this.rockerService.createOffer(createdProduct.id);
-    }
-
     return {
       product: createdProduct,
       presignedPutUrls: images.map((image) => image.signedUrl),
