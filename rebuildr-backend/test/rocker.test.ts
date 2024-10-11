@@ -2,7 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   AuthResponseStatusEnum,
+  IOfferResponse,
   IPostUsersResponse,
+  OfferStatusEnum,
   RockerCountryEnum,
   UserTypeEnum,
 } from 'src/apis/types/rocker-types';
@@ -12,11 +14,14 @@ import { RockerService } from 'src/services/rocker.service';
 import { v4 as uuidv4 } from 'uuid';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
+import { Product } from 'src/entities/product.entity';
+import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
 
 describe('Rocker', () => {
   let rockerService: RockerService;
   let rockerAPI: RockerAPI;
-  let userRepository;
+  let userRepository: mockRepositoryType;
+  let productRepository: mockRepositoryType;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -32,12 +37,21 @@ describe('Rocker', () => {
           provide: getRepositoryToken(User),
           useFactory: mockRepository,
         },
+        {
+          provide: getRepositoryToken(Product),
+          useFactory: mockRepository,
+        },
       ],
     }).compile();
 
     rockerService = module.get<RockerService>(RockerService);
     rockerAPI = module.get<RockerAPI>(RockerAPI);
     userRepository = module.get(getRepositoryToken(User));
+    productRepository = module.get(getRepositoryToken(Product));
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('create a rocker user', async () => {
@@ -127,12 +141,54 @@ describe('Rocker', () => {
       status: AuthResponseStatusEnum.SUCCESS,
     });
   });
-});
 
-const mockRepository = () => ({
-  find: jest.fn(),
-  findOne: jest.fn(),
-  findOneBy: jest.fn(),
-  save: jest.fn(),
-  create: jest.fn(),
+  it('create offer', async () => {
+    const user = new User();
+    user.id = uuidv4();
+    user.email = 'test@test.com';
+    user.rockerUserId = uuidv4();
+
+    const product = new Product();
+    product.id = uuidv4();
+    product.title = 'product';
+    product.address = 'address';
+    product.addressLocation = { type: 'Point', coordinates: [57, 18] };
+    product.user = user;
+    product.price = 100;
+
+    const createOfferResponse: IOfferResponse = {
+      id: uuidv4(),
+      status: OfferStatusEnum.AVAILABLE,
+      title: product.title,
+      price: {
+        amount: 100,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      escrowValue: {
+        amount: 90,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      serviceFee: {
+        actual: {
+          amount: 10,
+          currency: 'SEK',
+          unit: 'MINOR',
+        },
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      serviceFeeRefundable: true,
+      sellerId: user.rockerUserId,
+      offerUrl: '',
+      externalData: {
+        productId: product.id,
+      },
+    };
+
+    jest.spyOn(rockerAPI, 'createOffer').mockResolvedValue(createOfferResponse);
+    productRepository.findOne.mockResolvedValue(product);
+    await rockerService.createOffer(product.id);
+  });
 });

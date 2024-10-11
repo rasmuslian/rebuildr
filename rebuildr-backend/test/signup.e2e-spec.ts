@@ -28,6 +28,8 @@ import {
   UserTypeEnum,
 } from 'src/apis/types/rocker-types';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
+import { Product } from 'src/entities/product.entity';
 import { RockerResolver } from 'src/resolvers/rocker.resolver';
 
 jest.mock('bcrypt', () => {
@@ -61,23 +63,13 @@ const mockGuard = {
   getRequest: jest.fn(),
 };
 
-const mockRepository = () => ({
-  find: jest.fn(),
-  findOne: jest.fn(),
-  findOneBy: jest.fn(),
-  save: jest.fn(),
-  create: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn(),
-});
-
 describe('Signup', () => {
   let app: INestApplication;
   let mailService: MailService;
   let jwtService: JwtService;
   let rockerAPI: RockerAPI;
-  let userRepository: ReturnType<typeof mockRepository>;
-  let refreshTokenRepository: ReturnType<typeof mockRepository>;
+  let userRepository: mockRepositoryType;
+  let refreshTokenRepository: mockRepositoryType;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -125,6 +117,10 @@ describe('Signup', () => {
         MailService,
         RockerService,
         RockerAPI,
+        {
+          provide: getRepositoryToken(Product),
+          useFactory: mockRepository,
+        },
         {
           provide: getRepositoryToken(User),
           useFactory: mockRepository,

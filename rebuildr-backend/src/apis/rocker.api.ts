@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ICreateOfferRequest,
   IGetAuthResponse,
+  IOfferResponse,
   IPostAuthResponse,
   IPostUsersResponse,
   RockerCountryEnum,
@@ -80,6 +82,42 @@ export class RockerAPI {
     };
     const response: IPostUsersResponse = await fetchAux({
       url: this.url + '/merchant-api/v1/users',
+      method: 'POST',
+      body: body,
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
+    });
+    return response;
+  }
+
+  async createOffer(
+    title: string,
+    sellerId: string,
+    escrowValue: number,
+    fee: number,
+    productId: string,
+  ) {
+    const body: ICreateOfferRequest = {
+      title,
+      sellerId,
+      payoutSpec: 'CONFIRMED_PAYOUT',
+      escrowValue: {
+        currency: 'SE',
+        amount: escrowValue,
+        unit: 'MINOR',
+      },
+      serviceFee: {
+        currency: 'SE',
+        amount: fee,
+        unit: 'MINOR',
+      },
+      externalData: { productId },
+    };
+
+    const response: IOfferResponse = await fetchAux({
+      url: this.url + '/merchant-api/v1/offers',
       method: 'POST',
       body: body,
       headers: {
