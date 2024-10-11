@@ -15,7 +15,6 @@ import {
 import { Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
-import { RockerService } from './rocker.service';
 @Injectable()
 export class ProductService {
   constructor(
@@ -30,7 +29,6 @@ export class ProductService {
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private caslAbilityFactory: CaslAbilityFactory,
-    private rockerService: RockerService,
   ) {}
 
   async create(input: {
