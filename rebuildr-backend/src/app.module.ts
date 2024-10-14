@@ -49,6 +49,7 @@ import { RockerResolver } from './resolvers/rocker.resolver';
 import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
 import { RockerWebhookController } from './controllers/rocker-webhook.controller';
+import { PurchaseResolver } from './resolvers/purchase.resolver';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -148,6 +149,7 @@ export type RequestType = {
     RockerService,
     RockerAPI,
     PurchaseService,
+    PurchaseResolver,
   ],
 })
 export class AppModule {}

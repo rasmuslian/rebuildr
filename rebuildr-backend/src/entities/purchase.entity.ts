@@ -7,9 +7,12 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { User } from './user.entity';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @Entity()
+@ObjectType()
 export class Purchase {
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

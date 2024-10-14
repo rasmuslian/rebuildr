@@ -36,6 +36,10 @@ enum CategoryIconEnum {
   WORKPLACE
 }
 
+type Purchase {
+  id: ID!
+}
+
 type User {
   id: ID!
   username: String!
@@ -181,8 +185,9 @@ enum AuthResponseStatusEnum {
   PENDING
 }
 
-type PlaceholderResponse {
-  message: String!
+type PurchaseProductResponse {
+  product: Product!
+  purchase: Purchase!
 }
 
 type Query {
@@ -197,7 +202,6 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
-  placeholderQuery: PlaceholderResponse!
 }
 
 input GetProductInput {
@@ -266,6 +270,7 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
+  purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
 }
 
 input RegisterUserInput {
@@ -361,4 +366,8 @@ input CreateMessageInput {
 
 input AuthenticateRockerInput {
   requestId: String!
+}
+
+input PurchaseProductInput {
+  productId: String!
 }

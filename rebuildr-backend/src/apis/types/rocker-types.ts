@@ -115,7 +115,7 @@ export interface ICreatePaymentRequest {
     paymentType: 'MOBILE';
   };
 }
-enum PaymentMethodEnum {
+export enum PaymentMethodEnum {
   TRUSTLY = 'TRUSTLY',
   STRIPE = 'STRIPE',
   SWISH = 'SWISH',
@@ -134,14 +134,14 @@ export enum PaymentStatusEnum {
   TIMED_OUT = 'TIMED_OUT',
 }
 
-enum PayoutConsentEnum {
+export enum PayoutConsentEnum {
   UNDEFINED = 'UNDEFINED',
   CONFIRMED = 'CONFIRMED',
   DECLINED = 'DECLINED',
   BLOCKED = 'BLOCKED',
 }
 
-enum PauseStateEnum {
+export enum PauseStateEnum {
   NOT_PAUSED = 'NOT_PAUSED',
   PAUSED = 'PAUSED',
 }
