@@ -5,6 +5,11 @@ import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RockerService } from './rocker.service';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
+import {
+  IPaymentCompleted,
+  IPaymentFailed,
+  IPaymentStarted,
+} from 'src/apis/types/rocker-types';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -63,7 +68,11 @@ export class PurchaseService {
 
     purchase.buyer = buyer;
     purchase.product = product;
-    return await this.purchaseRepository.save(purchase);
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+    return {
+      purchase: savedPurchase,
+      product: product,
+    };
   }
 
   getPurchaseStatus(purchase: Purchase) {
@@ -86,5 +95,40 @@ export class PurchaseService {
       return PurchaseStatusEnum.PAYMENT_PENDING;
     }
     return PurchaseStatusEnum.INIT;
+  }
+
+  async paymentStarted(payload: IPaymentStarted) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: payload.paymentId },
+    });
+
+    if (!purchase) {
+      throw new Error(
+        'PaymentStarted: No purchase found with id: ' + payload.paymentId,
+      );
+    }
+
+    purchase.paymentSentToRockerAt = new Date(payload.timestamp);
+    await this.purchaseRepository.save(purchase);
+  }
+  async paymentCompleted(payload: IPaymentCompleted) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: payload.paymentId },
+    });
+
+    if (!purchase) {
+      throw new Error(
+        'PaymentCompleted: No purchase found with id: ' + payload.paymentId,
+      );
+    }
+
+    purchase.paymentReceivedByRockerAt = new Date(payload.timestamp);
+    await this.purchaseRepository.save(purchase);
+  }
+  async paymentFailed(payload: IPaymentFailed) {
+    await this.purchaseRepository.update(
+      { rockerPaymentId: payload.paymentId },
+      { failureAt: new Date(payload.timestamp) },
+    );
   }
 }
