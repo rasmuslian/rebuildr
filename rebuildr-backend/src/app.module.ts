@@ -48,6 +48,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { RockerResolver } from './resolvers/rocker.resolver';
 import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
+import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -119,7 +120,7 @@ export type RequestType = {
     ]),
     CacheModule.register(),
   ],
-  controllers: [AppController],
+  controllers: [AppController, RockerWebhookController],
   providers: [
     JwtStrategy,
     AppService,

@@ -166,3 +166,29 @@ export interface IPaymentResponse {
   errorMessage?: string;
   title: string;
 }
+
+export interface IPaymentStarted {
+  $type: 'PaymentStarted';
+  offerId: string;
+  paymentId: string;
+  status: PaymentStatusEnum;
+  timestamp: Date;
+}
+export interface IPaymentFailed {
+  $type: 'PaymentFailed';
+  offerId: string;
+  paymentId: string;
+  paymentStatus: PaymentStatusEnum;
+  paymentMethod: PaymentMethodEnum;
+  errorCode?: string;
+  swishErrorCode?: string;
+  timestamp: Date;
+}
+export interface IPaymentCompleted {
+  $type: 'PaymentCompleted';
+  offerId: string;
+  paymentId: string;
+  paymentStatus: PaymentStatusEnum;
+  paymentMethod: PaymentMethodEnum;
+  timestamp: Date;
+}
