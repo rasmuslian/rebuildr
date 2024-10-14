@@ -1,4 +1,4 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
@@ -6,6 +6,7 @@ import {
   Mutation,
   ObjectType,
   Query,
+  Resolver,
 } from '@nestjs/graphql';
 import { AuthResponseStatusEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
@@ -37,7 +38,7 @@ class PlaceholderResponse {
   message: string;
 }
 
-@Injectable()
+@Resolver()
 export class RockerResolver {
   constructor(private rockerService: RockerService) {}
 
