@@ -122,7 +122,7 @@ export class PurchaseService {
       );
     }
 
-    purchase.paymentReceivedByRockerAt = new Date(payload.timestamp);
+    purchase.paymentAcceptedByRockerAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
   }
   async paymentFailed(payload: IPaymentFailed) {
