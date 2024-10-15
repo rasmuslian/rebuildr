@@ -46,6 +46,10 @@ import { RockerService } from './services/rocker.service';
 import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RockerResolver } from './resolvers/rocker.resolver';
+import { Purchase } from './entities/purchase.entity';
+import { PurchaseService } from './services/purchase.service';
+import { RockerWebhookController } from './controllers/rocker-webhook.controller';
+import { PurchaseResolver } from './resolvers/purchase.resolver';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -83,6 +87,7 @@ export type RequestType = {
       File,
       RefreshToken,
       Event,
+      Purchase,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -116,7 +121,7 @@ export type RequestType = {
     ]),
     CacheModule.register(),
   ],
-  controllers: [AppController],
+  controllers: [AppController, RockerWebhookController],
   providers: [
     JwtStrategy,
     AppService,
@@ -143,6 +148,8 @@ export type RequestType = {
     RockerResolver,
     RockerService,
     RockerAPI,
+    PurchaseService,
+    PurchaseResolver,
   ],
 })
 export class AppModule {}

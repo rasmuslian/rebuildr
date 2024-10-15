@@ -29,8 +29,9 @@ import {
 } from 'src/apis/types/rocker-types';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
-import { Product } from 'src/entities/product.entity';
 import { RockerResolver } from 'src/resolvers/rocker.resolver';
+import { Product } from 'src/entities/product.entity';
+import { PlaceholderResolver } from './placeholder.resolver';
 
 jest.mock('bcrypt', () => {
   const originalModule = jest.requireActual('bcrypt');
@@ -117,6 +118,7 @@ describe('Signup', () => {
         MailService,
         RockerService,
         RockerAPI,
+        PlaceholderResolver,
         {
           provide: getRepositoryToken(Product),
           useFactory: mockRepository,

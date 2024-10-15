@@ -12,6 +12,7 @@ import {
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
+import { Purchase } from './purchase.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -78,4 +79,7 @@ export class User {
 
   @Column({ nullable: true })
   rockerUserId?: string; //id used in Rocker
+
+  @OneToMany(() => Purchase, (p) => p.buyer)
+  purchases: Purchase[];
 }

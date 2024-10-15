@@ -106,3 +106,89 @@ export interface IOfferResponse {
   offerUrl: string;
   externalData: { [key: string]: any };
 }
+
+export interface ICreatePaymentRequest {
+  offerId: string;
+  buyerId: string;
+  paymentMethod: 'SWISH';
+  paymentMethodData: {
+    paymentType: 'MOBILE';
+  };
+}
+export enum PaymentMethodEnum {
+  TRUSTLY = 'TRUSTLY',
+  STRIPE = 'STRIPE',
+  SWISH = 'SWISH',
+  EXTERNAL = 'EXTERNAL',
+  LOAN = 'LOAN',
+  INVOICE = 'INVOICE',
+  ROCKER_CARD = 'ROCKER_CARD',
+}
+
+export enum PaymentStatusEnum {
+  INIT = 'INIT',
+  SETTLED = 'SETTLED',
+  REFUNDED = 'REFUNDED',
+  FAILED = 'FAILED',
+  BOOKKEEPING_FAILED = 'BOOKKEEPING_FAILED',
+  TIMED_OUT = 'TIMED_OUT',
+}
+
+export enum PayoutConsentEnum {
+  UNDEFINED = 'UNDEFINED',
+  CONFIRMED = 'CONFIRMED',
+  DECLINED = 'DECLINED',
+  BLOCKED = 'BLOCKED',
+}
+
+export enum PauseStateEnum {
+  NOT_PAUSED = 'NOT_PAUSED',
+  PAUSED = 'PAUSED',
+}
+export interface IPaymentResponse {
+  id: string;
+  merchantId: string;
+  sellerId: string;
+  offerId: string;
+  buyerId: string;
+  amount: IMoneyObject;
+  paymentMethod: PaymentMethodEnum;
+  paymentMethodData?: {
+    token: string;
+  };
+  reference: string;
+  status: PaymentStatusEnum;
+  payoutConsent: PayoutConsentEnum;
+  createdAt: Date;
+  updatedAt: Date;
+  pauseState: PauseStateEnum;
+  buyerNote?: string;
+  errorMessage?: string;
+  title: string;
+}
+
+export interface IPaymentStarted {
+  $type: 'PaymentStarted';
+  offerId: string;
+  paymentId: string;
+  status: PaymentStatusEnum;
+  timestamp: Date;
+}
+export interface IPaymentFailed {
+  $type: 'PaymentFailed';
+  offerId: string;
+  paymentId: string;
+  paymentStatus: PaymentStatusEnum;
+  paymentMethod: PaymentMethodEnum;
+  errorCode?: string;
+  swishErrorCode?: string;
+  timestamp: Date;
+}
+export interface IPaymentCompleted {
+  $type: 'PaymentCompleted';
+  offerId: string;
+  paymentId: string;
+  paymentStatus: PaymentStatusEnum;
+  paymentMethod: PaymentMethodEnum;
+  timestamp: Date;
+}

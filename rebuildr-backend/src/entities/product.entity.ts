@@ -13,6 +13,7 @@ import {
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { File } from './file.entity';
+import { Purchase } from './purchase.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -123,4 +124,7 @@ export class Product {
    */
   @Field({ nullable: true })
   distanceFromPosition?: number;
+
+  @OneToMany(() => Purchase, (p) => p.product)
+  purchases: Purchase[];
 }
