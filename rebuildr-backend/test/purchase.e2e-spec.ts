@@ -275,7 +275,7 @@ describe('Purchase', () => {
     purchaseRepository.findOne.mockResolvedValue(purchase);
 
     await request(app.getHttpServer())
-      .post('/rockerWebhook')
+      .post('/rocker-webhook')
       .set({
         'X-Rocker-Pay-Signature': serverSignature,
         'X-Rocker-Pay-Timestamp': timestamp.toString(),
@@ -310,7 +310,7 @@ describe('Purchase', () => {
     purchaseRepository.findOne.mockResolvedValue(purchase);
 
     await request(app.getHttpServer())
-      .post('/rockerWebhook')
+      .post('/rocker-webhook')
       .set({
         'X-Rocker-Pay-Signature': serverSignature,
         'X-Rocker-Pay-Timestamp': timestamp.toString(),
@@ -346,7 +346,7 @@ describe('Purchase', () => {
     purchase.paymentAcceptedByRockerAt = new Date();
 
     await request(app.getHttpServer())
-      .post('/rockerWebhook')
+      .post('/rocker-webhook')
       .set({
         'X-Rocker-Pay-Signature': serverSignature,
         'X-Rocker-Pay-Timestamp': timestamp.toString(),

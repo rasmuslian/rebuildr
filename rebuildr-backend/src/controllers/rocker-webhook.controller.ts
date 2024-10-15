@@ -13,7 +13,7 @@ type RockerWebhookPayload =
   | IPaymentFailed
   | IPaymentCompleted;
 
-@Controller('rockerWebhook')
+@Controller('rocker-webhook')
 export class RockerWebhookController {
   constructor(
     private purchaseService: PurchaseService,
