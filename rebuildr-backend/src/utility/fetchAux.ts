@@ -1,3 +1,5 @@
+import { InternalServerException } from 'src/exceptions';
+
 export const fetchAux = async (vars: {
   url: string;
   method: 'POST' | 'GET';
@@ -22,10 +24,10 @@ export const fetchAux = async (vars: {
     const response = await data.json();
     console.log('fetch response: ', response);
     if (!data.ok) {
-      throw new Error(`HTTP error: ${data.status}`);
+      throw InternalServerException(`HTTP error: ${data.status}`);
     }
     return response;
   } catch (e) {
-    throw new Error(e);
+    throw InternalServerException();
   }
 };

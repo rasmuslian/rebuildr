@@ -2,9 +2,13 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
-import { AuthResponseStatusEnum } from 'src/apis/types/rocker-types';
+import {
+  AuthResponseStatusEnum,
+  IPayoutAccountVerification,
+  VerificationStatusEnum,
+} from 'src/apis/types/rocker-types';
 import { Product } from 'src/entities/product.entity';
-import { User } from 'src/entities/user.entity';
+import { RockerPayoutAccountStatusEnum, User } from 'src/entities/user.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 
@@ -107,5 +111,47 @@ export class RockerService {
 
   async createPayment(offerId: string, buyerId: string) {
     return await this.rockerApi.createPayment(offerId, buyerId);
+  }
+
+  async createPayoutAccount(phoneNumber: string, userId: string) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    if (!user?.rockerUserId) {
+      throw BadUserInputException();
+    }
+
+    if (
+      user.rockerPayoutAccountSwish === RockerPayoutAccountStatusEnum.PENDING
+    ) {
+      throw InternalServerException(
+        'A request to create payout account is already in progress',
+      );
+    }
+
+    await this.rockerApi.createPayoutAccount(user.rockerUserId, phoneNumber);
+
+    user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.PENDING;
+    return await this.userRepository.save(user);
+  }
+
+  async verifyPayoutAccount(payload: IPayoutAccountVerification) {
+    const user = await this.userRepository.findOneBy({
+      rockerUserId: payload.userId,
+    });
+
+    if (!user) {
+      throw InternalServerException('verifyPayoutAccount: User not found');
+    }
+    switch (payload.status) {
+      case VerificationStatusEnum.CANCELLED:
+      case VerificationStatusEnum.INVALID:
+      case VerificationStatusEnum.TIMED_OUT:
+        user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.FAILED;
+        return;
+      default:
+        user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.VERIFIED;
+    }
+
+    await this.userRepository.save(user);
   }
 }

@@ -20,6 +20,13 @@ export enum UserRoleEnum {
 }
 registerEnumType(UserRoleEnum, { name: 'UserRoleEnum' });
 
+export enum RockerPayoutAccountStatusEnum {
+  NOT_SET = 'NOT_SET',
+  VERIFIED = 'VERIFIED',
+  PENDING = 'PENDING',
+  FAILED = 'FAILED',
+}
+
 @Entity()
 @ObjectType()
 export class User {
@@ -79,6 +86,12 @@ export class User {
 
   @Column({ nullable: true })
   rockerUserId?: string; //id used in Rocker
+
+  @Column('enum', {
+    enum: RockerPayoutAccountStatusEnum,
+    default: RockerPayoutAccountStatusEnum.NOT_SET,
+  })
+  rockerPayoutAccountSwish: RockerPayoutAccountStatusEnum;
 
   @OneToMany(() => Purchase, (p) => p.buyer)
   purchases: Purchase[];

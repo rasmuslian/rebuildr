@@ -270,6 +270,7 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
+  createPayoutAccount(input: CreatePayoutAccountInput!): User!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
 }
 
@@ -366,6 +367,10 @@ input CreateMessageInput {
 
 input AuthenticateRockerInput {
   requestId: String!
+}
+
+input CreatePayoutAccountInput {
+  phoneNumber: String!
 }
 
 input PurchaseProductInput {
