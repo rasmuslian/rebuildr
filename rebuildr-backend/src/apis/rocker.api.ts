@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import {
   ICreateOfferRequest,
   ICreatePaymentRequest,
+  ICreateSwishPayoutAccountRequest,
   IGetAuthResponse,
   IOfferResponse,
   IPaymentResponse,
+  IPayoutAccountResponse,
   IPostAuthResponse,
   IPostUsersResponse,
   RockerCountryEnum,
@@ -140,6 +142,25 @@ export class RockerAPI {
 
     const response: IPaymentResponse = await fetchAux({
       url: this.url + '/merchant-api/v1/payments',
+      body: body,
+      method: 'POST',
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
+    });
+
+    return response;
+  }
+
+  async createPayoutAccount(rockerUserId: string, phoneNumber: string) {
+    const body: ICreateSwishPayoutAccountRequest = {
+      userId: rockerUserId,
+      phoneNumber,
+    };
+
+    const response: IPayoutAccountResponse = await fetchAux({
+      url: this.url + '/merchant-api/v1/payout-accounts/swish',
       body: body,
       method: 'POST',
       headers: {

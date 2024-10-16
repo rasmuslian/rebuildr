@@ -167,6 +167,28 @@ export interface IPaymentResponse {
   title: string;
 }
 
+export interface ICreateSwishPayoutAccountRequest {
+  userId: string;
+  phoneNumber?: string;
+}
+
+export enum PayoutMethodEnum {
+  TRUSTLY = 'TRUSTLY',
+  AUTOGIRO = 'AUTOGIRO',
+  ROCKER_CARD = 'ROCKER_CARD',
+  ROCKER_CARD_REFUND = 'ROCKER_CARD_REFUND',
+  SWISH = 'SWISH',
+}
+export interface IPayoutAccountResponse {
+  merchantId: string;
+  id: string;
+  userId: string;
+  provider: PayoutMethodEnum;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+//----------- WEBHOOK PAYLOADS ------------
 export interface IPaymentStarted {
   $type: 'PaymentStarted';
   offerId: string;
@@ -190,5 +212,22 @@ export interface IPaymentCompleted {
   paymentId: string;
   paymentStatus: PaymentStatusEnum;
   paymentMethod: PaymentMethodEnum;
+  timestamp: Date;
+}
+
+export enum VerificationStatusEnum {
+  UNVERIFIED = 'UNVERIFIED',
+  PAYABLE = 'PAYABLE',
+  VERIFIED_OWNER = 'VERIFIED_OWNER',
+  INVALID = 'INVALID',
+  TIMED_OUT = 'TIMED_OUT',
+  CANCELLED = 'CANCELLED',
+}
+export interface IPayoutAccountVerification {
+  $type: 'PayoutAccountVerification';
+  payoutAccountId: string;
+  merchantId: string;
+  userId: string;
+  status: VerificationStatusEnum;
   timestamp: Date;
 }
