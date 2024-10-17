@@ -272,6 +272,7 @@ type Mutation {
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): User!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
+  acceptPurchase(input: AcceptPurchaseInput!): Purchase!
 }
 
 input RegisterUserInput {
@@ -375,4 +376,8 @@ input CreatePayoutAccountInput {
 
 input PurchaseProductInput {
   productId: String!
+}
+
+input AcceptPurchaseInput {
+  purchaseId: String!
 }

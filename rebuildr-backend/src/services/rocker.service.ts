@@ -113,6 +113,10 @@ export class RockerService {
     return await this.rockerApi.createPayment(offerId, buyerId);
   }
 
+  async confirmPayment(paymentId: string) {
+    return await this.rockerApi.confirmPayment(paymentId);
+  }
+
   async createPayoutAccount(phoneNumber: string, userId: string) {
     const user = await this.userRepository.findOneBy({ id: userId });
 

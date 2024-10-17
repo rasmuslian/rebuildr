@@ -37,19 +37,6 @@ import { PurchaseService } from 'src/services/purchase.service';
 import { PlaceholderResolver } from './placeholder.resolver';
 import * as crypto from 'crypto';
 
-const mockGuard = {
-  canActivate: jest.fn().mockImplementation((context: ExecutionContext) => {
-    const ctx = GqlExecutionContext.create(context).getContext().req;
-    ctx.user = {
-      id: '123',
-      email: 'test@test.com',
-      role: UserRoleEnum.USER,
-    };
-    return true;
-  }),
-  getRequest: jest.fn(),
-};
-
 describe('Purchase', () => {
   let app: INestApplication;
   let rockerAPI: RockerAPI;
@@ -58,6 +45,18 @@ describe('Purchase', () => {
   let productRepository: mockRepositoryType;
   let configService: ConfigService;
   beforeEach(async () => {
+    const mockGuard = {
+      canActivate: jest.fn().mockImplementation((context: ExecutionContext) => {
+        const ctx = GqlExecutionContext.create(context).getContext().req;
+        ctx.user = {
+          id: '123',
+          email: 'test@test.com',
+          role: UserRoleEnum.USER,
+        };
+        return true;
+      }),
+      getRequest: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         CacheModule.register(),
@@ -288,6 +287,7 @@ describe('Purchase', () => {
       paymentSentToRockerAt: new Date(body.timestamp),
     });
   });
+
   it('payment completed', async () => {
     const body: IPaymentCompleted = {
       $type: 'PaymentCompleted',
@@ -323,6 +323,7 @@ describe('Purchase', () => {
       paymentAcceptedByRockerAt: new Date(body.timestamp),
     });
   });
+
   it('payment failed', async () => {
     const body: IPaymentFailed = {
       $type: 'PaymentFailed',
@@ -362,5 +363,82 @@ describe('Purchase', () => {
         failureAt: new Date(body.timestamp),
       },
     );
+  });
+
+  it('accept purchase', async () => {
+    const now = new Date();
+    jest.spyOn(global, 'Date').mockReturnValue(now);
+    const acceptPurchase = `
+      mutation AcceptPurchase($input: AcceptPurchaseInput!) {
+        acceptPurchase(input: $input) {
+          id
+        }  
+      }
+    `;
+
+    const buyer = new User();
+    buyer.id = '123';
+
+    const purchase = new Purchase();
+    purchase.id = 'purchaseId';
+    purchase.rockerPaymentId = 'paymentId';
+    purchase.paymentSentToRockerAt = new Date();
+    purchase.paymentAcceptedByRockerAt = new Date();
+    purchase.deliveredAt = new Date();
+    purchase.buyerId = buyer.id;
+    purchase.buyer = buyer;
+
+    userRepository.findOne.mockResolvedValue(buyer);
+    purchaseRepository.findOne.mockResolvedValue(purchase);
+
+    const confirmPaymentResponse: IPaymentResponse = {
+      id: purchase.rockerPaymentId,
+      merchantId: 'merchantId',
+      sellerId: 'sellerId',
+      offerId: 'offerId',
+      buyerId: buyer.rockerUserId,
+      amount: {
+        amount: 100,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      paymentMethod: PaymentMethodEnum.SWISH,
+      reference: purchase.rockerOfferId,
+      status: PaymentStatusEnum.SETTLED,
+      payoutConsent: PayoutConsentEnum.CONFIRMED,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      pauseState: PauseStateEnum.NOT_PAUSED,
+      title: 'offer title',
+    };
+    jest
+      .spyOn(rockerAPI, 'confirmPayment')
+      .mockResolvedValue(confirmPaymentResponse);
+    purchaseRepository.save.mockResolvedValue({
+      ...purchase,
+      approvedAt: now,
+    });
+
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: acceptPurchase,
+        variables: {
+          input: {
+            purchaseId: purchase.id,
+          },
+        },
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data.acceptPurchase).toMatchObject({
+          id: purchase.id,
+        });
+      });
+
+    expect(purchaseRepository.save).toHaveBeenCalledWith({
+      ...purchase,
+      approvedAt: now,
+    });
   });
 });

@@ -171,4 +171,17 @@ export class RockerAPI {
 
     return response;
   }
+
+  async confirmPayment(paymentId: string) {
+    const response: IPaymentResponse = await fetchAux({
+      url: this.url + `/merchant-api/v1/payments/${paymentId}/confirm`,
+      method: 'PUT',
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
+    });
+
+    return response;
+  }
 }

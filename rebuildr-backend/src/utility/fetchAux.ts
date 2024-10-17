@@ -2,7 +2,7 @@ import { InternalServerException } from 'src/exceptions';
 
 export const fetchAux = async (vars: {
   url: string;
-  method: 'POST' | 'GET';
+  method: 'POST' | 'GET' | 'PUT';
   body?: object;
   headers: { [key: string]: string };
 }) => {

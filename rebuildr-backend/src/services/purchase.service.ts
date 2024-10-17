@@ -4,12 +4,17 @@ import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RockerService } from './rocker.service';
-import { BadUserInputException, InternalServerException } from 'src/exceptions';
+import {
+  BadUserInputException,
+  ForbiddenException,
+  InternalServerException,
+} from 'src/exceptions';
 import {
   IPaymentCompleted,
   IPaymentFailed,
   IPaymentStarted,
 } from 'src/apis/types/rocker-types';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -30,6 +35,7 @@ export class PurchaseService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private rockerService: RockerService,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
   async purchase(productId: string, userId: string) {
     const product = await this.productRepository.findOne({
@@ -73,6 +79,31 @@ export class PurchaseService {
       purchase: savedPurchase,
       product: product,
     };
+  }
+
+  //Buyer accepts product, confirm that payout can reach Seller
+  async acceptPurchase(purchaseId: string, userId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    const purchase = await this.purchaseRepository.findOne({
+      where: {
+        id: purchaseId,
+      },
+    });
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', purchase)) {
+      throw ForbiddenException();
+    }
+
+    await this.rockerService.confirmPayment(purchase.rockerPaymentId);
+
+    purchase.approvedAt = new Date();
+    const _purchase = await this.purchaseRepository.save(purchase);
+    return _purchase;
   }
 
   getPurchaseStatus(purchase: Purchase) {
