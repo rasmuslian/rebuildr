@@ -14,7 +14,7 @@ export class CategoryLoader {
   constructor(private readonly dataSource: DataSource) {}
 
   private childrenLoader() {
-    return new DataLoader(async (keys: string[]) => {
+    return new DataLoader(async (keys: readonly string[]) => {
       const parents = await this.dataSource
         .getRepository(Category)
         .createQueryBuilder('c')
@@ -29,7 +29,7 @@ export class CategoryLoader {
   }
 
   private imageLoader() {
-    return new DataLoader(async (keys: string[]) => {
+    return new DataLoader(async (keys: readonly string[]) => {
       const categories = await this.dataSource.getRepository(Category).find({
         where: { id: In(keys) },
         relations: { image: true },
