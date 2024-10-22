@@ -35,18 +35,23 @@ export class Purchase {
   @Column({ nullable: true })
   rockerOfferId?: string;
 
-  @Column('timestamptz')
+  @Column({ nullable: true })
+  rockerPayoutId?: string;
+
+  @Column('timestamptz', { nullable: true })
   paymentSentToRockerAt?: Date;
-  @Column('timestamptz')
+  @Column('timestamptz', { nullable: true })
   paymentAcceptedByRockerAt?: Date;
-  @Column('timestamptz')
+  @Column('timestamptz', { nullable: true })
   deliveredAt?: Date;
-  @Column('timestamptz')
+  @Column('timestamptz', { nullable: true })
   approvedAt?: Date;
-  @Column('timestamptz')
+  @Column('timestamptz', { nullable: true })
   disapprovedAt?: Date;
-  @Column('timestamptz')
+  @Column('timestamptz', { nullable: true })
+  payoutStartedAt?: Date;
+  @Column('timestamptz', { nullable: true })
   payoutReceivedAt?: Date;
-  @Column('timestamptz')
-  failureAt?: Date;
+  @Column('timestamptz', { nullable: true })
+  failedAt?: Date;
 }

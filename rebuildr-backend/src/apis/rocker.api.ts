@@ -2,13 +2,16 @@ import { Injectable } from '@nestjs/common';
 import {
   ICreateOfferRequest,
   ICreatePaymentRequest,
+  ICreatePayoutRequest,
   ICreateSwishPayoutAccountRequest,
   IGetAuthResponse,
   IOfferResponse,
   IPaymentResponse,
   IPayoutAccountResponse,
+  IPayoutResponse,
   IPostAuthResponse,
   IPostUsersResponse,
+  PayoutMethodEnum,
   RockerCountryEnum,
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
@@ -176,6 +179,25 @@ export class RockerAPI {
     const response: IPaymentResponse = await fetchAux({
       url: this.url + `/merchant-api/v1/payments/${paymentId}/confirm`,
       method: 'PUT',
+      headers: {
+        'X-merchantId': this.merchantId,
+        'X-Api-Key': this.apiKey,
+      },
+    });
+
+    return response;
+  }
+
+  async createPayout(paymentId: string) {
+    const body: ICreatePayoutRequest = {
+      paymentId,
+      payoutMethod: PayoutMethodEnum.SWISH,
+    };
+
+    const response: IPayoutResponse = await fetchAux({
+      url: this.url + '/merchant-api/v1/payouts',
+      method: 'POST',
+      body: body,
       headers: {
         'X-merchantId': this.merchantId,
         'X-Api-Key': this.apiKey,

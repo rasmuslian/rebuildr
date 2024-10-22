@@ -138,6 +138,14 @@ export class RockerService {
     return await this.userRepository.save(user);
   }
 
+  async createPayout(payoutId: string) {
+    const response = await this.rockerApi.createPayout(payoutId);
+    if (response.errorCode) {
+      throw InternalServerException();
+    }
+    return response;
+  }
+
   async verifyPayoutAccount(payload: IPayoutAccountVerification) {
     const user = await this.userRepository.findOneBy({
       rockerUserId: payload.userId,

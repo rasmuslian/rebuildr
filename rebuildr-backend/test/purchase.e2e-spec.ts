@@ -21,11 +21,14 @@ import {
   IPaymentFailed,
   IPaymentResponse,
   IPaymentStarted,
+  IPayoutResponse,
   OfferStatusEnum,
   PauseStateEnum,
   PaymentMethodEnum,
   PaymentStatusEnum,
   PayoutConsentEnum,
+  PayoutMethodEnum,
+  Status1Enum,
 } from 'src/apis/types/rocker-types';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
@@ -360,7 +363,7 @@ describe('Purchase', () => {
         rockerPaymentId: 'paymentId',
       },
       {
-        failureAt: new Date(body.timestamp),
+        failedAt: new Date(body.timestamp),
       },
     );
   });
@@ -414,8 +417,35 @@ describe('Purchase', () => {
     jest
       .spyOn(rockerAPI, 'confirmPayment')
       .mockResolvedValue(confirmPaymentResponse);
+
+    const payoutResponse: IPayoutResponse = {
+      id: 'payoutId',
+      amount: {
+        amount: 100,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      paymentId: purchase.rockerPaymentId,
+      payoutMethod: PayoutMethodEnum.SWISH,
+      status: Status1Enum.PENDING,
+      payoutFee: {
+        amount: 100,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      serviceFee: {
+        amount: 100,
+        currency: 'SEK',
+        unit: 'MINOR',
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    jest.spyOn(rockerAPI, 'createPayout').mockResolvedValue(payoutResponse);
+
     purchaseRepository.save.mockResolvedValue({
       ...purchase,
+      rockerPayoutId: payoutResponse.id,
       approvedAt: now,
     });
 
@@ -438,6 +468,7 @@ describe('Purchase', () => {
 
     expect(purchaseRepository.save).toHaveBeenCalledWith({
       ...purchase,
+      rockerPayoutId: payoutResponse.id,
       approvedAt: now,
     });
   });

@@ -4,6 +4,9 @@ import {
   IPaymentFailed,
   IPaymentStarted,
   IPayoutAccountVerification,
+  IPayoutCompleted,
+  IPayoutFailed,
+  IPayoutStarted,
 } from 'src/apis/types/rocker-types';
 import * as crypto from 'crypto';
 import { PurchaseService } from 'src/services/purchase.service';
@@ -14,7 +17,10 @@ type RockerWebhookPayload =
   | IPaymentStarted
   | IPaymentFailed
   | IPaymentCompleted
-  | IPayoutAccountVerification;
+  | IPayoutAccountVerification
+  | IPayoutStarted
+  | IPayoutCompleted
+  | IPayoutFailed;
 
 @Controller('rocker-webhook')
 export class RockerWebhookController {
@@ -62,6 +68,18 @@ export class RockerWebhookController {
       }
       if (body.$type === 'PayoutAccountVerification') {
         await this.rockerService.verifyPayoutAccount(body);
+        return;
+      }
+      if (body.$type === 'PayoutStarted') {
+        await this.purchaseService.payoutStarted(body);
+        return;
+      }
+      if (body.$type === 'PayoutCompleted') {
+        await this.purchaseService.payoutComplete(body);
+        return;
+      }
+      if (body.$type === 'PayoutFailed') {
+        await this.purchaseService.payoutFailed(body);
         return;
       }
     } catch (e) {
