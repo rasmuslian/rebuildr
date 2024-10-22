@@ -69,9 +69,9 @@ export class RockerWebhookController {
       }
       if (body.$type === 'PaymentFailed') {
         await this.purchaseService.paymentFailed(body);
-        this.logger.error('Payment failed: ');
-        this.logger.error('Error code: ' + body.errorCode);
-        this.logger.error('swishErrorCode: ', body.swishErrorCode);
+        this.logger.warn('Payment failed: ');
+        this.logger.warn('Error code: ' + body.errorCode);
+        this.logger.warn('swishErrorCode: ', body.swishErrorCode);
         return;
       }
       if (body.$type === 'PayoutAccountVerification') {
