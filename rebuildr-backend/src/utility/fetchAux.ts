@@ -1,13 +1,17 @@
+import { Logger } from '@nestjs/common';
 import { InternalServerException } from 'src/exceptions';
 
-export const fetchAux = async (vars: {
-  url: string;
-  method: 'POST' | 'GET' | 'PUT';
-  body?: object;
-  headers: { [key: string]: string };
-}) => {
+export const fetchAux = async (
+  vars: {
+    url: string;
+    method: 'POST' | 'GET' | 'PUT';
+    body?: object;
+    headers: { [key: string]: string };
+  },
+  logger: Logger,
+) => {
   try {
-    console.log('fetch: ', {
+    logger.log('fetch: ', {
       url: vars.url,
       method: vars.method,
       body: vars.body,
@@ -22,12 +26,13 @@ export const fetchAux = async (vars: {
     });
 
     const response = await data.json();
-    console.log('fetch response: ', response);
+    logger.log('fetch response: ', response);
     if (!data.ok) {
       throw InternalServerException(`HTTP error: ${data.status}`);
     }
     return response;
   } catch (e) {
+    logger.error(e);
     throw InternalServerException();
   }
 };

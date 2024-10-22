@@ -1,5 +1,5 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import {
@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class RockerService {
+  private readonly logger = new Logger(RockerService.name);
   constructor(
     private rockerApi: RockerAPI,
     @InjectRepository(User)
@@ -36,7 +37,6 @@ export class RockerService {
    * If it does not exist, starts a new authentication session, otherwise checks the result
    * of existin authentication session.
    * @param requestId Unique id to keep track of authentication
-   * @returns
    */
   async authenticate(requestId: string, userId: string) {
     const user = await this.userRepository.findOne({
@@ -44,7 +44,10 @@ export class RockerService {
     });
 
     if (!user.rockerUserId) {
-      console.log('There is no user in Rocker connected to this User');
+      this.logger.error(
+        'There is no user in Rocker connected to user with id: ',
+        userId,
+      );
       throw BadUserInputException();
     }
 
@@ -69,7 +72,7 @@ export class RockerService {
       };
     }
     if (response.status === AuthResponseStatusEnum.ERROR) {
-      console.log('Authentication resulted in error');
+      this.logger.error('Authentication resulted in error');
       throw InternalServerException();
     }
 
