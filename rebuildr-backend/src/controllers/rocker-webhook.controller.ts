@@ -19,6 +19,7 @@ import * as crypto from 'crypto';
 import { PurchaseService } from 'src/services/purchase.service';
 import { ConfigService } from '@nestjs/config';
 import { RockerService } from 'src/services/rocker.service';
+import { EnvironmentVariables } from 'src/config';
 
 type RockerWebhookPayload =
   | IPaymentStarted
@@ -34,7 +35,7 @@ export class RockerWebhookController {
   private readonly logger = new Logger(RockerWebhookController.name);
   constructor(
     private purchaseService: PurchaseService,
-    private configService: ConfigService,
+    private configService: ConfigService<EnvironmentVariables>,
     private rockerService: RockerService,
   ) {}
   @Post()

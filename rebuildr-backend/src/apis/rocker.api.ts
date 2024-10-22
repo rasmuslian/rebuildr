@@ -16,6 +16,7 @@ import {
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
 import { CustomFetch } from 'src/utility/custom-fetch';
+import { EnvironmentVariables } from 'src/config';
 
 @Injectable()
 export class RockerAPI {
@@ -24,7 +25,7 @@ export class RockerAPI {
   private merchantId: string;
   private apiKey: string;
   private customFetch: CustomFetch;
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<EnvironmentVariables>) {
     //TODO: use production endpoint when we get into production
     // const isProd = this.configService.get('NODE_ENV') === 'production';
     // this.url = isProd

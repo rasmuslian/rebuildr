@@ -51,6 +51,7 @@ import { PurchaseService } from './services/purchase.service';
 import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { CustomLogger } from './custom.logger';
+import { EnvironmentVariables, validateConfig } from './config';
 
 export type RequestType = {
   user?: AuthedUserType;
@@ -61,12 +62,13 @@ export type RequestType = {
   imports: [
     ConfigModule.forRoot({
       envFilePath: ['.env.local.1p'],
+      validate: validateConfig,
     }),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: ConfigService<EnvironmentVariables>) => {
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: { expiresIn: jwtConstants.expiresIn },
@@ -76,7 +78,7 @@ export type RequestType = {
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService<EnvironmentVariables>) => ({
         ...dbConfig(configService),
       }),
     }),
@@ -97,7 +99,7 @@ export type RequestType = {
       useFactory: (
         productLoaderService: ProductLoader,
         categoryLoaderService: CategoryLoader,
-        configService: ConfigService,
+        configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
         return {

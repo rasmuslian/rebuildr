@@ -40,6 +40,7 @@ import { PurchaseService } from 'src/services/purchase.service';
 import { PlaceholderResolver } from './placeholder.resolver';
 import * as crypto from 'crypto';
 import { CustomLogger } from 'src/custom.logger';
+import { EnvironmentVariables } from 'src/config';
 
 describe('Purchase', () => {
   let app: INestApplication;
@@ -47,7 +48,7 @@ describe('Purchase', () => {
   let userRepository: mockRepositoryType;
   let purchaseRepository: mockRepositoryType;
   let productRepository: mockRepositoryType;
-  let configService: ConfigService;
+  let configService: ConfigService<EnvironmentVariables>;
   beforeEach(async () => {
     const mockGuard = {
       canActivate: jest.fn().mockImplementation((context: ExecutionContext) => {
@@ -71,7 +72,7 @@ describe('Purchase', () => {
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
-          useFactory: (configService: ConfigService) => {
+          useFactory: (configService: ConfigService<EnvironmentVariables>) => {
             return {
               secret: configService.get('JWT_SECRET'),
               signOptions: { expiresIn: jwtConstants.expiresIn },

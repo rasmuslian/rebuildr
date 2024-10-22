@@ -34,6 +34,7 @@ import { PlaceholderResolver } from './placeholder.resolver';
 import { RockerResolver } from 'src/resolvers/rocker.resolver';
 import { PurchaseService } from 'src/services/purchase.service';
 import * as crypto from 'crypto';
+import { EnvironmentVariables } from 'src/config';
 
 const mockGuard = {
   canActivate: jest.fn().mockImplementation((context: ExecutionContext) => {
@@ -52,7 +53,7 @@ describe('Payout', () => {
   let app: INestApplication;
   let rockerAPI: RockerAPI;
   let userRepository: mockRepositoryType;
-  let configService: ConfigService;
+  let configService: ConfigService<EnvironmentVariables>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -64,7 +65,7 @@ describe('Payout', () => {
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
-          useFactory: (configService: ConfigService) => {
+          useFactory: (configService: ConfigService<EnvironmentVariables>) => {
             return {
               secret: configService.get('JWT_SECRET'),
               signOptions: { expiresIn: jwtConstants.expiresIn },

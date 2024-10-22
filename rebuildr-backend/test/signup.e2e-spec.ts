@@ -32,6 +32,7 @@ import { mockRepository, mockRepositoryType } from './mocks/repository.mock';
 import { RockerResolver } from 'src/resolvers/rocker.resolver';
 import { Product } from 'src/entities/product.entity';
 import { PlaceholderResolver } from './placeholder.resolver';
+import { EnvironmentVariables } from 'src/config';
 
 jest.mock('bcrypt', () => {
   const originalModule = jest.requireActual('bcrypt');
@@ -82,7 +83,7 @@ describe('Signup', () => {
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
-          useFactory: (configService: ConfigService) => {
+          useFactory: (configService: ConfigService<EnvironmentVariables>) => {
             return {
               secret: configService.get('JWT_SECRET'),
               signOptions: { expiresIn: jwtConstants.expiresIn },
