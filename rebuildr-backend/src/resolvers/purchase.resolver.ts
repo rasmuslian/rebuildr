@@ -7,11 +7,11 @@ import {
   ObjectType,
   Resolver,
 } from '@nestjs/graphql';
+import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
-import { User } from 'src/entities/user.entity';
 import { PurchaseService } from 'src/services/purchase.service';
 
 @InputType()
@@ -29,6 +29,12 @@ class PurchaseProductResponse {
   purchase: Purchase;
 }
 
+@InputType()
+class AcceptPurchaseInput {
+  @Field()
+  purchaseId: string;
+}
+
 @Resolver()
 export class PurchaseResolver {
   constructor(private purchaseService: PurchaseService) {}
@@ -37,8 +43,20 @@ export class PurchaseResolver {
   @UseGuards(GqlAuthGuard)
   async purchaseProduct(
     @Args('input') input: PurchaseProductInput,
-    @CurrentUser() _user: User,
+    @CurrentUser() _user: AuthedUserType,
   ) {
     return await this.purchaseService.purchase(input.productId, _user.id);
+  }
+
+  @Mutation(() => Purchase)
+  @UseGuards(GqlAuthGuard)
+  async acceptPurchase(
+    @Args('input') input: AcceptPurchaseInput,
+    @CurrentUser() _user: AuthedUserType,
+  ) {
+    return await this.purchaseService.acceptPurchase(
+      input.purchaseId,
+      _user.id,
+    );
   }
 }

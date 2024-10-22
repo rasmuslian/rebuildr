@@ -4,12 +4,20 @@ import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RockerService } from './rocker.service';
-import { BadUserInputException, InternalServerException } from 'src/exceptions';
+import {
+  BadUserInputException,
+  ForbiddenException,
+  InternalServerException,
+} from 'src/exceptions';
 import {
   IPaymentCompleted,
   IPaymentFailed,
   IPaymentStarted,
+  IPayoutCompleted,
+  IPayoutFailed,
+  IPayoutStarted,
 } from 'src/apis/types/rocker-types';
+import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -19,6 +27,7 @@ enum PurchaseStatusEnum {
   PAYOUT_PENDING, //Seller is in process to receive payout
   FINISHED_FAILED, //purchase was for any reason canceled
   FINISHED_SUCCESS, //purchase was successfully completed
+  FAILED, //Purchase has failed somewhere in its lifecycle and needs action to proceed
 }
 
 export class PurchaseService {
@@ -30,6 +39,7 @@ export class PurchaseService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private rockerService: RockerService,
+    private caslAbilityFactory: CaslAbilityFactory,
   ) {}
   async purchase(productId: string, userId: string) {
     const product = await this.productRepository.findOne({
@@ -75,7 +85,44 @@ export class PurchaseService {
     };
   }
 
+  //Buyer accepts product, confirm that payout can reach Seller
+  async acceptPurchase(purchaseId: string, userId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    const purchase = await this.purchaseRepository.findOne({
+      where: {
+        id: purchaseId,
+      },
+    });
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', purchase)) {
+      throw ForbiddenException();
+    }
+
+    await this.rockerService.confirmPayment(purchase.rockerPaymentId);
+    purchase.approvedAt = new Date();
+
+    try {
+      const payoutResponse = await this.rockerService.createPayout(
+        purchase.rockerPaymentId,
+      );
+      purchase.rockerPayoutId = payoutResponse.id;
+    } catch (e) {
+      console.log('Error when creating payout');
+      purchase.failedAt = new Date();
+    }
+
+    return await this.purchaseRepository.save(purchase);
+  }
+
   getPurchaseStatus(purchase: Purchase) {
+    if (purchase.failedAt) {
+      return PurchaseStatusEnum.FAILED;
+    }
     if (purchase.payoutReceivedAt) {
       return PurchaseStatusEnum.FINISHED_SUCCESS;
     }
@@ -128,7 +175,28 @@ export class PurchaseService {
   async paymentFailed(payload: IPaymentFailed) {
     await this.purchaseRepository.update(
       { rockerPaymentId: payload.paymentId },
-      { failureAt: new Date(payload.timestamp) },
+      { failedAt: new Date(payload.timestamp) },
+    );
+  }
+
+  async payoutStarted(payload: IPayoutStarted) {
+    await this.purchaseRepository.update(
+      { rockerPayoutId: payload.payoutId },
+      { payoutStartedAt: new Date(payload.timestamp) },
+    );
+  }
+
+  async payoutComplete(payload: IPayoutCompleted) {
+    await this.purchaseRepository.update(
+      { rockerPayoutId: payload.payoutId },
+      { payoutReceivedAt: new Date(payload.timestamp) },
+    );
+  }
+
+  async payoutFailed(payload: IPayoutFailed) {
+    await this.purchaseRepository.update(
+      { rockerPayoutId: payload.payoutId },
+      { failedAt: new Date(payload.timestamp) },
     );
   }
 }

@@ -113,6 +113,10 @@ export class RockerService {
     return await this.rockerApi.createPayment(offerId, buyerId);
   }
 
+  async confirmPayment(paymentId: string) {
+    return await this.rockerApi.confirmPayment(paymentId);
+  }
+
   async createPayoutAccount(phoneNumber: string, userId: string) {
     const user = await this.userRepository.findOneBy({ id: userId });
 
@@ -132,6 +136,14 @@ export class RockerService {
 
     user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.PENDING;
     return await this.userRepository.save(user);
+  }
+
+  async createPayout(payoutId: string) {
+    const response = await this.rockerApi.createPayout(payoutId);
+    if (response.errorCode) {
+      throw InternalServerException();
+    }
+    return response;
   }
 
   async verifyPayoutAccount(payload: IPayoutAccountVerification) {

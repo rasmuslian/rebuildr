@@ -188,6 +188,33 @@ export interface IPayoutAccountResponse {
   updatedAt: Date;
 }
 
+export interface ICreatePayoutRequest {
+  paymentId: string;
+  payoutMethod: PayoutMethodEnum;
+  payoutReference?: string;
+}
+
+export enum Status1Enum {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export interface IPayoutResponse {
+  id: string;
+  amount: IMoneyObject;
+  paymentId: string;
+  payoutMethod: PayoutMethodEnum;
+  payoutAccountId?: string;
+  status: Status1Enum;
+  payoutFee: IMoneyObject;
+  serviceFee: IMoneyObject;
+  createdAt: Date;
+  updatedAt: Date;
+  errorCode?: string;
+  providedErrorCode?: string;
+}
+
 //----------- WEBHOOK PAYLOADS ------------
 export interface IPaymentStarted {
   $type: 'PaymentStarted';
@@ -229,5 +256,34 @@ export interface IPayoutAccountVerification {
   merchantId: string;
   userId: string;
   status: VerificationStatusEnum;
+  timestamp: Date;
+}
+
+export interface IPayoutStarted {
+  $type: 'PayoutStarted';
+  offerId?: string;
+  payoutId: string;
+  paymentId: string;
+  payoutStatus: Status1Enum;
+  timestamp: Date;
+}
+
+export interface IPayoutCompleted {
+  $type: 'PayoutCompleted';
+  offerId?: string;
+  payoutId: string;
+  paymentId: string;
+  payoutStatus: Status1Enum;
+  timestamp: Date;
+}
+
+export interface IPayoutFailed {
+  $type: 'PayoutFailed';
+  offerId?: string;
+  payoutId: string;
+  paymentId: string;
+  payoutStatus: Status1Enum;
+  errorCode: string;
+  providerErrorCode: string;
   timestamp: Date;
 }
