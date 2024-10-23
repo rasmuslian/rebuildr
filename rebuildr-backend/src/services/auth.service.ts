@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   LoginInput,
   NewPasswordInput,
@@ -23,6 +23,7 @@ import { RockerService } from './rocker.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User)
@@ -182,13 +183,12 @@ export class AuthService {
       user.refreshToken.token,
     );
     if (!tokensMatch) {
-      console.log('Refresh token does not match');
+      this.logger.warn('Refresh token does not match');
       return { accessToken: '', refreshToken: '' };
     }
 
     const expired = dayjs(user.refreshToken.expiresAt).isBefore(dayjs());
     if (expired) {
-      console.log('Refresh token expired');
       return { accessToken: '', refreshToken: '' };
     }
 

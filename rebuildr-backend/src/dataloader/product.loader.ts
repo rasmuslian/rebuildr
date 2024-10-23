@@ -17,7 +17,7 @@ export class ProductLoader {
 
   private likedByUserLoader() {
     return new DataLoader(
-      async (keys: { productId: string; userId: string }[]) => {
+      async (keys: readonly { productId: string; userId: string }[]) => {
         const userId = keys[0]?.userId;
         const productIds = keys.map((k) => k.productId);
 
@@ -33,7 +33,7 @@ export class ProductLoader {
   }
 
   private userLoader() {
-    return new DataLoader(async (keys: string[]) => {
+    return new DataLoader(async (keys: readonly string[]) => {
       const products = await this.dataSource.getRepository(Product).find({
         where: { id: In(keys) },
         relations: { user: true },
@@ -45,7 +45,7 @@ export class ProductLoader {
   }
 
   private mainImageLoader() {
-    return new DataLoader(async (keys: string[]) => {
+    return new DataLoader(async (keys: readonly string[]) => {
       const products = await this.dataSource.getRepository(Product).find({
         where: { id: In(keys) },
         relations: { images: true },

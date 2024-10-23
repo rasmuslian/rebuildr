@@ -8,6 +8,7 @@ import {
 } from '@googlemaps/google-maps-services-js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EnvironmentVariables } from 'src/config';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { GetAddressInput } from 'src/resolvers/geocoding.resolver';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,7 +18,7 @@ export class GeocodingService {
   private client: Client;
   private sessionToken: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<EnvironmentVariables>) {
     this.client = new Client({});
     this.sessionToken = uuidv4();
   }
@@ -40,8 +41,8 @@ export class GeocodingService {
         },
       });
       response = r.data;
-    } catch (e) {
-      throw InternalServerException(e);
+    } catch {
+      throw InternalServerException();
     }
     if (response.status !== Status.OK) {
       throw InternalServerException(response.error_message);
@@ -59,7 +60,7 @@ export class GeocodingService {
         params: { address, key: process.env.GOOGLE_GEOCODING_API_KEY },
       });
       result = r.data.results[0];
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
     if (!result) {
@@ -83,7 +84,7 @@ export class GeocodingService {
         },
       });
       result = r.data.results[0];
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
 

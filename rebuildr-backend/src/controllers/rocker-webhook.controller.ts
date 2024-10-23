@@ -1,4 +1,11 @@
-import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpCode,
+  Logger,
+  Post,
+} from '@nestjs/common';
 import {
   IPaymentCompleted,
   IPaymentFailed,
@@ -12,6 +19,7 @@ import * as crypto from 'crypto';
 import { PurchaseService } from 'src/services/purchase.service';
 import { ConfigService } from '@nestjs/config';
 import { RockerService } from 'src/services/rocker.service';
+import { EnvironmentVariables } from 'src/config';
 
 type RockerWebhookPayload =
   | IPaymentStarted
@@ -24,9 +32,10 @@ type RockerWebhookPayload =
 
 @Controller('rocker-webhook')
 export class RockerWebhookController {
+  private readonly logger = new Logger(RockerWebhookController.name);
   constructor(
     private purchaseService: PurchaseService,
-    private configService: ConfigService,
+    private configService: ConfigService<EnvironmentVariables>,
     private rockerService: RockerService,
   ) {}
   @Post()
@@ -37,7 +46,7 @@ export class RockerWebhookController {
     @Body() body: RockerWebhookPayload,
   ) {
     if (!rockerSignature || !timestamp) {
-      console.log('Webhook request is missing headers');
+      this.logger.error('Webhook request is missing headers');
       return;
     }
     const secret = this.configService.get('ROCKER_WEBHOOK_SECRET');
@@ -61,9 +70,9 @@ export class RockerWebhookController {
       }
       if (body.$type === 'PaymentFailed') {
         await this.purchaseService.paymentFailed(body);
-        console.log('Payment failed: ');
-        console.log('Error code: ' + body.errorCode);
-        console.log('swishErrorCode: ', body.swishErrorCode);
+        this.logger.warn('Payment failed: ');
+        this.logger.warn('Error code: ' + body.errorCode);
+        this.logger.warn('swishErrorCode: ', body.swishErrorCode);
         return;
       }
       if (body.$type === 'PayoutAccountVerification') {
@@ -83,7 +92,7 @@ export class RockerWebhookController {
         return;
       }
     } catch (e) {
-      console.log(e);
+      this.logger.error(e);
     }
 
     //Always return 200 to Rocker

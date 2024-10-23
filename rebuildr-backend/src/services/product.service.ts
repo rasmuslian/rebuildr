@@ -327,10 +327,16 @@ export class ProductService {
       throw BadUserInputException();
     }
 
-    if (like) {
-      product.likedBy.some((likedByUser) => likedByUser.id === userId) ||
-        product.likedBy.push(user);
-    } else {
+    //If trying to like and not already liking, add user
+    if (
+      like &&
+      !product.likedBy.some((likedByUser) => likedByUser.id === userId)
+    ) {
+      product.likedBy.push(user);
+    }
+
+    //If removing like, remove the user from the like array
+    if (!like) {
       product.likedBy = product.likedBy.filter(
         (likedByUser) => likedByUser.id !== userId,
       );

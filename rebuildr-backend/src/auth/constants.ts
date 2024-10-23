@@ -4,14 +4,14 @@ export const jwtConstants = {
   expiresIn: process.env.NODE_ENV === 'development' ? '300s' : '3600s',
 };
 
-export type AccessTokenPayload = {
+export interface AccessTokenPayload {
   sub: string;
   email: string;
   role: UserRoleEnum;
-};
+}
 
-export type AuthedUserType = {
+export interface AuthedUserType {
   id: string;
   email: string;
   role: UserRoleEnum;
-};
+}

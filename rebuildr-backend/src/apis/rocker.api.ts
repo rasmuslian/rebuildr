@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   ICreateOfferRequest,
   ICreatePaymentRequest,
@@ -15,14 +15,17 @@ import {
   RockerCountryEnum,
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
-import { fetchAux } from 'src/utility/fetchAux';
+import { CustomFetch } from 'src/utility/custom-fetch';
+import { EnvironmentVariables } from 'src/config';
 
 @Injectable()
 export class RockerAPI {
+  private readonly logger = new Logger(RockerAPI.name);
   private url: string;
   private merchantId: string;
   private apiKey: string;
-  constructor(private configService: ConfigService) {
+  private customFetch: CustomFetch;
+  constructor(private configService: ConfigService<EnvironmentVariables>) {
     //TODO: use production endpoint when we get into production
     // const isProd = this.configService.get('NODE_ENV') === 'production';
     // this.url = isProd
@@ -32,6 +35,10 @@ export class RockerAPI {
     this.url = 'https://pay-test.rocker.com';
     this.merchantId = this.configService.get('ROCKER_MERCHANT_ID');
     this.apiKey = this.configService.get('ROCKER_API_KEY');
+    this.customFetch = new CustomFetch(this.logger, {
+      'X-merchantId': this.merchantId,
+      'X-Api-Key': this.apiKey,
+    });
   }
   /**
    * Authenticate user
@@ -44,15 +51,13 @@ export class RockerAPI {
         methodType: 'BANK_ID_WITH_LAUNCH_INFO',
       },
     };
-    const response: IPostAuthResponse = await fetchAux({
-      url: this.url + '/merchant-api/v2/auth',
-      method: 'POST',
-      body: body,
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPostAuthResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v2/auth',
+      {
+        method: 'POST',
+        body: body,
       },
-    });
+    );
 
     return response;
   }
@@ -62,15 +67,15 @@ export class RockerAPI {
    * @param authorizationToken Received from call to authenticate()
    */
   async authResult(authorizationToken: string) {
-    const response: IGetAuthResponse = await fetchAux({
-      url: this.url + '/merchant-api/v2/auth',
-      method: 'GET',
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
-        Authorization: 'Bearer ' + authorizationToken,
+    const response: IGetAuthResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v2/auth',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer ' + authorizationToken,
+        },
       },
-    });
+    );
 
     return response;
   }
@@ -87,15 +92,13 @@ export class RockerAPI {
       country: RockerCountryEnum.SE,
       externalData: {},
     };
-    const response: IPostUsersResponse = await fetchAux({
-      url: this.url + '/merchant-api/v1/users',
-      method: 'POST',
-      body: body,
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPostUsersResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/users',
+      {
+        method: 'POST',
+        body: body,
       },
-    });
+    );
     return response;
   }
 
@@ -123,15 +126,13 @@ export class RockerAPI {
       externalData: { productId },
     };
 
-    const response: IOfferResponse = await fetchAux({
-      url: this.url + '/merchant-api/v1/offers',
-      method: 'POST',
-      body: body,
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IOfferResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/offers',
+      {
+        method: 'POST',
+        body: body,
       },
-    });
+    );
     return response;
   }
 
@@ -143,15 +144,13 @@ export class RockerAPI {
       paymentMethodData: { paymentType: 'MOBILE' },
     };
 
-    const response: IPaymentResponse = await fetchAux({
-      url: this.url + '/merchant-api/v1/payments',
-      body: body,
-      method: 'POST',
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payments',
+      {
+        body: body,
+        method: 'POST',
       },
-    });
+    );
 
     return response;
   }
@@ -162,28 +161,24 @@ export class RockerAPI {
       phoneNumber,
     };
 
-    const response: IPayoutAccountResponse = await fetchAux({
-      url: this.url + '/merchant-api/v1/payout-accounts/swish',
-      body: body,
-      method: 'POST',
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPayoutAccountResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payout-accounts/swish',
+      {
+        body: body,
+        method: 'POST',
       },
-    });
+    );
 
     return response;
   }
 
   async confirmPayment(paymentId: string) {
-    const response: IPaymentResponse = await fetchAux({
-      url: this.url + `/merchant-api/v1/payments/${paymentId}/confirm`,
-      method: 'PUT',
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + `/merchant-api/v1/payments/${paymentId}/confirm`,
+      {
+        method: 'PUT',
       },
-    });
+    );
 
     return response;
   }
@@ -194,15 +189,13 @@ export class RockerAPI {
       payoutMethod: PayoutMethodEnum.SWISH,
     };
 
-    const response: IPayoutResponse = await fetchAux({
-      url: this.url + '/merchant-api/v1/payouts',
-      method: 'POST',
-      body: body,
-      headers: {
-        'X-merchantId': this.merchantId,
-        'X-Api-Key': this.apiKey,
+    const response: IPayoutResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payouts',
+      {
+        method: 'POST',
+        body: body,
       },
-    });
+    );
 
     return response;
   }

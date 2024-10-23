@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Field, ObjectType, Query, Resolver } from '@nestjs/graphql';
 
 /*
@@ -14,9 +15,11 @@ class PlaceholderResponse {
 
 @Resolver()
 export class PlaceholderResolver {
+  private readonly logger = new Logger(PlaceholderResolver.name);
+
   @Query(() => PlaceholderResponse)
   async placeholderQuery() {
-    console.log('This query is a placeholder');
+    this.logger.debug('This query is a placeholder');
     return { message: 'Returning placeholder' };
   }
 }

@@ -53,7 +53,7 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
   }
@@ -77,7 +77,7 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create('mg.rebuildr.se', data);
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
   }

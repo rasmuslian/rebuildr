@@ -18,6 +18,7 @@ import {
   IPayoutStarted,
 } from 'src/apis/types/rocker-types';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
+import { Logger } from '@nestjs/common';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -31,6 +32,7 @@ enum PurchaseStatusEnum {
 }
 
 export class PurchaseService {
+  private readonly logger = new Logger(PurchaseService.name);
   constructor(
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
@@ -111,8 +113,8 @@ export class PurchaseService {
         purchase.rockerPaymentId,
       );
       purchase.rockerPayoutId = payoutResponse.id;
-    } catch (e) {
-      console.log('Error when creating payout');
+    } catch {
+      this.logger.error('Error when creating payout');
       purchase.failedAt = new Date();
     }
 

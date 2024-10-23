@@ -1,8 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { EnvironmentVariables } from './config';
 
-export const dbConfig = (configService: ConfigService) => {
+export const dbConfig = (
+  configService: ConfigService<EnvironmentVariables>,
+) => {
   const isProd = configService.get('NODE_ENV') === 'production';
 
   let typeormConfig: PostgresConnectionOptions = {

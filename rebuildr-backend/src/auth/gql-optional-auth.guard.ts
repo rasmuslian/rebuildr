@@ -3,12 +3,13 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload } from './constants';
 import { ConfigService } from '@nestjs/config';
+import { EnvironmentVariables } from 'src/config';
 
 @Injectable()
 export class GqlOptionalAuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService<EnvironmentVariables>,
   ) {}
   async canActivate(context: ExecutionContext) {
     const request = GqlExecutionContext.create(context).getContext().req;
@@ -28,7 +29,7 @@ export class GqlOptionalAuthGuard implements CanActivate {
         email: payload.email,
         role: payload.role,
       };
-    } catch (e) {
+    } catch {
       return true;
     }
 
