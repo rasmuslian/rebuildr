@@ -41,8 +41,8 @@ export class GeocodingService {
         },
       });
       response = r.data;
-    } catch (e: any) {
-      throw InternalServerException(e);
+    } catch {
+      throw InternalServerException();
     }
     if (response.status !== Status.OK) {
       throw InternalServerException(response.error_message);
@@ -60,7 +60,7 @@ export class GeocodingService {
         params: { address, key: process.env.GOOGLE_GEOCODING_API_KEY },
       });
       result = r.data.results[0];
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
     if (!result) {
@@ -84,7 +84,7 @@ export class GeocodingService {
         },
       });
       result = r.data.results[0];
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
 

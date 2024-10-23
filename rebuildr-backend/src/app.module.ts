@@ -53,10 +53,10 @@ import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { CustomLogger } from './custom.logger';
 import { EnvironmentVariables, validateConfig } from './config';
 
-export type RequestType = {
+export interface RequestType {
   user?: AuthedUserType;
-  [key: string]: any;
-};
+  [key: string]: unknown;
+}
 
 @Module({
   imports: [

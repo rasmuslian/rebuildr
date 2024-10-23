@@ -113,7 +113,7 @@ export class PurchaseService {
         purchase.rockerPaymentId,
       );
       purchase.rockerPayoutId = payoutResponse.id;
-    } catch (e) {
+    } catch {
       this.logger.error('Error when creating payout');
       purchase.failedAt = new Date();
     }

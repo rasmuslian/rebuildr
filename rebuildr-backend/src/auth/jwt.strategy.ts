@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { jwtConstants } from './constants';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from 'src/config';
+import { UserRoleEnum } from 'src/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: { sub: string; email: string; role: UserRoleEnum }) {
     return { id: payload.sub, email: payload.email, role: payload.role };
   }
 }

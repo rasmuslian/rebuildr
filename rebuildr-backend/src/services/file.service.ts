@@ -28,7 +28,7 @@ export class FileService {
           secretAccessKey: process.env.SPACES_SECRET,
         },
       });
-    } catch (e) {
+    } catch {
       throw InternalServerException();
     }
   }
@@ -74,7 +74,7 @@ export class FileService {
         //Errors contains errors encountered when deleting objects
         throw new Error();
       }
-    } catch (e) {
+    } catch {
       throw InternalServerException('Error when deleting files');
     }
 

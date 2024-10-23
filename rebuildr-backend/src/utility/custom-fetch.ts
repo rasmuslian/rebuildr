@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { InternalServerException } from 'src/exceptions';
 
 export class CustomFetch {
-  private headers: { [key: string]: string };
+  private headers: Record<string, string>;
   private logger: Logger;
-  constructor(logger: Logger, headers?: { [key: string]: string }) {
+  constructor(logger: Logger, headers?: Record<string, string>) {
     this.logger = logger;
     this.headers = headers;
   }
@@ -14,7 +14,7 @@ export class CustomFetch {
     options: {
       body?: object;
       method: 'POST' | 'GET' | 'PUT';
-      headers?: { [key: string]: string };
+      headers?: Record<string, string>;
     },
   ) {
     try {

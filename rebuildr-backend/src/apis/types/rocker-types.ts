@@ -84,7 +84,7 @@ export interface ICreateOfferRequest {
   sellerNote?: string;
   sellerId: string;
   payoutSpec: 'CONFIRMED_PAYOUT' | 'AUTO_PAYOUT' | 'NO_PAYOUT';
-  externalData: { [key: string]: any };
+  externalData: Record<string, unknown>;
   escrowValue: IMoneyObject;
   serviceFee: IMoneyObject;
 }
@@ -104,7 +104,7 @@ export interface IOfferResponse {
   createdAt: Date;
   updatedAt: Date;
   offerUrl: string;
-  externalData: { [key: string]: any };
+  externalData: Record<string, unknown>;
 }
 
 export interface ICreatePaymentRequest {
