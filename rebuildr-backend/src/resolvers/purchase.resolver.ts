@@ -54,7 +54,7 @@ export class PurchaseResolver {
     @Args('input') input: AcceptPurchaseInput,
     @CurrentUser() _user: AuthedUserType,
   ) {
-    return await this.purchaseService.acceptPurchase(
+    return await this.purchaseService.manualAcceptPurchase(
       input.purchaseId,
       _user.id,
     );

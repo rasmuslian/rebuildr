@@ -52,6 +52,7 @@ import { RockerWebhookController } from './controllers/rocker-webhook.controller
 import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { CustomLogger } from './custom.logger';
 import { EnvironmentVariables, validateConfig } from './config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -123,6 +124,7 @@ export interface RequestType {
       },
     ]),
     CacheModule.register(),
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController, RockerWebhookController],
   providers: [

@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThanOrEqual, Repository } from 'typeorm';
 import { RockerService } from './rocker.service';
 import {
   BadUserInputException,
@@ -19,6 +19,8 @@ import {
 } from 'src/apis/types/rocker-types';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import dayjs from 'dayjs';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -87,22 +89,12 @@ export class PurchaseService {
     };
   }
 
-  //Buyer accepts product, confirm that payout can reach Seller
-  async acceptPurchase(purchaseId: string, userId: string) {
-    const user = await this.userRepository.findOne({
-      where: {
-        id: userId,
-      },
-    });
-    const purchase = await this.purchaseRepository.findOne({
-      where: {
-        id: purchaseId,
-      },
-    });
-
-    const ability = this.caslAbilityFactory.createForUser(user);
-    if (!ability.can('update', purchase)) {
-      throw ForbiddenException();
+  //Product of purchase is accepted. Payment is confirmed and payout is started
+  private async acceptPurchase(purchase: Purchase) {
+    const status = this.getPurchaseStatus(purchase);
+    if (status !== PurchaseStatusEnum.APPROVEMENT_PENDING) {
+      this.logger.error('Accepting purchase wrong status: ', status);
+      throw BadUserInputException();
     }
 
     await this.rockerService.confirmPayment(purchase.rockerPaymentId);
@@ -119,6 +111,44 @@ export class PurchaseService {
     }
 
     return await this.purchaseRepository.save(purchase);
+  }
+  async manualAcceptPurchase(purchaseId: string, userId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    const purchase = await this.purchaseRepository.findOne({
+      where: {
+        id: purchaseId,
+      },
+    });
+
+    const ability = this.caslAbilityFactory.createForUser(user);
+    if (!ability.can('update', purchase)) {
+      throw ForbiddenException();
+    }
+    return await this.acceptPurchase(purchase);
+  }
+  //Every hour, accept purchases that are waiting approval from
+  //the buyer
+  @Cron(CronExpression.EVERY_HOUR)
+  async autoAcceptPurchases() {
+    this.logger.log('Auto accepting purchases');
+    const dueTime = dayjs().add(1, 'day');
+    const duePurchases = await this.purchaseRepository.find({
+      where: {
+        deliveredAt: MoreThanOrEqual(dueTime.toDate()),
+        approvedAt: IsNull(),
+        disapprovedAt: IsNull(),
+        failedAt: IsNull(),
+      },
+    });
+    await Promise.all(
+      duePurchases.map((p) => {
+        return this.acceptPurchase(p);
+      }),
+    );
   }
 
   getPurchaseStatus(purchase: Purchase) {
