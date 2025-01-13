@@ -29,7 +29,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Tillåt $(PRODUCT_NAME) att använda din plats."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
