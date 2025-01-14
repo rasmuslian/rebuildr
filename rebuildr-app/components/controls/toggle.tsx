@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 
-type ToggleProps = {
+export type ToggleProps = {
   selected?: boolean;
   onPress: () => void;
 } & PressableProps;
