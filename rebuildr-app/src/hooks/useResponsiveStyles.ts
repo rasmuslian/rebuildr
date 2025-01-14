@@ -49,30 +49,13 @@ const mergeStyles = (
   unmergedStyle: RNStyles & ResponsiveStyleType,
   breakPoint: keyof MediaBreakPoints,
 ): RNStyles => {
-  if (breakPoint === "large") {
-    return { ...unmergedStyle, ...unmergedStyle["large"] };
-  }
-  if (breakPoint === "medium") {
-    return {
-      ...unmergedStyle,
-      ...unmergedStyle["large"],
-      ...unmergedStyle["medium"],
-    };
-  }
-  if (breakPoint === "small") {
-    return {
-      ...unmergedStyle,
-      ...unmergedStyle["large"],
-      ...unmergedStyle["medium"],
-      ...unmergedStyle["small"],
-    };
+  if (breakPoint === "desktop") {
+    return { ...unmergedStyle, ...unmergedStyle["desktop"] };
   }
   if (breakPoint === "mobile") {
     return {
       ...unmergedStyle,
-      ...unmergedStyle["large"],
-      ...unmergedStyle["medium"],
-      ...unmergedStyle["small"],
+      ...unmergedStyle["desktop"],
       ...unmergedStyle["mobile"],
     };
   }

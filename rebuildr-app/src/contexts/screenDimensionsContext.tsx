@@ -2,21 +2,17 @@ import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 
 export interface MediaBreakPoints {
-  large: number;
-  medium: number;
-  small: number;
+  desktop: number;
   mobile: number;
 }
 
 const mediaBreakPoints: MediaBreakPoints = {
-  large: 1440,
-  medium: 720,
-  small: 600,
+  desktop: 1280,
   mobile: 360,
 };
 
 export const ScreenDimensionsContext =
-  createContext<keyof MediaBreakPoints>("large");
+  createContext<keyof MediaBreakPoints>("mobile");
 
 export const ScreenDimensionsProvider = ({ children }: PropsWithChildren) => {
   const [breakPoint, setBreakPoint] = useState<keyof MediaBreakPoints>();
@@ -24,7 +20,7 @@ export const ScreenDimensionsProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const listener = Dimensions.addEventListener("change", ({ window }) => {
       const breakPoint = Object.keys(mediaBreakPoints).find((bp, i, array) => {
-        if (window.width > mediaBreakPoints[bp]) {
+        if (window.width >= mediaBreakPoints[bp]) {
           return true;
         }
 
