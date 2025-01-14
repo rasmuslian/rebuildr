@@ -355,9 +355,9 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
   const flatlistRef = useRef<FlatList>();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const conf = useRef({
+  const viewabilityConfig = {
     itemVisiblePercentThreshold: 100,
-  });
+  };
 
   const onRight = () => {
     if (!flatlistRef.current) {
@@ -404,6 +404,9 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
     },
     [elements.length],
   );
+  const viewabilityConfigCallbackPairs = useRef([
+    { viewabilityConfig, onViewableItemsChanged },
+  ]);
 
   return (
     <View style={styles.categoriesSlider}>
@@ -418,8 +421,7 @@ const CategorySlider = ({ elements }: CategorySliderProps) => {
         renderItem={({ item }) => <>{item}</>}
         horizontal
         showsVerticalScrollIndicator={false}
-        viewabilityConfig={conf.current}
-        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         ItemSeparatorComponent={() => <View style={styles.separator}></View>}
       />
       <Pressable onPress={() => onRight()}>
