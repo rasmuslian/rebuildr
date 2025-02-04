@@ -1,112 +1,172 @@
 import React from "react";
 import { SvgProps } from "react-native-svg";
-import { DownChevronIcon } from "./downChevronIcon";
-import { GiftIcon } from "./giftIcon";
-import { LeftChevronIcon } from "./leftChevronIcon";
-import { PersonIcon } from "./personIcon";
-import { PinIcon } from "./pinIcon";
-import { PointUpIcon } from "./pointUpIcon";
-import { RightChevronIcon } from "./rightChevronIcon";
-import { SeasonIcon } from "./seasonIcon";
-import { CrossHairIcon } from "./crossHairIcon";
-import { WoodIcon } from "./woodIcon";
-import { DoorIcon } from "./doorIcon";
-import { WindowIcon } from "./windowIcon";
-import { FloorIcon } from "./floorIcon";
-import { InteriorIcon } from "./interiorIcon";
-import { PaintIcon } from "./paintIcon";
-import { FastenersIcon } from "./fastenersIcon";
-import { RoofIcon } from "./roofIcon";
-import { TilesIcon } from "./tilesIcon";
-import { BathtubIcon } from "./bathtubIcon";
-import { OutletIcon } from "./outletIcon";
-import { TreeIcon } from "./treeIcon";
-import { DrillIcon } from "./drillIcon";
-import { WheelbarrowIcon } from "./wheelbarrowIcon";
-import { MaterialIcon } from "./materialIcon";
+import { TextTokens } from "src/constants/colors";
+import { useThemeColor } from "src/hooks/useThemeColor";
+import { Placeholder } from "./placeholder";
+import { Check } from "./check";
+import { ChevronLeft } from "./chevronLeft";
+import { ChevronRight } from "./chevronRight";
+import { ChevronUp } from "./chevronUp";
+import { ChevronDown } from "./chevronDown";
+import { X } from "./x";
+import { Bullet } from "./bullet";
+import { Eye } from "./eye";
+import { EyeOff } from "./eyeOff";
+import { ArrowLeft } from "./arrowLeft";
+import { ArrowRight } from "./arrowRight";
+import { FilterList } from "./filterList";
+import { Heart } from "./heart";
+import { HeartFilled } from "./heartFilled";
+import { List } from "./list";
+import { Grid } from "./grid";
+import { Map } from "./map";
+import { Location } from "./location";
+import { Sort } from "./sort";
+import { Reset } from "./reset";
+import { Drag } from "./drag";
+import { AddImage } from "./addImage";
+import { FilterList2 } from "./filterList2";
+import { Search } from "./search";
+import { AddPhoto } from "./addPhoto";
+import { Photos } from "./photos";
+import { Plus } from "./plus";
+import { Trash } from "./trash";
+import { Upload } from "./upload";
+import { AddFile } from "./addFile";
+import { User } from "./user";
+import { Message } from "./message";
+import { NewListing } from "./newListing";
+import { Categories } from "./categories";
+import { File } from "./file";
 
 export type IconType =
-  | "Person"
-  | "Pin"
-  | "LeftChevron"
-  | "RightChevron"
-  | "PointUp"
-  | "Material"
-  | "Season"
-  | "Gift"
-  | "DownChevron"
-  | "CrossHair"
-  | "Wood"
-  | "Door"
-  | "Window"
-  | "Floor"
-  | "Interior"
-  | "Paint"
-  | "Fasteners"
-  | "Roof"
-  | "Tiles"
-  | "Bathtub"
-  | "Outlet"
-  | "Tree"
-  | "Drill"
-  | "Wheelbarrow";
+  | "placeholder"
+  | "check"
+  | "chevronLeft"
+  | "chevronRight"
+  | "chevronUp"
+  | "chevronDown"
+  | "X"
+  | "bullet"
+  | "eye"
+  | "eyeOff"
+  | "arrowLeft"
+  | "arrowRight"
+  | "filterList"
+  | "heart"
+  | "heartFilled"
+  | "list"
+  | "grid"
+  | "map"
+  | "location"
+  | "sort"
+  | "reset"
+  | "drag"
+  | "addImage"
+  | "filterList2"
+  | "search"
+  | "addPhoto"
+  | "photos"
+  | "+"
+  | "trash"
+  | "upload"
+  | "file"
+  | "addFile"
+  | "user"
+  | "message"
+  | "newListing"
+  | "categories";
 
 export interface IconProps extends SvgProps {
-  height?: number;
-  width?: number;
-  color?: string;
+  size: number;
 }
 
-export const Icon = ({ icon, ...props }: IconProps & { icon: IconType }) => {
+export interface BaseIconProps extends SvgProps {
+  size?: number;
+  color?: keyof TextTokens;
+}
+export const Icon = ({
+  icon,
+  color: colorToken = "PrimaryDark",
+  ...props
+}: BaseIconProps & { icon: IconType }) => {
+  const colors = useThemeColor();
+  const color = colors.textTokens[colorToken];
+  const size = props.size ?? 24;
+
   switch (icon) {
-    case "Person":
-      return <PersonIcon {...props} />;
-    case "Pin":
-      return <PinIcon {...props} />;
-    case "LeftChevron":
-      return <LeftChevronIcon {...props} />;
-    case "RightChevron":
-      return <RightChevronIcon {...props} />;
-    case "PointUp":
-      return <PointUpIcon {...props} />;
-    case "Material":
-      return <MaterialIcon {...props} />;
-    case "Season":
-      return <SeasonIcon {...props} />;
-    case "Gift":
-      return <GiftIcon {...props} />;
-    case "DownChevron":
-      return <DownChevronIcon {...props} />;
-    case "CrossHair":
-      return <CrossHairIcon {...props} />;
-    case "Wood":
-      return <WoodIcon {...props} />;
-    case "Door":
-      return <DoorIcon {...props} />;
-    case "Window":
-      return <WindowIcon {...props} />;
-    case "Floor":
-      return <FloorIcon {...props} />;
-    case "Interior":
-      return <InteriorIcon {...props} />;
-    case "Paint":
-      return <PaintIcon {...props} />;
-    case "Fasteners":
-      return <FastenersIcon {...props} />;
-    case "Roof":
-      return <RoofIcon {...props} />;
-    case "Tiles":
-      return <TilesIcon {...props} />;
-    case "Bathtub":
-      return <BathtubIcon {...props} />;
-    case "Outlet":
-      return <OutletIcon {...props} />;
-    case "Tree":
-      return <TreeIcon {...props} />;
-    case "Drill":
-      return <DrillIcon {...props} />;
-    case "Wheelbarrow":
-      return <WheelbarrowIcon {...props} />;
+    case "placeholder":
+      return <Placeholder {...props} size={size} color={color} />;
+    case "check":
+      return <Check {...props} size={size} color={color} />;
+    case "chevronLeft":
+      return <ChevronLeft {...props} size={size} color={color} />;
+    case "chevronRight":
+      return <ChevronRight {...props} size={size} color={color} />;
+    case "chevronUp":
+      return <ChevronUp {...props} size={size} color={color} />;
+    case "chevronDown":
+      return <ChevronDown {...props} size={size} color={color} />;
+    case "X":
+      return <X {...props} size={size} color={color} />;
+    case "bullet":
+      return <Bullet {...props} size={size} color={color} />;
+    case "eye":
+      return <Eye {...props} size={size} color={color} />;
+    case "eyeOff":
+      return <EyeOff {...props} size={size} color={color} />;
+    case "arrowLeft":
+      return <ArrowLeft {...props} size={size} color={color} />;
+    case "arrowRight":
+      return <ArrowRight {...props} size={size} color={color} />;
+    case "filterList":
+      return <FilterList {...props} size={size} color={color} />;
+    case "heart":
+      return <Heart {...props} size={size} color={color} />;
+    case "heartFilled":
+      return <HeartFilled {...props} size={size} color={color} />;
+    case "list":
+      return <List {...props} size={size} color={color} />;
+    case "grid":
+      return <Grid {...props} size={size} color={color} />;
+    case "map":
+      return <Map {...props} size={size} color={color} />;
+    case "location":
+      return <Location {...props} size={size} color={color} />;
+    case "sort":
+      return <Sort {...props} size={size} color={color} />;
+    case "reset":
+      return <Reset {...props} size={size} color={color} />;
+    case "drag":
+      return <Drag {...props} size={size} color={color} />;
+    case "addImage":
+      return <AddImage {...props} size={size} color={color} />;
+    case "filterList2":
+      return <FilterList2 {...props} size={size} color={color} />;
+    case "search":
+      return <Search {...props} size={size} color={color} />;
+    case "addPhoto":
+      return <AddPhoto {...props} size={size} color={color} />;
+    case "photos":
+      return <Photos {...props} size={size} color={color} />;
+    case "+":
+      return <Plus {...props} size={size} color={color} />;
+    case "trash":
+      return <Trash {...props} size={size} color={color} />;
+    case "upload":
+      return <Upload {...props} size={size} color={color} />;
+    case "file":
+      return <File {...props} size={size} color={color} />;
+    case "addFile":
+      return <AddFile {...props} size={size} color={color} />;
+    case "user":
+      return <User {...props} size={size} color={color} />;
+    case "message":
+      return <Message {...props} size={size} color={color} />;
+    case "newListing":
+      return <NewListing {...props} size={size} color={color} />;
+    case "categories":
+      return <Categories {...props} size={size} color={color} />;
     default:
       break;
   }

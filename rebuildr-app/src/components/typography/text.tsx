@@ -48,11 +48,11 @@ export const Headline = ({ size = "large", ...props }: HeadlineProps) => {
   return <Base {...props} textStyle={textStyles.headline[size]} />;
 };
 
-export const Titleline = ({ size = "large", ...props }: TitleProps) => {
+export const Title = ({ size = "large", ...props }: TitleProps) => {
   return <Base {...props} textStyle={textStyles.title[size]} />;
 };
 
-export const Labelline = ({ size = "large", ...props }: LabelProps) => {
+export const Label = ({ size = "large", ...props }: LabelProps) => {
   return <Base {...props} textStyle={textStyles.label[size]} />;
 };
 

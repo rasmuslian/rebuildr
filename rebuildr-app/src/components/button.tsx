@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { IconType, Icon } from "src/components/icons/icon";
+import { IconType, Icon } from "src/components/icons-old/icon";
 import Colors, { ButtonColors, TextColors } from "src/styles/colors";
 import { ButtonText } from "./texts/text";
 
