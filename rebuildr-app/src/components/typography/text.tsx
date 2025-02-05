@@ -33,7 +33,7 @@ export const Base = ({
       {...props}
       style={[
         styles,
-        { color: colors.textTokens[color] },
+        { color: colors.text[color] },
         upperCase && { textTransform: "uppercase" },
         props.style,
       ]}

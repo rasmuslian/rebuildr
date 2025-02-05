@@ -515,18 +515,18 @@ const cardTokensDark: CardTokens = {
 };
 
 type ColorTokens = {
-  textTokens: TextTokens;
-  backgroundTokens: BackgroundTokens;
-  dividersTokens: DividersTokens;
-  buttonsTokens: ButtonsTokens;
-  chipsTokens: ChipsTokens;
-  switchTokens: SwitchTokens;
-  radioTokens: RadioTokens;
-  checkTokens: CheckTokens;
-  textFieldTokens: TextFieldsTokens;
-  badgesTokens: BadgesTokens;
-  logoTokens: LogoTokens;
-  cardTokens: CardTokens;
+  text: TextTokens;
+  background: BackgroundTokens;
+  dividers: DividersTokens;
+  buttons: ButtonsTokens;
+  chips: ChipsTokens;
+  switch: SwitchTokens;
+  radio: RadioTokens;
+  check: CheckTokens;
+  textField: TextFieldsTokens;
+  badges: BadgesTokens;
+  logo: LogoTokens;
+  card: CardTokens;
 };
 type ThemeColorTokens = {
   light: ColorTokens;
@@ -534,31 +534,31 @@ type ThemeColorTokens = {
 };
 export const themeColorTokens: ThemeColorTokens = {
   light: {
-    textTokens: textTokensLight,
-    backgroundTokens: backgroundTokensLight,
-    dividersTokens: dividersTokensLight,
-    buttonsTokens: buttonTokensLight,
-    chipsTokens: chipsTokensLight,
-    switchTokens: switchTokensLight,
-    radioTokens: radioTokensLight,
-    checkTokens: checkTokensLight,
-    textFieldTokens: textFieldsTokensLight,
-    badgesTokens: badgesTokensLight,
-    logoTokens: logoTokensLight,
-    cardTokens: cardTokensLight,
+    text: textTokensLight,
+    background: backgroundTokensLight,
+    dividers: dividersTokensLight,
+    buttons: buttonTokensLight,
+    chips: chipsTokensLight,
+    switch: switchTokensLight,
+    radio: radioTokensLight,
+    check: checkTokensLight,
+    textField: textFieldsTokensLight,
+    badges: badgesTokensLight,
+    logo: logoTokensLight,
+    card: cardTokensLight,
   },
   dark: {
-    textTokens: textTokensDark,
-    backgroundTokens: backgroundTokensDark,
-    dividersTokens: dividersTokensDark,
-    buttonsTokens: buttonTokensDark,
-    chipsTokens: chipsTokensDark,
-    switchTokens: switchTokensDark,
-    radioTokens: radioTokensDark,
-    checkTokens: checkTokensDark,
-    textFieldTokens: textFieldsTokensDark,
-    badgesTokens: badgesTokensDark,
-    logoTokens: logoTokensDark,
-    cardTokens: cardTokensDark,
+    text: textTokensDark,
+    background: backgroundTokensDark,
+    dividers: dividersTokensDark,
+    buttons: buttonTokensDark,
+    chips: chipsTokensDark,
+    switch: switchTokensDark,
+    radio: radioTokensDark,
+    check: checkTokensDark,
+    textField: textFieldsTokensDark,
+    badges: badgesTokensDark,
+    logo: logoTokensDark,
+    card: cardTokensDark,
   },
 };

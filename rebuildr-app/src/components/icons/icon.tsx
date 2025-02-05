@@ -91,7 +91,7 @@ export const Icon = ({
   ...props
 }: BaseIconProps & { icon: IconType }) => {
   const colors = useThemeColor();
-  const color = colors.textTokens[colorToken];
+  const color = colors.text[colorToken];
   const size = props.size ?? 24;
 
   switch (icon) {
