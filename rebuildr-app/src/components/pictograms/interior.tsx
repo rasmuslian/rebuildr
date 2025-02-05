@@ -11,14 +11,14 @@ export const Interior = (props: PictogramProps) =>
       {...props}
     >
       <Path
-        stroke="#000"
+        stroke={props.color}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d="M10.728 7.89a7.763 7.763 0 0 1 1.531 1.819 22.718 22.718 0 0 1 2.297 6.6c.316 1.814.425 3.66.326 5.498 0 .47-.109 2.988-.107 3.457"
       />
       <Path
-        stroke="#000"
+        stroke={props.color}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
