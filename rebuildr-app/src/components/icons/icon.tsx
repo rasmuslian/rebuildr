@@ -87,7 +87,7 @@ export interface BaseIconProps extends SvgProps {
 }
 export const Icon = ({
   icon,
-  color: colorToken = "PrimaryDark",
+  color: colorToken = "primaryDark",
   ...props
 }: BaseIconProps & { icon: IconType }) => {
   const colors = useThemeColor();

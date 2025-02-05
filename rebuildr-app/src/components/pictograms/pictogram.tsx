@@ -53,7 +53,7 @@ interface BasePictogramProps extends SvgProps {
 export const Pictogram = ({
   pictorgram,
   type = "small",
-  color: colorToken = "PrimaryDark",
+  color: colorToken = "primaryDark",
   ...props
 }: BasePictogramProps & {
   pictorgram: PictogramType;
