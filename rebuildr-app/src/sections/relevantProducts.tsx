@@ -3,7 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { Button } from "src/components/button";
-import { Icon } from "src/components/icons/icon";
+import { Icon } from "src/components/icons-old/icon";
 import { ProductCard } from "src/components/productCard";
 import { Body } from "src/components/texts/text";
 import { gql } from "src/gql";

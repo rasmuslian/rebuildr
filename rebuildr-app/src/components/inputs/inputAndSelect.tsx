@@ -1,7 +1,7 @@
 import React, { ReactElement, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Colors from "src/styles/colors";
-import { Icon } from "../icons/icon";
+import { Icon } from "../icons-old/icon";
 import { InputText } from "../texts/text";
 import { textStyles } from "../texts/textStyles";
 import { BaseInputProps } from "./baseInput";

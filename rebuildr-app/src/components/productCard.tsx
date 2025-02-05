@@ -4,7 +4,7 @@ import { Pressable, View, Image, ImageStyle } from "react-native";
 import Colors from "src/styles/colors";
 import { Body, Title } from "./texts/text";
 import { formatMetersToKm } from "src/utils/distanceHandling";
-import { Icon } from "./icons/icon";
+import { Icon } from "./icons-old/icon";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 import { gql } from "src/gql";
 import { useMutation } from "@apollo/client";

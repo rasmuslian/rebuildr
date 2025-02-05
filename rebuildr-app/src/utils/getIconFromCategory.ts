@@ -1,4 +1,4 @@
-import { IconType } from "src/components/icons/icon";
+import { IconType } from "src/components/icons-old/icon";
 import { CategoryIconEnum } from "src/gql/graphql";
 
 export const getIconFromCategory = (

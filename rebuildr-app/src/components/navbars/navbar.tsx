@@ -6,7 +6,7 @@ import logo from "assets/images/logo.png";
 import { Link, useNavigation } from "@react-navigation/native";
 import { Body, InputText } from "../texts/text";
 import { UserRoleEnum } from "src/gql/graphql";
-import { Icon } from "../icons/icon";
+import { Icon } from "../icons-old/icon";
 import { useResponsiveStyles } from "src/hooks/useResponsiveStyles";
 
 interface NavbarProps {
@@ -79,7 +79,7 @@ const responsiveStyles = {
     flexDirection: "row",
     backgroundColor: Colors.brand,
     paddingHorizontal: 34,
-    small: {
+    mobile: {
       paddingHorizontal: 22,
     },
   },
@@ -94,13 +94,13 @@ const responsiveStyles = {
     gap: 4,
   },
   removeOnMobile: {
-    small: {
+    mobile: {
       display: "none",
     },
   },
   removeOnDesktop: {
     display: "none",
-    small: {
+    mobile: {
       display: undefined,
     },
   },
@@ -144,7 +144,7 @@ const menuStyles = {
     borderWidth: 1.5,
   },
   text: {
-    small: {
+    mobile: {
       display: "none",
     },
   },
