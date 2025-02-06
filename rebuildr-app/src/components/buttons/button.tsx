@@ -9,7 +9,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Icon, IconType } from "../icons/icon";
+import { Icon, IconType } from "@icons/icon";
 import { Label } from "@text/text";
 import { borderRadius } from "@/src/constants/sizes";
 import { TextTokens } from "@/src/constants/colors";
