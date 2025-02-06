@@ -92,7 +92,13 @@ export const Button = ({
 
     return (
       <>
-        {icon && <Icon icon={icon} color={typeColors[type].icon} size={18} />}
+        {icon && (
+          <Icon
+            icon={icon}
+            color={disabled ? "disabled" : typeColors[type].icon}
+            size={18}
+          />
+        )}
         {label && (
           <Label
             size="large"
@@ -113,7 +119,7 @@ export const Button = ({
       {...rest}
       disabled={disabled || loading}
       onPress={onPress}
-      style={({ pressed, hovered, focused, disabled }) => {
+      style={({ pressed, hovered, focused }) => {
         let buttonState = "enabled";
         if (disabled) {
           buttonState = "disabled";
