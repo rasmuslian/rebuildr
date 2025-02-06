@@ -1,5 +1,5 @@
 import { useThemeColor } from "@hooks/useThemeColor";
-import React from "react";
+import React, { useState } from "react";
 
 import {
   ActivityIndicator,
@@ -30,6 +30,8 @@ export const Button = ({
   icon,
   ...rest
 }: ButtonProps) => {
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const colors = useThemeColor();
   const typeColors: {
     [key: string]: {
@@ -119,7 +121,11 @@ export const Button = ({
       {...rest}
       disabled={disabled || loading}
       onPress={onPress}
-      style={({ pressed, hovered, focused }) => {
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={({ pressed }) => {
         let buttonState = "enabled";
         if (disabled) {
           buttonState = "disabled";

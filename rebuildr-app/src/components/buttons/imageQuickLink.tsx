@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Label } from "@text/text";
 import { borderRadius, strokeWidth } from "@/src/constants/sizes";
+import { useState } from "react";
 
 export type ImageQuickLinkProps = {
   source: ImageSourcePropType;
@@ -22,11 +23,17 @@ export const ImageQuickLink = ({
   disabled,
   ...rest
 }: ImageQuickLinkProps) => {
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const colors = useThemeColor();
   return (
     <Pressable
       {...rest}
-      style={({ pressed, hovered, focused }) => {
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={({ pressed }) => {
         let buttonState = "enabled";
         if (disabled) {
           buttonState = "disabled";
