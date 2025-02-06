@@ -267,60 +267,72 @@ const buttonTokensDark: ButtonsTokens = {
 };
 
 type ChipsTokens = {
-  filterStroke: {
-    enabled: string;
-    hovered: string;
-    focused: string;
-    disabled: string;
-  };
-  fillSelectedFalse: {
-    enabled: string;
-    hovered: string;
-    focused: string;
-  };
-  fillSelectedTrue: {
-    enabled: string;
-    hovered: string;
-    focused: string;
-    disabled: string;
+  filter: {
+    fill: {
+      selectedFalse: {
+        enabled: string;
+        hovered: string;
+        focused: string;
+      };
+      selectedTrue: {
+        enabled: string;
+        hovered: string;
+        focused: string;
+        disabled: string;
+      };
+    };
+    stroke: {
+      enabled: string;
+      hovered: string;
+      focused: string;
+      disabled: string;
+    };
   };
 };
 const chipsTokensLight: ChipsTokens = {
-  filterStroke: {
-    enabled: primitives.neutrals400,
-    hovered: primitives.neutrals700,
-    focused: primitives.neutrals700,
-    disabled: primitives.neutrals200,
-  },
-  fillSelectedFalse: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals200,
-    focused: primitives.neutrals200,
-  },
-  fillSelectedTrue: {
-    enabled: primitives.accent200,
-    hovered: primitives.accent200,
-    focused: primitives.accent300,
-    disabled: primitives.neutrals200,
+  filter: {
+    fill: {
+      selectedFalse: {
+        enabled: primitives.neutrals100,
+        hovered: primitives.neutrals200,
+        focused: primitives.neutrals200,
+      },
+      selectedTrue: {
+        enabled: primitives.accent200,
+        hovered: primitives.accent300,
+        focused: primitives.accent300,
+        disabled: primitives.neutrals200,
+      },
+    },
+    stroke: {
+      enabled: primitives.neutrals400,
+      hovered: primitives.neutrals700,
+      focused: primitives.neutrals700,
+      disabled: primitives.neutrals200,
+    },
   },
 };
 const chipsTokensDark: ChipsTokens = {
-  filterStroke: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    focused: primitives.neutrals500,
-    disabled: primitives.neutrals100,
-  },
-  fillSelectedFalse: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    focused: primitives.neutrals500,
-  },
-  fillSelectedTrue: {
-    enabled: primitives.accent500,
-    hovered: primitives.accent100,
-    focused: primitives.accent100,
-    disabled: primitives.neutrals100,
+  filter: {
+    fill: {
+      selectedFalse: {
+        enabled: primitives.neutrals100,
+        hovered: primitives.neutrals500,
+        focused: primitives.neutrals500,
+      },
+      selectedTrue: {
+        enabled: primitives.neutrals500,
+        hovered: primitives.neutrals100,
+        focused: primitives.neutrals100,
+        disabled: primitives.neutrals100,
+      },
+    },
+    stroke: {
+      enabled: primitives.neutrals500,
+      hovered: primitives.neutrals100,
+      focused: primitives.neutrals500,
+      disabled: primitives.neutrals100,
+    },
   },
 };
 
