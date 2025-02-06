@@ -7,7 +7,9 @@
       "@pictograms/*": ["src/components/pictograms/*"],
       "@hooks/*": ["src/hooks/*"],
       "@components/*": ["src/components/*"],
-      "@context/*": ["src/contexts/*"]
+      "@context/*": ["src/contexts/*"],
+      "@text/*": ["src/components/typography/*"],
+      "@assets/*": ["assets/*"]
     }
   },
   "extends": "expo/tsconfig.base"

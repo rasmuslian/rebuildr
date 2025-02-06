@@ -20,7 +20,7 @@ type BodyProps = { size?: BodySize } & Props;
 
 export const Base = ({
   textStyle,
-  color = "PrimaryDark",
+  color = "primaryDark",
   upperCase,
   ...props
 }: Props & { textStyle: TextStyle }) => {
@@ -33,7 +33,7 @@ export const Base = ({
       {...props}
       style={[
         styles,
-        { color: colors.textTokens[color] },
+        { color: colors.text[color] },
         upperCase && { textTransform: "uppercase" },
         props.style,
       ]}

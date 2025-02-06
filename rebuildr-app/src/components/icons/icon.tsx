@@ -87,11 +87,11 @@ export interface BaseIconProps extends SvgProps {
 }
 export const Icon = ({
   icon,
-  color: colorToken = "PrimaryDark",
+  color: colorToken = "primaryDark",
   ...props
 }: BaseIconProps & { icon: IconType }) => {
   const colors = useThemeColor();
-  const color = colors.textTokens[colorToken];
+  const color = colors.text[colorToken];
   const size = props.size ?? 24;
 
   switch (icon) {

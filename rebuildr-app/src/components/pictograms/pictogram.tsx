@@ -53,14 +53,14 @@ interface BasePictogramProps extends SvgProps {
 export const Pictogram = ({
   pictorgram,
   type = "small",
-  color: colorToken = "PrimaryDark",
+  color: colorToken = "primaryDark",
   ...props
 }: BasePictogramProps & {
   pictorgram: PictogramType;
   color?: keyof TextTokens;
 }) => {
   const colors = useThemeColor();
-  const color = colors.textTokens[colorToken];
+  const color = colors.text[colorToken];
   const _size = props.size ?? type === "small" ? 24 : 48;
 
   switch (pictorgram) {
