@@ -8,7 +8,8 @@
       "@hooks/*": ["src/hooks/*"],
       "@components/*": ["src/components/*"],
       "@context/*": ["src/contexts/*"],
-      "@text/*": ["src/components/typography/*"]
+      "@text/*": ["src/components/typography/*"],
+      "@assets/*": ["assets/*"]
     }
   },
   "extends": "expo/tsconfig.base"

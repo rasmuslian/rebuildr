@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Icon, IconType } from "../icons/icon";
 import { Label } from "@text/text";
-import { BorderRadius } from "@/src/constants/sizes";
+import { borderRadius } from "@/src/constants/sizes";
 import { TextTokens } from "@/src/constants/colors";
 
 export type ButtonProps = {
@@ -133,7 +133,7 @@ export const Button = ({
             gap: 8,
             backgroundColor: typeColors[type][buttonState],
             paddingHorizontal: 8,
-            borderRadius: BorderRadius.Medium,
+            borderRadius: borderRadius.medium,
             minWidth: 40,
             height: 40,
           },
