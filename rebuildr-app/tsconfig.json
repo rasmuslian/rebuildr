@@ -9,7 +9,8 @@
       "@components/*": ["src/components/*"],
       "@context/*": ["src/contexts/*"],
       "@text/*": ["src/components/typography/*"],
-      "@assets/*": ["assets/*"]
+      "@assets/*": ["assets/*"],
+      "@constants/*": ["src/constants/*"]
     }
   },
   "extends": "expo/tsconfig.base"
