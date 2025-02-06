@@ -47,7 +47,6 @@ export const ImageQuickLink = ({
             borderWidth: strokeWidth.regular,
             borderColor: colors.buttons.imageQuickLinkStroke[buttonState],
             height: 40,
-            width: 145,
           },
           rest.style as StyleProp<ViewStyle>,
         ];
