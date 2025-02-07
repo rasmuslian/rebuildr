@@ -36,17 +36,14 @@ export const FilterChip = ({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={() => {
-        let buttonState = "enabled";
+        let chipState = "enabled";
         if (disabled) {
-          buttonState = "disabled";
+          chipState = "disabled";
         } else if (hovered) {
-          buttonState = "hovered";
+          chipState = "hovered";
         } else if (focused) {
-          buttonState = "focused";
+          chipState = "focused";
         }
-
-        console.log("buttonState :>> ", buttonState);
-        console.log("colorSet[buttonState] :>> ", colorSet[buttonState]);
 
         return [
           {
@@ -54,7 +51,7 @@ export const FilterChip = ({
             alignItems: "center",
             justifyContent: "center",
             gap: 4,
-            backgroundColor: colorSet[buttonState],
+            backgroundColor: colorSet[chipState],
             paddingHorizontal: 8,
             borderRadius: borderRadius.small,
             minWidth: 40,
@@ -63,7 +60,7 @@ export const FilterChip = ({
           !selected && {
             borderWidth: 1,
             paddingHorizontal: 7,
-            borderColor: colors.chips.filter.stroke[buttonState],
+            borderColor: colors.chips.filter.stroke[chipState],
           },
           rest.style as StyleProp<ViewStyle>,
         ];

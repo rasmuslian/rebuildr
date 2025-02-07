@@ -10,6 +10,7 @@ export const AddFile = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -17,6 +18,7 @@ export const AddFile = (props: IconProps) => (
       d="M22.531 19.924H18.38M20.456 17.849V22M15.456 22h-9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l7 7v5"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -24,6 +26,7 @@ export const AddFile = (props: IconProps) => (
       d="M13.456 2v7h7"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

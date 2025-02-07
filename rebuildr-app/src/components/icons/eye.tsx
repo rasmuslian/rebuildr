@@ -10,6 +10,7 @@ export const Eye = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -17,6 +18,7 @@ export const Eye = (props: IconProps) => (
       d="M3.75 12s3-6 8.25-6 8.25 6 8.25 6-3 6-8.25 6-8.25-6-8.25-6Z"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

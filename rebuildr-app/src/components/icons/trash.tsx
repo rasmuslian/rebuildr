@@ -10,13 +10,15 @@ export const Trash = (props: IconProps) => (
     {...props}
   >
     <Path
-      stroke="#000"
+      vectorEffect="non-scaling-stroke"
+      stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
       d="M3 6.056h18"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

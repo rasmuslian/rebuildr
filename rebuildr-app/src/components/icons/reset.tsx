@@ -10,6 +10,7 @@ export const Reset = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -17,6 +18,7 @@ export const Reset = (props: IconProps) => (
       d="m9.001 22.53-5.539-5.539 5.54-5.54"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

@@ -19,6 +19,7 @@ export const Location = (props: IconProps) => (
       strokeWidth={1.9}
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
