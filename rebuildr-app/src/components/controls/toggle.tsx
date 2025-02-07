@@ -29,6 +29,7 @@ export const Toggle = ({
       duration: 1000,
       useNativeDriver: false,
     }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOn]);
 
   const toggleSwitch = () => {
