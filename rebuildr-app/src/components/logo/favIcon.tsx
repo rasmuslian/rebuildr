@@ -1,5 +1,5 @@
 import Svg, { Path, Rect, SvgProps } from "react-native-svg";
-import { useThemeColor } from "../hooks/useThemeColor";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 interface FaviconProps extends SvgProps {
   type?: "light" | "dark";

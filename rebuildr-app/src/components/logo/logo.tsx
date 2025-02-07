@@ -1,6 +1,6 @@
 import Svg, { ClipPath, Defs, G, Path, SvgProps } from "react-native-svg";
-import { primitives } from "../constants/colors";
-import { useThemeColor } from "../hooks/useThemeColor";
+import { primitives } from "@constants/colors";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 interface LogoProps extends SvgProps {
   size: "small" | "large";
