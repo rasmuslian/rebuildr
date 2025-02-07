@@ -16,11 +16,18 @@ export const Map = (props: IconProps) => (
       strokeWidth={1.9}
       clipPath="url(#a)"
     >
-      <Path d="M1.916 6.528v14.667l6.417-3.667 7.333 3.667 6.417-3.667V2.861l-6.417 3.667-7.333-3.667-6.417 3.667ZM8.333 2.861v14.667M15.666 6.528v14.667" />
+      <Path
+        vectorEffect="non-scaling-stroke"
+        d="M1.916 6.528v14.667l6.417-3.667 7.333 3.667 6.417-3.667V2.861l-6.417 3.667-7.333-3.667-6.417 3.667ZM8.333 2.861v14.667M15.666 6.528v14.667"
+      />
     </G>
     <Defs>
       <ClipPath id="a">
-        <Path fill={props.color} d="M1 1.028h22v22H1z" />
+        <Path
+          vectorEffect="non-scaling-stroke"
+          fill={props.color}
+          d="M1 1.028h22v22H1z"
+        />
       </ClipPath>
     </Defs>
   </Svg>

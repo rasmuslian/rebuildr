@@ -10,6 +10,7 @@ export const Photos = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -17,10 +18,12 @@ export const Photos = (props: IconProps) => (
       d="M12.311 3.756 3.128 5.563a1.337 1.337 0 0 0-1.053 1.57l1.806 9.183a1.337 1.337 0 0 0 1.57 1.054l9.183-1.807a1.337 1.337 0 0 0 1.054-1.57L13.881 4.81a1.337 1.337 0 0 0-1.57-1.054Z"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       fill={props.color}
       d="M6.33 10.06a1.396 1.396 0 1 0-.54-2.74 1.396 1.396 0 0 0 .54 2.74Z"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

@@ -10,6 +10,7 @@ export const Drag = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       fill={props.color}
       stroke={props.color}
       strokeLinecap="round"

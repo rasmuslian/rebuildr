@@ -42,7 +42,6 @@ export const Check = ({ onPress, disabled, selected, ...rest }: CheckProps) => {
             justifyContent: "center",
             gap: 8,
             backgroundColor: colorSet[checkState],
-            paddingHorizontal: 8,
             borderRadius: borderRadius.small,
             width: 24,
             height: 24,

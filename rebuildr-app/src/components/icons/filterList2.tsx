@@ -20,6 +20,7 @@ export const FilterList2 = (props: IconProps) => (
       transform="rotate(-90 6.78 6.896)"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -37,6 +38,7 @@ export const FilterList2 = (props: IconProps) => (
       transform="matrix(0 -1 -1 0 21.102 21.94)"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

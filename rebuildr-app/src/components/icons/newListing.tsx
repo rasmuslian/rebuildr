@@ -10,6 +10,7 @@ export const NewListing = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -17,6 +18,7 @@ export const NewListing = (props: IconProps) => (
       d="M9.069 21.14H5.907a3.047 3.047 0 0 1-3.047-3.047V5.907A3.047 3.047 0 0 1 5.907 2.86h12.186a3.047 3.047 0 0 1 3.047 3.047v3.249"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

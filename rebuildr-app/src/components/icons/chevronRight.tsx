@@ -10,6 +10,7 @@ export const ChevronRight = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeLinejoin="round"

@@ -10,12 +10,14 @@ export const User = (props: IconProps) => (
     {...props}
   >
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeWidth={1.9}
       d="M2.622 21.8a9.378 9.378 0 0 1 6.055-8.77m12.7 8.77a9.378 9.378 0 0 0-6.054-8.77"
     />
     <Path
+      vectorEffect="non-scaling-stroke"
       stroke={props.color}
       strokeLinecap="round"
       strokeWidth={1.9}
