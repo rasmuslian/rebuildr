@@ -1,0 +1,133 @@
+import { primitives } from "@/src/constants/colors";
+import { borderRadius } from "@/src/constants/sizes";
+import React, { useState } from "react";
+import { View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { Icon } from "../icons/icon";
+import { useThemeColor } from "@/src/hooks/useThemeColor";
+
+const SLIDER_WIDTH = 300;
+
+type SliderProps<T> = {
+  values: T[];
+  value: T;
+  onChange: (v: T) => void;
+  compareFunction: (v1: T, v2: T) => boolean;
+};
+export const Slider = <T,>({
+  values,
+  value,
+  onChange,
+  compareFunction,
+}: SliderProps<T>) => {
+  const colors = useThemeColor();
+
+  const stepCount = values.length;
+  const stepWidth = SLIDER_WIDTH / (stepCount - 1);
+  const indexOfValue = values.findIndex((v) => compareFunction(v, value));
+  const translateX = useSharedValue(indexOfValue * stepWidth);
+  const [step, setStep] = useState(indexOfValue);
+
+  const gestureHandler = Gesture.Pan()
+    .onChange((event) => {
+      const deltaX = event.translationX + indexOfValue * stepWidth;
+      const newValue = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const newIndex = Math.floor(newValue / stepWidth);
+      setStep(newIndex);
+
+      translateX.value = newIndex * stepWidth;
+    })
+    .onEnd((event) => {
+      const deltaX = event.translationX + indexOfValue * stepWidth;
+      const newValue = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const newIndex = Math.floor(newValue / stepWidth);
+      if (newIndex !== indexOfValue) {
+        onChange(values[newIndex]);
+      }
+    });
+
+  const animatedThumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+  const animatedProgressBarStyle = useAnimatedStyle(() => ({
+    width: translateX.value,
+  }));
+
+  return (
+    <View>
+      {/* Container track */}
+      <View
+        style={{
+          width: SLIDER_WIDTH + 16,
+          position: "relative",
+          justifyContent: "center",
+          paddingRight: 8,
+          height: 16,
+          backgroundColor: colors.buttons.tonal.enabled,
+          borderRadius: borderRadius.small,
+        }}
+      >
+        {/* Progress track */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              height: 16,
+              backgroundColor: colors.buttons.filled.enabled,
+              borderTopLeftRadius: borderRadius.small,
+              borderBottomLeftRadius: borderRadius.small,
+            },
+            animatedProgressBarStyle,
+          ]}
+        />
+
+        {/* Step indicators */}
+        {Array.from({ length: stepCount }).map((_, i) => (
+          <View
+            key={i}
+            style={[
+              {
+                position: "absolute",
+                width: 4,
+                height: 4,
+                borderRadius: 3,
+                backgroundColor:
+                  step > i
+                    ? colors.buttons.tonal.enabled
+                    : colors.buttons.filled.enabled,
+                top: 6,
+              },
+              { left: i * stepWidth + 4 },
+            ]}
+          />
+        ))}
+        {/* Draggable Thumb */}
+        <GestureDetector gesture={gestureHandler}>
+          <Animated.View
+            style={[
+              {
+                width: 40,
+                height: 40,
+                backgroundColor: primitives.neutrals100,
+                borderRadius: borderRadius.medium,
+                justifyContent: "center",
+                alignItems: "center",
+                position: "absolute",
+                top: -12,
+
+                bottom: 0,
+              },
+              animatedThumbStyle,
+            ]}
+          >
+            <Icon icon="drag" size={18} />
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    </View>
+  );
+};
