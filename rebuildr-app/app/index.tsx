@@ -1,4 +1,3 @@
-import { ProductConditionEnum } from "@/src/gql/graphql";
 import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
@@ -18,6 +17,7 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import Placeholder from "@assets/images/placeholder.png";
 import { ScrollView } from "react-native-gesture-handler";
+import { ProductConditionEnum } from "@/gql/graphql";
 
 export default function Page() {
   const [searchString, setSearchString] = useState("");

@@ -2,14 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@icons/*": ["src/components/icons/*"],
-      "@pictograms/*": ["src/components/pictograms/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@components/*": ["src/components/*"],
-      "@context/*": ["src/contexts/*"],
-      "@text/*": ["src/components/typography/*"],
+      "@icons/*": ["components/icons/*"],
+      "@pictograms/*": ["components/pictograms/*"],
+      "@hooks/*": ["hooks/*"],
+      "@components/*": ["components/*"],
+      "@context/*": ["contexts/*"],
+      "@text/*": ["components/typography/*"],
       "@assets/*": ["assets/*"],
-      "@constants/*": ["src/constants/*"],
+      "@constants/*": ["constants/*"],
       "@/*": ["./*"]
     }
   },
