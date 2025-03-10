@@ -2,6 +2,7 @@ import { useThemeColor } from "@/src/hooks/useThemeColor";
 import { Pressable, TextInput, TextInputProps, View } from "react-native";
 import { Icon } from "../icons/icon";
 import { textStyles } from "../typography/typeface";
+import { borderRadius } from "@constants/sizes";
 
 type Props = {
   placeholder: string;
@@ -42,6 +43,7 @@ export const SearchBar = ({
             paddingVertical: 10,
             paddingHorizontal: 10,
             backgroundColor: !value ? colors.background.secondary : "none",
+            borderRadius: borderRadius.medium,
           },
         ]}
       >

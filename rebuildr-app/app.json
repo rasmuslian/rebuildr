@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "scheme": "rebuildr",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -21,6 +22,8 @@
       }
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -30,7 +33,8 @@
           "locationAlwaysAndWhenInUsePermission": "Tillåt $(PRODUCT_NAME) att använda din plats."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-router"
     ]
   }
 }
