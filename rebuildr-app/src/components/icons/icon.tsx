@@ -38,6 +38,7 @@ import { Message } from "./message";
 import { NewListing } from "./newListing";
 import { Categories } from "./categories";
 import { File } from "./file";
+import { Star } from "./star";
 
 export type IconType =
   | "placeholder"
@@ -75,7 +76,8 @@ export type IconType =
   | "user"
   | "message"
   | "newListing"
-  | "categories";
+  | "categories"
+  | "star";
 
 export interface IconProps extends SvgProps {
   size: number;
@@ -84,14 +86,18 @@ export interface IconProps extends SvgProps {
 export interface BaseIconProps extends SvgProps {
   size?: number;
   color?: keyof TextTokens;
+  strokeColor?: keyof TextTokens;
+  opacity?: string;
 }
 export const Icon = ({
   icon,
   color: colorToken = "primaryDark",
+  strokeColor,
+  opacity = "",
   ...props
 }: BaseIconProps & { icon: IconType }) => {
   const colors = useThemeColor();
-  const color = colors.text[colorToken];
+  const color = colors.text[colorToken] + opacity;
   const size = props.size ?? 24;
 
   switch (icon) {
@@ -121,10 +127,30 @@ export const Icon = ({
       return <ArrowRight {...props} size={size} color={color} />;
     case "filterList":
       return <FilterList {...props} size={size} color={color} />;
-    case "heart":
-      return <Heart {...props} size={size} color={color} />;
-    case "heartFilled":
-      return <HeartFilled {...props} size={size} color={color} />;
+    case "heart": {
+      const _strokeColor = strokeColor ? colors.text[strokeColor] : color;
+      return (
+        <Heart
+          {...props}
+          size={size}
+          color={color}
+          style={props.style}
+          strokeColor={_strokeColor}
+        />
+      );
+    }
+    case "heartFilled": {
+      const _strokeColor = strokeColor ? colors.text[strokeColor] : color;
+      return (
+        <HeartFilled
+          {...props}
+          size={size}
+          color={color}
+          style={props.style}
+          strokeColor={_strokeColor}
+        />
+      );
+    }
     case "list":
       return <List {...props} size={size} color={color} />;
     case "grid":
@@ -167,6 +193,8 @@ export const Icon = ({
       return <NewListing {...props} size={size} color={color} />;
     case "categories":
       return <Categories {...props} size={size} color={color} />;
+    case "star":
+      return <Star {...props} size={size} color={color} />;
     default:
       break;
   }
