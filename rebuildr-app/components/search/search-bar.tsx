@@ -1,8 +1,8 @@
-import { useThemeColor } from "@/src/hooks/useThemeColor";
 import { Pressable, TextInput, TextInputProps, View } from "react-native";
-import { Icon } from "../icons/icon";
-import { textStyles } from "../typography/typeface";
 import { borderRadius } from "@constants/sizes";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { Icon } from "@icons/icon";
+import { textStyles } from "@components/typography/typeface";
 
 type Props = {
   placeholder: string;
