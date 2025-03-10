@@ -17,7 +17,7 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
-import { initializeApollo } from "@/src/apollo/apollo";
+import { initializeApollo } from "@/apollo/apollo";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
