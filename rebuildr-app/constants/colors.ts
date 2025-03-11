@@ -58,7 +58,7 @@ export type TextTokens = {
 const textTokensLight: TextTokens = {
   primaryDark: primitives.neutrals900,
   primaryLight: primitives.neutrals100,
-  secondary: primitives.neutrals900,
+  secondary: primitives.neutrals600,
   disabled: primitives.neutrals400,
   link: primitives.accent500,
   error: primitives.semanticError600,
@@ -468,21 +468,21 @@ const checkTokensDark: CheckTokens = {
 type TextFieldsTokens = {
   enabled: string;
   hovered: string;
-  Clicked: string;
+  clicked: string;
   disabled: string;
   error: string;
 };
 const textFieldsTokensLight: TextFieldsTokens = {
   enabled: primitives.neutrals400,
   hovered: primitives.neutrals500,
-  Clicked: primitives.accent300,
+  clicked: primitives.accent300,
   disabled: primitives.neutrals200,
   error: primitives.semanticError500,
 };
 const textFieldsTokensDark: TextFieldsTokens = {
   enabled: primitives.neutrals100,
   hovered: primitives.neutrals500,
-  Clicked: primitives.accent300,
+  clicked: primitives.accent300,
   disabled: primitives.neutrals100,
   error: primitives.semanticError500,
 };
