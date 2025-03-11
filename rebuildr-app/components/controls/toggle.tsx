@@ -2,6 +2,7 @@ import { Animated, Pressable, PressableProps } from "react-native";
 import { useEffect, useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
+import { borderRadius } from "@constants/sizes";
 
 export type ToggleProps = {
   selected?: boolean;
@@ -21,12 +22,13 @@ export const Toggle = ({
   const colorSet = selected ? colors.switch.true : colors.switch.false;
 
   const size = 48;
-  const translateX = new Animated.Value(isOn ? size / 4 : 0);
+  const onPosition = size / 3;
+  const translateX = new Animated.Value(isOn ? onPosition : 0);
 
   useEffect(() => {
     Animated.timing(translateX, {
-      toValue: isOn ? size / 4 : 0,
-      duration: 1000,
+      toValue: isOn ? onPosition : 0,
+      duration: 500,
       useNativeDriver: false,
     }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,7 +56,7 @@ export const Toggle = ({
         return {
           width: size,
           height: 32,
-          borderRadius: size,
+          borderRadius: borderRadius.medium,
           backgroundColor: colorSet[toggleState],
           justifyContent: "center",
           padding: 4,
@@ -63,9 +65,9 @@ export const Toggle = ({
     >
       <Animated.View
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: size * 0.4,
+          width: 24,
+          height: 24,
+          borderRadius: borderRadius.small,
           backgroundColor: colorSet.handle,
           transform: [{ translateX }],
           justifyContent: "center",
