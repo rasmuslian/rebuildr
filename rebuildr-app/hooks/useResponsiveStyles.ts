@@ -52,12 +52,5 @@ const mergeStyles = (
   if (breakPoint === "desktop") {
     return { ...unmergedStyle, ...unmergedStyle["desktop"] };
   }
-  if (breakPoint === "mobile") {
-    return {
-      ...unmergedStyle,
-      ...unmergedStyle["desktop"],
-      ...unmergedStyle["mobile"],
-    };
-  }
   return unmergedStyle;
 };

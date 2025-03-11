@@ -2,7 +2,7 @@ import { useReactiveVar } from "@apollo/client";
 import { Pressable, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { ProductConditionEnum } from "@/gql/graphql";
-import { isLoggedInVar } from "@/apollo/apollo";
+import { isLoggedInVar } from "@/apollo/config";
 import { borderRadius } from "@constants/sizes";
 import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";

@@ -17,7 +17,11 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
-import { initializeApollo } from "@/apollo/apollo";
+import { initializeApollo } from "@/apollo/config";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { LoginModalContext } from "@context/loginModalContext";
+import LoginModalView from "@components/modals/loginModalView";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -32,6 +36,7 @@ const RootLayout = () => {
   });
 
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     initializeApollo()
@@ -61,9 +66,21 @@ const RootLayout = () => {
         ></script>
       </Helmet>
       <ApolloProvider client={client}>
-        <ScreenDimensionsProvider>
-          <Slot />
-        </ScreenDimensionsProvider>
+        <LoginModalContext.Provider
+          value={{
+            visible: showLoginModal,
+            setVisible: setShowLoginModal,
+          }}
+        >
+          <GestureHandlerRootView>
+            <BottomSheetModalProvider>
+              <ScreenDimensionsProvider>
+                <Slot />
+                <LoginModalView />
+              </ScreenDimensionsProvider>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </LoginModalContext.Provider>
       </ApolloProvider>
     </>
   );
