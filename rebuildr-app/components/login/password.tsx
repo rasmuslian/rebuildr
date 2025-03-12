@@ -8,14 +8,14 @@ import { useContext, useState } from "react";
 import { Pressable, View } from "react-native";
 
 type Props = {
-  onLogin: (password: string) => void;
+  onSubmit: (password: string) => void;
   onBack: () => void;
   onForgotPassword: () => void;
   wrongPassword: boolean;
 };
 
 export default function Password({
-  onLogin,
+  onSubmit,
   onBack,
   onForgotPassword,
   wrongPassword,
@@ -83,7 +83,7 @@ export default function Password({
         <Button
           style={{ marginTop: 24 }}
           label="Logga in"
-          onPress={() => onLogin(password)}
+          onPress={() => onSubmit(password)}
         />
       </View>
     </View>

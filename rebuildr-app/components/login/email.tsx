@@ -6,15 +6,28 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { useContext, useState } from "react";
 import { Pressable, View } from "react-native";
+import { z } from "zod";
 
 type Props = {
-  onLogin: (email: string) => void;
+  onSubmit: (email: string) => void;
+  initialEmail?: string;
 };
 
-export default function Login({ onLogin }: Props) {
-  const [email, setEmail] = useState("");
+export default function Email({ onSubmit, initialEmail }: Props) {
+  const [email, setEmail] = useState(initialEmail ?? "");
+  const [error, setError] = useState(false);
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
+
+  const onEnterEmail = (email: string) => {
+    const result = z.string().email().safeParse(email);
+    if (result.error) {
+      setError(true);
+    }
+    if (result.success) {
+      onSubmit(email);
+    }
+  };
 
   return (
     <View>
@@ -47,15 +60,21 @@ export default function Login({ onLogin }: Props) {
             {
               type: "text",
               heading: "E-postadress",
-              onChangeText: (text) => setEmail(text),
+              onChangeText: (text) => {
+                if (error) {
+                  setError(false);
+                }
+                setEmail(text);
+              },
               value: email,
+              error,
             },
           ]}
         />
         <Button
           style={{ marginTop: 24 }}
           label="Logga in / Skapa konto"
-          onPress={() => onLogin(email)}
+          onPress={() => onEnterEmail(email)}
         />
       </View>
     </View>

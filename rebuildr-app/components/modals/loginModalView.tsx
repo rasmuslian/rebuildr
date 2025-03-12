@@ -1,7 +1,6 @@
 import React, {
   useCallback,
   useRef,
-  useMemo,
   useContext,
   useEffect,
   useState,
@@ -9,7 +8,7 @@ import React, {
 import { Pressable } from "react-native-gesture-handler";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
-import Login from "@components/login/login";
+import Email from "@components/login/email";
 import Password from "@components/login/password";
 import ForgotPassword from "@components/login/forgotPassword";
 import { gql, useMutation } from "@apollo/client";
@@ -40,15 +39,15 @@ const LoginModalView = () => {
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
-  const [state, setState] = useState<"login" | "password" | "forgotPassword">(
-    "login",
+  const [state, setState] = useState<"email" | "password" | "forgotPassword">(
+    "email",
   );
 
   const [login, { loading }] = useMutation(LOGIN);
   const [resetPassword] = useMutation(RESET_PASSWORD);
 
   const reset = () => {
-    setState("login");
+    setState("email");
     setEmail("");
     setWrongPassword(false);
   };
@@ -74,16 +73,13 @@ const LoginModalView = () => {
         reset();
         setVisible(false);
       },
-      onError: (e) => {
+      onError: () => {
         setWrongPassword(true);
       },
     });
   };
 
   const sheetRef = useRef<BottomSheetModal>(null);
-
-  //variables
-  const snapPoints = useMemo(() => ["50%", "90%", "100%"], []);
 
   const handleClosePress = useCallback(() => {
     reset();
@@ -131,7 +127,6 @@ const LoginModalView = () => {
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={snapPoints}
       enableDynamicSizing
       onDismiss={handleClosePress}
       handleIndicatorStyle={{
@@ -145,17 +140,18 @@ const LoginModalView = () => {
       )}
     >
       <BottomSheetView style={{ marginHorizontal: 16 }}>
-        {state === "login" && (
-          <Login
-            onLogin={(email) => {
+        {state === "email" && (
+          <Email
+            onSubmit={(email) => {
               onSubmitEmail(email);
             }}
+            initialEmail={email}
           />
         )}
         {state === "password" && (
           <Password
-            onBack={() => setState("login")}
-            onLogin={(password) => {
+            onBack={() => setState("email")}
+            onSubmit={(password) => {
               onSubmitPassword(password);
             }}
             onForgotPassword={onForgotPassword}
