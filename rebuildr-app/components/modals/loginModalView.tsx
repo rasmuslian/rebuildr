@@ -14,6 +14,7 @@ import ForgotPassword from "@components/login/forgotPassword";
 import { gql, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
+import { reloadAppAsync } from "expo";
 
 const LOGIN = gql(`
   mutation Login($input: LoginInput!) {
@@ -72,6 +73,7 @@ const LoginModalView = () => {
         isLoggedInVar(true);
         reset();
         setVisible(false);
+        reloadAppAsync();
       },
       onError: () => {
         setWrongPassword(true);
