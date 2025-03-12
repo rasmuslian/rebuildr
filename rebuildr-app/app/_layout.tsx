@@ -4,12 +4,11 @@ import {
   ApolloProvider,
   NormalizedCacheObject,
 } from "@apollo/client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { useFonts } from "expo-font";
 import { ScreenDimensionsProvider } from "@context/screenDimensionsContext";
 import { Helmet } from "react-helmet";
-import React from "react";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -63,7 +62,7 @@ const RootLayout = () => {
           src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossOrigin=""
-        ></script>
+        />
       </Helmet>
       <ApolloProvider client={client}>
         <LoginModalContext.Provider
