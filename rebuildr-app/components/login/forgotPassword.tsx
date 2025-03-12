@@ -54,7 +54,7 @@ export default function ForgotPassword({
         </Title>
         <Button
           style={{ marginTop: 24 }}
-          label="Logga in / Skapa konto"
+          label="Beställ nytt lösenord"
           onPress={() => onSubmit()}
         />
       </View>

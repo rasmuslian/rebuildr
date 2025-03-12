@@ -1,13 +1,9 @@
 import { View } from "react-native";
-import { TextInput } from "./textInput";
 import { FormFieldWrapper } from "./formFieldWrapper";
-import { SelectInput } from "./selectInput";
-import { ToggleInput } from "./toggleInput";
-import { CheckboxInput } from "./checkboxInput";
-import { Props as TextInputProps } from "./textInput";
-import { Props as SelectInputProps } from "./selectInput";
-import { Props as ToggleInputProps } from "./toggleInput";
-import { Props as CheckboxInputProps } from "./checkboxInput";
+import { TextInput, Props as TextInputProps } from "./textInput";
+import { SelectInput, Props as SelectInputProps } from "./selectInput";
+import { ToggleInput, Props as ToggleInputProps } from "./toggleInput";
+import { CheckboxInput, Props as CheckboxInputProps } from "./checkboxInput";
 
 type BaseFieldProps = {
   heading?: string;

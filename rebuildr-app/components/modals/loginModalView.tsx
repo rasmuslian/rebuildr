@@ -28,6 +28,14 @@ const LOGIN = gql(`
   }
 `);
 
+const RESET_PASSWORD = gql(`
+  mutation ResetPassword($input: ResetPasswordInput!) {
+    resetPassword(input: $input){
+      message
+    }
+  }
+`);
+
 const LoginModalView = () => {
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
@@ -37,6 +45,7 @@ const LoginModalView = () => {
   );
 
   const [login, { loading }] = useMutation(LOGIN);
+  const [resetPassword] = useMutation(RESET_PASSWORD);
 
   const reset = () => {
     setState("login");
@@ -100,8 +109,14 @@ const LoginModalView = () => {
     setState("forgotPassword");
   };
 
-  const onRequestPasswordReset = () => {
-    //TODO: reset password
+  const onRequestPasswordReset = async () => {
+    await resetPassword({
+      variables: {
+        input: {
+          email,
+        },
+      },
+    });
     handleClosePress();
   };
 
@@ -125,7 +140,7 @@ const LoginModalView = () => {
       backdropComponent={({ style }) => (
         <Pressable
           style={[style, { backgroundColor: "#0000004D" }]}
-          onPress={() => sheetRef.current.close()}
+          onPress={() => sheetRef.current?.close()}
         />
       )}
     >
