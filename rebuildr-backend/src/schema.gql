@@ -99,10 +99,6 @@ enum ProductConditionEnum {
   BAD
 }
 
-type RegisterUserResponse {
-  message: String!
-}
-
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -192,6 +188,7 @@ type PurchaseProductResponse {
 
 type Query {
   me: User!
+  userExists(input: UserExistsInput!): RegisterStatusEnum!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   category(input: CategoryInput!): Category!
@@ -202,6 +199,16 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+}
+
+enum RegisterStatusEnum {
+  EMAIL
+  DETAILS
+  FINISHED
+}
+
+input UserExistsInput {
+  email: String!
 }
 
 input GetProductInput {
@@ -254,8 +261,8 @@ input LocationSearchInput {
 }
 
 type Mutation {
-  registerUser(input: RegisterUserInput!): RegisterUserResponse!
-  verifyMail(input: VerifyMailInput!): LoginResponse!
+  registerUser(input: RegisterUserInput!): User!
+  verifyEmail(input: VerifyEmailInput!): User!
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   login(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
@@ -276,12 +283,10 @@ type Mutation {
 }
 
 input RegisterUserInput {
-  username: String!
   email: String!
-  password: String!
 }
 
-input VerifyMailInput {
+input VerifyEmailInput {
   email: String!
   verifyEmailToken: String!
 }

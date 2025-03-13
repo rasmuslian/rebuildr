@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useMemo,
 } from "react";
 import { Pressable } from "react-native-gesture-handler";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
@@ -11,12 +12,21 @@ import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
 import Password from "@components/login/password";
 import ForgotPassword from "@components/login/forgotPassword";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
 import { reloadAppAsync } from "expo";
+import { Verify } from "@components/login/verify";
+import { Body } from "@components/typography/text";
+import {
+  RegisterStatusEnum,
+  RegisterUserMutation,
+  RegisterUserMutationVariables,
+  UserExistsQuery,
+  UserExistsQueryVariables,
+} from "@/gql/graphql";
 
-const LOGIN = gql(`
+const LOGIN = gql`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
       accessToken
@@ -26,23 +36,37 @@ const LOGIN = gql(`
       }
     }
   }
-`);
+`;
 
-const RESET_PASSWORD = gql(`
+const RESET_PASSWORD = gql`
   mutation ResetPassword($input: ResetPasswordInput!) {
-    resetPassword(input: $input){
+    resetPassword(input: $input) {
       message
     }
   }
-`);
+`;
+
+const USER_EXISTS = gql`
+  query UserExists($input: UserExistsInput!) {
+    userExists(input: $input)
+  }
+`;
+
+export const REGISTER_USER = gql`
+  mutation RegisterUser($input: RegisterUserInput!) {
+    registerUser(input: $input) {
+      id
+    }
+  }
+`;
 
 const LoginModalView = () => {
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
-  const [state, setState] = useState<"email" | "password" | "forgotPassword">(
-    "email",
-  );
+  const [state, setState] = useState<
+    "email" | "password" | "forgotPassword" | "verify" | "details"
+  >("email");
 
   const [login, { loading }] = useMutation(LOGIN);
   const [resetPassword] = useMutation(RESET_PASSWORD);
@@ -80,7 +104,17 @@ const LoginModalView = () => {
       },
     });
   };
+  const [userExists, { loading: userExistsLoading }] = useLazyQuery<
+    UserExistsQuery,
+    UserExistsQueryVariables
+  >(USER_EXISTS, { fetchPolicy: "network-only" });
+  const [registerUser, { loading: registerUserLoading }] = useMutation<
+    RegisterUserMutation,
+    RegisterUserMutationVariables
+  >(REGISTER_USER);
 
+  const snapPoints = useMemo(() => ["50%", "100%"], []);
+  const fullScreenIndex = 2;
   const sheetRef = useRef<BottomSheetModal>(null);
 
   const handleClosePress = useCallback(() => {
@@ -89,14 +123,33 @@ const LoginModalView = () => {
   }, [setVisible]);
 
   const onSubmitEmail = (email: string) => {
-    //TODO: check if email exist
-
-    //if it does, set it
-    setState("password");
+    if (userExistsLoading || registerUserLoading) {
+      return;
+    }
     setEmail(email);
 
-    //if not, continue to sign up flow
-    //TODO: sign up flow
+    userExists({
+      variables: { input: { email } },
+      onCompleted: (data) => {
+        switch (data.userExists) {
+          case RegisterStatusEnum.Email:
+            registerUser({
+              variables: { input: { email } },
+              onCompleted: () => {
+                setState("verify");
+                sheetRef.current?.snapToIndex(fullScreenIndex);
+              },
+            });
+            return;
+          case RegisterStatusEnum.Details:
+            setState("details");
+            sheetRef.current?.snapToIndex(fullScreenIndex);
+            return;
+          case RegisterStatusEnum.Finished:
+            setState("password");
+        }
+      },
+    });
   };
 
   const onSubmitPassword = (password: string) => {
@@ -118,6 +171,10 @@ const LoginModalView = () => {
     handleClosePress();
   };
 
+  const onVerifiedSuccess = () => {
+    setState("details");
+  };
+
   useEffect(() => {
     if (visible) {
       sheetRef.current?.present();
@@ -130,6 +187,7 @@ const LoginModalView = () => {
     <BottomSheetModal
       ref={sheetRef}
       enableDynamicSizing
+      snapPoints={snapPoints}
       onDismiss={handleClosePress}
       handleIndicatorStyle={{
         display: "none",
@@ -167,6 +225,10 @@ const LoginModalView = () => {
             currentEmail={email}
           />
         )}
+        {state === "verify" && (
+          <Verify email={email} onSuccess={() => onVerifiedSuccess()} />
+        )}
+        {state === "details" && <Body>Details screen</Body>}
       </BottomSheetView>
     </BottomSheetModal>
   );

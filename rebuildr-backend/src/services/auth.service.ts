@@ -5,7 +5,7 @@ import {
   RegisterUserInput,
   ResendVerificationMailInput,
   ResetPasswordInput,
-  VerifyMailInput,
+  VerifyEmailInput,
 } from 'src/resolvers/auth.resolver';
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
@@ -35,40 +35,40 @@ export class AuthService {
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    let existingUser = await this.userRepository.findOne({
-      where: [{ email: input.email }, { username: input.username }],
+    let existingUser = await this.userRepository.findOneBy({
+      email: input.email,
     });
     if (!existingUser) {
-      //create user
-      const password = await bcrypt.hash(input.password, 10);
       const user = new User();
-      user.username = input.username;
       user.email = input.email;
-      user.password = password;
       existingUser = await this.userRepository.save(user);
     }
-
     if (existingUser.verified) {
       return { message: 'User with email or username already exist' };
     }
 
     //generate token
-    const token = crypto.randomBytes(10).toString('hex');
-    const tokenHash = await bcrypt.hash(token, 10);
+    const token = await this.generateEmailValidationCode();
     await this.userRepository.update(
       { id: existingUser.id },
-      { verifyEmailToken: tokenHash },
+      { verifyEmailToken: token.hash },
     );
 
     await this.mailService.sendVerifyEmail({
       email: input.email,
-      token: token,
+      token: token.code,
     });
 
-    return { message: '' };
+    return existingUser;
   }
 
-  async verifyMail(input: VerifyMailInput) {
+  async generateEmailValidationCode() {
+    const code = `00000${Math.floor(Math.random() * 999999)}`.slice(-6);
+
+    return { code, hash: await bcrypt.hash(code, 10) };
+  }
+
+  async verifyEmail(input: VerifyEmailInput) {
     const user = await this.userRepository.findOneBy({ email: input.email });
 
     if (!user?.verifyEmailToken) {
@@ -84,17 +84,12 @@ export class AuthService {
       throw BadUserInputException('Failed to verify user due to bad input');
     }
 
-    //create foreign user in rocker system
-    await this.rockerService.createForeignUser(user);
-
     await this.userRepository.update(
       { id: user.id },
       { verified: true, verifyEmailToken: null },
     );
 
-    const { accessToken, refreshToken } = await this.createTokens(user);
-
-    return { user: user, accessToken, refreshToken };
+    return user;
   }
 
   async resendVerificationMail(input: ResendVerificationMailInput) {

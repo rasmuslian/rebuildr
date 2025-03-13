@@ -27,6 +27,13 @@ export enum RockerPayoutAccountStatusEnum {
   FAILED = 'FAILED',
 }
 
+export enum RegistrationStatusEnum {
+  EMAIL = 'EMAIL',
+  DETAILS = 'DETAILS',
+  FINISHED = 'FINISHED',
+}
+registerEnumType(RegistrationStatusEnum, { name: 'RegisterStatusEnum' });
+
 @Entity()
 @ObjectType()
 export class User {
@@ -35,14 +42,14 @@ export class User {
   id: string;
 
   @Field(() => String)
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   username: string;
 
   @Field(() => String, { middleware: [UserProtectedMiddleware] })
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @CreateDateColumn()

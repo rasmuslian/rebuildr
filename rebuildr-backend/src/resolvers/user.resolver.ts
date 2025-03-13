@@ -10,7 +10,7 @@ import {
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { User } from 'src/entities/user.entity';
+import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 
@@ -22,6 +22,13 @@ class UpdateUserInput {
   @Field(() => String)
   address: string;
 }
+
+@InputType()
+class UserExistsInput {
+  @Field()
+  email: string;
+}
+
 @Resolver()
 export class UserResolver {
   constructor(private userService: UserService) {}
@@ -30,6 +37,11 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard)
   async me(@CurrentUser() _user: AuthedUserType) {
     return this.userService.findOne(_user.id);
+  }
+
+  @Query(() => RegistrationStatusEnum)
+  async userExists(@Args('input') input: UserExistsInput) {
+    return await this.userService.getRegistrationStatus(input.email);
   }
 
   @Mutation(() => User)

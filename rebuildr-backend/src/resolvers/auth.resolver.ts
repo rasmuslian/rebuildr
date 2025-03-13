@@ -17,21 +17,13 @@ import { RequestType } from 'src/app.module';
 @InputType()
 export class RegisterUserInput {
   @Field(() => String)
-  username: string;
-
-  @Field(() => String)
   email: string;
-
-  @Field(() => String)
-  password: string;
 }
 const registerUserSchema = z.object({
-  username: z.string().min(1),
   email: z
     .string()
     .email()
     .transform((value) => value.toLowerCase()),
-  password: z.string().min(1),
 });
 
 @ObjectType()
@@ -53,7 +45,7 @@ const resendVerificationMailSchema = z.object({
 });
 
 @InputType()
-export class VerifyMailInput {
+export class VerifyEmailInput {
   @Field(() => String)
   email: string;
 
@@ -137,15 +129,15 @@ const newPasswordSchema = z.object({
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => RegisterUserResponse)
+  @Mutation(() => User)
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
     return await this.authService.registerUser(input);
   }
 
-  @Mutation(() => LoginResponse)
-  async verifyMail(@Args('input') input: VerifyMailInput) {
-    return await this.authService.verifyMail(input);
+  @Mutation(() => User)
+  async verifyEmail(@Args('input') input: VerifyEmailInput) {
+    return await this.authService.verifyEmail(input);
   }
 
   @Mutation(() => ResendVerificationMailResponse)

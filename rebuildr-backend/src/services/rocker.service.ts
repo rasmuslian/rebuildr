@@ -26,6 +26,10 @@ export class RockerService {
   ) {}
 
   async createForeignUser(user: User) {
+    if (user.rockerUserId) {
+      return user;
+    }
+
     const response = await this.rockerApi.createUser(user.id, user.email);
 
     user.rockerUserId = response.id;

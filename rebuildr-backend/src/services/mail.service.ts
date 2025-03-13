@@ -38,7 +38,6 @@ export class MailService {
     const context = {
       token: input.token,
       email: input.email,
-      verifyUrl: `${this.baseUrl}/verify-email?email=${encodeURIComponent(input.email)}&token=${input.token}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(verifyEmailTemplate).html,
