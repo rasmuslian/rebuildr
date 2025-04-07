@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  FinalizeUserInput,
   LoginInput,
   NewPasswordInput,
   RegisterUserInput,
@@ -20,6 +21,7 @@ import dayjs from 'dayjs';
 import { BadUserInputException } from 'src/exceptions';
 import { RequestType } from 'src/app.module';
 import { RockerService } from './rocker.service';
+import { passwordRegex } from 'src/constants/regexp';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +45,7 @@ export class AuthService {
       user.email = input.email;
       existingUser = await this.userRepository.save(user);
     }
-    if (existingUser.verified) {
+    if (existingUser.emailVerifiedAt) {
       return { message: 'User with email or username already exist' };
     }
 
@@ -62,14 +64,36 @@ export class AuthService {
     return existingUser;
   }
 
+  async finalizeUser(input: FinalizeUserInput, currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user || !user.emailVerifiedAt) {
+      throw BadUserInputException();
+    }
+
+    user.username = input.username;
+    const validPassword = new RegExp(passwordRegex).test(input.password);
+    if (!validPassword) {
+      throw BadUserInputException('Invalid password');
+    }
+    user.password = await bcrypt.hash(input.password, 10);
+
+    const savedUser = await this.userRepository.save(user);
+
+    return savedUser;
+  }
+
   async generateEmailValidationCode() {
     const code = `00000${Math.floor(Math.random() * 999999)}`.slice(-6);
 
     return { code, hash: await bcrypt.hash(code, 10) };
   }
 
-  async verifyEmail(input: VerifyEmailInput) {
-    const user = await this.userRepository.findOneBy({ email: input.email });
+  async verifyEmail(input: VerifyEmailInput, req: RequestType) {
+    const user = await this.userRepository.findOneBy({
+      email: input.email.toLowerCase().trim(),
+    });
 
     if (!user?.verifyEmailToken) {
       throw BadUserInputException('Failed to verify user due to bad input');
@@ -84,12 +108,16 @@ export class AuthService {
       throw BadUserInputException('Failed to verify user due to bad input');
     }
 
+    const randomPassword = crypto.randomBytes(20).toString('hex');
+    const hash = await bcrypt.hash(randomPassword, 10);
     await this.userRepository.update(
       { id: user.id },
-      { verified: true, verifyEmailToken: null },
+      { emailVerifiedAt: new Date(), verifyEmailToken: null, password: hash },
     );
-
-    return user;
+    return await this.login(
+      { email: user.email, password: randomPassword },
+      req,
+    );
   }
 
   async resendVerificationMail(input: ResendVerificationMailInput) {
@@ -98,7 +126,7 @@ export class AuthService {
       throw BadUserInputException();
     }
 
-    if (user.verified) {
+    if (user.emailVerifiedAt) {
       return { message: 'User already verified' };
     }
 
@@ -120,7 +148,7 @@ export class AuthService {
   async login(input: LoginInput, req: RequestType) {
     const user = await this.userRepository.findOne({
       where: {
-        email: input.email,
+        email: input.email.toLowerCase().trim(),
       },
       relations: {
         refreshToken: true,
@@ -134,11 +162,12 @@ export class AuthService {
       throw BadUserInputException('Invalid input');
     }
 
-    if (!user.verified) {
+    if (!user.emailVerifiedAt) {
       throw BadUserInputException('Invalid input');
     }
 
     const tokens = await this.createTokens(user);
+    await this.rockerService.createForeignUser(user);
 
     //Since user is now authenticated, attach user to request to be used in later stages of the request
     req.user = {
@@ -221,7 +250,9 @@ export class AuthService {
 
   async resetPassword(input: ResetPasswordInput) {
     const email = input.email.toLowerCase();
-    const user = await this.userRepository.findOneBy({ email: email });
+    const user = await this.userRepository.findOneBy({
+      email: email.toLowerCase().trim(),
+    });
 
     if (user) {
       const token = crypto.randomBytes(10).toString('hex');

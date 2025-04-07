@@ -53,7 +53,6 @@ const RESET_PASSWORD = gql`
 const USER_EXISTS = gql`
   query UserExists($input: UserExistsInput!) {
     userExists(input: $input) {
-      id
       registrationStatus
     }
   }

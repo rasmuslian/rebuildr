@@ -47,10 +47,10 @@ export class Product {
   category: Category;
 
   @Column()
-  userId: string;
+  sellerId: string;
 
   @ManyToOne(() => User, (user) => user.id, { nullable: false })
-  user: User;
+  seller: User;
 
   @Field(() => Int)
   @Column()

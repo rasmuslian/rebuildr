@@ -32,3 +32,20 @@ export const ThrottleException = (message?: string) => {
     },
   });
 };
+
+export const BadFieldsInputException = (
+  badFields: {
+    message: string;
+    name: string;
+  }[],
+) => {
+  return new GraphQLError(`Bad input for one or more fields`, {
+    extensions: {
+      code: 'BAD_FIELDS_INPUT',
+      fields: badFields.map((badField) => ({
+        name: badField.name,
+        message: badField.message,
+      })),
+    },
+  });
+};

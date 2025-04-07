@@ -23,14 +23,14 @@ export class CaslAbilityFactory {
     can('create', Product);
     can('read', Product);
     if (!isAdmin) {
-      can('update', Product, { userId: user.id });
+      can('update', Product, { sellerId: user.id });
       cannot('update', Product, ['hiddenReason']);
     }
     if (isAdmin) {
       can('update', Product);
       can('delete', Product);
     }
-    can('delete', Product, { userId: user.id });
+    can('delete', Product, { sellerId: user.id });
 
     //Category
     if (isAdmin) {

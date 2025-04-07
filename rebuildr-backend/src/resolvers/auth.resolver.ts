@@ -10,9 +10,12 @@ import {
 import { User } from 'src/entities/user.entity';
 import { AuthService } from 'src/services/auth.service';
 import { z } from 'zod';
-import { UsePipes } from '@nestjs/common';
+import { UseGuards, UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { RequestType } from 'src/app.module';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { AuthedUserType } from 'src/auth/constants';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 
 @InputType()
 export class RegisterUserInput {
@@ -23,8 +26,16 @@ const registerUserSchema = z.object({
   email: z
     .string()
     .email()
-    .transform((value) => value.toLowerCase()),
+    .transform((value) => value.toLowerCase().trim()),
 });
+@InputType()
+export class FinalizeUserInput {
+  @Field()
+  username: string;
+
+  @Field()
+  password: string;
+}
 
 @ObjectType()
 export class RegisterUserResponse {
@@ -41,7 +52,7 @@ const resendVerificationMailSchema = z.object({
   email: z
     .string()
     .email()
-    .transform((value) => value.toLowerCase()),
+    .transform((value) => value.toLowerCase().trim()),
 });
 
 @InputType()
@@ -120,7 +131,7 @@ export class NewPasswordInput {
   resetPasswordToken: string;
 }
 const newPasswordSchema = z.object({
-  email: z.string().min(1),
+  email: z.string().min(1).toLowerCase().trim(),
   password: z.string().min(1),
   resetPasswordToken: z.string().min(1),
 });
@@ -135,9 +146,12 @@ export class AuthResolver {
     return await this.authService.registerUser(input);
   }
 
-  @Mutation(() => User)
-  async verifyEmail(@Args('input') input: VerifyEmailInput) {
-    return await this.authService.verifyEmail(input);
+  @Mutation(() => LoginResponse)
+  async verifyEmail(
+    @Args('input') input: VerifyEmailInput,
+    @Context() req: RequestType,
+  ) {
+    return await this.authService.verifyEmail(input, req);
   }
 
   @Mutation(() => ResendVerificationMailResponse)
@@ -146,6 +160,15 @@ export class AuthResolver {
     @Args('input') input: ResendVerificationMailInput,
   ) {
     return await this.authService.resendVerificationMail(input);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async finalizeUser(
+    @Args('input') input: FinalizeUserInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.authService.finalizeUser(input, user.id);
   }
 
   @Mutation(() => LoginResponse)

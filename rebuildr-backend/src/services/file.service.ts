@@ -99,4 +99,10 @@ export class FileService {
       expiresIn: SIGNED_URL_EXPIRATION,
     });
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getFileUrl(fileId: string) {
+    //TODO: Create implementation
+    return 'file.png';
+  }
 }

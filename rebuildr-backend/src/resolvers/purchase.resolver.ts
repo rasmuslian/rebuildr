@@ -13,11 +13,15 @@ import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { PurchaseService } from 'src/services/purchase.service';
+import { SupportedPaymentMethod } from 'src/services/rocker.service';
 
 @InputType()
 class PurchaseProductInput {
   @Field()
   productId: string;
+
+  @Field(() => SupportedPaymentMethod)
+  paymentMethod: SupportedPaymentMethod;
 }
 
 @ObjectType()
@@ -45,7 +49,11 @@ export class PurchaseResolver {
     @Args('input') input: PurchaseProductInput,
     @CurrentUser() _user: AuthedUserType,
   ) {
-    return await this.purchaseService.purchase(input.productId, _user.id);
+    return await this.purchaseService.createPurchase(
+      input.productId,
+      _user.id,
+      input.paymentMethod,
+    );
   }
 
   @Mutation(() => Purchase)

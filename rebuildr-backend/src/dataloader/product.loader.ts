@@ -7,7 +7,7 @@ import { File } from 'src/entities/file.entity';
 
 export interface IProductLoaders {
   likedByUserLoader: DataLoader<{ productId: string; userId: string }, boolean>;
-  userLoader: DataLoader<string, User>;
+  sellerLoader: DataLoader<string, User>;
   mainImageLoader: DataLoader<string, File>;
 }
 
@@ -32,15 +32,15 @@ export class ProductLoader {
     );
   }
 
-  private userLoader() {
+  private sellerLoader() {
     return new DataLoader(async (keys: readonly string[]) => {
       const products = await this.dataSource.getRepository(Product).find({
         where: { id: In(keys) },
-        relations: { user: true },
+        relations: { seller: true },
       });
 
       //make sure data is returned in the correct order by mapping from keys
-      return keys.map((key) => products.find((p) => p.id === key)?.user);
+      return keys.map((key) => products.find((p) => p.id === key)?.seller);
     });
   }
 
@@ -59,7 +59,7 @@ export class ProductLoader {
   createLoaders(): IProductLoaders {
     return {
       likedByUserLoader: this.likedByUserLoader(),
-      userLoader: this.userLoader(),
+      sellerLoader: this.sellerLoader(),
       mainImageLoader: this.mainImageLoader(),
     };
   }
