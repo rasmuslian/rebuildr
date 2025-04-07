@@ -237,7 +237,9 @@ describe('Signup', () => {
 
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     userRepository.findOneBy.mockResolvedValue(user);
-    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUserResponse);
+    jest
+      .spyOn(rockerAPI, 'createForeignUser')
+      .mockResolvedValue(rockerUserResponse);
     (bcrypt.hash as jest.Mock).mockImplementation(() => 'refreshTokenHash');
     jest.spyOn(jwtService, 'signAsync').mockResolvedValue('ey123');
 

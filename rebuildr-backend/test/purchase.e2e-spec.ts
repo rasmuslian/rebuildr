@@ -161,7 +161,7 @@ describe('Purchase', () => {
     product.id = 'productId';
     product.title = 'productTitle';
     product.price = 100;
-    product.user = seller;
+    product.seller = seller;
     product.purchases = [];
 
     const buyer = new User();
@@ -223,7 +223,7 @@ describe('Purchase', () => {
 
     jest.spyOn(rockerAPI, 'createOffer').mockResolvedValue(createOfferResponse);
     jest
-      .spyOn(rockerAPI, 'createPayment')
+      .spyOn(rockerAPI, 'createSwishPayment')
       .mockResolvedValue(createPaymentResponse);
 
     const purchase = new Purchase();
@@ -256,7 +256,7 @@ describe('Purchase', () => {
       });
 
     expect(rockerAPI.createOffer).toHaveBeenCalledTimes(1);
-    expect(rockerAPI.createPayment).toHaveBeenCalledTimes(1);
+    expect(rockerAPI.createStripePayment).toHaveBeenCalledTimes(1);
     expect(purchaseRepository.save).toHaveBeenCalledWith({ ...purchase });
   });
 
