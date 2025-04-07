@@ -10,12 +10,9 @@ import {
 import { AuthResponseStatusEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { swedishPhoneNumberRegex } from 'src/constants/regexp';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { User } from 'src/entities/user.entity';
-import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
+import { PayoutAccountEnum, User } from 'src/entities/user.entity';
 import { RockerService } from 'src/services/rocker.service';
-import { z } from 'zod';
 
 @InputType()
 export class AuthenticateRockerInput {
@@ -37,12 +34,24 @@ export class AuthenticateResponse {
 
 @InputType()
 export class CreatePayoutAccountInput {
-  @Field(() => String)
-  phoneNumber: string;
+  @Field(() => String, { nullable: true })
+  phoneNumber?: string;
+
+  @Field(() => String, { nullable: true })
+  clearingNumber?: string;
+
+  @Field(() => String, { nullable: true })
+  accountNumber?: string;
+
+  @Field(() => String, { nullable: true })
+  accountName?: string;
+
+  @Field(() => String, { nullable: true })
+  identifier?: string;
+
+  @Field(() => PayoutAccountEnum)
+  type: PayoutAccountEnum;
 }
-const createPayoutAccountSchema = z.object({
-  phoneNumber: z.string().regex(swedishPhoneNumberRegex),
-});
 
 @Resolver()
 export class RockerResolver {
@@ -60,13 +69,10 @@ export class RockerResolver {
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async createPayoutAccount(
-    @Args('input', new ZodValidationPipe(createPayoutAccountSchema))
+    @Args('input')
     input: CreatePayoutAccountInput,
     @CurrentUser() _user: AuthedUserType,
   ) {
-    return await this.rockerService.createPayoutAccount(
-      input.phoneNumber,
-      _user.id,
-    );
+    return await this.rockerService.createPayoutAccount(input, _user.id);
   }
 }

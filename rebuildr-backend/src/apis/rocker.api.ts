@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ICreateBankGiroPayoutAccountRequest,
+  ICreateCompanyUserRequest,
   ICreateOfferRequest,
   ICreatePaymentRequest,
   ICreatePayoutRequest,
+  ICreatePlusGiroPayoutAccountRequest,
+  ICreateRixPayoutAccountRequest,
   ICreateSwishPayoutAccountRequest,
   IGetAuthResponse,
   IOfferResponse,
@@ -11,30 +15,30 @@ import {
   IPayoutResponse,
   IPostAuthResponse,
   IPostUsersResponse,
+  IUserResponse,
+  PauseStateEnum,
+  PaymentMethodEnum,
   PayoutMethodEnum,
   RockerCountryEnum,
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
 import { CustomFetch } from 'src/utility/custom-fetch';
-import { EnvironmentVariables } from 'src/config';
 
 @Injectable()
 export class RockerAPI {
-  private readonly logger = new Logger(RockerAPI.name);
   private url: string;
   private merchantId: string;
   private apiKey: string;
   private customFetch: CustomFetch;
-  constructor(private configService: ConfigService<EnvironmentVariables>) {
-    //TODO: use production endpoint when we get into production
-    // const isProd = this.configService.get('NODE_ENV') === 'production';
-    // this.url = isProd
-    //   ? 'https://pay.rocker.com'
-    //   : 'https://pay-test.rocker.com';
+  private readonly logger = new Logger(RockerAPI.name);
 
-    this.url = 'https://pay-test.rocker.com';
+  constructor(private configService: ConfigService) {
+    this.url = this.configService.get('ROCKER_URL');
     this.merchantId = this.configService.get('ROCKER_MERCHANT_ID');
     this.apiKey = this.configService.get('ROCKER_API_KEY');
+    if (!this.url || !this.merchantId || !this.apiKey) {
+      throw new Error('Rocker variables not defined not set');
+    }
     this.customFetch = new CustomFetch(this.logger, {
       'X-merchantId': this.merchantId,
       'X-Api-Key': this.apiKey,
@@ -85,7 +89,7 @@ export class RockerAPI {
    * @param foreignUserId id of user in OUR database. Saved on User.id
    * @param email User.email
    */
-  async createUser(foreignUserId: string, email: string) {
+  async createForeignUser(foreignUserId: string, email: string) {
     const body = {
       foreignUserId,
       email,
@@ -102,28 +106,65 @@ export class RockerAPI {
     return response;
   }
 
+  async createCompanyUser(
+    registrationNumber: string,
+    companyName: string,
+    email: string,
+    phone?: string,
+  ) {
+    const body: ICreateCompanyUserRequest = {
+      registrationNumber,
+      companyName,
+      email,
+      phone,
+      country: RockerCountryEnum.SE,
+      externalData: {},
+    };
+    const response: IPostUsersResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/users',
+      {
+        method: 'POST',
+        body,
+      },
+    );
+
+    return response;
+  }
+
+  async getUser(rockerUserId: string) {
+    const response: IUserResponse = await this.customFetch.send(
+      this.url + `/merchant-api/v1/users/${rockerUserId}`,
+      {
+        method: 'GET',
+      },
+    );
+    return response;
+  }
+
   async createOffer(
     title: string,
     sellerId: string,
     escrowValue: number,
     fee: number,
     productId: string,
+    imageUrls: string[],
   ) {
     const body: ICreateOfferRequest = {
       title,
       sellerId,
       payoutSpec: 'CONFIRMED_PAYOUT',
       escrowValue: {
-        currency: 'SE',
+        currency: 'SEK',
         amount: escrowValue,
         unit: 'MINOR',
       },
       serviceFee: {
-        currency: 'SE',
+        currency: 'SEK',
         amount: fee,
         unit: 'MINOR',
       },
       externalData: { productId },
+      images: imageUrls,
     };
 
     const response: IOfferResponse = await this.customFetch.send(
@@ -136,12 +177,12 @@ export class RockerAPI {
     return response;
   }
 
-  async createPayment(offerId: string, buyerId: string) {
+  async createSwishPayment(offerId: string, buyerId: string) {
     const body: ICreatePaymentRequest = {
       offerId,
       buyerId,
-      paymentMethod: 'SWISH',
-      paymentMethodData: { paymentType: 'MOBILE' },
+      paymentMethod: PaymentMethodEnum.SWISH,
+      paymentMethodData: { $type: 'Swish', paymentType: 'MOBILE' },
     };
 
     const response: IPaymentResponse = await this.customFetch.send(
@@ -155,7 +196,36 @@ export class RockerAPI {
     return response;
   }
 
-  async createPayoutAccount(rockerUserId: string, phoneNumber: string) {
+  async getSwishPayment(paymentId: string) {
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + `/merchant-api/v1/payments/${paymentId}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    return response;
+  }
+
+  async createStripePayment(offerId: string, buyerId: string) {
+    const body: ICreatePaymentRequest = {
+      offerId,
+      buyerId,
+      paymentMethod: PaymentMethodEnum.STRIPE,
+    };
+
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payments',
+      {
+        body: body,
+        method: 'POST',
+      },
+    );
+
+    return response;
+  }
+
+  async createPayoutAccountSwish(rockerUserId: string, phoneNumber: string) {
     const body: ICreateSwishPayoutAccountRequest = {
       userId: rockerUserId,
       phoneNumber,
@@ -171,6 +241,60 @@ export class RockerAPI {
 
     return response;
   }
+  async createPayoutAccountRix(
+    clearingNumber: string,
+    accountNumber: string,
+    accountName: string,
+    rockerUserId: string,
+  ) {
+    const body: ICreateRixPayoutAccountRequest = {
+      userId: rockerUserId,
+      identifier: {
+        clearingNumber,
+        accountNumber,
+      },
+      accountName,
+    };
+
+    const response: IPayoutAccountResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payout-accounts/rix',
+      { body, method: 'POST' },
+    );
+
+    return response;
+  }
+  async createPayoutAccountBankGiro(
+    identifier: string,
+    accountName: string,
+    rockerUserId: string,
+  ) {
+    const body: ICreateBankGiroPayoutAccountRequest = {
+      userId: rockerUserId,
+      identifier,
+      accountName,
+    };
+    const response: IPayoutAccountResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payout-accounts/bankgiro',
+      { body, method: 'POST' },
+    );
+    return response;
+  }
+  async createPayoutAccountPlusGiro(
+    identifier: string,
+    accountName: string,
+    rockerUserId: string,
+  ) {
+    const body: ICreatePlusGiroPayoutAccountRequest = {
+      userId: rockerUserId,
+      identifier,
+      accountName,
+    };
+    const response: IPayoutAccountResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payout-accounts/plusgiro',
+      { body, method: 'POST' },
+    );
+    return response;
+  }
 
   async confirmPayment(paymentId: string) {
     const response: IPaymentResponse = await this.customFetch.send(
@@ -183,10 +307,10 @@ export class RockerAPI {
     return response;
   }
 
-  async createPayout(paymentId: string) {
+  async createPayout(paymentId: string, payoutMethod: PayoutMethodEnum) {
     const body: ICreatePayoutRequest = {
       paymentId,
-      payoutMethod: PayoutMethodEnum.SWISH,
+      payoutMethod,
     };
 
     const response: IPayoutResponse = await this.customFetch.send(
@@ -195,6 +319,21 @@ export class RockerAPI {
         method: 'POST',
         body: body,
       },
+    );
+
+    return response;
+  }
+
+  async setPaymentPauseState(
+    paymentId: string,
+    newState: PauseStateEnum,
+    comment?: string,
+  ) {
+    const uriComment = encodeURIComponent(comment);
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url +
+        `/merchant-api/v1/payments/${paymentId}/pause-state/${newState}${comment ? '?comment=' + uriComment : ''}`,
+      { method: 'POST' },
     );
 
     return response;
