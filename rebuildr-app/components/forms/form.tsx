@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { StyleProp, View, ViewStyle } from "react-native";
 import { FormFieldWrapper } from "./formFieldWrapper";
 import { TextInput, Props as TextInputProps } from "./textInput";
 import { SelectInput, Props as SelectInputProps } from "./selectInput";
@@ -19,11 +19,12 @@ type FieldType =
 
 interface Props {
   fields: FieldType[];
+  style?: StyleProp<ViewStyle>;
 }
 
-export const Form = ({ fields }: Props) => {
+export const Form = ({ fields, style: _style }: Props) => {
   return (
-    <View>
+    <View style={_style}>
       {fields.map((field, index) => {
         const { type, heading, description, helperText, ...rest } = field;
 

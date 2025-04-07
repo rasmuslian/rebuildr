@@ -126,7 +126,7 @@ export const Button = ({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={({ pressed }) => {
-        let buttonState = "enabled";
+        let buttonState: keyof (typeof typeColors)[string] = "enabled";
         if (disabled) {
           buttonState = "disabled";
         } else if (pressed) {

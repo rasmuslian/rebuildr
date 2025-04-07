@@ -1,3 +1,4 @@
+import { isLoggedInVar } from "@/apollo/config";
 import {
   RegisterUserMutation,
   RegisterUserMutationVariables,
@@ -14,6 +15,7 @@ import { borderRadius, strokeWidth } from "@constants/sizes";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Fragment, useContext, useState } from "react";
 import { Platform, Pressable, View, StyleSheet } from "react-native";
 import {
@@ -26,14 +28,18 @@ import {
 const VERIFY_EMAIL = gql`
   mutation VerifyEmail($input: VerifyEmailInput!) {
     verifyEmail(input: $input) {
-      id
+      user {
+        id
+      }
+      accessToken
+      refreshToken
     }
   }
 `;
 
 type Props = {
   email: string;
-  onSuccess: () => void;
+  onSuccess: (id: string) => void;
 };
 
 export const Verify = ({ email, onSuccess }: Props) => {
@@ -53,10 +59,14 @@ export const Verify = ({ email, onSuccess }: Props) => {
     VerifyEmailMutationVariables
   >(VERIFY_EMAIL, {
     variables: { input: { email, verifyEmailToken: code } },
-    onCompleted: () => {
-      onSuccess();
+    onCompleted: async (data) => {
+      await AsyncStorage.multiSet([
+        ["access_token", data.verifyEmail.accessToken],
+        ["refresh_token", data.verifyEmail.refreshToken],
+      ]);
+      isLoggedInVar(true);
+      onSuccess(data.verifyEmail.user.id);
     },
-    onError: () => {},
   });
   const [resendVerificationEmail] = useMutation<
     RegisterUserMutation,

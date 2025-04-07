@@ -27,7 +27,7 @@ export const Radio = ({ onPress, disabled, selected, ...rest }: RadioProps) => {
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={() => {
-        let radioState = "enabled";
+        let radioState: keyof typeof colorSet = "enabled";
         if (disabled) {
           radioState = "disabled";
         } else if (hovered) {

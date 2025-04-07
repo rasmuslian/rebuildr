@@ -17,7 +17,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
-import { Body } from "@components/typography/text";
 import {
   RegisterStatusEnum,
   RegisterUserMutation,
@@ -25,6 +24,11 @@ import {
   UserExistsQuery,
   UserExistsQueryVariables,
 } from "@/gql/graphql";
+import { Details } from "@components/login/details";
+import { CreateBusiness } from "@components/login/createBusiness";
+import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { router } from "expo-router";
+import { useLogout } from "@hooks/useLogout";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -48,7 +52,10 @@ const RESET_PASSWORD = gql`
 
 const USER_EXISTS = gql`
   query UserExists($input: UserExistsInput!) {
-    userExists(input: $input)
+    userExists(input: $input) {
+      id
+      registrationStatus
+    }
   }
 `;
 
@@ -65,10 +72,11 @@ const LoginModalView = () => {
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
   const [state, setState] = useState<
-    "email" | "password" | "forgotPassword" | "verify" | "details"
+    "email" | "password" | "forgotPassword" | "verify" | "details" | "business"
   >("email");
 
   const [login, { loading }] = useMutation(LOGIN);
+  const { logout } = useLogout();
   const [resetPassword] = useMutation(RESET_PASSWORD);
 
   const reset = () => {
@@ -131,23 +139,20 @@ const LoginModalView = () => {
     userExists({
       variables: { input: { email } },
       onCompleted: (data) => {
-        switch (data.userExists) {
-          case RegisterStatusEnum.Email:
-            registerUser({
-              variables: { input: { email } },
-              onCompleted: () => {
-                setState("verify");
-                sheetRef.current?.snapToIndex(fullScreenIndex);
-              },
-            });
-            return;
-          case RegisterStatusEnum.Details:
-            setState("details");
-            sheetRef.current?.snapToIndex(fullScreenIndex);
-            return;
-          case RegisterStatusEnum.Finished:
-            setState("password");
+        if (
+          !data.userExists ||
+          data.userExists.registrationStatus === RegisterStatusEnum.Email
+        ) {
+          registerUser({
+            variables: { input: { email } },
+            onCompleted: () => {
+              setState("verify");
+              sheetRef.current?.snapToIndex(fullScreenIndex);
+            },
+          });
+          return;
         }
+        setState("password");
       },
     });
   };
@@ -171,8 +176,12 @@ const LoginModalView = () => {
     handleClosePress();
   };
 
-  const onVerifiedSuccess = () => {
+  const onVerifiedSuccess = (id: string) => {
     setState("details");
+  };
+
+  const onCreateBusiness = () => {
+    setState("business");
   };
 
   useEffect(() => {
@@ -199,36 +208,64 @@ const LoginModalView = () => {
         />
       )}
     >
-      <BottomSheetView style={{ marginHorizontal: 16 }}>
-        {state === "email" && (
-          <Email
-            onSubmit={(email) => {
-              onSubmitEmail(email);
-            }}
-            initialEmail={email}
-          />
-        )}
-        {state === "password" && (
-          <Password
-            onBack={() => setState("email")}
-            onSubmit={(password) => {
-              onSubmitPassword(password);
-            }}
-            onForgotPassword={onForgotPassword}
-            wrongPassword={wrongPassword}
-          />
-        )}
-        {state === "forgotPassword" && (
-          <ForgotPassword
-            onBack={() => setState("password")}
-            onSubmit={onRequestPasswordReset}
-            currentEmail={email}
-          />
-        )}
-        {state === "verify" && (
-          <Verify email={email} onSuccess={() => onVerifiedSuccess()} />
-        )}
-        {state === "details" && <Body>Details screen</Body>}
+      <BottomSheetView>
+        <ScreenLayout>
+          {state === "email" && (
+            <Email
+              onSubmit={(email) => {
+                onSubmitEmail(email);
+              }}
+              initialEmail={email}
+            />
+          )}
+          {state === "password" && (
+            <Password
+              onBack={() => setState("email")}
+              onSubmit={(password) => {
+                onSubmitPassword(password);
+              }}
+              onForgotPassword={onForgotPassword}
+              wrongPassword={wrongPassword}
+            />
+          )}
+          {state === "forgotPassword" && (
+            <ForgotPassword
+              onBack={() => setState("password")}
+              onSubmit={onRequestPasswordReset}
+              currentEmail={email}
+            />
+          )}
+          {state === "verify" && (
+            <Verify email={email} onSuccess={(id) => onVerifiedSuccess(id)} />
+          )}
+          {state === "details" && (
+            <Details
+              onDone={() => {
+                setVisible(false);
+                router.replace("/");
+              }}
+              onCreateBusiness={onCreateBusiness}
+              onExit={() => {
+                setVisible(false);
+                logout();
+                reloadAppAsync();
+                router.replace("/");
+              }}
+            />
+          )}
+          {state === "business" && (
+            <CreateBusiness
+              onDone={() => {
+                reloadAppAsync();
+                setVisible(false);
+              }}
+              onExit={() => {
+                reloadAppAsync();
+                setVisible(false);
+              }}
+            />
+          )}
+        </ScreenLayout>
       </BottomSheetView>
     </BottomSheetModal>
   );

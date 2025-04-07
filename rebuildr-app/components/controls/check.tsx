@@ -28,7 +28,7 @@ export const Check = ({ onPress, disabled, selected, ...rest }: CheckProps) => {
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={() => {
-        let checkState = "enabled";
+        let checkState: keyof typeof colorSet = "enabled";
         if (disabled) {
           checkState = "disabled";
         } else if (hovered) {

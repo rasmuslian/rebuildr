@@ -8,7 +8,7 @@ import { router } from "expo-router";
 import { useContext } from "react";
 import { View } from "react-native";
 
-const LANDING_QUERY = gql(`
+const LANDING_QUERY = gql`
   query LandingQuery {
     me {
       id
@@ -16,7 +16,7 @@ const LANDING_QUERY = gql(`
       role
     }
   }
-`);
+`;
 
 export default function Landing() {
   const { setVisible } = useContext(LoginModalContext);
