@@ -78,10 +78,6 @@ export class PurchaseService {
       if (!product?.seller?.rockerUserId) {
         throw InternalServerException();
       }
-      if (product.isGiveaway) {
-        //dont create offer on a giveaway item
-        throw InternalServerException();
-      }
 
       const price = product.price;
       //TODO: this is placeholder fee amount
