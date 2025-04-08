@@ -4,12 +4,11 @@ import {
   ApolloProvider,
   NormalizedCacheObject,
 } from "@apollo/client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { useFonts } from "expo-font";
 import { ScreenDimensionsProvider } from "@context/screenDimensionsContext";
 import { Helmet } from "react-helmet";
-import React from "react";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -17,7 +16,11 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
-import { initializeApollo } from "@/apollo/apollo";
+import { initializeApollo } from "@/apollo/config";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { LoginModalContext } from "@context/loginModalContext";
+import LoginModalView from "@components/modals/loginModalView";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -32,6 +35,7 @@ const RootLayout = () => {
   });
 
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     initializeApollo()
@@ -58,12 +62,24 @@ const RootLayout = () => {
           src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossOrigin=""
-        ></script>
+        />
       </Helmet>
       <ApolloProvider client={client}>
-        <ScreenDimensionsProvider>
-          <Slot />
-        </ScreenDimensionsProvider>
+        <LoginModalContext.Provider
+          value={{
+            visible: showLoginModal,
+            setVisible: setShowLoginModal,
+          }}
+        >
+          <GestureHandlerRootView>
+            <BottomSheetModalProvider>
+              <ScreenDimensionsProvider>
+                <Slot />
+                <LoginModalView />
+              </ScreenDimensionsProvider>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </LoginModalContext.Provider>
       </ApolloProvider>
     </>
   );

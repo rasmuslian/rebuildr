@@ -10,7 +10,6 @@ import {
   IPaymentCompleted,
   IPaymentFailed,
   IPaymentStarted,
-  IPayoutAccountVerification,
   IPayoutCompleted,
   IPayoutFailed,
   IPayoutStarted,
@@ -18,14 +17,12 @@ import {
 import * as crypto from 'crypto';
 import { PurchaseService } from 'src/services/purchase.service';
 import { ConfigService } from '@nestjs/config';
-import { RockerService } from 'src/services/rocker.service';
 import { EnvironmentVariables } from 'src/config';
 
 type RockerWebhookPayload =
   | IPaymentStarted
   | IPaymentFailed
   | IPaymentCompleted
-  | IPayoutAccountVerification
   | IPayoutStarted
   | IPayoutCompleted
   | IPayoutFailed;
@@ -36,7 +33,6 @@ export class RockerWebhookController {
   constructor(
     private purchaseService: PurchaseService,
     private configService: ConfigService<EnvironmentVariables>,
-    private rockerService: RockerService,
   ) {}
   @Post()
   @HttpCode(200)
@@ -73,10 +69,6 @@ export class RockerWebhookController {
         this.logger.warn('Payment failed: ');
         this.logger.warn('Error code: ' + body.errorCode);
         this.logger.warn('swishErrorCode: ', body.swishErrorCode);
-        return;
-      }
-      if (body.$type === 'PayoutAccountVerification') {
-        await this.rockerService.verifyPayoutAccount(body);
         return;
       }
       if (body.$type === 'PayoutStarted') {

@@ -305,11 +305,11 @@ export class ProductResolver {
   }
 
   @ResolveField(() => User)
-  async user(
+  async seller(
     @Root() _product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
-    return productLoaders.userLoader.load(_product.id);
+    return productLoaders.sellerLoader.load(_product.id);
   }
 
   @ResolveField(() => [File])

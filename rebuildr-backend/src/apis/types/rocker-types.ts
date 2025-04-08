@@ -21,11 +21,20 @@ export enum UserTypeEnum {
   COMPANY_USER = 'COMPANY_USER',
   INDIVIDUAL_USER = 'INDIVIDUAL_USER',
 }
+registerEnumType(UserTypeEnum, { name: 'RockeUserTypeEnum' });
 
 export interface ICreateForeignUserRequest {
   foreignUserId: string;
   country: RockerCountryEnum;
   email: string;
+  externalData: object;
+}
+export interface ICreateCompanyUserRequest {
+  registrationNumber: string;
+  companyName: string;
+  country: RockerCountryEnum;
+  email: string;
+  phone?: string;
   externalData: object;
 }
 
@@ -39,6 +48,24 @@ export interface IPostUsersResponse {
   phone?: string;
   firstName?: string;
   lastName?: string;
+  companyName?: string;
+  registrationNumber?: string;
+}
+
+export interface IUserResponse {
+  id: string;
+  nationalIdNumber?: string;
+  foreignUserId?: string;
+  country: RockerCountryEnum;
+  email: string;
+  firsName?: string;
+  lastName?: string;
+  phone?: string;
+  defaultPayoutMethod?: PayoutMethodEnum;
+  createdAt: Date;
+  updatedAt: Date;
+  userType: UserTypeEnum;
+  lastBankIdAuth?: Date;
 }
 export type IGetAuthResponse =
   | {
@@ -87,6 +114,7 @@ export interface ICreateOfferRequest {
   externalData: Record<string, unknown>;
   escrowValue: IMoneyObject;
   serviceFee: IMoneyObject;
+  images: string[];
 }
 
 export interface IOfferResponse {
@@ -107,14 +135,35 @@ export interface IOfferResponse {
   externalData: Record<string, unknown>;
 }
 
-export interface ICreatePaymentRequest {
+export type ICreatePaymentRequest = {
   offerId: string;
   buyerId: string;
-  paymentMethod: 'SWISH';
-  paymentMethodData: {
-    paymentType: 'MOBILE';
-  };
-}
+} & (
+  | {
+      paymentMethod: PaymentMethodEnum.SWISH;
+      paymentMethodData?: {
+        $type: 'Swish';
+        paymentType: 'MOBILE';
+      };
+    }
+  | {
+      paymentMethod:
+        | PaymentMethodEnum.STRIPE
+        | PaymentMethodEnum.EXTERNAL
+        | PaymentMethodEnum.INVOICE
+        | PaymentMethodEnum.ROCKER_CARD
+        | PaymentMethodEnum.LOAN;
+    }
+  | {
+      paymentMethod: PaymentMethodEnum.TRUSTLY;
+      paymentMethodData: {
+        successUri: string;
+        failureUri: string;
+        urlScheme?: string;
+      };
+    }
+);
+
 export enum PaymentMethodEnum {
   TRUSTLY = 'TRUSTLY',
   STRIPE = 'STRIPE',
@@ -171,6 +220,28 @@ export interface ICreateSwishPayoutAccountRequest {
   userId: string;
   phoneNumber?: string;
 }
+interface RixAccountIdentifier {
+  clearingNumber: string;
+  accountNumber: string;
+}
+export interface ICreateRixPayoutAccountRequest {
+  userId: string;
+  identifier: RixAccountIdentifier;
+  accountName: string;
+  bankName?: string;
+}
+export interface ICreateBankGiroPayoutAccountRequest {
+  userId: string;
+  identifier: string;
+  accountName: string;
+  bankName?: string;
+}
+export interface ICreatePlusGiroPayoutAccountRequest {
+  userId: string;
+  identifier: string;
+  accountName: string;
+  bankName?: string;
+}
 
 export enum PayoutMethodEnum {
   TRUSTLY = 'TRUSTLY',
@@ -179,11 +250,15 @@ export enum PayoutMethodEnum {
   ROCKER_CARD_REFUND = 'ROCKER_CARD_REFUND',
   SWISH = 'SWISH',
 }
+registerEnumType(PayoutMethodEnum, { name: 'RockerPayoutMethodEnum' });
+
 export interface IPayoutAccountResponse {
   merchantId: string;
   id: string;
   userId: string;
   provider: PayoutMethodEnum;
+  accountName?: string;
+  bankName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -242,20 +317,24 @@ export interface IPaymentCompleted {
   timestamp: Date;
 }
 
-export enum VerificationStatusEnum {
-  UNVERIFIED = 'UNVERIFIED',
-  PAYABLE = 'PAYABLE',
-  VERIFIED_OWNER = 'VERIFIED_OWNER',
-  INVALID = 'INVALID',
-  TIMED_OUT = 'TIMED_OUT',
-  CANCELLED = 'CANCELLED',
+export interface IPaymentPauseStateChanged {
+  $type: 'PaymentPauseStateChanged';
+  offerId: string;
+  paymentId: string;
+  paymentStatus: PaymentStatusEnum;
+  newState: PauseStateEnum;
+  oldState: PauseStateEnum;
+  timestamp: Date;
 }
-export interface IPayoutAccountVerification {
-  $type: 'PayoutAccountVerification';
-  payoutAccountId: string;
-  merchantId: string;
-  userId: string;
-  status: VerificationStatusEnum;
+
+export interface IPaymentRefunded {
+  $type: 'PaymentRefunded';
+  offerId: string;
+  paymentId: string;
+  refundId: string;
+  paymentStatus: PaymentStatusEnum;
+  paymentMethod: PaymentMethodEnum;
+  amount: IMoneyObject;
   timestamp: Date;
 }
 

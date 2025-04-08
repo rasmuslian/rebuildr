@@ -70,7 +70,9 @@ describe('Rocker', () => {
       updatedAt: new Date(),
       userType: UserTypeEnum.FOREIGN_USER,
     };
-    jest.spyOn(rockerAPI, 'createUser').mockResolvedValue(rockerUserResponse);
+    jest
+      .spyOn(rockerAPI, 'createForeignUser')
+      .mockResolvedValue(rockerUserResponse);
     userRepository.save.mockResolvedValue({
       ...user,
       rockerUserId: rockerUserResponse.id,
@@ -157,7 +159,7 @@ describe('Rocker', () => {
     product.title = 'product';
     product.address = 'address';
     product.addressLocation = { type: 'Point', coordinates: [57, 18] };
-    product.user = user;
+    product.seller = user;
     product.price = 100;
 
     const createOfferResponse: IOfferResponse = {
@@ -193,6 +195,13 @@ describe('Rocker', () => {
 
     jest.spyOn(rockerAPI, 'createOffer').mockResolvedValue(createOfferResponse);
     productRepository.findOne.mockResolvedValue(product);
-    await rockerService.createOffer(product.id);
+    await rockerService.createOffer(
+      product.title,
+      product.id,
+      user.rockerUserId,
+      90,
+      10,
+      ['image.png'],
+    );
   });
 });

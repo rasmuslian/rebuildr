@@ -80,7 +80,18 @@ export const initializeApollo = async () => {
 
       for (const err of graphQLErrors) {
         if (err.extensions.code === "UNAUTHENTICATED") {
-          return fromPromise(renewTokens().catch((e) => isLoggedInVar(false)))
+          return fromPromise(
+            renewTokens().catch((error) => {
+              console.error("Failed update refresh token");
+              console.error(error);
+              Promise.all([
+                AsyncStorage.removeItem("access_token"),
+                AsyncStorage.removeItem("refresh_token"),
+              ]).then(() => {
+                isLoggedInVar(false);
+              });
+            }),
+          )
             .filter((value) => Boolean(value))
             .flatMap((accessToken) => {
               const oldHeaders = operation.getContext().headers;

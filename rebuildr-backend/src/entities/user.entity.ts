@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
@@ -20,12 +21,33 @@ export enum UserRoleEnum {
 }
 registerEnumType(UserRoleEnum, { name: 'UserRoleEnum' });
 
+export enum UserType {
+  PERSONAL = 'PERSONAL',
+  BUSINESS = 'BUSINESS',
+}
+registerEnumType(UserType, { name: 'UserType' });
+
 export enum RockerPayoutAccountStatusEnum {
   NOT_SET = 'NOT_SET',
   VERIFIED = 'VERIFIED',
   PENDING = 'PENDING',
   FAILED = 'FAILED',
 }
+
+export enum RegistrationStatusEnum {
+  EMAIL = 'EMAIL',
+  DETAILS = 'DETAILS',
+  DONE = 'DONE',
+}
+registerEnumType(RegistrationStatusEnum, { name: 'RegisterStatusEnum' });
+
+export enum PayoutAccountEnum {
+  SWISH = 'SWISH',
+  RIX = 'RIX',
+  BANKGIRO = 'BANKGIRO',
+  PLUSGIRO = 'PLUGIRO',
+}
+registerEnumType(PayoutAccountEnum, { name: 'PayoutAccountEnum' });
 
 @Entity()
 @ObjectType()
@@ -34,16 +56,19 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field(() => String)
-  @Column({ unique: true })
-  username: string;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, unique: true })
+  username?: string;
 
-  @Field(() => String, { middleware: [UserProtectedMiddleware] })
-  @Column({ unique: true })
-  email: string;
+  @Field(() => String, {
+    nullable: true,
+    middleware: [UserProtectedMiddleware],
+  })
+  @Column({ unique: true, nullable: true })
+  email?: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -62,6 +87,10 @@ export class User {
   })
   addressLocation?: Point;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  phoneNumber?: string;
+
   @OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshToken?: RefreshToken;
 
@@ -75,8 +104,8 @@ export class User {
   @Column({ nullable: true })
   verifyEmailToken?: string;
 
-  @Column({ default: false })
-  verified: boolean;
+  @Column({ nullable: true })
+  emailVerifiedAt?: Date;
 
   @Column({ nullable: true })
   resetPasswordToken?: string;
@@ -87,12 +116,45 @@ export class User {
   @Column({ nullable: true })
   rockerUserId?: string; //id used in Rocker
 
-  @Column('enum', {
-    enum: RockerPayoutAccountStatusEnum,
-    default: RockerPayoutAccountStatusEnum.NOT_SET,
-  })
-  rockerPayoutAccountSwish: RockerPayoutAccountStatusEnum;
+  //following id's are id of each respective payout account method
+  @Column({ nullable: true })
+  payoutAccountSwishId?: string;
+  @Column({ nullable: true })
+  payoutAccountRixId?: string;
+  @Column({ nullable: true })
+  payoutAccountBankGiroId?: string;
+  @Column({ nullable: true })
+  payoutAccountPlusGiroId?: string;
+
+  @Field(() => PayoutAccountEnum, { nullable: true })
+  @Column('enum', { enum: PayoutAccountEnum, nullable: true })
+  selectedPayoutMethod?: PayoutAccountEnum;
 
   @OneToMany(() => Purchase, (p) => p.buyer)
   purchases: Purchase[];
+
+  @Field(() => UserType)
+  @Column('enum', {
+    enum: UserType,
+    default: UserType.PERSONAL,
+  })
+  type: UserType;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, unique: true })
+  organizationNumber?: string | null;
+
+  @ManyToMany(() => User, (user) => user.organizationUsers)
+  @JoinTable({
+    joinColumn: { name: 'personalAccountId' },
+    inverseJoinColumn: { name: 'organizationAccountId' },
+  })
+  organizations: User[];
+
+  @ManyToMany(() => User, (user) => user.organizations)
+  organizationUsers: User[];
+
+  @Field(() => Date, { nullable: true })
+  @Column({ type: Date, nullable: true })
+  organizationApprovedAt?: Date;
 }

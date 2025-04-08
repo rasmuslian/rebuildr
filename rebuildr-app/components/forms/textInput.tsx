@@ -65,19 +65,22 @@ export const TextInput = ({ ...props }: Props) => {
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         secureTextEntry={hideText}
-        style={{
-          borderWidth: strokeWidth.regular,
-          borderColor: getBorderColor(),
-          padding: 16,
-          paddingRight: 12,
-          backgroundColor: colors.background.neutral,
-          borderRadius: borderRadius.small,
-          height: 40,
-          ...textStyles.body["medium"],
-          color: getTextColor(),
-          outlineColor: colors.textField.clicked,
-        }}
         {...props}
+        style={[
+          {
+            borderWidth: strokeWidth.regular,
+            borderColor: getBorderColor(),
+            padding: 16,
+            paddingRight: 12,
+            backgroundColor: colors.background.neutral,
+            borderRadius: borderRadius.small,
+            height: 40,
+            ...textStyles.body["medium"],
+            color: getTextColor(),
+            outlineColor: colors.textField.clicked,
+          },
+          props.style,
+        ]}
       />
       {props.masked && (
         <View style={{ position: "absolute", right: 8, top: 8 }}>

@@ -18,11 +18,17 @@ import { View } from "react-native";
 import Placeholder from "@assets/images/placeholder.png";
 import { ScrollView } from "react-native-gesture-handler";
 import { ProductConditionEnum } from "@/gql/graphql";
+import { Form } from "@components/forms/form";
 
 export default function Page() {
   const [searchString, setSearchString] = useState("");
   const [sliderValue, setSliderValue] = useState(2);
   const [cSliderValue, setCSliderValue] = useState(10);
+
+  //form
+  const [formText, setFormText] = useState("");
+  const [formToggle, setFormToggle] = useState(false);
+  const [formCheckbox, setFormCheckbox] = useState(false);
 
   return (
     <ScrollView
@@ -204,6 +210,89 @@ export default function Page() {
         location={"Kungsholmen, Stockholm"}
         price={500}
         heart
+      />
+      <Form
+        fields={[
+          {
+            heading: "Header",
+            description: "beskrvining",
+            helperText: "hjälptext",
+            type: "text",
+            placeholder: "Placeholder text",
+            value: formText,
+            onChangeText: (text) => setFormText(text),
+          },
+          {
+            heading: "Disabled",
+            type: "text",
+            placeholder: "Placeholder text",
+            value: formText,
+            onChangeText: (text) => setFormText(text),
+            disabled: true,
+          },
+          {
+            heading: "Error",
+            type: "text",
+            placeholder: "Placeholder text",
+            value: formText,
+            onChangeText: (text) => setFormText(text),
+            error: true,
+          },
+          {
+            heading: "Password",
+            type: "text",
+            placeholder: "Placeholder text",
+            value: formText,
+            onChangeText: (text) => setFormText(text),
+            masked: true,
+          },
+          {
+            heading: "Select",
+            type: "select",
+            value: formText,
+            onPress: () => {},
+            placeholder: "Placeholder",
+          },
+          {
+            heading: "Error",
+            type: "select",
+            value: formText,
+            onPress: () => {},
+            placeholder: "Placeholder",
+            error: true,
+          },
+          {
+            heading: "Disabled",
+            type: "select",
+            value: formText,
+            onPress: () => {},
+            placeholder: "Placeholder",
+            error: true,
+            disabled: true,
+          },
+          {
+            explainer:
+              "This is an explainer. Keep it real short, but it can span over a maximum of three rows.",
+            type: "toggle",
+            onPress: () => setFormToggle(!formToggle),
+            selected: formToggle,
+          },
+          {
+            explainer:
+              "This is an explainer. Keep it real short, but it can span over a maximum of three rows.",
+            type: "toggle",
+            onPress: () => setFormToggle(!formToggle),
+            selected: formToggle,
+            disabled: true,
+          },
+          {
+            explainer:
+              "This is an explainer. Keep it real short, but it can span over a maximum of three rows.",
+            type: "checkbox",
+            selected: formCheckbox,
+            onPress: () => setFormCheckbox(!formCheckbox),
+          },
+        ]}
       />
     </ScrollView>
   );

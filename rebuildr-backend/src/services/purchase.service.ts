@@ -3,7 +3,7 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
 import { IsNull, MoreThanOrEqual, Repository } from 'typeorm';
-import { RockerService } from './rocker.service';
+import { RockerService, SupportedPaymentMethod } from './rocker.service';
 import {
   BadUserInputException,
   ForbiddenException,
@@ -21,6 +21,7 @@ import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
+import { FileService } from './file.service';
 
 enum PurchaseStatusEnum {
   INIT, //Buyer has started process to buy product
@@ -44,17 +45,22 @@ export class PurchaseService {
     private userRepository: Repository<User>,
     private rockerService: RockerService,
     private caslAbilityFactory: CaslAbilityFactory,
+    private fileService: FileService,
   ) {}
-  async purchase(productId: string, userId: string) {
+  async createPurchase(
+    productId: string,
+    userId: string,
+    paymentMethod: SupportedPaymentMethod,
+  ) {
     const product = await this.productRepository.findOne({
       where: { id: productId },
-      relations: { user: true, purchases: true },
+      relations: { seller: true, purchases: true },
     });
     const buyer = await this.userRepository.findOne({
       where: { id: userId },
     });
 
-    if (!product?.user?.rockerUserId || !buyer?.rockerUserId) {
+    if (!product?.seller?.rockerUserId || !buyer?.rockerUserId) {
       throw BadUserInputException();
     }
 
@@ -69,11 +75,38 @@ export class PurchaseService {
 
     const purchase = new Purchase();
     if (!product.isGiveaway) {
-      const offer = await this.rockerService.createOffer(product.id);
+      if (!product?.seller?.rockerUserId) {
+        throw InternalServerException();
+      }
+      if (product.isGiveaway) {
+        //dont create offer on a giveaway item
+        throw InternalServerException();
+      }
+
+      const price = product.price;
+      //TODO: this is placeholder fee amount
+      const escrow = price - 10;
+      const fee = 10;
+
+      const imageUrls = await Promise.all(
+        product.images.map(async (image) => {
+          return await this.fileService.getFileUrl(image.id);
+        }),
+      );
+
+      const offer = await this.rockerService.createOffer(
+        product.title,
+        product.id,
+        product.seller.rockerUserId,
+        escrow,
+        fee,
+        imageUrls,
+      );
 
       const payment = await this.rockerService.createPayment(
         offer.id,
         buyer.rockerUserId,
+        paymentMethod,
       );
 
       purchase.rockerOfferId = offer.id;
@@ -103,6 +136,7 @@ export class PurchaseService {
     try {
       const payoutResponse = await this.rockerService.createPayout(
         purchase.rockerPaymentId,
+        purchase.buyer,
       );
       purchase.rockerPayoutId = payoutResponse.id;
     } catch {

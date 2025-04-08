@@ -526,7 +526,7 @@ const cardTokensDark: CardTokens = {
   message: primitives.secondary800,
 };
 
-type ColorTokens = {
+export type ColorTokens = {
   text: TextTokens;
   background: BackgroundTokens;
   dividers: DividersTokens;

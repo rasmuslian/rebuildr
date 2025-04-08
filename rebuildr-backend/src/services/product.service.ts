@@ -64,7 +64,7 @@ export class ProductService {
 
     product.title = input.title;
     product.category = category;
-    product.user = user;
+    product.seller = user;
     product.price = input.price; //TODO: minimum price?
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;

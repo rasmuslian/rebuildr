@@ -1,16 +1,28 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { registerEnumType } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import {
   AuthResponseStatusEnum,
-  IPayoutAccountVerification,
-  VerificationStatusEnum,
+  PauseStateEnum,
 } from 'src/apis/types/rocker-types';
-import { Product } from 'src/entities/product.entity';
-import { RockerPayoutAccountStatusEnum, User } from 'src/entities/user.entity';
+import { swedishPhoneNumberRegex } from 'src/constants/regexp';
+import { PayoutAccountEnum, User } from 'src/entities/user.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
+import { CreatePayoutAccountInput } from 'src/resolvers/rocker.resolver';
+
 import { Repository } from 'typeorm';
+
+export enum SupportedPaymentMethod {
+  SWISH = 'SWISH',
+  STRIPE = 'STRIPE',
+}
+registerEnumType(SupportedPaymentMethod, {
+  name: 'PaymentMethod',
+});
+
+const CACHE_TTL_MS = 30000;
 
 @Injectable()
 export class RockerService {
@@ -21,21 +33,51 @@ export class RockerService {
     private userRepository: Repository<User>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
   ) {}
 
   async createForeignUser(user: User) {
-    const response = await this.rockerApi.createUser(user.id, user.email);
+    if (user.rockerUserId) {
+      return user;
+    }
+    const response = await this.rockerApi.createForeignUser(
+      user.id,
+      user.email,
+    );
 
     user.rockerUserId = response.id;
     return await this.userRepository.save(user);
   }
 
+  async createOrganizationUser(organizationUser: User, creator: User) {
+    if (!creator.email) {
+      throw new Error('Incorrect creator');
+    }
+    if (!organizationUser.organizationNumber || !organizationUser.username) {
+      throw new Error('Incorrect organization');
+    }
+
+    //Rocker require prefix '16' for organization numbers
+    const organizationNumber = '16' + organizationUser.organizationNumber;
+
+    return await this.rockerApi.createCompanyUser(
+      organizationNumber,
+      organizationUser.username,
+      creator.email,
+      creator.phoneNumber,
+    );
+  }
+
+  async getRockerUser(user: User) {
+    if (!user.rockerUserId) {
+      throw InternalServerException();
+    }
+    return await this.rockerApi.getUser(user.rockerUserId);
+  }
+
   /**
    * Starts authentication towards Rocker. Checks cache for data stored on requestId
    * If it does not exist, starts a new authentication session, otherwise checks the result
-   * of existin authentication session.
+   * of existing authentication session.
    * @param requestId Unique id to keep track of authentication
    */
   async authenticate(requestId: string, userId: string) {
@@ -44,10 +86,9 @@ export class RockerService {
     });
 
     if (!user.rockerUserId) {
-      this.logger.error(
-        'There is no user in Rocker connected to user with id: ',
-        userId,
-      );
+      this.logger.error({
+        message: 'There is no user in Rocker connected to user with id',
+      });
       throw BadUserInputException();
     }
 
@@ -56,7 +97,13 @@ export class RockerService {
     //authenticationToken not found. Means this is a call to initiate bankID
     if (!authenticationToken) {
       const response = await this.rockerApi.authenticate(user.id);
-      await this.cacheManager.set(requestId, response.authenticationToken);
+
+      await this.cacheManager.set(
+        requestId,
+        response.authenticationToken,
+        CACHE_TTL_MS,
+      );
+
       return {
         status: AuthResponseStatusEnum.PENDING,
         qrCode: response.authenticationInformation.qrCode,
@@ -72,7 +119,12 @@ export class RockerService {
       };
     }
     if (response.status === AuthResponseStatusEnum.ERROR) {
-      this.logger.error('Authentication resulted in error');
+      this.logger.error({
+        message: 'Rocker authentication resulted in error',
+        clientRequestId: requestId,
+        status: response.status,
+        userId: user.id,
+      });
       throw InternalServerException();
     }
 
@@ -82,91 +134,186 @@ export class RockerService {
     };
   }
 
-  async createOffer(productId: string) {
-    const product = await this.productRepository.findOne({
-      where: { id: productId },
-      relations: { user: true },
-    });
-
-    if (!product?.user?.rockerUserId) {
-      throw InternalServerException();
-    }
-    if (product.isGiveaway) {
-      //dont create offer on a giveaway item
-      throw InternalServerException();
-    }
-
-    const price = product.price;
-    //TODO: this is placeholder fee amount
-    const escrowValue = price - 10;
-    const fee = 10;
-
+  async createOffer(
+    title: string,
+    productId: string,
+    sellerRockerId: string,
+    escrowValue: number,
+    fee: number,
+    imageUrls: string[],
+  ) {
     const response = await this.rockerApi.createOffer(
-      product.title,
-      product.user.rockerUserId,
+      title,
+      sellerRockerId,
       escrowValue,
       fee,
-      product.id,
+      productId,
+      imageUrls,
     );
 
     return response;
   }
 
-  async createPayment(offerId: string, buyerId: string) {
-    return await this.rockerApi.createPayment(offerId, buyerId);
+  async createPayment(
+    offerId: string,
+    buyerId: string,
+    paymentMethod: SupportedPaymentMethod,
+  ) {
+    if (paymentMethod === SupportedPaymentMethod.SWISH) {
+      return await this.rockerApi.createSwishPayment(offerId, buyerId);
+    }
+    if (paymentMethod === SupportedPaymentMethod.STRIPE) {
+      return await this.rockerApi.createStripePayment(offerId, buyerId);
+    }
+
+    throw BadUserInputException('Unsupported payment method');
+  }
+
+  async getPayment(paymentId: string, paymentMethod: SupportedPaymentMethod) {
+    if (paymentMethod === SupportedPaymentMethod.SWISH) {
+      return await this.rockerApi.getSwishPayment(paymentId);
+    }
+    if (paymentMethod === SupportedPaymentMethod.STRIPE) {
+      throw BadUserInputException('Stripe payments are not supported yet');
+    }
+    throw BadUserInputException('Unsupported payment method');
   }
 
   async confirmPayment(paymentId: string) {
     return await this.rockerApi.confirmPayment(paymentId);
   }
 
-  async createPayoutAccount(phoneNumber: string, userId: string) {
-    const user = await this.userRepository.findOneBy({ id: userId });
+  async createPayoutAccount(
+    input: CreatePayoutAccountInput,
+    currentUserId: string,
+  ) {
+    const user = await this.userRepository.findOneBy({ id: currentUserId });
 
     if (!user?.rockerUserId) {
       throw BadUserInputException();
     }
 
-    if (
-      user.rockerPayoutAccountSwish === RockerPayoutAccountStatusEnum.PENDING
-    ) {
-      throw InternalServerException(
-        'A request to create payout account is already in progress',
+    if (input.type === PayoutAccountEnum.SWISH) {
+      return await this.createPayoutAccountSwish(input.phoneNumber, user);
+    }
+    if (input.type === PayoutAccountEnum.RIX) {
+      if (!input.clearingNumber || !input.accountNumber || !input.accountName) {
+        throw BadUserInputException('Invalid account details');
+      }
+      return await this.createPayoutAccountRix(
+        input.clearingNumber,
+        input.accountNumber,
+        input.accountName,
+        user,
+      );
+    }
+    if (input.type === PayoutAccountEnum.BANKGIRO) {
+      if (!input.accountName || !input.identifier) {
+        throw BadUserInputException('Invalid account details');
+      }
+      return await this.createPayoutAccountBankGiro(
+        input.identifier,
+        input.accountName,
+        user,
+      );
+    }
+    if (input.type === PayoutAccountEnum.PLUSGIRO) {
+      if (!input.accountName || !input.identifier) {
+        throw BadUserInputException('Invalid account details');
+      }
+      return await this.createPayoutAccountPlusGiro(
+        input.identifier,
+        input.accountName,
+        user,
       );
     }
 
-    await this.rockerApi.createPayoutAccount(user.rockerUserId, phoneNumber);
+    throw BadUserInputException('Invalid Payout Account');
+  }
+  private async createPayoutAccountSwish(phoneNumber: string, user: User) {
+    if (!swedishPhoneNumberRegex.test(phoneNumber)) {
+      throw BadUserInputException('Invalid phone number');
+    }
 
-    user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.PENDING;
+    const response = await this.rockerApi.createPayoutAccountSwish(
+      user.rockerUserId,
+      phoneNumber,
+    );
+
+    user.payoutAccountSwishId = response.id;
+    user.selectedPayoutMethod = PayoutAccountEnum.SWISH;
+    return await this.userRepository.save(user);
+  }
+  private async createPayoutAccountRix(
+    clearingNumber: string,
+    accountNumber: string,
+    accountName: string,
+    user: User,
+  ) {
+    const response = await this.rockerApi.createPayoutAccountRix(
+      clearingNumber,
+      accountNumber,
+      accountName,
+      user.rockerUserId,
+    );
+    user.payoutAccountRixId = response.id;
+    user.selectedPayoutMethod = PayoutAccountEnum.RIX;
+    return await this.userRepository.save(user);
+  }
+  private async createPayoutAccountBankGiro(
+    identifier: string,
+    accountName: string,
+    user: User,
+  ) {
+    const response = await this.rockerApi.createPayoutAccountBankGiro(
+      identifier,
+      accountName,
+      user.rockerUserId,
+    );
+    user.payoutAccountBankGiroId = response.id;
+    user.selectedPayoutMethod = PayoutAccountEnum.BANKGIRO;
+    return await this.userRepository.save(user);
+  }
+  private async createPayoutAccountPlusGiro(
+    identifier: string,
+    accountName: string,
+    user: User,
+  ) {
+    const response = await this.rockerApi.createPayoutAccountPlusGiro(
+      identifier,
+      accountName,
+      user.rockerUserId,
+    );
+    user.payoutAccountPlusGiroId = response.id;
+    user.selectedPayoutMethod = PayoutAccountEnum.PLUSGIRO;
     return await this.userRepository.save(user);
   }
 
-  async createPayout(payoutId: string) {
-    const response = await this.rockerApi.createPayout(payoutId);
+  async createPayout(paymentId: string, buyer: User) {
+    const rockerUser = await this.getRockerUser(buyer);
+
+    const response = await this.rockerApi.createPayout(
+      paymentId,
+      rockerUser.defaultPayoutMethod,
+    );
     if (response.errorCode) {
       throw InternalServerException();
     }
     return response;
   }
 
-  async verifyPayoutAccount(payload: IPayoutAccountVerification) {
-    const user = await this.userRepository.findOneBy({
-      rockerUserId: payload.userId,
-    });
-
-    if (!user) {
-      throw InternalServerException('verifyPayoutAccount: User not found');
-    }
-    switch (payload.status) {
-      case VerificationStatusEnum.CANCELLED:
-      case VerificationStatusEnum.INVALID:
-      case VerificationStatusEnum.TIMED_OUT:
-        user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.FAILED;
-        return;
-      default:
-        user.rockerPayoutAccountSwish = RockerPayoutAccountStatusEnum.VERIFIED;
-    }
-
-    await this.userRepository.save(user);
+  async pausePayment(paymentId: string, comment?: string) {
+    return await this.rockerApi.setPaymentPauseState(
+      paymentId,
+      PauseStateEnum.PAUSED,
+      comment,
+    );
+  }
+  async resumePayment(paymentId: string, comment?: string) {
+    return await this.rockerApi.setPaymentPauseState(
+      paymentId,
+      PauseStateEnum.NOT_PAUSED,
+      comment,
+    );
   }
 }

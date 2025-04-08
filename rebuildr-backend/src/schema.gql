@@ -42,15 +42,44 @@ type Purchase {
 
 type User {
   id: ID!
-  username: String!
-  email: String!
+  username: String
+  email: String
   address: String
+  phoneNumber: String
   role: UserRoleEnum!
+  selectedPayoutMethod: PayoutAccountEnum
+  type: UserType!
+  organizationNumber: String
+  organizationApprovedAt: DateTime
+  registrationStatus: RegisterStatusEnum!
 }
 
 enum UserRoleEnum {
   USER
   ADMIN
+}
+
+enum PayoutAccountEnum {
+  SWISH
+  RIX
+  BANKGIRO
+  PLUSGIRO
+}
+
+enum UserType {
+  PERSONAL
+  BUSINESS
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum RegisterStatusEnum {
+  EMAIL
+  DETAILS
+  DONE
 }
 
 type Product {
@@ -79,17 +108,12 @@ type Product {
   description: String
   distanceFromPosition: Float
   category: Category!
-  user: User!
+  seller: User!
   images: [File!]!
   mainImage: File
   likedByUser: Boolean
   location: LocationResponse!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 enum ProductConditionEnum {
   NEW
@@ -97,10 +121,6 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
-}
-
-type RegisterUserResponse {
-  message: String!
 }
 
 type ResendVerificationMailResponse {
@@ -192,6 +212,7 @@ type PurchaseProductResponse {
 
 type Query {
   me: User!
+  userExists(input: UserExistsInput!): User
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   category(input: CategoryInput!): Category!
@@ -202,6 +223,10 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+}
+
+input UserExistsInput {
+  email: String!
 }
 
 input GetProductInput {
@@ -254,14 +279,16 @@ input LocationSearchInput {
 }
 
 type Mutation {
-  registerUser(input: RegisterUserInput!): RegisterUserResponse!
-  verifyMail(input: VerifyMailInput!): LoginResponse!
+  registerUser(input: RegisterUserInput!): User!
+  verifyEmail(input: VerifyEmailInput!): LoginResponse!
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
+  finalizeUser(input: FinalizeUserInput!): User!
   login(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): User!
+  createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
   hideProduct(input: HideProductInput!): Product!
@@ -276,18 +303,21 @@ type Mutation {
 }
 
 input RegisterUserInput {
-  username: String!
   email: String!
-  password: String!
 }
 
-input VerifyMailInput {
+input VerifyEmailInput {
   email: String!
   verifyEmailToken: String!
 }
 
 input ResendVerificationMailInput {
   email: String!
+}
+
+input FinalizeUserInput {
+  username: String!
+  password: String!
 }
 
 input LoginInput {
@@ -312,7 +342,15 @@ input NewPasswordInput {
 
 input UpdateUserInput {
   id: String!
-  address: String!
+  address: String
+  username: String
+  password: String
+}
+
+input CreateOrganizationUserInput {
+  organizationNumber: String!
+  organizationName: String!
+  creatorId: String!
 }
 
 input CreateProductInput {
@@ -371,11 +409,22 @@ input AuthenticateRockerInput {
 }
 
 input CreatePayoutAccountInput {
-  phoneNumber: String!
+  phoneNumber: String
+  clearingNumber: String
+  accountNumber: String
+  accountName: String
+  identifier: String
+  type: PayoutAccountEnum!
 }
 
 input PurchaseProductInput {
   productId: String!
+  paymentMethod: PaymentMethod!
+}
+
+enum PaymentMethod {
+  SWISH
+  STRIPE
 }
 
 input AcceptPurchaseInput {

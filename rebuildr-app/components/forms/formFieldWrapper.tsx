@@ -22,19 +22,23 @@ export const FormFieldWrapper = ({
       <View style={{ flexDirection: horizontal ? "row" : "column" }}>
         {heading ? (
           <View style={{ paddingBottom: 4 }}>
-            <Label>{heading}</Label>
+            <Label size="medium">{heading}</Label>
           </View>
         ) : null}
         {description ? (
           <View style={{ paddingBottom: 12 }}>
-            <Body size="small">{description}</Body>
+            <Body size="small" color="secondary">
+              {description}
+            </Body>
           </View>
         ) : null}
       </View>
       <View>{children}</View>
       {helperText ? (
         <View style={{ paddingTop: 12 }}>
-          <Body size="small">{helperText}</Body>
+          <Body size="small" color="secondary">
+            {helperText}
+          </Body>
         </View>
       ) : null}
     </View>
