@@ -23,11 +23,11 @@ export class File {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ nullable: true })
-  productId?: string;
+  @ManyToOne(() => Product, (product) => product.images, { nullable: true })
+  productImages?: Product;
 
-  @ManyToOne(() => Product, (product) => product.id, { nullable: true })
-  product?: Product;
+  @ManyToOne(() => Product, (product) => product.documents, { nullable: true })
+  productDocument?: Product;
 
   @OneToOne(() => Category, (category) => category.image, { nullable: true })
   category?: Category;

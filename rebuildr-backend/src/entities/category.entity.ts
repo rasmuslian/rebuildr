@@ -3,12 +3,16 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { File } from './file.entity';
+import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
+import { Brand } from './brand.entity';
 
 enum CategoryIconEnum {
   MATERIAL = 'MATERIAL',
@@ -68,4 +72,24 @@ export class Category {
   @Field(() => CategoryIconEnum, { nullable: true })
   @Column('enum', { enum: CategoryIconEnum, nullable: true })
   icon?: CategoryIconEnum;
+
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  primaryQuantityUnit?: QuantityUnitEnum;
+
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  secondaryQuantityUnit?: QuantityUnitEnum;
+
+  @ManyToMany(() => Brand, (brand) => brand.categories)
+  @JoinTable()
+  brands: Brand[];
 }
