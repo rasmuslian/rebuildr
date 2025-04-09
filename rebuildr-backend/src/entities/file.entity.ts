@@ -24,7 +24,7 @@ export class File {
   createdAt: Date;
 
   @ManyToOne(() => Product, (product) => product.images, { nullable: true })
-  productImages?: Product;
+  productImage?: Product;
 
   @ManyToOne(() => Product, (product) => product.documents, { nullable: true })
   productDocument?: Product;

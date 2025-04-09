@@ -16,6 +16,7 @@ import { File } from './file.entity';
 import { Purchase } from './purchase.entity';
 import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
 import { Brand } from './brand.entity';
+import { Message } from './message.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -24,8 +25,12 @@ export enum ProductConditionEnum {
   OKAY = 'OKAY',
   BAD = 'BAD',
 }
-
 registerEnumType(ProductConditionEnum, { name: 'ProductConditionEnum' });
+
+export enum ProductStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+}
 
 @Entity()
 @ObjectType()
@@ -68,9 +73,6 @@ export class Product {
 
   @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
   addressLocation: Point;
-
-  @OneToMany(() => File, (file) => file.productImages)
-  images: File[];
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
@@ -145,8 +147,15 @@ export class Product {
   @Column('enum', { enum: ProductConditionEnum })
   condition: ProductConditionEnum;
 
+  @Field(() => ProductStatus)
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
+  status: ProductStatus;
+
   @ManyToOne(() => Brand, (brand) => brand.id, { nullable: true })
   brand?: Brand;
+
+  @OneToMany(() => File, (file) => file.productImage)
+  images: File[];
 
   @OneToMany(() => File, (file) => file.productDocument)
   documents: File[];
@@ -163,4 +172,7 @@ export class Product {
 
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
+
+  @OneToMany(() => Message, (message) => message.product)
+  messages: Message[];
 }
