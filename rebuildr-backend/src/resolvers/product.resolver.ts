@@ -183,18 +183,6 @@ export class GetProductInput {
 }
 
 @InputType()
-export class DeleteProductInput {
-  @Field()
-  id: string;
-}
-
-@ObjectType()
-export class DeleteProductResponse {
-  @Field()
-  title: string;
-}
-
-@InputType()
 export class HideProductInput {
   @Field()
   id: string;
@@ -263,13 +251,10 @@ export class ProductResolver {
     });
   }
 
-  @Mutation(() => DeleteProductResponse)
-  @UseGuards(GqlAuthGuard)
-  async deleteProduct(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input') input: DeleteProductInput,
-  ) {
-    return this.productService.delete(input.id, _user.id);
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
+  async createDraftProduct(@CurrentUser() _user: AuthedUserType) {
+    return await this.productService.createDraft(_user.id);
   }
 
   @Mutation(() => Product)
@@ -314,6 +299,7 @@ export class ProductResolver {
 
   @ResolveField(() => [File])
   async images(@Root() _product: Product) {
+    //TODO: use data loader
     return this.fileService.findByProduct(_product.id);
   }
 

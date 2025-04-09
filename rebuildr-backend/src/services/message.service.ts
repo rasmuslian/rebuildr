@@ -122,4 +122,18 @@ export class MessageService {
     message.body = input.body;
     return await this.messageRepository.save(message);
   }
+
+  async deleteMany(messages: Message[]) {
+    return await Promise.all(
+      messages.map((message) => this.delete(message.id)),
+    );
+  }
+  async delete(id: string) {
+    const message = await this.messageRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    return await this.messageRepository.remove(message);
+  }
 }

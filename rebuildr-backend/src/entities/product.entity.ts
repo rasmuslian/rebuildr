@@ -31,6 +31,7 @@ export enum ProductStatus {
   DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
 }
+registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 
 @Entity()
 @ObjectType()

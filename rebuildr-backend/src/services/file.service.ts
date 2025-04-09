@@ -82,11 +82,9 @@ export class FileService {
   }
 
   async findByProduct(productId: string) {
-    return await this.fileRepository.findBy({ productId });
-  }
-
-  async findOneByProduct(productId: string) {
-    return await this.fileRepository.findOneBy({ productId });
+    return await this.fileRepository.find({
+      where: { productImage: { id: productId } },
+    });
   }
 
   async getPresignedGetUrl(fileId: string) {

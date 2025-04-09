@@ -82,30 +82,43 @@ enum RegisterStatusEnum {
   DONE
 }
 
+type Message {
+  id: ID!
+  createdAt: DateTime!
+  body: String!
+  senderId: ID!
+  receiverId: ID!
+}
+
 type Product {
   id: ID!
   title: String!
+  description: String
   createdAt: DateTime!
   price: Int!
   address: String!
   hiddenReason: String
   isGiveaway: Boolean!
-  brand: String
-  amount: Int
 
   """Unit: millimeter"""
-  height: Int
+  height: Float
 
   """Unit: millimeter"""
-  width: Int
+  width: Float
 
   """Unit: millimeter"""
-  depth: Int
+  length: Float
 
-  """Unit: liter"""
-  volume: Int
+  """Unit: millimeter"""
+  thickness: Float
+
+  """Unit: millimeter"""
+  diameter: Float
+
+  """Unit: kg"""
+  weight: Float
   condition: ProductConditionEnum!
-  description: String
+  status: ProductStatusEnum!
   distanceFromPosition: Float
   category: Category!
   seller: User!
@@ -121,6 +134,11 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
+}
+
+enum ProductStatusEnum {
+  DRAFT
+  PUBLISHED
 }
 
 type ResendVerificationMailResponse {
@@ -142,14 +160,6 @@ type ResetPasswordResponse {
   message: String!
 }
 
-type Message {
-  id: ID!
-  createdAt: DateTime!
-  body: String!
-  senderId: ID!
-  receiverId: ID!
-}
-
 type LocationResponse {
   latitude: Float!
   longitude: Float!
@@ -168,10 +178,6 @@ type ProductsResponse {
   """
   origin: LocationResponse
   total: Int!
-}
-
-type DeleteProductResponse {
-  title: String!
 }
 
 type ConversationResponse {
@@ -290,7 +296,7 @@ type Mutation {
   updateUser(input: UpdateUserInput!): User!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
-  deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
+  createDraftProduct: Product!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
@@ -372,10 +378,6 @@ input CreateProductInput {
 
 input FileInputType {
   mimeType: String!
-}
-
-input DeleteProductInput {
-  id: String!
 }
 
 input HideProductInput {

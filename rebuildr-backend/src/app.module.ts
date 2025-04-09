@@ -53,6 +53,7 @@ import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { CustomLogger } from './custom.logger';
 import { EnvironmentVariables, validateConfig } from './config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { Brand } from './entities/brand.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -92,6 +93,7 @@ export interface RequestType {
       RefreshToken,
       Event,
       Purchase,
+      Brand,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,

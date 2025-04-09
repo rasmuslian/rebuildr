@@ -3,7 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Category } from 'src/entities/category.entity';
 import { Message } from 'src/entities/message.entity';
-import { Product, ProductConditionEnum } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductConditionEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import {
@@ -15,6 +19,9 @@ import {
 import { Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
+import { MessageService } from './message.service';
+import { PurchaseService } from './purchase.service';
+import { QuantityUnitEnum } from 'src/entities/enums';
 @Injectable()
 export class ProductService {
   constructor(
@@ -29,6 +36,8 @@ export class ProductService {
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private caslAbilityFactory: CaslAbilityFactory,
+    private messageService: MessageService,
+    private purchaseService: PurchaseService,
   ) {}
 
   async create(input: {
@@ -68,12 +77,11 @@ export class ProductService {
     product.price = input.price; //TODO: minimum price?
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;
-    product.brand = input.brand;
-    product.amount = input.amount;
+    product.primaryQuantity = input.amount;
+    product.primaryUnit = QuantityUnitEnum.AMOUNT;
     product.height = input.height;
     product.width = input.width;
-    product.depth = input.depth;
-    product.volume = input.volume;
+    product.thickness = input.depth;
     product.condition = input.condition;
     product.description = input.description;
     const location = await this.geocodingService.addressToLocation(
@@ -96,6 +104,32 @@ export class ProductService {
       product: createdProduct,
       presignedPutUrls: images.map((image) => image.signedUrl),
     };
+  }
+
+  async createDraft(currentUserId: string) {
+    const seller = await this.userRepository.findOneBy({ id: currentUserId });
+    if (!seller) {
+      throw BadUserInputException();
+    }
+
+    const existingDrafts = await this.productRepository.find({
+      where: {
+        sellerId: seller.id,
+        status: ProductStatus.DRAFT,
+      },
+    });
+
+    //delete all existing drafts
+    await this.deleteMany(existingDrafts);
+
+    const product = new Product();
+    product.title = '';
+    product.description = '';
+    product.price = 0;
+    product.status = ProductStatus.DRAFT;
+    product.seller = seller;
+
+    return await this.productRepository.save(product);
   }
 
   async findAll(
@@ -235,30 +269,6 @@ export class ProductService {
     return await this.productRepository.findOneBy({ id });
   }
 
-  async delete(id: string, userId: string) {
-    const user = await this.userRepository.findOneBy({
-      id: userId,
-    });
-    const product = await this.productRepository.findOne({
-      where: { id },
-      relations: { images: true },
-    });
-    if (!user || !product) {
-      throw BadUserInputException();
-    }
-    const ability = this.caslAbilityFactory.createForUser(user);
-    const allowed = ability.can('delete', product);
-    if (!allowed) {
-      throw ForbiddenException();
-    }
-
-    await this.fileService.deleteMany(product.images);
-    await this.messageRepository.delete({ productId: product.id });
-    await this.productRepository.delete(product.id);
-
-    return { title: product.title };
-  }
-
   async hide(id: string, reason: string, userId: string) {
     const user = await this.userRepository.findOneBy({
       id: userId,
@@ -343,5 +353,32 @@ export class ProductService {
     }
 
     return await this.productRepository.save(product);
+  }
+
+  /**
+   * Deletes products. Note: does NOT soft delete them but instead remove them and all depending database
+   * entries from the database
+   */
+  async deleteMany(products: Product[]) {
+    return await Promise.all(
+      products.map((product) => this.delete(product.id)),
+    );
+  }
+  async delete(id: string) {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { images: true, messages: true, purchases: true },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    await this.fileService.deleteMany([
+      ...product.images,
+      ...product.documents,
+    ]);
+    await this.messageService.deleteMany(product.messages);
+    await this.purchaseService.deleteMany(product.purchases);
+    return await this.productRepository.remove(product);
   }
 }
