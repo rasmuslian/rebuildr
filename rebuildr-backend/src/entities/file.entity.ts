@@ -31,4 +31,7 @@ export class File {
 
   @OneToOne(() => Category, (category) => category.image, { nullable: true })
   category?: Category;
+
+  @Column({ type: Boolean, default: false })
+  private: boolean;
 }
