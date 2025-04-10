@@ -9,6 +9,7 @@ import {
   OneToMany,
   Point,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
 import { User } from './user.entity';
@@ -51,6 +52,9 @@ export class Product {
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column()
   categoryId: string;
@@ -152,6 +156,8 @@ export class Product {
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
   status: ProductStatus;
 
+  @Column({ nullable: true })
+  brandId?: string;
   @ManyToOne(() => Brand, (brand) => brand.id, { nullable: true })
   brand?: Brand;
 
