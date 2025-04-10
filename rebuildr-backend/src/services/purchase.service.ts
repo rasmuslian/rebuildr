@@ -86,7 +86,7 @@ export class PurchaseService {
 
       const imageUrls = await Promise.all(
         product.images.map(async (image) => {
-          return await this.fileService.getFileUrl(image.id);
+          return await this.fileService.getUrl(image);
         }),
       );
 

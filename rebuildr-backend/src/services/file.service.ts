@@ -10,6 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File } from '../entities/file.entity';
+import { ConfigService } from '@nestjs/config';
+import { FileInputType } from 'src/resolvers/product.resolver';
 
 const SIGNED_URL_EXPIRATION = 3600;
 @Injectable()
@@ -18,6 +20,7 @@ export class FileService {
   constructor(
     @InjectRepository(File)
     private fileRepository: Repository<File>,
+    private configService: ConfigService,
   ) {
     try {
       this.s3 = new S3Client({
@@ -32,6 +35,10 @@ export class FileService {
       throw InternalServerException();
     }
   }
+
+  private spacesBucket = this.configService.get<string>('SPACES_BUCKET');
+  private CDNEndpoint = `https://${this.spacesBucket}.ams3.cdn.digitaloceanspaces.com`;
+  private nonCDNEndpoint = `https://${this.spacesBucket}.ams3.digitaloceanspaces.com`;
 
   async findOne(id: string) {
     return await this.fileRepository.findOneBy({ id });
@@ -55,14 +62,46 @@ export class FileService {
     };
   }
 
-  async deleteMany(files: File[]) {
+  async createFile(mimeType: string, isPrivate?: boolean) {
+    const file: File = this.fileRepository.create();
+    file.mimeType = mimeType;
+    file.private = !!isPrivate;
+    const updatedFile = await this.fileRepository.save(file);
+
+    const fileExtension = mimeType.split('/')[1];
+    const key = file.id + '.' + fileExtension;
+
+    const putCommand = new PutObjectCommand({
+      Bucket: this.spacesBucket,
+      Key: key,
+      ACL: !isPrivate ? 'public-read' : undefined,
+    });
+
+    const signedPutUrl = await getSignedUrl(this.s3, putCommand, {
+      expiresIn: 3600,
+    });
+    return {
+      file: updatedFile,
+      signedUrl: signedPutUrl,
+    };
+  }
+
+  async createFiles(_files: FileInputType[], isPrivate?: boolean) {
+    return await Promise.all(
+      _files.map(
+        async (_file) => await this.createFile(_file.mimeType, isPrivate),
+      ),
+    );
+  }
+
+  async deleteFiles(files: File[]) {
     //Return if array is empty
     if (!files.length) {
       return;
     }
 
     const cmd = new DeleteObjectsCommand({
-      Bucket: 'rebuildr-staging',
+      Bucket: this.spacesBucket,
       Delete: {
         Objects: files.map((file) => ({ Key: file.id })),
       },
@@ -87,20 +126,27 @@ export class FileService {
     });
   }
 
-  async getPresignedGetUrl(fileId: string) {
-    const cmd = new GetObjectCommand({
-      Bucket: 'rebuildr-staging',
-      Key: fileId,
-    });
+  async getUrl(file: File) {
+    const fileExtension = file.mimeType.split('/')[1];
+    const key = file.id + '.' + fileExtension;
 
-    return await getSignedUrl(this.s3, cmd, {
-      expiresIn: SIGNED_URL_EXPIRATION,
-    });
+    if (file.private) {
+      const getCommand = new GetObjectCommand({
+        Bucket: this.spacesBucket,
+        Key: key,
+      });
+
+      const getUrl = await getSignedUrl(this.s3, getCommand, {
+        expiresIn: 604800,
+      });
+
+      return this.getCDNUrl(getUrl);
+    }
+
+    return `${this.CDNEndpoint}/${key}`;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getFileUrl(fileId: string) {
-    //TODO: Create implementation
-    return 'file.png';
+  private getCDNUrl(url: string) {
+    return url.replace(this.nonCDNEndpoint, this.CDNEndpoint);
   }
 }
