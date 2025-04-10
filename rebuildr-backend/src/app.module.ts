@@ -50,10 +50,11 @@ import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
 import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 import { PurchaseResolver } from './resolvers/purchase.resolver';
-import { CustomLogger } from './custom.logger';
 import { EnvironmentVariables, validateConfig } from './config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { Brand } from './entities/brand.entity';
+import { WinstonModule } from 'nest-winston';
+import { instanceLogger } from './winston.logger';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -62,6 +63,7 @@ export interface RequestType {
 
 @Module({
   imports: [
+    WinstonModule.forRoot(instanceLogger),
     ConfigModule.forRoot({
       envFilePath: ['.env.local.1p'],
       validate: validateConfig,
@@ -157,7 +159,6 @@ export interface RequestType {
     RockerAPI,
     PurchaseService,
     PurchaseResolver,
-    CustomLogger,
   ],
 })
 export class AppModule {}
