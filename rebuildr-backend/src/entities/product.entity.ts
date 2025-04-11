@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -56,11 +56,11 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
-  categoryId: string;
+  @Column({ nullable: true })
+  categoryId?: string;
 
-  @ManyToOne(() => Category, (cat) => cat.id, { nullable: false })
-  category: Category;
+  @ManyToOne(() => Category, (cat) => cat.id, { nullable: true })
+  category?: Category;
 
   @Column()
   sellerId: string;
@@ -68,16 +68,19 @@ export class Product {
   @ManyToOne(() => User, (user) => user.id, { nullable: false })
   seller: User;
 
-  @Field(() => Int)
   @Column()
   price: number;
 
-  @Field(() => String)
-  @Column()
-  address: string;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  address?: string;
 
-  @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
-  addressLocation: Point;
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  addressLocation?: Point;
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
@@ -87,17 +90,22 @@ export class Product {
   @Column({ default: false })
   isGiveaway: boolean;
 
-  @Column()
-  primaryQuantity: number;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  primaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',
     enum: QuantityUnitEnum,
     enumName: quantityUnitEnumName,
+    nullable: true,
   })
-  primaryUnit: QuantityUnitEnum;
+  primaryUnit?: QuantityUnitEnum;
 
+  @Field({ nullable: true })
   @Column({ nullable: true })
   secondaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',
     enum: QuantityUnitEnum,
@@ -148,9 +156,9 @@ export class Product {
   @Column({ nullable: true })
   weight?: number;
 
-  @Field(() => ProductConditionEnum)
-  @Column('enum', { enum: ProductConditionEnum })
-  condition: ProductConditionEnum;
+  @Field(() => ProductConditionEnum, { nullable: true })
+  @Column('enum', { enum: ProductConditionEnum, nullable: true })
+  condition?: ProductConditionEnum;
 
   @Field(() => ProductStatus)
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
