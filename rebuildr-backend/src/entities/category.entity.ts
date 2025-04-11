@@ -49,10 +49,10 @@ export class Category {
   parentId?: string;
 
   @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
-  parent?: Category;
+  parent: Category;
 
   @OneToMany(() => Category, (cat) => cat.parent, { nullable: true })
-  children?: Category[];
+  children: Category[];
 
   @Field(() => Boolean)
   @Column({ default: false })

@@ -6,7 +6,7 @@ import { dbConfig } from './ormconfig';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { DataloaderModule } from './dataloader/dataloader.module';
+import { DataloaderModule } from './dataloaders/dataloader.module';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
@@ -40,8 +40,8 @@ import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
-import { ProductLoader } from './dataloader/product.loader';
-import { CategoryLoader } from './dataloader/category.loader';
+import { ProductLoader } from './dataloaders/product.loader';
+import { CategoryLoader } from './dataloaders/category.loader';
 import { RockerService } from './services/rocker.service';
 import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -55,6 +55,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { Brand } from './entities/brand.entity';
 import { WinstonModule } from 'nest-winston';
 import { instanceLogger } from './winston.logger';
+import { CategoryTree } from './entities/category-tree.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -90,6 +91,7 @@ export interface RequestType {
       User,
       Product,
       Category,
+      CategoryTree,
       Message,
       File,
       RefreshToken,
