@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToOne,
   Point,
   PrimaryGeneratedColumn,
   OneToMany,
@@ -91,8 +90,8 @@ export class User {
   @Column({ nullable: true })
   phoneNumber?: string;
 
-  @OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
-  refreshToken?: RefreshToken;
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
 
   @OneToMany(() => Product, (product) => product)
   products: Product[];
