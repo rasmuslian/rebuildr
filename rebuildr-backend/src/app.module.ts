@@ -56,6 +56,8 @@ import { Brand } from './entities/brand.entity';
 import { WinstonModule } from 'nest-winston';
 import { instanceLogger } from './winston.logger';
 import { CategoryTree } from './entities/category-tree.entity';
+import { BrandService } from './services/brand.service';
+import { BrandResolver } from './resolvers/brand.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -161,6 +163,8 @@ export interface RequestType {
     RockerAPI,
     PurchaseService,
     PurchaseResolver,
+    BrandService,
+    BrandResolver,
   ],
 })
 export class AppModule {}
