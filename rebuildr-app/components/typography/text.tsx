@@ -11,7 +11,11 @@ import { TextTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useResponsiveStyle } from "@hooks/useResponsiveStyles";
 
-type Props = { color?: keyof TextTokens; upperCase?: boolean } & TextProps;
+type Props = {
+  color?: keyof TextTokens;
+  upperCase?: boolean;
+  isLink?: boolean;
+} & TextProps;
 type DisplayProps = { size?: DisplaySize } & Props;
 type HeadlineProps = { size?: HeadlineSize } & Props;
 type TitleProps = { size?: TitleSize } & Props;
@@ -22,6 +26,7 @@ export const Base = ({
   textStyle,
   color = "primaryDark",
   upperCase,
+  isLink,
   ...props
 }: Props & { textStyle: TextStyle }) => {
   const colors = useThemeColor();
@@ -34,6 +39,11 @@ export const Base = ({
       style={[
         styles,
         { color: colors.text[color] },
+        isLink && {
+          textDecorationColor: colors.text.link,
+          textDecorationLine: "underline",
+          color: colors.text.link,
+        },
         upperCase && { textTransform: "uppercase" },
         props.style,
       ]}
