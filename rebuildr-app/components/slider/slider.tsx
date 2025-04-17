@@ -10,44 +10,51 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
-const SLIDER_WIDTH = 300;
-
 type SliderProps<T> = {
   values: T[];
   value: T;
   onChange: (v: T) => void;
+  onRelease?: (v: T) => void;
   compareFunction: (v1: T, v2: T) => boolean;
+  sliderWidth?: number;
 };
 export const Slider = <T,>({
   values,
   value,
   onChange,
+  onRelease,
   compareFunction,
+  sliderWidth = 300,
 }: SliderProps<T>) => {
   const colors = useThemeColor();
 
   const stepCount = values.length;
-  const stepWidth = SLIDER_WIDTH / (stepCount - 1);
+  const stepWidth = sliderWidth / (stepCount - 1);
   const indexOfValue = values.findIndex((v) => compareFunction(v, value));
   const translateX = useSharedValue(indexOfValue * stepWidth);
   const [step, setStep] = useState(indexOfValue);
+  const [absoluteStart, setAbsoluteStart] = useState(0);
 
   const gestureHandler = Gesture.Pan()
+    .onBegin((event) => {
+      setAbsoluteStart(event.absoluteX - indexOfValue * stepWidth);
+    })
     .onChange((event) => {
-      const deltaX = event.translationX + indexOfValue * stepWidth;
-      const newValue = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const deltaX = event.absoluteX - absoluteStart;
+      const newValue = Math.min(Math.max(0, deltaX), sliderWidth);
       const newIndex = Math.floor(newValue / stepWidth);
-      setStep(newIndex);
+      if (newIndex !== indexOfValue) {
+        setStep(newIndex);
+        onChange(values[newIndex]);
+      }
 
       translateX.value = newIndex * stepWidth;
     })
     .onEnd((event) => {
-      const deltaX = event.translationX + indexOfValue * stepWidth;
-      const newValue = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const deltaX = event.absoluteX - absoluteStart;
+      const newValue = Math.min(Math.max(0, deltaX), sliderWidth);
       const newIndex = Math.floor(newValue / stepWidth);
-      if (newIndex !== indexOfValue) {
-        onChange(values[newIndex]);
-      }
+      onRelease?.(values[newIndex]);
     });
 
   const animatedThumbStyle = useAnimatedStyle(() => ({
@@ -62,7 +69,7 @@ export const Slider = <T,>({
       {/* Container track */}
       <View
         style={{
-          width: SLIDER_WIDTH + 16,
+          width: sliderWidth + 16,
           position: "relative",
           justifyContent: "center",
           paddingRight: 8,
@@ -101,7 +108,7 @@ export const Slider = <T,>({
                     : colors.buttons.filled.enabled,
                 top: 6,
               },
-              { left: i * stepWidth + 4 },
+              { left: i * stepWidth + 5 },
             ]}
           />
         ))}
@@ -118,6 +125,7 @@ export const Slider = <T,>({
                 alignItems: "center",
                 position: "absolute",
                 top: -12,
+                left: -10,
 
                 bottom: 0,
               },
