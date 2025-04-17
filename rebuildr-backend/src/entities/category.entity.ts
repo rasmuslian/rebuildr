@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
@@ -44,6 +44,19 @@ export class Category {
   @Column()
   name: string;
 
+  @Field()
+  @Column()
+  description: string;
+
+  /**
+   * The order index of the category.
+   * Used to sort the categories in the frontend.
+   * The lowest value comes first.
+   */
+  @Field(() => Int, { defaultValue: 0 })
+  @Column({ default: 0 })
+  orderIndex: number;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   parentId?: string;
@@ -73,6 +86,7 @@ export class Category {
   @Column('enum', { enum: CategoryIconEnum, nullable: true })
   icon?: CategoryIconEnum;
 
+  @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',
     enum: QuantityUnitEnum,
@@ -81,6 +95,7 @@ export class Category {
   })
   primaryQuantityUnit?: QuantityUnitEnum;
 
+  @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',
     enum: QuantityUnitEnum,
