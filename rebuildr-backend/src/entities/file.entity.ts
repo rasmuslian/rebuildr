@@ -17,6 +17,11 @@ export class File {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  name?: string;
+
+  @Field()
   @Column()
   mimeType: string;
 
