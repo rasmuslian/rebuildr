@@ -1,24 +1,35 @@
 import { Body } from "@components/typography/text";
 import { TextTokens } from "@constants/colors";
 import { borderRadius, strokeWidth } from "@constants/sizes";
+import { useOutsidePress } from "@hooks/useOutsidePress";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useState } from "react";
-import { Pressable } from "react-native";
+import { ReactElement, useRef, useState } from "react";
+import { Pressable, View } from "react-native";
 
 export type Props = {
   value: string;
   disabled?: boolean;
-  onPress: () => void;
+  onPress?: () => void;
   placeholder?: string;
   error?: boolean;
+  dropdown?: (collapseDropdown: () => void) => ReactElement;
+  options: { value: string; label: string; disabled?: boolean }[];
+  onSelect: (value: string) => void;
 };
 
 export const SelectInput = ({ ...props }: Props) => {
-  const colors = useThemeColor();
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [optionHover, setOptionHover] = useState<number | undefined>();
+  const ref = useRef<View>(null);
+  useOutsidePress(ref, () => {
+    setShowOptions(false);
+  });
+  const colors = useThemeColor();
 
+  const value = props.options.find((o) => o.value === props.value)?.label;
   const saved = !focused && !!props.value;
 
   const getBorderColor = () => {
@@ -50,38 +61,98 @@ export const SelectInput = ({ ...props }: Props) => {
     if (hovered || saved || focused) {
       return "primaryDark";
     }
-    if (!!props.value) {
+    if (props.value) {
       return "primaryDark";
     }
 
     return "secondary";
   };
+
+  const onPressOption = (optionIndex: number) => {
+    setShowOptions(false);
+    props.onSelect(props.options[optionIndex].value);
+  };
+
   return (
-    <Pressable
-      onHoverIn={() => setHovered(true)}
-      onHoverOut={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      style={{
-        outlineColor: colors.textField.clicked,
-        paddingVertical: 16,
-        paddingRight: 12,
-        paddingLeft: 16,
-        borderRadius: borderRadius.small,
-        height: 40,
-        borderWidth: strokeWidth.regular,
-        backgroundColor: colors.background.neutral,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderColor: getBorderColor(),
-      }}
-      onPress={props.onPress}
-    >
-      <Body size="medium" color={getTextColor()}>
-        {props.value || props.placeholder}
-      </Body>
-      <Icon icon="chevronDown" size={12} />
-    </Pressable>
+    <View style={{ zIndex: 10 }} ref={ref}>
+      <Pressable
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          outlineColor: colors.textField.clicked,
+          paddingVertical: 16,
+          paddingRight: 12,
+          paddingLeft: 16,
+          borderRadius: borderRadius.medium,
+          height: 40,
+          borderWidth: strokeWidth.regular,
+          backgroundColor: colors.background.neutral,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderColor: getBorderColor(),
+        }}
+        onPress={() => setShowOptions(!showOptions)}
+      >
+        <Body size="medium" color={getTextColor()}>
+          {value || props.placeholder}
+        </Body>
+        <Icon icon="chevronDown" size={12} />
+      </Pressable>
+      {showOptions && (
+        <View style={{ position: "relative", zIndex: 10 }}>
+          <View
+            style={{
+              backgroundColor: colors.background.neutral,
+              alignSelf: "flex-end",
+              width: 161,
+              paddingHorizontal: 16,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              position: "absolute",
+              top: 4,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.4,
+              shadowRadius: 60,
+            }}
+          >
+            {props.options.map((option, i) => (
+              <Pressable
+                onHoverIn={() => setOptionHover(i)}
+                onPress={() => (!option.disabled ? onPressOption(i) : null)}
+                key={i}
+              >
+                <View
+                  style={[
+                    {
+                      paddingVertical: 13,
+                      borderBottomWidth: 1,
+                      borderColor: colors.dividers.primary,
+                      borderStyle: "solid",
+                    },
+                    i === props.options.length - 1 && { borderWidth: 0 },
+                  ]}
+                >
+                  <Body
+                    color={
+                      option.disabled
+                        ? "disabled"
+                        : i === optionHover
+                          ? "primaryDark"
+                          : "secondary"
+                    }
+                  >
+                    {option.label}
+                  </Body>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
+    </View>
   );
 };
