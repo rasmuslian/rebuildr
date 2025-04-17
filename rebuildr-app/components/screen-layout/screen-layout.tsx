@@ -19,7 +19,6 @@ export const ScreenLayout = ({
         contentContainerStyle={[
           {
             flexGrow: 1,
-            justifyContent: "space-between",
             backgroundColor: colors.background.neutral,
             paddingHorizontal: 16,
           },
