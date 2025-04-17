@@ -4,10 +4,11 @@ import { TextInput, Props as TextInputProps } from "./textInput";
 import { SelectInput, Props as SelectInputProps } from "./selectInput";
 import { ToggleInput, Props as ToggleInputProps } from "./toggleInput";
 import { CheckboxInput, Props as CheckboxInputProps } from "./checkboxInput";
+import { ReactNode } from "react";
 
 type BaseFieldProps = {
   heading?: string;
-  description?: string;
+  description?: string | ReactNode;
   helperText?: string;
 };
 

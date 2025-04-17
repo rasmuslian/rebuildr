@@ -2,7 +2,7 @@ import { textStyles } from "@components/typography/typeface";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useState } from "react";
+import { forwardRef, LegacyRef, useState } from "react";
 import {
   Pressable,
   TextInput as RNTextInput,
@@ -14,9 +14,14 @@ export type Props = {
   error?: boolean;
   disabled?: boolean;
   masked?: boolean;
-} & TextInputProps;
+  inputType?: "default" | "numeric";
+  onChange?: (t: string) => void;
+} & Omit<TextInputProps, "onChange">;
 
-export const TextInput = ({ ...props }: Props) => {
+export const TextInput = forwardRef(function TextInput(
+  { onChange, ...props }: Props,
+  ref: LegacyRef<RNTextInput>,
+) {
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -56,15 +61,40 @@ export const TextInput = ({ ...props }: Props) => {
     return colors.text.secondary;
   };
 
+  const onChangeText = (t: string) => {
+    if (!onChange) {
+      return;
+    }
+    if (props.inputType === "numeric") {
+      //remove all non-digits
+      let numericString = t.replace(/\D/g, "");
+
+      //remove leading 0 if it exists
+      if (numericString.startsWith("0") && numericString.length > 1) {
+        numericString = numericString.slice(1);
+      }
+      if (!numericString) {
+        //if price becomes an empty string, set it to "0" instead
+        numericString = "0";
+      }
+
+      onChange(numericString);
+    } else {
+      onChange(t);
+    }
+  };
+
   return (
     <Pressable
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
     >
       <RNTextInput
+        ref={ref}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         secureTextEntry={hideText}
+        onChangeText={(t) => onChangeText(t)}
         {...props}
         style={[
           {
@@ -91,4 +121,4 @@ export const TextInput = ({ ...props }: Props) => {
       )}
     </Pressable>
   );
-};
+});
