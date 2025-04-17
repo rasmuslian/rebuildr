@@ -19,7 +19,8 @@ import { UserRoleEnum } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
-import { ICategoryLoaders } from 'src/dataloader/category.loader';
+import { ICategoryLoaders } from 'src/dataloaders/category.loader';
+import { Brand } from 'src/entities/brand.entity';
 
 @InputType()
 class CategoryInput {
@@ -82,17 +83,35 @@ export class CategoryResolver {
 
   @ResolveField(() => [Category])
   children(
-    @Root() _parentCategory: Category,
+    @Root() _category: Category,
     @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
   ) {
-    return categoryLoaders.childrenLoader.load(_parentCategory.id);
+    return categoryLoaders.childrenLoader.load(_category.id);
   }
 
   @ResolveField(() => File, { nullable: true })
   image(
-    @Root() _parentCategory: Category,
+    @Root() _category: Category,
     @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
   ) {
-    return categoryLoaders.imageLoader.load(_parentCategory.id);
+    return categoryLoaders.imageLoader.load(_category.id);
+  }
+
+  @ResolveField(() => [String])
+  async ancestorIds(@Root() _category: Category) {
+    return await this.categoryService.getAncestorIds(_category);
+  }
+
+  @ResolveField(() => Boolean)
+  async hasChildren(@Root() _category: Category) {
+    return await this.categoryService.hasChildren(_category);
+  }
+
+  @ResolveField(() => [Brand])
+  async brands(
+    @Root() _category: Category,
+    @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
+  ) {
+    return await categoryLoaders.brandsLoader.load(_category.id);
   }
 }

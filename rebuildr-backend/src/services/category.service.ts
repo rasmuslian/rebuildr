@@ -1,19 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CategoryTree } from 'src/entities/category-tree.entity';
 import { Category } from 'src/entities/category.entity';
 import { Event, EventType } from 'src/entities/event.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { IsNull, Repository } from 'typeorm';
+import { Equal, IsNull, Repository } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(CategoryTree)
+    private categoryTreeRepository: Repository<CategoryTree>,
   ) {}
 
   async findOne(id: string) {
-    return await this.categoryRepository.findOneBy({ id });
+    return await this.categoryRepository.findOneBy({ id: Equal(id) });
   }
 
   async findAll() {
@@ -24,6 +27,20 @@ export class CategoryService {
     return await this.categoryRepository.findBy({
       parentId: IsNull(),
     });
+  }
+
+  async getAncestorIds(category: Category) {
+    const treeNode = await this.categoryTreeRepository.findOne({
+      where: { id: category.id },
+    });
+    return treeNode.ancestorIds;
+  }
+
+  async hasChildren(categeory: Category) {
+    const child = await this.categoryRepository.findOne({
+      where: { parentId: categeory.id },
+    });
+    return !child;
   }
 
   async findPopular(_limit?: number) {
