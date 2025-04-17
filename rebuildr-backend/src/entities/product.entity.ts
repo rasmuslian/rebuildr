@@ -156,9 +156,12 @@ export class Product {
   @Column({ nullable: true })
   weight?: number;
 
-  @Field(() => ProductConditionEnum, { nullable: true })
-  @Column('enum', { enum: ProductConditionEnum, nullable: true })
-  condition?: ProductConditionEnum;
+  @Field(() => ProductConditionEnum)
+  @Column('enum', {
+    enum: ProductConditionEnum,
+    default: ProductConditionEnum.GOOD,
+  })
+  condition: ProductConditionEnum;
 
   @Field(() => ProductStatus)
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
