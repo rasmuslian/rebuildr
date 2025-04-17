@@ -44,54 +44,50 @@ export class FileService {
     return await this.fileRepository.findOneBy({ id });
   }
 
-  async create(mimeType: string) {
-    let file = new File();
-    file.mimeType = mimeType;
-    file = await this.fileRepository.save(file);
-
-    const cmd = new PutObjectCommand({
-      Bucket: 'rebuildr-staging',
-      Key: file.id,
-    });
-    const signedUrl = await getSignedUrl(this.s3, cmd, {
-      expiresIn: SIGNED_URL_EXPIRATION,
-    });
-    return {
-      file,
-      signedUrl,
-    };
-  }
-
-  async createFile(mimeType: string, isPrivate?: boolean) {
-    const file: File = this.fileRepository.create();
+  async createFile(mimeType: string, name?: string, isPrivate?: boolean) {
+    const file = new File();
     file.mimeType = mimeType;
     file.private = !!isPrivate;
-    const updatedFile = await this.fileRepository.save(file);
+    file.name = name;
+    return await this.fileRepository.save(file);
+  }
 
+  async createFiles(_files: FileInputType[], isPrivate?: boolean) {
+    return await Promise.all(
+      _files.map(
+        async (_file) =>
+          await this.createFile(_file.mimeType, _file.name, isPrivate),
+      ),
+    );
+  }
+
+  async uploadFile(
+    file: File,
+    mimeType: string,
+    publicRead?: boolean,
+  ): Promise<string> {
     const fileExtension = mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
 
     const putCommand = new PutObjectCommand({
       Bucket: this.spacesBucket,
       Key: key,
-      ACL: !isPrivate ? 'public-read' : undefined,
+      ACL: publicRead ? 'public-read' : undefined,
     });
 
     const signedPutUrl = await getSignedUrl(this.s3, putCommand, {
-      expiresIn: 3600,
+      expiresIn: SIGNED_URL_EXPIRATION,
     });
-    return {
-      file: updatedFile,
-      signedUrl: signedPutUrl,
-    };
-  }
 
-  async createFiles(_files: FileInputType[], isPrivate?: boolean) {
-    return await Promise.all(
-      _files.map(
-        async (_file) => await this.createFile(_file.mimeType, isPrivate),
+    return signedPutUrl;
+  }
+  async uploadFiles(files: File[], publicRead?: boolean): Promise<string[]> {
+    const signedPutUrls = await Promise.all(
+      files.map(
+        async (file) => await this.uploadFile(file, file.mimeType, publicRead),
       ),
     );
+    return signedPutUrls;
   }
 
   async deleteFiles(files: File[]) {
