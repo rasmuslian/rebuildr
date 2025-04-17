@@ -1,6 +1,8 @@
 import { StyleProp, View, ViewStyle } from "react-native";
 import { FormFieldWrapper } from "./formFieldWrapper";
 import { TextInput, Props as TextInputProps } from "./textInput";
+import { MaskedInput, Props as MaskedInputProps } from "./maskedInput";
+import { SearchInput, Props as SearchInputProps } from "./searchInput";
 import { SelectInput, Props as SelectInputProps } from "./selectInput";
 import { ToggleInput, Props as ToggleInputProps } from "./toggleInput";
 import { CheckboxInput, Props as CheckboxInputProps } from "./checkboxInput";
@@ -14,6 +16,8 @@ type BaseFieldProps = {
 
 type FieldType =
   | (BaseFieldProps & TextInputProps & { type: "text" })
+  | (BaseFieldProps & MaskedInputProps & { type: "masked" })
+  | (BaseFieldProps & SearchInputProps & { type: "search" })
   | (BaseFieldProps & SelectInputProps & { type: "select" })
   | (BaseFieldProps & ToggleInputProps & { type: "toggle" })
   | (BaseFieldProps & CheckboxInputProps & { type: "checkbox" });
@@ -39,6 +43,12 @@ export const Form = ({ fields, style: _style }: Props) => {
           >
             {field.type === "text" ? (
               <TextInput {...(rest as TextInputProps)} />
+            ) : null}
+            {field.type === "masked" ? (
+              <MaskedInput {...(rest as MaskedInputProps)} />
+            ) : null}
+            {field.type === "search" ? (
+              <SearchInput {...(rest as SearchInputProps)} />
             ) : null}
             {field.type === "select" ? (
               <SelectInput {...(rest as SelectInputProps)} />

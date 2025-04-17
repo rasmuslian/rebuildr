@@ -1,7 +1,7 @@
 import { textStyles } from "@components/typography/typeface";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
+import { Icon, IconType } from "@icons/icon";
 import { forwardRef, LegacyRef, useState } from "react";
 import {
   Pressable,
@@ -13,8 +13,9 @@ import {
 export type Props = {
   error?: boolean;
   disabled?: boolean;
-  masked?: boolean;
+  hideText?: boolean;
   inputType?: "default" | "numeric";
+  trailing?: { icon: IconType; onPress: () => void };
   onChange?: (t: string) => void;
 } & Omit<TextInputProps, "onChange">;
 
@@ -25,7 +26,7 @@ export const TextInput = forwardRef(function TextInput(
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [hideText, setHideText] = useState(props.masked);
+  // const [hideText, setHideText] = useState(props.masked);
 
   const saved = !focused && !!props.value;
 
@@ -93,7 +94,7 @@ export const TextInput = forwardRef(function TextInput(
         ref={ref}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        secureTextEntry={hideText}
+        secureTextEntry={props.hideText}
         onChangeText={(t) => onChangeText(t)}
         {...props}
         style={[
@@ -103,7 +104,7 @@ export const TextInput = forwardRef(function TextInput(
             padding: 16,
             paddingRight: 12,
             backgroundColor: colors.background.neutral,
-            borderRadius: borderRadius.small,
+            borderRadius: borderRadius.medium,
             height: 40,
             ...textStyles.body["medium"],
             color: getTextColor(),
@@ -112,10 +113,10 @@ export const TextInput = forwardRef(function TextInput(
           props.style,
         ]}
       />
-      {props.masked && (
+      {props.trailing && (
         <View style={{ position: "absolute", right: 8, top: 8 }}>
-          <Pressable onPress={() => setHideText(!hideText)}>
-            <Icon icon={hideText ? "eye" : "eyeOff"} />
+          <Pressable onPress={props.trailing.onPress}>
+            <Icon icon={props.trailing.icon} />
           </Pressable>
         </View>
       )}

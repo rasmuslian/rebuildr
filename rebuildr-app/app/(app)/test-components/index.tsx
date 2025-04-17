@@ -240,11 +240,10 @@ export default function Page() {
           },
           {
             heading: "Password",
-            type: "text",
+            type: "masked",
             placeholder: "Placeholder text",
             value: formText,
             onChangeText: (text) => setFormText(text),
-            masked: true,
           },
           {
             heading: "Select",
@@ -252,6 +251,8 @@ export default function Page() {
             value: formText,
             onPress: () => {},
             placeholder: "Placeholder",
+            options: [],
+            onSelect: (v) => {},
           },
           {
             heading: "Error",
@@ -260,6 +261,8 @@ export default function Page() {
             onPress: () => {},
             placeholder: "Placeholder",
             error: true,
+            options: [],
+            onSelect: (v) => {},
           },
           {
             heading: "Disabled",
@@ -269,6 +272,8 @@ export default function Page() {
             placeholder: "Placeholder",
             error: true,
             disabled: true,
+            options: [],
+            onSelect: (v) => {},
           },
           {
             explainer:
