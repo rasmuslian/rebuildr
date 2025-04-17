@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Category } from 'src/entities/category.entity';
-import { Message } from 'src/entities/message.entity';
 import {
   Product,
   ProductConditionEnum,
@@ -15,13 +14,20 @@ import {
   FileInputType,
   OrderProductsEnum,
   ProductsInput,
+  UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { Point, Repository } from 'typeorm';
+import { Equal, Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
 import { PurchaseService } from './purchase.service';
 import { QuantityUnitEnum } from 'src/entities/enums';
+import { Purchase } from 'src/entities/purchase.entity';
+import { Logger } from 'winston';
+import * as z from 'zod';
+import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
+import { File } from '../entities/file.entity';
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -31,13 +37,13 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Message)
-    private messageRepository: Repository<Message>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private caslAbilityFactory: CaslAbilityFactory,
     private messageService: MessageService,
     private purchaseService: PurchaseService,
+    @InjectRepository(Purchase)
+    private purchaseRepository: Repository<Purchase>,
   ) {}
 
   async create(input: {
@@ -93,17 +99,27 @@ export class ProductService {
     };
     const images = await Promise.all(
       input.images?.map((image) => {
-        return this.fileService.create(image.mimeType);
+        return this.fileService.createFile(image.mimeType);
       }) ?? [],
     );
 
-    product.images = images.map((image) => image.file);
+    product.images = images;
     const createdProduct = await this.productRepository.save(product);
 
     return {
       product: createdProduct,
-      presignedPutUrls: images.map((image) => image.signedUrl),
+      presignedPutUrls: await this.fileService.uploadFiles(images, true),
     };
+  }
+
+  async getDraft(currentUserId: string) {
+    return await this.productRepository.findOne({
+      where: {
+        sellerId: currentUserId,
+        status: ProductStatus.DRAFT,
+      },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async createDraft(currentUserId: string) {
@@ -130,6 +146,201 @@ export class ProductService {
     product.seller = seller;
 
     return await this.productRepository.save(product);
+  }
+
+  //A user must be admin or own the product to edit them
+  // and the product can not have ongoing purchases on them
+  async canEdit(product: Product, userId: string, userRole: UserRoleEnum) {
+    if (userRole !== UserRoleEnum.ADMIN && userId !== product.sellerId) {
+      return false;
+    }
+
+    //TODO: check that product does not have any ongoing purchases connected to it
+    return true;
+  }
+
+  async updateProduct(
+    input: UpdateProductInput,
+    currentUserId: string,
+    currentUserRole: UserRoleEnum,
+    logger: Logger,
+  ) {
+    const product = await this.productRepository.findOne({
+      where: { id: input.id, purchases: null },
+      relations: {
+        images: true,
+        documents: true,
+      },
+    });
+
+    const canEdit = await this.canEdit(product, currentUserId, currentUserRole);
+
+    if (!canEdit) {
+      logger.error('User does not have permission to update product');
+
+      throw ForbiddenException();
+    }
+
+    if (input.title !== undefined) {
+      product.title = input.title;
+    }
+    if (input.description !== undefined) {
+      product.description = input.description;
+    }
+    if (input.price !== undefined) {
+      product.price = input.price * 100;
+    }
+    if (input.status) {
+      product.status = input.status;
+    }
+    //null means removing the brand
+    if (!!input.brandId || input.brandId === null) {
+      product.brandId = input.brandId;
+    }
+    if (input.condition) {
+      product.condition = input.condition;
+    }
+    if (input.isGiveAway !== undefined) {
+      product.isGiveaway = input.isGiveAway;
+    }
+    //null means removing the category
+    if (!!input.categoryId || input.categoryId === null) {
+      const category = await this.categoryRepository.findOne({
+        where: { id: Equal(input.categoryId) },
+      });
+      product.category = category;
+    }
+
+    //Measurements
+    if (input.height) {
+      product.height = input.height;
+    }
+    if (input.width) {
+      product.width = input.width;
+    }
+    if (input.length) {
+      product.length = input.length;
+    }
+    if (input.thickness) {
+      product.thickness = input.thickness;
+    }
+    if (input.diameter) {
+      product.diameter = input.diameter;
+    }
+    if (input.weight) {
+      product.weight = input.weight;
+    }
+    //Quantities
+    if (input.primaryUnit && input.primaryQuantity) {
+      product.primaryUnit = input.primaryUnit;
+      product.primaryQuantity = input.primaryQuantity;
+    }
+    if (
+      input.secondaryUnit !== undefined &&
+      input.secondaryQuantity !== undefined
+    ) {
+      product.secondaryUnit = input.secondaryUnit;
+      product.secondaryQuantity = input.secondaryQuantity;
+    }
+
+    //By this point we can validate the product, but only if it is to be published
+    if (product.status === ProductStatus.PUBLISHED) {
+      const parseResult = z
+        .object({
+          title: z.string().min(1),
+          description: z.string().min(1),
+          price: z.number().gte(1),
+          conditionId: z.string().min(1),
+          categoryId: z.string().min(1),
+        })
+        .safeParse(product);
+      if (!parseResult.success) {
+        logger.error({
+          message: 'Invalid update of product',
+          errors: parseResult.error.errors,
+        });
+
+        throw BadUserInputException('Invalid update of product');
+      }
+
+      if (
+        product.images?.length +
+          (input.addImages?.length ?? 0) -
+          (input.removeImages?.length ?? 0) <
+        1
+      ) {
+        logger.error({
+          message: 'Product must have at least one image',
+        });
+
+        throw BadUserInputException('Product must have at least one image');
+      }
+
+      if (product.price < minimumEscrow) {
+        logger.error({
+          message: 'Too low price',
+          price: product.price,
+          minimumEscrow,
+        });
+
+        throw BadUserInputException('Too low price');
+      }
+      if (product.price > maximumEscrow) {
+        logger.error({
+          message: 'Too high price',
+          price: product.price,
+          maximumEscrow,
+        });
+
+        throw BadUserInputException('Too high price');
+      }
+
+      if (!product.primaryQuantity || !product.primaryUnit) {
+        throw BadUserInputException('Product must specify quantity');
+      }
+    }
+
+    const updateFiles = async (
+      removeFileIds: string[],
+      addFilesInput: FileInputType[],
+      files: File[],
+    ) => {
+      //removing
+      const removeFiles = files.filter((file) =>
+        removeFileIds.some((removeId) => removeId === file.id),
+      );
+      const updatedFiles = files.filter((file) =>
+        removeFiles.every((removeFile) => removeFile.id !== file.id),
+      );
+      await this.fileService.deleteFiles(removeFiles);
+
+      //adding
+      const createFiles = await this.fileService.createFiles(
+        addFilesInput ?? [],
+      );
+      updatedFiles.push(...createFiles);
+
+      return updatedFiles;
+    };
+
+    const updatedImages = await updateFiles(
+      input.removeImages ?? [],
+      input.addImages ?? [],
+      product.images,
+    );
+    product.images = updatedImages;
+    const updatedDocuments = await updateFiles(
+      input.removeDocuments ?? [],
+      input.addDocuments ?? [],
+      product.documents,
+    );
+    product.documents = updatedDocuments;
+
+    return {
+      product: await this.productRepository.save(product),
+      imagePutUrls: this.fileService.uploadFiles(product.images, true),
+      documentPutUrls: this.fileService.uploadFiles(product.documents, true),
+    };
   }
 
   async findAll(
@@ -367,13 +578,18 @@ export class ProductService {
   async delete(id: string) {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: { images: true, messages: true, purchases: true },
+      relations: {
+        images: true,
+        messages: true,
+        purchases: true,
+        documents: true,
+      },
     });
     if (!product) {
       throw BadUserInputException();
     }
 
-    await this.fileService.deleteMany([
+    await this.fileService.deleteFiles([
       ...product.images,
       ...product.documents,
     ]);

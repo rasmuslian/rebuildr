@@ -4,18 +4,38 @@
 
 type File {
   id: ID!
-  presignedGetUrl: String!
+  name: String
+  mimeType: String!
+  url: String!
+}
+
+type Brand {
+  id: ID!
+  name: String!
+  type: BrandTypeEnum!
+}
+
+enum BrandTypeEnum {
+  OTHER
+  REGULAR
 }
 
 type Category {
   id: ID!
   name: String!
+  description: String!
+  orderIndex: Int!
   parentId: String
   inSelection: Boolean!
   inSeason: Boolean!
   icon: CategoryIconEnum
+  primaryQuantityUnit: QuantityUnitEnum
+  secondaryQuantityUnit: QuantityUnitEnum
   children: [Category!]!
   image: File
+  ancestorIds: [String!]!
+  hasChildren: Boolean!
+  brands: [Brand!]!
 }
 
 enum CategoryIconEnum {
@@ -34,6 +54,21 @@ enum CategoryIconEnum {
   OUTDOORS
   TOOLS
   WORKPLACE
+}
+
+enum QuantityUnitEnum {
+  AMOUNT
+  BAGS
+  ROLLS
+  M
+  M2
+  M3
+  LITERS
+  CANS
+  PLATES
+  PACKAGES
+  DISCS
+  KG
 }
 
 type Purchase {
@@ -95,10 +130,13 @@ type Product {
   title: String!
   description: String
   createdAt: DateTime!
-  price: Int!
-  address: String!
+  address: String
   hiddenReason: String
   isGiveaway: Boolean!
+  primaryQuantity: Float
+  primaryUnit: QuantityUnitEnum
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
 
   """Unit: millimeter"""
   height: Float
@@ -120,12 +158,15 @@ type Product {
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   distanceFromPosition: Float
-  category: Category!
+  category: Category
   seller: User!
+  primaryImage: File
   images: [File!]!
-  mainImage: File
+  documents: [File!]!
   likedByUser: Boolean
   location: LocationResponse!
+  price: Float!
+  brand: Brand
 }
 
 enum ProductConditionEnum {
@@ -168,6 +209,12 @@ type LocationResponse {
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
+}
+
+type UpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
 }
 
 type ProductsResponse {
@@ -221,6 +268,7 @@ type Query {
   userExists(input: UserExistsInput!): User
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
+  getDraftedProduct: Product
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
@@ -229,6 +277,7 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+  brands: [Brand!]!
 }
 
 input UserExistsInput {
@@ -297,6 +346,7 @@ type Mutation {
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
+  updateProduct(input: UpdateProductInput!): UpdateProductResponse!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
@@ -366,7 +416,7 @@ input CreateProductInput {
   address: String!
   images: [FileInputType!]
   isGiveaway: Boolean
-  brand: String
+  brandId: String
   amount: Float
   height: Float
   width: Float
@@ -378,6 +428,33 @@ input CreateProductInput {
 
 input FileInputType {
   mimeType: String!
+  name: String
+}
+
+input UpdateProductInput {
+  id: String!
+  title: String
+  description: String
+  categoryId: String
+  brandId: String
+  price: Float
+  isGiveAway: Boolean
+  primaryQuantity: Float
+  primaryUnit: QuantityUnitEnum
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
+  height: Float
+  width: Float
+  length: Float
+  thickness: Float
+  diameter: Float
+  weight: Float
+  condition: ProductConditionEnum
+  status: ProductStatusEnum
+  addImages: [FileInputType!]
+  removeImages: [String!]
+  addDocuments: [FileInputType!]
+  removeDocuments: [String!]
 }
 
 input HideProductInput {
