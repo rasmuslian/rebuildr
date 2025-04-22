@@ -19,17 +19,15 @@ import {
   MeasurementsSection,
 } from "@components/create-product/measurements-section";
 import { PriceSection } from "@components/create-product/price-section";
+import { ProgressHeader } from "@components/create-product/progress-header";
 import { QuantitiesSection } from "@components/create-product/quantities-section";
 import { RootCategorySection } from "@components/create-product/root-category-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Title } from "@components/typography/text";
-import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 const SELL_PRODUCT_QUERY = gql`
   query SellProductQuery {
@@ -358,15 +356,6 @@ export default function SellProduct() {
     if (!product) {
       return 0;
     }
-    /**
-     * bilder, minst en
-     * pris eller bortskänkes
-     * titel
-     * beskrivning
-     * primary
-     * condition
-     * brand
-     */
 
     const totalMandatories = 7;
     let obligatories = 0;
@@ -407,32 +396,11 @@ export default function SellProduct() {
   return (
     <>
       <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 16,
-            marginBottom: 12,
-          }}
-        >
-          <Title size="medium">Ny annons</Title>
-          <Pressable onPress={() => router.dismiss()}>
-            <Icon icon="X" size={18} />
-          </Pressable>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <ProgressDiv progress={progress()} />
-          <ProgressDiv progress={0} />
-          <ProgressDiv progress={0} />
-        </View>
+        <ProgressHeader
+          onClose={() => router.dismiss()}
+          title="Ny annons"
+          prog1={progress()}
+        />
       </View>
       <ScreenLayout style={{ gap: 24, paddingBottom: 48 }}>
         <RootCategorySection
@@ -571,34 +539,3 @@ export default function SellProduct() {
     </>
   );
 }
-
-type Props = {
-  progress: number; //0 to 100
-};
-
-const ProgressDiv = ({ progress }: Props) => {
-  const colors = useThemeColor();
-  const height = 4;
-  const clampedProgress = Math.max(0, Math.min(100, progress));
-
-  return (
-    <View
-      style={{
-        backgroundColor: colors.buttons.tonal.enabled,
-        height,
-        flex: 1,
-        borderRadius: borderRadius.small,
-      }}
-    >
-      <View
-        style={{
-          position: "absolute",
-          height,
-          width: `${clampedProgress}%`,
-          backgroundColor: colors.buttons.filled.enabled,
-          borderRadius: borderRadius.small,
-        }}
-      />
-    </View>
-  );
-};
