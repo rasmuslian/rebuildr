@@ -38,21 +38,13 @@ import { QuantityUnitEnum } from 'src/entities/enums';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Brand } from 'src/entities/brand.entity';
+import { LocationResponse } from './geocoding.resolver';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
   LATEST = 'LATEST',
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
-
-@ObjectType()
-class LocationResponse {
-  @Field()
-  latitude: number;
-
-  @Field()
-  longitude: number;
-}
 
 @InputType()
 export class FileInputType {
@@ -199,6 +191,9 @@ export class UpdateProductInput {
 
   @Field(() => [String], { nullable: true })
   removeDocuments?: string[];
+
+  @Field({ nullable: true })
+  projectId?: string | null;
 }
 
 @ObjectType()

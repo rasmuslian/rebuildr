@@ -95,7 +95,7 @@ export class ProductService {
     );
     product.addressLocation = {
       type: 'Point',
-      coordinates: [location.latitude, location.longitude],
+      coordinates: [location.lat, location.lng],
     };
     const images = await Promise.all(
       input.images?.map((image) => {
@@ -209,6 +209,9 @@ export class ProductService {
         where: { id: Equal(input.categoryId) },
       });
       product.category = category;
+    }
+    if (!!input.projectId || input.projectId === null) {
+      product.projectId = input.projectId;
     }
 
     //Measurements
@@ -379,7 +382,7 @@ export class ProductService {
       );
       origin = {
         type: 'Point',
-        coordinates: [location.latitude, location.longitude],
+        coordinates: [location.lat, location.lng],
       };
     }
     if (input.location) {

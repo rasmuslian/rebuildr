@@ -13,6 +13,7 @@ import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 import { Purchase } from './purchase.entity';
+import { Project } from './project.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -156,4 +157,7 @@ export class User {
   @Field(() => Date, { nullable: true })
   @Column({ type: Date, nullable: true })
   organizationApprovedAt?: Date;
+
+  @OneToMany(() => Project, (p) => p.user)
+  projects: Project[];
 }

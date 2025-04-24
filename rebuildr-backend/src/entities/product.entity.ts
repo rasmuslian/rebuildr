@@ -18,6 +18,7 @@ import { Purchase } from './purchase.entity';
 import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
 import { Brand } from './brand.entity';
 import { Message } from './message.entity';
+import { Project } from './project.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -193,4 +194,9 @@ export class Product {
 
   @OneToMany(() => Message, (message) => message.product)
   messages: Message[];
+
+  @Column({ nullable: true })
+  projectId?: string;
+  @ManyToOne(() => Project, (p) => p.products, { nullable: true })
+  project?: Project;
 }

@@ -58,6 +58,10 @@ import { instanceLogger } from './winston.logger';
 import { CategoryTree } from './entities/category-tree.entity';
 import { BrandService } from './services/brand.service';
 import { BrandResolver } from './resolvers/brand.resolver';
+import { ProjectService } from './services/project.service';
+import { ProjectResolver } from './resolvers/project.resolver';
+import { Project } from './entities/project.entity';
+import { UserLoader } from './dataloaders/user.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -100,14 +104,16 @@ export interface RequestType {
       Event,
       Purchase,
       Brand,
+      Project,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [ProductLoader, CategoryLoader, ConfigService],
+      inject: [ProductLoader, CategoryLoader, UserLoader, ConfigService],
       useFactory: (
         productLoaderService: ProductLoader,
         categoryLoaderService: CategoryLoader,
+        userLoaderService: UserLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -118,6 +124,7 @@ export interface RequestType {
           context: ({ req, res }) => ({
             productLoaders: productLoaderService.createLoaders(),
             categoryLoaders: categoryLoaderService.createLoaders(),
+            userLoaders: userLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -165,6 +172,8 @@ export interface RequestType {
     PurchaseResolver,
     BrandService,
     BrandResolver,
+    ProjectService,
+    ProjectResolver,
   ],
 })
 export class AppModule {}

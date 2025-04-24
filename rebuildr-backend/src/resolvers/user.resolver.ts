@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -11,7 +12,9 @@ import {
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { Project } from 'src/entities/project.entity';
 import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
@@ -87,5 +90,13 @@ export class UserResolver {
   @ResolveField(() => RegistrationStatusEnum)
   async registrationStatus(@Parent() user: User) {
     return await this.userService.getRegistrationStatus(user);
+  }
+
+  @ResolveField(() => [Project])
+  async projects(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.projectsLoader.load(user.id);
   }
 }
