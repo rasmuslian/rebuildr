@@ -15,9 +15,9 @@ type Props = {
 export const ProgressHeader = ({
   onClose,
   title,
-  prog1 = 0,
-  prog2 = 0,
-  prog3 = 0,
+  prog1,
+  prog2,
+  prog3,
 }: Props) => {
   return (
     <View>
@@ -43,9 +43,13 @@ export const ProgressHeader = ({
           gap: 8,
         }}
       >
-        <ProgressDiv progress={prog1} />
-        <ProgressDiv progress={prog2} />
-        <ProgressDiv progress={prog3} />
+        <ProgressDiv
+          progress={
+            prog2 !== undefined || prog3 !== undefined ? 100 : (prog1 ?? 0)
+          }
+        />
+        <ProgressDiv progress={prog3 !== undefined ? 100 : (prog2 ?? 0)} />
+        <ProgressDiv progress={prog3 ?? 0} />
       </View>
     </View>
   );

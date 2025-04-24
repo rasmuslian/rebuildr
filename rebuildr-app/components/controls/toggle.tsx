@@ -5,32 +5,27 @@ import { Icon } from "@icons/icon";
 import { borderRadius } from "@constants/sizes";
 
 export type ToggleProps = {
-  selected?: boolean;
+  value?: boolean;
   onPress: () => void;
 } & PressableProps;
 
-export const Toggle = ({
-  selected,
-  onPress,
-  disabled,
-  ...rest
-}: ToggleProps) => {
+export const Toggle = ({ value, onPress, disabled, ...rest }: ToggleProps) => {
   const [hovered, setHovered] = useState(false);
 
   const colors = useThemeColor();
-  const colorSet = selected ? colors.switch.true : colors.switch.false;
+  const colorSet = value ? colors.switch.true : colors.switch.false;
 
   const size = 48;
   const onPosition = size / 3;
-  const translateX = new Animated.Value(selected ? onPosition : 0);
+  const translateX = new Animated.Value(value ? onPosition : 0);
 
   useEffect(() => {
     Animated.timing(translateX, {
-      toValue: selected ? onPosition : 0,
+      toValue: value ? onPosition : 0,
       duration: 500,
       useNativeDriver: false,
     }).start();
-  }, [selected]);
+  }, [value]);
 
   const toggleSwitch = () => {
     onPress();
@@ -71,7 +66,7 @@ export const Toggle = ({
           alignItems: "center",
         }}
       >
-        {selected && (
+        {value && (
           <Icon
             icon="check"
             size={14}

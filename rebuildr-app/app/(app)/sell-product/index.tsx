@@ -173,7 +173,10 @@ export default function SellProduct() {
     SellProductUpdateMutationVariables
   >(SELL_PRODUCT_UPDATE);
 
-  const onUpdateProduct = async (_product: ProductFields) => {
+  const onUpdateProduct = async (
+    _product: ProductFields,
+    isFinal?: boolean,
+  ) => {
     if (updating) {
       return;
     }
@@ -272,6 +275,9 @@ export default function SellProduct() {
           );
         }
         await productToState(data.updateProduct.product);
+        if (isFinal) {
+          router.navigate("/sell-product/project");
+        }
       },
     });
   };
@@ -350,6 +356,13 @@ export default function SellProduct() {
 
     setProduct(stateProduct);
     return stateProduct;
+  };
+
+  const onNext = async () => {
+    if (!product) {
+      return;
+    }
+    onUpdateProduct(product, true);
   };
 
   const progress = () => {
@@ -487,7 +500,7 @@ export default function SellProduct() {
                 </Body>
               </View>
               <Toggle
-                selected={showDetails}
+                value={showDetails}
                 onPress={() => setShowDetails(!showDetails)}
               />
             </View>
@@ -530,7 +543,7 @@ export default function SellProduct() {
         {showContinue && (
           <Button
             label="Fortsätt"
-            onPress={() => {}}
+            onPress={onNext}
             style={{ marginTop: 24 }}
             disabled={!canSave}
           />

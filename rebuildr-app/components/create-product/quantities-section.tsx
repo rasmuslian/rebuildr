@@ -171,7 +171,7 @@ export const QuantitiesSection = ({
           </Body>
         </View>
         <Toggle
-          selected={showSecondary}
+          value={showSecondary}
           onPress={() => {
             //remove secondary if showSecondary is true, since it will now be removed from product
             if (showSecondary) {

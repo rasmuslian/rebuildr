@@ -8,7 +8,7 @@ import { ReactElement, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 export type Props = {
-  value: string;
+  value?: string;
   disabled?: boolean;
   onPress?: () => void;
   placeholder?: string;
@@ -107,7 +107,7 @@ export const SelectInput = ({ ...props }: Props) => {
             style={{
               backgroundColor: colors.background.neutral,
               alignSelf: "flex-end",
-              width: 161,
+              width: "100%",
               paddingHorizontal: 16,
               borderBottomLeftRadius: 8,
               borderBottomRightRadius: 8,

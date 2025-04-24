@@ -264,7 +264,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                   </Body>
                 </View>
                 <Toggle
-                  selected={dontCreateBusiness}
+                  value={dontCreateBusiness}
                   onPress={() => {
                     setCreateBusiness(false);
                     setDontCreateBusiness(!dontCreateBusiness);
@@ -300,7 +300,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                   </Body>
                 </View>
                 <Toggle
-                  selected={createBusiness}
+                  value={createBusiness}
                   onPress={() => {
                     setDontCreateBusiness(false);
                     setCreateBusiness(!createBusiness);
