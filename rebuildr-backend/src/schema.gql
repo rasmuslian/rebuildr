@@ -180,6 +180,7 @@ type Product {
   location: LocationResponse!
   price: Float!
   brand: Brand
+  project: Project
 }
 
 enum ProductConditionEnum {

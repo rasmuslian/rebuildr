@@ -88,14 +88,16 @@ export const Map = ({
 
 const InnerMap = ({ lat, lng, onMoveEnd }: MapProps) => {
   const map = useMap();
-  useMapEvents({
-    moveend: onMoveEnd
-      ? (e) => {
-          const center = e?.target.getCenter();
-          onMoveEnd(center.lat, center.lng);
+  useMapEvents(
+    onMoveEnd
+      ? {
+          moveend: (e) => {
+            const center = e?.target.getCenter();
+            onMoveEnd(center.lat, center.lng);
+          },
         }
-      : undefined,
-  });
+      : {},
+  );
 
   useEffect(() => {
     map.setView([lat, lng]);

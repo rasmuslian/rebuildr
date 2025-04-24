@@ -39,6 +39,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Brand } from 'src/entities/brand.entity';
 import { LocationResponse } from './geocoding.resolver';
+import { Project } from 'src/entities/project.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -468,5 +469,13 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     return productLoaders.brandLoader.load(_product.id);
+  }
+
+  @ResolveField(() => Project, { nullable: true })
+  async project(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.projectLoader.load(_product.id);
   }
 }

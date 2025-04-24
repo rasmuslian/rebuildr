@@ -6,6 +6,7 @@ import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { DataloaderService } from './dataloader.service';
 import { Brand } from 'src/entities/brand.entity';
+import { Project } from 'src/entities/project.entity';
 
 export interface IProductLoaders {
   likedByUserLoader: DataLoader<{ productId: string; userId: string }, boolean>;
@@ -14,6 +15,7 @@ export interface IProductLoaders {
   imagesLoader: DataLoader<string, File[]>;
   documentsLoader: DataLoader<string, File[]>;
   brandLoader: DataLoader<string, Brand>;
+  projectLoader: DataLoader<string, Project>;
 }
 
 @Injectable()
@@ -81,6 +83,10 @@ export class ProductLoader {
       ),
       brandLoader: this.dataloaderService.targetByParentIdLoader<Brand>(
         'brand',
+        Product,
+      ),
+      projectLoader: this.dataloaderService.targetByParentIdLoader<Project>(
+        'project',
         Product,
       ),
     };

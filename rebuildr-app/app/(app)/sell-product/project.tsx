@@ -29,6 +29,9 @@ const PROJECT_GET_MY_PROJECTS = gql`
     }
     getDraftedProduct {
       id
+      project {
+        id
+      }
     }
   }
 `;
@@ -75,6 +78,11 @@ export default function Project() {
         if (!data.getDraftedProduct) {
           console.error("No draft found");
           router.replace("/");
+          return;
+        }
+        if (data.getDraftedProduct.project) {
+          setProjectId(data.getDraftedProduct.project.id);
+          setConnectProject(true);
         }
       },
     },
@@ -85,7 +93,6 @@ export default function Project() {
   >(PROJECT_GET_PROJECT_QUERY);
   const [updateProduct, { loading: updatingProduct }] = useMutation(
     PROJECT_UPDATE_PRODUCT,
-    {},
   );
 
   const onProjectCreated = (id: string) => {
