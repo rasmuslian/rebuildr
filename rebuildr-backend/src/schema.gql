@@ -177,10 +177,11 @@ type Product {
   images: [File!]!
   documents: [File!]!
   likedByUser: Boolean
-  location: LocationResponse!
+  location: LocationResponse
   price: Float!
   brand: Brand
   project: Project
+  approximatePlace: ApproximatePlaceResponse
 }
 
 enum ProductConditionEnum {
@@ -226,6 +227,12 @@ type LocationSearchResponse {
 type LocationResponse {
   lat: Float!
   lng: Float!
+}
+
+type ApproximatePlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
 }
 
 type CreateProductResponse {
@@ -275,12 +282,6 @@ enum AuthResponseStatusEnum {
 type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
-}
-
-type ApproximatePlaceResponse {
-  lat: Float!
-  lng: Float!
-  address: String!
 }
 
 type Query {
@@ -467,6 +468,7 @@ input FileInputType {
 input UpdateProductInput {
   id: String!
   title: String
+  location: LocationInputType
   description: String
   categoryId: String
   brandId: String
@@ -489,6 +491,11 @@ input UpdateProductInput {
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
   projectId: String
+}
+
+input LocationInputType {
+  lat: Float!
+  lng: Float!
 }
 
 input HideProductInput {
@@ -551,11 +558,6 @@ input CreateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
-}
-
-input LocationInputType {
-  lat: Float!
-  lng: Float!
 }
 
 input UpdateProjectInput {

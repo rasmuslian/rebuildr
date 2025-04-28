@@ -91,9 +91,11 @@ const InnerMap = ({ lat, lng, onMoveEnd }: MapProps) => {
   useMapEvents(
     onMoveEnd
       ? {
-          moveend: (e) => {
+          dragend: (e) => {
             const center = e?.target.getCenter();
-            onMoveEnd(center.lat, center.lng);
+            if (center.lat !== lat || center.lng !== lng) {
+              onMoveEnd(center.lat, center.lng);
+            }
           },
         }
       : {},

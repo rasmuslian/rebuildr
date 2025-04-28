@@ -66,6 +66,17 @@ export class LocationResponse {
   lng: number;
 }
 
+@ObjectType()
+export class ApproximatePlaceResponse {
+  @Field()
+  lat: number;
+  @Field()
+  lng: number;
+
+  @Field()
+  address: string;
+}
+
 @Resolver()
 export class GeocodingResolver {
   constructor(private geocodingService: GeocodingService) {}

@@ -38,7 +38,11 @@ import { QuantityUnitEnum } from 'src/entities/enums';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Brand } from 'src/entities/brand.entity';
-import { LocationResponse } from './geocoding.resolver';
+import {
+  ApproximatePlaceResponse,
+  LocationInputType,
+  LocationResponse,
+} from './geocoding.resolver';
 import { Project } from 'src/entities/project.entity';
 
 export enum OrderProductsEnum {
@@ -131,6 +135,9 @@ export class UpdateProductInput {
 
   @Field(() => String, { nullable: true })
   title?: string;
+
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 
   @Field(() => String, { nullable: true })
   description: string;
@@ -450,11 +457,14 @@ export class ProductResolver {
     });
   }
 
-  @ResolveField(() => LocationResponse)
+  @ResolveField(() => LocationResponse, { nullable: true })
   async location(@Root() _product: Product) {
+    if (!_product.addressLocation) {
+      return null;
+    }
     return {
-      latitude: _product.addressLocation.coordinates[0],
-      longitude: _product.addressLocation.coordinates[1],
+      lat: _product.addressLocation.coordinates[0],
+      lng: _product.addressLocation.coordinates[1],
     };
   }
 
@@ -477,5 +487,10 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     return productLoaders.projectLoader.load(_product.id);
+  }
+
+  @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
+  async approximatePlace(@Root() product: Product) {
+    return this.productService.approximatePlace(product);
   }
 }

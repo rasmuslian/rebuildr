@@ -1,7 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from 'src/entities/project.entity';
 import {
-  ApproximatePlaceResponse,
   CreateProjectInput,
   GetProjectInput,
   UpdateProjectInput,
@@ -104,7 +103,7 @@ export class ProjectService {
     return await this.projectRepository.save(project);
   }
 
-  async approximatePlace(project: Project): Promise<ApproximatePlaceResponse> {
+  async approximatePlace(project: Project) {
     const approximation = await this.geocodingService.locationToApproximation({
       lat: project.addressLocation.coordinates[0],
       lng: project.addressLocation.coordinates[1],

@@ -4,7 +4,6 @@ import {
   Field,
   InputType,
   Mutation,
-  ObjectType,
   Parent,
   Query,
   ResolveField,
@@ -13,7 +12,11 @@ import {
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { Project } from 'src/entities/project.entity';
 import { ProjectService } from 'src/services/project.service';
-import { LocationResponse, LocationInputType } from './geocoding.resolver';
+import {
+  LocationResponse,
+  LocationInputType,
+  ApproximatePlaceResponse,
+} from './geocoding.resolver';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { AuthedUserType } from 'src/auth/constants';
 
@@ -55,17 +58,6 @@ export class UpdateProjectInput {
   contactEmail?: string;
   @Field({ nullable: true })
   contactPhone?: string;
-}
-
-@ObjectType()
-export class ApproximatePlaceResponse {
-  @Field()
-  lat: number;
-  @Field()
-  lng: number;
-
-  @Field()
-  address: string;
 }
 
 @Resolver(() => Project)

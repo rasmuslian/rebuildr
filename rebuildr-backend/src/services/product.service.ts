@@ -246,6 +246,18 @@ export class ProductService {
       product.secondaryQuantity = input.secondaryQuantity;
     }
 
+    if (input.location) {
+      product.address = (
+        await this.geocodingService.locationToAddress(input.location)
+      ).address;
+      product.addressLocation = {
+        type: 'Point',
+        coordinates: [input.location.lat, input.location.lng],
+      };
+      //Remove connection to project when new address is added to product
+      product.project = null;
+    }
+
     //By this point we can validate the product, but only if it is to be published
     if (product.status === ProductStatus.PUBLISHED) {
       const parseResult = z
@@ -567,6 +579,22 @@ export class ProductService {
     }
 
     return await this.productRepository.save(product);
+  }
+
+  async approximatePlace(product: Product) {
+    if (!product.addressLocation) {
+      return null;
+    }
+    const approximation = await this.geocodingService.locationToApproximation({
+      lat: product.addressLocation.coordinates[0],
+      lng: product.addressLocation.coordinates[1],
+    });
+    const approximateAddress = approximation.address;
+    return {
+      address: approximateAddress,
+      lat: approximation.lat,
+      lng: approximation.lng,
+    };
   }
 
   /**
