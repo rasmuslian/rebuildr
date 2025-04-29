@@ -19,6 +19,7 @@ import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
 import { Brand } from './brand.entity';
 import { Message } from './message.entity';
 import { Project } from './project.entity';
+import { ShippingPrice } from './shipping-price.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -210,4 +211,7 @@ export class Product {
   projectId?: string;
   @ManyToOne(() => Project, (p) => p.products, { nullable: true })
   project?: Project;
+
+  @ManyToMany(() => ShippingPrice, (sp) => sp.products)
+  shippingPrices: ShippingPrice[];
 }

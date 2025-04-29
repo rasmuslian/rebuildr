@@ -62,6 +62,9 @@ import { ProjectService } from './services/project.service';
 import { ProjectResolver } from './resolvers/project.resolver';
 import { Project } from './entities/project.entity';
 import { UserLoader } from './dataloaders/user.loader';
+import { ShippingPrice } from './entities/shipping-price.entity';
+import { ShippingPriceResolver } from './resolvers/shipping-price.resolver';
+import { ShippingPriceService } from './services/shipping-price.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -105,6 +108,7 @@ export interface RequestType {
       Purchase,
       Brand,
       Project,
+      ShippingPrice,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -174,6 +178,8 @@ export interface RequestType {
     BrandResolver,
     ProjectService,
     ProjectResolver,
+    ShippingPriceResolver,
+    ShippingPriceService,
   ],
 })
 export class AppModule {}

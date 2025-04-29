@@ -138,6 +138,18 @@ type Message {
   receiverId: ID!
 }
 
+type ShippingPrice {
+  id: ID!
+  maxWeight: Float!
+  provider: ShippingProviderEnum!
+  price: Float!
+}
+
+enum ShippingProviderEnum {
+  POSTNORD
+  DHL
+}
+
 type Product {
   id: ID!
   title: String!
@@ -304,6 +316,8 @@ type Query {
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
+  getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
+  getAllShippingPrices: [ShippingPrice!]!
 }
 
 input UserExistsInput {
@@ -364,6 +378,10 @@ input AddressToLocationInput {
 }
 
 input GetProjectInput {
+  id: String!
+}
+
+input GetShippingPriceInput {
   id: String!
 }
 
