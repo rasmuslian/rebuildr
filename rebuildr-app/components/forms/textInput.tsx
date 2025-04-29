@@ -4,8 +4,10 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
 import { forwardRef, LegacyRef, useState } from "react";
 import {
+  NativeSyntheticEvent,
   Pressable,
   TextInput as RNTextInput,
+  TextInputFocusEventData,
   TextInputProps,
   View,
 } from "react-native";
@@ -17,10 +19,11 @@ export type Props = {
   inputType?: "default" | "numeric";
   trailing?: { icon: IconType; onPress: () => void };
   onChange?: (t: string) => void;
-} & Omit<TextInputProps, "onChange">;
+  onBlur?: (t: string) => void;
+} & Omit<TextInputProps, "onChange" | "onBlur">;
 
 export const TextInput = forwardRef(function TextInput(
-  { onChange, ...props }: Props,
+  { onChange, onBlur, ...props }: Props,
   ref: LegacyRef<RNTextInput>,
 ) {
   const colors = useThemeColor();
@@ -85,6 +88,17 @@ export const TextInput = forwardRef(function TextInput(
     }
   };
 
+  const onBlurText = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    setFocused(false);
+    const text = e.nativeEvent.text;
+    if (props.inputType === "numeric") {
+      const priceNumber = text.replace(/\D/g, "");
+      onBlur?.(priceNumber);
+    } else {
+      onBlur?.(text);
+    }
+  };
+
   return (
     <Pressable
       onHoverIn={() => setHovered(true)}
@@ -93,7 +107,7 @@ export const TextInput = forwardRef(function TextInput(
       <RNTextInput
         ref={ref}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={onBlurText}
         secureTextEntry={props.hideText}
         onChangeText={(t) => onChangeText(t)}
         {...props}
