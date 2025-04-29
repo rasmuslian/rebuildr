@@ -103,6 +103,7 @@ export const Pickup = ({ productId }: Props) => {
             lat,
             lng,
           },
+          pickupEnabled: true,
         },
       },
       onCompleted: () => {

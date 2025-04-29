@@ -81,7 +81,7 @@ export const PreviewPickup = ({ productId, onChangeAddress }: Props) => {
             {approximateAddress}
           </Body>
         </View>
-        <Body size="small">
+        <Body size="small" color="secondary">
           Köparen ser inte projektets exakta adress ({address}), bara ett
           ungefärligt område på kartan enligt nedan. Din adress visas först när
           ett köp har genomförts.
@@ -91,7 +91,7 @@ export const PreviewPickup = ({ productId, onChangeAddress }: Props) => {
         lat={location[0]}
         lng={location[1]}
         interactive={false}
-        radius={1}
+        radius={5000}
         zoom={10}
       />
       <View style={{ gap: 12 }}>

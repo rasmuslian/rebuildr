@@ -17,7 +17,7 @@ type MapProps = {
   lng: number;
   interactive?: boolean;
   onMoveEnd?: (lat: number, lng: number) => void;
-  radius?: number;
+  radius?: number; //in meters
 };
 
 export const Map = ({
@@ -32,6 +32,9 @@ export const Map = ({
     <MapContainer
       center={[lat, lng]}
       zoom={props.zoom ?? 14}
+      zoomSnap={0.1}
+      zoomDelta={1}
+      wheelPxPerZoomLevel={1}
       style={{
         height: 185,
         width: "100%",
@@ -48,7 +51,13 @@ export const Map = ({
         url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}"
         ext="png"
       />
-      <InnerMap lat={lat} lng={lng} onMoveEnd={onMoveEnd} />
+      <InnerMap
+        lat={lat}
+        lng={lng}
+        onMoveEnd={onMoveEnd}
+        radius={radius}
+        interactive={interactive}
+      />
       {radius ? (
         <View
           style={{
@@ -86,7 +95,7 @@ export const Map = ({
   );
 };
 
-const InnerMap = ({ lat, lng, onMoveEnd }: MapProps) => {
+const InnerMap = ({ lat, lng, onMoveEnd, radius, interactive }: MapProps) => {
   const map = useMap();
   useMapEvents(
     onMoveEnd
@@ -104,6 +113,40 @@ const InnerMap = ({ lat, lng, onMoveEnd }: MapProps) => {
   useEffect(() => {
     map.setView([lat, lng]);
   }, [lat, lng]);
+
+  useEffect(() => {
+    if (!radius) {
+      return;
+    }
+    const center = map.getCenter();
+    const latRad = center.lat * (Math.PI / 180);
+
+    //approximate meters per pixel. Copied from chatGPT and stack overflow.
+    const metresPerPixelZoom = (zoom: number) =>
+      (156543.03392 * Math.abs(Math.cos(latRad))) / Math.pow(2, zoom);
+
+    const targetMetersPerPixel = radius / 62;
+
+    let zoom = 0;
+    for (let z = 20; z >= 0; z -= 0.1) {
+      // Check zoom levels 0-20
+      if (metresPerPixelZoom(z) <= targetMetersPerPixel) {
+        zoom = z;
+      }
+    }
+    map.setZoom(zoom);
+  }, [radius]);
+
+  useEffect(() => {
+    if (interactive === true) {
+      map.dragging.enable();
+      map.scrollWheelZoom.enable();
+    }
+    if (interactive === false) {
+      map.dragging.disable();
+      map.scrollWheelZoom.disable();
+    }
+  }, [interactive]);
 
   return null;
 };

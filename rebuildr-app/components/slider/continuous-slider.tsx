@@ -2,7 +2,7 @@ import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import React from "react";
+import React, { useState } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -10,39 +10,48 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
-const SLIDER_WIDTH = 300;
-
 type ContinuousSliderProps = {
   min: number;
   max: number;
   value: number;
+  width?: number;
   onChange: (v: number) => void;
+  onRelease?: (v: number) => void;
 };
 export const ContinuousSlider = ({
   min,
   max,
   value: inputValue,
+  width = 300,
   onChange,
+  onRelease,
 }: ContinuousSliderProps) => {
+  const [absoluteStart, setAbsoluteStart] = useState(0);
   const colors = useThemeColor();
 
   const value = Math.min(max, inputValue);
-  const valuePosition = (value / max) * SLIDER_WIDTH;
+  const valuePosition = (value / max) * width;
   const translateX = useSharedValue(valuePosition);
 
   const gestureHandler = Gesture.Pan()
+    .onBegin((event) => {
+      setAbsoluteStart(event.absoluteX - valuePosition);
+    })
     .onChange((event) => {
-      const deltaX = event.translationX + valuePosition;
-      const newPosition = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const deltaX = event.absoluteX - absoluteStart; //event.translationX + valuePosition;
+      const newPosition = Math.min(Math.max(0, deltaX), width);
 
       translateX.value = newPosition;
+      const newValue = min + (newPosition / width) * (max - min);
+
+      onChange(newValue);
     })
     .onEnd((event) => {
-      const deltaX = event.translationX + valuePosition;
-      const newPosition = Math.min(Math.max(0, deltaX), SLIDER_WIDTH);
+      const deltaX = event.absoluteX - absoluteStart; //event.translationX + valuePosition;
+      const newPosition = Math.min(Math.max(0, deltaX), width);
 
-      const newValue = (max - min) * (newPosition / SLIDER_WIDTH);
-      onChange(newValue);
+      const newValue = min + (newPosition / width) * (max - min);
+      onRelease?.(newValue);
     });
 
   const animatedThumbStyle = useAnimatedStyle(() => ({
@@ -57,7 +66,7 @@ export const ContinuousSlider = ({
       {/* Container track */}
       <View
         style={{
-          width: SLIDER_WIDTH + 16,
+          width: width + 16,
           position: "relative",
           justifyContent: "center",
           paddingRight: 8,

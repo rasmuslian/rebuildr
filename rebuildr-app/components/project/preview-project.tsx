@@ -65,7 +65,7 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
         <Map
           lat={project.approximatePlace.lat}
           lng={project.approximatePlace.lng}
-          radius={1}
+          radius={5000}
           interactive={false}
           zoom={10}
         />

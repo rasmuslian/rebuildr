@@ -189,6 +189,17 @@ export class Product {
   @Field({ nullable: true })
   distanceFromPosition?: number;
 
+  @Column({ default: false })
+  pickupEnabled: boolean;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  deliveryRadius?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  deliveryPrice?: number;
+
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
 

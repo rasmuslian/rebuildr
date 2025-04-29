@@ -58,6 +58,9 @@ const PROJECT_UPDATE_PRODUCT = gql`
     updateProduct(input: $input) {
       product {
         id
+        project {
+          id
+        }
       }
     }
   }

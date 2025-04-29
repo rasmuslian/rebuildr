@@ -202,6 +202,15 @@ export class UpdateProductInput {
 
   @Field({ nullable: true })
   projectId?: string | null;
+
+  @Field({ nullable: true })
+  deliveryPrice?: number;
+
+  @Field({ nullable: true })
+  deliveryRadius?: number;
+
+  @Field({ nullable: true })
+  pickupEnabled?: boolean;
 }
 
 @ObjectType()

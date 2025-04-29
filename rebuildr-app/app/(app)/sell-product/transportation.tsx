@@ -6,6 +6,7 @@ import { ProgressHeader } from "@components/create-product/progress-header";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { Delivery } from "@components/transport/delivery";
 import { Pickup } from "@components/transport/pickup";
 import { Body, Display, Headline, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
@@ -38,7 +39,7 @@ const TRANSPORTATION_QUERY = gql`
 export default function Transportation() {
   const [pickup, setPickup] = useState(false);
   const [shipping, setShipping] = useState(false);
-  const [dropoff, setDropoff] = useState(false);
+  const [delivery, setDelivery] = useState(false);
 
   const { data } = useQuery<TransportationQueryQuery>(TRANSPORTATION_QUERY, {
     onCompleted: (data) => {
@@ -56,7 +57,7 @@ export default function Transportation() {
     setShipping(!shipping);
   };
   const onSelectDropoff = () => {
-    setDropoff(!dropoff);
+    setDelivery(!delivery);
   };
   const onNext = () => {};
   const canContinue = () => {
@@ -109,9 +110,13 @@ export default function Transportation() {
             title="Hemtransport"
             description="Du erbjuder hemtransport och levererar produkten direkt till köparen."
             onPress={onSelectDropoff}
-            enabled={dropoff}
+            enabled={delivery}
           >
-            {null}
+            {delivery ? (
+              <Suspense fallback={<LoadingSpinner />}>
+                <Delivery productId={data.getDraftedProduct.id} />
+              </Suspense>
+            ) : null}
           </Card>
         </View>
         <View

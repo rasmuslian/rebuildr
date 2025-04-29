@@ -171,6 +171,8 @@ type Product {
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   distanceFromPosition: Float
+  deliveryRadius: Float
+  deliveryPrice: Float
   category: Category
   seller: User!
   primaryImage: File
@@ -491,6 +493,9 @@ input UpdateProductInput {
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
   projectId: String
+  deliveryPrice: Float
+  deliveryRadius: Float
+  pickupEnabled: Boolean
 }
 
 input LocationInputType {

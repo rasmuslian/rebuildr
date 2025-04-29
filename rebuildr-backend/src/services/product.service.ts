@@ -246,6 +246,7 @@ export class ProductService {
       product.secondaryQuantity = input.secondaryQuantity;
     }
 
+    //Transportations
     if (input.location) {
       product.address = (
         await this.geocodingService.locationToAddress(input.location)
@@ -256,6 +257,15 @@ export class ProductService {
       };
       //Remove connection to project when new address is added to product
       product.project = null;
+    }
+    if (input.pickupEnabled !== undefined) {
+      product.pickupEnabled = input.pickupEnabled;
+    }
+    if (input.deliveryRadius) {
+      product.deliveryRadius = input.deliveryRadius;
+    }
+    if (input.deliveryPrice) {
+      product.deliveryPrice = input.deliveryPrice;
     }
 
     //By this point we can validate the product, but only if it is to be published
