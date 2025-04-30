@@ -5,14 +5,16 @@ import {
   ShippingQueryQueryVariables,
   UpdateProductInput,
 } from "@/gql/graphql";
-import { gql, useSuspenseQuery } from "@apollo/client";
+import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
 import { Radio } from "@components/controls/radio";
+import { Divider } from "@components/dividers/divider";
 import { Body, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
+import { Card } from "./card";
 
 const SHIPPING_QUERY = gql`
   query ShippingQuery($input: GetProductInput!) {
@@ -34,26 +36,66 @@ const SHIPPING_QUERY = gql`
   }
 `;
 
+const UPDATE_SHIPPING = gql`
+  mutation UpdateShipping($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        id
+        shippingPrices {
+          id
+          maxWeight
+          price
+          provider
+        }
+      }
+    }
+  }
+`;
+
 type Props = {
   productId: string;
-  onUpdate: (input: UpdateProductInput) => void;
 };
 
-export const Shipping = ({ productId, onUpdate }: Props) => {
+export const Shipping = ({ productId }: Props) => {
   const { data } = useSuspenseQuery<
     ShippingQueryQuery,
     ShippingQueryQueryVariables
   >(SHIPPING_QUERY, { variables: { input: { id: productId } } });
+  const [updateShipping] = useMutation(UPDATE_SHIPPING);
+  const [shippingEnabled, setShippingEnabled] = useState(
+    !!data.product.shippingPrices?.length,
+  );
   const colors = useThemeColor();
   const [provider, setProvider] = useState<ShippingProviderEnum>(
     ShippingProviderEnum.Postnord,
   );
 
   const onSelectPrice = (id: string) => {
-    onUpdate({
-      id: productId,
-      shippingPriceIds: [id],
+    updateShipping({
+      variables: {
+        input: {
+          id: productId,
+          shippingPriceIds: [id],
+        },
+      },
     });
+  };
+  const onSelectShipping = () => {
+    if (shippingEnabled) {
+      updateShipping({
+        variables: {
+          input: {
+            id: productId,
+            shippingPriceIds: [],
+          },
+        },
+        onCompleted: () => {
+          setShippingEnabled(false);
+        },
+      });
+    } else {
+      setShippingEnabled(true);
+    }
   };
 
   const isSelected = (shippingPrice: ShippingPrice) => {
@@ -63,66 +105,78 @@ export const Shipping = ({ productId, onUpdate }: Props) => {
   };
 
   return (
-    <View style={{ gap: 24 }}>
-      <View>
-        <Title size="medium">Välj vikt på paketet</Title>
-        <Body size="medium" style={{ marginTop: 4, marginBottom: 16 }}>
-          Får din vara plats i en flyttkartong går den att skicka. Men du kan
-          också skicka långsmala paket, t.ex. lorem ipsum eller dolor.
-        </Body>
-        <Body size="medium" isLink>
-          Se vår storleksguide
-        </Body>
-      </View>
-      <View style={{ gap: 8 }}>
-        {data.getAllShippingPrices
-          .filter((shippingPrice) => shippingPrice.provider === provider)
-          .map((shippingPrice, i) => (
-            <Pressable key={i} onPress={() => onSelectPrice(shippingPrice.id)}>
-              <View
-                style={[
-                  {
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: 16,
-                    borderRadius: borderRadius.medium,
-                  },
-                  isSelected(shippingPrice)
-                    ? {
-                        padding: 15,
-                        borderRadius: borderRadius.medium,
-                        backgroundColor: colors.background.neutral,
-                        borderWidth: 1,
-                        borderColor: colors.textField.clicked,
-                      }
-                    : {
-                        padding: 16,
-                        borderRadius: borderRadius.medium,
-                        backgroundColor: colors.buttons.tonal.enabled,
-                      },
-                ]}
+    <Card
+      title="Fraktleverans"
+      description="Du skickar produkten till köparen via ett fraktbolag."
+      onPress={onSelectShipping}
+      enabled={shippingEnabled}
+    >
+      <Divider />
+
+      <View style={{ gap: 24 }}>
+        <View>
+          <Title size="medium">Välj vikt på paketet</Title>
+          <Body size="medium" style={{ marginTop: 4, marginBottom: 16 }}>
+            Får din vara plats i en flyttkartong går den att skicka. Men du kan
+            också skicka långsmala paket, t.ex. lorem ipsum eller dolor.
+          </Body>
+          <Body size="medium" isLink>
+            Se vår storleksguide
+          </Body>
+        </View>
+        <View style={{ gap: 8 }}>
+          {data.getAllShippingPrices
+            .filter((shippingPrice) => shippingPrice.provider === provider)
+            .map((shippingPrice, i) => (
+              <Pressable
+                key={i}
+                onPress={() => onSelectPrice(shippingPrice.id)}
               >
-                <Title size="medium">Max {shippingPrice.maxWeight} kg</Title>
                 <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 16,
-                  }}
+                  style={[
+                    {
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: 16,
+                      borderRadius: borderRadius.medium,
+                    },
+                    isSelected(shippingPrice)
+                      ? {
+                          padding: 15,
+                          borderRadius: borderRadius.medium,
+                          backgroundColor: colors.background.neutral,
+                          borderWidth: 1,
+                          borderColor: colors.textField.clicked,
+                        }
+                      : {
+                          padding: 16,
+                          borderRadius: borderRadius.medium,
+                          backgroundColor: colors.buttons.tonal.enabled,
+                        },
+                  ]}
                 >
-                  <Body size="medium" color="secondary">
-                    {shippingPrice.price} kr
-                  </Body>
-                  <Radio
-                    selected={isSelected(shippingPrice)}
-                    onPress={() => {}}
-                  />
+                  <Title size="medium">Max {shippingPrice.maxWeight} kg</Title>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 16,
+                    }}
+                  >
+                    <Body size="medium" color="secondary">
+                      {shippingPrice.price} kr
+                    </Body>
+                    <Radio
+                      selected={isSelected(shippingPrice)}
+                      onPress={() => {}}
+                    />
+                  </View>
                 </View>
-              </View>
-            </Pressable>
-          ))}
+              </Pressable>
+            ))}
+        </View>
       </View>
-    </View>
+    </Card>
   );
 };

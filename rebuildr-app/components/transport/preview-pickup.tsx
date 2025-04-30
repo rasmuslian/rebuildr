@@ -36,9 +36,14 @@ const PREVIEW_PICKUP_QUERY = gql`
 type Props = {
   productId: string;
   onChangeAddress: () => void;
+  canChangeAddress: boolean;
 };
 
-export const PreviewPickup = ({ productId, onChangeAddress }: Props) => {
+export const PreviewPickup = ({
+  productId,
+  onChangeAddress,
+  canChangeAddress,
+}: Props) => {
   const { data } = useSuspenseQuery<
     PreviewPickupQueryQuery,
     PreviewPickupQueryQueryVariables
@@ -95,7 +100,12 @@ export const PreviewPickup = ({ productId, onChangeAddress }: Props) => {
         zoom={10}
       />
       <View style={{ gap: 12 }}>
-        <Button label="Ändra adress" onPress={onChangeAddress} type="tonal" />
+        <Button
+          label="Ändra adress"
+          onPress={onChangeAddress}
+          type="tonal"
+          disabled={!canChangeAddress}
+        />
         {data.product.project && (
           <Body size="small" style={{ textAlign: "center" }} color="secondary">
             Ändring av adress tar bort kopplingen till projektet "

@@ -9,12 +9,15 @@ import { View } from "react-native";
 import { EditPickup } from "./edit-pickup";
 import { useState } from "react";
 import { PreviewPickup } from "./preview-pickup";
+import { Divider } from "@components/dividers/divider";
+import { Card } from "./card";
 
 const PICKUP_QUERY = gql`
   query PickupQuery($input: GetProductInput!) {
     product(input: $input) {
       id
       address
+      pickupEnabled
       location {
         lat
         lng
@@ -48,6 +51,7 @@ const UPDATE_PICKUP = gql`
       product {
         id
         address
+        pickupEnabled
         location {
           lat
           lng
@@ -78,9 +82,17 @@ const UPDATE_PICKUP = gql`
 
 type Props = {
   productId: string;
+  canEdit: boolean;
+  onEditing: () => void;
+  onEditComplete: () => void;
 };
 
-export const Pickup = ({ productId }: Props) => {
+export const Pickup = ({
+  productId,
+  canEdit,
+  onEditing,
+  onEditComplete,
+}: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const { data } = useSuspenseQuery<
     PickupQueryQuery,
@@ -108,6 +120,25 @@ export const Pickup = ({ productId }: Props) => {
       },
       onCompleted: () => {
         setIsEditing(false);
+        onEditComplete();
+      },
+    });
+  };
+
+  const onChangeAddress = () => {
+    if (canEdit) {
+      setIsEditing(true);
+      onEditing();
+    }
+  };
+
+  const onSelectPickup = () => {
+    updateProduct({
+      variables: {
+        input: {
+          id: productId,
+          pickupEnabled: !data.product.pickupEnabled,
+        },
       },
     });
   };
@@ -117,31 +148,41 @@ export const Pickup = ({ productId }: Props) => {
   const address = project?.address ?? data.product.address;
 
   return (
-    <View>
-      {(!address || isEditing) && (
-        <EditPickup
-          address={
-            project ? project.address : (data.product.address ?? undefined)
-          }
-          location={
-            project
-              ? { ...project.location }
-              : productLocation
-                ? { ...productLocation }
-                : undefined
-          }
-          onSave={(lat, lng) => {
-            onEditProduct(lat, lng);
-          }}
-          isLoading={updatingProduct}
-        />
-      )}
-      {!!address && !isEditing && (
-        <PreviewPickup
-          productId={productId}
-          onChangeAddress={() => setIsEditing(true)}
-        />
-      )}
-    </View>
+    <Card
+      title="Avhämtning"
+      description="Du bestämmer tid och plats för att köparen ska kunna hämta produkten direkt från dig."
+      onPress={onSelectPickup}
+      enabled={data.product.pickupEnabled}
+    >
+      <Divider />
+
+      <View>
+        {(!address || isEditing) && (
+          <EditPickup
+            address={
+              project ? project.address : (data.product.address ?? undefined)
+            }
+            location={
+              project
+                ? { ...project.location }
+                : productLocation
+                  ? { ...productLocation }
+                  : undefined
+            }
+            onSave={(lat, lng) => {
+              onEditProduct(lat, lng);
+            }}
+            isLoading={updatingProduct}
+          />
+        )}
+        {!!address && !isEditing && (
+          <PreviewPickup
+            productId={productId}
+            onChangeAddress={() => onChangeAddress()}
+            canChangeAddress={canEdit}
+          />
+        )}
+      </View>
+    </Card>
   );
 };
