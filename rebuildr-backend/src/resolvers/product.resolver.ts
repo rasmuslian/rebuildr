@@ -205,6 +205,9 @@ export class UpdateProductInput {
   projectId?: string | null;
 
   @Field({ nullable: true })
+  deliveryEnabled?: boolean;
+
+  @Field({ nullable: true })
   deliveryPrice?: number;
 
   @Field({ nullable: true })
@@ -513,5 +516,13 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     return productLoaders.shippingPricesLoader.load(_product.id);
+  }
+
+  @ResolveField(() => Float, { nullable: true })
+  async deliveryPrice(@Root() product: Product) {
+    if (!product.deliveryPrice) {
+      return null;
+    }
+    return product.deliveryPrice / 100;
   }
 }

@@ -194,6 +194,10 @@ export class Product {
   @Column({ default: false })
   pickupEnabled: boolean;
 
+  @Field()
+  @Column({ default: false })
+  deliveryEnabled: boolean;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   deliveryRadius?: number;

@@ -261,16 +261,19 @@ export class ProductService {
       //Remove connection to project when new address is added to product
       product.project = null;
     }
-    if (input.pickupEnabled !== undefined) {
+    if (input.pickupEnabled !== undefined && input.pickupEnabled !== null) {
       product.pickupEnabled = input.pickupEnabled;
     }
-    if (input.deliveryRadius) {
+    if (input.deliveryEnabled !== undefined && input.deliveryEnabled !== null) {
+      product.deliveryEnabled = input.deliveryEnabled;
+    }
+    if (input.deliveryRadius > 0) {
       product.deliveryRadius = input.deliveryRadius;
     }
-    if (input.deliveryPrice) {
-      product.deliveryPrice = input.deliveryPrice;
+    if (input.deliveryPrice >= 1) {
+      product.deliveryPrice = input.deliveryPrice * 100;
     }
-    if (input.shippingPriceIds?.length) {
+    if (input.shippingPriceIds) {
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(input.shippingPriceIds) },
       });
