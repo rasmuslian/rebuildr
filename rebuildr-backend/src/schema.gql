@@ -183,6 +183,7 @@ type Product {
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   distanceFromPosition: Float
+  pickupEnabled: Boolean!
   deliveryRadius: Float
   deliveryPrice: Float
   category: Category
@@ -196,6 +197,7 @@ type Product {
   brand: Brand
   project: Project
   approximatePlace: ApproximatePlaceResponse
+  shippingPrices: [ShippingPrice!]
 }
 
 enum ProductConditionEnum {
@@ -514,6 +516,7 @@ input UpdateProductInput {
   deliveryPrice: Float
   deliveryRadius: Float
   pickupEnabled: Boolean
+  shippingPriceIds: [String!]
 }
 
 input LocationInputType {

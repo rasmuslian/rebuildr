@@ -44,6 +44,7 @@ import {
   LocationResponse,
 } from './geocoding.resolver';
 import { Project } from 'src/entities/project.entity';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -211,6 +212,9 @@ export class UpdateProductInput {
 
   @Field({ nullable: true })
   pickupEnabled?: boolean;
+
+  @Field(() => [String], { nullable: true })
+  shippingPriceIds?: string[];
 }
 
 @ObjectType()
@@ -501,5 +505,13 @@ export class ProductResolver {
   @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
   async approximatePlace(@Root() product: Product) {
     return this.productService.approximatePlace(product);
+  }
+
+  @ResolveField(() => [ShippingPrice], { nullable: true })
+  async shippingPrices(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.shippingPricesLoader.load(_product.id);
   }
 }

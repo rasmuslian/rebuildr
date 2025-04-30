@@ -7,6 +7,7 @@ import { File } from 'src/entities/file.entity';
 import { DataloaderService } from './dataloader.service';
 import { Brand } from 'src/entities/brand.entity';
 import { Project } from 'src/entities/project.entity';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 export interface IProductLoaders {
   likedByUserLoader: DataLoader<{ productId: string; userId: string }, boolean>;
@@ -16,6 +17,7 @@ export interface IProductLoaders {
   documentsLoader: DataLoader<string, File[]>;
   brandLoader: DataLoader<string, Brand>;
   projectLoader: DataLoader<string, Project>;
+  shippingPricesLoader: DataLoader<string, ShippingPrice>;
 }
 
 @Injectable()
@@ -66,8 +68,6 @@ export class ProductLoader {
     });
   }
 
-  private brandLoader;
-
   createLoaders(): IProductLoaders {
     return {
       likedByUserLoader: this.likedByUserLoader(),
@@ -89,6 +89,11 @@ export class ProductLoader {
         'project',
         Product,
       ),
+      shippingPricesLoader:
+        this.dataloaderService.targetByParentIdLoader<ShippingPrice>(
+          'shippingPrices',
+          Product,
+        ),
     };
   }
 }

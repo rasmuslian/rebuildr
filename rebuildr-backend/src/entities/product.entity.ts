@@ -190,6 +190,7 @@ export class Product {
   @Field({ nullable: true })
   distanceFromPosition?: number;
 
+  @Field()
   @Column({ default: false })
   pickupEnabled: boolean;
 
@@ -213,5 +214,6 @@ export class Product {
   project?: Project;
 
   @ManyToMany(() => ShippingPrice, (sp) => sp.products)
+  @JoinTable()
   shippingPrices: ShippingPrice[];
 }

@@ -1,5 +1,10 @@
-import { TransportationQueryQuery } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import {
+  TransportationQueryQuery,
+  TransportationUpdateProductMutation,
+  TransportationUpdateProductMutationVariables,
+  UpdateProductInput,
+} from "@/gql/graphql";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Toggle } from "@components/controls/toggle";
 import { ProgressHeader } from "@components/create-product/progress-header";
@@ -8,6 +13,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Delivery } from "@components/transport/delivery";
 import { Pickup } from "@components/transport/pickup";
+import { Shipping } from "@components/transport/shipping";
 import { Body, Display, Headline, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -19,6 +25,8 @@ const TRANSPORTATION_QUERY = gql`
   query TransportationQuery {
     getDraftedProduct {
       id
+      pickupEnabled
+      deliveryPrice
       project {
         id
         title
@@ -30,6 +38,30 @@ const TRANSPORTATION_QUERY = gql`
           lat
           lng
           address
+        }
+      }
+      shippingPrices {
+        id
+        maxWeight
+        price
+        provider
+      }
+    }
+  }
+`;
+
+const TRANSPORTATION_UPDATE_PRODUCT = gql`
+  mutation TransportationUpdateProduct($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        id
+        pickupEnabled
+        deliveryPrice
+        shippingPrices {
+          id
+          maxWeight
+          price
+          provider
         }
       }
     }
@@ -49,6 +81,18 @@ export default function Transportation() {
       }
     },
   });
+  const [updateProduct] = useMutation<
+    TransportationUpdateProductMutation,
+    TransportationUpdateProductMutationVariables
+  >(TRANSPORTATION_UPDATE_PRODUCT);
+
+  const onUpdate = (input: UpdateProductInput) => {
+    updateProduct({
+      variables: {
+        input,
+      },
+    });
+  };
 
   const onSelectPickup = () => {
     setPickup(!pickup);
@@ -104,7 +148,15 @@ export default function Transportation() {
             onPress={onSelectShipping}
             enabled={shipping}
           >
-            {null}
+            {shipping ? (
+              <Suspense fallback={<LoadingSpinner />}>
+                <Divider />
+                <Shipping
+                  productId={data.getDraftedProduct.id}
+                  onUpdate={onUpdate}
+                />
+              </Suspense>
+            ) : null}
           </Card>
           <Card
             title="Hemtransport"

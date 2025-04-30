@@ -16,7 +16,7 @@ import {
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { Equal, Point, Repository } from 'typeorm';
+import { Equal, In, Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
@@ -27,6 +27,7 @@ import { Logger } from 'winston';
 import * as z from 'zod';
 import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
 import { File } from '../entities/file.entity';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 @Injectable()
 export class ProductService {
@@ -44,6 +45,8 @@ export class ProductService {
     private purchaseService: PurchaseService,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    @InjectRepository(ShippingPrice)
+    private shippingPriceRepository: Repository<ShippingPrice>,
   ) {}
 
   async create(input: {
@@ -266,6 +269,12 @@ export class ProductService {
     }
     if (input.deliveryPrice) {
       product.deliveryPrice = input.deliveryPrice;
+    }
+    if (input.shippingPriceIds?.length) {
+      const shippingPrices = await this.shippingPriceRepository.find({
+        where: { id: In(input.shippingPriceIds) },
+      });
+      product.shippingPrices = shippingPrices;
     }
 
     //By this point we can validate the product, but only if it is to be published
