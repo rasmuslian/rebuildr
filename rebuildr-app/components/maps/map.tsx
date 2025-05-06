@@ -15,6 +15,7 @@ import { useEffect } from "react";
 type MapProps = {
   lat: number;
   lng: number;
+  height?: number;
   interactive?: boolean;
   onMoveEnd?: (lat: number, lng: number) => void;
   radius?: number; //in meters
@@ -23,6 +24,7 @@ type MapProps = {
 export const Map = ({
   lat,
   lng,
+  height = 185,
   interactive = true,
   onMoveEnd,
   radius,
@@ -36,7 +38,7 @@ export const Map = ({
       zoomDelta={1}
       wheelPxPerZoomLevel={1}
       style={{
-        height: 185,
+        height,
         width: "100%",
         borderRadius: borderRadius.medium,
       }}

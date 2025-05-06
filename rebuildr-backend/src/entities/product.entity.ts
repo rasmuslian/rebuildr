@@ -202,7 +202,6 @@ export class Product {
   @Column({ nullable: true })
   deliveryRadius?: number;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   deliveryPrice?: number;
 

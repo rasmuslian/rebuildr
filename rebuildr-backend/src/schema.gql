@@ -36,6 +36,7 @@ type Category {
   ancestorIds: [String!]!
   hasChildren: Boolean!
   brands: [Brand!]!
+  parent: Category
 }
 
 enum CategoryIconEnum {
@@ -186,7 +187,6 @@ type Product {
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
   deliveryRadius: Float
-  deliveryPrice: Float
   category: Category
   seller: User!
   primaryImage: File
@@ -199,6 +199,7 @@ type Product {
   project: Project
   approximatePlace: ApproximatePlaceResponse
   shippingPrices: [ShippingPrice!]
+  deliveryPrice: Float
 }
 
 enum ProductConditionEnum {

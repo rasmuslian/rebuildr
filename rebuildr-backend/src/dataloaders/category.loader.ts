@@ -10,6 +10,7 @@ export interface ICategoryLoaders {
   childrenLoader: DataLoader<string, Category[]>;
   imageLoader: DataLoader<string, File>;
   brandsLoader: DataLoader<string, Brand[]>;
+  parentLoader: DataLoader<string, Category>;
 }
 
 @Injectable()
@@ -53,6 +54,10 @@ export class CategoryLoader {
       imageLoader: this.imageLoader(),
       brandsLoader: this.dataloaderService.targetByParentIdLoader<Brand[]>(
         'brands',
+        Category,
+      ),
+      parentLoader: this.dataloaderService.targetByParentIdLoader<Category>(
+        'parent',
         Category,
       ),
     };

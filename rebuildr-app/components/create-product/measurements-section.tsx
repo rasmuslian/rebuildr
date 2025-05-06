@@ -40,7 +40,7 @@ export const measurementKeys = [
   "weight",
 ] as const;
 export type MeasurementType = (typeof measurementKeys)[number];
-const measurements: {
+export const measurements: {
   [key in (typeof measurementKeys)[number]]: {
     name: string;
     options: OptionsType;

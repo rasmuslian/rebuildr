@@ -114,4 +114,15 @@ export class CategoryResolver {
   ) {
     return await categoryLoaders.brandsLoader.load(_category.id);
   }
+
+  @ResolveField(() => Category, { nullable: true })
+  async parent(
+    @Root() _category: Category,
+    @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
+  ) {
+    if (!_category.parentId) {
+      return null;
+    }
+    return await categoryLoaders.parentLoader.load(_category.id);
+  }
 }

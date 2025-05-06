@@ -415,7 +415,7 @@ export default function SellProduct() {
           prog1={progress()}
         />
       </View>
-      <ScreenLayout style={{ gap: 24, paddingBottom: 48 }}>
+      <ScreenLayout style={{ gap: 24 }}>
         <RootCategorySection
           onSelect={(id) => onUpdateProduct({ ...product, categoryIds: [id] })}
           selectedId={product.categoryIds[0]}

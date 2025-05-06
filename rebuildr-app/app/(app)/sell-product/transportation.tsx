@@ -66,7 +66,9 @@ export default function Transportation() {
     },
   });
 
-  const onNext = () => {};
+  const onNext = () => {
+    router.navigate("/(app)/sell-product/preview");
+  };
   const progress = () => {
     const address =
       data?.getDraftedProduct?.project?.address ??
@@ -125,7 +127,7 @@ export default function Transportation() {
           prog3={progress()}
         />
       </View>
-      <ScreenLayout style={{ gap: 24, paddingBottom: 32 }}>
+      <ScreenLayout style={{ gap: 24 }}>
         <Display size="small">Leverans</Display>
         <Headline size="small">
           Vilka leveransalternativ kan du erbjuda?
