@@ -1,0 +1,14 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class AddPrivateToFile1744275617462 implements MigrationInterface {
+    name = 'AddPrivateToFile1744275617462'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "file" ADD "private" boolean NOT NULL DEFAULT false`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "file" DROP COLUMN "private"`);
+    }
+
+}

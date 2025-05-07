@@ -17,18 +17,26 @@ export class File {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  name?: string;
+
+  @Field()
   @Column()
   mimeType: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ nullable: true })
-  productId?: string;
+  @ManyToOne(() => Product, (product) => product.images, { nullable: true })
+  productImage?: Product;
 
-  @ManyToOne(() => Product, (product) => product.id, { nullable: true })
-  product?: Product;
+  @ManyToOne(() => Product, (product) => product.documents, { nullable: true })
+  productDocument?: Product;
 
   @OneToOne(() => Category, (category) => category.image, { nullable: true })
   category?: Category;
+
+  @Column({ type: Boolean, default: false })
+  private: boolean;
 }

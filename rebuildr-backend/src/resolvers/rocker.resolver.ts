@@ -49,8 +49,22 @@ export class CreatePayoutAccountInput {
   @Field(() => String, { nullable: true })
   identifier?: string;
 
+  @Field(() => String, { nullable: true })
+  successUrl?: string;
+
+  @Field(() => String, { nullable: true })
+  failureUrl?: string;
+
   @Field(() => PayoutAccountEnum)
   type: PayoutAccountEnum;
+}
+@ObjectType()
+export class CreatePayoutAccountResponse {
+  @Field(() => User)
+  user: User;
+
+  @Field({ nullable: true })
+  trustlyUrl?: string;
 }
 
 @Resolver()
@@ -66,7 +80,7 @@ export class RockerResolver {
     return await this.rockerService.authenticate(input.requestId, _user.id);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => CreatePayoutAccountResponse)
   @UseGuards(GqlAuthGuard)
   async createPayoutAccount(
     @Args('input')

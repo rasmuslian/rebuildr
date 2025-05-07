@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToOne,
   Point,
   PrimaryGeneratedColumn,
   OneToMany,
@@ -14,6 +13,7 @@ import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 import { Purchase } from './purchase.entity';
+import { Project } from './project.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -43,6 +43,7 @@ registerEnumType(RegistrationStatusEnum, { name: 'RegisterStatusEnum' });
 
 export enum PayoutAccountEnum {
   SWISH = 'SWISH',
+  TRUSTLY = 'TRUSTLY',
   RIX = 'RIX',
   BANKGIRO = 'BANKGIRO',
   PLUSGIRO = 'PLUGIRO',
@@ -91,8 +92,8 @@ export class User {
   @Column({ nullable: true })
   phoneNumber?: string;
 
-  @OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
-  refreshToken?: RefreshToken;
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
 
   @OneToMany(() => Product, (product) => product)
   products: Product[];
@@ -157,4 +158,7 @@ export class User {
   @Field(() => Date, { nullable: true })
   @Column({ type: Date, nullable: true })
   organizationApprovedAt?: Date;
+
+  @OneToMany(() => Project, (p) => p.user)
+  projects: Project[];
 }

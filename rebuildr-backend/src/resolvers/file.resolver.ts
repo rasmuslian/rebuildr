@@ -1,4 +1,4 @@
-import { ResolveField, Resolver, Root } from '@nestjs/graphql';
+import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { FileService } from 'src/services/file.service';
 import { File } from 'src/entities/file.entity';
 
@@ -7,7 +7,7 @@ export class FileResolver {
   constructor(private fileService: FileService) {}
 
   @ResolveField(() => String)
-  async presignedGetUrl(@Root() _file: File) {
-    return this.fileService.getPresignedGetUrl(_file.id);
+  async url(@Parent() file: File) {
+    return this.fileService.getUrl(file);
   }
 }

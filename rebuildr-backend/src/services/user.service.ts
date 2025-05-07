@@ -72,7 +72,7 @@ export class UserService {
 
       user.addressLocation = {
         type: 'Point',
-        coordinates: [location.latitude, location.longitude],
+        coordinates: [location.lat, location.lng],
       };
     }
 

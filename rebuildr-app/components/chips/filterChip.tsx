@@ -1,5 +1,5 @@
 import { borderRadius } from "@constants/sizes";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Pressable, PressableProps, StyleProp, ViewStyle } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
@@ -7,7 +7,7 @@ import { Label } from "@components/typography/text";
 
 type FilterChipProps = {
   selected?: boolean;
-  label: string;
+  label: string | ReactNode;
 } & PressableProps;
 
 export const FilterChip = ({
@@ -36,10 +36,8 @@ export const FilterChip = ({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={() => {
-        let chipState = "enabled";
-        if (disabled) {
-          chipState = "disabled";
-        } else if (hovered) {
+        let chipState: keyof typeof colorSet = "enabled";
+        if (hovered) {
           chipState = "hovered";
         } else if (focused) {
           chipState = "focused";
@@ -73,15 +71,19 @@ export const FilterChip = ({
           size={12}
         />
       )}
-      <Label
-        size="large"
-        style={{
-          color: disabled ? colors.text.disabled : colors.text.primaryDark,
-          marginHorizontal: 4,
-        }}
-      >
-        {label}
-      </Label>
+      {typeof label === "string" ? (
+        <Label
+          size="large"
+          style={{
+            color: disabled ? colors.text.disabled : colors.text.primaryDark,
+            marginHorizontal: 4,
+          }}
+        >
+          {label}
+        </Label>
+      ) : (
+        label
+      )}
     </Pressable>
   );
 };

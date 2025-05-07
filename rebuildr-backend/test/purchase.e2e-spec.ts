@@ -39,7 +39,6 @@ import { PurchaseResolver } from 'src/resolvers/purchase.resolver';
 import { PurchaseService } from 'src/services/purchase.service';
 import { PlaceholderResolver } from './placeholder.resolver';
 import * as crypto from 'crypto';
-import { CustomLogger } from 'src/custom.logger';
 import { EnvironmentVariables } from 'src/config';
 
 describe('Purchase', () => {
@@ -100,7 +99,6 @@ describe('Purchase', () => {
       ],
       controllers: [RockerWebhookController],
       providers: [
-        CustomLogger,
         GqlAuthGuard,
         JwtStrategy,
         CaslAbilityFactory,

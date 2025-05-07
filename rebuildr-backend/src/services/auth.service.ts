@@ -12,7 +12,7 @@ import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
@@ -151,7 +151,7 @@ export class AuthService {
         email: input.email.toLowerCase().trim(),
       },
       relations: {
-        refreshToken: true,
+        refreshTokens: true,
       },
     });
     if (!user) {
@@ -183,38 +183,50 @@ export class AuthService {
     };
   }
 
+  /**
+   * Generates a new refreshToken and accessToken.
+   *
+   * NOTE: Must not throw UnuthenticatedException,
+   * that would cause an infinite refreshtoken loop from frontend.
+   */
   async getNewTokens(accessToken: string, refreshTokenHash: string) {
     //extract user id from accessToken
     const { sub: userId }: AccessTokenPayload =
       await this.jwtService.decode(accessToken);
 
-    const user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return { accessToken: '', refreshToken: '' };
+    }
+
+    //delete old refresh tokens
+    await this.refreshTokenRepository.delete({
+      userId: userId,
+      expiresAt: LessThanOrEqual(new Date()),
+    });
+
+    const validTokens = await this.refreshTokenRepository.find({
       where: {
-        id: userId,
-      },
-      relations: {
-        refreshToken: true,
+        userId,
+        expiresAt: MoreThan(new Date()),
       },
     });
-    if (!user || !user.refreshToken) {
-      throw BadUserInputException(
-        'Failed to refresh authentication user due to bad input',
-      );
+
+    let currentToken: RefreshToken | undefined = undefined;
+    for (const token of validTokens) {
+      const matchingToken = await bcrypt.compare(refreshTokenHash, token.token);
+      if (matchingToken) {
+        currentToken = token;
+      }
     }
 
-    const tokensMatch = await bcrypt.compare(
-      refreshTokenHash,
-      user.refreshToken.token,
-    );
-    if (!tokensMatch) {
-      this.logger.warn('Refresh token does not match');
+    //token has either expired or does not match
+    if (!currentToken) {
       return { accessToken: '', refreshToken: '' };
     }
 
-    const expired = dayjs(user.refreshToken.expiresAt).isBefore(dayjs());
-    if (expired) {
-      return { accessToken: '', refreshToken: '' };
-    }
+    //delete currentToken
+    await this.refreshTokenRepository.delete({ id: currentToken.id });
 
     const tokens = await this.createTokens(user);
     return {
@@ -234,8 +246,6 @@ export class AuthService {
       expiresIn: jwtConstants.expiresIn,
     });
 
-    //delete existing refresh token
-    await this.refreshTokenRepository.delete({ userId: user.id });
     //create refreshToken
     const token = crypto.randomBytes(20).toString('hex');
     const hash = await bcrypt.hash(token, 10);

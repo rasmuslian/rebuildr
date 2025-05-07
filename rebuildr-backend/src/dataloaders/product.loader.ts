@@ -4,16 +4,28 @@ import DataLoader from 'dataloader';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
+import { DataloaderService } from './dataloader.service';
+import { Brand } from 'src/entities/brand.entity';
+import { Project } from 'src/entities/project.entity';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 export interface IProductLoaders {
   likedByUserLoader: DataLoader<{ productId: string; userId: string }, boolean>;
   sellerLoader: DataLoader<string, User>;
-  mainImageLoader: DataLoader<string, File>;
+  primaryImageLoader: DataLoader<string, File>;
+  imagesLoader: DataLoader<string, File[]>;
+  documentsLoader: DataLoader<string, File[]>;
+  brandLoader: DataLoader<string, Brand>;
+  projectLoader: DataLoader<string, Project>;
+  shippingPricesLoader: DataLoader<string, ShippingPrice>;
 }
 
 @Injectable()
 export class ProductLoader {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly dataloaderService: DataloaderService,
+  ) {}
 
   private likedByUserLoader() {
     return new DataLoader(
@@ -44,7 +56,7 @@ export class ProductLoader {
     });
   }
 
-  private mainImageLoader() {
+  private primaryImageLoader() {
     return new DataLoader(async (keys: readonly string[]) => {
       const products = await this.dataSource.getRepository(Product).find({
         where: { id: In(keys) },
@@ -60,7 +72,28 @@ export class ProductLoader {
     return {
       likedByUserLoader: this.likedByUserLoader(),
       sellerLoader: this.sellerLoader(),
-      mainImageLoader: this.mainImageLoader(),
+      primaryImageLoader: this.primaryImageLoader(),
+      imagesLoader: this.dataloaderService.targetByParentIdLoader<File[]>(
+        'images',
+        Product,
+      ),
+      documentsLoader: this.dataloaderService.targetByParentIdLoader<File[]>(
+        'documents',
+        Product,
+      ),
+      brandLoader: this.dataloaderService.targetByParentIdLoader<Brand>(
+        'brand',
+        Product,
+      ),
+      projectLoader: this.dataloaderService.targetByParentIdLoader<Project>(
+        'project',
+        Product,
+      ),
+      shippingPricesLoader:
+        this.dataloaderService.targetByParentIdLoader<ShippingPrice>(
+          'shippingPrices',
+          Product,
+        ),
     };
   }
 }

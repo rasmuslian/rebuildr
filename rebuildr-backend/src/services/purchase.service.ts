@@ -86,7 +86,7 @@ export class PurchaseService {
 
       const imageUrls = await Promise.all(
         product.images.map(async (image) => {
-          return await this.fileService.getFileUrl(image.id);
+          return await this.fileService.getUrl(image);
         }),
       );
 
@@ -260,5 +260,18 @@ export class PurchaseService {
       { rockerPayoutId: payload.payoutId },
       { failedAt: new Date(payload.timestamp) },
     );
+  }
+
+  async deleteMany(purchases: Purchase[]) {
+    return await Promise.all(
+      purchases.map((purchase) => this.delete(purchase.id)),
+    );
+  }
+
+  async delete(id: string) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id },
+    });
+    return this.purchaseRepository.remove(purchase);
   }
 }

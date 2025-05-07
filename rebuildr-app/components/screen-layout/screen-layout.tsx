@@ -14,12 +14,13 @@ export const ScreenLayout = ({
 }: PageProps) => {
   const colors = useThemeColor();
   return (
-    <View style={{ flex: 1, justifyContent: "space-between" }}>
+    <View
+      style={{ flex: 1, justifyContent: "space-between", paddingBottom: 32 }}
+    >
       <ScrollView
         contentContainerStyle={[
           {
             flexGrow: 1,
-            justifyContent: "space-between",
             backgroundColor: colors.background.neutral,
             paddingHorizontal: 16,
           },
@@ -28,7 +29,7 @@ export const ScreenLayout = ({
       >
         {children}
       </ScrollView>
-      {footerComponent}
+      <View style={{ paddingHorizontal: 16 }}>{footerComponent}</View>
     </View>
   );
 };

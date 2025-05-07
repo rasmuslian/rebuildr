@@ -10,6 +10,23 @@ import {
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { GeocodingService } from 'src/services/geocoding.service';
 
+@ObjectType()
+export class LocationType {
+  @Field()
+  lat: number;
+
+  @Field()
+  lng: number;
+}
+@InputType()
+export class LocationInputType {
+  @Field()
+  lat: number;
+
+  @Field()
+  lng: number;
+}
+
 @InputType()
 export class GetAddressInput {
   @Field()
@@ -35,6 +52,31 @@ class LocationSearchResponse {
   result: string[];
 }
 
+@InputType()
+class AddressToLocationInput {
+  @Field()
+  address: string;
+}
+@ObjectType()
+export class LocationResponse {
+  @Field()
+  lat: number;
+
+  @Field()
+  lng: number;
+}
+
+@ObjectType()
+export class ApproximatePlaceResponse {
+  @Field()
+  lat: number;
+  @Field()
+  lng: number;
+
+  @Field()
+  address: string;
+}
+
 @Resolver()
 export class GeocodingResolver {
   constructor(private geocodingService: GeocodingService) {}
@@ -42,11 +84,19 @@ export class GeocodingResolver {
   @UseGuards(GqlThrottlerGuard)
   @Query(() => GetAddressResponse)
   async locationToAddress(@Args('input') input: GetAddressInput) {
-    return this.geocodingService.locationToAddress(input);
+    return this.geocodingService.locationToAddress({
+      lat: input.latitude,
+      lng: input.longitude,
+    });
   }
 
   @Query(() => LocationSearchResponse)
   async locationSearch(@Args('input') input: LocationSearchInput) {
     return this.geocodingService.placesAutoComplete(input.searchString);
+  }
+
+  @Query(() => LocationResponse)
+  async addressToLocation(@Args('input') input: AddressToLocationInput) {
+    return this.geocodingService.addressToLocation(input.address);
   }
 }

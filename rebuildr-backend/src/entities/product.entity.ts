@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -9,11 +9,17 @@ import {
   OneToMany,
   Point,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { File } from './file.entity';
 import { Purchase } from './purchase.entity';
+import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
+import { Brand } from './brand.entity';
+import { Message } from './message.entity';
+import { Project } from './project.entity';
+import { ShippingPrice } from './shipping-price.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -22,8 +28,13 @@ export enum ProductConditionEnum {
   OKAY = 'OKAY',
   BAD = 'BAD',
 }
-
 registerEnumType(ProductConditionEnum, { name: 'ProductConditionEnum' });
+
+export enum ProductStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+}
+registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 
 @Entity()
 @ObjectType()
@@ -36,15 +47,22 @@ export class Product {
   @Column()
   title: string;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  description?: string;
+
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  categoryId: string;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-  @ManyToOne(() => Category, (cat) => cat.id, { nullable: false })
-  category: Category;
+  @Column({ nullable: true })
+  categoryId?: string;
+
+  @ManyToOne(() => Category, (cat) => cat.id, { nullable: true })
+  category?: Category;
 
   @Column()
   sellerId: string;
@@ -52,19 +70,19 @@ export class Product {
   @ManyToOne(() => User, (user) => user.id, { nullable: false })
   seller: User;
 
-  @Field(() => Int)
   @Column()
   price: number;
 
-  @Field(() => String)
-  @Column()
-  address: string;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  address?: string;
 
-  @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
-  addressLocation: Point;
-
-  @OneToMany(() => File, (file) => file.product, { nullable: true })
-  images?: File[];
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  addressLocation?: Point;
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
@@ -74,46 +92,93 @@ export class Product {
   @Column({ default: false })
   isGiveaway: boolean;
 
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   @Column({ nullable: true })
-  brand?: string;
+  primaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  primaryUnit?: QuantityUnitEnum;
 
-  @Field(() => Int, { nullable: true })
+  @Field({ nullable: true })
   @Column({ nullable: true })
-  amount?: number;
+  secondaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  secondaryUnit?: QuantityUnitEnum;
 
-  @Field(() => Int, {
+  @Field({
     nullable: true,
     description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   height?: number;
 
-  @Field(() => Int, {
+  @Field({
     nullable: true,
     description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   width?: number;
 
-  @Field(() => Int, {
+  @Field({
     nullable: true,
     description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
-  depth?: number;
+  length?: number;
 
-  @Field(() => Int, { nullable: true, description: 'Unit: liter' })
+  @Field({
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
   @Column({ nullable: true })
-  volume?: number;
+  thickness?: number;
+
+  @Field({
+    nullable: true,
+    description: 'Unit: millimeter',
+  })
+  @Column({ nullable: true })
+  diameter?: number;
+
+  @Field({
+    nullable: true,
+    description: 'Unit: kg',
+  })
+  @Column({ nullable: true })
+  weight?: number;
 
   @Field(() => ProductConditionEnum)
-  @Column('enum', { enum: ProductConditionEnum })
+  @Column('enum', {
+    enum: ProductConditionEnum,
+    default: ProductConditionEnum.GOOD,
+  })
   condition: ProductConditionEnum;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => ProductStatus)
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
+  status: ProductStatus;
+
   @Column({ nullable: true })
-  description?: string;
+  brandId?: string;
+  @ManyToOne(() => Brand, (brand) => brand.id, { nullable: true })
+  brand?: Brand;
+
+  @OneToMany(() => File, (file) => file.productImage)
+  images: File[];
+
+  @OneToMany(() => File, (file) => file.productDocument)
+  documents: File[];
 
   @ManyToMany(() => User, (user) => user.likedProducts)
   @JoinTable()
@@ -125,6 +190,33 @@ export class Product {
   @Field({ nullable: true })
   distanceFromPosition?: number;
 
+  @Field()
+  @Column({ default: false })
+  pickupEnabled: boolean;
+
+  @Field()
+  @Column({ default: false })
+  deliveryEnabled: boolean;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  deliveryRadius?: number;
+
+  @Column({ nullable: true })
+  deliveryPrice?: number;
+
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
+
+  @OneToMany(() => Message, (message) => message.product)
+  messages: Message[];
+
+  @Column({ nullable: true })
+  projectId?: string;
+  @ManyToOne(() => Project, (p) => p.products, { nullable: true })
+  project?: Project;
+
+  @ManyToMany(() => ShippingPrice, (sp) => sp.products)
+  @JoinTable()
+  shippingPrices: ShippingPrice[];
 }

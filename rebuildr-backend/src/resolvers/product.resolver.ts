@@ -3,6 +3,7 @@ import {
   Args,
   Context,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -16,20 +17,34 @@ import {
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Category } from 'src/entities/category.entity';
-import { Product, ProductConditionEnum } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductConditionEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
-import { UserService } from 'src/services/user.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
-import { IProductLoaders } from 'src/dataloader/product.loader';
+import { IProductLoaders } from 'src/dataloaders/product.loader';
+import { QuantityUnitEnum } from 'src/entities/enums';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
+import { Brand } from 'src/entities/brand.entity';
+import {
+  ApproximatePlaceResponse,
+  LocationInputType,
+  LocationResponse,
+} from './geocoding.resolver';
+import { Project } from 'src/entities/project.entity';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -37,19 +52,13 @@ export enum OrderProductsEnum {
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
-@ObjectType()
-class LocationResponse {
-  @Field()
-  latitude: number;
-
-  @Field()
-  longitude: number;
-}
-
 @InputType()
 export class FileInputType {
   @Field(() => String)
   mimeType: string;
+
+  @Field(() => String, { nullable: true })
+  name?: string;
 }
 @InputType()
 export class CreateProductInput {
@@ -72,7 +81,7 @@ export class CreateProductInput {
   isGiveaway?: boolean;
 
   @Field(() => String, { nullable: true })
-  brand?: string;
+  brandId?: string;
 
   @Field({ nullable: true })
   amount?: number;
@@ -102,7 +111,7 @@ const createProductSchema = z.object({
   address: z.string(),
   images: z.array(z.object({ mimeType: z.string() })).optional(),
   isGiveaway: z.boolean().optional(),
-  brand: z.string().optional(),
+  brandId: z.string().optional(),
   amount: z.number().optional(),
   height: z.number().optional(),
   width: z.number().optional(),
@@ -118,6 +127,109 @@ export class CreateProductResponse {
 
   @Field(() => [String])
   presignedPutUrls: string[];
+}
+
+@InputType()
+export class UpdateProductInput {
+  @Field(() => String)
+  id: string;
+
+  @Field(() => String, { nullable: true })
+  title?: string;
+
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
+
+  @Field(() => String, { nullable: true })
+  description: string;
+
+  @Field(() => String, { nullable: true })
+  categoryId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  brandId?: string | null;
+
+  @Field({ nullable: true })
+  price: number;
+
+  @Field({ nullable: true })
+  isGiveAway?: boolean;
+
+  @Field({ nullable: true })
+  primaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  primaryUnit: QuantityUnitEnum;
+
+  @Field({ nullable: true })
+  secondaryQuantity?: number;
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  secondaryUnit?: QuantityUnitEnum;
+
+  @Field({ nullable: true })
+  height?: number;
+
+  @Field({ nullable: true })
+  width?: number;
+
+  @Field({ nullable: true })
+  length?: number;
+
+  @Field({ nullable: true })
+  thickness?: number;
+
+  @Field({ nullable: true })
+  diameter?: number;
+
+  @Field({ nullable: true })
+  weight?: number;
+
+  @Field(() => ProductConditionEnum, { nullable: true })
+  condition?: ProductConditionEnum;
+
+  @Field(() => ProductStatus, { nullable: true })
+  status?: ProductStatus;
+
+  @Field(() => [FileInputType], { nullable: true })
+  addImages?: FileInputType[];
+
+  @Field(() => [String], { nullable: true })
+  removeImages?: string[];
+
+  @Field(() => [FileInputType], { nullable: true })
+  addDocuments?: FileInputType[];
+
+  @Field(() => [String], { nullable: true })
+  removeDocuments?: string[];
+
+  @Field({ nullable: true })
+  projectId?: string | null;
+
+  @Field({ nullable: true })
+  deliveryEnabled?: boolean;
+
+  @Field({ nullable: true })
+  deliveryPrice?: number;
+
+  @Field({ nullable: true })
+  deliveryRadius?: number;
+
+  @Field({ nullable: true })
+  pickupEnabled?: boolean;
+
+  @Field(() => [String], { nullable: true })
+  shippingPriceIds?: string[];
+}
+
+@ObjectType()
+export class UpdateProductResponse {
+  @Field(() => Product)
+  product: Product;
+
+  @Field(() => [String])
+  imagePutUrls: string[];
+
+  @Field(() => [String])
+  documentPutUrls: string[];
 }
 
 @InputType()
@@ -183,18 +295,6 @@ export class GetProductInput {
 }
 
 @InputType()
-export class DeleteProductInput {
-  @Field()
-  id: string;
-}
-
-@ObjectType()
-export class DeleteProductResponse {
-  @Field()
-  title: string;
-}
-
-@InputType()
 export class HideProductInput {
   @Field()
   id: string;
@@ -223,10 +323,10 @@ export class ProductResolver {
   constructor(
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
-    private userService: UserService,
     private categoryService: CategoryService,
     private fileService: FileService,
     private eventService: EventService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   @Query(() => Product)
@@ -250,6 +350,12 @@ export class ProductResolver {
     return this.productService.findAll({ ...input }, limit, offset, user?.id);
   }
 
+  @Query(() => Product, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async getDraftedProduct(@CurrentUser() _user: AuthedUserType) {
+    return await this.productService.getDraft(_user.id);
+  }
+
   @Mutation(() => CreateProductResponse)
   @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async createProduct(
@@ -263,13 +369,28 @@ export class ProductResolver {
     });
   }
 
-  @Mutation(() => DeleteProductResponse)
+  @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
-  async deleteProduct(
+  async createDraftProduct(@CurrentUser() _user: AuthedUserType) {
+    return await this.productService.createDraft(_user.id);
+  }
+
+  @Mutation(() => UpdateProductResponse)
+  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
+  async updateProduct(
     @CurrentUser() _user: AuthedUserType,
-    @Args('input') input: DeleteProductInput,
+    @Args('input') input: UpdateProductInput,
   ) {
-    return this.productService.delete(input.id, _user.id);
+    const childLogger = this.logger.child({
+      userId: _user.id,
+      productId: input.id,
+    });
+    return await this.productService.updateProduct(
+      input,
+      _user.id,
+      _user.role,
+      childLogger,
+    );
   }
 
   @Mutation(() => Product)
@@ -299,7 +420,7 @@ export class ProductResolver {
     return this.productService.setLikeProduct(input.id, input.like, _user.id);
   }
 
-  @ResolveField(() => Category)
+  @ResolveField(() => Category, { nullable: true })
   async category(@Root() _product: Product) {
     return this.categoryService.findOne(_product.categoryId);
   }
@@ -312,18 +433,28 @@ export class ProductResolver {
     return productLoaders.sellerLoader.load(_product.id);
   }
 
-  @ResolveField(() => [File])
-  async images(@Root() _product: Product) {
-    return this.fileService.findByProduct(_product.id);
-  }
-
-  //TODO: fetch actual mainImage and not just the first image
   @ResolveField(() => File, { nullable: true })
-  async mainImage(
+  async primaryImage(
     @Root() _product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
-    return productLoaders.mainImageLoader.load(_product.id);
+    return productLoaders.primaryImageLoader.load(_product.id);
+  }
+
+  @ResolveField(() => [File])
+  async images(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.imagesLoader.load(_product.id);
+  }
+
+  @ResolveField(() => [File])
+  async documents(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.documentsLoader.load(_product.id);
   }
 
   @UseGuards(GqlOptionalAuthGuard)
@@ -342,11 +473,56 @@ export class ProductResolver {
     });
   }
 
-  @ResolveField(() => LocationResponse)
+  @ResolveField(() => LocationResponse, { nullable: true })
   async location(@Root() _product: Product) {
+    if (!_product.addressLocation) {
+      return null;
+    }
     return {
-      latitude: _product.addressLocation.coordinates[0],
-      longitude: _product.addressLocation.coordinates[1],
+      lat: _product.addressLocation.coordinates[0],
+      lng: _product.addressLocation.coordinates[1],
     };
+  }
+
+  @ResolveField(() => Float)
+  async price(@Root() product: Product) {
+    return product.price / 100;
+  }
+
+  @ResolveField(() => Brand, { nullable: true })
+  async brand(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.brandLoader.load(_product.id);
+  }
+
+  @ResolveField(() => Project, { nullable: true })
+  async project(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.projectLoader.load(_product.id);
+  }
+
+  @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
+  async approximatePlace(@Root() product: Product) {
+    return this.productService.approximatePlace(product);
+  }
+
+  @ResolveField(() => [ShippingPrice], { nullable: true })
+  async shippingPrices(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.shippingPricesLoader.load(_product.id);
+  }
+
+  @ResolveField(() => Float, { nullable: true })
+  async deliveryPrice(@Root() product: Product) {
+    if (!product.deliveryPrice) {
+      return null;
+    }
+    return product.deliveryPrice / 100;
   }
 }

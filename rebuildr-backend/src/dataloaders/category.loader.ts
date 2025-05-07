@@ -3,15 +3,22 @@ import { DataSource, In } from 'typeorm';
 import DataLoader from 'dataloader';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
+import { DataloaderService } from './dataloader.service';
+import { Brand } from 'src/entities/brand.entity';
 
 export interface ICategoryLoaders {
   childrenLoader: DataLoader<string, Category[]>;
   imageLoader: DataLoader<string, File>;
+  brandsLoader: DataLoader<string, Brand[]>;
+  parentLoader: DataLoader<string, Category>;
 }
 
 @Injectable()
 export class CategoryLoader {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private dataloaderService: DataloaderService,
+  ) {}
 
   private childrenLoader() {
     return new DataLoader(async (keys: readonly string[]) => {
@@ -45,6 +52,14 @@ export class CategoryLoader {
     return {
       childrenLoader: this.childrenLoader(),
       imageLoader: this.imageLoader(),
+      brandsLoader: this.dataloaderService.targetByParentIdLoader<Brand[]>(
+        'brands',
+        Category,
+      ),
+      parentLoader: this.dataloaderService.targetByParentIdLoader<Category>(
+        'parent',
+        Category,
+      ),
     };
   }
 }

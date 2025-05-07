@@ -264,7 +264,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                   </Body>
                 </View>
                 <Toggle
-                  selected={dontCreateBusiness}
+                  value={dontCreateBusiness}
                   onPress={() => {
                     setCreateBusiness(false);
                     setDontCreateBusiness(!dontCreateBusiness);
@@ -300,7 +300,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                   </Body>
                 </View>
                 <Toggle
-                  selected={createBusiness}
+                  value={createBusiness}
                   onPress={() => {
                     setDontCreateBusiness(false);
                     setCreateBusiness(!createBusiness);
@@ -324,7 +324,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                       description:
                         "Ditt användarnamn är det namn som visas på din publika profil.",
                       value: username,
-                      onChangeText: (v) => setUsername(v),
+                      onChange: (v) => setUsername(v),
                       disabled: loading,
                     },
                   ]}
@@ -334,11 +334,10 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                 <Form
                   fields={[
                     {
-                      type: "text",
+                      type: "masked",
                       heading: "Välj ett lösenord",
-                      masked: true,
                       value: password,
-                      onChangeText: (v) => onChangePassword(v),
+                      onChange: (v) => onChangePassword(v),
                       disabled: loading,
                     },
                   ]}

@@ -13,9 +13,16 @@ import { borderRadius } from "@constants/sizes";
 
 export type CheckProps = {
   selected?: boolean;
+  color?: string;
 } & PressableProps;
 
-export const Check = ({ onPress, disabled, selected, ...rest }: CheckProps) => {
+export const Check = ({
+  onPress,
+  disabled,
+  selected,
+  color,
+  ...rest
+}: CheckProps) => {
   const [hovered, setHovered] = useState(false);
   const colors = useThemeColor();
   const colorSet = selected ? colors.check.true : colors.check.false;
@@ -41,7 +48,7 @@ export const Check = ({ onPress, disabled, selected, ...rest }: CheckProps) => {
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            backgroundColor: colorSet[checkState],
+            backgroundColor: color ?? colorSet[checkState],
             borderRadius: borderRadius.small,
             width: 24,
             height: 24,

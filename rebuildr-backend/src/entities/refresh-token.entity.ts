@@ -3,7 +3,7 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
@@ -23,7 +23,7 @@ export class RefreshToken {
   @Column()
   userId: string;
 
-  @OneToOne(() => User, (user) => user.refreshToken)
+  @ManyToOne(() => User, (user) => user.refreshTokens)
   @JoinColumn()
   user: User;
 }

@@ -1,14 +1,18 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { File } from './file.entity';
+import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
+import { Brand } from './brand.entity';
 
 enum CategoryIconEnum {
   MATERIAL = 'MATERIAL',
@@ -40,15 +44,28 @@ export class Category {
   @Column()
   name: string;
 
+  @Field()
+  @Column()
+  description: string;
+
+  /**
+   * The order index of the category.
+   * Used to sort the categories in the frontend.
+   * The lowest value comes first.
+   */
+  @Field(() => Int, { defaultValue: 0 })
+  @Column({ default: 0 })
+  orderIndex: number;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   parentId?: string;
 
   @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
-  parent?: Category;
+  parent: Category;
 
   @OneToMany(() => Category, (cat) => cat.parent, { nullable: true })
-  children?: Category[];
+  children: Category[];
 
   @Field(() => Boolean)
   @Column({ default: false })
@@ -68,4 +85,26 @@ export class Category {
   @Field(() => CategoryIconEnum, { nullable: true })
   @Column('enum', { enum: CategoryIconEnum, nullable: true })
   icon?: CategoryIconEnum;
+
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  primaryQuantityUnit?: QuantityUnitEnum;
+
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: QuantityUnitEnum,
+    enumName: quantityUnitEnumName,
+    nullable: true,
+  })
+  secondaryQuantityUnit?: QuantityUnitEnum;
+
+  @ManyToMany(() => Brand, (brand) => brand.categories)
+  @JoinTable()
+  brands: Brand[];
 }

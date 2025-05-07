@@ -4,18 +4,39 @@
 
 type File {
   id: ID!
-  presignedGetUrl: String!
+  name: String
+  mimeType: String!
+  url: String!
+}
+
+type Brand {
+  id: ID!
+  name: String!
+  type: BrandTypeEnum!
+}
+
+enum BrandTypeEnum {
+  OTHER
+  REGULAR
 }
 
 type Category {
   id: ID!
   name: String!
+  description: String!
+  orderIndex: Int!
   parentId: String
   inSelection: Boolean!
   inSeason: Boolean!
   icon: CategoryIconEnum
+  primaryQuantityUnit: QuantityUnitEnum
+  secondaryQuantityUnit: QuantityUnitEnum
   children: [Category!]!
   image: File
+  ancestorIds: [String!]!
+  hasChildren: Boolean!
+  brands: [Brand!]!
+  parent: Category
 }
 
 enum CategoryIconEnum {
@@ -36,8 +57,35 @@ enum CategoryIconEnum {
   WORKPLACE
 }
 
+enum QuantityUnitEnum {
+  AMOUNT
+  BAGS
+  ROLLS
+  M
+  M2
+  M3
+  LITERS
+  CANS
+  PLATES
+  PACKAGES
+  DISCS
+  KG
+}
+
 type Purchase {
   id: ID!
+}
+
+type Project {
+  id: ID!
+  title: String!
+  description: String
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  address: String!
+  location: LocationResponse!
+  approximatePlace: ApproximatePlaceResponse!
 }
 
 type User {
@@ -52,6 +100,7 @@ type User {
   organizationNumber: String
   organizationApprovedAt: DateTime
   registrationStatus: RegisterStatusEnum!
+  projects: [Project!]!
 }
 
 enum UserRoleEnum {
@@ -61,6 +110,7 @@ enum UserRoleEnum {
 
 enum PayoutAccountEnum {
   SWISH
+  TRUSTLY
   RIX
   BANKGIRO
   PLUSGIRO
@@ -82,37 +132,75 @@ enum RegisterStatusEnum {
   DONE
 }
 
+type Message {
+  id: ID!
+  createdAt: DateTime!
+  body: String!
+  senderId: ID!
+  receiverId: ID!
+}
+
+type ShippingPrice {
+  id: ID!
+  maxWeight: Float!
+  provider: ShippingProviderEnum!
+  price: Float!
+}
+
+enum ShippingProviderEnum {
+  POSTNORD
+  DHL
+}
+
 type Product {
   id: ID!
   title: String!
+  description: String
   createdAt: DateTime!
-  price: Int!
-  address: String!
+  address: String
   hiddenReason: String
   isGiveaway: Boolean!
-  brand: String
-  amount: Int
+  primaryQuantity: Float
+  primaryUnit: QuantityUnitEnum
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
 
   """Unit: millimeter"""
-  height: Int
+  height: Float
 
   """Unit: millimeter"""
-  width: Int
+  width: Float
 
   """Unit: millimeter"""
-  depth: Int
+  length: Float
 
-  """Unit: liter"""
-  volume: Int
+  """Unit: millimeter"""
+  thickness: Float
+
+  """Unit: millimeter"""
+  diameter: Float
+
+  """Unit: kg"""
+  weight: Float
   condition: ProductConditionEnum!
-  description: String
+  status: ProductStatusEnum!
   distanceFromPosition: Float
-  category: Category!
+  pickupEnabled: Boolean!
+  deliveryEnabled: Boolean!
+  deliveryRadius: Float
+  category: Category
   seller: User!
+  primaryImage: File
   images: [File!]!
-  mainImage: File
+  documents: [File!]!
   likedByUser: Boolean
-  location: LocationResponse!
+  location: LocationResponse
+  price: Float!
+  brand: Brand
+  project: Project
+  approximatePlace: ApproximatePlaceResponse
+  shippingPrices: [ShippingPrice!]
+  deliveryPrice: Float
 }
 
 enum ProductConditionEnum {
@@ -121,6 +209,11 @@ enum ProductConditionEnum {
   GOOD
   OKAY
   BAD
+}
+
+enum ProductStatusEnum {
+  DRAFT
+  PUBLISHED
 }
 
 type ResendVerificationMailResponse {
@@ -142,22 +235,34 @@ type ResetPasswordResponse {
   message: String!
 }
 
-type Message {
-  id: ID!
-  createdAt: DateTime!
-  body: String!
-  senderId: ID!
-  receiverId: ID!
+type GetAddressResponse {
+  address: String!
+}
+
+type LocationSearchResponse {
+  result: [String!]!
 }
 
 type LocationResponse {
-  latitude: Float!
-  longitude: Float!
+  lat: Float!
+  lng: Float!
+}
+
+type ApproximatePlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
 }
 
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
+}
+
+type UpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
 }
 
 type ProductsResponse {
@@ -170,10 +275,6 @@ type ProductsResponse {
   total: Int!
 }
 
-type DeleteProductResponse {
-  title: String!
-}
-
 type ConversationResponse {
   otherUser: User!
   messages: [Message!]!
@@ -183,14 +284,6 @@ type ConversationOverviewResponse {
   otherUser: User!
   product: Product!
   latestMessageAt: DateTime!
-}
-
-type GetAddressResponse {
-  address: String!
-}
-
-type LocationSearchResponse {
-  result: [String!]!
 }
 
 type AuthenticateResponse {
@@ -205,6 +298,11 @@ enum AuthResponseStatusEnum {
   PENDING
 }
 
+type CreatePayoutAccountResponse {
+  user: User!
+  trustlyUrl: String
+}
+
 type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
@@ -215,6 +313,7 @@ type Query {
   userExists(input: UserExistsInput!): User
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
+  getDraftedProduct: Product
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   rootCategories: [Category!]!
@@ -223,6 +322,12 @@ type Query {
   conversations: [ConversationOverviewResponse!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
+  addressToLocation(input: AddressToLocationInput!): LocationResponse!
+  brands: [Brand!]!
+  getProject(input: GetProjectInput!): Project!
+  myProjects: [Project!]!
+  getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
+  getAllShippingPrices: [ShippingPrice!]!
 }
 
 input UserExistsInput {
@@ -278,6 +383,18 @@ input LocationSearchInput {
   searchString: String!
 }
 
+input AddressToLocationInput {
+  address: String!
+}
+
+input GetProjectInput {
+  id: String!
+}
+
+input GetShippingPriceInput {
+  id: String!
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -290,16 +407,19 @@ type Mutation {
   updateUser(input: UpdateUserInput!): User!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
-  deleteProduct(input: DeleteProductInput!): DeleteProductResponse!
+  createDraftProduct: Product!
+  updateProduct(input: UpdateProductInput!): UpdateProductResponse!
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
-  createPayoutAccount(input: CreatePayoutAccountInput!): User!
+  createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
+  createProject(input: CreateProjectInput!): Project!
+  updateProject(input: UpdateProjectInput!): Project!
 }
 
 input RegisterUserInput {
@@ -360,7 +480,7 @@ input CreateProductInput {
   address: String!
   images: [FileInputType!]
   isGiveaway: Boolean
-  brand: String
+  brandId: String
   amount: Float
   height: Float
   width: Float
@@ -372,10 +492,45 @@ input CreateProductInput {
 
 input FileInputType {
   mimeType: String!
+  name: String
 }
 
-input DeleteProductInput {
+input UpdateProductInput {
   id: String!
+  title: String
+  location: LocationInputType
+  description: String
+  categoryId: String
+  brandId: String
+  price: Float
+  isGiveAway: Boolean
+  primaryQuantity: Float
+  primaryUnit: QuantityUnitEnum
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
+  height: Float
+  width: Float
+  length: Float
+  thickness: Float
+  diameter: Float
+  weight: Float
+  condition: ProductConditionEnum
+  status: ProductStatusEnum
+  addImages: [FileInputType!]
+  removeImages: [String!]
+  addDocuments: [FileInputType!]
+  removeDocuments: [String!]
+  projectId: String
+  deliveryEnabled: Boolean
+  deliveryPrice: Float
+  deliveryRadius: Float
+  pickupEnabled: Boolean
+  shippingPriceIds: [String!]
+}
+
+input LocationInputType {
+  lat: Float!
+  lng: Float!
 }
 
 input HideProductInput {
@@ -414,6 +569,8 @@ input CreatePayoutAccountInput {
   accountNumber: String
   accountName: String
   identifier: String
+  successUrl: String
+  failureUrl: String
   type: PayoutAccountEnum!
 }
 
@@ -429,4 +586,23 @@ enum PaymentMethod {
 
 input AcceptPurchaseInput {
   purchaseId: String!
+}
+
+input CreateProjectInput {
+  title: String!
+  description: String
+  location: LocationInputType!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+}
+
+input UpdateProjectInput {
+  id: String!
+  title: String
+  description: String
+  location: LocationInputType
+  contactName: String
+  contactEmail: String
+  contactPhone: String
 }

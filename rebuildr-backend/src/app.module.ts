@@ -6,7 +6,7 @@ import { dbConfig } from './ormconfig';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { DataloaderModule } from './dataloader/dataloader.module';
+import { DataloaderModule } from './dataloaders/dataloader.module';
 import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
@@ -40,8 +40,8 @@ import { Event } from './entities/event.entity';
 import { EventService } from './services/event.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
-import { ProductLoader } from './dataloader/product.loader';
-import { CategoryLoader } from './dataloader/category.loader';
+import { ProductLoader } from './dataloaders/product.loader';
+import { CategoryLoader } from './dataloaders/category.loader';
 import { RockerService } from './services/rocker.service';
 import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -50,9 +50,21 @@ import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
 import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 import { PurchaseResolver } from './resolvers/purchase.resolver';
-import { CustomLogger } from './custom.logger';
 import { EnvironmentVariables, validateConfig } from './config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { Brand } from './entities/brand.entity';
+import { WinstonModule } from 'nest-winston';
+import { instanceLogger } from './winston.logger';
+import { CategoryTree } from './entities/category-tree.entity';
+import { BrandService } from './services/brand.service';
+import { BrandResolver } from './resolvers/brand.resolver';
+import { ProjectService } from './services/project.service';
+import { ProjectResolver } from './resolvers/project.resolver';
+import { Project } from './entities/project.entity';
+import { UserLoader } from './dataloaders/user.loader';
+import { ShippingPrice } from './entities/shipping-price.entity';
+import { ShippingPriceResolver } from './resolvers/shipping-price.resolver';
+import { ShippingPriceService } from './services/shipping-price.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -61,6 +73,7 @@ export interface RequestType {
 
 @Module({
   imports: [
+    WinstonModule.forRoot(instanceLogger),
     ConfigModule.forRoot({
       envFilePath: ['.env.local.1p'],
       validate: validateConfig,
@@ -87,19 +100,24 @@ export interface RequestType {
       User,
       Product,
       Category,
+      CategoryTree,
       Message,
       File,
       RefreshToken,
       Event,
       Purchase,
+      Brand,
+      Project,
+      ShippingPrice,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [ProductLoader, CategoryLoader, ConfigService],
+      inject: [ProductLoader, CategoryLoader, UserLoader, ConfigService],
       useFactory: (
         productLoaderService: ProductLoader,
         categoryLoaderService: CategoryLoader,
+        userLoaderService: UserLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -110,6 +128,7 @@ export interface RequestType {
           context: ({ req, res }) => ({
             productLoaders: productLoaderService.createLoaders(),
             categoryLoaders: categoryLoaderService.createLoaders(),
+            userLoaders: userLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -155,7 +174,12 @@ export interface RequestType {
     RockerAPI,
     PurchaseService,
     PurchaseResolver,
-    CustomLogger,
+    BrandService,
+    BrandResolver,
+    ProjectService,
+    ProjectResolver,
+    ShippingPriceResolver,
+    ShippingPriceService,
   ],
 })
 export class AppModule {}

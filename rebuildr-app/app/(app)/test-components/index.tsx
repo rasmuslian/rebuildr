@@ -155,11 +155,11 @@ export default function Page() {
       </View>
       <View style={{ flex: 1, flexDirection: "row", gap: 16 }}>
         <Toggle onPress={() => console.log("hej")} />
-        <Toggle onPress={() => console.log("hej")} selected />
+        <Toggle onPress={() => console.log("hej")} value />
       </View>
       <View style={{ flex: 1, flexDirection: "row", gap: 16 }}>
         <Toggle onPress={() => console.log("hej")} disabled />
-        <Toggle onPress={() => console.log("hej")} selected disabled />
+        <Toggle onPress={() => console.log("hej")} value disabled />
       </View>
       <View style={{ flex: 1, flexDirection: "row", gap: 16 }}>
         <Radio />
@@ -240,11 +240,10 @@ export default function Page() {
           },
           {
             heading: "Password",
-            type: "text",
+            type: "masked",
             placeholder: "Placeholder text",
             value: formText,
             onChangeText: (text) => setFormText(text),
-            masked: true,
           },
           {
             heading: "Select",
@@ -252,6 +251,8 @@ export default function Page() {
             value: formText,
             onPress: () => {},
             placeholder: "Placeholder",
+            options: [],
+            onSelect: (v) => {},
           },
           {
             heading: "Error",
@@ -260,6 +261,8 @@ export default function Page() {
             onPress: () => {},
             placeholder: "Placeholder",
             error: true,
+            options: [],
+            onSelect: (v) => {},
           },
           {
             heading: "Disabled",
@@ -269,20 +272,22 @@ export default function Page() {
             placeholder: "Placeholder",
             error: true,
             disabled: true,
+            options: [],
+            onSelect: (v) => {},
           },
           {
             explainer:
               "This is an explainer. Keep it real short, but it can span over a maximum of three rows.",
             type: "toggle",
             onPress: () => setFormToggle(!formToggle),
-            selected: formToggle,
+            value: formToggle,
           },
           {
             explainer:
               "This is an explainer. Keep it real short, but it can span over a maximum of three rows.",
             type: "toggle",
             onPress: () => setFormToggle(!formToggle),
-            selected: formToggle,
+            value: formToggle,
             disabled: true,
           },
           {

@@ -1,11 +1,13 @@
 import { textStyles } from "@components/typography/typeface";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
-import { useState } from "react";
+import { Icon, IconType } from "@icons/icon";
+import { forwardRef, LegacyRef, useState } from "react";
 import {
+  NativeSyntheticEvent,
   Pressable,
   TextInput as RNTextInput,
+  TextInputFocusEventData,
   TextInputProps,
   View,
 } from "react-native";
@@ -13,14 +15,21 @@ import {
 export type Props = {
   error?: boolean;
   disabled?: boolean;
-  masked?: boolean;
-} & TextInputProps;
+  hideText?: boolean;
+  inputType?: "default" | "numeric";
+  trailing?: { icon: IconType; onPress: () => void };
+  onChange?: (t: string) => void;
+  onBlur?: (t: string) => void;
+} & Omit<TextInputProps, "onChange" | "onBlur">;
 
-export const TextInput = ({ ...props }: Props) => {
+export const TextInput = forwardRef(function TextInput(
+  { onChange, onBlur, ...props }: Props,
+  ref: LegacyRef<RNTextInput>,
+) {
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [hideText, setHideText] = useState(props.masked);
+  // const [hideText, setHideText] = useState(props.masked);
 
   const saved = !focused && !!props.value;
 
@@ -56,15 +65,51 @@ export const TextInput = ({ ...props }: Props) => {
     return colors.text.secondary;
   };
 
+  const onChangeText = (t: string) => {
+    if (!onChange) {
+      return;
+    }
+    if (props.inputType === "numeric") {
+      //remove all non-digits
+      let numericString = t.replace(/\D/g, "");
+
+      //remove leading 0 if it exists
+      if (numericString.startsWith("0") && numericString.length > 1) {
+        numericString = numericString.slice(1);
+      }
+      if (!numericString) {
+        //if price becomes an empty string, set it to "0" instead
+        numericString = "0";
+      }
+
+      onChange(numericString);
+    } else {
+      onChange(t);
+    }
+  };
+
+  const onBlurText = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    setFocused(false);
+    const text = e.nativeEvent.text;
+    if (props.inputType === "numeric") {
+      const priceNumber = text.replace(/\D/g, "");
+      onBlur?.(priceNumber);
+    } else {
+      onBlur?.(text);
+    }
+  };
+
   return (
     <Pressable
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
     >
       <RNTextInput
+        ref={ref}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        secureTextEntry={hideText}
+        onBlur={onBlurText}
+        secureTextEntry={props.hideText}
+        onChangeText={(t) => onChangeText(t)}
         {...props}
         style={[
           {
@@ -73,7 +118,7 @@ export const TextInput = ({ ...props }: Props) => {
             padding: 16,
             paddingRight: 12,
             backgroundColor: colors.background.neutral,
-            borderRadius: borderRadius.small,
+            borderRadius: borderRadius.medium,
             height: 40,
             ...textStyles.body["medium"],
             color: getTextColor(),
@@ -82,13 +127,13 @@ export const TextInput = ({ ...props }: Props) => {
           props.style,
         ]}
       />
-      {props.masked && (
+      {props.trailing && (
         <View style={{ position: "absolute", right: 8, top: 8 }}>
-          <Pressable onPress={() => setHideText(!hideText)}>
-            <Icon icon={hideText ? "eye" : "eyeOff"} />
+          <Pressable onPress={props.trailing.onPress}>
+            <Icon icon={props.trailing.icon} />
           </Pressable>
         </View>
       )}
     </Pressable>
   );
-};
+});

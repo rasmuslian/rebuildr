@@ -10,6 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File } from '../entities/file.entity';
+import { ConfigService } from '@nestjs/config';
+import { FileInputType } from 'src/resolvers/product.resolver';
 
 const SIGNED_URL_EXPIRATION = 3600;
 @Injectable()
@@ -18,6 +20,7 @@ export class FileService {
   constructor(
     @InjectRepository(File)
     private fileRepository: Repository<File>,
+    private configService: ConfigService,
   ) {
     try {
       this.s3 = new S3Client({
@@ -33,36 +36,68 @@ export class FileService {
     }
   }
 
+  private spacesBucket = this.configService.get<string>('SPACES_BUCKET');
+  private CDNEndpoint = `https://${this.spacesBucket}.ams3.cdn.digitaloceanspaces.com`;
+  private nonCDNEndpoint = `https://${this.spacesBucket}.ams3.digitaloceanspaces.com`;
+
   async findOne(id: string) {
     return await this.fileRepository.findOneBy({ id });
   }
 
-  async create(mimeType: string) {
-    let file = new File();
+  async createFile(mimeType: string, name?: string, isPrivate?: boolean) {
+    const file = new File();
     file.mimeType = mimeType;
-    file = await this.fileRepository.save(file);
-
-    const cmd = new PutObjectCommand({
-      Bucket: 'rebuildr-staging',
-      Key: file.id,
-    });
-    const signedUrl = await getSignedUrl(this.s3, cmd, {
-      expiresIn: SIGNED_URL_EXPIRATION,
-    });
-    return {
-      file,
-      signedUrl,
-    };
+    file.private = !!isPrivate;
+    file.name = name;
+    return await this.fileRepository.save(file);
   }
 
-  async deleteMany(files: File[]) {
+  async createFiles(_files: FileInputType[], isPrivate?: boolean) {
+    return await Promise.all(
+      _files.map(
+        async (_file) =>
+          await this.createFile(_file.mimeType, _file.name, isPrivate),
+      ),
+    );
+  }
+
+  async uploadFile(
+    file: File,
+    mimeType: string,
+    publicRead?: boolean,
+  ): Promise<string> {
+    const fileExtension = mimeType.split('/')[1];
+    const key = file.id + '.' + fileExtension;
+
+    const putCommand = new PutObjectCommand({
+      Bucket: this.spacesBucket,
+      Key: key,
+      ACL: publicRead ? 'public-read' : undefined,
+    });
+
+    const signedPutUrl = await getSignedUrl(this.s3, putCommand, {
+      expiresIn: SIGNED_URL_EXPIRATION,
+    });
+
+    return signedPutUrl;
+  }
+  async uploadFiles(files: File[], publicRead?: boolean): Promise<string[]> {
+    const signedPutUrls = await Promise.all(
+      files.map(
+        async (file) => await this.uploadFile(file, file.mimeType, publicRead),
+      ),
+    );
+    return signedPutUrls;
+  }
+
+  async deleteFiles(files: File[]) {
     //Return if array is empty
     if (!files.length) {
       return;
     }
 
     const cmd = new DeleteObjectsCommand({
-      Bucket: 'rebuildr-staging',
+      Bucket: this.spacesBucket,
       Delete: {
         Objects: files.map((file) => ({ Key: file.id })),
       },
@@ -82,27 +117,32 @@ export class FileService {
   }
 
   async findByProduct(productId: string) {
-    return await this.fileRepository.findBy({ productId });
-  }
-
-  async findOneByProduct(productId: string) {
-    return await this.fileRepository.findOneBy({ productId });
-  }
-
-  async getPresignedGetUrl(fileId: string) {
-    const cmd = new GetObjectCommand({
-      Bucket: 'rebuildr-staging',
-      Key: fileId,
-    });
-
-    return await getSignedUrl(this.s3, cmd, {
-      expiresIn: SIGNED_URL_EXPIRATION,
+    return await this.fileRepository.find({
+      where: { productImage: { id: productId } },
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getFileUrl(fileId: string) {
-    //TODO: Create implementation
-    return 'file.png';
+  async getUrl(file: File) {
+    const fileExtension = file.mimeType.split('/')[1];
+    const key = file.id + '.' + fileExtension;
+
+    if (file.private) {
+      const getCommand = new GetObjectCommand({
+        Bucket: this.spacesBucket,
+        Key: key,
+      });
+
+      const getUrl = await getSignedUrl(this.s3, getCommand, {
+        expiresIn: 604800,
+      });
+
+      return this.getCDNUrl(getUrl);
+    }
+
+    return `${this.CDNEndpoint}/${key}`;
+  }
+
+  private getCDNUrl(url: string) {
+    return url.replace(this.nonCDNEndpoint, this.CDNEndpoint);
   }
 }

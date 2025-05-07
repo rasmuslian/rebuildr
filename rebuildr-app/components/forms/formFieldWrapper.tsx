@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 type Props = {
   heading?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   helperText?: string;
   children: React.ReactNode;
   horizontal?: boolean;
@@ -18,8 +18,8 @@ export const FormFieldWrapper = ({
   children,
 }: Props) => {
   return (
-    <View>
-      <View style={{ flexDirection: horizontal ? "row" : "column" }}>
+    <View style={{ flexDirection: horizontal ? "row" : "column" }}>
+      <View>
         {heading ? (
           <View style={{ paddingBottom: 4 }}>
             <Label size="medium">{heading}</Label>
@@ -27,9 +27,13 @@ export const FormFieldWrapper = ({
         ) : null}
         {description ? (
           <View style={{ paddingBottom: 12 }}>
-            <Body size="small" color="secondary">
-              {description}
-            </Body>
+            {typeof description === "string" ? (
+              <Body size="small" color="secondary">
+                {description}
+              </Body>
+            ) : (
+              description
+            )}
           </View>
         ) : null}
       </View>
