@@ -1,6 +1,7 @@
 import {
   ProductConditionEnum,
   QuantityUnitEnum,
+  SellProductCreateDraftMutation,
   SellProductQueryQuery,
   SellProductUpdateMutation,
   SellProductUpdateMutationVariables,
@@ -29,98 +30,78 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
+const PRODUCT_DETAILS_FRAGMENT = gql`
+  fragment ProductDetailsFragment on Product {
+    id
+    title
+    description
+    price
+    isGiveaway
+    condition
+    primaryQuantity
+    primaryUnit
+    secondaryQuantity
+    secondaryUnit
+    height
+    width
+    length
+    thickness
+    diameter
+    weight
+    images {
+      id
+      mimeType
+      url
+      name
+    }
+    documents {
+      id
+      mimeType
+      url
+      name
+    }
+    category {
+      id
+      name
+      hasChildren
+      ancestorIds
+    }
+    brand {
+      id
+      type
+    }
+  }
+`;
+
+const SELL_PRODUCT_CREATE_DRAFT = gql`
+  mutation SellProductCreateDraft {
+    createDraftProduct {
+      ...ProductDetailsFragment
+    }
+  }
+  ${PRODUCT_DETAILS_FRAGMENT}
+`;
+
 const SELL_PRODUCT_QUERY = gql`
   query SellProductQuery {
     getDraftedProduct {
-      id
-      title
-      description
-      price
-      isGiveaway
-      condition
-      primaryQuantity
-      primaryUnit
-      secondaryQuantity
-      secondaryUnit
-      height
-      width
-      length
-      thickness
-      diameter
-      weight
-      images {
-        id
-        mimeType
-        url
-        name
-      }
-      documents {
-        id
-        mimeType
-        url
-        name
-      }
-      category {
-        id
-        name
-        hasChildren
-        ancestorIds
-      }
-      brand {
-        id
-        type
-      }
+      ...ProductDetailsFragment
     }
   }
+  ${PRODUCT_DETAILS_FRAGMENT}
 `;
 
 const SELL_PRODUCT_UPDATE = gql`
   mutation SellProductUpdate($input: UpdateProductInput!) {
     updateProduct(input: $input) {
       product {
-        id
-        title
-        description
-        price
-        isGiveaway
-        condition
-        primaryQuantity
-        primaryUnit
-        secondaryQuantity
-        secondaryUnit
-        height
-        width
-        length
-        thickness
-        diameter
-        weight
-        images {
-          id
-          mimeType
-          url
-          name
-        }
-        documents {
-          id
-          mimeType
-          url
-          name
-        }
-        category {
-          id
-          name
-          hasChildren
-          ancestorIds
-        }
-        brand {
-          id
-          type
-        }
+        ...ProductDetailsFragment
       }
       imagePutUrls
       documentPutUrls
     }
   }
+  ${PRODUCT_DETAILS_FRAGMENT}
 `;
 
 type ProductFields = {
@@ -159,10 +140,15 @@ export default function SellProduct() {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
   const { data } = useQuery<SellProductQueryQuery>(SELL_PRODUCT_QUERY, {
-    fetchPolicy: "network-only",
     onCompleted: async (data) => {
       const product = data.getDraftedProduct;
       if (!product) {
+        //if drafted product does not exist, create a draft
+        createDraft({
+          onCompleted: (data) => {
+            productToState(data.createDraftProduct);
+          },
+        });
         return;
       }
       await productToState(product);
@@ -172,6 +158,9 @@ export default function SellProduct() {
     SellProductUpdateMutation,
     SellProductUpdateMutationVariables
   >(SELL_PRODUCT_UPDATE);
+  const [createDraft] = useMutation<SellProductCreateDraftMutation>(
+    SELL_PRODUCT_CREATE_DRAFT,
+  );
 
   const onUpdateProduct = async (
     _product: ProductFields,
@@ -410,7 +399,9 @@ export default function SellProduct() {
     <>
       <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
         <ProgressHeader
-          onClose={() => router.dismiss()}
+          onClose={() =>
+            router.canDismiss() ? router.dismiss() : router.replace("/")
+          }
           title="Ny annons"
           prog1={progress()}
         />

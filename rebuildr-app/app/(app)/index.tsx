@@ -27,14 +27,6 @@ const LANDING_QUERY = gql`
   }
 `;
 
-const CREATE_DRAFT = gql`
-  mutation CreateDraft {
-    createDraftProduct {
-      id
-    }
-  }
-`;
-
 const AUTHENTICATE_ROCKER_MUTATION = gql`
   mutation AuthenticateRocker($input: AuthenticateRockerInput!) {
     authenticateRocker(input: $input) {
@@ -52,14 +44,6 @@ export default function Landing() {
   const colors = useThemeColor();
 
   const { data } = useQuery<LandingQueryQuery>(LANDING_QUERY);
-  const [
-    authenticateRocker,
-    { loading: authenticateLoading, data: authenticateData },
-  ] = useMutation<
-    AuthenticateRockerMutation,
-    AuthenticateRockerMutationVariables
-  >(AUTHENTICATE_ROCKER_MUTATION);
-  const [createDraft, { loading: creatingDraft }] = useMutation(CREATE_DRAFT);
 
   let timer: NodeJS.Timeout | undefined = undefined;
   useEffect(() => {
@@ -98,11 +82,7 @@ export default function Landing() {
   };
 
   const onCreateNewProduct = () => {
-    createDraft({
-      onCompleted: () => {
-        router.navigate("/(app)/sell-product");
-      },
-    });
+    router.navigate("/(app)/sell-product");
   };
 
   return (
@@ -131,7 +111,6 @@ export default function Landing() {
             onPress={() => {
               onCreateNewProduct();
             }}
-            loading={creatingDraft}
           />
         </View>
       )}
