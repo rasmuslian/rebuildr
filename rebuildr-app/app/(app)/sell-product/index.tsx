@@ -87,6 +87,10 @@ const SELL_PRODUCT_QUERY = gql`
     getDraftedProduct {
       ...ProductDetailsFragment
     }
+    me {
+      id
+      selectedPayoutMethod
+    }
   }
   ${PRODUCT_DETAILS_FRAGMENT}
 `;
@@ -141,6 +145,11 @@ export default function SellProduct() {
   const [showDetails, setShowDetails] = useState(false);
   const { data } = useQuery<SellProductQueryQuery>(SELL_PRODUCT_QUERY, {
     onCompleted: async (data) => {
+      //User must have a payout method to be able to sell
+      if (!data.me.selectedPayoutMethod) {
+        router.replace("/(app)/sell-product/payout");
+        return;
+      }
       const product = data.getDraftedProduct;
       if (!product) {
         //if drafted product does not exist, create a draft
