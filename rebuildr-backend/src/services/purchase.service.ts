@@ -1,41 +1,34 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from 'src/entities/product.entity';
-import { Purchase } from 'src/entities/purchase.entity';
+import { Product, ProductStatus } from 'src/entities/product.entity';
+import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
-import { IsNull, MoreThanOrEqual, Repository } from 'typeorm';
+import { IsNull, LessThanOrEqual, Repository } from 'typeorm';
 import { RockerService, SupportedPaymentMethod } from './rocker.service';
 import {
   BadUserInputException,
   ForbiddenException,
   InternalServerException,
+  NotFoundException,
 } from 'src/exceptions';
 import {
   IPaymentCompleted,
   IPaymentFailed,
+  IPaymentRefunded,
   IPaymentStarted,
   IPayoutCompleted,
   IPayoutFailed,
   IPayoutStarted,
+  Status1Enum,
 } from 'src/apis/types/rocker-types';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
-import { Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
 import { FileService } from './file.service';
-
-enum PurchaseStatusEnum {
-  INIT, //Buyer has started process to buy product
-  PAYMENT_PENDING, //Buyer is comitting money to purchase product
-  DELIVERING, //Product should be delivered
-  APPROVEMENT_PENDING, //Product has been delivered, waiting on approve from Buyer
-  PAYOUT_PENDING, //Seller is in process to receive payout
-  FINISHED_FAILED, //purchase was for any reason canceled
-  FINISHED_SUCCESS, //purchase was successfully completed
-  FAILED, //Purchase has failed somewhere in its lifecycle and needs action to proceed
-}
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 export class PurchaseService {
-  private readonly logger = new Logger(PurchaseService.name);
   constructor(
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
@@ -46,6 +39,7 @@ export class PurchaseService {
     private rockerService: RockerService,
     private caslAbilityFactory: CaslAbilityFactory,
     private fileService: FileService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
   async createPurchase(
     productId: string,
@@ -66,8 +60,7 @@ export class PurchaseService {
 
     //Product is only available if its only purchases are failed ones
     const available = product.purchases.every(
-      (purchase) =>
-        this.getPurchaseStatus(purchase) === PurchaseStatusEnum.FINISHED_FAILED,
+      (purchase) => purchase.status === PurchaseStatusEnum.FINISHED_FAILED,
     );
     if (!available) {
       throw InternalServerException('Product not available for purchase');
@@ -118,31 +111,280 @@ export class PurchaseService {
     };
   }
 
-  //Product of purchase is accepted. Payment is confirmed and payout is started
-  private async acceptPurchase(purchase: Purchase) {
-    const status = this.getPurchaseStatus(purchase);
-    if (status !== PurchaseStatusEnum.APPROVEMENT_PENDING) {
-      this.logger.error('Accepting purchase wrong status: ', status);
-      throw BadUserInputException();
+  async canPause(purchase: Purchase) {
+    const pauseableStatus = ![
+      PurchaseStatusEnum.PAUSED,
+      PurchaseStatusEnum.APPROVED,
+      PurchaseStatusEnum.PAYOUT_STARTED,
+      PurchaseStatusEnum.FINISHED_FAILED,
+      PurchaseStatusEnum.FINISHED_SUCCESS,
+    ].includes(purchase.status);
+
+    return purchase.paymentAcceptedAt && pauseableStatus;
+  }
+
+  async pausePaymentByRocker(paymentId: string, logger: Logger) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: paymentId },
+      relations: { product: true },
+    });
+
+    if (!purchase) {
+      logger.error('PausePaymentByRocker: Purchase not found', {
+        paymentId: paymentId,
+      });
+      throw NotFoundException('Purchase not found');
     }
 
-    await this.rockerService.confirmPayment(purchase.rockerPaymentId);
-    purchase.approvedAt = new Date();
+    if (purchase.pausedAt) {
+      logger.error('PausePaymentByRocker: Purchase already paused', {
+        purchaseId: purchase.id,
+        paymentId,
+      });
+      return;
+    }
 
+    logger.info('PausePaymentByRocker: Pausing purchase', {
+      purchaseId: purchase.id,
+      buyerId: purchase.buyerId,
+    });
+
+    purchase.pausedAt = new Date();
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    return savedPurchase;
+  }
+  async pausePurchaseByBuyer(
+    purchaseId: string,
+    buyerId: string,
+    logger: Logger,
+  ) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id: purchaseId },
+      relations: { product: { seller: true }, buyer: true },
+    });
+
+    if (!purchase) {
+      logger.error('PausePurchase: Purchase invalid', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+      });
+
+      throw BadUserInputException('Purchase invalid');
+    }
+
+    if (purchase.buyerId !== buyerId) {
+      logger.error('PausePurchase: Buyer and purchase does not match', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+      });
+
+      throw BadUserInputException('Buyer and purchase does not match');
+    }
+
+    if (!this.canPause(purchase)) {
+      logger.info('PausePurchase: Purchase cannot be paused', {
+        purchaseId: purchaseId,
+        status: purchase.status,
+      });
+
+      throw BadUserInputException('Purchase cannot be paused');
+    }
+
+    logger.info('PausePurchase: Pausing purchase', {
+      purchaseId: purchaseId,
+      buyerId: buyerId,
+    });
+
+    purchase.pausedAt = new Date();
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    if (purchase.rockerPaymentId) {
+      logger.info('PausePurchase: Pausing payment at Rocker', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+      });
+
+      await this.rockerService.pausePayment(
+        purchase.rockerPaymentId,
+        'Payment paused by buyer with id: ' + purchase.buyerId,
+      );
+    }
+
+    return savedPurchase;
+  }
+
+  async resumePaymentByRocker(paymentId: string, logger: Logger) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: paymentId },
+    });
+
+    if (!purchase) {
+      logger.error('ResumePurchase: Purchase invalid', {
+        paymentId: paymentId,
+      });
+      throw NotFoundException('Purchase invalid');
+    }
+    if (!purchase.pausedAt) {
+      logger.error('ResumePaymentByRocker: Purchase already resumed', {
+        purchaseId: purchase.id,
+        paymentId,
+      });
+      return;
+    }
+
+    logger.info('ResumePaymentByRocker: Resuming purchase', {
+      purchaseId: purchase.id,
+      buyerId: purchase.buyerId,
+    });
+
+    purchase.pausedAt = null;
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    return savedPurchase;
+  }
+  async resumePurchaseByBuyer(
+    purchaseId: string,
+    buyerId: string,
+    logger: Logger,
+  ) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id: purchaseId },
+      relations: { product: true, buyer: true },
+    });
+
+    if (!purchase) {
+      logger.error('ResumePurchase: Purchase invalid', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+      });
+
+      throw BadUserInputException('Purchase invalid');
+    }
+
+    if (purchase.buyerId !== buyerId) {
+      logger.error('ResumePurchase: Buyer and purchase does not match', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+      });
+
+      throw BadUserInputException('Buyer and purchase does not match');
+    }
+
+    logger.info('ResumePurchase: Resuming purchase', {
+      purchaseId: purchaseId,
+      buyerId: buyerId,
+    });
+
+    purchase.pausedAt = null;
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    if (purchase.rockerPaymentId) {
+      logger.info('ResumePurchase: Resuming payment at Rocker', {
+        purchaseId: purchaseId,
+        buyerId: buyerId,
+        paymentId: purchase.rockerPaymentId,
+      });
+
+      await this.rockerService.resumePayment(
+        purchase.rockerPaymentId,
+        'Payment resumed',
+      );
+    }
+
+    return savedPurchase;
+  }
+
+  //Product of purchase is accepted. Payment is confirmed and payout is started
+  private async acceptPurchase(
+    purchase: Purchase,
+    buyer: User,
+    seller: User,
+    logger: Logger,
+  ) {
+    if (
+      ![
+        PurchaseStatusEnum.DELIVERED,
+        PurchaseStatusEnum.APPROVED,
+        PurchaseStatusEnum.PAYOUT_FAILED,
+      ].includes(purchase.status)
+    ) {
+      logger.error('Accepting purchase with wrong status', {
+        purchaseId: purchase.id,
+        status: purchase.status,
+      });
+
+      throw BadUserInputException();
+    }
+    if (!purchase.rockerPaymentId) {
+      logger.error('Accepting purchase with no rockerPaymentId', {
+        purchaseId: purchase.id,
+      });
+
+      throw BadUserInputException();
+    }
+    await this.rockerService.confirmPayment(purchase.rockerPaymentId);
+    if (!purchase.approvedAt) purchase.approvedAt = new Date();
+
+    await this.purchaseRepository.save(purchase);
+
+    if (!seller.selectedPayoutMethod) {
+      logger.error('Seller has no selected payout method', {
+        purchaseId: purchase.id,
+        userId: seller.id,
+      });
+
+      throw InternalServerException('Seller has no selected payout method');
+    }
     try {
+      logger.info('Trying to create payout', {
+        purchaseId: purchase.id,
+        sellerId: seller.id,
+        buyerId: buyer.id,
+        payoutMethod: seller.selectedPayoutMethod,
+      });
       const payoutResponse = await this.rockerService.createPayout(
         purchase.rockerPaymentId,
-        purchase.buyer,
+        seller,
+        logger,
       );
+
       purchase.rockerPayoutId = payoutResponse.id;
-    } catch {
-      this.logger.error('Error when creating payout');
-      purchase.failedAt = new Date();
+      purchase.payoutStartedAt = new Date();
+
+      //In case the response completes immiediately, we won't have to wait for a webhook
+      //to complete the purchase
+      if (payoutResponse.status === Status1Enum.COMPLETED) {
+        logger.info('Payout completed (inside acceptPurchase method)', {
+          purchaseId: purchase.id,
+          payoutId: payoutResponse.id,
+          sellerId: seller.id,
+          buyerId: buyer.id,
+        });
+        purchase.payoutReceivedAt = new Date();
+        await this.productRepository.update(
+          { id: purchase.productId },
+          { status: ProductStatus.SOLD },
+        );
+      }
+    } catch (err) {
+      logger.error(
+        'Error when creating payout. Error message: ' + JSON.stringify(err),
+      );
+      await this.purchaseRepository.update(
+        { id: purchase.id },
+        { payoutFailedAt: new Date() },
+      );
     }
 
     return await this.purchaseRepository.save(purchase);
   }
   async manualAcceptPurchase(purchaseId: string, userId: string) {
+    const logger = this.logger.child({
+      cron: 'manualAcceptPurchase',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Manually accepting purchase');
     const user = await this.userRepository.findOne({
       where: {
         id: userId,
@@ -151,6 +393,13 @@ export class PurchaseService {
     const purchase = await this.purchaseRepository.findOne({
       where: {
         id: purchaseId,
+        failedAt: IsNull(),
+        pausedAt: IsNull(),
+        payoutReceivedAt: IsNull(),
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
       },
     });
 
@@ -158,108 +407,149 @@ export class PurchaseService {
     if (!ability.can('update', purchase)) {
       throw ForbiddenException();
     }
-    return await this.acceptPurchase(purchase);
+    return await this.acceptPurchase(
+      purchase,
+      purchase.buyer,
+      purchase.product.seller,
+      logger,
+    );
   }
   //Every hour, accept purchases that are waiting approval from
   //the buyer
   @Cron(CronExpression.EVERY_HOUR)
   async autoAcceptPurchases() {
-    this.logger.log('Auto accepting purchases');
+    const logger = this.logger.child({
+      cron: 'autoAcceptPurchases',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Auto accepting purchases');
     const dueTime = dayjs().add(1, 'day');
     const duePurchases = await this.purchaseRepository.find({
       where: {
-        deliveredAt: MoreThanOrEqual(dueTime.toDate()),
-        approvedAt: IsNull(),
-        disapprovedAt: IsNull(),
+        deliveredAt: LessThanOrEqual(dueTime.toDate()),
         failedAt: IsNull(),
+        pausedAt: IsNull(),
+        payoutReceivedAt: IsNull(),
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
       },
     });
     await Promise.all(
       duePurchases.map((p) => {
-        return this.acceptPurchase(p);
+        return this.acceptPurchase(p, p.buyer, p.product.seller, logger);
       }),
     );
   }
 
-  getPurchaseStatus(purchase: Purchase) {
-    if (purchase.failedAt) {
-      return PurchaseStatusEnum.FAILED;
-    }
-    if (purchase.payoutReceivedAt) {
-      return PurchaseStatusEnum.FINISHED_SUCCESS;
-    }
-    if (purchase.disapprovedAt) {
-      return PurchaseStatusEnum.FINISHED_FAILED;
-    }
-    if (purchase.approvedAt) {
-      return PurchaseStatusEnum.PAYOUT_PENDING;
-    }
-    if (purchase.deliveredAt) {
-      return PurchaseStatusEnum.APPROVEMENT_PENDING;
-    }
-    if (purchase.paymentAcceptedByRockerAt) {
-      return PurchaseStatusEnum.DELIVERING;
-    }
-    if (purchase.paymentSentToRockerAt) {
-      return PurchaseStatusEnum.PAYMENT_PENDING;
-    }
-    return PurchaseStatusEnum.INIT;
-  }
-
-  async paymentStarted(payload: IPaymentStarted) {
+  async paymentStarted(payload: IPaymentStarted, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: payload.paymentId },
     });
 
     if (!purchase) {
+      logger.error('PaymentStarted: No purchase found', {
+        paymentId: payload.paymentId,
+      });
+
       throw new Error(
         'PaymentStarted: No purchase found with id: ' + payload.paymentId,
       );
     }
 
-    purchase.paymentSentToRockerAt = new Date(payload.timestamp);
+    purchase.paymentSentAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
+
+    logger.info('Payment started', {
+      paymentId: payload.paymentId,
+      purchaseId: purchase.id,
+    });
   }
-  async paymentCompleted(payload: IPaymentCompleted) {
+  async paymentCompleted(payload: IPaymentCompleted, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: payload.paymentId },
+      relations: { buyer: true, product: { seller: true } },
     });
 
     if (!purchase) {
+      logger.error('PaymentCompleted: No purchase found', {
+        paymentId: payload.paymentId,
+      });
+
       throw new Error(
         'PaymentCompleted: No purchase found with id: ' + payload.paymentId,
       );
     }
 
-    purchase.paymentAcceptedByRockerAt = new Date(payload.timestamp);
+    purchase.paymentAcceptedAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
+
+    logger.info('Payment completed', {
+      paymentId: payload.paymentId,
+      purchaseId: purchase.id,
+    });
   }
-  async paymentFailed(payload: IPaymentFailed) {
+  async paymentFailed(payload: IPaymentFailed, logger: Logger) {
     await this.purchaseRepository.update(
       { rockerPaymentId: payload.paymentId },
       { failedAt: new Date(payload.timestamp) },
     );
-  }
 
-  async payoutStarted(payload: IPayoutStarted) {
+    logger.info('Payment failed', {
+      paymentId: payload.paymentId,
+    });
+  }
+  async paymentRefunded(payload: IPaymentRefunded, logger: Logger) {
+    await this.purchaseRepository.update(
+      { rockerPaymentId: payload.paymentId },
+      { failedAt: new Date(payload.timestamp), refundId: payload.refundId },
+    );
+
+    logger.info('Payment refunded', {
+      paymentId: payload.paymentId,
+    });
+  }
+  async payoutStarted(payload: IPayoutStarted, logger: Logger) {
     await this.purchaseRepository.update(
       { rockerPayoutId: payload.payoutId },
       { payoutStartedAt: new Date(payload.timestamp) },
     );
-  }
 
-  async payoutComplete(payload: IPayoutCompleted) {
+    logger.info('Payout started', {
+      payoutId: payload.payoutId,
+    });
+  }
+  async payoutComplete(payload: IPayoutCompleted, logger: Logger) {
+    const purchase = await this.purchaseRepository.findOneOrFail({
+      where: { rockerPayoutId: payload.payoutId },
+      relations: { product: { seller: true } },
+    });
+    purchase.payoutReceivedAt = new Date(payload.timestamp);
+    await Promise.all([
+      this.purchaseRepository.save(purchase),
+      this.productRepository.update(
+        { id: purchase.productId },
+        { status: ProductStatus.SOLD },
+      ),
+    ]);
+
+    logger.info('Payout completed (from webhook)', {
+      payoutId: payload.payoutId,
+      purchaseId: purchase.id,
+      sellerId: purchase.product.sellerId,
+      buyerId: purchase.buyerId,
+    });
+  }
+  async payoutFailed(payload: IPayoutFailed, logger: Logger) {
     await this.purchaseRepository.update(
       { rockerPayoutId: payload.payoutId },
-      { payoutReceivedAt: new Date(payload.timestamp) },
+      { payoutFailedAt: new Date(payload.timestamp) },
     );
-  }
 
-  async payoutFailed(payload: IPayoutFailed) {
-    await this.purchaseRepository.update(
-      { rockerPayoutId: payload.payoutId },
-      { failedAt: new Date(payload.timestamp) },
-    );
+    logger.info('Payout failed', {
+      payoutId: payload.payoutId,
+    });
   }
 
   async deleteMany(purchases: Purchase[]) {

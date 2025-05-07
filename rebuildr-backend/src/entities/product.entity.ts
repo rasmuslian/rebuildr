@@ -33,6 +33,7 @@ registerEnumType(ProductConditionEnum, { name: 'ProductConditionEnum' });
 export enum ProductStatus {
   DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
+  SOLD = 'SOLD',
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 

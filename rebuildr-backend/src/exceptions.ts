@@ -49,3 +49,11 @@ export const BadFieldsInputException = (
     },
   });
 };
+
+export const NotFoundException = (message?: string) => {
+  return new GraphQLError(message ?? 'Not found', {
+    extensions: {
+      code: 'NOT_FOUND',
+    },
+  });
+};

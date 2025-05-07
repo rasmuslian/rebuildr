@@ -74,6 +74,42 @@ enum QuantityUnitEnum {
 
 type Purchase {
   id: ID!
+  paymentSentAt: DateTime
+  paymentAcceptedAt: DateTime
+  shipmentBookedAt: DateTime
+  shipmentDroppedOffAt: DateTime
+  shipmentDeliveredAt: DateTime
+  shipmentStartedAt: DateTime
+  deliveredAt: DateTime
+  approvedAt: DateTime
+  payoutStartedAt: DateTime
+  payoutReceivedAt: DateTime
+  failedAt: DateTime
+  pausedAt: DateTime
+  payoutFailedAt: DateTime
+  status: PurchaseStatusEnum!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum PurchaseStatusEnum {
+  CLAIMED
+  PAYMENT_SENT
+  PAYMENT_ACCEPTED
+  SHIPMENT_BOOKED
+  SHIPMENT_DROPPED_OFF
+  SHIPPING_STARTED
+  SHIPPING_DELIVERED
+  DELIVERED
+  APPROVED
+  PAYOUT_STARTED
+  FINISHED_FAILED
+  FINISHED_SUCCESS
+  PAUSED
+  PAYOUT_FAILED
 }
 
 type Project {
@@ -120,11 +156,6 @@ enum UserType {
   PERSONAL
   BUSINESS
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 enum RegisterStatusEnum {
   EMAIL
@@ -214,6 +245,7 @@ enum ProductConditionEnum {
 enum ProductStatusEnum {
   DRAFT
   PUBLISHED
+  SOLD
 }
 
 type ResendVerificationMailResponse {

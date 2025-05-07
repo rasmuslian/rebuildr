@@ -358,14 +358,31 @@ export class RockerService {
     return await this.userRepository.save(user);
   }
 
-  async createPayout(paymentId: string, buyer: User) {
-    const rockerUser = await this.getRockerUser(buyer);
+  async createPayout(paymentId: string, seller: User, logger: Logger) {
+    const rockerUser = await this.getRockerUser(seller);
+
+    if (!rockerUser.defaultPayoutMethod) {
+      logger.error({
+        message: 'No payout method found for user',
+        userId: seller.id,
+        rockerUserId: seller.rockerUserId,
+      });
+      throw BadUserInputException('No payout method found');
+    }
 
     const response = await this.rockerApi.createPayout(
       paymentId,
       rockerUser.defaultPayoutMethod,
     );
     if (response.errorCode) {
+      logger.error({
+        message: 'Error in Rocker create payout',
+        userId: seller.id,
+        rockerUserId: seller.rockerUserId,
+        paymentId,
+        errorCode: response.errorCode,
+        providedErrorCode: response.providedErrorCode,
+      });
       throw InternalServerException();
     }
     return response;
