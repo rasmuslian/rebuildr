@@ -19,5 +19,6 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "strict": true
-  }
+  },
+  "exclude": ["test/*"]
 }
