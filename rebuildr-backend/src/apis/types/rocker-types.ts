@@ -220,6 +220,14 @@ export interface ICreateSwishPayoutAccountRequest {
   userId: string;
   phoneNumber?: string;
 }
+export interface ICreateTrustlyAccountRequest {
+  successUrl: string;
+  failureUrl: string;
+  appUrlScheme?: string;
+}
+export interface ICreateTrustlyAccountResponse {
+  selectAccountUrl: string;
+}
 interface RixAccountIdentifier {
   clearingNumber: string;
   accountNumber: string;
@@ -241,6 +249,9 @@ export interface ICreatePlusGiroPayoutAccountRequest {
   identifier: string;
   accountName: string;
   bankName?: string;
+}
+export interface IDefaultPayoutMethodRequest {
+  payoutMethod: PayoutMethodEnum;
 }
 
 export enum PayoutMethodEnum {

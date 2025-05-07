@@ -43,6 +43,7 @@ registerEnumType(RegistrationStatusEnum, { name: 'RegisterStatusEnum' });
 
 export enum PayoutAccountEnum {
   SWISH = 'SWISH',
+  TRUSTLY = 'TRUSTLY',
   RIX = 'RIX',
   BANKGIRO = 'BANKGIRO',
   PLUSGIRO = 'PLUGIRO',

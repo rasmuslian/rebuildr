@@ -110,6 +110,7 @@ enum UserRoleEnum {
 
 enum PayoutAccountEnum {
   SWISH
+  TRUSTLY
   RIX
   BANKGIRO
   PLUSGIRO
@@ -297,6 +298,11 @@ enum AuthResponseStatusEnum {
   PENDING
 }
 
+type CreatePayoutAccountResponse {
+  user: User!
+  trustlyUrl: String
+}
+
 type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
@@ -409,7 +415,7 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
-  createPayoutAccount(input: CreatePayoutAccountInput!): User!
+  createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
@@ -563,6 +569,8 @@ input CreatePayoutAccountInput {
   accountNumber: String
   accountName: String
   identifier: String
+  successUrl: String
+  failureUrl: String
   type: PayoutAccountEnum!
 }
 

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   ICreateBankGiroPayoutAccountRequest,
   ICreateCompanyUserRequest,
@@ -8,6 +8,9 @@ import {
   ICreatePlusGiroPayoutAccountRequest,
   ICreateRixPayoutAccountRequest,
   ICreateSwishPayoutAccountRequest,
+  ICreateTrustlyAccountRequest,
+  ICreateTrustlyAccountResponse,
+  IDefaultPayoutMethodRequest,
   IGetAuthResponse,
   IOfferResponse,
   IPaymentResponse,
@@ -23,6 +26,8 @@ import {
 } from './types/rocker-types';
 import { ConfigService } from '@nestjs/config';
 import { CustomFetch } from 'src/utility/custom-fetch';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class RockerAPI {
@@ -30,9 +35,11 @@ export class RockerAPI {
   private merchantId: string;
   private apiKey: string;
   private customFetch: CustomFetch;
-  private readonly logger = new Logger(RockerAPI.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
     this.url = this.configService.get('ROCKER_URL');
     this.merchantId = this.configService.get('ROCKER_MERCHANT_ID');
     this.apiKey = this.configService.get('ROCKER_API_KEY');
@@ -241,6 +248,21 @@ export class RockerAPI {
 
     return response;
   }
+  async createPayoutAccountTrustly(
+    successUrl: string,
+    failureUrl: string,
+    rockerUserId: string,
+  ) {
+    const body: ICreateTrustlyAccountRequest = {
+      successUrl,
+      failureUrl,
+    };
+    const response: ICreateTrustlyAccountResponse = await this.customFetch.send(
+      this.url + `/merchant-api/v1/payout-accounts/${rockerUserId}/trustly`,
+      { body, method: 'POST' },
+    );
+    return response;
+  }
   async createPayoutAccountRix(
     clearingNumber: string,
     accountNumber: string,
@@ -294,6 +316,21 @@ export class RockerAPI {
       { body, method: 'POST' },
     );
     return response;
+  }
+  async setDefaultPayoutMethod(
+    payoutMethod: PayoutMethodEnum,
+    rockerUserId: string,
+  ) {
+    const body: IDefaultPayoutMethodRequest = {
+      payoutMethod,
+    };
+    await this.customFetch.send(
+      this.url + `/merchant-api/v1/users/${rockerUserId}/default-payout-method`,
+      {
+        body,
+        method: 'POST',
+      },
+    );
   }
 
   async confirmPayment(paymentId: string) {

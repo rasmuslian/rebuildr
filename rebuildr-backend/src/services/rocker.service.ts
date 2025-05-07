@@ -1,5 +1,5 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { registerEnumType } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
@@ -10,9 +10,14 @@ import {
 import { swedishPhoneNumberRegex } from 'src/constants/regexp';
 import { PayoutAccountEnum, User } from 'src/entities/user.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
-import { CreatePayoutAccountInput } from 'src/resolvers/rocker.resolver';
+import {
+  CreatePayoutAccountInput,
+  CreatePayoutAccountResponse,
+} from 'src/resolvers/rocker.resolver';
+import { Logger } from 'winston';
 
 import { Repository } from 'typeorm';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 export enum SupportedPaymentMethod {
   SWISH = 'SWISH',
@@ -26,13 +31,13 @@ const CACHE_TTL_MS = 30000;
 
 @Injectable()
 export class RockerService {
-  private readonly logger = new Logger(RockerService.name);
   constructor(
     private rockerApi: RockerAPI,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async createForeignUser(user: User) {
@@ -81,7 +86,7 @@ export class RockerService {
    * @param requestId Unique id to keep track of authentication
    */
   async authenticate(requestId: string, userId: string) {
-    const user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
     });
 
@@ -97,12 +102,24 @@ export class RockerService {
     //authenticationToken not found. Means this is a call to initiate bankID
     if (!authenticationToken) {
       const response = await this.rockerApi.authenticate(user.id);
+      this.logger.info({
+        message: 'Initiating BankID authentication',
+        clientRequestId: requestId,
+        userId: user.id,
+      });
 
       await this.cacheManager.set(
         requestId,
         response.authenticationToken,
         CACHE_TTL_MS,
       );
+
+      this.logger.info({
+        message: 'Rocker authentication pending',
+        clientRequestId: requestId,
+        status: AuthResponseStatusEnum.PENDING,
+        userId: user.id,
+      });
 
       return {
         status: AuthResponseStatusEnum.PENDING,
@@ -112,8 +129,21 @@ export class RockerService {
     }
 
     const response = await this.rockerApi.authResult(authenticationToken);
+    this.logger.info({
+      message: 'Authenticating rocker response',
+      clientRequestId: requestId,
+      status: response.status,
+      userId: user.id,
+    });
 
     if (response.status === AuthResponseStatusEnum.SUCCESS) {
+      this.logger.info({
+        message: 'Rocker authentication successful',
+        clientRequestId: requestId,
+        status: response.status,
+        userId: user.id,
+      });
+
       return {
         status: response.status,
       };
@@ -186,7 +216,7 @@ export class RockerService {
   async createPayoutAccount(
     input: CreatePayoutAccountInput,
     currentUserId: string,
-  ) {
+  ): Promise<CreatePayoutAccountResponse> {
     const user = await this.userRepository.findOneBy({ id: currentUserId });
 
     if (!user?.rockerUserId) {
@@ -194,38 +224,60 @@ export class RockerService {
     }
 
     if (input.type === PayoutAccountEnum.SWISH) {
-      return await this.createPayoutAccountSwish(input.phoneNumber, user);
+      return {
+        user: await this.createPayoutAccountSwish(input.phoneNumber, user),
+      };
+    }
+    if (input.type === PayoutAccountEnum.TRUSTLY) {
+      if (!input.successUrl || !input.failureUrl) {
+        throw BadUserInputException('Invalid account details');
+      }
+      const response = await this.createPayoutAccountTrustly(
+        input.successUrl,
+        input.failureUrl,
+        user,
+      );
+      return {
+        user: response.user,
+        trustlyUrl: response.url,
+      };
     }
     if (input.type === PayoutAccountEnum.RIX) {
       if (!input.clearingNumber || !input.accountNumber || !input.accountName) {
         throw BadUserInputException('Invalid account details');
       }
-      return await this.createPayoutAccountRix(
-        input.clearingNumber,
-        input.accountNumber,
-        input.accountName,
-        user,
-      );
+      return {
+        user: await this.createPayoutAccountRix(
+          input.clearingNumber,
+          input.accountNumber,
+          input.accountName,
+          user,
+        ),
+      };
     }
     if (input.type === PayoutAccountEnum.BANKGIRO) {
       if (!input.accountName || !input.identifier) {
         throw BadUserInputException('Invalid account details');
       }
-      return await this.createPayoutAccountBankGiro(
-        input.identifier,
-        input.accountName,
-        user,
-      );
+      return {
+        user: await this.createPayoutAccountBankGiro(
+          input.identifier,
+          input.accountName,
+          user,
+        ),
+      };
     }
     if (input.type === PayoutAccountEnum.PLUSGIRO) {
       if (!input.accountName || !input.identifier) {
         throw BadUserInputException('Invalid account details');
       }
-      return await this.createPayoutAccountPlusGiro(
-        input.identifier,
-        input.accountName,
-        user,
-      );
+      return {
+        user: await this.createPayoutAccountPlusGiro(
+          input.identifier,
+          input.accountName,
+          user,
+        ),
+      };
     }
 
     throw BadUserInputException('Invalid Payout Account');
@@ -243,6 +295,23 @@ export class RockerService {
     user.payoutAccountSwishId = response.id;
     user.selectedPayoutMethod = PayoutAccountEnum.SWISH;
     return await this.userRepository.save(user);
+  }
+  private async createPayoutAccountTrustly(
+    successUrl: string,
+    failureUrl: string,
+    user: User,
+  ) {
+    const response = await this.rockerApi.createPayoutAccountTrustly(
+      successUrl,
+      failureUrl,
+      user.rockerUserId,
+    );
+    user.selectedPayoutMethod = PayoutAccountEnum.TRUSTLY;
+    const updatedUser = await this.userRepository.save(user);
+    return {
+      user: updatedUser,
+      url: response.selectAccountUrl,
+    };
   }
   private async createPayoutAccountRix(
     clearingNumber: string,

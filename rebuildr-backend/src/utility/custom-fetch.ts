@@ -1,5 +1,5 @@
-import { Logger } from '@nestjs/common';
 import { InternalServerException } from 'src/exceptions';
+import { Logger } from 'winston';
 
 export class CustomFetch {
   private headers: Record<string, string>;
@@ -18,7 +18,8 @@ export class CustomFetch {
     },
   ) {
     try {
-      this.logger.log('fetch: ', {
+      this.logger.info({
+        message: 'fetch',
         url: url,
         method: options.method,
         body: options.body,
@@ -34,7 +35,7 @@ export class CustomFetch {
       });
 
       const response = await data.json();
-      this.logger.log('fetch response: ', response);
+      this.logger.info({ message: 'fetch response: ', response });
       if (!data.ok) {
         throw InternalServerException(`HTTP error: ${data.status}`);
       }
