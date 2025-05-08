@@ -286,8 +286,6 @@ export class ProductService {
         .object({
           title: z.string().min(1),
           description: z.string().min(1),
-          price: z.number().gte(1),
-          conditionId: z.string().min(1),
           categoryId: z.string().min(1),
         })
         .safeParse(product);
@@ -298,6 +296,14 @@ export class ProductService {
         });
 
         throw BadUserInputException('Invalid update of product');
+      }
+
+      if (!product.condition) {
+        logger.error({
+          message: 'Product condition is missing',
+        });
+
+        throw BadUserInputException('Product condition is missing');
       }
 
       if (
@@ -313,7 +319,7 @@ export class ProductService {
         throw BadUserInputException('Product must have at least one image');
       }
 
-      if (product.price < minimumEscrow) {
+      if (!product.isGiveaway && product.price < minimumEscrow) {
         logger.error({
           message: 'Too low price',
           price: product.price,
@@ -322,7 +328,7 @@ export class ProductService {
 
         throw BadUserInputException('Too low price');
       }
-      if (product.price > maximumEscrow) {
+      if (!product.isGiveaway && product.price > maximumEscrow) {
         logger.error({
           message: 'Too high price',
           price: product.price,

@@ -124,6 +124,12 @@ type Project {
   approximatePlace: ApproximatePlaceResponse!
 }
 
+type SearchResult {
+  id: ID!
+  searchString: String!
+  count: Int!
+}
+
 type User {
   id: ID!
   username: String
@@ -360,6 +366,7 @@ type Query {
   myProjects: [Project!]!
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
+  getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
 }
 
 input UserExistsInput {
@@ -427,6 +434,11 @@ input GetShippingPriceInput {
   id: String!
 }
 
+input GetSearchResultsInput {
+  page: Int!
+  pageSize: Int!
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -452,6 +464,8 @@ type Mutation {
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
+  createSearchResult(input: CreateSearchResultInput!): SearchResult!
+  clearSearchHistory: Boolean!
 }
 
 input RegisterUserInput {
@@ -637,4 +651,8 @@ input UpdateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+}
+
+input CreateSearchResultInput {
+  searchString: String!
 }
