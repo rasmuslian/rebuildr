@@ -58,8 +58,7 @@ export default function Password({
         <Form
           fields={[
             {
-              type: "text",
-              masked: true,
+              type: "masked",
               heading: "Lösenord",
               onChangeText: (text) => setPassword(text),
               value: password,
