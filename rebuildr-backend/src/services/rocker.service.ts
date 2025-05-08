@@ -6,6 +6,7 @@ import { RockerAPI } from 'src/apis/rocker.api';
 import {
   AuthResponseStatusEnum,
   PauseStateEnum,
+  PayoutMethodEnum,
 } from 'src/apis/types/rocker-types';
 import { swedishPhoneNumberRegex } from 'src/constants/regexp';
 import { PayoutAccountEnum, User } from 'src/entities/user.entity';
@@ -358,14 +359,33 @@ export class RockerService {
     return await this.userRepository.save(user);
   }
 
-  async createPayout(paymentId: string, buyer: User) {
-    const rockerUser = await this.getRockerUser(buyer);
+  async createPayout(paymentId: string, seller: User, logger: Logger) {
+    const rockerUser = await this.getRockerUser(seller);
+
+    if (!seller.selectedPayoutMethod && !rockerUser.defaultPayoutMethod) {
+      logger.error({
+        message: 'No payout method found for user',
+        userId: seller.id,
+        rockerUserId: seller.rockerUserId,
+      });
+      throw BadUserInputException('No payout method found');
+    }
 
     const response = await this.rockerApi.createPayout(
       paymentId,
-      rockerUser.defaultPayoutMethod,
+      seller.selectedPayoutMethod
+        ? this.payoutAccountToPayoutMethod(seller.selectedPayoutMethod)
+        : rockerUser.defaultPayoutMethod,
     );
     if (response.errorCode) {
+      logger.error({
+        message: 'Error in Rocker create payout',
+        userId: seller.id,
+        rockerUserId: seller.rockerUserId,
+        paymentId,
+        errorCode: response.errorCode,
+        providedErrorCode: response.providedErrorCode,
+      });
       throw InternalServerException();
     }
     return response;
@@ -384,5 +404,23 @@ export class RockerService {
       PauseStateEnum.NOT_PAUSED,
       comment,
     );
+  }
+
+  /**
+   * PayoutAccount is a bit different from Rocker's PayoutMethod
+   * for example PayoutAccount needs to differentiate between different bank types
+   * which Rocker does not, instead all of them are called AUTOGIRO
+   */
+  payoutAccountToPayoutMethod(account: PayoutAccountEnum) {
+    switch (account) {
+      case PayoutAccountEnum.BANKGIRO:
+      case PayoutAccountEnum.RIX:
+      case PayoutAccountEnum.PLUSGIRO:
+        return PayoutMethodEnum.AUTOGIRO;
+      case PayoutAccountEnum.SWISH:
+        return PayoutMethodEnum.SWISH;
+      case PayoutAccountEnum.TRUSTLY:
+        return PayoutMethodEnum.TRUSTLY;
+    }
   }
 }
