@@ -1,5 +1,10 @@
-import { PreviewProductQuery } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import {
+  PreviewProductQuery,
+  ProductStatusEnum,
+  PublishProductMutation,
+  PublishProductMutationVariables,
+} from "@/gql/graphql";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { FilterChip } from "@components/chips/filterChip";
 import { measurements } from "@components/create-product/measurements-section";
 import { ProgressHeader } from "@components/create-product/progress-header";
@@ -109,12 +114,48 @@ const PREVIEW_PRODUCT = gql`
   }
 `;
 
+const PUBLISH_PRODUCT = gql`
+  mutation PublishProduct($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        id
+        status
+      }
+    }
+  }
+`;
+
 export default function Preview() {
   const [showAllDescription, setShowAllDescription] = useState(false);
   const [showSpecifics, setShowSpecifics] = useState(true);
   const imageRef = useRef<BottomSheetModal>(null);
   const mapRef = useRef<BottomSheetModal>(null);
   const { data } = useQuery<PreviewProductQuery>(PREVIEW_PRODUCT);
+  const [publishProduct, { loading: publishProductLoading }] = useMutation<
+    PublishProductMutation,
+    PublishProductMutationVariables
+  >(PUBLISH_PRODUCT);
+
+  const onPublishProduct = () => {
+    if (!data?.getDraftedProduct || publishProductLoading) {
+      return null;
+    }
+    publishProduct({
+      variables: {
+        input: {
+          id: data.getDraftedProduct.id,
+          status: ProductStatusEnum.Published,
+        },
+      },
+      onCompleted: () => {
+        if (router.canDismiss()) {
+          router.dismissAll();
+        } else {
+          router.replace("/");
+        }
+      },
+    });
+  };
 
   if (!data) {
     return <LoadingSpinner />;
@@ -162,7 +203,8 @@ export default function Preview() {
             />
             <Button
               label="Publicera annons"
-              onPress={() => {}}
+              onPress={onPublishProduct}
+              loading={publishProductLoading}
               style={{ flex: 1 }}
             />
           </View>
@@ -175,6 +217,7 @@ export default function Preview() {
         >
           <Image
             source={data.getDraftedProduct.images[0].url}
+            contentFit="contain"
             style={{ height: 383, borderRadius: borderRadius.medium }}
           />
         </Pressable>

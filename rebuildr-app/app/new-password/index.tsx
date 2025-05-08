@@ -59,10 +59,9 @@ export default function NewPassword() {
         <Form
           fields={[
             {
-              type: "text",
-              masked: true,
+              type: "masked",
               value: password,
-              onChangeText: (v) => setPassword(v),
+              onChange: (v) => setPassword(v),
               placeholder: "Lösenord",
             },
           ]}
