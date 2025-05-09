@@ -1,4 +1,3 @@
-import { useThemeColor } from "@/src/hooks/useThemeColor";
 import {
   Image,
   ImageSourcePropType,
@@ -11,6 +10,7 @@ import {
 import { Label } from "@text/text";
 import { borderRadius, strokeWidth } from "@/src/constants/sizes";
 import { useState } from "react";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 export type ImageQuickLinkProps = {
   source: ImageSourcePropType;
@@ -34,7 +34,8 @@ export const ImageQuickLink = ({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={({ pressed }) => {
-        let buttonState = "enabled";
+        let buttonState: keyof typeof colors.buttons.imageQuickLinkStroke =
+          "enabled";
         if (disabled) {
           buttonState = "disabled";
         } else if (pressed) {
