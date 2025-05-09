@@ -1,3 +1,4 @@
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { PropsWithChildren } from "react";
 import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
@@ -6,6 +7,7 @@ interface PageProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
   footerComponent?: React.ReactNode;
   headerComponent?: React.ReactNode;
+  loading?: boolean;
 }
 
 export const ScreenLayout = ({
@@ -13,6 +15,7 @@ export const ScreenLayout = ({
   style,
   footerComponent,
   headerComponent,
+  loading,
 }: PageProps) => {
   const colors = useThemeColor();
   return (
@@ -32,7 +35,7 @@ export const ScreenLayout = ({
           style,
         ]}
       >
-        {children}
+        {loading ? <LoadingSpinner /> : children}
       </ScrollView>
       {footerComponent && (
         <View style={{ paddingHorizontal: 16 }}>{footerComponent}</View>

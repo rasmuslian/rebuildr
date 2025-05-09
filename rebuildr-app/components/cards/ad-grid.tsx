@@ -8,12 +8,13 @@ import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { ProductConditionToText } from "@/utils/enumToText";
 import { primitives } from "@constants/colors";
+import PlaceholderProduct from "@assets/images/placeholder-product.png";
 
 type Props = {
-  imageUri: string;
+  imageUri?: string;
   heart?: boolean;
   onHeartPress?: () => void;
-  onPress: () => void;
+  onPress?: () => void;
   width?: number;
   height?: number;
   overlayText?: string;
@@ -51,11 +52,11 @@ export const AdGrid = ({
   return (
     <Pressable
       style={[{ width, gap: 8, opacity: disabled ? 0.5 : 1 }]}
-      onPress={onPress}
+      onPress={() => onPress?.()}
       disabled={disabled}
     >
       <Image
-        source={imageUri}
+        source={imageUri ?? PlaceholderProduct.uri}
         cachePolicy="memory-disk"
         style={{ width, height, borderRadius: borderRadius.medium }}
       >
