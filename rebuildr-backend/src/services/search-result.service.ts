@@ -69,7 +69,6 @@ export class SearchResultService {
       },
       take: 5,
     });
-    console.log('res :>> ', res);
     return res;
   }
 }

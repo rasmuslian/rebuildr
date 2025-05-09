@@ -9,6 +9,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { File } from 'src/entities/file.entity';
+import { Review } from 'src/entities/review.entity';
 
 export interface IUserLoaders {
   projectsLoader: DataLoader<string, Project[]>;
@@ -18,6 +19,7 @@ export interface IUserLoaders {
     input: GetSearchResultsInput,
   ) => DataLoader<string, SearchResult[]>;
   profilePictureLoader: DataLoader<string, File>;
+  ratingLoader: DataLoader<string, number>;
 }
 
 @Injectable()
@@ -95,6 +97,33 @@ export class UserLoader {
     });
   }
 
+  private ratingLoader() {
+    return new DataLoader(async (userIds) => {
+      const reviews = await this.dataSource.getRepository(Review).find({
+        where: {
+          reviewee: { id: In(userIds) },
+        },
+      });
+
+      const rating = userIds.map((userId) => {
+        const userReviews = reviews.filter(
+          (review) => review.revieweeId === userId,
+        );
+        if (!reviews.length) {
+          return null;
+        }
+        const sumRating = userReviews.reduce(
+          (acc, curr) => acc + curr.stars,
+          0,
+        );
+        const avgRating = sumRating / reviews.length;
+        return Math.round(avgRating * 10) / 10;
+      });
+
+      return rating;
+    });
+  }
+
   createLoaders(): IUserLoaders {
     return {
       projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
@@ -109,6 +138,7 @@ export class UserLoader {
         'profilePicture',
         File,
       ),
+      ratingLoader: this.ratingLoader(),
     };
   }
 }

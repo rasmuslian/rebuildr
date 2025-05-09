@@ -69,6 +69,7 @@ import { SearchResult } from './entities/search-result.entity';
 import { SearchResultLoader } from './dataloaders/search-result.loader';
 import { SearchResultService } from './services/search-result.service';
 import { SearchResultResolver } from './resolvers/search-result.resolver';
+import { Review } from './entities/review.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -114,6 +115,7 @@ export interface RequestType {
       Project,
       ShippingPrice,
       SearchResult,
+      Review,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,

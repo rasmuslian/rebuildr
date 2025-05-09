@@ -146,4 +146,11 @@ export class UserResolver {
   ): Promise<number> {
     return (await userLoaders.publishedProductsLoader.load(user.id)).length;
   }
+  @ResolveField(() => Number, { nullable: true })
+  async rating(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.ratingLoader.load(user.id);
+  }
 }

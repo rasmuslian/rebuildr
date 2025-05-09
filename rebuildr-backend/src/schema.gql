@@ -146,6 +146,7 @@ type User {
   projects: [Project!]!
   numberOfSoldProducts: Int!
   numberOfPublishedProducts: Int!
+  rating: Float
 }
 
 enum UserRoleEnum {
@@ -233,7 +234,7 @@ type Product {
   primaryImage: File
   images: [File!]!
   documents: [File!]!
-  likedByUser: Boolean
+  likedByMe: Boolean
   location: LocationResponse
   price: Float!
   brand: Brand

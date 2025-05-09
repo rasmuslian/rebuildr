@@ -20,6 +20,7 @@ import { Brand } from './brand.entity';
 import { Message } from './message.entity';
 import { Project } from './project.entity';
 import { ShippingPrice } from './shipping-price.entity';
+import { Review } from './review.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -223,4 +224,7 @@ export class Product {
   @ManyToMany(() => ShippingPrice, (sp) => sp.products)
   @JoinTable()
   shippingPrices: ShippingPrice[];
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
 }

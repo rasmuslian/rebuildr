@@ -457,9 +457,9 @@ export class ProductResolver {
     return productLoaders.documentsLoader.load(_product.id);
   }
 
-  @UseGuards(GqlOptionalAuthGuard)
   @ResolveField(() => Boolean, { nullable: true })
-  async likedByUser(
+  @UseGuards(GqlOptionalAuthGuard)
+  async likedByMe(
     @Root() _product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
     @CurrentUser() _user?: AuthedUserType,

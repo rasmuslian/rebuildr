@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Review } from './review.entity';
 
 //To keep track of where in a purchase cycle a purchase is in
 export enum PurchaseStatusEnum {
@@ -125,4 +127,7 @@ export class Purchase {
 
   @Column({ nullable: true })
   refundId?: string;
+
+  @OneToMany(() => Review, (review) => review.purchase)
+  reviews: Review[];
 }

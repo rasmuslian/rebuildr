@@ -18,6 +18,7 @@ import { Purchase } from './purchase.entity';
 import { Project } from './project.entity';
 import { SearchResult } from './search-result.entity';
 import { File } from './file.entity';
+import { Review } from './review.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -177,4 +178,10 @@ export class User {
 
   @OneToMany(() => SearchResult, (searchResult) => searchResult.searcher)
   searchResults: SearchResult[];
+
+  @OneToMany(() => Review, (review) => review.reviewer)
+  reviews: Review[];
+
+  @OneToMany(() => Review, (review) => review.reviewee)
+  reviewed: Review[];
 }
