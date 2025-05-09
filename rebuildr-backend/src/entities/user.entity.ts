@@ -8,12 +8,16 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { UserProtectedMiddleware } from '../middlewares/user-protected.middleware';
 import { Purchase } from './purchase.entity';
 import { Project } from './project.entity';
+import { SearchResult } from './search-result.entity';
+import { File } from './file.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -74,6 +78,9 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ nullable: true, type: 'timestamptz' })
+  deletedAt?: Date | null;
+
   @Field(() => String, {
     nullable: true,
     middleware: [UserProtectedMiddleware],
@@ -91,6 +98,12 @@ export class User {
   @Field({ nullable: true })
   @Column({ nullable: true })
   phoneNumber?: string;
+
+  @Column({ nullable: true })
+  profilePictureId?: string;
+  @OneToOne(() => File, { nullable: true })
+  @JoinColumn()
+  profilePicture: File | null;
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
@@ -161,4 +174,7 @@ export class User {
 
   @OneToMany(() => Project, (p) => p.user)
   projects: Project[];
+
+  @OneToMany(() => SearchResult, (searchResult) => searchResult.searcher)
+  searchResults: SearchResult[];
 }

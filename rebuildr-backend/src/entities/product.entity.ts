@@ -59,6 +59,9 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ nullable: true, type: 'timestamptz' })
+  deletedAt?: Date | null;
+
   @Column({ nullable: true })
   categoryId?: string;
 

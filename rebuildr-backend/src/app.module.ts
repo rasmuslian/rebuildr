@@ -65,6 +65,10 @@ import { UserLoader } from './dataloaders/user.loader';
 import { ShippingPrice } from './entities/shipping-price.entity';
 import { ShippingPriceResolver } from './resolvers/shipping-price.resolver';
 import { ShippingPriceService } from './services/shipping-price.service';
+import { SearchResult } from './entities/search-result.entity';
+import { SearchResultLoader } from './dataloaders/search-result.loader';
+import { SearchResultService } from './services/search-result.service';
+import { SearchResultResolver } from './resolvers/search-result.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -109,15 +113,23 @@ export interface RequestType {
       Brand,
       Project,
       ShippingPrice,
+      SearchResult,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [DataloaderModule, ConfigModule],
-      inject: [ProductLoader, CategoryLoader, UserLoader, ConfigService],
+      inject: [
+        ProductLoader,
+        CategoryLoader,
+        UserLoader,
+        SearchResultLoader,
+        ConfigService,
+      ],
       useFactory: (
         productLoaderService: ProductLoader,
         categoryLoaderService: CategoryLoader,
         userLoaderService: UserLoader,
+        searchResultLoader: SearchResultLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -129,6 +141,7 @@ export interface RequestType {
             productLoaders: productLoaderService.createLoaders(),
             categoryLoaders: categoryLoaderService.createLoaders(),
             userLoaders: userLoaderService.createLoaders(),
+            searchResultLoaders: searchResultLoader.createLoaders(),
             req,
             res,
           }),
@@ -180,6 +193,8 @@ export interface RequestType {
     ProjectResolver,
     ShippingPriceResolver,
     ShippingPriceService,
+    SearchResultService,
+    SearchResultResolver,
   ],
 })
 export class AppModule {}

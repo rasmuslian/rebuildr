@@ -141,8 +141,11 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  profilePicture: File
   registrationStatus: RegisterStatusEnum!
   projects: [Project!]!
+  numberOfSoldProducts: Int!
+  numberOfPublishedProducts: Int!
 }
 
 enum UserRoleEnum {
@@ -349,6 +352,7 @@ type PurchaseProductResponse {
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
+  getUsers(input: GetUsersInput!): [User!]!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
@@ -367,10 +371,17 @@ type Query {
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
+  getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
 }
 
 input UserExistsInput {
   email: String!
+}
+
+input GetUsersInput {
+  name: String!
+  page: Int
+  pageSize: Int
 }
 
 input GetProductInput {
@@ -437,6 +448,10 @@ input GetShippingPriceInput {
 input GetSearchResultsInput {
   page: Int!
   pageSize: Int!
+}
+
+input GetSimilarSearchResultsInput {
+  searchString: String!
 }
 
 type Mutation {
