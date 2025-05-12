@@ -53,6 +53,15 @@ export class Product {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({
+    type: 'tsvector',
+    nullable: true,
+    select: false,
+    generatedType: 'STORED',
+    asExpression: `setweight(to_tsvector('swedish', coalesce(title, '')), 'A') || setweight(to_tsvector('swedish', coalesce(description, '')), 'B')`,
+  })
+  textSearch: string;
+
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
