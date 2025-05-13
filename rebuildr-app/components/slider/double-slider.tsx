@@ -9,28 +9,40 @@ import Animated, {
 } from "react-native-reanimated";
 import { SliderThumb } from "./slider-thumb";
 
-type ContinuousSliderProps = {
+type DoubleSliderProps = {
   min: number;
   max: number;
-  value: number;
+  value1: number;
+  value2: number;
   width?: number;
-  onChange: (v: number) => void;
-  onRelease?: (v: number) => void;
+  onChange: (v1: number, v2: number) => void;
+  onRelease?: (v1: number, v2: number) => void;
 };
-export const ContinuousSlider = ({
+export const DoubleSlider = ({
   min,
   max,
-  value: inputValue,
+  value1: inputValue,
+  value2: inputValue2,
   width = 300,
   onChange,
   onRelease,
-}: ContinuousSliderProps) => {
+}: DoubleSliderProps) => {
   const [absoluteStart, setAbsoluteStart] = useState(0);
+  const [absoluteStart2, setAbsoluteStart2] = useState(0);
   const colors = useThemeColor();
 
+  const rightCalibration = 16;
+
   const value = Math.min(max, inputValue);
+  const value2 = Math.min(max, inputValue2);
   const valuePosition = (value / max) * width;
-  const translateX = useSharedValue(valuePosition);
+  const valuePosition2 = (value2 / max) * width;
+  const translateX = useSharedValue(
+    Math.min(valuePosition, width - rightCalibration),
+  );
+  const translateX2 = useSharedValue(
+    Math.min(valuePosition2, width - rightCalibration),
+  );
 
   const gestureHandler = Gesture.Pan()
     .onBegin((event) => {
@@ -40,24 +52,51 @@ export const ContinuousSlider = ({
       const deltaX = event.absoluteX - absoluteStart;
       const newPosition = Math.min(Math.max(0, deltaX), width);
 
-      translateX.value = newPosition;
+      translateX.value = Math.min(newPosition, width - rightCalibration);
       const newValue = min + (newPosition / width) * (max - min);
 
-      onChange(newValue);
+      onChange(newValue, value2);
     })
     .onEnd((event) => {
       const deltaX = event.absoluteX - absoluteStart;
       const newPosition = Math.min(Math.max(0, deltaX), width);
 
       const newValue = min + (newPosition / width) * (max - min);
-      onRelease?.(newValue);
+      onRelease?.(newValue, value2);
+    });
+  const gestureHandler2 = Gesture.Pan()
+    .onBegin((event) => {
+      setAbsoluteStart2(event.absoluteX - valuePosition2);
+    })
+    .onChange((event) => {
+      const deltaX = event.absoluteX - absoluteStart2;
+      const newPosition = Math.min(Math.max(0, deltaX), width);
+
+      translateX2.value = Math.min(newPosition, width - rightCalibration);
+      const newValue = min + (newPosition / width) * (max - min);
+
+      onChange(value, newValue);
+    })
+    .onEnd((event) => {
+      const deltaX = event.absoluteX - absoluteStart2;
+      const newPosition = Math.min(Math.max(0, deltaX), width);
+
+      const newValue = min + (newPosition / width) * (max - min);
+      onRelease?.(value, newValue);
     });
 
   const animatedThumbStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+  const animatedThumbStyle2 = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX2.value }],
+  }));
   const animatedProgressBarStyle = useAnimatedStyle(() => ({
-    width: translateX.value,
+    left:
+      translateX.value <= translateX2.value
+        ? translateX.value
+        : translateX2.value,
+    width: Math.abs(translateX2.value - translateX.value),
   }));
 
   return (
@@ -65,7 +104,7 @@ export const ContinuousSlider = ({
       {/* Container track */}
       <View
         style={{
-          width: width + 16,
+          width: width + rightCalibration,
           position: "relative",
           justifyContent: "center",
           paddingRight: 8,
@@ -91,6 +130,10 @@ export const ContinuousSlider = ({
         <SliderThumb
           gestureHandler={gestureHandler}
           positionStyle={animatedThumbStyle}
+        />
+        <SliderThumb
+          gestureHandler={gestureHandler2}
+          positionStyle={animatedThumbStyle2}
         />
       </View>
     </View>

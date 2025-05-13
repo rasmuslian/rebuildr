@@ -392,7 +392,7 @@ export class ProductService {
     offset?: number,
     userId?: string,
   ) {
-    const query = this.productRepository.createQueryBuilder('product');
+    const query = this.productRepository.createQueryBuilder('p');
 
     //Only admin will see hidden products
     if (userId) {
@@ -408,9 +408,21 @@ export class ProductService {
     }
 
     if (input.searchString) {
-      query.andWhere('position(LOWER(:searchString) in LOWER(title)) > 0', {
-        searchString: input.searchString,
-      });
+      query
+        .addCommonTableExpression(
+          `SELECT 
+            p.id,
+            ts_rank(p.text_search, plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
+          FROM product p
+          WHERE p.text_search @@ plainto_tsquery(:searchString) 
+            OR similarity(p.title, :searchString) > 0
+          `,
+          'ranked_products',
+        )
+        .setParameter('searchString', input.searchString)
+        .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
+        .andWhere('rp.resultrank > 0.3')
+        .addSelect('rp.resultrank', 'resultrank');
     }
 
     //If address or location are included, use them to calculate
@@ -446,26 +458,27 @@ export class ProductService {
         'distance_from_position',
       );
 
-      if (input.orderBy === OrderProductsEnum.DISTANCE) {
-        query.orderBy(
-          'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
-        );
-      }
       query.setParameter('origin', origin);
     }
 
     //Include products based on category criterias
     if (
-      input.categoryId ||
+      input.categoryIds ||
       input.selectionCategories ||
       input.seasonalCategories
     ) {
       query.innerJoin('category', 'c', 'category_id = c.id');
 
-      if (input.categoryId) {
-        query.andWhere('c.id = :categoryId OR c.parent_id = :categoryId', {
-          categoryId: input.categoryId,
-        });
+      if (!input.categoryIds.length) {
+        query.andWhere('c.id IS NULL');
+      }
+      if (input.categoryIds.length) {
+        query.andWhere(
+          'c.id IN (:...categoryIds) OR c.parent_id IN (:...categoryIds)',
+          {
+            categoryIds: input.categoryIds,
+          },
+        );
       } else if (input.selectionCategories) {
         query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
         query.andWhere('c.in_selection OR parent.in_selection');
@@ -475,12 +488,77 @@ export class ProductService {
       }
     }
 
+    if (input.brandIds) {
+      if (!input.brandIds.length) {
+        query.andWhere('p.brand_id IS NULL');
+      }
+      if (input.brandIds.length) {
+        query.andWhere('p.brand_id IN (:...brandIds)', {
+          brandIds: input.brandIds,
+        });
+      }
+    }
+
+    if (input.conditions) {
+      if (!input.conditions.length) {
+        query.andWhere('p.condition IS NULL');
+      }
+      if (input.conditions.length) {
+        query.andWhere('p.condition IN (:...conditions)', {
+          conditions: input.conditions,
+        });
+      }
+    }
+
+    if (input.minPrice !== undefined) {
+      query.andWhere('p.price / 100 >= :minPrice', {
+        minPrice: input.minPrice,
+      });
+    }
+    if (input.maxPrice !== undefined) {
+      query.andWhere('p.price / 100 <= :maxPrice', {
+        maxPrice: input.maxPrice,
+      });
+    }
+
     if (input.giveaway) {
       query.andWhere('is_giveaway = TRUE');
     }
 
-    if (input.condition) {
-      query.andWhere('condition = :condition', { condition: input.condition });
+    switch (input.orderBy) {
+      case OrderProductsEnum.BEST_MATCH:
+        if (input.searchString && input.searchString.length > 0) {
+          query
+            .addOrderBy('resultrank', 'DESC')
+            .addOrderBy('p.createdAt', 'DESC');
+        } else {
+          query.addOrderBy('p.createdAt', 'DESC');
+        }
+        break;
+      case OrderProductsEnum.OLDEST:
+        query.addOrderBy('p.createdAt', 'ASC');
+        break;
+      case OrderProductsEnum.LATEST:
+        query.addOrderBy('p.createdAt', 'DESC');
+        break;
+      case OrderProductsEnum.PRICE_ASC:
+        query.addOrderBy('p.price', 'ASC');
+        break;
+      case OrderProductsEnum.PRICE_DESC:
+        query.addOrderBy('p.price', 'DESC');
+        break;
+      case OrderProductsEnum.DISTANCE:
+        if (
+          input.orderBy === OrderProductsEnum.DISTANCE &&
+          origin !== undefined
+        ) {
+          query.orderBy(
+            'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+          );
+        }
+        break;
+      default:
+        query.addOrderBy('p.createdAt', 'DESC');
     }
 
     //limit defaults to 20 and may not exceed 40
@@ -488,10 +566,6 @@ export class ProductService {
     query.limit(limit > 40 ? 40 : limit);
     query.offset((offset ?? 0) * limit);
     query.addSelect('count(*) over() as total');
-
-    if (input.orderBy === OrderProductsEnum.LATEST) {
-      query.orderBy('created_at', 'DESC');
-    }
 
     const result = await query.getRawMany();
 
@@ -501,7 +575,7 @@ export class ProductService {
     const mappedObjects = result.map((rawProduct) => {
       const prodObj = Object.entries(rawProduct).reduce((acc, entry) => {
         const [key, value] = entry;
-        const removedPrefix = key.replace(/^product_/, '');
+        const removedPrefix = key.replace(/^p_/, '');
         const camelCaseKey = removedPrefix.replace(/(_\w)/g, function (match) {
           return match[1].toUpperCase();
         });

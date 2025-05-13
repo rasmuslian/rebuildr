@@ -24,6 +24,7 @@ import { useState } from "react";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Badge } from "@components/badges/badge";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 
 const SEARCH = gql`
   query Search($isLoggedIn: Boolean!, $searchResult: GetSearchResultsInput!) {
@@ -79,6 +80,7 @@ const CLEAR_SEARCH_HISTORY_MUTATION = gql`
 export default function Search() {
   const [searchString, setSearchString] = useState("");
   const colors = useThemeColor();
+  const filter = useFilterProduct();
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
       isLoggedIn: isLoggedInVar(),
@@ -114,6 +116,8 @@ export default function Search() {
     if (!searchString) {
       return;
     }
+
+    filter.setSearchString(searchString);
 
     router.navigate({
       pathname: "/search/products",

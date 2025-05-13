@@ -4,6 +4,7 @@ import { CategoryTree } from 'src/entities/category-tree.entity';
 import { Category } from 'src/entities/category.entity';
 import { Event, EventType } from 'src/entities/event.entity';
 import { BadUserInputException } from 'src/exceptions';
+import { GetCategoriesInput } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
 
 @Injectable()
@@ -27,6 +28,19 @@ export class CategoryService {
     return await this.categoryRepository.findBy({
       parentId: IsNull(),
     });
+  }
+
+  async findCategories(input: GetCategoriesInput) {
+    const queryBuilder = this.categoryRepository.createQueryBuilder();
+    if (input.parentIds?.length === 0) {
+      return [];
+    }
+    if (input.parentIds) {
+      queryBuilder.where('parent_id IN (:...parentIds)', {
+        parentIds: input.parentIds,
+      });
+    }
+    return await queryBuilder.getMany();
   }
 
   async getAncestorIds(category: Category) {

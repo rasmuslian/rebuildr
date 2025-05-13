@@ -359,6 +359,7 @@ type Query {
   getDraftedProduct: Product
   category(input: CategoryInput!): Category!
   categories: [Category!]!
+  getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories: [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
@@ -394,11 +395,14 @@ input ProductsInput {
   address: String
   location: LocationType
   distance: Float
-  categoryId: String
+  brandIds: [String!]
+  categoryIds: [String!]
   selectionCategories: Boolean
   seasonalCategories: Boolean
+  minPrice: Float
+  maxPrice: Float
   giveaway: Boolean
-  condition: String
+  conditions: [ProductConditionEnum!]
   orderBy: OrderProductsEnum
 }
 
@@ -410,10 +414,18 @@ input LocationType {
 enum OrderProductsEnum {
   DISTANCE
   LATEST
+  OLDEST
+  BEST_MATCH
+  PRICE_ASC
+  PRICE_DESC
 }
 
 input CategoryInput {
   id: String!
+}
+
+input GetCategoriesInput {
+  parentIds: [String!]
 }
 
 input PopularCategoriesInput {

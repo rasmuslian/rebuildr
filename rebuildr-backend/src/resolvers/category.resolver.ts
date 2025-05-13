@@ -45,6 +45,12 @@ class UpdateCategoryInput {
   @Field(() => Boolean, { nullable: true })
   inSeason?: boolean;
 }
+
+@InputType()
+export class GetCategoriesInput {
+  @Field(() => [String], { nullable: true })
+  parentIds?: string[];
+}
 @Resolver(() => Category)
 export class CategoryResolver {
   constructor(
@@ -60,6 +66,11 @@ export class CategoryResolver {
   @Query(() => [Category])
   categories() {
     return this.categoryService.findAll();
+  }
+
+  @Query(() => [Category])
+  getCategories(@Args('input') input: GetCategoriesInput) {
+    return this.categoryService.findCategories(input);
   }
 
   @Query(() => [Category])

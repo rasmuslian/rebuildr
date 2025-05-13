@@ -10,8 +10,8 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { SearchBar } from "@components/search/search-bar";
 import { Body, Display } from "@components/typography/text";
 import { defaultApproximateLocation } from "@constants/map";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { router, useLocalSearchParams } from "expo-router";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -50,17 +50,22 @@ const SEARCH_PRODUCTS_QUERY = gql`
 
 export default function Products() {
   const [offset, setOffset] = useState(0);
-  const { searchString } = useLocalSearchParams<{ searchString: string }>();
-  const colors = useThemeColor();
+  const { filter } = useFilterProduct();
   const productsPerPage = 10;
 
-  const { data, loading, refetch, fetchMore } = useQuery<
+  const { data, loading, fetchMore } = useQuery<
     SearchProductsQuery,
     SearchProductsQueryVariables
   >(SEARCH_PRODUCTS_QUERY, {
     variables: {
       input: {
-        searchString,
+        searchString: filter.searchString,
+        orderBy: filter.sorting,
+        categoryIds: filter.categoryIds,
+        brandIds: filter.brandIds,
+        conditions: filter.conditions,
+        minPrice: filter.price[0],
+        maxPrice: filter.price[1],
       },
       limit: productsPerPage,
       offset,
@@ -75,6 +80,7 @@ export default function Products() {
       },
       updateQuery: (prev, { fetchMoreResult }) => {
         if (!fetchMoreResult?.products?.products.length) return prev;
+        setOffset(offset + 1);
 
         return {
           products: {
@@ -124,20 +130,22 @@ export default function Products() {
         />
       }
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: 24,
-        }}
-      >
-        <Display size="small">“</Display>
-        <Display size="small" numberOfLines={1} ellipsizeMode="tail">
-          {searchString}
-        </Display>
-        <Display size="small">“</Display>
-      </View>
+      {filter.searchString && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 24,
+          }}
+        >
+          <Display size="small">“</Display>
+          <Display size="small" numberOfLines={1} ellipsizeMode="tail">
+            {filter.searchString}
+          </Display>
+          <Display size="small">“</Display>
+        </View>
+      )}
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Body size="medium" style={{ flex: 1 }} color="secondary">
@@ -154,7 +162,7 @@ export default function Products() {
           icon="filterList2"
           type="tonal"
           onPress={() => {
-            //TODO: Navigate to filter
+            router.navigate("/search/filter");
           }}
         />
       </View>

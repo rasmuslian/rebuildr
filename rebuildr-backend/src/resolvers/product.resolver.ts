@@ -49,6 +49,10 @@ import { ShippingPrice } from 'src/entities/shipping-price.entity';
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
   LATEST = 'LATEST',
+  OLDEST = 'OLDEST',
+  BEST_MATCH = 'BEST',
+  PRICE_ASC = 'PRICE_ASC',
+  PRICE_DESC = 'PRICE_DESC',
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
@@ -253,8 +257,11 @@ export class ProductsInput {
   @Field({ nullable: true })
   distance?: number;
 
-  @Field({ nullable: true })
-  categoryId?: string;
+  @Field(() => [String], { nullable: true })
+  brandIds?: string[];
+
+  @Field(() => [String], { nullable: true })
+  categoryIds?: string[];
 
   @Field({ nullable: true })
   selectionCategories?: boolean;
@@ -263,10 +270,16 @@ export class ProductsInput {
   seasonalCategories?: boolean;
 
   @Field({ nullable: true })
-  giveaway?: boolean;
+  minPrice?: number;
 
   @Field({ nullable: true })
-  condition?: ProductConditionEnum;
+  maxPrice?: number;
+
+  @Field({ nullable: true })
+  giveaway?: boolean;
+
+  @Field(() => [ProductConditionEnum], { nullable: true })
+  conditions?: ProductConditionEnum[];
 
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;

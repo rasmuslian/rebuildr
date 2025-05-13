@@ -15,12 +15,13 @@ export const ScreenDimensionsContext =
   createContext<keyof MediaBreakPoints>("mobile");
 
 export const ScreenDimensionsProvider = ({ children }: PropsWithChildren) => {
-  const [breakPoint, setBreakPoint] = useState<keyof MediaBreakPoints>();
+  const [breakPoint, setBreakPoint] =
+    useState<keyof MediaBreakPoints>("mobile");
 
   useEffect(() => {
     const listener = Dimensions.addEventListener("change", ({ window }) => {
       const breakPoint = Object.keys(mediaBreakPoints).find((bp, i, array) => {
-        if (window.width >= mediaBreakPoints[bp]) {
+        if (window.width >= mediaBreakPoints[bp as keyof MediaBreakPoints]) {
           return true;
         }
 
