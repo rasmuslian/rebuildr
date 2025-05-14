@@ -15,7 +15,17 @@ export const ConditionFilter = () => {
     ) as ProductConditionEnum[];
   };
   return (
-    <FilterSection title="Skick" initialOpen>
+    <FilterSection
+      title="Skick"
+      initialOpen
+      collapsedText={
+        filter.conditions?.length
+          ? `${conditions[filter.conditions[0]].name}` +
+            `${filter.conditions[1] ? ", " + conditions[filter.conditions[1]].name : ""}` +
+            `${filter.conditions.length > 2 ? " +" + (filter.conditions.length - 2) + " till" : ""}`
+          : "Alla skick"
+      }
+    >
       <View style={{ gap: 16 }}>
         {values().map((condition, i) => (
           <Pressable

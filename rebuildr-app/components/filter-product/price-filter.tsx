@@ -53,7 +53,11 @@ export const PriceFilter = () => {
   };
 
   return (
-    <FilterSection title="Pris" initialOpen>
+    <FilterSection
+      title="Pris"
+      initialOpen
+      collapsedText={`${filter.price[0]} kr - ${filter.price[1]} kr`}
+    >
       <View style={{ gap: 24 }}>
         <DoubleSlider
           value1={filter.price[0]}
