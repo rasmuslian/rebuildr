@@ -10,10 +10,6 @@ export const useFilterProduct = () => {
     productFilterVar(initialFilterProduct);
   };
 
-  const setSearchString = (s: string) => {
-    productFilterVar({ ...filter, searchString: s });
-  };
-
   const setSorting = (sorting: OrderProductsEnum) => {
     productFilterVar({ ...filter, sorting });
   };
@@ -163,7 +159,6 @@ export const useFilterProduct = () => {
   return {
     filter,
     reset,
-    setSearchString,
     setSorting,
     toggleAllRootCategories,
     toggleRootCategory,

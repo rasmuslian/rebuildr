@@ -1,14 +1,9 @@
-import {
-  Pressable,
-  TextInput,
-  TextInputProps,
-  View,
-  ViewStyle,
-} from "react-native";
+import { TextInput, TextInputProps, View, ViewStyle } from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
+import { Pressable } from "react-native-gesture-handler";
 
 type Props = {
   placeholder?: string;
@@ -54,7 +49,6 @@ export const SearchBar = ({
           {
             flex: 1,
             flexDirection: "row",
-            // justifyContent: "space-between",
             alignItems: "center",
             paddingVertical: 10,
             paddingHorizontal: 10,

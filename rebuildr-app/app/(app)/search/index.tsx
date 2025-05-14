@@ -117,8 +117,6 @@ export default function Search() {
       return;
     }
 
-    filter.setSearchString(searchString);
-
     router.navigate({
       pathname: "/search/products",
       params: { searchString },
@@ -324,6 +322,7 @@ export default function Search() {
               value={searchString}
               onChangeText={(s) => onChangeSearch(s)}
               onSubmitEditing={onSearch}
+              autoFocus
             />
             <Pressable
               onPress={() =>

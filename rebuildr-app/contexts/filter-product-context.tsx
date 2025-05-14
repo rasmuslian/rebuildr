@@ -6,7 +6,6 @@ export const maximumPrice = 10000;
 //empty list means includ none
 export type Filter = {
   sorting: OrderProductsEnum;
-  searchString: string;
   rootCategoryIds?: string[];
   categoryIds?: string[];
   brandIds?: string[];
@@ -16,7 +15,6 @@ export type Filter = {
 
 export const initialFilterProduct: Filter = {
   sorting: OrderProductsEnum.BestMatch,
-  searchString: "",
   rootCategoryIds: undefined,
   categoryIds: undefined,
   brandIds: undefined,

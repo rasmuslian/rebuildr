@@ -11,7 +11,7 @@ import { SearchBar } from "@components/search/search-bar";
 import { Body, Display } from "@components/typography/text";
 import { defaultApproximateLocation } from "@constants/map";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -50,6 +50,7 @@ const SEARCH_PRODUCTS_QUERY = gql`
 
 export default function Products() {
   const [offset, setOffset] = useState(0);
+  const { searchString } = useLocalSearchParams<{ searchString: string }>();
   const { filter } = useFilterProduct();
   const productsPerPage = 10;
 
@@ -59,7 +60,7 @@ export default function Products() {
   >(SEARCH_PRODUCTS_QUERY, {
     variables: {
       input: {
-        searchString: filter.searchString,
+        searchString,
         orderBy: filter.sorting,
         categoryIds: filter.categoryIds,
         brandIds: filter.brandIds,
@@ -130,7 +131,7 @@ export default function Products() {
         />
       }
     >
-      {filter.searchString && (
+      {searchString && (
         <View
           style={{
             flexDirection: "row",
@@ -141,7 +142,7 @@ export default function Products() {
         >
           <Display size="small">“</Display>
           <Display size="small" numberOfLines={1} ellipsizeMode="tail">
-            {filter.searchString}
+            {searchString}
           </Display>
           <Display size="small">“</Display>
         </View>
@@ -161,9 +162,7 @@ export default function Products() {
         <Button
           icon="filterList2"
           type="tonal"
-          onPress={() => {
-            router.navigate("/search/filter");
-          }}
+          onPress={() => router.navigate("/search/filter")}
         />
       </View>
       <View
