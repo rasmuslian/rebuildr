@@ -156,6 +156,26 @@ export const useFilterProduct = () => {
     });
   };
 
+  const nrOfAppliedFilters = () => {
+    let acc = 0;
+    acc += filter.brandIds !== initialFilterProduct.brandIds ? 1 : 0;
+    acc += filter.categoryIds !== initialFilterProduct.categoryIds ? 1 : 0;
+    acc += filter.conditions !== initialFilterProduct.conditions ? 1 : 0;
+
+    if (filter.sorting !== initialFilterProduct.sorting) {
+      acc += 1;
+    }
+
+    if (
+      filter.price[0] !== initialFilterProduct.price[0] ||
+      filter.price[1] !== initialFilterProduct.price[1]
+    ) {
+      acc += 1;
+    }
+
+    return acc;
+  };
+
   return {
     filter,
     reset,
@@ -169,5 +189,6 @@ export const useFilterProduct = () => {
     toggleCondition,
     toggleValue,
     setPrice,
+    nrOfAppliedFilters,
   };
 };

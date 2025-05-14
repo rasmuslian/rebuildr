@@ -4,6 +4,7 @@ import {
   UserType,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
+import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/cards/ad-grid";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
@@ -51,7 +52,7 @@ const SEARCH_PRODUCTS_QUERY = gql`
 export default function Products() {
   const [offset, setOffset] = useState(0);
   const { searchString } = useLocalSearchParams<{ searchString: string }>();
-  const { filter } = useFilterProduct();
+  const { filter, nrOfAppliedFilters } = useFilterProduct();
   const productsPerPage = 10;
 
   const { data, loading, fetchMore } = useQuery<
@@ -159,11 +160,18 @@ export default function Products() {
           }}
           type="tonal"
         />
-        <Button
-          icon="filterList2"
-          type="tonal"
-          onPress={() => router.navigate("/search/filter")}
-        />
+        <View>
+          <Button
+            icon="filterList2"
+            type="tonal"
+            onPress={() => router.navigate("/search/filter")}
+          />
+          {!!nrOfAppliedFilters() && (
+            <View style={{ position: "absolute", right: 1, top: 1 }}>
+              <Badge text={`${nrOfAppliedFilters()}`} />
+            </View>
+          )}
+        </View>
       </View>
       <View
         style={{
