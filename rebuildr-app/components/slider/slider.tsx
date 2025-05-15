@@ -1,14 +1,13 @@
-import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
+import { SliderThumb } from "./slider-thumb";
 
 type SliderProps<T> = {
   values: T[];
@@ -112,29 +111,10 @@ export const Slider = <T,>({
             ]}
           />
         ))}
-        {/* Draggable Thumb */}
-        <GestureDetector gesture={gestureHandler}>
-          <Animated.View
-            style={[
-              {
-                width: 40,
-                height: 40,
-                backgroundColor: primitives.neutrals100,
-                borderRadius: borderRadius.medium,
-                justifyContent: "center",
-                alignItems: "center",
-                position: "absolute",
-                top: -12,
-                left: -10,
-
-                bottom: 0,
-              },
-              animatedThumbStyle,
-            ]}
-          >
-            <Icon icon="drag" size={18} />
-          </Animated.View>
-        </GestureDetector>
+        <SliderThumb
+          gestureHandler={gestureHandler}
+          positionStyle={animatedThumbStyle}
+        />
       </View>
     </View>
   );

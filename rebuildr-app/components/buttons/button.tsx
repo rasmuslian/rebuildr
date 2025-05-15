@@ -144,7 +144,7 @@ export const Button = ({
             justifyContent: "center",
             gap: 8,
             backgroundColor: typeColors[type][buttonState],
-            paddingRight: 16,
+            paddingRight: label ? 16 : 10,
             paddingLeft: icon ? 10 : 16,
             borderRadius: borderRadius.medium,
             minWidth: 40,

@@ -141,8 +141,13 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  profilePicture: File
   registrationStatus: RegisterStatusEnum!
   projects: [Project!]!
+  numberOfSoldProducts: Int!
+  numberOfPublishedProducts: Int!
+  rating: Float
+  location: LocationResponse
 }
 
 enum UserRoleEnum {
@@ -230,7 +235,7 @@ type Product {
   primaryImage: File
   images: [File!]!
   documents: [File!]!
-  likedByUser: Boolean
+  likedByMe: Boolean
   location: LocationResponse
   price: Float!
   brand: Brand
@@ -349,11 +354,13 @@ type PurchaseProductResponse {
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
+  getUsers(input: GetUsersInput!): [User!]!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
   category(input: CategoryInput!): Category!
   categories: [Category!]!
+  getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories: [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
@@ -367,10 +374,17 @@ type Query {
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
+  getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
 }
 
 input UserExistsInput {
   email: String!
+}
+
+input GetUsersInput {
+  name: String!
+  page: Int
+  pageSize: Int
 }
 
 input GetProductInput {
@@ -380,28 +394,42 @@ input GetProductInput {
 input ProductsInput {
   searchString: String
   address: String
-  location: LocationType
+  location: LocationInputType
   distance: Float
-  categoryId: String
+  pickup: Boolean
+  shipping: Boolean
+  delivery: Boolean
+  brandIds: [String!]
+  categoryIds: [String!]
   selectionCategories: Boolean
   seasonalCategories: Boolean
+  minPrice: Float
+  maxPrice: Float
   giveaway: Boolean
-  condition: String
+  conditions: [ProductConditionEnum!]
   orderBy: OrderProductsEnum
 }
 
-input LocationType {
-  longitude: Float!
-  latitude: Float!
+input LocationInputType {
+  lat: Float!
+  lng: Float!
 }
 
 enum OrderProductsEnum {
   DISTANCE
   LATEST
+  OLDEST
+  BEST_MATCH
+  PRICE_ASC
+  PRICE_DESC
 }
 
 input CategoryInput {
   id: String!
+}
+
+input GetCategoriesInput {
+  parentIds: [String!]
 }
 
 input PopularCategoriesInput {
@@ -437,6 +465,10 @@ input GetShippingPriceInput {
 input GetSearchResultsInput {
   page: Int!
   pageSize: Int!
+}
+
+input GetSimilarSearchResultsInput {
+  searchString: String!
 }
 
 type Mutation {
@@ -572,11 +604,6 @@ input UpdateProductInput {
   deliveryRadius: Float
   pickupEnabled: Boolean
   shippingPriceIds: [String!]
-}
-
-input LocationInputType {
-  lat: Float!
-  lng: Float!
 }
 
 input HideProductInput {

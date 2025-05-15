@@ -49,6 +49,10 @@ import { ShippingPrice } from 'src/entities/shipping-price.entity';
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
   LATEST = 'LATEST',
+  OLDEST = 'OLDEST',
+  BEST_MATCH = 'BEST',
+  PRICE_ASC = 'PRICE_ASC',
+  PRICE_DESC = 'PRICE_DESC',
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
@@ -233,13 +237,6 @@ export class UpdateProductResponse {
 }
 
 @InputType()
-class LocationType {
-  @Field()
-  longitude: number;
-  @Field()
-  latitude: number;
-}
-@InputType()
 export class ProductsInput {
   @Field({ nullable: true })
   searchString?: string;
@@ -247,14 +244,28 @@ export class ProductsInput {
   @Field({ nullable: true })
   address?: string;
 
-  @Field(() => LocationType, { nullable: true })
-  location?: LocationType;
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 
   @Field({ nullable: true })
   distance?: number;
 
+  //------Transortation inputs-------
   @Field({ nullable: true })
-  categoryId?: string;
+  pickup?: boolean;
+
+  @Field({ nullable: true })
+  shipping?: boolean;
+
+  @Field({ nullable: true })
+  delivery?: boolean;
+  //----------------------------------
+
+  @Field(() => [String], { nullable: true })
+  brandIds?: string[];
+
+  @Field(() => [String], { nullable: true })
+  categoryIds?: string[];
 
   @Field({ nullable: true })
   selectionCategories?: boolean;
@@ -263,10 +274,16 @@ export class ProductsInput {
   seasonalCategories?: boolean;
 
   @Field({ nullable: true })
-  giveaway?: boolean;
+  minPrice?: number;
 
   @Field({ nullable: true })
-  condition?: ProductConditionEnum;
+  maxPrice?: number;
+
+  @Field({ nullable: true })
+  giveaway?: boolean;
+
+  @Field(() => [ProductConditionEnum], { nullable: true })
+  conditions?: ProductConditionEnum[];
 
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
@@ -457,9 +474,9 @@ export class ProductResolver {
     return productLoaders.documentsLoader.load(_product.id);
   }
 
-  @UseGuards(GqlOptionalAuthGuard)
   @ResolveField(() => Boolean, { nullable: true })
-  async likedByUser(
+  @UseGuards(GqlOptionalAuthGuard)
+  async likedByMe(
     @Root() _product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
     @CurrentUser() _user?: AuthedUserType,

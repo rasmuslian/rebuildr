@@ -20,6 +20,7 @@ import { Brand } from './brand.entity';
 import { Message } from './message.entity';
 import { Project } from './project.entity';
 import { ShippingPrice } from './shipping-price.entity';
+import { Review } from './review.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -52,12 +53,24 @@ export class Product {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({
+    type: 'tsvector',
+    nullable: true,
+    select: false,
+    generatedType: 'STORED',
+    asExpression: `setweight(to_tsvector('swedish', coalesce(title, '')), 'A') || setweight(to_tsvector('swedish', coalesce(description, '')), 'B')`,
+  })
+  textSearch: string;
+
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  deletedAt?: Date | null;
 
   @Column({ nullable: true })
   categoryId?: string;
@@ -220,4 +233,7 @@ export class Product {
   @ManyToMany(() => ShippingPrice, (sp) => sp.products)
   @JoinTable()
   shippingPrices: ShippingPrice[];
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
 }

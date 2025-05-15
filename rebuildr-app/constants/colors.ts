@@ -81,7 +81,7 @@ type BackgroundTokens = {
 };
 const backgroundTokensLight: BackgroundTokens = {
   neutral: primitives.neutrals100,
-  secondary: primitives.secondary100,
+  secondary: primitives.secondary200,
   primary: primitives.primary100,
 };
 const backgroundTokensDark: BackgroundTokens = {

@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   InputType,
+  Int,
   Mutation,
   Parent,
   Query,
@@ -12,12 +13,15 @@ import {
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
 import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
+import { File } from 'src/entities/file.entity';
+import { LocationResponse } from './geocoding.resolver';
 
 @InputType()
 export class UpdateUserInput {
@@ -52,6 +56,18 @@ export class CreateOrganizationUserInput {
   creatorId: string;
 }
 
+@InputType()
+export class GetUsersInput {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => Int, { nullable: true })
+  page?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number | null;
+}
+
 @Resolver(() => User)
 export class UserResolver {
   constructor(private userService: UserService) {}
@@ -65,6 +81,12 @@ export class UserResolver {
   @Query(() => User, { nullable: true })
   async userExists(@Args('input') input: UserExistsInput) {
     return await this.userService.findOneByEmail(input.email);
+  }
+
+  @Query(() => [User])
+  @UseGuards(GqlOptionalAuthGuard)
+  async getUsers(@Args('input') input: GetUsersInput): Promise<User[]> {
+    return this.userService.getUsers(input);
   }
 
   @Mutation(() => User)
@@ -87,6 +109,17 @@ export class UserResolver {
     return await this.userService.createOrganizationUser(input);
   }
 
+  @ResolveField(() => File, { nullable: true })
+  async profilePicture(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    if (!user.profilePicture) {
+      return null;
+    }
+    return await userLoaders.profilePictureLoader.load(user.id);
+  }
+
   @ResolveField(() => RegistrationStatusEnum)
   async registrationStatus(@Parent() user: User) {
     return await this.userService.getRegistrationStatus(user);
@@ -98,5 +131,36 @@ export class UserResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return await userLoaders.projectsLoader.load(user.id);
+  }
+
+  @ResolveField(() => Int)
+  async numberOfSoldProducts(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ): Promise<number> {
+    return (await userLoaders.soldProductsLoader.load(user.id)).length;
+  }
+  @ResolveField(() => Int)
+  async numberOfPublishedProducts(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ): Promise<number> {
+    return (await userLoaders.publishedProductsLoader.load(user.id)).length;
+  }
+  @ResolveField(() => Number, { nullable: true })
+  async rating(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.ratingLoader.load(user.id);
+  }
+
+  @ResolveField(() => LocationResponse, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async location(
+    @Parent() user: User,
+    @CurrentUser() requester: AuthedUserType,
+  ) {
+    return this.userService.addressLocationToCoordinates(user, requester.id);
   }
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import {
   RegistrationStatusEnum,
   User,
@@ -13,10 +12,11 @@ import {
   ForbiddenException,
   InternalServerException,
 } from 'src/exceptions';
-import { Repository } from 'typeorm';
+import { ILike, IsNull, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   CreateOrganizationUserInput,
+  GetUsersInput,
   UpdateUserInput,
 } from 'src/resolvers/user.resolver';
 import { RockerService } from './rocker.service';
@@ -27,7 +27,6 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
-    private caslAbilityFactory: CaslAbilityFactory,
     private rockerService: RockerService,
   ) {}
 
@@ -37,6 +36,14 @@ export class UserService {
 
   async findOneByEmail(email: string) {
     return await this.userRepository.findOneBy({ email });
+  }
+
+  async getUsers(input: GetUsersInput): Promise<User[]> {
+    return await this.userRepository.find({
+      where: { username: ILike(`%${input.name}%`), deletedAt: IsNull() },
+      take: input.pageSize || 10,
+      skip: (input.page || 0) * (input.pageSize || 10),
+    });
   }
 
   async getRegistrationStatus(user: User) {
@@ -146,5 +153,18 @@ export class UserService {
     return !!(await this.userRepository.findOne({
       where: { organizationNumber },
     }));
+  }
+
+  addressLocationToCoordinates(user: User, currentUserId: string) {
+    if (user.id !== currentUserId) {
+      throw ForbiddenException();
+    }
+    if (!user.addressLocation) {
+      return null;
+    }
+    return {
+      lat: user.addressLocation[0],
+      lng: user.addressLocation[1],
+    };
   }
 }

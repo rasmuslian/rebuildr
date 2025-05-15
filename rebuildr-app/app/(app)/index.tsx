@@ -114,6 +114,7 @@ export default function Landing() {
           />
         </View>
       )}
+      <Button label="Sök" onPress={() => router.navigate("/(app)/search")} />
       <Button
         label="Till testkomponenterna"
         onPress={() => router.navigate("/test-components")}

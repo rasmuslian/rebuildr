@@ -29,7 +29,6 @@ export const TextInput = forwardRef(function TextInput(
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  // const [hideText, setHideText] = useState(props.masked);
 
   const saved = !focused && !!props.value;
 

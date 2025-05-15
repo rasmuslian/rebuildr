@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
+import { initialFilterProduct } from "@context/filter-product-context";
 
 const GET_NEW_TOKENS = gql(`
 mutation GetNewTokens($input: GetNewTokensInput!) {
@@ -20,6 +21,7 @@ mutation GetNewTokens($input: GetNewTokensInput!) {
 }
 `);
 export const isLoggedInVar = makeVar(false);
+export const productFilterVar = makeVar(initialFilterProduct);
 export const initializeApollo = async () => {
   const httpLink = createHttpLink({
     uri:

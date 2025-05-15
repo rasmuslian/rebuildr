@@ -1,44 +1,54 @@
-import { Pressable, TextInput, TextInputProps, View } from "react-native";
+import { TextInput, TextInputProps, View, ViewStyle } from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
+import { Pressable } from "react-native-gesture-handler";
 
 type Props = {
-  placeholder: string;
+  placeholder?: string;
   onChange?: (value: string) => void;
+  onPressArrow?: () => void;
   value?: string;
   disabled?: boolean;
-} & Omit<TextInputProps, "onChange">;
+  style?: ViewStyle;
+} & Omit<TextInputProps, "onChange" | "style">;
 
 export const SearchBar = ({
   placeholder,
   onChange,
+  onPressArrow,
   onFocus,
   onBlur,
   value,
   disabled,
   defaultValue,
+  style,
   ...rest
 }: Props) => {
   const colors = useThemeColor();
   return (
     <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        borderBottomWidth: 1,
-        borderColor: colors.dividers.neutral,
-        paddingVertical: 8,
-      }}
+      style={[
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          borderBottomWidth: 1,
+          borderColor: colors.dividers.neutral,
+          paddingVertical: 8,
+          gap: 6,
+        },
+        style,
+      ]}
     >
-      <Icon icon="arrowLeft" />
+      <Pressable onPress={() => onPressArrow?.()}>
+        <Icon icon="arrowLeft" size={18} />
+      </Pressable>
       <View
         style={[
           {
             flex: 1,
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
             paddingVertical: 10,
             paddingHorizontal: 10,
@@ -61,20 +71,17 @@ export const SearchBar = ({
           value={value}
           editable={!disabled}
           defaultValue={defaultValue}
-          style={[
-            {
-              outlineStyle: "none",
-              overflow: "visible",
-              flexGrow: 1,
-              ...(!value ? textStyles.label.large : textStyles.title.medium),
-              lineHeight: undefined,
-            },
-            rest.style,
-          ]}
+          style={{
+            outlineStyle: undefined,
+            overflow: "visible",
+            flexGrow: 1,
+            ...(!value ? textStyles.label.large : textStyles.title.medium),
+            lineHeight: undefined,
+          }}
         />
       </View>
       {!!value && (
-        <Pressable onPress={() => onChange("")}>
+        <Pressable onPress={() => onChange?.("")}>
           <View style={{ marginLeft: 8 }}>
             <Icon icon="X" />
           </View>

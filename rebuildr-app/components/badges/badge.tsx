@@ -5,10 +5,10 @@ import { View } from "react-native";
 
 type BadgeProps = {
   size?: "large" | "medium" | "small";
-  number?: number;
+  text?: string;
 };
 
-export const Badge = ({ size = "medium", number = 0 }: BadgeProps) => {
+export const Badge = ({ size = "medium", text = "0" }: BadgeProps) => {
   const colors = useThemeColor();
 
   if (size === "small") {
@@ -31,7 +31,7 @@ export const Badge = ({ size = "medium", number = 0 }: BadgeProps) => {
         backgroundColor: colors.badges[size],
         borderRadius: isLarge ? borderRadius.small : borderRadius.xSmall,
         height: isLarge ? 24 : 16,
-        width: isLarge ? 24 : 16,
+        minWidth: isLarge ? 24 : 16,
         paddingHorizontal: isLarge ? 8 : 4,
         paddingVertical: isLarge ? 2 : 0,
         justifyContent: "center",
@@ -42,7 +42,7 @@ export const Badge = ({ size = "medium", number = 0 }: BadgeProps) => {
         size={size === "medium" ? "small" : "large"}
         color={isLarge ? "primaryDark" : "primaryLight"}
       >
-        {number}
+        {text}
       </Label>
     </View>
   );
