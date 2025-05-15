@@ -15,10 +15,7 @@ import { ConditionSection } from "@components/create-product/condition-section";
 import { DescriptionSection } from "@components/create-product/description-section";
 import { DocumentSection } from "@components/create-product/document-section";
 import { ImageSection } from "@components/create-product/image-section";
-import {
-  measurementKeys,
-  MeasurementsSection,
-} from "@components/create-product/measurements-section";
+import { MeasurementsSection } from "@components/create-product/measurements-section";
 import { PriceSection } from "@components/create-product/price-section";
 import { ProgressHeader } from "@components/create-product/progress-header";
 import { QuantitiesSection } from "@components/create-product/quantities-section";
@@ -26,6 +23,7 @@ import { RootCategorySection } from "@components/create-product/root-category-se
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Title } from "@components/typography/text";
+import { measurementKeys } from "@constants/measurements";
 import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
