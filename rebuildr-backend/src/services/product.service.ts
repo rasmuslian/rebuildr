@@ -589,7 +589,7 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
 
     //Mapping result into Product.
     //Since we fetch with 'getRawMany' all fields which belong to the Product table
-    //will be snake case and prefixed with 'product_'
+    //will be snake case and prefixed with 'p_'
     const mappedObjects = result.map((rawProduct) => {
       const prodObj = Object.entries(rawProduct).reduce((acc, entry) => {
         const [key, value] = entry;
@@ -605,7 +605,7 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
     return {
       products: mappedObjects,
       origin: origin
-        ? { latitude: origin.coordinates[0], longitude: origin.coordinates[1] }
+        ? { lat: origin.coordinates[0], lng: origin.coordinates[1] }
         : null,
       total: result[0]?.total ?? 0,
     };
