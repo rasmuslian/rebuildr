@@ -10,7 +10,7 @@ import { EditPickup } from "./edit-pickup";
 import { useState } from "react";
 import { PreviewPickup } from "./preview-pickup";
 import { Divider } from "@components/dividers/divider";
-import { Card } from "./card";
+import { ToggleCard } from "@components/toggle-card/toggle-card";
 
 const PICKUP_QUERY = gql`
   query PickupQuery($input: GetProductInput!) {
@@ -148,7 +148,7 @@ export const Pickup = ({
   const address = project?.address ?? data.product.address;
 
   return (
-    <Card
+    <ToggleCard
       title="Avhämtning"
       description="Du bestämmer tid och plats för att köparen ska kunna hämta produkten direkt från dig."
       onPress={onSelectPickup}
@@ -183,6 +183,6 @@ export const Pickup = ({
           />
         )}
       </View>
-    </Card>
+    </ToggleCard>
   );
 };

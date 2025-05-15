@@ -3,18 +3,17 @@ import {
   ShippingProviderEnum,
   ShippingQueryQuery,
   ShippingQueryQueryVariables,
-  UpdateProductInput,
 } from "@/gql/graphql";
 import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
 import { Radio } from "@components/controls/radio";
 import { Divider } from "@components/dividers/divider";
+import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { Body, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { Card } from "./card";
 
 const SHIPPING_QUERY = gql`
   query ShippingQuery($input: GetProductInput!) {
@@ -105,7 +104,7 @@ export const Shipping = ({ productId }: Props) => {
   };
 
   return (
-    <Card
+    <ToggleCard
       title="Fraktleverans"
       description="Du skickar produkten till köparen via ett fraktbolag."
       onPress={onSelectShipping}
@@ -177,6 +176,6 @@ export const Shipping = ({ productId }: Props) => {
             ))}
         </View>
       </View>
-    </Card>
+    </ToggleCard>
   );
 };

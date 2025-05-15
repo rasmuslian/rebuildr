@@ -17,7 +17,9 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { Card } from "./card";
+import { defaultRadius } from "@constants/map";
+import { ToggleCard } from "@components/toggle-card/toggle-card";
+import { meterToKilometer } from "@/utils/conversions";
 
 const DELIVERY_QUERY = gql`
   query DeliveryQuer($input: GetProductInput!) {
@@ -121,7 +123,7 @@ export const Delivery = ({
     DeliveryUpdateMutationVariables
   >(DELIVERY_UPDATE);
 
-  const radius = _radius ?? data.product.deliveryRadius ?? 30000;
+  const radius = _radius ?? data.product.deliveryRadius ?? defaultRadius;
   const price = _price ?? data.product.deliveryPrice ?? 0;
   const _location = data.product.project
     ? {
@@ -229,12 +231,8 @@ export const Delivery = ({
     });
   };
 
-  const meterToKilometer = (meter: number) => {
-    return Math.round(meter / 100) / 10;
-  };
-
   return (
-    <Card
+    <ToggleCard
       title="Hemtransport"
       description="Du erbjuder hemtransport och levererar produkten direkt till köparen."
       onPress={onSelectDelivery}
@@ -417,6 +415,6 @@ export const Delivery = ({
           )}
         </View>
       </View>
-    </Card>
+    </ToggleCard>
   );
 };

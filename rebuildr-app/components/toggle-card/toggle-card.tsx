@@ -5,20 +5,22 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { PropsWithChildren } from "react";
 import { View } from "react-native";
 
-type CardProps = {
+type ToggleCardProps = {
   title: string;
   description: string;
   enabled?: boolean;
   onPress: () => void;
+  offColor?: "disabled" | "tonal";
 } & PropsWithChildren;
 
-export const Card = ({
+export const ToggleCard = ({
   title,
   description,
   enabled,
   onPress,
+  offColor = "tonal",
   children,
-}: CardProps) => {
+}: ToggleCardProps) => {
   const colors = useThemeColor();
 
   return (
@@ -26,7 +28,10 @@ export const Card = ({
       style={[
         {
           borderRadius: borderRadius.medium,
-          backgroundColor: colors.buttons.tonal.enabled,
+          backgroundColor:
+            offColor === "tonal"
+              ? colors.buttons.tonal.enabled
+              : colors.buttons.filled.disabled,
           padding: 16,
           gap: 24,
         },
@@ -43,6 +48,7 @@ export const Card = ({
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
+          gap: 16,
         }}
       >
         <View style={{ gap: 4, flex: 1 }}>
