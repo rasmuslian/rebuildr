@@ -202,7 +202,7 @@ export const QuantitiesSection = ({
                 if (!secondaryObject) {
                   return;
                 }
-                onBlurPrimary(secondaryObject);
+                onBlurSecondary(secondaryObject);
               }}
             />
           </View>
