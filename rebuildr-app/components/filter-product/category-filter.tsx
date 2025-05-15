@@ -21,7 +21,7 @@ const CATEGORY_FILTER = gql`
 `;
 
 export const CategoryFilter = () => {
-  const { filter, toggleCategory, toggleAllCategories, setCategories } =
+  const { filter, toggleValue, toggleAllCategories, setCategories } =
     useFilterProduct();
   const { data } = useQuery<CategoryFilterQuery, CategoryFilterQueryVariables>(
     CATEGORY_FILTER,
@@ -82,7 +82,7 @@ export const CategoryFilter = () => {
           <Pressable
             key={i}
             onPress={() => {
-              toggleCategory(category.id);
+              toggleValue(category.id, "categoryIds");
             }}
           >
             <View

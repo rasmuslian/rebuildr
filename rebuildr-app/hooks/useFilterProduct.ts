@@ -1,5 +1,5 @@
 import { productFilterVar } from "@/apollo/config";
-import { OrderProductsEnum, ProductConditionEnum } from "@/gql/graphql";
+import { OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
 
@@ -52,28 +52,6 @@ export const useFilterProduct = () => {
     }
   };
 
-  const toggleCategory = (id: string) => {
-    if (!filter.categoryIds) {
-      productFilterVar({ ...filter, categoryIds: [id] });
-      return;
-    }
-    const currentCategory = filter.categoryIds?.find(
-      (categoryId) => categoryId === id,
-    );
-    if (!currentCategory) {
-      productFilterVar({
-        ...filter,
-        categoryIds: [...filter.categoryIds, id],
-      });
-    } else {
-      productFilterVar({
-        ...filter,
-        categoryIds: filter.categoryIds.filter(
-          (categoryId) => categoryId !== id,
-        ),
-      });
-    }
-  };
   const toggleAllCategories = () => {
     if (!filter.categoryIds) {
       productFilterVar({ ...filter, categoryIds: [] });
@@ -84,43 +62,6 @@ export const useFilterProduct = () => {
   };
   const setCategories = (ids: string[]) => {
     productFilterVar({ ...filter, categoryIds: ids });
-  };
-
-  const toggleBrand = (id: string) => {
-    if (!filter.brandIds) {
-      productFilterVar({ ...filter, brandIds: [id] });
-      return;
-    }
-
-    const brandSelected = filter.brandIds.find((brandId) => brandId === id);
-    if (!brandSelected) {
-      productFilterVar({ ...filter, brandIds: [...filter.brandIds, id] });
-    } else {
-      productFilterVar({
-        ...filter,
-        brandIds: filter.brandIds.filter((brandId) => brandId !== id),
-      });
-    }
-  };
-
-  const toggleCondition = (condition: ProductConditionEnum) => {
-    if (!filter.conditions) {
-      productFilterVar({ ...filter, conditions: [condition] });
-      return;
-    }
-
-    const conditionSelected = filter.conditions.find((c) => c === condition);
-    if (!conditionSelected) {
-      productFilterVar({
-        ...filter,
-        conditions: [...filter.conditions, condition],
-      });
-    } else {
-      productFilterVar({
-        ...filter,
-        conditions: filter.conditions.filter((c) => c !== condition),
-      });
-    }
   };
 
   const toggleValue = (
@@ -182,11 +123,8 @@ export const useFilterProduct = () => {
     setSorting,
     toggleAllRootCategories,
     toggleRootCategory,
-    toggleCategory,
     toggleAllCategories,
     setCategories,
-    toggleBrand,
-    toggleCondition,
     toggleValue,
     setPrice,
     nrOfAppliedFilters,

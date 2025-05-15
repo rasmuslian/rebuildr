@@ -27,7 +27,7 @@ type BrandByLetter = {
 
 export const BrandFilter = () => {
   const [searchString, setSearchString] = useState("");
-  const { filter, toggleBrand } = useFilterProduct();
+  const { filter, toggleValue } = useFilterProduct();
 
   const { data } = useQuery<BrandFilterQuery>(BRAND_FILTER);
 
@@ -87,7 +87,10 @@ export const BrandFilter = () => {
         />
         {!searchString &&
           otherBrands.map((brand) => (
-            <Pressable key={brand.id} onPress={() => toggleBrand(brand.id)}>
+            <Pressable
+              key={brand.id}
+              onPress={() => toggleValue(brand.id, "brandIds")}
+            >
               <View
                 style={{
                   flexDirection: "row",
@@ -135,7 +138,7 @@ export const BrandFilter = () => {
                   .map((brand) => (
                     <Pressable
                       key={brand.id}
-                      onPress={() => toggleBrand(brand.id)}
+                      onPress={() => toggleValue(brand.id, "brandIds")}
                     >
                       <View
                         style={{
