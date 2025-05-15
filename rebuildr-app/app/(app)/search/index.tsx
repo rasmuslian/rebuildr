@@ -80,7 +80,7 @@ const CLEAR_SEARCH_HISTORY_MUTATION = gql`
 export default function Search() {
   const [searchString, setSearchString] = useState("");
   const colors = useThemeColor();
-  const filter = useFilterProduct();
+  const { setCategories } = useFilterProduct();
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
       isLoggedIn: isLoggedInVar(),
@@ -137,6 +137,10 @@ export default function Search() {
             {data?.popularCategories.map((category, i) => (
               <ImageQuickLink
                 key={i}
+                onPress={() => {
+                  setCategories([category.id]);
+                  router.navigate("/(app)/search/products");
+                }}
                 source={category.image ? category.image.url : Placeholder.uri}
                 label={category.name}
               />
@@ -162,20 +166,29 @@ export default function Search() {
             </View>
             <View style={{ gap: 16 }}>
               {data.getSearchResults.map((searchResult, i) => (
-                <View
+                <Pressable
                   key={i}
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
+                  onPress={() =>
+                    router.navigate({
+                      pathname: "/search/products",
+                      params: { searchString: searchResult.searchString },
+                    })
+                  }
                 >
-                  <View>
-                    <Label size="large">"{searchResult.searchString}"</Label>
-                    <Body size="small">{searchResult.count} träffar</Body>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <View>
+                      <Label size="large">"{searchResult.searchString}"</Label>
+                      <Body size="small">{searchResult.count} träffar</Body>
+                    </View>
+                    <Icon icon="search" size={18} />
                   </View>
-                  <Icon icon="search" size={18} />
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -199,7 +212,15 @@ export default function Search() {
           {searchData?.getSimilarSearchResults.length ? (
             <View style={{ gap: 16, marginBottom: 12 }}>
               {searchData.getSimilarSearchResults.map((searchResult, i) => (
-                <Pressable key={i}>
+                <Pressable
+                  key={i}
+                  onPress={() =>
+                    router.navigate({
+                      pathname: "/search/products",
+                      params: { searchString: searchResult.searchString },
+                    })
+                  }
+                >
                   <View
                     style={{
                       flexDirection: "row",
@@ -219,10 +240,17 @@ export default function Search() {
           ) : (
             <View style={{ gap: 24, marginBottom: 2 }}>
               <Body size="medium" color="secondary">
-                Ojdå, vi kunde inte hitta några resultat som matchar '
+                Ojdå, vi kunde inte hitta några annonser som matchar '
                 {searchString}'
               </Body>
-              <Button label="Bläddra bland kategorier" onPress={() => {}} />
+              <View style={{ flexDirection: "row" }}>
+                <Button
+                  label="Sök igen"
+                  onPress={() => {
+                    setSearchString("");
+                  }}
+                />
+              </View>
             </View>
           )}
         </View>
