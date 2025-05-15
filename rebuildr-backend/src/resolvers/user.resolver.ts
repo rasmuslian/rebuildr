@@ -21,6 +21,7 @@ import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 import { File } from 'src/entities/file.entity';
+import { LocationResponse } from './geocoding.resolver';
 
 @InputType()
 export class UpdateUserInput {
@@ -152,5 +153,14 @@ export class UserResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return await userLoaders.ratingLoader.load(user.id);
+  }
+
+  @ResolveField(() => LocationResponse, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async location(
+    @Parent() user: User,
+    @CurrentUser() requester: AuthedUserType,
+  ) {
+    return this.userService.addressLocationToCoordinates(user, requester.id);
   }
 }

@@ -28,9 +28,13 @@ export const ContinuousSlider = ({
   const [absoluteStart, setAbsoluteStart] = useState(0);
   const colors = useThemeColor();
 
+  const rightCalibration = 16;
+
   const value = Math.min(max, inputValue);
   const valuePosition = (value / max) * width;
-  const translateX = useSharedValue(valuePosition);
+  const translateX = useSharedValue(
+    Math.min(valuePosition, width - rightCalibration),
+  );
 
   const gestureHandler = Gesture.Pan()
     .onBegin((event) => {
@@ -40,7 +44,7 @@ export const ContinuousSlider = ({
       const deltaX = event.absoluteX - absoluteStart;
       const newPosition = Math.min(Math.max(0, deltaX), width);
 
-      translateX.value = newPosition;
+      translateX.value = Math.min(newPosition, width - rightCalibration);
       const newValue = min + (newPosition / width) * (max - min);
 
       onChange(newValue);
@@ -65,7 +69,7 @@ export const ContinuousSlider = ({
       {/* Container track */}
       <View
         style={{
-          width: width + 16,
+          width: width + rightCalibration,
           position: "relative",
           justifyContent: "center",
           paddingRight: 8,

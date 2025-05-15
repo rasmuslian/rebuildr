@@ -407,6 +407,8 @@ export class ProductService {
       query.andWhere('hidden_reason IS NULL');
     }
 
+    query.andWhere(`status = 'PUBLISHED'`);
+
     if (input.searchString) {
       query
         .addCommonTableExpression(
@@ -440,16 +442,25 @@ export class ProductService {
     if (input.location) {
       origin = {
         type: 'Point',
-        coordinates: [input.location.latitude, input.location.longitude],
+        coordinates: [input.location.lat, input.location.lng],
       };
     }
     if (origin !== undefined) {
       //If distance is included, only select products whose distance to origin is less than input.distance
       if (input.distance) {
         //convert from km to meters
-        const distance = input.distance * 1000;
+        const distance = input.distance;
+
+        //If product has a project, use the project's address
+        const product_address_location = `
+        case
+          WHEN p.project_id IS NOT NULL then (select address_location from project pj where pj.id = p.project_id)
+          ELSE p.address_location
+        END
+        `;
+
         query.andWhere(
-          'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location))) <= :distance',
+          `st_distancesphere(${product_address_location}, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(${product_address_location}))) <= :distance`,
           { origin, distance },
         );
       }
@@ -460,6 +471,12 @@ export class ProductService {
 
       query.setParameter('origin', origin);
     }
+
+    //Transportation
+    query.andWhere(`
+      (${input.pickup === false ? 'FALSE' : 'p.pickup_enabled = TRUE'} 
+OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE product_id = p.id)'}
+OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
 
     //Include products based on category criterias
     if (
@@ -510,6 +527,7 @@ export class ProductService {
       }
     }
 
+    //Prices
     if (input.minPrice !== undefined) {
       query.andWhere('p.price / 100 >= :minPrice', {
         minPrice: input.minPrice,

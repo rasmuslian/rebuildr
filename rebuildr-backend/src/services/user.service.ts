@@ -154,4 +154,17 @@ export class UserService {
       where: { organizationNumber },
     }));
   }
+
+  addressLocationToCoordinates(user: User, currentUserId: string) {
+    if (user.id !== currentUserId) {
+      throw ForbiddenException();
+    }
+    if (!user.addressLocation) {
+      return null;
+    }
+    return {
+      lat: user.addressLocation[0],
+      lng: user.addressLocation[1],
+    };
+  }
 }

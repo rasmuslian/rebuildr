@@ -147,6 +147,7 @@ type User {
   numberOfSoldProducts: Int!
   numberOfPublishedProducts: Int!
   rating: Float
+  location: LocationResponse
 }
 
 enum UserRoleEnum {
@@ -393,8 +394,11 @@ input GetProductInput {
 input ProductsInput {
   searchString: String
   address: String
-  location: LocationType
+  location: LocationInputType
   distance: Float
+  pickup: Boolean
+  shipping: Boolean
+  delivery: Boolean
   brandIds: [String!]
   categoryIds: [String!]
   selectionCategories: Boolean
@@ -406,9 +410,9 @@ input ProductsInput {
   orderBy: OrderProductsEnum
 }
 
-input LocationType {
-  longitude: Float!
-  latitude: Float!
+input LocationInputType {
+  lat: Float!
+  lng: Float!
 }
 
 enum OrderProductsEnum {
@@ -600,11 +604,6 @@ input UpdateProductInput {
   deliveryRadius: Float
   pickupEnabled: Boolean
   shippingPriceIds: [String!]
-}
-
-input LocationInputType {
-  lat: Float!
-  lng: Float!
 }
 
 input HideProductInput {

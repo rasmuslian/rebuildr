@@ -237,13 +237,6 @@ export class UpdateProductResponse {
 }
 
 @InputType()
-class LocationType {
-  @Field()
-  longitude: number;
-  @Field()
-  latitude: number;
-}
-@InputType()
 export class ProductsInput {
   @Field({ nullable: true })
   searchString?: string;
@@ -251,11 +244,22 @@ export class ProductsInput {
   @Field({ nullable: true })
   address?: string;
 
-  @Field(() => LocationType, { nullable: true })
-  location?: LocationType;
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 
   @Field({ nullable: true })
   distance?: number;
+
+  //------Transortation inputs-------
+  @Field({ nullable: true })
+  pickup?: boolean;
+
+  @Field({ nullable: true })
+  shipping?: boolean;
+
+  @Field({ nullable: true })
+  delivery?: boolean;
+  //----------------------------------
 
   @Field(() => [String], { nullable: true })
   brandIds?: string[];

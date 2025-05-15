@@ -17,6 +17,7 @@ type MapProps = {
   lng: number;
   height?: number;
   interactive?: boolean;
+  zoomDisabled?: boolean;
   onMoveEnd?: (lat: number, lng: number) => void;
   radius?: number; //in meters
 };
@@ -26,6 +27,7 @@ export const Map = ({
   lng,
   height = 185,
   interactive = true,
+  zoomDisabled,
   onMoveEnd,
   radius,
   ...props
@@ -42,7 +44,7 @@ export const Map = ({
         width: "100%",
         borderRadius: borderRadius.medium,
       }}
-      scrollWheelZoom={interactive}
+      scrollWheelZoom={zoomDisabled ? false : interactive}
       dragging={interactive}
       zoomControl={false}
     >
@@ -59,6 +61,7 @@ export const Map = ({
         onMoveEnd={onMoveEnd}
         radius={radius}
         interactive={interactive}
+        zoomDisabled={zoomDisabled}
       />
       {radius ? (
         <View
@@ -97,10 +100,17 @@ export const Map = ({
   );
 };
 
-const InnerMap = ({ lat, lng, onMoveEnd, radius, interactive }: MapProps) => {
+const InnerMap = ({
+  lat,
+  lng,
+  onMoveEnd,
+  radius,
+  interactive,
+  zoomDisabled,
+}: MapProps) => {
   const map = useMap();
-  useMapEvents(
-    onMoveEnd
+  useMapEvents({
+    ...(onMoveEnd
       ? {
           dragend: (e) => {
             const center = e?.target.getCenter();
@@ -109,8 +119,8 @@ const InnerMap = ({ lat, lng, onMoveEnd, radius, interactive }: MapProps) => {
             }
           },
         }
-      : {},
-  );
+      : {}),
+  });
 
   useEffect(() => {
     map.setView([lat, lng]);
@@ -142,13 +152,15 @@ const InnerMap = ({ lat, lng, onMoveEnd, radius, interactive }: MapProps) => {
   useEffect(() => {
     if (interactive === true) {
       map.dragging.enable();
-      map.scrollWheelZoom.enable();
+      if (!zoomDisabled) {
+        map.scrollWheelZoom.enable();
+      }
     }
     if (interactive === false) {
       map.dragging.disable();
       map.scrollWheelZoom.disable();
     }
-  }, [interactive]);
+  }, [interactive, zoomDisabled]);
 
   return null;
 };
