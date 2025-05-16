@@ -199,6 +199,7 @@ export default function Preview() {
         <ImageCarousel images={data.getDraftedProduct.images} />
         <MainContent
           product={data.getDraftedProduct}
+          project={data.getDraftedProduct.project ?? undefined}
           category={data.getDraftedProduct.category}
           parentCategory={data.getDraftedProduct.category?.parent}
           documents={data.getDraftedProduct.documents}

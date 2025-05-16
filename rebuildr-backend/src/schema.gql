@@ -122,6 +122,8 @@ type Project {
   address: String!
   location: LocationResponse!
   approximatePlace: ApproximatePlaceResponse!
+  products: [Product!]!
+  projectPicture: File
 }
 
 type SearchResult {
@@ -146,6 +148,7 @@ type User {
   projects: [Project!]!
   numberOfSoldProducts: Int!
   numberOfPublishedProducts: Int!
+  products: [Product!]!
   rating: Float
   location: LocationResponse
 }
@@ -199,6 +202,7 @@ type Product {
   title: String!
   description: String
   createdAt: DateTime!
+  updatedAt: DateTime!
   address: String
   hiddenReason: String
   isGiveaway: Boolean!
@@ -243,6 +247,7 @@ type Product {
   approximatePlace: ApproximatePlaceResponse
   shippingPrices: [ShippingPrice!]
   deliveryPrice: Float
+  canDelete: Boolean!
 }
 
 enum ProductConditionEnum {

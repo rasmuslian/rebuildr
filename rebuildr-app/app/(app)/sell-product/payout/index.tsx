@@ -154,19 +154,31 @@ export default function Payout() {
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <Check selected color={primitives.primary300} />
+              <Check
+                checkColor="primaryDark"
+                selected
+                color={primitives.primary300}
+              />
               <Body size="medium">Starta BankID-appen i din mobil</Body>
             </View>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <Check selected color={primitives.primary300} />
+              <Check
+                selected
+                color={primitives.primary300}
+                checkColor="primaryDark"
+              />
               <Body size="medium">Tryck på Scanna QR-kod</Body>
             </View>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <Check selected color={primitives.primary300} />
+              <Check
+                checkColor="primaryDark"
+                selected
+                color={primitives.primary300}
+              />
               <Body size="medium">Rikta kameran mot QR-koden </Body>
             </View>
           </View>

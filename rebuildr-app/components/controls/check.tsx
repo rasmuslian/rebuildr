@@ -10,10 +10,12 @@ import {
   ViewStyle,
 } from "react-native";
 import { borderRadius } from "@constants/sizes";
+import { TextTokens } from "@constants/colors";
 
 export type CheckProps = {
   selected?: boolean;
   color?: string;
+  checkColor?: keyof TextTokens;
 } & PressableProps;
 
 export const Check = ({
@@ -21,6 +23,7 @@ export const Check = ({
   disabled,
   selected,
   color,
+  checkColor = "primaryLight",
   ...rest
 }: CheckProps) => {
   const [hovered, setHovered] = useState(false);
@@ -60,7 +63,7 @@ export const Check = ({
       {selected ? (
         <Icon
           icon="check"
-          color={disabled ? "disabled" : "primaryLight"}
+          color={disabled ? "disabled" : checkColor}
           size={10}
         />
       ) : (

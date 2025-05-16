@@ -1,4 +1,4 @@
-import { Category, File, Product } from "@/gql/graphql";
+import { Category, File, Product, Project } from "@/gql/graphql";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -12,7 +12,8 @@ import * as Linking from "expo-linking";
 import { measurements } from "@constants/measurements";
 
 type Props = {
-  product: Omit<Partial<Product>, "category">;
+  product: Omit<Partial<Product>, "category" | "seller" | "project">;
+  project?: Pick<Project, "approximatePlace">;
   category?: Pick<Category, "id" | "name"> | null;
   parentCategory?: Pick<Category, "id" | "name"> | null;
   documents: File[];
@@ -21,6 +22,7 @@ type Props = {
 
 export const MainContent = ({
   product,
+  project,
   category,
   parentCategory,
   myAddress,
@@ -29,13 +31,12 @@ export const MainContent = ({
   const [showAllDescription, setShowAllDescription] = useState(false);
   const [showSpecifics, setShowSpecifics] = useState(true);
 
-  const project = product.project;
   const approximatePlace = project
     ? project.approximatePlace
     : product.approximatePlace;
 
   return (
-    <>
+    <View style={{ gap: 24 }}>
       <View>
         <Title size="large">{product.title}</Title>
         <Body size="large" color="secondary">
@@ -244,7 +245,7 @@ export const MainContent = ({
           </View>
         </View>
       )}
-    </>
+    </View>
   );
 };
 

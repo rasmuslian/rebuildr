@@ -22,6 +22,7 @@ import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 import { File } from 'src/entities/file.entity';
 import { LocationResponse } from './geocoding.resolver';
+import { Product } from 'src/entities/product.entity';
 
 @InputType()
 export class UpdateUserInput {
@@ -147,6 +148,15 @@ export class UserResolver {
   ): Promise<number> {
     return (await userLoaders.publishedProductsLoader.load(user.id)).length;
   }
+
+  @ResolveField(() => [Product])
+  async products(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.publishedProductsLoader.load(user.id);
+  }
+
   @ResolveField(() => Number, { nullable: true })
   async rating(
     @Parent() user: User,
