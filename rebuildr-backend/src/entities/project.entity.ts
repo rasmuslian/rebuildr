@@ -3,13 +3,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Product } from './product.entity';
+import { File } from './file.entity';
 
 @Entity()
 @ObjectType()
@@ -58,4 +61,10 @@ export class Project {
 
   @OneToMany(() => Product, (p) => p.project)
   products: Product[];
+
+  @Column({ nullable: true })
+  projectPictureId?: string;
+  @OneToOne(() => File, { nullable: true })
+  @JoinColumn()
+  projectPicture: File;
 }
