@@ -283,7 +283,8 @@ export default function Products() {
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Body size="medium" style={{ flex: 1 }} color="secondary">
-            {data?.products.total ?? 0} träffar:
+            {data?.products.total ?? 0}{" "}
+            {data?.products.total === 1 ? "träff" : "träffar"}:
           </Body>
           <Button
             label={getTransportationLabel()}
@@ -317,17 +318,22 @@ export default function Products() {
               key={product.id}
               imageUri={product.primaryImage?.url}
               title={product.title}
-              amount={product.primaryQuantity ?? 0}
+              quantity={product.primaryQuantity ?? 0}
               condition={product.condition}
-              rating={product.seller.rating ?? 3}
-              isBusiness={product.seller.type === UserType.Business}
-              location={
-                product.approximatePlace?.address ?? defaultApproximateLocation
-              }
-              price={product.price}
-              onPress={() => {
-                //TODO: link to Product details page
+              account={{
+                rating: product.seller.rating ?? 3,
+                isBusiness: product.seller.type === UserType.Business,
+                location:
+                  product.approximatePlace?.address ??
+                  defaultApproximateLocation,
               }}
+              price={product.price}
+              onPress={() =>
+                router.navigate({
+                  pathname: "/(app)/product",
+                  params: { productId: product.id },
+                })
+              }
             />
           ))}
         </View>

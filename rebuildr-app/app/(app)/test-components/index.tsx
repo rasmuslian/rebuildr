@@ -202,12 +202,14 @@ export default function Page() {
       <AdGrid
         imageUri={Placeholder}
         onPress={() => {}}
-        title={"Pergo vinylgolv Volcanica"}
-        amount={28}
+        title="Pergo vinylgolv Volcanica"
+        quantity={28}
         condition={ProductConditionEnum.Good}
-        rating={3.2}
-        isBusiness={true}
-        location={"Kungsholmen, Stockholm"}
+        account={{
+          rating: 3.2,
+          isBusiness: true,
+          location: "Kungsholmen, Stockholm",
+        }}
         price={500}
         heart
       />

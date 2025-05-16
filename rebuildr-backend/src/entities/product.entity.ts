@@ -66,6 +66,7 @@ export class Product {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field(() => Date)
   @UpdateDateColumn()
   updatedAt: Date;
 

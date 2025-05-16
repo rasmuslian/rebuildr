@@ -1,6 +1,8 @@
 import { isLoggedInVar } from "@/apollo/config";
 import {
   ClearSearchHistoryMutation,
+  CreateSearchResultMutation,
+  CreateSearchResultMutationVariables,
   DoSearchQuery,
   DoSearchQueryVariables,
   SearchQuery,
@@ -77,6 +79,16 @@ const CLEAR_SEARCH_HISTORY_MUTATION = gql`
   }
 `;
 
+const CREATE_SEARCH_RESULT = gql`
+  mutation CreateSearchResult($input: CreateSearchResultInput!) {
+    createSearchResult(input: $input) {
+      id
+      searchString
+      count
+    }
+  }
+`;
+
 export default function Search() {
   const [searchString, setSearchString] = useState("");
   const colors = useThemeColor();
@@ -99,6 +111,10 @@ export default function Search() {
         }
       },
     });
+  const [createSearchResult] = useMutation<
+    CreateSearchResultMutation,
+    CreateSearchResultMutationVariables
+  >(CREATE_SEARCH_RESULT);
 
   const onChangeSearch = (s: string) => {
     if (s) {
@@ -113,10 +129,9 @@ export default function Search() {
     setSearchString(s);
   };
   const onSearch = () => {
-    if (!searchString) {
-      return;
+    if (searchString) {
+      createSearchResult({ variables: { input: { searchString } } });
     }
-
     router.navigate({
       pathname: "/search/products",
       params: { searchString },
@@ -184,7 +199,10 @@ export default function Search() {
                   >
                     <View>
                       <Label size="large">"{searchResult.searchString}"</Label>
-                      <Body size="small">{searchResult.count} träffar</Body>
+                      <Body size="small">
+                        {searchResult.count}{" "}
+                        {searchResult.count === 1 ? "träff" : "träffar"}
+                      </Body>
                     </View>
                     <Icon icon="search" size={18} />
                   </View>
@@ -230,7 +248,10 @@ export default function Search() {
                   >
                     <View>
                       <Label size="large">{searchResult.searchString}</Label>
-                      <Body size="small">{searchResult.count} träffar</Body>
+                      <Body size="small">
+                        {searchResult.count}{" "}
+                        {searchResult.count === 1 ? "träff" : "träffar"}
+                      </Body>
                     </View>
                     <Icon icon="search" size={18} />
                   </View>

@@ -16,13 +16,13 @@ import {
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { Equal, In, Point, Repository } from 'typeorm';
+import { Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
 import { PurchaseService } from './purchase.service';
 import { QuantityUnitEnum } from 'src/entities/enums';
-import { Purchase } from 'src/entities/purchase.entity';
+import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import * as z from 'zod';
 import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
@@ -715,6 +715,21 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
       lat: approximation.lat,
       lng: approximation.lng,
     };
+  }
+
+  async canDelete(product: Product) {
+    //Can not delete any product with an ongoing purchase
+    const existingPurchases = await this.purchaseRepository.find({
+      where: {
+        productId: product.id,
+        status: Not(PurchaseStatusEnum.FINISHED_FAILED) || Not(IsNull()),
+      },
+    });
+
+    if (existingPurchases.length) {
+      return false;
+    }
+    return true;
   }
 
   /**
