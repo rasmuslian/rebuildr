@@ -91,7 +91,7 @@ export class UserLoader {
       });
 
       const productsMap = userIds.map((userId) =>
-        products.filter((product) => product.seller?.id === userId),
+        products.filter((product) => product.sellerId === userId),
       );
       return productsMap;
     });
