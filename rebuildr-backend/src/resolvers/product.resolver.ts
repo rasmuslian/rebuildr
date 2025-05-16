@@ -8,6 +8,7 @@ import {
   Int,
   Mutation,
   ObjectType,
+  Parent,
   Query,
   registerEnumType,
   ResolveField,
@@ -541,5 +542,10 @@ export class ProductResolver {
       return null;
     }
     return product.deliveryPrice / 100;
+  }
+
+  @ResolveField(() => Boolean)
+  async canDelete(@Parent() product: Product) {
+    return await this.productService.canDelete(product);
   }
 }
