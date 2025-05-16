@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -19,6 +20,9 @@ import {
 } from './geocoding.resolver';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { AuthedUserType } from 'src/auth/constants';
+import { Product } from 'src/entities/product.entity';
+import { IProjectLoaders } from 'src/dataloaders/project.loader';
+import { File } from 'src/entities/file.entity';
 
 @InputType()
 export class GetProjectInput {
@@ -105,5 +109,24 @@ export class ProjectResolver {
   @ResolveField(() => ApproximatePlaceResponse)
   async approximatePlace(@Parent() project: Project) {
     return this.projectService.approximatePlace(project);
+  }
+
+  @ResolveField(() => [Product])
+  async products(
+    @Parent() project: Project,
+    @Context('projectLoaders') projectLoaders: IProjectLoaders,
+  ) {
+    return await projectLoaders.productsLoader.load(project.id);
+  }
+
+  @ResolveField(() => File, { nullable: true })
+  async projectPicture(
+    @Parent() project: Project,
+    @Context('projectLoaders') projectLoaders: IProjectLoaders,
+  ) {
+    if (!project.projectPictureId) {
+      return null;
+    }
+    return await projectLoaders.projectPictureLoader.load(project.id);
   }
 }

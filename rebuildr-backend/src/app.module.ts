@@ -70,6 +70,7 @@ import { SearchResultLoader } from './dataloaders/search-result.loader';
 import { SearchResultService } from './services/search-result.service';
 import { SearchResultResolver } from './resolvers/search-result.resolver';
 import { Review } from './entities/review.entity';
+import { ProjectLoader } from './dataloaders/project.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -125,13 +126,15 @@ export interface RequestType {
         CategoryLoader,
         UserLoader,
         SearchResultLoader,
+        ProjectLoader,
         ConfigService,
       ],
       useFactory: (
         productLoaderService: ProductLoader,
         categoryLoaderService: CategoryLoader,
         userLoaderService: UserLoader,
-        searchResultLoader: SearchResultLoader,
+        searchResultLoaderService: SearchResultLoader,
+        projectLoaderService: ProjectLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -143,7 +146,8 @@ export interface RequestType {
             productLoaders: productLoaderService.createLoaders(),
             categoryLoaders: categoryLoaderService.createLoaders(),
             userLoaders: userLoaderService.createLoaders(),
-            searchResultLoaders: searchResultLoader.createLoaders(),
+            searchResultLoaders: searchResultLoaderService.createLoaders(),
+            projectLoaders: projectLoaderService.createLoaders(),
             req,
             res,
           }),
