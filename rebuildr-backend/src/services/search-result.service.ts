@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { SearchResult } from 'src/entities/search-result.entity';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { DataSource, ILike, IsNull, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import {
   CreateSearchResultInput,
@@ -23,7 +23,7 @@ export class SearchResultService {
     input: CreateSearchResultInput,
     currentUserId?: string,
   ): Promise<SearchResult> {
-    if (!currentUserId) {
+    if (!currentUserId || !input.searchString) {
       return null;
     }
 
@@ -33,14 +33,18 @@ export class SearchResultService {
     if (!searcher) {
       throw BadUserInputException();
     }
-    const existingSearchResult = await this.dataSource.query(
-      `SELECT * from search_result WHERE "searcherId" = $1 AND LOWER("searchString") = LOWER($2) AND "deletedAt" IS NULL`,
-      [currentUserId, input.searchString],
-    );
 
-    if (existingSearchResult?.length) {
+    const existingSearchResult = await this.searchResultRepository.findOne({
+      where: {
+        searcher: { id: searcher.id },
+        searchString: ILike(input.searchString),
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (existingSearchResult) {
       return await this.searchResultRepository.save({
-        ...existingSearchResult[0],
+        ...existingSearchResult,
         updatedAt: new Date(),
       });
     }

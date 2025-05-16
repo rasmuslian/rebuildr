@@ -283,7 +283,8 @@ export default function Products() {
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Body size="medium" style={{ flex: 1 }} color="secondary">
-            {data?.products.total ?? 0} träffar:
+            {data?.products.total ?? 0}{" "}
+            {data?.products.total === 1 ? "träff" : "träffar"}:
           </Body>
           <Button
             label={getTransportationLabel()}

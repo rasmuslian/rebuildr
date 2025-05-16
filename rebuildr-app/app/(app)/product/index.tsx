@@ -1,5 +1,7 @@
 import { isLoggedInVar } from "@/apollo/config";
 import {
+  ProductViewLikeProductMutation,
+  ProductViewLikeProductMutationVariables,
   ProductViewQuery,
   ProductViewQueryVariables,
   UserType,
@@ -172,9 +174,10 @@ export default function Product() {
       variables: { input: { id: productId }, isLoggedIn },
     },
   );
-  const [setLikeProduct, { loading: loadingLikeProduct }] = useMutation(
-    PRODUCT_VIEW_LIKE_PRODUCT,
-  );
+  const [setLikeProduct, { loading: loadingLikeProduct }] = useMutation<
+    ProductViewLikeProductMutation,
+    ProductViewLikeProductMutationVariables
+  >(PRODUCT_VIEW_LIKE_PRODUCT);
   const colors = useThemeColor();
 
   if (!data) {
