@@ -540,7 +540,7 @@ const navigationTokensLight: NavigationTokens = {
   pressed: primitives.primary200,
   disabled: primitives.neutrals200,
 };
-const naviagtionTokensDark: NavigationTokens = {
+const navigationTokensDark: NavigationTokens = {
   enabled: primitives.neutrals500,
   hovered: primitives.secondary200,
   focused: primitives.primary800,
@@ -596,6 +596,6 @@ export const themeColorTokens: ThemeColorTokens = {
     badges: badgesTokensDark,
     logo: logoTokensDark,
     card: cardTokensDark,
-    navigation: naviagtionTokensDark,
+    navigation: navigationTokensDark,
   },
 };
