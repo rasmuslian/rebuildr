@@ -154,7 +154,7 @@ export default function Search() {
                 key={i}
                 onPress={() => {
                   setCategories([category.id]);
-                  router.navigate("/(app)/search/products");
+                  router.navigate("/(app)/(tabs)/search/products");
                 }}
                 source={category.image ? category.image.url : Placeholder.uri}
                 label={category.name}

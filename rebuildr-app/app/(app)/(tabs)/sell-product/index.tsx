@@ -272,7 +272,7 @@ export default function SellProduct() {
         }
         await productToState(data.updateProduct.product);
         if (isFinal) {
-          router.navigate("/sell-product/project");
+          router.navigate("/(app)/(tabs)/sell-product/project");
         }
       },
     });
@@ -403,8 +403,9 @@ export default function SellProduct() {
   const canSave = progress() >= 100;
 
   return (
-    <>
-      <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
+    <ScreenLayout
+      style={{ gap: 24, marginTop: 24 }}
+      headerComponent={
         <ProgressHeader
           onClose={() =>
             router.canDismiss() ? router.dismiss() : router.replace("/")
@@ -412,141 +413,138 @@ export default function SellProduct() {
           title="Ny annons"
           prog1={progress()}
         />
-      </View>
-      <ScreenLayout style={{ gap: 24 }}>
-        <RootCategorySection
-          onSelect={(id) => onUpdateProduct({ ...product, categoryIds: [id] })}
-          selectedId={product.categoryIds[0]}
-          onChange={() => onUpdateProduct({ ...product, categoryIds: [] })}
+      }
+    >
+      <RootCategorySection
+        onSelect={(id) => onUpdateProduct({ ...product, categoryIds: [id] })}
+        selectedId={product.categoryIds[0]}
+        onChange={() => onUpdateProduct({ ...product, categoryIds: [] })}
+      />
+      {rootCategoryId && (
+        <CategorySection
+          parentId={rootCategoryId}
+          onSelect={(id) =>
+            onUpdateProduct({
+              ...product,
+              categoryIds: [...product.categoryIds, id],
+            })
+          }
+          selectedId={product.categoryIds[1]}
+          onChange={() =>
+            onUpdateProduct({ ...product, categoryIds: [rootCategoryId] })
+          }
         />
-        {rootCategoryId && (
-          <CategorySection
-            parentId={rootCategoryId}
-            onSelect={(id) =>
+      )}
+      {categoryId && (
+        <>
+          <ImageSection
+            images={product.images}
+            onUpdateImages={(images) => {
+              onUpdateProduct({ ...product, images });
+            }}
+          />
+          <PriceSection
+            price={product.price ?? 0}
+            isGiveaway={!!product.isGiveaway}
+            onBlur={(price) => onUpdateProduct({ ...product, price })}
+            onSelectGiveaway={() =>
               onUpdateProduct({
                 ...product,
-                categoryIds: [...product.categoryIds, id],
+                isGiveaway: !product.isGiveaway,
+                price: 0,
               })
             }
-            selectedId={product.categoryIds[1]}
-            onChange={() =>
-              onUpdateProduct({ ...product, categoryIds: [rootCategoryId] })
+          />
+          <DescriptionSection
+            title={product.title}
+            description={product.description}
+            onBlurTitle={(title) => onUpdateProduct({ ...product, title })}
+            onBlurDescription={(description) =>
+              onUpdateProduct({ ...product, description })
             }
           />
-        )}
-        {categoryId && (
-          <>
-            <ImageSection
-              images={product.images}
-              onUpdateImages={(images) => {
-                onUpdateProduct({ ...product, images });
-              }}
-            />
-            <PriceSection
-              price={product.price ?? 0}
-              isGiveaway={!!product.isGiveaway}
-              onBlur={(price) => onUpdateProduct({ ...product, price })}
-              onSelectGiveaway={() =>
-                onUpdateProduct({
-                  ...product,
-                  isGiveaway: !product.isGiveaway,
-                  price: 0,
-                })
-              }
-            />
-            <DescriptionSection
-              title={product.title}
-              description={product.description}
-              onBlurTitle={(title) => onUpdateProduct({ ...product, title })}
-              onBlurDescription={(description) =>
-                onUpdateProduct({ ...product, description })
-              }
-            />
-            <QuantitiesSection
-              categoryId={categoryId}
-              primaryQuantity={product.primaryQuantity}
-              primaryUnit={product.primaryUnit}
-              onBlurPrimary={({ quantity, unit }) =>
-                onUpdateProduct({
-                  ...product,
-                  primaryQuantity: quantity,
-                  primaryUnit: unit,
-                })
-              }
-              secondaryQuantity={product.secondaryQuantity}
-              secondaryUnit={product.secondaryUnit}
-              onBlurSecondary={({ quantity, unit }) =>
-                onUpdateProduct({
-                  ...product,
-                  secondaryQuantity: quantity,
-                  secondaryUnit: unit,
-                })
-              }
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Title size="medium">Lägg till fler produktdetaljer</Title>
-                <Body size="medium">
-                  Lägg till specifik produktinfo gällande mått, vikt eller
-                  dokumentation.
-                </Body>
-              </View>
-              <Toggle
-                value={showDetails}
-                onPress={() => setShowDetails(!showDetails)}
-              />
-            </View>
-            {showDetails && (
-              <>
-                <MeasurementsSection
-                  value={{
-                    thickness: product.thickness,
-                    height: product.height,
-                    width: product.width,
-                    length: product.length,
-                    diameter: product.diameter,
-                    weight: product.weight,
-                  }}
-                  onChange={(measurementType, value) =>
-                    onUpdateProduct({ ...product, [measurementType]: value })
-                  }
-                />
-                <DocumentSection
-                  documents={product.documents}
-                  onUpdateFiles={(files) =>
-                    onUpdateProduct({ ...product, documents: files })
-                  }
-                />
-              </>
-            )}
-            <ConditionSection
-              condition={product.condition}
-              onSelect={(condition) =>
-                onUpdateProduct({ ...product, condition })
-              }
-            />
-            <BrandSection
-              categoryId={categoryId}
-              onSelect={(brandId) => onUpdateProduct({ ...product, brandId })}
-              brandId={product.brandId}
-            />
-          </>
-        )}
-        {showContinue && (
-          <Button
-            label="Fortsätt"
-            onPress={onNext}
-            style={{ marginTop: 24 }}
-            disabled={!canSave}
+          <QuantitiesSection
+            categoryId={categoryId}
+            primaryQuantity={product.primaryQuantity}
+            primaryUnit={product.primaryUnit}
+            onBlurPrimary={({ quantity, unit }) =>
+              onUpdateProduct({
+                ...product,
+                primaryQuantity: quantity,
+                primaryUnit: unit,
+              })
+            }
+            secondaryQuantity={product.secondaryQuantity}
+            secondaryUnit={product.secondaryUnit}
+            onBlurSecondary={({ quantity, unit }) =>
+              onUpdateProduct({
+                ...product,
+                secondaryQuantity: quantity,
+                secondaryUnit: unit,
+              })
+            }
           />
-        )}
-      </ScreenLayout>
-    </>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Title size="medium">Lägg till fler produktdetaljer</Title>
+              <Body size="medium">
+                Lägg till specifik produktinfo gällande mått, vikt eller
+                dokumentation.
+              </Body>
+            </View>
+            <Toggle
+              value={showDetails}
+              onPress={() => setShowDetails(!showDetails)}
+            />
+          </View>
+          {showDetails && (
+            <>
+              <MeasurementsSection
+                value={{
+                  thickness: product.thickness,
+                  height: product.height,
+                  width: product.width,
+                  length: product.length,
+                  diameter: product.diameter,
+                  weight: product.weight,
+                }}
+                onChange={(measurementType, value) =>
+                  onUpdateProduct({ ...product, [measurementType]: value })
+                }
+              />
+              <DocumentSection
+                documents={product.documents}
+                onUpdateFiles={(files) =>
+                  onUpdateProduct({ ...product, documents: files })
+                }
+              />
+            </>
+          )}
+          <ConditionSection
+            condition={product.condition}
+            onSelect={(condition) => onUpdateProduct({ ...product, condition })}
+          />
+          <BrandSection
+            categoryId={categoryId}
+            onSelect={(brandId) => onUpdateProduct({ ...product, brandId })}
+            brandId={product.brandId}
+          />
+        </>
+      )}
+      {showContinue && (
+        <Button
+          label="Fortsätt"
+          onPress={onNext}
+          style={{ marginTop: 24 }}
+          disabled={!canSave}
+        />
+      )}
+    </ScreenLayout>
   );
 }

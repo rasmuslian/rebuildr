@@ -117,8 +117,9 @@ export default function Transportation() {
   const shippingValid = !!data.getDraftedProduct.shippingPrices?.length;
 
   return (
-    <>
-      <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
+    <ScreenLayout
+      style={{ gap: 24, marginTop: 24 }}
+      headerComponent={
         <ProgressHeader
           onClose={() =>
             router.canDismiss() ? router.dismiss() : router.replace("/")
@@ -126,51 +127,48 @@ export default function Transportation() {
           title="Ny annons"
           prog3={progress()}
         />
+      }
+    >
+      <Display size="small">Leverans</Display>
+      <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>
+      <View style={{ gap: 16, paddingBottom: 16 }}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Pickup
+            productId={data.getDraftedProduct.id}
+            canEdit={!addressEditLock}
+            onEditing={() => setAddressEditLock(true)}
+            onEditComplete={() => setAddressEditLock(false)}
+          />
+          <Shipping productId={data.getDraftedProduct.id} />
+          <Delivery
+            productId={data.getDraftedProduct.id}
+            canEdit={!addressEditLock}
+            onEditing={() => setAddressEditLock(true)}
+            onEditComplete={() => setAddressEditLock(false)}
+          />
+        </Suspense>
       </View>
-      <ScreenLayout style={{ gap: 24 }}>
-        <Display size="small">Leverans</Display>
-        <Headline size="small">
-          Vilka leveransalternativ kan du erbjuda?
-        </Headline>
-        <View style={{ gap: 16, paddingBottom: 16 }}>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Pickup
-              productId={data.getDraftedProduct.id}
-              canEdit={!addressEditLock}
-              onEditing={() => setAddressEditLock(true)}
-              onEditComplete={() => setAddressEditLock(false)}
-            />
-            <Shipping productId={data.getDraftedProduct.id} />
-            <Delivery
-              productId={data.getDraftedProduct.id}
-              canEdit={!addressEditLock}
-              onEditing={() => setAddressEditLock(true)}
-              onEditComplete={() => setAddressEditLock(false)}
-            />
-          </Suspense>
-        </View>
-        <View
-          style={{
-            paddingTop: 24,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <Button
-            icon="arrowLeft"
-            label="Tillbaka"
-            onPress={() => router.navigate("/sell-product/project")}
-          />
-          <Button
-            label="Förhandsgranska"
-            onPress={() => onNext()}
-            style={{ flex: 1 }}
-            disabled={!canContinue()}
-            loading={false}
-          />
-        </View>
-      </ScreenLayout>
-    </>
+      <View
+        style={{
+          paddingTop: 24,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Button
+          icon="arrowLeft"
+          label="Tillbaka"
+          onPress={() => router.navigate("/sell-product/project")}
+        />
+        <Button
+          label="Förhandsgranska"
+          onPress={() => onNext()}
+          style={{ flex: 1 }}
+          disabled={!canContinue()}
+          loading={false}
+        />
+      </View>
+    </ScreenLayout>
   );
 }

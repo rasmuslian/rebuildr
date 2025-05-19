@@ -20,7 +20,11 @@ export const ScreenLayout = ({
   const colors = useThemeColor();
   return (
     <View
-      style={{ flex: 1, justifyContent: "space-between", paddingBottom: 32 }}
+      style={{
+        flex: 1,
+        justifyContent: "space-between",
+        backgroundColor: colors.background.neutral,
+      }}
     >
       {headerComponent && (
         <View style={{ paddingHorizontal: 16 }}>{headerComponent}</View>
@@ -31,6 +35,7 @@ export const ScreenLayout = ({
             flexGrow: 1,
             backgroundColor: colors.background.neutral,
             paddingHorizontal: 16,
+            marginBottom: 32,
           },
           style,
         ]}
