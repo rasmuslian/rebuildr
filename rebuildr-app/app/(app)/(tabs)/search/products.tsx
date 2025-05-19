@@ -233,38 +233,27 @@ export default function Products() {
     <>
       <ScreenLayout
         loading={loading}
+        style={{ marginTop: 24 }}
         headerComponent={
-          <View style={[{ marginBottom: 24, gap: 16 }]}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 18,
-              }}
-            >
-              <SearchBar
-                style={{ flex: 1 }}
-                placeholder="Vad letar du efter?"
-                onFocus={() => router.navigate("/(app)/search")}
-                onPressArrow={() =>
-                  router.canGoBack() ? router.back() : router.navigate("/")
-                }
-              />
-            </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 18,
+            }}
+          >
+            <SearchBar
+              style={{ flex: 1 }}
+              placeholder="Vad letar du efter?"
+              onFocus={() => router.navigate("/(app)/(tabs)/search")}
+              onPressArrow={() =>
+                router.canGoBack() ? router.back() : router.navigate("/")
+              }
+            />
           </View>
         }
-        footerComponent={
-          <Button
-            label="Läs in fler"
-            onPress={onShowMore}
-            disabled={
-              data && data.products.products.length >= data.products.total
-            }
-            style={{ marginTop: 24 }}
-          />
-        }
       >
-        {searchString && (
+        {!!searchString && (
           <View
             style={{
               flexDirection: "row",
@@ -337,6 +326,14 @@ export default function Products() {
             />
           ))}
         </View>
+        <Button
+          label="Läs in fler"
+          onPress={onShowMore}
+          disabled={
+            data && data.products.products.length >= data.products.total
+          }
+          style={{ marginTop: 24 }}
+        />
       </ScreenLayout>
       <BottomSheet
         ref={transportRef}

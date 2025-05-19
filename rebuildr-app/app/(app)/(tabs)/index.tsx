@@ -81,10 +81,6 @@ export default function Landing() {
     );
   };
 
-  const onCreateNewProduct = () => {
-    router.navigate("/(app)/sell-product");
-  };
-
   return (
     <View style={{ alignItems: "center", gap: 16, marginTop: 20 }}>
       <Title>Landningssidan</Title>
@@ -97,24 +93,7 @@ export default function Landing() {
           }}
         />
       )}
-      {data?.me && (
-        <View>
-          <Body>Hej {data.me.username}</Body>
-          <Button
-            label="Logga ut"
-            onPress={() => {
-              logout();
-            }}
-          />
-          <Button
-            label="Skapa annons"
-            onPress={() => {
-              onCreateNewProduct();
-            }}
-          />
-        </View>
-      )}
-      <Button label="Sök" onPress={() => router.navigate("/(app)/search")} />
+
       <Button
         label="Till testkomponenterna"
         onPress={() => router.navigate("/test-components")}

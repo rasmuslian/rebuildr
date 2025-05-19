@@ -158,8 +158,9 @@ export default function Preview() {
     : data.getDraftedProduct.approximatePlace;
 
   return (
-    <>
-      <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
+    <ScreenLayout
+      style={{ gap: 24, marginTop: 24 }}
+      headerComponent={
         <ProgressHeader
           onClose={() =>
             router.canDismiss() ? router.dismiss() : router.replace("/")
@@ -167,56 +168,53 @@ export default function Preview() {
           title="Ny annons"
           prog3={100}
         />
-      </View>
-      <ScreenLayout
-        style={{ gap: 24 }}
-        footerComponent={
-          <View
-            style={{
-              gap: 8,
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexDirection: "row",
-              paddingTop: 24,
-            }}
-          >
-            <Button
-              icon="arrowLeft"
-              label="Tillbaka"
-              onPress={() =>
-                router.navigate("/(app)/sell-product/transportation")
-              }
-            />
-            <Button
-              label="Publicera annons"
-              onPress={onPublishProduct}
-              loading={publishProductLoading}
-              style={{ flex: 1 }}
-            />
-          </View>
-        }
-      >
-        <ImageCarousel images={data.getDraftedProduct.images} />
-        <MainContent
-          product={data.getDraftedProduct}
-          project={data.getDraftedProduct.project ?? undefined}
-          category={data.getDraftedProduct.category}
-          parentCategory={data.getDraftedProduct.category?.parent}
-          documents={data.getDraftedProduct.documents}
-          myAddress={data.me.address}
-        />
-        <Divider />
-        <AllImages images={product.images} />
-        {approximatePlace && data.getDraftedProduct.pickupEnabled && (
-          <PickupPosition
-            address={approximatePlace.address}
-            location={{
-              lat: approximatePlace.lat,
-              lng: approximatePlace.lng,
-            }}
+      }
+      footerComponent={
+        <View
+          style={{
+            gap: 8,
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexDirection: "row",
+            paddingTop: 24,
+          }}
+        >
+          <Button
+            icon="arrowLeft"
+            label="Tillbaka"
+            onPress={() =>
+              router.navigate("/(app)/sell-product/transportation")
+            }
           />
-        )}
-      </ScreenLayout>
-    </>
+          <Button
+            label="Publicera annons"
+            onPress={onPublishProduct}
+            loading={publishProductLoading}
+            style={{ flex: 1 }}
+          />
+        </View>
+      }
+    >
+      <ImageCarousel images={data.getDraftedProduct.images} />
+      <MainContent
+        product={data.getDraftedProduct}
+        project={data.getDraftedProduct.project ?? undefined}
+        category={data.getDraftedProduct.category}
+        parentCategory={data.getDraftedProduct.category?.parent}
+        documents={data.getDraftedProduct.documents}
+        myAddress={data.me.address}
+      />
+      <Divider />
+      <AllImages images={product.images} />
+      {approximatePlace && data.getDraftedProduct.pickupEnabled && (
+        <PickupPosition
+          address={approximatePlace.address}
+          location={{
+            lat: approximatePlace.lat,
+            lng: approximatePlace.lng,
+          }}
+        />
+      )}
+    </ScreenLayout>
   );
 }

@@ -1,13 +1,12 @@
 import { isLoggedInVar } from "@/apollo/config";
 import {
-  RegisterUserMutation,
-  RegisterUserMutationVariables,
+  ResendVerificationMailMutation,
+  ResendVerificationMailMutationVariables,
   VerifyEmailMutation,
   VerifyEmailMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { REGISTER_USER } from "@components/modals/loginModalView";
 import { Body, Display, Label, Title } from "@components/typography/text";
 import { textStyles } from "@components/typography/typeface";
 import { ColorTokens } from "@constants/colors";
@@ -33,6 +32,14 @@ const VERIFY_EMAIL = gql`
       }
       accessToken
       refreshToken
+    }
+  }
+`;
+
+const RESEND_VERIFICATION_MAIL = gql`
+  mutation ResendVerificationMail($input: RegisterUserInput!) {
+    registerUser(input: $input) {
+      id
     }
   }
 `;
@@ -69,9 +76,9 @@ export const Verify = ({ email, onSuccess }: Props) => {
     },
   });
   const [resendVerificationEmail] = useMutation<
-    RegisterUserMutation,
-    RegisterUserMutationVariables
-  >(REGISTER_USER);
+    ResendVerificationMailMutation,
+    ResendVerificationMailMutationVariables
+  >(RESEND_VERIFICATION_MAIL);
 
   return (
     <View>

@@ -526,6 +526,28 @@ const cardTokensDark: CardTokens = {
   message: primitives.secondary800,
 };
 
+type NavigationTokens = {
+  enabled: string;
+  hovered: string;
+  focused: string;
+  pressed: string;
+  disabled: string;
+};
+const navigationTokensLight: NavigationTokens = {
+  enabled: primitives.primary200,
+  hovered: primitives.primary200,
+  focused: primitives.primary200,
+  pressed: primitives.primary200,
+  disabled: primitives.neutrals200,
+};
+const navigationTokensDark: NavigationTokens = {
+  enabled: primitives.neutrals500,
+  hovered: primitives.secondary200,
+  focused: primitives.primary800,
+  pressed: primitives.primary800,
+  disabled: primitives.neutrals100,
+};
+
 export type ColorTokens = {
   text: TextTokens;
   background: BackgroundTokens;
@@ -539,6 +561,7 @@ export type ColorTokens = {
   badges: BadgesTokens;
   logo: LogoTokens;
   card: CardTokens;
+  navigation: NavigationTokens;
 };
 type ThemeColorTokens = {
   light: ColorTokens;
@@ -558,6 +581,7 @@ export const themeColorTokens: ThemeColorTokens = {
     badges: badgesTokensLight,
     logo: logoTokensLight,
     card: cardTokensLight,
+    navigation: navigationTokensLight,
   },
   dark: {
     text: textTokensDark,
@@ -572,5 +596,6 @@ export const themeColorTokens: ThemeColorTokens = {
     badges: badgesTokensDark,
     logo: logoTokensDark,
     card: cardTokensDark,
+    navigation: navigationTokensDark,
   },
 };

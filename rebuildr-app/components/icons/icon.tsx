@@ -39,6 +39,7 @@ import { File } from "./file";
 import { Star } from "./star";
 import { TextTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { Home } from "./home";
 
 export type IconType =
   | "placeholder"
@@ -56,6 +57,7 @@ export type IconType =
   | "filterList"
   | "heart"
   | "heartFilled"
+  | "home"
   | "list"
   | "grid"
   | "map"
@@ -86,18 +88,20 @@ export interface IconProps extends SvgProps {
 export interface BaseIconProps extends SvgProps {
   size?: number;
   color?: keyof TextTokens;
+  customColor?: string;
   strokeColor?: keyof TextTokens;
   opacity?: string;
 }
 export const Icon = ({
   icon,
   color: colorToken = "primaryDark",
+  customColor,
   strokeColor,
   opacity = "",
   ...props
 }: BaseIconProps & { icon: IconType }) => {
   const colors = useThemeColor();
-  const color = colors.text[colorToken] + opacity;
+  const color = (customColor ?? colors.text[colorToken]) + opacity;
   const size = props.size ?? 24;
 
   switch (icon) {
@@ -151,6 +155,8 @@ export const Icon = ({
         />
       );
     }
+    case "home":
+      return <Home {...props} size={size} color={color} />;
     case "list":
       return <List {...props} size={size} color={color} />;
     case "grid":

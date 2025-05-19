@@ -33,7 +33,7 @@ export default function Filter() {
               onPress={() =>
                 router.canGoBack()
                   ? router.back()
-                  : router.navigate("/(app)/search/products")
+                  : router.navigate("/(app)/(tabs)/search/products")
               }
             >
               <Icon icon="arrowLeft" size={18} />
@@ -44,14 +44,21 @@ export default function Filter() {
         </View>
       }
       footerComponent={
-        <View style={{ flexDirection: "row", gap: 8 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 8,
+            marginBottom: 24,
+            marginTop: 16,
+          }}
+        >
           <Button label="Rensa alla" type="tonal" onPress={() => reset()} />
           <Button
             label="Visa resultat"
             onPress={() =>
               router.canGoBack()
                 ? router.back()
-                : router.navigate("/(app)/search/products")
+                : router.navigate("/(app)/(tabs)/search/products")
             }
             style={{ flex: 1 }}
           />
