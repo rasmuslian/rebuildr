@@ -149,7 +149,10 @@ type User {
   numberOfSoldProducts: Int!
   numberOfPublishedProducts: Int!
   products: [Product!]!
+  purchases: [Purchase!]!
+  sales: [Purchase!]!
   rating: Float
+  likedProducts: [Product!]
   location: LocationResponse
 }
 

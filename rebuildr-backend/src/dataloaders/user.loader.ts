@@ -7,14 +7,18 @@ import { SearchResult } from 'src/entities/search-result.entity';
 import { DataSource, In, IsNull } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
-import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { File } from 'src/entities/file.entity';
 import { Review } from 'src/entities/review.entity';
+import { User } from 'src/entities/user.entity';
 
 export interface IUserLoaders {
   projectsLoader: DataLoader<string, Project[]>;
   soldProductsLoader: DataLoader<string, Product[]>;
   publishedProductsLoader: DataLoader<string, Product[]>;
+  purchasesLoader: DataLoader<string, Purchase[]>;
+  salesLoader: DataLoader<string, Purchase[]>;
+  likedProductsLoader: DataLoader<string, Product[]>;
   getSearchResultsLoader: (
     input: GetSearchResultsInput,
   ) => DataLoader<string, SearchResult[]>;
@@ -124,11 +128,47 @@ export class UserLoader {
     });
   }
 
+  private salesLoader() {
+    return new DataLoader(async (userIds) => {
+      const purchases = await this.dataSource.getRepository(Purchase).find({
+        where: {
+          product: {
+            sellerId: In(userIds),
+          },
+        },
+        relations: { product: true },
+      });
+
+      return userIds.map((userId) =>
+        purchases.filter((purchase) => purchase.product.sellerId === userId),
+      );
+    });
+  }
+
+  private likedProductsLoader() {
+    return new DataLoader(async (userIds) => {
+      const products = await this.dataSource.getRepository(Product).find({
+        where: {
+          likedBy: {
+            id: In(userIds),
+          },
+        },
+        relations: { likedBy: true },
+      });
+
+      return userIds.map((userId) =>
+        products.filter((product) =>
+          product.likedBy.some((user) => user.id === userId),
+        ),
+      );
+    });
+  }
+
   createLoaders(): IUserLoaders {
     return {
       projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
         'projects',
-        Project,
+        User,
       ),
       getSearchResultsLoader: (input: GetSearchResultsInput) =>
         this.getSearchResultsLoader(input),
@@ -136,9 +176,14 @@ export class UserLoader {
       publishedProductsLoader: this.publishedProductsLoader(),
       profilePictureLoader: this.dataloaderService.targetByParentIdLoader<File>(
         'profilePicture',
-        File,
+        User,
       ),
       ratingLoader: this.ratingLoader(),
+      purchasesLoader: this.dataloaderService.targetByParentIdLoader<
+        Purchase[]
+      >('purchases', User),
+      salesLoader: this.salesLoader(),
+      likedProductsLoader: this.likedProductsLoader(),
     };
   }
 }

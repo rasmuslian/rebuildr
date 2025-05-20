@@ -17,12 +17,18 @@ import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
-import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
+import {
+  RegistrationStatusEnum,
+  User,
+  UserRoleEnum,
+} from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 import { File } from 'src/entities/file.entity';
 import { LocationResponse } from './geocoding.resolver';
 import { Product } from 'src/entities/product.entity';
+import { Purchase } from 'src/entities/purchase.entity';
+import { ForbiddenException } from 'src/exceptions';
 
 @InputType()
 export class UpdateUserInput {
@@ -157,12 +163,41 @@ export class UserResolver {
     return await userLoaders.publishedProductsLoader.load(user.id);
   }
 
+  @ResolveField(() => [Purchase])
+  async purchases(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.purchasesLoader.load(user.id);
+  }
+
+  @ResolveField(() => [Purchase])
+  @UseGuards(GqlAuthGuard)
+  async sales(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+    @CurrentUser() currentUser: AuthedUserType,
+  ) {
+    if (user.id !== currentUser.id && currentUser.role !== UserRoleEnum.ADMIN) {
+      throw ForbiddenException();
+    }
+    return await userLoaders.salesLoader.load(user.id);
+  }
+
   @ResolveField(() => Number, { nullable: true })
   async rating(
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return await userLoaders.ratingLoader.load(user.id);
+  }
+
+  @ResolveField(() => [Product], { nullable: true })
+  async likedProducts(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.likedProductsLoader.load(user.id);
   }
 
   @ResolveField(() => LocationResponse, { nullable: true })
