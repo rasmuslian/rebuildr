@@ -29,6 +29,7 @@ import { LocationResponse } from './geocoding.resolver';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ForbiddenException } from 'src/exceptions';
+import { Review } from 'src/entities/review.entity';
 
 @InputType()
 export class UpdateUserInput {
@@ -64,6 +65,12 @@ export class CreateOrganizationUserInput {
 }
 
 @InputType()
+export class GetUserInput {
+  @Field()
+  id: string;
+}
+
+@InputType()
 export class GetUsersInput {
   @Field(() => String)
   name: string;
@@ -88,6 +95,11 @@ export class UserResolver {
   @Query(() => User, { nullable: true })
   async userExists(@Args('input') input: UserExistsInput) {
     return await this.userService.findOneByEmail(input.email);
+  }
+
+  @Query(() => User)
+  async user(@Args('input') input: GetUserInput) {
+    return await this.userService.findOne(input.id);
   }
 
   @Query(() => [User])
@@ -207,5 +219,13 @@ export class UserResolver {
     @CurrentUser() requester: AuthedUserType,
   ) {
     return this.userService.addressLocationToCoordinates(user, requester.id);
+  }
+
+  @ResolveField(() => [Review])
+  async reviewed(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return userLoaders.reviewedLoader.load(user.id);
   }
 }

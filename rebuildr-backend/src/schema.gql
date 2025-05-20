@@ -72,6 +72,12 @@ enum QuantityUnitEnum {
   KG
 }
 
+type Review {
+  id: ID!
+  stars: Int!
+  review: String!
+}
+
 type Purchase {
   id: ID!
   paymentSentAt: DateTime
@@ -154,6 +160,7 @@ type User {
   rating: Float
   likedProducts: [Product!]
   location: LocationResponse
+  reviewed: [Review!]!
 }
 
 enum UserRoleEnum {
@@ -362,6 +369,7 @@ type PurchaseProductResponse {
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
+  user(input: GetUserInput!): User!
   getUsers(input: GetUsersInput!): [User!]!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -387,6 +395,10 @@ type Query {
 
 input UserExistsInput {
   email: String!
+}
+
+input GetUserInput {
+  id: String!
 }
 
 input GetUsersInput {

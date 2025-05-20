@@ -24,6 +24,7 @@ export interface IUserLoaders {
   ) => DataLoader<string, SearchResult[]>;
   profilePictureLoader: DataLoader<string, File>;
   ratingLoader: DataLoader<string, number>;
+  reviewedLoader: DataLoader<string, Review[]>;
 }
 
 @Injectable()
@@ -164,6 +165,20 @@ export class UserLoader {
     });
   }
 
+  private reviewedLoader() {
+    return new DataLoader(async (userIds) => {
+      const reviews = await this.dataSource.getRepository(Review).find({
+        where: {
+          revieweeId: In(userIds),
+        },
+      });
+
+      return userIds.map((userId) =>
+        reviews.filter((review) => review.revieweeId === userId),
+      );
+    });
+  }
+
   createLoaders(): IUserLoaders {
     return {
       projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
@@ -184,6 +199,7 @@ export class UserLoader {
       >('purchases', User),
       salesLoader: this.salesLoader(),
       likedProductsLoader: this.likedProductsLoader(),
+      reviewedLoader: this.reviewedLoader(),
     };
   }
 }
