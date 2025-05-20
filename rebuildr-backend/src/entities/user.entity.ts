@@ -76,6 +76,10 @@ export class User {
   @Column({ nullable: true })
   password?: string;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  description?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
