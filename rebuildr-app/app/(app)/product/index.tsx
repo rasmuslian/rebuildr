@@ -17,7 +17,6 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
@@ -26,12 +25,10 @@ import { Image } from "expo-image";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
 import dayjs from "dayjs";
-import PlaceholderProfile from "@assets/images/placeholder-profile.png";
-import PlaceholderProfileBusiness from "@assets/images/placeholder-profile-business.png";
 import PlaceholderProject from "@assets/images/placeholder-project.png";
-import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/cards/ad-grid";
+import { UserCard } from "@components/cards/user-card";
 
 const PRODUCT_VIEW = gql`
   query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -352,36 +349,15 @@ export default function Product() {
       <Divider />
       <View style={{ gap: 24 }}>
         <Headline size="small">Om säljaren</Headline>
-        <View style={{ flexDirection: "row", gap: 16 }}>
-          <Image
-            source={
-              data.product.seller.type === UserType.Business
-                ? PlaceholderProfileBusiness.uri
-                : PlaceholderProfile.uri
-            }
-            style={{ width: 64, height: 64 }}
-          />
-          <View>
-            <Title size="medium" style={{ marginBottom: 4 }}>
-              {data.product.seller.username}
-            </Title>
-            <Body size="small">
-              {data.product.seller.numberOfPublishedProducts} annonser •{" "}
-              {data.product.seller.numberOfSoldProducts} sålda
-            </Body>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
-            >
-              <Icon icon="star" size={10} />
-              <Body size="small">{data.product.seller.rating ?? 3}</Body>
-              {data.product.seller.type === UserType.Business && (
-                <View>
-                  <Badge size="medium" text="Företag" />
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
+        <UserCard
+          isBusiness={data.product.seller.type === UserType.Business}
+          username={data.product.seller.username ?? ""}
+          numberOfPublishedProducts={
+            data.product.seller.numberOfPublishedProducts
+          }
+          numberOfSoldProducts={data.product.seller.numberOfSoldProducts}
+          rating={data.product.seller.rating}
+        />
         <Button
           label="Visa profil"
           onPress={() => {
