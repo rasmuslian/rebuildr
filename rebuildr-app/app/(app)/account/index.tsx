@@ -2,11 +2,11 @@ import { MyAccountQuery } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { UserCard } from "@components/cards/user-card";
-import { Divider, dividerStyles } from "@components/dividers/divider";
+import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Label, Title } from "@components/typography/text";
-import { useThemeColor } from "@hooks/useThemeColor";
+import { Body, Label } from "@components/typography/text";
 import { router } from "expo-router";
 import { View } from "react-native";
 
@@ -36,8 +36,6 @@ const MY_ACCOUNT = gql`
 `;
 
 export default function Account() {
-  const colors = useThemeColor();
-
   const { data } = useQuery<MyAccountQuery>(MY_ACCOUNT);
 
   if (!data) {
@@ -47,28 +45,7 @@ export default function Account() {
   return (
     <ScreenLayout
       style={{ marginTop: 24, gap: 24 }}
-      headerComponent={
-        <View
-          style={[
-            {
-              flexDirection: "row",
-              gap: 6,
-              paddingVertical: 8,
-              alignItems: "center",
-            },
-            dividerStyles(colors).bottomDivider,
-          ]}
-        >
-          <Button
-            icon="arrowLeft"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.navigate("/")
-            }
-            type="text"
-          />
-          <Title size="medium">Konto</Title>
-        </View>
-      }
+      headerComponent={<Header title="Konto" />}
     >
       <UserCard
         username={data.me.username}
@@ -80,14 +57,26 @@ export default function Account() {
         <Button
           label="Se din profil"
           onPress={() => {
-            //TODO: navigate to own profile
+            router.navigate({
+              pathname: "/(app)/account/profile",
+              params: {
+                userId: data.me.id,
+                mode: "read",
+              },
+            });
           }}
         />
         <Button
           label="Redigera in profil"
           type="tonal"
           onPress={() => {
-            //TODO: navigate to edit profile
+            router.navigate({
+              pathname: "/(app)/account/profile",
+              params: {
+                userId: data.me.id,
+                mode: "edit",
+              },
+            });
           }}
         />
       </View>

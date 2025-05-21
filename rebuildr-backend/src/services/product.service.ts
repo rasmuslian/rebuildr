@@ -409,6 +409,10 @@ export class ProductService {
 
     query.andWhere(`status = 'PUBLISHED'`);
 
+    if (input.sellerId) {
+      query.andWhere('seller_id = :sellerId', { sellerId: input.sellerId });
+    }
+
     if (input.searchString) {
       query
         .addCommonTableExpression(

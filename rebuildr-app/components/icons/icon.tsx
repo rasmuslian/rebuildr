@@ -40,6 +40,7 @@ import { Star } from "./star";
 import { TextTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Home } from "./home";
+import { Edit } from "./edit";
 
 export type IconType =
   | "placeholder"
@@ -50,6 +51,7 @@ export type IconType =
   | "chevronDown"
   | "X"
   | "bullet"
+  | "edit"
   | "eye"
   | "eyeOff"
   | "arrowLeft"
@@ -121,6 +123,8 @@ export const Icon = ({
       return <X {...props} size={size} color={color} />;
     case "bullet":
       return <Bullet {...props} size={size} color={color} />;
+    case "edit":
+      return <Edit {...props} size={size} color={color} />;
     case "eye":
       return <Eye {...props} size={size} color={color} />;
     case "eyeOff":

@@ -240,6 +240,9 @@ export class UpdateProductResponse {
 @InputType()
 export class ProductsInput {
   @Field({ nullable: true })
+  sellerId?: string;
+
+  @Field({ nullable: true })
   searchString?: string;
 
   @Field({ nullable: true })

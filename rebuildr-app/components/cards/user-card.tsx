@@ -36,15 +36,17 @@ export const UserCard = ({
         <Body size="small">
           {numberOfPublishedProducts} annonser • {numberOfSoldProducts} sålda
         </Body>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-          <Icon icon="star" size={10} />
-          <Body size="small">{rating ?? 3}</Body>
-          {isBusiness && (
-            <View>
-              <Badge size="medium" text="Företag" />
-            </View>
-          )}
-        </View>
+        {!!rating && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+            <Icon icon="star" size={10} />
+            <Body size="small">{rating}</Body>
+            {isBusiness && (
+              <View>
+                <Badge size="medium" text="Företag" />
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
