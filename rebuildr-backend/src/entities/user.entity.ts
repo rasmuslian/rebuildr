@@ -8,7 +8,6 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
-  JoinColumn,
   OneToOne,
 } from 'typeorm';
 import { Product } from './product.entity';
@@ -104,11 +103,8 @@ export class User {
   @Column({ nullable: true })
   phoneNumber?: string;
 
-  @Column({ nullable: true })
-  profilePictureId?: string;
-  @OneToOne(() => File, { nullable: true })
-  @JoinColumn()
-  profilePicture: File | null;
+  @OneToOne(() => File, (file) => file.user, { nullable: true })
+  profilePicture?: File | null;
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];

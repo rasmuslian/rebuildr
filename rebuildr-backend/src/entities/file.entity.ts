@@ -3,12 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { Category } from './category.entity';
+import { User } from './user.entity';
 
 @Entity()
 @ObjectType()
@@ -36,6 +38,10 @@ export class File {
 
   @OneToOne(() => Category, (category) => category.image, { nullable: true })
   category?: Category;
+
+  @OneToOne(() => User, (user) => user.profilePicture, { nullable: true })
+  @JoinColumn()
+  user?: User;
 
   @Column({ type: Boolean, default: false })
   private: boolean;
