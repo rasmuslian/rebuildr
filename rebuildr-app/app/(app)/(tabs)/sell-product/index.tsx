@@ -20,6 +20,7 @@ import { PriceSection } from "@components/create-product/price-section";
 import { ProgressHeader } from "@components/create-product/progress-header";
 import { QuantitiesSection } from "@components/create-product/quantities-section";
 import { RootCategorySection } from "@components/create-product/root-category-section";
+import { FileType } from "@components/create-product/types";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Title } from "@components/typography/text";
@@ -128,16 +129,6 @@ type ProductFields = {
   documents: FileType[];
 };
 
-export type FileType = {
-  id?: string;
-  index: number;
-  uri: string;
-  mimeType: string;
-  file: File;
-  size: number;
-  name?: string | null;
-};
-
 export default function SellProduct() {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
@@ -145,7 +136,7 @@ export default function SellProduct() {
     onCompleted: async (data) => {
       //User must have a payout method to be able to sell
       if (!data.me.selectedPayoutMethod) {
-        router.replace("/(app)/sell-product/payout");
+        router.replace("/sell-product/payout");
         return;
       }
       const product = data.getDraftedProduct;

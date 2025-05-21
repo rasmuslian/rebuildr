@@ -1,4 +1,3 @@
-import { FileType } from "@/app/(app)/sell-product";
 import { Button } from "@components/buttons/button";
 import { Body, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
@@ -8,6 +7,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
+import { FileType } from "./types";
 
 type Props = {
   documents: FileType[];
