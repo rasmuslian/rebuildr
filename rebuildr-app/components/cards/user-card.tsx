@@ -8,6 +8,7 @@ import { Badge } from "@components/badges/badge";
 
 type Props = {
   isBusiness?: boolean;
+  profilePictureUrl?: string;
   username?: string | null;
   numberOfPublishedProducts: number;
   numberOfSoldProducts: number;
@@ -16,6 +17,7 @@ type Props = {
 
 export const UserCard = ({
   isBusiness,
+  profilePictureUrl,
   username,
   numberOfPublishedProducts,
   numberOfSoldProducts,
@@ -25,9 +27,13 @@ export const UserCard = ({
     <View style={{ flexDirection: "row", gap: 16 }}>
       <Image
         source={
-          isBusiness ? PlaceholderProfileBusiness.uri : PlaceholderProfile.uri
+          profilePictureUrl
+            ? profilePictureUrl
+            : isBusiness
+              ? PlaceholderProfileBusiness.uri
+              : PlaceholderProfile.uri
         }
-        style={{ width: 64, height: 64 }}
+        style={{ width: 64, height: 64, borderRadius: 38 }}
       />
       <View>
         <Title size="medium" style={{ marginBottom: 4 }}>

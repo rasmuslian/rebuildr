@@ -131,6 +131,10 @@ const PRODUCT_VIEW = gql`
         rating
         numberOfPublishedProducts
         numberOfSoldProducts
+        profilePicture {
+          id
+          url
+        }
         products {
           id
           title
@@ -351,6 +355,7 @@ export default function Product() {
         <Headline size="small">Om säljaren</Headline>
         <UserCard
           isBusiness={data.product.seller.type === UserType.Business}
+          profilePictureUrl={data.product.seller.profilePicture?.url}
           username={data.product.seller.username ?? ""}
           numberOfPublishedProducts={
             data.product.seller.numberOfPublishedProducts

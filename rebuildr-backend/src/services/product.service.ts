@@ -102,7 +102,7 @@ export class ProductService {
     };
     const images = await Promise.all(
       input.images?.map((image) => {
-        return this.fileService.createFile(image.mimeType);
+        return this.fileService.createFile({ mimeType: image.mimeType });
       }) ?? [],
     );
 

@@ -2,76 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type File {
-  id: ID!
-  name: String
-  mimeType: String!
-  url: String!
-}
-
-type Brand {
-  id: ID!
-  name: String!
-  type: BrandTypeEnum!
-}
-
-enum BrandTypeEnum {
-  OTHER
-  REGULAR
-}
-
-type Category {
-  id: ID!
-  name: String!
-  description: String!
-  orderIndex: Int!
-  parentId: String
-  inSelection: Boolean!
-  inSeason: Boolean!
-  icon: CategoryIconEnum
-  primaryQuantityUnit: QuantityUnitEnum
-  secondaryQuantityUnit: QuantityUnitEnum
-  children: [Category!]!
-  image: File
-  ancestorIds: [String!]!
-  hasChildren: Boolean!
-  brands: [Brand!]!
-  parent: Category
-}
-
-enum CategoryIconEnum {
-  MATERIAL
-  WOOD
-  DOOR
-  WINDOW
-  FLOOR
-  INTERIOR
-  PAINT
-  FASTENERS
-  ROOF
-  TILES
-  KITCHEN_BATHROOM
-  ELECTRICAL
-  OUTDOORS
-  TOOLS
-  WORKPLACE
-}
-
-enum QuantityUnitEnum {
-  AMOUNT
-  BAGS
-  ROLLS
-  M
-  M2
-  M3
-  LITERS
-  CANS
-  PLATES
-  PACKAGES
-  DISCS
-  KG
-}
-
 type Review {
   id: ID!
   stars: Int!
@@ -186,6 +116,76 @@ enum RegisterStatusEnum {
   EMAIL
   DETAILS
   DONE
+}
+
+type File {
+  id: ID!
+  name: String
+  mimeType: String!
+  url: String!
+}
+
+type Brand {
+  id: ID!
+  name: String!
+  type: BrandTypeEnum!
+}
+
+enum BrandTypeEnum {
+  OTHER
+  REGULAR
+}
+
+type Category {
+  id: ID!
+  name: String!
+  description: String!
+  orderIndex: Int!
+  parentId: String
+  inSelection: Boolean!
+  inSeason: Boolean!
+  icon: CategoryIconEnum
+  primaryQuantityUnit: QuantityUnitEnum
+  secondaryQuantityUnit: QuantityUnitEnum
+  children: [Category!]!
+  image: File
+  ancestorIds: [String!]!
+  hasChildren: Boolean!
+  brands: [Brand!]!
+  parent: Category
+}
+
+enum CategoryIconEnum {
+  MATERIAL
+  WOOD
+  DOOR
+  WINDOW
+  FLOOR
+  INTERIOR
+  PAINT
+  FASTENERS
+  ROOF
+  TILES
+  KITCHEN_BATHROOM
+  ELECTRICAL
+  OUTDOORS
+  TOOLS
+  WORKPLACE
+}
+
+enum QuantityUnitEnum {
+  AMOUNT
+  BAGS
+  ROLLS
+  M
+  M2
+  M3
+  LITERS
+  CANS
+  PLATES
+  PACKAGES
+  DISCS
+  KG
 }
 
 type Message {
@@ -332,6 +332,11 @@ type ProductsResponse {
   """
   origin: LocationResponse
   total: Int!
+}
+
+type UpdateUserResponse {
+  user: User!
+  profilePicturePutUrl: String
 }
 
 type ConversationResponse {
@@ -502,7 +507,7 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
-  updateUser(input: UpdateUserInput!): User!
+  updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
@@ -565,6 +570,13 @@ input UpdateUserInput {
   address: String
   username: String
   password: String
+  description: String
+  profilePicture: FileInputType
+}
+
+input FileInputType {
+  mimeType: String!
+  name: String
 }
 
 input CreateOrganizationUserInput {
@@ -588,11 +600,6 @@ input CreateProductInput {
   volume: Float
   condition: ProductConditionEnum!
   description: String
-}
-
-input FileInputType {
-  mimeType: String!
-  name: String
 }
 
 input UpdateProductInput {

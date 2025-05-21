@@ -48,6 +48,7 @@ export default function Account() {
       headerComponent={<Header title="Konto" />}
     >
       <UserCard
+        profilePictureUrl={data.me.profilePicture?.url}
         username={data.me.username}
         numberOfPublishedProducts={data.me.numberOfPublishedProducts}
         numberOfSoldProducts={data.me.numberOfSoldProducts}
@@ -67,7 +68,7 @@ export default function Account() {
           }}
         />
         <Button
-          label="Redigera in profil"
+          label="Redigera din profil"
           type="tonal"
           onPress={() => {
             router.navigate({

@@ -4,9 +4,11 @@ import {
   ProfileProductsQueryVariables,
   ProfileQuery,
   ProfileQueryVariables,
+  ProfileUpdateUserMutation,
+  ProfileUpdateUserMutationVariables,
   UserType,
 } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/cards/ad-grid";
 import { UserCard } from "@components/cards/user-card";
@@ -14,7 +16,7 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Headline, Label, Title } from "@components/typography/text";
+import { Body, Headline, Label } from "@components/typography/text";
 import { defaultApproximateLocation } from "@constants/map";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -22,10 +24,12 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { FlatList, Pressable } from "react-native-gesture-handler";
-import { Image } from "expo-image";
 import { ProjectCard } from "@components/cards/project-card";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { IconType } from "@icons/icon";
+import { TextInput } from "@components/forms/textInput";
+import { launchImageLibraryAsync } from "expo-image-picker";
+import { useOptimizeImage } from "@hooks/useOptimizeImage";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -96,10 +100,40 @@ const PROFILE_PRODUCTS = gql`
     }
   }
 `;
+const PROFILE_UPDATE_USER = gql`
+  mutation ProfileUpdateUser($input: UpdateUserInput!) {
+    updateUser(input: $input) {
+      user {
+        id
+        description
+        profilePicture {
+          id
+          url
+        }
+      }
+      profilePicturePutUrl
+    }
+  }
+`;
 
 export default function Profile() {
   const [tab, setTab] = useState<"products" | "reviewed">("products");
   const [offset, setOffset] = useState(0);
+
+  //------edit profile variables------
+  const [description, setDescription] = useState<string>();
+  const [profilePicture, setProfilePicture] = useState<{
+    uri: string;
+    mimeType: string;
+    file: File;
+    size: number;
+  }>();
+  const { optimizeImage } = useOptimizeImage();
+  const [updateProfile, { loading: updateProfileLoading }] = useMutation<
+    ProfileUpdateUserMutation,
+    ProfileUpdateUserMutationVariables
+  >(PROFILE_UPDATE_USER);
+
   const productsPerPage = 10;
   const colors = useThemeColor();
   const { mode, userId } = useLocalSearchParams<{
@@ -151,12 +185,126 @@ export default function Profile() {
     });
   };
 
+  //-------- EDIT PROFILE FUNCTIONS ---------------
+  const onPickProfilePicture = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [1, 1],
+    });
+
+    if (result?.canceled) return;
+    const image = result?.assets[0];
+    if (image) {
+      const uri = image.uri;
+      const {
+        mimeType,
+        file,
+        uri: optimizedImageUri,
+        size,
+      } = await optimizeImage(uri);
+
+      const _image = {
+        uri: optimizedImageUri,
+        mimeType,
+        file,
+        size,
+        name: image.fileName,
+      };
+
+      setProfilePicture(_image);
+    }
+  };
+  const onSaveProfile = () => {
+    if (updateProfileLoading) {
+      return;
+    }
+    updateProfile({
+      variables: {
+        input: {
+          id: userId,
+          description,
+          profilePicture: profilePicture
+            ? { mimeType: profilePicture.mimeType }
+            : undefined,
+        },
+      },
+      onCompleted: async (data) => {
+        if (data.updateUser.profilePicturePutUrl && profilePicture) {
+          await fetch(data.updateUser.profilePicturePutUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": profilePicture.mimeType,
+              "x-amz-acl": "public-read",
+            },
+            body: profilePicture.file,
+          });
+        }
+        setProfilePicture(undefined);
+        router.setParams({ userId, mode: "read" });
+      },
+    });
+  };
+  //--------------------------------------------------
+
   if (!data) {
     return <LoadingSpinner />;
   }
 
   if (data.me?.id && data.me.id !== userId && mode === "edit") {
     router.setParams({ mode: "read" });
+  }
+
+  if (mode === "edit") {
+    const _description = description ?? data.user.description ?? "";
+    return (
+      <ScreenLayout
+        style={{ gap: 24, marginTop: 24 }}
+        headerComponent={
+          <Header
+            title="Redigera profil"
+            onBack={() => router.setParams({ userId, mode: "read" })}
+          />
+        }
+        footerComponent={
+          <Button
+            label="Spara"
+            loading={updateProfileLoading}
+            onPress={() => onSaveProfile()}
+            style={{ marginBottom: 32 }}
+          />
+        }
+      >
+        <UserCard
+          profilePictureUrl={
+            profilePicture?.uri ?? data.user.profilePicture?.url
+          }
+          username={data.user.username}
+          numberOfPublishedProducts={data.user.numberOfPublishedProducts}
+          numberOfSoldProducts={data.user.numberOfSoldProducts}
+        />
+        <Button
+          label="Ladda upp profilbild"
+          onPress={() => onPickProfilePicture()}
+        />
+        <View style={{ gap: 16 }}>
+          <Divider />
+          <Headline size="small">Din profil</Headline>
+          <View style={{ gap: 12 }}>
+            <TextInput
+              style={{ minHeight: 172 }}
+              multiline
+              value={_description}
+              onChange={(t) => setDescription(t.slice(0, 5000))}
+              placeholder="Här kan du skriva en kort beskrivning om dig själv och vad du säljer."
+            />
+            <Body size="small" color="secondary">
+              {_description.length ?? 0} av 5000 tecken
+            </Body>
+          </View>
+        </View>
+      </ScreenLayout>
+    );
   }
 
   return (
@@ -184,11 +332,12 @@ export default function Profile() {
       }
     >
       <UserCard
+        profilePictureUrl={data.user.profilePicture?.url}
         username={data.user.username}
         numberOfPublishedProducts={data.user.numberOfPublishedProducts}
         numberOfSoldProducts={data.user.numberOfSoldProducts}
       />
-      {data.user.description && (
+      {!!data.user.description && (
         <CollapsableText text={data.user.description} nrOfLines={2} />
       )}
       <Divider />

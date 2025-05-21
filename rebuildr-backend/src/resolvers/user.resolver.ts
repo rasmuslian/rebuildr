@@ -6,6 +6,7 @@ import {
   InputType,
   Int,
   Mutation,
+  ObjectType,
   Parent,
   Query,
   ResolveField,
@@ -30,6 +31,7 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ForbiddenException } from 'src/exceptions';
 import { Review } from 'src/entities/review.entity';
+import { FileInputType } from './product.resolver';
 
 @InputType()
 export class UpdateUserInput {
@@ -44,6 +46,21 @@ export class UpdateUserInput {
 
   @Field({ nullable: true })
   password?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => FileInputType, { nullable: true })
+  profilePicture?: FileInputType;
+}
+
+@ObjectType()
+export class UpdateUserResponse {
+  @Field(() => User)
+  user: User;
+
+  @Field(() => String, { nullable: true })
+  profilePicturePutUrl: string;
 }
 
 @InputType()
@@ -108,16 +125,13 @@ export class UserResolver {
     return this.userService.getUsers(input);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => UpdateUserResponse)
   @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async updateUser(
     @CurrentUser() _user: AuthedUserType,
     @Args('input') input: UpdateUserInput,
   ) {
-    return this.userService.update(
-      { id: input.id, address: input.address },
-      _user.id,
-    );
+    return this.userService.update(input, _user.id);
   }
 
   @Mutation(() => User)
@@ -133,9 +147,6 @@ export class UserResolver {
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
-    if (!user.profilePicture) {
-      return null;
-    }
     return await userLoaders.profilePictureLoader.load(user.id);
   }
 

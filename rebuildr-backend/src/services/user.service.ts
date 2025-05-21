@@ -20,6 +20,7 @@ import {
   UpdateUserInput,
 } from 'src/resolvers/user.resolver';
 import { RockerService } from './rocker.service';
+import { FileService } from './file.service';
 
 @Injectable()
 export class UserService {
@@ -28,6 +29,7 @@ export class UserService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     private rockerService: RockerService,
+    private fileService: FileService,
   ) {}
 
   async findOne(id: string) {
@@ -61,7 +63,10 @@ export class UserService {
   }
 
   async update(input: UpdateUserInput, requesterId: string) {
-    const user = await this.userRepository.findOneBy({ id: input.id });
+    const user = await this.userRepository.findOne({
+      where: { id: input.id },
+      relations: { profilePicture: true },
+    });
     const requester = await this.userRepository.findOneBy({ id: requesterId });
 
     if (!user || !requester) {
@@ -82,8 +87,27 @@ export class UserService {
         coordinates: [location.lat, location.lng],
       };
     }
+    if (input.description !== undefined) {
+      user.description = input.description;
+    }
+    if (input.profilePicture) {
+      //remove existing
+      if (user.profilePicture) {
+        await this.fileService.deleteFiles([user.profilePicture]);
+      }
 
-    return await this.userRepository.save(user);
+      //add new
+      user.profilePicture = await this.fileService.createFile(
+        input.profilePicture,
+      );
+    }
+
+    return {
+      user: await this.userRepository.save(user),
+      profilePicturePutUrl: user.profilePicture
+        ? this.fileService.uploadFile(user.profilePicture, true)
+        : null,
+    };
   }
 
   /**
