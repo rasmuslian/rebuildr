@@ -284,85 +284,119 @@ export default function Profile() {
   const renderProducts = () => {
     return (
       <View style={{ gap: 24, marginTop: 16 }}>
-        {data.user.projects && (
-          <View style={{ gap: 16 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Headline size="small">Projekt</Headline>
-              <Button
-                icon="arrowRight"
-                type="text"
-                onPress={() => {
-                  //TODO: navigate to projects page
+        {productsData?.products.products.length ? (
+          <>
+            {data.user.projects && (
+              <View style={{ gap: 16 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Headline size="small">Projekt</Headline>
+                  <Button
+                    icon="arrowRight"
+                    type="text"
+                    onPress={() => {
+                      //TODO: navigate to projects page
+                    }}
+                  />
+                </View>
+                <FlatList
+                  showsHorizontalScrollIndicator={false}
+                  data={data.user.projects}
+                  contentContainerStyle={{ gap: 16 }}
+                  horizontal
+                  renderItem={({ item: project }) => (
+                    <View style={{ minWidth: 272 }}>
+                      <ProjectCard project={project} />
+                    </View>
+                  )}
+                />
+              </View>
+            )}
+            <Divider />
+            <View style={{ gap: 24 }}>
+              <Headline size="small">Annonser</Headline>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 16,
+                  flexWrap: "wrap",
+                  paddingBottom: 16,
+                  marginTop: 16,
                 }}
+              >
+                {productsData?.products.products.map((product) => (
+                  <AdGrid
+                    key={product.id}
+                    imageUri={product.primaryImage?.url}
+                    title={product.title}
+                    quantity={product.primaryQuantity ?? 0}
+                    condition={product.condition}
+                    account={{
+                      rating: data.user.rating ?? 3,
+                      isBusiness: data.user.type === UserType.Business,
+                      location:
+                        product.approximatePlace?.address ??
+                        defaultApproximateLocation,
+                    }}
+                    price={product.price}
+                    onPress={() =>
+                      router.navigate({
+                        pathname: "/(app)/product",
+                        params: { productId: product.id },
+                      })
+                    }
+                  />
+                ))}
+              </View>
+              <Button
+                label="Läs in fler"
+                onPress={onShowMore}
+                loading={productsLoading}
+                disabled={
+                  productsData &&
+                  productsData.products.products.length >=
+                    productsData.products.total
+                }
+                style={{ marginTop: 24 }}
               />
             </View>
-            <FlatList
-              showsHorizontalScrollIndicator={false}
-              data={data.user.projects}
-              contentContainerStyle={{ gap: 16 }}
-              horizontal
-              renderItem={({ item: project }) => (
-                <View style={{ minWidth: 272 }}>
-                  <ProjectCard project={project} />
-                </View>
-              )}
-            />
-          </View>
-        )}
-        <Divider />
-        <View style={{ gap: 24 }}>
-          <Headline size="small">Annonser</Headline>
+          </>
+        ) : (
           <View
             style={{
-              flexDirection: "row",
+              padding: 16,
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.medium,
               gap: 16,
-              flexWrap: "wrap",
-              paddingBottom: 16,
-              marginTop: 16,
             }}
           >
-            {productsData?.products.products.map((product) => (
-              <AdGrid
-                key={product.id}
-                imageUri={product.primaryImage?.url}
-                title={product.title}
-                quantity={product.primaryQuantity ?? 0}
-                condition={product.condition}
-                account={{
-                  rating: data.user.rating ?? 3,
-                  isBusiness: data.user.type === UserType.Business,
-                  location:
-                    product.approximatePlace?.address ??
-                    defaultApproximateLocation,
-                }}
-                price={product.price}
-                onPress={() =>
-                  router.navigate({
-                    pathname: "/(app)/product",
-                    params: { productId: product.id },
-                  })
-                }
+            <Headline size="small" style={{ textAlign: "center" }}>
+              {isMyProfile ? "Inga annonser än" : "Inga annonser här just nu"}
+            </Headline>
+            <Body size="medium" style={{ textAlign: "center" }}>
+              {isMyProfile
+                ? "Just nu har du inga annonser ute, men det är enkelt att komma igång"
+                : "Den här säljaren har inga aktiva annonser för tillfället. Kika tillbaka senare eller utforska fler annonser på marknadsplatsen!"}
+            </Body>
+            {isMyProfile ? (
+              <Button
+                label="Lägg upp en annons"
+                onPress={() => router.navigate("/(app)/(tabs)/sell-product")}
               />
-            ))}
+            ) : (
+              <Button
+                style={{ marginTop: 8 }}
+                label="Se fler annonser"
+                onPress={() => router.navigate("/(app)/(tabs)/search")}
+              />
+            )}
           </View>
-          <Button
-            label="Läs in fler"
-            onPress={onShowMore}
-            loading={productsLoading}
-            disabled={
-              productsData &&
-              productsData.products.products.length >=
-                productsData.products.total
-            }
-            style={{ marginTop: 24 }}
-          />
-        </View>
+        )}
       </View>
     );
   };
@@ -476,8 +510,8 @@ export default function Profile() {
             </Headline>
             <Body size="medium" style={{ textAlign: "center" }}>
               {isMyProfile
-                ? "Du har ännu inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!"
-                : "Den här säljaren har ännu inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!"}
+                ? "Du har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!"
+                : "Den här säljaren har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!"}
             </Body>
           </View>
         )}
