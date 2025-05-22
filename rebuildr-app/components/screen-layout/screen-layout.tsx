@@ -36,6 +36,7 @@ export const ScreenLayout = ({
             backgroundColor: colors.background.neutral,
             paddingHorizontal: 16,
             marginBottom: 32,
+            marginTop: 24,
           },
           style,
         ]}
@@ -43,7 +44,9 @@ export const ScreenLayout = ({
         {loading ? <LoadingSpinner /> : children}
       </ScrollView>
       {footerComponent && (
-        <View style={{ paddingHorizontal: 16 }}>{footerComponent}</View>
+        <View style={{ paddingHorizontal: 16, marginBottom: 32 }}>
+          {footerComponent}
+        </View>
       )}
     </View>
   );
