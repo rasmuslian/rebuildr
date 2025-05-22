@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Purchase } from './purchase.entity';
-import { Product } from './product.entity';
 
 @Entity()
 @ObjectType()
@@ -18,6 +17,7 @@ export class Review extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
@@ -32,13 +32,8 @@ export class Review extends BaseEntity {
   //Many to one since a purchase can have a review from the seller and the buyer
   @Column()
   purchaseId: string;
-  @ManyToOne(() => Purchase, (purchase) => purchase.reviews, { nullable: true })
-  purchase?: Purchase;
-
-  @Column()
-  productId: string;
-  @ManyToOne(() => Product, (product) => product.reviews, { nullable: true })
-  product: Product;
+  @ManyToOne(() => Purchase, (purchase) => purchase.reviews)
+  purchase: Purchase;
 
   @Column()
   reviewerId: string;
@@ -47,6 +42,6 @@ export class Review extends BaseEntity {
 
   @Column()
   revieweeId: string;
-  @ManyToOne(() => User, (user) => user.reviews)
+  @ManyToOne(() => User, (user) => user.reviewed)
   reviewee: User;
 }

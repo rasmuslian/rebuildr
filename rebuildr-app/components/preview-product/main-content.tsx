@@ -10,6 +10,7 @@ import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import * as Linking from "expo-linking";
 import { measurements } from "@constants/measurements";
+import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 
 type Props = {
   product: Omit<Partial<Product>, "category" | "seller" | "project">;
@@ -28,7 +29,6 @@ export const MainContent = ({
   myAddress,
   documents,
 }: Props) => {
-  const [showAllDescription, setShowAllDescription] = useState(false);
   const [showSpecifics, setShowSpecifics] = useState(true);
 
   const approximatePlace = project
@@ -139,19 +139,8 @@ export const MainContent = ({
             />
           )}
         </View>
-        <Body
-          size="medium"
-          numberOfLines={showAllDescription ? undefined : 7}
-          ellipsizeMode="tail"
-        >
-          {product.description}
-        </Body>
-        {product.description && product.description.length > 350 && (
-          <Pressable onPress={() => setShowAllDescription(true)}>
-            <Body size="medium" isLink>
-              Läs hela beskrivningen
-            </Body>
-          </Pressable>
+        {!!product.description && (
+          <CollapsableText text={product.description} />
         )}
       </View>
       <Divider />

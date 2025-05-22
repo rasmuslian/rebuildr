@@ -1,4 +1,3 @@
-import { FileType } from "@/app/(app)/sell-product";
 import { Body, Display, Title } from "@components/typography/text";
 import { useOptimizeImage } from "@hooks/useOptimizeImage";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -10,6 +9,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Icon } from "@icons/icon";
 import { borderRadius } from "@constants/sizes";
 import { primitives } from "@constants/colors";
+import { FileType } from "./types";
 
 type Props = {
   images: FileType[];

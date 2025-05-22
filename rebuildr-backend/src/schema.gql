@@ -2,6 +2,127 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Review {
+  id: ID!
+  createdAt: DateTime!
+  stars: Int!
+  review: String!
+  reviewer: User!
+  reviewee: User!
+  purchase: Purchase!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Purchase {
+  id: ID!
+  buyerId: String!
+  paymentSentAt: DateTime
+  paymentAcceptedAt: DateTime
+  shipmentBookedAt: DateTime
+  shipmentDroppedOffAt: DateTime
+  shipmentDeliveredAt: DateTime
+  shipmentStartedAt: DateTime
+  deliveredAt: DateTime
+  approvedAt: DateTime
+  payoutStartedAt: DateTime
+  payoutReceivedAt: DateTime
+  failedAt: DateTime
+  pausedAt: DateTime
+  payoutFailedAt: DateTime
+  status: PurchaseStatusEnum!
+}
+
+enum PurchaseStatusEnum {
+  CLAIMED
+  PAYMENT_SENT
+  PAYMENT_ACCEPTED
+  SHIPMENT_BOOKED
+  SHIPMENT_DROPPED_OFF
+  SHIPPING_STARTED
+  SHIPPING_DELIVERED
+  DELIVERED
+  APPROVED
+  PAYOUT_STARTED
+  FINISHED_FAILED
+  FINISHED_SUCCESS
+  PAUSED
+  PAYOUT_FAILED
+}
+
+type Project {
+  id: ID!
+  title: String!
+  description: String
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  address: String!
+  location: LocationResponse!
+  approximatePlace: ApproximatePlaceResponse!
+  products: [Product!]!
+  projectPicture: File
+}
+
+type SearchResult {
+  id: ID!
+  searchString: String!
+  count: Int!
+}
+
+type User {
+  id: ID!
+  username: String
+  email: String
+  description: String
+  address: String
+  phoneNumber: String
+  role: UserRoleEnum!
+  selectedPayoutMethod: PayoutAccountEnum
+  type: UserType!
+  organizationNumber: String
+  organizationApprovedAt: DateTime
+  profilePicture: File
+  registrationStatus: RegisterStatusEnum!
+  projects: [Project!]!
+  numberOfSoldProducts: Int!
+  numberOfPublishedProducts: Int!
+  products: [Product!]!
+  purchases: [Purchase!]!
+  sales: [Purchase!]!
+  rating: Float
+  likedProducts: [Product!]
+  location: LocationResponse
+  reviewed: [Review!]!
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
+}
+
+enum PayoutAccountEnum {
+  SWISH
+  TRUSTLY
+  RIX
+  BANKGIRO
+  PLUSGIRO
+}
+
+enum UserType {
+  PERSONAL
+  BUSINESS
+}
+
+enum RegisterStatusEnum {
+  EMAIL
+  DETAILS
+  DONE
+}
+
 type File {
   id: ID!
   name: String
@@ -70,111 +191,6 @@ enum QuantityUnitEnum {
   PACKAGES
   DISCS
   KG
-}
-
-type Purchase {
-  id: ID!
-  paymentSentAt: DateTime
-  paymentAcceptedAt: DateTime
-  shipmentBookedAt: DateTime
-  shipmentDroppedOffAt: DateTime
-  shipmentDeliveredAt: DateTime
-  shipmentStartedAt: DateTime
-  deliveredAt: DateTime
-  approvedAt: DateTime
-  payoutStartedAt: DateTime
-  payoutReceivedAt: DateTime
-  failedAt: DateTime
-  pausedAt: DateTime
-  payoutFailedAt: DateTime
-  status: PurchaseStatusEnum!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
-enum PurchaseStatusEnum {
-  CLAIMED
-  PAYMENT_SENT
-  PAYMENT_ACCEPTED
-  SHIPMENT_BOOKED
-  SHIPMENT_DROPPED_OFF
-  SHIPPING_STARTED
-  SHIPPING_DELIVERED
-  DELIVERED
-  APPROVED
-  PAYOUT_STARTED
-  FINISHED_FAILED
-  FINISHED_SUCCESS
-  PAUSED
-  PAYOUT_FAILED
-}
-
-type Project {
-  id: ID!
-  title: String!
-  description: String
-  contactName: String
-  contactEmail: String
-  contactPhone: String
-  address: String!
-  location: LocationResponse!
-  approximatePlace: ApproximatePlaceResponse!
-  products: [Product!]!
-  projectPicture: File
-}
-
-type SearchResult {
-  id: ID!
-  searchString: String!
-  count: Int!
-}
-
-type User {
-  id: ID!
-  username: String
-  email: String
-  address: String
-  phoneNumber: String
-  role: UserRoleEnum!
-  selectedPayoutMethod: PayoutAccountEnum
-  type: UserType!
-  organizationNumber: String
-  organizationApprovedAt: DateTime
-  profilePicture: File
-  registrationStatus: RegisterStatusEnum!
-  projects: [Project!]!
-  numberOfSoldProducts: Int!
-  numberOfPublishedProducts: Int!
-  products: [Product!]!
-  rating: Float
-  location: LocationResponse
-}
-
-enum UserRoleEnum {
-  USER
-  ADMIN
-}
-
-enum PayoutAccountEnum {
-  SWISH
-  TRUSTLY
-  RIX
-  BANKGIRO
-  PLUSGIRO
-}
-
-enum UserType {
-  PERSONAL
-  BUSINESS
-}
-
-enum RegisterStatusEnum {
-  EMAIL
-  DETAILS
-  DONE
 }
 
 type Message {
@@ -323,6 +339,11 @@ type ProductsResponse {
   total: Int!
 }
 
+type UpdateUserResponse {
+  user: User!
+  profilePicturePutUrl: String
+}
+
 type ConversationResponse {
   otherUser: User!
   messages: [Message!]!
@@ -359,6 +380,7 @@ type PurchaseProductResponse {
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
+  user(input: GetUserInput!): User!
   getUsers(input: GetUsersInput!): [User!]!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -386,6 +408,10 @@ input UserExistsInput {
   email: String!
 }
 
+input GetUserInput {
+  id: String!
+}
+
 input GetUsersInput {
   name: String!
   page: Int
@@ -397,6 +423,7 @@ input GetProductInput {
 }
 
 input ProductsInput {
+  sellerId: String
   searchString: String
   address: String
   location: LocationInputType
@@ -485,7 +512,7 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
-  updateUser(input: UpdateUserInput!): User!
+  updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
@@ -548,6 +575,13 @@ input UpdateUserInput {
   address: String
   username: String
   password: String
+  description: String
+  profilePicture: FileInputType
+}
+
+input FileInputType {
+  mimeType: String!
+  name: String
 }
 
 input CreateOrganizationUserInput {
@@ -571,11 +605,6 @@ input CreateProductInput {
   volume: Float
   condition: ProductConditionEnum!
   description: String
-}
-
-input FileInputType {
-  mimeType: String!
-  name: String
 }
 
 input UpdateProductInput {

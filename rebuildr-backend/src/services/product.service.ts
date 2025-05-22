@@ -102,7 +102,7 @@ export class ProductService {
     };
     const images = await Promise.all(
       input.images?.map((image) => {
-        return this.fileService.createFile(image.mimeType);
+        return this.fileService.createFile({ mimeType: image.mimeType });
       }) ?? [],
     );
 
@@ -408,6 +408,10 @@ export class ProductService {
     }
 
     query.andWhere(`status = 'PUBLISHED'`);
+
+    if (input.sellerId) {
+      query.andWhere('seller_id = :sellerId', { sellerId: input.sellerId });
+    }
 
     if (input.searchString) {
       query

@@ -6,7 +6,7 @@ import {
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Body, Title } from "@components/typography/text";
+import { Body, Headline, Title } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useLogout } from "@hooks/useLogout";
 import { router } from "expo-router";
@@ -92,6 +92,15 @@ export default function Landing() {
             setVisible(true);
           }}
         />
+      )}
+      {data?.me && (
+        <View>
+          <Headline size="medium">Inloggad som {data.me.username}</Headline>
+          <Button
+            label="Konto"
+            onPress={() => router.navigate("/(app)/account")}
+          />
+        </View>
       )}
 
       <Button

@@ -44,29 +44,22 @@ export class FileService {
     return await this.fileRepository.findOneBy({ id });
   }
 
-  async createFile(mimeType: string, name?: string, isPrivate?: boolean) {
+  async createFile(_file: FileInputType, isPrivate?: boolean) {
     const file = new File();
-    file.mimeType = mimeType;
+    file.mimeType = _file.mimeType;
     file.private = !!isPrivate;
-    file.name = name;
+    file.name = _file.name;
     return await this.fileRepository.save(file);
   }
 
   async createFiles(_files: FileInputType[], isPrivate?: boolean) {
     return await Promise.all(
-      _files.map(
-        async (_file) =>
-          await this.createFile(_file.mimeType, _file.name, isPrivate),
-      ),
+      _files.map(async (_file) => await this.createFile(_file, isPrivate)),
     );
   }
 
-  async uploadFile(
-    file: File,
-    mimeType: string,
-    publicRead?: boolean,
-  ): Promise<string> {
-    const fileExtension = mimeType.split('/')[1];
+  async uploadFile(file: File, publicRead?: boolean): Promise<string> {
+    const fileExtension = file.mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
 
     const putCommand = new PutObjectCommand({
@@ -83,9 +76,7 @@ export class FileService {
   }
   async uploadFiles(files: File[], publicRead?: boolean): Promise<string[]> {
     const signedPutUrls = await Promise.all(
-      files.map(
-        async (file) => await this.uploadFile(file, file.mimeType, publicRead),
-      ),
+      files.map(async (file) => await this.uploadFile(file, publicRead)),
     );
     return signedPutUrls;
   }

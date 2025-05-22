@@ -14,10 +14,9 @@ import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Headline, Label, Title } from "@components/typography/text";
+import { Body, Headline, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
@@ -26,12 +25,10 @@ import { Image } from "expo-image";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
 import dayjs from "dayjs";
-import PlaceholderProfile from "@assets/images/placeholder-profile.png";
-import PlaceholderProfileBusiness from "@assets/images/placeholder-profile-business.png";
-import PlaceholderProject from "@assets/images/placeholder-project.png";
-import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/cards/ad-grid";
+import { UserCard } from "@components/cards/user-card";
+import { ProjectCard } from "@components/cards/project-card";
 
 const PRODUCT_VIEW = gql`
   query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -134,6 +131,10 @@ const PRODUCT_VIEW = gql`
         rating
         numberOfPublishedProducts
         numberOfSoldProducts
+        profilePicture {
+          id
+          url
+        }
         products {
           id
           title
@@ -352,40 +353,23 @@ export default function Product() {
       <Divider />
       <View style={{ gap: 24 }}>
         <Headline size="small">Om säljaren</Headline>
-        <View style={{ flexDirection: "row", gap: 16 }}>
-          <Image
-            source={
-              data.product.seller.type === UserType.Business
-                ? PlaceholderProfileBusiness.uri
-                : PlaceholderProfile.uri
-            }
-            style={{ width: 64, height: 64 }}
-          />
-          <View>
-            <Title size="medium" style={{ marginBottom: 4 }}>
-              {data.product.seller.username}
-            </Title>
-            <Body size="small">
-              {data.product.seller.numberOfPublishedProducts} annonser •{" "}
-              {data.product.seller.numberOfSoldProducts} sålda
-            </Body>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
-            >
-              <Icon icon="star" size={10} />
-              <Body size="small">{data.product.seller.rating ?? 3}</Body>
-              {data.product.seller.type === UserType.Business && (
-                <View>
-                  <Badge size="medium" text="Företag" />
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
+        <UserCard
+          isBusiness={data.product.seller.type === UserType.Business}
+          profilePictureUrl={data.product.seller.profilePicture?.url}
+          username={data.product.seller.username ?? ""}
+          numberOfPublishedProducts={
+            data.product.seller.numberOfPublishedProducts
+          }
+          numberOfSoldProducts={data.product.seller.numberOfSoldProducts}
+          rating={data.product.seller.rating}
+        />
         <Button
           label="Visa profil"
           onPress={() => {
-            //TODO: navigate to profile page
+            router.navigate({
+              pathname: "/(app)/account/profile",
+              params: { userId: data.product.seller.id },
+            });
           }}
         />
       </View>
@@ -408,69 +392,7 @@ export default function Product() {
               }}
             />
           </View>
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 8,
-              gap: 4,
-              height: 231,
-            }}
-          >
-            <Image
-              key="1"
-              source={{
-                uri: data.product.project.products[0]?.primaryImage?.url,
-              }}
-              style={{
-                flex: 2,
-                height: "100%",
-                borderTopLeftRadius: borderRadius.medium,
-                borderBottomLeftRadius: borderRadius.medium,
-              }}
-            />
-            <View style={{ justifyContent: "space-between", gap: 4, flex: 1 }}>
-              <Image
-                key="2"
-                source={{
-                  uri: data.product.project.products[1]?.primaryImage?.url,
-                }}
-                style={{
-                  width: "100%",
-                  flex: 1,
-                  backgroundColor: colors.background.secondary,
-                  borderTopRightRadius: borderRadius.medium,
-                }}
-              />
-
-              <Image
-                key="3"
-                source={{
-                  uri: data.product.project.products[2]?.primaryImage?.url,
-                }}
-                style={{
-                  width: "100%",
-                  flex: 1,
-                  backgroundColor: colors.background.primary,
-                  borderBottomRightRadius: borderRadius.medium,
-                }}
-              />
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", gap: 16, alignItems: "center" }}>
-            <Image
-              source={
-                data.product.project.projectPicture?.url ??
-                PlaceholderProject.uri
-              }
-              style={{ width: 40, height: 40 }}
-            />
-            <View style={{ gap: 2 }}>
-              <Label size="large">{data.product.project.title}</Label>
-              <Body size="small">
-                {data.product.project.products.length} annonser
-              </Body>
-            </View>
-          </View>
+          <ProjectCard project={data.product.project} />
         </View>
       )}
       <Divider />

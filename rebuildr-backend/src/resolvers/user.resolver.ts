@@ -6,6 +6,7 @@ import {
   InputType,
   Int,
   Mutation,
+  ObjectType,
   Parent,
   Query,
   ResolveField,
@@ -17,12 +18,20 @@ import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
-import { RegistrationStatusEnum, User } from 'src/entities/user.entity';
+import {
+  RegistrationStatusEnum,
+  User,
+  UserRoleEnum,
+} from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
 import { File } from 'src/entities/file.entity';
 import { LocationResponse } from './geocoding.resolver';
 import { Product } from 'src/entities/product.entity';
+import { Purchase } from 'src/entities/purchase.entity';
+import { ForbiddenException } from 'src/exceptions';
+import { Review } from 'src/entities/review.entity';
+import { FileInputType } from './product.resolver';
 
 @InputType()
 export class UpdateUserInput {
@@ -37,6 +46,21 @@ export class UpdateUserInput {
 
   @Field({ nullable: true })
   password?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => FileInputType, { nullable: true })
+  profilePicture?: FileInputType;
+}
+
+@ObjectType()
+export class UpdateUserResponse {
+  @Field(() => User)
+  user: User;
+
+  @Field(() => String, { nullable: true })
+  profilePicturePutUrl: string;
 }
 
 @InputType()
@@ -55,6 +79,12 @@ export class CreateOrganizationUserInput {
 
   @Field(() => String)
   creatorId: string;
+}
+
+@InputType()
+export class GetUserInput {
+  @Field()
+  id: string;
 }
 
 @InputType()
@@ -84,22 +114,24 @@ export class UserResolver {
     return await this.userService.findOneByEmail(input.email);
   }
 
+  @Query(() => User)
+  async user(@Args('input') input: GetUserInput) {
+    return await this.userService.findOne(input.id);
+  }
+
   @Query(() => [User])
   @UseGuards(GqlOptionalAuthGuard)
   async getUsers(@Args('input') input: GetUsersInput): Promise<User[]> {
     return this.userService.getUsers(input);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => UpdateUserResponse)
   @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
   async updateUser(
     @CurrentUser() _user: AuthedUserType,
     @Args('input') input: UpdateUserInput,
   ) {
-    return this.userService.update(
-      { id: input.id, address: input.address },
-      _user.id,
-    );
+    return this.userService.update(input, _user.id);
   }
 
   @Mutation(() => User)
@@ -115,9 +147,6 @@ export class UserResolver {
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
-    if (!user.profilePicture) {
-      return null;
-    }
     return await userLoaders.profilePictureLoader.load(user.id);
   }
 
@@ -157,12 +186,41 @@ export class UserResolver {
     return await userLoaders.publishedProductsLoader.load(user.id);
   }
 
+  @ResolveField(() => [Purchase])
+  async purchases(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.purchasesLoader.load(user.id);
+  }
+
+  @ResolveField(() => [Purchase])
+  @UseGuards(GqlAuthGuard)
+  async sales(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+    @CurrentUser() currentUser: AuthedUserType,
+  ) {
+    if (user.id !== currentUser.id && currentUser.role !== UserRoleEnum.ADMIN) {
+      throw ForbiddenException();
+    }
+    return await userLoaders.salesLoader.load(user.id);
+  }
+
   @ResolveField(() => Number, { nullable: true })
   async rating(
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return await userLoaders.ratingLoader.load(user.id);
+  }
+
+  @ResolveField(() => [Product], { nullable: true })
+  async likedProducts(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.likedProductsLoader.load(user.id);
   }
 
   @ResolveField(() => LocationResponse, { nullable: true })
@@ -172,5 +230,13 @@ export class UserResolver {
     @CurrentUser() requester: AuthedUserType,
   ) {
     return this.userService.addressLocationToCoordinates(user, requester.id);
+  }
+
+  @ResolveField(() => [Review])
+  async reviewed(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return userLoaders.reviewedLoader.load(user.id);
   }
 }
