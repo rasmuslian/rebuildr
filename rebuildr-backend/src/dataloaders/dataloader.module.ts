@@ -5,6 +5,7 @@ import { DataloaderService } from './dataloader.service';
 import { UserLoader } from './user.loader';
 import { SearchResultLoader } from './search-result.loader';
 import { ProjectLoader } from './project.loader';
+import { ReviewLoader } from './review.loader';
 
 @Module({
   providers: [
@@ -14,6 +15,7 @@ import { ProjectLoader } from './project.loader';
     UserLoader,
     SearchResultLoader,
     ProjectLoader,
+    ReviewLoader,
   ],
   exports: [
     DataloaderService,
@@ -22,6 +24,7 @@ import { ProjectLoader } from './project.loader';
     UserLoader,
     SearchResultLoader,
     ProjectLoader,
+    ReviewLoader,
   ],
 })
 export class DataloaderModule {}

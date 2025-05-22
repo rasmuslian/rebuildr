@@ -39,7 +39,7 @@ class AcceptPurchaseInput {
   purchaseId: string;
 }
 
-@Resolver()
+@Resolver(() => Purchase)
 export class PurchaseResolver {
   constructor(private purchaseService: PurchaseService) {}
 

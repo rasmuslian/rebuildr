@@ -4,12 +4,22 @@
 
 type Review {
   id: ID!
+  createdAt: DateTime!
   stars: Int!
   review: String!
+  reviewer: User!
+  reviewee: User!
+  purchase: Purchase!
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type Purchase {
   id: ID!
+  buyerId: String!
   paymentSentAt: DateTime
   paymentAcceptedAt: DateTime
   shipmentBookedAt: DateTime
@@ -25,11 +35,6 @@ type Purchase {
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 enum PurchaseStatusEnum {
   CLAIMED

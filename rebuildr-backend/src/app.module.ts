@@ -71,6 +71,8 @@ import { SearchResultService } from './services/search-result.service';
 import { SearchResultResolver } from './resolvers/search-result.resolver';
 import { Review } from './entities/review.entity';
 import { ProjectLoader } from './dataloaders/project.loader';
+import { ReviewLoader } from './dataloaders/review.loader';
+import { ReviewResolver } from './resolvers/review.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -127,6 +129,7 @@ export interface RequestType {
         UserLoader,
         SearchResultLoader,
         ProjectLoader,
+        ReviewLoader,
         ConfigService,
       ],
       useFactory: (
@@ -135,6 +138,7 @@ export interface RequestType {
         userLoaderService: UserLoader,
         searchResultLoaderService: SearchResultLoader,
         projectLoaderService: ProjectLoader,
+        reviewLoaderService: ReviewLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -148,6 +152,7 @@ export interface RequestType {
             userLoaders: userLoaderService.createLoaders(),
             searchResultLoaders: searchResultLoaderService.createLoaders(),
             projectLoaders: projectLoaderService.createLoaders(),
+            reviewLoaders: reviewLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -201,6 +206,7 @@ export interface RequestType {
     ShippingPriceService,
     SearchResultService,
     SearchResultResolver,
+    ReviewResolver,
   ],
 })
 export class AppModule {}

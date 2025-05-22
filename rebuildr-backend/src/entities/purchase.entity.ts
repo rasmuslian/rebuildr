@@ -45,6 +45,7 @@ export class Purchase {
   @ManyToOne(() => Product, (p) => p.purchases)
   product: Product;
 
+  @Field()
   @Column()
   buyerId: string;
   @ManyToOne(() => User, (u) => u.purchases)
