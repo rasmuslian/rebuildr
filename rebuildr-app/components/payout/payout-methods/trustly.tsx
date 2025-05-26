@@ -2,6 +2,8 @@ import {
   CreateTrustlyPayoutAccountMutation,
   CreateTrustlyPayoutAccountMutationVariables,
   PayoutAccountEnum,
+  SelectTrustlyPayoutMethodMutation,
+  SelectTrustlyPayoutMethodMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { useEffect } from "react";
@@ -27,6 +29,15 @@ const CREATE_TRUSTLY_PAYOUT_ACCOUNT = gql`
   }
 `;
 
+const SELECT_TRUSTLY_PAYOUT_METHOD = gql`
+  mutation SelectTrustlyPayoutMethod($input: SelectPayoutMethodInput!) {
+    selectPayoutMethod(input: $input) {
+      id
+      selectedPayoutMethod
+    }
+  }
+`;
+
 type Props = {
   onCompleted: () => void;
   onFailure: () => void;
@@ -44,8 +55,12 @@ export const PayoutMethodTrustly = ({ onCompleted, onFailure }: Props) => {
     CreateTrustlyPayoutAccountMutation,
     CreateTrustlyPayoutAccountMutationVariables
   >(CREATE_TRUSTLY_PAYOUT_ACCOUNT);
-  const resultSuccess = "1";
-  const resultFailure = "0";
+  const [selectPayoutMethod] = useMutation<
+    SelectTrustlyPayoutMethodMutation,
+    SelectTrustlyPayoutMethodMutationVariables
+  >(SELECT_TRUSTLY_PAYOUT_METHOD);
+  const resultSuccess = "success";
+  const resultFailure = "failure";
 
   const onConnect = () => {
     let url = "";
@@ -56,10 +71,10 @@ export const PayoutMethodTrustly = ({ onCompleted, onFailure }: Props) => {
       url = "rebuildr://" + path;
     }
     const successUrl = createURL(url, {
-      queryParams: { result: "1" },
+      queryParams: { result: resultSuccess },
     });
     const failureUrl = createURL(url, {
-      queryParams: { result: "0" },
+      queryParams: { result: resultFailure },
     });
 
     createPayoutAccount({
@@ -98,7 +113,15 @@ export const PayoutMethodTrustly = ({ onCompleted, onFailure }: Props) => {
     }
 
     if (result === resultSuccess) {
-      onCompleted();
+      selectPayoutMethod({
+        variables: { input: { method: PayoutAccountEnum.Trustly } },
+        onCompleted: () => {
+          onCompleted();
+        },
+        onError: () => {
+          onFailure();
+        },
+      });
     }
     if (result === resultFailure) {
       onFailure();

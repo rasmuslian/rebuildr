@@ -32,7 +32,7 @@ export default function Layout() {
       data.me.type === UserType.Business &&
       pathname === "/sell-product/payout"
     ) {
-      router.replace("/(app)/sell-product/payout/payout-method");
+      router.replace("/sell-product/payout/payout-method");
     }
   }, [pathname, data]);
 
