@@ -19,6 +19,7 @@ import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
 import {
+  PayoutAccountEnum,
   RegistrationStatusEnum,
   User,
   UserRoleEnum,
@@ -97,6 +98,21 @@ export class GetUsersInput {
 
   @Field(() => Int, { nullable: true })
   pageSize?: number | null;
+}
+
+@ObjectType()
+export class PayoutAccountResponse {
+  @Field(() => PayoutAccountEnum)
+  provider: PayoutAccountEnum;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
+  @Field({ nullable: true })
+  accountName?: string;
+
+  @Field({ nullable: true })
+  bankName?: string;
 }
 
 @Resolver(() => User)
@@ -238,5 +254,10 @@ export class UserResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return userLoaders.reviewedLoader.load(user.id);
+  }
+
+  @ResolveField(() => PayoutAccountResponse, { nullable: true })
+  async payoutAccount(@Parent() user: User) {
+    return await this.userService.getPayoutAccount(user);
   }
 }

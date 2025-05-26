@@ -97,6 +97,7 @@ type User {
   likedProducts: [Product!]
   location: LocationResponse
   reviewed: [Review!]!
+  payoutAccount: PayoutAccountResponse
 }
 
 enum UserRoleEnum {
@@ -344,6 +345,13 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type PayoutAccountResponse {
+  provider: PayoutAccountEnum!
+  phoneNumber: String
+  accountName: String
+  bankName: String
+}
+
 type ConversationResponse {
   otherUser: User!
   messages: [Message!]!
@@ -524,6 +532,7 @@ type Mutation {
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
+  selectPayoutMethod(input: SelectPayoutMethodInput!): User!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
@@ -679,6 +688,10 @@ input CreatePayoutAccountInput {
   successUrl: String
   failureUrl: String
   type: PayoutAccountEnum!
+}
+
+input SelectPayoutMethodInput {
+  method: PayoutAccountEnum!
 }
 
 input PurchaseProductInput {

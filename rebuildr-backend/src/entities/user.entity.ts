@@ -31,13 +31,6 @@ export enum UserType {
 }
 registerEnumType(UserType, { name: 'UserType' });
 
-export enum RockerPayoutAccountStatusEnum {
-  NOT_SET = 'NOT_SET',
-  VERIFIED = 'VERIFIED',
-  PENDING = 'PENDING',
-  FAILED = 'FAILED',
-}
-
 export enum RegistrationStatusEnum {
   EMAIL = 'EMAIL',
   DETAILS = 'DETAILS',

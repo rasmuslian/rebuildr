@@ -67,6 +67,11 @@ export class CreatePayoutAccountResponse {
   trustlyUrl?: string;
 }
 
+@InputType()
+export class SelectPayoutMethodInput {
+  @Field(() => PayoutAccountEnum)
+  method: PayoutAccountEnum;
+}
 @Resolver()
 export class RockerResolver {
   constructor(private rockerService: RockerService) {}
@@ -88,5 +93,14 @@ export class RockerResolver {
     @CurrentUser() _user: AuthedUserType,
   ) {
     return await this.rockerService.createPayoutAccount(input, _user.id);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async selectPayoutMethod(
+    @Args('input') input: SelectPayoutMethodInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.rockerService.setSelectedPayoutMethod(input, user.id);
   }
 }

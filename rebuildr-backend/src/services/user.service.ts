@@ -191,4 +191,30 @@ export class UserService {
       lng: user.addressLocation[1],
     };
   }
+
+  /**
+   * Function user to retrieve information about the selected payoutAccount
+   * It uses what information Rocker can provide.
+   */
+  async getPayoutAccount(user: User) {
+    if (!user.selectedPayoutMethod) {
+      return null;
+    }
+    const accounts = await this.rockerService.getPayoutAccounts(user);
+
+    const account = accounts.find(
+      (account) =>
+        this.rockerService.payoutAccountToPayoutMethod(
+          user.selectedPayoutMethod,
+        ) === account.provider,
+    );
+    if (!account) {
+      return null;
+    }
+
+    return {
+      ...account,
+      provider: user.selectedPayoutMethod,
+    };
+  }
 }

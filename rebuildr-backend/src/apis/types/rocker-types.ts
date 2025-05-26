@@ -253,6 +253,18 @@ export interface ICreatePlusGiroPayoutAccountRequest {
 export interface IDefaultPayoutMethodRequest {
   payoutMethod: PayoutMethodEnum;
 }
+export interface IListPayoutAccountsResponse {
+  accounts: {
+    merchantId: string;
+    id: string;
+    userId: string;
+    provider: PayoutMethodEnum;
+    accountName?: string;
+    bankName?: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+}
 
 export enum PayoutMethodEnum {
   TRUSTLY = 'TRUSTLY',
