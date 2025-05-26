@@ -15,6 +15,7 @@ const MY_ACCOUNT = gql`
     me {
       id
       username
+      type
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
@@ -48,6 +49,7 @@ export default function Account() {
       headerComponent={<Header title="Konto" />}
     >
       <UserCard
+        userType={data.me.type}
         profilePictureUrl={data.me.profilePicture?.url}
         username={data.me.username}
         numberOfPublishedProducts={data.me.numberOfPublishedProducts}
