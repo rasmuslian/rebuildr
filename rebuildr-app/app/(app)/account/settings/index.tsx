@@ -5,6 +5,7 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
 import { useLogout } from "@hooks/useLogout";
+import { router } from "expo-router";
 import { View } from "react-native";
 
 export default function Settings() {
@@ -24,7 +25,7 @@ export default function Settings() {
           label="Utbetalningskonto"
           body="Lägg till eller ändra hur du tar emot betalningar."
           onPress={() => {
-            //TODO: navigate to payout account
+            router.navigate("/(app)/account/settings/payout");
           }}
         />
         <LinkEntry
