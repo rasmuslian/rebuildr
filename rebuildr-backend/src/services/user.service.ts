@@ -170,6 +170,15 @@ export class UserService {
         input.profilePicture,
       );
     }
+    if (input.notifyOnMessage !== undefined) {
+      user.notifyOnMessage = input.notifyOnMessage;
+    }
+    if (input.notifyOnBuy !== undefined) {
+      user.notifyOnBuy = input.notifyOnBuy;
+    }
+    if (input.notifyOnSale !== undefined) {
+      user.notifyOnSale = input.notifyOnSale;
+    }
 
     return {
       user: await this.userRepository.save(user),

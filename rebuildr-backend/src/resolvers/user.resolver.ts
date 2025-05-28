@@ -68,6 +68,13 @@ export class UpdateUserInput {
 
   @Field(() => FileInputType, { nullable: true })
   profilePicture?: FileInputType;
+
+  @Field({ nullable: true })
+  notifyOnMessage?: boolean;
+  @Field({ nullable: true })
+  notifyOnBuy?: boolean;
+  @Field({ nullable: true })
+  notifyOnSale?: boolean;
 }
 
 @ObjectType()

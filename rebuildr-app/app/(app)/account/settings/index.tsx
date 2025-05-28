@@ -39,7 +39,7 @@ export default function Settings() {
           label="Aviseringar"
           body="Välj vilka aviseringar du vill få via e-post."
           onPress={() => {
-            //TODO: navigate to notifcations
+            router.navigate("/account/settings/notifications");
           }}
         />
       </View>
