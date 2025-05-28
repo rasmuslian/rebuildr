@@ -132,7 +132,6 @@ export class UserService {
         .email()
         .transform((value) => value.toLowerCase().trim());
       const result = validation.safeParse(input.email);
-      console.log('result :>> ', result);
       if (!result.success) {
         throw BadUserInputException('Invalid email');
       }

@@ -1,5 +1,6 @@
 import { ApolloError } from "@apollo/client";
 
+type ErrorFieldTypes = "BAD_INPUT" | "VALUE_TAKEN";
 type BadFieldsInputException = {
   graphQLErrors: {
     extensions: {
@@ -7,6 +8,7 @@ type BadFieldsInputException = {
       fields: {
         name: string;
         message: string;
+        type: ErrorFieldTypes;
       }[];
     };
   }[];
@@ -14,7 +16,7 @@ type BadFieldsInputException = {
 
 export const errorFields = (
   e: ApolloError,
-): { name: string; message: string }[] | undefined => {
+): { name: string; message: string; type: ErrorFieldTypes }[] | undefined => {
   const isBadFieldsInputException = e.graphQLErrors.find(
     (gqlError) => gqlError.extensions?.code === "BAD_FIELDS_INPUT",
   );

@@ -32,7 +32,7 @@ export default function Settings() {
           label="Kontaktuppgifter"
           body="Uppdatera e-post, användarnamn, lösenord och adresser."
           onPress={() => {
-            //TODO: navigate account details
+            router.navigate("/account/settings/user");
           }}
         />
         <LinkEntry
