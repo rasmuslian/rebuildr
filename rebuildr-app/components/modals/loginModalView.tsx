@@ -208,7 +208,7 @@ const LoginModalView = () => {
       )}
     >
       <BottomSheetView>
-        <ScreenLayout>
+        <ScreenLayout style={{ marginTop: 0, marginBottom: 0 }}>
           {state === "email" && (
             <Email
               onSubmit={(email) => {
