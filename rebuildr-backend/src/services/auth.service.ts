@@ -253,7 +253,7 @@ export class AuthService {
     refreshToken.token = hash;
     refreshToken.expiresAt = dayjs().add(60, 'day').toDate();
     refreshToken.user = user;
-    user.refreshTokens = [...user.refreshTokens, refreshToken];
+    user.refreshTokens = [...(user.refreshTokens ?? []), refreshToken];
     await this.refreshTokenRepository.save(refreshToken);
 
     return { accessToken, refreshToken: token };

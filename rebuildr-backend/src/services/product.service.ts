@@ -147,6 +147,8 @@ export class ProductService {
     product.price = 0;
     product.status = ProductStatus.DRAFT;
     product.seller = seller;
+    product.address = seller.address;
+    product.addressLocation = seller.addressLocation;
 
     return await this.productRepository.save(product);
   }
