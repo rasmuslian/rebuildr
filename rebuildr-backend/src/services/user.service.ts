@@ -256,8 +256,8 @@ export class UserService {
       return null;
     }
     return {
-      lat: user.addressLocation[0],
-      lng: user.addressLocation[1],
+      lat: user.addressLocation.coordinates[0],
+      lng: user.addressLocation.coordinates[1],
     };
   }
 

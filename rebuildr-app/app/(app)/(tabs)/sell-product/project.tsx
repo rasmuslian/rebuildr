@@ -144,6 +144,7 @@ export default function Project() {
 
     if (skipProject) {
       router.navigate("/sell-product/transportation");
+      return;
     }
 
     updateProduct({

@@ -144,8 +144,8 @@ export const Pickup = ({
   };
 
   const project = data.product.project;
-  const productLocation = data.product.location;
   const address = project?.address ?? data.product.address;
+  const location = project?.location ?? data.product.location;
 
   return (
     <ToggleCard
@@ -159,16 +159,8 @@ export const Pickup = ({
       <View>
         {(!address || isEditing) && (
           <EditPickup
-            address={
-              project ? project.address : (data.product.address ?? undefined)
-            }
-            location={
-              project
-                ? { ...project.location }
-                : productLocation
-                  ? { ...productLocation }
-                  : undefined
-            }
+            address={address ?? undefined}
+            location={location ?? undefined}
             onSave={(lat, lng) => {
               onEditProduct(lat, lng);
             }}
