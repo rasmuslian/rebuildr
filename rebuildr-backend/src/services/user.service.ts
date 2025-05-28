@@ -21,6 +21,13 @@ import {
 } from 'src/resolvers/user.resolver';
 import { RockerService } from './rocker.service';
 import { FileService } from './file.service';
+import {
+  passwordRegex,
+  swedishPhoneNumberRegex,
+  swedishPostCodeRegex,
+} from 'src/constants/regexp';
+import * as z from 'zod';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -76,6 +83,26 @@ export class UserService {
       throw ForbiddenException();
     }
 
+    if (input.username) {
+      const usernameTaken = await this.userRepository.existsBy({
+        username: input.username,
+      });
+      if (usernameTaken) {
+        throw BadFieldsInputException([
+          { message: 'Username taken', name: 'username', type: 'VALUE_TAKEN' },
+        ]);
+      }
+      user.username = input.username;
+    }
+    if (input.password) {
+      const validPassword = new RegExp(passwordRegex).test(input.password);
+      if (!validPassword) {
+        throw BadFieldsInputException([
+          { message: 'Invalid password', name: 'password' },
+        ]);
+      }
+      user.password = await bcrypt.hash(input.password, 10);
+    }
     if (input.address) {
       user.address = input.address;
       const location = await this.geocodingService.addressToLocation(
@@ -87,6 +114,49 @@ export class UserService {
         coordinates: [location.lat, location.lng],
       };
     }
+    if (input.city) {
+      user.city = input.city;
+    }
+    if (input.name) {
+      user.name = input.name;
+    }
+    if (input.phoneNumber) {
+      if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
+        throw BadUserInputException('Invalid phone number');
+      }
+      user.phoneNumber = input.phoneNumber;
+    }
+    if (input.email) {
+      const validation = z
+        .string()
+        .email()
+        .transform((value) => value.toLowerCase().trim());
+      const result = validation.safeParse(input.email);
+      console.log('result :>> ', result);
+      if (!result.success) {
+        throw BadUserInputException('Invalid email');
+      }
+      const emailExist = await this.userRepository.existsBy({
+        email: result.data,
+      });
+      if (emailExist) {
+        throw BadFieldsInputException([
+          {
+            message: 'email is taken',
+            name: 'email',
+            type: 'VALUE_TAKEN',
+          },
+        ]);
+      }
+      user.email = result.data;
+    }
+    if (input.postCode) {
+      if (!swedishPostCodeRegex.test(input.postCode)) {
+        throw BadUserInputException('Invalid post code');
+      }
+      user.postCode = input.postCode;
+    }
+
     if (input.description !== undefined) {
       user.description = input.description;
     }

@@ -77,8 +77,11 @@ type User {
   id: ID!
   username: String
   email: String
+  name: String
   description: String
   address: String
+  postCode: String
+  city: String
   phoneNumber: String
   role: UserRoleEnum!
   selectedPayoutMethod: PayoutAccountEnum
@@ -581,10 +584,15 @@ input NewPasswordInput {
 
 input UpdateUserInput {
   id: String!
+  email: String
   address: String
   username: String
   password: String
   description: String
+  name: String
+  postCode: String
+  city: String
+  phoneNumber: String
   profilePicture: FileInputType
 }
 

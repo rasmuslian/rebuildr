@@ -68,6 +68,10 @@ export class User {
   @Column({ nullable: true })
   password?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  name?: string;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   description?: string;
@@ -91,6 +95,14 @@ export class User {
     nullable: true,
   })
   addressLocation?: Point;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  postCode?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  city?: string | null;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

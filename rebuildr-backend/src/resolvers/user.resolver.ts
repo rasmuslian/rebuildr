@@ -40,6 +40,9 @@ export class UpdateUserInput {
   id: string;
 
   @Field({ nullable: true })
+  email?: string;
+
+  @Field({ nullable: true })
   address?: string;
 
   @Field({ nullable: true })
@@ -50,6 +53,18 @@ export class UpdateUserInput {
 
   @Field({ nullable: true })
   description?: string;
+
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  postCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
 
   @Field(() => FileInputType, { nullable: true })
   profilePicture?: FileInputType;

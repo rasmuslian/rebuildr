@@ -33,18 +33,30 @@ export const ThrottleException = (message?: string) => {
   });
 };
 
+/**
+ *
+ * @param badFields object specifying where and what went wrong
+ * @param message error message
+ * @param name name of field
+ * @param type what type of error
+ * @constant BAD_VALUE - Standard error
+ * @constant VALUE_TAKEN - for example email och username which already exist in the database
+ * @returns
+ */
 export const BadFieldsInputException = (
   badFields: {
     message: string;
     name: string;
+    type?: 'BAD_VALUE' | 'VALUE_TAKEN';
   }[],
 ) => {
   return new GraphQLError(`Bad input for one or more fields`, {
     extensions: {
       code: 'BAD_FIELDS_INPUT',
       fields: badFields.map((badField) => ({
-        name: badField.name,
         message: badField.message,
+        name: badField.name,
+        type: badField.type ?? 'BAD_VALUE',
       })),
     },
   });

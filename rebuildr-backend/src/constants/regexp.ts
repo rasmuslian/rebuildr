@@ -5,3 +5,5 @@ export const swedishPhoneNumberRegex = new RegExp(
 export const passwordRegex = new RegExp(
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W])(?!.*(.)\1{2}).{8,}$/,
 );
+
+export const swedishPostCodeRegex = new RegExp(/^\d{3}[ ]?\d{2}$/);
