@@ -15,14 +15,14 @@ import { TextTokens } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 
 export type ButtonProps = {
-  type?: "default" | "tonal" | "text" | "outlined";
+  type?: "filled" | "danger" | "tonal" | "text" | "outlined";
   icon?: IconType;
   label?: string;
   loading?: boolean;
 } & PressableProps;
 
 export const Button = ({
-  type = "default",
+  type = "filled",
   onPress,
   label,
   disabled,
@@ -44,12 +44,21 @@ export const Button = ({
       icon: keyof TextTokens;
     };
   } = {
-    default: {
+    filled: {
       enabled: colors.buttons.filled.enabled,
       hovered: colors.buttons.filled.hovered,
       focused: colors.buttons.filled.focused,
       pressed: colors.buttons.filled.pressed,
       disabled: colors.buttons.filled.disabled,
+      text: colors.text.primaryLight,
+      icon: "primaryLight",
+    },
+    danger: {
+      enabled: colors.buttons.danger.enabled,
+      hovered: colors.buttons.danger.hovered,
+      focused: colors.buttons.danger.focused,
+      pressed: colors.buttons.danger.pressed,
+      disabled: colors.buttons.danger.disabled,
       text: colors.text.primaryLight,
       icon: "primaryLight",
     },

@@ -114,6 +114,13 @@ type ButtonsTokens = {
     pressed: string;
     disabled: string;
   };
+  danger: {
+    enabled: string;
+    hovered: string;
+    focused: string;
+    pressed: string;
+    disabled: string;
+  };
   tonal: {
     enabled: string;
     hovered: string;
@@ -165,6 +172,13 @@ const buttonTokensLight: ButtonsTokens = {
     hovered: primitives.accent400,
     focused: primitives.accent400,
     pressed: primitives.accent500,
+    disabled: primitives.neutrals200,
+  },
+  danger: {
+    enabled: primitives.semanticError500,
+    hovered: primitives.semanticError400,
+    focused: primitives.semanticError400,
+    pressed: primitives.semanticError500,
     disabled: primitives.neutrals200,
   },
   tonal: {
@@ -219,6 +233,13 @@ const buttonTokensDark: ButtonsTokens = {
     focused: primitives.secondary200,
     pressed: primitives.neutrals500,
     disabled: primitives.neutrals100,
+  },
+  danger: {
+    enabled: primitives.semanticError500,
+    hovered: primitives.semanticError400,
+    focused: primitives.semanticError400,
+    pressed: primitives.semanticError500,
+    disabled: primitives.neutrals200,
   },
   tonal: {
     enabled: primitives.neutrals500,
