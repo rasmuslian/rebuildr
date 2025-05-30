@@ -34,6 +34,7 @@ export enum ProductStatus {
   DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
   SOLD = 'SOLD',
+  DELETED = 'DELETED',
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 

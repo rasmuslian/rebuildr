@@ -77,14 +77,20 @@ type User {
   id: ID!
   username: String
   email: String
+  name: String
   description: String
   address: String
+  postCode: String
+  city: String
   phoneNumber: String
   role: UserRoleEnum!
   selectedPayoutMethod: PayoutAccountEnum
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  notifyOnMessage: Boolean!
+  notifyOnBuy: Boolean!
+  notifyOnSale: Boolean!
   profilePicture: File
   registrationStatus: RegisterStatusEnum!
   projects: [Project!]!
@@ -97,6 +103,7 @@ type User {
   likedProducts: [Product!]
   location: LocationResponse
   reviewed: [Review!]!
+  payoutAccount: PayoutAccountResponse
 }
 
 enum UserRoleEnum {
@@ -278,6 +285,7 @@ enum ProductStatusEnum {
   DRAFT
   PUBLISHED
   SOLD
+  DELETED
 }
 
 type ResendVerificationMailResponse {
@@ -342,6 +350,13 @@ type ProductsResponse {
 type UpdateUserResponse {
   user: User!
   profilePicturePutUrl: String
+}
+
+type PayoutAccountResponse {
+  provider: PayoutAccountEnum!
+  phoneNumber: String
+  accountName: String
+  bankName: String
 }
 
 type ConversationResponse {
@@ -514,6 +529,7 @@ type Mutation {
   newPassword(input: NewPasswordInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
+  deleteAccount: User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
@@ -524,6 +540,7 @@ type Mutation {
   createMessage(input: CreateMessageInput!): Message!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
+  selectPayoutMethod(input: SelectPayoutMethodInput!): User!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
@@ -572,11 +589,19 @@ input NewPasswordInput {
 
 input UpdateUserInput {
   id: String!
+  email: String
   address: String
   username: String
   password: String
   description: String
+  name: String
+  postCode: String
+  city: String
+  phoneNumber: String
   profilePicture: FileInputType
+  notifyOnMessage: Boolean
+  notifyOnBuy: Boolean
+  notifyOnSale: Boolean
 }
 
 input FileInputType {
@@ -679,6 +704,10 @@ input CreatePayoutAccountInput {
   successUrl: String
   failureUrl: String
   type: PayoutAccountEnum!
+}
+
+input SelectPayoutMethodInput {
+  method: PayoutAccountEnum!
 }
 
 input PurchaseProductInput {

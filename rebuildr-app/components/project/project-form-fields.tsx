@@ -4,44 +4,10 @@ import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { Pressable, View } from "react-native";
 import { Map } from "@components/maps/map";
-import { gql, useLazyQuery } from "@apollo/client";
 import { useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
-import {
-  AddressToLocationQueryQuery,
-  AddressToLocationQueryQueryVariables,
-  LocationSearchQueryQuery,
-  LocationSearchQueryQueryVariables,
-  LocationToAddressQuery,
-  LocationToAddressQueryVariables,
-  Project,
-} from "@/gql/graphql";
-import { defaultCenter } from "@constants/map";
-
-const LOCATION_SEARCH_QUERY = gql`
-  query LocationSearchQuery($input: LocationSearchInput!) {
-    locationSearch(input: $input) {
-      result
-    }
-  }
-`;
-
-const ADDRESS_TO_LOCATION_QUERY = gql`
-  query AddressToLocationQuery($input: AddressToLocationInput!) {
-    addressToLocation(input: $input) {
-      lat
-      lng
-    }
-  }
-`;
-
-const LOCATION_TO_ADDRESS_QUERY = gql`
-  query LocationToAddress($input: GetAddressInput!) {
-    locationToAddress(input: $input) {
-      address
-    }
-  }
-`;
+import { Project } from "@/gql/graphql";
+import { useLocationAddress } from "@hooks/useLocationAddress";
 
 export type ProjectFormType = Pick<
   Project,
@@ -55,19 +21,20 @@ export type ProjectFormType = Pick<
 >;
 
 type Props = {
+  myPlace?: { location?: { lat: number; lng: number }; address?: string };
   project?: ProjectFormType;
   onSave: (project: ProjectFormType) => void;
   isLoading?: boolean;
 };
 
 export const ProjectFormFields = ({
+  myPlace,
   project,
   onSave,
   isLoading: _isLoading,
 }: Props) => {
   const [title, setTitle] = useState(project?.title ?? "");
   const [description, setDescription] = useState(project?.description ?? "");
-  const [address, setAddress] = useState(project?.address ?? "");
   const [altContact, setAltContact] = useState<{
     name?: string;
     email?: string;
@@ -86,53 +53,29 @@ export const ProjectFormFields = ({
       : {},
   );
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
-  const [location, setLocation] = useState<[number, number]>([
-    project?.location.lat ?? defaultCenter[0],
-    project?.location.lng ?? defaultCenter[1],
-  ]);
   const colors = useThemeColor();
 
-  const [locationSearch, { data: locationSearchData }] = useLazyQuery<
-    LocationSearchQueryQuery,
-    LocationSearchQueryQueryVariables
-  >(LOCATION_SEARCH_QUERY);
-  const [
-    addressToLocation,
-    { data: addressLocationData, loading: addressLocationLoading },
-  ] = useLazyQuery<
-    AddressToLocationQueryQuery,
-    AddressToLocationQueryQueryVariables
-  >(ADDRESS_TO_LOCATION_QUERY);
-  const [locationToAddress, { loading: locationToAddressLoading }] =
-    useLazyQuery<LocationToAddressQuery, LocationToAddressQueryVariables>(
-      LOCATION_TO_ADDRESS_QUERY,
-    );
+  const {
+    address,
+    updateAddress,
+    location,
+    loading,
+    setMapLocation,
+    autoCompletes,
+    selectAutoComplete,
+  } = useLocationAddress({
+    address: project?.address ?? myPlace?.address,
+    location: project?.location ?? myPlace?.location,
+  });
 
   const onUpdateAddress = (s: string) => {
     setShowLocationsDropdown(true);
-    setAddress(s);
-    locationSearch({ variables: { input: { searchString: s } } });
+    updateAddress(s);
   };
 
-  const onSelectAddress = (address: string) => {
+  const onSelectAutoComplete = (address: string) => {
     setShowLocationsDropdown(false);
-    setAddress(address);
-    addressToLocation({
-      variables: { input: { address } },
-      onCompleted: (data) => {
-        setLocation([data.addressToLocation.lat, data.addressToLocation.lng]);
-      },
-    });
-  };
-
-  const onSetMapLocation = (lat: number, lng: number) => {
-    locationToAddress({
-      variables: { input: { latitude: lat, longitude: lng } },
-      onCompleted: (data) => {
-        setAddress(data.locationToAddress.address);
-        setLocation([lat, lng]);
-      },
-    });
+    selectAutoComplete(address);
   };
 
   const onSaveProject = () => {
@@ -150,16 +93,8 @@ export const ProjectFormFields = ({
     });
   };
 
-  const isLoading =
-    locationToAddressLoading || addressLocationLoading || _isLoading;
-  const canSave =
-    !!title && !!address && !locationToAddressLoading && !isLoading;
-  const mapLocation: L.LatLngTuple = addressLocationData
-    ? [
-        addressLocationData.addressToLocation.lat,
-        addressLocationData.addressToLocation.lng,
-      ]
-    : defaultCenter;
+  const isLoading = loading || _isLoading;
+  const canSave = !!title && !!address && !isLoading;
 
   return (
     <View style={{ gap: 24 }}>
@@ -231,41 +166,40 @@ export const ProjectFormFields = ({
                 "Köparen ser inte projektets exakta adress, bara ett ungefärligt område på kartan. Din adress visas först när ett köp har genomförts.",
               value: address,
               onChange: (t) => onUpdateAddress(t),
-              disabled: addressLocationLoading,
+              disabled: loading,
             },
           ]}
         />
-        {!!locationSearchData?.locationSearch.result.length &&
-          showLocationsDropdown && (
-            <View style={{ gap: 6 }}>
-              {locationSearchData.locationSearch.result.map((data, i) => (
-                <Pressable
-                  key={i}
-                  onPress={() => {
-                    onSelectAddress(data);
-                  }}
-                  style={
-                    i !== 0 && {
-                      borderColor: colors.dividers.neutral,
-                      borderTopWidth: 1,
-                      paddingTop: 4,
-                    }
+        {!!autoCompletes.length && showLocationsDropdown && (
+          <View style={{ gap: 6 }}>
+            {autoCompletes.map((data, i) => (
+              <Pressable
+                key={i}
+                onPress={() => {
+                  onSelectAutoComplete(data);
+                }}
+                style={
+                  i !== 0 && {
+                    borderColor: colors.dividers.neutral,
+                    borderTopWidth: 1,
+                    paddingTop: 4,
                   }
-                >
-                  <Body size="medium" color="secondary" numberOfLines={1}>
-                    {data}
-                  </Body>
-                </Pressable>
-              ))}
-            </View>
-          )}
+                }
+              >
+                <Body size="medium" color="secondary" numberOfLines={1}>
+                  {data}
+                </Body>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
       <View style={{ gap: 12 }}>
         <Map
-          lat={mapLocation[0]}
-          lng={mapLocation[1]}
-          onMoveEnd={onSetMapLocation}
-          interactive={!locationToAddressLoading && !addressLocationLoading}
+          lat={location[0]}
+          lng={location[1]}
+          onMoveEnd={setMapLocation}
+          interactive={!loading}
         />
         <Body size="small" color="secondary">
           Dra kartan för att flytta nålen till rätt plats. Du kan zooma in och

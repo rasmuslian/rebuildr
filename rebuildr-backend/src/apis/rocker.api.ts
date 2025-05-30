@@ -332,6 +332,14 @@ export class RockerAPI {
       },
     );
   }
+  async payoutAccounts(rockerUserId: string) {
+    return await this.customFetch.send(
+      this.url + `/merchant-api/v1/payout-accounts/${rockerUserId}`,
+      {
+        method: 'GET',
+      },
+    );
+  }
 
   async confirmPayment(paymentId: string) {
     const response: IPaymentResponse = await this.customFetch.send(

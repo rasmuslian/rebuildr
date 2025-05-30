@@ -1,9 +1,9 @@
-import { PayoutMethodBankgiro } from "@components/payout-methods/bankgiro";
+import { PayoutMethodBankgiro } from "@components/payout/payout-methods/bankgiro";
 import { router } from "expo-router";
 
 export default function Bankgiro() {
   const onAccountCreated = () => {
-    router.dismissTo("/(app)/sell-product");
+    router.dismissTo("/sell-product");
   };
 
   return <PayoutMethodBankgiro onCompleted={onAccountCreated} />;

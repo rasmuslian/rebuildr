@@ -19,6 +19,7 @@ import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
 import {
+  PayoutAccountEnum,
   RegistrationStatusEnum,
   User,
   UserRoleEnum,
@@ -39,6 +40,9 @@ export class UpdateUserInput {
   id: string;
 
   @Field({ nullable: true })
+  email?: string;
+
+  @Field({ nullable: true })
   address?: string;
 
   @Field({ nullable: true })
@@ -50,8 +54,27 @@ export class UpdateUserInput {
   @Field({ nullable: true })
   description?: string;
 
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  postCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
   @Field(() => FileInputType, { nullable: true })
   profilePicture?: FileInputType;
+
+  @Field({ nullable: true })
+  notifyOnMessage?: boolean;
+  @Field({ nullable: true })
+  notifyOnBuy?: boolean;
+  @Field({ nullable: true })
+  notifyOnSale?: boolean;
 }
 
 @ObjectType()
@@ -99,6 +122,21 @@ export class GetUsersInput {
   pageSize?: number | null;
 }
 
+@ObjectType()
+export class PayoutAccountResponse {
+  @Field(() => PayoutAccountEnum)
+  provider: PayoutAccountEnum;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
+  @Field({ nullable: true })
+  accountName?: string;
+
+  @Field({ nullable: true })
+  bankName?: string;
+}
+
 @Resolver(() => User)
 export class UserResolver {
   constructor(private userService: UserService) {}
@@ -140,6 +178,12 @@ export class UserResolver {
     @Args('input') input: CreateOrganizationUserInput,
   ): Promise<User> {
     return await this.userService.createOrganizationUser(input);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async deleteAccount(@CurrentUser() user: AuthedUserType) {
+    return await this.userService.delete(user.id, user.id);
   }
 
   @ResolveField(() => File, { nullable: true })
@@ -238,5 +282,10 @@ export class UserResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return userLoaders.reviewedLoader.load(user.id);
+  }
+
+  @ResolveField(() => PayoutAccountResponse, { nullable: true })
+  async payoutAccount(@Parent() user: User) {
+    return await this.userService.getPayoutAccount(user);
   }
 }

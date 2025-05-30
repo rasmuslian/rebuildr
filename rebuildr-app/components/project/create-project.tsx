@@ -1,13 +1,28 @@
 import {
-  CreateProjectMutation,
-  CreateProjectMutationVariables,
+  CreateProjectMutationMutation,
+  CreateProjectMutationMutationVariables,
+  CreateProjectQueryQuery,
 } from "@/gql/graphql";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
 import { ProjectFormFields, ProjectFormType } from "./project-form-fields";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
-const CREATE_PROJECT = gql`
-  mutation CreateProject($input: CreateProjectInput!) {
+const CREATE_PROJECT_QUERY = gql`
+  query CreateProjectQuery {
+    me {
+      id
+      address
+      location {
+        lat
+        lng
+      }
+    }
+  }
+`;
+
+const CREATE_PROJECT_MUTATION = gql`
+  mutation CreateProjectMutation($input: CreateProjectInput!) {
     createProject(input: $input) {
       id
       title
@@ -30,9 +45,11 @@ type Props = {
 
 export const CreateProject = ({ onCreate }: Props) => {
   const [createProject, { loading: creatingProject }] = useMutation<
-    CreateProjectMutation,
-    CreateProjectMutationVariables
-  >(CREATE_PROJECT);
+    CreateProjectMutationMutation,
+    CreateProjectMutationMutationVariables
+  >(CREATE_PROJECT_MUTATION);
+
+  const { data } = useQuery<CreateProjectQueryQuery>(CREATE_PROJECT_QUERY);
 
   const onSaveProject = (project: ProjectFormType) => {
     createProject({
@@ -55,7 +72,18 @@ export const CreateProject = ({ onCreate }: Props) => {
     });
   };
 
+  if (!data) {
+    return <LoadingSpinner />;
+  }
+
   return (
-    <ProjectFormFields onSave={onSaveProject} isLoading={creatingProject} />
+    <ProjectFormFields
+      myPlace={{
+        location: data.me.location ?? undefined,
+        address: data.me.address ?? undefined,
+      }}
+      onSave={onSaveProject}
+      isLoading={creatingProject}
+    />
   );
 };

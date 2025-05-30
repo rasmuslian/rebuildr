@@ -354,7 +354,7 @@ export default function Product() {
       <View style={{ gap: 24 }}>
         <Headline size="small">Om säljaren</Headline>
         <UserCard
-          isBusiness={data.product.seller.type === UserType.Business}
+          userType={data.product.seller.type}
           profilePictureUrl={data.product.seller.profilePicture?.url}
           username={data.product.seller.username ?? ""}
           numberOfPublishedProducts={

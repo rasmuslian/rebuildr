@@ -21,6 +21,16 @@ import {
 } from 'src/resolvers/user.resolver';
 import { RockerService } from './rocker.service';
 import { FileService } from './file.service';
+import {
+  passwordRegex,
+  swedishPhoneNumberRegex,
+  swedishPostCodeRegex,
+} from 'src/constants/regexp';
+import * as z from 'zod';
+import * as bcrypt from 'bcrypt';
+import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { Product, ProductStatus } from 'src/entities/product.entity';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 
 @Injectable()
 export class UserService {
@@ -30,6 +40,10 @@ export class UserService {
     private geocodingService: GeocodingService,
     private rockerService: RockerService,
     private fileService: FileService,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
   async findOne(id: string) {
@@ -76,6 +90,26 @@ export class UserService {
       throw ForbiddenException();
     }
 
+    if (input.username) {
+      const usernameTaken = await this.userRepository.existsBy({
+        username: input.username,
+      });
+      if (usernameTaken) {
+        throw BadFieldsInputException([
+          { message: 'Username taken', name: 'username', type: 'VALUE_TAKEN' },
+        ]);
+      }
+      user.username = input.username;
+    }
+    if (input.password) {
+      const validPassword = new RegExp(passwordRegex).test(input.password);
+      if (!validPassword) {
+        throw BadFieldsInputException([
+          { message: 'Invalid password', name: 'password' },
+        ]);
+      }
+      user.password = await bcrypt.hash(input.password, 10);
+    }
     if (input.address) {
       user.address = input.address;
       const location = await this.geocodingService.addressToLocation(
@@ -87,6 +121,48 @@ export class UserService {
         coordinates: [location.lat, location.lng],
       };
     }
+    if (input.city) {
+      user.city = input.city;
+    }
+    if (input.name) {
+      user.name = input.name;
+    }
+    if (input.phoneNumber) {
+      if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
+        throw BadUserInputException('Invalid phone number');
+      }
+      user.phoneNumber = input.phoneNumber;
+    }
+    if (input.email) {
+      const validation = z
+        .string()
+        .email()
+        .transform((value) => value.toLowerCase().trim());
+      const result = validation.safeParse(input.email);
+      if (!result.success) {
+        throw BadUserInputException('Invalid email');
+      }
+      const emailExist = await this.userRepository.existsBy({
+        email: result.data,
+      });
+      if (emailExist) {
+        throw BadFieldsInputException([
+          {
+            message: 'email is taken',
+            name: 'email',
+            type: 'VALUE_TAKEN',
+          },
+        ]);
+      }
+      user.email = result.data;
+    }
+    if (input.postCode) {
+      if (!swedishPostCodeRegex.test(input.postCode)) {
+        throw BadUserInputException('Invalid post code');
+      }
+      user.postCode = input.postCode;
+    }
+
     if (input.description !== undefined) {
       user.description = input.description;
     }
@@ -100,6 +176,15 @@ export class UserService {
       user.profilePicture = await this.fileService.createFile(
         input.profilePicture,
       );
+    }
+    if (input.notifyOnMessage !== undefined) {
+      user.notifyOnMessage = input.notifyOnMessage;
+    }
+    if (input.notifyOnBuy !== undefined) {
+      user.notifyOnBuy = input.notifyOnBuy;
+    }
+    if (input.notifyOnSale !== undefined) {
+      user.notifyOnSale = input.notifyOnSale;
     }
 
     return {
@@ -187,8 +272,111 @@ export class UserService {
       return null;
     }
     return {
-      lat: user.addressLocation[0],
-      lng: user.addressLocation[1],
+      lat: user.addressLocation.coordinates[0],
+      lng: user.addressLocation.coordinates[1],
     };
+  }
+
+  /**
+   * Function user to retrieve information about the selected payoutAccount
+   * It uses what information Rocker can provide.
+   */
+  async getPayoutAccount(user: User) {
+    if (!user.selectedPayoutMethod) {
+      return null;
+    }
+    const accounts = await this.rockerService.getPayoutAccounts(user);
+
+    const account = accounts.find(
+      (account) =>
+        this.rockerService.payoutAccountToPayoutMethod(
+          user.selectedPayoutMethod,
+        ) === account.provider,
+    );
+    if (!account) {
+      return null;
+    }
+
+    return {
+      ...account,
+      provider: user.selectedPayoutMethod,
+    };
+  }
+
+  /**
+   * Deletes user.
+   * Does not remove it from database but instead anonymizes the user's data
+   */
+  async delete(userToDeleteId: string, currentUserId: string) {
+    const userToDelete = await this.userRepository.findOne({
+      where: {
+        id: userToDeleteId,
+      },
+      relations: {
+        products: {
+          purchases: true,
+          images: true,
+        },
+        profilePicture: true,
+        refreshTokens: true,
+      },
+    });
+    if (userToDelete.id !== currentUserId) {
+      throw ForbiddenException();
+    }
+
+    //Can't delete a user if they have ongoing purchases
+    const ongoingPurchase = userToDelete.products.some((product) =>
+      product.purchases.some(
+        (purchase) =>
+          purchase.status !== PurchaseStatusEnum.FINISHED_FAILED &&
+          purchase.status !== PurchaseStatusEnum.FINISHED_SUCCESS,
+      ),
+    );
+    if (ongoingPurchase) {
+      throw ForbiddenException(
+        "Can't delete user while they have ongoing purchases",
+      );
+    }
+
+    //Anonymize products
+    await Promise.all(
+      userToDelete.products.map(async (product) => {
+        await this.fileService.deleteFiles(product.images);
+        product.address = null;
+        product.addressLocation = null;
+        product.deletedAt = new Date();
+        product.status = ProductStatus.DELETED;
+        await this.productRepository.save(product);
+      }),
+    );
+
+    //Anonymize user
+    userToDelete.username = null;
+    userToDelete.email = null;
+    userToDelete.name = null;
+    userToDelete.password = null;
+    userToDelete.description = null;
+    userToDelete.address = null;
+    userToDelete.addressLocation = null;
+    userToDelete.postCode = null;
+    userToDelete.city = null;
+    userToDelete.phoneNumber = null;
+    if (userToDelete.profilePicture) {
+      await this.fileService.deleteFiles([userToDelete.profilePicture]);
+      userToDelete.profilePicture = null;
+    }
+    await this.refreshTokenRepository.remove(userToDelete.refreshTokens);
+
+    //Rocker fields
+    userToDelete.rockerUserId = null;
+    userToDelete.payoutAccountBankGiroId = null;
+    userToDelete.payoutAccountPlusGiroId = null;
+    userToDelete.payoutAccountRixId = null;
+    userToDelete.payoutAccountSwishId = null;
+    userToDelete.selectedPayoutMethod = null;
+
+    userToDelete.deletedAt = new Date();
+    return this.userRepository.save(userToDelete);
   }
 }

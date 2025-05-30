@@ -1,12 +1,12 @@
 import { MyAccountQuery } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
+import { LinkEntry } from "@components/account/link-entry";
 import { Button } from "@components/buttons/button";
 import { UserCard } from "@components/cards/user-card";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Label } from "@components/typography/text";
 import { router } from "expo-router";
 import { View } from "react-native";
 
@@ -15,6 +15,7 @@ const MY_ACCOUNT = gql`
     me {
       id
       username
+      type
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
@@ -48,6 +49,7 @@ export default function Account() {
       headerComponent={<Header title="Konto" />}
     >
       <UserCard
+        userType={data.me.type}
         profilePictureUrl={data.me.profilePicture?.url}
         username={data.me.username}
         numberOfPublishedProducts={data.me.numberOfPublishedProducts}
@@ -87,14 +89,14 @@ export default function Account() {
           label="Kontoinställningar"
           body="Hantera dina uppgifter och inställningar"
           onPress={() => {
-            //TODO: link to account settings
+            router.navigate("/(app)/account/settings");
           }}
         />
         <LinkEntry
           label="Dina favoriter"
           body={(data.me.likedProducts?.length ?? 0) + " annonser"}
           onPress={() => {
-            //TODO: link to account settings
+            //TODO: link to favorites
           }}
         />
         <LinkEntry
@@ -115,27 +117,3 @@ export default function Account() {
     </ScreenLayout>
   );
 }
-
-type LinkEntryProps = {
-  label: string;
-  body: string;
-  onPress: () => void;
-};
-
-const LinkEntry = ({ label, body, onPress }: LinkEntryProps) => {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <View style={{ gap: 2 }}>
-        <Label size="large">{label}</Label>
-        <Body size="small">{body}</Body>
-      </View>
-      <Button icon="arrowRight" type="text" onPress={onPress} />
-    </View>
-  );
-};

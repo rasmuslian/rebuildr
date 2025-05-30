@@ -31,13 +31,6 @@ export enum UserType {
 }
 registerEnumType(UserType, { name: 'UserType' });
 
-export enum RockerPayoutAccountStatusEnum {
-  NOT_SET = 'NOT_SET',
-  VERIFIED = 'VERIFIED',
-  PENDING = 'PENDING',
-  FAILED = 'FAILED',
-}
-
 export enum RegistrationStatusEnum {
   EMAIL = 'EMAIL',
   DETAILS = 'DETAILS',
@@ -75,6 +68,10 @@ export class User {
   @Column({ nullable: true })
   password?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  name?: string;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   description?: string;
@@ -99,6 +96,14 @@ export class User {
   })
   addressLocation?: Point;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  postCode?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  city?: string | null;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   phoneNumber?: string;
@@ -109,7 +114,7 @@ export class User {
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
 
-  @OneToMany(() => Product, (product) => product)
+  @OneToMany(() => Product, (product) => product.seller)
   products: Product[];
 
   @Field(() => UserRoleEnum, { middleware: [UserProtectedMiddleware] })
@@ -172,6 +177,16 @@ export class User {
   @Field(() => Date, { nullable: true })
   @Column({ type: Date, nullable: true })
   organizationApprovedAt?: Date;
+
+  @Field()
+  @Column({ type: Boolean, default: true })
+  notifyOnMessage: boolean;
+  @Field()
+  @Column({ type: Boolean, default: true })
+  notifyOnBuy: boolean;
+  @Field()
+  @Column({ type: Boolean, default: true })
+  notifyOnSale: boolean;
 
   @OneToMany(() => Project, (p) => p.user)
   projects: Project[];

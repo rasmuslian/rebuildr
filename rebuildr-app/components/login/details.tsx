@@ -21,6 +21,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
+import { CreatePassword } from "./create-password";
 
 const DETAILS_QUERY = gql`
   query DetailsQuery {
@@ -40,24 +41,6 @@ const UPDATE_DETAILS_FIELDS = gql`
   }
 `;
 
-enum PasswordRequirementEnum {
-  ENOUGH_CHARS = "ENOUGH_CHARS",
-  UPPER_CASE = "UPPER_CASE",
-  LOWER_CASE = "LOWER_CASE",
-  NON_LETTER = "NON_LETTER",
-  REPEAT = "REPEAT",
-}
-type PasswordValidationType = {
-  [key in PasswordRequirementEnum]: boolean | null;
-};
-const PasswordReuirementText: { [key in PasswordRequirementEnum]: string } = {
-  ENOUGH_CHARS: "Minst 8 tecken",
-  UPPER_CASE: "En bokstav i UPPERCASE",
-  LOWER_CASE: "En bokstav med liten bokstav",
-  NON_LETTER: "Minst en siffra eller ett specialtecken",
-  REPEAT: "Inte mer än två upprepande tecken i rad",
-};
-
 type Props = {
   onDone: () => void;
   onCreateBusiness: () => void;
@@ -66,18 +49,11 @@ type Props = {
 export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [pwValidationResult, setPwValidationResult] =
-    useState<PasswordValidationType>({
-      ENOUGH_CHARS: null,
-      UPPER_CASE: null,
-      LOWER_CASE: null,
-      NON_LETTER: null,
-      REPEAT: null,
-    });
+  const [passwordValid, setPasswordValid] = useState(false);
+
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [dontCreateBusiness, setDontCreateBusiness] = useState(false);
   const [createBusiness, setCreateBusiness] = useState(false);
-  // const [detailsDone, setDetailsDone] = useState(false);
 
   const colors = useThemeColor();
 
@@ -88,28 +64,10 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
       UpdateDetailsFieldsMutationVariables
     >(UPDATE_DETAILS_FIELDS);
 
-  const onChangePassword = (password: string) => {
-    const nonLetterRegex = new RegExp(/[!@#$%^&*(),.?":{}|<>\d]/);
-    const repeatingRegex = new RegExp(/(.)\1{2,}/);
-    const validationResult: PasswordValidationType = {
-      ENOUGH_CHARS: password.length >= 8,
-      UPPER_CASE: password !== password.toLowerCase(),
-      LOWER_CASE: password !== password.toUpperCase(),
-      NON_LETTER: nonLetterRegex.test(password),
-      REPEAT: !repeatingRegex.test(password),
-    };
-
-    setPwValidationResult(validationResult);
-    setPassword(password);
-  };
-
   const canContinue = () => {
-    const passwordCorrect = Object.values(pwValidationResult).every(
-      (res) => !!res,
-    );
     const usernameCorrect = !!username;
     return (
-      passwordCorrect &&
+      passwordValid &&
       usernameCorrect &&
       termsAccepted &&
       !loading &&
@@ -330,64 +288,11 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                   ]}
                 />
               </View>
-              <View>
-                <Form
-                  fields={[
-                    {
-                      type: "masked",
-                      heading: "Välj ett lösenord",
-                      value: password,
-                      onChange: (v) => onChangePassword(v),
-                      disabled: loading,
-                    },
-                  ]}
-                />
-                <Body
-                  size="small"
-                  style={{ marginTop: 12, marginBottom: 16 }}
-                  color="secondary"
-                >
-                  Se till att ditt lösenord innehåller följande:
-                </Body>
-                <View style={{ gap: 4 }}>
-                  {Object.keys(PasswordRequirementEnum).map((key, i) => {
-                    const req: PasswordRequirementEnum =
-                      key as PasswordRequirementEnum;
-
-                    return (
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                        key={i}
-                      >
-                        {pwValidationResult[req] === null && (
-                          <>
-                            <Icon icon="bullet" size={14} />
-                            <Body size="small" color="secondary">
-                              {PasswordReuirementText[req]}
-                            </Body>
-                          </>
-                        )}
-                        {pwValidationResult[req] === false && (
-                          <>
-                            <Icon icon="X" color="error" size={14} />
-                            <Body size="small" color="error">
-                              {PasswordReuirementText[req]}
-                            </Body>
-                          </>
-                        )}
-                        {pwValidationResult[req] === true && (
-                          <>
-                            <Icon icon="check" color="success" size={14} />
-                            <Body size="small" color="success">
-                              {PasswordReuirementText[req]}
-                            </Body>
-                          </>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
+              <CreatePassword
+                password={password}
+                onChangePassword={setPassword}
+                onChangeValidity={setPasswordValid}
+              />
               <View
                 style={{
                   flexDirection: "row",

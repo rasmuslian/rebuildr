@@ -540,6 +540,7 @@ export default function Profile() {
         }
       >
         <UserCard
+          userType={data.user.type}
           profilePictureUrl={
             profilePicture?.uri ?? data.user.profilePicture?.url
           }
@@ -596,6 +597,7 @@ export default function Profile() {
       }
     >
       <UserCard
+        userType={data.user.type}
         profilePictureUrl={data.user.profilePicture?.url}
         username={data.user.username}
         numberOfPublishedProducts={data.user.numberOfPublishedProducts}

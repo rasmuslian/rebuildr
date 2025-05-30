@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import {
   AuthResponseStatusEnum,
+  IListPayoutAccountsResponse,
   PauseStateEnum,
   PayoutMethodEnum,
 } from 'src/apis/types/rocker-types';
@@ -14,6 +15,7 @@ import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import {
   CreatePayoutAccountInput,
   CreatePayoutAccountResponse,
+  SelectPayoutMethodInput,
 } from 'src/resolvers/rocker.resolver';
 import { Logger } from 'winston';
 
@@ -307,10 +309,8 @@ export class RockerService {
       failureUrl,
       user.rockerUserId,
     );
-    user.selectedPayoutMethod = PayoutAccountEnum.TRUSTLY;
-    const updatedUser = await this.userRepository.save(user);
     return {
-      user: updatedUser,
+      user,
       url: response.selectAccountUrl,
     };
   }
@@ -357,6 +357,56 @@ export class RockerService {
     user.payoutAccountPlusGiroId = response.id;
     user.selectedPayoutMethod = PayoutAccountEnum.PLUSGIRO;
     return await this.userRepository.save(user);
+  }
+
+  async setSelectedPayoutMethod(
+    input: SelectPayoutMethodInput,
+    currentUserId: string,
+  ) {
+    return await this.userRepository.save({
+      id: currentUserId,
+      selectedPayoutMethod: input.method,
+    });
+  }
+
+  async getPayoutAccounts(user: User) {
+    if (!user?.rockerUserId) {
+      throw BadUserInputException();
+    }
+
+    const response: IListPayoutAccountsResponse =
+      await this.rockerApi.payoutAccounts(user.rockerUserId);
+
+    const accounts: {
+      provider: PayoutMethodEnum;
+      bankName?: string;
+      accountName?: string;
+      phoneNumber?: string;
+    }[] = response.accounts.map((account) => {
+      return {
+        provider: account.provider,
+        bankName: account.bankName,
+        accountName:
+          account.provider !== PayoutMethodEnum.SWISH
+            ? account.accountName
+            : undefined,
+        phoneNumber:
+          account.provider === PayoutMethodEnum.SWISH
+            ? account.accountName
+            : undefined,
+      };
+    });
+
+    //Rocker don't register Trustly as a payoutAccount in development environment
+    //This makes sure to inlude Trustly if the user has it as a selected payout method
+    if (
+      process.env.NODE_ENV === 'development' &&
+      user.selectedPayoutMethod === PayoutAccountEnum.TRUSTLY
+    ) {
+      accounts.push({ provider: PayoutMethodEnum.TRUSTLY });
+    }
+
+    return accounts;
   }
 
   async createPayout(paymentId: string, seller: User, logger: Logger) {
