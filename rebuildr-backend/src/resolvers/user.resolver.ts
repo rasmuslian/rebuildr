@@ -180,6 +180,12 @@ export class UserResolver {
     return await this.userService.createOrganizationUser(input);
   }
 
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async deleteAccount(@CurrentUser() user: AuthedUserType) {
+    return await this.userService.delete(user.id, user.id);
+  }
+
   @ResolveField(() => File, { nullable: true })
   async profilePicture(
     @Parent() user: User,

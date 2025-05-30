@@ -114,7 +114,7 @@ export class User {
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
 
-  @OneToMany(() => Product, (product) => product)
+  @OneToMany(() => Product, (product) => product.seller)
   products: Product[];
 
   @Field(() => UserRoleEnum, { middleware: [UserProtectedMiddleware] })

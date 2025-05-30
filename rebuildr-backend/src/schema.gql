@@ -285,6 +285,7 @@ enum ProductStatusEnum {
   DRAFT
   PUBLISHED
   SOLD
+  DELETED
 }
 
 type ResendVerificationMailResponse {
@@ -528,6 +529,7 @@ type Mutation {
   newPassword(input: NewPasswordInput!): LoginResponse!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
+  deleteAccount: User!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
