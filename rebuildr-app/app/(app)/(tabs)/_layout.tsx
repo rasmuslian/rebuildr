@@ -65,7 +65,6 @@ export default function TabLayout() {
         name="sell-product"
         options={{
           ...tabOptions("newListing", "Ny annons"),
-          tabBarStyle: { display: "none" },
         }}
       />
       <Tabs.Screen

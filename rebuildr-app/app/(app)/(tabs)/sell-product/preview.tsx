@@ -134,11 +134,7 @@ export default function Preview() {
         },
       },
       onCompleted: () => {
-        if (router.canDismiss()) {
-          router.dismissAll();
-        } else {
-          router.replace("/");
-        }
+        router.replace("/");
       },
     });
   };
@@ -182,9 +178,7 @@ export default function Preview() {
           <Button
             icon="arrowLeft"
             label="Tillbaka"
-            onPress={() =>
-              router.navigate("/(app)/sell-product/transportation")
-            }
+            onPress={() => router.navigate("/sell-product/transportation")}
           />
           <Button
             label="Publicera annons"

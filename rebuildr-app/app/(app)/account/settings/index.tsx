@@ -48,7 +48,7 @@ export default function Settings() {
         label="Radera ditt RebuildRkonto"
         body="Ta bort ditt konto och all tillhörande data."
         onPress={() => {
-          //TODO: navigate to delete account
+          router.navigate("/account/settings/delete-account");
         }}
       />
     </ScreenLayout>
