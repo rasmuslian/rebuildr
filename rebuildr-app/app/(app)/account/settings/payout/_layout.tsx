@@ -27,7 +27,7 @@ export default function Layout() {
       return;
     }
 
-    //Make sure to skip route "index" in case user is Business
+    //Make sure to skip route bankId screens in case user is Business
     if (
       data.me.type === UserType.Business &&
       (pathname === "/sell-product/payout/change-method" ||
