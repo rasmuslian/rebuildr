@@ -36,7 +36,7 @@ export class CategoryService {
       return [];
     }
     if (input.parentIds) {
-      queryBuilder.where('parent_id IN (:...parentIds)', {
+      queryBuilder.where('"parentId" IN (:...parentIds)', {
         parentIds: input.parentIds,
       });
     }

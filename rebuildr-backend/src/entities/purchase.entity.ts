@@ -107,19 +107,19 @@ export class Purchase {
     generatedType: 'STORED',
     asExpression: `
       CASE
-        WHEN "failed_at" IS NOT NULL THEN '${PurchaseStatusEnum.FINISHED_FAILED}'::purchase_status_enum
-        WHEN "payout_received_at" IS NOT NULL THEN '${PurchaseStatusEnum.FINISHED_SUCCESS}'::purchase_status_enum
-        WHEN "payout_failed_at" IS NOT NULL THEN '${PurchaseStatusEnum.PAYOUT_FAILED}'::purchase_status_enum
-        WHEN "payout_started_at" IS NOT NULL THEN '${PurchaseStatusEnum.PAYOUT_STARTED}'::purchase_status_enum
-        WHEN "approved_at" IS NOT NULL THEN '${PurchaseStatusEnum.APPROVED}'::purchase_status_enum
-        WHEN "paused_at" IS NOT NULL THEN '${PurchaseStatusEnum.PAUSED}'::purchase_status_enum
-        WHEN "delivered_at" IS NOT NULL THEN '${PurchaseStatusEnum.DELIVERED}'::purchase_status_enum
-        WHEN "shipment_delivered_at" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPPING_DELIVERED}'::purchase_status_enum
-        WHEN "shipment_started_at" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPPING_STARTED}'::purchase_status_enum
-        WHEN "shipment_dropped_off_at" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_DROPPED_OFF}'::purchase_status_enum
-        WHEN "shipment_booked_at" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_BOOKED}'::purchase_status_enum
-        WHEN "payment_accepted_at" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_ACCEPTED}'::purchase_status_enum
-        WHEN "payment_sent_at" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_SENT}'::purchase_status_enum
+        WHEN "failedAt" IS NOT NULL THEN '${PurchaseStatusEnum.FINISHED_FAILED}'::purchase_status_enum
+        WHEN "payoutReceivedAt" IS NOT NULL THEN '${PurchaseStatusEnum.FINISHED_SUCCESS}'::purchase_status_enum
+        WHEN "payoutFailedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYOUT_FAILED}'::purchase_status_enum
+        WHEN "payoutStartedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYOUT_STARTED}'::purchase_status_enum
+        WHEN "approvedAt" IS NOT NULL THEN '${PurchaseStatusEnum.APPROVED}'::purchase_status_enum
+        WHEN "pausedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAUSED}'::purchase_status_enum
+        WHEN "deliveredAt" IS NOT NULL THEN '${PurchaseStatusEnum.DELIVERED}'::purchase_status_enum
+        WHEN "shipmentDeliveredAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPPING_DELIVERED}'::purchase_status_enum
+        WHEN "shipmentStartedAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPPING_STARTED}'::purchase_status_enum
+        WHEN "shipmentDroppedOffAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_DROPPED_OFF}'::purchase_status_enum
+        WHEN "shipmentBookedAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_BOOKED}'::purchase_status_enum
+        WHEN "paymentAcceptedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_ACCEPTED}'::purchase_status_enum
+        WHEN "paymentSentAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_SENT}'::purchase_status_enum
         ELSE '${PurchaseStatusEnum.CLAIMED}'::purchase_status_enum
       END
     `,

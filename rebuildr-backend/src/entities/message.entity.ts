@@ -18,7 +18,7 @@ export class Message {
   id: string;
 
   @Type(() => Date)
-  @Expose({ name: 'created_at' })
+  @Expose({ name: 'createdAt' })
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
@@ -27,7 +27,7 @@ export class Message {
   @Column()
   body: string;
 
-  @Expose({ name: 'sender_id' })
+  @Expose({ name: 'senderId' })
   @Field(() => ID)
   @Column()
   senderId: string;
@@ -35,7 +35,7 @@ export class Message {
   @ManyToOne(() => User, (user) => user.id)
   sender: User;
 
-  @Expose({ name: 'receiver_id' })
+  @Expose({ name: 'receiverId' })
   @Field(() => ID)
   @Column()
   receiverId: string;
@@ -43,7 +43,7 @@ export class Message {
   @ManyToOne(() => User, (user) => user.id)
   receiver: User;
 
-  @Expose({ name: 'product_id' })
+  @Expose({ name: 'productId' })
   @Column()
   productId: string;
 

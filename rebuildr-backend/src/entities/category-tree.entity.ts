@@ -5,15 +5,15 @@ import { ViewColumn, ViewEntity } from 'typeorm';
  * a recursive view decorator it was necessary to create is separately in a migration
  * and let this view SELECT the true view.
  * 
- * CREATE RECURSIVE VIEW category_tree (id, ancestor_ids) AS (
+  CREATE RECURSIVE VIEW category_tree (id, "ancestorIds") AS (
     SELECT id, '{}'::uuid[]
     FROM category 
-    WHERE parent_id IS NULL
+    WHERE "parentId" IS NULL
   UNION ALL
-    SELECT c.id, t.ancestor_ids || c.parent_id
+    SELECT c.id, t."ancestorIds" || c."parentId"
     FROM category c, category_tree t
-    WHERE c.parent_id = t.id
-)
+    WHERE c."parentId" = t.id
+  )
 */
 @ViewEntity({
   expression: `
