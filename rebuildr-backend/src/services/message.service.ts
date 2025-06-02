@@ -35,20 +35,20 @@ export class MessageService {
 	    ARRAY_AGG(to_json(m)) as messages
     FROM (
 	    SELECT
-		    CASE WHEN '${input.primaryUserId}' = receiver_id THEN
-			    sender_id
+		    CASE WHEN '${input.primaryUserId}' = "receiverId" THEN
+			    "senderId"
 		    ELSE
-			    receiver_id
-	    	END other_user_id,
+			    "receiverId"
+	    	END "otherUserId",
 		      m
 	    FROM
 		    message m
-	    WHERE (sender_id = '${input.primaryUserId}'
-		    AND receiver_id = '${input.otherUserId}')
-	      OR(receiver_id = '${input.primaryUserId}'
-		    AND sender_id = '${input.otherUserId}')
-	      AND product_id = '${input.productId}') AS messages
-      LEFT JOIN "user" other on other.id = messages.other_user_id
+	    WHERE ("senderId" = '${input.primaryUserId}'
+		    AND "receiverId" = '${input.otherUserId}')
+	      OR("receiverId" = '${input.primaryUserId}'
+		    AND "senderId" = '${input.otherUserId}')
+	      AND "productId" = '${input.productId}') AS messages
+      LEFT JOIN "user" other on other.id = messages."otherUserId"
       GROUP by other.id
     `);
     return conversationRaw.map((data) => {
@@ -68,21 +68,21 @@ export class MessageService {
     SELECT
       row_to_json(other) as "otherUser",
       row_to_json(product) as product,
-      max(conversations.created_at) as "latestMessageAt"
+      max(conversations."createdAt") as "latestMessageAt"
     FROM (
       SELECT
-        CASE WHEN '${input.id}' = receiver_id THEN
-          sender_id
+        CASE WHEN '${input.id}' = "receiverId" THEN
+          "senderId"
         ELSE
-          receiver_id
-        END other_user_id,
+          "receiverId"
+        END "otherUserId",
         *
       FROM
         message m
       WHERE
-        receiver_id = '${input.id}' OR sender_id = '${input.id}') AS conversations
-    LEFT JOIN "user" other on other.id = other_user_id
-    LEFT JOIN product on product.id = product_id
+        "receiverId" = '${input.id}' OR "senderId" = '${input.id}') AS conversations
+    LEFT JOIN "user" other on other.id = "otherUserId"
+    LEFT JOIN product on product.id = "productId"
     GROUP BY
       other.id,
       product.id

@@ -59,8 +59,8 @@ export class SearchResultService {
     await this.dataSource.query(
       `UPDATE search_result 
        SET 
-        deleted_at = NOW()
-        WHERE searcher_id = $1`,
+        "deletedAt" = NOW()
+        WHERE "searcherId" = $1`,
       [userId],
     );
     return true;

@@ -403,16 +403,16 @@ export class ProductService {
         throw BadUserInputException('Invalid user');
       }
       if (user.role !== UserRoleEnum.ADMIN) {
-        query.andWhere('hidden_reason IS NULL');
+        query.andWhere('"hiddenReason" IS NULL');
       }
     } else {
-      query.andWhere('hidden_reason IS NULL');
+      query.andWhere('"hiddenReason" IS NULL');
     }
 
     query.andWhere(`status = 'PUBLISHED'`);
 
     if (input.sellerId) {
-      query.andWhere('seller_id = :sellerId', { sellerId: input.sellerId });
+      query.andWhere('"sellerId" = :sellerId', { sellerId: input.sellerId });
     }
 
     if (input.searchString) {
@@ -420,9 +420,9 @@ export class ProductService {
         .addCommonTableExpression(
           `SELECT 
             p.id,
-            ts_rank(p.text_search, plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
+            ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
           FROM product p
-          WHERE p.text_search @@ plainto_tsquery(:searchString) 
+          WHERE p."textSearch" @@ plainto_tsquery(:searchString) 
             OR similarity(p.title, :searchString) > 0
           `,
           'ranked_products',
@@ -460,8 +460,8 @@ export class ProductService {
         //If product has a project, use the project's address
         const product_address_location = `
         case
-          WHEN p.project_id IS NOT NULL then (select address_location from project pj where pj.id = p.project_id)
-          ELSE p.address_location
+          WHEN p."projectId" IS NOT NULL then (select "addressLocation" from project pj where pj.id = p."projectId")
+          ELSE p."addressLocation"
         END
         `;
 
@@ -471,7 +471,7 @@ export class ProductService {
         );
       }
       query.addSelect(
-        'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+        'st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID("addressLocation")))',
         'distance_from_position',
       );
 
@@ -480,9 +480,9 @@ export class ProductService {
 
     //Transportation
     query.andWhere(`
-      (${input.pickup === false ? 'FALSE' : 'p.pickup_enabled = TRUE'} 
-OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE product_id = p.id)'}
-OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
+      (${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'} 
+OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
+OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
 
     //Include products based on category criterias
     if (
@@ -490,33 +490,33 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
       input.selectionCategories ||
       input.seasonalCategories
     ) {
-      query.innerJoin('category', 'c', 'category_id = c.id');
+      query.innerJoin('category', 'c', '"categoryId" = c.id');
 
       if (!input.categoryIds.length) {
         query.andWhere('c.id IS NULL');
       }
       if (input.categoryIds.length) {
         query.andWhere(
-          'c.id IN (:...categoryIds) OR c.parent_id IN (:...categoryIds)',
+          'c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds)',
           {
             categoryIds: input.categoryIds,
           },
         );
       } else if (input.selectionCategories) {
-        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
-        query.andWhere('c.in_selection OR parent.in_selection');
+        query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+        query.andWhere('c."inSelection" OR parent."inSelection"');
       } else {
-        query.leftJoin('category', 'parent', 'parent.id = c.parent_id');
-        query.andWhere('c.in_season OR parent.in_season');
+        query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+        query.andWhere('c."inSeason" OR parent."inSeason"');
       }
     }
 
     if (input.brandIds) {
       if (!input.brandIds.length) {
-        query.andWhere('p.brand_id IS NULL');
+        query.andWhere('p."brandId" IS NULL');
       }
       if (input.brandIds.length) {
-        query.andWhere('p.brand_id IN (:...brandIds)', {
+        query.andWhere('p."brandId" IN (:...brandIds)', {
           brandIds: input.brandIds,
         });
       }
@@ -546,7 +546,7 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
     }
 
     if (input.giveaway) {
-      query.andWhere('is_giveaway = TRUE');
+      query.andWhere('"isGiveaway" = TRUE');
     }
 
     switch (input.orderBy) {
@@ -577,7 +577,7 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
           origin !== undefined
         ) {
           query.orderBy(
-            'st_distancesphere(address_location, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(address_location)))',
+            'st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID("addressLocation")))',
           );
         }
         break;
@@ -591,29 +591,14 @@ OR ${input.delivery === false ? 'FALSE' : 'p.delivery_enabled = TRUE'})`);
     query.offset((offset ?? 0) * limit);
     query.addSelect('count(*) over() as total');
 
-    const result = await query.getRawMany();
-
-    //Mapping result into Product.
-    //Since we fetch with 'getRawMany' all fields which belong to the Product table
-    //will be snake case and prefixed with 'p_'
-    const mappedObjects = result.map((rawProduct) => {
-      const prodObj = Object.entries(rawProduct).reduce((acc, entry) => {
-        const [key, value] = entry;
-        const removedPrefix = key.replace(/^p_/, '');
-        const camelCaseKey = removedPrefix.replace(/(_\w)/g, function (match) {
-          return match[1].toUpperCase();
-        });
-        return { ...acc, [camelCaseKey]: value };
-      }, {});
-      return prodObj;
-    });
+    const result = await query.getManyAndCount();
 
     return {
-      products: mappedObjects,
+      products: result[0],
       origin: origin
         ? { lat: origin.coordinates[0], lng: origin.coordinates[1] }
         : null,
-      total: result[0]?.total ?? 0,
+      total: result[1],
     };
   }
 
