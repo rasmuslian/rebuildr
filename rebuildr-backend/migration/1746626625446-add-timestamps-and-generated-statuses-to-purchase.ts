@@ -4,6 +4,7 @@ export class AddTimestampsAndGeneratedStatusesToPurchase1746626625446 implements
     name = 'AddTimestampsAndGeneratedStatusesToPurchase1746626625446'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+      const dbName = process.env.DB_NAME;
         await queryRunner.query(`ALTER TABLE "purchase" DROP COLUMN "payment_sent_to_rocker_at"`);
         await queryRunner.query(`ALTER TABLE "purchase" DROP COLUMN "payment_accepted_by_rocker_at"`);
         await queryRunner.query(`ALTER TABLE "purchase" DROP COLUMN "disapproved_at"`);
@@ -34,11 +35,12 @@ export class AddTimestampsAndGeneratedStatusesToPurchase1746626625446 implements
         ELSE 'CLAIMED'::purchase_status_enum
       END
     ) STORED NOT NULL`);
-        await queryRunner.query(`INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES ($1, $2, $3, $4, $5, $6)`, ["postgres","public","purchase","GENERATED_COLUMN","status","\n      CASE\n        WHEN \"failed_at\" IS NOT NULL THEN 'FINISHED_FAILED'::purchase_status_enum\n        WHEN \"payout_received_at\" IS NOT NULL THEN 'FINISHED_SUCCESS'::purchase_status_enum\n        WHEN \"payout_failed_at\" IS NOT NULL THEN 'PAYOUT_FAILED'::purchase_status_enum\n        WHEN \"payout_started_at\" IS NOT NULL THEN 'PAYOUT_STARTED'::purchase_status_enum\n        WHEN \"approved_at\" IS NOT NULL THEN 'APPROVED'::purchase_status_enum\n        WHEN \"paused_at\" IS NOT NULL THEN 'PAUSED'::purchase_status_enum\n        WHEN \"delivered_at\" IS NOT NULL THEN 'DELIVERED'::purchase_status_enum\n        WHEN \"shipment_delivered_at\" IS NOT NULL THEN 'SHIPPING_DELIVERED'::purchase_status_enum\n        WHEN \"shipment_started_at\" IS NOT NULL THEN 'SHIPPING_STARTED'::purchase_status_enum\n        WHEN \"shipment_dropped_off_at\" IS NOT NULL THEN 'SHIPMENT_DROPPED_OFF'::purchase_status_enum\n        WHEN \"shipment_booked_at\" IS NOT NULL THEN 'SHIPMENT_BOOKED'::purchase_status_enum\n        WHEN \"payment_accepted_at\" IS NOT NULL THEN 'PAYMENT_ACCEPTED'::purchase_status_enum\n        WHEN \"payment_sent_at\" IS NOT NULL THEN 'PAYMENT_SENT'::purchase_status_enum\n        ELSE 'CLAIMED'::purchase_status_enum\n      END\n    "]);
+        await queryRunner.query(`INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES ($1, $2, $3, $4, $5, $6)`, [dbName,"public","purchase","GENERATED_COLUMN","status","\n      CASE\n        WHEN \"failed_at\" IS NOT NULL THEN 'FINISHED_FAILED'::purchase_status_enum\n        WHEN \"payout_received_at\" IS NOT NULL THEN 'FINISHED_SUCCESS'::purchase_status_enum\n        WHEN \"payout_failed_at\" IS NOT NULL THEN 'PAYOUT_FAILED'::purchase_status_enum\n        WHEN \"payout_started_at\" IS NOT NULL THEN 'PAYOUT_STARTED'::purchase_status_enum\n        WHEN \"approved_at\" IS NOT NULL THEN 'APPROVED'::purchase_status_enum\n        WHEN \"paused_at\" IS NOT NULL THEN 'PAUSED'::purchase_status_enum\n        WHEN \"delivered_at\" IS NOT NULL THEN 'DELIVERED'::purchase_status_enum\n        WHEN \"shipment_delivered_at\" IS NOT NULL THEN 'SHIPPING_DELIVERED'::purchase_status_enum\n        WHEN \"shipment_started_at\" IS NOT NULL THEN 'SHIPPING_STARTED'::purchase_status_enum\n        WHEN \"shipment_dropped_off_at\" IS NOT NULL THEN 'SHIPMENT_DROPPED_OFF'::purchase_status_enum\n        WHEN \"shipment_booked_at\" IS NOT NULL THEN 'SHIPMENT_BOOKED'::purchase_status_enum\n        WHEN \"payment_accepted_at\" IS NOT NULL THEN 'PAYMENT_ACCEPTED'::purchase_status_enum\n        WHEN \"payment_sent_at\" IS NOT NULL THEN 'PAYMENT_SENT'::purchase_status_enum\n        ELSE 'CLAIMED'::purchase_status_enum\n      END\n    "]);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DELETE FROM "typeorm_metadata" WHERE "type" = $1 AND "name" = $2 AND "database" = $3 AND "schema" = $4 AND "table" = $5`, ["GENERATED_COLUMN","status","postgres","public","purchase"]);
+        const dbName = process.env.DB_NAME;
+        await queryRunner.query(`DELETE FROM "typeorm_metadata" WHERE "type" = $1 AND "name" = $2 AND "database" = $3 AND "schema" = $4 AND "table" = $5`, ["GENERATED_COLUMN","status",dbName,"public","purchase"]);
         await queryRunner.query(`ALTER TABLE "purchase" DROP COLUMN "status"`);
         await queryRunner.query(`DROP TYPE "public"."purchase_status_enum"`);
         await queryRunner.query(`ALTER TABLE "purchase" DROP COLUMN "payout_failed_at"`);
