@@ -31,7 +31,7 @@ export const quantities: { [key in QuantityUnitEnum]: { short: string } } = {
   [QuantityUnitEnum.Packages]: {
     short: "fpk",
   },
-  [QuantityUnitEnum.Discs]: {
+  [QuantityUnitEnum.Boards]: {
     short: "skivor",
   },
   [QuantityUnitEnum.Kg]: {
