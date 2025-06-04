@@ -106,7 +106,7 @@ export const CategorySection = ({
           Hjälpguide för kategorival.
         </Body>
       </Body>
-      <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 24, gap: 16 }}>
         {data?.category.children.map((c, i) => (
           <View
             key={i}

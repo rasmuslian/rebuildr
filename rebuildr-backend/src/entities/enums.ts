@@ -9,9 +9,9 @@ export enum QuantityUnitEnum {
   M3 = 'M3',
   LITERS = 'LITERS',
   CANS = 'CANS',
-  PLATES = 'PLATTOR',
+  PLATES = 'PLATES',
   PACKAGES = 'PACKAGES',
-  DISCS = 'DISCS',
+  BOARDS = 'BOARDS',
   KG = 'KG',
 }
 export const quantityUnitEnumName = 'quantity_unit_enum';

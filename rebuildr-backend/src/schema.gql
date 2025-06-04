@@ -196,7 +196,7 @@ enum QuantityUnitEnum {
   CANS
   PLATES
   PACKAGES
-  DISCS
+  BOARDS
   KG
 }
 

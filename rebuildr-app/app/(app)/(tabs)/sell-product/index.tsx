@@ -132,26 +132,28 @@ type ProductFields = {
 export default function SellProduct() {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
-  const { data } = useQuery<SellProductQueryQuery>(SELL_PRODUCT_QUERY, {
-    onCompleted: async (data) => {
-      //User must have a payout method to be able to sell
-      if (!data.me.selectedPayoutMethod) {
-        router.replace("/sell-product/payout");
-        return;
-      }
-      const product = data.getDraftedProduct;
-      if (!product) {
-        //if drafted product does not exist, create a draft
-        createDraft({
-          onCompleted: (data) => {
-            productToState(data.createDraftProduct);
-          },
-        });
-        return;
-      }
-      await productToState(product);
+  const { data, refetch } = useQuery<SellProductQueryQuery>(
+    SELL_PRODUCT_QUERY,
+    {
+      notifyOnNetworkStatusChange: true, //necessary for the onCompleted to trigger during refetch
+      onCompleted: async (data) => {
+        //User must have a payout method to be able to sell
+        if (!data.me.selectedPayoutMethod) {
+          router.replace("/sell-product/payout");
+          return;
+        }
+        const product = data.getDraftedProduct;
+        if (!product) {
+          //if drafted product does not exist, create a draft
+          createDraft({
+            onCompleted: () => refetch(),
+          });
+          return;
+        }
+        await productToState(product);
+      },
     },
-  });
+  );
   const [updateProduct, { loading: updating }] = useMutation<
     SellProductUpdateMutation,
     SellProductUpdateMutationVariables
