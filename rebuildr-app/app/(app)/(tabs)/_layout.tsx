@@ -1,21 +1,35 @@
+import { isLoggedInVar } from "@/apollo/config";
 import { Label } from "@components/typography/text";
+import { LoginModalContext } from "@context/loginModalContext";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
-import { Tabs } from "expo-router";
-import { View } from "react-native";
+import { Href, router, Tabs, usePathname } from "expo-router";
+import { useContext } from "react";
+import { Pressable, View } from "react-native";
 
 export default function TabLayout() {
   const colors = useThemeColor();
+  const isLoggedIn = isLoggedInVar();
+  const { setVisible } = useContext(LoginModalContext);
+  const pathName = usePathname();
 
-  const tabOptions = (icon: IconType, label: string) => {
-    return {
-      tabBarIcon: ({
-        focused,
-      }: {
-        focused: boolean;
-        color: string;
-        size: number;
-      }) => (
+  const renderTabButton = (
+    label: string,
+    icon: IconType,
+    href?: string,
+    loginRequired: boolean = false,
+  ) => {
+    return (
+      <Pressable
+        style={{ alignSelf: "center" }}
+        onPress={() => {
+          if (!isLoggedIn && loginRequired) {
+            setVisible(true);
+          } else {
+            router.navigate(href as Href);
+          }
+        }}
+      >
         <View
           style={[
             {
@@ -23,18 +37,22 @@ export default function TabLayout() {
               paddingHorizontal: 20,
               paddingVertical: 4,
             },
-            focused && { backgroundColor: colors.navigation.enabled },
+            pathName === href && {
+              backgroundColor: colors.navigation.enabled,
+            },
           ]}
         >
           <Icon icon={icon} customColor={colors.logo.vector} />
         </View>
-      ),
-      tabBarLabel: () => (
-        <Label size="small" color="secondary" style={{ marginTop: 4 }}>
+        <Label
+          size="small"
+          color="secondary"
+          style={{ marginTop: 4, textAlign: "center" }}
+        >
           {label}
         </Label>
-      ),
-    };
+      </Pressable>
+    );
   };
 
   return (
@@ -52,31 +70,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          ...tabOptions("home", "Hem"),
+          tabBarButton: (props) => renderTabButton("Hem", "home", props.href),
         }}
       />
       <Tabs.Screen
         name="categories/index"
         options={{
-          ...tabOptions("categories", "Kategorier"),
+          tabBarButton: (props) =>
+            renderTabButton("Kategorier", "categories", props.href),
         }}
       />
       <Tabs.Screen
         name="sell-product"
         options={{
-          ...tabOptions("newListing", "Ny annons"),
+          tabBarButton: (props) =>
+            renderTabButton("Ny annons", "newListing", props.href, true),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          ...tabOptions("search", "Hitta"),
+          tabBarButton: (props) =>
+            renderTabButton("Hitta", "search", props.href),
         }}
       />
       <Tabs.Screen
         name="inbox/index"
         options={{
-          ...tabOptions("message", "Inkorg"),
+          tabBarButton: (props) =>
+            renderTabButton("Inkorg", "message", props.href, true),
         }}
       />
     </Tabs>
