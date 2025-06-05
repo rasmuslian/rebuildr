@@ -22,7 +22,7 @@ export const ImageCarousel = ({ images }: Props) => {
         }}
       >
         <Image
-          source={images[0].url}
+          source={images[0]?.url}
           contentFit="contain"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
