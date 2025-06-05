@@ -586,12 +586,13 @@ export default function Profile() {
                   },
                 ]
               : []),
-            {
-              icon: "upload",
-              onPress: () => {
-                //TODO: share profile
-              },
-            },
+            //Hide share button until implemented
+            // {
+            //   icon: "upload",
+            //   onPress: () => {
+            //     //TODO: share profile
+            //   },
+            // },
           ]}
         />
       }
