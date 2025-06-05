@@ -4,7 +4,6 @@ import {
   ProductViewLikeProductMutationVariables,
   ProductViewQuery,
   ProductViewQueryVariables,
-  UserType,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
@@ -409,7 +408,10 @@ export default function Product() {
             icon="arrowRight"
             type="text"
             onPress={() => {
-              //TODO: navigate to profile with product tab selected
+              router.navigate({
+                pathname: "/account/profile",
+                params: { userId: data.product.seller.id },
+              });
             }}
           />
         </View>
