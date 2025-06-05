@@ -1,6 +1,6 @@
 import {
-  DeliveryQuerQuery,
-  DeliveryQuerQueryVariables,
+  DeliveryQueryQuery,
+  DeliveryQueryQueryVariables,
   DeliveryUpdateMutation,
   DeliveryUpdateMutationVariables,
 } from "@/gql/graphql";
@@ -22,7 +22,7 @@ import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { meterToKilometer } from "@/utils/conversions";
 
 const DELIVERY_QUERY = gql`
-  query DeliveryQuer($input: GetProductInput!) {
+  query DeliveryQuery($input: GetProductInput!) {
     product(input: $input) {
       id
       address
@@ -113,8 +113,8 @@ export const Delivery = ({
   const [isMyLocation, setIsMyLocation] = useState(false);
   const colors = useThemeColor();
   const { data } = useSuspenseQuery<
-    DeliveryQuerQuery,
-    DeliveryQuerQueryVariables
+    DeliveryQueryQuery,
+    DeliveryQueryQueryVariables
   >(DELIVERY_QUERY, {
     variables: { input: { id: productId } },
   });

@@ -4,15 +4,17 @@ import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { IconType } from "@icons/icon";
 import { router } from "expo-router";
+import { PropsWithChildren, ReactElement } from "react";
 import { View } from "react-native";
 
 type Props = {
   title?: string;
   CTA?: { icon: IconType; onPress: () => void }[];
   onBack?: () => void;
-};
+  middle?: ReactElement;
+} & PropsWithChildren;
 
-export const Header = ({ title, CTA, onBack }: Props) => {
+export const Header = ({ title, CTA, onBack, middle }: Props) => {
   const colors = useThemeColor();
 
   return (
@@ -33,6 +35,7 @@ export const Header = ({ title, CTA, onBack }: Props) => {
             flexDirection: "row",
             gap: 6,
             alignItems: "center",
+            marginLeft: -12,
           },
         ]}
       >
@@ -48,6 +51,7 @@ export const Header = ({ title, CTA, onBack }: Props) => {
           type="text"
         />
         {title && <Title size="medium">{title}</Title>}
+        {!title && middle}
       </View>
       <View
         style={[
@@ -55,6 +59,7 @@ export const Header = ({ title, CTA, onBack }: Props) => {
             flexDirection: "row",
             gap: 6,
             alignItems: "center",
+            marginRight: -12,
           },
         ]}
       >

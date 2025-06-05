@@ -82,7 +82,15 @@ export default function Landing() {
   };
 
   return (
-    <View style={{ alignItems: "center", gap: 16, marginTop: 20 }}>
+    <View
+      style={{
+        alignItems: "center",
+        gap: 16,
+        paddingTop: 20,
+        backgroundColor: colors.background.neutral,
+        flex: 1,
+      }}
+    >
       <Title>Landningssidan</Title>
 
       {!data?.me && (

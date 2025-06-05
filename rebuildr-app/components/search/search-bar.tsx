@@ -76,6 +76,7 @@ export const SearchBar = ({
             overflow: "visible",
             flexGrow: 1,
             ...(!value ? textStyles.label.large : textStyles.title.medium),
+            color: colors.text.primaryDark,
             lineHeight: undefined,
           }}
         />
