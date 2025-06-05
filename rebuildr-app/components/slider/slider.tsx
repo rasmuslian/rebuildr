@@ -27,6 +27,7 @@ export const Slider = <T,>({
 }: SliderProps<T>) => {
   const colors = useThemeColor();
 
+  const rightCalibration = 16;
   const stepCount = values.length;
   const stepWidth = sliderWidth / (stepCount - 1);
   const indexOfValue = values.findIndex((v) => compareFunction(v, value));
@@ -57,7 +58,14 @@ export const Slider = <T,>({
     });
 
   const animatedThumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [
+      {
+        translateX:
+          translateX.value -
+          //Calibrate thumb position on the last value of the slider so that its not outside the container
+          (indexOfValue === values.length - 1 ? rightCalibration : 0),
+      },
+    ],
   }));
   const animatedProgressBarStyle = useAnimatedStyle(() => ({
     width: translateX.value,
@@ -68,7 +76,7 @@ export const Slider = <T,>({
       {/* Container track */}
       <View
         style={{
-          width: sliderWidth + 16,
+          width: sliderWidth + rightCalibration,
           position: "relative",
           justifyContent: "center",
           paddingRight: 8,
