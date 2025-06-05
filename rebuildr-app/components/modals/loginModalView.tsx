@@ -204,6 +204,9 @@ const LoginModalView = () => {
       }}
       backgroundStyle={{
         backgroundColor: colors.background.neutral,
+        borderRadius: ["email", "password", "forgotPassword"].includes(state)
+          ? undefined
+          : 0,
       }}
       backdropComponent={({ style }) => (
         <Pressable
