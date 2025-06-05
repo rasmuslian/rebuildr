@@ -22,6 +22,29 @@ export class AddInitialCategoriesAndBrands1748959612605
         WHERE "name" NOT LIKE 'TEMPORARY CATEGORY';
       `);
 
+    //Create temporary brand
+    queryRunner.query(`
+        INSERT INTO brand("name")
+        VALUES('TEMPORARY BRAND')
+      `);
+
+    //Redirect products to temporary brand
+    queryRunner.query(`
+        UPDATE product
+        SET "brandId" = (SELECT id from brand where "name" = 'TEMPORARY BRAND');
+      `);
+
+    //Delete brand and cateogry connections
+    queryRunner.query(`
+        TRUNCATE category_brands_brand
+      `);
+
+    //Delete all other brands
+    queryRunner.query(`
+        DELETE FROM brand
+        WHERE "name" NOT LIKE 'TEMPORARY BRAND';
+      `);
+
     //Insert brands
     queryRunner.query(`
         INSERT INTO brand("name")
@@ -33,6 +56,18 @@ export class AddInitialCategoriesAndBrands1748959612605
         INSERT INTO brand("name", "type")
         VALUES
         ('Okänt', 'OTHER');
+        `);
+
+    //Redirect products to OTHER brand
+    queryRunner.query(`
+        UPDATE product
+        SET "brandId" = (SELECT id from brand where "name" = 'Okänt');
+      `);
+
+    //Delete temporary brand
+    queryRunner.query(`
+        DELETE FROM brand
+        WHERE "name" LIKE 'TEMPORARY BRAND';
       `);
 
     //Add parent categories. They only have data on name and description
