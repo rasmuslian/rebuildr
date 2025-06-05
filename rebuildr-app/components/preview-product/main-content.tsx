@@ -29,7 +29,7 @@ export const MainContent = ({
   myAddress,
   documents,
 }: Props) => {
-  const [showSpecifics, setShowSpecifics] = useState(true);
+  const [showSpecifics, setShowSpecifics] = useState(false);
 
   const approximatePlace = project
     ? project.approximatePlace
