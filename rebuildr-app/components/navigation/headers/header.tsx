@@ -51,7 +51,7 @@ export const Header = ({ title, CTA, onBack, middle }: Props) => {
           type="text"
         />
         {title && <Title size="medium">{title}</Title>}
-        {!title && middle && middle}
+        {!title && middle}
       </View>
       <View
         style={[
