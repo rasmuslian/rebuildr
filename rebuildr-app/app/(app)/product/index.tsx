@@ -203,6 +203,10 @@ export default function Product() {
     : data.product.approximatePlace;
   const isMyProduct = data.me?.id === data.product.seller.id;
 
+  const otherProducts = data.product.seller.products.filter(
+    (product) => product.id !== data.product.id,
+  );
+
   return (
     <ScreenLayout
       headerComponent={
@@ -374,6 +378,30 @@ export default function Product() {
       </View>
       <Divider />
       {data.product.project && (
+        <>
+          <View style={{ gap: 16 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Headline size="small">Mer från samma projekt</Headline>
+              <Button
+                icon="arrowRight"
+                type="text"
+                onPress={() => {
+                  //TODO: navigate to project
+                }}
+              />
+            </View>
+            <ProjectCard project={data.product.project} />
+          </View>
+          <Divider />
+        </>
+      )}
+      {!!otherProducts.length && (
         <View style={{ gap: 16 }}>
           <View
             style={{
@@ -382,67 +410,47 @@ export default function Product() {
               alignItems: "center",
             }}
           >
-            <Headline size="small">Mer från samma projekt</Headline>
+            <Headline size="small">Mer från samma säljare</Headline>
             <Button
               icon="arrowRight"
               type="text"
               onPress={() => {
-                //TODO: navigate to project
-              }}
-            />
-          </View>
-          <ProjectCard project={data.product.project} />
-        </View>
-      )}
-      <Divider />
-      <View style={{ gap: 16 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Headline size="small">Mer från samma säljare</Headline>
-          <Button
-            icon="arrowRight"
-            type="text"
-            onPress={() => {
-              router.navigate({
-                pathname: "/account/profile",
-                params: { userId: data.product.seller.id },
-              });
-            }}
-          />
-        </View>
-        <FlatList
-          showsHorizontalScrollIndicator={false}
-          style={{
-            paddingBottom: 24,
-          }}
-          data={data.product.seller.products}
-          contentContainerStyle={{ gap: 16 }}
-          horizontal
-          renderItem={({ item: product }) => (
-            <AdGrid
-              imageUri={product.primaryImage?.url}
-              liked={!!product.likedByMe}
-              heart
-              quantity={product.primaryQuantity ?? 0}
-              quantityUnit={product.primaryUnit ?? undefined}
-              condition={product.condition}
-              title={product.title}
-              price={product.price}
-              onPress={() => {
                 router.navigate({
-                  pathname: "/(app)/product",
-                  params: { productId: product.id },
+                  pathname: "/account/profile",
+                  params: { userId: data.product.seller.id },
                 });
               }}
             />
-          )}
-        />
-      </View>
+          </View>
+          <FlatList
+            showsHorizontalScrollIndicator={false}
+            style={{
+              paddingBottom: 24,
+            }}
+            data={otherProducts}
+            contentContainerStyle={{ gap: 16 }}
+            horizontal
+            renderItem={({ item: product }) => (
+              <AdGrid
+                imageUri={product.primaryImage?.url}
+                liked={!!product.likedByMe}
+                heart
+                quantity={product.primaryQuantity ?? 0}
+                quantityUnit={product.primaryUnit ?? undefined}
+                condition={product.condition}
+                title={product.title}
+                price={product.price}
+                onPress={() => {
+                  router.navigate({
+                    pathname: "/(app)/product",
+                    params: { productId: product.id },
+                  });
+                }}
+              />
+            )}
+          />
+        </View>
+      )}
     </ScreenLayout>
   );
 }
