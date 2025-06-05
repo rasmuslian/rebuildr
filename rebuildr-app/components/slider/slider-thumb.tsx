@@ -1,4 +1,4 @@
-import { primitives } from "@constants/colors";
+import { themeColorTokens } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { Icon } from "@icons/icon";
 import { ViewStyle } from "react-native";
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export const SliderThumb = ({ gestureHandler, positionStyle }: Props) => {
+  const colors = themeColorTokens.dark;
   return (
     <GestureDetector gesture={gestureHandler}>
       <Animated.View
@@ -18,7 +19,7 @@ export const SliderThumb = ({ gestureHandler, positionStyle }: Props) => {
           {
             width: 40,
             height: 40,
-            backgroundColor: primitives.neutrals100,
+            backgroundColor: colors.buttons.filled.enabled,
             borderRadius: borderRadius.medium,
             justifyContent: "center",
             alignItems: "center",
@@ -30,7 +31,7 @@ export const SliderThumb = ({ gestureHandler, positionStyle }: Props) => {
           positionStyle,
         ]}
       >
-        <Icon icon="drag" size={18} />
+        <Icon icon="drag" size={18} customColor={colors.text.primaryLight} />
       </Animated.View>
     </GestureDetector>
   );

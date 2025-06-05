@@ -27,6 +27,8 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Badge } from "@components/badges/badge";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import { textStyles } from "@components/typography/typeface";
+import { Header } from "@components/navigation/headers/header";
 
 const SEARCH = gql`
   query Search($isLoggedIn: Boolean!, $searchResult: GetSearchResultsInput!) {
@@ -349,39 +351,24 @@ export default function Search() {
   return (
     <ScreenLayout
       headerComponent={
-        <View
-          style={[
-            { marginBottom: 24, paddingVertical: 16, gap: 16 },
-            dividerStyles(colors).bottomDivider,
-          ]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 18,
-            }}
-          >
-            <Pressable onPress={onSearch}>
-              <Icon icon="arrowLeft" size={18} />
-            </Pressable>
+        <Header
+          CTA={[{ icon: "X", onPress: () => setSearchString("") }]}
+          middle={
             <TextInput
-              style={{ outline: "none", flex: 1 }}
+              style={{
+                outline: "none",
+                flex: 1,
+                color: colors.text.primaryDark,
+                ...textStyles.title["medium"],
+              }}
               placeholder="Vad letar du efter?"
               value={searchString}
               onChangeText={(s) => onChangeSearch(s)}
               onSubmitEditing={onSearch}
               autoFocus
             />
-            <Pressable
-              onPress={() =>
-                router.canGoBack() ? router.back() : router.replace("/")
-              }
-            >
-              <Icon icon="X" size={18} />
-            </Pressable>
-          </View>
-        </View>
+          }
+        />
       }
       style={{ gap: 24 }}
     >

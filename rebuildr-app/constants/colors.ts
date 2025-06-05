@@ -26,6 +26,9 @@ export const primitives = {
   accent700: "#7017DD",
   accent800: "#5A0BBC",
   accent900: "#40048E",
+  neutrals10: "#FFFFFF0D",
+  neutrals50: "#FFFFFF4D",
+  neutrals90: "#FFFFFFE6",
   neutrals100: "#FFFFFF",
   neutrals200: "#E6E6E6",
   neutrals300: "#C7C7C7",
@@ -68,7 +71,7 @@ const textTokensDark: TextTokens = {
   primaryDark: primitives.neutrals100,
   primaryLight: primitives.neutrals900,
   secondary: primitives.neutrals200,
-  disabled: primitives.neutrals500,
+  disabled: primitives.neutrals50,
   link: primitives.accent200,
   error: primitives.semanticError400,
   success: primitives.primary400,
@@ -202,11 +205,11 @@ const buttonTokensLight: ButtonsTokens = {
     disabled: primitives.neutrals200,
   },
   outlinedFill: {
-    enabled: primitives.neutrals100,
+    enabled: primitives.neutrals10,
     hovered: primitives.accent100,
     focused: primitives.accent100,
-    pressed: primitives.neutrals100,
-    disabled: primitives.neutrals100,
+    pressed: primitives.neutrals10,
+    disabled: primitives.neutrals10,
   },
   imageQuickLinkStroke: {
     enabled: primitives.neutrals400,
@@ -216,14 +219,14 @@ const buttonTokensLight: ButtonsTokens = {
     disabled: primitives.neutrals200,
   },
   imageQuickLinkFill: {
-    enabled: primitives.neutrals100,
+    enabled: primitives.neutrals10,
     hovered: primitives.neutrals100,
     focused: primitives.neutrals100,
     pressed: primitives.neutrals100,
   },
   favorite: {
-    enabled: primitives.neutrals900,
-    active: primitives.neutrals500,
+    enabled: primitives.neutrals90,
+    active: primitives.neutrals50,
   },
 };
 const buttonTokensDark: ButtonsTokens = {
@@ -232,58 +235,58 @@ const buttonTokensDark: ButtonsTokens = {
     hovered: primitives.secondary200,
     focused: primitives.secondary200,
     pressed: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    disabled: primitives.neutrals10,
   },
   danger: {
     enabled: primitives.semanticError500,
     hovered: primitives.semanticError400,
     focused: primitives.semanticError400,
     pressed: primitives.semanticError500,
-    disabled: primitives.neutrals200,
+    disabled: primitives.neutrals10,
   },
   tonal: {
     enabled: primitives.neutrals500,
     hovered: primitives.secondary200,
     focused: primitives.secondary200,
-    pressed: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    pressed: primitives.neutrals50,
+    disabled: primitives.neutrals10,
   },
   text: {
-    hovered: primitives.neutrals100,
-    focused: primitives.neutrals500,
-    pressed: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    hovered: primitives.neutrals10,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals50,
+    disabled: primitives.neutrals10,
   },
   outlinedStroke: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    focused: primitives.neutrals500,
-    pressed: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals50,
+    hovered: primitives.neutrals10,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals50,
+    disabled: primitives.neutrals10,
   },
   outlinedFill: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    focused: primitives.neutrals500,
-    pressed: primitives.neutrals100,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals10,
+    hovered: primitives.neutrals50,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals10,
+    disabled: primitives.neutrals10,
   },
   imageQuickLinkStroke: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    focused: primitives.neutrals500,
-    pressed: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals50,
+    hovered: primitives.neutrals10,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals50,
+    disabled: primitives.neutrals10,
   },
   imageQuickLinkFill: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    focused: primitives.neutrals500,
-    pressed: primitives.neutrals100,
+    enabled: primitives.neutrals10,
+    hovered: primitives.neutrals50,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals10,
   },
   favorite: {
-    enabled: primitives.neutrals100,
-    active: primitives.neutrals100,
+    enabled: primitives.neutrals10,
+    active: primitives.neutrals10,
   },
 };
 
@@ -314,7 +317,7 @@ const chipsTokensLight: ChipsTokens = {
   filter: {
     fill: {
       selectedFalse: {
-        enabled: primitives.neutrals100,
+        enabled: primitives.neutrals10,
         hovered: primitives.neutrals200,
         focused: primitives.neutrals200,
       },
@@ -337,22 +340,22 @@ const chipsTokensDark: ChipsTokens = {
   filter: {
     fill: {
       selectedFalse: {
-        enabled: primitives.neutrals100,
-        hovered: primitives.neutrals500,
-        focused: primitives.neutrals500,
+        enabled: primitives.neutrals10,
+        hovered: primitives.neutrals50,
+        focused: primitives.neutrals50,
       },
       selectedTrue: {
-        enabled: primitives.neutrals500,
-        hovered: primitives.neutrals100,
-        focused: primitives.neutrals100,
-        disabled: primitives.neutrals100,
+        enabled: primitives.neutrals50,
+        hovered: primitives.neutrals10,
+        focused: primitives.neutrals10,
+        disabled: primitives.neutrals10,
       },
     },
     stroke: {
-      enabled: primitives.neutrals500,
-      hovered: primitives.neutrals100,
-      focused: primitives.neutrals500,
-      disabled: primitives.neutrals100,
+      enabled: primitives.neutrals50,
+      hovered: primitives.neutrals10,
+      focused: primitives.neutrals50,
+      disabled: primitives.neutrals10,
     },
   },
 };
@@ -387,15 +390,15 @@ const switchTokensLight: SwitchTokens = {
 };
 const switchTokensDark: SwitchTokens = {
   true: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals50,
+    hovered: primitives.neutrals10,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
   false: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    disabled: primitives.neutrals200,
+    enabled: primitives.neutrals10,
+    hovered: primitives.neutrals50,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
 };
@@ -430,15 +433,15 @@ const radioTokensLight: RadioTokens = {
 };
 const radioTokensDark: RadioTokens = {
   true: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals50,
+    hovered: primitives.neutrals10,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
   false: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals10,
+    hovered: primitives.neutrals50,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
 };
@@ -473,15 +476,15 @@ const checkTokensLight: CheckTokens = {
 };
 const checkTokensDark: CheckTokens = {
   true: {
-    enabled: primitives.neutrals500,
-    hovered: primitives.neutrals100,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals50,
+    hovered: primitives.neutrals10,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
   false: {
-    enabled: primitives.neutrals100,
-    hovered: primitives.neutrals500,
-    disabled: primitives.neutrals100,
+    enabled: primitives.neutrals10,
+    hovered: primitives.neutrals50,
+    disabled: primitives.neutrals10,
     handle: backgroundTokensDark.neutral,
   },
 };
@@ -501,10 +504,10 @@ const textFieldsTokensLight: TextFieldsTokens = {
   error: primitives.semanticError500,
 };
 const textFieldsTokensDark: TextFieldsTokens = {
-  enabled: primitives.neutrals100,
-  hovered: primitives.neutrals500,
+  enabled: primitives.neutrals10,
+  hovered: primitives.neutrals50,
   clicked: primitives.accent300,
-  disabled: primitives.neutrals100,
+  disabled: primitives.neutrals10,
   error: primitives.semanticError500,
 };
 
@@ -562,11 +565,11 @@ const navigationTokensLight: NavigationTokens = {
   disabled: primitives.neutrals200,
 };
 const navigationTokensDark: NavigationTokens = {
-  enabled: primitives.neutrals500,
+  enabled: primitives.neutrals50,
   hovered: primitives.secondary200,
   focused: primitives.primary800,
   pressed: primitives.primary800,
-  disabled: primitives.neutrals100,
+  disabled: primitives.neutrals10,
 };
 
 export type ColorTokens = {

@@ -29,6 +29,7 @@ import { CreateBusiness } from "@components/login/createBusiness";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -67,6 +68,7 @@ const REGISTER_USER = gql`
 `;
 
 const LoginModalView = () => {
+  const colors = useThemeColor();
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
@@ -199,6 +201,9 @@ const LoginModalView = () => {
       onDismiss={handleClosePress}
       handleIndicatorStyle={{
         display: "none",
+      }}
+      backgroundStyle={{
+        backgroundColor: colors.background.neutral,
       }}
       backdropComponent={({ style }) => (
         <Pressable

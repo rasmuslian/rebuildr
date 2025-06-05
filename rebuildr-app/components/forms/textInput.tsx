@@ -121,7 +121,7 @@ export const TextInput = forwardRef(function TextInput(
             height: 40,
             ...textStyles.body["medium"],
             color: getTextColor(),
-            outlineColor: colors.textField.clicked,
+            outline: "none",
           },
           props.style,
         ]}

@@ -67,7 +67,7 @@ export default function Transportation() {
   });
 
   const onNext = () => {
-    router.navigate("/(app)/sell-product/preview");
+    router.navigate("/sell-product/preview");
   };
   const progress = () => {
     const address =

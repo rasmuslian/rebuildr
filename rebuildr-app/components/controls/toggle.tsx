@@ -1,5 +1,5 @@
 import { Animated, Pressable, PressableProps } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { borderRadius } from "@constants/sizes";
@@ -10,8 +10,6 @@ export type ToggleProps = {
 } & PressableProps;
 
 export const Toggle = ({ value, onPress, disabled, ...rest }: ToggleProps) => {
-  const [hovered, setHovered] = useState(false);
-
   const colors = useThemeColor();
   const colorSet = value ? colors.switch.true : colors.switch.false;
 
@@ -36,9 +34,7 @@ export const Toggle = ({ value, onPress, disabled, ...rest }: ToggleProps) => {
       {...rest}
       disabled={disabled}
       onPress={toggleSwitch}
-      onHoverIn={() => setHovered(true)}
-      onHoverOut={() => setHovered(false)}
-      style={() => {
+      style={({ hovered }) => {
         let toggleState: keyof typeof colorSet = "enabled";
         if (disabled) {
           toggleState = "disabled";
