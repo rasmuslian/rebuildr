@@ -6,18 +6,15 @@ import {
   ProfileQueryVariables,
   ProfileUpdateUserMutation,
   ProfileUpdateUserMutationVariables,
-  UserType,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { AdGrid } from "@components/cards/ad-grid";
 import { UserCard } from "@components/cards/user-card";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline, Label } from "@components/typography/text";
-import { defaultApproximateLocation } from "@constants/map";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,6 +29,8 @@ import { launchImageLibraryAsync } from "expo-image-picker";
 import { useOptimizeImage } from "@hooks/useOptimizeImage";
 import { ReviewsAccordion } from "@components/profile/reviews-accordion";
 import { numberToString } from "@/utils/number-strings";
+import { EmptyStateCard } from "@components/cards/empty-state-card";
+import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -139,7 +138,6 @@ const PROFILE_UPDATE_USER = gql`
 
 export default function Profile() {
   const [tab, setTab] = useState<"products" | "reviewed">("products");
-  const [offset, setOffset] = useState(0);
 
   //------edit profile variables------
   const [description, setDescription] = useState<string>();
@@ -155,7 +153,7 @@ export default function Profile() {
     ProfileUpdateUserMutationVariables
   >(PROFILE_UPDATE_USER);
 
-  const productsPerPage = 10;
+  const PRODUCTS_PER_PAGE = 10;
   const colors = useThemeColor();
   const { mode, userId } = useLocalSearchParams<{
     userId: string;
@@ -180,8 +178,8 @@ export default function Profile() {
         input: {
           sellerId: userId,
         },
-        limit: productsPerPage,
-        offset,
+        limit: PRODUCTS_PER_PAGE,
+        offset: 0,
       },
     },
   );
@@ -189,12 +187,13 @@ export default function Profile() {
   const onShowMore = async () => {
     await fetchMore({
       variables: {
-        limit: productsPerPage,
-        offset: offset + 1,
+        limit: PRODUCTS_PER_PAGE,
+        offset: Math.ceil(
+          (productsData?.products.products?.length ?? 0) / PRODUCTS_PER_PAGE,
+        ),
       },
       updateQuery: (prev, { fetchMoreResult }) => {
         if (!fetchMoreResult?.products?.products.length) return prev;
-        setOffset(offset + 1);
 
         return {
           products: {
@@ -282,6 +281,26 @@ export default function Profile() {
   }
 
   const renderProducts = () => {
+    const emptyState = isMyProfile
+      ? {
+          header: "Inga annonser än",
+          description:
+            "Just nu har du inga annonser ute, men det är enkelt att komma igång",
+          cta: {
+            label: "Lägg upp en annons",
+            onPress: () => router.navigate("/sell-product"),
+          },
+        }
+      : {
+          header: "Inga annonser här just nu",
+          description:
+            "Den här säljaren har inga aktiva annonser för tillfället. Kika tillbaka senare eller utforska fler annonser på marknadsplatsen!",
+          cta: {
+            label: "Se fler annonser",
+            onPress: () => router.navigate("/search"),
+          },
+        };
+
     return (
       <View style={{ gap: 24, marginTop: 16 }}>
         {productsData?.products.products.length ? (
@@ -318,84 +337,31 @@ export default function Profile() {
               </View>
             )}
             <Divider />
-            <View style={{ gap: 24 }}>
-              <Headline size="small">Annonser</Headline>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 16,
-                  flexWrap: "wrap",
-                  paddingBottom: 16,
-                  marginTop: 16,
-                }}
-              >
-                {productsData?.products.products.map((product) => (
-                  <AdGrid
-                    key={product.id}
-                    imageUri={product.primaryImage?.url}
-                    title={product.title}
-                    quantity={product.primaryQuantity ?? 0}
-                    condition={product.condition}
-                    account={{
-                      rating: data.user.rating ?? 3,
-                      isBusiness: data.user.type === UserType.Business,
-                      location:
-                        product.approximatePlace?.address ??
-                        defaultApproximateLocation,
-                    }}
-                    price={product.price}
-                    onPress={() =>
-                      router.navigate({
-                        pathname: "/(app)/product",
-                        params: { productId: product.id },
-                      })
-                    }
-                  />
-                ))}
-              </View>
-              <Button
-                label="Läs in fler"
-                onPress={onShowMore}
-                loading={productsLoading}
-                disabled={
-                  productsData &&
-                  productsData.products.products.length >=
-                    productsData.products.total
-                }
-                style={{ marginTop: 24 }}
-              />
-            </View>
+            <AdGridSection
+              header="Annonser"
+              products={productsData.products.products.map((product) => ({
+                id: product.id,
+                imageUri: product.primaryImage?.url,
+                title: product.title,
+                quantity: product.primaryQuantity,
+                condition: product.condition,
+                account: {
+                  rating: data.user.rating,
+                  type: data.user.type,
+                  location: product.approximatePlace?.address,
+                },
+                price: product.price,
+              }))}
+              pagination={{
+                onShowMore,
+                loading: productsLoading,
+                total: productsData.products.total,
+              }}
+            />
+            <Divider />
           </>
         ) : (
-          <View
-            style={{
-              padding: 16,
-              backgroundColor: colors.background.secondary,
-              borderRadius: borderRadius.medium,
-              gap: 16,
-            }}
-          >
-            <Headline size="small" style={{ textAlign: "center" }}>
-              {isMyProfile ? "Inga annonser än" : "Inga annonser här just nu"}
-            </Headline>
-            <Body size="medium" style={{ textAlign: "center" }}>
-              {isMyProfile
-                ? "Just nu har du inga annonser ute, men det är enkelt att komma igång"
-                : "Den här säljaren har inga aktiva annonser för tillfället. Kika tillbaka senare eller utforska fler annonser på marknadsplatsen!"}
-            </Body>
-            {isMyProfile ? (
-              <Button
-                label="Lägg upp en annons"
-                onPress={() => router.navigate("/(app)/(tabs)/sell-product")}
-              />
-            ) : (
-              <Button
-                style={{ marginTop: 8 }}
-                label="Se fler annonser"
-                onPress={() => router.navigate("/(app)/(tabs)/search")}
-              />
-            )}
-          </View>
+          <EmptyStateCard {...emptyState} />
         )}
       </View>
     );
@@ -408,6 +374,17 @@ export default function Profile() {
     const buysReviewed = data.user.reviewed.filter(
       (review) => review.purchase.buyerId === userId,
     );
+    const emptyState = isMyProfile
+      ? {
+          header: "Inga omdömen än",
+          description:
+            "Du har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!",
+        }
+      : {
+          header: "Inga omdömen här just nu",
+          description:
+            "Den här säljaren har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!",
+        };
 
     return (
       <View style={{ gap: 16, marginTop: 16 }}>
@@ -497,23 +474,7 @@ export default function Profile() {
             />
           </View>
         ) : (
-          <View
-            style={{
-              padding: 16,
-              backgroundColor: colors.background.secondary,
-              borderRadius: borderRadius.medium,
-              gap: 16,
-            }}
-          >
-            <Headline size="small" style={{ textAlign: "center" }}>
-              {isMyProfile ? "Inga omdömen än" : "Inga omdömen här just nu"}
-            </Headline>
-            <Body size="medium" style={{ textAlign: "center" }}>
-              {isMyProfile
-                ? "Du har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!"
-                : "Den här säljaren har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!"}
-            </Body>
-          </View>
+          <EmptyStateCard {...emptyState} />
         )}
       </View>
     );

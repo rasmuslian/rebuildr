@@ -2,7 +2,6 @@ import { isLoggedInVar } from "@/apollo/config";
 import {
   SearchProductsQuery,
   SearchProductsQueryVariables,
-  UserType,
 } from "@/gql/graphql";
 import { meterToKilometer } from "@/utils/conversions";
 import { gql, useQuery } from "@apollo/client";
@@ -15,11 +14,7 @@ import { SearchBar } from "@components/search/search-bar";
 import { ContinuousSlider } from "@components/slider/continuous-slider";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { Body, Display, Label } from "@components/typography/text";
-import {
-  defaultApproximateLocation,
-  defaultCenter,
-  defaultRadius,
-} from "@constants/map";
+import { defaultCenter, defaultRadius } from "@constants/map";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useLocalSearchParams } from "expo-router";
@@ -305,24 +300,17 @@ export default function Products() {
           {data?.products.products.map((product) => (
             <AdGrid
               key={product.id}
+              id={product.id}
               imageUri={product.primaryImage?.url}
               title={product.title}
-              quantity={product.primaryQuantity ?? 0}
+              quantity={product.primaryQuantity}
               condition={product.condition}
               account={{
-                rating: product.seller.rating ?? 3,
-                isBusiness: product.seller.type === UserType.Business,
-                location:
-                  product.approximatePlace?.address ??
-                  defaultApproximateLocation,
+                rating: product.seller.rating,
+                type: product.seller.type,
+                location: product.approximatePlace?.address,
               }}
               price={product.price}
-              onPress={() =>
-                router.navigate({
-                  pathname: "/(app)/product",
-                  params: { productId: product.id },
-                })
-              }
             />
           ))}
         </View>

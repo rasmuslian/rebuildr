@@ -1,7 +1,11 @@
 import { useReactiveVar } from "@apollo/client";
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
-import { ProductConditionEnum, QuantityUnitEnum } from "@/gql/graphql";
+import {
+  ProductConditionEnum,
+  QuantityUnitEnum,
+  UserType,
+} from "@/gql/graphql";
 import { isLoggedInVar } from "@/apollo/config";
 import { borderRadius } from "@constants/sizes";
 import { Body, Label, Title } from "@components/typography/text";
@@ -10,54 +14,67 @@ import { ProductConditionToText } from "@/utils/enumToText";
 import { primitives } from "@constants/colors";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { quantities } from "@constants/quantities";
+import { router } from "expo-router";
+import { defaultApproximateLocation } from "@constants/map";
 
 type Props = {
+  id: string;
   imageUri?: string;
   heart?: boolean;
   onHeartPress?: () => void;
-  onPress?: () => void;
   width?: number;
   height?: number;
   overlayText?: string;
   price?: number;
   disabled?: boolean;
   liked?: boolean;
-  quantity: number;
+  quantity?: number | null;
   quantityUnit?: QuantityUnitEnum;
   condition: ProductConditionEnum;
-  account?: { rating: number; isBusiness: boolean; location: string };
+  account?: {
+    rating?: number | null;
+    type: UserType;
+    location?: string | null;
+  };
   title: string;
 };
 
 export const AdGrid = ({
+  id,
   imageUri,
   heart,
   onHeartPress,
-  onPress,
-  width = 167,
-  height = 167,
+  width: _width,
   overlayText,
   price,
   disabled,
   liked,
-  quantity,
+  quantity = 0,
   quantityUnit = QuantityUnitEnum.Amount,
   condition,
   title,
   account,
 }: Props) => {
+  const { width: screenWidth } = useWindowDimensions();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const showHeart = heart && isLoggedIn;
+
+  const width = _width ?? (screenWidth - 48) / 2;
   return (
     <Pressable
-      style={[{ width, gap: 8, opacity: disabled ? 0.5 : 1 }]}
-      onPress={() => onPress?.()}
+      style={[{ gap: 8, opacity: disabled ? 0.5 : 1 }]}
+      onPress={() => {
+        router.navigate({
+          pathname: "/product",
+          params: { productId: id },
+        });
+      }}
       disabled={disabled}
     >
       <Image
         source={imageUri ?? PlaceholderProduct.uri}
         cachePolicy="memory-disk"
-        style={{ width, height, borderRadius: borderRadius.medium }}
+        style={{ width, aspectRatio: 1, borderRadius: borderRadius.medium }}
       >
         {!!overlayText && (
           <View
@@ -120,8 +137,8 @@ export const AdGrid = ({
               style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
             >
               <Icon icon="star" size={10} />
-              <Label>{account.rating}</Label>
-              {account.isBusiness && (
+              <Label>{account.rating ?? 3}</Label>
+              {account.type === UserType.Business && (
                 <View
                   style={{
                     borderRadius: borderRadius.xSmall,
@@ -136,7 +153,7 @@ export const AdGrid = ({
               )}
             </View>
             <Body size="small" color="secondary">
-              {account.location}
+              {account.location ?? defaultApproximateLocation}
             </Body>
           </View>
         )}

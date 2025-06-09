@@ -4,6 +4,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -67,4 +69,8 @@ export class Project {
   @OneToOne(() => File, { nullable: true })
   @JoinColumn()
   projectPicture: File;
+
+  @ManyToMany(() => User, (user) => user.likedProjects)
+  @JoinTable()
+  likedBy: User[];
 }

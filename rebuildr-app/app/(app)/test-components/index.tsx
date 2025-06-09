@@ -17,7 +17,7 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import Placeholder from "@assets/images/placeholder.png";
 import { ScrollView } from "react-native-gesture-handler";
-import { ProductConditionEnum } from "@/gql/graphql";
+import { ProductConditionEnum, UserType } from "@/gql/graphql";
 import { Form } from "@components/forms/form";
 
 export default function Page() {
@@ -195,19 +195,18 @@ export default function Page() {
         onChange={(v) => setCSliderValue(v)}
       />
       <SearchBar
-        placeholder={"Vad letar du efter?"}
+        placeholder="Vad letar du efter?"
         value={searchString}
         onChange={(v) => setSearchString(v)}
       />
       <AdGrid
         imageUri={Placeholder}
-        onPress={() => {}}
         title="Pergo vinylgolv Volcanica"
         quantity={28}
         condition={ProductConditionEnum.Good}
         account={{
           rating: 3.2,
-          isBusiness: true,
+          type: UserType.Business,
           location: "Kungsholmen, Stockholm",
         }}
         price={500}

@@ -3,16 +3,20 @@ import { Project } from 'src/entities/project.entity';
 import {
   CreateProjectInput,
   GetProjectInput,
+  SetLikeProjectInput,
   UpdateProjectInput,
 } from 'src/resolvers/project.resolver';
 import { Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
+import { User } from 'src/entities/user.entity';
 
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
   ) {}
 
@@ -22,13 +26,27 @@ export class ProjectService {
     });
   }
 
-  async findMany(input: { userId: string }) {
-    return await this.projectRepository.find({
-      where: {
-        userId: input.userId,
-      },
-      order: { createdAt: 'DESC' },
-    });
+  async findMany(input: { userId?: string; likedByUserIds?: string[] }) {
+    const query = this.projectRepository.createQueryBuilder('project');
+
+    if (input.userId) {
+      query.andWhere('project.userId = :userId', { userId: input.userId });
+    }
+
+    if (input.likedByUserIds && input.likedByUserIds.length > 0) {
+      query.innerJoin(
+        'project_liked_by_user',
+        'plbu',
+        'plbu.projectId = project.id',
+      );
+      query.andWhere('plbu.userId IN (:...likedByUserIds)', {
+        likedByUserIds: input.likedByUserIds,
+      });
+    }
+
+    query.orderBy('project.createdAt', 'DESC');
+
+    return await query.getMany();
   }
 
   async create(input: CreateProjectInput, currentUserId: string) {
@@ -114,5 +132,39 @@ export class ProjectService {
       lat: approximation.lat,
       lng: approximation.lng,
     };
+  }
+
+  async setLikeProject(
+    userId: string,
+    { id: projectId, like }: SetLikeProjectInput,
+  ) {
+    const [project, user] = await Promise.all([
+      await this.projectRepository.findOne({
+        where: { id: projectId },
+        relations: { likedBy: true },
+      }),
+      await this.userRepository.findOneBy({ id: userId }),
+    ]);
+
+    if (!project || !user) {
+      throw BadUserInputException();
+    }
+
+    //If trying to like and not already liking, add user
+    if (
+      like &&
+      !project.likedBy.some((likedByUser) => likedByUser.id === userId)
+    ) {
+      project.likedBy.push(user);
+    }
+
+    //If removing like, remove the user from the like array
+    if (!like) {
+      project.likedBy = project.likedBy.filter(
+        (likedByUser) => likedByUser.id !== userId,
+      );
+    }
+
+    return await this.projectRepository.save(project);
   }
 }

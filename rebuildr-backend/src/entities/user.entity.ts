@@ -133,6 +133,9 @@ export class User {
   @ManyToMany(() => Product, (product) => product.likedBy)
   likedProducts: Product[];
 
+  @ManyToMany(() => Project, (project) => project.likedBy)
+  likedProjects: Project[];
+
   @Column({ nullable: true })
   rockerUserId?: string; //id used in Rocker
 

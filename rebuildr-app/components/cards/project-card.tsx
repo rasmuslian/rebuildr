@@ -5,17 +5,39 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import PlaceholderProject from "@assets/images/placeholder-project.png";
 import { Pressable } from "react-native-gesture-handler";
+import { Button } from "@components/buttons/button";
+import { gql, useMutation } from "@apollo/client";
+import {
+  ProjectLikeMutation,
+  ProjectLikeMutationVariables,
+} from "@/gql/graphql";
 
 type Props = {
   project: {
+    id: string;
     title: string;
     projectPicture?: { url: string } | null;
     products: { primaryImage?: { url: string } | null }[];
+    likedByMe?: boolean | null;
   };
 };
 
+const PROJECT_LIKE_MUTATION = gql`
+  mutation ProjectLike($input: SetLikeProjectInput!) {
+    setLikeProject(input: $input) {
+      id
+      likedByMe
+    }
+  }
+`;
+
 export const ProjectCard = ({ project }: Props) => {
   const colors = useThemeColor();
+
+  const [setLikeProduct] = useMutation<
+    ProjectLikeMutation,
+    ProjectLikeMutationVariables
+  >(PROJECT_LIKE_MUTATION);
 
   return (
     <Pressable
@@ -28,7 +50,6 @@ export const ProjectCard = ({ project }: Props) => {
           style={{
             flexDirection: "row",
             gap: 4,
-            height: 231,
           }}
         >
           <Image
@@ -37,8 +58,8 @@ export const ProjectCard = ({ project }: Props) => {
               uri: project.products[0]?.primaryImage?.url,
             }}
             style={{
+              aspectRatio: 1,
               flex: 2,
-              height: "100%",
               borderTopLeftRadius: borderRadius.medium,
               borderBottomLeftRadius: borderRadius.medium,
             }}
@@ -48,6 +69,7 @@ export const ProjectCard = ({ project }: Props) => {
               justifyContent: "space-between",
               gap: 4,
               flex: 1,
+              position: "relative",
             }}
           >
             <Image
@@ -56,7 +78,7 @@ export const ProjectCard = ({ project }: Props) => {
                 uri: project.products[1]?.primaryImage?.url,
               }}
               style={{
-                width: "100%",
+                aspectRatio: 1,
                 flex: 1,
                 backgroundColor: colors.background.secondary,
                 borderTopRightRadius: borderRadius.medium,
@@ -69,11 +91,26 @@ export const ProjectCard = ({ project }: Props) => {
                 uri: project.products[2]?.primaryImage?.url,
               }}
               style={{
-                width: "100%",
+                aspectRatio: 1,
                 flex: 1,
                 backgroundColor: colors.background.primary,
                 borderBottomRightRadius: borderRadius.medium,
               }}
+            />
+            <Button
+              style={{ position: "absolute", top: 0, right: 0 }}
+              icon={project.likedByMe ? "heartFilled" : "heart"}
+              type="text"
+              onPress={() =>
+                setLikeProduct({
+                  variables: {
+                    input: {
+                      id: project.id,
+                      like: !project.likedByMe,
+                    },
+                  },
+                })
+              }
             />
           </View>
         </View>

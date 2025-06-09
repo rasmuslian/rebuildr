@@ -67,6 +67,11 @@ export default function Email({ onSubmit, initialEmail }: Props) {
                 setEmail(text);
               },
               value: email,
+              onKeyPress(e) {
+                if (e.nativeEvent.key === "Enter") {
+                  onEnterEmail(email);
+                }
+              },
               error,
             },
           ]}

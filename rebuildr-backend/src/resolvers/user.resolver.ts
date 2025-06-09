@@ -32,7 +32,9 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ForbiddenException } from 'src/exceptions';
 import { Review } from 'src/entities/review.entity';
-import { FileInputType } from './product.resolver';
+import { FileInputType, ProductsResponse } from './product.resolver';
+import { ProductService } from 'src/services/product.service';
+import { ProjectService } from 'src/services/project.service';
 
 @InputType()
 export class UpdateUserInput {
@@ -139,7 +141,11 @@ export class PayoutAccountResponse {
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private productService: ProductService,
+    private projectService: ProjectService,
+  ) {}
 
   @Query(() => User)
   @UseGuards(GqlAuthGuard)
@@ -259,12 +265,22 @@ export class UserResolver {
     return await userLoaders.ratingLoader.load(user.id);
   }
 
-  @ResolveField(() => [Product], { nullable: true })
+  @ResolveField(() => ProductsResponse, { nullable: true })
   async likedProducts(
     @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
   ) {
-    return await userLoaders.likedProductsLoader.load(user.id);
+    return this.productService.findAll(
+      { likedByUserIds: [user.id] },
+      limit,
+      offset,
+    );
+  }
+
+  @ResolveField(() => [Project], { nullable: true })
+  async likedProjects(@Parent() user: User) {
+    return this.projectService.findMany({ likedByUserIds: [user.id] });
   }
 
   @ResolveField(() => LocationResponse, { nullable: true })

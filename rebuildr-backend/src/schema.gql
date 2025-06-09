@@ -61,6 +61,7 @@ type Project {
   contactEmail: String
   contactPhone: String
   address: String!
+  likedByMe: Boolean
   location: LocationResponse!
   approximatePlace: ApproximatePlaceResponse!
   products: [Product!]!
@@ -100,7 +101,8 @@ type User {
   purchases: [Purchase!]!
   sales: [Purchase!]!
   rating: Float
-  likedProducts: [Product!]
+  likedProducts(offset: Int, limit: Int): ProductsResponse
+  likedProjects: [Project!]
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccountResponse
@@ -455,6 +457,7 @@ input ProductsInput {
   giveaway: Boolean
   conditions: [ProductConditionEnum!]
   orderBy: OrderProductsEnum
+  likedByUserIds: [ID!]
 }
 
 input LocationInputType {
@@ -545,6 +548,7 @@ type Mutation {
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
+  setLikeProject(input: SetLikeProjectInput!): Project!
   createSearchResult(input: CreateSearchResultInput!): SearchResult!
   clearSearchHistory: Boolean!
 }
@@ -741,6 +745,11 @@ input UpdateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+}
+
+input SetLikeProjectInput {
+  id: String!
+  like: Boolean!
 }
 
 input CreateSearchResultInput {

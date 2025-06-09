@@ -20,7 +20,7 @@ const MY_ACCOUNT = gql`
       numberOfPublishedProducts
       rating
       likedProducts {
-        id
+        total
       }
       sales {
         id
@@ -61,7 +61,7 @@ export default function Account() {
           label="Se din profil"
           onPress={() => {
             router.navigate({
-              pathname: "/(app)/account/profile",
+              pathname: "/account/profile",
               params: {
                 userId: data.me.id,
                 mode: "read",
@@ -74,7 +74,7 @@ export default function Account() {
           type="tonal"
           onPress={() => {
             router.navigate({
-              pathname: "/(app)/account/profile",
+              pathname: "/account/profile",
               params: {
                 userId: data.me.id,
                 mode: "edit",
@@ -89,14 +89,14 @@ export default function Account() {
           label="Kontoinställningar"
           body="Hantera dina uppgifter och inställningar"
           onPress={() => {
-            router.navigate("/(app)/account/settings");
+            router.navigate("/account/settings");
           }}
         />
         <LinkEntry
           label="Dina favoriter"
-          body={(data.me.likedProducts?.length ?? 0) + " annonser"}
+          body={(data.me.likedProducts?.total ?? 0) + " annonser"}
           onPress={() => {
-            //TODO: link to favorites
+            router.navigate("/account/favorites");
           }}
         />
         <LinkEntry

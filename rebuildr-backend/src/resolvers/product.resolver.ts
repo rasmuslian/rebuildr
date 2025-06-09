@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   Float,
+  ID,
   InputType,
   Int,
   Mutation,
@@ -291,6 +292,11 @@ export class ProductsInput {
 
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
+
+  @Field(() => [ID], {
+    nullable: true,
+  })
+  likedByUserIds?: string[] | null;
 }
 
 @ObjectType()

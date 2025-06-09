@@ -399,7 +399,7 @@ const Entry = ({ title, onPress, isSet, children }: EntryProps) => {
         {children}
       </View>
       <Button
-        type={isSet ? "tonal" : "default"}
+        type={isSet ? "tonal" : "filled"}
         label={isSet ? "Ändra" : "Lägg till"}
         onPress={onPress}
       />

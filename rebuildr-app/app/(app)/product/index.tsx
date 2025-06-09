@@ -432,6 +432,7 @@ export default function Product() {
             horizontal
             renderItem={({ item: product }) => (
               <AdGrid
+                id={product.id}
                 imageUri={product.primaryImage?.url}
                 liked={!!product.likedByMe}
                 heart
@@ -440,12 +441,6 @@ export default function Product() {
                 condition={product.condition}
                 title={product.title}
                 price={product.price}
-                onPress={() => {
-                  router.navigate({
-                    pathname: "/(app)/product",
-                    params: { productId: product.id },
-                  });
-                }}
               />
             )}
           />

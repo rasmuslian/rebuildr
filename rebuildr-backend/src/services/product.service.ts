@@ -481,8 +481,8 @@ export class ProductService {
     //Transportation
     query.andWhere(`
       (${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'} 
-OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
-OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
+        OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
+        OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
 
     //Include products based on category criterias
     if (
@@ -547,6 +547,13 @@ OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
 
     if (input.giveaway) {
       query.andWhere('"isGiveaway" = TRUE');
+    }
+
+    if (input.likedByUserIds) {
+      query.innerJoin('product_liked_by_user', 'plbu', 'plbu.productId = p.id');
+      query.andWhere('plbu.userId IN (:...likedByUserIds)', {
+        likedByUserIds: input.likedByUserIds,
+      });
     }
 
     switch (input.orderBy) {

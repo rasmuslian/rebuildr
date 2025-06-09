@@ -9,6 +9,7 @@ import {
   Query,
   ResolveField,
   Resolver,
+  Root,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { Project } from 'src/entities/project.entity';
@@ -23,6 +24,7 @@ import { AuthedUserType } from 'src/auth/constants';
 import { Product } from 'src/entities/product.entity';
 import { IProjectLoaders } from 'src/dataloaders/project.loader';
 import { File } from 'src/entities/file.entity';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 
 @InputType()
 export class GetProjectInput {
@@ -64,6 +66,15 @@ export class UpdateProjectInput {
   contactPhone?: string;
 }
 
+@InputType()
+export class SetLikeProjectInput {
+  @Field()
+  id: string;
+
+  @Field()
+  like: boolean;
+}
+
 @Resolver(() => Project)
 export class ProjectResolver {
   constructor(private projectService: ProjectService) {}
@@ -96,6 +107,32 @@ export class ProjectResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return this.projectService.update(input, user.id);
+  }
+
+  @Mutation(() => Project)
+  @UseGuards(GqlAuthGuard)
+  async setLikeProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: SetLikeProjectInput,
+  ) {
+    return this.projectService.setLikeProject(user.id, input);
+  }
+
+  @ResolveField(() => Boolean, { nullable: true })
+  @UseGuards(GqlOptionalAuthGuard)
+  async likedByMe(
+    @Root() project: Project,
+    @Context('projectLoaders') projectLoaders: IProjectLoaders,
+    @CurrentUser() user?: AuthedUserType,
+  ) {
+    if (!user) {
+      return null;
+    }
+
+    return projectLoaders.likedByUserLoader.load({
+      projectId: project.id,
+      userId: user.id,
+    });
   }
 
   @ResolveField(() => LocationResponse)
