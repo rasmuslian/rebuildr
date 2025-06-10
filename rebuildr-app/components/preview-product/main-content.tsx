@@ -153,7 +153,7 @@ export const MainContent = ({
           }}
         >
           <Headline size="small">Fullständig specifikation</Headline>
-          <Icon icon="chevronUp" size={18} />
+          <Icon icon={showSpecifics ? "chevronUp" : "chevronDown"} size={18} />
         </View>
       </Pressable>
       {showSpecifics && (
