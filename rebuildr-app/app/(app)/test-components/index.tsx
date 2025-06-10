@@ -200,6 +200,7 @@ export default function Page() {
         onChange={(v) => setSearchString(v)}
       />
       <AdGrid
+        id="test"
         imageUri={Placeholder}
         title="Pergo vinylgolv Volcanica"
         quantity={28}

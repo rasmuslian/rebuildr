@@ -436,8 +436,8 @@ export default function Product() {
                 imageUri={product.primaryImage?.url}
                 liked={!!product.likedByMe}
                 heart
-                quantity={product.primaryQuantity ?? 0}
-                quantityUnit={product.primaryUnit ?? undefined}
+                quantity={product.primaryQuantity}
+                quantityUnit={product.primaryUnit}
                 condition={product.condition}
                 title={product.title}
                 price={product.price}
