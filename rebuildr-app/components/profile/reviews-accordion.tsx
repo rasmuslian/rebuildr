@@ -6,11 +6,9 @@ import { Icon } from "@icons/icon";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { Image } from "expo-image";
-import PlaceholderProfile from "@assets/images/placeholder-profile.png";
-import PlaceholderProfileBusiness from "@assets/images/placeholder-profile-business.png";
 import dayjs from "dayjs";
 import { Button } from "@components/buttons/button";
+import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
   reviews: {
@@ -62,15 +60,9 @@ export const ReviewsAccordion = ({ reviews, title }: Props) => {
               <View
                 style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
               >
-                <Image
-                  source={
-                    review.reviewer.profilePicture?.url
-                      ? review.reviewer.profilePicture.url
-                      : review.reviewer.type === UserType.Business
-                        ? PlaceholderProfileBusiness.uri
-                        : PlaceholderProfile.uri
-                  }
-                  style={{ width: 40, height: 40, borderRadius: 38 }}
+                <Avatar
+                  userType={review.reviewer.type}
+                  imageUrl={review.reviewer.profilePicture?.url}
                 />
                 <View style={{ gap: 2 }}>
                   <Title size="small">{review.reviewer.username}</Title>
