@@ -14,13 +14,13 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Display, Headline, Label } from "@components/typography/text";
+import { Body, Display, Headline } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
-import { FlatList, Pressable } from "react-native-gesture-handler";
+import { FlatList } from "react-native-gesture-handler";
 import { ProjectCard } from "@components/cards/project-card";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Icon, IconType } from "@icons/icon";
@@ -31,6 +31,7 @@ import { ReviewsAccordion } from "@components/profile/reviews-accordion";
 import { numberToString } from "@/utils/number-strings";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
+import { TabRail } from "@components/tabs/tab-rail";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -570,47 +571,20 @@ export default function Profile() {
       )}
       <Divider />
       <View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignSelf: "flex-start",
-            backgroundColor: colors.buttons.tonal.enabled,
-            borderRadius: borderRadius.medium,
-          }}
-        >
-          <Pressable onPress={() => setTab("products")}>
-            <View
-              style={[
-                {
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: borderRadius.medium,
-                },
-                tab === "products" && {
-                  backgroundColor: colors.buttons.tonal.hovered,
-                },
-              ]}
-            >
-              <Label size="large">Annonser</Label>
-            </View>
-          </Pressable>
-          <Pressable onPress={() => setTab("reviewed")}>
-            <View
-              style={[
-                {
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: borderRadius.medium,
-                },
-                tab === "reviewed" && {
-                  backgroundColor: colors.buttons.tonal.hovered,
-                },
-              ]}
-            >
-              <Label size="large">Omdömen</Label>
-            </View>
-          </Pressable>
-        </View>
+        <TabRail
+          tabs={[
+            {
+              title: "Annonser",
+              active: tab === "products",
+              onActivate: () => setTab("products"),
+            },
+            {
+              title: "Omdömen",
+              active: tab === "reviewed",
+              onActivate: () => setTab("reviewed"),
+            },
+          ]}
+        />
         {tab === "products" && renderProducts()}
         {tab === "reviewed" && renderReviewed()}
       </View>
