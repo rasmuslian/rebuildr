@@ -205,9 +205,19 @@ enum QuantityUnitEnum {
 type Message {
   id: ID!
   createdAt: DateTime!
-  body: String!
+  message: String!
   senderId: ID!
   receiverId: ID!
+  readAt: DateTime
+  messageType: MessageTypeEnum!
+  product: Product!
+  sender: User!
+  receiver: User!
+}
+
+enum MessageTypeEnum {
+  USER
+  SYSTEM
 }
 
 type ShippingPrice {
@@ -328,6 +338,17 @@ type ApproximatePlaceResponse {
   address: String!
 }
 
+type ConversationResponse {
+  otherUser: User!
+  messages: [Message!]!
+}
+
+type ConversationOverviewResponse {
+  otherUser: User!
+  product: Product!
+  latestMessageAt: DateTime!
+}
+
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
@@ -359,17 +380,6 @@ type PayoutAccountResponse {
   phoneNumber: String
   accountName: String
   bankName: String
-}
-
-type ConversationResponse {
-  otherUser: User!
-  messages: [Message!]!
-}
-
-type ConversationOverviewResponse {
-  otherUser: User!
-  product: Product!
-  latestMessageAt: DateTime!
 }
 
 type AuthenticateResponse {
@@ -409,6 +419,7 @@ type Query {
   popularCategories(input: PopularCategoriesInput): [Category!]!
   conversation(input: ConversationInput!): ConversationResponse!
   conversations: [ConversationOverviewResponse!]!
+  getConversations(input: GetConversationsInput!): [Message!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
@@ -489,6 +500,16 @@ input PopularCategoriesInput {
 input ConversationInput {
   otherUserId: String!
   productId: String!
+}
+
+input GetConversationsInput {
+  type: GetConversationsType!
+}
+
+enum GetConversationsType {
+  SELLING
+  BUYING
+  BUYING_AND_SELLING
 }
 
 input GetAddressInput {
@@ -692,7 +713,7 @@ input UpdateCategoryInput {
 input CreateMessageInput {
   receiverId: String!
   productId: String!
-  body: String!
+  message: String!
 }
 
 input AuthenticateRockerInput {

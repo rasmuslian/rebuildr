@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import { Message } from 'src/entities/message.entity';
+import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
+import { GetConversationsType } from 'src/resolvers/message.resolver';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -97,11 +98,82 @@ export class MessageService {
     }));
   }
 
+  /**
+   * Get all conversations for a user
+   *
+   * A conversation is defined by its last message,
+   * so we only return the last message of each conversation here.
+   *
+   * readAt is from the receiver's perspective, so it is from the last message sent to the receiver.
+   *
+   * selling: boolean - true if the user is the seller, false if the user is the buyer
+   */
+  async getConversations(
+    user: User,
+    type: GetConversationsType,
+  ): Promise<Message[]> {
+    const conversations = await this.dataSource
+      .createQueryBuilder()
+      .select(
+        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_readAt" as "readAt"',
+      )
+      .from((qb) => {
+        qb.select('message')
+          .addSelect(
+            `row_number() over(
+              partition by message."productId",
+              CASE 
+                WHEN message."senderId" = '${user.id}' THEN message."receiverId" 
+                ELSE message."senderId" 
+              END
+              order by message."createdAt" desc
+              )`,
+            'rank',
+          )
+          .from(Message, 'message');
+
+        if (type === GetConversationsType.SELLING) {
+          qb.innerJoin(
+            'message.product',
+            'product',
+            'product.sellerId = :userId',
+            {
+              userId: user.id,
+            },
+          );
+        }
+
+        if (type === GetConversationsType.BUYING) {
+          qb.innerJoin(
+            'message.product',
+            'product',
+            'product.sellerId != :userId',
+            {
+              userId: user.id,
+            },
+          );
+        }
+
+        qb.where(
+          `message."receiverId" = :userId OR (message."senderId" = :userId AND message."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum)`,
+          {
+            userId: user.id,
+          },
+        );
+
+        return qb;
+      }, 'm')
+      .where('m.rank = 1')
+      .getRawMany();
+
+    return conversations;
+  }
+
   async create(input: {
     senderId: string;
     receiverId: string;
     productId: string;
-    body: string;
+    message: string;
   }) {
     if (input.receiverId === input.senderId) {
       throw BadUserInputException('Cannot send message on own product');
@@ -119,7 +191,7 @@ export class MessageService {
     message.receiver = receiver;
     message.sender = sender;
     message.product = product;
-    message.body = input.body;
+    message.message = input.message;
     return await this.messageRepository.save(message);
   }
 

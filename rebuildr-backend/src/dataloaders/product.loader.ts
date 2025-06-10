@@ -10,6 +10,7 @@ import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 export interface IProductLoaders {
+  getProduct: DataLoader<string, Product>;
   likedByUserLoader: DataLoader<{ productId: string; userId: string }, boolean>;
   sellerLoader: DataLoader<string, User>;
   primaryImageLoader: DataLoader<string, File>;
@@ -26,6 +27,20 @@ export class ProductLoader {
     private readonly dataSource: DataSource,
     private readonly dataloaderService: DataloaderService,
   ) {}
+
+  private getProduct() {
+    return new DataLoader<string, Product>(async (productIds) => {
+      const products = await this.dataSource.getRepository(Product).find({
+        where: {
+          id: In(productIds),
+        },
+      });
+
+      return productIds.map((id) =>
+        products.find((product) => product.id === id),
+      ) as Product[];
+    });
+  }
 
   private likedByUserLoader() {
     return new DataLoader(
@@ -70,6 +85,7 @@ export class ProductLoader {
 
   createLoaders(): IProductLoaders {
     return {
+      getProduct: this.getProduct(),
       likedByUserLoader: this.likedByUserLoader(),
       sellerLoader: this.sellerLoader(),
       primaryImageLoader: this.primaryImageLoader(),

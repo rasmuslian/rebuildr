@@ -1,15 +1,21 @@
-import { UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
   ObjectType,
+  Parent,
   Query,
+  registerEnumType,
+  ResolveField,
   Resolver,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { IProductLoaders } from 'src/dataloaders/product.loader';
+import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
@@ -41,7 +47,7 @@ class CreateMessageInput {
   @Field()
   productId: string;
   @Field()
-  body: string;
+  message: string;
 }
 
 @ObjectType()
@@ -56,9 +62,28 @@ class ConversationOverviewResponse {
   latestMessageAt: Date;
 }
 
-@Resolver()
+export enum GetConversationsType {
+  SELLING = 'SELLING',
+  BUYING = 'BUYING',
+  BUYING_AND_SELLING = 'BUYING_AND_SELLING',
+}
+
+registerEnumType(GetConversationsType, {
+  name: 'GetConversationsType',
+});
+
+@InputType()
+class GetConversationsInput {
+  @Field(() => GetConversationsType)
+  type: GetConversationsType;
+}
+
+@Resolver(() => Message)
 export class MessageResolver {
-  constructor(private messageService: MessageService) {}
+  constructor(
+    @Inject(forwardRef(() => MessageService))
+    private messageService: MessageService,
+  ) {}
 
   @Query(() => ConversationResponse)
   @UseGuards(GqlAuthGuard)
@@ -79,6 +104,15 @@ export class MessageResolver {
     return this.messageService.findConversations({ id: _user.id });
   }
 
+  @Query(() => [Message])
+  @UseGuards(GqlAuthGuard)
+  async getConversations(
+    @Args('input') input: GetConversationsInput,
+    @CurrentUser() user: User,
+  ) {
+    return await this.messageService.getConversations(user, input.type);
+  }
+
   @Mutation(() => Message)
   @UseGuards(GqlAuthGuard)
   async createMessage(
@@ -89,7 +123,31 @@ export class MessageResolver {
       senderId: _user.id,
       receiverId: input.receiverId,
       productId: input.productId,
-      body: input.body,
+      message: input.message,
     });
+  }
+
+  @ResolveField(() => Product)
+  async product(
+    @Parent() message: Message,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return await productLoaders.getProduct.load(message.productId);
+  }
+
+  @ResolveField(() => User)
+  async sender(
+    @Parent() message: Message,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.getUserLoader.load(message.senderId);
+  }
+
+  @ResolveField(() => User)
+  async receiver(
+    @Parent() message: Message,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.getUserLoader.load(message.receiverId);
   }
 }
