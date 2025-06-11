@@ -56,7 +56,7 @@ export class Message {
   @ManyToOne(() => Product, (product) => product.id)
   product: Product;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   @Field(() => Date, { nullable: true })
   readAt?: Date | null;
 
