@@ -115,7 +115,6 @@ export class MessageService {
     input: GetConversationsInput,
     currentUserId: string,
   ): Promise<Message[]> {
-    console.log('input :>> ', input);
     const conversations = await this.dataSource
       .createQueryBuilder()
       .select(
