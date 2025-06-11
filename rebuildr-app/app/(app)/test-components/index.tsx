@@ -1,7 +1,7 @@
 import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
-import { AdGrid } from "@components/cards/ad-grid";
+import { AdGrid } from "@components/ad/ad-grid";
 import { FilterChip } from "@components/chips/filterChip";
 import { Check } from "@components/controls/check";
 import { Radio } from "@components/controls/radio";

@@ -25,7 +25,7 @@ import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
 import dayjs from "dayjs";
 import { Button } from "@components/buttons/button";
-import { AdGrid } from "@components/cards/ad-grid";
+import { AdGrid } from "@components/ad/ad-grid";
 import { UserCard } from "@components/cards/user-card";
 import { ProjectCard } from "@components/cards/project-card";
 import { Header } from "@components/navigation/headers/header";

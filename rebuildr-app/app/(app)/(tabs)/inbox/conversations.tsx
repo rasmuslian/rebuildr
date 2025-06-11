@@ -4,17 +4,15 @@ import {
   GetConversationsType,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { AdDescription } from "@components/cards/ad-grid";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { MessageRow } from "@components/messages/message-row";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import { Image } from "expo-image";
-import { borderRadius } from "@constants/sizes";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
+import { AdList } from "@components/ad/ad-list";
 
 const CONVERSATIONS = gql`
   query conversations($input: GetConversationsInput!) {
@@ -88,25 +86,14 @@ export default function Conversations() {
         product ? (
           <View style={{ gap: 16 }}>
             <Divider />
-            <View style={{ flexDirection: "row", gap: 16 }}>
-              <View style={{ flex: 1 }}>
-                <AdDescription
-                  title={product.title}
-                  condition={product.condition}
-                  price={product.price}
-                  quantity={product.primaryQuantity}
-                  quantityUnit={product.primaryUnit}
-                />
-              </View>
-              <Image
-                source={{ uri: product.primaryImage?.url }}
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: borderRadius.small,
-                }}
-              />
-            </View>
+            <AdList
+              title={product.title}
+              condition={product.condition}
+              price={product.price}
+              quantity={product.primaryQuantity}
+              quantityUnit={product.primaryUnit}
+              imageUrl={product.primaryImage?.url}
+            />
             <Button
               label="Gå till annons"
               onPress={() =>

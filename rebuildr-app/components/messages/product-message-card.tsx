@@ -1,19 +1,17 @@
 import { Avatar } from "@components/avatar/avatar";
 import { Badge } from "@components/badges/badge";
-import { AdDescription } from "@components/cards/ad-grid";
 import { Divider } from "@components/dividers/divider";
 import { Body, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Image } from "expo-image";
 import { ComponentProps } from "react";
 import { View } from "react-native";
 import { dateToTimeAgoString } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
+import { AdList } from "@components/ad/ad-list";
 
 type Props = {
-  adDescription: ComponentProps<typeof AdDescription>;
-  adImage?: string;
+  adList: ComponentProps<typeof AdList>;
   messages: {
     sender: {
       senderIsMe: boolean;
@@ -27,12 +25,7 @@ type Props = {
   onPress: () => void;
 };
 
-export const ProductMessageCard = ({
-  adDescription,
-  adImage,
-  messages,
-  onPress,
-}: Props) => {
+export const ProductMessageCard = ({ adList, messages, onPress }: Props) => {
   const colors = useThemeColor();
 
   const nrOfUnread = messages.reduce(
@@ -64,15 +57,7 @@ export const ProductMessageCard = ({
             },
       ]}
     >
-      <View style={{ flexDirection: "row", gap: 16 }}>
-        <View style={{ flex: 1 }}>
-          <AdDescription {...adDescription} />
-        </View>
-        <Image
-          source={{ uri: adImage }}
-          style={{ width: 80, height: 80, borderRadius: borderRadius.small }}
-        />
-      </View>
+      <AdList {...adList} />
       <Divider />
       <View
         style={{

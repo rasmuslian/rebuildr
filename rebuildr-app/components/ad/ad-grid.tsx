@@ -1,34 +1,15 @@
 import { useReactiveVar } from "@apollo/client";
 import { Pressable, View, StyleSheet, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
-import {
-  ProductConditionEnum,
-  QuantityUnitEnum,
-  UserType,
-} from "@/gql/graphql";
+
 import { isLoggedInVar } from "@/apollo/config";
 import { borderRadius } from "@constants/sizes";
-import { Body, Label, Title } from "@components/typography/text";
+import { Label } from "@components/typography/text";
 import { Icon } from "@icons/icon";
-import { ProductConditionToText } from "@/utils/enumToText";
-import { primitives } from "@constants/colors";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
-import { quantities } from "@constants/quantities";
 import { router } from "expo-router";
-import { defaultApproximateLocation } from "@constants/map";
-
-type AdDescriptionProps = {
-  title: string;
-  quantity?: number | null;
-  quantityUnit?: QuantityUnitEnum | null;
-  condition: ProductConditionEnum;
-  account?: {
-    rating?: number | null;
-    type: UserType;
-    location?: string | null;
-  };
-  price?: number;
-};
+import { ComponentProps } from "react";
+import { AdDescription } from "./ad-description";
 
 type Props = {
   id: string;
@@ -40,7 +21,7 @@ type Props = {
   overlayText?: string;
   disabled?: boolean;
   liked?: boolean;
-} & AdDescriptionProps;
+} & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
   id,
@@ -113,63 +94,5 @@ export const AdGrid = ({
       )}
       <AdDescription {...adDescriptionProps} />
     </Pressable>
-  );
-};
-
-export const AdDescription = ({
-  title,
-  quantity = 0,
-  quantityUnit: _quantityUnit,
-  condition,
-  account,
-  price,
-}: AdDescriptionProps) => {
-  const quantityUnit = _quantityUnit ?? QuantityUnitEnum.Amount;
-  return (
-    <View style={{ gap: 8, flex: 1, justifyContent: "space-between" }}>
-      <View style={{ gap: 2, paddingRight: 12 }}>
-        <Title size="small" numberOfLines={1}>
-          {title}
-        </Title>
-        <View style={{ flexDirection: "row", gap: 2 }}>
-          <Body color="secondary" size="small">
-            {quantity} {quantities[quantityUnit].short}
-          </Body>
-          <Body color="secondary" size="small">
-            •
-          </Body>
-          <Body color="secondary" size="small">
-            {ProductConditionToText[condition]}
-          </Body>
-        </View>
-      </View>
-
-      {account && (
-        <View style={{ gap: 4 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-            <Icon icon="star" size={10} />
-            <Label>{account.rating ?? 3}</Label>
-            {account.type === UserType.Business && (
-              <View
-                style={{
-                  borderRadius: borderRadius.xSmall,
-                  backgroundColor: primitives.accent200,
-                  paddingHorizontal: 4,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Label size="small">Företag</Label>
-              </View>
-            )}
-          </View>
-          <Body size="small" color="secondary">
-            {account.location ?? defaultApproximateLocation}
-          </Body>
-        </View>
-      )}
-
-      <Label size="large">{price} kr</Label>
-    </View>
   );
 };

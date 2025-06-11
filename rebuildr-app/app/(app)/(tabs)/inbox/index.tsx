@@ -149,14 +149,14 @@ export default function Inbox() {
       return (
         <ProductMessageCard
           key={i}
-          adDescription={{
+          adList={{
             title: product.title,
             quantity: product.primaryQuantity ?? 0,
             quantityUnit: product.primaryUnit ?? undefined,
             condition: product.condition,
             price: product.price,
+            imageUrl: product.primaryImage?.url,
           }}
-          adImage={product.primaryImage?.url}
           messages={sortedByLatest.map((conversation) => ({
             sender: {
               senderIsMe: conversation.sender.id === data.me.id,

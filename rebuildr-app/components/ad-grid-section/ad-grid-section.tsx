@@ -1,6 +1,6 @@
 import { ComponentProps } from "react";
 import { View } from "react-native";
-import { AdGrid } from "../cards/ad-grid";
+import { AdGrid } from "@components/ad/ad-grid";
 import { Headline } from "@components/typography/text";
 import { Button } from "@components/buttons/button";
 
