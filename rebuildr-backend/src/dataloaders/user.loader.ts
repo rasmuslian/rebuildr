@@ -13,6 +13,7 @@ import { Review } from 'src/entities/review.entity';
 import { User } from 'src/entities/user.entity';
 
 export interface IUserLoaders {
+  getUserLoader: DataLoader<string, User>;
   projectsLoader: DataLoader<string, Project[]>;
   soldProductsLoader: DataLoader<string, Product[]>;
   publishedProductsLoader: DataLoader<string, Product[]>;
@@ -33,6 +34,20 @@ export class UserLoader {
     private dataloaderService: DataloaderService,
     @InjectDataSource() private dataSource: DataSource,
   ) {}
+
+  private getUserLoader() {
+    return new DataLoader<string, User>(async (userIds) => {
+      const usersResult = await this.dataSource.getRepository(User).find({
+        where: {
+          id: In(userIds),
+        },
+      });
+
+      return userIds.map((userId) =>
+        usersResult.find((user) => user.id === userId),
+      ) as User[];
+    });
+  }
 
   private getSearchResultsLoader(input: GetSearchResultsInput) {
     return new DataLoader<string, SearchResult[]>(async (userIds) => {
@@ -181,6 +196,7 @@ export class UserLoader {
 
   createLoaders(): IUserLoaders {
     return {
+      getUserLoader: this.getUserLoader(),
       projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
         'projects',
         User,

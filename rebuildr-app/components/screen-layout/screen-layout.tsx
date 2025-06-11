@@ -6,6 +6,7 @@ import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
 interface PageProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
   footerComponent?: React.ReactNode;
+  footerBottomMargin?: "small" | "default";
   headerComponent?: React.ReactNode;
   loading?: boolean;
 }
@@ -14,10 +15,13 @@ export const ScreenLayout = ({
   children,
   style,
   footerComponent,
+  footerBottomMargin: _footerBottomMargin = "default",
   headerComponent,
   loading,
 }: PageProps) => {
   const colors = useThemeColor();
+
+  const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
   return (
     <View
       style={{
@@ -44,7 +48,9 @@ export const ScreenLayout = ({
         {loading ? <LoadingSpinner /> : children}
       </ScrollView>
       {footerComponent && (
-        <View style={{ paddingHorizontal: 16, marginBottom: 32 }}>
+        <View
+          style={{ paddingHorizontal: 16, marginBottom: footerBottomMargin }}
+        >
           {footerComponent}
         </View>
       )}

@@ -9,12 +9,21 @@ import { View } from "react-native";
 
 type Props = {
   title?: string;
-  CTA?: { icon: IconType; onPress: () => void }[];
+  ctas?: { icon: IconType; onPress: () => void }[];
+  showBackButton?: boolean;
   onBack?: () => void;
   middle?: ReactElement;
+  showDivider?: boolean;
 } & PropsWithChildren;
 
-export const Header = ({ title, CTA, onBack, middle }: Props) => {
+export const Header = ({
+  title,
+  ctas,
+  showBackButton = true,
+  onBack,
+  middle,
+  showDivider = true,
+}: Props) => {
   const colors = useThemeColor();
 
   return (
@@ -26,7 +35,7 @@ export const Header = ({ title, CTA, onBack, middle }: Props) => {
           alignItems: "center",
           justifyContent: "space-between",
         },
-        dividerStyles(colors).bottomDivider,
+        showDivider && dividerStyles(colors).bottomDivider,
       ]}
     >
       <View
@@ -35,22 +44,28 @@ export const Header = ({ title, CTA, onBack, middle }: Props) => {
             flexDirection: "row",
             gap: 6,
             alignItems: "center",
-            marginLeft: -12,
           },
         ]}
       >
-        <Button
-          icon="arrowLeft"
-          onPress={() =>
-            onBack
-              ? onBack()
-              : router.canGoBack()
-                ? router.back()
-                : router.navigate("/")
-          }
-          type="text"
-        />
-        {title && <Title size="medium">{title}</Title>}
+        {showBackButton && (
+          <Button
+            icon="arrowLeft"
+            onPress={() =>
+              onBack
+                ? onBack()
+                : router.canGoBack()
+                  ? router.back()
+                  : router.navigate("/")
+            }
+            type="text"
+            style={{ marginLeft: -12 }}
+          />
+        )}
+        {title && (
+          <Title size="medium" style={{ marginVertical: 8 }}>
+            {title}
+          </Title>
+        )}
         {!title && middle}
       </View>
       <View
@@ -63,7 +78,7 @@ export const Header = ({ title, CTA, onBack, middle }: Props) => {
           },
         ]}
       >
-        {CTA?.map((cta, i) => (
+        {ctas?.map((cta, i) => (
           <Button key={i} icon={cta.icon} onPress={cta.onPress} type="text" />
         ))}
       </View>

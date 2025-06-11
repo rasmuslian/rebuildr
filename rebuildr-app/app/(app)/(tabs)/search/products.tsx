@@ -8,7 +8,7 @@ import { gql, useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
-import { AdGrid } from "@components/cards/ad-grid";
+import { AdGrid } from "@components/ad/ad-grid";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { SearchBar } from "@components/search/search-bar";
 import { ContinuousSlider } from "@components/slider/continuous-slider";

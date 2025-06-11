@@ -19,16 +19,14 @@ import { Icon } from "@icons/icon";
 import { TextInput, View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import Placeholder from "@assets/images/placeholder.png";
-import PlaceholderProfile from "@assets/images/placeholder-profile.png";
-import PlaceholderProfileBusiness from "@assets/images/placeholder-profile-business.png";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Badge } from "@components/badges/badge";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { textStyles } from "@components/typography/typeface";
 import { Header } from "@components/navigation/headers/header";
+import { Avatar } from "@components/avatar/avatar";
 
 const SEARCH = gql`
   query Search($isLoggedIn: Boolean!, $searchResult: GetSearchResultsInput!) {
@@ -295,22 +293,10 @@ export default function Search() {
                       gap: 16,
                     }}
                   >
-                    {user.type === UserType.Personal ? (
-                      <Image
-                        source={
-                          user.profilePicture?.url ?? PlaceholderProfile.uri
-                        }
-                        style={{ height: 40, width: 40, borderRadius: 38 }}
-                      />
-                    ) : (
-                      <Image
-                        source={
-                          user.profilePicture?.url ??
-                          PlaceholderProfileBusiness.uri
-                        }
-                        style={{ height: 40, width: 40, borderRadius: 38 }}
-                      />
-                    )}
+                    <Avatar
+                      userType={user.type}
+                      imageUrl={user.profilePicture?.url}
+                    />
                     <View style={{ gap: 2, flex: 1 }}>
                       <Label size="large">{user.username}</Label>
                       <View
@@ -352,7 +338,7 @@ export default function Search() {
     <ScreenLayout
       headerComponent={
         <Header
-          CTA={[{ icon: "X", onPress: () => setSearchString("") }]}
+          ctas={[{ icon: "X", onPress: () => setSearchString("") }]}
           middle={
             <TextInput
               style={{

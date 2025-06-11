@@ -1,11 +1,9 @@
 import { View } from "react-native";
-import { Image } from "expo-image";
-import PlaceholderProfile from "@assets/images/placeholder-profile.png";
-import PlaceholderProfileBusiness from "@assets/images/placeholder-profile-business.png";
 import { Body, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { Badge } from "@components/badges/badge";
 import { UserType } from "@/gql/graphql";
+import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
   userType?: UserType;
@@ -27,16 +25,7 @@ export const UserCard = ({
   const isBusiness = userType ? userType === UserType.Business : false;
   return (
     <View style={{ flexDirection: "row", gap: 16 }}>
-      <Image
-        source={
-          profilePictureUrl
-            ? profilePictureUrl
-            : isBusiness
-              ? PlaceholderProfileBusiness.uri
-              : PlaceholderProfile.uri
-        }
-        style={{ width: 64, height: 64, borderRadius: 38 }}
-      />
+      <Avatar userType={userType} imageUrl={profilePictureUrl} size="medium" />
       <View>
         <Title size="medium" style={{ marginBottom: 4 }}>
           {username}

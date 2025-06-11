@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +9,12 @@ import {
 import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
+
+export enum MessageTypeEnum {
+  USER = 'USER',
+  SYSTEM = 'SYSTEM',
+}
+registerEnumType(MessageTypeEnum, { name: 'MessageTypeEnum' });
 
 @Entity()
 @ObjectType()
@@ -25,7 +31,7 @@ export class Message {
 
   @Field()
   @Column()
-  body: string;
+  message: string;
 
   @Expose({ name: 'senderId' })
   @Field(() => ID)
@@ -49,4 +55,12 @@ export class Message {
 
   @ManyToOne(() => Product, (product) => product.id)
   product: Product;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  @Field(() => Date, { nullable: true })
+  readAt?: Date | null;
+
+  @Field(() => MessageTypeEnum)
+  @Column('enum', { enum: MessageTypeEnum, default: MessageTypeEnum.USER })
+  messageType: MessageTypeEnum;
 }
