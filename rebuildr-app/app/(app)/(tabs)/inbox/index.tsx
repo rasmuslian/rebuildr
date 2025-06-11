@@ -16,6 +16,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
+import { router } from "expo-router";
 
 const GET_CONVERSATIONS = gql`
   query getConversations($input: GetConversationsInput!) {
@@ -166,6 +167,16 @@ export default function Inbox() {
             createdAt: conversation.createdAt,
             readAt: conversation.readAt,
           }))}
+          onPress={() =>
+            tab === "buy"
+              ? {
+                  /**TODO: Navigate to chat*/
+                }
+              : router.navigate({
+                  pathname: "/inbox/conversations",
+                  params: { productId: conversationsGroup.productId },
+                })
+          }
         />
       );
     });

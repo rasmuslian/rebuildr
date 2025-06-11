@@ -5,10 +5,11 @@ import { Divider } from "@components/dividers/divider";
 import { Body, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { ComponentProps } from "react";
 import { View } from "react-native";
+import { dateToTimeAgoString } from "./utils";
+import { Pressable } from "react-native-gesture-handler";
 
 type Props = {
   adDescription: ComponentProps<typeof AdDescription>;
@@ -23,27 +24,16 @@ type Props = {
     createdAt: Date;
     readAt?: Date;
   }[];
+  onPress: () => void;
 };
 
 export const ProductMessageCard = ({
   adDescription,
   adImage,
   messages,
+  onPress,
 }: Props) => {
   const colors = useThemeColor();
-
-  const timeAgoString = (messageCreatedAt: Date) => {
-    const diffHours = dayjs().diff(dayjs(messageCreatedAt), "hour");
-    const diffDays = dayjs().diff(dayjs(messageCreatedAt), "day");
-
-    if (diffDays >= 1) {
-      return `${diffDays} dag${diffDays > 1 ? "ar" : ""} sen`;
-    }
-    if (diffHours >= 1) {
-      return `${diffHours} timm${diffHours > 1 ? "ar" : "e"} sen`;
-    }
-    return "Meddelande nyligen";
-  };
 
   const nrOfUnread = messages.reduce(
     (acc, curr) => acc + (!curr.sender.senderIsMe && !curr.readAt ? 1 : 0),
@@ -51,7 +41,8 @@ export const ProductMessageCard = ({
   );
 
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       style={[
         {
           borderRadius: borderRadius.medium,
@@ -125,7 +116,7 @@ export const ProductMessageCard = ({
                   : `${messages[0].sender.username} och ${messages.length - 1} ${messages.length > 2 ? "andra" : "annan"}`}
               </Label>
               <Body size="small" color="secondary">
-                {timeAgoString(messages[0].createdAt)}
+                {dateToTimeAgoString(messages[0].createdAt)}
               </Body>
             </View>
           )}
@@ -140,6 +131,6 @@ export const ProductMessageCard = ({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };

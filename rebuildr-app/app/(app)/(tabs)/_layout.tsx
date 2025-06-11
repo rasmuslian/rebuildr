@@ -95,7 +95,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="inbox/index"
+        name="inbox"
         options={{
           tabBarButton: (props) =>
             renderTabButton("Inkorg", "message", props.href, true),

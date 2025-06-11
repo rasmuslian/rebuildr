@@ -111,15 +111,7 @@ export const AdGrid = ({
           />
         </Pressable>
       )}
-      <AdDescription
-        {...adDescriptionProps}
-        // title={title}
-        // quantity={quantity}
-        // quantityUnit={quantityUnit}
-        // condition={condition}
-        // account={account}
-        // price={price}
-      />
+      <AdDescription {...adDescriptionProps} />
     </Pressable>
   );
 };
