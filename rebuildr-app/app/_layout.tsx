@@ -21,9 +21,11 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LoginModalContext } from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
+import relativeTime from "dayjs/plugin/relativeTime";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
+dayjs.extend(relativeTime);
 
 const RootLayout = () => {
   const [loaded] = useFonts({

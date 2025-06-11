@@ -2,11 +2,11 @@ import { Body, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
-import { dateToTimeAgoString } from "./utils";
 import { Badge } from "@components/badges/badge";
 import { Avatar } from "@components/avatar/avatar";
 import { UserType } from "@/gql/graphql";
 import { Pressable } from "react-native-gesture-handler";
+import dayjs from "dayjs";
 
 type Props = {
   message: {
@@ -79,7 +79,7 @@ export const MessageRow = ({ message }: Props) => {
           {message.readAt ? <View /> : <Badge text="Oläst" />}
         </View>
         <Body size="small" color="secondary" style={{ marginTop: 4 }}>
-          {dateToTimeAgoString(message.createdAt)}
+          {dayjs(message.createdAt).fromNow()}
         </Body>
       </View>
     </Pressable>

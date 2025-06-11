@@ -6,9 +6,9 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ComponentProps } from "react";
 import { View } from "react-native";
-import { dateToTimeAgoString } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
 import { AdList } from "@components/ad/ad-list";
+import dayjs from "dayjs";
 
 type Props = {
   adList: ComponentProps<typeof AdList>;
@@ -101,7 +101,7 @@ export const ProductMessageCard = ({ adList, messages, onPress }: Props) => {
                   : `${messages[0].sender.username} och ${messages.length - 1} ${messages.length > 2 ? "andra" : "annan"}`}
               </Label>
               <Body size="small" color="secondary">
-                {dateToTimeAgoString(messages[0].createdAt)}
+                {dayjs(messages[0].createdAt).fromNow()}
               </Body>
             </View>
           )}

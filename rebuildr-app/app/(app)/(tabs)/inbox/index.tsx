@@ -187,7 +187,9 @@ export default function Inbox() {
       headerComponent={<Header title="Inkorg" showBackButton={false} />}
       style={{ gap: 24 }}
     >
-      <Display size="small">Du har {totalUnread} olästa</Display>
+      <Display size="small">
+        Du har {totalUnread} {totalUnread === 1 ? "oläst" : "olästa"}
+      </Display>
       <TabRail
         tabs={[
           {
@@ -219,11 +221,11 @@ export default function Inbox() {
       <View>
         <Headline size="small">
           {tab === "buy"
-            ? `Köper: ${nrUnreadBuy} Olästa`
-            : `Säljer: ${nrUnreadSell} Olästa`}
+            ? `Köper: ${nrUnreadBuy} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`
+            : `Säljer: ${nrUnreadSell} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`}
         </Headline>
         {unread.length ? (
-          <View style={{ marginTop: 24 }}>{renderCards(unread)}</View>
+          <View style={{ marginTop: 24, gap: 16 }}>{renderCards(unread)}</View>
         ) : (
           <Body size="medium" color="secondary" style={{ marginTop: 2 }}>
             Härligt! Du har läst alla meddelanden.
