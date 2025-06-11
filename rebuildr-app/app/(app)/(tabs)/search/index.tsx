@@ -338,7 +338,7 @@ export default function Search() {
     <ScreenLayout
       headerComponent={
         <Header
-          CTA={[{ icon: "X", onPress: () => setSearchString("") }]}
+          ctas={[{ icon: "X", onPress: () => setSearchString("") }]}
           middle={
             <TextInput
               style={{

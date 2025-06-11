@@ -48,7 +48,6 @@ export default function Filter() {
           style={{
             flexDirection: "row",
             gap: 8,
-            marginBottom: 24,
             marginTop: 16,
           }}
         >

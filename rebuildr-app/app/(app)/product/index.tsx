@@ -28,6 +28,8 @@ import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/cards/ad-grid";
 import { UserCard } from "@components/cards/user-card";
 import { ProjectCard } from "@components/cards/project-card";
+import { Header } from "@components/navigation/headers/header";
+import { IconType } from "@icons/icon";
 
 const PRODUCT_VIEW = gql`
   query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -210,38 +212,27 @@ export default function Product() {
   return (
     <ScreenLayout
       headerComponent={
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 16,
-            alignItems: "center",
-            paddingVertical: 8,
-          }}
-        >
-          <View style={{ flex: 1, alignItems: "flex-start" }}>
-            <Button
-              icon="arrowLeft"
-              type="text"
-              onPress={() =>
-                router.canGoBack() ? router.back() : router.navigate("/")
-              }
-            />
-          </View>
-          <Button
-            icon="upload"
-            type="text"
-            onPress={() => {
-              //TODO: share function
-            }}
-          />
-          {isLoggedIn && !isMyProduct && (
-            <Button
-              icon={data.product.likedByMe ? "heartFilled" : "heart"}
-              type="text"
-              onPress={onLikeProduct}
-            />
-          )}
-        </View>
+        <Header
+          showDivider={false}
+          ctas={[
+            {
+              icon: "upload",
+              onPress: () => {
+                //TODO: share function
+              },
+            },
+            ...(isLoggedIn
+              ? [
+                  {
+                    icon: (data.product.likedByMe
+                      ? "heartFilled"
+                      : "heart") as IconType,
+                    onPress: onLikeProduct,
+                  },
+                ]
+              : []),
+          ]}
+        />
       }
       footerComponent={
         <View style={{ gap: 8, paddingTop: 24 }}>
@@ -281,7 +272,7 @@ export default function Product() {
           )}
         </View>
       }
-      style={{ gap: 24 }}
+      style={{ gap: 24, marginTop: 8 }}
     >
       <ImageCarousel images={data.product.images} />
       <MainContent

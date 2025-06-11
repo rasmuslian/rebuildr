@@ -9,18 +9,20 @@ import { View } from "react-native";
 
 type Props = {
   title?: string;
-  CTA?: { icon: IconType; onPress: () => void }[];
+  ctas?: { icon: IconType; onPress: () => void }[];
   showBackButton?: boolean;
   onBack?: () => void;
   middle?: ReactElement;
+  showDivider?: boolean;
 } & PropsWithChildren;
 
 export const Header = ({
   title,
-  CTA,
+  ctas,
   showBackButton = true,
   onBack,
   middle,
+  showDivider = true,
 }: Props) => {
   const colors = useThemeColor();
 
@@ -33,7 +35,7 @@ export const Header = ({
           alignItems: "center",
           justifyContent: "space-between",
         },
-        dividerStyles(colors).bottomDivider,
+        showDivider && dividerStyles(colors).bottomDivider,
       ]}
     >
       <View
@@ -76,7 +78,7 @@ export const Header = ({
           },
         ]}
       >
-        {CTA?.map((cta, i) => (
+        {ctas?.map((cta, i) => (
           <Button key={i} icon={cta.icon} onPress={cta.onPress} type="text" />
         ))}
       </View>

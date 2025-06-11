@@ -497,7 +497,6 @@ export default function Profile() {
             label="Spara"
             loading={updateProfileLoading}
             onPress={() => onSaveProfile()}
-            style={{ marginBottom: 32 }}
           />
         }
       >
@@ -539,7 +538,7 @@ export default function Profile() {
       style={{ marginTop: 24, gap: 24 }}
       headerComponent={
         <Header
-          CTA={[
+          ctas={[
             ...(isMyProfile
               ? [
                   {
