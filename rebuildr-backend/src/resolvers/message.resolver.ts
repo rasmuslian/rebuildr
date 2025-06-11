@@ -73,9 +73,12 @@ registerEnumType(GetConversationsType, {
 });
 
 @InputType()
-class GetConversationsInput {
+export class GetConversationsInput {
   @Field(() => GetConversationsType)
   type: GetConversationsType;
+
+  @Field({ nullable: true })
+  productId?: string;
 }
 
 @Resolver(() => Message)
@@ -108,9 +111,9 @@ export class MessageResolver {
   @UseGuards(GqlAuthGuard)
   async getConversations(
     @Args('input') input: GetConversationsInput,
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthedUserType,
   ) {
-    return await this.messageService.getConversations(user, input.type);
+    return await this.messageService.getConversations(input, user.id);
   }
 
   @Mutation(() => Message)

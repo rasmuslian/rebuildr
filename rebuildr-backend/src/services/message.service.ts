@@ -5,7 +5,10 @@ import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { GetConversationsType } from 'src/resolvers/message.resolver';
+import {
+  GetConversationsInput,
+  GetConversationsType,
+} from 'src/resolvers/message.resolver';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -109,9 +112,10 @@ export class MessageService {
    * selling: boolean - true if the user is the seller, false if the user is the buyer
    */
   async getConversations(
-    user: User,
-    type: GetConversationsType,
+    input: GetConversationsInput,
+    currentUserId: string,
   ): Promise<Message[]> {
+    console.log('input :>> ', input);
     const conversations = await this.dataSource
       .createQueryBuilder()
       .select(
@@ -123,7 +127,7 @@ export class MessageService {
             `row_number() over(
               partition by message."productId",
               CASE 
-                WHEN message."senderId" = '${user.id}' THEN message."receiverId" 
+                WHEN message."senderId" = '${currentUserId}' THEN message."receiverId" 
                 ELSE message."senderId" 
               END
               order by message."createdAt" desc
@@ -132,34 +136,38 @@ export class MessageService {
           )
           .from(Message, 'message');
 
-        if (type === GetConversationsType.SELLING) {
+        if (input.type === GetConversationsType.SELLING) {
           qb.innerJoin(
             'message.product',
             'product',
             'product.sellerId = :userId',
             {
-              userId: user.id,
+              userId: currentUserId,
             },
           );
         }
 
-        if (type === GetConversationsType.BUYING) {
+        if (input.type === GetConversationsType.BUYING) {
           qb.innerJoin(
             'message.product',
             'product',
             'product.sellerId != :userId',
             {
-              userId: user.id,
+              userId: currentUserId,
             },
           );
         }
 
         qb.where(
-          `message."receiverId" = :userId OR (message."senderId" = :userId AND message."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum)`,
+          `(message."receiverId" = :userId OR (message."senderId" = :userId AND message."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum))`,
           {
-            userId: user.id,
+            userId: currentUserId,
           },
         );
+
+        if (input.productId) {
+          qb.andWhere(`message."productId" = '${input.productId}'`);
+        }
 
         return qb;
       }, 'm')

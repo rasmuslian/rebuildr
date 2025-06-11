@@ -504,6 +504,7 @@ input ConversationInput {
 
 input GetConversationsInput {
   type: GetConversationsType!
+  productId: String
 }
 
 enum GetConversationsType {
