@@ -3,14 +3,12 @@ import { gql, useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Display, Headline } from "@components/typography/text";
+import { Display } from "@components/typography/text";
 import { router } from "expo-router";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
-import { View, Dimensions } from "react-native";
-import { Button } from "@components/buttons/button";
-import { FlatList } from "react-native-gesture-handler";
 import { ProjectCard } from "@components/cards/project-card";
 import { Divider } from "@components/dividers/divider";
+import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 
 const MY_FAVORITES = gql`
   query MyFavorites($limit: Int, $offset: Int) {
@@ -122,44 +120,23 @@ export default function Favorites() {
           }}
         />
       )}
-      {hasFavoritProjects && (
-        <View style={{ gap: 16 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Headline size="small">Projekt</Headline>
-            <Button
-              icon="arrowRight"
-              type="text"
-              onPress={() => {
-                //TODO: navigate to projects page
-              }}
-            />
-          </View>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            data={data?.me.likedProjects}
-            contentContainerStyle={{ gap: 16, marginHorizontal: 16 }}
-            horizontal
-            style={{ marginHorizontal: -16 }}
-            renderItem={({ item: project }) => (
-              <View style={{ minWidth: Dimensions.get("screen").width * 0.75 }}>
-                <ProjectCard project={project} />
-              </View>
-            )}
-          />
-        </View>
+      {data?.me.likedProjects && hasFavoritProjects && (
+        <HoriztalListSection
+          data={data.me.likedProjects}
+          renderItem={({ item }) => <ProjectCard project={item} />}
+          title="Favoritprojekt"
+          onPress={() => {
+            //TODO: navigate to projects page
+          }}
+          visibleItems={2}
+        />
       )}
       {hasFavoritProjects && hasFavoritProducts && <Divider />}
       {hasFavoritProducts && (
         <AdGridSection
           header="Favoritannonser"
           products={
-            data?.me.likedProducts?.products.map((product) => ({
+            (data?.me.likedProducts?.products ?? []).map((product) => ({
               id: product.id,
               imageUri: product.primaryImage?.url,
               title: product.title,

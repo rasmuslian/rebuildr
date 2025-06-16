@@ -24,6 +24,7 @@ import { Map } from "@components/maps/map";
 import { Check } from "@components/controls/check";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { formatMetersToKm } from "@/utils/distanceHandling";
+import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -72,8 +73,6 @@ const SEARCH_PRODUCTS_QUERY = gql`
 `;
 
 export default function Products() {
-  const [offset, setOffset] = useState(0);
-
   //Transportation variables
   const [pickup, setPickup] = useState(true);
   const [pickupDistance, setPickupDistance] = useState(defaultRadius);
@@ -102,7 +101,7 @@ export default function Products() {
         maxPrice: filter.price[1],
       },
       limit: productsPerPage,
-      offset,
+      offset: 0,
       isLoggedIn,
     },
   });
@@ -110,12 +109,13 @@ export default function Products() {
   const onShowMore = async () => {
     await fetchMore({
       variables: {
+        offset: Math.ceil(
+          (data?.products?.products.length ?? 0) / productsPerPage,
+        ),
         limit: productsPerPage,
-        offset: offset + 1,
       },
       updateQuery: (prev, { fetchMoreResult }) => {
         if (!fetchMoreResult?.products?.products.length) return prev;
-        setOffset(offset + 1);
 
         return {
           products: {
@@ -288,39 +288,27 @@ export default function Products() {
             )}
           </View>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 16,
-            flexWrap: "wrap",
-            paddingBottom: 16,
-            marginTop: 16,
-          }}
-        >
-          {data?.products.products.map((product) => (
-            <AdGrid
-              key={product.id}
-              id={product.id}
-              imageUri={product.primaryImage?.url}
-              title={product.title}
-              quantity={product.primaryQuantity}
-              condition={product.condition}
-              account={{
+        <AdGridSection
+          products={
+            data?.products.products.map((product) => ({
+              id: product.id,
+              imageUri: product.primaryImage?.url,
+              title: product.title,
+              quantity: product.primaryQuantity,
+              condition: product.condition,
+              account: {
                 rating: product.seller.rating,
                 type: product.seller.type,
                 location: product.approximatePlace?.address,
-              }}
-              price={product.price}
-            />
-          ))}
-        </View>
-        <Button
-          label="Läs in fler"
-          onPress={onShowMore}
-          disabled={
-            data && data.products.products.length >= data.products.total
+              },
+              price: product.price,
+            })) ?? []
           }
-          style={{ marginTop: 24 }}
+          pagination={{
+            onShowMore,
+            total: data?.products.total ?? 0,
+            loading,
+          }}
         />
       </ScreenLayout>
       <BottomSheet

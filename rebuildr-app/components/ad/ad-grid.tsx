@@ -16,8 +16,6 @@ type Props = {
   imageUri?: string;
   heart?: boolean;
   onHeartPress?: () => void;
-  width?: number;
-  height?: number;
   overlayText?: string;
   disabled?: boolean;
   liked?: boolean;
@@ -28,20 +26,17 @@ export const AdGrid = ({
   imageUri,
   heart,
   onHeartPress,
-  width: _width,
   overlayText,
   disabled,
   liked,
   ...adDescriptionProps
 }: Props) => {
-  const { width: screenWidth } = useWindowDimensions();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const showHeart = heart && isLoggedIn;
 
-  const width = _width ?? (screenWidth - 48) / 2;
   return (
     <Pressable
-      style={[{ gap: 8, opacity: disabled ? 0.5 : 1 }]}
+      style={[{ gap: 8, opacity: disabled ? 0.5 : 1, width: "100%" }]}
       onPress={() => {
         router.navigate({
           pathname: "/product",
@@ -53,7 +48,7 @@ export const AdGrid = ({
       <Image
         source={imageUri ?? PlaceholderProduct.uri}
         cachePolicy="memory-disk"
-        style={{ width, aspectRatio: 1, borderRadius: borderRadius.medium }}
+        style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
       >
         {!!overlayText && (
           <View

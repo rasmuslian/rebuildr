@@ -18,7 +18,6 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import BuyersProtection from "@assets/svgs/buyers-protection.svg";
 import { Image } from "expo-image";
 import { Check } from "@components/controls/check";
@@ -30,6 +29,7 @@ import { UserCard } from "@components/cards/user-card";
 import { ProjectCard } from "@components/cards/project-card";
 import { Header } from "@components/navigation/headers/header";
 import { IconType } from "@icons/icon";
+import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 
 const PRODUCT_VIEW = gql`
   query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
@@ -393,49 +393,30 @@ export default function Product() {
         </>
       )}
       {!!otherProducts.length && (
-        <View style={{ gap: 16 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Headline size="small">Mer från samma säljare</Headline>
-            <Button
-              icon="arrowRight"
-              type="text"
-              onPress={() => {
-                router.navigate({
-                  pathname: "/account/profile",
-                  params: { userId: data.product.seller.id },
-                });
-              }}
+        <HoriztalListSection
+          title="Mer från samma säljare"
+          data={otherProducts}
+          onPress={() => {
+            router.navigate({
+              pathname: "/account/profile",
+              params: { userId: data.product.seller.id },
+            });
+          }}
+          renderItem={({ item }) => (
+            <AdGrid
+              id={item.id}
+              imageUri={item.primaryImage?.url}
+              liked={!!item.likedByMe}
+              heart
+              quantity={item.primaryQuantity}
+              quantityUnit={item.primaryUnit}
+              condition={item.condition}
+              title={item.title}
+              price={item.price}
             />
-          </View>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            style={{
-              paddingBottom: 24,
-            }}
-            data={otherProducts}
-            contentContainerStyle={{ gap: 16 }}
-            horizontal
-            renderItem={({ item: product }) => (
-              <AdGrid
-                id={product.id}
-                imageUri={product.primaryImage?.url}
-                liked={!!product.likedByMe}
-                heart
-                quantity={product.primaryQuantity}
-                quantityUnit={product.primaryUnit}
-                condition={product.condition}
-                title={product.title}
-                price={product.price}
-              />
-            )}
-          />
-        </View>
+          )}
+          visibleItems={3}
+        />
       )}
     </ScreenLayout>
   );

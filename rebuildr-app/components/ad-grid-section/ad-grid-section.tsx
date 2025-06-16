@@ -1,15 +1,15 @@
 import { ComponentProps } from "react";
-import { View } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import { AdGrid } from "@components/ad/ad-grid";
-import { Headline } from "@components/typography/text";
 import { Button } from "@components/buttons/button";
+import { SectionHeader } from "@components/sections/section-header";
 
 export const AdGridSection = ({
   header,
   products,
   pagination,
 }: {
-  header: string;
+  header?: string;
   products: ComponentProps<typeof AdGrid>[];
   pagination?: {
     onShowMore: () => void;
@@ -17,9 +17,11 @@ export const AdGridSection = ({
     total: number;
   };
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const width = (screenWidth - 48) / 2;
   return (
     <View style={{ gap: 24 }}>
-      <Headline size="small">{header}</Headline>
+      {!!header && <SectionHeader>{header}</SectionHeader>}
       <View
         style={{
           flexDirection: "row",
@@ -30,7 +32,9 @@ export const AdGridSection = ({
         }}
       >
         {products.map((product) => (
-          <AdGrid key={product.id} {...product} />
+          <View style={{ width }} key={product.id}>
+            <AdGrid {...product} />
+          </View>
         ))}
       </View>
       {!!pagination && (
