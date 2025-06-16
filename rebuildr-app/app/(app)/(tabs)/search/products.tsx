@@ -340,7 +340,7 @@ export default function Products() {
             {pickup && (
               <View style={{ gap: 24 }}>
                 <View style={{ gap: 12 }}>
-                  <Label size="medium">Välj max avstånd för hemtransport</Label>
+                  <Label size="medium">Välj max avstånd från dig</Label>
                   <View
                     style={{
                       flexDirection: "row",

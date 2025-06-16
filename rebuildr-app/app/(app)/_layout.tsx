@@ -2,7 +2,7 @@ import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Body } from "@components/typography/text";
-import { Redirect, Slot } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -29,5 +29,13 @@ export default function AppLayout() {
     return <Body>Loading...</Body>;
   }
 
-  return <Slot />;
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="product" options={{ headerShown: false }} />
+      <Stack.Screen name="account" options={{ headerShown: false }} />
+      <Stack.Screen name="search" options={{ headerShown: false }} />
+      <Stack.Screen name="test-components" options={{ headerShown: false }} />
+    </Stack>
+  );
 }

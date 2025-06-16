@@ -4,6 +4,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
+import { Button } from "@components/buttons/button";
 
 type Props = {
   placeholder?: string;
@@ -41,9 +42,12 @@ export const SearchBar = ({
         style,
       ]}
     >
-      <Pressable onPress={() => onPressArrow?.()}>
-        <Icon icon="arrowLeft" size={18} />
-      </Pressable>
+      <Button
+        icon="arrowLeft"
+        onPress={() => onPressArrow?.()}
+        type="text"
+        style={{ marginLeft: -12 }}
+      />
       <View
         style={[
           {
