@@ -58,9 +58,8 @@ const CONVERSATIONS = gql`
   }
 `;
 
-export default function Conversations() {
+export default function ConversationsProduct() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
-  //Hämta produkt med alla tillhörande konversationer
   const { data } = useQuery<ConversationsQuery, ConversationsQueryVariables>(
     CONVERSATIONS,
     {

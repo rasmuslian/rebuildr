@@ -60,7 +60,7 @@ const GET_CONVERSATIONS = gql`
   }
 `;
 
-export default function Inbox() {
+export default function Conversations() {
   const [tab, setTab] = useState<"sell" | "buy">("sell");
   const [showAll, setShowAll] = useState(true);
 
@@ -83,14 +83,14 @@ export default function Inbox() {
     parseConversations(data, tab);
 
   const renderCards = (
-    conversationGroup: {
+    conversationsGroup: {
       productId: string;
       conversations: GetConversationsQuery["getConversations"];
     }[],
   ) => {
-    return conversationGroup.map((conversationsGroup, i) => {
-      const product = conversationsGroup.conversations[0].product;
-      const sortedByLatest = conversationsGroup.conversations.sort((a, b) =>
+    return conversationsGroup.map((conversationGroup, i) => {
+      const product = conversationGroup.conversations[0].product;
+      const sortedByLatest = conversationGroup.conversations.sort((a, b) =>
         dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1,
       );
       return (
@@ -116,12 +116,16 @@ export default function Inbox() {
           }))}
           onPress={() =>
             tab === "buy"
-              ? {
-                  /**TODO: Navigate to chat*/
-                }
+              ? router.navigate({
+                  pathname: "/conversations/[productId]/[userId]",
+                  params: {
+                    productId: conversationGroup.productId,
+                    userId: product.seller.id,
+                  },
+                })
               : router.navigate({
-                  pathname: "/inbox/conversations",
-                  params: { productId: conversationsGroup.productId },
+                  pathname: "/conversations/[productId]",
+                  params: { productId: conversationGroup.productId },
                 })
           }
         />
