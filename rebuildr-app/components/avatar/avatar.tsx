@@ -1,12 +1,13 @@
 import { Image, ImageProps } from "expo-image";
 import PlaceholderProfile from "@assets/images/placeholder-profile.png";
 import PlaceholderBusiness from "@assets/images/placeholder-project.png";
+import LogoIcon from "@assets/images/logo-icon.png";
 import { UserType } from "@/gql/graphql";
 
 type Props = {
   imageUrl?: string;
   size?: "small" | "medium" | number;
-  userType?: UserType;
+  userType?: UserType | "SYSTEM";
 } & ImageProps;
 
 export const Avatar = ({
@@ -24,14 +25,25 @@ export const Avatar = ({
     radius = size;
   }
 
+  const getImageUrl = () => {
+    if (imageUrl) {
+      return imageUrl;
+    }
+    switch (userType) {
+      case "SYSTEM":
+        return LogoIcon.uri;
+      case UserType.Personal:
+        return PlaceholderProfile.uri;
+      case UserType.Business:
+        return PlaceholderBusiness.uri;
+      default:
+        return PlaceholderProfile.uri;
+    }
+  };
+
   return (
     <Image
-      source={
-        imageUrl ??
-        (userType === UserType.Personal
-          ? PlaceholderProfile.uri
-          : PlaceholderBusiness.uri)
-      }
+      source={getImageUrl()}
       {...imageProps}
       style={[
         { width: radius, height: radius },

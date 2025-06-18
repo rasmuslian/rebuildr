@@ -266,6 +266,10 @@ export default function Product() {
                 type="tonal"
                 onPress={() => {
                   //TODO: navigate to chat with Seller
+                  router.navigate({
+                    pathname: "/conversations/[productId]/[userId]",
+                    params: { productId, userId: data.product.seller.id },
+                  });
                 }}
               />
             </>

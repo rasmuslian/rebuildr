@@ -107,13 +107,14 @@ export default function ConversationsProduct() {
         {data.getConversations.map((conversation, i) => {
           const otherUser =
             data.me.id === conversation.sender.id
-              ? conversation.sender
-              : conversation.receiver;
+              ? conversation.receiver
+              : conversation.sender;
           return (
             <MessageRow
               key={i}
               message={{
                 otherUser: {
+                  id: otherUser.id,
                   userType: otherUser.type,
                   username: otherUser.username,
                   url: otherUser.profilePicture?.url,

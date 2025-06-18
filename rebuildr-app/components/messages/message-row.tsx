@@ -7,10 +7,12 @@ import { Avatar } from "@components/avatar/avatar";
 import { UserType } from "@/gql/graphql";
 import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
+import { router } from "expo-router";
 
 type Props = {
   message: {
     otherUser: {
+      id: string;
       userType: UserType;
       username?: string | null;
       url?: string;
@@ -28,7 +30,13 @@ export const MessageRow = ({ message }: Props) => {
   return (
     <Pressable
       onPress={() => {
-        /**TODO: navigate to chat */
+        router.navigate({
+          pathname: "/conversations/[productId]/[userId]",
+          params: {
+            productId: message.productId,
+            userId: message.otherUser.id,
+          },
+        });
       }}
       style={[
         {
