@@ -35,11 +35,13 @@ export class Review extends BaseEntity {
   @ManyToOne(() => Purchase, (purchase) => purchase.reviews)
   purchase: Purchase;
 
+  @Field()
   @Column()
   reviewerId: string;
   @ManyToOne(() => User, (user) => user.reviews)
   reviewer: User;
 
+  @Field()
   @Column()
   revieweeId: string;
   @ManyToOne(() => User, (user) => user.reviewed)

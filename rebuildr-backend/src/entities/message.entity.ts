@@ -26,7 +26,7 @@ export class Message {
   @Type(() => Date)
   @Expose({ name: 'createdAt' })
   @Field(() => Date)
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
   @Field()
