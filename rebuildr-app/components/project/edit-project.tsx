@@ -35,6 +35,7 @@ const UPDATE_PROJECT = gql`
       contactName
       contactEmail
       contactPhone
+      address
       location {
         lat
         lng
