@@ -290,7 +290,7 @@ export default function Project() {
                 fields={[
                   {
                     type: "select",
-                    heading: "Välj project",
+                    heading: "Välj projekt",
                     value: projectId,
                     placeholder: "Välj",
                     options: projectOptions,
