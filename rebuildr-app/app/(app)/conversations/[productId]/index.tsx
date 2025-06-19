@@ -112,18 +112,20 @@ export default function ConversationsProduct() {
           return (
             <MessageRow
               key={i}
+              otherUser={{
+                id: otherUser.id,
+                userType: otherUser.type,
+                username: otherUser.username,
+                url: otherUser.profilePicture?.url,
+              }}
               message={{
-                otherUser: {
-                  id: otherUser.id,
-                  userType: otherUser.type,
-                  username: otherUser.username,
-                  url: otherUser.profilePicture?.url,
-                },
                 message: conversation.message,
+                sender: { id: conversation.sender.id },
                 createdAt: conversation.createdAt,
                 readAt: conversation.readAt,
                 productId: product.id,
               }}
+              myId={data.me.id}
             />
           );
         })}
