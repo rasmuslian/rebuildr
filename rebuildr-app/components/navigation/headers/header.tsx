@@ -8,7 +8,7 @@ import { PropsWithChildren, ReactElement } from "react";
 import { View } from "react-native";
 
 type Props = {
-  title?: string;
+  title?: string | null;
   ctas?: { icon: IconType; onPress: () => void }[];
   showBackButton?: boolean;
   onBack?: () => void;

@@ -58,9 +58,8 @@ const CONVERSATIONS = gql`
   }
 `;
 
-export default function Conversations() {
+export default function ConversationsProduct() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
-  //Hämta produkt med alla tillhörande konversationer
   const { data } = useQuery<ConversationsQuery, ConversationsQueryVariables>(
     CONVERSATIONS,
     {
@@ -108,22 +107,25 @@ export default function Conversations() {
         {data.getConversations.map((conversation, i) => {
           const otherUser =
             data.me.id === conversation.sender.id
-              ? conversation.sender
-              : conversation.receiver;
+              ? conversation.receiver
+              : conversation.sender;
           return (
             <MessageRow
               key={i}
+              otherUser={{
+                id: otherUser.id,
+                userType: otherUser.type,
+                username: otherUser.username,
+                url: otherUser.profilePicture?.url,
+              }}
               message={{
-                otherUser: {
-                  userType: otherUser.type,
-                  username: otherUser.username,
-                  url: otherUser.profilePicture?.url,
-                },
                 message: conversation.message,
+                sender: { id: conversation.sender.id },
                 createdAt: conversation.createdAt,
                 readAt: conversation.readAt,
                 productId: product.id,
               }}
+              myId={data.me.id}
             />
           );
         })}

@@ -7,6 +7,8 @@ type Review {
   createdAt: DateTime!
   stars: Int!
   review: String!
+  reviewerId: String!
+  revieweeId: String!
   reviewer: User!
   reviewee: User!
   purchase: Purchase!
@@ -16,6 +18,18 @@ type Review {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type ShippingPrice {
+  id: ID!
+  maxWeight: Float!
+  provider: ShippingProviderEnum!
+  price: Float!
+}
+
+enum ShippingProviderEnum {
+  POSTNORD
+  DHL
+}
 
 type Purchase {
   id: ID!
@@ -34,6 +48,9 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
+  qrCodeUrl: String
+  isShipping: Boolean!
+  reviews: [Review!]!
 }
 
 enum PurchaseStatusEnum {
@@ -220,24 +237,13 @@ enum MessageTypeEnum {
   SYSTEM
 }
 
-type ShippingPrice {
-  id: ID!
-  maxWeight: Float!
-  provider: ShippingProviderEnum!
-  price: Float!
-}
-
-enum ShippingProviderEnum {
-  POSTNORD
-  DHL
-}
-
 type Product {
   id: ID!
   title: String!
   description: String
   createdAt: DateTime!
   updatedAt: DateTime!
+  sellerId: String!
   address: String
   hiddenReason: String
   isGiveaway: Boolean!
@@ -338,17 +344,6 @@ type ApproximatePlaceResponse {
   address: String!
 }
 
-type ConversationResponse {
-  otherUser: User!
-  messages: [Message!]!
-}
-
-type ConversationOverviewResponse {
-  otherUser: User!
-  product: Product!
-  latestMessageAt: DateTime!
-}
-
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
@@ -417,12 +412,12 @@ type Query {
   getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories: [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
-  conversation(input: ConversationInput!): ConversationResponse!
-  conversations: [ConversationOverviewResponse!]!
+  getConversation(input: GetConversationInput!): [Message!]!
   getConversations(input: GetConversationsInput!): [Message!]!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
+  latestPurchase(input: LatestPurchaseInput!): Purchase
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
@@ -497,7 +492,7 @@ input PopularCategoriesInput {
   limit: Int!
 }
 
-input ConversationInput {
+input GetConversationInput {
   otherUserId: String!
   productId: String!
 }
@@ -524,6 +519,11 @@ input LocationSearchInput {
 
 input AddressToLocationInput {
   address: String!
+}
+
+input LatestPurchaseInput {
+  otherUserId: String!
+  productId: String!
 }
 
 input GetProjectInput {
@@ -563,11 +563,13 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
+  markConversationAsRead(input: MarkAsReadInput!): [Message!]!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   selectPayoutMethod(input: SelectPayoutMethodInput!): User!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
+  markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
@@ -717,6 +719,12 @@ input CreateMessageInput {
   message: String!
 }
 
+input MarkAsReadInput {
+  otherUserId: String!
+  productId: String!
+  markAsRead: Boolean!
+}
+
 input AuthenticateRockerInput {
   requestId: String!
 }
@@ -747,6 +755,10 @@ enum PaymentMethod {
 }
 
 input AcceptPurchaseInput {
+  purchaseId: String!
+}
+
+input MarkPurchaseAsDeliveredInput {
   purchaseId: String!
 }
 

@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
-import { IsNull, LessThanOrEqual, Repository } from 'typeorm';
+import { Any, In, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { RockerService, SupportedPaymentMethod } from './rocker.service';
 import {
   BadUserInputException,
@@ -27,6 +27,8 @@ import dayjs from 'dayjs';
 import { FileService } from './file.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { LatestPurchaseInput } from 'src/resolvers/purchase.resolver';
+import { Review } from 'src/entities/review.entity';
 
 export class PurchaseService {
   constructor(
@@ -40,6 +42,8 @@ export class PurchaseService {
     private caslAbilityFactory: CaslAbilityFactory,
     private fileService: FileService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
   ) {}
   async createPurchase(
     productId: string,
@@ -111,6 +115,90 @@ export class PurchaseService {
     };
   }
 
+  async latestPurchase(input: LatestPurchaseInput, currentUserId: string) {
+    return await this.purchaseRepository.findOne({
+      where: {
+        product: {
+          id: input.productId,
+        },
+        buyerId: Any[(input.otherUserId, currentUserId)],
+        status: Not(
+          In([
+            PurchaseStatusEnum.FINISHED_FAILED,
+            PurchaseStatusEnum.FINISHED_SUCCESS,
+          ]),
+        ),
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
+   * Marks a product as delivered. Only the seller can manually do this
+   * and it is only allowed when the transportation method is NOT shipping.
+   * @param purchaseId
+   * @param buyerId
+   * @param logger
+   * @returns
+   */
+  async markAsDelivered(
+    purchaseId: string,
+    currentUserId: string,
+    logger: Logger,
+  ) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: {
+        id: purchaseId,
+        buyerId: Not(currentUserId), //currentUser can't be the buyer
+        status: PurchaseStatusEnum.PAYMENT_ACCEPTED, //payment must be accepted
+        shippingPriceId: IsNull(), //cant be shipping
+      },
+    });
+
+    if (!purchase) {
+      logger.error('MarkAsDelivered: Purchase invalid', {
+        purchaseId: purchaseId,
+        buyerId: purchase.buyerId,
+        currentUserId,
+      });
+
+      throw BadUserInputException('Purchase invalid');
+    }
+
+    purchase.deliveredAt = new Date();
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    logger.info('MarkAsDelivered', {
+      purchaseId: savedPurchase.id,
+    });
+
+    return savedPurchase;
+  }
+
+  isShipping(purchase: Purchase) {
+    return !!purchase.shippingPriceId;
+  }
+
+  async reviews(purchase: Purchase) {
+    return await this.reviewRepository.find({
+      where: { purchaseId: purchase.id },
+    });
+  }
+
+  async deleteMany(purchases: Purchase[]) {
+    return await Promise.all(
+      purchases.map((purchase) => this.delete(purchase.id)),
+    );
+  }
+
+  async delete(id: string) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id },
+    });
+    return this.purchaseRepository.remove(purchase);
+  }
+
+  //----------- PAUSE functions -----------------------
   async canPause(purchase: Purchase) {
     const pauseableStatus = ![
       PurchaseStatusEnum.PAUSED,
@@ -122,7 +210,6 @@ export class PurchaseService {
 
     return purchase.paymentAcceptedAt && pauseableStatus;
   }
-
   async pausePaymentByRocker(paymentId: string, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: paymentId },
@@ -213,7 +300,6 @@ export class PurchaseService {
 
     return savedPurchase;
   }
-
   async resumePaymentByRocker(paymentId: string, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: paymentId },
@@ -294,7 +380,9 @@ export class PurchaseService {
 
     return savedPurchase;
   }
+  //-------------------------------------------------
 
+  //----------------- ACCEPT PURCHASE functions ------------------
   //Product of purchase is accepted. Payment is confirmed and payout is started
   private async acceptPurchase(
     purchase: Purchase,
@@ -442,7 +530,9 @@ export class PurchaseService {
       }),
     );
   }
+  //---------------------------------------------------------------
 
+  //--------------- WEBHOOK functions ----------------------
   async paymentStarted(payload: IPaymentStarted, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: payload.paymentId },
@@ -551,17 +641,5 @@ export class PurchaseService {
       payoutId: payload.payoutId,
     });
   }
-
-  async deleteMany(purchases: Purchase[]) {
-    return await Promise.all(
-      purchases.map((purchase) => this.delete(purchase.id)),
-    );
-  }
-
-  async delete(id: string) {
-    const purchase = await this.purchaseRepository.findOne({
-      where: { id },
-    });
-    return this.purchaseRepository.remove(purchase);
-  }
+  //------------------------------------------------------------
 }

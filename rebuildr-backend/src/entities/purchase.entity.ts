@@ -10,6 +10,7 @@ import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Review } from './review.entity';
+import { ShippingPrice } from './shipping-price.entity';
 
 //To keep track of where in a purchase cycle a purchase is in
 export enum PurchaseStatusEnum {
@@ -51,7 +52,7 @@ export class Purchase {
   @ManyToOne(() => User, (u) => u.purchases)
   buyer: User;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true })
   rockerPaymentId?: string;
 
   @Column({ nullable: true })
@@ -126,9 +127,20 @@ export class Purchase {
   })
   status: PurchaseStatusEnum;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  qrCodeUrl?: string | null;
+
   @Column({ nullable: true })
   refundId?: string;
 
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
+
+  @Column({ nullable: true })
+  shippingPriceId?: string;
+  @ManyToOne(() => ShippingPrice, (shippingPrice) => shippingPrice.id, {
+    nullable: true,
+  })
+  shippingPrice?: ShippingPrice;
 }

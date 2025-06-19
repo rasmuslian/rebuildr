@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { plainToInstance } from 'class-transformer';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
@@ -9,7 +8,7 @@ import {
   GetConversationsInput,
   GetConversationsType,
 } from 'src/resolvers/message.resolver';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 
 @Injectable()
 export class MessageService {
@@ -23,82 +22,31 @@ export class MessageService {
     private dataSource: DataSource,
   ) {}
 
-  async findConversation(input: {
-    primaryUserId: string;
-    otherUserId: string;
-    productId: string;
-  }) {
-    const conversationRaw = await this.dataSource.query<
-      {
-        otherUser: User;
-        messages: Message[];
-      }[]
-    >(`
-    SELECT
-	    to_json(other) as "otherUser",
-	    ARRAY_AGG(to_json(m)) as messages
-    FROM (
-	    SELECT
-		    CASE WHEN '${input.primaryUserId}' = "receiverId" THEN
-			    "senderId"
-		    ELSE
-			    "receiverId"
-	    	END "otherUserId",
-		      m
-	    FROM
-		    message m
-	    WHERE ("senderId" = '${input.primaryUserId}'
-		    AND "receiverId" = '${input.otherUserId}')
-	      OR("receiverId" = '${input.primaryUserId}'
-		    AND "senderId" = '${input.otherUserId}')
-	      AND "productId" = '${input.productId}') AS messages
-      LEFT JOIN "user" other on other.id = messages."otherUserId"
-      GROUP by other.id
-    `);
-    return conversationRaw.map((data) => {
-      return {
-        otherUser: plainToInstance(User, data.otherUser),
-        messages: data.messages.map((message) =>
-          plainToInstance(Message, message),
-        ),
-      };
-    })[0];
-  }
+  async getConversation(
+    productId: string,
+    otherUserId: string,
+    currentUserId: string,
+  ) {
+    const result = await this.messageRepository.find({
+      where: [
+        {
+          product: { id: productId },
+          receiver: { id: currentUserId },
+          sender: { id: otherUserId },
+        },
+        {
+          product: { id: productId },
+          sender: { id: currentUserId },
+          receiver: { id: otherUserId },
+          messageType: MessageTypeEnum.USER,
+        },
+      ],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
 
-  async findConversations(input: { id: string }) {
-    const conversationsRaw = await this.dataSource.query<
-      { otherUser: User; product: Product; latestMessageAt: Date }[]
-    >(`
-    SELECT
-      row_to_json(other) as "otherUser",
-      row_to_json(product) as product,
-      max(conversations."createdAt") as "latestMessageAt"
-    FROM (
-      SELECT
-        CASE WHEN '${input.id}' = "receiverId" THEN
-          "senderId"
-        ELSE
-          "receiverId"
-        END "otherUserId",
-        *
-      FROM
-        message m
-      WHERE
-        "receiverId" = '${input.id}' OR "senderId" = '${input.id}') AS conversations
-    LEFT JOIN "user" other on other.id = "otherUserId"
-    LEFT JOIN product on product.id = "productId"
-    GROUP BY
-      other.id,
-      product.id
-    ORDER BY
-      "latestMessageAt"
-    `);
-
-    return conversationsRaw.map((conversation) => ({
-      otherUser: plainToInstance(User, conversation.otherUser),
-      product: plainToInstance(Product, conversation.product),
-      latestMessageAt: conversation.latestMessageAt,
-    }));
+    return result;
   }
 
   /**
@@ -200,6 +148,23 @@ export class MessageService {
     message.product = product;
     message.message = input.message;
     return await this.messageRepository.save(message);
+  }
+
+  async markAsRead(
+    productId: string,
+    otherUserId: string,
+    currentUserId: string,
+  ) {
+    const unreadMessages = await this.messageRepository.find({
+      where: {
+        product: { id: productId },
+        senderId: otherUserId,
+        receiverId: currentUserId,
+        readAt: IsNull(),
+      },
+    });
+    unreadMessages.forEach((message) => (message.readAt = new Date()));
+    return await this.messageRepository.save(unreadMessages);
   }
 
   async deleteMany(messages: Message[]) {

@@ -5,7 +5,6 @@ import {
   Field,
   InputType,
   Mutation,
-  ObjectType,
   Parent,
   Query,
   registerEnumType,
@@ -23,24 +22,6 @@ import { User } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
 
 @InputType()
-class ConversationInput {
-  @Field()
-  otherUserId: string;
-
-  @Field()
-  productId: string;
-}
-
-@ObjectType()
-class ConversationResponse {
-  @Field(() => User)
-  otherUser: User;
-
-  @Field(() => [Message])
-  messages: Message[];
-}
-
-@InputType()
 class CreateMessageInput {
   @Field()
   receiverId: string;
@@ -50,16 +31,13 @@ class CreateMessageInput {
   message: string;
 }
 
-@ObjectType()
-class ConversationOverviewResponse {
-  @Field(() => User)
-  otherUser: User;
+@InputType()
+class GetConversationInput {
+  @Field()
+  otherUserId: string;
 
-  @Field(() => Product)
-  product: Product;
-
-  @Field(() => Date)
-  latestMessageAt: Date;
+  @Field()
+  productId: string;
 }
 
 export enum GetConversationsType {
@@ -67,7 +45,6 @@ export enum GetConversationsType {
   BUYING = 'BUYING',
   BUYING_AND_SELLING = 'BUYING_AND_SELLING',
 }
-
 registerEnumType(GetConversationsType, {
   name: 'GetConversationsType',
 });
@@ -81,6 +58,18 @@ export class GetConversationsInput {
   productId?: string;
 }
 
+@InputType()
+export class MarkAsReadInput {
+  @Field()
+  otherUserId: string;
+
+  @Field()
+  productId: string;
+
+  @Field()
+  markAsRead: boolean;
+}
+
 @Resolver(() => Message)
 export class MessageResolver {
   constructor(
@@ -88,23 +77,17 @@ export class MessageResolver {
     private messageService: MessageService,
   ) {}
 
-  @Query(() => ConversationResponse)
+  @Query(() => [Message])
   @UseGuards(GqlAuthGuard)
-  async conversation(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input') input: ConversationInput,
+  async getConversation(
+    @Args('input') input: GetConversationInput,
+    @CurrentUser() user: AuthedUserType,
   ) {
-    return this.messageService.findConversation({
-      primaryUserId: _user.id,
-      otherUserId: input.otherUserId,
-      productId: input.productId,
-    });
-  }
-
-  @Query(() => [ConversationOverviewResponse])
-  @UseGuards(GqlAuthGuard)
-  async conversations(@CurrentUser() _user: AuthedUserType) {
-    return this.messageService.findConversations({ id: _user.id });
+    return this.messageService.getConversation(
+      input.productId,
+      input.otherUserId,
+      user.id,
+    );
   }
 
   @Query(() => [Message])
@@ -128,6 +111,19 @@ export class MessageResolver {
       productId: input.productId,
       message: input.message,
     });
+  }
+
+  @Mutation(() => [Message])
+  @UseGuards(GqlAuthGuard)
+  async markConversationAsRead(
+    @Args('input') input: MarkAsReadInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return this.messageService.markAsRead(
+      input.productId,
+      input.otherUserId,
+      user.id,
+    );
   }
 
   @ResolveField(() => Product)

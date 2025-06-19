@@ -79,6 +79,7 @@ export class Product {
   @ManyToOne(() => Category, (cat) => cat.id, { nullable: true })
   category?: Category;
 
+  @Field()
   @Column()
   sellerId: string;
 

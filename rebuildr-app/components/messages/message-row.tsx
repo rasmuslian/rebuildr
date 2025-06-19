@@ -7,28 +7,40 @@ import { Avatar } from "@components/avatar/avatar";
 import { UserType } from "@/gql/graphql";
 import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
+import { router } from "expo-router";
 
 type Props = {
+  otherUser: {
+    id: string;
+    userType: UserType;
+    username?: string | null;
+    url?: string;
+  };
   message: {
-    otherUser: {
-      userType: UserType;
-      username?: string | null;
-      url?: string;
-    };
+    sender: { id: string };
     message: string;
     createdAt: Date;
     readAt?: Date;
     productId: string;
   };
+  myId: string;
 };
 
-export const MessageRow = ({ message }: Props) => {
+export const MessageRow = ({ otherUser, message, myId }: Props) => {
   const colors = useThemeColor();
+
+  const sendeIsMe = myId === message.sender.id;
 
   return (
     <Pressable
       onPress={() => {
-        /**TODO: navigate to chat */
+        router.navigate({
+          pathname: "/conversations/[productId]/[userId]",
+          params: {
+            productId: message.productId,
+            userId: otherUser.id,
+          },
+        });
       }}
       style={[
         {
@@ -38,17 +50,14 @@ export const MessageRow = ({ message }: Props) => {
         },
       ]}
     >
-      <Avatar
-        userType={message.otherUser.userType}
-        imageUrl={message.otherUser.url}
-      />
+      <Avatar userType={otherUser.userType} imageUrl={otherUser.url} />
       <View
         style={[
           {
             flex: 1,
             borderRadius: borderRadius.medium,
           },
-          message.readAt
+          message.readAt || sendeIsMe
             ? {
                 backgroundColor: colors.buttons.tonal.enabled,
                 paddingHorizontal: 17,
@@ -71,12 +80,12 @@ export const MessageRow = ({ message }: Props) => {
           }}
         >
           <View style={{ flex: 1 }}>
-            <Label size="large">{message.otherUser.username}</Label>
+            <Label size="large">{otherUser.username}</Label>
             <Body size="small" numberOfLines={1}>
               {message.message}
             </Body>
           </View>
-          {message.readAt ? <View /> : <Badge text="Oläst" />}
+          {message.readAt || sendeIsMe ? <View /> : <Badge text="Oläst" />}
         </View>
         <Body size="small" color="secondary" style={{ marginTop: 4 }}>
           {dayjs(message.createdAt).fromNow()}
