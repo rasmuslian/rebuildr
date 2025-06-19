@@ -10,7 +10,6 @@ import { Check } from "@components/controls/check";
 import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
 import { Map } from "@components/maps/map";
-import { ContinuousSlider } from "@components/slider/continuous-slider";
 import { Body, Label, Title } from "@components/typography/text";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -20,6 +19,7 @@ import { Pressable } from "react-native-gesture-handler";
 import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { meterToKilometer } from "@/utils/conversions";
+import { Slider } from "@components/slider/slider";
 
 const DELIVERY_QUERY = gql`
   query DeliveryQuery($input: GetProductInput!) {
@@ -289,13 +289,16 @@ export const Delivery = ({
             <View
               style={{ flexDirection: "row", gap: 16, alignItems: "center" }}
             >
-              <ContinuousSlider
-                min={1000}
-                max={80000}
-                value={radius}
-                onChange={onSetRadius}
-                width={240}
-                onRelease={(r) => onChangeRadius(r)}
+              <Slider
+                type="continuous"
+                sliderProps={{
+                  min: 1000,
+                  max: 80000,
+                  value: radius,
+                  onChange: onSetRadius,
+                  width: 240,
+                  onRelease: (r) => onChangeRadius(r),
+                }}
               />
               <Body size="medium">{meterToKilometer(radius)} km</Body>
             </View>

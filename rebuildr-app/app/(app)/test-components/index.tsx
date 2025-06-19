@@ -10,7 +10,6 @@ import { FavIcon } from "@components/logo/favIcon";
 import { Logo } from "@components/logo/logo";
 import { SearchBar } from "@components/search/search-bar";
 import { ContinuousSlider } from "@components/slider/continuous-slider";
-import { Slider } from "@components/slider/slider";
 import { Icon } from "@icons/icon";
 import { Pictogram } from "@pictograms/pictogram";
 import React, { useState } from "react";
@@ -19,6 +18,7 @@ import Placeholder from "@assets/images/placeholder.png";
 import { ScrollView } from "react-native-gesture-handler";
 import { ProductConditionEnum, UserType } from "@/gql/graphql";
 import { Form } from "@components/forms/form";
+import { Slider } from "@components/slider/slider";
 
 export default function Page() {
   const [searchString, setSearchString] = useState("");

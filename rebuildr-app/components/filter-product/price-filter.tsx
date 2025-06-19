@@ -1,4 +1,3 @@
-import { DoubleSlider } from "@components/slider/double-slider";
 import { FilterSection } from "./filter-section";
 import { useState } from "react";
 import { View } from "react-native";
@@ -6,6 +5,7 @@ import { Form } from "@components/forms/form";
 import { Icon } from "@icons/icon";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { maximumPrice, minimumPrice } from "@context/filter-product-context";
+import { Slider } from "@components/slider/slider";
 
 export const PriceFilter = () => {
   const { filter, setPrice } = useFilterProduct();
@@ -59,18 +59,21 @@ export const PriceFilter = () => {
       collapsedText={`${filter.price[0]} kr - ${filter.price[1]} kr`}
     >
       <View style={{ gap: 24 }}>
-        <DoubleSlider
-          value1={filter.price[0]}
-          value2={filter.price[1]}
-          min={minimumPrice}
-          max={maximumPrice}
-          width={343}
-          onChange={(v1, v2) => {
-            setValue1(Math.round(v1));
-            setValue2(Math.round(v2));
-          }}
-          onRelease={(v1, v2) => {
-            setPrice(Math.round(v1), Math.round(v2));
+        <Slider
+          type="double"
+          sliderProps={{
+            value1: filter.price[0],
+            value2: filter.price[1],
+            min: minimumPrice,
+            max: maximumPrice,
+            width: 343,
+            onChange: (v1, v2) => {
+              setValue1(Math.round(v1));
+              setValue2(Math.round(v2));
+            },
+            onRelease: (v1, v2) => {
+              setPrice(Math.round(v1), Math.round(v2));
+            },
           }}
         />
         <View

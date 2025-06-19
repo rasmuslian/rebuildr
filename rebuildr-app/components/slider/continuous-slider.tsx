@@ -1,7 +1,7 @@
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { useState } from "react";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Gesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SliderThumb } from "./slider-thumb";
 
-type ContinuousSliderProps = {
+export type ContinuousSliderProps = {
   min: number;
   max: number;
   value: number;
@@ -21,10 +21,12 @@ export const ContinuousSlider = ({
   min,
   max,
   value: inputValue,
-  width = 300,
+  width: _width,
   onChange,
   onRelease,
 }: ContinuousSliderProps) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const width = _width ?? screenWidth - 48;
   const [absoluteStart, setAbsoluteStart] = useState(0);
   const colors = useThemeColor();
 
