@@ -133,7 +133,7 @@ export const SelectInput = ({ ...props }: Props) => {
                       borderColor: colors.dividers.primary,
                       borderStyle: "solid",
                     },
-                    i === props.options.length - 1 && { borderWidth: 0 },
+                    i === props.options.length - 1 && { borderBottomWidth: 0 },
                   ]}
                 >
                   <Body
