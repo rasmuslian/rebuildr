@@ -110,11 +110,6 @@ export default function Landing() {
           />
         </View>
       )}
-
-      <Button
-        label="Till testkomponenterna"
-        onPress={() => router.navigate("/test-components")}
-      />
       {showQr && (
         <BankId
           borderColor={colors.background.primary}
