@@ -34,7 +34,7 @@ class CreateMessageInput {
 @InputType()
 class GetConversationInput {
   @Field()
-  otherEndUserId: string;
+  otherUserId: string;
 
   @Field()
   productId: string;
@@ -61,7 +61,7 @@ export class GetConversationsInput {
 @InputType()
 export class MarkAsReadInput {
   @Field()
-  otherEndUserId: string;
+  otherUserId: string;
 
   @Field()
   productId: string;
@@ -85,7 +85,7 @@ export class MessageResolver {
   ) {
     return this.messageService.getConversation(
       input.productId,
-      input.otherEndUserId,
+      input.otherUserId,
       user.id,
     );
   }
@@ -121,7 +121,7 @@ export class MessageResolver {
   ) {
     return this.messageService.markAsRead(
       input.productId,
-      input.otherEndUserId,
+      input.otherUserId,
       user.id,
     );
   }

@@ -49,9 +49,7 @@ class AcceptPurchaseInput {
 @InputType()
 export class LatestPurchaseInput {
   @Field()
-  buyerId: string;
-  @Field()
-  sellerId: string;
+  otherUserId: string;
   @Field()
   productId: string;
 }

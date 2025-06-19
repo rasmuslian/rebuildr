@@ -24,7 +24,7 @@ export class MessageService {
 
   async getConversation(
     productId: string,
-    otherEndUserId: string,
+    otherUserId: string,
     currentUserId: string,
   ) {
     const result = await this.messageRepository.find({
@@ -32,12 +32,12 @@ export class MessageService {
         {
           product: { id: productId },
           receiver: { id: currentUserId },
-          sender: { id: otherEndUserId },
+          sender: { id: otherUserId },
         },
         {
           product: { id: productId },
           sender: { id: currentUserId },
-          receiver: { id: otherEndUserId },
+          receiver: { id: otherUserId },
           messageType: MessageTypeEnum.USER,
         },
       ],
@@ -152,13 +152,13 @@ export class MessageService {
 
   async markAsRead(
     productId: string,
-    otherEndUserId: string,
+    otherUserId: string,
     currentUserId: string,
   ) {
     const unreadMessages = await this.messageRepository.find({
       where: {
         product: { id: productId },
-        senderId: otherEndUserId,
+        senderId: otherUserId,
         receiverId: currentUserId,
         readAt: IsNull(),
       },

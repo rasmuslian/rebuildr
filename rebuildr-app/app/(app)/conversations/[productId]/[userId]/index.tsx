@@ -13,7 +13,7 @@ import { ReactNode, useState } from "react";
 import { Badge } from "@components/badges/badge";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import {
   ConversationAcceptPurchaseMutation,
   ConversationAcceptPurchaseMutationVariables,
@@ -23,8 +23,6 @@ import {
   ConversationProductQueryVariables,
   CreateMessageMutation,
   CreateMessageMutationVariables,
-  LatestPurchaseQuery,
-  LatestPurchaseQueryVariables,
   MarkConversationAsReadMutation,
   MarkConversationAsReadMutationVariables,
   MessageTypeEnum,
@@ -36,6 +34,7 @@ const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
     $input: GetConversationInput!
     $getProductInput: GetProductInput!
+    $latestPurchaseInput: LatestPurchaseInput!
   ) {
     getConversation(input: $input) {
       id
@@ -73,16 +72,7 @@ const CONVERSATION_PRODUCT = gql`
         url
       }
     }
-    me {
-      id
-      username
-    }
-  }
-`;
-
-const LATEST_PURCHASE = gql`
-  query LatestPurchase($input: LatestPurchaseInput!) {
-    latestPurchase(input: $input) {
+    latestPurchase(input: $latestPurchaseInput) {
       id
       status
       paymentAcceptedAt
@@ -98,6 +88,10 @@ const LATEST_PURCHASE = gql`
         reviewerId
         revieweeId
       }
+    }
+    me {
+      id
+      username
     }
   }
 `;
@@ -161,7 +155,7 @@ const CONVERSATION_MARK_AS_DELIVERED = gql`
 
 export default function ConversationProduct() {
   const [text, setText] = useState("");
-  const { productId, userId: otherEndUserId } = useLocalSearchParams<{
+  const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
   }>();
@@ -174,10 +168,6 @@ export default function ConversationProduct() {
     MarkConversationAsReadMutation,
     MarkConversationAsReadMutationVariables
   >(MARK_CONVERSATION_AS_READ);
-  const [getPurchase, { data: purchaseData }] = useLazyQuery<
-    LatestPurchaseQuery,
-    LatestPurchaseQueryVariables
-  >(LATEST_PURCHASE);
 
   const { data, refetch } = useQuery<
     ConversationProductQuery,
@@ -186,27 +176,19 @@ export default function ConversationProduct() {
     variables: {
       input: {
         productId,
-        otherEndUserId,
+        otherUserId,
       },
       getProductInput: { id: productId },
+      latestPurchaseInput: { otherUserId, productId },
     },
     onCompleted(data) {
       const sellerId = data.product.seller.id;
-      const buyerId = sellerId === otherEndUserId ? data.me.id : otherEndUserId;
-      getPurchase({
-        variables: {
-          input: {
-            productId,
-            buyerId,
-            sellerId,
-          },
-        },
-        fetchPolicy: "network-only",
-      });
+      const buyerId = sellerId === otherUserId ? data.me.id : otherUserId;
+
       markConversationAsRead({
         variables: {
           input: {
-            otherEndUserId: data.me.id === sellerId ? buyerId : sellerId,
+            otherUserId: data.me.id === sellerId ? buyerId : sellerId,
             productId: data.product.id,
             markAsRead: true,
           },
@@ -226,7 +208,7 @@ export default function ConversationProduct() {
     createMessage({
       variables: {
         input: {
-          receiverId: otherEndUserId,
+          receiverId: otherUserId,
           productId,
           message,
         },
@@ -239,8 +221,8 @@ export default function ConversationProduct() {
   };
 
   const getBadgeText = () => {
-    const purchase = purchaseData?.latestPurchase;
-    if (!data || !purchase) {
+    const purchase = data.latestPurchase;
+    if (!purchase) {
       return null;
     }
 
@@ -317,7 +299,7 @@ export default function ConversationProduct() {
       footerComponent={
         <View style={{ gap: 16 }}>
           <Divider />
-          <ActionButtons purchaseData={purchaseData} data={data} />
+          <ActionButtons data={data} />
           <TextInput
             value={text}
             onChange={setText}
@@ -434,11 +416,10 @@ const ChatBlock = ({
 };
 
 type ActionButtonProps = {
-  purchaseData?: LatestPurchaseQuery;
   data: ConversationProductQuery;
 };
-const ActionButtons = ({ purchaseData, data }: ActionButtonProps) => {
-  const purchase = purchaseData?.latestPurchase;
+const ActionButtons = ({ data }: ActionButtonProps) => {
+  const purchase = data.latestPurchase;
   const sellerIsMe = data.me.id === data.product.seller.id;
 
   const [acceptPurchase, { loading: acceptPurchaseLoading }] = useMutation<
@@ -525,12 +506,12 @@ const ActionButtons = ({ purchaseData, data }: ActionButtonProps) => {
           <Button
             label="Markera som överlämnad"
             onPress={() => {
-              if (!purchaseData.latestPurchase || markAsDeliveredLoading) {
+              if (!purchase || markAsDeliveredLoading) {
                 return;
               }
               markAsDelivered({
                 variables: {
-                  input: { purchaseId: purchaseData.latestPurchase.id },
+                  input: { purchaseId: purchase.id },
                 },
               });
             }}
@@ -546,12 +527,12 @@ const ActionButtons = ({ purchaseData, data }: ActionButtonProps) => {
           <Button
             label="Godkänn vara"
             onPress={() => {
-              if (!purchaseData.latestPurchase || acceptPurchaseLoading) {
+              if (!purchase || acceptPurchaseLoading) {
                 return;
               }
               acceptPurchase({
                 variables: {
-                  input: { purchaseId: purchaseData.latestPurchase.id },
+                  input: { purchaseId: purchase.id },
                 },
               });
             }}

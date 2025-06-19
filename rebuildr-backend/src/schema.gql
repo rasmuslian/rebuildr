@@ -493,7 +493,7 @@ input PopularCategoriesInput {
 }
 
 input GetConversationInput {
-  otherEndUserId: String!
+  otherUserId: String!
   productId: String!
 }
 
@@ -522,8 +522,7 @@ input AddressToLocationInput {
 }
 
 input LatestPurchaseInput {
-  buyerId: String!
-  sellerId: String!
+  otherUserId: String!
   productId: String!
 }
 
@@ -721,7 +720,7 @@ input CreateMessageInput {
 }
 
 input MarkAsReadInput {
-  otherEndUserId: String!
+  otherUserId: String!
   productId: String!
   markAsRead: Boolean!
 }
