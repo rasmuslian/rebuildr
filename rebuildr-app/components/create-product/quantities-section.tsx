@@ -167,7 +167,7 @@ export const QuantitiesSection = ({
         <View style={{ gap: 4, flex: 1 }}>
           <Label size="medium">Lägg till ytterligare enhet</Label>
           <Body size="medium">
-            Lägg till ytterligare enehet för att beskriva produkten
+            Lägg till ytterligare enhet för att beskriva produkten
           </Body>
         </View>
         <Toggle
