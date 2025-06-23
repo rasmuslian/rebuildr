@@ -133,8 +133,11 @@ export default function Preview() {
           status: ProductStatusEnum.Published,
         },
       },
-      onCompleted: () => {
-        router.replace("/");
+      onCompleted: (data) => {
+        router.replace({
+          pathname: "/product",
+          params: { productId: data.updateProduct.product.id },
+        });
       },
     });
   };
