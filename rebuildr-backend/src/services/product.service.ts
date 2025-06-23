@@ -8,7 +8,12 @@ import {
   ProductStatus,
 } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
-import { BadUserInputException, ForbiddenException } from 'src/exceptions';
+import {
+  BadField,
+  BadFieldsInputException,
+  BadUserInputException,
+  ForbiddenException,
+} from 'src/exceptions';
 import {
   CreateProductResponse,
   FileInputType,
@@ -143,7 +148,6 @@ export class ProductService {
 
     const product = new Product();
     product.title = '';
-    product.description = '';
     product.price = 0;
     product.status = ProductStatus.DRAFT;
     product.seller = seller;
@@ -185,6 +189,62 @@ export class ProductService {
 
       throw ForbiddenException();
     }
+
+    //--------------- VERIFY INPUTS --------------------
+    const errors: BadField[] = [];
+    if (input.title === '') {
+      errors.push({
+        message: 'Tom titel',
+        name: 'title',
+      });
+    }
+    if (input.description === '') {
+      errors.push({
+        message: 'Måste ha beskrivning',
+        name: 'description',
+      });
+    }
+    if (input.price && !product.isGiveaway) {
+      if (input.price < minimumEscrow) {
+        errors.push({
+          message: `Priset måste vara högre än ${Math.round(minimumEscrow / 100)} kr`,
+          name: 'price',
+        });
+      }
+      if (input.price < maximumEscrow) {
+        errors.push({
+          message: `Priset måste vara lägre än ${Math.round(maximumEscrow / 100)} kr`,
+          name: 'price',
+        });
+      }
+    }
+    if (input.addImages || input.removeImages) {
+      const addAmount = input.addImages?.length ?? 0;
+      const removeAmount = input.removeImages?.length ?? 0;
+      const newAmount = product.images.length + addAmount - removeAmount;
+      if (newAmount <= 0) {
+        errors.push({
+          message: 'Måste bifoga minst en bild',
+          name: 'images',
+        });
+      }
+      if (newAmount > 10) {
+        errors.push({
+          message: 'Max antal bilder uppnått',
+          name: 'images',
+        });
+      }
+    }
+    if (input.primaryQuantity && input.primaryQuantity <= 0) {
+      errors.push({
+        message: 'Måste ange minst ett',
+        name: 'primary',
+      });
+    }
+    if (errors.length) {
+      throw BadFieldsInputException(errors);
+    }
+    //------------------------------------------------
 
     if (input.title !== undefined) {
       product.title = input.title;

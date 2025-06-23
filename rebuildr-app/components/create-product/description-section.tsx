@@ -5,14 +5,18 @@ import { View } from "react-native";
 
 type Props = {
   title: string;
+  titleError?: string;
   description: string;
+  descriptionError?: string;
   onBlurTitle: (t: string) => void;
   onBlurDescription: (d: string) => void;
 };
 
 export const DescriptionSection = ({
   title: _title,
+  titleError,
   description: _description,
+  descriptionError,
   onBlurTitle,
   onBlurDescription,
 }: Props) => {
@@ -37,6 +41,7 @@ export const DescriptionSection = ({
             onBlur: () => onBlurTitle(title),
             onChangeText: (t) => setTitle(t),
             heading: "Annonsrubrik",
+            errorText: titleError,
           },
           {
             type: "text",
@@ -48,6 +53,7 @@ export const DescriptionSection = ({
             placeholder:
               "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
             style: { minHeight: 172 },
+            errorText: descriptionError,
           },
         ]}
       />

@@ -6,6 +6,7 @@ import {
   SellProductUpdateMutation,
   SellProductUpdateMutationVariables,
 } from "@/gql/graphql";
+import { apolloBadFieldsError } from "@/utils/apolloErrors";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Toggle } from "@components/controls/toggle";
@@ -108,9 +109,9 @@ const SELL_PRODUCT_UPDATE = gql`
 `;
 
 type ProductFields = {
-  categoryIds: string[];
-  title: string;
-  description: string;
+  categoryIds?: string[];
+  title?: string;
+  description?: string;
   price?: number;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;
@@ -124,9 +125,9 @@ type ProductFields = {
   weight?: number;
   isGiveaway?: boolean;
   condition: ProductConditionEnum;
-  brandId?: string;
-  images: FileType[];
-  documents: FileType[];
+  brandId?: string | null;
+  images?: FileType[];
+  documents?: FileType[];
 };
 
 export default function SellProduct() {
@@ -155,16 +156,16 @@ export default function SellProduct() {
       fetchPolicy: "network-only",
     },
   );
-  const [updateProduct, { loading: updating }] = useMutation<
+  const [updateProduct, { loading: updating, error }] = useMutation<
     SellProductUpdateMutation,
     SellProductUpdateMutationVariables
-  >(SELL_PRODUCT_UPDATE);
+  >(SELL_PRODUCT_UPDATE, { onError: () => {} });
   const [createDraft] = useMutation<SellProductCreateDraftMutation>(
     SELL_PRODUCT_CREATE_DRAFT,
   );
 
   const onUpdateProduct = async (
-    _product: ProductFields,
+    _product: Partial<ProductFields>,
     isFinal?: boolean,
   ) => {
     if (updating) {
@@ -192,37 +193,43 @@ export default function SellProduct() {
           diameter: _product.diameter,
           weight: _product.weight,
           isGiveAway: _product.isGiveaway,
-          categoryId: _product.categoryIds.at(-1) ?? null,
-          brandId: _product.brandId ?? null,
+          categoryId: _product.categoryIds
+            ? (_product.categoryIds.at(-1) ?? null)
+            : undefined,
+          brandId: _product.brandId,
           condition: _product.condition,
           addImages: _product.images
             //Only add images that are not already on Product
-            .filter((image) => product.images.every((i) => i.id !== image.id))
+            ?.filter((image) =>
+              product.images
+                ? product.images.every((i) => i.id !== image.id)
+                : true,
+            )
             .map((image) => ({
               mimeType: image.mimeType,
               name: image.name,
             })),
           removeImages: product.images
-            .filter((image) =>
+            ?.filter((image) =>
               //Delete existing product's image if it does not exist in edited product
-              _product.images.every(
+              _product.images?.every(
                 (selectedImage) => selectedImage.id !== image.id,
               ),
             )
             .map((image) => image.id as string),
           addDocuments: _product.documents
             //Only add documents that are not already on Product
-            .filter((document) =>
-              product.documents.every((i) => i.id !== document.id),
+            ?.filter((document) =>
+              product.documents?.every((i) => i.id !== document.id),
             )
             .map((document) => ({
               mimeType: document.mimeType,
               name: document.name,
             })),
           removeDocuments: product.documents
-            .filter((document) =>
+            ?.filter((document) =>
               //Delete existing product's document if it does not exist in edited product
-              _product.documents.every(
+              _product.documents?.every(
                 (selectedDocument) => selectedDocument.id !== document.id,
               ),
             )
@@ -233,7 +240,7 @@ export default function SellProduct() {
         if (data.updateProduct.imagePutUrls) {
           await Promise.all(
             data.updateProduct.imagePutUrls.map(async (putUrl, index) => {
-              const image = _product.images[index];
+              const image = _product.images?.[index];
               if (image) {
                 await fetch(putUrl, {
                   method: "PUT",
@@ -250,7 +257,7 @@ export default function SellProduct() {
         if (data.updateProduct.documentPutUrls) {
           await Promise.all(
             data.updateProduct.documentPutUrls.map(async (putUrl, index) => {
-              const doc = _product.documents[index];
+              const doc = _product.documents?.[index];
               if (doc) {
                 await fetch(putUrl, {
                   method: "PUT",
@@ -317,8 +324,8 @@ export default function SellProduct() {
       categoryIds: _product.category
         ? [..._product.category.ancestorIds, _product.category.id]
         : [],
-      title: _product.title ?? "",
-      description: _product.description ?? "",
+      title: _product.title ?? undefined,
+      description: _product.description ?? undefined,
       price: _product.price,
       primaryQuantity: _product.primaryQuantity ?? undefined,
       primaryUnit: _product.primaryUnit ?? undefined,
@@ -333,8 +340,8 @@ export default function SellProduct() {
       isGiveaway: _product.isGiveaway,
       condition: _product.condition,
       brandId: _product.brand ? _product.brand.id : undefined,
-      images,
-      documents,
+      images: images.length ? images : undefined,
+      documents: documents.length ? documents : undefined,
     };
 
     //If any measurement is set, show details
@@ -352,7 +359,18 @@ export default function SellProduct() {
     if (!product) {
       return;
     }
-    onUpdateProduct(product, true);
+    //update product but fill in every null value with default values to trigger
+    //eventual error
+    onUpdateProduct(
+      {
+        ...product,
+        title: product.title ?? "",
+        description: product.description ?? "",
+        price: product.price ?? 0,
+        primaryQuantity: product.primaryQuantity ?? 0,
+      },
+      true,
+    );
   };
 
   const progress = () => {
@@ -362,7 +380,7 @@ export default function SellProduct() {
 
     const totalMandatories = 7;
     let obligatories = 0;
-    if (product.images.length) {
+    if (product.images?.length) {
       obligatories += 1;
     }
     if (product.price || product.isGiveaway) {
@@ -387,14 +405,25 @@ export default function SellProduct() {
     return Math.round((obligatories / totalMandatories) * 100);
   };
 
+  //Distribute any error messages on correct fields
+  const apolloErrors = error ? apolloBadFieldsError(error) : [];
+  const badFields: { [key in string]?: string } =
+    apolloErrors?.reduce(
+      (acc: { [key in string]: string }, curr) => ({
+        ...acc,
+        [curr.name]: curr.message,
+      }),
+      {},
+    ) ?? {};
+
   if (!product) {
     return <LoadingSpinner />;
   }
 
-  const rootCategoryId = product.categoryIds[0];
-  const categoryId = product.categoryIds[1];
+  const rootCategoryId = product.categoryIds?.[0];
+  const categoryId = product.categoryIds?.[1];
   const showContinue = rootCategoryId && categoryId && product.brandId;
-  const canSave = progress() >= 100;
+  const canSave = progress() >= 100 && !error;
 
   return (
     <ScreenLayout
@@ -410,20 +439,19 @@ export default function SellProduct() {
       }
     >
       <RootCategorySection
-        onSelect={(id) => onUpdateProduct({ ...product, categoryIds: [id] })}
-        selectedId={product.categoryIds[0]}
-        onChange={() => onUpdateProduct({ ...product, categoryIds: [] })}
+        onSelect={(id) => onUpdateProduct({ categoryIds: [id] })}
+        selectedId={product.categoryIds?.[0]}
+        onChange={() => onUpdateProduct({ categoryIds: [] })}
       />
       {rootCategoryId && (
         <CategorySection
           parentId={rootCategoryId}
           onSelect={(id) =>
             onUpdateProduct({
-              ...product,
-              categoryIds: [...product.categoryIds, id],
+              categoryIds: [...(product.categoryIds ?? []), id],
             })
           }
-          selectedId={product.categoryIds[1]}
+          selectedId={product.categoryIds?.[1]}
           onChange={() =>
             onUpdateProduct({ ...product, categoryIds: [rootCategoryId] })
           }
@@ -432,38 +460,41 @@ export default function SellProduct() {
       {categoryId && (
         <>
           <ImageSection
-            images={product.images}
+            images={product.images ?? []}
+            imageError={badFields["images"]}
             onUpdateImages={(images) => {
-              onUpdateProduct({ ...product, images });
+              onUpdateProduct({ images });
             }}
           />
           <PriceSection
             price={product.price ?? 0}
+            priceError={badFields["price"]}
             isGiveaway={!!product.isGiveaway}
-            onBlur={(price) => onUpdateProduct({ ...product, price })}
+            onBlur={(price) => onUpdateProduct({ price })}
             onSelectGiveaway={() =>
               onUpdateProduct({
-                ...product,
                 isGiveaway: !product.isGiveaway,
                 price: 0,
               })
             }
           />
           <DescriptionSection
-            title={product.title}
-            description={product.description}
-            onBlurTitle={(title) => onUpdateProduct({ ...product, title })}
+            title={product.title ?? ""}
+            titleError={badFields["title"]}
+            description={product.description ?? ""}
+            descriptionError={badFields["description"]}
+            onBlurTitle={(title) => onUpdateProduct({ title })}
             onBlurDescription={(description) =>
-              onUpdateProduct({ ...product, description })
+              onUpdateProduct({ description })
             }
           />
           <QuantitiesSection
             categoryId={categoryId}
             primaryQuantity={product.primaryQuantity}
             primaryUnit={product.primaryUnit}
+            primaryError={badFields["primary"]}
             onBlurPrimary={({ quantity, unit }) =>
               onUpdateProduct({
-                ...product,
                 primaryQuantity: quantity,
                 primaryUnit: unit,
               })
@@ -472,7 +503,6 @@ export default function SellProduct() {
             secondaryUnit={product.secondaryUnit}
             onBlurSecondary={({ quantity, unit }) =>
               onUpdateProduct({
-                ...product,
                 secondaryQuantity: quantity,
                 secondaryUnit: unit,
               })
@@ -509,35 +539,40 @@ export default function SellProduct() {
                   weight: product.weight,
                 }}
                 onChange={(measurementType, value) =>
-                  onUpdateProduct({ ...product, [measurementType]: value })
+                  onUpdateProduct({ [measurementType]: value })
                 }
               />
               <DocumentSection
-                documents={product.documents}
-                onUpdateFiles={(files) =>
-                  onUpdateProduct({ ...product, documents: files })
-                }
+                documents={product.documents ?? []}
+                onUpdateFiles={(files) => onUpdateProduct({ documents: files })}
               />
             </>
           )}
           <ConditionSection
             condition={product.condition}
-            onSelect={(condition) => onUpdateProduct({ ...product, condition })}
+            onSelect={(condition) => onUpdateProduct({ condition })}
           />
           <BrandSection
             categoryId={categoryId}
-            onSelect={(brandId) => onUpdateProduct({ ...product, brandId })}
+            onSelect={(brandId) => onUpdateProduct({ brandId })}
             brandId={product.brandId}
           />
         </>
       )}
       {showContinue && (
-        <Button
-          label="Fortsätt"
-          onPress={onNext}
-          style={{ marginTop: 24 }}
-          disabled={!canSave}
-        />
+        <View style={{ gap: 6 }}>
+          <Button
+            label="Fortsätt"
+            onPress={onNext}
+            style={{ marginTop: 24 }}
+            disabled={!canSave}
+          />
+          {error && (
+            <Body color="error" size="small">
+              Ett fel har påträffats i ett eller flera fält
+            </Body>
+          )}
+        </View>
       )}
     </ScreenLayout>
   );

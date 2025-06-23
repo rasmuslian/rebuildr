@@ -17,6 +17,7 @@ type BaseFieldProps = {
   description?: string | ReactNode;
   helperText?: string;
   horizontalSize?: typeof oneThirds | typeof twoThirds | typeof fullSize;
+  errorText?: string;
 };
 
 type FieldType =
@@ -61,7 +62,14 @@ export const Form = ({ fields, style: _style }: Props) => {
       {fieldRows.map((fieldRow, index) => (
         <View style={{ flexDirection: "row", gap: 16 }} key={index}>
           {fieldRow.map((field, i) => {
-            const { type, heading, description, helperText, ...rest } = field;
+            const {
+              type,
+              heading,
+              description,
+              helperText,
+              errorText,
+              ...rest
+            } = field;
 
             return (
               <View
@@ -73,9 +81,13 @@ export const Form = ({ fields, style: _style }: Props) => {
                   heading={heading}
                   description={description}
                   helperText={helperText}
+                  error={errorText}
                 >
                   {field.type === "text" ? (
-                    <TextInput {...(rest as TextInputProps)} />
+                    <TextInput
+                      {...(rest as TextInputProps)}
+                      error={!!errorText}
+                    />
                   ) : null}
                   {field.type === "masked" ? (
                     <MaskedInput {...(rest as MaskedInputProps)} />

@@ -7,6 +7,7 @@ import { View } from "react-native";
 
 type Props = {
   price: number;
+  priceError?: string;
   isGiveaway: boolean;
   onSelectGiveaway: () => void;
   onBlur: (price: number) => void;
@@ -14,6 +15,7 @@ type Props = {
 
 export const PriceSection = ({
   price: _price,
+  priceError,
   isGiveaway,
   onSelectGiveaway,
   onBlur,
@@ -52,6 +54,7 @@ export const PriceSection = ({
               }
               onBlur(newPrice);
             },
+            errorText: priceError,
           },
         ]}
       />

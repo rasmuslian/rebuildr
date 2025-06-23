@@ -33,6 +33,11 @@ export const ThrottleException = (message?: string) => {
   });
 };
 
+export interface BadField {
+  message: string;
+  name: string;
+  type?: 'BAD_VALUE' | 'VALUE_TAKEN';
+}
 /**
  *
  * @param badFields object specifying where and what went wrong
@@ -43,13 +48,7 @@ export const ThrottleException = (message?: string) => {
  * @constant VALUE_TAKEN - for example email och username which already exist in the database
  * @returns
  */
-export const BadFieldsInputException = (
-  badFields: {
-    message: string;
-    name: string;
-    type?: 'BAD_VALUE' | 'VALUE_TAKEN';
-  }[],
-) => {
+export const BadFieldsInputException = (badFields: BadField[]) => {
   return new GraphQLError(`Bad input for one or more fields`, {
     extensions: {
       code: 'BAD_FIELDS_INPUT',

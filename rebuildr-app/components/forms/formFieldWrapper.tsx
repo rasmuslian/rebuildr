@@ -8,6 +8,7 @@ type Props = {
   helperText?: string;
   children: React.ReactNode;
   horizontal?: boolean;
+  error?: string;
 };
 
 export const FormFieldWrapper = ({
@@ -15,6 +16,7 @@ export const FormFieldWrapper = ({
   description,
   helperText,
   horizontal,
+  error,
   children,
 }: Props) => {
   return (
@@ -38,6 +40,11 @@ export const FormFieldWrapper = ({
         ) : null}
       </View>
       <View>{children}</View>
+      {error && (
+        <Body color="error" size="small" style={{ marginTop: 4 }}>
+          {error}
+        </Body>
+      )}
       {helperText ? (
         <View style={{ paddingTop: 12 }}>
           <Body size="small" color="secondary">

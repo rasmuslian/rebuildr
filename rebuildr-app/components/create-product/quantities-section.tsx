@@ -27,6 +27,7 @@ type Props = {
   categoryId: string;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;
+  primaryError?: string;
   onBlurPrimary: (args: { quantity: number; unit: QuantityUnitEnum }) => void;
   secondaryQuantity?: number;
   secondaryUnit?: QuantityUnitEnum;
@@ -40,6 +41,7 @@ export const QuantitiesSection = ({
   categoryId,
   primaryQuantity: _primaryQuantity,
   primaryUnit: _primaryUnit,
+  primaryError,
   onBlurPrimary,
   secondaryQuantity: _secondaryQuantity,
   secondaryUnit: _secondaryUnit,
@@ -138,7 +140,13 @@ export const QuantitiesSection = ({
               onBlurPrimary(primaryObject);
             }}
             inputType="numeric"
+            error={!!primaryError}
           />
+          {primaryError && (
+            <Body size="small" color="error" style={{ marginTop: 4 }}>
+              {primaryError}
+            </Body>
+          )}
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
