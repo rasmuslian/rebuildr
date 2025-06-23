@@ -30,8 +30,8 @@ const BRAND_SECTION_QUERY = gql`
 
 type Props = {
   categoryId: string;
-  brandId?: string;
-  onSelect: (brandId?: string) => void;
+  brandId?: string | null;
+  onSelect: (brandId: string | null) => void;
 };
 
 export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
@@ -91,7 +91,7 @@ export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
           }}
         >
           <Body size="medium">{selectedBrand?.name}</Body>
-          <Button label="Ändra" onPress={() => onSelect()} type="tonal" />
+          <Button label="Ändra" onPress={() => onSelect(null)} type="tonal" />
         </View>
       </View>
     );
@@ -148,7 +148,7 @@ export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
                   onSelect(
                     data?.brands.find(
                       (brand) => brand.type === BrandTypeEnum.Other,
-                    )?.id,
+                    )?.id ?? null,
                   );
                 }}
               />

@@ -8,10 +8,8 @@ import { gql, useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
-import { AdGrid } from "@components/ad/ad-grid";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { SearchBar } from "@components/search/search-bar";
-import { ContinuousSlider } from "@components/slider/continuous-slider";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { Body, Display, Label } from "@components/typography/text";
 import { defaultCenter, defaultRadius } from "@constants/map";
@@ -25,6 +23,7 @@ import { Check } from "@components/controls/check";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { formatMetersToKm } from "@/utils/distanceHandling";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
+import { Slider } from "@components/slider/slider";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -336,12 +335,15 @@ export default function Products() {
                       alignItems: "center",
                     }}
                   >
-                    <ContinuousSlider
-                      min={1000}
-                      max={80000}
-                      value={pickupDistance}
-                      onChange={(v) => setPickupDistance(v)}
-                      width={240}
+                    <Slider
+                      type="continuous"
+                      sliderProps={{
+                        min: 1000,
+                        max: 80000,
+                        value: pickupDistance,
+                        onChange: (v) => setPickupDistance(v),
+                        width: 240,
+                      }}
                     />
                     <Body size="medium">
                       {meterToKilometer(pickupDistance)} km

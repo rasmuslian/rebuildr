@@ -3,9 +3,9 @@ import {
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
-import { ProductConditionToText } from "@/utils/enumToText";
 import { Body, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
+import { conditions } from "@constants/conditions";
 import { defaultApproximateLocation } from "@constants/map";
 import { quantities } from "@constants/quantities";
 import { borderRadius } from "@constants/sizes";
@@ -40,17 +40,10 @@ export const AdDescription = ({
         <Title size="small" numberOfLines={1}>
           {title}
         </Title>
-        <View style={{ flexDirection: "row", gap: 2 }}>
-          <Body color="secondary" size="small">
-            {quantity} {quantities[quantityUnit].short}
-          </Body>
-          <Body color="secondary" size="small">
-            •
-          </Body>
-          <Body color="secondary" size="small">
-            {ProductConditionToText[condition]}
-          </Body>
-        </View>
+        <Body color="secondary" size="small" numberOfLines={1}>
+          {quantity} {quantities[quantityUnit].short} •{" "}
+          {conditions[condition].name}
+        </Body>
       </View>
 
       {account && (

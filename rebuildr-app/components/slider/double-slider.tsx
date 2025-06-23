@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SliderThumb } from "./slider-thumb";
 
-type DoubleSliderProps = {
+export type DoubleSliderProps = {
   min: number;
   max: number;
   value1: number;

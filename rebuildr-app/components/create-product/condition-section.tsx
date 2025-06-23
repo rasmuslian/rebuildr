@@ -42,12 +42,14 @@ export const ConditionSection = ({
       </View>
       <View style={{ gap: 16 }}>
         <Slider
-          values={values()}
-          value={condition}
-          onChange={(v) => setCondition(v)}
-          onRelease={(v) => onSelect(v)}
-          compareFunction={(v1, v2) => v1 === v2}
-          sliderWidth={343}
+          type="step"
+          sliderProps={{
+            values: values(),
+            value: condition,
+            onChange: (v) => setCondition(v),
+            onRelease: (v) => onSelect(v),
+            compareFunction: (v1, v2) => v1 === v2,
+          }}
         />
         <View
           style={{

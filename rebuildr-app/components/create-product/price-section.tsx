@@ -7,6 +7,7 @@ import { View } from "react-native";
 
 type Props = {
   price: number;
+  priceError?: string;
   isGiveaway: boolean;
   onSelectGiveaway: () => void;
   onBlur: (price: number) => void;
@@ -14,6 +15,7 @@ type Props = {
 
 export const PriceSection = ({
   price: _price,
+  priceError,
   isGiveaway,
   onSelectGiveaway,
   onBlur,
@@ -40,8 +42,19 @@ export const PriceSection = ({
           {
             type: "price",
             value: price,
-            onChange: (p) => setPrice(p),
-            onBlur: (p) => onBlur(p),
+            onChange: (p) => {
+              const newPrice = Math.max(0, p);
+              setPrice(newPrice);
+            },
+            onBlur: (p) => {
+              const newPrice = Math.max(0, p);
+              setPrice(p);
+              if (newPrice <= 0) {
+                onSelectGiveaway();
+              }
+              onBlur(newPrice);
+            },
+            errorText: priceError,
           },
         ]}
       />
@@ -53,7 +66,13 @@ export const PriceSection = ({
           marginTop: 24,
         }}
       >
-        <Check selected={isGiveaway} onPress={() => onSelectGiveaway()} />
+        <Check
+          selected={isGiveaway}
+          onPress={() => {
+            setPrice(0);
+            onSelectGiveaway();
+          }}
+        />
         <Body size="medium">Bortskänkes</Body>
       </View>
     </View>
