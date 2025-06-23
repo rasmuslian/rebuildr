@@ -152,6 +152,7 @@ export default function SellProduct() {
         }
         await productToState(product);
       },
+      fetchPolicy: "network-only",
     },
   );
   const [updateProduct, { loading: updating }] = useMutation<
