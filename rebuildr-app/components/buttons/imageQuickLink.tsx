@@ -8,9 +8,9 @@ import {
   ViewStyle,
 } from "react-native";
 import { Label } from "@text/text";
-import { borderRadius, strokeWidth } from "@/src/constants/sizes";
 import { useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { borderRadius, strokeWidth } from "@constants/sizes";
 
 export type ImageQuickLinkProps = {
   source: ImageSourcePropType;
