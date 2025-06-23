@@ -40,8 +40,18 @@ export const PriceSection = ({
           {
             type: "price",
             value: price,
-            onChange: (p) => setPrice(p),
-            onBlur: (p) => onBlur(p),
+            onChange: (p) => {
+              const newPrice = Math.max(0, p);
+              setPrice(newPrice);
+            },
+            onBlur: (p) => {
+              const newPrice = Math.max(0, p);
+              setPrice(p);
+              if (newPrice <= 0) {
+                onSelectGiveaway();
+              }
+              onBlur(newPrice);
+            },
           },
         ]}
       />
@@ -53,7 +63,13 @@ export const PriceSection = ({
           marginTop: 24,
         }}
       >
-        <Check selected={isGiveaway} onPress={() => onSelectGiveaway()} />
+        <Check
+          selected={isGiveaway}
+          onPress={() => {
+            setPrice(0);
+            onSelectGiveaway();
+          }}
+        />
         <Body size="medium">Bortskänkes</Body>
       </View>
     </View>
