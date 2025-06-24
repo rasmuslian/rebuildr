@@ -548,7 +548,7 @@ export class ProductResolver {
 
   @ResolveField(() => Float, { nullable: true })
   async deliveryPrice(@Root() product: Product) {
-    if (!product.deliveryPrice) {
+    if (product.deliveryPrice === undefined || product.deliveryPrice === null) {
       return null;
     }
     return product.deliveryPrice / 100;

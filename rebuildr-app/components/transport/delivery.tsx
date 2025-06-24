@@ -108,7 +108,6 @@ export const Delivery = ({
 }: Props) => {
   const [_price, setPrice] = useState<number>();
   const [_radius, setRadius] = useState<number>();
-  const [isEditing, setIsEditing] = useState(false);
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
   const colors = useThemeColor();
@@ -133,6 +132,8 @@ export const Delivery = ({
     : data.product.location
       ? { lat: data.product.location.lat, lng: data.product.location.lng }
       : undefined;
+  const [isEditing, setIsEditing] = useState(!_location);
+
   const {
     address,
     updateAddress,
@@ -226,6 +227,8 @@ export const Delivery = ({
         input: {
           id: productId,
           deliveryEnabled: !data.product.deliveryEnabled,
+          deliveryPrice: price,
+          deliveryRadius: Math.round(radius),
         },
       },
     });

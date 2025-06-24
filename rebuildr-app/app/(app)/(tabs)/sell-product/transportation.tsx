@@ -111,7 +111,7 @@ export default function Transportation() {
   const pickupValid = data.getDraftedProduct.pickupEnabled && validAddress;
   const deliveryValid =
     data.getDraftedProduct.deliveryEnabled &&
-    data.getDraftedProduct.deliveryPrice &&
+    typeof data.getDraftedProduct.deliveryPrice === "number" &&
     data.getDraftedProduct.deliveryRadius &&
     validAddress;
   const shippingValid = !!data.getDraftedProduct.shippingPrices?.length;

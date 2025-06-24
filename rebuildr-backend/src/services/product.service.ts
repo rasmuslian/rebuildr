@@ -337,7 +337,7 @@ export class ProductService {
     if (input.deliveryRadius > 0) {
       product.deliveryRadius = input.deliveryRadius;
     }
-    if (input.deliveryPrice >= 1) {
+    if (input.deliveryPrice !== undefined) {
       product.deliveryPrice = input.deliveryPrice * 100;
     }
     if (input.shippingPriceIds) {
