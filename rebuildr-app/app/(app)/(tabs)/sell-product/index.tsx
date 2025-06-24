@@ -6,7 +6,7 @@ import {
   SellProductUpdateMutation,
   SellProductUpdateMutationVariables,
 } from "@/gql/graphql";
-import { apolloBadFieldsError } from "@/utils/apolloErrors";
+import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Toggle } from "@components/controls/toggle";
@@ -408,6 +408,8 @@ export default function SellProduct() {
 
     return Math.round((obligatories / totalMandatories) * 100);
   };
+
+  console.log("apolloBadFIeldsError exists?: ", apolloBadFieldsError);
 
   //Distribute any error messages on correct fields
   const apolloErrors = error ? apolloBadFieldsError(error) : [];
