@@ -152,6 +152,14 @@ export default function SellProduct() {
           });
           return;
         }
+
+        //If any measurement is set, show details
+        const measurementSet = measurementKeys.some(
+          (measurementKey) => !!product[measurementKey],
+        );
+        //show details if any measurements are set or any documents are chosen
+        setShowDetails(measurementSet || !!product?.documents.length);
+
         await productToState(product);
       },
       fetchPolicy: "network-only",
@@ -346,13 +354,6 @@ export default function SellProduct() {
       images: images.length ? images : undefined,
       documents: documents.length ? documents : undefined,
     };
-
-    //If any measurement is set, show details
-    const measurementSet = measurementKeys.some(
-      (measurementKey) => !!_product[measurementKey],
-    );
-    //show details if any measurements are set or any documents are chosen
-    setShowDetails(measurementSet || !!_product?.documents.length);
 
     setProduct(stateProduct);
     return stateProduct;
