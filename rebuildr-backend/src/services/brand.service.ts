@@ -10,6 +10,6 @@ export class BrandService {
   ) {}
 
   async brands() {
-    return await this.brandRepository.find();
+    return await this.brandRepository.find({ order: { name: 'ASC' } });
   }
 }
