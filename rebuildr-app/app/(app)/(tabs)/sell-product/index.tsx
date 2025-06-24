@@ -221,7 +221,9 @@ export default function SellProduct() {
           addDocuments: _product.documents
             //Only add documents that are not already on Product
             ?.filter((document) =>
-              product.documents?.every((i) => i.id !== document.id),
+              product.documents
+                ? product.documents.every((i) => i.id !== document.id)
+                : true,
             )
             .map((document) => ({
               mimeType: document.mimeType,
