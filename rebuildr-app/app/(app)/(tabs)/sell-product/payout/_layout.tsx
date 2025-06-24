@@ -52,9 +52,7 @@ export default function Layout() {
             }}
           >
             <ProgressHeader
-              onClose={() =>
-                router.canDismiss() ? router.dismiss() : router.replace("/")
-              }
+              onClose={() => router.replace("/")}
               title="Ny annons"
               prog1={25}
             />
