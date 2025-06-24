@@ -167,7 +167,7 @@ export const PayoutVerify = ({
               <Check
                 checkColor="primaryDark"
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
               />
               <Body size="medium">Starta BankID-appen i din mobil</Body>
             </View>
@@ -176,7 +176,7 @@ export const PayoutVerify = ({
             >
               <Check
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
                 checkColor="primaryDark"
               />
               <Body size="medium">Tryck på Scanna QR-kod</Body>
@@ -187,7 +187,7 @@ export const PayoutVerify = ({
               <Check
                 checkColor="primaryDark"
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
               />
               <Body size="medium">Rikta kameran mot QR-koden </Body>
             </View>
@@ -196,7 +196,11 @@ export const PayoutVerify = ({
         {authenticateError && <Body color="error">Något gick fel</Body>}
       </View>
       {showQr ? (
-        <Button label="Avbryt" onPress={() => setShowQr(false)} />
+        <Button
+          label="Avbryt"
+          onPress={() => setShowQr(false)}
+          style={{ marginTop: 82 }}
+        />
       ) : (
         <View style={{ gap: 8, paddingTop: 24 }}>
           <Button
