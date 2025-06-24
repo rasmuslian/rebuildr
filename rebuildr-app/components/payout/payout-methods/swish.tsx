@@ -2,7 +2,7 @@ import { PayoutAccountEnum } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { useState } from "react";
 import { View, Image } from "react-native";
-import Swish from "@assets/images/swish.png";
+import Swish from "@assets/images/swish-no-border.png";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display } from "@components/typography/text";
 import { Form } from "@components/forms/form";
@@ -67,7 +67,7 @@ export const PayoutMethodSwish = ({ onCompleted }: Props) => {
     >
       <View
         style={{
-          marginVertical: 24,
+          margin: 5,
           justifyContent: "center",
           alignItems: "center",
         }}

@@ -47,14 +47,11 @@ export default function Layout() {
           <View
             style={{
               paddingHorizontal: 16,
-              paddingBottom: 24,
               backgroundColor: colors.background.neutral,
             }}
           >
             <ProgressHeader
-              onClose={() =>
-                router.canDismiss() ? router.dismiss() : router.replace("/")
-              }
+              onClose={() => router.replace("/")}
               title="Ny annons"
               prog1={25}
             />

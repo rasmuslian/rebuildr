@@ -74,7 +74,7 @@ export const MainContent = ({
               • Hemtransport till{" "}
               <Body size="medium" isLink>
                 {myAddress}
-              </Body>{" "}
+              </Body>
               från {product.deliveryPrice} kr
             </Body>
           )}
@@ -102,37 +102,37 @@ export const MainContent = ({
             />
           )}
           {product.brand && <ProductChip boldText={product.brand.name} />}
-          {product.thickness && (
+          {!!product.thickness && (
             <ProductChip
               text={measurements["thickness"].name}
               boldText={`${product.thickness} mm`}
             />
           )}
-          {product.height && (
+          {!!product.height && (
             <ProductChip
               text={measurements["height"].name}
               boldText={`${product.height} mm`}
             />
           )}
-          {product.width && (
+          {!!product.width && (
             <ProductChip
               text={measurements["width"].name}
               boldText={`${product.width} mm`}
             />
           )}
-          {product.length && (
+          {!!product.length && (
             <ProductChip
               text={measurements["length"].name}
               boldText={`${product.length} mm`}
             />
           )}
-          {product.diameter && (
+          {!!product.diameter && (
             <ProductChip
               text={measurements["diameter"].name}
               boldText={`${product.diameter} mm`}
             />
           )}
-          {product.weight && (
+          {!!product.weight && (
             <ProductChip
               text={measurements["weight"].name}
               boldText={`${product.weight} mm`}

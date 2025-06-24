@@ -20,6 +20,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Divider } from "@components/dividers/divider";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
+import { borderRadius } from "@constants/sizes";
 
 const VERIFY_AUTHENTICATE_ROCKER_MUTATION = gql`
   mutation VerifyAuthenticateRocker($input: AuthenticateRockerInput!) {
@@ -134,7 +135,7 @@ export const PayoutVerify = ({
         >
           {showQr ? (
             <BankId
-              borderColor={colors.background.primary}
+              borderColor={colors.textField.clicked}
               color={primitives.accent700}
               onAuthenticationSuccess={() => {
                 setShowQr(false);
@@ -167,7 +168,7 @@ export const PayoutVerify = ({
               <Check
                 checkColor="primaryDark"
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
               />
               <Body size="medium">Starta BankID-appen i din mobil</Body>
             </View>
@@ -176,7 +177,7 @@ export const PayoutVerify = ({
             >
               <Check
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
                 checkColor="primaryDark"
               />
               <Body size="medium">Tryck på Scanna QR-kod</Body>
@@ -187,7 +188,7 @@ export const PayoutVerify = ({
               <Check
                 checkColor="primaryDark"
                 selected
-                color={primitives.primary300}
+                color={primitives.primary200}
               />
               <Body size="medium">Rikta kameran mot QR-koden </Body>
             </View>
@@ -196,7 +197,11 @@ export const PayoutVerify = ({
         {authenticateError && <Body color="error">Något gick fel</Body>}
       </View>
       {showQr ? (
-        <Button label="Avbryt" onPress={() => setShowQr(false)} />
+        <Button
+          label="Avbryt"
+          onPress={() => setShowQr(false)}
+          style={{ marginTop: 82 }}
+        />
       ) : (
         <View style={{ gap: 8, paddingTop: 24 }}>
           <Button
@@ -236,6 +241,8 @@ export const BankId = ({
     VerifyAuthenticateRockerMutationVariables
   >(VERIFY_AUTHENTICATE_ROCKER_MUTATION);
 
+  onAuthenticationSuccess();
+
   useEffect(() => {
     const requestId = Crypto.randomUUID();
     const timer = setInterval(() => {
@@ -263,7 +270,6 @@ export const BankId = ({
             done();
             return;
           }
-
           setQrCode(data.authenticateRocker.qrCode);
         },
         onError: () => {
@@ -282,13 +288,13 @@ export const BankId = ({
       {qrCode ? (
         <View
           style={{
-            borderRadius: 16,
+            borderRadius: borderRadius.medium,
             borderColor,
             padding: 16,
             borderWidth: 1,
           }}
         >
-          <QRCode color={color} value={qrCode} size={200} />
+          <QRCode color={color} value={qrCode} size={165} />
         </View>
       ) : (
         <LoadingSpinner />
