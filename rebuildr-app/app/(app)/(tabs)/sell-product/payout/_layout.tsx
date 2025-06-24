@@ -47,7 +47,6 @@ export default function Layout() {
           <View
             style={{
               paddingHorizontal: 16,
-              paddingBottom: 24,
               backgroundColor: colors.background.neutral,
             }}
           >
