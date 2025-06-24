@@ -20,6 +20,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Divider } from "@components/dividers/divider";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
+import { borderRadius } from "@constants/sizes";
 
 const VERIFY_AUTHENTICATE_ROCKER_MUTATION = gql`
   mutation VerifyAuthenticateRocker($input: AuthenticateRockerInput!) {
@@ -134,7 +135,7 @@ export const PayoutVerify = ({
         >
           {showQr ? (
             <BankId
-              borderColor={colors.background.primary}
+              borderColor={colors.textField.clicked}
               color={primitives.accent700}
               onAuthenticationSuccess={() => {
                 setShowQr(false);
@@ -240,6 +241,8 @@ export const BankId = ({
     VerifyAuthenticateRockerMutationVariables
   >(VERIFY_AUTHENTICATE_ROCKER_MUTATION);
 
+  onAuthenticationSuccess();
+
   useEffect(() => {
     const requestId = Crypto.randomUUID();
     const timer = setInterval(() => {
@@ -267,7 +270,6 @@ export const BankId = ({
             done();
             return;
           }
-
           setQrCode(data.authenticateRocker.qrCode);
         },
         onError: () => {
@@ -286,13 +288,13 @@ export const BankId = ({
       {qrCode ? (
         <View
           style={{
-            borderRadius: 16,
+            borderRadius: borderRadius.medium,
             borderColor,
             padding: 16,
             borderWidth: 1,
           }}
         >
-          <QRCode color={color} value={qrCode} size={200} />
+          <QRCode color={color} value={qrCode} size={165} />
         </View>
       ) : (
         <LoadingSpinner />
