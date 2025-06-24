@@ -6,6 +6,7 @@ import { borderRadius } from "@constants/sizes";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { View } from "react-native";
 import { Product } from "@/gql/graphql";
+import { primitives } from "@constants/colors";
 
 type Props = {
   images: Product["images"];
@@ -23,9 +24,32 @@ export const ImageCarousel = ({ images }: Props) => {
       >
         <Image
           source={images[0]?.url}
-          contentFit="contain"
+          contentFit="cover"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
+        <View
+          style={{
+            position: "absolute",
+            bottom: 16,
+            left: "40%",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          {Array.from({ length: 5 }, (_, i) => (
+            <View
+              key={i}
+              style={{
+                width: i === 4 ? 4 : 8,
+                height: i === 4 ? 4 : 8,
+                borderRadius: 100,
+                backgroundColor: primitives.neutrals100,
+                opacity: i === 0 ? 1 : 0.4,
+              }}
+            />
+          ))}
+        </View>
       </Pressable>
       <BottomSheet
         ref={imageRef}
