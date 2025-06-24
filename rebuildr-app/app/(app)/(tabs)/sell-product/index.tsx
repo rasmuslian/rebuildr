@@ -563,6 +563,7 @@ export default function SellProduct() {
             categoryId={categoryId}
             onSelect={(brandId) => onUpdateProduct({ brandId })}
             brandId={product.brandId}
+            isLoading={updating}
           />
         </>
       )}

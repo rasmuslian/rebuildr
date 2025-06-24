@@ -6,6 +6,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { SearchInput } from "@components/forms/searchInput";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Display, Headline } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
@@ -31,10 +32,16 @@ const BRAND_SECTION_QUERY = gql`
 type Props = {
   categoryId: string;
   brandId?: string | null;
+  isLoading?: boolean;
   onSelect: (brandId: string | null) => void;
 };
 
-export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
+export const BrandSection = ({
+  categoryId,
+  brandId,
+  isLoading,
+  onSelect,
+}: Props) => {
   const [searchString, setSearchString] = useState("");
   const colors = useThemeColor();
 
@@ -83,16 +90,20 @@ export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
     return (
       <View style={{ gap: 12 }}>
         <Headline size="small">Välj ett varumärke</Headline>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Body size="medium">{selectedBrand?.name}</Body>
-          <Button label="Ändra" onPress={() => onSelect(null)} type="tonal" />
-        </View>
+        {isLoading ? (
+          <LoadingSpinner />
+        ) : (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Body size="medium">{selectedBrand?.name}</Body>
+            <Button label="Ändra" onPress={() => onSelect(null)} type="tonal" />
+          </View>
+        )}
       </View>
     );
   }
@@ -102,65 +113,78 @@ export const BrandSection = ({ categoryId, brandId, onSelect }: Props) => {
       <Display size="small" style={{ marginBottom: 24 }}>
         Välj ett varumärke
       </Display>
-      <SearchInput
-        value={searchString}
-        onChange={(t) => setSearchString(t)}
-        placeholder="Hitta varumärke"
-      />
-      <View style={{ gap: 16, marginTop: 16 }}>
-        {!searchString ? (
-          <>
-            {otherBrands?.map((brand) => renderBrandRow(brand.name, brand.id))}
-            <View
-              style={{
-                borderBottomWidth: 1,
-                borderColor: colors.dividers.neutral,
-              }}
-            />
-            {data?.category.brands.map((brand) =>
-              renderBrandRow(brand.name, brand.id),
-            )}
-          </>
-        ) : searchedBrands?.length ? (
-          searchedBrands.map((brand) => renderBrandRow(brand.name, brand.id))
-        ) : (
-          <View>
-            <View style={{ gap: 2, marginBottom: 48 }}>
-              <Headline size="small">0 träffar</Headline>
-              <Body size="medium" color="secondary">
-                Ojdå, vi kunde inte hitta några varumärken som matchar '
-                {searchString}'
-              </Body>
-            </View>
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          <SearchInput
+            value={searchString}
+            onChange={(t) => setSearchString(t)}
+            placeholder="Hitta varumärke"
+          />
+          <View style={{ gap: 16, marginTop: 16 }}>
+            {!searchString ? (
+              <>
+                {otherBrands?.map((brand) =>
+                  renderBrandRow(brand.name, brand.id),
+                )}
+                <View
+                  style={{
+                    borderBottomWidth: 1,
+                    borderColor: colors.dividers.neutral,
+                  }}
+                />
+                {data?.category.brands.map((brand) =>
+                  renderBrandRow(brand.name, brand.id),
+                )}
+              </>
+            ) : searchedBrands?.length ? (
+              searchedBrands.map((brand) =>
+                renderBrandRow(brand.name, brand.id),
+              )
+            ) : (
+              <View>
+                <View style={{ gap: 2, marginBottom: 48 }}>
+                  <Headline size="small">0 träffar</Headline>
+                  <Body size="medium" color="secondary">
+                    Ojdå, vi kunde inte hitta några varumärken som matchar '
+                    {searchString}'
+                  </Body>
+                </View>
 
-            <View style={{ gap: 2, marginBottom: 24 }}>
-              <Headline size="small">Saknar varumärket? Välj "Okänt"</Headline>
-              <Body size="medium" color="secondary">
-                Om varumärket du söker inte finns i listan så väljer du "Okänt".
-                Vi jobbar löpande med att uppdatera listan med nya varumärken.
-              </Body>
-            </View>
-            <View style={{ gap: 8 }}>
-              <Button
-                label={`Ja, använd "Okänt"`}
-                onPress={() => {
-                  setSearchString("");
-                  onSelect(
-                    data?.brands.find(
-                      (brand) => brand.type === BrandTypeEnum.Other,
-                    )?.id ?? null,
-                  );
-                }}
-              />
-              <Button
-                label="Visa alla varumärken igen"
-                type="tonal"
-                onPress={() => setSearchString("")}
-              />
-            </View>
+                <View style={{ gap: 2, marginBottom: 24 }}>
+                  <Headline size="small">
+                    Saknar varumärket? Välj "Okänt"
+                  </Headline>
+                  <Body size="medium" color="secondary">
+                    Om varumärket du söker inte finns i listan så väljer du
+                    "Okänt". Vi jobbar löpande med att uppdatera listan med nya
+                    varumärken.
+                  </Body>
+                </View>
+                <View style={{ gap: 8 }}>
+                  <Button
+                    label={`Ja, använd "Okänt"`}
+                    onPress={() => {
+                      setSearchString("");
+                      onSelect(
+                        data?.brands.find(
+                          (brand) => brand.type === BrandTypeEnum.Other,
+                        )?.id ?? null,
+                      );
+                    }}
+                  />
+                  <Button
+                    label="Visa alla varumärken igen"
+                    type="tonal"
+                    onPress={() => setSearchString("")}
+                  />
+                </View>
+              </View>
+            )}
           </View>
-        )}
-      </View>
+        </>
+      )}
     </View>
   );
 };
