@@ -41,7 +41,7 @@ export const FormFieldWrapper = ({
       </View>
       <View>{children}</View>
       {error && (
-        <Body color="error" size="small" style={{ marginTop: 4 }}>
+        <Body color="error" size="small" style={{ marginTop: 12 }}>
           {error}
         </Body>
       )}

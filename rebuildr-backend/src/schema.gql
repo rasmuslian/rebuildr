@@ -289,6 +289,7 @@ type Product {
   shippingPrices: [ShippingPrice!]
   deliveryPrice: Float
   canDelete: Boolean!
+  minimumPrice: Int!
 }
 
 enum ProductConditionEnum {

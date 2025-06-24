@@ -143,7 +143,7 @@ export const QuantitiesSection = ({
             error={!!primaryError}
           />
           {primaryError && (
-            <Body size="small" color="error" style={{ marginTop: 4 }}>
+            <Body size="small" color="error" style={{ marginTop: 12 }}>
               {primaryError}
             </Body>
           )}
