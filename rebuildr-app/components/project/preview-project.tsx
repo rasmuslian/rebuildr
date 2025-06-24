@@ -49,14 +49,24 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
         <Title size="medium">{project.title}</Title>
         <Body size="medium">{project.description}</Body>
       </View>
-      <View style={{ gap: 4 }}>
-        <Label size="medium" style={{ marginBottom: 2 }}>
-          Alternativ kontakt:
-        </Label>
-        <Body size="medium">Namn: {project.contactName}</Body>
-        <Body size="medium">Mail: {project.contactEmail}</Body>
-        <Body size="medium">Telefon: {project.contactPhone}</Body>
-      </View>
+      {(project.contactName ||
+        project.contactEmail ||
+        project.contactPhone) && (
+        <View style={{ gap: 4 }}>
+          <Label size="medium" style={{ marginBottom: 2 }}>
+            Alternativ kontakt:
+          </Label>
+          {project.contactName && (
+            <Body size="medium">Namn: {project.contactName}</Body>
+          )}
+          {project.contactEmail && (
+            <Body size="medium">Mail: {project.contactEmail}</Body>
+          )}
+          {project.contactPhone && (
+            <Body size="medium">Telefon: {project.contactPhone}</Body>
+          )}
+        </View>
+      )}
       <View style={{ gap: 4 }}>
         <Label size="medium">Adress</Label>
         <Body size="medium">{project.approximatePlace.address}</Body>

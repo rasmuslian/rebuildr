@@ -74,7 +74,7 @@ export const MainContent = ({
               • Hemtransport till{" "}
               <Body size="medium" isLink>
                 {myAddress}
-              </Body>{" "}
+              </Body>
               från {product.deliveryPrice} kr
             </Body>
           )}
