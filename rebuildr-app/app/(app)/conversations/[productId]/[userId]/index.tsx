@@ -521,7 +521,6 @@ const ActionButtons = ({ data }: ActionButtonProps) => {
     } else {
       //buyer actions
       //Product is delivered, buyer can now approve of it
-      console.log("hallå!");
       if (purchase.deliveredAt) {
         return (
           <Button
