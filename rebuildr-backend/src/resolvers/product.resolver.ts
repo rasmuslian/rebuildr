@@ -47,6 +47,7 @@ import {
 } from './geocoding.resolver';
 import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
+import { minimumEscrow } from 'src/constants/pricing';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -556,5 +557,10 @@ export class ProductResolver {
   @ResolveField(() => Boolean)
   async canDelete(@Parent() product: Product) {
     return await this.productService.canDelete(product);
+  }
+
+  @ResolveField(() => Int)
+  async minimumPrice() {
+    return Math.round(minimumEscrow / 100);
   }
 }

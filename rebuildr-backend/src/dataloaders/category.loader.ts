@@ -48,14 +48,25 @@ export class CategoryLoader {
     });
   }
 
+  private brandsLoader() {
+    return new DataLoader(async (keys: readonly string[]) => {
+      const categories = await this.dataSource.getRepository(Category).find({
+        where: { id: In(keys) },
+        relations: { brands: true },
+        order: { brands: { name: 'ASC' } },
+      });
+
+      return keys.map(
+        (key) => categories.find((category) => category.id === key)?.brands,
+      );
+    });
+  }
+
   createLoaders(): ICategoryLoaders {
     return {
       childrenLoader: this.childrenLoader(),
       imageLoader: this.imageLoader(),
-      brandsLoader: this.dataloaderService.targetByParentIdLoader<Brand[]>(
-        'brands',
-        Category,
-      ),
+      brandsLoader: this.brandsLoader(),
       parentLoader: this.dataloaderService.targetByParentIdLoader<Category>(
         'parent',
         Category,

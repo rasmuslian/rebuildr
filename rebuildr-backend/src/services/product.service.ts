@@ -190,6 +190,8 @@ export class ProductService {
       throw ForbiddenException();
     }
 
+    const convertedPrice = input.price ? input.price * 100 : undefined;
+
     //--------------- VERIFY INPUTS --------------------
     const errors: BadField[] = [];
     if (input.title === '') {
@@ -204,14 +206,14 @@ export class ProductService {
         name: 'description',
       });
     }
-    if (input.price && !product.isGiveaway) {
-      if (input.price < minimumEscrow) {
+    if (convertedPrice && !product.isGiveaway) {
+      if (convertedPrice < minimumEscrow) {
         errors.push({
-          message: `Priset måste vara högre än ${Math.round(minimumEscrow / 100)} kr`,
+          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumEscrow / 100)} kr`,
           name: 'price',
         });
       }
-      if (input.price < maximumEscrow) {
+      if (convertedPrice > maximumEscrow) {
         errors.push({
           message: `Priset måste vara lägre än ${Math.round(maximumEscrow / 100)} kr`,
           name: 'price',
@@ -252,8 +254,8 @@ export class ProductService {
     if (input.description !== undefined) {
       product.description = input.description;
     }
-    if (input.price !== undefined) {
-      product.price = input.price * 100;
+    if (convertedPrice !== undefined) {
+      product.price = convertedPrice;
     }
     if (input.status) {
       product.status = input.status;
@@ -280,22 +282,22 @@ export class ProductService {
     }
 
     //Measurements
-    if (input.height) {
+    if (input.height !== undefined) {
       product.height = input.height;
     }
-    if (input.width) {
+    if (input.width !== undefined) {
       product.width = input.width;
     }
-    if (input.length) {
+    if (input.length !== undefined) {
       product.length = input.length;
     }
-    if (input.thickness) {
+    if (input.thickness !== undefined) {
       product.thickness = input.thickness;
     }
-    if (input.diameter) {
+    if (input.diameter !== undefined) {
       product.diameter = input.diameter;
     }
-    if (input.weight) {
+    if (input.weight !== undefined) {
       product.weight = input.weight;
     }
     //Quantities

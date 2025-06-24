@@ -70,6 +70,7 @@ const PRODUCT_DETAILS_FRAGMENT = gql`
       id
       type
     }
+    minimumPrice
   }
 `;
 
@@ -468,6 +469,7 @@ export default function SellProduct() {
           />
           <PriceSection
             price={product.price ?? 0}
+            minimumPrice={data?.getDraftedProduct?.minimumPrice ?? 0}
             priceError={badFields["price"]}
             isGiveaway={!!product.isGiveaway}
             onBlur={(price) => onUpdateProduct({ price })}

@@ -1,12 +1,13 @@
 import { Check } from "@components/controls/check";
 import { Form } from "@components/forms/form";
-import { Body, Display, Label } from "@components/typography/text";
+import { Body, Display } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
   price: number;
+  minimumPrice: number;
   priceError?: string;
   isGiveaway: boolean;
   onSelectGiveaway: () => void;
@@ -15,6 +16,7 @@ type Props = {
 
 export const PriceSection = ({
   price: _price,
+  minimumPrice,
   priceError,
   isGiveaway,
   onSelectGiveaway,
@@ -22,6 +24,8 @@ export const PriceSection = ({
 }: Props) => {
   const [price, setPrice] = useState(_price);
   const colors = useThemeColor();
+
+  const priceHigherThan = minimumPrice - 1;
 
   return (
     <View
@@ -34,14 +38,16 @@ export const PriceSection = ({
       <Display size="small" style={{ marginBottom: 24 }}>
         Pris
       </Display>
-      <Label size="medium" style={{ marginBottom: 4 }}>
-        Pris
-      </Label>
       <Form
         fields={[
           {
             type: "price",
             value: price,
+            heading: "Pris",
+            description:
+              priceHigherThan > 0
+                ? `Du kan antingen ange ett pris över ${priceHigherThan} kr, eller markera att varan bortskänkes (0 kr).`
+                : undefined,
             onChange: (p) => {
               const newPrice = Math.max(0, p);
               setPrice(newPrice);
