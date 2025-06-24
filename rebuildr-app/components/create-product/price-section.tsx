@@ -10,19 +10,18 @@ type Props = {
   minimumPrice: number;
   priceError?: string;
   isGiveaway: boolean;
-  onSelectGiveaway: () => void;
-  onBlur: (price: number) => void;
+  onUpdate: (isGiveaway: boolean, price: number) => void;
 };
 
 export const PriceSection = ({
   price: _price,
   minimumPrice,
   priceError,
-  isGiveaway,
-  onSelectGiveaway,
-  onBlur,
+  isGiveaway: _isGiveaway,
+  onUpdate,
 }: Props) => {
   const [price, setPrice] = useState(_price);
+  const [isGiveaway, setIsGiveaway] = useState(_isGiveaway);
   const colors = useThemeColor();
 
   const priceHigherThan = minimumPrice - 1;
@@ -51,14 +50,14 @@ export const PriceSection = ({
             onChange: (p) => {
               const newPrice = Math.max(0, p);
               setPrice(newPrice);
+              setIsGiveaway(newPrice <= 0);
             },
             onBlur: (p) => {
               const newPrice = Math.max(0, p);
+              const newIsGiveAway = newPrice <= 0;
               setPrice(p);
-              if (newPrice <= 0) {
-                onSelectGiveaway();
-              }
-              onBlur(newPrice);
+              setIsGiveaway(newIsGiveAway);
+              onUpdate(newIsGiveAway, newPrice);
             },
             errorText: priceError,
           },
@@ -76,7 +75,8 @@ export const PriceSection = ({
           selected={isGiveaway}
           onPress={() => {
             setPrice(0);
-            onSelectGiveaway();
+            setIsGiveaway(!isGiveaway);
+            onUpdate(!isGiveaway, isGiveaway ? 0 : price);
           }}
         />
         <Body size="medium">Bortskänkes</Body>

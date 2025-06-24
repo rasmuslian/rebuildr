@@ -475,12 +475,8 @@ export default function SellProduct() {
             minimumPrice={data?.getDraftedProduct?.minimumPrice ?? 0}
             priceError={badFields["price"]}
             isGiveaway={!!product.isGiveaway}
-            onBlur={(price) => onUpdateProduct({ price })}
-            onSelectGiveaway={() =>
-              onUpdateProduct({
-                isGiveaway: !product.isGiveaway,
-                price: 0,
-              })
+            onUpdate={(isGiveaway, price) =>
+              onUpdateProduct({ isGiveaway, price })
             }
           />
           <DescriptionSection

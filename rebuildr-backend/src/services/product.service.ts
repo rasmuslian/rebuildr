@@ -190,7 +190,8 @@ export class ProductService {
       throw ForbiddenException();
     }
 
-    const convertedPrice = input.price ? input.price * 100 : undefined;
+    const convertedPrice =
+      input.price !== undefined ? input.price * 100 : undefined;
 
     //--------------- VERIFY INPUTS --------------------
     const errors: BadField[] = [];
@@ -206,7 +207,7 @@ export class ProductService {
         name: 'description',
       });
     }
-    if (convertedPrice && !product.isGiveaway) {
+    if (convertedPrice !== undefined && !input.isGiveAway) {
       if (convertedPrice < minimumEscrow) {
         errors.push({
           message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumEscrow / 100)} kr`,
@@ -256,6 +257,7 @@ export class ProductService {
     }
     if (convertedPrice !== undefined) {
       product.price = convertedPrice;
+      product.isGiveaway = convertedPrice <= 0;
     }
     if (input.status) {
       product.status = input.status;
@@ -269,6 +271,7 @@ export class ProductService {
     }
     if (input.isGiveAway !== undefined) {
       product.isGiveaway = input.isGiveAway;
+      product.price = input.isGiveAway ? 0 : product.price;
     }
     //null means removing the category
     if (!!input.categoryId || input.categoryId === null) {
