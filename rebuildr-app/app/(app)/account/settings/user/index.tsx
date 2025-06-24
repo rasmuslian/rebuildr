@@ -3,7 +3,6 @@ import {
   AccountSettingsUpdateUserMutationVariables,
   AccountSettingsUserQuery,
 } from "@/gql/graphql";
-import { errorFields } from "@/utils/apolloErrors";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
@@ -17,6 +16,7 @@ import { PropsWithChildren, useState } from "react";
 import { View } from "react-native";
 import * as z from "zod";
 import { formatPostCode } from "@/utils/formattings";
+import { apolloBadFieldsError } from "@/utils/apollo-errors";
 
 const ACCOUNT_SETTINGS_USER_FRAGMENT = gql`
   fragment AccountSettingsUserFragment on User {
@@ -92,7 +92,7 @@ export default function User() {
           setEmail(null);
         },
         onError: (error) => {
-          const errors = error ? errorFields(error) : undefined;
+          const errors = error ? apolloBadFieldsError(error) : undefined;
           const emailError = errors?.find((field) => field.name === "email");
           setErrorEmail(
             emailError?.type === "VALUE_TAKEN"
@@ -168,7 +168,7 @@ export default function User() {
     !!data.me.phoneNumber;
 
   const detailsError = () => {
-    const errors = error ? errorFields(error) : undefined;
+    const errors = error ? apolloBadFieldsError(error) : undefined;
     const usernameError = errors?.find((field) => field.name === "username");
     const errorTexts = [];
     if (usernameError) {

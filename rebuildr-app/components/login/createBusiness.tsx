@@ -3,7 +3,7 @@ import {
   CreateBusinessMutationVariables,
   CreateBusinessQueryQuery,
 } from "@/gql/graphql";
-import { errorFields } from "@/utils/apolloErrors";
+import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
@@ -77,7 +77,7 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
   };
 
   const canContinue = number.length === 10 && name.length > 0;
-  const errors = error ? errorFields(error) : undefined;
+  const errors = error ? apolloBadFieldsError(error) : undefined;
 
   if (!data) {
     return <ActivityIndicator />;

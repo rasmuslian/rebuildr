@@ -14,9 +14,8 @@ type BadFieldsInputException = {
   }[];
 } & ApolloError;
 
-export const errorFields = (
-  e: ApolloError,
-): { name: string; message: string; type: ErrorFieldTypes }[] | undefined => {
+export const apolloBadFieldsError = (e: ApolloError) => {
+  console.log("apolloBadFieldsError called");
   const isBadFieldsInputException = e.graphQLErrors.find(
     (gqlError) => gqlError.extensions?.code === "BAD_FIELDS_INPUT",
   );

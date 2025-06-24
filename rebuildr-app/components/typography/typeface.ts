@@ -128,7 +128,7 @@ export const textStyles = {
     large: {
       //Mobile
       ...titleBaseMobile,
-      fontFamily: "Poppins-Regular",
+      fontFamily: "Poppins-Medium",
       fontWeight: 400,
       fontSize: 22,
       lineHeight: 28,
@@ -153,14 +153,14 @@ export const textStyles = {
         ...titleBaseDesktop,
         fontFamily: "Poppins-Medium",
         fontWeight: 500,
-        fontSize: 16,
-        lineHeight: 24,
+        fontSize: 18,
+        lineHeight: 26,
       },
     },
     small: {
       //Mobile
       ...titleBaseMobile,
-      fontFamily: "Poppins-Medium",
+      fontFamily: "Poppins-SemiBold",
       fontWeight: 500,
       fontSize: 14,
       lineHeight: 20,
@@ -169,8 +169,8 @@ export const textStyles = {
         ...titleBaseDesktop,
         fontFamily: "Poppins-Medium",
         fontWeight: 500,
-        fontSize: 14,
-        lineHeight: 20,
+        fontSize: 16,
+        lineHeight: 24,
       },
     },
   },
