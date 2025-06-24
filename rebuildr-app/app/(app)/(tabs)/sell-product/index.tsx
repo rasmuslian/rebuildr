@@ -409,8 +409,6 @@ export default function SellProduct() {
     return Math.round((obligatories / totalMandatories) * 100);
   };
 
-  console.log("apolloBadFIeldsError exists?: ", apolloBadFieldsError);
-
   //Distribute any error messages on correct fields
   const apolloErrors = error ? apolloBadFieldsError(error) : [];
   const badFields: { [key in string]?: string } =
@@ -477,12 +475,8 @@ export default function SellProduct() {
             minimumPrice={data?.getDraftedProduct?.minimumPrice ?? 0}
             priceError={badFields["price"]}
             isGiveaway={!!product.isGiveaway}
-            onBlur={(price) => onUpdateProduct({ price })}
-            onSelectGiveaway={() =>
-              onUpdateProduct({
-                isGiveaway: !product.isGiveaway,
-                price: 0,
-              })
+            onUpdate={(isGiveaway, price) =>
+              onUpdateProduct({ isGiveaway, price })
             }
           />
           <DescriptionSection
@@ -563,6 +557,7 @@ export default function SellProduct() {
             categoryId={categoryId}
             onSelect={(brandId) => onUpdateProduct({ brandId })}
             brandId={product.brandId}
+            isLoading={updating}
           />
         </>
       )}
