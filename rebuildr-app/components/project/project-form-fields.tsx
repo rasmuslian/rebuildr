@@ -50,7 +50,7 @@ export const ProjectFormFields = ({
             phone: project.contactPhone ?? undefined,
           }
         : null
-      : {},
+      : null,
   );
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const colors = useThemeColor();
