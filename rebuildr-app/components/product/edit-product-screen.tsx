@@ -1,9 +1,3 @@
-import { PRODUCT_DETAILS_FRAGMENT } from "@/app/(app)/(tabs)/sell-product";
-import {
-  SellProductQueryQuery,
-  SellProductUpdateMutation,
-  SellProductUpdateMutationVariables,
-} from "@/gql/graphql";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { gql, useMutation } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -26,9 +20,59 @@ import { DocumentSection } from "./document-section";
 import { ConditionSection } from "./condition-section";
 import { BrandSection } from "./brand-section";
 import { Button } from "@components/buttons/button";
+import { measurementKeys } from "@constants/measurements";
+import {
+  ProductEditProductUpdateMutation,
+  ProductEditProductUpdateMutationVariables,
+  SellProductQueryQuery,
+} from "@/gql/graphql";
 
-const SELL_PRODUCT_UPDATE = gql`
-  mutation SellProductUpdate($input: UpdateProductInput!) {
+export const PRODUCT_DETAILS_FRAGMENT = gql`
+  fragment ProductDetailsFragment on Product {
+    id
+    title
+    description
+    price
+    isGiveaway
+    condition
+    primaryQuantity
+    primaryUnit
+    secondaryQuantity
+    secondaryUnit
+    height
+    width
+    length
+    thickness
+    diameter
+    weight
+    images {
+      id
+      mimeType
+      url
+      name
+    }
+    documents {
+      id
+      mimeType
+      url
+      name
+    }
+    category {
+      id
+      name
+      hasChildren
+      ancestorIds
+    }
+    brand {
+      id
+      type
+    }
+    minimumPrice
+  }
+`;
+
+const PRODUCT_EDIT_PRODUCT_UPDATE = gql`
+  mutation ProductEditProductUpdate($input: UpdateProductInput!) {
     updateProduct(input: $input) {
       product {
         ...ProductDetailsFragment
@@ -58,9 +102,9 @@ export const EditProductScreen = ({
   const [showDetails, setShowDetails] = useState(false);
 
   const [updateProduct, { loading: updating, error }] = useMutation<
-    SellProductUpdateMutation,
-    SellProductUpdateMutationVariables
-  >(SELL_PRODUCT_UPDATE, { onError: () => {} });
+    ProductEditProductUpdateMutation,
+    ProductEditProductUpdateMutationVariables
+  >(PRODUCT_EDIT_PRODUCT_UPDATE, { onError: () => {} });
 
   const onUpdateProduct = async (
     _product: Partial<ProductFields>,
@@ -310,6 +354,12 @@ export const EditProductScreen = ({
 
   useEffect(() => {
     productToState(dbProduct);
+    //If any measurement is set, show details
+    const measurementSet = measurementKeys.some(
+      (measurementKey) => !!dbProduct[measurementKey],
+    );
+    //show details if any measurements are set or any documents are chosen
+    setShowDetails(measurementSet || !!dbProduct.documents.length);
   }, [dbProduct]);
 
   if (!product) {

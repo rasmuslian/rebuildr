@@ -1,7 +1,11 @@
-import { PreviewDraftedProductQuery, ProductStatusEnum } from "@/gql/graphql";
+import {
+  PreviewDraftedProductQuery,
+  ProductPreviewPublishProductMutation,
+  ProductPreviewPublishProductMutationVariables,
+  ProductStatusEnum,
+} from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Title } from "@components/typography/text";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { ProgressHeader } from "./progress-header";
@@ -12,8 +16,8 @@ import { Divider } from "@components/dividers/divider";
 import { AllImages } from "@components/preview-product/all-images";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 
-const PREVIEW_PUBLISH_PRODUCT = gql`
-  mutation PublishProduct($input: UpdateProductInput!) {
+const PRODUCT_PREVIEW_PUBLISH_PRODUCT = gql`
+  mutation ProductPreviewPublishProduct($input: UpdateProductInput!) {
     updateProduct(input: $input) {
       product {
         id
@@ -37,9 +41,10 @@ export const PreviewScreen = ({
   myAddress,
   title,
 }: Props) => {
-  const [publishProduct, { loading: publishProductLoading }] = useMutation(
-    PREVIEW_PUBLISH_PRODUCT,
-  );
+  const [publishProduct, { loading: publishProductLoading }] = useMutation<
+    ProductPreviewPublishProductMutation,
+    ProductPreviewPublishProductMutationVariables
+  >(PRODUCT_PREVIEW_PUBLISH_PRODUCT);
 
   const onPublishProduct = () => {
     if (publishProductLoading) {

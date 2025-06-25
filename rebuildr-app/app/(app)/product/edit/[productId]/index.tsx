@@ -1,11 +1,13 @@
-import { PRODUCT_DETAILS_FRAGMENT } from "@/app/(app)/(tabs)/sell-product";
 import {
   EditProductScreenQuery,
   EditProductScreenQueryVariables,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { EditProductScreen } from "@components/product/edit-product-screen";
+import {
+  EditProductScreen,
+  PRODUCT_DETAILS_FRAGMENT,
+} from "@components/product/edit-product-screen";
 import { useLocalSearchParams } from "expo-router";
 
 const EDIT_PRODUCT_SCREEN = gql`

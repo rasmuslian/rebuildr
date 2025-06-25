@@ -1,7 +1,7 @@
 import {
+  ProductProjectGetProjectQuery,
+  ProductProjectGetProjectQueryVariables,
   ProjectGetMyProjectsQuery,
-  ProjectGetProjectQuery,
-  ProjectGetProjectQueryVariables,
 } from "@/gql/graphql";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
@@ -21,21 +21,8 @@ import { PreviewProject } from "@components/project/preview-project";
 import { EditProject as EditProjectSection } from "@components/project/edit-project";
 import { Button } from "@components/buttons/button";
 
-const EDIT_PROJECT_UPDATE_PRODUCT = gql`
-  mutation EditProjectUpdateProduct($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        id
-        project {
-          id
-        }
-      }
-    }
-  }
-`;
-
-const EDIT_PROJECT_GET_PROJECT_QUERY = gql`
-  query EditProjectGetProject($input: GetProjectInput!) {
+const PRODUCT_PROJECT_GET_PROJECT = gql`
+  query ProductProjectGetProject($input: GetProjectInput!) {
     getProject(input: $input) {
       id
       title
@@ -46,6 +33,19 @@ const EDIT_PROJECT_GET_PROJECT_QUERY = gql`
       location {
         lat
         lng
+      }
+    }
+  }
+`;
+
+const PRODUCT_PROJECT_UPDATE_PRODUCT = gql`
+  mutation ProductProjectUpdateProduct($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        id
+        project {
+          id
+        }
       }
     }
   }
@@ -79,11 +79,11 @@ export const ProjectScreen = ({
   const colors = useThemeColor();
 
   const [getProject] = useLazyQuery<
-    ProjectGetProjectQuery,
-    ProjectGetProjectQueryVariables
-  >(EDIT_PROJECT_GET_PROJECT_QUERY);
+    ProductProjectGetProjectQuery,
+    ProductProjectGetProjectQueryVariables
+  >(PRODUCT_PROJECT_GET_PROJECT);
   const [updateProduct, { loading: updatingProduct }] = useMutation(
-    EDIT_PROJECT_UPDATE_PRODUCT,
+    PRODUCT_PROJECT_UPDATE_PRODUCT,
   );
 
   const onProjectCreated = (id: string) => {
