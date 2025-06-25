@@ -96,7 +96,10 @@ export default function ConversationsProduct() {
             <Button
               label="Gå till annons"
               onPress={() =>
-                router.navigate({ pathname: "/product", params: { productId } })
+                router.navigate({
+                  pathname: "/product/[productId]",
+                  params: { productId },
+                })
               }
             />
           </View>

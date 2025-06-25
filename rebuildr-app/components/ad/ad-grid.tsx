@@ -39,7 +39,7 @@ export const AdGrid = ({
       style={[{ gap: 8, opacity: disabled ? 0.5 : 1, width: "100%" }]}
       onPress={() => {
         router.navigate({
-          pathname: "/product",
+          pathname: "/product/[productId]",
           params: { productId: id },
         });
       }}

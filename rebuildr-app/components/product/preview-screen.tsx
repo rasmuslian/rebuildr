@@ -59,7 +59,7 @@ export const PreviewScreen = ({
       },
       onCompleted: (data) => {
         router.replace({
-          pathname: "/product",
+          pathname: "/product/[productId]",
           params: { productId: data.updateProduct.product.id },
         });
       },
