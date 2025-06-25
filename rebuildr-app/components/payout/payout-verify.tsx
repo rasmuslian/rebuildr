@@ -241,8 +241,6 @@ export const BankId = ({
     VerifyAuthenticateRockerMutationVariables
   >(VERIFY_AUTHENTICATE_ROCKER_MUTATION);
 
-  onAuthenticationSuccess();
-
   useEffect(() => {
     const requestId = Crypto.randomUUID();
     const timer = setInterval(() => {
