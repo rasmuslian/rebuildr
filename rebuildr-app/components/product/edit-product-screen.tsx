@@ -1,98 +1,31 @@
+import { PRODUCT_DETAILS_FRAGMENT } from "@/app/(app)/(tabs)/sell-product";
 import {
-  SellProductCreateDraftMutation,
   SellProductQueryQuery,
   SellProductUpdateMutation,
   SellProductUpdateMutationVariables,
 } from "@/gql/graphql";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { Button } from "@components/buttons/button";
-import { Toggle } from "@components/controls/toggle";
-import { BrandSection } from "@components/product/brand-section";
-import { CategorySection } from "@components/product/category-section";
-import { ConditionSection } from "@components/product/condition-section";
-import { DescriptionSection } from "@components/product/description-section";
-import { DocumentSection } from "@components/product/document-section";
-import { ImageSection } from "@components/product/image-section";
-import { MeasurementsSection } from "@components/product/measurements-section";
-import { PriceSection } from "@components/product/price-section";
-import { ProgressHeader } from "@components/product/progress-header";
-import { QuantitiesSection } from "@components/product/quantities-section";
-import { RootCategorySection } from "@components/product/root-category-section";
-import { FileType, ProductFields } from "@components/product/types";
+import { gql, useMutation } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { ProductFields } from "@components/product/types";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Title } from "@components/typography/text";
-import { measurementKeys } from "@constants/measurements";
-import { router } from "expo-router";
-import { useState } from "react";
+import { Href, router } from "expo-router";
+import { useEffect, useState } from "react";
+import { ProgressHeader } from "./progress-header";
+import { RootCategorySection } from "./root-category-section";
+import { CategorySection } from "./category-section";
+import { ImageSection } from "./image-section";
+import { PriceSection } from "./price-section";
+import { DescriptionSection } from "./description-section";
+import { QuantitiesSection } from "./quantities-section";
 import { View } from "react-native";
-
-export const PRODUCT_DETAILS_FRAGMENT = gql`
-  fragment ProductDetailsFragment on Product {
-    id
-    title
-    description
-    price
-    isGiveaway
-    condition
-    primaryQuantity
-    primaryUnit
-    secondaryQuantity
-    secondaryUnit
-    height
-    width
-    length
-    thickness
-    diameter
-    weight
-    images {
-      id
-      mimeType
-      url
-      name
-    }
-    documents {
-      id
-      mimeType
-      url
-      name
-    }
-    category {
-      id
-      name
-      hasChildren
-      ancestorIds
-    }
-    brand {
-      id
-      type
-    }
-    minimumPrice
-  }
-`;
-
-const SELL_PRODUCT_CREATE_DRAFT = gql`
-  mutation SellProductCreateDraft {
-    createDraftProduct {
-      ...ProductDetailsFragment
-    }
-  }
-  ${PRODUCT_DETAILS_FRAGMENT}
-`;
-
-const SELL_PRODUCT_QUERY = gql`
-  query SellProductQuery {
-    getDraftedProduct {
-      ...ProductDetailsFragment
-    }
-    me {
-      id
-      selectedPayoutMethod
-    }
-  }
-  ${PRODUCT_DETAILS_FRAGMENT}
-`;
+import { Body, Title } from "@components/typography/text";
+import { MeasurementsSection } from "./measurements-section";
+import { Toggle } from "@components/controls/toggle";
+import { DocumentSection } from "./document-section";
+import { ConditionSection } from "./condition-section";
+import { BrandSection } from "./brand-section";
+import { Button } from "@components/buttons/button";
 
 const SELL_PRODUCT_UPDATE = gql`
   mutation SellProductUpdate($input: UpdateProductInput!) {
@@ -107,47 +40,27 @@ const SELL_PRODUCT_UPDATE = gql`
   ${PRODUCT_DETAILS_FRAGMENT}
 `;
 
-export default function SellProduct() {
+type Props = {
+  product: Exclude<
+    SellProductQueryQuery["getDraftedProduct"],
+    undefined | null
+  >;
+  title: string;
+  nextUrl: Href;
+};
+
+export const EditProductScreen = ({
+  product: dbProduct,
+  title,
+  nextUrl,
+}: Props) => {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
-  const { data, refetch } = useQuery<SellProductQueryQuery>(
-    SELL_PRODUCT_QUERY,
-    {
-      notifyOnNetworkStatusChange: true, //necessary for the onCompleted to trigger during refetch
-      onCompleted: async (data) => {
-        //User must have a payout method to be able to sell
-        if (!data.me.selectedPayoutMethod) {
-          router.replace("/sell-product/payout");
-          return;
-        }
-        const product = data.getDraftedProduct;
-        if (!product) {
-          //if drafted product does not exist, create a draft
-          createDraft({
-            onCompleted: () => refetch(),
-          });
-          return;
-        }
 
-        //If any measurement is set, show details
-        const measurementSet = measurementKeys.some(
-          (measurementKey) => !!product[measurementKey],
-        );
-        //show details if any measurements are set or any documents are chosen
-        setShowDetails(measurementSet || !!product?.documents.length);
-
-        await productToState(product);
-      },
-      fetchPolicy: "network-only",
-    },
-  );
   const [updateProduct, { loading: updating, error }] = useMutation<
     SellProductUpdateMutation,
     SellProductUpdateMutationVariables
   >(SELL_PRODUCT_UPDATE, { onError: () => {} });
-  const [createDraft] = useMutation<SellProductCreateDraftMutation>(
-    SELL_PRODUCT_CREATE_DRAFT,
-  );
 
   const onUpdateProduct = async (
     _product: Partial<ProductFields>,
@@ -156,14 +69,13 @@ export default function SellProduct() {
     if (updating) {
       return;
     }
-    const draft = data?.getDraftedProduct;
-    if (!product || !draft) {
+    if (!product) {
       return;
     }
     return updateProduct({
       variables: {
         input: {
-          id: draft.id,
+          id: dbProduct.id,
           title: _product.title,
           description: _product.description,
           price: _product.price,
@@ -260,7 +172,7 @@ export default function SellProduct() {
         }
         await productToState(data.updateProduct.product);
         if (isFinal) {
-          router.navigate("/(app)/(tabs)/sell-product/project");
+          router.navigate(nextUrl);
         }
       },
     });
@@ -396,6 +308,10 @@ export default function SellProduct() {
       {},
     ) ?? {};
 
+  useEffect(() => {
+    productToState(dbProduct);
+  }, [dbProduct]);
+
   if (!product) {
     return <LoadingSpinner />;
   }
@@ -413,7 +329,7 @@ export default function SellProduct() {
           onClose={() =>
             router.canDismiss() ? router.dismiss() : router.replace("/")
           }
-          title="Ny annons"
+          title={title}
           prog1={progress()}
         />
       }
@@ -448,7 +364,7 @@ export default function SellProduct() {
           />
           <PriceSection
             price={product.price ?? 0}
-            minimumPrice={data?.getDraftedProduct?.minimumPrice ?? 0}
+            minimumPrice={dbProduct.minimumPrice ?? 0}
             priceError={badFields["price"]}
             isGiveaway={!!product.isGiveaway}
             onUpdate={(isGiveaway, price) =>
@@ -554,4 +470,4 @@ export default function SellProduct() {
       )}
     </ScreenLayout>
   );
-}
+};

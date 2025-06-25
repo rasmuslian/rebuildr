@@ -1,7 +1,7 @@
 import { TransportationQueryQuery } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { ProgressHeader } from "@components/create-product/progress-header";
+import { ProgressHeader } from "@components/product/progress-header";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Delivery } from "@components/transport/delivery";

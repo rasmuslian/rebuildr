@@ -5,7 +5,7 @@ import {
   PublishProductMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { ProgressHeader } from "@components/create-product/progress-header";
+import { ProgressHeader } from "@components/product/progress-header";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";

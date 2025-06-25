@@ -242,6 +242,10 @@ export default function Product() {
                 label="Redigera annons"
                 onPress={() => {
                   //TODO: navigate to edit product screen
+                  router.navigate({
+                    pathname: "/product/edit/[productId]",
+                    params: { productId },
+                  });
                 }}
               />
               <Button

@@ -1,43 +1,41 @@
-import { Button } from "@components/buttons/button";
-import { Toggle } from "@components/controls/toggle";
-import { ProgressHeader } from "@components/product/progress-header";
-import { Form } from "@components/forms/form";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Display, Headline, Label } from "@components/typography/text";
-import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { router } from "expo-router";
-import { Suspense, useState } from "react";
-import { View } from "react-native";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import {
   ProjectGetMyProjectsQuery,
   ProjectGetProjectQuery,
   ProjectGetProjectQueryVariables,
 } from "@/gql/graphql";
-import { CreateProject } from "@components/project/create-project";
-import { PreviewProject } from "@components/project/preview-project";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { Href, router } from "expo-router";
+import { Suspense, useState } from "react";
+import { ProgressHeader } from "./progress-header";
+import { Body, Display, Headline, Label } from "@components/typography/text";
+import { View } from "react-native";
+import { borderRadius } from "@constants/sizes";
+import { Toggle } from "@components/controls/toggle";
+import { Form } from "@components/forms/form";
 import { Divider } from "@components/dividers/divider";
-import { EditProject } from "@components/project/edit-project";
+import { CreateProject } from "@components/project/create-project";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { PreviewProject } from "@components/project/preview-project";
+import { EditProject as EditProjectSection } from "@components/project/edit-project";
+import { Button } from "@components/buttons/button";
 
-const PROJECT_GET_MY_PROJECTS = gql`
-  query ProjectGetMyProjects {
-    myProjects {
-      id
-      title
-    }
-    getDraftedProduct {
-      id
-      project {
+const EDIT_PROJECT_UPDATE_PRODUCT = gql`
+  mutation EditProjectUpdateProduct($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
         id
+        project {
+          id
+        }
       }
     }
   }
 `;
 
-const PROJECT_GET_PROJECT_QUERY = gql`
-  query ProjectGetProject($input: GetProjectInput!) {
+const EDIT_PROJECT_GET_PROJECT_QUERY = gql`
+  query EditProjectGetProject($input: GetProjectInput!) {
     getProject(input: $input) {
       id
       title
@@ -53,49 +51,39 @@ const PROJECT_GET_PROJECT_QUERY = gql`
   }
 `;
 
-const PROJECT_UPDATE_PRODUCT = gql`
-  mutation ProjectUpdateProduct($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        id
-        project {
-          id
-        }
-      }
-    }
-  }
-`;
+type Props = {
+  product: Exclude<
+    ProjectGetMyProjectsQuery["getDraftedProduct"],
+    null | undefined
+  >;
+  projects: ProjectGetMyProjectsQuery["myProjects"];
+  title: string;
+  refetchProduct: () => void;
+  nextUrl: Href;
+};
 
-export default function Project() {
+export const ProjectScreen = ({
+  product: dbProduct,
+  projects,
+  title,
+  refetchProduct,
+  nextUrl,
+}: Props) => {
   const [skipProject, setSkipProject] = useState(false);
-  const [connectProject, setConnectProject] = useState(false);
-  const [projectId, setProjectId] = useState<string>();
+  const [connectProject, setConnectProject] = useState(!!dbProduct?.project);
+  const [projectId, setProjectId] = useState<string | undefined>(
+    dbProduct?.project?.id,
+  );
   const [isEditing, setIsEditing] = useState(false);
   const newProjectOption = "1";
   const colors = useThemeColor();
 
-  const { data, refetch } = useQuery<ProjectGetMyProjectsQuery>(
-    PROJECT_GET_MY_PROJECTS,
-    {
-      onCompleted(data) {
-        if (!data.getDraftedProduct) {
-          console.error("No draft found");
-          router.replace("/");
-          return;
-        }
-        if (data.getDraftedProduct.project) {
-          setProjectId(data.getDraftedProduct.project.id);
-          setConnectProject(true);
-        }
-      },
-    },
-  );
   const [getProject] = useLazyQuery<
     ProjectGetProjectQuery,
     ProjectGetProjectQueryVariables
-  >(PROJECT_GET_PROJECT_QUERY);
+  >(EDIT_PROJECT_GET_PROJECT_QUERY);
   const [updateProduct, { loading: updatingProduct }] = useMutation(
-    PROJECT_UPDATE_PRODUCT,
+    EDIT_PROJECT_UPDATE_PRODUCT,
   );
 
   const onProjectCreated = (id: string) => {
@@ -107,7 +95,7 @@ export default function Project() {
         },
       },
     });
-    refetch();
+    refetchProduct();
   };
 
   const onSelectNotConnect = () => {
@@ -138,24 +126,24 @@ export default function Project() {
     return false;
   };
   const onNext = () => {
-    if (!data?.getDraftedProduct || updatingProduct) {
+    if (updatingProduct) {
       return;
     }
 
     if (skipProject) {
-      router.navigate("/sell-product/transportation");
+      router.navigate(nextUrl);
       return;
     }
 
     updateProduct({
       variables: {
         input: {
-          id: data.getDraftedProduct.id,
+          id: dbProduct.id,
           projectId,
         },
       },
       onCompleted: () => {
-        router.navigate("/sell-product/transportation");
+        router.navigate(nextUrl);
       },
     });
   };
@@ -181,13 +169,11 @@ export default function Project() {
       label: "Nytt project",
       disabled: projectId === newProjectOption,
     },
-    ...(data
-      ? data.myProjects.map((p) => ({
-          value: p.id,
-          label: p.title,
-          disabled: projectId === p.id,
-        }))
-      : []),
+    ...projects.map((p) => ({
+      value: p.id,
+      label: p.title,
+      disabled: projectId === p.id,
+    })),
   ];
 
   return (
@@ -198,7 +184,7 @@ export default function Project() {
           onClose={() =>
             router.canDismiss() ? router.dismiss() : router.replace("/")
           }
-          title="Ny annons"
+          title={title}
           prog2={progress()}
         />
       }
@@ -311,7 +297,7 @@ export default function Project() {
                   <Divider />
                   <Suspense fallback={<LoadingSpinner />}>
                     {isEditing ? (
-                      <EditProject
+                      <EditProjectSection
                         id={projectId}
                         onEdited={() => setIsEditing(false)}
                       />
@@ -332,9 +318,9 @@ export default function Project() {
         <Button
           icon="arrowLeft"
           label="Tillbaka"
-          onPress={() => {
-            router.navigate("/sell-product");
-          }}
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.replace("/")
+          }
         />
         <Button
           label="Fortsätt"
@@ -346,4 +332,4 @@ export default function Project() {
       </View>
     </ScreenLayout>
   );
-}
+};
