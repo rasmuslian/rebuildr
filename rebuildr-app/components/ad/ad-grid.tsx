@@ -29,7 +29,7 @@ export const AdGrid = ({
   imageUri,
   heart,
   onHeartPress,
-  overlayText,
+  overlayText: _overlayText,
   disabled,
   liked,
   status,
@@ -37,6 +37,12 @@ export const AdGrid = ({
 }: Props) => {
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const showHeart = heart && isLoggedIn;
+
+  const overlayText = _overlayText
+    ? _overlayText
+    : status === ProductStatusEnum.Sold
+      ? "Såld"
+      : undefined;
 
   return (
     <Pressable
@@ -49,15 +55,16 @@ export const AdGrid = ({
       }}
       disabled={disabled}
     >
-      <Image
-        source={
-          status === ProductStatusEnum.Deleted
-            ? DeletedProduct.uri
-            : (imageUri ?? PlaceholderProduct.uri)
-        }
-        cachePolicy="memory-disk"
-        style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
-      >
+      <View>
+        <Image
+          source={
+            status === ProductStatusEnum.Deleted
+              ? DeletedProduct.uri
+              : (imageUri ?? PlaceholderProduct.uri)
+          }
+          cachePolicy="memory-disk"
+          style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
+        />
         {!!overlayText && (
           <View
             style={
@@ -75,7 +82,7 @@ export const AdGrid = ({
             </Label>
           </View>
         )}
-      </Image>
+      </View>
       {showHeart && (
         <Pressable
           style={({ pressed }) => ({

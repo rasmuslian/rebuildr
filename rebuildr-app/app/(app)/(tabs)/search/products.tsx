@@ -36,6 +36,7 @@ const SEARCH_PRODUCTS_QUERY = gql`
       products {
         id
         title
+        status
         price
         condition
         primaryQuantity
@@ -307,6 +308,7 @@ export default function Products() {
                 location: product.approximatePlace?.address,
               },
               price: product.price,
+              status: product.status,
             })) ?? []
           }
           pagination={{

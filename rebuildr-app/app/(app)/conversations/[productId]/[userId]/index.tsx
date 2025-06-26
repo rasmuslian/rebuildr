@@ -4,7 +4,7 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import dayjs from "dayjs";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
@@ -229,6 +229,9 @@ export default function ConversationProduct() {
     if (data.product.status === ProductStatusEnum.Deleted) {
       return { text: "Borttagen annons", disabled: true };
     }
+    if (data.product.status === ProductStatusEnum.Sold) {
+      return { text: "Såld annons", disabled: true };
+    }
     if (!purchase) {
       return null;
     }
@@ -291,19 +294,36 @@ export default function ConversationProduct() {
                 </View>
               )}
             </View>
-            <Image
-              source={{
-                uri:
-                  data.product.status === ProductStatusEnum.Deleted
-                    ? DeletedProduct.uri
-                    : data?.product.primaryImage?.url,
-              }}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: borderRadius.small,
-              }}
-            />
+            <View>
+              <Image
+                source={{
+                  uri:
+                    data.product.status === ProductStatusEnum.Deleted
+                      ? DeletedProduct.uri
+                      : data?.product.primaryImage?.url,
+                }}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: borderRadius.small,
+                }}
+              />
+              {data.product.status === ProductStatusEnum.Sold && (
+                <View
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "#00000080",
+                    borderRadius: borderRadius.medium,
+                  }}
+                >
+                  <Label size="large" style={{ color: "white" }}>
+                    Såld
+                  </Label>
+                </View>
+              )}
+            </View>
           </View>
           <Divider />
         </View>

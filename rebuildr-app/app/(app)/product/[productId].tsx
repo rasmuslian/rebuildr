@@ -36,56 +36,72 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRef } from "react";
 
-const PRODUCT_VIEW = gql`
-  query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
-    product(input: $input) {
+const PRODUCT_VIEW_FRAGMENT = gql`
+  fragment ProductViewFragment on Product {
+    id
+    status
+    createdAt
+    updatedAt
+    canDelete
+    likedByMe
+    title
+    description
+    price
+    isGiveaway
+    condition
+    primaryQuantity
+    primaryUnit
+    secondaryQuantity
+    secondaryUnit
+    height
+    width
+    length
+    thickness
+    diameter
+    weight
+    images {
       id
-      status
-      createdAt
-      updatedAt
-      canDelete
-      likedByMe
+      mimeType
+      url
+      name
+    }
+    documents {
+      id
+      mimeType
+      url
+      name
+    }
+    category {
+      id
+      name
+      hasChildren
+      ancestorIds
+      parent {
+        id
+        name
+      }
+    }
+    brand {
+      id
+      name
+      type
+    }
+    location {
+      lat
+      lng
+    }
+    approximatePlace {
+      lat
+      lng
+      address
+    }
+    project {
+      id
       title
-      description
-      price
-      isGiveaway
-      condition
-      primaryQuantity
-      primaryUnit
-      secondaryQuantity
-      secondaryUnit
-      height
-      width
-      length
-      thickness
-      diameter
-      weight
-      images {
+      address
+      projectPicture {
         id
-        mimeType
         url
-        name
-      }
-      documents {
-        id
-        mimeType
-        url
-        name
-      }
-      category {
-        id
-        name
-        hasChildren
-        ancestorIds
-        parent {
-          id
-          name
-        }
-      }
-      brand {
-        id
-        name
-        type
       }
       location {
         lat
@@ -96,72 +112,64 @@ const PRODUCT_VIEW = gql`
         lng
         address
       }
-      project {
+      products {
+        id
+        primaryImage {
+          id
+          url
+        }
+      }
+    }
+    pickupEnabled
+    deliveryRadius
+    deliveryPrice
+    deliveryEnabled
+    shippingPrices {
+      id
+      maxWeight
+      price
+      provider
+    }
+    seller {
+      id
+      type
+      username
+      rating
+      numberOfPublishedProducts
+      numberOfSoldProducts
+      profilePicture {
+        id
+        url
+      }
+      products {
         id
         title
-        address
-        projectPicture {
-          id
-          url
-        }
-        location {
-          lat
-          lng
-        }
-        approximatePlace {
-          lat
-          lng
-          address
-        }
-        products {
-          id
-          primaryImage {
-            id
-            url
-          }
-        }
-      }
-      pickupEnabled
-      deliveryRadius
-      deliveryPrice
-      deliveryEnabled
-      shippingPrices {
-        id
-        maxWeight
+        status
+        likedByMe
+        primaryQuantity
+        primaryUnit
+        condition
         price
-        provider
-      }
-      seller {
-        id
-        type
-        username
-        rating
-        numberOfPublishedProducts
-        numberOfSoldProducts
-        profilePicture {
+        primaryImage {
           id
           url
         }
-        products {
-          id
-          title
-          likedByMe
-          primaryQuantity
-          primaryUnit
-          condition
-          price
-          primaryImage {
-            id
-            url
-          }
-        }
       }
+    }
+  }
+`;
+
+const PRODUCT_VIEW = gql`
+  query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
+    product(input: $input) {
+      ...ProductViewFragment
     }
     me @include(if: $isLoggedIn) {
       id
       address
     }
   }
+  ${PRODUCT_VIEW_FRAGMENT}
 `;
 
 const PRODUCT_VIEW_LIKE_PRODUCT = gql`
@@ -176,125 +184,10 @@ const PRODUCT_VIEW_LIKE_PRODUCT = gql`
 const PRODUCT_REMOVE_PRODUCT = gql`
   mutation ProductRemoveProduct($input: RemoveProductInput!) {
     removeProduct(input: $input) {
-      id
-      status
-      createdAt
-      updatedAt
-      canDelete
-      likedByMe
-      title
-      description
-      price
-      isGiveaway
-      condition
-      primaryQuantity
-      primaryUnit
-      secondaryQuantity
-      secondaryUnit
-      height
-      width
-      length
-      thickness
-      diameter
-      weight
-      images {
-        id
-        mimeType
-        url
-        name
-      }
-      documents {
-        id
-        mimeType
-        url
-        name
-      }
-      category {
-        id
-        name
-        hasChildren
-        ancestorIds
-        parent {
-          id
-          name
-        }
-      }
-      brand {
-        id
-        name
-        type
-      }
-      location {
-        lat
-        lng
-      }
-      approximatePlace {
-        lat
-        lng
-        address
-      }
-      project {
-        id
-        title
-        address
-        projectPicture {
-          id
-          url
-        }
-        location {
-          lat
-          lng
-        }
-        approximatePlace {
-          lat
-          lng
-          address
-        }
-        products {
-          id
-          primaryImage {
-            id
-            url
-          }
-        }
-      }
-      pickupEnabled
-      deliveryRadius
-      deliveryPrice
-      deliveryEnabled
-      shippingPrices {
-        id
-        maxWeight
-        price
-        provider
-      }
-      seller {
-        id
-        type
-        username
-        rating
-        numberOfPublishedProducts
-        numberOfSoldProducts
-        profilePicture {
-          id
-          url
-        }
-        products {
-          id
-          title
-          likedByMe
-          primaryQuantity
-          primaryUnit
-          condition
-          price
-          primaryImage {
-            id
-            url
-          }
-        }
-      }
+      ...ProductViewFragment
     }
   }
+  ${PRODUCT_VIEW_FRAGMENT}
 `;
 
 export default function Product() {
@@ -555,6 +448,7 @@ export default function Product() {
                 condition={item.condition}
                 title={item.title}
                 price={item.price}
+                status={item.status}
               />
             )}
             visibleItems={3}
