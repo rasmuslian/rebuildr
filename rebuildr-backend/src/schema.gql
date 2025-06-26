@@ -275,6 +275,7 @@ type Product {
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
   deliveryRadius: Float
+  noProject: Boolean
   category: Category
   seller: User!
   primaryImage: File
@@ -562,6 +563,7 @@ type Mutation {
   hideProduct(input: HideProductInput!): Product!
   showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
+  removeProduct(input: RemoveProductInput!): Product!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
@@ -686,6 +688,7 @@ input UpdateProductInput {
   removeImages: [String!]
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
+  noProject: Boolean
   projectId: String
   deliveryEnabled: Boolean
   deliveryPrice: Float
@@ -706,6 +709,10 @@ input ShowProductInput {
 input SetLikeProductInput {
   id: String!
   like: Boolean!
+}
+
+input RemoveProductInput {
+  id: String!
 }
 
 input UpdateCategoryInput {

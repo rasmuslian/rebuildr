@@ -1,6 +1,6 @@
 import { RootPayoutMethodQueryQuery, UserType } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { ProgressHeader } from "@components/create-product/progress-header";
+import { ProgressHeader } from "@components/product/progress-header";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, Stack, usePathname } from "expo-router";

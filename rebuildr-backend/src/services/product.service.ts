@@ -280,7 +280,9 @@ export class ProductService {
       });
       product.category = category;
     }
+    //null means removing the project
     if (!!input.projectId || input.projectId === null) {
+      product.noProject = !input.projectId;
       product.projectId = input.projectId;
     }
 
@@ -674,8 +676,26 @@ export class ProductService {
     };
   }
 
-  async findOne(id: string) {
-    return await this.productRepository.findOneBy({ id });
+  async findOne(id: string, currentUserId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { messages: true },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+    if (product.status === ProductStatus.DELETED) {
+      const currentUserHasConnection = product.messages.some(
+        (message) =>
+          message.receiverId === currentUserId ||
+          message.senderId === currentUserId,
+      );
+      if (!currentUserHasConnection) {
+        throw BadUserInputException();
+      }
+    }
+
+    return product;
   }
 
   async hide(id: string, reason: string, userId: string) {
@@ -760,6 +780,37 @@ export class ProductService {
         (likedByUser) => likedByUser.id !== userId,
       );
     }
+
+    return await this.productRepository.save(product);
+  }
+
+  /**
+   *
+   * Soft deletes a product
+   */
+  async removeProduct(productId: string, currentUserId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: { images: true, documents: true },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+    if (product.sellerId !== currentUserId) {
+      throw ForbiddenException();
+    }
+    const canDelete = this.canDelete(product);
+    if (!canDelete) {
+      throw ForbiddenException('Product got ongoing purchase');
+    }
+
+    product.deletedAt = new Date();
+    product.status = ProductStatus.DELETED;
+    await this.fileService.deleteFiles(product.images);
+    product.images = [];
+    await this.fileService.deleteFiles(product.documents);
+    product.documents = [];
+    product.likedBy = [];
 
     return await this.productRepository.save(product);
   }

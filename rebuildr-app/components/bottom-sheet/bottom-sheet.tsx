@@ -13,9 +13,9 @@ import {
 } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "@icons/icon";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { Button } from "@components/buttons/button";
 
 type Props = PropsWithChildren<{
   title?: string;
@@ -39,7 +39,7 @@ export const BottomSheet = forwardRef(
     }: Props,
     outerRef: ForwardedRef<BottomSheetModal>,
   ) => {
-    const safeAre = useSafeAreaInsets();
+    const safeArea = useSafeAreaInsets();
     const innerRef =
       useRef<BottomSheetModal>() as React.MutableRefObject<BottomSheetModalMethods>;
     useImperativeHandle(outerRef, () => innerRef?.current, []);
@@ -61,18 +61,12 @@ export const BottomSheet = forwardRef(
             borderColor: colors.dividers.neutral,
           }}
         >
-          <Title
-            size="medium"
-            style={{
-              marginBottom: 12,
-              marginTop: 8,
-            }}
-          >
-            {title}
-          </Title>
-          <Pressable onPress={() => innerRef.current.close()}>
-            <Icon icon="X" />
-          </Pressable>
+          <Title size="medium">{title}</Title>
+          <Button
+            icon="X"
+            onPress={() => innerRef.current.close()}
+            type="text"
+          />
         </View>
       );
     };
@@ -92,7 +86,7 @@ export const BottomSheet = forwardRef(
         handleIndicatorStyle={{
           display: "none",
         }}
-        style={screenHeight && { marginTop: safeAre.top }}
+        style={screenHeight && { marginTop: safeArea.top }}
         backdropComponent={({ style }) => (
           <Pressable
             style={[style, { backgroundColor: "#0000004D" }]}
@@ -103,7 +97,7 @@ export const BottomSheet = forwardRef(
         {scrollable ? (
           <BottomSheetScrollView
             style={{
-              paddingBottom: safeAre.bottom + 20,
+              paddingBottom: safeArea.bottom + 20,
               paddingHorizontal: noPaddingHorizontal ? 0 : 16,
             }}
           >
@@ -113,7 +107,7 @@ export const BottomSheet = forwardRef(
         ) : (
           <BottomSheetView
             style={{
-              paddingBottom: safeAre.bottom + 20,
+              paddingBottom: safeArea.bottom + 20,
               paddingHorizontal: noPaddingHorizontal ? 0 : 16,
             }}
           >

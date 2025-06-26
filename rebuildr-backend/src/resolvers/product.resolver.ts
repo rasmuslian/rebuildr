@@ -209,6 +209,9 @@ export class UpdateProductInput {
   removeDocuments?: string[];
 
   @Field({ nullable: true })
+  noProject?: boolean;
+
+  @Field({ nullable: true })
   projectId?: string | null;
 
   @Field({ nullable: true })
@@ -346,6 +349,12 @@ class SetLikeProductInput {
   like: boolean;
 }
 
+@InputType()
+class RemoveProductInput {
+  @Field()
+  id: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -364,7 +373,7 @@ export class ProductResolver {
     @CurrentUser() user?: AuthedUserType,
   ) {
     await this.eventService.recordProductVisit(input.id, user?.id);
-    return this.productService.findOne(input.id);
+    return this.productService.findOne(input.id, user?.id);
   }
 
   @Query(() => ProductsResponse)
@@ -446,6 +455,15 @@ export class ProductResolver {
     @Args('input') input: SetLikeProductInput,
   ) {
     return this.productService.setLikeProduct(input.id, input.like, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async removeProduct(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: RemoveProductInput,
+  ) {
+    return this.productService.removeProduct(input.id, user.id);
   }
 
   @ResolveField(() => Category, { nullable: true })

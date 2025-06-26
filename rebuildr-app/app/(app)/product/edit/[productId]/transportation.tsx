@@ -1,12 +1,15 @@
-import { TransportationQueryQuery } from "@/gql/graphql";
+import {
+  EditProductTransportationQuery,
+  EditProductTransportationQueryVariables,
+} from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { router } from "expo-router";
 import { TransportationScreen } from "@components/product/transportation-screen";
+import { useLocalSearchParams } from "expo-router";
 
-const TRANSPORTATION_QUERY = gql`
-  query TransportationQuery {
-    getDraftedProduct {
+const EDIT_PRODUCT_TRANSPORTATION = gql`
+  query EditProductTransportation($input: GetProductInput!) {
+    product(input: $input) {
       id
       address
       pickupEnabled
@@ -47,24 +50,24 @@ const TRANSPORTATION_QUERY = gql`
 `;
 
 export default function Transportation() {
-  const { data } = useQuery<TransportationQueryQuery>(TRANSPORTATION_QUERY, {
-    onCompleted: (data) => {
-      if (!data.getDraftedProduct) {
-        console.error("No draft found");
-        router.replace("/");
-      }
-    },
-  });
+  const { productId } = useLocalSearchParams<{ productId: string }>();
+  const { data } = useQuery<
+    EditProductTransportationQuery,
+    EditProductTransportationQueryVariables
+  >(EDIT_PRODUCT_TRANSPORTATION, { variables: { input: { id: productId } } });
 
-  if (!data?.getDraftedProduct) {
+  if (!data) {
     return <LoadingSpinner />;
   }
 
   return (
     <TransportationScreen
-      product={data.getDraftedProduct}
-      title="Ny annons"
-      nextUrl="/sell-product/preview"
+      product={data.product}
+      title="Redigera annons"
+      nextUrl={{
+        pathname: "/product/edit/[productId]/preview",
+        params: { productId },
+      }}
     />
   );
 }

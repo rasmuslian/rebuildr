@@ -19,6 +19,7 @@ type Props = {
   parentCategory?: Pick<Category, "id" | "name"> | null;
   documents: File[];
   myAddress?: string | null;
+  sellerIsMe?: boolean;
 };
 
 export const MainContent = ({
@@ -28,6 +29,7 @@ export const MainContent = ({
   parentCategory,
   myAddress,
   documents,
+  sellerIsMe,
 }: Props) => {
   const [showSpecifics, setShowSpecifics] = useState(false);
 
@@ -71,11 +73,19 @@ export const MainContent = ({
           )}
           {product.deliveryEnabled && (
             <Body size="medium" color="secondary">
-              • Hemtransport till{" "}
-              <Body size="medium" isLink>
-                {myAddress}
-              </Body>
-              från {product.deliveryPrice} kr
+              • Hemtransport{" "}
+              {!sellerIsMe && (
+                <>
+                  <Body size="medium" color="secondary">
+                    {" "}
+                    till{" "}
+                  </Body>
+                  <Body size="medium" isLink>
+                    {myAddress}
+                  </Body>
+                </>
+              )}
+              från {product.deliveryPrice ?? 0} kr
             </Body>
           )}
         </View>
