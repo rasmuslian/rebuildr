@@ -16,15 +16,7 @@ import {
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import {
-  Equal,
-  In,
-  IsNull,
-  Not,
-  Point,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
