@@ -1,5 +1,5 @@
 import {
-  PreviewDraftedProductQuery,
+  ProductPreviewFragmentFragment,
   ProductPreviewPublishProductMutation,
   ProductPreviewPublishProductMutationVariables,
   ProductStatusEnum,
@@ -16,6 +16,86 @@ import { Divider } from "@components/dividers/divider";
 import { AllImages } from "@components/preview-product/all-images";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 
+export const PRODUCT_PREVIEW_FRAGMENT = gql`
+  fragment ProductPreviewFragment on Product {
+    id
+    title
+    description
+    price
+    isGiveaway
+    condition
+    primaryQuantity
+    primaryUnit
+    secondaryQuantity
+    secondaryUnit
+    height
+    width
+    length
+    thickness
+    diameter
+    weight
+    sellerId
+    images {
+      id
+      mimeType
+      url
+      name
+    }
+    documents {
+      id
+      mimeType
+      url
+      name
+    }
+    category {
+      id
+      name
+      parent {
+        id
+        name
+      }
+    }
+    brand {
+      id
+      name
+      type
+    }
+    location {
+      lat
+      lng
+    }
+    approximatePlace {
+      lat
+      lng
+      address
+    }
+    project {
+      id
+      title
+      address
+      location {
+        lat
+        lng
+      }
+      approximatePlace {
+        lat
+        lng
+        address
+      }
+    }
+    pickupEnabled
+    deliveryRadius
+    deliveryPrice
+    deliveryEnabled
+    shippingPrices {
+      id
+      maxWeight
+      price
+      provider
+    }
+  }
+`;
+
 const PRODUCT_PREVIEW_PUBLISH_PRODUCT = gql`
   mutation ProductPreviewPublishProduct($input: UpdateProductInput!) {
     updateProduct(input: $input) {
@@ -28,17 +108,16 @@ const PRODUCT_PREVIEW_PUBLISH_PRODUCT = gql`
 `;
 
 type Props = {
-  product: Exclude<
-    PreviewDraftedProductQuery["getDraftedProduct"],
-    null | undefined
-  >;
+  product: ProductPreviewFragmentFragment;
   myAddress?: string | null;
+  sellerIsMe?: boolean;
   title: string;
 };
 
 export const PreviewScreen = ({
   product: dbProduct,
   myAddress,
+  sellerIsMe,
   title,
 }: Props) => {
   const [publishProduct, { loading: publishProductLoading }] = useMutation<
@@ -116,6 +195,7 @@ export const PreviewScreen = ({
         parentCategory={dbProduct.category?.parent}
         documents={dbProduct.documents}
         myAddress={myAddress}
+        sellerIsMe={sellerIsMe}
       />
       <Divider />
       <AllImages images={product.images} />

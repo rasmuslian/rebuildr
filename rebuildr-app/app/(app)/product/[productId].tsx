@@ -317,6 +317,7 @@ export default function Product() {
           category={data.product.category}
           parentCategory={data.product.category?.parent}
           myAddress={data.me?.address}
+          sellerIsMe={data.me && data.me.id === data.product.seller.id}
         />
         <Divider />
         <View
