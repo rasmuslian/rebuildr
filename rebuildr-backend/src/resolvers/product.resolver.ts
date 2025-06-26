@@ -346,6 +346,12 @@ class SetLikeProductInput {
   like: boolean;
 }
 
+@InputType()
+class RemoveProductInput {
+  @Field()
+  id: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -446,6 +452,15 @@ export class ProductResolver {
     @Args('input') input: SetLikeProductInput,
   ) {
     return this.productService.setLikeProduct(input.id, input.like, _user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async removeProduct(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: RemoveProductInput,
+  ) {
+    return this.productService.removeProduct(input.id, user.id);
   }
 
   @ResolveField(() => Category, { nullable: true })

@@ -764,6 +764,37 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
+  /**
+   *
+   * Soft deletes a product
+   */
+  async removeProduct(productId: string, currentUserId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: { images: true, documents: true },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+    if (product.sellerId !== currentUserId) {
+      throw ForbiddenException();
+    }
+    const canDelete = this.canDelete(product);
+    if (!canDelete) {
+      throw ForbiddenException('Product got ongoing purchase');
+    }
+
+    product.deletedAt = new Date();
+    product.status = ProductStatus.DELETED;
+    await this.fileService.deleteFiles(product.images);
+    product.images = [];
+    await this.fileService.deleteFiles(product.documents);
+    product.documents = [];
+    product.likedBy = [];
+
+    return await this.productRepository.save(product);
+  }
+
   async approximatePlace(product: Product) {
     if (!product.addressLocation) {
       return null;
