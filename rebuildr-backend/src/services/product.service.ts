@@ -675,7 +675,9 @@ export class ProductService {
   }
 
   async findOne(id: string) {
-    return await this.productRepository.findOneBy({ id });
+    return await this.productRepository.findOne({
+      where: { id, status: Not(ProductStatus.DELETED) },
+    });
   }
 
   async hide(id: string, reason: string, userId: string) {
