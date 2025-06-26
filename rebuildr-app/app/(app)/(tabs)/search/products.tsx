@@ -15,8 +15,8 @@ import { Body, Display, Label } from "@components/typography/text";
 import { defaultCenter, defaultRadius } from "@constants/map";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Check } from "@components/controls/check";
@@ -222,6 +222,12 @@ export default function Products() {
     });
     transportRef.current?.dismiss();
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, []),
+  );
 
   return (
     <>
