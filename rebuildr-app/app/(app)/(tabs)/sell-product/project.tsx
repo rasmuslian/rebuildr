@@ -2,7 +2,10 @@ import { router } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { ProjectGetMyProjectsQuery } from "@/gql/graphql";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { ProjectScreen } from "@components/product/project-screen";
+import {
+  PRODUCT_PROJECT_FRAGMENT,
+  ProjectScreen,
+} from "@components/product/project-screen";
 
 const PROJECT_GET_MY_PROJECTS = gql`
   query ProjectGetMyProjects {
@@ -11,12 +14,10 @@ const PROJECT_GET_MY_PROJECTS = gql`
       title
     }
     getDraftedProduct {
-      id
-      project {
-        id
-      }
+      ...ProductProjectFragment
     }
   }
+  ${PRODUCT_PROJECT_FRAGMENT}
 `;
 
 export default function Project() {

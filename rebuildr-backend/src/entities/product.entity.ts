@@ -227,6 +227,16 @@ export class Product {
   @OneToMany(() => Message, (message) => message.product)
   messages: Message[];
 
+  @Field({ nullable: true })
+  @Column({
+    nullable: true,
+    comment:
+      "null, no choice regarding connection to project has been made\
+      true, user has deliberately made the choice not to connect to project\
+      false, this means a connection is done to a project, but is irrelevant because of 'project' column",
+  })
+  noProject?: boolean;
+
   @Column({ nullable: true })
   projectId?: string;
   @ManyToOne(() => Project, (p) => p.products, { nullable: true })

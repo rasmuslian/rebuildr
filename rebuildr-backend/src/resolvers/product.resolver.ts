@@ -209,6 +209,9 @@ export class UpdateProductInput {
   removeDocuments?: string[];
 
   @Field({ nullable: true })
+  noProject?: boolean;
+
+  @Field({ nullable: true })
   projectId?: string | null;
 
   @Field({ nullable: true })

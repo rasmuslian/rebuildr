@@ -275,6 +275,7 @@ type Product {
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
   deliveryRadius: Float
+  noProject: Boolean
   category: Category
   seller: User!
   primaryImage: File
@@ -687,6 +688,7 @@ input UpdateProductInput {
   removeImages: [String!]
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
+  noProject: Boolean
   projectId: String
   deliveryEnabled: Boolean
   deliveryPrice: Float

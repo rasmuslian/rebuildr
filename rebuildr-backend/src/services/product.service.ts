@@ -280,7 +280,9 @@ export class ProductService {
       });
       product.category = category;
     }
+    //null means removing the project
     if (!!input.projectId || input.projectId === null) {
+      product.noProject = !input.projectId;
       product.projectId = input.projectId;
     }
 

@@ -1,6 +1,9 @@
 import {
+  ProductProjectFragmentFragment,
   ProductProjectGetProjectQuery,
   ProductProjectGetProjectQueryVariables,
+  ProductProjectUpdateProductMutation,
+  ProductProjectUpdateProductMutationVariables,
   ProjectGetMyProjectsQuery,
 } from "@/gql/graphql";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
@@ -20,6 +23,16 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { PreviewProject } from "@components/project/preview-project";
 import { EditProject as EditProjectSection } from "@components/project/edit-project";
 import { Button } from "@components/buttons/button";
+
+export const PRODUCT_PROJECT_FRAGMENT = gql`
+  fragment ProductProjectFragment on Product {
+    id
+    noProject
+    project {
+      id
+    }
+  }
+`;
 
 const PRODUCT_PROJECT_GET_PROJECT = gql`
   query ProductProjectGetProject($input: GetProjectInput!) {
@@ -42,20 +55,15 @@ const PRODUCT_PROJECT_UPDATE_PRODUCT = gql`
   mutation ProductProjectUpdateProduct($input: UpdateProductInput!) {
     updateProduct(input: $input) {
       product {
-        id
-        project {
-          id
-        }
+        ...ProductProjectFragment
       }
     }
   }
+  ${PRODUCT_PROJECT_FRAGMENT}
 `;
 
 type Props = {
-  product: Exclude<
-    ProjectGetMyProjectsQuery["getDraftedProduct"],
-    null | undefined
-  >;
+  product: ProductProjectFragmentFragment;
   projects: ProjectGetMyProjectsQuery["myProjects"];
   title: string;
   refetchProduct: () => void;
@@ -69,7 +77,7 @@ export const ProjectScreen = ({
   refetchProduct,
   nextUrl,
 }: Props) => {
-  const [skipProject, setSkipProject] = useState(false);
+  const [skipProject, setSkipProject] = useState(!!dbProduct.noProject);
   const [connectProject, setConnectProject] = useState(!!dbProduct?.project);
   const [projectId, setProjectId] = useState<string | undefined>(
     dbProduct?.project?.id,
@@ -82,9 +90,10 @@ export const ProjectScreen = ({
     ProductProjectGetProjectQuery,
     ProductProjectGetProjectQueryVariables
   >(PRODUCT_PROJECT_GET_PROJECT);
-  const [updateProduct, { loading: updatingProduct }] = useMutation(
-    PRODUCT_PROJECT_UPDATE_PRODUCT,
-  );
+  const [updateProduct, { loading: updatingProduct }] = useMutation<
+    ProductProjectUpdateProductMutation,
+    ProductProjectUpdateProductMutationVariables
+  >(PRODUCT_PROJECT_UPDATE_PRODUCT);
 
   const onProjectCreated = (id: string) => {
     setProjectId(id);
@@ -130,16 +139,12 @@ export const ProjectScreen = ({
       return;
     }
 
-    if (skipProject) {
-      router.navigate(nextUrl);
-      return;
-    }
-
     updateProduct({
       variables: {
         input: {
           id: dbProduct.id,
-          projectId,
+          projectId: skipProject ? null : projectId,
+          noProject: skipProject,
         },
       },
       onCompleted: () => {

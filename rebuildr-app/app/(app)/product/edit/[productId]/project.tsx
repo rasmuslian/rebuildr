@@ -4,7 +4,10 @@ import {
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { ProjectScreen } from "@components/product/project-screen";
+import {
+  PRODUCT_PROJECT_FRAGMENT,
+  ProjectScreen,
+} from "@components/product/project-screen";
 import { useLocalSearchParams } from "expo-router";
 
 const EDIT_PRODUCT_PROJECT = gql`
@@ -14,12 +17,10 @@ const EDIT_PRODUCT_PROJECT = gql`
       title
     }
     product(input: $input) {
-      id
-      project {
-        id
-      }
+      ...ProductProjectFragment
     }
   }
+  ${PRODUCT_PROJECT_FRAGMENT}
 `;
 
 export default function Project() {
