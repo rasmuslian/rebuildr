@@ -36,6 +36,7 @@ const GET_CONVERSATIONS = gql`
       product {
         id
         title
+        status
         primaryQuantity
         primaryUnit
         condition
@@ -98,6 +99,7 @@ export default function Conversations() {
           key={i}
           adList={{
             title: product.title,
+            status: product.status,
             quantity: product.primaryQuantity ?? 0,
             quantityUnit: product.primaryUnit ?? undefined,
             condition: product.condition,

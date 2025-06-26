@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
-import { ReactNode, useState } from "react";
+import { ComponentProps, ReactNode, useState } from "react";
 import { Badge } from "@components/badges/badge";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -26,9 +26,11 @@ import {
   MarkConversationAsReadMutation,
   MarkConversationAsReadMutationVariables,
   MessageTypeEnum,
+  ProductStatusEnum,
 } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import DeletedProduct from "@assets/images/deleted-product.png";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -63,6 +65,7 @@ const CONVERSATION_PRODUCT = gql`
       id
       title
       price
+      status
       seller {
         id
         username
@@ -220,22 +223,26 @@ export default function ConversationProduct() {
     });
   };
 
-  const getBadgeText = () => {
+  const getBadgeProps = (): ComponentProps<typeof Badge> | null => {
     const purchase = data.latestPurchase;
+
+    if (data.product.status === ProductStatusEnum.Deleted) {
+      return { text: "Borttagen annons", disabled: true };
+    }
     if (!purchase) {
       return null;
     }
 
     if (purchase.deliveredAt) {
-      return "Köp slutfört";
+      return { text: "Köp slutfört" };
     }
 
     if (purchase.isShipping) {
       if (purchase.shipmentBookedAt) {
-        return "Pågående leverans";
+        return { text: "Pågående leverans" };
       }
       if (purchase.paymentAcceptedAt) {
-        return "Inväntar inlämning";
+        return { text: "Inväntar inlämning" };
       }
     } else {
       const sellerHasResponded = data.getConversation.some(
@@ -244,15 +251,15 @@ export default function ConversationProduct() {
           message.messageType === MessageTypeEnum.User,
       );
       if (purchase.paymentAcceptedAt && sellerHasResponded) {
-        return "Inväntar överlämning";
+        return { text: "Inväntar överlämning" };
       }
       if (purchase.paymentAcceptedAt) {
-        return "Inväntar svar";
+        return { text: "Inväntar svar" };
       }
     }
     return null;
   };
-  const statusBadgeText = getBadgeText();
+  const statusBadgeProps = getBadgeProps();
 
   const otherUser = data?.getConversation[0]
     ? data.getConversation[0].sender.id === data.me.id
@@ -278,14 +285,19 @@ export default function ConversationProduct() {
               <Label size="large" style={{ marginTop: 2 }}>
                 {data.product.price} kr
               </Label>
-              {statusBadgeText && (
+              {statusBadgeProps && (
                 <View style={{ marginTop: 8, flex: 1 }}>
-                  <Badge text={statusBadgeText} />
+                  <Badge {...statusBadgeProps} />
                 </View>
               )}
             </View>
             <Image
-              source={{ uri: data?.product.primaryImage?.url }}
+              source={{
+                uri:
+                  data.product.status === ProductStatusEnum.Deleted
+                    ? DeletedProduct.uri
+                    : data?.product.primaryImage?.url,
+              }}
               style={{
                 width: 64,
                 height: 64,

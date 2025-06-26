@@ -42,6 +42,7 @@ const CONVERSATIONS = gql`
       product {
         id
         title
+        status
         primaryQuantity
         primaryUnit
         condition
@@ -92,6 +93,7 @@ export default function ConversationsProduct() {
               quantity={product.primaryQuantity}
               quantityUnit={product.primaryUnit}
               imageUrl={product.primaryImage?.url}
+              status={product.status}
             />
             <Button
               label="Gå till annons"

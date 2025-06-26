@@ -1,5 +1,5 @@
 import { useReactiveVar } from "@apollo/client";
-import { Pressable, View, StyleSheet, useWindowDimensions } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 
 import { isLoggedInVar } from "@/apollo/config";
@@ -7,9 +7,11 @@ import { borderRadius } from "@constants/sizes";
 import { Label } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
+import DeletedProduct from "@assets/images/deleted-product.png";
 import { router } from "expo-router";
 import { ComponentProps } from "react";
 import { AdDescription } from "./ad-description";
+import { ProductStatusEnum } from "@/gql/graphql";
 
 type Props = {
   id: string;
@@ -19,6 +21,7 @@ type Props = {
   overlayText?: string;
   disabled?: boolean;
   liked?: boolean;
+  status?: ProductStatusEnum;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -29,6 +32,7 @@ export const AdGrid = ({
   overlayText,
   disabled,
   liked,
+  status,
   ...adDescriptionProps
 }: Props) => {
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -46,7 +50,11 @@ export const AdGrid = ({
       disabled={disabled}
     >
       <Image
-        source={imageUri ?? PlaceholderProduct.uri}
+        source={
+          status === ProductStatusEnum.Deleted
+            ? DeletedProduct.uri
+            : (imageUri ?? PlaceholderProduct.uri)
+        }
         cachePolicy="memory-disk"
         style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
       >
