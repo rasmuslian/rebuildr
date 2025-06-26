@@ -650,7 +650,7 @@ export class ProductService {
           input.orderBy === OrderProductsEnum.DISTANCE &&
           origin !== undefined
         ) {
-          query.orderBy(
+          query.addOrderBy(
             'st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID("addressLocation")))',
           );
         }

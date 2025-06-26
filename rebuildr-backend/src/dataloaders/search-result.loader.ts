@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { SearchResult } from 'src/entities/search-result.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, ILike, In, IsNull } from 'typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import { DataSource } from 'typeorm';
+import { ProductStatus } from 'src/entities/product.entity';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 
 export interface ISearchResultLoaders {
@@ -15,44 +14,33 @@ export class SearchResultLoader {
 
   private getSearchResultProductCount() {
     return new DataLoader<string, number>(async (searchResultIds) => {
-      const searchResults = await this.datasource
-        .getRepository(SearchResult)
-        .find({ where: { id: In(searchResultIds) } });
-
-      return await Promise.all(
-        searchResultIds.map(async (searchResultId) => {
-          const searchResult = searchResults.find(
-            (sr) => sr.id === searchResultId,
-          );
-          const found = await this.datasource.getRepository(Product).find({
-            where: [
-              {
-                title: ILike(`%${searchResult?.searchString}%`),
-                status: ProductStatus.PUBLISHED,
-                purchases: [
-                  {
-                    status: PurchaseStatusEnum.FINISHED_FAILED,
-                  },
-                  { status: IsNull() },
-                ],
-              },
-              {
-                description: ILike(`%${searchResult?.searchString}%`),
-                status: ProductStatus.PUBLISHED,
-                purchases: [
-                  {
-                    status: PurchaseStatusEnum.FINISHED_FAILED,
-                  },
-                  { status: IsNull() },
-                ],
-              },
-            ],
-            relations: {
-              purchases: true,
-            },
-          });
-          return found?.length;
-        }),
+      const result = await this.datasource
+        .createQueryBuilder()
+        .select('sr.id', 'id')
+        .addSelect('COUNT(p.id)', 'count')
+        .from('search_result', 'sr')
+        .leftJoin(
+          'product',
+          'p',
+          `ts_rank(p."textSearch", plainto_tsquery(sr."searchString"), 0) + similarity (p. "title", sr."searchString") > 0.3 AND p."status" = '${ProductStatus.PUBLISHED}'::product_status_enum`,
+        )
+        .where('sr.id IN (:...ids)', { ids: searchResultIds })
+        .andWhere((qb) => {
+          const subquery = qb
+            .subQuery()
+            .select('1')
+            .from('purchase', 'pu')
+            .where('pu.productId = p.id')
+            .andWhere(
+              `pu."status" = '${PurchaseStatusEnum.FINISHED_FAILED}'::purchase_status_enum OR pu."status" IS NULL`,
+            )
+            .getQuery();
+          return `NOT EXISTS ${subquery}`;
+        })
+        .groupBy('sr.id')
+        .getRawMany();
+      return searchResultIds.map(
+        (id) => result.find((r) => r.id === id)?.count ?? 0,
       );
     });
   }

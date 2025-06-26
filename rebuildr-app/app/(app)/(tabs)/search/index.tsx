@@ -218,16 +218,15 @@ export default function Search() {
   const renderSearchResult = () => {
     return (
       <>
-        <View
-          style={[
-            { gap: 12, paddingBottom: 16 },
-            dividerStyles(colors).bottomDivider,
-          ]}
-        >
-          <View>
-            <Headline size="small">Andra söker efter</Headline>
-          </View>
-          {searchData?.getSimilarSearchResults.length ? (
+        {!!searchData?.getSimilarSearchResults.length && (
+          <View
+            style={[
+              { gap: 12, paddingBottom: 16 },
+              !!searchData?.getUsers.length &&
+                dividerStyles(colors).bottomDivider,
+            ]}
+          >
+            <Headline size="small">Sökförslag</Headline>
             <View style={{ gap: 16, marginBottom: 12 }}>
               {searchData.getSimilarSearchResults.map((searchResult, i) => (
                 <Pressable
@@ -258,26 +257,11 @@ export default function Search() {
                 </Pressable>
               ))}
             </View>
-          ) : (
-            <View style={{ gap: 24, marginBottom: 2 }}>
-              <Body size="medium" color="secondary">
-                Ojdå, vi kunde inte hitta några annonser som matchar '
-                {searchString}'
-              </Body>
-              <View style={{ flexDirection: "row" }}>
-                <Button
-                  label="Sök igen"
-                  onPress={() => {
-                    setSearchString("");
-                  }}
-                />
-              </View>
-            </View>
-          )}
-        </View>
-        <View>
-          <Headline size="small">Säljare</Headline>
-          {searchData?.getUsers.length ? (
+          </View>
+        )}
+        {!!searchData?.getUsers.length && (
+          <View>
+            <Headline size="small">Säljare</Headline>
             <View style={{ marginTop: 12, gap: 16 }}>
               {searchData.getUsers.map((user, i) => (
                 <Pressable
@@ -323,13 +307,8 @@ export default function Search() {
                 </Pressable>
               ))}
             </View>
-          ) : (
-            <Body size="medium" color="secondary" style={{ marginTop: 2 }}>
-              Hoppsan! Det verkar inte finnas någon säljare som heter '
-              {searchString}'.{" "}
-            </Body>
-          )}
-        </View>
+          </View>
+        )}
       </>
     );
   };

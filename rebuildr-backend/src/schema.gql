@@ -576,7 +576,7 @@ type Mutation {
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
-  createSearchResult(input: CreateSearchResultInput!): SearchResult!
+  createSearchResult(input: CreateSearchResultInput!): SearchResult
   clearSearchHistory: Boolean!
 }
 

@@ -22,7 +22,7 @@ export class SearchResultService {
   async createSearchResult(
     input: CreateSearchResultInput,
     currentUserId?: string,
-  ): Promise<SearchResult> {
+  ): Promise<SearchResult | null> {
     if (!currentUserId || !input.searchString) {
       return null;
     }
