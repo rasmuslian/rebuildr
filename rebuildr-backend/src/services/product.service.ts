@@ -16,7 +16,15 @@ import {
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
+import {
+  Equal,
+  In,
+  IsNull,
+  Not,
+  Point,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
@@ -583,7 +591,7 @@ export class ProductService {
           input.orderBy === OrderProductsEnum.DISTANCE &&
           origin !== undefined
         ) {
-          query.orderBy(
+          query.addOrderBy(
             'st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID("addressLocation")))',
           );
         }

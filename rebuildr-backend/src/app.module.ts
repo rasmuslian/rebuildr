@@ -73,6 +73,10 @@ import { Review } from './entities/review.entity';
 import { ProjectLoader } from './dataloaders/project.loader';
 import { ReviewLoader } from './dataloaders/review.loader';
 import { ReviewResolver } from './resolvers/review.resolver';
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from '@apollo/server/plugin/landingPage/default';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -144,7 +148,7 @@ export interface RequestType {
         const isProd = configService.get('NODE_ENV') === 'production';
         return {
           debug: !isProd,
-          playground: !isProd,
+          playground: false,
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
           context: ({ req, res }) => ({
             productLoaders: productLoaderService.createLoaders(),
@@ -157,6 +161,11 @@ export interface RequestType {
             res,
           }),
           hideSchemaDetailsFromClientErrors: isProd,
+          plugins: [
+            isProd
+              ? ApolloServerPluginLandingPageProductionDefault()
+              : ApolloServerPluginLandingPageLocalDefault(),
+          ],
         };
       },
     }),

@@ -62,7 +62,7 @@ export class SearchResultResolver {
     return await this.searchResultService.getSimilarSearchResults(input);
   }
 
-  @Mutation(() => SearchResult)
+  @Mutation(() => SearchResult, { nullable: true })
   @UseGuards(GqlOptionalAuthGuard)
   async createSearchResult(
     @Args('input') input: CreateSearchResultInput,
