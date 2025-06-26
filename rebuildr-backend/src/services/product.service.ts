@@ -674,10 +674,26 @@ export class ProductService {
     };
   }
 
-  async findOne(id: string) {
-    return await this.productRepository.findOne({
-      where: { id, status: Not(ProductStatus.DELETED) },
+  async findOne(id: string, currentUserId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { messages: true },
     });
+    if (!product) {
+      throw BadUserInputException();
+    }
+    if (product.status === ProductStatus.DELETED) {
+      const currentUserHasConnection = product.messages.some(
+        (message) =>
+          message.receiverId === currentUserId ||
+          message.senderId === currentUserId,
+      );
+      if (!currentUserHasConnection) {
+        throw BadUserInputException();
+      }
+    }
+
+    return product;
   }
 
   async hide(id: string, reason: string, userId: string) {

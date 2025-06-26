@@ -370,7 +370,7 @@ export class ProductResolver {
     @CurrentUser() user?: AuthedUserType,
   ) {
     await this.eventService.recordProductVisit(input.id, user?.id);
-    return this.productService.findOne(input.id);
+    return this.productService.findOne(input.id, user?.id);
   }
 
   @Query(() => ProductsResponse)
