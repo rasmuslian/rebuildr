@@ -67,12 +67,11 @@ export class SearchResultService {
   }
 
   async getSimilarSearchResults(input: GetSimilarSearchResultsInput) {
-    const res = await this.searchResultRepository.find({
-      where: {
-        searchString: ILike(`%${input.searchString}%`),
-      },
-      take: 5,
-    });
-    return res;
+    return await this.searchResultRepository
+      .createQueryBuilder('sr')
+      .select('DISTINCT ON (sr."searchString") sr.*')
+      .where(`sr."searchString" ILIKE '%${input.searchString}%'`)
+      .limit(5)
+      .getRawMany();
   }
 }
