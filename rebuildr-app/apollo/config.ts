@@ -24,10 +24,7 @@ export const isLoggedInVar = makeVar(false);
 export const productFilterVar = makeVar(initialFilterProduct);
 export const initializeApollo = async () => {
   const httpLink = createHttpLink({
-    uri:
-      process.env.NODE_ENV === "development"
-        ? "http://localhost:3000/graphql"
-        : "https://rebuildr-backend-6a7ah.ondigitalocean.app/graphql",
+    uri: process.env.EXPO_PUBLIC_API_URL + "/graphql",
   });
 
   const authLink = setContext(async (_, { headers }) => {
@@ -79,6 +76,10 @@ export const initializeApollo = async () => {
       }
 
       if (networkError) console.log(`[Network error]: ${networkError}`);
+
+      if (!graphQLErrors) {
+        return;
+      }
 
       for (const err of graphQLErrors) {
         if (err.extensions.code === "UNAUTHENTICATED") {
