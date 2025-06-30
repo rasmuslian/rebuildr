@@ -26,6 +26,10 @@ export const TransportationScreen = ({
   nextUrl,
 }: Props) => {
   const [addressEditLock, setAddressEditLock] = useState(false);
+  const [shippingValid, setShippingValid] = useState(false);
+  const [shippingSelected, setShippingSelected] = useState(
+    !!dbProduct.shippingPrices?.length,
+  );
 
   const onNext = () => {
     router.navigate(nextUrl);
@@ -53,20 +57,28 @@ export const TransportationScreen = ({
     if (addressEditLock) {
       return false;
     }
-    if (!pickupValid && !deliveryValid && !shippingValid) {
+
+    const validAddress = dbProduct.address || dbProduct.project?.address;
+    const pickupSelected = dbProduct.pickupEnabled;
+    const pickupValid = validAddress;
+    const deliverySelected = dbProduct.deliveryEnabled;
+    const deliveryValid =
+      typeof dbProduct.deliveryPrice === "number" &&
+      dbProduct.deliveryRadius &&
+      validAddress;
+
+    if (pickupSelected && !pickupValid) {
       return false;
     }
+    if (deliverySelected && !deliveryValid) {
+      return false;
+    }
+    if (shippingSelected && !shippingValid) {
+      return false;
+    }
+
     return true;
   };
-
-  const validAddress = dbProduct.address || dbProduct.project?.address;
-  const pickupValid = dbProduct.pickupEnabled && validAddress;
-  const deliveryValid =
-    dbProduct.deliveryEnabled &&
-    typeof dbProduct.deliveryPrice === "number" &&
-    dbProduct.deliveryRadius &&
-    validAddress;
-  const shippingValid = !!dbProduct.shippingPrices?.length;
 
   return (
     <ScreenLayout
@@ -91,7 +103,12 @@ export const TransportationScreen = ({
             onEditing={() => setAddressEditLock(true)}
             onEditComplete={() => setAddressEditLock(false)}
           />
-          <Shipping productId={dbProduct.id} />
+          <Shipping
+            productId={dbProduct.id}
+            onShippingValid={(valid) => setShippingValid(valid)}
+            shippingSelected={shippingSelected}
+            onShippingSelected={(selected) => setShippingSelected(selected)}
+          />
           <Delivery
             productId={dbProduct.id}
             canEdit={!addressEditLock}

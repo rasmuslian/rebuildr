@@ -1,8 +1,8 @@
 import {
   PickupQueryQuery,
   PickupQueryQueryVariables,
-  ProjectUpdateProductMutationVariables,
-  UpdateProjectMutation,
+  UpdatePickupMutation,
+  UpdatePickupMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
 import { View } from "react-native";
@@ -99,8 +99,8 @@ export const Pickup = ({
     PickupQueryQueryVariables
   >(PICKUP_QUERY, { variables: { input: { id: productId } } });
   const [updateProduct, { loading: updatingProduct }] = useMutation<
-    UpdateProjectMutation,
-    ProjectUpdateProductMutationVariables
+    UpdatePickupMutation,
+    UpdatePickupMutationVariables
   >(UPDATE_PICKUP);
 
   const onEditProduct = (lat: number, lng: number) => {
