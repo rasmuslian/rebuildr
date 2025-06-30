@@ -15,7 +15,7 @@ import { Radio } from "@components/controls/radio";
 import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
-import { Body, Title } from "@components/typography/text";
+import { Body, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
@@ -97,6 +97,7 @@ export const Shipping = ({
     ShippingQueryQuery,
     ShippingQueryQueryVariables
   >(SHIPPING_QUERY, { variables: { input: { id: productId } } });
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [name, setName] = useState<string | null | undefined>(data.me.name);
   const [phoneNumber, setPhoneNumber] = useState<string | null | undefined>(
     data.me.phoneNumber,
@@ -187,6 +188,7 @@ export const Shipping = ({
       },
       onCompleted: (d) => {
         shippingValidHandler(d.updateUser.user, data.product.shippingPrices);
+        setIsEditingDetails(false);
       },
     });
   };
@@ -270,62 +272,89 @@ export const Shipping = ({
             ))}
         </View>
         <Divider />
-        <View>
-          <Title size="medium">Din adress </Title>
-          <Body size="medium" style={{ marginTop: 4 }}>
-            Den adress vi använder för eventuella returer.
-          </Body>
-          <Form
-            style={{ gap: 16, marginTop: 16 }}
-            fields={[
-              {
-                type: "text",
-                value: name ?? data.me.name ?? "",
-                onChange: (t) => setName(t),
-                heading: "För- och efternamn",
-              },
-              {
-                type: "text",
-                value: phoneNumber ?? data.me.phoneNumber ?? "",
-                onChange: (t) => setPhoneNumber(t),
-                heading: "Telefonnummer",
-              },
-              {
-                type: "text",
-                value: address ?? data.me.address ?? "",
-                onChange: (t) => setAddress(t),
-                heading: "Gatuadress",
-              },
-              {
-                type: "text",
-                value: postCode ?? data.me.postCode ?? "",
-                onChange: (t) => setPostCode(t),
-                heading: "Postnummer",
-                horizontalSize: 1,
-              },
-              {
-                type: "text",
-                value: city ?? data.me.city ?? "",
-                onChange: (t) => setCity(t),
-                heading: "Stad",
-                horizontalSize: 2,
-              },
-            ]}
-          />
-          <Button
-            style={{ marginTop: 16 }}
-            label="Spara"
-            onPress={onSaveDetails}
-            loading={loadingUpdateUser}
-          />
-          <Body
-            size="small"
-            color="secondary"
-            style={{ marginTop: 12, textAlign: "center" }}
-          >
-            Vi sparar den här adressen i dina kontoinställningar, så slipper du
-            fylla i detta igen.
-          </Body>
+        <View style={{ gap: 16 }}>
+          <View>
+            <Title size="medium">Dina uppgifter</Title>
+            <Body size="medium" style={{ marginTop: 4 }}>
+              Den adress vi använder för att skapa fraktsedeln.
+            </Body>
+          </View>
+          {isEditingDetails ? (
+            <View>
+              <Form
+                style={{ gap: 16, marginTop: 16 }}
+                fields={[
+                  {
+                    type: "text",
+                    value: name ?? data.me.name ?? "",
+                    onChange: (t) => setName(t),
+                    heading: "För- och efternamn",
+                  },
+                  {
+                    type: "text",
+                    value: phoneNumber ?? data.me.phoneNumber ?? "",
+                    onChange: (t) => setPhoneNumber(t),
+                    heading: "Telefonnummer",
+                  },
+                  {
+                    type: "text",
+                    value: address ?? data.me.address ?? "",
+                    onChange: (t) => setAddress(t),
+                    heading: "Gatuadress",
+                  },
+                  {
+                    type: "text",
+                    value: postCode ?? data.me.postCode ?? "",
+                    onChange: (t) => setPostCode(t),
+                    heading: "Postnummer",
+                    horizontalSize: 1,
+                  },
+                  {
+                    type: "text",
+                    value: city ?? data.me.city ?? "",
+                    onChange: (t) => setCity(t),
+                    heading: "Stad",
+                    horizontalSize: 2,
+                  },
+                ]}
+              />
+            </View>
+          ) : (
+            <View>
+              <Label size="medium">Avsändare</Label>
+              <Body size="medium">{data.me.name}</Body>
+              <Body size="medium">{data.me.phoneNumber}</Body>
+              <Body size="medium">
+                {data.me.address}, {data.me.postCode}, {data.me.city}
+              </Body>
+            </View>
+          )}
+          <View>
+            {isEditingDetails ? (
+              <Button
+                label="Spara"
+                onPress={onSaveDetails}
+                loading={loadingUpdateUser}
+              />
+            ) : (
+              <Button
+                label="Ändra"
+                onPress={() => {
+                  setIsEditingDetails(true);
+                  onShippingValid(false);
+                }}
+                type="tonal"
+              />
+            )}
+            <Body
+              size="small"
+              color="secondary"
+              style={{ marginTop: 12, textAlign: "center" }}
+            >
+              Vi sparar den här adressen i dina kontoinställningar, så slipper
+              du fylla i detta igen.
+            </Body>
+          </View>
         </View>
       </View>
     </ToggleCard>
