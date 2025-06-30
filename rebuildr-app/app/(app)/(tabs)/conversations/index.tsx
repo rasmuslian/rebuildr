@@ -104,6 +104,9 @@ export default function Conversations() {
       const sortedByLatest = conversationGroup.conversations.sort((a, b) =>
         dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1,
       );
+      const isMoreThanOneUser = sortedByLatest.length > 1;
+      const firstConversation = sortedByLatest[0];
+
       return (
         <ProductMessageCard
           key={i}
@@ -125,12 +128,16 @@ export default function Conversations() {
             readAt: conversation.readAt,
           }))}
           onPress={() =>
-            tab === "buy"
+            //If there is only one user in the group, navigate directly to their conversation screen
+            !isMoreThanOneUser
               ? router.navigate({
                   pathname: "/conversations/[productId]/[userId]",
                   params: {
                     productId: conversationGroup.productId,
-                    userId: product.seller.id,
+                    userId:
+                      firstConversation.sender.id === data.me.id
+                        ? firstConversation.receiver.id
+                        : firstConversation.sender.id,
                   },
                 })
               : router.navigate({
