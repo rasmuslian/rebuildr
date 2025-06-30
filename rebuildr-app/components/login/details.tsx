@@ -303,27 +303,13 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                 <Body size="medium">
                   Genom att skapa ett konto hos RebuildR godkänner jag{" "}
                   <Pressable onPress={() => {}}>
-                    <Body
-                      size="medium"
-                      color="link"
-                      style={{
-                        textDecorationLine: "underline",
-                        textDecorationColor: colors.text.link,
-                      }}
-                    >
+                    <Body size="medium" isLink>
                       villkoren
                     </Body>
                   </Pressable>{" "}
-                  och
+                  och{" "}
                   <Pressable>
-                    <Body
-                      size="medium"
-                      color="link"
-                      style={{
-                        textDecorationLine: "underline",
-                        textDecorationColor: colors.text.link,
-                      }}
-                    >
+                    <Body size="medium" isLink>
                       integritetspolicyn
                     </Body>
                   </Pressable>

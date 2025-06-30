@@ -142,7 +142,8 @@ const LoginModalView = () => {
       onCompleted: (data) => {
         if (
           !data.userExists ||
-          data.userExists.registrationStatus === RegisterStatusEnum.Email
+          data.userExists.registrationStatus === RegisterStatusEnum.Email ||
+          data.userExists.registrationStatus === RegisterStatusEnum.Details
         ) {
           registerUser({
             variables: { input: { email } },

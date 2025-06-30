@@ -37,12 +37,6 @@ export class FinalizeUserInput {
   password: string;
 }
 
-@ObjectType()
-export class RegisterUserResponse {
-  @Field(() => String)
-  message: string;
-}
-
 @InputType()
 export class ResendVerificationMailInput {
   @Field(() => String)
