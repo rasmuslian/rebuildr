@@ -37,31 +37,28 @@ export class AuthService {
   ) {}
 
   async registerUser(input: RegisterUserInput) {
-    let existingUser = await this.userRepository.findOneBy({
+    let user = await this.userRepository.findOneBy({
       email: input.email,
     });
-    if (!existingUser) {
-      const user = new User();
+    if (!user) {
+      user = new User();
       user.email = input.email;
-      existingUser = await this.userRepository.save(user);
     }
-    if (existingUser.emailVerifiedAt) {
-      return { message: 'User with email or username already exist' };
-    }
+    //Make sure to reset this in case that the user already exists.
+    //This will happen if the user canceled the registration after having verified their email
+    user.emailVerifiedAt = null;
 
     //generate token
     const token = await this.generateEmailValidationCode();
-    await this.userRepository.update(
-      { id: existingUser.id },
-      { verifyEmailToken: token.hash },
-    );
+    user.verifyEmailToken = token.hash;
+    const registeredUser = await this.userRepository.save(user);
 
     await this.mailService.sendVerifyEmail({
       email: input.email,
       token: token.code,
     });
 
-    return existingUser;
+    return registeredUser;
   }
 
   async finalizeUser(input: FinalizeUserInput, currentUserId: string) {
