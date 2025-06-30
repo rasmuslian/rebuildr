@@ -9,15 +9,14 @@ import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { AdList } from "@components/ad/ad-list";
 import dayjs from "dayjs";
+import { GetConversationsQuery } from "@/gql/graphql";
 
 type Props = {
   adList: ComponentProps<typeof AdList>;
+  myId: string;
   messages: {
-    sender: {
-      senderIsMe: boolean;
-      username: string;
-      url?: string;
-    };
+    sender: GetConversationsQuery["getConversations"][0]["sender"];
+    receiver: GetConversationsQuery["getConversations"][0]["receiver"];
     message: string;
     createdAt: Date;
     readAt?: Date;
@@ -25,13 +24,21 @@ type Props = {
   onPress: () => void;
 };
 
-export const ProductMessageCard = ({ adList, messages, onPress }: Props) => {
+export const ProductMessageCard = ({
+  adList,
+  myId,
+  messages,
+  onPress,
+}: Props) => {
   const colors = useThemeColor();
 
   const nrOfUnread = messages.reduce(
-    (acc, curr) => acc + (!curr.sender.senderIsMe && !curr.readAt ? 1 : 0),
+    (acc, curr) => acc + (curr.sender.id !== myId && !curr.readAt ? 1 : 0),
     0,
   );
+
+  const getOtherUser = (message: (typeof messages)[0]) =>
+    message.receiver.id === myId ? message.sender : message.receiver;
 
   return (
     <Pressable
@@ -74,23 +81,29 @@ export const ProductMessageCard = ({ adList, messages, onPress }: Props) => {
               borderColor: colors.text.primaryLight,
               borderRadius: 38,
             }}
+            userType={getOtherUser(messages[0]).type}
+            imageUrl={getOtherUser(messages[0]).profilePicture?.url}
           />
-          <View
-            style={{
-              position: "absolute",
-              left: 20,
-              top: 0,
-            }}
-          >
-            <Avatar
-              size={32}
+          {messages[1] && (
+            <View
               style={{
-                borderWidth: 2,
-                borderColor: colors.text.primaryLight,
-                borderRadius: 38,
+                position: "absolute",
+                left: 20,
+                top: 0,
               }}
-            />
-          </View>
+            >
+              <Avatar
+                size={32}
+                style={{
+                  borderWidth: 2,
+                  borderColor: colors.text.primaryLight,
+                  borderRadius: 38,
+                }}
+                userType={getOtherUser(messages[1]).type}
+                imageUrl={getOtherUser(messages[1]).profilePicture?.url}
+              />
+            </View>
+          )}
         </View>
         <View style={{ flex: 1, alignItems: "center" }}>
           {messages.length > 0 && (

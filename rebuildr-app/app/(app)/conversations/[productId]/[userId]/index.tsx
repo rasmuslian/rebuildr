@@ -392,7 +392,10 @@ const ChatBlock = ({
         }}
       >
         {!senderIsMe && (
-          <Avatar userType={isSystemMessage ? "SYSTEM" : sender?.type} />
+          <Avatar
+            userType={isSystemMessage ? "SYSTEM" : sender?.type}
+            imageUrl={sender?.profilePicture?.url}
+          />
         )}
         <View
           style={[
