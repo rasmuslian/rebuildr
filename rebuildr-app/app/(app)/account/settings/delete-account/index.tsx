@@ -9,6 +9,7 @@ import { Image } from "expo-image";
 import { Body, Display } from "@components/typography/text";
 import { Pressable } from "react-native-gesture-handler";
 import { useLogout } from "@hooks/useLogout";
+import { Divider } from "@components/dividers/divider";
 
 const DELETE_ACCOUNT = gql`
   mutation DeleteAccount {
@@ -65,7 +66,8 @@ export default function DeleteAccount() {
         kan inte återställas. Dina aktiva annonser kommer att raderas och du
         kommer inte längre kunna logga in.
       </Body>
-      <View style={{ paddingVertical: 24 }}>
+      <Divider />
+      <View>
         <Body size="medium">
           Om du bara vill ändra din e-post eller sluta få aviseringar kan du
           göra det i dina{" "}
