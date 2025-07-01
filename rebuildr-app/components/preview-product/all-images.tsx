@@ -1,6 +1,6 @@
 import { Product } from "@/gql/graphql";
 import { Headline } from "@components/typography/text";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 
@@ -9,6 +9,8 @@ type Props = {
 };
 
 export const AllImages = ({ images }: Props) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const width = (screenWidth - 48) / 3;
   return (
     <View>
       <Headline size="small">Alla bilder</Headline>
@@ -25,8 +27,8 @@ export const AllImages = ({ images }: Props) => {
             key={i}
             source={image.url}
             style={{
-              minWidth: 110,
-              height: 109,
+              aspectRatio: 1,
+              width,
               borderRadius: borderRadius.medium,
             }}
           />
