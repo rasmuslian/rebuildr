@@ -24,7 +24,7 @@ export const UserCard = ({
 }: Props) => {
   const isBusiness = userType ? userType === UserType.Business : false;
   return (
-    <View style={{ flexDirection: "row", gap: 16 }}>
+    <View style={{ flexDirection: "row", gap: 16, alignItems: "center" }}>
       <Avatar userType={userType} imageUrl={profilePictureUrl} size="medium" />
       <View>
         <Title size="medium" style={{ marginBottom: 4 }}>
