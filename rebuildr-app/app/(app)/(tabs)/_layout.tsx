@@ -1,4 +1,7 @@
 import { isLoggedInVar } from "@/apollo/config";
+import { TabLayoutQuery } from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
+import { Badge } from "@components/badges/badge";
 import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -7,17 +10,26 @@ import { Href, router, Tabs, usePathname } from "expo-router";
 import { useContext } from "react";
 import { Pressable, View } from "react-native";
 
+export const TAB_LAYOUT = gql`
+  query TabLayout {
+    getUnreadMessagesCount
+  }
+`;
+
 export default function TabLayout() {
   const colors = useThemeColor();
   const isLoggedIn = isLoggedInVar();
   const { setVisible } = useContext(LoginModalContext);
   const pathName = usePathname();
 
+  const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
+
   const renderTabButton = (
     label: string,
     icon: IconType,
     href?: string,
     loginRequired: boolean = false,
+    nrUnread?: number,
   ) => {
     return (
       <Pressable
@@ -43,6 +55,11 @@ export default function TabLayout() {
           ]}
         >
           <Icon icon={icon} customColor={colors.logo.vector} />
+          {!!nrUnread && (
+            <View style={{ position: "absolute", right: 12, top: 0 }}>
+              <Badge text={nrUnread.toString()} />
+            </View>
+          )}
         </View>
         <Label
           size="small"
@@ -98,7 +115,13 @@ export default function TabLayout() {
         name="conversations/index"
         options={{
           tabBarButton: (props) =>
-            renderTabButton("Inkorg", "message", props.href, true),
+            renderTabButton(
+              "Inkorg",
+              "message",
+              props.href,
+              true,
+              data?.getUnreadMessagesCount,
+            ),
         }}
       />
     </Tabs>

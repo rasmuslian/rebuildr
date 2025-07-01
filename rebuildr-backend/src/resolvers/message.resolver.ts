@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   InputType,
+  Int,
   Mutation,
   Parent,
   Query,
@@ -13,6 +14,7 @@ import {
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { IProductLoaders } from 'src/dataloaders/product.loader';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -97,6 +99,15 @@ export class MessageResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.messageService.getConversations(input, user.id);
+  }
+
+  @Query(() => Int)
+  @UseGuards(GqlOptionalAuthGuard)
+  async getUnreadMessagesCount(@CurrentUser() user?: User) {
+    if (!user) {
+      return 0;
+    }
+    return await this.messageService.getUnreadMessagesCount(user.id);
   }
 
   @Mutation(() => Message)

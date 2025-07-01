@@ -28,6 +28,16 @@ const GET_CONVERSATIONS = gql`
       sender {
         id
         username
+        type
+        profilePicture {
+          id
+          url
+        }
+      }
+      receiver {
+        id
+        username
+        type
         profilePicture {
           id
           url
@@ -94,9 +104,13 @@ export default function Conversations() {
       const sortedByLatest = conversationGroup.conversations.sort((a, b) =>
         dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1,
       );
+      const isMoreThanOneUser = sortedByLatest.length > 1;
+      const firstConversation = sortedByLatest[0];
+
       return (
         <ProductMessageCard
           key={i}
+          myId={data.me.id}
           adList={{
             title: product.title,
             status: product.status,
@@ -107,22 +121,23 @@ export default function Conversations() {
             imageUrl: product.primaryImage?.url,
           }}
           messages={sortedByLatest.map((conversation) => ({
-            sender: {
-              senderIsMe: conversation.sender.id === data.me.id,
-              username: conversation.sender.username ?? "",
-              url: conversation.sender.profilePicture?.url,
-            },
+            sender: conversation.sender,
+            receiver: conversation.receiver,
             message: conversation.message,
             createdAt: conversation.createdAt,
             readAt: conversation.readAt,
           }))}
           onPress={() =>
-            tab === "buy"
+            //If there is only one user in the group, navigate directly to their conversation screen
+            !isMoreThanOneUser
               ? router.navigate({
                   pathname: "/conversations/[productId]/[userId]",
                   params: {
                     productId: conversationGroup.productId,
-                    userId: product.seller.id,
+                    userId:
+                      firstConversation.sender.id === data.me.id
+                        ? firstConversation.receiver.id
+                        : firstConversation.sender.id,
                   },
                 })
               : router.navigate({
