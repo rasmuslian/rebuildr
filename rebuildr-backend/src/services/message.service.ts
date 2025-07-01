@@ -167,6 +167,15 @@ export class MessageService {
     return await this.messageRepository.save(unreadMessages);
   }
 
+  async getUnreadMessagesCount(userId: string) {
+    return await this.messageRepository.count({
+      where: {
+        receiver: { id: userId },
+        readAt: IsNull(),
+      },
+    });
+  }
+
   async deleteMany(messages: Message[]) {
     return await Promise.all(
       messages.map((message) => this.delete(message.id)),

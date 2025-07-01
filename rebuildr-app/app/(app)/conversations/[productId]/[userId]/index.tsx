@@ -31,6 +31,7 @@ import {
 import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import DeletedProduct from "@assets/images/deleted-product.png";
+import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -196,6 +197,7 @@ export default function ConversationProduct() {
             markAsRead: true,
           },
         },
+        refetchQueries: [TAB_LAYOUT],
       });
     },
   });
