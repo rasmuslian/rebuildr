@@ -5,11 +5,13 @@ import { DataloaderService } from './dataloader.service';
 import { Project } from 'src/entities/project.entity';
 import { File } from 'src/entities/file.entity';
 import { DataSource, In } from 'typeorm';
+import { User } from 'src/entities/user.entity';
 
 export interface IProjectLoaders {
   productsLoader: DataLoader<string, Product[]>;
   projectPictureLoader: DataLoader<string, File>;
   likedByUserLoader: DataLoader<{ projectId: string; userId: string }, boolean>;
+  userLoader: DataLoader<string, User>;
 }
 
 @Injectable()
@@ -43,9 +45,13 @@ export class ProjectLoader {
       ),
       projectPictureLoader: this.dataloaderService.targetByParentIdLoader<File>(
         'profilePicture',
-        File,
+        Project,
       ),
       likedByUserLoader: this.likedByUserLoader(),
+      userLoader: this.dataloaderService.targetByParentIdLoader<User>(
+        'user',
+        Project,
+      ),
     };
   }
 }

@@ -119,6 +119,13 @@ const PRODUCT_VIEW_FRAGMENT = gql`
           url
         }
       }
+      user {
+        id
+        profilePicture {
+          id
+          url
+        }
+      }
     }
     pickupEnabled
     deliveryRadius

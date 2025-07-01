@@ -25,6 +25,7 @@ import { Product } from 'src/entities/product.entity';
 import { IProjectLoaders } from 'src/dataloaders/project.loader';
 import { File } from 'src/entities/file.entity';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
+import { User } from 'src/entities/user.entity';
 
 @InputType()
 export class GetProjectInput {
@@ -165,5 +166,13 @@ export class ProjectResolver {
       return null;
     }
     return await projectLoaders.projectPictureLoader.load(project.id);
+  }
+
+  @ResolveField(() => User)
+  async user(
+    @Parent() project: Project,
+    @Context('projectLoaders') projectLoaders: IProjectLoaders,
+  ) {
+    return await projectLoaders.userLoader.load(project.id);
   }
 }

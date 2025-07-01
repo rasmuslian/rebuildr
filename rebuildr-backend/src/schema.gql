@@ -83,6 +83,7 @@ type Project {
   approximatePlace: ApproximatePlaceResponse!
   products: [Product!]!
   projectPicture: File
+  user: User!
 }
 
 type SearchResult {

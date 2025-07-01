@@ -11,6 +11,7 @@ import {
   ProjectLikeMutation,
   ProjectLikeMutationVariables,
 } from "@/gql/graphql";
+import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
   project: {
@@ -19,6 +20,7 @@ type Props = {
     projectPicture?: { url: string } | null;
     products: { primaryImage?: { url: string } | null }[];
     likedByMe?: boolean | null;
+    user: { profilePicture?: { url: string } | null };
   };
 };
 
@@ -121,9 +123,10 @@ export const ProjectCard = ({ project }: Props) => {
             alignItems: "center",
           }}
         >
-          <Image
-            source={project.projectPicture?.url ?? PlaceholderProject.uri}
-            style={{ width: 40, height: 40 }}
+          <Avatar
+            imageUrl={
+              project.user.profilePicture?.url ?? PlaceholderProject.uri
+            }
           />
           <View style={{ gap: 2 }}>
             <Label size="large">{project.title}</Label>

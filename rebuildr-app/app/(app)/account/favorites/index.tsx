@@ -52,6 +52,13 @@ const MY_FAVORITES = gql`
             url
           }
         }
+        user {
+          id
+          profilePicture {
+            id
+            url
+          }
+        }
       }
     }
   }
