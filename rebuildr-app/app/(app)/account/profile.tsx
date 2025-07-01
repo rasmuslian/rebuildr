@@ -67,6 +67,13 @@ const PROFILE = gql`
             url
           }
         }
+        user {
+          id
+          profilePicture {
+            id
+            url
+          }
+        }
       }
       profilePicture {
         id

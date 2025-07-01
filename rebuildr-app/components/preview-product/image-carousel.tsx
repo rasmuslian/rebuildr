@@ -15,6 +15,8 @@ type Props = {
 export const ImageCarousel = ({ images }: Props) => {
   const imageRef = useRef<BottomSheetModal>(null);
 
+  const nrOfIndicators = Math.min(5, images.length);
+
   return (
     <>
       <Pressable
@@ -27,29 +29,35 @@ export const ImageCarousel = ({ images }: Props) => {
           contentFit="cover"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
-        <View
-          style={{
-            position: "absolute",
-            bottom: 16,
-            left: "40%",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          {Array.from({ length: 5 }, (_, i) => (
-            <View
-              key={i}
-              style={{
-                width: i === 4 ? 4 : 8,
-                height: i === 4 ? 4 : 8,
-                borderRadius: 100,
-                backgroundColor: primitives.neutrals100,
-                opacity: i === 0 ? 1 : 0.4,
-              }}
-            />
-          ))}
-        </View>
+        {nrOfIndicators > 1 && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 16,
+              left: "40%",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {Array.from({ length: nrOfIndicators }, (_, i) => {
+              const isFirstOne = i === 0;
+              const isLastOne = i === nrOfIndicators - 1 && !isFirstOne;
+              return (
+                <View
+                  key={i}
+                  style={{
+                    width: isLastOne ? 4 : 8,
+                    height: isLastOne ? 4 : 8,
+                    borderRadius: 100,
+                    backgroundColor: primitives.neutrals100,
+                    opacity: isFirstOne ? 1 : 0.4,
+                  }}
+                />
+              );
+            })}
+          </View>
+        )}
       </Pressable>
       <BottomSheet
         ref={imageRef}

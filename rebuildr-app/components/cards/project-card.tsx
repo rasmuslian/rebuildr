@@ -11,6 +11,7 @@ import {
   ProjectLikeMutation,
   ProjectLikeMutationVariables,
 } from "@/gql/graphql";
+import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
   project: {
@@ -19,6 +20,7 @@ type Props = {
     projectPicture?: { url: string } | null;
     products: { primaryImage?: { url: string } | null }[];
     likedByMe?: boolean | null;
+    user: { profilePicture?: { url: string } | null };
   };
 };
 
@@ -54,9 +56,13 @@ export const ProjectCard = ({ project }: Props) => {
         >
           <Image
             key="1"
-            source={{
-              uri: project.products[0]?.primaryImage?.url,
-            }}
+            source={
+              project.products[0]?.primaryImage?.url
+                ? {
+                    uri: project.products[0].primaryImage.url,
+                  }
+                : undefined
+            }
             style={{
               aspectRatio: 1,
               flex: 2,
@@ -74,26 +80,33 @@ export const ProjectCard = ({ project }: Props) => {
           >
             <Image
               key="2"
-              source={{
-                uri: project.products[1]?.primaryImage?.url,
-              }}
+              source={
+                project.products[1]?.primaryImage?.url
+                  ? {
+                      uri: project.products[1].primaryImage.url,
+                    }
+                  : undefined
+              }
               style={{
                 aspectRatio: 1,
                 flex: 1,
-                backgroundColor: colors.background.secondary,
+                backgroundColor: colors.buttons.filled.disabled,
                 borderTopRightRadius: borderRadius.medium,
               }}
             />
-
             <Image
               key="3"
-              source={{
-                uri: project.products[2]?.primaryImage?.url,
-              }}
+              source={
+                project.products[2]?.primaryImage?.url
+                  ? {
+                      uri: project.products[2].primaryImage.url,
+                    }
+                  : undefined
+              }
               style={{
                 aspectRatio: 1,
                 flex: 1,
-                backgroundColor: colors.background.primary,
+                backgroundColor: colors.buttons.filled.disabled,
                 borderBottomRightRadius: borderRadius.medium,
               }}
             />
@@ -121,9 +134,10 @@ export const ProjectCard = ({ project }: Props) => {
             alignItems: "center",
           }}
         >
-          <Image
-            source={project.projectPicture?.url ?? PlaceholderProject.uri}
-            style={{ width: 40, height: 40 }}
+          <Avatar
+            imageUrl={
+              project.user.profilePicture?.url ?? PlaceholderProject.uri
+            }
           />
           <View style={{ gap: 2 }}>
             <Label size="large">{project.title}</Label>

@@ -119,6 +119,13 @@ const PRODUCT_VIEW_FRAGMENT = gql`
           url
         }
       }
+      user {
+        id
+        profilePicture {
+          id
+          url
+        }
+      }
     }
     pickupEnabled
     deliveryRadius
@@ -341,7 +348,7 @@ export default function Product() {
             <Check
               checkColor="primaryDark"
               selected
-              color={primitives.primary300}
+              color={primitives.primary200}
             />
             <Body size="medium">Ersättning om varan inte levereras</Body>
           </View>
@@ -349,7 +356,7 @@ export default function Product() {
             <Check
               checkColor="primaryDark"
               selected
-              color={primitives.primary300}
+              color={primitives.primary200}
             />
             <Body size="medium">Ersättning om varan inte är som beskriven</Body>
           </View>
