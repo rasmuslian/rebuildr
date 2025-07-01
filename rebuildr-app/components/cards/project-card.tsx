@@ -56,9 +56,13 @@ export const ProjectCard = ({ project }: Props) => {
         >
           <Image
             key="1"
-            source={{
-              uri: project.products[0]?.primaryImage?.url,
-            }}
+            source={
+              project.products[0]?.primaryImage?.url
+                ? {
+                    uri: project.products[0].primaryImage.url,
+                  }
+                : undefined
+            }
             style={{
               aspectRatio: 1,
               flex: 2,
@@ -76,26 +80,33 @@ export const ProjectCard = ({ project }: Props) => {
           >
             <Image
               key="2"
-              source={{
-                uri: project.products[1]?.primaryImage?.url,
-              }}
+              source={
+                project.products[1]?.primaryImage?.url
+                  ? {
+                      uri: project.products[1].primaryImage.url,
+                    }
+                  : undefined
+              }
               style={{
                 aspectRatio: 1,
                 flex: 1,
-                backgroundColor: colors.background.secondary,
+                backgroundColor: colors.buttons.filled.disabled,
                 borderTopRightRadius: borderRadius.medium,
               }}
             />
-
             <Image
               key="3"
-              source={{
-                uri: project.products[2]?.primaryImage?.url,
-              }}
+              source={
+                project.products[2]?.primaryImage?.url
+                  ? {
+                      uri: project.products[2].primaryImage.url,
+                    }
+                  : undefined
+              }
               style={{
                 aspectRatio: 1,
                 flex: 1,
-                backgroundColor: colors.background.primary,
+                backgroundColor: colors.buttons.filled.disabled,
                 borderBottomRightRadius: borderRadius.medium,
               }}
             />
