@@ -2,8 +2,6 @@ import { isLoggedInVar } from "@/apollo/config";
 import {
   ProductRemoveProductMutation,
   ProductRemoveProductMutationVariables,
-  ProductViewLikeProductMutation,
-  ProductViewLikeProductMutationVariables,
   ProductViewQuery,
   ProductViewQueryVariables,
 } from "@/gql/graphql";
@@ -35,6 +33,7 @@ import { HoriztalListSection } from "@components/sections/horizontal-list-sectio
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRef } from "react";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 
 const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {
@@ -179,15 +178,6 @@ const PRODUCT_VIEW = gql`
   ${PRODUCT_VIEW_FRAGMENT}
 `;
 
-const PRODUCT_VIEW_LIKE_PRODUCT = gql`
-  mutation ProductViewLikeProduct($input: SetLikeProductInput!) {
-    setLikeProduct(input: $input) {
-      id
-      likedByMe
-    }
-  }
-`;
-
 const PRODUCT_REMOVE_PRODUCT = gql`
   mutation ProductRemoveProduct($input: RemoveProductInput!) {
     removeProduct(input: $input) {
@@ -198,6 +188,7 @@ const PRODUCT_REMOVE_PRODUCT = gql`
 `;
 
 export default function Product() {
+  const { onToggleHeart } = useLikeProduct();
   const isLoggedIn = isLoggedInVar();
   const removeProductRef = useRef<BottomSheetModal>(null);
   const { productId } = useLocalSearchParams<{ productId: string }>();
@@ -207,10 +198,6 @@ export default function Product() {
       variables: { input: { id: productId }, isLoggedIn },
     },
   );
-  const [setLikeProduct, { loading: loadingLikeProduct }] = useMutation<
-    ProductViewLikeProductMutation,
-    ProductViewLikeProductMutationVariables
-  >(PRODUCT_VIEW_LIKE_PRODUCT);
   const [removeProduct, { loading: loadingRemoveProduct }] = useMutation<
     ProductRemoveProductMutation,
     ProductRemoveProductMutationVariables
@@ -222,16 +209,11 @@ export default function Product() {
   }
 
   const onLikeProduct = () => {
-    if (!data || !isLoggedIn || loadingLikeProduct) {
-      return;
-    }
-    setLikeProduct({
-      variables: {
-        input: {
-          id: productId,
-          like: !data.product.likedByMe,
-        },
-      },
+    if (!data || !isLoggedIn) return;
+
+    onToggleHeart({
+      productId: productId,
+      likedByMe: !!data.product.likedByMe,
     });
   };
 

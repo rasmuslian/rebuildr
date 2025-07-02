@@ -24,6 +24,7 @@ import { useLocationAddress } from "@hooks/useLocationAddress";
 import { formatMetersToKm } from "@/utils/distanceHandling";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Slider } from "@components/slider/slider";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -85,6 +86,7 @@ export default function Products() {
   const isLoggedIn = isLoggedInVar();
   const productsPerPage = 10;
   const transportRef = useRef<BottomSheetModal>(null);
+  const { onToggleHeart } = useLikeProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
     SearchProductsQuery,
@@ -309,6 +311,15 @@ export default function Products() {
               },
               price: product.price,
               status: product.status,
+              heart: true,
+              liked: !!product.likedByMe,
+              onHeartPress: () => {
+                if (!isLoggedIn) return;
+                onToggleHeart({
+                  productId: product.id,
+                  likedByMe: !!product.likedByMe,
+                });
+              },
             })) ?? []
           }
           pagination={{
