@@ -4,16 +4,16 @@ import {
   ProductViewLikeProductMutationVariables,
 } from "@/gql/graphql";
 
-export const useLikeProduct = () => {
-  const PRODUCT_VIEW_LIKE_PRODUCT = gql`
-    mutation ProductViewLikeProduct($input: SetLikeProductInput!) {
-      setLikeProduct(input: $input) {
-        id
-        likedByMe
-      }
+const PRODUCT_VIEW_LIKE_PRODUCT = gql`
+  mutation ProductViewLikeProduct($input: SetLikeProductInput!) {
+    setLikeProduct(input: $input) {
+      id
+      likedByMe
     }
-  `;
+  }
+`;
 
+export const useLikeProduct = () => {
   const [setLikeProduct, { loading }] = useMutation<
     ProductViewLikeProductMutation,
     ProductViewLikeProductMutationVariables
