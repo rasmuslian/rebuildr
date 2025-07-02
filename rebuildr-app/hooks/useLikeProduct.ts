@@ -13,18 +13,25 @@ const PRODUCT_VIEW_LIKE_PRODUCT = gql`
   }
 `;
 
+type onToggleHeartProps = {
+  productId: string;
+  likedByMe: boolean;
+  onCompleted?: () => void;
+  onError?: () => void;
+};
+
 export const useLikeProduct = () => {
   const [setLikeProduct, { loading }] = useMutation<
     ProductViewLikeProductMutation,
     ProductViewLikeProductMutationVariables
   >(PRODUCT_VIEW_LIKE_PRODUCT);
 
-  type onToggleHeartProps = {
-    productId: string;
-    likedByMe: boolean;
-  };
-
-  const onToggleHeart = ({ productId, likedByMe }: onToggleHeartProps) => {
+  const onToggleHeart = ({
+    productId,
+    likedByMe,
+    onCompleted,
+    onError,
+  }: onToggleHeartProps) => {
     if (loading) return;
     setLikeProduct({
       variables: {
@@ -33,6 +40,8 @@ export const useLikeProduct = () => {
           like: !likedByMe,
         },
       },
+      onCompleted,
+      onError,
     });
   };
 
