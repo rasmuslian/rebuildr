@@ -439,6 +439,13 @@ export default function Product() {
                 title={item.title}
                 price={item.price}
                 status={item.status}
+                onHeartPress={() => {
+                  if (!isLoggedIn) return;
+                  onToggleHeart({
+                    productId: item.id,
+                    likedByMe: !!item.likedByMe,
+                  });
+                }}
               />
             )}
             visibleItems={3}
