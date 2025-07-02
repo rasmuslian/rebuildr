@@ -163,6 +163,7 @@ export default function ConversationProduct() {
     productId: string;
     userId: string;
   }>();
+  const colors = useThemeColor();
 
   const [createMessage, { loading: createMessageLoading }] = useMutation<
     CreateMessageMutation,
@@ -205,6 +206,17 @@ export default function ConversationProduct() {
   if (!data) {
     return <LoadingSpinner />;
   }
+
+  const conversationByDate = data.getConversation
+    .slice()
+    .reverse()
+    .reduce(
+      (acc: { [key in string]: (typeof data.getConversation)[0][] }, curr) => {
+        const key = dayjs(curr.createdAt).format("DD MMM YYYY");
+        return { ...(acc ?? {}), [key]: [...(acc[key] ?? []), curr] };
+      },
+      {},
+    );
 
   const onSendMessage = (message: string) => {
     if (createMessageLoading || !text) {
@@ -347,21 +359,56 @@ export default function ConversationProduct() {
         </View>
       }
     >
-      <View style={{ gap: 8, flexDirection: "column-reverse" }}>
-        {data?.getConversation.map((message, i) => {
-          const senderIsMe = message.sender.id === data.me.id;
-          return (
-            <ChatBlock
-              key={i}
-              message={message.message}
-              type={message.messageType}
-              sender={message.sender}
-              createdAt={message.createdAt}
-              senderIsMe={senderIsMe}
-            />
-          );
-        })}
-      </View>
+      {Object.entries(conversationByDate).map((entry) => {
+        const date = entry[0];
+        const messages = entry[1];
+
+        return (
+          <View key={date}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                marginVertical: 16,
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  borderWidth: 0.5,
+                  borderColor: colors.dividers.neutral,
+                }}
+              />
+              <Body size="small" color="secondary">
+                {date}
+              </Body>
+              <View
+                style={{
+                  flex: 1,
+                  borderWidth: 0.5,
+                  borderColor: colors.dividers.neutral,
+                }}
+              />
+            </View>
+            <View style={{ gap: 8 }}>
+              {messages.map((message, i) => {
+                const senderIsMe = message.sender.id === data.me.id;
+                return (
+                  <ChatBlock
+                    key={i}
+                    message={message.message}
+                    type={message.messageType}
+                    sender={message.sender}
+                    createdAt={message.createdAt}
+                    senderIsMe={senderIsMe}
+                  />
+                );
+              })}
+            </View>
+          </View>
+        );
+      })}
     </ScreenLayout>
   );
 }
