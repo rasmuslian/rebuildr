@@ -58,8 +58,8 @@ export class CategoryService {
   }
 
   async findPopular(_limit?: number) {
-    //Limit defaults to 15 and may not exceed 30
-    const limit = _limit ?? 15;
+    //Limit defaults to 6 and may not exceed 30
+    const limit = _limit ?? 6;
     return await this.categoryRepository
       .createQueryBuilder('c')
       .where((qb) => {
