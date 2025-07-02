@@ -330,6 +330,7 @@ export default function ConversationProduct() {
           <Divider />
         </View>
       }
+      footerBottomMargin="small"
       footerComponent={
         <View style={{ gap: 16 }}>
           <Divider />
