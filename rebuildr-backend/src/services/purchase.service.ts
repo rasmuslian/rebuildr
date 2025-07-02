@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
-import { Any, In, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import { In, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { RockerService, SupportedPaymentMethod } from './rocker.service';
 import {
   BadUserInputException,
@@ -121,7 +121,7 @@ export class PurchaseService {
         product: {
           id: input.productId,
         },
-        buyerId: Any[(input.otherUserId, currentUserId)],
+        buyerId: In([input.otherUserId, currentUserId]),
         status: Not(
           In([
             PurchaseStatusEnum.FINISHED_FAILED,
