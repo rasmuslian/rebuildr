@@ -9,6 +9,7 @@ import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { ProjectCard } from "@components/cards/project-card";
 import { Divider } from "@components/dividers/divider";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 
 const MY_FAVORITES = gql`
   query MyFavorites($limit: Int, $offset: Int) {
@@ -66,8 +67,9 @@ const MY_FAVORITES = gql`
 
 export default function Favorites() {
   const PRODUCTS_PER_PAGE = 10;
+  const { onToggleHeart } = useLikeProduct();
 
-  const { data, loading, fetchMore } = useQuery<
+  const { data, loading, fetchMore, refetch } = useQuery<
     MyFavoritesQuery,
     MyFavoritesQueryVariables
   >(MY_FAVORITES, {
@@ -155,6 +157,15 @@ export default function Favorites() {
                 location: product.approximatePlace?.address,
               },
               price: product.price,
+              heart: true,
+              liked: !!product.likedByMe,
+              onHeartPress: () => {
+                onToggleHeart({
+                  productId: product.id,
+                  likedByMe: !!product.likedByMe,
+                  onCompleted: () => refetch(),
+                });
+              },
             })) ?? []
           }
           pagination={{
