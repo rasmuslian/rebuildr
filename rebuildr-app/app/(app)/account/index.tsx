@@ -7,9 +7,8 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { View } from "react-native";
-import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 export const MY_ACCOUNT = gql`

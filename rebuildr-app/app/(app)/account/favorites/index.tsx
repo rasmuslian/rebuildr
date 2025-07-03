@@ -4,13 +4,12 @@ import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { ProjectCard } from "@components/cards/project-card";
 import { Divider } from "@components/dividers/divider";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
-import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 export const MY_FAVORITES = gql`

@@ -1,10 +1,10 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useReactiveVar } from "@apollo/client";
 import {
   ProjectLikeMutation,
   ProjectLikeMutationVariables,
 } from "@/gql/graphql";
+
 import { isLoggedInVar } from "@/apollo/config";
-import { useReactiveVar } from "@apollo/client";
 import { MY_FAVORITES } from "@/app/(app)/account/favorites";
 import { MY_ACCOUNT } from "@/app/(app)/account";
 
