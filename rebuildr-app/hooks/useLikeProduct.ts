@@ -6,7 +6,6 @@ import {
 
 import { isLoggedInVar } from "@/apollo/config";
 import { MY_FAVORITES } from "@/app/(app)/account/favorites";
-import { MY_ACCOUNT } from "@/app/(app)/account";
 
 const PRODUCT_VIEW_LIKE_PRODUCT = gql`
   mutation ProductViewLikeProduct($input: SetLikeProductInput!) {
@@ -43,7 +42,7 @@ export const useLikeProduct = () => {
           like: !likedByMe,
         },
       },
-      refetchQueries: [MY_FAVORITES, MY_ACCOUNT],
+      refetchQueries: [MY_FAVORITES],
     });
   };
 

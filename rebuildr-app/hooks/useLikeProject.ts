@@ -6,7 +6,6 @@ import {
 
 import { isLoggedInVar } from "@/apollo/config";
 import { MY_FAVORITES } from "@/app/(app)/account/favorites";
-import { MY_ACCOUNT } from "@/app/(app)/account";
 
 const PROJECT_LIKE_MUTATION = gql`
   mutation ProjectLike($input: SetLikeProjectInput!) {
@@ -43,7 +42,7 @@ export const useLikeProject = () => {
           like: !likedByMe,
         },
       },
-      refetchQueries: [MY_FAVORITES, MY_ACCOUNT],
+      refetchQueries: [MY_FAVORITES],
     });
   };
 
