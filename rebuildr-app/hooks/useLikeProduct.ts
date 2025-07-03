@@ -1,8 +1,11 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useReactiveVar } from "@apollo/client";
 import {
   ProductViewLikeProductMutation,
   ProductViewLikeProductMutationVariables,
 } from "@/gql/graphql";
+
+import { isLoggedInVar } from "@/apollo/config";
+import { MY_FAVORITES } from "@/app/(app)/account/favorites";
 
 const PRODUCT_VIEW_LIKE_PRODUCT = gql`
   mutation ProductViewLikeProduct($input: SetLikeProductInput!) {
@@ -13,26 +16,25 @@ const PRODUCT_VIEW_LIKE_PRODUCT = gql`
   }
 `;
 
-type onToggleHeartProps = {
+type onToggleProductHeartProps = {
   productId: string;
   likedByMe: boolean;
-  onCompleted?: () => void;
-  onError?: () => void;
 };
 
 export const useLikeProduct = () => {
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
+
   const [setLikeProduct, { loading }] = useMutation<
     ProductViewLikeProductMutation,
     ProductViewLikeProductMutationVariables
   >(PRODUCT_VIEW_LIKE_PRODUCT);
 
-  const onToggleHeart = ({
+  const onToggleProductHeart = ({
     productId,
     likedByMe,
-    onCompleted,
-    onError,
-  }: onToggleHeartProps) => {
-    if (loading) return;
+  }: onToggleProductHeartProps) => {
+    if (!isLoggedIn || loading) return;
+
     setLikeProduct({
       variables: {
         input: {
@@ -40,13 +42,12 @@ export const useLikeProduct = () => {
           like: !likedByMe,
         },
       },
-      onCompleted,
-      onError,
+      refetchQueries: [MY_FAVORITES],
     });
   };
 
   return {
     loading,
-    onToggleHeart,
+    onToggleProductHeart,
   };
 };

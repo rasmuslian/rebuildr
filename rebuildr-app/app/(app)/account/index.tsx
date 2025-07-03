@@ -7,10 +7,11 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { View } from "react-native";
+import { useCallback } from "react";
 
-const MY_ACCOUNT = gql`
+export const MY_ACCOUNT = gql`
   query MyAccount {
     me {
       id
@@ -37,7 +38,13 @@ const MY_ACCOUNT = gql`
 `;
 
 export default function Account() {
-  const { data } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+  const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, []),
+  );
 
   if (!data) {
     return <LoadingSpinner />;
