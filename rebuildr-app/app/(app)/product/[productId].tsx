@@ -98,6 +98,7 @@ const PRODUCT_VIEW_FRAGMENT = gql`
       id
       title
       address
+      likedByMe
       projectPicture {
         id
         url
