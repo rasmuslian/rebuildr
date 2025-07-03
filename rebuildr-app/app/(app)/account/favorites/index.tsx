@@ -10,8 +10,10 @@ import { ProjectCard } from "@components/cards/project-card";
 import { Divider } from "@components/dividers/divider";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
-const MY_FAVORITES = gql`
+export const MY_FAVORITES = gql`
   query MyFavorites($limit: Int, $offset: Int) {
     me {
       id
@@ -67,7 +69,7 @@ const MY_FAVORITES = gql`
 
 export default function Favorites() {
   const PRODUCTS_PER_PAGE = 10;
-  const { onToggleHeart } = useLikeProduct();
+  const { onToggleProductHeart } = useLikeProduct();
 
   const { data, loading, fetchMore, refetch } = useQuery<
     MyFavoritesQuery,
@@ -78,6 +80,12 @@ export default function Favorites() {
       offset: 0,
     },
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, []),
+  );
 
   const onShowMore = async () => {
     await fetchMore({
@@ -160,10 +168,9 @@ export default function Favorites() {
               heart: true,
               liked: !!product.likedByMe,
               onHeartPress: () => {
-                onToggleHeart({
+                onToggleProductHeart({
                   productId: product.id,
                   likedByMe: !!product.likedByMe,
-                  onCompleted: () => refetch(),
                 });
               },
             })) ?? []

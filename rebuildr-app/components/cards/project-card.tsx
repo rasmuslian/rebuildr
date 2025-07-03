@@ -5,13 +5,9 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import PlaceholderProject from "@assets/images/placeholder-project.png";
 import { Pressable } from "react-native-gesture-handler";
-import { Button } from "@components/buttons/button";
-import { gql, useMutation } from "@apollo/client";
-import {
-  ProjectLikeMutation,
-  ProjectLikeMutationVariables,
-} from "@/gql/graphql";
 import { Avatar } from "@components/avatar/avatar";
+import { Icon } from "@icons/icon";
+import { useLikeProject } from "@hooks/useLikeProject";
 
 type Props = {
   project: {
@@ -24,22 +20,9 @@ type Props = {
   };
 };
 
-const PROJECT_LIKE_MUTATION = gql`
-  mutation ProjectLike($input: SetLikeProjectInput!) {
-    setLikeProject(input: $input) {
-      id
-      likedByMe
-    }
-  }
-`;
-
 export const ProjectCard = ({ project }: Props) => {
   const colors = useThemeColor();
-
-  const [setLikeProduct] = useMutation<
-    ProjectLikeMutation,
-    ProjectLikeMutationVariables
-  >(PROJECT_LIKE_MUTATION);
+  const { onToggleProjectHeart } = useLikeProject();
 
   return (
     <Pressable
@@ -110,21 +93,29 @@ export const ProjectCard = ({ project }: Props) => {
                 borderBottomRightRadius: borderRadius.medium,
               }}
             />
-            <Button
-              style={{ position: "absolute", top: 0, right: 0 }}
-              icon={project.likedByMe ? "heartFilled" : "heart"}
-              type="text"
-              onPress={() =>
-                setLikeProduct({
-                  variables: {
-                    input: {
-                      id: project.id,
-                      like: !project.likedByMe,
-                    },
-                  },
-                })
-              }
-            />
+
+            <Pressable
+              style={({ pressed }) => ({
+                position: "absolute",
+                top: 8,
+                right: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+              pointerEvents="box-only"
+              onPress={() => {
+                onToggleProjectHeart({
+                  projectId: project.id,
+                  likedByMe: !!project.likedByMe,
+                });
+              }}
+            >
+              <Icon
+                strokeColor="primaryLight"
+                color={project.likedByMe ? "link" : undefined}
+                opacity={project.likedByMe ? undefined : "99"}
+                icon="heartFilled"
+              />
+            </Pressable>
           </View>
         </View>
         <View
