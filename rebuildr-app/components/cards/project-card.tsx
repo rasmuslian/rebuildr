@@ -18,7 +18,7 @@ type Props = {
     id: string;
     title: string;
     projectPicture?: { url: string } | null;
-    products: { primaryImage?: { url: string } | null }[];
+    products: { id: string; primaryImage?: { url: string } | null }[];
     likedByMe?: boolean | null;
     user: { profilePicture?: { url: string } | null };
   };

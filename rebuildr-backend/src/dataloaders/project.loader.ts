@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { Product } from 'src/entities/product.entity';
+import { Product, ProductStatus } from 'src/entities/product.entity';
 import { DataloaderService } from './dataloader.service';
 import { Project } from 'src/entities/project.entity';
 import { File } from 'src/entities/file.entity';
-import { DataSource, In } from 'typeorm';
+import { DataSource, In, Not } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 
 export interface IProjectLoaders {
@@ -37,12 +37,28 @@ export class ProjectLoader {
     );
   }
 
+  private productsLoader() {
+    return new DataLoader<string, Product[]>(async (projectIds) => {
+      const projects = await this.dataSource.getRepository(Project).find({
+        where: {
+          id: In(projectIds),
+          products: {
+            status: Not(In([ProductStatus.DELETED, ProductStatus.DRAFT])),
+          },
+        },
+        relations: { products: true },
+      });
+
+      return projectIds.map(
+        (projectId) =>
+          projects.find((project) => project.id === projectId)?.products ?? [],
+      );
+    });
+  }
+
   createLoaders(): IProjectLoaders {
     return {
-      productsLoader: this.dataloaderService.targetByParentIdLoader<Product[]>(
-        'products',
-        Project,
-      ),
+      productsLoader: this.productsLoader(),
       projectPictureLoader: this.dataloaderService.targetByParentIdLoader<File>(
         'profilePicture',
         Project,
