@@ -109,8 +109,8 @@ export default function Favorites() {
 
   const hasFavoritProducts = !!data?.me.likedProducts?.products.length;
   const hasFavoritProjects = !!data?.me.likedProjects?.length;
-
-  const emptyPage = !hasFavoritProducts && !hasFavoritProjects;
+  const isEmptyPage = !hasFavoritProducts && !hasFavoritProjects;
+  const showHeader = hasFavoritProducts && hasFavoritProjects;
 
   return (
     <ScreenLayout
@@ -119,7 +119,7 @@ export default function Favorites() {
       style={{ gap: 24 }}
     >
       <Display size="small">En samlad plats för dina favoriter</Display>
-      {emptyPage && (
+      {isEmptyPage && (
         <EmptyStateCard
           header="Inga favoriter ännu"
           description="Spara annonser du gillar genom att trycka på hjärtat. Då hittar du dem enkelt här senare!"
@@ -133,7 +133,7 @@ export default function Favorites() {
         <HoriztalListSection
           data={data.me.likedProjects}
           renderItem={({ item }) => <ProjectCard project={item} />}
-          title="Favoritprojekt"
+          title={showHeader ? "Favoritprojekt" : ""}
           onPress={() => {
             //TODO: navigate to projects page
           }}
@@ -143,7 +143,7 @@ export default function Favorites() {
       {hasFavoritProjects && hasFavoritProducts && <Divider />}
       {hasFavoritProducts && (
         <AdGridSection
-          header="Favoritannonser"
+          header={showHeader ? "Favoritannonser" : undefined}
           products={
             (data?.me.likedProducts?.products ?? []).map((product) => ({
               id: product.id,
