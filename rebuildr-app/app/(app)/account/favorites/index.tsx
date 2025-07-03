@@ -69,7 +69,7 @@ export default function Favorites() {
   const PRODUCTS_PER_PAGE = 10;
   const { onToggleProductHeart } = useLikeProduct();
 
-  const { data, loading, fetchMore, refetch } = useQuery<
+  const { data, loading, fetchMore } = useQuery<
     MyFavoritesQuery,
     MyFavoritesQueryVariables
   >(MY_FAVORITES, {
