@@ -327,6 +327,7 @@ export default function Search() {
                 ...textStyles.title["medium"],
               }}
               placeholder="Vad letar du efter?"
+              placeholderTextColor={colors.text.secondary}
               value={searchString}
               onChangeText={(s) => onChangeSearch(s)}
               onSubmitEditing={onSearch}
