@@ -59,6 +59,7 @@ export const BottomSheet = forwardRef(
             paddingBottom: 8,
             borderBottomWidth: 1,
             borderColor: colors.dividers.neutral,
+            marginBottom: 24,
           }}
         >
           <Title size="medium">{title}</Title>

@@ -8,10 +8,17 @@ import { View, StyleSheet } from "react-native";
 import { Label } from "@components/typography/text";
 type Props = {
   imageUrl?: string;
-  status: ProductStatusEnum;
+  status?: ProductStatusEnum;
+  imageSize?: "small" | "default";
 } & ComponentProps<typeof AdDescription>;
 
-export const AdList = ({ imageUrl, status, ...adDescriptionProps }: Props) => {
+export const AdList = ({
+  imageUrl,
+  status = ProductStatusEnum.Published,
+  imageSize: _imageSize = "default",
+  ...adDescriptionProps
+}: Props) => {
+  const imageSize = _imageSize === "small" ? 64 : 80;
   return (
     <View style={{ flexDirection: "row", gap: 16 }}>
       <View style={{ flex: 1 }}>
@@ -26,8 +33,8 @@ export const AdList = ({ imageUrl, status, ...adDescriptionProps }: Props) => {
                 : imageUrl,
           }}
           style={{
-            width: 80,
-            height: 80,
+            width: imageSize,
+            height: imageSize,
             borderRadius: borderRadius.small,
           }}
         />

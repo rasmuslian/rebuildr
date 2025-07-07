@@ -279,7 +279,10 @@ export default function Product() {
                 <Button
                   label="Köp nu"
                   onPress={() => {
-                    //TODO: navigate to buy screen
+                    router.navigate({
+                      pathname: "/buy/[productId]",
+                      params: { productId },
+                    });
                   }}
                 />
                 <Button
@@ -457,7 +460,7 @@ export default function Product() {
         name="removeProduct"
         title="Radera annons"
       >
-        <View style={{ gap: 24, marginTop: 24 }}>
+        <View style={{ gap: 24 }}>
           {data.product.canDelete ? (
             <>
               <Display

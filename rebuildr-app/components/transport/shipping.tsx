@@ -205,9 +205,8 @@ export const Shipping = ({
       description="Du skickar produkten till köparen via ett fraktbolag."
       onPress={onSelectShipping}
       enabled={shippingSelected}
+      headerDivider
     >
-      <Divider />
-
       <View style={{ gap: 24 }}>
         <View>
           <Title size="medium">Välj vikt på paketet</Title>

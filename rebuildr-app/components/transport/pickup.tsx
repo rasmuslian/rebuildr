@@ -153,9 +153,8 @@ export const Pickup = ({
       description="Du bestämmer tid och plats för att köparen ska kunna hämta produkten direkt från dig."
       onPress={onSelectPickup}
       enabled={data.product.pickupEnabled}
+      headerDivider
     >
-      <Divider />
-
       <View>
         {(!address || isEditing) && (
           <EditPickup

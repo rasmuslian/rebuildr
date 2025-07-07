@@ -36,6 +36,7 @@ export default function AppLayout() {
       <Stack.Screen name="conversations" options={{ headerShown: false }} />
       <Stack.Screen name="account" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
+      <Stack.Screen name="buy" options={{ headerShown: false }} />
     </Stack>
   );
 }
