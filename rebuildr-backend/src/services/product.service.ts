@@ -17,11 +17,12 @@ import {
 import {
   CreateProductResponse,
   FileInputType,
+  GetTransportationOptionsInput,
   OrderProductsEnum,
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
+import { DataSource, Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
@@ -33,6 +34,7 @@ import * as z from 'zod';
 import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
 import { File } from '../entities/file.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
+import { ShippingService } from './shipping.service';
 
 @Injectable()
 export class ProductService {
@@ -52,6 +54,8 @@ export class ProductService {
     private purchaseRepository: Repository<Purchase>,
     @InjectRepository(ShippingPrice)
     private shippingPriceRepository: Repository<ShippingPrice>,
+    private shippingService: ShippingService,
+    private dataSource: DataSource,
   ) {}
 
   async create(input: {
@@ -876,5 +880,79 @@ export class ProductService {
     await this.messageService.deleteMany(product.messages);
     await this.purchaseService.deleteMany(product.purchases);
     return await this.productRepository.remove(product);
+  }
+
+  async getPickupOption(input: GetTransportationOptionsInput) {
+    const product = await this.productRepository.findOne({
+      where: { id: input.productId },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    if (!product.pickupEnabled) {
+      return null;
+    }
+
+    return await this.approximatePlace(product);
+  }
+  async getShippingOptions(input: GetTransportationOptionsInput) {
+    const product = await this.productRepository.findOne({
+      where: { id: input.productId },
+      relations: { shippingPrices: true },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    return await Promise.all(
+      product.shippingPrices.map(async (shippingPrice) => {
+        const servicePoints =
+          await this.shippingService.findNearbyServicePoints(
+            input.postCode,
+            shippingPrice.provider,
+            4,
+          );
+        return {
+          shippingPrice,
+          servicePoints,
+        };
+      }),
+    );
+  }
+  async getDeliveryOptions(input: GetTransportationOptionsInput) {
+    const product = await this.productRepository.findOne({
+      where: { id: input.productId },
+    });
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    if (!product.deliveryEnabled) {
+      return null;
+    }
+
+    const locationPromise = input.address
+      ? this.geocodingService.addressToLocation(input.address)
+      : this.geocodingService.postCodeToLocation(input.postCode);
+    const location = await locationPromise;
+    const locationPoint: Point = {
+      type: 'Point',
+      coordinates: [location.lat, location.lng],
+    };
+
+    const result = await this.dataSource.query(
+      'SELECT st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON($1), ST_SRID("addressLocation"))) as "distance" from product p WHERE p.id = $2',
+      [locationPoint, product.id],
+    );
+    const distance = result[0].distance;
+    const isWithinRadius = distance < product.deliveryRadius;
+    console.log('distance :>> ', distance);
+
+    return {
+      isWithinRadius,
+      distanceFromProduct: Math.round(distance),
+      deliveryPrice: product.price,
+    };
   }
 }

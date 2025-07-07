@@ -72,7 +72,6 @@ export class ApproximatePlaceResponse {
   lat: number;
   @Field()
   lng: number;
-
   @Field()
   address: string;
 }
