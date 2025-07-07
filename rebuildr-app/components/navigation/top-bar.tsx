@@ -1,17 +1,13 @@
-import { View, Pressable, Appearance } from "react-native";
+import { View, Pressable } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
 import { router } from "expo-router";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useContext } from "react";
 import { useUser } from "@hooks/useUser";
-import { Image } from "expo-image";
-
-import logoLight from "@assets/images/logo-light.png";
-import logoDark from "@assets/images/logo-dark.png";
+import { Logo } from "@components/logo/logo";
 
 export default function TopBar() {
-  const colorScheme = Appearance.getColorScheme();
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
   const { isLoggedIn } = useUser();
@@ -59,13 +55,7 @@ export default function TopBar() {
       }}
     >
       <Pressable onPress={() => router.navigate("/")}>
-        <Image
-          source={colorScheme === "dark" ? logoDark.uri : logoLight.uri}
-          style={{
-            width: 100,
-            height: 20,
-          }}
-        />
+        <Logo size="small" />
       </Pressable>
 
       <View style={{ display: "flex", flexDirection: "row" }}>
@@ -81,9 +71,8 @@ export default function TopBar() {
             onPress={onPress}
           >
             <Icon
-              strokeColor="icon"
-              color="icon"
               icon={icon}
+              customColor={colors.logo.background}
               width={18}
               height={18}
             />
