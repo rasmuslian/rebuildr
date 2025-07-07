@@ -347,6 +347,16 @@ type ApproximatePlaceResponse {
   address: String!
 }
 
+type ServicePointResponse {
+  id: String!
+  name: String!
+  distance: Float!
+  streetName: String!
+  streetNumber: String!
+  postalCode: String!
+  city: String!
+}
+
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
@@ -366,6 +376,17 @@ type ProductsResponse {
   """
   origin: LocationResponse
   total: Int!
+}
+
+type ShippingOptionResponse {
+  shippingPrice: ShippingPrice!
+  servicePoints: [ServicePointResponse!]!
+}
+
+type DeliveryOptionResponse {
+  isWithinRadius: Boolean!
+  distanceFromProduct: Float!
+  deliveryPrice: Float!
 }
 
 type UpdateUserResponse {
@@ -410,6 +431,9 @@ type Query {
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
+  getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
+  getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
+  getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -429,6 +453,7 @@ type Query {
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
+  nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
 }
 
 input UserExistsInput {
@@ -482,6 +507,12 @@ enum OrderProductsEnum {
   BEST_MATCH
   PRICE_ASC
   PRICE_DESC
+}
+
+input GetTransportationOptionsInput {
+  productId: String!
+  postCode: String!
+  address: String
 }
 
 input CategoryInput {
@@ -545,6 +576,12 @@ input GetSearchResultsInput {
 
 input GetSimilarSearchResultsInput {
   searchString: String!
+}
+
+input NearbyServicePointsInput {
+  postalCode: String!
+  amount: Float
+  shippingProvider: ShippingProviderEnum!
 }
 
 type Mutation {

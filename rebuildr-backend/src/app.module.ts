@@ -77,6 +77,9 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
 } from '@apollo/server/plugin/landingPage/default';
+import { ShippingResolver } from './resolvers/shipping.resolver';
+import { ShippingService } from './services/shipping.service';
+import { PostnordAPI } from './apis/postnord.api';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -205,6 +208,7 @@ export interface RequestType {
     RockerResolver,
     RockerService,
     RockerAPI,
+    PostnordAPI,
     PurchaseService,
     PurchaseResolver,
     BrandService,
@@ -216,6 +220,8 @@ export interface RequestType {
     SearchResultService,
     SearchResultResolver,
     ReviewResolver,
+    ShippingResolver,
+    ShippingService,
   ],
 })
 export class AppModule {}
