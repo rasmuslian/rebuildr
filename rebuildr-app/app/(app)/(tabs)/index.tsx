@@ -2,30 +2,17 @@ import {
   AuthenticateRockerMutation,
   AuthenticateRockerMutationVariables,
   AuthResponseStatusEnum,
-  LandingQueryQuery,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Body, Headline, Title } from "@components/typography/text";
-import { LoginModalContext } from "@context/loginModalContext";
-import { useLogout } from "@hooks/useLogout";
-import { router } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import { Body } from "@components/typography/text";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import * as Crypto from "expo-crypto";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import QRCode from "react-native-qrcode-svg";
 import { useThemeColor } from "@hooks/useThemeColor";
-
-const LANDING_QUERY = gql`
-  query LandingQuery {
-    me {
-      id
-      username
-      role
-    }
-  }
-`;
+import TopBar from "@components/navigation/top-bar";
 
 const AUTHENTICATE_ROCKER_MUTATION = gql`
   mutation AuthenticateRocker($input: AuthenticateRockerInput!) {
@@ -39,13 +26,10 @@ const AUTHENTICATE_ROCKER_MUTATION = gql`
 
 export default function Landing() {
   const [showQr, setShowQr] = useState(false);
-  const { setVisible } = useContext(LoginModalContext);
-  const { logout } = useLogout();
   const colors = useThemeColor();
 
-  const { data } = useQuery<LandingQueryQuery>(LANDING_QUERY);
-
   let timer: NodeJS.Timeout | undefined = undefined;
+
   useEffect(() => {
     return () => {
       if (timer) {
@@ -54,62 +38,17 @@ export default function Landing() {
     };
   }, []);
 
-  const renderBankId = () => {
-    return (
-      <>
-        <Body style={{ textAlign: "center" }}>Verifiera dig med BankID</Body>
-
-        <View
-          style={{
-            borderTopWidth: 1,
-            paddingTop: 24,
-          }}
-        >
-          <Body size="large" style={{ marginBottom: 8 }}>
-            Såhär gör du:
-          </Body>
-          <View style={{ marginBottom: 24, gap: 2 }}>
-            <Body size="medium">1. Starta BankId-appen i din mobil</Body>
-            <Body size="medium">2. Tryck på Scanna QR-kod</Body>
-            <Body size="medium">
-              3. Rikta kameran mot QR-koden här nedanför
-            </Body>
-          </View>
-        </View>
-        <Button label="Avbryt" onPress={() => setShowQr(false)} />
-      </>
-    );
-  };
-
   return (
     <View
       style={{
         alignItems: "center",
         gap: 16,
-        paddingTop: 20,
         backgroundColor: colors.background.neutral,
         flex: 1,
       }}
     >
-      <Title>Landningssidan</Title>
+      <TopBar />
 
-      {!data?.me && (
-        <Button
-          label="Logga in"
-          onPress={() => {
-            setVisible(true);
-          }}
-        />
-      )}
-      {data?.me && (
-        <View>
-          <Headline size="medium">Inloggad som {data.me.username}</Headline>
-          <Button
-            label="Konto"
-            onPress={() => router.navigate("/(app)/account")}
-          />
-        </View>
-      )}
       {showQr && (
         <BankId
           borderColor={colors.background.primary}
@@ -119,7 +58,30 @@ export default function Landing() {
           }}
         />
       )}
-      {showQr && renderBankId()}
+      {showQr && (
+        <>
+          <Body style={{ textAlign: "center" }}>Verifiera dig med BankID</Body>
+
+          <View
+            style={{
+              borderTopWidth: 1,
+              paddingTop: 24,
+            }}
+          >
+            <Body size="large" style={{ marginBottom: 8 }}>
+              Såhär gör du:
+            </Body>
+            <View style={{ marginBottom: 24, gap: 2 }}>
+              <Body size="medium">1. Starta BankId-appen i din mobil</Body>
+              <Body size="medium">2. Tryck på Scanna QR-kod</Body>
+              <Body size="medium">
+                3. Rikta kameran mot QR-koden här nedanför
+              </Body>
+            </View>
+          </View>
+          <Button label="Avbryt" onPress={() => setShowQr(false)} />
+        </>
+      )}
       <Button label="BankID på annan enhet" onPress={() => setShowQr(true)} />
     </View>
   );

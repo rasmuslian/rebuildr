@@ -57,6 +57,7 @@ export type TextTokens = {
   link: string;
   error: string;
   success: string;
+  icon: string;
 };
 const textTokensLight: TextTokens = {
   primaryDark: primitives.neutrals900,
@@ -66,6 +67,7 @@ const textTokensLight: TextTokens = {
   link: primitives.accent500,
   error: primitives.semanticError600,
   success: primitives.primary600,
+  icon: primitives.secondary200,
 };
 const textTokensDark: TextTokens = {
   primaryDark: primitives.neutrals100,
@@ -75,6 +77,7 @@ const textTokensDark: TextTokens = {
   link: primitives.accent200,
   error: primitives.semanticError400,
   success: primitives.primary400,
+  icon: primitives.primary800,
 };
 
 type BackgroundTokens = {
