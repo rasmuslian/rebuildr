@@ -1,11 +1,11 @@
-import { gql, useMutation, useReactiveVar } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import {
   ProjectLikeMutation,
   ProjectLikeMutationVariables,
 } from "@/gql/graphql";
 
-import { isLoggedInVar } from "@/apollo/config";
 import { MY_FAVORITES } from "@/app/(app)/account/favorites";
+import { useUser } from "@hooks/useUser";
 
 const PROJECT_LIKE_MUTATION = gql`
   mutation ProjectLike($input: SetLikeProjectInput!) {
@@ -22,7 +22,7 @@ type onToggleProjectHeartProps = {
 };
 
 export const useLikeProject = () => {
-  const isLoggedIn = useReactiveVar(isLoggedInVar);
+  const { isLoggedIn } = useUser();
 
   const [setLikeProject, { loading }] = useMutation<
     ProjectLikeMutation,
