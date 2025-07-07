@@ -55,7 +55,7 @@ export default function TopBar() {
       }}
     >
       <Pressable onPress={() => router.navigate("/")}>
-        <Logo size="small" />
+        <Logo width={89} height={18} />
       </Pressable>
 
       <View style={{ display: "flex", flexDirection: "row" }}>
