@@ -13,15 +13,9 @@ import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Display, Headline, Title } from "@components/typography/text";
-import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
+import { Body, Display, Headline } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import BuyersProtection from "@assets/svgs/buyers-protection.svg";
-import { Image } from "expo-image";
-import { Check } from "@components/controls/check";
-import { primitives } from "@constants/colors";
 import dayjs from "dayjs";
 import { Button } from "@components/buttons/button";
 import { AdGrid } from "@components/ad/ad-grid";
@@ -34,6 +28,7 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRef } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 
 const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {
@@ -202,7 +197,6 @@ export default function Product() {
     ProductRemoveProductMutation,
     ProductRemoveProductMutationVariables
   >(PRODUCT_REMOVE_PRODUCT);
-  const colors = useThemeColor();
 
   if (!data) {
     return <LoadingSpinner />;
@@ -212,7 +206,7 @@ export default function Product() {
     if (!data || !isLoggedIn) return;
 
     onToggleHeart({
-      productId: productId,
+      productId,
       likedByMe: !!data.product.likedByMe,
     });
   };
@@ -312,43 +306,7 @@ export default function Product() {
           sellerIsMe={data.me && data.me.id === data.product.seller.id}
         />
         <Divider />
-        <View
-          style={{
-            borderRadius: borderRadius.medium,
-            backgroundColor: colors.background.secondary,
-            padding: 16,
-            gap: 16,
-          }}
-        >
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <Title size="medium">
-              Vårt köparskydd ingår alltid, utan extra kostnad
-            </Title>
-            <Image
-              source={BuyersProtection.uri}
-              style={{ width: 60, height: 60 }}
-            />
-          </View>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <Check
-              checkColor="primaryDark"
-              selected
-              color={primitives.primary200}
-            />
-            <Body size="medium">Ersättning om varan inte levereras</Body>
-          </View>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <Check
-              checkColor="primaryDark"
-              selected
-              color={primitives.primary200}
-            />
-            <Body size="medium">Ersättning om varan inte är som beskriven</Body>
-          </View>
-          <Body size="small" isLink>
-            Läs hur vårt köparskydd fungerar.
-          </Body>
-        </View>
+        <BuyersProtection />
         <AllImages images={data.product.images} />
         {approximatePlace && data.product.pickupEnabled && (
           <PickupPosition
