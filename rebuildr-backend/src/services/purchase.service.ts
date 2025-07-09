@@ -1,9 +1,21 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
-import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
-import { User } from 'src/entities/user.entity';
-import { In, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
-import { RockerService, SupportedPaymentMethod } from './rocker.service';
+import {
+  Purchase,
+  PurchaseStatusEnum,
+  TransportationEnum,
+} from 'src/entities/purchase.entity';
+import { User, UserType } from 'src/entities/user.entity';
+import {
+  In,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Point,
+  Repository,
+} from 'typeorm';
+import { RockerService } from './rocker.service';
 import {
   BadUserInputException,
   ForbiddenException,
@@ -18,17 +30,25 @@ import {
   IPayoutCompleted,
   IPayoutFailed,
   IPayoutStarted,
+  IServiceFeeItem,
+  PaymentStatusEnum,
+  ServiceFeeItemNameEnum,
   Status1Enum,
 } from 'src/apis/types/rocker-types';
 import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
-import { Inject } from '@nestjs/common';
+import { forwardRef, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
 import { FileService } from './file.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { LatestPurchaseInput } from 'src/resolvers/purchase.resolver';
+import {
+  LatestPurchaseInput,
+  PurchaseProductInput,
+} from 'src/resolvers/purchase.resolver';
 import { Review } from 'src/entities/review.entity';
+import { ProductService } from './product.service';
+import { provisionBase } from 'src/constants/pricing';
 
 export class PurchaseService {
   constructor(
@@ -44,75 +64,403 @@ export class PurchaseService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @InjectRepository(Review)
     private reviewRepository: Repository<Review>,
+    @Inject(forwardRef(() => ProductService))
+    private productService: ProductService,
   ) {}
-  async createPurchase(
-    productId: string,
-    userId: string,
-    paymentMethod: SupportedPaymentMethod,
-  ) {
-    const product = await this.productRepository.findOne({
-      where: { id: productId },
-      relations: { seller: true, purchases: true },
-    });
-    const buyer = await this.userRepository.findOne({
-      where: { id: userId },
+
+  async getPurchase(id: string, currentUserId: string) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id },
+      relations: { product: true },
     });
 
-    if (!product?.seller?.rockerUserId || !buyer?.rockerUserId) {
+    if (!purchase) {
       throw BadUserInputException();
     }
 
-    //Product is only available if its only purchases are failed ones
-    const available = product.purchases.every(
-      (purchase) => purchase.status === PurchaseStatusEnum.FINISHED_FAILED,
+    if (
+      purchase.buyerId !== currentUserId &&
+      purchase.product.sellerId !== currentUserId
+    ) {
+      throw ForbiddenException();
+    }
+    return purchase;
+  }
+
+  async createPurchase(
+    input: PurchaseProductInput,
+    currentUserId: string,
+    logger: Logger,
+  ) {
+    logger.info({
+      message: 'Creating purchase',
+      paymentMethod: input.paymentMethod,
+      shippingServicePointId: input.servicePointId,
+      shippingProvider: input.shippingProvider,
+      swishType: input.swishType,
+      transportationMethod: input.transportationMethod,
+    });
+    const product = await this.productRepository.findOne({
+      where: {
+        id: input.productId,
+        status: ProductStatus.PUBLISHED,
+        purchases: [
+          { status: PurchaseStatusEnum.FINISHED_FAILED },
+          { status: IsNull() },
+          {
+            status: PurchaseStatusEnum.CLAIMED,
+            buyerId: currentUserId,
+            // Allow for 4 minutes to complete payment, Rocker sets payments to expired after 5 minutes.
+            createdAt: MoreThanOrEqual(dayjs().subtract(4, 'minute').toDate()),
+          },
+        ],
+      },
+      relations: {
+        seller: true,
+        purchases: true,
+        images: true,
+        shippingPrices: true,
+      },
+    });
+
+    if (product) {
+      logger.info({
+        message: 'Product found',
+        id: product.id,
+        title: product.title,
+        status: product.status,
+        sellerId: product.sellerId,
+      });
+    }
+
+    const allProductPurchases = await this.purchaseRepository.find({
+      where: { productId: input.productId },
+    });
+
+    const isAlreadyPurchased = allProductPurchases?.some(
+      ({ status }) => status !== PurchaseStatusEnum.FINISHED_FAILED,
     );
+
+    const existingPurchase = product?.purchases.find(
+      (p) =>
+        p.status === PurchaseStatusEnum.CLAIMED && p.buyerId === currentUserId,
+    );
+
+    //if the product has a purchase that is not failed and is not in CLAIMED status by the same user that attempts to buy it, we should throw to prevent double purchases
+    if (isAlreadyPurchased && !existingPurchase) {
+      logger.error({
+        message: 'Product already purchased',
+        productId: product?.id,
+        buyerId: currentUserId,
+      });
+      throw BadUserInputException('Product already purchased');
+    }
+
+    const buyer = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+
+    if (!buyer) {
+      throw BadUserInputException();
+    }
+    if (buyer.type !== UserType.PERSONAL) {
+      logger.error({
+        message: 'Only private users can buy products',
+        productId: product?.id,
+        buyerId: buyer?.id,
+        buyerType: buyer.type,
+      });
+      throw BadUserInputException('Only private users can buy products');
+    }
+    if (!product?.seller?.rockerUserId || !buyer.rockerUserId) {
+      logger.error({
+        message: 'User or seller not found',
+        productId: product?.id,
+        buyerId: buyer?.id,
+        sellerId: product?.sellerId,
+        buyerRockerUserId: buyer?.rockerUserId,
+        sellerRockerUserId: product?.seller?.rockerUserId,
+      });
+
+      throw BadUserInputException();
+    }
+
+    if (existingPurchase && existingPurchase.rockerPaymentId) {
+      logger.info({
+        message: 'Existing purchase found',
+        id: existingPurchase.id,
+        status: existingPurchase.status,
+        rockerPaymentId: existingPurchase.rockerPaymentId,
+        rockerOfferId: existingPurchase.rockerOfferId,
+        productId: existingPurchase.productId,
+        buyerId: existingPurchase.buyerId,
+        sellerId: product.sellerId,
+        toServicePointId: existingPurchase.toServicePointId,
+        shippingProvider: existingPurchase.shippingPrice.provider,
+      });
+
+      const existingPayment = await this.rockerService.getPayment(
+        existingPurchase.rockerPaymentId,
+        input.paymentMethod,
+      );
+
+      if (existingPayment) {
+        logger.info({
+          message: 'Existing payment found',
+          id: existingPayment.id,
+          status: existingPayment.status,
+          paymentMethod: existingPayment.paymentMethod,
+          paymentMethodData: existingPayment.paymentMethodData,
+        });
+      }
+
+      if (existingPayment.status !== PaymentStatusEnum.INIT) {
+        logger.error({
+          message: 'Payment is not in init state',
+          id: existingPayment.id,
+          status: existingPayment.status,
+        });
+
+        throw BadUserInputException('Payment is not in init state');
+      }
+
+      return {
+        purchase: existingPurchase,
+        product: product,
+        swishToken: existingPayment.paymentMethodData?.token,
+        reference: existingPayment.reference,
+      };
+    }
+
+    //Product is only available if its only purchases are failed ones
+    const available = !product.purchases?.find(
+      (p) => p.status !== PurchaseStatusEnum.FINISHED_FAILED,
+    );
+
     if (!available) {
+      logger.error({
+        message: 'Product not available for purchase',
+        productId: product.id,
+      });
       throw InternalServerException('Product not available for purchase');
     }
 
+    const selectedShippingPrice = product.shippingPrices.find(
+      (shippingPrice) => shippingPrice.provider === input.shippingProvider,
+    );
+
+    logger.info({
+      message: 'Selected shipping price',
+      id: selectedShippingPrice?.id,
+      price: selectedShippingPrice?.price,
+    });
+
+    //-------------------- Verify Input ------------------------------
+    if (
+      input.transportationMethod === TransportationEnum.PICKUP &&
+      !product.pickupEnabled
+    ) {
+      if (!product.shippingPrices.length) {
+        logger.error({
+          message: 'Seller does not offer pickup',
+          productId: product.id,
+        });
+        throw BadUserInputException('Seller does not offer pickup');
+      }
+    }
+    if (input.transportationMethod === TransportationEnum.SHIPPING) {
+      if (!product.shippingPrices.length) {
+        logger.error({
+          message: 'Seller does not offer shipping',
+          productId: product.id,
+        });
+        throw BadUserInputException('Seller does not offer shipping');
+      }
+      if (!selectedShippingPrice) {
+        logger.error({
+          message: 'Could not find shipping price',
+          productId: product.id,
+          shippingProvider: input.shippingProvider,
+        });
+        throw BadUserInputException('Could not find shipping option');
+      }
+      if (!input.servicePointId) {
+        logger.error({
+          message: 'Must choose a shipping service point',
+          productId: product.id,
+        });
+        throw BadUserInputException('Must choose a shipping service point');
+      }
+    }
+    if (input.transportationMethod === TransportationEnum.DELIVERY) {
+      if (!product.deliveryEnabled) {
+        logger.error({
+          message: 'Seller does not offer delivery',
+          productId: product.id,
+        });
+        throw BadUserInputException('Seller does not offer delivery');
+      }
+      if (!input.deliverTo) {
+        logger.error({
+          message: 'Must specify where to deliver',
+          productId: product.id,
+        });
+        throw BadUserInputException('Must specify where to deliver');
+      }
+      const deliverToPoint: Point = {
+        type: 'Point',
+        coordinates: [input.deliverTo.lat, input.deliverTo.lng],
+      };
+      const distance = await this.productService.distanceToProduct(
+        deliverToPoint,
+        input.productId,
+      );
+      const isTooFar = distance > product.deliveryRadius;
+      if (isTooFar) {
+        logger.error({
+          message: 'Product is too far away for delivery',
+          productId: product.id,
+          productLocation: product.addressLocation,
+          deliverTo: input.deliverTo,
+        });
+        throw BadUserInputException('Product is too far away for delivery');
+      }
+    }
+    //-----------------------------------------------------------------
+
     const purchase = new Purchase();
-    if (!product.isGiveaway) {
-      if (!product?.seller?.rockerUserId) {
-        throw InternalServerException();
+    const shippingPrice = selectedShippingPrice?.price ?? 0;
+    const provision = this.calculateProvision(product.price);
+    const escrow = product.price - provision;
+    const fee = provision + shippingPrice;
+
+    const imageUrls = await Promise.all(
+      product.images.map(async (image) => {
+        return await this.fileService.getUrl(image);
+      }),
+    );
+
+    const generateOffer = async () => {
+      if (process.env.NODE_ENV === 'development') {
+        return { id: '1' };
       }
 
-      const price = product.price;
-      //TODO: this is placeholder fee amount
-      const escrow = price - 10;
-      const fee = 10;
+      if (!product.seller?.rockerUserId) {
+        logger.error({
+          message: 'Seller has no rocker user id',
+          productId: product.id,
+          sellerId: product.sellerId,
+        });
 
-      const imageUrls = await Promise.all(
-        product.images.map(async (image) => {
-          return await this.fileService.getUrl(image);
-        }),
-      );
+        throw BadUserInputException('Seller not found');
+      }
+      const feeItems: IServiceFeeItem[] = [
+        {
+          name: ServiceFeeItemNameEnum.SHIPPING_FEE,
+          value: {
+            currency: 'SEK',
+            unit: 'MINOR',
+            amount: shippingPrice,
+          },
+        },
+        {
+          name: ServiceFeeItemNameEnum.ESCROW_FEE,
+          value: {
+            currency: 'SEK',
+            unit: 'MINOR',
+            amount: provision,
+          },
+        },
+      ];
 
-      const offer = await this.rockerService.createOffer(
+      const rockerOffer = await this.rockerService.createOffer(
         product.title,
         product.id,
         product.seller.rockerUserId,
         escrow,
         fee,
+        feeItems,
         imageUrls,
       );
 
-      const payment = await this.rockerService.createPayment(
-        offer.id,
+      logger.info({
+        message: 'Offer created',
+        id: rockerOffer.id,
+        price: rockerOffer.price,
+      });
+
+      return rockerOffer;
+    };
+
+    const generatePayment = async (offerId: string) => {
+      if (process.env.NODE_ENV === 'development') {
+        return {
+          id: '1',
+          paymentMethodData: {
+            token: '1234',
+          },
+          reference: '1234',
+        };
+      }
+
+      if (!buyer.rockerUserId) {
+        logger.error({
+          message: 'Buyer has no rocker user id',
+          productId: product.id,
+          buyerId: buyer.id,
+        });
+
+        throw BadUserInputException('Buyer not found');
+      }
+
+      const rockerPayment = await this.rockerService.createPayment(
+        offerId,
         buyer.rockerUserId,
-        paymentMethod,
+        input.paymentMethod,
+        input.swishType,
       );
 
-      purchase.rockerOfferId = offer.id;
-      purchase.rockerPaymentId = payment.id;
-    }
+      logger.info({
+        message: 'Payment created',
+        id: rockerPayment.id,
+        status: rockerPayment.status,
+      });
+      return rockerPayment;
+    };
 
+    const offer = await generateOffer();
+    const payment = await generatePayment(offer.id);
+
+    purchase.toServicePointId = input.servicePointId;
+
+    purchase.rockerOfferId = offer.id;
+    purchase.rockerPaymentId = payment.id;
     purchase.buyer = buyer;
     purchase.product = product;
+    purchase.shippingPrice = selectedShippingPrice;
+    purchase.tranportationMethod = input.transportationMethod;
+
+    if (process.env.NODE_ENV === 'development') {
+      purchase.paymentAcceptedAt = new Date();
+    }
     const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    logger.info({
+      message: 'Purchase created',
+      id: savedPurchase.id,
+      status: savedPurchase.status,
+    });
+
     return {
       purchase: savedPurchase,
       product: product,
+      swishToken: payment.paymentMethodData?.token,
+      reference: payment.reference,
     };
+  }
+
+  calculateProvision(price: number) {
+    return Math.round(price * provisionBase);
   }
 
   async latestPurchase(input: LatestPurchaseInput, currentUserId: string) {

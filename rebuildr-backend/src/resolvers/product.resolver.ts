@@ -379,6 +379,9 @@ class ShippingOptionResponse {
 
 @ObjectType()
 class DeliveryOptionResponse {
+  @Field(() => LocationResponse)
+  deliverToLocation: LocationResponse;
+
   @Field()
   isWithinRadius: boolean;
 

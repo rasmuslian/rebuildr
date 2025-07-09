@@ -105,6 +105,20 @@ export enum OfferStatusEnum {
   FINISHED_DELETED = 'FINISHED_DELETED',
 }
 
+export enum ServiceFeeItemNameEnum {
+  AFFILIATE_FEE = 'AFFILIATE_FEE', //Used for donation fee
+  SHIPPING_FEE = 'SHIPPING_FEE', //Used for shipping fee
+  INSURANCE_FEE = 'INSURANCE_FEE', //Used for buyers protection fee
+  EXTRA_INSURANCE_FEE = 'EXTRA_INSURANCE_FEE',
+  DELIVERY_FEE = 'DELIVERY_FEE',
+  ESCROW_FEE = 'ESCROW_FEE', //User for provision/commission fee
+}
+
+export interface IServiceFeeItem {
+  name: ServiceFeeItemNameEnum;
+  value: IMoneyObject;
+}
+
 export interface ICreateOfferRequest {
   title: string;
   description?: string;
@@ -114,6 +128,7 @@ export interface ICreateOfferRequest {
   externalData: Record<string, unknown>;
   escrowValue: IMoneyObject;
   serviceFee: IMoneyObject;
+  serviceFeeItems: IServiceFeeItem[];
   images: string[];
 }
 
@@ -135,6 +150,12 @@ export interface IOfferResponse {
   externalData: Record<string, unknown>;
 }
 
+export enum PaymentTypeEnum {
+  MOBILE = 'MOBILE',
+  WEB = 'WEB',
+}
+registerEnumType(PaymentTypeEnum, { name: 'PaymentTypeEnum' });
+
 export type ICreatePaymentRequest = {
   offerId: string;
   buyerId: string;
@@ -143,7 +164,7 @@ export type ICreatePaymentRequest = {
       paymentMethod: PaymentMethodEnum.SWISH;
       paymentMethodData?: {
         $type: 'Swish';
-        paymentType: 'MOBILE';
+        paymentType: PaymentTypeEnum;
       };
     }
   | {

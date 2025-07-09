@@ -11,24 +11,47 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { PaymentTypeEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { RequestId } from 'src/decorators/request-id.decorator';
 import { Product } from 'src/entities/product.entity';
-import { Purchase } from 'src/entities/purchase.entity';
+import { Purchase, TransportationEnum } from 'src/entities/purchase.entity';
 import { Review } from 'src/entities/review.entity';
+import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
 import { PurchaseService } from 'src/services/purchase.service';
 import { SupportedPaymentMethod } from 'src/services/rocker.service';
 import { Logger } from 'winston';
+import { LocationInputType } from './geocoding.resolver';
 
 @InputType()
-class PurchaseProductInput {
+class GetPurchaseInput {
+  @Field()
+  id: string;
+}
+@InputType()
+export class PurchaseProductInput {
   @Field()
   productId: string;
 
   @Field(() => SupportedPaymentMethod)
   paymentMethod: SupportedPaymentMethod;
+
+  @Field({ nullable: true })
+  servicePointId?: string;
+
+  @Field(() => ShippingProviderEnum, { nullable: true })
+  shippingProvider?: ShippingProviderEnum;
+
+  @Field(() => LocationInputType, { nullable: true })
+  deliverTo?: LocationInputType;
+
+  @Field(() => PaymentTypeEnum, { nullable: true })
+  swishType?: PaymentTypeEnum;
+
+  @Field(() => TransportationEnum)
+  transportationMethod: TransportationEnum;
 }
 
 @ObjectType()
@@ -38,6 +61,12 @@ class PurchaseProductResponse {
 
   @Field(() => Purchase)
   purchase: Purchase;
+
+  @Field({ nullable: true })
+  swishToken?: string;
+
+  @Field({ nullable: true })
+  reference?: string;
 }
 
 @InputType()
@@ -67,6 +96,15 @@ export class PurchaseResolver {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
+  @Query(() => Purchase)
+  @UseGuards(GqlAuthGuard)
+  async purchase(
+    @Args('input') input: GetPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.getPurchase(input.id, user.id);
+  }
+
   @Query(() => Purchase, { nullable: true })
   @UseGuards(GqlAuthGuard)
   async latestPurchase(
@@ -81,11 +119,17 @@ export class PurchaseResolver {
   async purchaseProduct(
     @Args('input') input: PurchaseProductInput,
     @CurrentUser() _user: AuthedUserType,
+    @RequestId() requestId: string,
   ) {
+    const childLogger = this.logger.child({
+      requestId,
+      userId: _user.id,
+      productId: input.productId,
+    });
     return await this.purchaseService.createPurchase(
-      input.productId,
+      input,
       _user.id,
-      input.paymentMethod,
+      childLogger,
     );
   }
 

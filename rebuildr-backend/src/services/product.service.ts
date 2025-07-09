@@ -941,18 +941,22 @@ export class ProductService {
       coordinates: [location.lat, location.lng],
     };
 
-    const result = await this.dataSource.query(
-      'SELECT st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON($1), ST_SRID("addressLocation"))) as "distance" from product p WHERE p.id = $2',
-      [locationPoint, product.id],
-    );
-    const distance = result[0].distance;
+    const distance = await this.distanceToProduct(locationPoint, product.id);
     const isWithinRadius = distance < product.deliveryRadius;
-    console.log('distance :>> ', distance);
 
     return {
+      deliverToLocation: location,
       isWithinRadius,
       distanceFromProduct: Math.round(distance),
       deliveryPrice: product.price,
     };
+  }
+
+  async distanceToProduct(locationPoint: Point, productId: string) {
+    const result = await this.dataSource.query(
+      'SELECT st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON($1), ST_SRID("addressLocation"))) as "distance" from product p WHERE p.id = $2',
+      [locationPoint, productId],
+    );
+    return result[0].distance;
   }
 }

@@ -18,9 +18,11 @@ import {
   IPayoutResponse,
   IPostAuthResponse,
   IPostUsersResponse,
+  IServiceFeeItem,
   IUserResponse,
   PauseStateEnum,
   PaymentMethodEnum,
+  PaymentTypeEnum,
   PayoutMethodEnum,
   RockerCountryEnum,
 } from './types/rocker-types';
@@ -153,6 +155,7 @@ export class RockerAPI {
     sellerId: string,
     escrowValue: number,
     fee: number,
+    feeItems: IServiceFeeItem[],
     productId: string,
     imageUrls: string[],
   ) {
@@ -170,6 +173,7 @@ export class RockerAPI {
         amount: fee,
         unit: 'MINOR',
       },
+      serviceFeeItems: feeItems,
       externalData: { productId },
       images: imageUrls,
     };
@@ -184,12 +188,16 @@ export class RockerAPI {
     return response;
   }
 
-  async createSwishPayment(offerId: string, buyerId: string) {
+  async createSwishPayment(
+    offerId: string,
+    buyerId: string,
+    paymentType: PaymentTypeEnum,
+  ) {
     const body: ICreatePaymentRequest = {
       offerId,
       buyerId,
       paymentMethod: PaymentMethodEnum.SWISH,
-      paymentMethodData: { $type: 'Swish', paymentType: 'MOBILE' },
+      paymentMethodData: { $type: 'Swish', paymentType: paymentType },
     };
 
     const response: IPaymentResponse = await this.customFetch.send(

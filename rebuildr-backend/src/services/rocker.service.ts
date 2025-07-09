@@ -6,7 +6,9 @@ import { RockerAPI } from 'src/apis/rocker.api';
 import {
   AuthResponseStatusEnum,
   IListPayoutAccountsResponse,
+  IServiceFeeItem,
   PauseStateEnum,
+  PaymentTypeEnum,
   PayoutMethodEnum,
 } from 'src/apis/types/rocker-types';
 import { swedishPhoneNumberRegex } from 'src/constants/regexp';
@@ -25,6 +27,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 export enum SupportedPaymentMethod {
   SWISH = 'SWISH',
   STRIPE = 'STRIPE',
+  TRUSTLY = 'TRUSTLY',
 }
 registerEnumType(SupportedPaymentMethod, {
   name: 'PaymentMethod',
@@ -47,12 +50,12 @@ export class RockerService {
     if (user.rockerUserId) {
       return user;
     }
-    const response = await this.rockerApi.createForeignUser(
-      user.id,
-      user.email,
-    );
+    // const response = await this.rockerApi.createForeignUser(
+    //   user.id,
+    //   user.email,
+    // );
 
-    user.rockerUserId = response.id;
+    user.rockerUserId = '1'; //response.id;
     return await this.userRepository.save(user);
   }
 
@@ -173,6 +176,7 @@ export class RockerService {
     sellerRockerId: string,
     escrowValue: number,
     fee: number,
+    feeItems: IServiceFeeItem[],
     imageUrls: string[],
   ) {
     const response = await this.rockerApi.createOffer(
@@ -180,6 +184,7 @@ export class RockerService {
       sellerRockerId,
       escrowValue,
       fee,
+      feeItems,
       productId,
       imageUrls,
     );
@@ -191,9 +196,14 @@ export class RockerService {
     offerId: string,
     buyerId: string,
     paymentMethod: SupportedPaymentMethod,
+    swishPaymentType: PaymentTypeEnum = PaymentTypeEnum.MOBILE,
   ) {
     if (paymentMethod === SupportedPaymentMethod.SWISH) {
-      return await this.rockerApi.createSwishPayment(offerId, buyerId);
+      return await this.rockerApi.createSwishPayment(
+        offerId,
+        buyerId,
+        swishPaymentType,
+      );
     }
     if (paymentMethod === SupportedPaymentMethod.STRIPE) {
       return await this.rockerApi.createStripePayment(offerId, buyerId);

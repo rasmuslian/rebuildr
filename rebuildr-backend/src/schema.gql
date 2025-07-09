@@ -49,6 +49,8 @@ type Purchase {
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
   qrCodeUrl: String
+  tranportationMethod: TransportationEnum!
+  toServicePointId: String
   isShipping: Boolean!
   reviews: [Review!]!
 }
@@ -68,6 +70,12 @@ enum PurchaseStatusEnum {
   FINISHED_SUCCESS
   PAUSED
   PAYOUT_FAILED
+}
+
+enum TransportationEnum {
+  PICKUP
+  SHIPPING
+  DELIVERY
 }
 
 type Project {
@@ -384,6 +392,7 @@ type ShippingOptionResponse {
 }
 
 type DeliveryOptionResponse {
+  deliverToLocation: LocationResponse!
   isWithinRadius: Boolean!
   distanceFromProduct: Float!
   deliveryPrice: Float!
@@ -421,6 +430,8 @@ type CreatePayoutAccountResponse {
 type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
+  swishToken: String
+  reference: String
 }
 
 type Query {
@@ -445,6 +456,7 @@ type Query {
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
+  purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
@@ -554,6 +566,10 @@ input LocationSearchInput {
 
 input AddressToLocationInput {
   address: String!
+}
+
+input GetPurchaseInput {
+  id: String!
 }
 
 input LatestPurchaseInput {
@@ -794,11 +810,22 @@ input SelectPayoutMethodInput {
 input PurchaseProductInput {
   productId: String!
   paymentMethod: PaymentMethod!
+  servicePointId: String
+  shippingProvider: ShippingProviderEnum
+  deliverTo: LocationInputType
+  swishType: PaymentTypeEnum
+  transportationMethod: TransportationEnum!
 }
 
 enum PaymentMethod {
   SWISH
   STRIPE
+  TRUSTLY
+}
+
+enum PaymentTypeEnum {
+  MOBILE
+  WEB
 }
 
 input AcceptPurchaseInput {
