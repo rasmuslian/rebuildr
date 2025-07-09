@@ -3,16 +3,16 @@ import { Divider } from "@components/dividers/divider";
 import { Body, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactElement, ReactNode } from "react";
 import { View, ViewStyle } from "react-native";
 
 type ToggleCardProps = {
   title: string;
   valueString?: string;
-  description?: string;
+  description?: string | ReactNode;
   enabled?: boolean;
   onPress: () => void;
-  offColor?: "disabled" | "tonal";
+  offColor?: "disabled" | "tonal" | "none";
   headerDivider?: boolean;
   error?: boolean;
 } & PropsWithChildren;
@@ -35,12 +35,19 @@ export const ToggleCard = ({
       style={[
         {
           borderRadius: borderRadius.medium,
-          backgroundColor:
-            offColor === "tonal"
-              ? colors.buttons.tonal.enabled
-              : colors.buttons.filled.disabled,
           padding: 16,
           gap: 24,
+        },
+        offColor === "tonal" && {
+          backgroundColor: colors.buttons.tonal.enabled,
+        },
+        offColor === "disabled" && {
+          backgroundColor: colors.buttons.filled.disabled,
+        },
+        offColor === "none" && {
+          borderColor: colors.buttons.outlinedStroke.disabled,
+          borderWidth: 1,
+          padding: 15,
         },
         enabled && {
           borderColor: error
@@ -75,11 +82,14 @@ export const ToggleCard = ({
               </Body>
             )}
           </View>
-          {description && (
-            <Body size="medium" color="secondary">
-              {description}
-            </Body>
-          )}
+          {description &&
+            (typeof description === "string" ? (
+              <Body size="medium" color="secondary">
+                {description}
+              </Body>
+            ) : (
+              description
+            ))}
         </View>
         <Toggle value={enabled} onPress={onPress} />
       </View>

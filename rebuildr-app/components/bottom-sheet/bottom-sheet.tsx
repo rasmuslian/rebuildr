@@ -75,7 +75,7 @@ export const BottomSheet = forwardRef(
     return (
       <BottomSheetModal
         ref={innerRef}
-        enableDynamicSizing
+        enableDynamicSizing={!screenHeight}
         enablePanDownToClose
         snapPoints={screenHeight ? ["100%"] : undefined}
         animateOnMount

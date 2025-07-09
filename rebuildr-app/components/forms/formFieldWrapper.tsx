@@ -20,8 +20,13 @@ export const FormFieldWrapper = ({
   children,
 }: Props) => {
   return (
-    <View style={{ flexDirection: horizontal ? "row" : "column" }}>
-      <View>
+    <View
+      style={{
+        flexDirection: horizontal ? "row" : "column",
+        alignItems: horizontal ? "center" : undefined,
+      }}
+    >
+      <View style={{ flex: 1 }}>
         {heading ? (
           <View style={{ paddingBottom: 4 }}>
             <Label size="medium">{heading}</Label>

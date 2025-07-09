@@ -95,6 +95,10 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
 const BUY_PRODUCT_DELIVERY_OPTION = gql`
   query BuyProductDeliveryOption($input: GetTransportationOptionsInput!) {
     getDeliveryOption(input: $input) {
+      deliverToLocation {
+        lat
+        lng
+      }
       isWithinRadius
       distanceFromProduct
       deliveryPrice
@@ -119,11 +123,11 @@ const BUY_PRODUCT_UPDATE_USER = gql`
 
 export default function BuyProductInitial() {
   const [postCode, setPostCode] = useState("");
-  //pickup
-  const [pickupSelected, setPickupSelected] = useState(false);
+  const [transportationMethod, setTransportationMethod] = useState<
+    "pickup" | "shipping" | "delivery"
+  >();
 
   //shipping
-  const [shippingSelected, setShippingSelected] = useState(false);
   const [showShippingDetails, setShowShippingDetails] = useState(false);
   const [servicePoint, setServicePoint] =
     useState<
@@ -136,7 +140,6 @@ export default function BuyProductInitial() {
   const [city, setCity] = useState<string>();
 
   //delivery
-  const [deliverySelected, setDeliverySelected] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryOption, setDeliveryOption] =
     useState<BuyProductDeliveryOptionQuery["getDeliveryOption"]>();
@@ -190,10 +193,13 @@ export default function BuyProductInitial() {
   };
 
   const progress = () => {
-    if (pickupSelected || deliverySelected) {
+    if (
+      transportationMethod === "pickup" ||
+      transportationMethod === "delivery"
+    ) {
       return 75;
     }
-    if (shippingSelected) {
+    if (transportationMethod === "shipping") {
       return 50;
     }
 
@@ -202,21 +208,7 @@ export default function BuyProductInitial() {
     }
     return 10;
   };
-  const onSelectPickup = () => {
-    setPickupSelected(!pickupSelected);
-    setShippingSelected(false);
-    setDeliverySelected(false);
-  };
-  const onSelectShipping = () => {
-    setPickupSelected(false);
-    setShippingSelected(!shippingSelected);
-    setDeliverySelected(false);
-  };
-  const onSelectDelivery = () => {
-    setPickupSelected(false);
-    setShippingSelected(false);
-    setDeliverySelected(!deliverySelected);
-  };
+
   const onShippingProceed = () => {
     setShowShippingDetails(true);
     setName(data?.me.name ?? "");
@@ -229,13 +221,13 @@ export default function BuyProductInitial() {
     if (!data) {
       return;
     }
-    if (pickupSelected) {
+    if (transportationMethod === "pickup") {
       router.navigate({
         pathname: "/buy/[productId]/payment",
-        params: { productId },
+        params: { productId, transportationMethod },
       });
     }
-    if (shippingSelected) {
+    if (transportationMethod === "shipping" && servicePoint) {
       if (updateUserloading) {
         return;
       }
@@ -253,15 +245,23 @@ export default function BuyProductInitial() {
         onCompleted: () => {
           router.navigate({
             pathname: "/buy/[productId]/payment",
-            params: { productId },
+            params: {
+              productId,
+              transportationMethod,
+              servicePointId: servicePoint.id,
+            },
           });
         },
       });
     }
-    if (deliverySelected) {
+    if (transportationMethod === "delivery" && deliveryOption) {
       router.navigate({
         pathname: "/buy/[productId]/payment",
-        params: { productId },
+        params: {
+          productId,
+          transportationMethod,
+          deliverTo: `${deliveryOption.deliverToLocation.lat},${deliveryOption.deliverToLocation.lng}`,
+        },
       });
     }
   };
@@ -280,17 +280,20 @@ export default function BuyProductInitial() {
   }
 
   let totalPrice = data.product.price;
-  if (shippingSelected) {
+  if (transportationMethod === "shipping") {
     totalPrice +=
       transportationData?.getShippingOptions[0].shippingPrice.price ?? 0;
   }
-  if (deliverySelected) {
+  if (transportationMethod === "delivery") {
     totalPrice += transportationData?.getDeliveryOption?.deliveryPrice ?? 0;
   }
 
   const showTransportationOptions =
     transportationData && !transportationLoading && !showShippingDetails;
-  const showSummary = pickupSelected || shippingSelected || deliverySelected;
+  const showSummary =
+    transportationMethod === "pickup" ||
+    transportationMethod === "shipping" ||
+    transportationMethod === "delivery";
 
   return (
     <>
@@ -366,8 +369,12 @@ export default function BuyProductInitial() {
                 <ToggleCard
                   title="Avhämtning"
                   valueString="0 kr"
-                  enabled={pickupSelected}
-                  onPress={onSelectPickup}
+                  enabled={transportationMethod === "pickup"}
+                  onPress={() => {
+                    setTransportationMethod(
+                      transportationMethod === "pickup" ? undefined : "pickup",
+                    );
+                  }}
                   headerDivider
                 >
                   <View style={{ gap: 16 }}>
@@ -400,8 +407,14 @@ export default function BuyProductInitial() {
                 <ToggleCard
                   title="Frakt med Postnord"
                   valueString={`${transportationData.getShippingOptions[0].shippingPrice.price} kr`}
-                  enabled={shippingSelected}
-                  onPress={onSelectShipping}
+                  enabled={transportationMethod === "shipping"}
+                  onPress={() => {
+                    setTransportationMethod(
+                      transportationMethod === "shipping"
+                        ? undefined
+                        : "shipping",
+                    );
+                  }}
                   headerDivider
                 >
                   <View style={{ gap: 16 }}>
@@ -437,7 +450,6 @@ export default function BuyProductInitial() {
                         label="Ändra"
                         type="tonal"
                         onPress={() => {
-                          console.log("present called");
                           servicePointRef.current?.present();
                         }}
                       />
@@ -449,8 +461,14 @@ export default function BuyProductInitial() {
                 <ToggleCard
                   title="Hemtransport"
                   valueString={`${transportationData.getDeliveryOption.deliveryPrice} kr`}
-                  enabled={deliverySelected}
-                  onPress={onSelectDelivery}
+                  enabled={transportationMethod === "delivery"}
+                  onPress={() => {
+                    setTransportationMethod(
+                      transportationMethod === "delivery"
+                        ? undefined
+                        : "delivery",
+                    );
+                  }}
                   headerDivider
                   error={!!deliveryOption && !deliveryOption.isWithinRadius}
                 >
@@ -601,12 +619,15 @@ export default function BuyProductInitial() {
                   value: phoneNumber,
                   onChange: (t) => setPhoneNumber(t),
                   heading: "Telefonnummer",
+                  description: "För leveransansvarig från Postnord.",
                 },
                 {
                   type: "text",
                   value: shippingAddress,
                   onChange: (t) => setShippingAddress(t),
                   heading: "Gatuadress",
+                  description:
+                    "För spårbarhet och identifiering vid eventuell felsortering eller retur.",
                 },
                 {
                   type: "text",
@@ -630,8 +651,10 @@ export default function BuyProductInitial() {
           <>
             <Divider />
             <View style={{ gap: 16, alignItems: "center" }}>
-              {pickupSelected && <Body size="medium">Du betalar:</Body>}
-              {shippingSelected && (
+              {transportationMethod === "pickup" && (
+                <Body size="medium">Du betalar:</Body>
+              )}
+              {transportationMethod === "shipping" && (
                 <Body size="medium">
                   Du betalar (ink. frakt{" "}
                   {
@@ -641,7 +664,7 @@ export default function BuyProductInitial() {
                   kr):
                 </Body>
               )}
-              {deliverySelected && (
+              {transportationMethod === "delivery" && (
                 <Body size="medium">
                   Du betalar (ink. hemtransport{" "}
                   {transportationData?.getDeliveryOption?.deliveryPrice} kr):
@@ -649,13 +672,13 @@ export default function BuyProductInitial() {
               )}
               <Display size="medium">{totalPrice} kr</Display>
               <View style={{ alignSelf: "stretch" }}>
-                {pickupSelected && (
+                {transportationMethod === "pickup" && (
                   <Button
                     label="Fortsätt till Betalning"
                     onPress={onToPayment}
                   />
                 )}
-                {shippingSelected &&
+                {transportationMethod === "shipping" &&
                   (showShippingDetails ? (
                     <View style={{ flexDirection: "row", gap: 8 }}>
                       <Button
@@ -686,7 +709,7 @@ export default function BuyProductInitial() {
                       }}
                     />
                   ))}
-                {deliverySelected && (
+                {transportationMethod === "delivery" && (
                   <Button
                     label="Fortsätt till Betalning"
                     onPress={onToPayment}
@@ -721,9 +744,11 @@ export default function BuyProductInitial() {
               />
             </View>
             <Body size="medium" style={{ textAlign: "center" }}>
-              {pickupSelected && "Du hämtar varan inom 7 dagar."}
-              {shippingSelected && "Säljaren skickar varan inom 7 dagar."}
-              {deliverySelected &&
+              {transportationMethod === "pickup" &&
+                "Du hämtar varan inom 7 dagar."}
+              {transportationMethod === "shipping" &&
+                "Säljaren skickar varan inom 7 dagar."}
+              {transportationMethod === "delivery" &&
                 "Leveransen planeras i chatten mellan dig och säljaren och ska ske inom 7 dagar."}
             </Body>
           </>
