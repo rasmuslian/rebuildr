@@ -31,6 +31,13 @@ export enum PurchaseStatusEnum {
 }
 registerEnumType(PurchaseStatusEnum, { name: 'PurchaseStatusEnum' });
 
+export enum TransportationEnum {
+  PICKUP = 'PICKUP',
+  SHIPPING = 'SHIPPING',
+  DELIVERY = 'DELIVERY',
+}
+registerEnumType(TransportationEnum, { name: 'TransportationEnum' });
+
 @Entity()
 @ObjectType()
 export class Purchase {
@@ -137,8 +144,17 @@ export class Purchase {
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
 
+  @Field(() => TransportationEnum)
+  @Column({ type: 'enum', enum: TransportationEnum })
+  tranportationMethod: TransportationEnum;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  toServicePointId?: string;
+
   @Column({ nullable: true })
   shippingPriceId?: string;
+
   @ManyToOne(() => ShippingPrice, (shippingPrice) => shippingPrice.id, {
     nullable: true,
   })
