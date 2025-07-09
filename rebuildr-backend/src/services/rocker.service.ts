@@ -1,6 +1,5 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
-import { registerEnumType } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import {
@@ -23,15 +22,7 @@ import { Logger } from 'winston';
 
 import { Repository } from 'typeorm';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-
-export enum SupportedPaymentMethod {
-  SWISH = 'SWISH',
-  STRIPE = 'STRIPE',
-  TRUSTLY = 'TRUSTLY',
-}
-registerEnumType(SupportedPaymentMethod, {
-  name: 'PaymentMethod',
-});
+import { SupportedPaymentMethod } from 'src/entities/purchase.entity';
 
 const CACHE_TTL_MS = 30000;
 

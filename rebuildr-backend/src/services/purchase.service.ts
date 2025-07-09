@@ -439,6 +439,7 @@ export class PurchaseService {
     purchase.product = product;
     purchase.shippingPrice = selectedShippingPrice;
     purchase.tranportationMethod = input.transportationMethod;
+    purchase.paymentMethod = input.paymentMethod;
 
     if (process.env.NODE_ENV === 'development') {
       purchase.paymentAcceptedAt = new Date();

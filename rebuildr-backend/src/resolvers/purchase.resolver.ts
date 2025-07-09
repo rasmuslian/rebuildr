@@ -17,11 +17,14 @@ import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { RequestId } from 'src/decorators/request-id.decorator';
 import { Product } from 'src/entities/product.entity';
-import { Purchase, TransportationEnum } from 'src/entities/purchase.entity';
+import {
+  Purchase,
+  SupportedPaymentMethod,
+  TransportationEnum,
+} from 'src/entities/purchase.entity';
 import { Review } from 'src/entities/review.entity';
 import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
 import { PurchaseService } from 'src/services/purchase.service';
-import { SupportedPaymentMethod } from 'src/services/rocker.service';
 import { Logger } from 'winston';
 import { LocationInputType } from './geocoding.resolver';
 

@@ -50,6 +50,7 @@ type Purchase {
   status: PurchaseStatusEnum!
   qrCodeUrl: String
   tranportationMethod: TransportationEnum!
+  paymentMethod: PaymentMethod!
   toServicePointId: String
   isShipping: Boolean!
   reviews: [Review!]!
@@ -76,6 +77,12 @@ enum TransportationEnum {
   PICKUP
   SHIPPING
   DELIVERY
+}
+
+enum PaymentMethod {
+  SWISH
+  STRIPE
+  TRUSTLY
 }
 
 type Project {
@@ -815,12 +822,6 @@ input PurchaseProductInput {
   deliverTo: LocationInputType
   swishType: PaymentTypeEnum
   transportationMethod: TransportationEnum!
-}
-
-enum PaymentMethod {
-  SWISH
-  STRIPE
-  TRUSTLY
 }
 
 enum PaymentTypeEnum {

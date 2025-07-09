@@ -38,6 +38,15 @@ export enum TransportationEnum {
 }
 registerEnumType(TransportationEnum, { name: 'TransportationEnum' });
 
+export enum SupportedPaymentMethod {
+  SWISH = 'SWISH',
+  STRIPE = 'STRIPE',
+  TRUSTLY = 'TRUSTLY',
+}
+registerEnumType(SupportedPaymentMethod, {
+  name: 'PaymentMethod',
+});
+
 @Entity()
 @ObjectType()
 export class Purchase {
@@ -147,6 +156,10 @@ export class Purchase {
   @Field(() => TransportationEnum)
   @Column({ type: 'enum', enum: TransportationEnum })
   tranportationMethod: TransportationEnum;
+
+  @Field(() => SupportedPaymentMethod)
+  @Column({ type: 'enum', enum: SupportedPaymentMethod })
+  paymentMethod: SupportedPaymentMethod;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
