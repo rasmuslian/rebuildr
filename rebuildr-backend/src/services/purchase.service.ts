@@ -438,7 +438,7 @@ export class PurchaseService {
     purchase.buyer = buyer;
     purchase.product = product;
     purchase.shippingPrice = selectedShippingPrice;
-    purchase.tranportationMethod = input.transportationMethod;
+    purchase.transportationMethod = input.transportationMethod;
     purchase.paymentMethod = input.paymentMethod;
 
     if (process.env.NODE_ENV === 'development') {

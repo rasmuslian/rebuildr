@@ -15,6 +15,9 @@ export class AddPaymentMethodToPurchase1752059041269
     await queryRunner.query(
       `ALTER TABLE "purchase" ALTER COLUMN "paymentMethod" SET NOT NULL`,
     );
+    await queryRunner.query(
+      `ALTER TABLE "purchase" ALTER COLUMN "paymentMethod" DROP DEFAULT`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

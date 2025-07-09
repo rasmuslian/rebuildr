@@ -155,7 +155,7 @@ export class Purchase {
 
   @Field(() => TransportationEnum)
   @Column({ type: 'enum', enum: TransportationEnum })
-  tranportationMethod: TransportationEnum;
+  transportationMethod: TransportationEnum;
 
   @Field(() => SupportedPaymentMethod)
   @Column({ type: 'enum', enum: SupportedPaymentMethod })
@@ -167,7 +167,6 @@ export class Purchase {
 
   @Column({ nullable: true })
   shippingPriceId?: string;
-
   @ManyToOne(() => ShippingPrice, (shippingPrice) => shippingPrice.id, {
     nullable: true,
   })
