@@ -41,6 +41,7 @@ import { TextTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Home } from "./home";
 import { Edit } from "./edit";
+import { Hamburger } from "./hamburger";
 
 export type IconType =
   | "placeholder"
@@ -59,6 +60,7 @@ export type IconType =
   | "filterList"
   | "heart"
   | "heartFilled"
+  | "hamburger"
   | "home"
   | "list"
   | "grid"
@@ -197,6 +199,8 @@ export const Icon = ({
       return <AddFile {...props} size={size} color={color} />;
     case "user":
       return <User {...props} size={size} color={color} />;
+    case "hamburger":
+      return <Hamburger {...props} size={size} color={color} />;
     case "message":
       return <Message {...props} size={size} color={color} />;
     case "newListing":

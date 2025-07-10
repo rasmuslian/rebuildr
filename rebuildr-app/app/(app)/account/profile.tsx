@@ -32,6 +32,7 @@ import { numberToString } from "@/utils/number-strings";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { TabRail } from "@components/tabs/tab-rail";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -56,6 +57,7 @@ const PROFILE = gql`
       projects {
         id
         title
+        likedByMe
         projectPicture {
           id
           url
@@ -146,6 +148,7 @@ const PROFILE_UPDATE_USER = gql`
 
 export default function Profile() {
   const [tab, setTab] = useState<"products" | "reviewed">("products");
+  const { onToggleProductHeart } = useLikeProduct();
 
   //------edit profile variables------
   const [description, setDescription] = useState<string>();
@@ -359,6 +362,14 @@ export default function Profile() {
                   location: product.approximatePlace?.address,
                 },
                 price: product.price,
+                heart: true,
+                liked: !!product.likedByMe,
+                onHeartPress: () => {
+                  onToggleProductHeart({
+                    productId: product.id,
+                    likedByMe: !!product.likedByMe,
+                  });
+                },
               }))}
               pagination={{
                 onShowMore,

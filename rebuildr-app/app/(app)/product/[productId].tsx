@@ -93,6 +93,7 @@ const PRODUCT_VIEW_FRAGMENT = gql`
       id
       title
       address
+      likedByMe
       projectPicture {
         id
         url
@@ -183,7 +184,7 @@ const PRODUCT_REMOVE_PRODUCT = gql`
 `;
 
 export default function Product() {
-  const { onToggleHeart } = useLikeProduct();
+  const { onToggleProductHeart } = useLikeProduct();
   const isLoggedIn = isLoggedInVar();
   const removeProductRef = useRef<BottomSheetModal>(null);
   const { productId } = useLocalSearchParams<{ productId: string }>();
@@ -203,9 +204,8 @@ export default function Product() {
   }
 
   const onLikeProduct = () => {
-    if (!data || !isLoggedIn) return;
-
-    onToggleHeart({
+    if (!data) return;
+    onToggleProductHeart({
       productId,
       likedByMe: !!data.product.likedByMe,
     });
@@ -401,8 +401,7 @@ export default function Product() {
                 price={item.price}
                 status={item.status}
                 onHeartPress={() => {
-                  if (!isLoggedIn) return;
-                  onToggleHeart({
+                  onToggleProductHeart({
                     productId: item.id,
                     likedByMe: !!item.likedByMe,
                   });

@@ -86,7 +86,7 @@ export default function Products() {
   const isLoggedIn = isLoggedInVar();
   const productsPerPage = 10;
   const transportRef = useRef<BottomSheetModal>(null);
-  const { onToggleHeart } = useLikeProduct();
+  const { onToggleProductHeart } = useLikeProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
     SearchProductsQuery,
@@ -314,8 +314,7 @@ export default function Products() {
               heart: true,
               liked: !!product.likedByMe,
               onHeartPress: () => {
-                if (!isLoggedIn) return;
-                onToggleHeart({
+                onToggleProductHeart({
                   productId: product.id,
                   likedByMe: !!product.likedByMe,
                 });
