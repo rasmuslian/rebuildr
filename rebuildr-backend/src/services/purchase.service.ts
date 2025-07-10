@@ -249,6 +249,16 @@ export class PurchaseService {
       (shippingPrice) => shippingPrice.provider === input.shippingProvider,
     );
 
+    const deliverToPoint: Point = input.deliverToLocation
+      ? {
+          type: 'Point',
+          coordinates: [
+            input.deliverToLocation.lat,
+            input.deliverToLocation.lng,
+          ],
+        }
+      : undefined;
+
     logger.info({
       message: 'Selected shipping price',
       id: selectedShippingPrice?.id,
@@ -300,17 +310,14 @@ export class PurchaseService {
         });
         throw BadUserInputException('Seller does not offer delivery');
       }
-      if (!input.deliverTo) {
+      if (!input.deliverToLocation) {
         logger.error({
           message: 'Must specify where to deliver',
           productId: product.id,
         });
         throw BadUserInputException('Must specify where to deliver');
       }
-      const deliverToPoint: Point = {
-        type: 'Point',
-        coordinates: [input.deliverTo.lat, input.deliverTo.lng],
-      };
+
       const distance = await this.productService.distanceToProduct(
         deliverToPoint,
         input.productId,
@@ -321,7 +328,7 @@ export class PurchaseService {
           message: 'Product is too far away for delivery',
           productId: product.id,
           productLocation: product.addressLocation,
-          deliverTo: input.deliverTo,
+          deliverToLocation: input.deliverToLocation,
         });
         throw BadUserInputException('Product is too far away for delivery');
       }
@@ -432,6 +439,8 @@ export class PurchaseService {
     const payment = await generatePayment(offer.id);
 
     purchase.toServicePointId = input.servicePointId;
+    purchase.deliverToAddress = input.deliverToAddress;
+    purchase.deliverToLocation = deliverToPoint;
 
     purchase.rockerOfferId = offer.id;
     purchase.rockerPaymentId = payment.id;

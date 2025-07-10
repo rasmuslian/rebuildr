@@ -260,7 +260,8 @@ export default function BuyProductInitial() {
         params: {
           productId,
           transportationMethod,
-          deliverTo: `${deliveryOption.deliverToLocation.lat},${deliveryOption.deliverToLocation.lng}`,
+          deliverToLocation: `${deliveryOption.deliverToLocation.lat},${deliveryOption.deliverToLocation.lng}`,
+          deliverToAddress: deliveryAddress,
         },
       });
     }

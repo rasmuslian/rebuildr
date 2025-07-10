@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
@@ -164,6 +165,16 @@ export class Purchase {
   @Field({ nullable: true })
   @Column({ nullable: true })
   toServicePointId?: string;
+
+  @Column({ nullable: true })
+  deliverToAddress?: string;
+
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  deliverToLocation?: Point;
 
   @Column({ nullable: true })
   shippingPriceId?: string;

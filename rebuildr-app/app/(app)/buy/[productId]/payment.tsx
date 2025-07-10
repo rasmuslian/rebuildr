@@ -86,13 +86,19 @@ export default function Payment() {
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [showBankId, setShowBankId] = useState(false);
   const [showSwishSheet, setShowSwishSheet] = useState(false);
-  const { productId, transportationMethod, servicePointId, deliverTo } =
-    useLocalSearchParams<{
-      productId: string;
-      transportationMethod: "pickup" | "shipping" | "delivery";
-      servicePointId?: string;
-      deliverTo?: string;
-    }>();
+  const {
+    productId,
+    transportationMethod,
+    servicePointId,
+    deliverToLocation,
+    deliverToAddress,
+  } = useLocalSearchParams<{
+    productId: string;
+    transportationMethod: "pickup" | "shipping" | "delivery";
+    servicePointId?: string;
+    deliverToLocation?: string;
+    deliverToAddress?: string;
+  }>();
   const colors = useThemeColor();
 
   const { data } = useQuery<
@@ -144,7 +150,9 @@ export default function Payment() {
       return;
     }
 
-    const deliverToLocation = deliverTo ? deliverTo.split(",") : undefined;
+    const deliverToCoordinates = deliverToLocation
+      ? deliverToLocation.split(",")
+      : undefined;
 
     if (paymentMethod === PaymentMethod.Swish) {
       createPurchase({
@@ -159,12 +167,13 @@ export default function Payment() {
             transportationMethod: convertedMethod,
             servicePointId,
             shippingProvider: ShippingProviderEnum.Postnord,
-            deliverTo: deliverToLocation
+            deliverToLocation: deliverToCoordinates
               ? {
-                  lat: parseFloat(deliverToLocation[0]),
-                  lng: parseFloat(deliverToLocation[1]),
+                  lat: parseFloat(deliverToCoordinates[0]),
+                  lng: parseFloat(deliverToCoordinates[1]),
                 }
               : undefined,
+            deliverToAddress,
           },
         },
         onCompleted: () => {

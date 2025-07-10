@@ -54,7 +54,10 @@ export class PurchaseProductInput {
   shippingProvider?: ShippingProviderEnum;
 
   @Field(() => LocationInputType, { nullable: true })
-  deliverTo?: LocationInputType;
+  deliverToLocation?: LocationInputType;
+
+  @Field(() => String, { nullable: true })
+  deliverToAddress?: string;
 
   @Field(() => PaymentTypeEnum, { nullable: true })
   swishType?: PaymentTypeEnum;

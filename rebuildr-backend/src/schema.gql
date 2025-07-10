@@ -822,7 +822,8 @@ input PurchaseProductInput {
   paymentMethod: PaymentMethod!
   servicePointId: String
   shippingProvider: ShippingProviderEnum
-  deliverTo: LocationInputType
+  deliverToLocation: LocationInputType
+  deliverToAddress: String
   swishType: PaymentTypeEnum
   transportationMethod: TransportationEnum!
 }
