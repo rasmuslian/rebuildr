@@ -81,6 +81,7 @@ import { ShippingResolver } from './resolvers/shipping.resolver';
 import { ShippingService } from './services/shipping.service';
 import { PostnordAPI } from './apis/postnord.api';
 import { PurchaseLoader } from './dataloaders/purchase.loader';
+import { DHLAPI } from './apis/dhl.api';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -213,6 +214,7 @@ export interface RequestType {
     RockerService,
     RockerAPI,
     PostnordAPI,
+    DHLAPI,
     PurchaseService,
     PurchaseResolver,
     BrandService,

@@ -144,27 +144,34 @@ export class Purchase {
   })
   status: PurchaseStatusEnum;
 
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true, type: 'character varying' })
-  qrCodeUrl?: string | null;
-
   @Column({ nullable: true })
   refundId?: string;
 
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
 
-  @Field(() => TransportationEnum)
-  @Column({ type: 'enum', enum: TransportationEnum })
-  transportationMethod: TransportationEnum;
-
   @Field(() => SupportedPaymentMethod)
   @Column({ type: 'enum', enum: SupportedPaymentMethod })
   paymentMethod: SupportedPaymentMethod;
 
+  @Field(() => TransportationEnum)
+  @Column({ type: 'enum', enum: TransportationEnum })
+  transportationMethod: TransportationEnum;
+
+  @Column({ nullable: true })
+  shippingId?: string;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   toServicePointId?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  qrCodeUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  qrCodeContent: string | null;
 
   @Column({ nullable: true })
   deliverToAddress?: string;

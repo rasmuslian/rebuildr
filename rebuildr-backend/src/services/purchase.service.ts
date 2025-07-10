@@ -49,6 +49,7 @@ import {
 import { Review } from 'src/entities/review.entity';
 import { ProductService } from './product.service';
 import { provisionBase } from 'src/constants/pricing';
+import { ShippingService } from './shipping.service';
 
 export class PurchaseService {
   constructor(
@@ -66,6 +67,7 @@ export class PurchaseService {
     private reviewRepository: Repository<Review>,
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
+    private shippingService: ShippingService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -932,6 +934,16 @@ export class PurchaseService {
 
     purchase.paymentAcceptedAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
+
+    if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
+      logger.info({
+        message:
+          'Accepting payment of purchase with tranportation method SHIPPING',
+        purchaseId: purchase.id,
+        buyerId: purchase.buyerId,
+      });
+      this.shippingService.bookShipping(purchase.id, logger);
+    }
 
     logger.info('Payment completed', {
       paymentId: payload.paymentId,

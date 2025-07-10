@@ -48,10 +48,11 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
-  qrCodeUrl: String
-  transportationMethod: TransportationEnum!
   paymentMethod: PaymentMethod!
+  transportationMethod: TransportationEnum!
   toServicePointId: String
+  qrCodeUrl: String
+  qrCodeContent: String
   isShipping: Boolean!
   reviews: [Review!]!
   buyer: User!
@@ -76,16 +77,16 @@ enum PurchaseStatusEnum {
   PAYOUT_FAILED
 }
 
-enum TransportationEnum {
-  PICKUP
-  SHIPPING
-  DELIVERY
-}
-
 enum PaymentMethod {
   SWISH
   STRIPE
   TRUSTLY
+}
+
+enum TransportationEnum {
+  PICKUP
+  SHIPPING
+  DELIVERY
 }
 
 type Project {
