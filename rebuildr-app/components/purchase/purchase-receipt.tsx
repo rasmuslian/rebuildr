@@ -1,0 +1,163 @@
+import {
+  PurchaseReceiptQuery,
+  PurchaseReceiptQueryVariables,
+  TransportationEnum,
+} from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
+import { Avatar } from "@components/avatar/avatar";
+import { ReceiptCard } from "@components/purchase/receipt-card";
+import { Divider } from "@components/dividers/divider";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { ImageCarousel } from "@components/preview-product/image-carousel";
+import { Body, Headline, Label, Title } from "@components/typography/text";
+import { shippingProviderStrings } from "@constants/shippingProviders";
+import dayjs from "dayjs";
+import { View } from "react-native";
+import { PurchaseProgress } from "./purchase-progress";
+
+export const PURCHASE_RECEIPT = gql`
+  query PurchaseReceipt($input: GetPurchaseInput!) {
+    purchase(input: $input) {
+      id
+      status
+      paymentAcceptedAt
+      paymentMethod
+      transportationMethod
+      shippingPrice {
+        id
+        price
+        maxWeight
+        provider
+      }
+      product {
+        id
+        title
+        price
+        deliveryPrice
+        seller {
+          id
+          username
+        }
+        images {
+          id
+          mimeType
+          url
+          name
+        }
+      }
+      buyer {
+        id
+        username
+        name
+        address
+        postCode
+        city
+        profilePicture {
+          id
+          url
+        }
+      }
+    }
+    me {
+      id
+      email
+    }
+  }
+`;
+
+type Props = {
+  purchaseId: string;
+};
+
+export const PurchaseReceipt = ({ purchaseId }: Props) => {
+  const { data } = useQuery<
+    PurchaseReceiptQuery,
+    PurchaseReceiptQueryVariables
+  >(PURCHASE_RECEIPT, { variables: { input: { id: purchaseId } } });
+
+  if (!data) {
+    return <LoadingSpinner />;
+  }
+
+  const buyer = data.purchase.buyer;
+  const buyerIsMe = buyer.id === data.me.id;
+
+  return (
+    <View style={{ gap: 24 }}>
+      <ImageCarousel images={data.purchase.product.images} />
+      <View style={{ gap: 16 }}>
+        <Title size="large">{data.purchase.product.title}</Title>
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <Avatar imageUrl={buyer.profilePicture?.url} size={32} />
+          <View>
+            <Label size="medium">Köpt av {buyer.username}</Label>
+            <Body size="small" color="secondary">
+              {dayjs(data.purchase.paymentAcceptedAt).format("DD MMMM, YYYY")}
+            </Body>
+          </View>
+        </View>
+      </View>
+      <Divider />
+      <View style={{ gap: 16 }}>
+        <Headline size="small">Vad händer nu?</Headline>
+        <PurchaseProgress purchaseData={data} />
+      </View>
+      <Divider />
+      <View style={{ gap: 16 }}>
+        <Headline size="small">Kvitto</Headline>
+        <ReceiptCard
+          price={data.purchase.product.price}
+          paymentMethod={data.purchase.paymentMethod}
+          payedAt={data.purchase.paymentAcceptedAt}
+          shippingPrice={data.purchase.shippingPrice}
+          deliveryPrice={data.purchase.product.deliveryPrice}
+        />
+      </View>
+      <Divider />
+      {data.purchase.transportationMethod === TransportationEnum.Shipping && (
+        <>
+          <View style={{ gap: 16 }}>
+            <Headline size="small">Leveranssätt</Headline>
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Leveransadress</Label>
+              <Body size="medium">{buyer.name}</Body>
+              <Body size="medium">
+                {buyer.address}, {buyer.postCode} {buyer.city}
+              </Body>
+            </View>
+            <View style={{ gap: 4 }}>
+              <Label size="medium">
+                Skickas med{" "}
+                {data.purchase.shippingPrice?.provider
+                  ? shippingProviderStrings[
+                      data.purchase.shippingPrice?.provider
+                    ]
+                  : ""}
+              </Label>
+              <Body size="medium">
+                {buyerIsMe
+                  ? `Du får ett meddelande från ${data.purchase.shippingPrice?.provider ? shippingProviderStrings[data.purchase.shippingPrice?.provider] : ""} när paketet kan hämtas.`
+                  : "Vi meddelar dig så snart köparen har hämtat ut paketet."}
+              </Body>
+            </View>
+          </View>
+          <Divider />
+        </>
+      )}
+      <View style={{ gap: 16 }}>
+        <Headline size="small">Har du några frågor?</Headline>
+        <Body size="medium">
+          Om något känns oklart kan du kika i våra{" "}
+          <Body size="medium" isLink>
+            vanliga frågor
+          </Body>{" "}
+          eller{" "}
+          <Body size="medium" isLink>
+            kontakta säljaren
+          </Body>
+          .
+        </Body>
+      </View>
+    </View>
+  );
+};

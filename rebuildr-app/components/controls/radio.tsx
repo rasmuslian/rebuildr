@@ -1,5 +1,6 @@
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { Icon, IconType } from "@icons/icon";
 import React, { useState } from "react";
 
 import {
@@ -12,9 +13,18 @@ import {
 
 export type RadioProps = {
   selected?: boolean;
+  customColor?: string;
+  icon?: IconType;
 } & PressableProps;
 
-export const Radio = ({ onPress, disabled, selected, ...rest }: RadioProps) => {
+export const Radio = ({
+  onPress,
+  disabled,
+  selected,
+  customColor,
+  icon,
+  ...rest
+}: RadioProps) => {
   const [hovered, setHovered] = useState(false);
   const colors = useThemeColor();
   const colorSet = selected ? colors.radio.true : colors.radio.false;
@@ -40,7 +50,7 @@ export const Radio = ({ onPress, disabled, selected, ...rest }: RadioProps) => {
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            backgroundColor: colorSet[radioState],
+            backgroundColor: customColor ?? colorSet[radioState],
             paddingHorizontal: 8,
             borderRadius: borderRadius.medium,
             width: 24,
@@ -50,23 +60,27 @@ export const Radio = ({ onPress, disabled, selected, ...rest }: RadioProps) => {
         ];
       }}
     >
-      <View
-        style={[
-          selected
-            ? {
-                width: 8,
-                height: 8,
-                borderRadius: borderRadius.medium,
-                backgroundColor: colorSet.handle,
-              }
-            : {
-                width: 20,
-                height: 20,
-                borderRadius: borderRadius.medium,
-                backgroundColor: colorSet.handle,
-              },
-        ]}
-      />
+      {selected && !icon && (
+        <View
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: borderRadius.medium,
+            backgroundColor: colorSet.handle,
+          }}
+        />
+      )}
+      {selected && !!icon && <Icon icon={icon} customColor={colorSet.handle} />}
+      {!selected && (
+        <View
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: borderRadius.medium,
+            backgroundColor: colorSet.handle,
+          }}
+        />
+      )}
     </Pressable>
   );
 };
