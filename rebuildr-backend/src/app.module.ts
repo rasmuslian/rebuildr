@@ -80,6 +80,7 @@ import {
 import { ShippingResolver } from './resolvers/shipping.resolver';
 import { ShippingService } from './services/shipping.service';
 import { PostnordAPI } from './apis/postnord.api';
+import { PurchaseLoader } from './dataloaders/purchase.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -137,6 +138,7 @@ export interface RequestType {
         SearchResultLoader,
         ProjectLoader,
         ReviewLoader,
+        PurchaseLoader,
         ConfigService,
       ],
       useFactory: (
@@ -146,6 +148,7 @@ export interface RequestType {
         searchResultLoaderService: SearchResultLoader,
         projectLoaderService: ProjectLoader,
         reviewLoaderService: ReviewLoader,
+        purchaseLoaderService: PurchaseLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -160,6 +163,7 @@ export interface RequestType {
             searchResultLoaders: searchResultLoaderService.createLoaders(),
             projectLoaders: projectLoaderService.createLoaders(),
             reviewLoaders: reviewLoaderService.createLoaders(),
+            purchaseLoaders: purchaseLoaderService.createLoaders(),
             req,
             res,
           }),

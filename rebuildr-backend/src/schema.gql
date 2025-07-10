@@ -49,11 +49,14 @@ type Purchase {
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
   qrCodeUrl: String
-  tranportationMethod: TransportationEnum!
+  transportationMethod: TransportationEnum!
   paymentMethod: PaymentMethod!
   toServicePointId: String
   isShipping: Boolean!
   reviews: [Review!]!
+  buyer: User!
+  shippingPrice: ShippingPrice
+  product: Product!
 }
 
 enum PurchaseStatusEnum {

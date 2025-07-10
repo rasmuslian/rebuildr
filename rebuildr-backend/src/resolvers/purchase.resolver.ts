@@ -1,6 +1,7 @@
 import { Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -23,10 +24,15 @@ import {
   TransportationEnum,
 } from 'src/entities/purchase.entity';
 import { Review } from 'src/entities/review.entity';
-import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
+import {
+  ShippingPrice,
+  ShippingProviderEnum,
+} from 'src/entities/shipping-price.entity';
 import { PurchaseService } from 'src/services/purchase.service';
 import { Logger } from 'winston';
 import { LocationInputType } from './geocoding.resolver';
+import { IPurchaseLoaders } from 'src/dataloaders/purchase.loader';
+import { User } from 'src/entities/user.entity';
 
 @InputType()
 class GetPurchaseInput {
@@ -175,5 +181,29 @@ export class PurchaseResolver {
   @ResolveField(() => [Review])
   async reviews(@Parent() purchase: Purchase) {
     return this.purchaseService.reviews(purchase);
+  }
+
+  @ResolveField(() => User)
+  async buyer(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getBuyer.load(purchase.id);
+  }
+
+  @ResolveField(() => ShippingPrice, { nullable: true })
+  async shippingPrice(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getShippingPrice.load(purchase.id);
+  }
+
+  @ResolveField(() => Product)
+  async product(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getProduct.load(purchase.id);
   }
 }
