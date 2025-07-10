@@ -30,6 +30,7 @@ import VisaPaymentOption from "@assets/images/visa-payment-option.png";
 import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
 import TrustlyPaymentOption from "@assets/images/trustly-payment-option.png";
 import { Image } from "expo-image";
+import { shippingProviderStrings } from "@constants/shippingProviders";
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -73,6 +74,7 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
       shippingPrice {
         id
         price
+        provider
       }
       servicePoints {
         id
@@ -289,6 +291,7 @@ export default function BuyProductInitial() {
     totalPrice += transportationData?.getDeliveryOption?.deliveryPrice ?? 0;
   }
 
+  const shippingOption = transportationData?.getShippingOptions[0];
   const showTransportationOptions =
     transportationData && !transportationLoading && !showShippingDetails;
   const showSummary =
@@ -404,10 +407,10 @@ export default function BuyProductInitial() {
                   </View>
                 </ToggleCard>
               )}
-              {!!transportationData.getShippingOptions[0] && (
+              {!!shippingOption && (
                 <ToggleCard
-                  title="Frakt med Postnord"
-                  valueString={`${transportationData.getShippingOptions[0].shippingPrice.price} kr`}
+                  title={`Frakt med ${shippingProviderStrings[shippingOption.shippingPrice.provider]}`}
+                  valueString={`${shippingOption.shippingPrice.price} kr`}
                   enabled={transportationMethod === "shipping"}
                   onPress={() => {
                     setTransportationMethod(
@@ -420,9 +423,19 @@ export default function BuyProductInitial() {
                 >
                   <View style={{ gap: 16 }}>
                     <View>
-                      <Title size="medium">Skickas med Postnord</Title>
+                      <Title size="medium">
+                        Skickas med{" "}
+                        {
+                          shippingProviderStrings[
+                            shippingOption.shippingPrice.provider
+                          ]
+                        }
+                      </Title>
                       <Body size="medium" style={{ marginTop: 4 }}>
-                        Ditt paket kommer levereras till ditt närmsta postnord
+                        Ditt paket kommer levereras till ditt närmsta{" "}
+                        {shippingProviderStrings[
+                          shippingOption.shippingPrice.provider
+                        ].toLowerCase()}
                         ombud.
                       </Body>
                     </View>
@@ -603,7 +616,7 @@ export default function BuyProductInitial() {
             </View>
           </View>
         )}
-        {showShippingDetails && (
+        {showShippingDetails && shippingOption && (
           <View style={{ gap: 24 }}>
             <Display size="small">Dina uppgifter</Display>
             <Form
@@ -620,7 +633,7 @@ export default function BuyProductInitial() {
                   value: phoneNumber,
                   onChange: (t) => setPhoneNumber(t),
                   heading: "Telefonnummer",
-                  description: "För leveransansvarig från Postnord.",
+                  description: `För leveransansvarig från ${shippingProviderStrings[shippingOption.shippingPrice.provider]}.`,
                 },
                 {
                   type: "text",
@@ -657,11 +670,7 @@ export default function BuyProductInitial() {
               )}
               {transportationMethod === "shipping" && (
                 <Body size="medium">
-                  Du betalar (ink. frakt{" "}
-                  {
-                    transportationData?.getShippingOptions[0].shippingPrice
-                      .price
-                  }{" "}
+                  Du betalar (ink. frakt {shippingOption?.shippingPrice.price}{" "}
                   kr):
                 </Body>
               )}
@@ -759,42 +768,40 @@ export default function BuyProductInitial() {
         <View style={{ gap: 24 }}>
           <Display size="small">Välj ett ombud nära dig</Display>
           <View style={{ gap: 16 }}>
-            {transportationData?.getShippingOptions[0]?.servicePoints.map(
-              (servicePoint, i) => (
-                <View
-                  key={i}
-                  style={{ flexDirection: "row", gap: 16, marginTop: 16 }}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Title size="medium">{servicePoint?.name}</Title>
-                    <Body size="medium" style={{ marginTop: 4 }}>
-                      {servicePoint?.distance
-                        ? formatMetersToKm(servicePoint.distance)
-                        : ""}{" "}
-                      km
-                    </Body>
-                    <Body
-                      size="medium"
-                      color="secondary"
-                      style={{ marginTop: 8 }}
-                    >
-                      {servicePoint?.streetName} {servicePoint?.streetNumber}
-                      ,{" "}
-                    </Body>
-                    <Body size="medium" color="secondary">
-                      {servicePoint?.postalCode} {servicePoint?.city}
-                    </Body>
-                  </View>
-                  <Button
-                    label="Välj"
-                    onPress={() => {
-                      setServicePoint(servicePoint);
-                      servicePointRef.current?.close();
-                    }}
-                  />
+            {shippingOption?.servicePoints.map((servicePoint, i) => (
+              <View
+                key={i}
+                style={{ flexDirection: "row", gap: 16, marginTop: 16 }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Title size="medium">{servicePoint?.name}</Title>
+                  <Body size="medium" style={{ marginTop: 4 }}>
+                    {servicePoint?.distance
+                      ? formatMetersToKm(servicePoint.distance)
+                      : ""}{" "}
+                    km
+                  </Body>
+                  <Body
+                    size="medium"
+                    color="secondary"
+                    style={{ marginTop: 8 }}
+                  >
+                    {servicePoint?.streetName} {servicePoint?.streetNumber}
+                    ,{" "}
+                  </Body>
+                  <Body size="medium" color="secondary">
+                    {servicePoint?.postalCode} {servicePoint?.city}
+                  </Body>
                 </View>
-              ),
-            )}
+                <Button
+                  label="Välj"
+                  onPress={() => {
+                    setServicePoint(servicePoint);
+                    servicePointRef.current?.close();
+                  }}
+                />
+              </View>
+            ))}
           </View>
         </View>
       </BottomSheet>
