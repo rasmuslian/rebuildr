@@ -7,6 +7,8 @@ import {
   BuyProductTransportationOptionsQueryVariables,
   BuyProductUpdateUserMutation,
   BuyProductUpdateUserMutationVariables,
+  CreateFreePurchaseMutation,
+  CreateFreePurchaseMutationVariables,
 } from "@/gql/graphql";
 import { formatMetersToKm } from "@/utils/distanceHandling";
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
@@ -31,6 +33,10 @@ import MastercardPaymentOption from "@assets/images/mastercard-payment-option.pn
 import TrustlyPaymentOption from "@assets/images/trustly-payment-option.png";
 import { Image } from "expo-image";
 import { shippingProviderStrings } from "@constants/shippingProviders";
+import {
+  TransportationString,
+  transportationStringToEnum,
+} from "@/utils/transportationMethods";
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -123,11 +129,21 @@ const BUY_PRODUCT_UPDATE_USER = gql`
   }
 `;
 
+const BUY_PRODUCT_CREATE_FREE_PURCHASE = gql`
+  mutation CreateFreePurchase($input: PurchaseProductInput!) {
+    purchaseProduct(input: $input) {
+      purchase {
+        id
+        status
+      }
+    }
+  }
+`;
+
 export default function BuyProductInitial() {
   const [postCode, setPostCode] = useState("");
-  const [transportationMethod, setTransportationMethod] = useState<
-    "pickup" | "shipping" | "delivery"
-  >();
+  const [transportationMethod, setTransportationMethod] =
+    useState<TransportationString>();
 
   //shipping
   const [showShippingDetails, setShowShippingDetails] = useState(false);
@@ -182,6 +198,10 @@ export default function BuyProductInitial() {
     BuyProductUpdateUserMutation,
     BuyProductUpdateUserMutationVariables
   >(BUY_PRODUCT_UPDATE_USER);
+  const [purchaseProduct] = useMutation<
+    CreateFreePurchaseMutation,
+    CreateFreePurchaseMutationVariables
+  >(BUY_PRODUCT_CREATE_FREE_PURCHASE);
 
   const onEnterPostalCode = () => {
     getTransportationOptions({
@@ -220,9 +240,31 @@ export default function BuyProductInitial() {
     setCity(data?.me.city ?? "");
   };
   const onToPayment = () => {
-    if (!data) {
+    if (!data || !transportationMethod) {
       return;
     }
+
+    const transportationEnum = transportationStringToEnum(transportationMethod);
+
+    //If the whole purchase is free, create the purchase and move on directly to success screen, skipping payment screen
+    if (totalPrice === 0) {
+      purchaseProduct({
+        variables: {
+          input: {
+            productId,
+            transportationMethod: transportationEnum,
+          },
+        },
+        onCompleted: (data) => {
+          router.navigate({
+            pathname: "/buy/[productId]/success",
+            params: { productId, purchaseId: data.purchaseProduct.purchase.id },
+          });
+        },
+      });
+      return;
+    }
+
     if (transportationMethod === "pickup") {
       router.navigate({
         pathname: "/buy/[productId]/payment",

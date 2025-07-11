@@ -23,6 +23,7 @@ export const PURCHASE_RECEIPT = gql`
       paymentAcceptedAt
       paymentMethod
       transportationMethod
+      isFree
       shippingPrice {
         id
         price

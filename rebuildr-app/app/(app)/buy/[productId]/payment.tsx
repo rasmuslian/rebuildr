@@ -38,6 +38,10 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import SwishImage from "@assets/images/swish-no-border.png";
 import { Check } from "@components/controls/check";
+import {
+  TransportationString,
+  transportationStringToEnum,
+} from "@/utils/transportationMethods";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -94,7 +98,7 @@ export default function Payment() {
     deliverToAddress,
   } = useLocalSearchParams<{
     productId: string;
-    transportationMethod: "pickup" | "shipping" | "delivery";
+    transportationMethod: TransportationString;
     servicePointId?: string;
     deliverToLocation?: string;
     deliverToAddress?: string;
@@ -132,20 +136,10 @@ export default function Payment() {
 
   const onVerifyComplete = () => {
     setShowBankId(false);
-    const convertMethod = () => {
-      switch (transportationMethod) {
-        case "pickup":
-          return TransportationEnum.Pickup;
-        case "shipping":
-          return TransportationEnum.Shipping;
-        case "delivery":
-          return TransportationEnum.Delivery;
-        default:
-          return undefined;
-      }
-    };
-    const convertedMethod = convertMethod();
-    if (!convertedMethod) {
+
+    const transportationMethodEnum =
+      transportationStringToEnum(transportationMethod);
+    if (!transportationMethodEnum) {
       router.back();
       return;
     }
@@ -164,7 +158,7 @@ export default function Payment() {
               Platform.OS === "web"
                 ? PaymentTypeEnum.Web
                 : PaymentTypeEnum.Mobile,
-            transportationMethod: convertedMethod,
+            transportationMethod: transportationMethodEnum,
             servicePointId,
             shippingProvider: ShippingProviderEnum.Postnord,
             deliverToLocation: deliverToCoordinates

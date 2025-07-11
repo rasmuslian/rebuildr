@@ -13,7 +13,7 @@ type Props = {
   price: number;
   shippingPrice?: ShippingPrice | null;
   deliveryPrice?: number | null;
-  paymentMethod: PaymentMethod;
+  paymentMethod?: PaymentMethod | null;
   payedAt: Date;
 };
 
@@ -72,10 +72,12 @@ export const ReceiptCard = ({
           `${shippingPrice.price} kr`,
         )}
       {deliveryPrice !== undefined &&
+        deliveryPrice !== null &&
         renderRow("Avhämtning", `${deliveryPrice} kr`)}
       {renderRow("Totalt", `${totalPrice} kr`, true)}
       <Divider />
-      {renderRow("Betalsätt", paymentMethodStrings[paymentMethod])}
+      {paymentMethod &&
+        renderRow("Betalsätt", paymentMethodStrings[paymentMethod])}
       {renderRow("Datum", dayjs(payedAt).format("D MMMM, YYYY"))}
       <Button label="Ladda hem kvitto" onPress={() => {}} />
     </View>

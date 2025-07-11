@@ -44,8 +44,9 @@ export class PurchaseProductInput {
   @Field()
   productId: string;
 
-  @Field(() => SupportedPaymentMethod)
-  paymentMethod: SupportedPaymentMethod;
+  //When this is null, user expects the purchase to be free
+  @Field(() => SupportedPaymentMethod, { nullable: true })
+  paymentMethod?: SupportedPaymentMethod;
 
   @Field({ nullable: true })
   servicePointId?: string;
@@ -208,5 +209,10 @@ export class PurchaseResolver {
     @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
   ) {
     return await purchaseLoaders.getProduct.load(purchase.id);
+  }
+
+  @ResolveField(() => Boolean)
+  async isFree(@Parent() purchase: Purchase) {
+    return !purchase.rockerPaymentId;
   }
 }

@@ -249,7 +249,10 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
     //FINISHED_SUCCESS
   }
   //Delivery
-  if (purchase.transportationMethod === TransportationEnum.Delivery) {
+  if (
+    purchase.transportationMethod === TransportationEnum.Delivery ||
+    purchase.transportationMethod === TransportationEnum.Pickup
+  ) {
     if (isBuyer) {
       if (
         purchase.status === PurchaseStatusEnum.PaymentAccepted &&
@@ -324,7 +327,7 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
                     textParts: [
                       {
                         children:
-                          "Säljaren bekräftar när du har hämtat din vara.Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
+                          "Säljaren bekräftar när du har hämtat din vara. Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
                       },
                     ],
                   },
@@ -437,7 +440,6 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
     //DELIVERED
     //FINISHED_SUCCESS
   }
-  //Pickup
 
   return null;
 };

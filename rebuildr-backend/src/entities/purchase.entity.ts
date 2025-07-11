@@ -150,9 +150,9 @@ export class Purchase {
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
 
-  @Field(() => SupportedPaymentMethod)
-  @Column({ type: 'enum', enum: SupportedPaymentMethod })
-  paymentMethod: SupportedPaymentMethod;
+  @Field(() => SupportedPaymentMethod, { nullable: true })
+  @Column({ type: 'enum', enum: SupportedPaymentMethod, nullable: true })
+  paymentMethod?: SupportedPaymentMethod;
 
   @Field(() => TransportationEnum)
   @Column({ type: 'enum', enum: TransportationEnum })

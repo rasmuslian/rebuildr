@@ -251,7 +251,7 @@ export class PurchaseService {
       (shippingPrice) => shippingPrice.provider === input.shippingProvider,
     );
 
-    const deliverToPoint: Point = input.deliverToLocation
+    const deliverToPoint: Point | undefined = input.deliverToLocation
       ? {
           type: 'Point',
           coordinates: [
@@ -267,7 +267,7 @@ export class PurchaseService {
       price: selectedShippingPrice?.price,
     });
 
-    //-------------------- Verify Input ------------------------------
+    //-------------------- Verify Transportation Input ------------------------------
     if (
       input.transportationMethod === TransportationEnum.PICKUP &&
       !product.pickupEnabled
@@ -342,6 +342,11 @@ export class PurchaseService {
     const provision = this.calculateProvision(product.price);
     const escrow = product.price - provision;
     const fee = provision + shippingPrice;
+    const isFree = escrow + fee === 0;
+
+    if (input.paymentMethod && !isFree) {
+      throw BadUserInputException();
+    }
 
     const imageUrls = await Promise.all(
       product.images.map(async (image) => {
@@ -437,22 +442,26 @@ export class PurchaseService {
       return rockerPayment;
     };
 
-    const offer = await generateOffer();
-    const payment = await generatePayment(offer.id);
+    let offer: Awaited<ReturnType<typeof generateOffer>> | undefined;
+    let payment: Awaited<ReturnType<typeof generatePayment>> | undefined;
+    if (!isFree) {
+      offer = await generateOffer();
+      payment = await generatePayment(offer.id);
+      purchase.rockerOfferId = offer?.id;
+      purchase.rockerPaymentId = payment?.id;
+    }
 
     purchase.toServicePointId = input.servicePointId;
     purchase.deliverToAddress = input.deliverToAddress;
     purchase.deliverToLocation = deliverToPoint;
 
-    purchase.rockerOfferId = offer.id;
-    purchase.rockerPaymentId = payment.id;
     purchase.buyer = buyer;
     purchase.product = product;
     purchase.shippingPrice = selectedShippingPrice;
     purchase.transportationMethod = input.transportationMethod;
     purchase.paymentMethod = input.paymentMethod;
 
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || isFree) {
       purchase.paymentAcceptedAt = new Date();
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
@@ -466,8 +475,8 @@ export class PurchaseService {
     return {
       purchase: savedPurchase,
       product: product,
-      swishToken: payment.paymentMethodData?.token,
-      reference: payment.reference,
+      swishToken: payment?.paymentMethodData?.token,
+      reference: payment?.reference,
     };
   }
 

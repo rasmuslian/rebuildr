@@ -48,7 +48,7 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
-  paymentMethod: PaymentMethod!
+  paymentMethod: PaymentMethod
   transportationMethod: TransportationEnum!
   toServicePointId: String
   qrCodeUrl: String
@@ -58,6 +58,7 @@ type Purchase {
   buyer: User!
   shippingPrice: ShippingPrice
   product: Product!
+  isFree: Boolean!
 }
 
 enum PurchaseStatusEnum {
@@ -820,7 +821,7 @@ input SelectPayoutMethodInput {
 
 input PurchaseProductInput {
   productId: String!
-  paymentMethod: PaymentMethod!
+  paymentMethod: PaymentMethod
   servicePointId: String
   shippingProvider: ShippingProviderEnum
   deliverToLocation: LocationInputType
