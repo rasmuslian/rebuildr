@@ -41,12 +41,12 @@ export class RockerService {
     if (user.rockerUserId) {
       return user;
     }
-    // const response = await this.rockerApi.createForeignUser(
-    //   user.id,
-    //   user.email,
-    // );
+    const response = await this.rockerApi.createForeignUser(
+      user.id,
+      user.email,
+    );
 
-    user.rockerUserId = '1'; //response.id;
+    user.rockerUserId = response.id;
     return await this.userRepository.save(user);
   }
 
