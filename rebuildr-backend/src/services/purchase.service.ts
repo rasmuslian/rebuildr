@@ -3,6 +3,7 @@ import { Product, ProductStatus } from 'src/entities/product.entity';
 import {
   Purchase,
   PurchaseStatusEnum,
+  SupportedPaymentMethod,
   TransportationEnum,
 } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
@@ -344,8 +345,8 @@ export class PurchaseService {
     const fee = provision + shippingPrice;
     const isFree = escrow + fee === 0;
 
-    if (input.paymentMethod && !isFree) {
-      throw BadUserInputException();
+    if (!input.paymentMethod && !isFree) {
+      throw BadUserInputException('Payment method missing');
     }
 
     const imageUrls = await Promise.all(
@@ -355,11 +356,7 @@ export class PurchaseService {
     );
 
     const generateOffer = async () => {
-      if (process.env.NODE_ENV === 'development') {
-        return { id: '1' };
-      }
-
-      if (!product.seller?.rockerUserId) {
+      if (!product.seller.rockerUserId) {
         logger.error({
           message: 'Seller has no rocker user id',
           productId: product.id,
@@ -407,16 +404,6 @@ export class PurchaseService {
     };
 
     const generatePayment = async (offerId: string) => {
-      if (process.env.NODE_ENV === 'development') {
-        return {
-          id: '1',
-          paymentMethodData: {
-            token: '1234',
-          },
-          reference: '1234',
-        };
-      }
-
       if (!buyer.rockerUserId) {
         logger.error({
           message: 'Buyer has no rocker user id',
@@ -461,7 +448,11 @@ export class PurchaseService {
     purchase.transportationMethod = input.transportationMethod;
     purchase.paymentMethod = input.paymentMethod;
 
-    if (process.env.NODE_ENV === 'development' || isFree) {
+    if (
+      (process.env.NODE_ENV === 'development' &&
+        input.paymentMethod === SupportedPaymentMethod.SWISH) ||
+      isFree
+    ) {
       purchase.paymentAcceptedAt = new Date();
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);

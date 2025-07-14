@@ -42,6 +42,7 @@ import {
   TransportationString,
   transportationStringToEnum,
 } from "@/utils/transportationMethods";
+import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -90,6 +91,7 @@ export default function Payment() {
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [showBankId, setShowBankId] = useState(false);
   const [showSwishSheet, setShowSwishSheet] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
   const {
     productId,
     transportationMethod,
@@ -148,34 +150,66 @@ export default function Payment() {
       ? deliverToLocation.split(",")
       : undefined;
 
+    let partialInput: Partial<
+      BuyProductCreatePurchaseMutationVariables["input"]
+    > = {
+      productId,
+      paymentMethod,
+      transportationMethod: transportationMethodEnum,
+    };
+    if (paymentMethod === PaymentMethod.Swish) {
+      partialInput = {
+        ...partialInput,
+        swishType:
+          Platform.OS === "web" ? PaymentTypeEnum.Web : PaymentTypeEnum.Mobile,
+      };
+    }
+    switch (transportationMethodEnum) {
+      case TransportationEnum.Pickup:
+        break;
+      case TransportationEnum.Shipping:
+        partialInput = {
+          ...partialInput,
+          servicePointId,
+          shippingProvider: ShippingProviderEnum.Postnord,
+        };
+        break;
+      case TransportationEnum.Delivery:
+        partialInput = {
+          ...partialInput,
+          deliverToLocation: deliverToCoordinates
+            ? {
+                lat: parseFloat(deliverToCoordinates[0]),
+                lng: parseFloat(deliverToCoordinates[1]),
+              }
+            : undefined,
+          deliverToAddress,
+        };
+        break;
+    }
+    const createPurchaseInput =
+      partialInput as BuyProductCreatePurchaseMutationVariables["input"];
+
     if (paymentMethod === PaymentMethod.Swish) {
       createPurchase({
         variables: {
-          input: {
-            productId,
-            paymentMethod: PaymentMethod.Swish,
-            swishType:
-              Platform.OS === "web"
-                ? PaymentTypeEnum.Web
-                : PaymentTypeEnum.Mobile,
-            transportationMethod: transportationMethodEnum,
-            servicePointId,
-            shippingProvider: ShippingProviderEnum.Postnord,
-            deliverToLocation: deliverToCoordinates
-              ? {
-                  lat: parseFloat(deliverToCoordinates[0]),
-                  lng: parseFloat(deliverToCoordinates[1]),
-                }
-              : undefined,
-            deliverToAddress,
-          },
+          input: createPurchaseInput,
         },
         onCompleted: () => {
           setShowSwishSheet(true);
         },
       });
     }
-    //TODO: stripe
+    if (paymentMethod === PaymentMethod.Stripe) {
+      createPurchase({
+        variables: {
+          input: createPurchaseInput,
+        },
+        onCompleted: async () => {
+          setShowStripeModal(true);
+        },
+      });
+    }
     //TODO: trustly
   };
 
@@ -336,7 +370,7 @@ export default function Payment() {
         <Button
           label="Betala"
           onPress={onPurchase}
-          disabled={!paymentMethod && !isTermsAccepted && !email}
+          disabled={!paymentMethod || !isTermsAccepted || !email}
           style={{ flex: 1 }}
         />
       </View>
@@ -358,7 +392,7 @@ export default function Payment() {
         onVerifyComplete={onVerifyComplete}
         onDismiss={() => setShowBankId(false)}
       />
-      {createPurchaseData && (
+      {createPurchaseData && paymentMethod === PaymentMethod.Swish && (
         <SwishBottomSheet
           price={totalPrice}
           productId={productId}
@@ -367,6 +401,16 @@ export default function Payment() {
           onDismiss={() => setShowSwishSheet(false)}
         />
       )}
+      {paymentMethod === PaymentMethod.Stripe &&
+        !!createPurchaseData?.purchaseProduct.reference && (
+          <StripeBottomSheet
+            show={showStripeModal}
+            clientSecret={createPurchaseData.purchaseProduct.reference}
+            productId={productId}
+            purchaseId={createPurchaseData.purchaseProduct.purchase.id}
+            onDismiss={() => setShowStripeModal(false)}
+          />
+        )}
     </ScreenLayout>
   );
 }
@@ -429,13 +473,14 @@ const SwishBottomSheet = ({
   useQuery<PollSwishQuery, PollSwishQueryVariables>(POLL_SWISH, {
     variables: { input: { id: purchaseId } },
     pollInterval: 1000,
+    notifyOnNetworkStatusChange: true,
     onCompleted: (data) => {
       if (data.purchase.status === PurchaseStatusEnum.PaymentAccepted) {
         ref.current?.dismiss();
         onDismiss();
-        router.navigate({
+        router.replace({
           pathname: "/buy/[productId]/success",
-          params: { productId },
+          params: { productId, purchaseId },
         });
       }
     },

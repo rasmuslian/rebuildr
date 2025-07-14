@@ -591,9 +591,10 @@ export default function BuyProductInitial() {
                               color="secondary"
                               style={{ marginTop: 8 }}
                             >
-                              {servicePoint?.streetName}{" "}
-                              {servicePoint?.streetNumber},{" "}
-                              {servicePoint?.postalCode} {servicePoint?.city}
+                              {deliveryAddress}
+                            </Body>
+                            <Body size="medium" color="secondary">
+                              {postCode}
                             </Body>
                           </View>
                           <Button

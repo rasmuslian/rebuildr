@@ -948,7 +948,7 @@ export class ProductService {
       deliverToLocation: location,
       isWithinRadius,
       distanceFromProduct: Math.round(distance),
-      deliveryPrice: product.price,
+      deliveryPrice: product.deliveryPrice / 100,
     };
   }
 

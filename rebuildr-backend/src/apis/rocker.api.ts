@@ -22,7 +22,9 @@ import {
   IUserResponse,
   PauseStateEnum,
   PaymentMethodEnum,
+  PaymentStatusEnum,
   PaymentTypeEnum,
+  PayoutConsentEnum,
   PayoutMethodEnum,
   RockerCountryEnum,
 } from './types/rocker-types';
@@ -192,7 +194,29 @@ export class RockerAPI {
     offerId: string,
     buyerId: string,
     paymentType: PaymentTypeEnum,
-  ) {
+  ): Promise<IPaymentResponse> {
+    if (process.env.NODE_ENV === 'development') {
+      const fakeResponse: IPaymentResponse = {
+        id: '1',
+        paymentMethodData: {
+          token: '1234',
+        },
+        merchantId: '1',
+        sellerId: buyerId,
+        offerId,
+        buyerId,
+        amount: undefined,
+        paymentMethod: PaymentMethodEnum.SWISH,
+        reference: '1234',
+        status: PaymentStatusEnum.INIT,
+        payoutConsent: PayoutConsentEnum.CONFIRMED,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        pauseState: PauseStateEnum.NOT_PAUSED,
+        title: '',
+      };
+      return fakeResponse;
+    }
     const body: ICreatePaymentRequest = {
       offerId,
       buyerId,
