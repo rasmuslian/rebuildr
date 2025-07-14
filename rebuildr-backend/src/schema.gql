@@ -312,6 +312,7 @@ type Product {
   deliveryPrice: Float
   canDelete: Boolean!
   minimumPrice: Int!
+  hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
 }
 
 enum ProductConditionEnum {

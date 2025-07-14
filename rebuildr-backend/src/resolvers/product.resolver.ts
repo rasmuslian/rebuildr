@@ -49,6 +49,7 @@ import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { minimumEscrow } from 'src/constants/pricing';
 import { ServicePointResponse } from './shipping.resolver';
+import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -632,5 +633,28 @@ export class ProductResolver {
   @ResolveField(() => Int)
   async minimumPrice() {
     return Math.round(minimumEscrow / 100);
+  }
+
+  @ResolveField(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async hasOngoingPurchase(
+    @Args('includeOwnPurchases', { nullable: true })
+    includeOwnPurchases: boolean,
+    @Parent() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    const purchases = await productLoaders.getProductPurchases.load(product.id);
+
+    if (includeOwnPurchases) {
+      return purchases.some(
+        ({ status }) => status !== PurchaseStatusEnum.FINISHED_FAILED,
+      );
+    }
+    return purchases.some(
+      ({ status, buyerId }) =>
+        status !== PurchaseStatusEnum.FINISHED_FAILED && buyerId !== user.id,
+    );
   }
 }

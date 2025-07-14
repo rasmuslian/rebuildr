@@ -4,6 +4,7 @@ import {
   ProductRemoveProductMutationVariables,
   ProductViewQuery,
   ProductViewQueryVariables,
+  UserType,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
@@ -53,6 +54,7 @@ const PRODUCT_VIEW_FRAGMENT = gql`
     thickness
     diameter
     weight
+    hasOngoingPurchase(includeOwnPurchases: true)
     images {
       id
       mimeType
@@ -169,6 +171,7 @@ const PRODUCT_VIEW = gql`
     me @include(if: $isLoggedIn) {
       id
       address
+      type
     }
   }
   ${PRODUCT_VIEW_FRAGMENT}
@@ -219,6 +222,11 @@ export default function Product() {
   const otherProducts = data.product.seller.products.filter(
     (product) => product.id !== data.product.id,
   );
+
+  const buyButtonDisabled =
+    !data.me ||
+    data.me.type === UserType.Business ||
+    data.product.hasOngoingPurchase;
 
   return (
     <>
@@ -278,6 +286,7 @@ export default function Product() {
                       params: { productId },
                     });
                   }}
+                  disabled={buyButtonDisabled}
                 />
                 <Button
                   label="Kontakta säljaren"
