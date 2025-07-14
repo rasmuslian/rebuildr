@@ -1,3 +1,6 @@
+import { PurchaseSuccessQuery } from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { PurchaseReceipt } from "@components/purchase/purchase-receipt";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
@@ -5,9 +8,22 @@ import { Body, Display } from "@components/typography/text";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
+const PURCHASE_SUCCESS = gql`
+  query PurchaseSuccess {
+    me {
+      id
+      email
+    }
+  }
+`;
+
 export default function Success() {
   const { purchaseId } = useLocalSearchParams<{ purchaseId: string }>();
-  const email = "minmail@gmail.com";
+  const { data } = useQuery<PurchaseSuccessQuery>(PURCHASE_SUCCESS);
+
+  if (!data) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <ScreenLayout headerComponent={<Header title="Om köpet" />}>
@@ -16,7 +32,7 @@ export default function Success() {
           Toppen, nu har du betalat!
         </Display>
         <Body size="medium" style={{ textAlign: "center" }}>
-          Du får en bekräftelse från Rocker till {email}
+          Du får en bekräftelse från Rocker till {data?.me.email}
         </Body>
       </View>
       <PurchaseReceipt purchaseId={purchaseId} />
