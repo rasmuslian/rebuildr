@@ -83,6 +83,7 @@ import { PostnordAPI } from './apis/postnord.api';
 import { PurchaseLoader } from './dataloaders/purchase.loader';
 import { DHLAPI } from './apis/dhl.api';
 import { SystemMessagesService } from './services/system-messages.service';
+import { PostnordService } from './services/postnord.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -230,6 +231,7 @@ export interface RequestType {
     ShippingResolver,
     ShippingService,
     SystemMessagesService,
+    PostnordService,
   ],
 })
 export class AppModule {}

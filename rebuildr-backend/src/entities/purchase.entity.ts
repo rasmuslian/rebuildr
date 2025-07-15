@@ -173,6 +173,9 @@ export class Purchase {
   @Column({ nullable: true, type: 'character varying' })
   qrCodeContent: string | null;
 
+  @Column({ nullable: true, type: 'json' })
+  postnordRawData?: JSON;
+
   @Column({ nullable: true })
   deliverToAddress?: string;
 
