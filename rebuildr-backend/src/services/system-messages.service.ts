@@ -175,7 +175,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     });
   }
 
-  async shippingArrivedBuyer(
+  async shipmentArrived(
     buyer: User,
     seller: User,
     product: Product,
@@ -198,7 +198,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     });
   }
 
-  async shippingArrivedSeller(buyer: User, seller: User, product: Product) {
+  async shipmentDroppedOff(buyer: User, seller: User, product: Product) {
     const message = `# Paketet är inlämnat och på väg till köparen!
 
 
@@ -211,7 +211,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     });
   }
 
-  async shippingDeliveredBuyer(buyer: User, seller: User, product: Product) {
+  async shipmentDeliveredBuyer(buyer: User, seller: User, product: Product) {
     const message = `# Du har hämtat upp ditt paket.
 
 
@@ -227,7 +227,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     });
   }
 
-  async shippingDeliveredSeller(buyer: User, seller: User, product: Product) {
+  async shipmentDeliveredSeller(buyer: User, seller: User, product: Product) {
     const message = `# Köparen har hämtat ut paketet.
 
     

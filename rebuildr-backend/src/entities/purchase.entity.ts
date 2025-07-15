@@ -186,6 +186,9 @@ export class Purchase {
   })
   deliverToLocation?: Point;
 
+  @Column('timestamptz', { nullable: true })
+  sellerRespondedAt?: Date;
+
   @Column({ nullable: true })
   shippingPriceId?: string;
   @ManyToOne(() => ShippingPrice, (shippingPrice) => shippingPrice.id, {

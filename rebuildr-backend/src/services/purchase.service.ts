@@ -51,6 +51,7 @@ import { Review } from 'src/entities/review.entity';
 import { ProductService } from './product.service';
 import { provisionBase } from 'src/constants/pricing';
 import { ShippingService } from './shipping.service';
+import { SystemMessagesService } from './system-messages.service';
 
 export class PurchaseService {
   constructor(
@@ -69,6 +70,7 @@ export class PurchaseService {
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     private shippingService: ShippingService,
+    private systemMessagesService: SystemMessagesService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -475,6 +477,38 @@ export class PurchaseService {
     return Math.round(price * provisionBase);
   }
 
+  //If seller has written a message to buyer, we record it here
+  async handleSellerResponse(
+    productId: string,
+    senderId: string,
+    receiverId: string,
+  ) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: [
+        { productId: productId, buyerId: senderId },
+        { productId: productId, buyerId: receiverId },
+      ],
+      relations: { buyer: true, product: { seller: true } },
+    });
+    if (!purchase.sellerRespondedAt) {
+      const responseDate = new Date();
+      this.systemMessagesService.sellerRespondedBuyer(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        responseDate,
+      );
+      this.systemMessagesService.sellerRespondedSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        responseDate,
+      );
+      purchase.sellerRespondedAt = responseDate;
+      this.purchaseRepository.save(purchase);
+    }
+  }
+
   async latestPurchase(input: LatestPurchaseInput, currentUserId: string) {
     return await this.purchaseRepository.findOne({
       where: {
@@ -513,6 +547,10 @@ export class PurchaseService {
         status: PurchaseStatusEnum.PAYMENT_ACCEPTED, //payment must be accepted
         shippingPriceId: IsNull(), //cant be shipping
       },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+      },
     });
 
     if (!purchase) {
@@ -523,6 +561,19 @@ export class PurchaseService {
       });
 
       throw BadUserInputException('Purchase invalid');
+    }
+
+    if (!purchase.deliveredAt) {
+      this.systemMessagesService.handoffConfirmedBuyer(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+      );
+      this.systemMessagesService.handoffConfirmedSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+      );
     }
 
     purchase.deliveredAt = new Date();
@@ -748,6 +799,7 @@ export class PurchaseService {
     purchase: Purchase,
     buyer: User,
     seller: User,
+    product: Product,
     logger: Logger,
   ) {
     if (
@@ -772,7 +824,10 @@ export class PurchaseService {
       throw BadUserInputException();
     }
     await this.rockerService.confirmPayment(purchase.rockerPaymentId);
-    if (!purchase.approvedAt) purchase.approvedAt = new Date();
+    if (!purchase.approvedAt) {
+      this.systemMessagesService.purchaseSuccessBuyer(buyer, seller, product);
+      purchase.approvedAt = new Date();
+    }
 
     await this.purchaseRepository.save(purchase);
 
@@ -859,6 +914,7 @@ export class PurchaseService {
       purchase,
       purchase.buyer,
       purchase.product.seller,
+      purchase.product,
       logger,
     );
   }
@@ -886,7 +942,13 @@ export class PurchaseService {
     });
     await Promise.all(
       duePurchases.map((p) => {
-        return this.acceptPurchase(p, p.buyer, p.product.seller, logger);
+        return this.acceptPurchase(
+          p,
+          p.buyer,
+          p.product.seller,
+          p.product,
+          logger,
+        );
       }),
     );
   }
@@ -919,7 +981,11 @@ export class PurchaseService {
   async paymentCompleted(payload: IPaymentCompleted, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: payload.paymentId },
-      relations: { buyer: true, product: { seller: true } },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+        shippingPrice: true,
+      },
     });
 
     if (!purchase) {
@@ -930,6 +996,38 @@ export class PurchaseService {
       throw new Error(
         'PaymentCompleted: No purchase found with id: ' + payload.paymentId,
       );
+    }
+
+    //System messages
+    if (!purchase.paymentAcceptedAt) {
+      if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
+        this.systemMessagesService.purchaseWithShippingBuyer(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+        );
+        this.systemMessagesService.purchaseWithShippingSeller(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+          purchase.shippingPrice?.provider,
+        );
+      } else {
+        this.systemMessagesService.purchaseWithHandoffBuyer(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+        );
+        this.systemMessagesService.purchaseWithHandoffSeller(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+        );
+      }
     }
 
     purchase.paymentAcceptedAt = new Date(payload.timestamp);
@@ -983,9 +1081,17 @@ export class PurchaseService {
   async payoutComplete(payload: IPayoutCompleted, logger: Logger) {
     const purchase = await this.purchaseRepository.findOneOrFail({
       where: { rockerPayoutId: payload.payoutId },
-      relations: { product: { seller: true } },
+      relations: { product: { seller: true }, buyer: true },
     });
+    if (!purchase.payoutReceivedAt) {
+      this.systemMessagesService.purchaseSuccessSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+      );
+    }
     purchase.payoutReceivedAt = new Date(payload.timestamp);
+
     await Promise.all([
       this.purchaseRepository.save(purchase),
       this.productRepository.update(

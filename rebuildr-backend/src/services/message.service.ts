@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
+import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
 import {
@@ -9,6 +10,7 @@ import {
   GetConversationsType,
 } from 'src/resolvers/message.resolver';
 import { DataSource, IsNull, Repository } from 'typeorm';
+import { PurchaseService } from './purchase.service';
 
 export interface SystemMessageInput {
   productId: string;
@@ -26,6 +28,9 @@ export class MessageService {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private dataSource: DataSource,
+    @InjectRepository(Purchase)
+    private purchaseRepository: Repository<Purchase>,
+    private purchaseService: PurchaseService,
   ) {}
 
   async getConversation(
@@ -145,9 +150,18 @@ export class MessageService {
       this.userRepository.findOneByOrFail({ id: input.receiverId }),
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
+      this.purchaseRepository.findOne({
+        where: { productId: input.productId },
+      }),
     ]).catch(() => {
       throw BadUserInputException('Invalid conversation');
     });
+
+    this.purchaseService.handleSellerResponse(
+      input.productId,
+      input.senderId,
+      input.receiverId,
+    );
 
     message.receiver = receiver;
     message.sender = sender;
