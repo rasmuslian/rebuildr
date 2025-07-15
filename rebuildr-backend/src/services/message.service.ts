@@ -10,6 +10,12 @@ import {
 } from 'src/resolvers/message.resolver';
 import { DataSource, IsNull, Repository } from 'typeorm';
 
+export interface SystemMessageInput {
+  productId: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+}
 @Injectable()
 export class MessageService {
   constructor(
@@ -148,6 +154,29 @@ export class MessageService {
     message.product = product;
     message.message = input.message;
     return await this.messageRepository.save(message);
+  }
+
+  async sendSystemMessage(input: SystemMessageInput) {
+    const [receiver, sender, product] = await Promise.all([
+      this.userRepository.findOneByOrFail({ id: input.receiverId }),
+      this.userRepository.findOneByOrFail({ id: input.senderId }),
+      this.productRepository.findOneByOrFail({ id: input.productId }),
+    ]).catch(() => {
+      throw BadUserInputException('Invalid conversation');
+    });
+
+    const newMessage = new Message();
+
+    newMessage.message = input.message;
+    newMessage.receiver = receiver;
+    newMessage.sender = sender;
+    newMessage.product = product;
+    newMessage.messageType = MessageTypeEnum.SYSTEM;
+    newMessage.readAt = null;
+
+    const _newMessage = await this.messageRepository.save(newMessage);
+
+    return _newMessage;
   }
 
   async markAsRead(
