@@ -11,12 +11,11 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { TabRail } from "@components/tabs/tab-rail";
 import { Body, Display, Headline } from "@components/typography/text";
-import { Icon } from "@icons/icon";
 import { useState } from "react";
 import { View } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { router } from "expo-router";
+import { AccordionSection } from "@components/sections/accordion-section";
 
 const GET_CONVERSATIONS = gql`
   query getConversations($input: GetConversationsInput!) {
@@ -202,25 +201,16 @@ export default function Conversations() {
       </View>
       <Divider />
       {read.length ? (
-        <>
-          <Pressable onPress={() => setShowAll(!showAll)}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Headline size="small">
-                {tab === "buy"
-                  ? "Köper: Alla meddelanden"
-                  : "Säljer: Alla meddelanden"}
-              </Headline>
-              <Icon icon={showAll ? "chevronUp" : "chevronDown"} size={18} />
-            </View>
-          </Pressable>
-          {showAll && <View style={{ gap: 16 }}>{renderCards(read)}</View>}
-        </>
+        <AccordionSection
+          initialOpen
+          title={
+            tab === "buy"
+              ? "Köper: Alla meddelanden"
+              : "Säljer: Alla meddelanden"
+          }
+        >
+          <View style={{ gap: 16 }}>{renderCards(read)}</View>
+        </AccordionSection>
       ) : (
         <View style={{ gap: 2 }}>
           <Headline size="small">

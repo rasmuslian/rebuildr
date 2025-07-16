@@ -1,14 +1,14 @@
 import { UserType } from "@/gql/graphql";
-import { Body, Headline, Title } from "@components/typography/text";
+import { Body, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { useState } from "react";
 import { View } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { Button } from "@components/buttons/button";
 import { Avatar } from "@components/avatar/avatar";
+import { AccordionSection } from "@components/sections/accordion-section";
 
 type Props = {
   reviews: {
@@ -25,7 +25,6 @@ type Props = {
 };
 
 export const ReviewsAccordion = ({ reviews, title }: Props) => {
-  const [open, setOpen] = useState(true);
   const [segments, setSegments] = useState(1);
   const segmentSize = 8;
 
@@ -33,19 +32,7 @@ export const ReviewsAccordion = ({ reviews, title }: Props) => {
 
   return (
     <View style={{ gap: 16 }}>
-      <Pressable onPress={() => setOpen(!open)}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Headline size="small">{title}</Headline>
-          <Icon icon={open ? "chevronUp" : "chevronDown"} />
-        </View>
-      </Pressable>
-      {open && (
+      <AccordionSection initialOpen title={title}>
         <View style={{ gap: 16 }}>
           {reviews.slice(0, segmentSize * segments).map((review, i) => (
             <View
@@ -88,7 +75,7 @@ export const ReviewsAccordion = ({ reviews, title }: Props) => {
             />
           )}
         </View>
-      )}
+      </AccordionSection>
     </View>
   );
 };
