@@ -16,6 +16,7 @@ import { Purchase } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import { GraphQLError } from 'graphql';
 import { DHLAPI } from 'src/apis/dhl.api';
+import { PostnordService } from './postnord.service';
 
 @Injectable()
 export class ShippingService {
@@ -24,6 +25,7 @@ export class ShippingService {
     private dhlAPI: DHLAPI,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    private postnordService: PostnordService,
   ) {}
 
   async findNearbyServicePoints(
@@ -34,25 +36,9 @@ export class ShippingService {
     if (provider === ShippingProviderEnum.DHL) {
       throw BadUserInputException();
     }
-
-    const response = await this.postnordAPI.nearestByAdress({
+    return await this.postnordService.findNearbyServicePoints(
       postalCode,
       amount,
-    });
-    return (
-      (response.servicePointInformationResponse.servicePoints?.map(
-        (servicePoint) => {
-          return {
-            id: servicePoint.servicePointId,
-            name: servicePoint.name,
-            distance: servicePoint.routeDistance,
-            streetName: servicePoint.visitingAddress?.streetName,
-            streetNumber: servicePoint.visitingAddress?.streetNumber,
-            postalCode: servicePoint.visitingAddress?.postalCode,
-            city: servicePoint.visitingAddress?.city,
-          };
-        },
-      ) as ServicePointResponse[]) ?? []
     );
   }
 

@@ -9,7 +9,6 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { randomUUID } from 'crypto';
 import dayjs from 'dayjs';
-import { NearbyServicePointsInput } from 'src/resolvers/shipping.resolver';
 import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
 import { BadUserInputException } from 'src/exceptions';
 import { SystemMessagesService } from './system-messages.service';
@@ -24,13 +23,11 @@ export class PostnordService {
     private systemMessagesService: SystemMessagesService,
   ) {}
 
-  async findNearbyServicePoints(input: NearbyServicePointsInput) {
-    if (input.shippingProvider === ShippingProviderEnum.DHL) {
-      //TODO: Handle DHL
-      return [];
-    }
-
-    const nearbyServicePoints = await this.postnordApi.nearestByAdress(input);
+  async findNearbyServicePoints(postalCode: string, amount?: number) {
+    const nearbyServicePoints = await this.postnordApi.nearestByAdress({
+      postalCode,
+      amount,
+    });
 
     return (
       nearbyServicePoints.servicePointInformationResponse.servicePoints?.map(
