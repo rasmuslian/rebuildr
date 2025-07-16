@@ -1,5 +1,6 @@
 import {
   Client,
+  GeocodeComponents,
   GeocodeResult,
   Language,
   PlaceAutocompleteResponseData,
@@ -10,6 +11,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from 'src/config';
+import { swedishPostCodeRegex } from 'src/constants/regexp';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { LocationType } from 'src/resolvers/geocoding.resolver';
 import { v4 as uuidv4 } from 'uuid';
@@ -54,11 +56,34 @@ export class GeocodingService {
     };
   }
 
-  async addressToLocation(address: string) {
+  async postCodeToLocation(postCode: string) {
+    const isValid = swedishPostCodeRegex.test(postCode);
+    if (!isValid) {
+      throw BadUserInputException('Invalid post code');
+    }
+    const formatPostCode =
+      postCode.slice(0, 3) + ' ' + postCode.slice(postCode.length - 2);
+
+    return await this.addressToLocation(undefined, {
+      postal_code: formatPostCode,
+      country: 'SE',
+    });
+  }
+  /**
+   *
+   * @param address a string
+   * @param components
+   * @returns
+   */
+  async addressToLocation(address?: string, components?: GeocodeComponents) {
     let result: GeocodeResult;
     try {
       const r = await this.client.geocode({
-        params: { address, key: process.env.GOOGLE_GEOCODING_API_KEY },
+        params: {
+          address,
+          key: process.env.GOOGLE_GEOCODING_API_KEY,
+          components: { country: 'SE', ...(components ?? {}) },
+        },
       });
       result = r.data.results[0];
     } catch {

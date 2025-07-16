@@ -333,7 +333,7 @@ export default function Products() {
         name="delivery"
         title="Leveransalternativ"
       >
-        <View style={{ gap: 16, marginTop: 24 }}>
+        <View style={{ gap: 16 }}>
           {/**Pickup */}
           <ToggleCard
             title="Hämta själv hos säljaren"

@@ -15,12 +15,10 @@ import {
   AuthResponseStatusEnum,
 } from "@/gql/graphql";
 import * as Linking from "expo-linking";
-import QRCode from "react-native-qrcode-svg";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Divider } from "@components/dividers/divider";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
-import { borderRadius } from "@constants/sizes";
+import { BankId } from "@components/bank-id/bank-id";
 
 const VERIFY_AUTHENTICATE_ROCKER_MUTATION = gql`
   mutation VerifyAuthenticateRocker($input: AuthenticateRockerInput!) {
@@ -221,83 +219,5 @@ export const PayoutVerify = ({
         </View>
       )}
     </View>
-  );
-};
-
-interface BankIdProps {
-  onAuthenticationSuccess: () => void;
-  color: string;
-  borderColor: string;
-}
-
-export const BankId = ({
-  onAuthenticationSuccess,
-  color,
-  borderColor,
-}: BankIdProps) => {
-  const [qrCode, setQrCode] = useState("");
-  const [authenticateRocker, { error }] = useMutation<
-    VerifyAuthenticateRockerMutation,
-    VerifyAuthenticateRockerMutationVariables
-  >(VERIFY_AUTHENTICATE_ROCKER_MUTATION);
-
-  useEffect(() => {
-    const requestId = Crypto.randomUUID();
-    const timer = setInterval(() => {
-      const done = () => clearInterval(timer);
-
-      authenticateRocker({
-        variables: {
-          input: {
-            requestId,
-          },
-        },
-        onCompleted: (data) => {
-          if (
-            data.authenticateRocker.status === AuthResponseStatusEnum.Success
-          ) {
-            onAuthenticationSuccess();
-            done();
-            return;
-          }
-
-          if (
-            data.authenticateRocker.status === AuthResponseStatusEnum.Error ||
-            !data.authenticateRocker.qrCode
-          ) {
-            done();
-            return;
-          }
-          setQrCode(data.authenticateRocker.qrCode);
-        },
-        onError: () => {
-          done();
-        },
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [authenticateRocker, onAuthenticationSuccess]);
-
-  return (
-    <>
-      {qrCode ? (
-        <View
-          style={{
-            borderRadius: borderRadius.medium,
-            borderColor,
-            padding: 16,
-            borderWidth: 1,
-          }}
-        >
-          <QRCode color={color} value={qrCode} size={165} />
-        </View>
-      ) : (
-        <LoadingSpinner />
-      )}
-      {error && <Body color="error">Något gick fel</Body>}
-    </>
   );
 };

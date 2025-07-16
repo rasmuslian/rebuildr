@@ -8,6 +8,7 @@ import { DataloaderService } from './dataloader.service';
 import { Brand } from 'src/entities/brand.entity';
 import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
+import { Purchase } from 'src/entities/purchase.entity';
 
 export interface IProductLoaders {
   getProduct: DataLoader<string, Product>;
@@ -19,6 +20,7 @@ export interface IProductLoaders {
   brandLoader: DataLoader<string, Brand>;
   projectLoader: DataLoader<string, Project>;
   shippingPricesLoader: DataLoader<string, ShippingPrice>;
+  getProductPurchases: DataLoader<string, Purchase[]>;
 }
 
 @Injectable()
@@ -110,6 +112,9 @@ export class ProductLoader {
           'shippingPrices',
           Product,
         ),
+      getProductPurchases: this.dataloaderService.targetByParentIdLoader<
+        Purchase[]
+      >('purchases', Product),
     };
   }
 }

@@ -1,0 +1,544 @@
+import {
+  BuyProductCreatePurchaseMutation,
+  BuyProductCreatePurchaseMutationVariables,
+  BuyProductPaymentQuery,
+  BuyProductPaymentQueryVariables,
+  PaymentMethod,
+  PaymentTrustlySuccessQuery,
+  PaymentTrustlySuccessQueryVariables,
+  PaymentTypeEnum,
+  ShippingProviderEnum,
+  TransportationEnum,
+} from "@/gql/graphql";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { AdList } from "@components/ad/ad-list";
+import { Button } from "@components/buttons/button";
+import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
+import { Divider } from "@components/dividers/divider";
+import { Form } from "@components/forms/form";
+import { TextInput } from "@components/forms/textInput";
+import { ProgressHeader } from "@components/navigation/headers/progress-header";
+import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { Body, Display, Title } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
+import React, { ReactElement, useEffect, useState } from "react";
+import { Linking, Platform, View } from "react-native";
+import { Image } from "expo-image";
+import SwishPaymentOption from "@assets/images/swish-payment-option.png";
+import VisaPaymentOption from "@assets/images/visa-payment-option.png";
+import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
+import TrustlyPaymentOption from "@assets/images/trustly-payment-option.png";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { ToggleCard } from "@components/toggle-card/toggle-card";
+import { VerifyBottomSheet } from "@components/bank-id/verify-bottom-sheet";
+import {
+  TransportationString,
+  transportationStringToEnum,
+} from "@/utils/transportationMethods";
+import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
+import { SwishBottomSheet } from "@components/payment/swish-bottom-sheet";
+import { createURL } from "expo-linking";
+
+const BUY_PRODUCT_PAYMENT = gql`
+  query BuyProductPayment($input: GetProductInput!) {
+    product(input: $input) {
+      id
+      title
+      primaryQuantity
+      primaryUnit
+      condition
+      price
+      primaryImage {
+        id
+        url
+      }
+      pickupEnabled
+      deliveryEnabled
+      deliveryPrice
+      shippingPrices {
+        id
+        price
+      }
+    }
+    me {
+      id
+      email
+    }
+  }
+`;
+
+const BUY_PRODUCT_CREATE_PURCHASE = gql`
+  mutation BuyProductCreatePurchase($input: PurchaseProductInput!) {
+    purchaseProduct(input: $input) {
+      purchase {
+        id
+        status
+      }
+      swishToken
+      reference
+      trustlyUrl
+    }
+  }
+`;
+
+const PAYMENT_TRUSTLY_SUCCESS = gql`
+  query PaymentTrustlySuccess($input: MyPurchaseInput!) {
+    myPurchase(input: $input) {
+      id
+    }
+  }
+`;
+
+export default function Payment() {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
+  const [email, setEmail] = useState<string>("");
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const [showBankId, setShowBankId] = useState(false);
+  const [showSwishSheet, setShowSwishSheet] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const localSearchParams = useLocalSearchParams<{
+    productId: string;
+    transportationMethod: TransportationString;
+    servicePointId?: string;
+    deliverToLocation?: string;
+    deliverToAddress?: string;
+    trustlyResult?: string;
+  }>();
+  const {
+    productId,
+    transportationMethod,
+    servicePointId,
+    deliverToLocation,
+    deliverToAddress,
+    trustlyResult,
+  } = localSearchParams;
+  const colors = useThemeColor();
+  const path = usePathname();
+  const trustlySuccess = "success";
+  const trustlyFailure = "failure";
+
+  const { data, loading } = useQuery<
+    BuyProductPaymentQuery,
+    BuyProductPaymentQueryVariables
+  >(BUY_PRODUCT_PAYMENT, {
+    variables: { input: { id: productId } },
+    onCompleted: (data) => {
+      setEmail(data.me.email ?? "");
+    },
+  });
+  const [
+    createPurchase,
+    { data: createPurchaseData, loading: createPurchaseLoading },
+  ] = useMutation<
+    BuyProductCreatePurchaseMutation,
+    BuyProductCreatePurchaseMutationVariables
+  >(BUY_PRODUCT_CREATE_PURCHASE);
+  const [paymentTrustlySuccess, { loading: trustlySuccessLoading }] =
+    useLazyQuery<
+      PaymentTrustlySuccessQuery,
+      PaymentTrustlySuccessQueryVariables
+    >(PAYMENT_TRUSTLY_SUCCESS);
+
+  const progress = () => {
+    if (email && isTermsAccepted && !!paymentMethod) {
+      return 100;
+    }
+    return 80;
+  };
+
+  const onSelectPaymentMethod = (method: PaymentMethod) => {
+    setPaymentMethod(paymentMethod === method ? undefined : method);
+  };
+
+  const onPurchase = () => {
+    if (queriesLoading) {
+      return;
+    }
+    setShowBankId(true);
+  };
+
+  const onVerifyComplete = () => {
+    setShowBankId(false);
+
+    const transportationMethodEnum =
+      transportationStringToEnum(transportationMethod);
+    if (!transportationMethodEnum) {
+      router.back();
+      return;
+    }
+
+    const deliverToCoordinates = deliverToLocation
+      ? deliverToLocation.split(",")
+      : undefined;
+
+    let partialInput: Partial<
+      BuyProductCreatePurchaseMutationVariables["input"]
+    > = {
+      productId,
+      paymentMethod,
+      transportationMethod: transportationMethodEnum,
+    };
+    switch (transportationMethodEnum) {
+      case TransportationEnum.Pickup:
+        break;
+      case TransportationEnum.Shipping:
+        partialInput = {
+          ...partialInput,
+          servicePointId,
+          shippingProvider: ShippingProviderEnum.Postnord,
+        };
+        break;
+      case TransportationEnum.Delivery:
+        partialInput = {
+          ...partialInput,
+          deliverToLocation: deliverToCoordinates
+            ? {
+                lat: parseFloat(deliverToCoordinates[0]),
+                lng: parseFloat(deliverToCoordinates[1]),
+              }
+            : undefined,
+          deliverToAddress,
+        };
+        break;
+    }
+    const createPurchaseInput =
+      partialInput as BuyProductCreatePurchaseMutationVariables["input"];
+
+    if (paymentMethod === PaymentMethod.Swish) {
+      createPurchase({
+        variables: {
+          input: {
+            ...createPurchaseInput,
+            swishType:
+              Platform.OS === "web"
+                ? PaymentTypeEnum.Web
+                : PaymentTypeEnum.Mobile,
+          },
+        },
+        onCompleted: () => {
+          setShowSwishSheet(true);
+        },
+      });
+    }
+    if (paymentMethod === PaymentMethod.Stripe) {
+      createPurchase({
+        variables: {
+          input: createPurchaseInput,
+        },
+        onCompleted: async () => {
+          setShowStripeModal(true);
+        },
+      });
+    }
+    if (paymentMethod === PaymentMethod.Trustly) {
+      let url = "";
+      if (Platform.OS === "web") {
+        url = window.location.origin + path;
+      }
+      if (Platform.OS === "ios" || Platform.OS === "android") {
+        url = "rebuildr://" + path;
+      }
+      const successUrl = createURL(url, {
+        queryParams: { ...localSearchParams, trustlyResult: trustlySuccess },
+      });
+      const failureUrl = createURL(url, {
+        queryParams: { ...localSearchParams, trustlyResult: trustlyFailure },
+      });
+      createPurchase({
+        variables: {
+          input: { ...createPurchaseInput, successUrl, failureUrl },
+        },
+        onCompleted: async (data) => {
+          if (!data.purchaseProduct.trustlyUrl) {
+            setPaymentError("Något gick fel");
+            return;
+          }
+          const canOpen = await Linking.canOpenURL(
+            data.purchaseProduct.trustlyUrl,
+          );
+          if (!canOpen) {
+            setPaymentError("Kunde inte öppna Trustly");
+            return;
+          }
+          await Linking.openURL(data.purchaseProduct.trustlyUrl);
+        },
+      });
+    }
+  };
+
+  useEffect(() => {
+    //path is not always ready when this useeffect fires. Makes sure path is populated before continuing
+    if (!path || path === "/") {
+      return;
+    }
+
+    if (trustlyResult === trustlySuccess) {
+      paymentTrustlySuccess({
+        variables: {
+          input: {
+            productId,
+          },
+        },
+        onCompleted: (data) => {
+          if (!data.myPurchase) {
+            console.error("No purchase found!");
+            router.replace("/");
+            return;
+          }
+          router.replace({
+            pathname: "/buy/[productId]/success",
+            params: {
+              productId,
+              purchaseId: data.myPurchase.id,
+            },
+          });
+        },
+      });
+    }
+    if (trustlyResult === trustlyFailure) {
+      setPaymentError("Något gick fel vid betalningen");
+    }
+  }, [trustlyResult, path]);
+
+  if (
+    !data ||
+    (transportationMethod !== "pickup" &&
+      transportationMethod !== "shipping" &&
+      transportationMethod !== "delivery")
+  ) {
+    return <LoadingSpinner />;
+  }
+
+  let totalPrice = data.product.price;
+  if (transportationMethod === "shipping") {
+    totalPrice += data.product.shippingPrices?.[0].price ?? 0;
+  }
+  if (transportationMethod === "delivery") {
+    totalPrice += data.product.deliveryPrice ?? 0;
+  }
+
+  const queriesLoading =
+    loading || createPurchaseLoading || trustlySuccessLoading;
+  return (
+    <ScreenLayout
+      headerComponent={
+        <ProgressHeader title="Bekräfta köp" progress={progress()} />
+      }
+      style={{ gap: 24, marginTop: 16 }}
+    >
+      <View style={{ gap: 16 }}>
+        <AdList
+          title={data.product.title}
+          condition={data.product.condition}
+          imageUrl={data.product.primaryImage?.url}
+          imageSize="small"
+          quantity={data.product.primaryQuantity}
+          quantityUnit={data.product.primaryUnit}
+          price={data.product.price}
+        />
+        <Divider />
+      </View>
+      <View style={{ gap: 16 }}>
+        <Display size="small">Hur vill du betala?</Display>
+        <View style={{ gap: 24 }}>
+          <Body size="large">
+            Alla betalalternativ tillhandahålls av Rocker.
+          </Body>
+          <Body>
+            Betalningen till säljaren hålls av Rocker tills varan har
+            överlämnats och du haft 48 timmar att kontrollera att allt stämmer.
+          </Body>
+        </View>
+      </View>
+      <View style={{ gap: 8 }}>
+        <PaymentCard
+          title="Betala med Swish"
+          onToggle={() => onSelectPaymentMethod(PaymentMethod.Swish)}
+          toggledOn={paymentMethod === PaymentMethod.Swish}
+          logoComponents={[
+            <Image
+              source={SwishPaymentOption.uri}
+              style={{ width: 60, height: 18 }}
+            />,
+          ]}
+        />
+        <PaymentCard
+          title="Betala med kort"
+          onToggle={() => onSelectPaymentMethod(PaymentMethod.Stripe)}
+          toggledOn={paymentMethod === PaymentMethod.Stripe}
+          logoComponents={[
+            <Image
+              source={VisaPaymentOption.uri}
+              style={{ width: 40, height: 16 }}
+            />,
+            <Image
+              source={MastercardPaymentOption.uri}
+              style={{ width: 30, height: 18 }}
+            />,
+          ]}
+        />
+        <PaymentCard
+          title="Direkt från din bank"
+          onToggle={() => onSelectPaymentMethod(PaymentMethod.Trustly)}
+          toggledOn={paymentMethod === PaymentMethod.Trustly}
+          logoComponents={[
+            <Image
+              source={TrustlyPaymentOption.uri}
+              style={{ width: 60, height: 13 }}
+            />,
+          ]}
+        />
+      </View>
+      <Divider />
+      <View
+        style={[
+          {
+            borderRadius: borderRadius.medium,
+            gap: 16,
+          },
+          !isTermsAccepted && {
+            padding: 16,
+            backgroundColor: colors.buttons.tonal.enabled,
+          },
+          isTermsAccepted && {
+            padding: 15,
+            borderWidth: 1,
+            borderColor: colors.textField.clicked,
+          },
+        ]}
+      >
+        <View>
+          <Title size="medium">E-postadress för orderbekräftelse</Title>
+          <Body size="medium">
+            Vi skickar din orderbekräftelse till den här adressen.
+          </Body>
+        </View>
+        <TextInput value={email} onChange={setEmail} />
+        <Divider />
+        <Form
+          fields={[
+            {
+              type: "toggle",
+              value: isTermsAccepted,
+              onPress: () => setIsTermsAccepted(!isTermsAccepted),
+              heading: "Köpvillkor",
+              description:
+                "Genom att fortsätta godkänner du RebuildRs köpvillkor.",
+            },
+          ]}
+        />
+      </View>
+      <Divider />
+      <View style={{ gap: 16, alignItems: "center" }}>
+        {transportationMethod === "pickup" && (
+          <Body size="medium">Du betalar:</Body>
+        )}
+        {transportationMethod === "shipping" && (
+          <Body size="medium">
+            Du betalar (ink. frakt {data.product.shippingPrices?.[0].price} kr):
+          </Body>
+        )}
+        {transportationMethod === "delivery" && (
+          <Body size="medium">Du betalar (ink. hemtransport 0 kr):</Body>
+        )}
+        <Display size="medium">{totalPrice} kr</Display>
+      </View>
+      <BuyersProtection />
+      {!!paymentError && (
+        <Body color="error" size="medium">
+          {paymentError}
+        </Body>
+      )}
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          label="Tillbaka"
+          icon="arrowLeft"
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.navigate({
+                  pathname: "/buy/[productId]",
+                  params: { productId },
+                })
+          }
+        />
+        <Button
+          label="Betala"
+          onPress={onPurchase}
+          disabled={!paymentMethod || !isTermsAccepted || !email}
+          loading={queriesLoading}
+          style={{ flex: 1 }}
+        />
+      </View>
+      <VerifyBottomSheet
+        title="Bekräfta din identitet hos Rocker"
+        text={
+          <View style={{ gap: 24 }}>
+            <Body size="medium">
+              Du behöver verifiera dig med BankID hos vår betalpartner Rocker.
+            </Body>
+            <Body size="medium">
+              Det är en trygghetsåtgärd som gör att betalningen hanteras säkert
+              och hålls tills köpet är klart.
+            </Body>
+          </View>
+        }
+        qrTitle="Öppnad BankID och scanna koden"
+        show={showBankId}
+        onVerifyComplete={onVerifyComplete}
+        onDismiss={() => setShowBankId(false)}
+      />
+      {createPurchaseData && paymentMethod === PaymentMethod.Swish && (
+        <SwishBottomSheet
+          price={totalPrice}
+          productId={productId}
+          purchaseId={createPurchaseData.purchaseProduct.purchase.id}
+          show={showSwishSheet}
+          onDismiss={() => setShowSwishSheet(false)}
+        />
+      )}
+      {paymentMethod === PaymentMethod.Stripe &&
+        !!createPurchaseData?.purchaseProduct.reference && (
+          <StripeBottomSheet
+            show={showStripeModal}
+            clientSecret={createPurchaseData.purchaseProduct.reference}
+            productId={productId}
+            purchaseId={createPurchaseData.purchaseProduct.purchase.id}
+            onDismiss={() => setShowStripeModal(false)}
+          />
+        )}
+    </ScreenLayout>
+  );
+}
+
+type PaymentCardProps = {
+  title: string;
+  logoComponents: ReactElement[];
+  onToggle: () => void;
+  toggledOn: boolean;
+};
+const PaymentCard = ({
+  title,
+  logoComponents,
+  onToggle,
+  toggledOn,
+}: PaymentCardProps) => {
+  return (
+    <ToggleCard
+      title={title}
+      offColor="none"
+      description={
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          {logoComponents.map((logo, i) =>
+            React.cloneElement(logo, { key: i }),
+          )}
+        </View>
+      }
+      onPress={onToggle}
+      enabled={toggledOn}
+    />
+  );
+};

@@ -77,6 +77,13 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
 } from '@apollo/server/plugin/landingPage/default';
+import { ShippingResolver } from './resolvers/shipping.resolver';
+import { ShippingService } from './services/shipping.service';
+import { PostnordAPI } from './apis/postnord.api';
+import { PurchaseLoader } from './dataloaders/purchase.loader';
+import { DHLAPI } from './apis/dhl.api';
+import { SystemMessagesService } from './services/system-messages.service';
+import { PostnordService } from './services/postnord.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -134,6 +141,7 @@ export interface RequestType {
         SearchResultLoader,
         ProjectLoader,
         ReviewLoader,
+        PurchaseLoader,
         ConfigService,
       ],
       useFactory: (
@@ -143,6 +151,7 @@ export interface RequestType {
         searchResultLoaderService: SearchResultLoader,
         projectLoaderService: ProjectLoader,
         reviewLoaderService: ReviewLoader,
+        purchaseLoaderService: PurchaseLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -157,6 +166,7 @@ export interface RequestType {
             searchResultLoaders: searchResultLoaderService.createLoaders(),
             projectLoaders: projectLoaderService.createLoaders(),
             reviewLoaders: reviewLoaderService.createLoaders(),
+            purchaseLoaders: purchaseLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -205,6 +215,8 @@ export interface RequestType {
     RockerResolver,
     RockerService,
     RockerAPI,
+    PostnordAPI,
+    DHLAPI,
     PurchaseService,
     PurchaseResolver,
     BrandService,
@@ -216,6 +228,10 @@ export interface RequestType {
     SearchResultService,
     SearchResultResolver,
     ReviewResolver,
+    ShippingResolver,
+    ShippingService,
+    SystemMessagesService,
+    PostnordService,
   ],
 })
 export class AppModule {}

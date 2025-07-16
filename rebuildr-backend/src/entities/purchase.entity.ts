@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
@@ -31,6 +32,22 @@ export enum PurchaseStatusEnum {
 }
 registerEnumType(PurchaseStatusEnum, { name: 'PurchaseStatusEnum' });
 
+export enum TransportationEnum {
+  PICKUP = 'PICKUP',
+  SHIPPING = 'SHIPPING',
+  DELIVERY = 'DELIVERY',
+}
+registerEnumType(TransportationEnum, { name: 'TransportationEnum' });
+
+export enum SupportedPaymentMethod {
+  SWISH = 'SWISH',
+  STRIPE = 'STRIPE',
+  TRUSTLY = 'TRUSTLY',
+}
+registerEnumType(SupportedPaymentMethod, {
+  name: 'PaymentMethod',
+});
+
 @Entity()
 @ObjectType()
 export class Purchase {
@@ -38,7 +55,8 @@ export class Purchase {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
+  @Field(() => Date)
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
   @Column()
@@ -127,15 +145,50 @@ export class Purchase {
   })
   status: PurchaseStatusEnum;
 
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true, type: 'character varying' })
-  qrCodeUrl?: string | null;
-
   @Column({ nullable: true })
   refundId?: string;
 
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
+
+  @Field(() => SupportedPaymentMethod, { nullable: true })
+  @Column({ type: 'enum', enum: SupportedPaymentMethod, nullable: true })
+  paymentMethod?: SupportedPaymentMethod;
+
+  @Field(() => TransportationEnum)
+  @Column({ type: 'enum', enum: TransportationEnum })
+  transportationMethod: TransportationEnum;
+
+  @Column({ nullable: true })
+  shippingId?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  toServicePointId?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  qrCodeUrl?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'character varying' })
+  qrCodeContent: string | null;
+
+  @Column({ nullable: true, type: 'json' })
+  postnordRawData?: JSON;
+
+  @Column({ nullable: true })
+  deliverToAddress?: string;
+
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  deliverToLocation?: Point;
+
+  @Column('timestamptz', { nullable: true })
+  sellerRespondedAt?: Date;
 
   @Column({ nullable: true })
   shippingPriceId?: string;

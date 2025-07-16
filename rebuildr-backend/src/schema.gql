@@ -33,6 +33,7 @@ enum ShippingProviderEnum {
 
 type Purchase {
   id: ID!
+  createdAt: DateTime!
   buyerId: String!
   paymentSentAt: DateTime
   paymentAcceptedAt: DateTime
@@ -48,9 +49,17 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
+  paymentMethod: PaymentMethod
+  transportationMethod: TransportationEnum!
+  toServicePointId: String
   qrCodeUrl: String
+  qrCodeContent: String
   isShipping: Boolean!
   reviews: [Review!]!
+  buyer: User!
+  shippingPrice: ShippingPrice
+  product: Product!
+  isFree: Boolean!
 }
 
 enum PurchaseStatusEnum {
@@ -68,6 +77,18 @@ enum PurchaseStatusEnum {
   FINISHED_SUCCESS
   PAUSED
   PAYOUT_FAILED
+}
+
+enum PaymentMethod {
+  SWISH
+  STRIPE
+  TRUSTLY
+}
+
+enum TransportationEnum {
+  PICKUP
+  SHIPPING
+  DELIVERY
 }
 
 type Project {
@@ -292,6 +313,7 @@ type Product {
   deliveryPrice: Float
   canDelete: Boolean!
   minimumPrice: Int!
+  hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
 }
 
 enum ProductConditionEnum {
@@ -347,6 +369,16 @@ type ApproximatePlaceResponse {
   address: String!
 }
 
+type ServicePointResponse {
+  id: String!
+  name: String!
+  distance: Float!
+  streetName: String!
+  streetNumber: String!
+  postalCode: String!
+  city: String!
+}
+
 type CreateProductResponse {
   product: Product!
   presignedPutUrls: [String!]!
@@ -366,6 +398,18 @@ type ProductsResponse {
   """
   origin: LocationResponse
   total: Int!
+}
+
+type ShippingOptionResponse {
+  shippingPrice: ShippingPrice!
+  servicePoints: [ServicePointResponse!]!
+}
+
+type DeliveryOptionResponse {
+  deliverToLocation: LocationResponse!
+  isWithinRadius: Boolean!
+  distanceFromProduct: Float!
+  deliveryPrice: Float!
 }
 
 type UpdateUserResponse {
@@ -400,6 +444,9 @@ type CreatePayoutAccountResponse {
 type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
+  swishToken: String
+  reference: String
+  trustlyUrl: String
 }
 
 type Query {
@@ -410,6 +457,9 @@ type Query {
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
+  getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
+  getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
+  getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
   category(input: CategoryInput!): Category!
   categories: [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -421,7 +471,9 @@ type Query {
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
+  purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
+  myPurchase(input: MyPurchaseInput!): Purchase
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
@@ -429,6 +481,7 @@ type Query {
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
+  nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
 }
 
 input UserExistsInput {
@@ -484,6 +537,12 @@ enum OrderProductsEnum {
   PRICE_DESC
 }
 
+input GetTransportationOptionsInput {
+  productId: String!
+  postCode: String!
+  address: String
+}
+
 input CategoryInput {
   id: String!
 }
@@ -525,8 +584,16 @@ input AddressToLocationInput {
   address: String!
 }
 
+input GetPurchaseInput {
+  id: String!
+}
+
 input LatestPurchaseInput {
   otherUserId: String!
+  productId: String!
+}
+
+input MyPurchaseInput {
   productId: String!
 }
 
@@ -545,6 +612,12 @@ input GetSearchResultsInput {
 
 input GetSimilarSearchResultsInput {
   searchString: String!
+}
+
+input NearbyServicePointsInput {
+  postalCode: String!
+  amount: Float
+  shippingProvider: ShippingProviderEnum!
 }
 
 type Mutation {
@@ -756,12 +829,20 @@ input SelectPayoutMethodInput {
 
 input PurchaseProductInput {
   productId: String!
-  paymentMethod: PaymentMethod!
+  paymentMethod: PaymentMethod
+  servicePointId: String
+  shippingProvider: ShippingProviderEnum
+  deliverToLocation: LocationInputType
+  deliverToAddress: String
+  swishType: PaymentTypeEnum
+  transportationMethod: TransportationEnum!
+  successUrl: String
+  failureUrl: String
 }
 
-enum PaymentMethod {
-  SWISH
-  STRIPE
+enum PaymentTypeEnum {
+  MOBILE
+  WEB
 }
 
 input AcceptPurchaseInput {

@@ -48,6 +48,8 @@ import {
 import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { minimumEscrow } from 'src/constants/pricing';
+import { ServicePointResponse } from './shipping.resolver';
+import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -355,6 +357,42 @@ class RemoveProductInput {
   id: string;
 }
 
+@InputType()
+export class GetTransportationOptionsInput {
+  @Field()
+  productId: string;
+
+  @Field()
+  postCode: string;
+
+  @Field({ nullable: true })
+  address?: string;
+}
+
+@ObjectType()
+class ShippingOptionResponse {
+  @Field(() => ShippingPrice)
+  shippingPrice: ShippingPrice;
+
+  @Field(() => [ServicePointResponse])
+  servicePoints: ServicePointResponse[];
+}
+
+@ObjectType()
+class DeliveryOptionResponse {
+  @Field(() => LocationResponse)
+  deliverToLocation: LocationResponse;
+
+  @Field()
+  isWithinRadius: boolean;
+
+  @Field()
+  distanceFromProduct: number;
+
+  @Field()
+  deliveryPrice: number;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -391,6 +429,21 @@ export class ProductResolver {
   @UseGuards(GqlAuthGuard)
   async getDraftedProduct(@CurrentUser() _user: AuthedUserType) {
     return await this.productService.getDraft(_user.id);
+  }
+
+  @Query(() => ApproximatePlaceResponse, { nullable: true })
+  async getPickupOption(@Args('input') input: GetTransportationOptionsInput) {
+    return this.productService.getPickupOption(input);
+  }
+  @Query(() => [ShippingOptionResponse])
+  async getShippingOptions(
+    @Args('input') input: GetTransportationOptionsInput,
+  ) {
+    return this.productService.getShippingOptions(input);
+  }
+  @Query(() => DeliveryOptionResponse, { nullable: true })
+  async getDeliveryOption(@Args('input') input: GetTransportationOptionsInput) {
+    return this.productService.getDeliveryOptions(input);
   }
 
   @Mutation(() => CreateProductResponse)
@@ -580,5 +633,28 @@ export class ProductResolver {
   @ResolveField(() => Int)
   async minimumPrice() {
     return Math.round(minimumEscrow / 100);
+  }
+
+  @ResolveField(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async hasOngoingPurchase(
+    @Args('includeOwnPurchases', { nullable: true })
+    includeOwnPurchases: boolean,
+    @Parent() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    const purchases = await productLoaders.getProductPurchases.load(product.id);
+
+    if (includeOwnPurchases) {
+      return purchases.some(
+        ({ status }) => status !== PurchaseStatusEnum.FINISHED_FAILED,
+      );
+    }
+    return purchases.some(
+      ({ status, buyerId }) =>
+        status !== PurchaseStatusEnum.FINISHED_FAILED && buyerId !== user.id,
+    );
   }
 }

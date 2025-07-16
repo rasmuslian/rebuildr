@@ -36,8 +36,10 @@ export const SystemMessage = ({ text }: Props) => {
     link: (node, children, parent) => {
       const childOfSmall = parent.some((p) => p.type === "em");
       if (node.attributes.href.startsWith("date:")) {
-        const dateStr = node.attributes.href.replace("date:", "");
-        const formattedDate = dayjs(dateStr).format("YYYY-MM-DD");
+        const parts = node.attributes.href.split("::");
+        const format = decodeURI(parts[1]);
+        const date = decodeURI(parts[2]);
+        const formattedDate = dayjs(date).format(format);
         return (
           <Body
             key={node.key}

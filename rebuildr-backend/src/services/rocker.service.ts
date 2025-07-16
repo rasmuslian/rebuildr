@@ -1,12 +1,13 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
-import { registerEnumType } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RockerAPI } from 'src/apis/rocker.api';
 import {
   AuthResponseStatusEnum,
   IListPayoutAccountsResponse,
+  IServiceFeeItem,
   PauseStateEnum,
+  PaymentTypeEnum,
   PayoutMethodEnum,
 } from 'src/apis/types/rocker-types';
 import { swedishPhoneNumberRegex } from 'src/constants/regexp';
@@ -21,14 +22,7 @@ import { Logger } from 'winston';
 
 import { Repository } from 'typeorm';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-
-export enum SupportedPaymentMethod {
-  SWISH = 'SWISH',
-  STRIPE = 'STRIPE',
-}
-registerEnumType(SupportedPaymentMethod, {
-  name: 'PaymentMethod',
-});
+import { SupportedPaymentMethod } from 'src/entities/purchase.entity';
 
 const CACHE_TTL_MS = 30000;
 
@@ -173,6 +167,7 @@ export class RockerService {
     sellerRockerId: string,
     escrowValue: number,
     fee: number,
+    feeItems: IServiceFeeItem[],
     imageUrls: string[],
   ) {
     const response = await this.rockerApi.createOffer(
@@ -180,6 +175,7 @@ export class RockerService {
       sellerRockerId,
       escrowValue,
       fee,
+      feeItems,
       productId,
       imageUrls,
     );
@@ -187,29 +183,39 @@ export class RockerService {
     return response;
   }
 
-  async createPayment(
-    offerId: string,
-    buyerId: string,
-    paymentMethod: SupportedPaymentMethod,
-  ) {
+  async createPayment(input: {
+    offerId: string;
+    buyerId: string;
+    paymentMethod: SupportedPaymentMethod;
+    swishPaymentType?: PaymentTypeEnum;
+    successUri?: string;
+    failureUri?: string;
+  }) {
+    const { paymentMethod, offerId, buyerId } = input;
     if (paymentMethod === SupportedPaymentMethod.SWISH) {
-      return await this.rockerApi.createSwishPayment(offerId, buyerId);
+      return await this.rockerApi.createSwishPayment(
+        offerId,
+        buyerId,
+        input.swishPaymentType ?? PaymentTypeEnum.MOBILE,
+      );
     }
     if (paymentMethod === SupportedPaymentMethod.STRIPE) {
       return await this.rockerApi.createStripePayment(offerId, buyerId);
+    }
+    if (paymentMethod === SupportedPaymentMethod.TRUSTLY) {
+      return await this.rockerApi.createTrustlyPayment(
+        offerId,
+        buyerId,
+        input.successUri,
+        input.failureUri,
+      );
     }
 
     throw BadUserInputException('Unsupported payment method');
   }
 
-  async getPayment(paymentId: string, paymentMethod: SupportedPaymentMethod) {
-    if (paymentMethod === SupportedPaymentMethod.SWISH) {
-      return await this.rockerApi.getSwishPayment(paymentId);
-    }
-    if (paymentMethod === SupportedPaymentMethod.STRIPE) {
-      throw BadUserInputException('Stripe payments are not supported yet');
-    }
-    throw BadUserInputException('Unsupported payment method');
+  async getPayment(paymentId: string) {
+    return await this.rockerApi.getPayment(paymentId);
   }
 
   async confirmPayment(paymentId: string) {

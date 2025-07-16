@@ -6,6 +6,7 @@ import { UserLoader } from './user.loader';
 import { SearchResultLoader } from './search-result.loader';
 import { ProjectLoader } from './project.loader';
 import { ReviewLoader } from './review.loader';
+import { PurchaseLoader } from './purchase.loader';
 
 @Module({
   providers: [
@@ -16,6 +17,7 @@ import { ReviewLoader } from './review.loader';
     SearchResultLoader,
     ProjectLoader,
     ReviewLoader,
+    PurchaseLoader,
   ],
   exports: [
     DataloaderService,
@@ -25,6 +27,7 @@ import { ReviewLoader } from './review.loader';
     SearchResultLoader,
     ProjectLoader,
     ReviewLoader,
+    PurchaseLoader,
   ],
 })
 export class DataloaderModule {}

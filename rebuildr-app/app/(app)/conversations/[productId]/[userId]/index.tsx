@@ -519,7 +519,15 @@ const ActionButtons = ({ data }: ActionButtonProps) => {
   let firstButton: ReactNode = null;
   if (!purchase) {
     firstButton = !sellerIsMe ? (
-      <Button label="Köp" onPress={() => {}} />
+      <Button
+        label="Köp"
+        onPress={() => {
+          router.navigate({
+            pathname: "/buy/[productId]",
+            params: { productId: data.product.id },
+          });
+        }}
+      />
     ) : null;
   }
   if (purchase) {

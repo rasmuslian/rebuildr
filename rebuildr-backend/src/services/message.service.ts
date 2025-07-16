@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
+import { Purchase } from 'src/entities/purchase.entity';
 import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
 import {
@@ -9,7 +10,14 @@ import {
   GetConversationsType,
 } from 'src/resolvers/message.resolver';
 import { DataSource, IsNull, Repository } from 'typeorm';
+import { PurchaseService } from './purchase.service';
 
+export interface SystemMessageInput {
+  productId: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+}
 @Injectable()
 export class MessageService {
   constructor(
@@ -20,6 +28,9 @@ export class MessageService {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private dataSource: DataSource,
+    @InjectRepository(Purchase)
+    private purchaseRepository: Repository<Purchase>,
+    private purchaseService: PurchaseService,
   ) {}
 
   async getConversation(
@@ -139,15 +150,47 @@ export class MessageService {
       this.userRepository.findOneByOrFail({ id: input.receiverId }),
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
+      this.purchaseRepository.findOne({
+        where: { productId: input.productId },
+      }),
     ]).catch(() => {
       throw BadUserInputException('Invalid conversation');
     });
+
+    this.purchaseService.handleSellerResponse(
+      input.productId,
+      input.senderId,
+      input.receiverId,
+    );
 
     message.receiver = receiver;
     message.sender = sender;
     message.product = product;
     message.message = input.message;
     return await this.messageRepository.save(message);
+  }
+
+  async sendSystemMessage(input: SystemMessageInput) {
+    const [receiver, sender, product] = await Promise.all([
+      this.userRepository.findOneByOrFail({ id: input.receiverId }),
+      this.userRepository.findOneByOrFail({ id: input.senderId }),
+      this.productRepository.findOneByOrFail({ id: input.productId }),
+    ]).catch(() => {
+      throw BadUserInputException('Invalid conversation');
+    });
+
+    const newMessage = new Message();
+
+    newMessage.message = input.message;
+    newMessage.receiver = receiver;
+    newMessage.sender = sender;
+    newMessage.product = product;
+    newMessage.messageType = MessageTypeEnum.SYSTEM;
+    newMessage.readAt = null;
+
+    const _newMessage = await this.messageRepository.save(newMessage);
+
+    return _newMessage;
   }
 
   async markAsRead(

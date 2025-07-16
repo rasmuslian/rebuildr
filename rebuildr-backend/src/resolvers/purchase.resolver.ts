@@ -1,6 +1,7 @@
 import { Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   InputType,
   Mutation,
@@ -11,24 +12,65 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { PaymentTypeEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { RequestId } from 'src/decorators/request-id.decorator';
 import { Product } from 'src/entities/product.entity';
-import { Purchase } from 'src/entities/purchase.entity';
+import {
+  Purchase,
+  SupportedPaymentMethod,
+  TransportationEnum,
+} from 'src/entities/purchase.entity';
 import { Review } from 'src/entities/review.entity';
+import {
+  ShippingPrice,
+  ShippingProviderEnum,
+} from 'src/entities/shipping-price.entity';
 import { PurchaseService } from 'src/services/purchase.service';
-import { SupportedPaymentMethod } from 'src/services/rocker.service';
 import { Logger } from 'winston';
+import { LocationInputType } from './geocoding.resolver';
+import { IPurchaseLoaders } from 'src/dataloaders/purchase.loader';
+import { User } from 'src/entities/user.entity';
 
 @InputType()
-class PurchaseProductInput {
+class GetPurchaseInput {
+  @Field()
+  id: string;
+}
+@InputType()
+export class PurchaseProductInput {
   @Field()
   productId: string;
 
-  @Field(() => SupportedPaymentMethod)
-  paymentMethod: SupportedPaymentMethod;
+  //When this is null, user expects the purchase to be free
+  @Field(() => SupportedPaymentMethod, { nullable: true })
+  paymentMethod?: SupportedPaymentMethod;
+
+  @Field({ nullable: true })
+  servicePointId?: string;
+
+  @Field(() => ShippingProviderEnum, { nullable: true })
+  shippingProvider?: ShippingProviderEnum;
+
+  @Field(() => LocationInputType, { nullable: true })
+  deliverToLocation?: LocationInputType;
+
+  @Field(() => String, { nullable: true })
+  deliverToAddress?: string;
+
+  @Field(() => PaymentTypeEnum, { nullable: true })
+  swishType?: PaymentTypeEnum;
+
+  @Field(() => TransportationEnum)
+  transportationMethod: TransportationEnum;
+
+  @Field({ nullable: true })
+  successUrl: string;
+
+  @Field({ nullable: true })
+  failureUrl: string;
 }
 
 @ObjectType()
@@ -38,6 +80,15 @@ class PurchaseProductResponse {
 
   @Field(() => Purchase)
   purchase: Purchase;
+
+  @Field({ nullable: true })
+  swishToken?: string;
+
+  @Field({ nullable: true })
+  reference?: string;
+
+  @Field({ nullable: true })
+  trustlyUrl?: string;
 }
 
 @InputType()
@@ -55,6 +106,12 @@ export class LatestPurchaseInput {
 }
 
 @InputType()
+export class MyPurchaseInput {
+  @Field()
+  productId: string;
+}
+
+@InputType()
 class MarkPurchaseAsDeliveredInput {
   @Field()
   purchaseId: string;
@@ -67,6 +124,15 @@ export class PurchaseResolver {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
+  @Query(() => Purchase)
+  @UseGuards(GqlAuthGuard)
+  async purchase(
+    @Args('input') input: GetPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.getPurchase(input.id, user.id);
+  }
+
   @Query(() => Purchase, { nullable: true })
   @UseGuards(GqlAuthGuard)
   async latestPurchase(
@@ -76,16 +142,31 @@ export class PurchaseResolver {
     return await this.purchaseService.latestPurchase(input, user.id);
   }
 
+  @Query(() => Purchase, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async myPurchase(
+    @Args('input') input: MyPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.myPurchase(input, user.id);
+  }
+
   @Mutation(() => PurchaseProductResponse)
   @UseGuards(GqlAuthGuard)
   async purchaseProduct(
     @Args('input') input: PurchaseProductInput,
     @CurrentUser() _user: AuthedUserType,
+    @RequestId() requestId: string,
   ) {
+    const childLogger = this.logger.child({
+      requestId,
+      userId: _user.id,
+      productId: input.productId,
+    });
     return await this.purchaseService.createPurchase(
-      input.productId,
+      input,
       _user.id,
-      input.paymentMethod,
+      childLogger,
     );
   }
 
@@ -128,5 +209,34 @@ export class PurchaseResolver {
   @ResolveField(() => [Review])
   async reviews(@Parent() purchase: Purchase) {
     return this.purchaseService.reviews(purchase);
+  }
+
+  @ResolveField(() => User)
+  async buyer(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getBuyer.load(purchase.id);
+  }
+
+  @ResolveField(() => ShippingPrice, { nullable: true })
+  async shippingPrice(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getShippingPrice.load(purchase.id);
+  }
+
+  @ResolveField(() => Product)
+  async product(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getProduct.load(purchase.id);
+  }
+
+  @ResolveField(() => Boolean)
+  async isFree(@Parent() purchase: Purchase) {
+    return !purchase.rockerPaymentId;
   }
 }
