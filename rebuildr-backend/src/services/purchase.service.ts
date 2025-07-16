@@ -45,6 +45,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {
   LatestPurchaseInput,
+  MyPurchaseInput,
   PurchaseProductInput,
 } from 'src/resolvers/purchase.resolver';
 import { Review } from 'src/entities/review.entity';
@@ -206,7 +207,6 @@ export class PurchaseService {
 
       const existingPayment = await this.rockerService.getPayment(
         existingPurchase.rockerPaymentId,
-        input.paymentMethod,
       );
 
       if (existingPayment) {
@@ -234,6 +234,7 @@ export class PurchaseService {
         product: product,
         swishToken: existingPayment.paymentMethodData?.token,
         reference: existingPayment.reference,
+        trustlyUrl: existingPayment.paymentMethodData?.paymentUri,
       };
     }
 
@@ -416,12 +417,14 @@ export class PurchaseService {
         throw BadUserInputException('Buyer not found');
       }
 
-      const rockerPayment = await this.rockerService.createPayment(
+      const rockerPayment = await this.rockerService.createPayment({
         offerId,
-        buyer.rockerUserId,
-        input.paymentMethod,
-        input.swishType,
-      );
+        buyerId: buyer.rockerUserId,
+        paymentMethod: input.paymentMethod,
+        swishPaymentType: input.swishType,
+        successUri: input.successUrl,
+        failureUri: input.failureUrl,
+      });
 
       logger.info({
         message: 'Payment created',
@@ -470,6 +473,7 @@ export class PurchaseService {
       product: product,
       swishToken: payment?.paymentMethodData?.token,
       reference: payment?.reference,
+      trustlyUrl: payment.paymentMethodData.paymentUri,
     };
   }
 
@@ -523,6 +527,13 @@ export class PurchaseService {
           ]),
         ),
       },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async myPurchase(input: MyPurchaseInput, currentUserId: string) {
+    return await this.purchaseRepository.findOne({
+      where: { productId: input.productId, buyerId: currentUserId },
       order: { createdAt: 'DESC' },
     });
   }

@@ -33,6 +33,7 @@ enum ShippingProviderEnum {
 
 type Purchase {
   id: ID!
+  createdAt: DateTime!
   buyerId: String!
   paymentSentAt: DateTime
   paymentAcceptedAt: DateTime
@@ -445,6 +446,7 @@ type PurchaseProductResponse {
   purchase: Purchase!
   swishToken: String
   reference: String
+  trustlyUrl: String
 }
 
 type Query {
@@ -471,6 +473,7 @@ type Query {
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
   purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
+  myPurchase(input: MyPurchaseInput!): Purchase
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
@@ -587,6 +590,10 @@ input GetPurchaseInput {
 
 input LatestPurchaseInput {
   otherUserId: String!
+  productId: String!
+}
+
+input MyPurchaseInput {
   productId: String!
 }
 
@@ -829,6 +836,8 @@ input PurchaseProductInput {
   deliverToAddress: String
   swishType: PaymentTypeEnum
   transportationMethod: TransportationEnum!
+  successUrl: String
+  failureUrl: String
 }
 
 enum PaymentTypeEnum {

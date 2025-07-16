@@ -1,4 +1,8 @@
-import { PaymentMethod, ShippingPrice } from "@/gql/graphql";
+import {
+  PaymentMethod,
+  ShippingPrice,
+  TransportationEnum,
+} from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
 import { Body, Label } from "@components/typography/text";
@@ -14,6 +18,7 @@ type Props = {
   shippingPrice?: ShippingPrice | null;
   deliveryPrice?: number | null;
   paymentMethod?: PaymentMethod | null;
+  transportationMethod: TransportationEnum;
   payedAt: Date;
 };
 
@@ -22,11 +27,18 @@ export const ReceiptCard = ({
   shippingPrice,
   deliveryPrice,
   paymentMethod,
+  transportationMethod,
   payedAt,
 }: Props) => {
   const colors = useThemeColor();
 
-  const totalPrice = price + (shippingPrice?.price ?? 0) + (deliveryPrice ?? 0);
+  let totalPrice = price;
+  if (transportationMethod === TransportationEnum.Delivery) {
+    totalPrice += deliveryPrice ?? 0;
+  }
+  if (transportationMethod === TransportationEnum.Shipping) {
+    totalPrice += shippingPrice?.price ?? 0;
+  }
 
   const renderRow = (
     leftText: string,
@@ -67,12 +79,14 @@ export const ReceiptCard = ({
     >
       {renderRow("Pris för vara", `${price} kr`)}
       {shippingPrice &&
+        transportationMethod === TransportationEnum.Shipping &&
         renderRow(
           `Frakt, ${shippingProviderStrings[shippingPrice.provider]} (max ${shippingPrice.maxWeight} kg)`,
           `${shippingPrice.price} kr`,
         )}
       {deliveryPrice !== undefined &&
         deliveryPrice !== null &&
+        transportationMethod === TransportationEnum.Delivery &&
         renderRow("Avhämtning", `${deliveryPrice} kr`)}
       {renderRow("Totalt", `${totalPrice} kr`, true)}
       <Divider />

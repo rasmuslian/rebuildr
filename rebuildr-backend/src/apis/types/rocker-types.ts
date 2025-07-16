@@ -177,7 +177,8 @@ export type ICreatePaymentRequest = {
     }
   | {
       paymentMethod: PaymentMethodEnum.TRUSTLY;
-      paymentMethodData: {
+      paymentMethodData?: {
+        $type: 'Trustly';
         successUri: string;
         failureUri: string;
         urlScheme?: string;
@@ -223,9 +224,13 @@ export interface IPaymentResponse {
   buyerId: string;
   amount: IMoneyObject;
   paymentMethod: PaymentMethodEnum;
-  paymentMethodData?: {
-    token: string;
-  };
+  paymentMethodData?:
+    | {
+        $type: 'Swish';
+        token: string;
+        paymentUri?: string;
+      }
+    | { $type: 'Trustly'; token?: string; paymentUri: string };
   reference: string;
   status: PaymentStatusEnum;
   payoutConsent: PayoutConsentEnum;

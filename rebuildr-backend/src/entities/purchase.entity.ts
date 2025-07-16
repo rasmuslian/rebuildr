@@ -55,7 +55,8 @@ export class Purchase {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
+  @Field(() => Date)
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
   @Column()

@@ -199,6 +199,7 @@ export class RockerAPI {
       const fakeResponse: IPaymentResponse = {
         id: '1',
         paymentMethodData: {
+          $type: 'Swish',
           token: '1234',
         },
         merchantId: '1',
@@ -235,7 +236,7 @@ export class RockerAPI {
     return response;
   }
 
-  async getSwishPayment(paymentId: string) {
+  async getPayment(paymentId: string) {
     const response: IPaymentResponse = await this.customFetch.send(
       this.url + `/merchant-api/v1/payments/${paymentId}`,
       {
@@ -251,6 +252,34 @@ export class RockerAPI {
       offerId,
       buyerId,
       paymentMethod: PaymentMethodEnum.STRIPE,
+    };
+
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + '/merchant-api/v1/payments',
+      {
+        body: body,
+        method: 'POST',
+      },
+    );
+
+    return response;
+  }
+
+  async createTrustlyPayment(
+    offerId: string,
+    buyerId: string,
+    successUri: string,
+    failureUri: string,
+  ) {
+    const body: ICreatePaymentRequest = {
+      offerId,
+      buyerId,
+      paymentMethod: PaymentMethodEnum.TRUSTLY,
+      paymentMethodData: {
+        $type: 'Trustly',
+        successUri,
+        failureUri,
+      },
     };
 
     const response: IPaymentResponse = await this.customFetch.send(

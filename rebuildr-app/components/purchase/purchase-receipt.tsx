@@ -20,6 +20,7 @@ export const PURCHASE_RECEIPT = gql`
     purchase(input: $input) {
       id
       status
+      createdAt
       paymentAcceptedAt
       paymentMethod
       transportationMethod
@@ -109,9 +110,10 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
         <ReceiptCard
           price={data.purchase.product.price}
           paymentMethod={data.purchase.paymentMethod}
-          payedAt={data.purchase.paymentAcceptedAt}
+          payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
           shippingPrice={data.purchase.shippingPrice}
           deliveryPrice={data.purchase.product.deliveryPrice}
+          transportationMethod={data.purchase.transportationMethod}
         />
       </View>
       <Divider />

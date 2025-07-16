@@ -183,34 +183,39 @@ export class RockerService {
     return response;
   }
 
-  async createPayment(
-    offerId: string,
-    buyerId: string,
-    paymentMethod: SupportedPaymentMethod,
-    swishPaymentType: PaymentTypeEnum = PaymentTypeEnum.MOBILE,
-  ) {
+  async createPayment(input: {
+    offerId: string;
+    buyerId: string;
+    paymentMethod: SupportedPaymentMethod;
+    swishPaymentType?: PaymentTypeEnum;
+    successUri?: string;
+    failureUri?: string;
+  }) {
+    const { paymentMethod, offerId, buyerId } = input;
     if (paymentMethod === SupportedPaymentMethod.SWISH) {
       return await this.rockerApi.createSwishPayment(
         offerId,
         buyerId,
-        swishPaymentType,
+        input.swishPaymentType ?? PaymentTypeEnum.MOBILE,
       );
     }
     if (paymentMethod === SupportedPaymentMethod.STRIPE) {
       return await this.rockerApi.createStripePayment(offerId, buyerId);
     }
+    if (paymentMethod === SupportedPaymentMethod.TRUSTLY) {
+      return await this.rockerApi.createTrustlyPayment(
+        offerId,
+        buyerId,
+        input.successUri,
+        input.failureUri,
+      );
+    }
 
     throw BadUserInputException('Unsupported payment method');
   }
 
-  async getPayment(paymentId: string, paymentMethod: SupportedPaymentMethod) {
-    if (paymentMethod === SupportedPaymentMethod.SWISH) {
-      return await this.rockerApi.getSwishPayment(paymentId);
-    }
-    if (paymentMethod === SupportedPaymentMethod.STRIPE) {
-      throw BadUserInputException('Stripe payments are not supported yet');
-    }
-    throw BadUserInputException('Unsupported payment method');
+  async getPayment(paymentId: string) {
+    return await this.rockerApi.getPayment(paymentId);
   }
 
   async confirmPayment(paymentId: string) {

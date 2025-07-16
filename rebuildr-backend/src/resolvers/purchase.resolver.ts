@@ -65,6 +65,12 @@ export class PurchaseProductInput {
 
   @Field(() => TransportationEnum)
   transportationMethod: TransportationEnum;
+
+  @Field({ nullable: true })
+  successUrl: string;
+
+  @Field({ nullable: true })
+  failureUrl: string;
 }
 
 @ObjectType()
@@ -80,6 +86,9 @@ class PurchaseProductResponse {
 
   @Field({ nullable: true })
   reference?: string;
+
+  @Field({ nullable: true })
+  trustlyUrl?: string;
 }
 
 @InputType()
@@ -92,6 +101,12 @@ class AcceptPurchaseInput {
 export class LatestPurchaseInput {
   @Field()
   otherUserId: string;
+  @Field()
+  productId: string;
+}
+
+@InputType()
+export class MyPurchaseInput {
   @Field()
   productId: string;
 }
@@ -125,6 +140,15 @@ export class PurchaseResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.purchaseService.latestPurchase(input, user.id);
+  }
+
+  @Query(() => Purchase, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async myPurchase(
+    @Args('input') input: MyPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.myPurchase(input, user.id);
   }
 
   @Mutation(() => PurchaseProductResponse)

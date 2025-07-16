@@ -4,11 +4,13 @@ import {
   BuyProductPaymentQuery,
   BuyProductPaymentQueryVariables,
   PaymentMethod,
+  PaymentTrustlySuccessQuery,
+  PaymentTrustlySuccessQueryVariables,
   PaymentTypeEnum,
   ShippingProviderEnum,
   TransportationEnum,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { AdList } from "@components/ad/ad-list";
 import { Button } from "@components/buttons/button";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
@@ -20,9 +22,9 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { ReactElement, useState } from "react";
-import { Platform, View } from "react-native";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
+import React, { ReactElement, useEffect, useState } from "react";
+import { Linking, Platform, View } from "react-native";
 import { Image } from "expo-image";
 import SwishPaymentOption from "@assets/images/swish-payment-option.png";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
@@ -37,6 +39,7 @@ import {
 } from "@/utils/transportationMethods";
 import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 import { SwishBottomSheet } from "@components/payment/swish-bottom-sheet";
+import { createURL } from "expo-linking";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -75,6 +78,15 @@ const BUY_PRODUCT_CREATE_PURCHASE = gql`
       }
       swishToken
       reference
+      trustlyUrl
+    }
+  }
+`;
+
+const PAYMENT_TRUSTLY_SUCCESS = gql`
+  query PaymentTrustlySuccess($input: MyPurchaseInput!) {
+    myPurchase(input: $input) {
+      id
     }
   }
 `;
@@ -86,22 +98,29 @@ export default function Payment() {
   const [showBankId, setShowBankId] = useState(false);
   const [showSwishSheet, setShowSwishSheet] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const localSearchParams = useLocalSearchParams<{
+    productId: string;
+    transportationMethod: TransportationString;
+    servicePointId?: string;
+    deliverToLocation?: string;
+    deliverToAddress?: string;
+    trustlyResult?: string;
+  }>();
   const {
     productId,
     transportationMethod,
     servicePointId,
     deliverToLocation,
     deliverToAddress,
-  } = useLocalSearchParams<{
-    productId: string;
-    transportationMethod: TransportationString;
-    servicePointId?: string;
-    deliverToLocation?: string;
-    deliverToAddress?: string;
-  }>();
+    trustlyResult,
+  } = localSearchParams;
   const colors = useThemeColor();
+  const path = usePathname();
+  const trustlySuccess = "success";
+  const trustlyFailure = "failure";
 
-  const { data } = useQuery<
+  const { data, loading } = useQuery<
     BuyProductPaymentQuery,
     BuyProductPaymentQueryVariables
   >(BUY_PRODUCT_PAYMENT, {
@@ -110,10 +129,18 @@ export default function Payment() {
       setEmail(data.me.email ?? "");
     },
   });
-  const [createPurchase, { data: createPurchaseData }] = useMutation<
+  const [
+    createPurchase,
+    { data: createPurchaseData, loading: createPurchaseLoading },
+  ] = useMutation<
     BuyProductCreatePurchaseMutation,
     BuyProductCreatePurchaseMutationVariables
   >(BUY_PRODUCT_CREATE_PURCHASE);
+  const [paymentTrustlySuccess, { loading: trustlySuccessLoading }] =
+    useLazyQuery<
+      PaymentTrustlySuccessQuery,
+      PaymentTrustlySuccessQueryVariables
+    >(PAYMENT_TRUSTLY_SUCCESS);
 
   const progress = () => {
     if (email && isTermsAccepted && !!paymentMethod) {
@@ -127,6 +154,9 @@ export default function Payment() {
   };
 
   const onPurchase = () => {
+    if (queriesLoading) {
+      return;
+    }
     setShowBankId(true);
   };
 
@@ -151,13 +181,6 @@ export default function Payment() {
       paymentMethod,
       transportationMethod: transportationMethodEnum,
     };
-    if (paymentMethod === PaymentMethod.Swish) {
-      partialInput = {
-        ...partialInput,
-        swishType:
-          Platform.OS === "web" ? PaymentTypeEnum.Web : PaymentTypeEnum.Mobile,
-      };
-    }
     switch (transportationMethodEnum) {
       case TransportationEnum.Pickup:
         break;
@@ -187,7 +210,13 @@ export default function Payment() {
     if (paymentMethod === PaymentMethod.Swish) {
       createPurchase({
         variables: {
-          input: createPurchaseInput,
+          input: {
+            ...createPurchaseInput,
+            swishType:
+              Platform.OS === "web"
+                ? PaymentTypeEnum.Web
+                : PaymentTypeEnum.Mobile,
+          },
         },
         onCompleted: () => {
           setShowSwishSheet(true);
@@ -204,8 +233,75 @@ export default function Payment() {
         },
       });
     }
-    //TODO: trustly
+    if (paymentMethod === PaymentMethod.Trustly) {
+      let url = "";
+      if (Platform.OS === "web") {
+        url = window.location.origin + path;
+      }
+      if (Platform.OS === "ios" || Platform.OS === "android") {
+        url = "rebuildr://" + path;
+      }
+      const successUrl = createURL(url, {
+        queryParams: { ...localSearchParams, trustlyResult: trustlySuccess },
+      });
+      const failureUrl = createURL(url, {
+        queryParams: { ...localSearchParams, trustlyResult: trustlyFailure },
+      });
+      createPurchase({
+        variables: {
+          input: { ...createPurchaseInput, successUrl, failureUrl },
+        },
+        onCompleted: async (data) => {
+          if (!data.purchaseProduct.trustlyUrl) {
+            setPaymentError("Något gick fel");
+            return;
+          }
+          const canOpen = await Linking.canOpenURL(
+            data.purchaseProduct.trustlyUrl,
+          );
+          if (!canOpen) {
+            setPaymentError("Kunde inte öppna Trustly");
+            return;
+          }
+          await Linking.openURL(data.purchaseProduct.trustlyUrl);
+        },
+      });
+    }
   };
+
+  useEffect(() => {
+    //path is not always ready when this useeffect fires. Makes sure path is populated before continuing
+    if (!path || path === "/") {
+      return;
+    }
+
+    if (trustlyResult === trustlySuccess) {
+      paymentTrustlySuccess({
+        variables: {
+          input: {
+            productId,
+          },
+        },
+        onCompleted: (data) => {
+          if (!data.myPurchase) {
+            console.error("No purchase found!");
+            router.replace("/");
+            return;
+          }
+          router.replace({
+            pathname: "/buy/[productId]/success",
+            params: {
+              productId,
+              purchaseId: data.myPurchase.id,
+            },
+          });
+        },
+      });
+    }
+    if (trustlyResult === trustlyFailure) {
+      setPaymentError("Något gick fel vid betalningen");
+    }
+  }, [trustlyResult, path]);
 
   if (
     !data ||
@@ -223,6 +319,9 @@ export default function Payment() {
   if (transportationMethod === "delivery") {
     totalPrice += data.product.deliveryPrice ?? 0;
   }
+
+  const queriesLoading =
+    loading || createPurchaseLoading || trustlySuccessLoading;
   return (
     <ScreenLayout
       headerComponent={
@@ -348,6 +447,11 @@ export default function Payment() {
         <Display size="medium">{totalPrice} kr</Display>
       </View>
       <BuyersProtection />
+      {!!paymentError && (
+        <Body color="error" size="medium">
+          {paymentError}
+        </Body>
+      )}
       <View style={{ flexDirection: "row", gap: 8 }}>
         <Button
           label="Tillbaka"
@@ -365,6 +469,7 @@ export default function Payment() {
           label="Betala"
           onPress={onPurchase}
           disabled={!paymentMethod || !isTermsAccepted || !email}
+          loading={queriesLoading}
           style={{ flex: 1 }}
         />
       </View>
