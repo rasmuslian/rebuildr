@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
-import { ComponentProps, ReactNode, useState } from "react";
+import { ReactNode, useState } from "react";
 import { Badge } from "@components/badges/badge";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,6 +32,7 @@ import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
+import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -87,6 +88,7 @@ const CONVERSATION_PRODUCT = gql`
       approvedAt
       qrCodeUrl
       isShipping
+      transportationMethod
       reviews {
         id
         reviewerId
@@ -237,46 +239,10 @@ export default function ConversationProduct() {
     });
   };
 
-  const getBadgeProps = (): ComponentProps<typeof Badge> | null => {
-    const purchase = data.latestPurchase;
-
-    if (data.product.status === ProductStatusEnum.Deleted) {
-      return { text: "Borttagen annons", disabled: true };
-    }
-    if (data.product.status === ProductStatusEnum.Sold) {
-      return { text: "Såld annons", disabled: true };
-    }
-    if (!purchase) {
-      return null;
-    }
-
-    if (purchase.deliveredAt) {
-      return { text: "Köp slutfört" };
-    }
-
-    if (purchase.isShipping) {
-      if (purchase.shipmentBookedAt) {
-        return { text: "Pågående leverans" };
-      }
-      if (purchase.paymentAcceptedAt) {
-        return { text: "Inväntar inlämning" };
-      }
-    } else {
-      const sellerHasResponded = data.getConversation.some(
-        (message) =>
-          message.sender.id === data.product.seller.id &&
-          message.messageType === MessageTypeEnum.User,
-      );
-      if (purchase.paymentAcceptedAt && sellerHasResponded) {
-        return { text: "Inväntar överlämning" };
-      }
-      if (purchase.paymentAcceptedAt) {
-        return { text: "Inväntar svar" };
-      }
-    }
-    return null;
-  };
-  const statusBadgeProps = getBadgeProps();
+  const statusBadgeProps = getProductBadgeProps(
+    data.product.status,
+    data.latestPurchase,
+  );
 
   const otherUser = data?.getConversation[0]
     ? data.getConversation[0].sender.id === data.me.id
