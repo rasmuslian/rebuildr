@@ -15,7 +15,7 @@ export const SellCard = ({ purchase }: Props) => {
       active={!purchase.deliveredAt}
       onPress={() => {
         router.navigate({
-          pathname: "/account/purchases/[purchaseId]",
+          pathname: "/account/sales/[purchaseId]",
           params: { purchaseId: purchase.id },
         });
       }}
