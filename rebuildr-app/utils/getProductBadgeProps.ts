@@ -8,6 +8,7 @@ import { ComponentProps } from "react";
 
 export const getProductBadgeProps = (
   productStatus: ProductStatusEnum,
+  role: "seller" | "buyer",
   purchase?: {
     status: PurchaseStatusEnum;
     sellerRespondedAt?: Date;
@@ -45,12 +46,18 @@ export const getProductBadgeProps = (
     case PurchaseStatusEnum.PaymentAccepted:
     case PurchaseStatusEnum.PaymentSent:
       if (purchase.transportationMethod === TransportationEnum.Shipping) {
+        if (role === "seller") {
+          return { text: "Lämna in paket" };
+        }
         return { text: "Inväntar inlämning" };
       }
+      if (purchase.sellerRespondedAt) {
+        return {
+          text: role === "seller" ? "Inväntar överlämning" : "Åk och hämta",
+        };
+      }
       return {
-        text: purchase.sellerRespondedAt
-          ? "Inväntar överlämning"
-          : "Inväntar svar",
+        text: "Inväntar svar",
       };
   }
 

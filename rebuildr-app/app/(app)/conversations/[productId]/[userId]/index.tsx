@@ -239,8 +239,11 @@ export default function ConversationProduct() {
     });
   };
 
+  const sellerIsMe = data.me.id === data.product.seller.id;
+
   const statusBadgeProps = getProductBadgeProps(
     data.product.status,
+    sellerIsMe ? "seller" : "buyer",
     data.latestPurchase,
   );
 

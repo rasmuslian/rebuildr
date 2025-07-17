@@ -15,7 +15,7 @@ export const SellCard = ({ purchase }: Props) => {
       active={!purchase.deliveredAt}
       onPress={() => {
         router.navigate({
-          pathname: "/account/purchases/[purchaseId]",
+          pathname: "/account/sales/[purchaseId]",
           params: { purchaseId: purchase.id },
         });
       }}
@@ -36,7 +36,11 @@ export const SellCard = ({ purchase }: Props) => {
       ]}
       primaryText={purchase.buyer.username ?? ""}
       secondaryText={dayjs(purchase.paymentAcceptedAt).format("D MMMM, YYYY")}
-      badgeProps={getProductBadgeProps(purchase.product.status, purchase)}
+      badgeProps={getProductBadgeProps(
+        purchase.product.status,
+        "seller",
+        purchase,
+      )}
     />
   );
 };
