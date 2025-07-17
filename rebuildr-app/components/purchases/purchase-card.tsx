@@ -1,5 +1,5 @@
 import { AccountPurchasesQuery } from "@/gql/graphql";
-import { getPurchaseBadgeProps } from "@/utils/getPurchaseBadgeProps";
+import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { ProductCard } from "@components/cards/product-card";
 import dayjs from "dayjs";
 import { router } from "expo-router";
@@ -36,7 +36,7 @@ export const PurchaseCard = ({ purchase }: Props) => {
       ]}
       primaryText={product.seller.username ?? ""}
       secondaryText={dayjs(purchase.paymentAcceptedAt).format("D MMMM, YYYY")}
-      badgeProps={getPurchaseBadgeProps(purchase, purchase.product.status)}
+      badgeProps={getProductBadgeProps(purchase.product.status, purchase)}
     />
   );
 };

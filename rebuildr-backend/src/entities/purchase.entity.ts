@@ -187,6 +187,7 @@ export class Purchase {
   })
   deliverToLocation?: Point;
 
+  @Field({ nullable: true })
   @Column('timestamptz', { nullable: true })
   sellerRespondedAt?: Date;
 

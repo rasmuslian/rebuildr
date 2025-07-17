@@ -110,7 +110,7 @@ export default function Account() {
           label="Dina köp"
           body={data.me.purchases.length + " annonser"}
           onPress={() => {
-            //TODO: link to my purchases
+            router.navigate("/account/purchases");
           }}
         />
         <LinkEntry

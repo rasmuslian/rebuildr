@@ -110,6 +110,11 @@ export class MyPurchaseInput {
   @Field()
   productId: string;
 }
+@InputType()
+export class MyPurchasesInput {
+  @Field({ nullable: true })
+  myRole?: 'buyer' | 'seller';
+}
 
 @InputType()
 class MarkPurchaseAsDeliveredInput {
@@ -149,6 +154,15 @@ export class PurchaseResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.purchaseService.myPurchase(input, user.id);
+  }
+
+  @Query(() => [Purchase])
+  @UseGuards(GqlAuthGuard)
+  async myPurchases(
+    @Args('input') input: MyPurchasesInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.myPurchases(input, user.id);
   }
 
   @Mutation(() => PurchaseProductResponse)

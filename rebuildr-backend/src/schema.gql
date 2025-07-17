@@ -54,6 +54,7 @@ type Purchase {
   toServicePointId: String
   qrCodeUrl: String
   qrCodeContent: String
+  sellerRespondedAt: DateTime
   isShipping: Boolean!
   reviews: [Review!]!
   buyer: User!
@@ -474,6 +475,7 @@ type Query {
   purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
   myPurchase(input: MyPurchaseInput!): Purchase
+  myPurchases(input: MyPurchasesInput!): [Purchase!]!
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
@@ -595,6 +597,10 @@ input LatestPurchaseInput {
 
 input MyPurchaseInput {
   productId: String!
+}
+
+input MyPurchasesInput {
+  myRole: String
 }
 
 input GetProjectInput {
