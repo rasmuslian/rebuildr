@@ -117,7 +117,7 @@ export default function Account() {
           label="Dina försäljningar"
           body={data.me.sales.length + " annonser"}
           onPress={() => {
-            //TODO: link to account settings
+            router.navigate("/account/sales");
           }}
         />
       </View>
