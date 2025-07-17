@@ -63,6 +63,7 @@ export const PURCHASE_RECEIPT = gql`
     me {
       id
       email
+      type
     }
   }
 `;
@@ -92,7 +93,11 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
           <Avatar imageUrl={buyer.profilePicture?.url} size={32} />
           <View>
-            <Label size="medium">Köpt av {buyer.username}</Label>
+            <Label size="medium">
+              {buyerIsMe
+                ? `Köpt av ${data.purchase.product.seller.username}`
+                : `Sålt till ${buyer.username}`}
+            </Label>
             <Body size="small" color="secondary">
               {dayjs(data.purchase.paymentAcceptedAt).format("DD MMMM, YYYY")}
             </Body>
@@ -114,6 +119,8 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
           shippingPrice={data.purchase.shippingPrice}
           deliveryPrice={data.purchase.product.deliveryPrice}
           transportationMethod={data.purchase.transportationMethod}
+          role={buyerIsMe ? "buyer" : "seller"}
+          userType={data.me.type}
         />
       </View>
       <Divider />
