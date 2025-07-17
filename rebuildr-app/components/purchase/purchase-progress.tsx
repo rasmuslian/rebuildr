@@ -178,7 +178,10 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
                   buttonProps: {
                     label: "Visa QR-kod",
                     onPress: () => {
-                      //TODO: show QR-code
+                      router.navigate({
+                        pathname: "/account/sales/shipping-code",
+                        params: { purchaseId: purchase.id },
+                      });
                     },
                   },
                 },
@@ -203,6 +206,7 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
               ]}
             />,
             <ProgressEntry
+              disabled
               title="Köparen hämtar paketet"
               elements={[
                 {
@@ -217,6 +221,7 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
               ]}
             />,
             <ProgressEntry
+              disabled
               title="Snart får du betalt"
               elements={[
                 {
@@ -409,6 +414,7 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
               ]}
             />,
             <ProgressEntry
+              disabled
               title="Markera som överlämnad för att få betalt"
               elements={[
                 {
