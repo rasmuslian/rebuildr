@@ -8,6 +8,7 @@ import {
 } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
+  FindOptionsWhere,
   In,
   IsNull,
   LessThanOrEqual,
@@ -46,6 +47,7 @@ import { Logger } from 'winston';
 import {
   LatestPurchaseInput,
   MyPurchaseInput,
+  MyPurchasesInput,
   PurchaseProductInput,
 } from 'src/resolvers/purchase.resolver';
 import { Review } from 'src/entities/review.entity';
@@ -535,6 +537,25 @@ export class PurchaseService {
     return await this.purchaseRepository.findOne({
       where: { productId: input.productId, buyerId: currentUserId },
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async myPurchases(input: MyPurchasesInput, currentUserId: string) {
+    let findOption: FindOptionsWhere<Purchase> | FindOptionsWhere<Purchase>[];
+    const buyerOption = { buyerId: currentUserId };
+    const sellerOption = { product: { sellerId: currentUserId } };
+
+    if (!input.myRole) {
+      findOption = [buyerOption, sellerOption];
+    }
+    if (input.myRole === 'buyer') {
+      findOption = buyerOption;
+    }
+    if (input.myRole === 'seller') {
+      findOption = sellerOption;
+    }
+    return await this.purchaseRepository.find({
+      where: findOption,
     });
   }
 

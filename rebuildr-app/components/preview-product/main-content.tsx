@@ -4,13 +4,13 @@ import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { quantities } from "@constants/quantities";
-import { Icon } from "@icons/icon";
-import React, { useState } from "react";
+import React from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import * as Linking from "expo-linking";
 import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
+import { AccordionSection } from "@components/sections/accordion-section";
 
 type Props = {
   product: Omit<Partial<Product>, "category" | "seller" | "project">;
@@ -31,8 +31,6 @@ export const MainContent = ({
   documents,
   sellerIsMe,
 }: Props) => {
-  const [showSpecifics, setShowSpecifics] = useState(false);
-
   const approximatePlace = project
     ? project.approximatePlace
     : product.approximatePlace;
@@ -154,19 +152,7 @@ export const MainContent = ({
         )}
       </View>
       <Divider />
-      <Pressable onPress={() => setShowSpecifics(!showSpecifics)}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Headline size="small">Fullständig specifikation</Headline>
-          <Icon icon={showSpecifics ? "chevronUp" : "chevronDown"} size={18} />
-        </View>
-      </Pressable>
-      {showSpecifics && (
+      <AccordionSection title="Fullständig specifikation">
         <View style={{ gap: 16 }}>
           <View style={{ gap: 4 }}>
             <Label size="medium">Kategori</Label>
@@ -243,7 +229,7 @@ export const MainContent = ({
             </View>
           </View>
         </View>
-      )}
+      </AccordionSection>
     </View>
   );
 };
