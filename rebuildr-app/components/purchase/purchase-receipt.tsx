@@ -22,6 +22,12 @@ export const PURCHASE_RECEIPT = gql`
       status
       createdAt
       paymentAcceptedAt
+      shipmentDroppedOffAt
+      shipmentDeliveredAt
+      sellerRespondedAt
+      deliveredAt
+      approvedAt
+      pausedAt
       paymentMethod
       transportationMethod
       isFree

@@ -8,9 +8,10 @@ import { View } from "react-native";
 type Props = {
   steps: ReactNode[];
   current: number;
+  isProblem?: boolean;
 };
 
-export const ProgressIndicator = ({ steps, current }: Props) => {
+export const ProgressIndicator = ({ steps, current, isProblem }: Props) => {
   const [containerHeight, setContainerHeight] = useState(0);
   const colors = useThemeColor();
 
@@ -54,6 +55,7 @@ export const ProgressIndicator = ({ steps, current }: Props) => {
               currentIndex={current}
               active={current > i}
               nrOfSteps={steps.length}
+              error={!!isProblem}
             />
             {step}
           </View>
@@ -68,10 +70,35 @@ type BubbleProps = {
   currentIndex: number;
   active: boolean;
   nrOfSteps: number;
+  error: boolean;
 };
-const Bubble = ({ index, active, currentIndex, nrOfSteps }: BubbleProps) => {
+const Bubble = ({
+  index,
+  active,
+  currentIndex,
+  nrOfSteps,
+  error,
+}: BubbleProps) => {
   const colors = useThemeColor();
   const [layoutHeight, setLayoutHeight] = useState(0);
+  const isLast = index === nrOfSteps - 1;
+  const showError = isLast && error;
+
+  //Masks the dots view going through all circles
+  const renderMask = () => {
+    return (
+      <View
+        style={{
+          backgroundColor: colors.background.neutral,
+          position: "absolute",
+          height: "130%",
+          width: 4,
+          top: -2,
+          borderRadius: borderRadius.medium,
+        }}
+      />
+    );
+  };
 
   if (active) {
     return (
@@ -79,44 +106,56 @@ const Bubble = ({ index, active, currentIndex, nrOfSteps }: BubbleProps) => {
         style={{ gap: 2 }}
         onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
       >
-        <Radio selected customColor={primitives.primary700} icon="check" />
+        <Radio
+          selected
+          customColor={
+            showError ? primitives.semanticError500 : primitives.primary700
+          }
+          icon={showError ? "X" : "check"}
+        />
         <View
           style={{
             flex: 1,
             alignItems: "center",
           }}
         >
-          {/**Masks the dots view going through all circles */}
-          <View
-            style={{
-              backgroundColor: colors.background.neutral,
-              position: "absolute",
-              height: "130%",
-              width: 4,
-              top: -2,
-              borderRadius: borderRadius.medium,
-            }}
-          />
-          {/**Progress bar */}
-          <View
-            style={{
-              backgroundColor: colors.dividers.primary,
-              position: "absolute",
-              height: layoutHeight - 4,
-              width: 4,
-              borderRadius: borderRadius.medium,
-            }}
-          />
+          {renderMask()}
+          {!isLast && (
+            <View
+              style={{
+                backgroundColor: colors.dividers.primary,
+                position: "absolute",
+                height: layoutHeight - 4,
+                width: 4,
+                borderRadius: borderRadius.medium,
+              }}
+            />
+          )}
         </View>
       </View>
     );
   }
   if (index === currentIndex) {
-    return <Radio selected customColor={primitives.primary700} />;
-  }
-  if (index === nrOfSteps - 1) {
     return (
-      <View>
+      <View
+        style={{ gap: 2 }}
+        onLayout={(e) => setLayoutHeight(e.nativeEvent.layout.height)}
+      >
+        <Radio selected customColor={primitives.primary700} />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+          }}
+        >
+          {isLast && renderMask()}
+        </View>
+      </View>
+    );
+  }
+  if (isLast) {
+    return (
+      <View style={{ gap: 2 }}>
         <Radio />
         <View
           style={{
@@ -124,15 +163,7 @@ const Bubble = ({ index, active, currentIndex, nrOfSteps }: BubbleProps) => {
             alignItems: "center",
           }}
         >
-          <View
-            style={{
-              backgroundColor: colors.background.neutral,
-              position: "absolute",
-              height: "100%",
-              width: 4,
-              borderRadius: borderRadius.medium,
-            }}
-          />
+          {renderMask()}
         </View>
       </View>
     );

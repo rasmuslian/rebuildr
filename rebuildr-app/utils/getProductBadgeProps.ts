@@ -59,6 +59,8 @@ export const getProductBadgeProps = (
       return {
         text: "Inväntar svar",
       };
+    case PurchaseStatusEnum.Paused:
+      return { text: "Pågående ärende", error: true };
   }
 
   return null;
