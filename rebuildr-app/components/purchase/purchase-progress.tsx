@@ -2,7 +2,10 @@ import {
   PurchaseReceiptQuery,
   TransportationEnum,
   PurchaseStatusEnum,
+  ApprovePurchaseMutation,
+  ApprovePurchaseMutationVariables,
 } from "@/gql/graphql";
+import { gql, useMutation } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { ProgressIndicator } from "@components/progress-indicator/progress-indicator";
 import { Body, Label } from "@components/typography/text";
@@ -11,6 +14,16 @@ import dayjs from "dayjs";
 import { router } from "expo-router";
 import React, { ComponentProps } from "react";
 import { View } from "react-native";
+
+const APPROVE_PURCHASE = gql`
+  mutation ApprovePurchase($input: AcceptPurchaseInput!) {
+    acceptPurchase(input: $input) {
+      id
+      approvedAt
+      status
+    }
+  }
+`;
 
 const dateToString = (date?: Date, type: "simple" | "default" = "default") => {
   if (!date) {
@@ -35,6 +48,11 @@ export const PurchaseProgress = ({ purchaseData }: PurchaseProgressProps) => {
   const purchase = purchaseData.purchase;
   const me = purchaseData.me;
   const isBuyer = me.id === purchase.buyer.id;
+
+  const [approvePurchase, { loading: approvePurchaseLoading }] = useMutation<
+    ApprovePurchaseMutation,
+    ApprovePurchaseMutationVariables
+  >(APPROVE_PURCHASE, { variables: { input: { purchaseId: purchase.id } } });
 
   if (purchase.transportationMethod === TransportationEnum.Shipping) {
     if (isBuyer) {
@@ -159,7 +177,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                buyerApproveEntry(purchase),
+                buyerApproveEntry(approvePurchase, approvePurchaseLoading),
               ]}
               current={3}
             />
@@ -666,7 +684,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     },
                   ]}
                 />,
-                buyerApproveEntry(purchase),
+                buyerApproveEntry(approvePurchase, approvePurchaseLoading),
               ]}
               current={3}
             />
@@ -1160,7 +1178,7 @@ const deliveryConfirmedEntry = (purchase: PurchaseType) => (
     ]}
   />
 );
-const buyerApproveEntry = (purchase: PurchaseType) => (
+const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
   <ProgressEntry
     title="Säljaren får betalt"
     elements={[
@@ -1186,9 +1204,8 @@ const buyerApproveEntry = (purchase: PurchaseType) => (
         type: "button",
         buttonProps: {
           label: "Godkänn varan",
-          onPress: () => {
-            //TODO: approve product
-          },
+          onPress: onApprove,
+          loading: approveLoading,
         },
       },
       {
