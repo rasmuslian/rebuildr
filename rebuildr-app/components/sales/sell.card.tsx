@@ -36,7 +36,11 @@ export const SellCard = ({ purchase }: Props) => {
       ]}
       primaryText={purchase.buyer.username ?? ""}
       secondaryText={dayjs(purchase.paymentAcceptedAt).format("D MMMM, YYYY")}
-      badgeProps={getProductBadgeProps(purchase.product.status, purchase)}
+      badgeProps={getProductBadgeProps(
+        purchase.product.status,
+        "seller",
+        purchase,
+      )}
     />
   );
 };

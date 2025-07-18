@@ -84,7 +84,6 @@ export class User {
 
   @Field(() => String, {
     nullable: true,
-    middleware: [UserProtectedMiddleware],
   })
   @Column({ nullable: true })
   address?: string;

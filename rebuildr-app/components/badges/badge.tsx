@@ -6,6 +6,7 @@ import { View } from "react-native";
 type BadgeProps = {
   size?: "large" | "medium" | "small";
   disabled?: boolean;
+  error?: boolean;
   text?: string;
 };
 
@@ -13,16 +14,22 @@ export const Badge = ({
   size = "medium",
   text = "0",
   disabled,
+  error,
 }: BadgeProps) => {
   const colors = useThemeColor();
+  let statusColor: string | undefined = undefined;
+  if (disabled) {
+    statusColor = colors.check.false.disabled;
+  }
+  if (error) {
+    statusColor = colors.textField.error;
+  }
 
   if (size === "small") {
     return (
       <View
         style={{
-          backgroundColor: disabled
-            ? colors.check.false.disabled
-            : colors.badges[size],
+          backgroundColor: statusColor ?? colors.badges[size],
           borderRadius: borderRadius.xSmall,
           height: 6,
           width: 6,
@@ -35,9 +42,7 @@ export const Badge = ({
   return (
     <View
       style={{
-        backgroundColor: disabled
-          ? colors.check.false.disabled
-          : colors.badges[size],
+        backgroundColor: statusColor ?? colors.badges[size],
         borderRadius: isLarge ? borderRadius.small : borderRadius.xSmall,
         height: isLarge ? 24 : 16,
         minWidth: isLarge ? 24 : 16,
