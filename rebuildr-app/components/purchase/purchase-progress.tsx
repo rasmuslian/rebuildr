@@ -159,53 +159,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                <ProgressEntry
-                  title="Säljaren får betalt"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har 48 timmar på dig att kontrollera att varan stämmer med annonsen.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Om allt ser bra ut betalas pengarna automatiskt ut till säljaren.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Godkänn varan",
-                        onPress: () => {
-                          //TODO: approve product
-                        },
-                      },
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: "Stämmer inte varan med annonsen?",
-                        },
-                        {
-                          children: "\n",
-                        },
-                        {
-                          isLink: true,
-                          children: "Rapportera problem med köp",
-                        },
-                      ],
-                    },
-                  ]}
-                />,
+                buyerApproveEntry(purchase),
               ]}
               current={3}
             />
@@ -219,45 +173,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                <ProgressEntry
-                  title="Köpet är slutfört"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: dateToString(purchase.approvedAt),
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har godkänt varan och pengarna har nu betalats ut till säljaren.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Lämna ett omdöme",
-                        onPress: () => {
-                          //TODO: navigate to review screen
-                        },
-                      },
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: "Tack för att du handlade med Rebuildr!",
-                        },
-                      ],
-                    },
-                  ]}
-                />,
+                purchaseCompleteEntry(purchase),
               ]}
               current={4}
             />
@@ -611,7 +527,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
         );
     }
   }
-  //Delivery
   if (
     purchase.transportationMethod === TransportationEnum.Delivery ||
     purchase.transportationMethod === TransportationEnum.Pickup
@@ -751,49 +666,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     },
                   ]}
                 />,
-                <ProgressEntry
-                  title="Säljaren får betalt"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har 48 timmar på dig att kontrollera att varan stämmer med annonsen.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Om allt ser bra ut betalas pengarna automatiskt ut till säljaren.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Godkänn varan",
-                        onPress: () => {
-                          //TODO: approve product
-                        },
-                      },
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        { children: "Stämmer inte varan med annonsen?" },
-                        { children: "\n" },
-                        {
-                          children: "Rapportera ett problem med köp",
-                          isLink: true,
-                        },
-                      ],
-                    },
-                  ]}
-                />,
+                buyerApproveEntry(purchase),
               ]}
               current={3}
             />
@@ -818,45 +691,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     },
                   ]}
                 />,
-                <ProgressEntry
-                  title="Köpet är slutfört"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: dateToString(purchase.approvedAt),
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har godkänt varan och pengarna har nu betalats ut till säljaren.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Lämna ett omdöme",
-                        onPress: () => {
-                          //TODO: navigate to review screen
-                        },
-                      },
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: "Tack för att du handlade med Rebuildr!",
-                        },
-                      ],
-                    },
-                  ]}
-                />,
+                purchaseCompleteEntry(purchase),
               ]}
               current={3}
             />
@@ -1319,6 +1154,92 @@ const deliveryConfirmedEntry = (purchase: PurchaseType) => (
         textParts: [
           {
             children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+          },
+        ],
+      },
+    ]}
+  />
+);
+const buyerApproveEntry = (purchase: PurchaseType) => (
+  <ProgressEntry
+    title="Säljaren får betalt"
+    elements={[
+      {
+        type: "body",
+        textParts: [
+          {
+            children:
+              "Du har 48 timmar på dig att kontrollera att varan stämmer med annonsen.",
+          },
+        ],
+      },
+      {
+        type: "body",
+        textParts: [
+          {
+            children:
+              "Om allt ser bra ut betalas pengarna automatiskt ut till säljaren.",
+          },
+        ],
+      },
+      {
+        type: "button",
+        buttonProps: {
+          label: "Godkänn varan",
+          onPress: () => {
+            //TODO: approve product
+          },
+        },
+      },
+      {
+        type: "body",
+        textParts: [
+          { children: "Stämmer inte varan med annonsen?" },
+          { children: "\n" },
+          {
+            children: "Rapportera ett problem med köp",
+            isLink: true,
+          },
+        ],
+      },
+    ]}
+  />
+);
+const purchaseCompleteEntry = (purchase: PurchaseType) => (
+  <ProgressEntry
+    title="Köpet är slutfört"
+    elements={[
+      {
+        type: "body",
+        textParts: [
+          {
+            children: dateToString(purchase.approvedAt),
+          },
+        ],
+      },
+      {
+        type: "body",
+        textParts: [
+          {
+            children:
+              "Du har godkänt varan och pengarna har nu betalats ut till säljaren.",
+          },
+        ],
+      },
+      {
+        type: "button",
+        buttonProps: {
+          label: "Lämna ett omdöme",
+          onPress: () => {
+            //TODO: navigate to review screen
+          },
+        },
+      },
+      {
+        type: "body",
+        textParts: [
+          {
+            children: "Tack för att du handlade med Rebuildr!",
           },
         ],
       },
