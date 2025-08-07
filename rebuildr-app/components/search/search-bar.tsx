@@ -42,12 +42,14 @@ export const SearchBar = ({
         style,
       ]}
     >
-      <Button
-        icon="arrowLeft"
-        onPress={() => onPressArrow?.()}
-        type="text"
-        style={{ marginLeft: -12 }}
-      />
+      {onPressArrow && (
+        <Button
+          icon="arrowLeft"
+          onPress={() => onPressArrow?.()}
+          type="text"
+          style={{ marginLeft: -12 }}
+        />
+      )}
       <View
         style={[
           {
@@ -72,11 +74,13 @@ export const SearchBar = ({
           onFocus={onFocus}
           onBlur={onBlur}
           placeholder={placeholder}
+          placeholderTextColor={colors.text.secondary}
           value={value}
           editable={!disabled}
           defaultValue={defaultValue}
           style={{
             outlineStyle: undefined,
+            outlineWidth: 0,
             overflow: "visible",
             flexGrow: 1,
             ...(!value ? textStyles.label.large : textStyles.title.medium),

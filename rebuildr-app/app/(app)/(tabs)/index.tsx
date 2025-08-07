@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import TopBar from "@components/navigation/top-bar";
+import Hero from "@components/hero/hero";
 
 export default function Landing() {
   const colors = useThemeColor();
@@ -8,13 +9,11 @@ export default function Landing() {
   return (
     <View
       style={{
-        alignItems: "center",
-        gap: 16,
         backgroundColor: colors.background.neutral,
-        flex: 1,
       }}
     >
       <TopBar />
+      <Hero />
     </View>
   );
 }
