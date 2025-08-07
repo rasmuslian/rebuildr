@@ -42,6 +42,8 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Home } from "./home";
 import { Edit } from "./edit";
 import { Hamburger } from "./hamburger";
+import { Instagram } from "./instagram";
+import { Linkedin } from "./linkedin";
 
 export type IconType =
   | "placeholder"
@@ -61,6 +63,8 @@ export type IconType =
   | "heart"
   | "heartFilled"
   | "hamburger"
+  | "instagram"
+  | "linkedin"
   | "home"
   | "list"
   | "grid"
@@ -201,6 +205,10 @@ export const Icon = ({
       return <User {...props} size={size} color={color} />;
     case "hamburger":
       return <Hamburger {...props} size={size} color={color} />;
+    case "instagram":
+      return <Instagram {...props} size={size} color={color} />;
+    case "linkedin":
+      return <Linkedin {...props} size={size} color={color} />;
     case "message":
       return <Message {...props} size={size} color={color} />;
     case "newListing":

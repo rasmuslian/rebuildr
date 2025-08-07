@@ -1,8 +1,8 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Body } from "@components/typography/text";
 import { Redirect, Stack } from "expo-router";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -26,7 +26,7 @@ export default function AppLayout() {
   }
 
   if (!data) {
-    return <Body>Loading...</Body>;
+    return <LoadingSpinner />;
   }
 
   return (
