@@ -1,10 +1,15 @@
-import { Pressable, View, TouchableOpacity, FlatList } from "react-native";
+import {
+  Pressable,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Linking,
+} from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React from "react";
 import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { Logo } from "@components/logo/logo";
-import { Linking } from "react-native";
 
 // Mock data - Start
 type LinkGroup = {
