@@ -17,9 +17,9 @@ export default function Landing() {
       headerComponent={<Header />}
       headerStyle={{ paddingHorizontal: 0 }}
       footerComponent={<Footer />}
-      footerStyle={{ paddingHorizontal: 0, marginBottom: 0 }}
+      isStickyFooter={false}
     >
-      <View>
+      <View style={{ paddingVertical: 100 }}>
         <Text>Start sidan</Text>
       </View>
     </ScreenLayout>

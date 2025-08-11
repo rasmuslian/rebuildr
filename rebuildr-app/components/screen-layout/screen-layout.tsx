@@ -8,6 +8,7 @@ interface PageProps extends PropsWithChildren {
   footerComponent?: React.ReactNode;
   footerStyle?: StyleProp<ViewStyle>;
   footerBottomMargin?: "small" | "default";
+  isStickyFooter?: boolean;
   headerComponent?: React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
   loading?: boolean;
@@ -19,6 +20,7 @@ export const ScreenLayout = ({
   footerComponent,
   footerStyle,
   footerBottomMargin: _footerBottomMargin = "default",
+  isStickyFooter = true,
   headerComponent,
   headerStyle,
   loading,
@@ -40,22 +42,25 @@ export const ScreenLayout = ({
         </View>
       )}
 
-      <ScrollView
-        contentContainerStyle={[
-          {
-            flexGrow: 1,
-            backgroundColor: colors.background.neutral,
-            paddingHorizontal: 16,
-            marginBottom: 32,
-            marginTop: 24,
-          },
-          style,
-        ]}
-      >
-        {loading ? <LoadingSpinner /> : children}
+      <ScrollView>
+        <View
+          style={[
+            {
+              flexGrow: 1,
+              backgroundColor: colors.background.neutral,
+              paddingHorizontal: 16,
+              marginBottom: 32,
+              marginTop: 24,
+            },
+            style,
+          ]}
+        >
+          {loading ? <LoadingSpinner /> : children}
+        </View>
+        {footerComponent && !isStickyFooter && <View>{footerComponent}</View>}
       </ScrollView>
 
-      {footerComponent && (
+      {footerComponent && isStickyFooter && (
         <View
           style={[
             { paddingHorizontal: 16, marginBottom: footerBottomMargin },
