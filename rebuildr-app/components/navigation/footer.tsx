@@ -173,7 +173,10 @@ export default function Footer() {
           marginBottom: isLastRow ? 24 : 48,
         }}
       >
-        <Title style={{ color: colors.text.primaryLight, marginBottom: 16 }}>
+        <Title
+          size="medium"
+          style={{ color: colors.text.primaryLight, marginBottom: 16 }}
+        >
           {item.title}
         </Title>
 
@@ -186,6 +189,7 @@ export default function Footer() {
               onPress={() => Linking.openURL(link.href)}
             >
               <Label
+                size="medium"
                 style={{
                   color: colors.text.primaryLight,
                   marginBottom: isLastLink ? 0 : 16,
@@ -231,7 +235,7 @@ export default function Footer() {
           }}
         >
           <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Body style={{ color: colors.text.primaryLight }}>
+            <Body size="small" style={{ color: colors.text.primaryLight }}>
               Följ oss på:
             </Body>
             <View
@@ -252,7 +256,7 @@ export default function Footer() {
           <Logo width={148} height={26} />
         </View>
 
-        <Body style={{ color: colors.text.success }}>
+        <Body size="small" style={{ color: colors.text.success }}>
           © 2025 Rebuildr. All rights reserved.
         </Body>
       </View>
