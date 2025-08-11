@@ -563,10 +563,7 @@ export class ProductService {
     ) {
       query.innerJoin('category', 'c', '"categoryId" = c.id');
 
-      if (!input.categoryIds.length) {
-        query.andWhere('c.id IS NULL');
-      }
-      if (input.categoryIds.length) {
+      if (input.categoryIds?.length) {
         query.andWhere(
           'c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds)',
           {
