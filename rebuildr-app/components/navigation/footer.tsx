@@ -173,10 +173,7 @@ export default function Footer() {
           marginBottom: isLastRow ? 24 : 48,
         }}
       >
-        <Title
-          size="medium"
-          style={{ color: colors.text.primaryLight, marginBottom: 16 }}
-        >
+        <Title size="medium" color="primaryLight" style={{ marginBottom: 16 }}>
           {item.title}
         </Title>
 
@@ -190,10 +187,8 @@ export default function Footer() {
             >
               <Label
                 size="medium"
-                style={{
-                  color: colors.text.primaryLight,
-                  marginBottom: isLastLink ? 0 : 16,
-                }}
+                color="primaryLight"
+                style={{ marginBottom: isLastLink ? 0 : 16 }}
               >
                 {link.label}
               </Label>
@@ -235,7 +230,7 @@ export default function Footer() {
           }}
         >
           <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Body size="small" style={{ color: colors.text.primaryLight }}>
+            <Body size="small" color="primaryLight">
               Följ oss på:
             </Body>
             <View
@@ -245,18 +240,18 @@ export default function Footer() {
               }}
             >
               <Pressable onPress={() => console.log("Instagram icon pressed")}>
-                <Icon icon="instagram" customColor={colors.text.primaryLight} />
+                <Icon icon="instagram" color="primaryLight" />
               </Pressable>
 
               <Pressable onPress={() => console.log("Linkedin icon pressed")}>
-                <Icon icon="linkedin" customColor={colors.text.primaryLight} />
+                <Icon icon="linkedin" color="primaryLight" />
               </Pressable>
             </View>
           </View>
           <Logo width={148} height={26} />
         </View>
 
-        <Body size="small" style={{ color: colors.text.success }}>
+        <Body size="small" color="success">
           © 2025 Rebuildr. All rights reserved.
         </Body>
       </View>
