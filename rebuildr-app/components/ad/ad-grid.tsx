@@ -1,8 +1,6 @@
-import { useReactiveVar } from "@apollo/client";
 import { Pressable, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 
-import { isLoggedInVar } from "@/apollo/config";
 import { borderRadius } from "@constants/sizes";
 import { Label } from "@components/typography/text";
 import { Icon } from "@icons/icon";
@@ -12,6 +10,7 @@ import { router } from "expo-router";
 import { ComponentProps } from "react";
 import { AdDescription } from "./ad-description";
 import { ProductStatusEnum } from "@/gql/graphql";
+import { useUser } from "@hooks/useUser";
 
 type Props = {
   id: string;
@@ -35,7 +34,7 @@ export const AdGrid = ({
   status,
   ...adDescriptionProps
 }: Props) => {
-  const isLoggedIn = useReactiveVar(isLoggedInVar);
+  const { isLoggedIn } = useUser();
   const showHeart = heart && isLoggedIn;
 
   const overlayText = _overlayText
