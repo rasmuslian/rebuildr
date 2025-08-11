@@ -263,7 +263,11 @@ export default function Payment() {
             setPaymentError("Kunde inte öppna Trustly");
             return;
           }
-          await Linking.openURL(data.purchaseProduct.trustlyUrl);
+          if (Platform.OS === "web") {
+            window.location.href = data.purchaseProduct.trustlyUrl;
+          } else {
+            await Linking.openURL(data.purchaseProduct.trustlyUrl);
+          }
         },
       });
     }
