@@ -475,7 +475,7 @@ export class PurchaseService {
       product: product,
       swishToken: payment?.paymentMethodData?.token,
       reference: payment?.reference,
-      trustlyUrl: payment.paymentMethodData.paymentUri,
+      trustlyUrl: payment?.paymentMethodData?.paymentUri,
     };
   }
 
