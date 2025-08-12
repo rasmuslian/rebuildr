@@ -3,16 +3,23 @@ import { gql, useQuery } from "@apollo/client";
 import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { View } from "react-native";
 import {
+  LocationObjectCoords,
+  PermissionStatus,
+  getForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+} from "expo-location";
+import { useState, useCallback } from "react";
+import {
   OrderProductsEnum,
-  TrendingNowProductsQuery,
-  TrendingNowProductsQueryVariables,
+  NewArrivalsNearYouQuery,
+  NewArrivalsNearYouQueryVariables,
 } from "@/gql/graphql";
 
-const TRENDING_NOW_QUERY = gql`
-  query TrendingNowProducts($input: ProductsInput!, $limit: Int, $offset: Int) {
+const NEW_ARRIVALS_NEAR_YOU = gql`
+  query NewArrivalsNearYou($input: ProductsInput!, $limit: Int, $offset: Int) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
@@ -36,28 +43,46 @@ const TRENDING_NOW_QUERY = gql`
   }
 `;
 
-export const TrendingNow = () => {
+export const NewArrivalsNearYou = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
+  const [location, setLocation] = useState<LocationObjectCoords | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const { status } = await getForegroundPermissionsAsync();
+        if (status !== PermissionStatus.GRANTED) return;
+
+        const { coords } = await getCurrentPositionAsync();
+        setLocation(coords);
+      })();
+    }, []),
+  );
 
   const { data } = useQuery<
-    TrendingNowProductsQuery,
-    TrendingNowProductsQueryVariables
-  >(TRENDING_NOW_QUERY, {
+    NewArrivalsNearYouQuery,
+    NewArrivalsNearYouQueryVariables
+  >(NEW_ARRIVALS_NEAR_YOU, {
     variables: {
       input: {
-        orderBy: OrderProductsEnum.Latest,
-        selectionCategories: true,
+        orderBy: OrderProductsEnum.Distance,
+        location: location && {
+          lat: location?.latitude,
+          lng: location?.longitude,
+        },
       },
       limit: 10,
       offset: 0,
     },
   });
 
+  if (!location) return null;
+
   return (
-    <View style={{ paddingVertical: 16 }}>
+    <View style={{ paddingTop: 16, paddingBottom: 24 }}>
       <HoriztalListSection
-        title="Trendar nu"
+        title="Nyinkomna varor nära dig"
         data={data?.products.products ?? []}
         onPress={() => {
           const categoryIds: string[] = [];
