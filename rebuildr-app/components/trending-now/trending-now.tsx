@@ -2,6 +2,8 @@ import { HoriztalListSection } from "@components/sections/horizontal-list-sectio
 import { gql, useQuery } from "@apollo/client";
 import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { router } from "expo-router";
 import {
   OrderProductsEnum,
   TrendingNowProductsQuery,
@@ -24,6 +26,10 @@ const TRENDING_NOW_QUERY = gql`
           id
           url
         }
+        category {
+          id
+          name
+        }
       }
     }
   }
@@ -31,6 +37,8 @@ const TRENDING_NOW_QUERY = gql`
 
 export const TrendingNow = () => {
   const { onToggleProductHeart } = useLikeProduct();
+  const { setCategories } = useFilterProduct();
+
   const { data } = useQuery<
     TrendingNowProductsQuery,
     TrendingNowProductsQueryVariables
@@ -49,7 +57,18 @@ export const TrendingNow = () => {
     <HoriztalListSection
       title="Trendar nu"
       data={data?.products.products ?? []}
-      onPress={() => console.log("Arrow pressed !")}
+      onPress={() => {
+        const categoryIds: string[] = [];
+
+        data?.products?.products?.forEach((product) => {
+          if (product.category?.id) {
+            categoryIds.push(product.category.id);
+          }
+        });
+
+        setCategories(categoryIds);
+        router.navigate("/(app)/(tabs)/search/products");
+      }}
       renderItem={({ item }) => {
         return (
           <AdGrid
