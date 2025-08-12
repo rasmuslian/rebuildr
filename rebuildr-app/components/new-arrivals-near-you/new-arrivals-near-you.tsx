@@ -75,6 +75,7 @@ export const NewArrivalsNearYou = () => {
       limit: 10,
       offset: 0,
     },
+    skip: !location,
   });
 
   if (!location) return null;
