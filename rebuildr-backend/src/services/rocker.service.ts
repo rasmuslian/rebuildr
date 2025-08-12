@@ -462,6 +462,10 @@ export class RockerService {
     );
   }
 
+  async cancelPayment(paymentId: string) {
+    return await this.rockerApi.cancelPayment(paymentId);
+  }
+
   /**
    * PayoutAccount is a bit different from Rocker's PayoutMethod
    * for example PayoutAccount needs to differentiate between different bank types

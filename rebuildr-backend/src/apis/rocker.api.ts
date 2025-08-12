@@ -444,4 +444,18 @@ export class RockerAPI {
 
     return response;
   }
+
+  /**
+   *
+   * Rocker docs: Cancel ongoing payment. A new payment can be created after the ongoing payment is cancelled.
+   *
+   * Dev note: Will return 400 "Illegal operation: Only unresolved payments can be cancelled" if the payment has been settled.
+   */
+  async cancelPayment(paymentId: string) {
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url + `/merchant-api/v1/payments/${paymentId}/cancel`,
+      { method: 'PUT' },
+    );
+    return response;
+  }
 }
