@@ -3,9 +3,15 @@ import { gql, useQuery } from "@apollo/client";
 import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router } from "expo-router";
-import { useLocationAddress } from "@hooks/useLocationAddress";
+import { router, useFocusEffect } from "expo-router";
 import { View } from "react-native";
+import {
+  LocationObjectCoords,
+  PermissionStatus,
+  getForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+} from "expo-location";
+import { useState, useCallback } from "react";
 import {
   OrderProductsEnum,
   NewArrivalsNearYouQuery,
@@ -40,7 +46,19 @@ const NEW_ARRIVALS_NEAR_YOU = gql`
 export const NewArrivalsNearYou = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
-  const { location } = useLocationAddress();
+  const [location, setLocation] = useState<LocationObjectCoords | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const { status } = await getForegroundPermissionsAsync();
+        if (status !== PermissionStatus.GRANTED) return;
+
+        const { coords } = await getCurrentPositionAsync();
+        setLocation(coords);
+      })();
+    }, []),
+  );
 
   const { data } = useQuery<
     NewArrivalsNearYouQuery,
@@ -49,15 +67,17 @@ export const NewArrivalsNearYou = () => {
     variables: {
       input: {
         orderBy: OrderProductsEnum.Distance,
-        location: {
-          lat: location[0],
-          lng: location[1],
+        location: location && {
+          lat: location?.latitude,
+          lng: location?.longitude,
         },
       },
       limit: 10,
       offset: 0,
     },
   });
+
+  if (!location) return null;
 
   return (
     <View style={{ paddingTop: 16, paddingBottom: 24 }}>
