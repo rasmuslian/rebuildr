@@ -1152,6 +1152,66 @@ export class PurchaseService {
     );
   }
 
+  @Cron(CronExpression.EVERY_HOUR)
+  async refundPackageNotDroppedOff() {
+    const logger = this.logger.child({
+      cron: 'redundPackageNotDroppedOff',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info(
+      'Refunding purchases where seller has not dropped off package in time',
+    );
+    const duePurchases = await this.purchaseRepository.find({
+      where: {
+        paymentAcceptedAt: LessThanOrEqual(dayjs().subtract(7, 'day').toDate()),
+        status: Or(
+          Equal(PurchaseStatusEnum.SHIPMENT_BOOKED),
+          Equal(PurchaseStatusEnum.PAYMENT_ACCEPTED),
+        ),
+        transportationMethod: TransportationEnum.SHIPPING,
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+      },
+    });
+    await Promise.all(
+      duePurchases.map(async (purchase) => {
+        logger.info(
+          'Refunding purchase due to seller not dropping off package in time',
+          {
+            purchaseId: purchase.id,
+            buyerId: purchase.buyer.id,
+            sellerId: purchase.product.seller.id,
+            productId: purchase.product.id,
+            shippingId: purchase.shippingId,
+          },
+        );
+        if (!purchase.rockerPaymentId) {
+          return;
+        }
+        await this.rockerService.refundPayment(
+          purchase.rockerPaymentId,
+          'Refunded by System due to shipment not being dropped off in time',
+        );
+        if (!purchase.failedAt) {
+          this.systemMessagesService.lateShippingDropOffBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+          this.systemMessagesService.lateShippingDropOffSeller(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+        }
+
+        return purchase;
+      }),
+    );
+  }
+
   //---------------------------------------------------------------
 
   //--------------- WEBHOOK functions ----------------------
