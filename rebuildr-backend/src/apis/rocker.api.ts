@@ -458,4 +458,17 @@ export class RockerAPI {
     );
     return response;
   }
+
+  async refundPayment(
+    paymentId: string,
+    serviceFeeRefundable: boolean,
+    comment: string,
+  ) {
+    const response: IPaymentResponse = await this.customFetch.send(
+      this.url +
+        `/merchant-api/v1/payments/${paymentId}/refund/?${'?comment=' + encodeURIComponent(comment)}${'&service-fee-refundable=' + serviceFeeRefundable ? 'true' : 'false'}`,
+      { method: 'POST' },
+    );
+    return response;
+  }
 }

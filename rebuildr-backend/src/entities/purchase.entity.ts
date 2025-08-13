@@ -148,6 +148,12 @@ export class Purchase {
   @Column({ nullable: true })
   refundId?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  abortedById?: string;
+  @ManyToOne(() => User, (u) => u.id, { nullable: true })
+  abortedBy?: User;
+
   @OneToMany(() => Review, (review) => review.purchase)
   reviews: Review[];
 

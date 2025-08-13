@@ -33,6 +33,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
+import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -89,6 +90,7 @@ const CONVERSATION_PRODUCT = gql`
       qrCodeUrl
       isShipping
       transportationMethod
+      sellerRespondedAt
       reviews {
         id
         reviewerId
@@ -161,6 +163,7 @@ const CONVERSATION_MARK_AS_DELIVERED = gql`
 
 export default function ConversationProduct() {
   const [text, setText] = useState("");
+  const [showAbortSheet, setShowAbortSheet] = useState(false);
   const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
@@ -371,6 +374,7 @@ export default function ConversationProduct() {
                     sender={message.sender}
                     createdAt={message.createdAt}
                     senderIsMe={senderIsMe}
+                    onAbortPurchase={() => setShowAbortSheet(true)}
                   />
                 );
               })}
@@ -378,6 +382,14 @@ export default function ConversationProduct() {
           </View>
         );
       })}
+      {data.latestPurchase && (
+        <AbortPurchaseBottomSheet
+          purchaseId={data.latestPurchase.id}
+          show={showAbortSheet}
+          onDismiss={() => setShowAbortSheet(false)}
+          onAbortPurchaseCompleted={() => refetch()}
+        />
+      )}
     </ScreenLayout>
   );
 }
@@ -388,6 +400,7 @@ type ChatBlockProps = {
   type: MessageTypeEnum;
   createdAt: Date;
   senderIsMe: boolean;
+  onAbortPurchase: () => void;
 };
 
 const ChatBlock = ({
@@ -396,6 +409,7 @@ const ChatBlock = ({
   type,
   createdAt,
   senderIsMe,
+  onAbortPurchase,
 }: ChatBlockProps) => {
   const colors = useThemeColor();
 
@@ -445,7 +459,7 @@ const ChatBlock = ({
           ]}
         >
           {isSystemMessage ? (
-            <SystemMessage text={message} />
+            <SystemMessage text={message} onAbortPurchase={onAbortPurchase} />
           ) : (
             <Body
               size="large"
@@ -479,11 +493,11 @@ const ActionButtons = ({ data }: ActionButtonProps) => {
   const [acceptPurchase, { loading: acceptPurchaseLoading }] = useMutation<
     ConversationAcceptPurchaseMutation,
     ConversationAcceptPurchaseMutationVariables
-  >(CONVERSATION_ACCEPT_PURCHASE);
+  >(CONVERSATION_ACCEPT_PURCHASE, { refetchQueries: [CONVERSATION_PRODUCT] });
   const [markAsDelivered, { loading: markAsDeliveredLoading }] = useMutation<
     ConversationMarkAsDeliveredMutation,
     ConversationMarkAsDeliveredMutationVariables
-  >(CONVERSATION_MARK_AS_DELIVERED);
+  >(CONVERSATION_MARK_AS_DELIVERED, { refetchQueries: [CONVERSATION_PRODUCT] });
 
   let firstButton: ReactNode = null;
   if (!purchase) {

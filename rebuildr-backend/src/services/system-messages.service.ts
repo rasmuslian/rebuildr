@@ -329,7 +329,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     });
   }
 
-  async purchaseAbortedBuyer(buyer: User, seller: User, product: Product) {
+  async purchaseAbortedByBuyerBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+  ) {
     const message = `# Du har valt att avbryta köpet.
     
 
@@ -343,11 +347,50 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     });
   }
 
-  async purchaseAbortedSeller(buyer: User, seller: User, product: Product) {
+  async purchaseAbortedBySellerBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+  ) {
+    const message = `# Säljaren har valt att avbryta köpet.
+    
+
+# Köpet är nu avbrutet och dina pengar har återbetalats.`;
+
+    await this.message({
+      productId: product.id,
+      senderId: seller.id,
+      receiverId: buyer.id,
+      message,
+    });
+  }
+
+  async purchaseAbortedByBuyerSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+  ) {
     const message = `# Köparen har valt att avbryta köpet.
     
 
-# Om du vill sälja varan igen kan du välja att publicera annonsen på nytt.`;
+# Annonsen är nu aktiv och tillgänglig för nya köpare.`;
+
+    await this.message({
+      productId: product.id,
+      senderId: buyer.id,
+      receiverId: seller.id,
+      message,
+    });
+  }
+  async purchaseAbortedBySellerSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+  ) {
+    const message = `# Köpet är nu avbrutet och köparens pengar har återbetalats.
+    
+
+# Annonsen är nu aktiv och tillgänglig för nya köpare.`;
 
     await this.message({
       productId: product.id,

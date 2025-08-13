@@ -49,6 +49,7 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
+  abortedById: String
   paymentMethod: PaymentMethod
   transportationMethod: TransportationEnum!
   toServicePointId: String
@@ -61,6 +62,7 @@ type Purchase {
   shippingPrice: ShippingPrice
   product: Product!
   isFree: Boolean!
+  isRefunded: Boolean!
 }
 
 enum PurchaseStatusEnum {
@@ -655,6 +657,7 @@ type Mutation {
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
+  abortPurchase(input: AbortPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
@@ -861,6 +864,10 @@ input MarkPurchaseAsDeliveredInput {
 }
 
 input CancelPurchaseInput {
+  purchaseId: String!
+}
+
+input AbortPurchaseInput {
   purchaseId: String!
 }
 

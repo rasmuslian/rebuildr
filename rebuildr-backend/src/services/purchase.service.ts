@@ -8,12 +8,14 @@ import {
 } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
+  Equal,
   FindOptionsWhere,
   In,
   IsNull,
   LessThanOrEqual,
   MoreThanOrEqual,
   Not,
+  Or,
   Point,
   Repository,
 } from 'typeorm';
@@ -116,7 +118,10 @@ export class PurchaseService {
           { status: PurchaseStatusEnum.FINISHED_FAILED },
           { status: IsNull() },
           {
-            status: PurchaseStatusEnum.CLAIMED,
+            status: Or(
+              Equal(PurchaseStatusEnum.CLAIMED),
+              Equal(PurchaseStatusEnum.PAYMENT_SENT),
+            ),
             buyerId: currentUserId,
             // Allow for 4 minutes to complete payment, Rocker sets payments to expired after 5 minutes.
             createdAt: MoreThanOrEqual(dayjs().subtract(4, 'minute').toDate()),
@@ -151,7 +156,9 @@ export class PurchaseService {
 
     const existingPurchase = product?.purchases.find(
       (p) =>
-        p.status === PurchaseStatusEnum.CLAIMED && p.buyerId === currentUserId,
+        (p.status === PurchaseStatusEnum.CLAIMED ||
+          p.status === PurchaseStatusEnum.PAYMENT_SENT) &&
+        p.buyerId === currentUserId,
     );
 
     //if the product has a purchase that is not failed and is not in CLAIMED status by the same user that attempts to buy it, we should throw to prevent double purchases
@@ -491,8 +498,16 @@ export class PurchaseService {
   ) {
     const purchase = await this.purchaseRepository.findOne({
       where: [
-        { productId: productId, buyerId: senderId },
-        { productId: productId, buyerId: receiverId },
+        {
+          productId: productId,
+          buyerId: senderId,
+          status: Not(PurchaseStatusEnum.FINISHED_FAILED),
+        },
+        {
+          productId: productId,
+          buyerId: receiverId,
+          status: Not(PurchaseStatusEnum.FINISHED_FAILED),
+        },
       ],
       relations: { buyer: true, product: { seller: true } },
     });
@@ -641,6 +656,12 @@ export class PurchaseService {
     return this.purchaseRepository.remove(purchase);
   }
 
+  /**
+   * Cancels a Purchase with an ongoing payment. This can only be done if the payment is in progress and not completed yet.
+   * Will cancel the payment at Rocker and fail the purchase.
+   * @param id Id of purchase
+   * @param currentUserId User id of buyer
+   */
   async cancelPurchase(id: string, currentUserId: string) {
     const purchase = await this.purchaseRepository.findOneBy({ id });
     if (
@@ -662,7 +683,71 @@ export class PurchaseService {
     }
     await this.rockerService.cancelPayment(purchase.rockerPaymentId);
     purchase.failedAt = new Date();
-    this.purchaseRepository.save(purchase);
+    await this.purchaseRepository.save(purchase);
+    return purchase;
+  }
+  /**
+   * Aborts a purchase. This can only be done when a payment has been accepted but has not yet proceeded further.
+   * Will refund the money back to the buyer.
+   * @param id Id of purchase
+   * @param currentUserId User id of buyer or seller
+   */
+  async abortPurchase(id: string, currentUserId: string) {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id },
+      relations: { product: { seller: true }, buyer: true },
+    });
+    if (!purchase || purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED) {
+      throw BadUserInputException();
+    }
+    if (
+      purchase.buyerId !== currentUserId &&
+      purchase.product.sellerId !== currentUserId
+    ) {
+      throw ForbiddenException();
+    }
+    this.logger.info('Aborting purchase', {
+      purchaseId: purchase.id,
+      paymentId: purchase.rockerPaymentId,
+      userId: currentUserId,
+    });
+    if (!purchase.rockerPaymentId) {
+      throw InternalServerException('Missing paymentId');
+    }
+    const abortedByBuyer = currentUserId === purchase.buyerId;
+    await this.rockerService.refundPayment(
+      purchase.rockerPaymentId,
+      'Refunded by User action ' + abortedByBuyer ? '(buyer)' : '(seller)',
+    );
+    if (!purchase.abortedById) {
+      if (abortedByBuyer) {
+        this.systemMessagesService.purchaseAbortedByBuyerBuyer(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+        );
+        this.systemMessagesService.purchaseAbortedByBuyerSeller(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+        );
+      } else {
+        this.systemMessagesService.purchaseAbortedBySellerBuyer(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+        );
+        this.systemMessagesService.purchaseAbortedBySellerSeller(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+        );
+      }
+    }
+    purchase.failedAt = new Date();
+    purchase.abortedById = currentUserId;
+    await this.purchaseRepository.save(purchase);
+
     return purchase;
   }
 
@@ -975,6 +1060,9 @@ export class PurchaseService {
       logger,
     );
   }
+  //---------------------------------------------------------------
+
+  //------------------ CRON jobs ----------------------------
   //Every hour, accept purchases that are waiting approval from
   //the buyer
   @Cron(CronExpression.EVERY_HOUR)
@@ -1009,6 +1097,121 @@ export class PurchaseService {
       }),
     );
   }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async refundSellerNotResponded() {
+    const logger = this.logger.child({
+      cron: 'refundSellerNotResponded',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Refunding purchases where seller has not responded');
+    const duePurchases = await this.purchaseRepository.find({
+      where: {
+        paymentAcceptedAt: LessThanOrEqual(dayjs().subtract(1, 'day').toDate()),
+        status: PurchaseStatusEnum.PAYMENT_ACCEPTED,
+        transportationMethod: Or(
+          Equal(TransportationEnum.DELIVERY),
+          Equal(TransportationEnum.PICKUP),
+        ),
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+      },
+    });
+    await Promise.all(
+      duePurchases.map(async (purchase) => {
+        logger.info('Refunding purchase due to seller not responding', {
+          purchaseId: purchase.id,
+          buyerId: purchase.buyer.id,
+          sellerId: purchase.product.seller.id,
+          productId: purchase.product.id,
+        });
+        if (!purchase.rockerPaymentId) {
+          return;
+        }
+        await this.rockerService.refundPayment(
+          purchase.rockerPaymentId,
+          'Refunded by System due to no response from Seller',
+        );
+        if (!purchase.failedAt) {
+          this.systemMessagesService.purchaseAbortedBySellerBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+          this.systemMessagesService.purchaseAbortedBySellerSeller(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+        }
+
+        return purchase;
+      }),
+    );
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async refundPackageNotDroppedOff() {
+    const logger = this.logger.child({
+      cron: 'redundPackageNotDroppedOff',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info(
+      'Refunding purchases where seller has not dropped off package in time',
+    );
+    const duePurchases = await this.purchaseRepository.find({
+      where: {
+        paymentAcceptedAt: LessThanOrEqual(dayjs().subtract(7, 'day').toDate()),
+        status: Or(
+          Equal(PurchaseStatusEnum.SHIPMENT_BOOKED),
+          Equal(PurchaseStatusEnum.PAYMENT_ACCEPTED),
+        ),
+        transportationMethod: TransportationEnum.SHIPPING,
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+      },
+    });
+    await Promise.all(
+      duePurchases.map(async (purchase) => {
+        logger.info(
+          'Refunding purchase due to seller not dropping off package in time',
+          {
+            purchaseId: purchase.id,
+            buyerId: purchase.buyer.id,
+            sellerId: purchase.product.seller.id,
+            productId: purchase.product.id,
+            shippingId: purchase.shippingId,
+          },
+        );
+        if (!purchase.rockerPaymentId) {
+          return;
+        }
+        await this.rockerService.refundPayment(
+          purchase.rockerPaymentId,
+          'Refunded by System due to shipment not being dropped off in time',
+        );
+        if (!purchase.failedAt) {
+          this.systemMessagesService.lateShippingDropOffBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+          this.systemMessagesService.lateShippingDropOffSeller(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+        }
+
+        return purchase;
+      }),
+    );
+  }
+
   //---------------------------------------------------------------
 
   //--------------- WEBHOOK functions ----------------------
@@ -1055,8 +1258,10 @@ export class PurchaseService {
       );
     }
 
-    //System messages
     if (!purchase.paymentAcceptedAt) {
+      purchase.paymentAcceptedAt = new Date(payload.timestamp);
+
+      //System messages
       if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
         this.systemMessagesService.purchaseWithShippingBuyer(
           purchase.buyer,
@@ -1087,7 +1292,6 @@ export class PurchaseService {
       }
     }
 
-    purchase.paymentAcceptedAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
 
     if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
