@@ -4,7 +4,10 @@ import { CategoryTree } from 'src/entities/category-tree.entity';
 import { Category } from 'src/entities/category.entity';
 import { Event, EventType } from 'src/entities/event.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { GetCategoriesInput } from 'src/resolvers/category.resolver';
+import {
+  GetCategoriesInput,
+  CategoriesInput,
+} from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
 
 @Injectable()
@@ -20,7 +23,15 @@ export class CategoryService {
     return await this.categoryRepository.findOneBy({ id: Equal(id) });
   }
 
-  async findAll() {
+  async findAll(input: CategoriesInput) {
+    if (input.seasonalCategories) {
+      return await this.categoryRepository.find({
+        where: {
+          inSeason: true,
+        },
+      });
+    }
+
     return await this.categoryRepository.find();
   }
 

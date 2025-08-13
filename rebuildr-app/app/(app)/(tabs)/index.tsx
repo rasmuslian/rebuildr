@@ -7,6 +7,7 @@ import { TrendingNow } from "@components/trending-now/trending-now";
 import { Divider } from "@components/dividers/divider";
 import { Headline } from "@components/typography/text";
 import { NewArrivalsNearYou } from "@components/new-arrivals-near-you/new-arrivals-near-you";
+import { ForTheSeason } from "@components/for-the-season/for-the-season";
 
 export default function Landing() {
   const Header = () => (
@@ -25,9 +26,8 @@ export default function Landing() {
     >
       <View>
         <NewArrivalsNearYou />
+        <ForTheSeason />
         <View style={{ flexDirection: "column", gap: 16 }}>
-          <Headline size="small">För säsongen</Headline>
-          <Divider />
           <Headline size="small">Du kanske också gillar</Headline>
           <Divider />
           <Headline size="small">Nytt från din senaste söknin</Headline>
