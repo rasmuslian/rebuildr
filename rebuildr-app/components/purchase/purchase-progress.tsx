@@ -25,11 +25,21 @@ const APPROVE_PURCHASE = gql`
   }
 `;
 
+const RECEIPT_MARK_AS_DELIVERED = gql`
+  mutation ReceiptMarkAsDelivered($input: MarkPurchaseAsDeliveredInput!) {
+    markPurchaseAsDelivered(input: $input) {
+      id
+      status
+      deliveredAt
+    }
+  }
+`;
+
 const dateToString = (date?: Date, type: "simple" | "default" = "default") => {
   if (!date) {
     return "";
   }
-  return dayjs(date).format(type === "simple" ? "D MMMM" : "DD/MM");
+  return dayjs(date).format(type === "simple" ? "D MMMM" : "D MMMM, YYYY");
 };
 const dateForwardAWeek = (date: Date) => {
   return dayjs(date).add(7, "days").toDate();
@@ -57,6 +67,9 @@ export const PurchaseProgress = ({
     ApprovePurchaseMutation,
     ApprovePurchaseMutationVariables
   >(APPROVE_PURCHASE, { variables: { input: { purchaseId: purchase.id } } });
+  const [markAsDelivered, { loading: markAsDeliveredLoading }] = useMutation(
+    RECEIPT_MARK_AS_DELIVERED,
+  );
 
   if (purchase.transportationMethod === TransportationEnum.Shipping) {
     if (isBuyer) {
@@ -917,7 +930,14 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       buttonProps: {
                         label: "Markera som överlämnad",
                         onPress: () => {
-                          //TODO: mark as delivered
+                          if (!purchase || markAsDeliveredLoading) {
+                            return;
+                          }
+                          markAsDelivered({
+                            variables: {
+                              input: { purchaseId: purchase.id },
+                            },
+                          });
                         },
                       },
                     },

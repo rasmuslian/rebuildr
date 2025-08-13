@@ -566,17 +566,12 @@ const ActionButtons = ({ data }: ActionButtonProps) => {
           />
         );
       }
-
-      const sellerHasResponded = data.getConversation.some(
-        (message) =>
-          message.sender.id === data.product.seller.id &&
-          message.messageType === MessageTypeEnum.User,
-      );
       //Payment is accepted and tranportation method is NOT shipping, seller can mark as delivered
       if (
         purchase.paymentAcceptedAt &&
         !purchase.isShipping &&
-        sellerHasResponded
+        purchase.sellerRespondedAt &&
+        !purchase.deliveredAt
       ) {
         return (
           <Button
