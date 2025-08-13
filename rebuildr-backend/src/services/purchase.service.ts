@@ -8,12 +8,14 @@ import {
 } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
+  Equal,
   FindOptionsWhere,
   In,
   IsNull,
   LessThanOrEqual,
   MoreThanOrEqual,
   Not,
+  Or,
   Point,
   Repository,
 } from 'typeorm';
@@ -116,8 +118,10 @@ export class PurchaseService {
           { status: PurchaseStatusEnum.FINISHED_FAILED },
           { status: IsNull() },
           {
-            status:
-              PurchaseStatusEnum.CLAIMED || PurchaseStatusEnum.PAYMENT_SENT,
+            status: Or(
+              Equal(PurchaseStatusEnum.CLAIMED),
+              Equal(PurchaseStatusEnum.PAYMENT_SENT),
+            ),
             buyerId: currentUserId,
             // Allow for 4 minutes to complete payment, Rocker sets payments to expired after 5 minutes.
             createdAt: MoreThanOrEqual(dayjs().subtract(4, 'minute').toDate()),
@@ -1056,6 +1060,9 @@ export class PurchaseService {
       logger,
     );
   }
+  //---------------------------------------------------------------
+
+  //------------------ CRON jobs ----------------------------
   //Every hour, accept purchases that are waiting approval from
   //the buyer
   @Cron(CronExpression.EVERY_HOUR)
@@ -1090,6 +1097,61 @@ export class PurchaseService {
       }),
     );
   }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async refundSellerNotResponded() {
+    const logger = this.logger.child({
+      cron: 'refundSellerNotResponded',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Refunding purchases where seller has not responded');
+    const duePurchases = await this.purchaseRepository.find({
+      where: {
+        paymentAcceptedAt: LessThanOrEqual(dayjs().subtract(1, 'day').toDate()),
+        status: PurchaseStatusEnum.PAYMENT_ACCEPTED,
+        transportationMethod: Or(
+          Equal(TransportationEnum.DELIVERY),
+          Equal(TransportationEnum.PICKUP),
+        ),
+      },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+      },
+    });
+    await Promise.all(
+      duePurchases.map(async (purchase) => {
+        logger.info('Refunding purchase due to seller not responding', {
+          purchaseId: purchase.id,
+          buyerId: purchase.buyer.id,
+          sellerId: purchase.product.seller.id,
+          productId: purchase.product.id,
+        });
+        if (!purchase.rockerPaymentId) {
+          return;
+        }
+        await this.rockerService.refundPayment(
+          purchase.rockerPaymentId,
+          'Refunded by System due to no response from Seller',
+        );
+        if (!purchase.failedAt) {
+          this.systemMessagesService.purchaseAbortedBySellerBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+          this.systemMessagesService.purchaseAbortedBySellerSeller(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+          );
+        }
+
+        return purchase;
+      }),
+    );
+  }
+
   //---------------------------------------------------------------
 
   //--------------- WEBHOOK functions ----------------------

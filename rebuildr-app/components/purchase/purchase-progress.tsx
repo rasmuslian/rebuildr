@@ -799,7 +799,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               <ProgressIndicator
                 steps={[
                   soldInitialEntry(purchase),
-                  deliveryConfirmedEntry(purchase),
                   <ProgressEntry
                     title="Köpet är avbrutet"
                     elements={[
