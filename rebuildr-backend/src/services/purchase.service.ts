@@ -641,6 +641,31 @@ export class PurchaseService {
     return this.purchaseRepository.remove(purchase);
   }
 
+  async cancelPurchase(id: string, currentUserId: string) {
+    const purchase = await this.purchaseRepository.findOneBy({ id });
+    if (
+      !purchase ||
+      (purchase.status !== PurchaseStatusEnum.CLAIMED &&
+        purchase.status !== PurchaseStatusEnum.PAYMENT_SENT)
+    ) {
+      throw BadUserInputException();
+    }
+    if (purchase.buyerId !== currentUserId) {
+      throw ForbiddenException();
+    }
+    this.logger.info('Cancelling purchase', {
+      purchaseId: purchase.id,
+      paymentId: purchase.rockerPaymentId,
+    });
+    if (!purchase.rockerPaymentId) {
+      throw InternalServerException('Missing paymentId');
+    }
+    await this.rockerService.cancelPayment(purchase.rockerPaymentId);
+    purchase.failedAt = new Date();
+    this.purchaseRepository.save(purchase);
+    return purchase;
+  }
+
   //----------- PAUSE functions -----------------------
   async canPause(purchase: Purchase) {
     const pauseableStatus = ![

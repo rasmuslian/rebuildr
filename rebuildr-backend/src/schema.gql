@@ -654,6 +654,7 @@ type Mutation {
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
+  cancelPurchase(input: CancelPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
@@ -856,6 +857,10 @@ input AcceptPurchaseInput {
 }
 
 input MarkPurchaseAsDeliveredInput {
+  purchaseId: String!
+}
+
+input CancelPurchaseInput {
   purchaseId: String!
 }
 

@@ -3,6 +3,8 @@ import {
   BuyProductCreatePurchaseMutationVariables,
   BuyProductPaymentQuery,
   BuyProductPaymentQueryVariables,
+  PaymentCancelPurchaseMutation,
+  PaymentCancelPurchaseMutationVariables,
   PaymentMethod,
   PaymentTrustlySuccessQuery,
   PaymentTrustlySuccessQueryVariables,
@@ -91,6 +93,15 @@ const PAYMENT_TRUSTLY_SUCCESS = gql`
   }
 `;
 
+const PAYMENT_CANCEL_PURCHASE = gql`
+  mutation PaymentCancelPurchase($input: CancelPurchaseInput!) {
+    cancelPurchase(input: $input) {
+      id
+      status
+    }
+  }
+`;
+
 export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
   const [email, setEmail] = useState<string>("");
@@ -141,6 +152,10 @@ export default function Payment() {
       PaymentTrustlySuccessQuery,
       PaymentTrustlySuccessQueryVariables
     >(PAYMENT_TRUSTLY_SUCCESS);
+  const [cancelPayment] = useMutation<
+    PaymentCancelPurchaseMutation,
+    PaymentCancelPurchaseMutationVariables
+  >(PAYMENT_CANCEL_PURCHASE);
 
   const progress = () => {
     if (email && isTermsAccepted && !!paymentMethod) {
@@ -271,6 +286,20 @@ export default function Payment() {
         },
       });
     }
+  };
+
+  const onDismissStripe = () => {
+    if (!createPurchaseData) {
+      return;
+    }
+    setShowStripeModal(false);
+    cancelPayment({
+      variables: {
+        input: {
+          purchaseId: createPurchaseData?.purchaseProduct.purchase.id,
+        },
+      },
+    });
   };
 
   useEffect(() => {
@@ -511,7 +540,7 @@ export default function Payment() {
             clientSecret={createPurchaseData.purchaseProduct.reference}
             productId={productId}
             purchaseId={createPurchaseData.purchaseProduct.purchase.id}
-            onDismiss={() => setShowStripeModal(false)}
+            onDismiss={() => onDismissStripe()}
           />
         )}
     </ScreenLayout>

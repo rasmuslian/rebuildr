@@ -122,6 +122,12 @@ class MarkPurchaseAsDeliveredInput {
   purchaseId: string;
 }
 
+@InputType()
+class CancelPurchaseInput {
+  @Field()
+  purchaseId: string;
+}
+
 @Resolver(() => Purchase)
 export class PurchaseResolver {
   constructor(
@@ -213,6 +219,15 @@ export class PurchaseResolver {
       user.id,
       childLogger,
     );
+  }
+
+  @Mutation(() => Purchase)
+  @UseGuards(GqlAuthGuard)
+  async cancelPurchase(
+    @Args('input') input: CancelPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.cancelPurchase(input.purchaseId, user.id);
   }
 
   @ResolveField(() => Boolean)
