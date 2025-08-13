@@ -40,23 +40,21 @@ export const ForTheSeason = () => {
   if (!data || data.categories.length < 1) return null;
 
   return (
-    <View style={{ paddingVertical: 16 }}>
-      <View style={{ paddingVertical: 16 }}>
-        <SectionHeader
-          onPress={() => {
-            const categoryIds: string[] = [];
+    <View style={{ paddingVertical: 16, gap: 16 }}>
+      <SectionHeader
+        onPress={() => {
+          const categoryIds: string[] = [];
 
-            data?.categories.forEach((category) => {
-              categoryIds.push(category.id);
-            });
+          data?.categories.forEach((category) => {
+            categoryIds.push(category.id);
+          });
 
-            setCategories(categoryIds);
-            router.navigate("/(app)/(tabs)/search/products");
-          }}
-        >
-          För säsongen
-        </SectionHeader>
-      </View>
+          setCategories(categoryIds);
+          router.navigate("/(app)/(tabs)/search/products");
+        }}
+      >
+        För säsongen
+      </SectionHeader>
 
       <View style={{ gap: 8, marginHorizontal: -16 }}>
         {[
