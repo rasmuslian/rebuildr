@@ -19,6 +19,7 @@ export default function Hero() {
       style={{
         backgroundColor: colors.logo.vector,
         width: "100%",
+        overflow: "hidden",
       }}
     >
       <View
