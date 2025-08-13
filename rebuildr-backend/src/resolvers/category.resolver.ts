@@ -27,6 +27,11 @@ class CategoryInput {
   @Field(() => String)
   id: string;
 }
+@InputType()
+export class CategoriesInput {
+  @Field({ nullable: true })
+  seasonalCategories?: boolean;
+}
 
 @InputType()
 class PopularCategoriesInput {
@@ -64,8 +69,8 @@ export class CategoryResolver {
   }
 
   @Query(() => [Category])
-  categories() {
-    return this.categoryService.findAll();
+  categories(@Args('input') input: CategoriesInput) {
+    return this.categoryService.findAll(input);
   }
 
   @Query(() => [Category])

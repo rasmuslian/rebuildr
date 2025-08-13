@@ -464,7 +464,7 @@ type Query {
   getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
   getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
   category(input: CategoryInput!): Category!
-  categories: [Category!]!
+  categories(input: CategoriesInput!): [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories: [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
@@ -549,6 +549,10 @@ input GetTransportationOptionsInput {
 
 input CategoryInput {
   id: String!
+}
+
+input CategoriesInput {
+  seasonalCategories: Boolean
 }
 
 input GetCategoriesInput {

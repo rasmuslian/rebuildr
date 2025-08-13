@@ -415,7 +415,7 @@ export class ProductResolver {
   }
 
   @Query(() => ProductsResponse)
-  @UseGuards(GqlOptionalAuthGuard, GqlThrottlerGuard)
+  @UseGuards(GqlOptionalAuthGuard)
   async products(
     @Args('input') input: ProductsInput,
     @Args('offset', { nullable: true, type: () => Int }) offset?: number,
