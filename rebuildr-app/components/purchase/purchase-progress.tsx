@@ -29,7 +29,7 @@ const dateToString = (date?: Date, type: "simple" | "default" = "default") => {
   if (!date) {
     return "";
   }
-  return dayjs(date).format(type === "simple" ? "D MMMM" : "DD/MM");
+  return dayjs(date).format(type === "simple" ? "D MMMM" : "D MMMM, YYYY");
 };
 const dateForwardAWeek = (date: Date) => {
   return dayjs(date).add(7, "days").toDate();
