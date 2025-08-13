@@ -70,6 +70,11 @@ export const PURCHASE_RECEIPT = gql`
           url
         }
       }
+      reviews {
+        id
+        reviewerId
+        revieweeId
+      }
     }
     me {
       id

@@ -208,7 +208,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                purchaseCompleteEntry(purchase),
+                purchaseCompleteEntry(purchase, me),
               ]}
               current={4}
             />
@@ -240,24 +240,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Vill du lämna ett omdöme redan nu?Du kan recensera din upplevelse, även om ärendet fortfarande pågår.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Lämna ett omdöme",
-                        onPress: () => {
-                          //TODO: navigate to review screen
-                        },
-                      },
-                    },
+                    ...reviewDuringReportParts(purchase, me),
                   ]}
                 />,
               ]}
@@ -465,45 +448,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               soldInitialEntry(purchase),
               packageDroppedOffEntry(purchase),
               packageDeliveredSellerEntry(purchase),
-              <ProgressEntry
-                title="Du har fått betalt"
-                elements={[
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: dateToString(purchase.approvedAt),
-                      },
-                    ],
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Pengarna har betalats ut till ditt valda utbetalningskonto",
-                      },
-                    ],
-                  },
-                  {
-                    type: "button",
-                    buttonProps: {
-                      label: "Lämna ett omdöme",
-                      onPress: () => {
-                        //TODO: link to review screen
-                      },
-                    },
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: "Tack för att du handlade med Rebuildr!",
-                      },
-                    ],
-                  },
-                ]}
-              />,
+              saleCompleteEntry(purchase, me),
             ]}
             current={4}
           />
@@ -537,24 +482,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       },
                     ],
                   },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Vill du lämna ett omdöme redan nu?Du kan recensera din upplevelse, även om ärendet fortfarande pågår.",
-                      },
-                    ],
-                  },
-                  {
-                    type: "button",
-                    buttonProps: {
-                      label: "Lämna ett omdöme",
-                      onPress: () => {
-                        //TODO: link to review screen
-                      },
-                    },
-                  },
+                  ...reviewDuringReportParts(purchase, me),
                 ]}
               />,
             ]}
@@ -729,7 +657,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     },
                   ]}
                 />,
-                purchaseCompleteEntry(purchase),
+                purchaseCompleteEntry(purchase, me),
               ]}
               current={3}
             />
@@ -772,30 +700,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: "Vill du lämna ett omdöme redan nu?",
-                        },
-                        {
-                          children: "\n",
-                        },
-                        {
-                          children:
-                            "Du kan recensera din upplevelse, även om ärendet fortfarande pågår.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Lämna ett omdöme",
-                        onPress: () => {
-                          //TODO: navigate to review screen
-                        },
-                      },
-                    },
+                    ...reviewDuringReportParts(purchase, me),
                   ]}
                 />,
               ]}
@@ -1076,45 +981,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             steps={[
               soldInitialEntry(purchase),
               deliveryConfirmedEntry(purchase),
-              <ProgressEntry
-                title="Du har fått betalt"
-                elements={[
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: dateToString(purchase.approvedAt),
-                      },
-                    ],
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Pengarna har betalats ut till ditt valda utbetalningskonto.",
-                      },
-                    ],
-                  },
-                  {
-                    type: "button",
-                    buttonProps: {
-                      label: "Lämna ett omdöme",
-                      onPress: () => {
-                        //TODO: link to review screen
-                      },
-                    },
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: "Tack för att du handlade med Rebuildr!",
-                      },
-                    ],
-                  },
-                ]}
-              />,
+              saleCompleteEntry(purchase, me),
             ]}
             current={3}
           />
@@ -1145,24 +1012,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       },
                     ],
                   },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om ärendet fortfarande pågår.",
-                      },
-                    ],
-                  },
-                  {
-                    type: "button",
-                    buttonProps: {
-                      label: "Lämna ett omdöme",
-                      onPress: () => {
-                        //TODO: link to review screen
-                      },
-                    },
-                  },
+                  ...reviewDuringReportParts(purchase, me),
                 ]}
               />,
             ]}
@@ -1434,47 +1284,134 @@ const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
     ]}
   />
 );
-const purchaseCompleteEntry = (purchase: PurchaseType) => (
-  <ProgressEntry
-    title="Köpet är slutfört"
-    elements={[
-      {
-        type: "body",
-        textParts: [
-          {
-            children: dateToString(purchase.approvedAt),
-          },
-        ],
-      },
-      {
-        type: "body",
-        textParts: [
-          {
-            children:
-              "Du har godkänt varan och pengarna har nu betalats ut till säljaren.",
-          },
-        ],
-      },
-      {
-        type: "button",
-        buttonProps: {
-          label: "Lämna ett omdöme",
-          onPress: () => {
-            //TODO: navigate to review screen
-          },
+const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
+  const reviewPart: ComponentProps<typeof ProgressEntry>["elements"] = [
+    {
+      type: "button",
+      buttonProps: {
+        label: "Lämna ett omdöme",
+        onPress: () => {
+          //TODO: navigate to review screen
         },
       },
-      {
-        type: "body",
-        textParts: [
-          {
-            children: "Tack för att du handlade med Rebuildr!",
-          },
-        ],
+    },
+  ];
+  return (
+    <ProgressEntry
+      title="Köpet är slutfört"
+      elements={[
+        {
+          type: "body",
+          textParts: [
+            {
+              children: dateToString(purchase.approvedAt),
+            },
+          ],
+        },
+        {
+          type: "body",
+          textParts: [
+            {
+              children:
+                "Du har godkänt varan och pengarna har nu betalats ut till säljaren.",
+            },
+          ],
+        },
+        ...(purchase.reviews.some((r) => r.reviewerId === me.id)
+          ? []
+          : reviewPart),
+        {
+          type: "body",
+          textParts: [
+            {
+              children: "Tack för att du handlade med Rebuildr!",
+            },
+          ],
+        },
+      ]}
+    />
+  );
+};
+const saleCompleteEntry = (purchase: PurchaseType, me: MeType) => {
+  const reviewParts: ComponentProps<typeof ProgressEntry>["elements"] = [
+    {
+      type: "button",
+      buttonProps: {
+        label: "Lämna ett omdöme",
+        onPress: () => {
+          //TODO: link to review screen
+        },
       },
-    ]}
-  />
-);
+    },
+    {
+      type: "body",
+      textParts: [
+        {
+          children: "Tack för att du handlade med Rebuildr!",
+        },
+      ],
+    },
+  ];
+  return (
+    <ProgressEntry
+      title="Du har fått betalt"
+      elements={[
+        {
+          type: "body",
+          textParts: [
+            {
+              children: dateToString(purchase.approvedAt),
+            },
+          ],
+        },
+        {
+          type: "body",
+          textParts: [
+            {
+              children:
+                "Pengarna har betalats ut till ditt valda utbetalningskonto.",
+            },
+          ],
+        },
+        ...(purchase.reviews.some((r) => r.reviewerId === me.id)
+          ? []
+          : reviewParts),
+      ]}
+    />
+  );
+};
+const reviewDuringReportParts = (purchase: PurchaseType, me: MeType) => {
+  if (purchase.reviews.some((r) => r.reviewerId === me.id)) {
+    return [];
+  }
+  const reviewParts: ComponentProps<typeof ProgressEntry>["elements"] = [
+    {
+      type: "body",
+      textParts: [
+        {
+          children: "Vill du lämna ett omdöme redan nu?",
+        },
+        {
+          children: "\n",
+        },
+        {
+          children:
+            "Du kan recensera din upplevelse, även om ärendet fortfarande pågår.",
+        },
+      ],
+    },
+    {
+      type: "button",
+      buttonProps: {
+        label: "Lämna ett omdöme",
+        onPress: () => {
+          //TODO: navigate to review screen
+        },
+      },
+    },
+  ];
+  return reviewParts;
+};
 //----------------------------------------------------------
 
 type ProgressEntryProps = {

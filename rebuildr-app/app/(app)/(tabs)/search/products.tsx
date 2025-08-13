@@ -332,6 +332,7 @@ export default function Products() {
         ref={transportRef}
         name="delivery"
         title="Leveransalternativ"
+        scrollable
       >
         <View style={{ gap: 16 }}>
           {/**Pickup */}
