@@ -642,7 +642,6 @@ export class ProductResolver {
     includeOwnPurchases: boolean,
     @Parent() product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
-
     @CurrentUser() user: AuthedUserType,
   ) {
     const purchases = await productLoaders.getProductPurchases.load(product.id);

@@ -14,6 +14,8 @@ import { shippingProviderStrings } from "@constants/shippingProviders";
 import dayjs from "dayjs";
 import { View } from "react-native";
 import { PurchaseProgress } from "./purchase-progress";
+import { useState } from "react";
+import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -28,9 +30,12 @@ export const PURCHASE_RECEIPT = gql`
       deliveredAt
       approvedAt
       pausedAt
+      failedAt
       paymentMethod
       transportationMethod
       isFree
+      isRefunded
+      abortedById
       shippingPrice {
         id
         price
@@ -79,6 +84,7 @@ type Props = {
 };
 
 export const PurchaseReceipt = ({ purchaseId }: Props) => {
+  const [showAbortSheet, setShowAbortSheet] = useState(false);
   const { data } = useQuery<
     PurchaseReceiptQuery,
     PurchaseReceiptQueryVariables
@@ -113,7 +119,10 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
       <Divider />
       <View style={{ gap: 16 }}>
         <Headline size="small">Vad händer nu?</Headline>
-        <PurchaseProgress purchaseData={data} />
+        <PurchaseProgress
+          purchaseData={data}
+          onAbortPurchase={() => setShowAbortSheet(true)}
+        />
       </View>
       <Divider />
       <View style={{ gap: 16 }}>
@@ -174,6 +183,12 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
           .
         </Body>
       </View>
+      <AbortPurchaseBottomSheet
+        purchaseId={data.purchase.id}
+        show={showAbortSheet}
+        onDismiss={() => setShowAbortSheet(false)}
+        onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
+      />
     </View>
   );
 };

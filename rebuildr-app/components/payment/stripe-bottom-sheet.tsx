@@ -54,6 +54,7 @@ export const StripeBottomSheet = ({
       ref={ref}
       screenHeight
       onDismiss={onDismiss}
+      scrollable
     >
       <>
         <View style={{ gap: 24 }}>

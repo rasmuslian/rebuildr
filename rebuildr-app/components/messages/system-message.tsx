@@ -6,13 +6,14 @@ import Markdown, { RenderRules } from "react-native-markdown-display";
 
 type Props = {
   text: string;
+  onAbortPurchase: () => void;
 };
 enum MessageLinkEnum {
   ABORT = "ABORT",
   REPORT = "REPORT",
 }
 
-export const SystemMessage = ({ text }: Props) => {
+export const SystemMessage = ({ text, onAbortPurchase }: Props) => {
   const rules: RenderRules = {
     //Used for normal text. Cant use 'body' or 'paragraph' since they will wrap the other rules and
     //then affect their line height
@@ -54,9 +55,8 @@ export const SystemMessage = ({ text }: Props) => {
           case MessageLinkEnum.ABORT:
             return (
               <Body
-                onPress={() => {}}
+                onPress={onAbortPurchase}
                 key={node.key}
-                isLink
                 size={childOfSmall ? "small" : "large"}
               >
                 {children}

@@ -39,7 +39,7 @@ export const Base = ({
       style={[
         styles,
         { color: colors.text[color] },
-        isLink && {
+        (isLink || props.onPress) && {
           textDecorationColor: colors.text.link,
           textDecorationLine: "underline",
           color: colors.text.link,

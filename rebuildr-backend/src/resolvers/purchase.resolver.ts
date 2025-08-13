@@ -127,6 +127,11 @@ class CancelPurchaseInput {
   @Field()
   purchaseId: string;
 }
+@InputType()
+class AbortPurchaseInput {
+  @Field()
+  purchaseId: string;
+}
 
 @Resolver(() => Purchase)
 export class PurchaseResolver {
@@ -230,6 +235,15 @@ export class PurchaseResolver {
     return await this.purchaseService.cancelPurchase(input.purchaseId, user.id);
   }
 
+  @Mutation(() => Purchase)
+  @UseGuards(GqlAuthGuard)
+  async abortPurchase(
+    @Args('input') input: AbortPurchaseInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.purchaseService.abortPurchase(input.purchaseId, user.id);
+  }
+
   @ResolveField(() => Boolean)
   async isShipping(@Parent() purchase: Purchase) {
     return this.purchaseService.isShipping(purchase);
@@ -267,5 +281,10 @@ export class PurchaseResolver {
   @ResolveField(() => Boolean)
   async isFree(@Parent() purchase: Purchase) {
     return !purchase.rockerPaymentId;
+  }
+
+  @ResolveField(() => Boolean)
+  async isRefunded(@Parent() purchase: Purchase) {
+    return !!purchase.refundId;
   }
 }
