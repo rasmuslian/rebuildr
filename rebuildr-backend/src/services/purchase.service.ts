@@ -120,7 +120,7 @@ export class PurchaseService {
           {
             status: Or(
               Equal(PurchaseStatusEnum.CLAIMED),
-              Equal(PurchaseStatusEnum.PAYMENT_SENT),
+              Equal(PurchaseStatusEnum.PAYMENT_STARTED),
             ),
             buyerId: currentUserId,
             // Allow for 4 minutes to complete payment, Rocker sets payments to expired after 5 minutes.
@@ -157,7 +157,7 @@ export class PurchaseService {
     const existingPurchase = product?.purchases.find(
       (p) =>
         (p.status === PurchaseStatusEnum.CLAIMED ||
-          p.status === PurchaseStatusEnum.PAYMENT_SENT) &&
+          p.status === PurchaseStatusEnum.PAYMENT_STARTED) &&
         p.buyerId === currentUserId,
     );
 
@@ -667,7 +667,7 @@ export class PurchaseService {
     if (
       !purchase ||
       (purchase.status !== PurchaseStatusEnum.CLAIMED &&
-        purchase.status !== PurchaseStatusEnum.PAYMENT_SENT)
+        purchase.status !== PurchaseStatusEnum.PAYMENT_STARTED)
     ) {
       throw BadUserInputException();
     }
@@ -1230,7 +1230,7 @@ export class PurchaseService {
       );
     }
 
-    purchase.paymentSentAt = new Date(payload.timestamp);
+    purchase.paymentStartedAt = new Date(payload.timestamp);
     await this.purchaseRepository.save(purchase);
 
     logger.info('Payment started', {

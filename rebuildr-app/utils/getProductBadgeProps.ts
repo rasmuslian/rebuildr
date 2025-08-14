@@ -44,7 +44,7 @@ export const getProductBadgeProps = (
         text: "Pågående leverans",
       };
     case PurchaseStatusEnum.PaymentAccepted:
-    case PurchaseStatusEnum.PaymentSent:
+    case PurchaseStatusEnum.PaymentStarted:
       if (purchase.transportationMethod === TransportationEnum.Shipping) {
         if (role === "seller") {
           return { text: "Lämna in paket" };
