@@ -80,11 +80,12 @@ const BuyerReceiptCard = ({
             right={`${shippingPrice.price} kr`}
           />
         )}
-      {deliveryPrice !== undefined &&
-        deliveryPrice !== null &&
-        transportationMethod === TransportationEnum.Delivery && (
-          <Row left="Avhämtning" right={`${deliveryPrice} kr`} />
-        )}
+      {transportationMethod === TransportationEnum.Pickup && (
+        <Row left="Avhämtning" right="0 kr" />
+      )}
+      {transportationMethod === TransportationEnum.Delivery && (
+        <Row left="Hemtransport" right={`${deliveryPrice ?? 0} kr`} />
+      )}
       <Row left="Totalt" right={`${totalPrice} kr`} isBold />
       <Divider />
       {paymentMethod && (
@@ -126,11 +127,12 @@ const SellerReceiptCard = ({
             right="Betalas av köparen"
           />
         )}
-      {deliveryPrice !== undefined &&
-        deliveryPrice !== null &&
-        transportationMethod === TransportationEnum.Delivery && (
-          <Row left="Avhämtning" right={`${deliveryPrice} kr`} />
-        )}
+      {transportationMethod === TransportationEnum.Pickup && (
+        <Row left="Avhämtning" right="0 kr" />
+      )}
+      {transportationMethod === TransportationEnum.Delivery && (
+        <Row left="Hemtransport" right={`${deliveryPrice ?? 0} kr`} />
+      )}
     </>
   );
 };
@@ -173,11 +175,12 @@ const BusinessReceiptCard = ({
             right="Betalas av köparen"
           />
         )}
-      {deliveryPrice !== undefined &&
-        deliveryPrice !== null &&
-        transportationMethod === TransportationEnum.Delivery && (
-          <Row left="Avhämtning" right={`${deliveryPrice} kr`} />
-        )}
+      {transportationMethod === TransportationEnum.Pickup && (
+        <Row left="Avhämtning" right="0 kr" />
+      )}
+      {transportationMethod === TransportationEnum.Delivery && (
+        <Row left="Hemtransport" right={`${deliveryPrice ?? 0} kr`} />
+      )}
     </>
   );
 };
