@@ -24,6 +24,7 @@ const GET_CONVERSATIONS = gql`
       message
       readAt
       createdAt
+      messageType
       sender {
         id
         username
@@ -122,6 +123,7 @@ export default function Conversations() {
             sender: conversation.sender,
             receiver: conversation.receiver,
             message: conversation.message,
+            messageType: conversation.messageType,
             createdAt: conversation.createdAt,
             readAt: conversation.readAt,
           }))}

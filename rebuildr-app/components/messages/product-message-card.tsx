@@ -1,7 +1,7 @@
 import { ComponentProps } from "react";
 import { AdList } from "@components/ad/ad-list";
 import dayjs from "dayjs";
-import { GetConversationsQuery } from "@/gql/graphql";
+import { GetConversationsQuery, MessageTypeEnum } from "@/gql/graphql";
 import { ProductCard } from "@components/cards/product-card";
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
   messages: {
     sender: GetConversationsQuery["getConversations"][0]["sender"];
     receiver: GetConversationsQuery["getConversations"][0]["receiver"];
+    messageType: MessageTypeEnum;
     message: string;
     createdAt: Date;
     readAt?: Date;
@@ -30,6 +31,13 @@ export const ProductMessageCard = ({
 
   const getOtherUser = (message: (typeof messages)[0]) =>
     message.receiver.id === myId ? message.sender : message.receiver;
+
+  const singleSenderMessage = (message: (typeof messages)[0]) => {
+    if (message.messageType === MessageTypeEnum.System) {
+      return `${message.sender.username}`;
+    }
+    return `${message.sender.username}: ${message.message}`;
+  };
 
   return (
     <ProductCard
@@ -52,7 +60,7 @@ export const ProductMessageCard = ({
       ]}
       primaryText={
         messages.length === 1
-          ? `${messages[0].sender.username}: ${messages[0].message}`
+          ? singleSenderMessage(messages[0])
           : `${messages[0].sender.username} och ${messages.length - 1} ${messages.length > 2 ? "andra" : "annan"}`
       }
       secondaryText={dayjs(messages[0].createdAt).fromNow()}
