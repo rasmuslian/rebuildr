@@ -75,7 +75,7 @@ export const PurchaseProgress = ({
     if (isBuyer) {
       switch (purchase.status) {
         case PurchaseStatusEnum.PaymentAccepted:
-        case PurchaseStatusEnum.PaymentSent:
+        case PurchaseStatusEnum.PaymentStarted:
         case PurchaseStatusEnum.ShipmentBooked:
         case PurchaseStatusEnum.ShipmentDroppedOff:
         case PurchaseStatusEnum.ShippingStarted:
@@ -254,7 +254,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     //seller
     switch (purchase.status) {
       case PurchaseStatusEnum.PaymentAccepted:
-      case PurchaseStatusEnum.PaymentSent:
+      case PurchaseStatusEnum.PaymentStarted:
       case PurchaseStatusEnum.ShipmentBooked:
         return (
           <ProgressIndicator
@@ -497,7 +497,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     if (isBuyer) {
       switch (purchase.status) {
         case PurchaseStatusEnum.PaymentAccepted:
-        case PurchaseStatusEnum.PaymentSent:
+        case PurchaseStatusEnum.PaymentStarted:
           if (purchase.sellerRespondedAt) {
             return (
               <ProgressIndicator
@@ -794,7 +794,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     //seller
     switch (purchase.status) {
       case PurchaseStatusEnum.PaymentAccepted:
-      case PurchaseStatusEnum.PaymentSent:
+      case PurchaseStatusEnum.PaymentStarted:
         if (purchase.sellerRespondedAt) {
           return (
             <ProgressIndicator

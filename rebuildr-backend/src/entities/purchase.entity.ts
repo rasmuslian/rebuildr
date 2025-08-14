@@ -16,7 +16,7 @@ import { ShippingPrice } from './shipping-price.entity';
 //To keep track of where in a purchase cycle a purchase is in
 export enum PurchaseStatusEnum {
   CLAIMED = 'CLAIMED', //Initial state of a purchase, buyer has claimed the product
-  PAYMENT_SENT = 'PAYMENT_SENT', //Buyer has sent money to Rocker
+  PAYMENT_STARTED = 'PAYMENT_STARTED', //Buyer has initiated payment to Rocker
   PAYMENT_ACCEPTED = 'PAYMENT_ACCEPTED', //The payment is accepted by Rocker
   SHIPMENT_BOOKED = 'SHIPMENT_BOOKED', //(OPTIONAL) Seller has booked a shipment
   SHIPMENT_DROPPED_OFF = 'SHIPMENT_DROPPED_OFF', //(OPTIONAL) Seller has dropped off product at shipping provider
@@ -81,7 +81,7 @@ export class Purchase {
 
   @Field(() => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })
-  paymentSentAt?: Date | null;
+  paymentStartedAt?: Date | null;
   @Field(() => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })
   paymentAcceptedAt?: Date | null;
@@ -138,7 +138,7 @@ export class Purchase {
         WHEN "shipmentDroppedOffAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_DROPPED_OFF}'::purchase_status_enum
         WHEN "shipmentBookedAt" IS NOT NULL THEN '${PurchaseStatusEnum.SHIPMENT_BOOKED}'::purchase_status_enum
         WHEN "paymentAcceptedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_ACCEPTED}'::purchase_status_enum
-        WHEN "paymentSentAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_SENT}'::purchase_status_enum
+        WHEN "paymentStartedAt" IS NOT NULL THEN '${PurchaseStatusEnum.PAYMENT_STARTED}'::purchase_status_enum
         ELSE '${PurchaseStatusEnum.CLAIMED}'::purchase_status_enum
       END
     `,

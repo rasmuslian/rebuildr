@@ -69,7 +69,7 @@ export class PostnordService {
         status: Not(
           In([
             PurchaseStatusEnum.CLAIMED,
-            PurchaseStatusEnum.PAYMENT_SENT,
+            PurchaseStatusEnum.PAYMENT_STARTED,
             PurchaseStatusEnum.PAYMENT_ACCEPTED,
             PurchaseStatusEnum.DELIVERED,
             PurchaseStatusEnum.APPROVED,

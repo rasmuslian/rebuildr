@@ -35,7 +35,7 @@ type Purchase {
   id: ID!
   createdAt: DateTime!
   buyerId: String!
-  paymentSentAt: DateTime
+  paymentStartedAt: DateTime
   paymentAcceptedAt: DateTime
   shipmentBookedAt: DateTime
   shipmentDroppedOffAt: DateTime
@@ -67,7 +67,7 @@ type Purchase {
 
 enum PurchaseStatusEnum {
   CLAIMED
-  PAYMENT_SENT
+  PAYMENT_STARTED
   PAYMENT_ACCEPTED
   SHIPMENT_BOOKED
   SHIPMENT_DROPPED_OFF
