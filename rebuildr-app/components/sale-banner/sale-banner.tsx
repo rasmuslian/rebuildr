@@ -4,15 +4,24 @@ import { borderRadius } from "@constants/sizes";
 import { Title, Headline } from "@components/typography/text";
 import { router } from "expo-router";
 import { Icon } from "@icons/icon";
+import { LoginModalContext } from "@context/loginModalContext";
+import { useContext } from "react";
+import { useUser } from "@hooks/useUser";
 
 export function SaleBanner() {
   const colors = useThemeColor();
+  const { setVisible } = useContext(LoginModalContext);
+  const { isLoggedIn } = useUser();
 
   return (
     <TouchableOpacity
       style={{ paddingVertical: 16 }}
       onPress={() => {
-        router.navigate("/(app)/(tabs)/sell-product");
+        if (isLoggedIn) {
+          router.navigate("/(app)/(tabs)/sell-product");
+        } else {
+          setVisible(true);
+        }
       }}
     >
       <ImageBackground

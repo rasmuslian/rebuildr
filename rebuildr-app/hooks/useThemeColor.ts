@@ -4,10 +4,11 @@
  */
 
 import { themeColorTokens } from "@constants/colors";
-import { useColorScheme } from "react-native";
+// import { useColorScheme } from "react-native";
 
 export function useThemeColor() {
-  const theme = useColorScheme() ?? "light";
+  // const theme = useColorScheme() ?? "light";
+  const theme = "light";
 
   return themeColorTokens[theme];
 }
