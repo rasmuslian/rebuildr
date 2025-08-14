@@ -7,6 +7,7 @@ import { BadUserInputException } from 'src/exceptions';
 import {
   GetCategoriesInput,
   CategoriesInput,
+  RootCategoriesInput,
 } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
 
@@ -35,9 +36,12 @@ export class CategoryService {
     return await this.categoryRepository.find();
   }
 
-  async findAllRoot() {
-    return await this.categoryRepository.findBy({
-      parentId: IsNull(),
+  async findAllRoot(input: RootCategoriesInput) {
+    return await this.categoryRepository.find({
+      where: {
+        parentId: IsNull(),
+      },
+      order: { orderIndex: input?.orderBy ?? 'DESC' },
     });
   }
 

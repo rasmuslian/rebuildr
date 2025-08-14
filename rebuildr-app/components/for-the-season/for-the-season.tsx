@@ -65,8 +65,11 @@ export const ForTheSeason = () => {
             key={rowIndex}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: "row", gap: 8 }}
-            style={{ paddingHorizontal: 16 }}
+            contentContainerStyle={{
+              flexDirection: "row",
+              paddingHorizontal: 16,
+              gap: 8,
+            }}
           >
             {rowItems.map((category, index) => (
               <ImageQuickLink

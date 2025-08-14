@@ -10,6 +10,7 @@ import {
   Mutation,
   Int,
   Context,
+  registerEnumType,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -22,6 +23,12 @@ import { FileService } from 'src/services/file.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
 
+export enum OrderCategoriesEnum {
+  ORDER_INDEX_ASC = 'ASC',
+  ORDER_INDEX_DESC = 'DESC',
+}
+registerEnumType(OrderCategoriesEnum, { name: 'OrderCategoriesEnum' });
+
 @InputType()
 class CategoryInput {
   @Field(() => String)
@@ -31,6 +38,11 @@ class CategoryInput {
 export class CategoriesInput {
   @Field({ nullable: true })
   seasonalCategories?: boolean;
+}
+@InputType()
+export class RootCategoriesInput {
+  @Field(() => OrderCategoriesEnum, { nullable: true })
+  orderBy?: OrderCategoriesEnum;
 }
 
 @InputType()
@@ -79,8 +91,10 @@ export class CategoryResolver {
   }
 
   @Query(() => [Category])
-  rootCategories() {
-    return this.categoryService.findAllRoot();
+  rootCategories(
+    @Args('input', { nullable: true }) input?: RootCategoriesInput,
+  ) {
+    return this.categoryService.findAllRoot(input);
   }
 
   @Query(() => [Category])

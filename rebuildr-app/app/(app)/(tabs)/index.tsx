@@ -9,6 +9,7 @@ import { Headline } from "@components/typography/text";
 import { NewArrivalsNearYou } from "@components/new-arrivals-near-you/new-arrivals-near-you";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
 import { SaleBanner } from "@components/sale-banner/sale-banner";
+import { RootCategories } from "@components/root-categories/root-categories";
 
 export default function Landing() {
   const Header = () => (
@@ -26,6 +27,7 @@ export default function Landing() {
       isStickyFooter={false}
     >
       <View>
+        <RootCategories />
         <NewArrivalsNearYou />
         <ForTheSeason />
         <SaleBanner />
