@@ -170,11 +170,7 @@ export default function BuyProductInitial() {
   >(BUY_PRODUCT_INITIAL, { variables: { input: { id: productId } } });
   const [
     getTransportationOptions,
-    {
-      data: transportationData,
-      loading: transportationLoading,
-      refetch: refetchTransportationOptions,
-    },
+    { data: transportationData, loading: transportationLoading },
   ] = useLazyQuery<
     BuyProductTransportationOptionsQuery,
     BuyProductTransportationOptionsQueryVariables
@@ -395,7 +391,7 @@ export default function BuyProductInitial() {
                 <Button
                   label="Uppdatera leveransalternativ"
                   onPress={() => {
-                    refetchTransportationOptions();
+                    onEnterPostalCode();
                   }}
                   loading={transportationLoading}
                   type="tonal"
