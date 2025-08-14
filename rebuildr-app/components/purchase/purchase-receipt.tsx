@@ -116,7 +116,7 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
                 : `Sålt till ${buyer.username}`}
             </Label>
             <Body size="small" color="secondary">
-              {dayjs(data.purchase.paymentAcceptedAt).format("DD MMMM, YYYY")}
+              {dayjs(data.purchase.createdAt).format("DD MMMM, YYYY")}
             </Body>
           </View>
         </View>

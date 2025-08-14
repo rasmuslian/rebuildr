@@ -47,7 +47,7 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     const message = `# Du har sålt en vara! Svara köparen i chatten och bestäm tid och plats för avhämtning.
     
     
-# Du behöver svara senast [](<date::D MMMM kl. hh:mm::${dayjs(purchase.paymentAcceptedAt).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`;
+# Du behöver svara senast [](<date::D MMMM kl. HH:mm::${dayjs(purchase.paymentAcceptedAt).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`;
     await this.message({
       productId: product.id,
       senderId: buyer.id,

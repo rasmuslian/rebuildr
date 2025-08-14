@@ -24,6 +24,7 @@ const GET_CONVERSATIONS = gql`
       message
       readAt
       createdAt
+      messageType
       sender {
         id
         username
@@ -72,7 +73,6 @@ const GET_CONVERSATIONS = gql`
 
 export default function Conversations() {
   const [tab, setTab] = useState<"sell" | "buy">("sell");
-  const [showAll, setShowAll] = useState(true);
 
   const { data } = useQuery<
     GetConversationsQuery,
@@ -123,6 +123,7 @@ export default function Conversations() {
             sender: conversation.sender,
             receiver: conversation.receiver,
             message: conversation.message,
+            messageType: conversation.messageType,
             createdAt: conversation.createdAt,
             readAt: conversation.readAt,
           }))}

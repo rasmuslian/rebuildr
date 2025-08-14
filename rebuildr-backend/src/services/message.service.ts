@@ -77,7 +77,7 @@ export class MessageService {
     const conversations = await this.dataSource
       .createQueryBuilder()
       .select(
-        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_readAt" as "readAt"',
+        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_readAt" as "readAt", m."message_messageType" as "messageType"',
       )
       .from((qb) => {
         qb.select('message')

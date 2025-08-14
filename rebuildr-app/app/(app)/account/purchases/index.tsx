@@ -24,6 +24,7 @@ const ACCOUNT_PURCHASES = gql`
       sellerRespondedAt
       transportationMethod
       deliveredAt
+      failedAt
       product {
         id
         title
@@ -61,10 +62,10 @@ export default function Purchases() {
   }
 
   const donePurchases = data.myPurchases.filter(
-    (purchase) => !!purchase.deliveredAt,
+    (purchase) => !!purchase.deliveredAt || !!purchase.failedAt,
   );
   const ongoingPurchases = data.myPurchases.filter(
-    (purchase) => !purchase.deliveredAt,
+    (purchase) => !purchase.deliveredAt && !purchase.failedAt,
   );
 
   const renderEmptyState = () => {

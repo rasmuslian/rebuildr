@@ -21,6 +21,7 @@ const ACCOUNT_SALES = gql`
       sellerRespondedAt
       transportationMethod
       deliveredAt
+      failedAt
       buyer {
         id
         username
@@ -58,10 +59,10 @@ export default function Sales() {
   }
 
   const donePurchases = data.myPurchases.filter(
-    (purchase) => !!purchase.deliveredAt,
+    (purchase) => !!purchase.deliveredAt || !!purchase.failedAt,
   );
   const ongoingPurchases = data.myPurchases.filter(
-    (purchase) => !purchase.deliveredAt,
+    (purchase) => !purchase.deliveredAt && !purchase.failedAt,
   );
 
   const renderEmptyState = () => {
