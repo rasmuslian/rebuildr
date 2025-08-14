@@ -5,11 +5,11 @@ import {
   FlatList,
   Linking,
 } from "react-native";
-import { useThemeColor } from "@hooks/useThemeColor";
 import React from "react";
 import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { Logo } from "@components/logo/logo";
+import { primitives } from "@constants/colors";
 
 // Mock data - Start
 type LinkGroup = {
@@ -154,8 +154,6 @@ const linkGroups: LinkGroup[] = [
 // Mock data - End
 
 export default function Footer() {
-  const colors = useThemeColor();
-
   const renderLinkGroup = ({
     item,
     index,
@@ -202,7 +200,7 @@ export default function Footer() {
   return (
     <View
       style={{
-        backgroundColor: colors.logo.vector,
+        backgroundColor: primitives.primary900,
         width: "100%",
         paddingHorizontal: 16,
         paddingVertical: 24,
@@ -223,10 +221,8 @@ export default function Footer() {
             justifyContent: "space-between",
             borderBottomWidth: 1,
             borderTopWidth: 1,
-            borderColor: colors.dividers.neutral,
+            borderColor: primitives.primary700,
             paddingVertical: 24,
-            borderBottomColor: colors.dividers.primary,
-            borderTopColor: colors.dividers.primary,
           }}
         >
           <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
