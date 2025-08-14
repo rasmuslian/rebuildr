@@ -72,7 +72,6 @@ const GET_CONVERSATIONS = gql`
 
 export default function Conversations() {
   const [tab, setTab] = useState<"sell" | "buy">("sell");
-  const [showAll, setShowAll] = useState(true);
 
   const { data } = useQuery<
     GetConversationsQuery,

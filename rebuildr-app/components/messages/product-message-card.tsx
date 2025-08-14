@@ -56,9 +56,13 @@ export const ProductMessageCard = ({
           : `${messages[0].sender.username} och ${messages.length - 1} ${messages.length > 2 ? "andra" : "annan"}`
       }
       secondaryText={dayjs(messages[0].createdAt).fromNow()}
-      badgeProps={{
-        text: `${nrOfUnread} ${nrOfUnread > 1 ? "olästa" : "oläst"}`,
-      }}
+      badgeProps={
+        nrOfUnread
+          ? {
+              text: `${nrOfUnread} ${nrOfUnread > 1 ? "olästa" : "oläst"}`,
+            }
+          : undefined
+      }
     />
   );
 };
