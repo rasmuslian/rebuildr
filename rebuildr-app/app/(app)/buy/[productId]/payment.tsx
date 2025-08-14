@@ -381,8 +381,8 @@ export default function Payment() {
             Alla betalalternativ tillhandahålls av Rocker.
           </Body>
           <Body>
-            Betalningen till säljaren hålls av Rocker tills varan har
-            överlämnats och du haft 48 timmar att kontrollera att allt stämmer.
+            Betalningen till säljaren hålls av Rocker tills du har tagit emot
+            varan och haft 48 timmar på dig att kontrollera att allt stämmer.
           </Body>
         </View>
       </View>
