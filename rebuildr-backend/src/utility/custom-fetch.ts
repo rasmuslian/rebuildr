@@ -13,7 +13,7 @@ export class CustomFetch {
     url: string,
     options: {
       body?: object;
-      method: 'POST' | 'GET' | 'PUT';
+      method: 'POST' | 'GET' | 'PUT' | 'DELETE';
       headers?: Record<string, string>;
     },
   ) {
@@ -33,8 +33,8 @@ export class CustomFetch {
           ...options.headers,
         },
       });
-
-      const response = await data.json();
+      const text = await data.text();
+      const response = text ? JSON.parse(text) : null;
       this.logger.info({ message: 'fetch response: ', response });
       if (!data.ok) {
         throw InternalServerException(`HTTP error: ${data.status}`);
