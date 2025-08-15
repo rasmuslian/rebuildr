@@ -80,7 +80,9 @@ export function RootCategories() {
                   }}
                 />
 
-                <Label size="small">{category.name}</Label>
+                <Label size="small" style={{ textAlign: "center" }}>
+                  {category.name}
+                </Label>
               </TouchableOpacity>
             );
           })}

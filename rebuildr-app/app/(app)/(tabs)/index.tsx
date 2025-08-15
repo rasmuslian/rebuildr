@@ -20,7 +20,7 @@ export default function Landing() {
       <Hero scrollY={scrollY} />
 
       <Animated.ScrollView
-        scrollEventThrottle={16}
+        scrollEventThrottle={8}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
