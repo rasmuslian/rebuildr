@@ -77,8 +77,6 @@ export const PurchaseProgress = ({
         case PurchaseStatusEnum.PaymentAccepted:
         case PurchaseStatusEnum.PaymentStarted:
         case PurchaseStatusEnum.ShipmentBooked:
-        case PurchaseStatusEnum.ShipmentDroppedOff:
-        case PurchaseStatusEnum.ShippingStarted:
           return (
             <ProgressIndicator
               steps={[
@@ -109,6 +107,59 @@ export const PurchaseProgress = ({
                         {
                           onPress: onAbortPurchase,
                           children: "avbryta innan paketet skickas.",
+                        },
+                      ],
+                    },
+                  ]}
+                />,
+                <ProgressEntry
+                  disabled
+                  title="Hämta ut ditt paket"
+                  elements={[
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children:
+                            "Du får ett mejl eller SMS från PostNord när paketet har kommit fram.",
+                        },
+                      ],
+                    },
+                  ]}
+                />,
+                <ProgressEntry
+                  disabled
+                  title="Säljaren får betalt"
+                  elements={[
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children:
+                            "När du har hämtat ut paketet har du 48 timmar på dig att se att allt stämmer, annars betalas pengarna ut automatiskt.",
+                        },
+                      ],
+                    },
+                  ]}
+                />,
+              ]}
+              current={1}
+            />
+          );
+        case PurchaseStatusEnum.ShipmentDroppedOff:
+        case PurchaseStatusEnum.ShippingStarted:
+          return (
+            <ProgressIndicator
+              steps={[
+                payedInitialEntry(purchase, me),
+                <ProgressEntry
+                  title="Paketet är på väg till dig"
+                  elements={[
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children: `Paketet har lämnats in och är på väg till dig.`,
                         },
                       ],
                     },
