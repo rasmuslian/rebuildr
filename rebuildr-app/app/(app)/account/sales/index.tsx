@@ -116,7 +116,7 @@ export default function Sales() {
   };
 
   return (
-    <ScreenLayout headerComponent={<Header title="Dina köp" />}>
+    <ScreenLayout headerComponent={<Header title="Dina försäljningar" />}>
       <Display size="small" style={{ marginBottom: 24 }}>
         Pågående & avslutade försäljningar
       </Display>
