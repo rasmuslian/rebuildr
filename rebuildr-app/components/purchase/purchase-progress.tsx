@@ -63,6 +63,9 @@ export const PurchaseProgress = ({
   const me = purchaseData.me;
   const isBuyer = me.id === purchase.buyer.id;
 
+  const handoffIsPickup =
+    purchaseData.purchase.transportationMethod === TransportationEnum.Pickup;
+
   const [approvePurchase, { loading: approvePurchaseLoading }] = useMutation<
     ApprovePurchaseMutation,
     ApprovePurchaseMutationVariables
@@ -585,8 +588,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         type: "body",
                         textParts: [
                           {
-                            children:
-                              "Säljaren bekräftar när du har hämtat din vara. Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
+                            children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.`,
                           },
                         ],
                       },
@@ -602,14 +604,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               steps={[
                 payedInitialEntry(purchase, me),
                 <ProgressEntry
-                  title="Dags att planera avhämtning"
+                  title={`Dags att planera ${handoffIsPickup ? "avhämtning" : "hemtransport"}`}
                   elements={[
                     {
                       type: "body",
                       textParts: [
                         {
-                          children:
-                            "När säljaren återkopplat kan ni bestämma tid och plats för avhämtning. Vill du ändå ta första steget?",
+                          children: `När säljaren återkopplat kan ni bestämma tid och plats för ${handoffIsPickup ? "avhämtning" : "hemtransport"}. Vill du ändå ta första steget?`,
                         },
                       ],
                     },
@@ -647,8 +648,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children:
-                            "Säljaren bekräftar när du har hämtat din vara. ",
+                          children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. `,
                         },
                         {
                           children: "\n",
@@ -671,7 +671,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               steps={[
                 payedInitialEntry(purchase, me),
                 <ProgressEntry
-                  title="Avhämtning bekräftad"
+                  title={`${handoffIsPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
                   elements={[
                     {
                       type: "body",
@@ -696,7 +696,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               steps={[
                 payedInitialEntry(purchase, me),
                 <ProgressEntry
-                  title="Avhämtning bekräftad"
+                  title={`${handoffIsPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
                   elements={[
                     {
                       type: "body",
@@ -719,7 +719,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               steps={[
                 payedInitialEntry(purchase, me),
                 <ProgressEntry
-                  title="Avhämtning bekräftad"
+                  title={`${handoffIsPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
                   elements={[
                     {
                       type: "body",
@@ -924,8 +924,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     type: "body",
                     textParts: [
                       {
-                        children:
-                          "Skriv till köparen och bestäm tid och plats för avhämtning.",
+                        children: `Skriv till köparen och bestäm tid och plats för ${handoffIsPickup ? "avhämtning" : "hemleverans"}.`,
                       },
                     ],
                   },
