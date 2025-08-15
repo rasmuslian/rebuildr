@@ -20,7 +20,6 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { ProjectCard } from "@components/cards/project-card";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Icon, IconType } from "@icons/icon";
@@ -33,6 +32,7 @@ import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { TabRail } from "@components/tabs/tab-rail";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -317,35 +317,15 @@ export default function Profile() {
         {productsData?.products.products.length ? (
           <>
             {data.user.projects && (
-              <View style={{ gap: 16 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Headline size="small">Projekt</Headline>
-                  <Button
-                    icon="arrowRight"
-                    type="text"
-                    onPress={() => {
-                      //TODO: navigate to projects page
-                    }}
-                  />
-                </View>
-                <FlatList
-                  showsHorizontalScrollIndicator={false}
-                  data={data.user.projects}
-                  contentContainerStyle={{ gap: 16 }}
-                  horizontal
-                  renderItem={({ item: project }) => (
-                    <View style={{ minWidth: 272 }}>
-                      <ProjectCard project={project} />
-                    </View>
-                  )}
-                />
-              </View>
+              <HoriztalListSection
+                data={data.user.projects}
+                renderItem={({ item }) => <ProjectCard project={item} />}
+                title="Projekt"
+                onPress={() => {
+                  //TODO: navigate to projects page
+                }}
+                visibleItems={2}
+              />
             )}
             <Divider />
             <AdGridSection
