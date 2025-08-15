@@ -95,10 +95,7 @@ const PAYMENT_TRUSTLY_SUCCESS = gql`
 
 const PAYMENT_CANCEL_PURCHASE = gql`
   mutation PaymentCancelPurchase($input: CancelPurchaseInput!) {
-    cancelPurchase(input: $input) {
-      id
-      status
-    }
+    cancelPurchase(input: $input)
   }
 `;
 

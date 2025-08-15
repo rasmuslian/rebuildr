@@ -226,7 +226,7 @@ export class PurchaseResolver {
     );
   }
 
-  @Mutation(() => Purchase)
+  @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
   async cancelPurchase(
     @Args('input') input: CancelPurchaseInput,

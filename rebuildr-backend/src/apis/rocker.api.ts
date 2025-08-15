@@ -471,4 +471,11 @@ export class RockerAPI {
     );
     return response;
   }
+
+  async deleteOffer(offerId: string) {
+    await this.customFetch.send(
+      this.url + `/merchant-api/v1/offers/${offerId}/`,
+      { method: 'DELETE' },
+    );
+  }
 }
