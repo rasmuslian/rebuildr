@@ -69,13 +69,22 @@ export class GeocodingService {
       country: 'SE',
     });
   }
+
+  async addressToLocation(address?: string, components?: GeocodeComponents) {
+    const res = await this.geocode(address, components);
+    return res.location;
+  }
+
   /**
    *
    * @param address a string
-   * @param components
-   * @returns
+   * @param components an object containing more information about the address
+   * @returns The following object:
+   * @property lat - latidute
+   * @property lng - longitude
+   * @property postalCode - Postal code receieved from the geocoding process
    */
-  async addressToLocation(address?: string, components?: GeocodeComponents) {
+  async geocode(address?: string, components?: GeocodeComponents) {
     let result: GeocodeResult;
     try {
       const r = await this.client.geocode({
@@ -93,9 +102,16 @@ export class GeocodingService {
       throw BadUserInputException('Address could not be located');
     }
     const location = result.geometry.location;
+    const postalCode = result.address_components.find((ac) =>
+      ac.types.some((type) => type === 'postal_code'),
+    )?.short_name;
+
     return {
-      lat: location.lat,
-      lng: location.lng,
+      location: {
+        lat: location.lat,
+        lng: location.lng,
+      },
+      postalCode,
     };
   }
 

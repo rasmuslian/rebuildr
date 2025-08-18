@@ -42,6 +42,7 @@ import {
 import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 import { SwishBottomSheet } from "@components/payment/swish-bottom-sheet";
 import { createURL } from "expo-linking";
+import { Toggle } from "@components/controls/toggle";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -95,16 +96,12 @@ const PAYMENT_TRUSTLY_SUCCESS = gql`
 
 const PAYMENT_CANCEL_PURCHASE = gql`
   mutation PaymentCancelPurchase($input: CancelPurchaseInput!) {
-    cancelPurchase(input: $input) {
-      id
-      status
-    }
+    cancelPurchase(input: $input)
   }
 `;
 
 export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
-  const [email, setEmail] = useState<string>("");
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [showBankId, setShowBankId] = useState(false);
   const [showSwishSheet, setShowSwishSheet] = useState(false);
@@ -136,9 +133,6 @@ export default function Payment() {
     BuyProductPaymentQueryVariables
   >(BUY_PRODUCT_PAYMENT, {
     variables: { input: { id: productId } },
-    onCompleted: (data) => {
-      setEmail(data.me.email ?? "");
-    },
   });
   const [
     createPurchase,
@@ -158,7 +152,7 @@ export default function Payment() {
   >(PAYMENT_CANCEL_PURCHASE);
 
   const progress = () => {
-    if (email && isTermsAccepted && !!paymentMethod) {
+    if (isTermsAccepted && !!paymentMethod) {
       return 100;
     }
     return 80;
@@ -443,26 +437,22 @@ export default function Payment() {
           },
         ]}
       >
-        <View>
-          <Title size="medium">E-postadress för orderbekräftelse</Title>
-          <Body size="medium">
-            Vi skickar din orderbekräftelse till den här adressen.
-          </Body>
+        <View style={{ flexDirection: "row", gap: 24, alignItems: "center" }}>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Title size="medium">Köpvillkor</Title>
+            <Body size="medium">
+              Genom att fortsätta godkänner du RebuildRs{" "}
+              <Body isLink size="medium">
+                köpvillkor
+              </Body>
+              .
+            </Body>
+          </View>
+          <Toggle
+            onPress={() => setIsTermsAccepted(!isTermsAccepted)}
+            value={isTermsAccepted}
+          />
         </View>
-        <TextInput value={email} onChange={setEmail} />
-        <Divider />
-        <Form
-          fields={[
-            {
-              type: "toggle",
-              value: isTermsAccepted,
-              onPress: () => setIsTermsAccepted(!isTermsAccepted),
-              heading: "Köpvillkor",
-              description:
-                "Genom att fortsätta godkänner du RebuildRs köpvillkor.",
-            },
-          ]}
-        />
       </View>
       <Divider />
       <View style={{ gap: 16, alignItems: "center" }}>
@@ -501,7 +491,7 @@ export default function Payment() {
         <Button
           label="Betala"
           onPress={onPurchase}
-          disabled={!paymentMethod || !isTermsAccepted || !email}
+          disabled={!paymentMethod || !isTermsAccepted}
           loading={queriesLoading}
           style={{ flex: 1 }}
         />

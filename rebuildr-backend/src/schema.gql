@@ -413,6 +413,7 @@ type DeliveryOptionResponse {
   isWithinRadius: Boolean!
   distanceFromProduct: Float!
   deliveryPrice: Float!
+  postalCode: String!
 }
 
 type UpdateUserResponse {
@@ -669,7 +670,7 @@ type Mutation {
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
-  cancelPurchase(input: CancelPurchaseInput!): Purchase!
+  cancelPurchase(input: CancelPurchaseInput!): Boolean!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!

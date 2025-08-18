@@ -929,10 +929,13 @@ export class ProductService {
       return null;
     }
 
-    const locationPromise = input.address
-      ? this.geocodingService.addressToLocation(input.address)
-      : this.geocodingService.postCodeToLocation(input.postCode);
-    const location = await locationPromise;
+    const geocodePromise = input.address
+      ? this.geocodingService.geocode(input.address)
+      : this.geocodingService.geocode(undefined, {
+          postal_code: input.postCode,
+        });
+    const geocode = await geocodePromise;
+    const location = geocode.location;
     const locationPoint: Point = {
       type: 'Point',
       coordinates: [location.lat, location.lng],
@@ -946,6 +949,7 @@ export class ProductService {
       isWithinRadius,
       distanceFromProduct: Math.round(distance),
       deliveryPrice: product.deliveryPrice / 100,
+      postalCode: geocode.postalCode,
     };
   }
 

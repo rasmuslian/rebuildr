@@ -682,9 +682,7 @@ export class PurchaseService {
       throw InternalServerException('Missing paymentId');
     }
     await this.rockerService.cancelPayment(purchase.rockerPaymentId);
-    purchase.failedAt = new Date();
-    await this.purchaseRepository.save(purchase);
-    return purchase;
+    return true;
   }
   /**
    * Aborts a purchase. This can only be done when a payment has been accepted but has not yet proceeded further.
@@ -1026,7 +1024,6 @@ export class PurchaseService {
   }
   async manualAcceptPurchase(purchaseId: string, userId: string) {
     const logger = this.logger.child({
-      cron: 'manualAcceptPurchase',
       requestId: crypto.randomUUID(),
     });
     logger.info('Manually accepting purchase');
@@ -1310,14 +1307,30 @@ export class PurchaseService {
     });
   }
   async paymentFailed(payload: IPaymentFailed, logger: Logger) {
-    await this.purchaseRepository.update(
-      { rockerPaymentId: payload.paymentId },
-      { failedAt: new Date(payload.timestamp) },
-    );
-
     logger.info('Payment failed', {
       paymentId: payload.paymentId,
     });
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: payload.paymentId },
+      relations: {
+        buyer: true,
+        product: { seller: true },
+        shippingPrice: true,
+      },
+    });
+
+    if (!purchase) {
+      logger.error('PaymentFailed: No purchase found', {
+        paymentId: payload.paymentId,
+      });
+      throw new Error(
+        'PaymentFailed: No purchase found with id: ' + payload.paymentId,
+      );
+    }
+    await this.purchaseRepository.remove(purchase);
+    if (purchase.rockerOfferId) {
+      this.rockerService.deleteOffer(purchase.rockerOfferId);
+    }
   }
   async paymentRefunded(payload: IPaymentRefunded, logger: Logger) {
     await this.purchaseRepository.update(

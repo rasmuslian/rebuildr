@@ -171,7 +171,7 @@ export const ProjectScreen = ({
   const projectOptions = [
     {
       value: newProjectOption,
-      label: "Nytt project",
+      label: "Nytt projekt",
       disabled: projectId === newProjectOption,
     },
     ...projects.map((p) => ({

@@ -258,6 +258,7 @@ export default function ConversationProduct() {
 
   return (
     <ScreenLayout
+      onContentSizeChange="scrollToBottom"
       headerComponent={
         <View style={{ gap: 16 }}>
           <Header title={otherUser?.username} />

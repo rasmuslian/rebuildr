@@ -391,6 +391,9 @@ class DeliveryOptionResponse {
 
   @Field()
   deliveryPrice: number;
+
+  @Field()
+  postalCode: string;
 }
 
 @Resolver(() => Product)

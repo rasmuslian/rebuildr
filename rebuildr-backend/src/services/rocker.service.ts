@@ -470,6 +470,10 @@ export class RockerService {
     return await this.rockerApi.refundPayment(paymentId, true, refundReason);
   }
 
+  async deleteOffer(offerId: string) {
+    return await this.rockerApi.deleteOffer(offerId);
+  }
+
   /**
    * PayoutAccount is a bit different from Rocker's PayoutMethod
    * for example PayoutAccount needs to differentiate between different bank types

@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useThemeColor } from "@hooks/useThemeColor";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useRef } from "react";
 import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
 
 interface PageProps extends PropsWithChildren {
@@ -11,6 +11,7 @@ interface PageProps extends PropsWithChildren {
   headerComponent?: React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
   loading?: boolean;
+  onContentSizeChange?: "scrollToBottom" | "nothing";
 }
 
 export const ScreenLayout = ({
@@ -22,8 +23,10 @@ export const ScreenLayout = ({
   headerComponent,
   headerStyle,
   loading,
+  onContentSizeChange = "nothing",
 }: PageProps) => {
   const colors = useThemeColor();
+  const scrollRef = useRef<ScrollView>(null);
 
   const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
   return (
@@ -40,7 +43,14 @@ export const ScreenLayout = ({
         </View>
       )}
 
-      <ScrollView>
+      <ScrollView
+        ref={scrollRef}
+        onContentSizeChange={() => {
+          if (onContentSizeChange === "scrollToBottom") {
+            scrollRef.current?.scrollToEnd({ animated: true });
+          }
+        }}
+      >
         <View
           style={[
             {
