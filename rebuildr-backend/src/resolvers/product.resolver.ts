@@ -363,8 +363,8 @@ export class GetTransportationOptionsInput {
   @Field()
   productId: string;
 
-  @Field()
-  postCode: string;
+  @Field({ nullable: true })
+  postCode?: string;
 
   @Field({ nullable: true })
   address?: string;

@@ -556,7 +556,7 @@ enum OrderProductsEnum {
 
 input GetTransportationOptionsInput {
   productId: String!
-  postCode: String!
+  postCode: String
   address: String
 }
 
