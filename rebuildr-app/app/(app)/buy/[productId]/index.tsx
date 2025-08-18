@@ -37,6 +37,7 @@ import {
   TransportationString,
   transportationStringToEnum,
 } from "@/utils/transportationMethods";
+import { Delivery } from "@components/buy/delivery";
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -511,147 +512,20 @@ export default function BuyProductInitial() {
                 </ToggleCard>
               )}
               {transportationData.getDeliveryOption && (
-                <ToggleCard
-                  title="Hemtransport"
-                  valueString={`${transportationData.getDeliveryOption.deliveryPrice} kr`}
-                  enabled={transportationMethod === "delivery"}
-                  onPress={() => {
+                <Delivery
+                  price={transportationData.getDeliveryOption.deliveryPrice}
+                  productId={productId}
+                  methodSelected={transportationMethod === "delivery"}
+                  toggleMethod={() => {
                     setTransportationMethod(
                       transportationMethod === "delivery"
                         ? undefined
                         : "delivery",
                     );
                   }}
-                  headerDivider
-                  error={!!deliveryOption && !deliveryOption.isWithinRadius}
-                >
-                  <View style={{ gap: 24 }}>
-                    {!deliveryOption && (
-                      <>
-                        <View style={{ marginBottom: 8 }}>
-                          <Title size="medium">
-                            Säljaren levererar direkt hem till dig
-                          </Title>
-                          <Body size="medium" style={{ marginTop: 4 }}>
-                            För att se om säljaren kan leverera till dig behöver
-                            vi din gatuadress.
-                          </Body>
-                        </View>
-                        <View style={{ gap: 16 }}>
-                          <Form
-                            fields={[
-                              {
-                                heading: "Ange din gatuadress",
-                                type: "text",
-                                value: deliveryAddress,
-                                onChange: (t) => setDeliveryAddress(t),
-                              },
-                            ]}
-                          />
-                          <Button
-                            label="Kolla min adress"
-                            onPress={onEnterDeliveryAddress}
-                            loading={deliveryOptionLoading}
-                            disabled={!deliveryAddress}
-                          />
-                        </View>
-                      </>
-                    )}
-                    {!!deliveryOption && deliveryOption?.isWithinRadius && (
-                      <>
-                        <View>
-                          <Title size="medium">
-                            Säljaren levererar direkt hem till dig
-                          </Title>
-                          <Body size="medium" style={{ marginTop: 4 }}>
-                            Perfekt! Du bor inom leveransområdet.
-                          </Body>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: 16,
-                          }}
-                        >
-                          <View style={{ flex: 1 }}>
-                            <Title size="medium">Leveransadress</Title>
-                            <Body size="medium" style={{ marginTop: 4 }}>
-                              {deliveryOption.distanceFromProduct
-                                ? formatMetersToKm(
-                                    deliveryOption.distanceFromProduct,
-                                  )
-                                : ""}{" "}
-                              km från säljaren
-                            </Body>
-                            <Body
-                              size="medium"
-                              color="secondary"
-                              style={{ marginTop: 8 }}
-                            >
-                              {deliveryAddress}
-                            </Body>
-                            <Body size="medium" color="secondary">
-                              {deliveryOption.postalCode}
-                            </Body>
-                          </View>
-                          <Button
-                            label="Ändra"
-                            type="tonal"
-                            onPress={() => {
-                              setDeliveryOption(undefined);
-                            }}
-                          />
-                        </View>
-                      </>
-                    )}
-                    {!!deliveryOption && !deliveryOption.isWithinRadius && (
-                      <>
-                        <View>
-                          <Title size="medium">
-                            Säljaren levererar direkt hem till dig
-                          </Title>
-                          <Body
-                            size="medium"
-                            style={{ marginTop: 4 }}
-                            color="error"
-                          >
-                            Tyvärr ligger din adress{" "}
-                            {deliveryOption?.distanceFromProduct
-                              ? formatMetersToKm(
-                                  deliveryOption.distanceFromProduct,
-                                )
-                              : ""}{" "}
-                            km från säljaren och utanför leveransområdet.
-                          </Body>
-                        </View>
-                        <Body size="medium">
-                          Du kan ändra adressen nedan eller välja ett annat
-                          leveranssätt.
-                        </Body>
-                        <View style={{ gap: 16 }}>
-                          <Form
-                            fields={[
-                              {
-                                heading: "Ange din gatuadress",
-                                type: "text",
-                                value: deliveryAddress,
-                                onChange: (t) => setDeliveryAddress(t),
-                                errorText:
-                                  "Den här adressen ligger utanför säljarens leveransområde.",
-                              },
-                            ]}
-                          />
-                          <Button
-                            label="Kolla igen"
-                            onPress={onEnterDeliveryAddress}
-                            loading={deliveryOptionLoading}
-                            disabled={!deliveryAddress}
-                          />
-                        </View>
-                      </>
-                    )}
-                  </View>
-                </ToggleCard>
+                  updateDeliveryOption={setDeliveryOption}
+                  deliveryOption={deliveryOption}
+                />
               )}
             </View>
           </View>

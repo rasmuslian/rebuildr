@@ -12,7 +12,7 @@ import { ReactNode } from "react";
 const fullSize = 3;
 const twoThirds = 2;
 const oneThirds = 1;
-type BaseFieldProps = {
+export type BaseFieldProps = {
   heading?: string;
   description?: string | ReactNode;
   helperText?: string;
