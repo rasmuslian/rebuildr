@@ -110,6 +110,7 @@ const BUY_PRODUCT_DELIVERY_OPTION = gql`
       isWithinRadius
       distanceFromProduct
       deliveryPrice
+      postalCode
     }
   }
 `;
@@ -590,7 +591,7 @@ export default function BuyProductInitial() {
                               {deliveryAddress}
                             </Body>
                             <Body size="medium" color="secondary">
-                              {postCode}
+                              {deliveryOption.postalCode}
                             </Body>
                           </View>
                           <Button
