@@ -1,4 +1,5 @@
 import { AccountSalesQuery, AccountSalesQueryVariables } from "@/gql/graphql";
+import { isFinished } from "@/utils/purchases/purchases";
 import { gql, useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Divider } from "@components/dividers/divider";
@@ -58,11 +59,11 @@ export default function Sales() {
     return <LoadingSpinner />;
   }
 
-  const donePurchases = data.myPurchases.filter(
-    (purchase) => !!purchase.deliveredAt || !!purchase.failedAt,
+  const donePurchases = data.myPurchases.filter((purchase) =>
+    isFinished(purchase),
   );
   const ongoingPurchases = data.myPurchases.filter(
-    (purchase) => !purchase.deliveredAt && !purchase.failedAt,
+    (purchase) => !isFinished(purchase),
   );
 
   const renderEmptyState = () => {
