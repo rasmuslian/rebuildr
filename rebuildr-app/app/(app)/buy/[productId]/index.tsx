@@ -37,7 +37,7 @@ import {
   TransportationString,
   transportationStringToEnum,
 } from "@/utils/transportationMethods";
-import { Delivery } from "@components/buy/delivery";
+import { DeliveryCard } from "@components/buy/delivery";
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -338,6 +338,12 @@ export default function BuyProductInitial() {
     transportationMethod === "pickup" ||
     transportationMethod === "shipping" ||
     transportationMethod === "delivery";
+  let nrOfTransportationOptions = 0;
+  if (transportationData?.getDeliveryOption) nrOfTransportationOptions += 1;
+  if (transportationData?.getPickupOption) nrOfTransportationOptions += 1;
+  if (transportationData?.getShippingOptions.length)
+    nrOfTransportationOptions += 1;
+  const isSingleTransportationMethod = nrOfTransportationOptions === 1;
 
   return (
     <>
@@ -512,7 +518,7 @@ export default function BuyProductInitial() {
                 </ToggleCard>
               )}
               {transportationData.getDeliveryOption && (
-                <Delivery
+                <DeliveryCard
                   price={transportationData.getDeliveryOption.deliveryPrice}
                   productId={productId}
                   methodSelected={transportationMethod === "delivery"}
@@ -525,6 +531,7 @@ export default function BuyProductInitial() {
                   }}
                   updateDeliveryOption={setDeliveryOption}
                   deliveryOption={deliveryOption}
+                  isSingleTransportationMethod={isSingleTransportationMethod}
                 />
               )}
             </View>

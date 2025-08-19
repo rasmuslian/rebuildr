@@ -34,8 +34,7 @@ export const AddressAutoCompleteInput = ({
   const onUpdateAddress = (s: string) => {
     setIsMyLocation(false);
     setShowLocationsDropdown(true);
-    const address = updateAddress(s);
-    changeAddress(address);
+    updateAddress(s);
   };
   const onSelectMyLocation = () => {
     setIsMyLocation(!isMyLocation);
