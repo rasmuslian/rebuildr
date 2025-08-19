@@ -972,7 +972,7 @@ export class ProductService {
     userId: string,
   ): Promise<Product[]> {
     switch (input.recommendationSource) {
-      case ProductsRecommendationSourceEnum.LIKES:
+      case ProductsRecommendationSourceEnum.LIKES: {
         const query = this.productRepository.createQueryBuilder('p');
         query.innerJoin('category', 'c', '"categoryId" = c.id');
 
@@ -992,24 +992,25 @@ export class ProductService {
 
         query.andWhere(
           `NOT EXISTS (
-              SELECT 1
-              FROM product_liked_by_user plbu
-              WHERE plbu."productId" = p.id
-              AND plbu."userId" = :userId
+            SELECT 1
+            FROM product_liked_by_user plbu
+            WHERE plbu."productId" = p.id
+            AND plbu."userId" = :userId
             )`,
           { userId },
         );
 
         query.addOrderBy('p.createdAt', 'DESC');
         query.limit(10);
-        const products = await query.getMany();
-        return products;
+        return await query.getMany();
+      }
 
-      case ProductsRecommendationSourceEnum.SEARCH_HISTORY:
+      case ProductsRecommendationSourceEnum.SEARCH_HISTORY: {
         const search = await this.searchResultService.getLatestSearch(userId);
         const searchString = search.searchString;
 
         return (await this.findAll({ searchString }, 10, 0)).products;
+      }
       default:
         return [];
     }
