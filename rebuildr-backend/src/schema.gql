@@ -148,6 +148,7 @@ type User {
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccountResponse
+  recommendedProducts(input: RecommendedProductsInput!): [Product!]!
 }
 
 enum UserRoleEnum {
@@ -172,6 +173,15 @@ enum RegisterStatusEnum {
   EMAIL
   DETAILS
   DONE
+}
+
+input RecommendedProductsInput {
+  recommendationSource: ProductsRecommendationSourceEnum!
+}
+
+enum ProductsRecommendationSourceEnum {
+  LIKES
+  SEARCH_HISTORY
 }
 
 type File {
