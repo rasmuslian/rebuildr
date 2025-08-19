@@ -17,11 +17,11 @@ export type BaseFieldProps = {
   description?: string | ReactNode;
   helperText?: string;
   horizontalSize?: typeof oneThirds | typeof twoThirds | typeof fullSize;
-  errorText?: string;
+  error?: string | boolean;
 };
 
 type FieldType =
-  | (BaseFieldProps & TextInputProps & { type: "text" })
+  | (BaseFieldProps & Omit<TextInputProps, "error"> & { type: "text" })
   | (BaseFieldProps & MaskedInputProps & { type: "masked" })
   | (BaseFieldProps & SearchInputProps & { type: "search" })
   | (BaseFieldProps & PriceInputProps & { type: "price" })
@@ -62,14 +62,8 @@ export const Form = ({ fields, style: _style }: Props) => {
       {fieldRows.map((fieldRow, index) => (
         <View style={{ flexDirection: "row", gap: 16 }} key={index}>
           {fieldRow.map((field, i) => {
-            const {
-              type,
-              heading,
-              description,
-              helperText,
-              errorText,
-              ...rest
-            } = field;
+            const { type, heading, description, helperText, error, ...rest } =
+              field;
 
             return (
               <View
@@ -81,13 +75,10 @@ export const Form = ({ fields, style: _style }: Props) => {
                   heading={heading}
                   description={description}
                   helperText={helperText}
-                  error={errorText}
+                  error={error}
                 >
                   {field.type === "text" ? (
-                    <TextInput
-                      {...(rest as TextInputProps)}
-                      error={!!errorText}
-                    />
+                    <TextInput {...(rest as TextInputProps)} error={!!error} />
                   ) : null}
                   {field.type === "masked" ? (
                     <MaskedInput {...(rest as MaskedInputProps)} />
