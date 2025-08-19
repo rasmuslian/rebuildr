@@ -11,6 +11,7 @@ import {
   Query,
   ResolveField,
   Resolver,
+  registerEnumType,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
@@ -35,6 +36,14 @@ import { Review } from 'src/entities/review.entity';
 import { FileInputType, ProductsResponse } from './product.resolver';
 import { ProductService } from 'src/services/product.service';
 import { ProjectService } from 'src/services/project.service';
+
+export enum ProductsRecommendationSourceEnum {
+  LIKES = 'LIKES',
+  SEARCH_HISTORY = 'SEARCH_HISTORY',
+}
+registerEnumType(ProductsRecommendationSourceEnum, {
+  name: 'ProductsRecommendationSourceEnum',
+});
 
 @InputType()
 export class UpdateUserInput {
@@ -137,6 +146,12 @@ export class PayoutAccountResponse {
 
   @Field({ nullable: true })
   bankName?: string;
+}
+
+@InputType()
+export class RecommendedProductsInput {
+  @Field(() => ProductsRecommendationSourceEnum)
+  recommendationSource: ProductsRecommendationSourceEnum;
 }
 
 @Resolver(() => User)
@@ -303,5 +318,14 @@ export class UserResolver {
   @ResolveField(() => PayoutAccountResponse, { nullable: true })
   async payoutAccount(@Parent() user: User) {
     return await this.userService.getPayoutAccount(user);
+  }
+
+  @ResolveField(() => [Product])
+  @UseGuards(GqlAuthGuard)
+  async recommendedProducts(
+    @Args('input') input: RecommendedProductsInput,
+    @Parent() user: User,
+  ) {
+    return await this.productService.recommendedProducts(input, user.id);
   }
 }

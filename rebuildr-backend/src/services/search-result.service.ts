@@ -74,4 +74,13 @@ export class SearchResultService {
       .limit(5)
       .getRawMany();
   }
+
+  async getLatestSearch(userId: string): Promise<SearchResult> {
+    return await this.searchResultRepository.findOne({
+      where: {
+        searcher: { id: userId },
+      },
+      order: { updatedAt: 'DESC' },
+    });
+  }
 }

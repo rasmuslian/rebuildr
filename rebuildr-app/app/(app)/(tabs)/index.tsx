@@ -7,8 +7,10 @@ import { NewArrivalsNearYou } from "@components/new-arrivals-near-you/new-arriva
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
 import { SaleBanner } from "@components/sale-banner/sale-banner";
 import { RootCategories } from "@components/root-categories/root-categories";
-import React, { useRef } from "react";
+import { RecommendedProducts } from "@components/recommended-products/recommended-products";
 import { useThemeColor } from "@hooks/useThemeColor";
+import React, { useRef } from "react";
+import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -39,6 +41,16 @@ export default function Landing() {
           <NewArrivalsNearYou />
           <ForTheSeason />
           <SaleBanner />
+          <RecommendedProducts
+            title="Du kanske också gillar"
+            source={ProductsRecommendationSourceEnum.Likes}
+          />
+
+          <RecommendedProducts
+            title="Nytt från din senaste sökning"
+            source={ProductsRecommendationSourceEnum.SearchHistory}
+          />
+
           <TrendingNow />
         </View>
 

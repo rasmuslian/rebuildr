@@ -35,6 +35,11 @@ import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
 import { File } from '../entities/file.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { ShippingService } from './shipping.service';
+import {
+  ProductsRecommendationSourceEnum,
+  RecommendedProductsInput,
+} from 'src/resolvers/user.resolver';
+import { SearchResultService } from './search-result.service';
 
 @Injectable()
 export class ProductService {
@@ -55,6 +60,7 @@ export class ProductService {
     @InjectRepository(ShippingPrice)
     private shippingPriceRepository: Repository<ShippingPrice>,
     private shippingService: ShippingService,
+    private searchResultService: SearchResultService,
     private dataSource: DataSource,
   ) {}
 
@@ -959,5 +965,53 @@ export class ProductService {
       [locationPoint, productId],
     );
     return result[0].distance;
+  }
+
+  async recommendedProducts(
+    input: RecommendedProductsInput,
+    userId: string,
+  ): Promise<Product[]> {
+    switch (input.recommendationSource) {
+      case ProductsRecommendationSourceEnum.LIKES:
+        const query = this.productRepository.createQueryBuilder('p');
+        query.innerJoin('category', 'c', '"categoryId" = c.id');
+
+        const user = await this.userRepository.findOne({
+          where: { id: userId },
+          relations: { likedProducts: true },
+        });
+
+        const categoryIds = user.likedProducts.map(
+          (product) => product.categoryId,
+        );
+
+        query.andWhere(
+          '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
+          { categoryIds },
+        );
+
+        query.andWhere(
+          `NOT EXISTS (
+              SELECT 1
+              FROM product_liked_by_user plbu
+              WHERE plbu."productId" = p.id
+              AND plbu."userId" = :userId
+            )`,
+          { userId },
+        );
+
+        query.addOrderBy('p.createdAt', 'DESC');
+        query.limit(10);
+        const products = await query.getMany();
+        return products;
+
+      case ProductsRecommendationSourceEnum.SEARCH_HISTORY:
+        const search = await this.searchResultService.getLatestSearch(userId);
+        const searchString = search.searchString;
+
+        return (await this.findAll({ searchString }, 10, 0)).products;
+      default:
+        return [];
+    }
   }
 }
