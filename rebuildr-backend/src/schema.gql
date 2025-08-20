@@ -424,7 +424,7 @@ type DeliveryOptionResponse {
   isWithinRadius: Boolean!
   distanceFromProduct: Float!
   deliveryPrice: Float!
-  postalCode: String!
+  postalCode: String
 }
 
 type UpdateUserResponse {

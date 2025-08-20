@@ -393,8 +393,8 @@ class DeliveryOptionResponse {
   @Field()
   deliveryPrice: number;
 
-  @Field()
-  postalCode: string;
+  @Field({ nullable: true })
+  postalCode?: string;
 }
 
 @Resolver(() => Product)
