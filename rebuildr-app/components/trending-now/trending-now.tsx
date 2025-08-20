@@ -4,7 +4,9 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { View, useWindowDimensions } from "react-native";
+import { useUser } from "@hooks/useUser";
+import { SectionHeader } from "@components/sections/section-header";
 import {
   OrderProductsEnum,
   TrendingNowProductsQuery,
@@ -31,14 +33,24 @@ const TRENDING_NOW_QUERY = gql`
           id
           name
         }
+        approximatePlace {
+          address
+        }
+        seller {
+          id
+          type
+          rating
+        }
       }
     }
   }
 `;
 
 export const TrendingNow = () => {
+  const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
+  const { isLoggedIn } = useUser();
 
   const { data } = useQuery<
     TrendingNowProductsQuery,
@@ -48,53 +60,105 @@ export const TrendingNow = () => {
       input: {
         orderBy: OrderProductsEnum.Latest,
         selectionCategories: true,
+        excludeOwnProducts: true,
       },
       limit: 10,
       offset: 0,
     },
   });
 
+  if (!data || data.products.products.length < 1) return null;
+  const products = data.products.products;
+  const width = (screenWidth - 48) / 2;
+
+  const onPress = () => {
+    const categoryIds: string[] = [];
+
+    products?.forEach((product) => {
+      if (product.category?.id) {
+        categoryIds.push(product.category.id);
+      }
+    });
+
+    setCategories(categoryIds);
+    router.navigate("/(app)/(tabs)/search/products");
+  };
+
   return (
     <View style={{ paddingVertical: 16 }}>
-      <HoriztalListSection
-        title="Trendar nu"
-        data={data?.products.products ?? []}
-        onPress={() => {
-          const categoryIds: string[] = [];
+      {isLoggedIn ? (
+        <HoriztalListSection
+          title="Trendar nu"
+          data={products}
+          onPress={onPress}
+          renderItem={({ item }) => {
+            return (
+              <AdGrid
+                id={item.id}
+                imageUri={item.primaryImage?.url}
+                liked={!!item.likedByMe}
+                heart
+                quantity={item.primaryQuantity}
+                quantityUnit={item.primaryUnit}
+                condition={item.condition}
+                title={item.title}
+                price={item.price}
+                status={item.status}
+                onHeartPress={() => {
+                  onToggleProductHeart({
+                    productId: item.id,
+                    likedByMe: !!item.likedByMe,
+                  });
+                }}
+              />
+            );
+          }}
+          visibleItems={3}
+        />
+      ) : (
+        <View style={{ gap: 16, paddingTop: 16 }}>
+          <SectionHeader onPress={onPress}>Trendar nu</SectionHeader>
 
-          data?.products?.products?.forEach((product) => {
-            if (product.category?.id) {
-              categoryIds.push(product.category.id);
-            }
-          });
-
-          setCategories(categoryIds);
-          router.navigate("/(app)/(tabs)/search/products");
-        }}
-        renderItem={({ item }) => {
-          return (
-            <AdGrid
-              id={item.id}
-              imageUri={item.primaryImage?.url}
-              liked={!!item.likedByMe}
-              heart
-              quantity={item.primaryQuantity}
-              quantityUnit={item.primaryUnit}
-              condition={item.condition}
-              title={item.title}
-              price={item.price}
-              status={item.status}
-              onHeartPress={() => {
-                onToggleProductHeart({
-                  productId: item.id,
-                  likedByMe: !!item.likedByMe,
-                });
-              }}
-            />
-          );
-        }}
-        visibleItems={3}
-      />
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 16,
+              flexWrap: "wrap",
+              paddingBottom: 16,
+            }}
+          >
+            {products.map((product) => {
+              return (
+                <View style={{ width }} key={product.id}>
+                  <AdGrid
+                    id={product.id}
+                    imageUri={product.primaryImage?.url}
+                    liked={!!product.likedByMe}
+                    heart
+                    quantity={product.primaryQuantity}
+                    quantityUnit={product.primaryUnit}
+                    condition={product.condition}
+                    account={{
+                      rating: product.seller.rating,
+                      type: product.seller.type,
+                      location: product.approximatePlace?.address,
+                    }}
+                    title={product.title}
+                    price={product.price}
+                    status={product.status}
+                    onHeartPress={() => {
+                      onToggleProductHeart({
+                        productId: product.id,
+                        likedByMe: !!product.likedByMe,
+                      });
+                    }}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </View>
   );
 };

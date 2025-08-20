@@ -18,10 +18,14 @@ type Props = {
 };
 
 const RECOMMENDED_PRODUCTS = gql`
-  query RecommendedProducts($input: RecommendedProductsInput!) {
+  query RecommendedProducts(
+    $input: RecommendedProductsInput!
+    $limit: Int
+    $offset: Int
+  ) {
     me {
       id
-      recommendedProducts(input: $input) {
+      recommendedProducts(input: $input, limit: $limit, offset: $offset) {
         id
         title
         status
@@ -63,7 +67,10 @@ export function RecommendedProducts({ title, source }: Props) {
     variables: {
       input: {
         recommendationSource: source,
+        excludeOwnProducts: true,
       },
+      limit: 10,
+      offset: 0,
     },
     skip: !isLoggedIn,
   });

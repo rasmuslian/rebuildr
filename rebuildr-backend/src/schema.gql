@@ -148,7 +148,7 @@ type User {
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccountResponse
-  recommendedProducts(input: RecommendedProductsInput!): [Product!]!
+  recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
 }
 
 enum UserRoleEnum {
@@ -177,6 +177,7 @@ enum RegisterStatusEnum {
 
 input RecommendedProductsInput {
   recommendationSource: ProductsRecommendationSourceEnum!
+  excludeOwnProducts: Boolean
 }
 
 enum ProductsRecommendationSourceEnum {
@@ -536,6 +537,7 @@ input ProductsInput {
   conditions: [ProductConditionEnum!]
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
+  excludeOwnProducts: Boolean
 }
 
 input LocationInputType {
