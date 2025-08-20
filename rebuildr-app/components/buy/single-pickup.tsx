@@ -2,16 +2,13 @@ import { Body, Headline } from "@components/typography/text";
 import { View } from "react-native";
 import { Map } from "@components/maps/map";
 import {
-  SinglePickupCreateFreePurchaseMutation,
-  SinglePickupCreateFreePurchaseMutationVariables,
   SinglePickupOptionQuery,
   SinglePickupOptionQueryVariables,
-  TransportationEnum,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Summary } from "./summary";
-import { router } from "expo-router";
+import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 
 const SINGLE_PICKUP_OPTION = gql`
   query SinglePickupOption(
@@ -30,21 +27,11 @@ const SINGLE_PICKUP_OPTION = gql`
   }
 `;
 
-const SINGLE_PICKUP_CREATE_FREE_PURCHASE = gql`
-  mutation SinglePickupCreateFreePurchase($input: PurchaseProductInput!) {
-    purchaseProduct(input: $input) {
-      purchase {
-        id
-        status
-      }
-    }
-  }
-`;
-
 type Props = {
   productId: string;
 };
 export const SinglePickup = ({ productId }: Props) => {
+  const { submitPickup } = useSubmitSummary();
   const { data } = useQuery<
     SinglePickupOptionQuery,
     SinglePickupOptionQueryVariables
@@ -58,10 +45,6 @@ export const SinglePickup = ({ productId }: Props) => {
       },
     },
   });
-  const [purchaseProduct] = useMutation<
-    SinglePickupCreateFreePurchaseMutation,
-    SinglePickupCreateFreePurchaseMutationVariables
-  >(SINGLE_PICKUP_CREATE_FREE_PURCHASE);
 
   if (!data) {
     return <LoadingSpinner />;
@@ -72,29 +55,7 @@ export const SinglePickup = ({ productId }: Props) => {
   }
 
   const onPurchase = () => {
-    //If the whole purchase is free, create the purchase and move on directly to success screen, skipping payment screen
-    if (data.product.price === 0) {
-      purchaseProduct({
-        variables: {
-          input: {
-            productId,
-            transportationMethod: TransportationEnum.Pickup,
-          },
-        },
-        onCompleted: (data) => {
-          router.navigate({
-            pathname: "/buy/[productId]/success",
-            params: { productId, purchaseId: data.purchaseProduct.purchase.id },
-          });
-        },
-      });
-      return;
-    }
-
-    router.navigate({
-      pathname: "/buy/[productId]/payment",
-      params: { productId, transportationMethod: "pickup" },
-    });
+    submitPickup(productId, data.product.price);
   };
 
   return (

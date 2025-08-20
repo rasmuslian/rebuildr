@@ -1,12 +1,9 @@
 import {
   BuyProductDeliveryOptionSingleQuery,
   BuyProductDeliveryOptionSingleQueryVariables,
-  SingleDeliveryCreateFreePurchaseMutation,
-  SingleDeliveryCreateFreePurchaseMutationVariables,
-  TransportationEnum,
 } from "@/gql/graphql";
 import { formatMetersToKm } from "@/utils/distanceHandling";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { AddressAutoCompleteInput } from "@components/address-auto-complete-input/address-auto-complete-input";
 import { Body, Headline, Title } from "@components/typography/text";
@@ -15,7 +12,7 @@ import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Summary } from "./summary";
-import { router } from "expo-router";
+import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 
 const BUY_PRODUCT_DELIVERY_OPTION = gql`
   query BuyProductDeliveryOptionSingle($input: GetTransportationOptionsInput!) {
@@ -32,23 +29,13 @@ const BUY_PRODUCT_DELIVERY_OPTION = gql`
   }
 `;
 
-const SINGLE_DELIVERY_CREATE_FREE_PURCHASE = gql`
-  mutation SingleDeliveryCreateFreePurchase($input: PurchaseProductInput!) {
-    purchaseProduct(input: $input) {
-      purchase {
-        id
-        status
-      }
-    }
-  }
-`;
-
 type Props = {
   price: number;
   productId: string;
 };
 
 export const SingleDelivery = ({ price, productId }: Props) => {
+  const { submitDelivery } = useSubmitSummary();
   const colors = useThemeColor();
   const [address, setAddress] = useState("");
   const [deliveryOption, setDeliveryOption] =
@@ -63,10 +50,6 @@ export const SingleDelivery = ({ price, productId }: Props) => {
     },
     fetchPolicy: "cache-and-network",
   });
-  const [purchaseProduct] = useMutation<
-    SingleDeliveryCreateFreePurchaseMutation,
-    SingleDeliveryCreateFreePurchaseMutationVariables
-  >(SINGLE_DELIVERY_CREATE_FREE_PURCHASE);
 
   const onEnterDeliveryAddress = () => {
     if (!address || deliveryOptionLoading) {
@@ -82,34 +65,13 @@ export const SingleDelivery = ({ price, productId }: Props) => {
     if (!deliveryOption) {
       return;
     }
-    //If the whole purchase is free, create the purchase and move on directly to success screen, skipping payment screen
-    if (totalPrice === 0) {
-      purchaseProduct({
-        variables: {
-          input: {
-            productId,
-            transportationMethod: TransportationEnum.Delivery,
-          },
-        },
-        onCompleted: (data) => {
-          router.navigate({
-            pathname: "/buy/[productId]/success",
-            params: { productId, purchaseId: data.purchaseProduct.purchase.id },
-          });
-        },
-      });
-      return;
-    }
-
-    router.navigate({
-      pathname: "/buy/[productId]/payment",
-      params: {
-        productId,
-        transportationMethod: "delivery",
-        deliverToLocation: `${deliveryOption.deliverToLocation.lat},${deliveryOption.deliverToLocation.lng}`,
-        deliverToAddress: address,
-      },
-    });
+    submitDelivery(
+      productId,
+      totalPrice,
+      deliveryOption.deliverToLocation.lat,
+      deliveryOption.deliverToLocation.lng,
+      address,
+    );
   };
 
   const deliveryWithinRadius =

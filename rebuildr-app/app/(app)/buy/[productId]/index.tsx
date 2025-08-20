@@ -4,10 +4,8 @@ import {
   BuyProductInitialQueryVariables,
   BuyProductTransportationOptionsQuery,
   BuyProductTransportationOptionsQueryVariables,
-  CreateFreePurchaseMutation,
-  CreateFreePurchaseMutationVariables,
 } from "@/gql/graphql";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { AdList } from "@components/ad/ad-list";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
@@ -16,13 +14,10 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ProgressHeader } from "@components/navigation/headers/progress-header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline } from "@components/typography/text";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
-import {
-  TransportationString,
-  transportationStringToEnum,
-} from "@/utils/transportationMethods";
+import { TransportationString } from "@/utils/transportationMethods";
 import { SingleDelivery } from "@components/buy/single-delivery";
 import { DeliveryCard } from "@components/buy/delivery-card";
 import { ShippingCard } from "@components/buy/shipping-card";
@@ -31,6 +26,7 @@ import { Summary } from "@components/buy/summary";
 import { ShippingDetails } from "@components/buy/shipping-details";
 import { PickupCard } from "@components/buy/pickup-card";
 import { SinglePickup } from "@components/buy/single-pickup";
+import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -93,17 +89,6 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
       isWithinRadius
       distanceFromProduct
       deliveryPrice
-    }
-  }
-`;
-
-const BUY_PRODUCT_CREATE_FREE_PURCHASE = gql`
-  mutation CreateFreePurchase($input: PurchaseProductInput!) {
-    purchaseProduct(input: $input) {
-      purchase {
-        id
-        status
-      }
     }
   }
 `;
@@ -203,6 +188,8 @@ const MultipleOptions = ({
   const [transportationMethod, setTransportationMethod] =
     useState<TransportationString>();
 
+  const { submitPickup, submitDelivery } = useSubmitSummary();
+
   //shipping
   const [showShippingDetails, setShowShippingDetails] = useState(false);
   const [servicePointId, setServicePointId] = useState<string>();
@@ -220,10 +207,6 @@ const MultipleOptions = ({
     BuyProductTransportationOptionsQuery,
     BuyProductTransportationOptionsQueryVariables
   >(BUY_PRODUCT_TRANPORTATION_OPTIONS, {});
-  const [purchaseProduct] = useMutation<
-    CreateFreePurchaseMutation,
-    CreateFreePurchaseMutationVariables
-  >(BUY_PRODUCT_CREATE_FREE_PURCHASE);
 
   const onEnterPostalCode = () => {
     getTransportationOptions({
@@ -283,43 +266,17 @@ const MultipleOptions = ({
       return;
     }
 
-    const transportationEnum = transportationStringToEnum(transportationMethod);
-
-    //If the whole purchase is free, create the purchase and move on directly to success screen, skipping payment screen
-    if (totalPrice === 0) {
-      purchaseProduct({
-        variables: {
-          input: {
-            productId,
-            transportationMethod: transportationEnum,
-          },
-        },
-        onCompleted: (data) => {
-          router.navigate({
-            pathname: "/buy/[productId]/success",
-            params: { productId, purchaseId: data.purchaseProduct.purchase.id },
-          });
-        },
-      });
-      return;
-    }
-
     if (transportationMethod === "pickup") {
-      router.navigate({
-        pathname: "/buy/[productId]/payment",
-        params: { productId, transportationMethod },
-      });
+      submitPickup(productId, totalPrice);
     }
     if (transportationMethod === "delivery" && deliveryOption) {
-      router.navigate({
-        pathname: "/buy/[productId]/payment",
-        params: {
-          productId,
-          transportationMethod,
-          deliverToLocation: `${deliveryOption.deliverToLocation.lat},${deliveryOption.deliverToLocation.lng}`,
-          deliverToAddress: deliveryOption.address,
-        },
-      });
+      submitDelivery(
+        productId,
+        totalPrice,
+        deliveryOption.deliverToLocation.lat,
+        deliveryOption.deliverToLocation.lng,
+        deliveryOption.address,
+      );
     }
   };
 

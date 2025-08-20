@@ -10,8 +10,8 @@ import { shippingProviderStrings } from "@constants/shippingProviders";
 import { useState } from "react";
 import { View } from "react-native";
 import { Summary } from "./summary";
-import { router } from "expo-router";
 import { gql, useMutation } from "@apollo/client";
+import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 
 const SHIPPING_DETAILS_UPDATE_USER = gql`
   mutation ShippingDetailsUpdateUser($input: UpdateUserInput!) {
@@ -43,14 +43,13 @@ export const ShippingDetails = ({
   servicePointId,
   onBack,
 }: Props) => {
+  const { submitShipping } = useSubmitSummary();
   const [name, setName] = useState<string>(initialData.me.name ?? "");
   const [phoneNumber, setPhoneNumber] = useState<string>(
     initialData.me.phoneNumber ?? "",
   );
-  const [shippingAddress, setShippingAddress] = useState<string>(
-    initialData.me.address ?? "",
-  );
-  const [shippingPostCode, setShippingPostCode] = useState<string>(
+  const [address, setAddress] = useState<string>(initialData.me.address ?? "");
+  const [postCode, setPostCode] = useState<string>(
     initialData.me.postCode ?? "",
   );
   const [city, setCity] = useState<string>(initialData.me.city ?? "");
@@ -70,20 +69,13 @@ export const ShippingDetails = ({
           id: initialData.me.id,
           name,
           phoneNumber,
-          address: shippingAddress,
-          postCode: shippingPostCode,
+          address,
+          postCode,
           city,
         },
       },
       onCompleted: () => {
-        router.navigate({
-          pathname: "/buy/[productId]/payment",
-          params: {
-            productId: initialData.product.id,
-            transportationMethod: "shipping",
-            servicePointId,
-          },
-        });
+        submitShipping(initialData.product.id, servicePointId);
       },
     });
   };
@@ -109,16 +101,16 @@ export const ShippingDetails = ({
           },
           {
             type: "text",
-            value: shippingAddress,
-            onChange: (t) => setShippingAddress(t),
+            value: address,
+            onChange: (t) => setAddress(t),
             heading: "Gatuadress",
             description:
               "För spårbarhet och identifiering vid eventuell felsortering eller retur.",
           },
           {
             type: "text",
-            value: shippingPostCode,
-            onChange: (t) => setShippingPostCode(t),
+            value: postCode,
+            onChange: (t) => setPostCode(t),
             heading: "Postnummer",
             horizontalSize: 1,
           },
