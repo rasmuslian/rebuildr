@@ -299,10 +299,11 @@ export class ProductsInput {
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
 
-  @Field(() => [ID], {
-    nullable: true,
-  })
+  @Field(() => [ID], { nullable: true })
   likedByUserIds?: string[] | null;
+
+  @Field({ nullable: true })
+  excludeOwnProducts?: boolean;
 }
 
 @ObjectType()

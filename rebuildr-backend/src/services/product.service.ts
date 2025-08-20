@@ -571,17 +571,17 @@ export class ProductService {
 
       if (input.categoryIds?.length) {
         query.andWhere(
-          'c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds)',
+          '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
           {
             categoryIds: input.categoryIds,
           },
         );
       } else if (input.selectionCategories) {
         query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
-        query.andWhere('c."inSelection" OR parent."inSelection"');
+        query.andWhere('(c."inSelection" OR parent."inSelection")');
       } else {
         query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
-        query.andWhere('c."inSeason" OR parent."inSeason"');
+        query.andWhere('(c."inSeason" OR parent."inSeason")');
       }
     }
 
@@ -628,6 +628,10 @@ export class ProductService {
       query.andWhere('plbu.userId IN (:...likedByUserIds)', {
         likedByUserIds: input.likedByUserIds,
       });
+    }
+
+    if (input.excludeOwnProducts && userId) {
+      query.andWhere('p.sellerId != :userId', { userId });
     }
 
     switch (input.orderBy) {
@@ -968,8 +972,10 @@ export class ProductService {
   }
 
   async recommendedProducts(
-    input: RecommendedProductsInput,
     userId: string,
+    input: RecommendedProductsInput,
+    limit?: number,
+    offset?: number,
   ): Promise<Product[]> {
     switch (input.recommendationSource) {
       case ProductsRecommendationSourceEnum.LIKES: {
@@ -990,6 +996,10 @@ export class ProductService {
           { categoryIds },
         );
 
+        if (input.excludeOwnProducts) {
+          query.andWhere('p.sellerId != :userId', { userId });
+        }
+
         query.andWhere(
           `NOT EXISTS (
             SELECT 1
@@ -1001,7 +1011,11 @@ export class ProductService {
         );
 
         query.addOrderBy('p.createdAt', 'DESC');
-        query.limit(10);
+
+        const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
+        query.limit(safeLimit);
+        query.offset((offset ?? 0) * safeLimit);
+
         return await query.getMany();
       }
 
@@ -1009,7 +1023,14 @@ export class ProductService {
         const search = await this.searchResultService.getLatestSearch(userId);
         const searchString = search.searchString;
 
-        return (await this.findAll({ searchString }, 10, 0)).products;
+        const result = await this.findAll(
+          { searchString, excludeOwnProducts: input.excludeOwnProducts },
+          limit ?? 10,
+          offset ?? 0,
+          userId,
+        );
+
+        return result.products;
       }
       default:
         return [];

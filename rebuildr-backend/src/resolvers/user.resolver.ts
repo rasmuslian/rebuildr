@@ -152,6 +152,9 @@ export class PayoutAccountResponse {
 export class RecommendedProductsInput {
   @Field(() => ProductsRecommendationSourceEnum)
   recommendationSource: ProductsRecommendationSourceEnum;
+
+  @Field({ nullable: true })
+  excludeOwnProducts?: boolean;
 }
 
 @Resolver(() => User)
@@ -323,9 +326,16 @@ export class UserResolver {
   @ResolveField(() => [Product])
   @UseGuards(GqlAuthGuard)
   async recommendedProducts(
-    @Args('input') input: RecommendedProductsInput,
     @Parent() user: User,
+    @Args('input') input: RecommendedProductsInput,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
   ) {
-    return await this.productService.recommendedProducts(input, user.id);
+    return await this.productService.recommendedProducts(
+      user.id,
+      input,
+      limit,
+      offset,
+    );
   }
 }

@@ -3,7 +3,7 @@ import TopBar from "@components/navigation/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
 import { TrendingNow } from "@components/trending-now/trending-now";
-import { NewArrivalsNearYou } from "@components/new-arrivals-near-you/new-arrivals-near-you";
+import { NewArrivals } from "@components/new-arrivals/new-arrivals";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
 import { SaleBanner } from "@components/sale-banner/sale-banner";
 import { RootCategories } from "@components/root-categories/root-categories";
@@ -38,7 +38,7 @@ export default function Landing() {
           }}
         >
           <RootCategories />
-          <NewArrivalsNearYou />
+          <NewArrivals />
           <ForTheSeason />
           <SaleBanner />
           <RecommendedProducts

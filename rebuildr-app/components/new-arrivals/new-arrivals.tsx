@@ -14,12 +14,12 @@ import {
 import { useState, useCallback } from "react";
 import {
   OrderProductsEnum,
-  NewArrivalsNearYouQuery,
-  NewArrivalsNearYouQueryVariables,
+  NewArrivalsQuery,
+  NewArrivalsQueryVariables,
 } from "@/gql/graphql";
 
-const NEW_ARRIVALS_NEAR_YOU = gql`
-  query NewArrivalsNearYou($input: ProductsInput!, $limit: Int, $offset: Int) {
+const NEW_ARRIVALS = gql`
+  query NewArrivals($input: ProductsInput!, $limit: Int, $offset: Int) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
@@ -43,7 +43,7 @@ const NEW_ARRIVALS_NEAR_YOU = gql`
   }
 `;
 
-export const NewArrivalsNearYou = () => {
+export const NewArrivals = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
   const [location, setLocation] = useState<LocationObjectCoords | null>(null);
@@ -60,30 +60,33 @@ export const NewArrivalsNearYou = () => {
     }, []),
   );
 
-  const { data } = useQuery<
-    NewArrivalsNearYouQuery,
-    NewArrivalsNearYouQueryVariables
-  >(NEW_ARRIVALS_NEAR_YOU, {
-    variables: {
-      input: {
-        orderBy: OrderProductsEnum.Distance,
-        location: location && {
-          lat: location?.latitude,
-          lng: location?.longitude,
-        },
-      },
-      limit: 10,
-      offset: 0,
-    },
-    skip: !location,
-  });
+  const { data } = useQuery<NewArrivalsQuery, NewArrivalsQueryVariables>(
+    NEW_ARRIVALS,
+    {
+      variables: {
+        input: {
+          excludeOwnProducts: true,
+          orderBy: location
+            ? OrderProductsEnum.Distance
+            : OrderProductsEnum.Latest,
 
-  if (!location) return null;
+          location: location && {
+            lat: location?.latitude,
+            lng: location?.longitude,
+          },
+        },
+        limit: 10,
+        offset: 0,
+      },
+    },
+  );
+
+  if (!data || data.products.products.length < 1) return null;
 
   return (
     <View style={{ paddingTop: 16, paddingBottom: 24 }}>
       <HoriztalListSection
-        title="Nyinkomna varor nära dig"
+        title={location ? "Nyinkomna varor nära dig" : "Nyinkomna varor"}
         data={data?.products.products ?? []}
         onPress={() => {
           const categoryIds: string[] = [];
