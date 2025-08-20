@@ -2,8 +2,8 @@ import { View, ImageBackground, Animated } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Headline } from "@components/typography/text";
 import { SearchBar } from "@components/search/search-bar";
-import { useDebounceCallback } from "usehooks-ts";
 import React, { useState } from "react";
+import { router } from "expo-router";
 
 type Props = {
   scrollY: Animated.Value;
@@ -12,11 +12,6 @@ type Props = {
 export default function Hero({ scrollY }: Props) {
   const colors = useThemeColor();
   const [headlineHeight, setHeadlineHeight] = useState(0);
-
-  const onChangeText = useDebounceCallback((value) => {
-    // TODO: Call api endpoint.
-    console.log("value :>> ", value);
-  }, 400);
 
   return (
     <ImageBackground
@@ -66,7 +61,7 @@ export default function Hero({ scrollY }: Props) {
         <SearchBar
           style={{ borderBottomWidth: 0 }}
           placeholder="Vad letar du efter? "
-          onChange={onChangeText}
+          onFocus={() => router.navigate("/(app)/(tabs)/search")}
         />
       </View>
     </ImageBackground>

@@ -1,6 +1,7 @@
 import { View, useWindowDimensions } from "react-native";
 import React from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 import { gql, useQuery } from "@apollo/client";
 import {
   RecommendedProductsQuery,
@@ -11,6 +12,7 @@ import { useUser } from "@hooks/useUser";
 import { SectionHeader } from "@components/sections/section-header";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Divider } from "@components/dividers/divider";
+import { router } from "expo-router";
 
 type Props = {
   title: string;
@@ -42,6 +44,10 @@ const RECOMMENDED_PRODUCTS = gql`
           id
           url
         }
+        category {
+          id
+          name
+        }
         approximatePlace {
           address
         }
@@ -58,6 +64,7 @@ const RECOMMENDED_PRODUCTS = gql`
 export function RecommendedProducts({ title, source }: Props) {
   const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
+  const { setCategories } = useFilterProduct();
   const { isLoggedIn } = useUser();
 
   const { data } = useQuery<
@@ -81,7 +88,22 @@ export function RecommendedProducts({ title, source }: Props) {
 
   return (
     <View style={{ gap: 16, paddingTop: 16 }}>
-      <SectionHeader onPress={() => {}}>{title}</SectionHeader>
+      <SectionHeader
+        onPress={() => {
+          const categoryIds: string[] = [];
+
+          products?.forEach((product) => {
+            if (product.category?.id) {
+              categoryIds.push(product.category.id);
+            }
+          });
+
+          setCategories(categoryIds);
+          router.navigate("/(app)/(tabs)/search/products");
+        }}
+      >
+        {title}
+      </SectionHeader>
 
       <View
         style={{
