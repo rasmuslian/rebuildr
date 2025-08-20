@@ -41,7 +41,7 @@ export const DescriptionSection = ({
             onBlur: () => onBlurTitle(title),
             onChangeText: (t) => setTitle(t),
             heading: "Annonsrubrik",
-            errorText: titleError,
+            error: titleError,
           },
           {
             type: "text",
@@ -53,7 +53,7 @@ export const DescriptionSection = ({
             placeholder:
               "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
             style: { minHeight: 172 },
-            errorText: descriptionError,
+            error: descriptionError,
           },
         ]}
       />

@@ -8,7 +8,7 @@ type Props = {
   helperText?: string;
   children: React.ReactNode;
   horizontal?: boolean;
-  error?: string;
+  error?: string | boolean;
 };
 
 export const FormFieldWrapper = ({
@@ -45,7 +45,7 @@ export const FormFieldWrapper = ({
         ) : null}
       </View>
       <View>{children}</View>
-      {error && (
+      {error && typeof error === "string" && (
         <Body color="error" size="small" style={{ marginTop: 12 }}>
           {error}
         </Body>
