@@ -908,7 +908,7 @@ export class ProductService {
       where: { id: input.productId },
       relations: { shippingPrices: true },
     });
-    if (!product) {
+    if (!product || !input.postCode) {
       throw BadUserInputException();
     }
 

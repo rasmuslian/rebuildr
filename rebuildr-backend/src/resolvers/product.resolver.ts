@@ -363,8 +363,8 @@ export class GetTransportationOptionsInput {
   @Field()
   productId: string;
 
-  @Field()
-  postCode: string;
+  @Field({ nullable: true })
+  postCode?: string;
 
   @Field({ nullable: true })
   address?: string;
@@ -393,8 +393,8 @@ class DeliveryOptionResponse {
   @Field()
   deliveryPrice: number;
 
-  @Field()
-  postalCode: string;
+  @Field({ nullable: true })
+  postalCode?: string;
 }
 
 @Resolver(() => Product)
