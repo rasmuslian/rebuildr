@@ -36,7 +36,7 @@ export default function TopBar() {
     {
       icon: "hamburger",
       onPress: () => {
-        console.log("pressed hamburger");
+        router.navigate("/(app)/(tabs)/categories");
       },
     },
   ];
