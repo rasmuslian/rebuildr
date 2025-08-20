@@ -1,7 +1,6 @@
 import {
   BuyProductDeliveryOptionCardQuery,
   BuyProductDeliveryOptionCardQueryVariables,
-  BuyProductDeliveryOptionQuery,
 } from "@/gql/graphql";
 import { formatMetersToKm } from "@/utils/distanceHandling";
 import { gql, useLazyQuery } from "@apollo/client";
@@ -33,11 +32,11 @@ type Props = {
   methodSelected?: boolean;
   toggleMethod: () => void;
   updateDeliveryOption: (
-    data?: BuyProductDeliveryOptionQuery["getDeliveryOption"] & {
+    data?: BuyProductDeliveryOptionCardQuery["getDeliveryOption"] & {
       address: string;
     },
   ) => void;
-  deliveryOption?: BuyProductDeliveryOptionQuery["getDeliveryOption"];
+  deliveryOption?: BuyProductDeliveryOptionCardQuery["getDeliveryOption"];
 };
 
 export const DeliveryCard = ({
@@ -114,7 +113,7 @@ export const DeliveryCard = ({
             </View>
           </>
         )}
-        {!!deliveryOption && deliveryOption.isWithinRadius && (
+        {deliveryWithinRadius && (
           <>
             <View>
               <Title size="medium">
@@ -155,7 +154,7 @@ export const DeliveryCard = ({
             </View>
           </>
         )}
-        {!!deliveryOption && !deliveryOption.isWithinRadius && (
+        {deliveryOutsideRadius && (
           <>
             <View>
               <Title size="medium">

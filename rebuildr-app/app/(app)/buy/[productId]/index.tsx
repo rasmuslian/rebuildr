@@ -1,6 +1,5 @@
 import {
-  BuyProductDeliveryOptionQuery,
-  BuyProductDeliveryOptionSingleQuery,
+  BuyProductDeliveryOptionCardQuery,
   BuyProductInitialQuery,
   BuyProductInitialQueryVariables,
   BuyProductTransportationOptionsQuery,
@@ -97,6 +96,7 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
     }
   }
 `;
+
 const BUY_PRODUCT_CREATE_FREE_PURCHASE = gql`
   mutation CreateFreePurchase($input: PurchaseProductInput!) {
     purchaseProduct(input: $input) {
@@ -209,7 +209,7 @@ const MultipleOptions = ({
 
   //delivery
   const [deliveryOption, setDeliveryOption] = useState<
-    BuyProductDeliveryOptionQuery["getDeliveryOption"] & { address: string }
+    BuyProductDeliveryOptionCardQuery["getDeliveryOption"] & { address: string }
   >();
   const { productId } = useLocalSearchParams<{ productId: string }>();
 
