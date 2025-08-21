@@ -559,13 +559,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 steps={[
                   payedInitialEntry(purchase, me),
                   <ProgressEntry
-                    title={`Åk och hämta senast ${dateToString(dateForwardAWeek(purchase.sellerRespondedAt))}`}
+                    title={`${handoffIsPickup ? "Åk och hämta senast" : "Säljaren levererar"} ${dateToString(dateForwardAWeek(purchase.sellerRespondedAt))}`}
                     elements={[
                       {
                         type: "body",
                         textParts: [
                           {
-                            children: `Hämta din vara senast ${dateToString(dateForwardAWeek(purchase.sellerRespondedAt))}, annars avbryts köpet och du får tillbaka dina pengar.`,
+                            children: `${handoffIsPickup ? "Hämta din vara senast" : "Hemtransporten sker senast"} ${dateToString(dateForwardAWeek(purchase.sellerRespondedAt))}, annars avbryts köpet och du får tillbaka dina pengar.`,
                           },
                         ],
                       },
@@ -880,12 +880,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
       case PurchaseStatusEnum.PaymentAccepted:
       case PurchaseStatusEnum.PaymentStarted:
         if (purchase.sellerRespondedAt) {
+          //den här måste ändras
           return (
             <ProgressIndicator
               steps={[
                 soldInitialEntry(purchase),
                 <ProgressEntry
-                  title={`Köparen hämtar senast ${dayjs(dateForwardAWeek(purchase.sellerRespondedAt)).format("D MMMM")}`}
+                  title={`${handoffIsPickup ? "Köparen hämtar" : "Åk och leverera"} senast ${dayjs(dateForwardAWeek(purchase.sellerRespondedAt)).format("D MMMM")}`}
                   elements={[
                     {
                       type: "body",
