@@ -9,7 +9,11 @@ import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
 const PURCHASE_SUCCESS = gql`
-  query PurchaseSuccess {
+  query PurchaseSuccess($input: GetPurchaseInput!) {
+    purchase(input: $input) {
+      id
+      boughtForFree
+    }
     me {
       id
       email
@@ -19,7 +23,9 @@ const PURCHASE_SUCCESS = gql`
 
 export default function Success() {
   const { purchaseId } = useLocalSearchParams<{ purchaseId: string }>();
-  const { data } = useQuery<PurchaseSuccessQuery>(PURCHASE_SUCCESS);
+  const { data } = useQuery<PurchaseSuccessQuery>(PURCHASE_SUCCESS, {
+    variables: { input: { id: purchaseId } },
+  });
 
   if (!data) {
     return <LoadingSpinner />;
@@ -28,8 +34,13 @@ export default function Success() {
   return (
     <ScreenLayout headerComponent={<Header title="Om köpet" />}>
       <View style={{ gap: 24, marginBottom: 32 }}>
-        <Display size="small" style={{ textAlign: "center" }}>
-          Toppen, nu har du betalat!
+        <Display
+          size="small"
+          style={{ textAlign: "center", marginHorizontal: 35 }}
+        >
+          {data.purchase.boughtForFree
+            ? "Du har köpt varan för 0 kr"
+            : "Toppen, nu har du betalat!"}
         </Display>
         <Body size="medium" style={{ textAlign: "center" }}>
           Du får en bekräftelse från Rocker till {data?.me.email}

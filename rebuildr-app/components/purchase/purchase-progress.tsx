@@ -49,6 +49,7 @@ const dateForwardADay = (date: Date) => {
 };
 type PurchaseType = PurchaseReceiptQuery["purchase"];
 type MeType = PurchaseReceiptQuery["me"];
+type ElementsType = ComponentProps<typeof ProgressEntry>["elements"];
 
 type PurchaseProgressProps = {
   purchaseData: PurchaseReceiptQuery;
@@ -573,7 +574,9 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         textParts: [
                           { children: "Ångrat dig? Du kan fortfarande " },
                           {
-                            children: "avbrytat köpet",
+                            children: purchase.boughtForFree
+                              ? "avbryta affären"
+                              : "avbrytat köpet",
                             onPress: onAbortPurchase,
                           },
                           { children: "." },
@@ -581,21 +584,33 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       },
                     ]}
                   />,
-                  <ProgressEntry
-                    title="Säljaren får betalt"
-                    elements={[
-                      {
-                        type: "body",
-                        textParts: [
-                          {
-                            children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.`,
-                          },
-                        ],
-                      },
-                    ]}
-                  />,
+                  ...(purchase.boughtForFree
+                    ? []
+                    : [
+                        <ProgressEntry
+                          disabled
+                          title="Säljaren får betalt"
+                          elements={[
+                            {
+                              type: "body",
+                              textParts: [
+                                {
+                                  children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. `,
+                                },
+                                {
+                                  children: "\n",
+                                },
+                                {
+                                  children:
+                                    "Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
+                                },
+                              ],
+                            },
+                          ]}
+                        />,
+                      ]),
                 ]}
-                current={2}
+                current={purchase.boughtForFree ? 1 : 2}
               />
             );
           }
@@ -633,34 +648,39 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children:
-                            "Om säljaren inte svarar inom 24 timmar betalas dina pengar tillbaka automatiskt.",
+                          children: purchase.boughtForFree
+                            ? "Om säljaren inte svarar inom 24 timmar avbryts affären automatiskt."
+                            : "Om säljaren inte svarar inom 24 timmar betalas dina pengar tillbaka automatiskt.",
                         },
                       ],
                     },
                   ]}
                 />,
-                <ProgressEntry
-                  disabled
-                  title="Säljaren får betalt"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. `,
-                        },
-                        {
-                          children: "\n",
-                        },
-                        {
-                          children:
-                            "Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
-                        },
-                      ],
-                    },
-                  ]}
-                />,
+                ...(purchase.boughtForFree
+                  ? []
+                  : [
+                      <ProgressEntry
+                        disabled
+                        title="Säljaren får betalt"
+                        elements={[
+                          {
+                            type: "body",
+                            textParts: [
+                              {
+                                children: `Säljaren bekräftar när du har ${handoffIsPickup ? "hämtat" : "tagit emot"} din vara. `,
+                              },
+                              {
+                                children: "\n",
+                              },
+                              {
+                                children:
+                                  "Då har du 48 timmar på dig att se så varan stämmer överens med annonsen innan pengarna betalas ut till säljaren.",
+                              },
+                            ],
+                          },
+                        ]}
+                      />,
+                    ]),
               ]}
               current={1}
             />
@@ -706,9 +726,14 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
+                    ...(purchase.boughtForFree
+                      ? ([reviewButtonPart(purchase)] as ElementsType)
+                      : []),
                   ]}
                 />,
-                purchaseCompleteEntry(purchase, me),
+                ...(purchase.boughtForFree
+                  ? []
+                  : [purchaseCompleteEntry(purchase, me)]),
               ]}
               current={3}
             />
@@ -761,13 +786,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
           );
         case PurchaseStatusEnum.FinishedFailed:
           if (
-            purchase.isRefunded &&
+            (purchase.isRefunded || purchase.boughtForFree) &&
             purchase.abortedById !== purchase.buyer.id
           ) {
             return (
               <ProgressIndicator
                 steps={[
-                  soldInitialEntry(purchase),
+                  payedInitialEntry(purchase, me),
                   <ProgressEntry
                     title="Köpet är avbrutet"
                     elements={[
@@ -785,11 +810,15 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                           {
                             children: "Säljaren har valt att avbryta köpet.",
                           },
-                          { children: "\n" },
-                          {
-                            children:
-                              "Köpet är nu avbrutet och dina pengar har återbetalats.",
-                          },
+                          ...(purchase.boughtForFree
+                            ? []
+                            : [
+                                { children: "\n" },
+                                {
+                                  children:
+                                    "Köpet är nu avbrutet och dina pengar har återbetalats.",
+                                },
+                              ]),
                         ],
                       },
                     ]}
@@ -801,13 +830,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             );
           }
           if (
-            purchase.isRefunded &&
+            (purchase.isRefunded || purchase.boughtForFree) &&
             purchase.abortedById === purchase.buyer.id
           ) {
             return (
               <ProgressIndicator
                 steps={[
-                  soldInitialEntry(purchase),
+                  payedInitialEntry(purchase, me),
                   <ProgressEntry
                     title="Du har avbrutit köpet"
                     elements={[
@@ -819,19 +848,23 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                           },
                         ],
                       },
-                      {
-                        type: "body",
-                        textParts: [
-                          {
-                            children: "Du har valt att avbryta köpet.",
-                          },
-                          { children: "\n" },
-                          {
-                            children:
-                              "Köpet är nu avbrutet och dina pengar återbetalas automatiskt.",
-                          },
-                        ],
-                      },
+                      ...(purchase.boughtForFree
+                        ? []
+                        : ([
+                            {
+                              type: "body",
+                              textParts: [
+                                {
+                                  children: "Du har valt att avbryta köpet.",
+                                },
+                                { children: "\n" },
+                                {
+                                  children:
+                                    "Köpet är nu avbrutet och dina pengar återbetalas automatiskt.",
+                                },
+                              ],
+                            },
+                          ] as ElementsType)),
                     ]}
                   />,
                 ]}
@@ -862,54 +895,78 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                         {
                           onPress: onAbortPurchase,
-                          children: "avbryta köpet",
+                          children: `avbryta ${purchase.boughtForFree ? "affären" : "köpet"}`,
                         },
                         { children: "." },
                       ],
                     },
-                  ]}
-                />,
-                <ProgressEntry
-                  title="Markera som överlämnad för att få betalt"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "För att få betalt måste du markera att varan har överlämnats.",
-                        },
-                      ],
-                    },
-                    {
-                      type: "button",
-                      buttonProps: {
-                        label: "Markera som överlämnad",
-                        onPress: () => {
-                          if (!purchase || markAsDeliveredLoading) {
-                            return;
-                          }
-                          markAsDelivered({
-                            variables: {
-                              input: { purchaseId: purchase.id },
+                    ...(purchase.boughtForFree
+                      ? ([
+                          {
+                            type: "button",
+                            buttonProps: {
+                              label: "Markera som överlämnad",
+                              onPress: () => {
+                                if (!purchase || markAsDeliveredLoading) {
+                                  return;
+                                }
+                                markAsDelivered({
+                                  variables: {
+                                    input: { purchaseId: purchase.id },
+                                  },
+                                });
+                              },
                             },
-                          });
-                        },
-                      },
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Efter det har köparen 48 timmar att godkänna eller rapportera ett problem, annars betalas pengarna ut automatiskt till dig.",
-                        },
-                      ],
-                    },
+                          },
+                        ] as ElementsType)
+                      : []),
                   ]}
                 />,
+                ...(purchase.boughtForFree
+                  ? []
+                  : [
+                      <ProgressEntry
+                        title="Markera som överlämnad för att få betalt"
+                        elements={[
+                          {
+                            type: "body",
+                            textParts: [
+                              {
+                                children:
+                                  "För att få betalt måste du markera att varan har överlämnats.",
+                              },
+                            ],
+                          },
+                          {
+                            type: "button",
+                            buttonProps: {
+                              label: "Markera som överlämnad",
+                              onPress: () => {
+                                if (!purchase || markAsDeliveredLoading) {
+                                  return;
+                                }
+                                markAsDelivered({
+                                  variables: {
+                                    input: { purchaseId: purchase.id },
+                                  },
+                                });
+                              },
+                            },
+                          },
+                          {
+                            type: "body",
+                            textParts: [
+                              {
+                                children:
+                                  "Efter det har köparen 48 timmar att godkänna eller rapportera ett problem, annars betalas pengarna ut automatiskt till dig.",
+                              },
+                            ],
+                          },
+                        ]}
+                      />,
+                    ]),
               ]}
-              current={2}
+              current={purchase.boughtForFree ? 1 : 2}
             />
           );
         }
@@ -955,37 +1012,42 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     type: "body",
                     textParts: [
                       {
-                        children:
-                          "Om du inte svarar i tid avbryts köpet automatiskt och köparen får tillbaka sina pengar",
+                        children: purchase.boughtForFree
+                          ? "Om du inte svarar i tid avbryts köpet automatiskt."
+                          : "Om du inte svarar i tid avbryts köpet automatiskt och köparen får tillbaka sina pengar",
                       },
                     ],
                   },
                 ]}
               />,
-              <ProgressEntry
-                disabled
-                title="Markera som överlämnad för att få betalt"
-                elements={[
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "För att få betalt måste du markera att varan har överlämnats",
-                      },
-                    ],
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Efter det har köparen 48 timmar att godkänna eller rapportera ett problem, annars betalas pengarna ut automatiskt till dig.",
-                      },
-                    ],
-                  },
-                ]}
-              />,
+              ...(purchase.boughtForFree
+                ? []
+                : [
+                    <ProgressEntry
+                      disabled
+                      title="Markera som överlämnad för att få betalt"
+                      elements={[
+                        {
+                          type: "body",
+                          textParts: [
+                            {
+                              children:
+                                "För att få betalt måste du markera att varan har överlämnats",
+                            },
+                          ],
+                        },
+                        {
+                          type: "body",
+                          textParts: [
+                            {
+                              children:
+                                "Efter det har köparen 48 timmar att godkänna eller rapportera ett problem, annars betalas pengarna ut automatiskt till dig.",
+                            },
+                          ],
+                        },
+                      ]}
+                    />,
+                  ]),
             ]}
             current={1}
           />
@@ -1030,8 +1092,38 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
           <ProgressIndicator
             steps={[
               soldInitialEntry(purchase),
-              deliveryConfirmedEntry(purchase),
-              saleCompleteEntry(purchase, me),
+              ...(purchase.boughtForFree
+                ? [
+                    <ProgressEntry
+                      title="Överlämning bekräftad"
+                      elements={[
+                        {
+                          type: "body",
+                          textParts: [
+                            {
+                              children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+                            },
+                          ],
+                        },
+                        ...(purchase.boughtForFree
+                          ? ([
+                              reviewButtonPart(purchase),
+                              {
+                                type: "body",
+                                textParts: [
+                                  {
+                                    children:
+                                      "Tack för att du använder Rebuildr!",
+                                  },
+                                ],
+                              },
+                            ] as ElementsType)
+                          : []),
+                      ]}
+                    />,
+                  ]
+                : [deliveryConfirmedEntry(purchase)]),
+              ...(purchase ? [] : [saleCompleteEntry(purchase, me)]),
             ]}
             current={3}
           />
@@ -1058,7 +1150,10 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     textParts: [
                       {
                         children:
-                          "Köparen har meddelat att något inte stämmer med varan. Utbetalningen är därför pausad under tiden ärendet pågår.",
+                          "Köparen har meddelat att något inte stämmer med varan. " +
+                          (purchase.boughtForFree
+                            ? ""
+                            : "Utbetalningen är därför pausad under tiden ärendet pågår."),
                       },
                     ],
                   },
@@ -1071,7 +1166,10 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
           />
         );
       case PurchaseStatusEnum.FinishedFailed:
-        if (purchase.isRefunded && purchase.abortedById !== purchase.buyer.id) {
+        if (
+          (purchase.isRefunded || purchase.boughtForFree) &&
+          purchase.abortedById !== purchase.buyer.id
+        ) {
           return (
             <ProgressIndicator
               steps={[
@@ -1087,15 +1185,19 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Köpet är nu avbrutet och köparens pengar har återbetalats.",
-                        },
-                      ],
-                    },
+                    ...(purchase.boughtForFree
+                      ? []
+                      : ([
+                          {
+                            type: "body",
+                            textParts: [
+                              {
+                                children:
+                                  "Köpet är nu avbrutet och köparens pengar har återbetalats.",
+                              },
+                            ],
+                          },
+                        ] as ElementsType)),
                     {
                       type: "body",
                       textParts: [
@@ -1125,7 +1227,10 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             />
           );
         }
-        if (purchase.isRefunded && purchase.abortedById === purchase.buyer.id) {
+        if (
+          (purchase.isRefunded || purchase.boughtForFree) &&
+          purchase.abortedById === purchase.buyer.id
+        ) {
           return (
             <ProgressIndicator
               steps={[
@@ -1145,7 +1250,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children: "Köparen har valt att avbryta köpet",
+                          children: "Köparen har valt att avbryta köpet.",
                         },
                         { children: "\n" },
                         {
@@ -1183,7 +1288,11 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
 //----------------- REPEATING ENTRIES --------------------------
 const soldInitialEntry = (purchase: PurchaseType) => (
   <ProgressEntry
-    title="Du har sålt en vara"
+    title={
+      purchase.boughtForFree
+        ? "Du har sålt varan för 0 kr"
+        : "Du har sålt en vara"
+    }
     elements={[
       {
         type: "body",
@@ -1192,25 +1301,48 @@ const soldInitialEntry = (purchase: PurchaseType) => (
     ]}
   />
 );
-const payedInitialEntry = (purchase: PurchaseType, me: MeType) => (
-  <ProgressEntry
-    title="Du har betalat"
-    elements={[
-      {
-        type: "body",
-        textParts: [{ children: dateToString(purchase.paymentAcceptedAt) }],
-      },
-      {
-        type: "body",
-        textParts: [
+const payedInitialEntry = (purchase: PurchaseType, me: MeType) => {
+  if (purchase.boughtForFree) {
+    return (
+      <ProgressEntry
+        title="Du har köpt varan för 0 kr"
+        elements={[
           {
-            children: `Du får en bekräftelse från Rocker till ${me.email}`,
+            type: "body",
+            textParts: [{ children: dateToString(purchase.paymentAcceptedAt) }],
           },
-        ],
-      },
-    ]}
-  />
-);
+          {
+            type: "body",
+            textParts: [
+              {
+                children: `Du får en bekräftelse till ${me.email}`,
+              },
+            ],
+          },
+        ]}
+      />
+    );
+  }
+  return (
+    <ProgressEntry
+      title="Du har betalat"
+      elements={[
+        {
+          type: "body",
+          textParts: [{ children: dateToString(purchase.paymentAcceptedAt) }],
+        },
+        {
+          type: "body",
+          textParts: [
+            {
+              children: `Du får en bekräftelse från Rocker till ${me.email}`,
+            },
+          ],
+        },
+      ]}
+    />
+  );
+};
 const packageDroppedOffEntry = (purchase: PurchaseType) => (
   <ProgressEntry
     title="Paketet är inlämnat"
@@ -1335,17 +1467,6 @@ const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
   />
 );
 const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
-  const reviewPart: ComponentProps<typeof ProgressEntry>["elements"] = [
-    {
-      type: "button",
-      buttonProps: {
-        label: "Lämna ett omdöme",
-        onPress: () => {
-          //TODO: navigate to review screen
-        },
-      },
-    },
-  ];
   return (
     <ProgressEntry
       title="Köpet är slutfört"
@@ -1369,7 +1490,7 @@ const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
         },
         ...(purchase.reviews.some((r) => r.reviewerId === me.id)
           ? []
-          : reviewPart),
+          : [reviewButtonPart(purchase)]),
         {
           type: "body",
           textParts: [
@@ -1383,16 +1504,8 @@ const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
   );
 };
 const saleCompleteEntry = (purchase: PurchaseType, me: MeType) => {
-  const reviewParts: ComponentProps<typeof ProgressEntry>["elements"] = [
-    {
-      type: "button",
-      buttonProps: {
-        label: "Lämna ett omdöme",
-        onPress: () => {
-          //TODO: link to review screen
-        },
-      },
-    },
+  const reviewParts: ElementsType = [
+    reviewButtonPart(purchase),
     {
       type: "body",
       textParts: [
@@ -1430,11 +1543,25 @@ const saleCompleteEntry = (purchase: PurchaseType, me: MeType) => {
     />
   );
 };
+//--------------------------------------------------------------------
+
+//--------------------------- ELEMENTS PARTS --------------------------
+const reviewButtonPart = (purchase: PurchaseType): ElementsType[number] => {
+  return {
+    type: "button",
+    buttonProps: {
+      label: "Lämna ett omdöme",
+      onPress: () => {
+        //TODO: navigate to review screen
+      },
+    },
+  };
+};
 const reviewDuringReportParts = (purchase: PurchaseType, me: MeType) => {
   if (purchase.reviews.some((r) => r.reviewerId === me.id)) {
     return [];
   }
-  const reviewParts: ComponentProps<typeof ProgressEntry>["elements"] = [
+  const reviewParts: ElementsType = [
     {
       type: "body",
       textParts: [
@@ -1450,15 +1577,7 @@ const reviewDuringReportParts = (purchase: PurchaseType, me: MeType) => {
         },
       ],
     },
-    {
-      type: "button",
-      buttonProps: {
-        label: "Lämna ett omdöme",
-        onPress: () => {
-          //TODO: navigate to review screen
-        },
-      },
-    },
+    reviewButtonPart(purchase),
   ];
   return reviewParts;
 };

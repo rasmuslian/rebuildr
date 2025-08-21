@@ -100,6 +100,7 @@ type SellerReceiptCardProps = {
   deliveryPrice?: number | null;
   paymentMethod?: PaymentMethod | null;
   transportationMethod: TransportationEnum;
+  boughtForFree: boolean;
 };
 
 const SellerReceiptCard = ({
@@ -108,13 +109,16 @@ const SellerReceiptCard = ({
   deliveryPrice,
   paymentMethod,
   transportationMethod,
+  boughtForFree,
 }: SellerReceiptCardProps) => {
   const provision = Math.round(price * 0.1);
   const earnings = price - provision;
   return (
     <>
       <Row left="Ditt försäljningspris" right={`${price} kr`} />
-      <Row left="Provision till RebuildR (10%)" right={`-${provision} kr`} />
+      {!boughtForFree && (
+        <Row left="Provision till RebuildR (10%)" right={`-${provision} kr`} />
+      )}
       <Row left="Du får utbetalt" right={`${earnings} kr`} isBold />
       <Divider />
       {paymentMethod && (

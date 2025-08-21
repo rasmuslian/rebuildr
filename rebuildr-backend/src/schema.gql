@@ -63,6 +63,7 @@ type Purchase {
   product: Product!
   isFree: Boolean!
   isRefunded: Boolean!
+  boughtForFree: Boolean!
 }
 
 enum PurchaseStatusEnum {
