@@ -287,4 +287,9 @@ export class PurchaseResolver {
   async isRefunded(@Parent() purchase: Purchase) {
     return !!purchase.refundId;
   }
+
+  @ResolveField(() => Boolean)
+  async boughtForFree(@Parent() purchase: Purchase) {
+    return await this.purchaseService.boughtForFree(purchase);
+  }
 }

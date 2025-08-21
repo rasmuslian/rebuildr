@@ -36,6 +36,7 @@ export const PURCHASE_RECEIPT = gql`
       isFree
       isRefunded
       abortedById
+      boughtForFree
       shippingPrice {
         id
         price
@@ -139,6 +140,7 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
           shippingPrice={data.purchase.shippingPrice}
           deliveryPrice={data.purchase.product.deliveryPrice}
           transportationMethod={data.purchase.transportationMethod}
+          boughtForFree={data.purchase.boughtForFree}
           role={buyerIsMe ? "buyer" : "seller"}
           userType={data.me.type}
         />

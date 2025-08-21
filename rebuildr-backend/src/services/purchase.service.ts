@@ -624,6 +624,13 @@ export class PurchaseService {
     }
 
     purchase.deliveredAt = new Date();
+
+    const boughtForFree = await this.boughtForFree(purchase);
+    //Approve step is skipped if purchase was bought for free since approving or not approving
+    //is there as a financial security
+    if (boughtForFree) {
+      purchase.approvedAt = new Date();
+    }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
     logger.info('MarkAsDelivered', {
@@ -641,6 +648,29 @@ export class PurchaseService {
     return await this.reviewRepository.find({
       where: { purchaseId: purchase.id },
     });
+  }
+
+  async boughtForFree(purchase: Purchase) {
+    const product = await this.productRepository.findOne({
+      where: { id: purchase.productId },
+    });
+    if (!product) {
+      return false;
+    }
+
+    if (!product.isGiveaway) {
+      return false;
+    }
+    if (purchase.transportationMethod === TransportationEnum.PICKUP) {
+      return true;
+    }
+    if (
+      purchase.transportationMethod === TransportationEnum.DELIVERY &&
+      product.deliveryPrice === 0
+    ) {
+      return true;
+    }
+    return false;
   }
 
   async deleteMany(purchases: Purchase[]) {
@@ -709,14 +739,19 @@ export class PurchaseService {
       paymentId: purchase.rockerPaymentId,
       userId: currentUserId,
     });
-    if (!purchase.rockerPaymentId) {
-      throw InternalServerException('Missing paymentId');
-    }
+
     const abortedByBuyer = currentUserId === purchase.buyerId;
-    await this.rockerService.refundPayment(
-      purchase.rockerPaymentId,
-      'Refunded by User action ' + abortedByBuyer ? '(buyer)' : '(seller)',
-    );
+
+    const boughtForFree = await this.boughtForFree(purchase);
+    if (!boughtForFree) {
+      if (!purchase.rockerPaymentId) {
+        throw InternalServerException('Missing paymentId');
+      }
+      await this.rockerService.refundPayment(
+        purchase.rockerPaymentId,
+        'Refunded by User action ' + abortedByBuyer ? '(buyer)' : '(seller)',
+      );
+    }
     if (!purchase.abortedById) {
       if (abortedByBuyer) {
         this.systemMessagesService.purchaseAbortedByBuyerBuyer(
