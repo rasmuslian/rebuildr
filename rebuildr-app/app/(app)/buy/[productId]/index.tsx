@@ -374,7 +374,7 @@ const MultipleOptions = ({
       )}
       {transportationMethod === "shipping" && (
         <Summary
-          text={`Du betalar (ink. hemtransport ${initialData.product.shippingPrices?.[0].price} kr):`}
+          text={`Du betalar (ink. frakt ${initialData.product.shippingPrices?.[0].price} kr):`}
           price={totalPrice}
           mainButton={{
             label: "Fortsätt",

@@ -173,7 +173,7 @@ export const SingleShipping = ({
         )}
         {servicePoint && (
           <Summary
-            text={`Du betalar (ink. hemtransport ${data?.getShippingOptions[0].shippingPrice.price} kr):`}
+            text={`Du betalar (ink. frakt ${data?.getShippingOptions[0].shippingPrice.price} kr):`}
             price={totalPrice}
             mainButton={{ label: "Fortsätt", onPress: onContinue }}
             bottomText="Säljaren skickar varan inom 7 dagar."
