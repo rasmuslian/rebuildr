@@ -45,7 +45,7 @@ const dateForwardAWeek = (date: Date) => {
   return dayjs(date).add(7, "days").toDate();
 };
 const dateForwardADay = (date: Date) => {
-  return dayjs(date).add(1, "day").format("D MMMM kl. hh:mm");
+  return dayjs(date).add(1, "day").format("D MMMM kl. HH:mm");
 };
 type PurchaseType = PurchaseReceiptQuery["purchase"];
 type MeType = PurchaseReceiptQuery["me"];
@@ -888,7 +888,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}.`,
                         },
                       ],
                     },
@@ -913,7 +913,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}.`,
                         },
                       ],
                     },
@@ -941,7 +941,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       type: "body",
                       textParts: [
                         {
-                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}`,
+                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}`,
                         },
                       ],
                     },
@@ -1293,7 +1293,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                           type: "body",
                           textParts: [
                             {
-                              children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+                              children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}.`,
                             },
                           ],
                         },
@@ -1607,7 +1607,7 @@ const deliveryConfirmedEntry = (purchase: PurchaseType) => (
         type: "body",
         textParts: [
           {
-            children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl hh:mm")}.`,
+            children: `Du bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}.`,
           },
         ],
       },
