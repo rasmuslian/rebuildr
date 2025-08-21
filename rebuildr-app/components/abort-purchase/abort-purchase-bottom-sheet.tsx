@@ -15,6 +15,8 @@ const ABORT_PURCHASE = gql`
     abortPurchase(input: $input) {
       id
       status
+      abortedById
+      refundId
     }
   }
 `;
