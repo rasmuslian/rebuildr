@@ -13,6 +13,7 @@ const config: CodegenConfig = {
     "./app/**/*.tsx",
     "./context/*.tsx",
     "./hooks/*.ts",
+    "./queries/*.ts",
   ],
   generates: {
     "gql/": {
