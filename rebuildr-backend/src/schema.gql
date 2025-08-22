@@ -690,6 +690,7 @@ type Mutation {
   setLikeProject(input: SetLikeProjectInput!): Project!
   createSearchResult(input: CreateSearchResultInput!): SearchResult
   clearSearchHistory: Boolean!
+  createReview(input: CreateReviewInput!): Review!
 }
 
 input RegisterUserInput {
@@ -924,4 +925,10 @@ input SetLikeProjectInput {
 
 input CreateSearchResultInput {
   searchString: String!
+}
+
+input CreateReviewInput {
+  purchaseId: String!
+  review: String!
+  stars: Int!
 }

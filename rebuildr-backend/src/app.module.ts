@@ -84,6 +84,7 @@ import { PurchaseLoader } from './dataloaders/purchase.loader';
 import { DHLAPI } from './apis/dhl.api';
 import { SystemMessagesService } from './services/system-messages.service';
 import { PostnordService } from './services/postnord.service';
+import { ReviewService } from './services/review.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -228,6 +229,7 @@ export interface RequestType {
     SearchResultService,
     SearchResultResolver,
     ReviewResolver,
+    ReviewService,
     ShippingResolver,
     ShippingService,
     SystemMessagesService,

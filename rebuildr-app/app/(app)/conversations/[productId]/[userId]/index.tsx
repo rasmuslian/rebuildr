@@ -34,6 +34,7 @@ import DeletedProduct from "@assets/images/deleted-product.png";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
+import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -164,6 +165,7 @@ const CONVERSATION_MARK_AS_DELIVERED = gql`
 export default function ConversationProduct() {
   const [text, setText] = useState("");
   const [showAbortSheet, setShowAbortSheet] = useState(false);
+  const [showReviewSheet, setShowReviewSheet] = useState(false);
   const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
@@ -319,7 +321,10 @@ export default function ConversationProduct() {
       footerComponent={
         <View style={{ gap: 16 }}>
           <Divider />
-          <ActionButtons data={data} />
+          <ActionButtons
+            data={data}
+            onShowReview={() => setShowReviewSheet(true)}
+          />
           <TextInput
             value={text}
             onChange={setText}
@@ -389,6 +394,16 @@ export default function ConversationProduct() {
           show={showAbortSheet}
           onDismiss={() => setShowAbortSheet(false)}
           onAbortPurchaseCompleted={() => refetch()}
+        />
+      )}
+      {data.latestPurchase && (
+        <CreateReviewBottomSheet
+          purchaseId={data.latestPurchase.id}
+          show={showReviewSheet}
+          onDismiss={() => setShowReviewSheet(false)}
+          onCreateReviewCompleted={() => {
+            refetch();
+          }}
         />
       )}
     </ScreenLayout>
@@ -486,8 +501,9 @@ const ChatBlock = ({
 
 type ActionButtonProps = {
   data: ConversationProductQuery;
+  onShowReview: () => void;
 };
-const ActionButtons = ({ data }: ActionButtonProps) => {
+const ActionButtons = ({ data, onShowReview }: ActionButtonProps) => {
   const purchase = data.latestPurchase;
   const sellerIsMe = data.me.id === data.product.seller.id;
 
@@ -549,7 +565,7 @@ const ActionButtons = ({ data }: ActionButtonProps) => {
         <Button
           label="Lämna ett omdöme"
           onPress={() => {
-            //TODO: navigate to review screen
+            onShowReview();
           }}
         />
       );
