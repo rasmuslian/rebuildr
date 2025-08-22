@@ -54,11 +54,13 @@ type ElementsType = ComponentProps<typeof ProgressEntry>["elements"];
 type PurchaseProgressProps = {
   purchaseData: PurchaseReceiptQuery;
   onAbortPurchase: () => void;
+  onOpenReview: () => void;
 };
 
 export const PurchaseProgress = ({
   purchaseData,
   onAbortPurchase,
+  onOpenReview,
 }: PurchaseProgressProps) => {
   const purchase = purchaseData.purchase;
   const me = purchaseData.me;
@@ -263,7 +265,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                purchaseCompleteEntry(purchase, me),
+                purchaseCompleteEntry(purchase, me, onOpenReview),
               ]}
               current={4}
             />
@@ -295,7 +297,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
-                    ...reviewDuringReportParts(purchase, me),
+                    ...reviewDuringReportParts(purchase, me, onOpenReview),
                   ]}
                 />,
               ]}
@@ -584,7 +586,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               soldInitialEntry(purchase),
               packageDroppedOffEntry(purchase),
               packageDeliveredSellerEntry(purchase),
-              saleCompleteEntry(purchase, me),
+              saleCompleteEntry(purchase, me, onOpenReview),
             ]}
             current={4}
           />
@@ -618,7 +620,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       },
                     ],
                   },
-                  ...reviewDuringReportParts(purchase, me),
+                  ...reviewDuringReportParts(purchase, me, onOpenReview),
                 ]}
               />,
             ]}
@@ -918,13 +920,13 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       ],
                     },
                     ...(purchase.boughtForFree
-                      ? ([reviewButtonPart(purchase)] as ElementsType)
+                      ? reviewButtonPart(purchase, me, onOpenReview)
                       : []),
                   ]}
                 />,
                 ...(purchase.boughtForFree
                   ? []
-                  : [purchaseCompleteEntry(purchase, me)]),
+                  : [purchaseCompleteEntry(purchase, me, onOpenReview)]),
               ]}
               current={3}
             />
@@ -967,7 +969,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                       ],
                     },
-                    ...reviewDuringReportParts(purchase, me),
+                    ...reviewDuringReportParts(purchase, me, onOpenReview),
                   ]}
                 />,
               ]}
@@ -1299,7 +1301,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         },
                         ...(purchase.boughtForFree
                           ? ([
-                              reviewButtonPart(purchase),
+                              ...reviewButtonPart(purchase, me, onOpenReview),
                               {
                                 type: "body",
                                 textParts: [
@@ -1315,7 +1317,9 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     />,
                   ]
                 : [deliveryConfirmedEntry(purchase)]),
-              ...(purchase ? [] : [saleCompleteEntry(purchase, me)]),
+              ...(purchase
+                ? []
+                : [saleCompleteEntry(purchase, me, onOpenReview)]),
             ]}
             current={3}
           />
@@ -1349,7 +1353,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       },
                     ],
                   },
-                  ...reviewDuringReportParts(purchase, me),
+                  ...reviewDuringReportParts(purchase, me, onOpenReview),
                 ]}
               />,
             ]}
@@ -1658,7 +1662,11 @@ const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
     ]}
   />
 );
-const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
+const purchaseCompleteEntry = (
+  purchase: PurchaseType,
+  me: MeType,
+  onOpenReview: () => void,
+) => {
   return (
     <ProgressEntry
       title="Köpet är slutfört"
@@ -1680,9 +1688,7 @@ const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
             },
           ],
         },
-        ...(purchase.reviews.some((r) => r.reviewerId === me.id)
-          ? []
-          : [reviewButtonPart(purchase)]),
+        ...reviewButtonPart(purchase, me, onOpenReview),
         {
           type: "body",
           textParts: [
@@ -1695,9 +1701,13 @@ const purchaseCompleteEntry = (purchase: PurchaseType, me: MeType) => {
     />
   );
 };
-const saleCompleteEntry = (purchase: PurchaseType, me: MeType) => {
+const saleCompleteEntry = (
+  purchase: PurchaseType,
+  me: MeType,
+  onOpenReview: () => void,
+) => {
   const reviewParts: ElementsType = [
-    reviewButtonPart(purchase),
+    ...reviewButtonPart(purchase, me, onOpenReview),
     {
       type: "body",
       textParts: [
@@ -1738,18 +1748,31 @@ const saleCompleteEntry = (purchase: PurchaseType, me: MeType) => {
 //--------------------------------------------------------------------
 
 //--------------------------- ELEMENTS PARTS --------------------------
-const reviewButtonPart = (purchase: PurchaseType): ElementsType[number] => {
-  return {
-    type: "button",
-    buttonProps: {
-      label: "Lämna ett omdöme",
-      onPress: () => {
-        //TODO: navigate to review screen
+const reviewButtonPart = (
+  purchase: PurchaseType,
+  me: MeType,
+  onOpenReview: () => void,
+): ElementsType => {
+  if (purchase.reviews.some((r) => r.reviewerId === me.id)) {
+    return [];
+  }
+  return [
+    {
+      type: "button",
+      buttonProps: {
+        label: "Lämna ett omdöme",
+        onPress: () => {
+          onOpenReview();
+        },
       },
     },
-  };
+  ];
 };
-const reviewDuringReportParts = (purchase: PurchaseType, me: MeType) => {
+const reviewDuringReportParts = (
+  purchase: PurchaseType,
+  me: MeType,
+  onOpenReview: () => void,
+) => {
   if (purchase.reviews.some((r) => r.reviewerId === me.id)) {
     return [];
   }
@@ -1769,7 +1792,7 @@ const reviewDuringReportParts = (purchase: PurchaseType, me: MeType) => {
         },
       ],
     },
-    reviewButtonPart(purchase),
+    ...reviewButtonPart(purchase, me, onOpenReview),
   ];
   return reviewParts;
 };
