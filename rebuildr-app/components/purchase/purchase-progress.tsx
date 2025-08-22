@@ -76,7 +76,6 @@ export const PurchaseProgress = ({
   const [markAsDelivered, { loading: markAsDeliveredLoading }] = useMutation(
     RECEIPT_MARK_AS_DELIVERED,
   );
-
   if (purchase.transportationMethod === TransportationEnum.Shipping) {
     if (isBuyer) {
       switch (purchase.status) {
@@ -306,10 +305,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             />
           );
         case PurchaseStatusEnum.FinishedFailed:
-          if (
-            purchase.isRefunded &&
-            purchase.abortedById !== purchase.buyer.id
-          ) {
+          if (purchase.abortedById !== purchase.buyer.id) {
             return (
               <ProgressIndicator
                 steps={[
@@ -346,10 +342,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
               />
             );
           }
-          if (
-            purchase.isRefunded &&
-            purchase.abortedById === purchase.buyer.id
-          ) {
+          if (purchase.abortedById === purchase.buyer.id) {
             return (
               <ProgressIndicator
                 steps={[
@@ -627,7 +620,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
           />
         );
       case PurchaseStatusEnum.FinishedFailed:
-        if (purchase.isRefunded && purchase.abortedById !== purchase.buyer.id) {
+        if (purchase.abortedById !== purchase.buyer.id) {
           return (
             <ProgressIndicator
               steps={[
@@ -687,7 +680,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             />
           );
         }
-        if (purchase.isRefunded && purchase.abortedById === purchase.buyer.id) {
+        if (purchase.abortedById === purchase.buyer.id) {
           return (
             <ProgressIndicator
               steps={[
