@@ -35,9 +35,7 @@ export default function TopBar() {
     },
     {
       icon: "hamburger",
-      onPress: () => {
-        router.navigate("/(app)/(tabs)/categories");
-      },
+      onPress: () => router.navigate("/(app)/(tabs)/categories"),
     },
   ];
 

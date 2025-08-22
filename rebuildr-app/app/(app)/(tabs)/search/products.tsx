@@ -25,6 +25,7 @@ import { formatMetersToKm } from "@/utils/distanceHandling";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Slider } from "@components/slider/slider";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { SubCategoriesList } from "@components/categories/sub-categories-list";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -81,7 +82,11 @@ export default function Products() {
   const [shipping, setShipping] = useState(true);
   const [delivery, setDelivery] = useState(true);
 
-  const { searchString } = useLocalSearchParams<{ searchString: string }>();
+  const { searchString, selectedCategoryId } = useLocalSearchParams<{
+    searchString: string;
+    selectedCategoryId: string;
+  }>();
+
   const { filter, nrOfAppliedFilters } = useFilterProduct();
   const isLoggedIn = isLoggedInVar();
   const productsPerPage = 10;
@@ -272,6 +277,8 @@ export default function Products() {
             <Display size="small">“</Display>
           </View>
         )}
+
+        {!!selectedCategoryId && <SubCategoriesList id={selectedCategoryId} />}
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Body size="medium" style={{ flex: 1 }} color="secondary">

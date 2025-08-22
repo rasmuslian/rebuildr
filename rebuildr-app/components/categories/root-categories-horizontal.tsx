@@ -12,7 +12,7 @@ import {
   RootCategoriesQueryVariables,
 } from "@/gql/graphql";
 
-export function RootCategories() {
+export function RootCategoriesHorizontal() {
   const { setCategories } = useFilterProduct();
 
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
@@ -25,6 +25,8 @@ export function RootCategories() {
       },
     },
   );
+
+  const categories = data?.rootCategories ?? [];
 
   return (
     <View
@@ -41,35 +43,33 @@ export function RootCategories() {
           gap: 8,
         }}
       >
-        {data?.rootCategories.map((category) => {
-          return (
-            <TouchableOpacity
-              key={category.id}
+        {categories.map(({ id, name, image }) => (
+          <TouchableOpacity
+            key={id}
+            style={{
+              width: 80,
+              alignItems: "center",
+              gap: 16,
+            }}
+            onPress={() => {
+              setCategories([id]);
+              router.navigate("/(app)/(tabs)/search/products");
+            }}
+          >
+            <Image
+              source={image?.url ?? Placeholder.uri}
               style={{
-                width: 80,
-                alignItems: "center",
-                gap: 16,
+                height: 60,
+                width: 60,
+                borderRadius: 100,
               }}
-              onPress={() => {
-                setCategories([category.id]);
-                router.navigate("/(app)/(tabs)/search/products");
-              }}
-            >
-              <Image
-                source={category.image ? category.image.url : Placeholder.uri}
-                style={{
-                  height: 60,
-                  width: 60,
-                  borderRadius: 100,
-                }}
-              />
+            />
 
-              <Label size="small" style={{ textAlign: "center" }}>
-                {category.name}
-              </Label>
-            </TouchableOpacity>
-          );
-        })}
+            <Label size="small" style={{ textAlign: "center" }}>
+              {name}
+            </Label>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );

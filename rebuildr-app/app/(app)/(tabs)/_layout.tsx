@@ -91,7 +91,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="categories/index"
+        name="categories"
         options={{
           tabBarButton: (props) =>
             renderTabButton("Kategorier", "categories", props.href),
