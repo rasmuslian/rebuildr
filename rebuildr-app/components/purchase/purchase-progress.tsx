@@ -1066,7 +1066,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
       case PurchaseStatusEnum.PaymentAccepted:
       case PurchaseStatusEnum.PaymentStarted:
         if (purchase.sellerRespondedAt) {
-          //den här måste ändras
           return (
             <ProgressIndicator
               steps={[
@@ -1310,7 +1309,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     />,
                   ]
                 : [deliveryConfirmedEntry(purchase)]),
-              ...(purchase
+              ...(purchase.boughtForFree
                 ? []
                 : [saleCompleteEntry(purchase, me, onOpenReview)]),
             ]}
