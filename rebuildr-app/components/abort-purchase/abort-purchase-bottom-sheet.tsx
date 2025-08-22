@@ -16,7 +16,7 @@ const ABORT_PURCHASE = gql`
       id
       status
       abortedById
-      refundId
+      isRefunded
     }
   }
 `;
