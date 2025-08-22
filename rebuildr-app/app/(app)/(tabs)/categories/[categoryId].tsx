@@ -1,8 +1,7 @@
-import { useLocalSearchParams } from "expo-router";
 import React from "react";
+import { useLocalSearchParams, router } from "expo-router";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
-import { router } from "expo-router";
 import { SubCategoriesVertical } from "@components/categories/sub-categories-vertical";
 
 export default function Category() {
