@@ -1,5 +1,5 @@
 import React from "react";
-import { View, FlatList, Image, TouchableOpacity } from "react-native";
+import { View, FlatList, TouchableOpacity } from "react-native";
 import { useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Headline } from "@components/typography/text";
@@ -10,8 +10,8 @@ import {
   RootCategoriesQueryVariables,
 } from "@/gql/graphql";
 import { ROOT_CATEGORIES } from "@/queries";
-import Placeholder from "@assets/images/placeholder.png";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import { Avatar } from "@components/avatar/avatar";
 
 export function RootCategoriesVertical() {
   const { setCategories } = useFilterProduct();
@@ -57,15 +57,7 @@ export function RootCategoriesVertical() {
                 flex: 1,
               }}
             >
-              <Image
-                source={image?.url ?? Placeholder.uri}
-                style={{
-                  height: 60,
-                  width: 60,
-                  borderRadius: 100,
-                }}
-              />
-
+              <Avatar imageUrl={image?.url} size={60} userType="CATEGORY" />
               <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
                 {name}
               </Headline>

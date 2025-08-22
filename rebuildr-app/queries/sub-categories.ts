@@ -1,22 +1,18 @@
 import { gql } from "@apollo/client";
 
 export const SUB_CATEGORIES = gql`
-  query SubCategories(
-    $categoryInput: CategoryInput!
-    $getCategoriesInput: GetCategoriesInput!
-  ) {
-    category(input: $categoryInput) {
+  query SubCategories($input: CategoryInput!) {
+    category(input: $input) {
       id
       name
       description
-    }
-    getCategories(input: $getCategoriesInput) {
-      id
-      name
-      description
-      image {
+      children {
         id
-        url
+        name
+        image {
+          id
+          url
+        }
       }
     }
   }

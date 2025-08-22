@@ -1,18 +1,13 @@
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  useWindowDimensions,
-} from "react-native";
+import { View, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useQuery } from "@apollo/client";
 import React from "react";
 import { SubCategoriesQuery, SubCategoriesQueryVariables } from "@/gql/graphql";
 import { SUB_CATEGORIES } from "@/queries";
 import { Display, Body, Label } from "@components/typography/text";
-import Placeholder from "@assets/images/placeholder.png";
 import { Divider } from "@components/dividers/divider";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
+import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
   id: string;
@@ -27,14 +22,13 @@ export function SubCategoriesList({ id }: Props) {
     SUB_CATEGORIES,
     {
       variables: {
-        categoryInput: { id: id },
-        getCategoriesInput: { parentIds: [id] },
+        input: { id },
       },
     },
   );
 
   const category = data?.category;
-  const subCategories = data?.getCategories ?? [];
+  const subCategories = data?.category.children ?? [];
 
   return (
     <View style={{ marginBottom: 24, gap: 24 }}>
@@ -68,15 +62,7 @@ export function SubCategoriesList({ id }: Props) {
               });
             }}
           >
-            <Image
-              source={image?.url ?? Placeholder.uri}
-              style={{
-                height: 80,
-                width: 80,
-                borderRadius: 100,
-              }}
-            />
-
+            <Avatar imageUrl={image?.url} size={80} userType="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
               {name}
             </Label>

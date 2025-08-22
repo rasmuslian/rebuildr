@@ -1,11 +1,11 @@
 import React from "react";
 import { router } from "expo-router";
-import { View, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, ScrollView, TouchableOpacity } from "react-native";
 import { useQuery } from "@apollo/client";
 import { Label } from "@components/typography/text";
-import Placeholder from "@assets/images/placeholder.png";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { ROOT_CATEGORIES } from "@/queries";
+import { Avatar } from "@components/avatar/avatar";
 import {
   OrderCategoriesEnum,
   RootCategoriesQuery,
@@ -56,15 +56,7 @@ export function RootCategoriesHorizontal() {
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <Image
-              source={image?.url ?? Placeholder.uri}
-              style={{
-                height: 60,
-                width: 60,
-                borderRadius: 100,
-              }}
-            />
-
+            <Avatar imageUrl={image?.url} size={60} userType="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
               {name}
             </Label>

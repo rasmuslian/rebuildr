@@ -1,13 +1,14 @@
 import { Image, ImageProps } from "expo-image";
 import PlaceholderProfile from "@assets/images/placeholder-profile.png";
 import PlaceholderBusiness from "@assets/images/placeholder-project.png";
+import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
 import LogoIcon from "@assets/images/logo-icon.png";
 import { UserType } from "@/gql/graphql";
 
 type Props = {
   imageUrl?: string;
   size?: "small" | "medium" | number;
-  userType?: UserType | "SYSTEM";
+  userType?: UserType | "SYSTEM" | "CATEGORY";
 } & ImageProps;
 
 export const Avatar = ({
@@ -32,6 +33,8 @@ export const Avatar = ({
     switch (userType) {
       case "SYSTEM":
         return LogoIcon.uri;
+      case "CATEGORY":
+        return PlaceholderCategory.uri;
       case UserType.Personal:
         return PlaceholderProfile.uri;
       case UserType.Business:
