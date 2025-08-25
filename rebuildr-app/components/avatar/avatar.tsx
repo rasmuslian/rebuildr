@@ -2,7 +2,6 @@ import { Image, ImageProps } from "expo-image";
 import PlaceholderProfile from "@assets/images/placeholder-profile.png";
 import PlaceholderBusiness from "@assets/images/placeholder-project.png";
 import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
-import PlaceholderProject from "@assets/images/placeholder-project.png";
 import LogoIcon from "@assets/images/logo-icon.png";
 import { UserType } from "@/gql/graphql";
 
@@ -36,7 +35,7 @@ export const Avatar = ({
       case "CATEGORY":
         return PlaceholderCategory.uri;
       case "PROJECT":
-        return PlaceholderProject.uri;
+        return PlaceholderBusiness.uri;
       case UserType.Personal:
         return PlaceholderProfile.uri;
       case UserType.Business:
