@@ -583,6 +583,7 @@ export class PurchaseService {
     }
     return await this.purchaseRepository.find({
       where: findOption,
+      order: { updatedAt: 'DESC' },
     });
   }
 

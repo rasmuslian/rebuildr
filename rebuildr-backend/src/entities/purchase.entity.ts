@@ -6,6 +6,7 @@ import {
   OneToMany,
   Point,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { User } from './user.entity';
@@ -58,6 +59,10 @@ export class Purchase {
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  @Field(() => Date)
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt: Date;
 
   @Column()
   productId: string;
