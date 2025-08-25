@@ -59,7 +59,7 @@ export function SubCategoriesList({ id }: Props) {
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <Avatar imageUrl={image?.url} size={80} userType="CATEGORY" />
+            <Avatar imageUrl={image?.url} size={80} placeholder="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
               {name}
             </Label>

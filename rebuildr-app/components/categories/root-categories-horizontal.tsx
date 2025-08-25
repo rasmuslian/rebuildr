@@ -56,7 +56,7 @@ export function RootCategoriesHorizontal() {
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <Avatar imageUrl={image?.url} size={60} userType="CATEGORY" />
+            <Avatar imageUrl={image?.url} size={60} placeholder="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
               {name}
             </Label>

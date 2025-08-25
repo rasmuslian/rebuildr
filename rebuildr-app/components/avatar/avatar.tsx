@@ -8,13 +8,15 @@ import { UserType } from "@/gql/graphql";
 type Props = {
   imageUrl?: string;
   size?: "small" | "medium" | number;
-  userType?: UserType | "SYSTEM" | "CATEGORY";
+  userType?: UserType | "SYSTEM";
+  placeholder?: "CATEGORY";
 } & ImageProps;
 
 export const Avatar = ({
   imageUrl,
   size = "small",
   userType = UserType.Personal,
+  placeholder,
   ...imageProps
 }: Props) => {
   let radius: number;
@@ -27,14 +29,12 @@ export const Avatar = ({
   }
 
   const getImageUrl = () => {
-    if (imageUrl) {
-      return imageUrl;
-    }
+    if (imageUrl) return imageUrl;
+    if (placeholder) return PlaceholderCategory.uri;
+
     switch (userType) {
       case "SYSTEM":
         return LogoIcon.uri;
-      case "CATEGORY":
-        return PlaceholderCategory.uri;
       case UserType.Personal:
         return PlaceholderProfile.uri;
       case UserType.Business:

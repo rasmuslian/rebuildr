@@ -54,7 +54,7 @@ export function RootCategoriesVertical() {
                 flex: 1,
               }}
             >
-              <Avatar imageUrl={image?.url} size={60} userType="CATEGORY" />
+              <Avatar imageUrl={image?.url} size={60} placeholder="CATEGORY" />
               <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
                 {name}
               </Headline>
