@@ -55,11 +55,8 @@ export function SubCategoriesList({ id }: Props) {
               gap: 8,
             }}
             onPress={() => {
-              setCategories([id]);
-              router.navigate({
-                pathname: "/(app)/(tabs)/search/products",
-                params: { selectedCategoryId: id },
-              });
+              setCategories([id], id);
+              router.navigate("/(app)/(tabs)/search/products");
             }}
           >
             <Avatar imageUrl={image?.url} size={80} userType="CATEGORY" />

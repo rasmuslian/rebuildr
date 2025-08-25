@@ -60,8 +60,17 @@ export const useFilterProduct = () => {
 
     productFilterVar({ ...filter, categoryIds: undefined });
   };
-  const setCategories = (ids: string[]) => {
-    productFilterVar({ ...filter, categoryIds: ids });
+
+  const setCategories = (ids: string[], selectedCategoryId?: string) => {
+    if (selectedCategoryId) {
+      productFilterVar({ ...filter, categoryIds: ids, selectedCategoryId });
+    } else {
+      productFilterVar({
+        ...filter,
+        categoryIds: ids,
+        selectedCategoryId: undefined,
+      });
+    }
   };
 
   const toggleValue = (
@@ -77,11 +86,13 @@ export const useFilterProduct = () => {
     if (!selected) {
       productFilterVar({
         ...filter,
+        selectedCategoryId: undefined,
         [filterKey]: [...filter[filterKey], value],
       });
     } else {
       productFilterVar({
         ...filter,
+        selectedCategoryId: undefined,
         [filterKey]: filter[filterKey].filter((v) => v !== value),
       });
     }

@@ -11,6 +11,7 @@ export type Filter = {
   brandIds?: string[];
   conditions?: ProductConditionEnum[];
   price: [number, number]; // lower, higher
+  selectedCategoryId?: string;
 };
 
 export const initialFilterProduct: Filter = {
@@ -20,4 +21,5 @@ export const initialFilterProduct: Filter = {
   brandIds: undefined,
   conditions: undefined,
   price: [minimumPrice, maximumPrice],
+  selectedCategoryId: undefined,
 };

@@ -82,9 +82,8 @@ export default function Products() {
   const [shipping, setShipping] = useState(true);
   const [delivery, setDelivery] = useState(true);
 
-  const { searchString, selectedCategoryId } = useLocalSearchParams<{
+  const { searchString } = useLocalSearchParams<{
     searchString: string;
-    selectedCategoryId: string;
   }>();
 
   const { filter, nrOfAppliedFilters } = useFilterProduct();
@@ -278,7 +277,9 @@ export default function Products() {
           </View>
         )}
 
-        {!!selectedCategoryId && <SubCategoriesList id={selectedCategoryId} />}
+        {!!filter.selectedCategoryId && (
+          <SubCategoriesList id={filter.selectedCategoryId} />
+        )}
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Body size="medium" style={{ flex: 1 }} color="secondary">
