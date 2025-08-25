@@ -251,6 +251,7 @@ export const CreateReviewBottomSheet = ({
       ref={ref}
       screenHeight={state !== "initial"}
       onDismiss={onDismiss}
+      scrollable={state !== "initial"}
     >
       <View
         style={{

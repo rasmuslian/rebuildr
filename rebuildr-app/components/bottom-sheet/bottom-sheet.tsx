@@ -101,9 +101,14 @@ export const BottomSheet = forwardRef(
               paddingBottom: safeArea.bottom + 20,
               paddingHorizontal: noPaddingHorizontal ? 0 : 16,
             }}
+            contentContainerStyle={
+              screenHeight && {
+                flex: 1,
+              }
+            }
           >
             {renderHeader()}
-            {children}
+            <View style={{ flex: 1 }}>{children}</View>
           </BottomSheetScrollView>
         ) : (
           <BottomSheetView
