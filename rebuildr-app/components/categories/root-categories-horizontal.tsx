@@ -52,7 +52,7 @@ export function RootCategoriesHorizontal() {
               gap: 16,
             }}
             onPress={() => {
-              setCategories([id]);
+              setCategories([id], id);
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >

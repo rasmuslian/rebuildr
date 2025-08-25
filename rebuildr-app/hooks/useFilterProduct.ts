@@ -128,6 +128,13 @@ export const useFilterProduct = () => {
     return acc;
   };
 
+  const resetSelectedCategory = () => {
+    productFilterVar({
+      ...filter,
+      selectedCategoryId: undefined,
+    });
+  };
+
   return {
     filter,
     reset,
@@ -139,5 +146,6 @@ export const useFilterProduct = () => {
     toggleValue,
     setPrice,
     nrOfAppliedFilters,
+    resetSelectedCategory,
   };
 };
