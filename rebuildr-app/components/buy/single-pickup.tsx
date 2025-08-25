@@ -85,7 +85,7 @@ export const SinglePickup = ({ productId }: Props) => {
         text="Du betalar:"
         price={data.product.price}
         mainButton={{
-          label: "Fortsätt till Betalning",
+          label: data.product.price ? "Fortsätt till Betalning" : "Fortsätt",
           onPress: () => {
             onPurchase();
           },

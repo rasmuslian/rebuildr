@@ -49,8 +49,14 @@ export const AdDescription = ({
       {account && (
         <View style={{ gap: 4 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-            {account.rating != null && <Icon icon="star" size={10} />}
-            <Label>{account.rating ?? " "}</Label>
+            {typeof account.rating === "number" ? (
+              <>
+                <Icon icon="star" size={10} />
+                <Label>{account.rating}</Label>
+              </>
+            ) : (
+              <View style={{ height: 4 }} />
+            )}
             {account.type === UserType.Business && (
               <View
                 style={{

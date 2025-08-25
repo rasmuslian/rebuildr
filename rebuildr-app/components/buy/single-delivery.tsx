@@ -168,7 +168,7 @@ export const SingleDelivery = ({ price, productId }: Props) => {
             text={`Du betalar (ink. hemtransport ${deliveryOption.deliveryPrice} kr):`}
             price={totalPrice}
             mainButton={{
-              label: "Fortsätt till Betalning",
+              label: totalPrice ? "Fortsätt till Betalning" : "Fortsätt",
               onPress: () => {
                 onToPayment();
               },

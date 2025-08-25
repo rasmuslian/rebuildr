@@ -468,6 +468,18 @@ export class PurchaseService {
       isFree
     ) {
       purchase.paymentAcceptedAt = new Date();
+      this.systemMessagesService.purchaseWithHandoffBuyer(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        purchase,
+      );
+      this.systemMessagesService.purchaseWithHandoffSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        purchase,
+      );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
@@ -725,20 +737,49 @@ export class PurchaseService {
       where: { id },
       relations: { product: { seller: true }, buyer: true },
     });
-    if (!purchase || purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED) {
+    if (!purchase) {
       throw BadUserInputException();
-    }
-    if (
-      purchase.buyerId !== currentUserId &&
-      purchase.product.sellerId !== currentUserId
-    ) {
-      throw ForbiddenException();
     }
     this.logger.info('Aborting purchase', {
       purchaseId: purchase.id,
       paymentId: purchase.rockerPaymentId,
       userId: currentUserId,
     });
+    if (
+      purchase.buyerId !== currentUserId &&
+      purchase.product.sellerId !== currentUserId
+    ) {
+      throw ForbiddenException();
+    }
+
+    if (
+      purchase.transportationMethod === TransportationEnum.SHIPPING &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
+      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
+    ) {
+      this.logger.error('Aborting purchase error', {
+        purchaseId: purchase.id,
+        paymentId: purchase.rockerPaymentId,
+        userId: currentUserId,
+        status: purchase.status,
+        transportationMethod: purchase.transportationMethod,
+      });
+      throw BadUserInputException();
+    }
+    if (
+      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
+        purchase.transportationMethod === TransportationEnum.PICKUP) &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
+    ) {
+      this.logger.error('Aborting purchase error', {
+        purchaseId: purchase.id,
+        paymentId: purchase.rockerPaymentId,
+        userId: currentUserId,
+        status: purchase.status,
+        transportationMethod: purchase.transportationMethod,
+      });
+      throw BadUserInputException();
+    }
 
     const abortedByBuyer = currentUserId === purchase.buyerId;
 
