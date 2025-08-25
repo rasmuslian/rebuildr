@@ -37,31 +37,33 @@ export const Summary = ({
           </View>
         </View>
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 8,
-          alignItems: "center",
-          alignSelf: "center",
-        }}
-      >
-        <Image
-          source={SwishPaymentOption.uri}
-          style={{ width: 60, height: 18 }}
-        />
-        <Image
-          source={VisaPaymentOption.uri}
-          style={{ width: 40, height: 16 }}
-        />
-        <Image
-          source={MastercardPaymentOption.uri}
-          style={{ width: 30, height: 18 }}
-        />
-        <Image
-          source={TrustlyPaymentOption.uri}
-          style={{ width: 60, height: 13 }}
-        />
-      </View>
+      {price > 0 && (
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 8,
+            alignItems: "center",
+            alignSelf: "center",
+          }}
+        >
+          <Image
+            source={SwishPaymentOption.uri}
+            style={{ width: 60, height: 18 }}
+          />
+          <Image
+            source={VisaPaymentOption.uri}
+            style={{ width: 40, height: 16 }}
+          />
+          <Image
+            source={MastercardPaymentOption.uri}
+            style={{ width: 30, height: 18 }}
+          />
+          <Image
+            source={TrustlyPaymentOption.uri}
+            style={{ width: 60, height: 13 }}
+          />
+        </View>
+      )}
       <Body size="medium" style={{ textAlign: "center" }}>
         {bottomText}
       </Body>
