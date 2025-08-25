@@ -60,7 +60,7 @@ export const ForTheSeason = () => {
           flexDirection: "row",
           paddingHorizontal: 16,
           gap: 8,
-          width: (categories.length / 2) * 160,
+          width: (categories.length / 2) * 200,
           flexWrap: "wrap",
         }}
       >
