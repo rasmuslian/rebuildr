@@ -468,6 +468,18 @@ export class PurchaseService {
       isFree
     ) {
       purchase.paymentAcceptedAt = new Date();
+      this.systemMessagesService.purchaseWithHandoffBuyer(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        purchase,
+      );
+      this.systemMessagesService.purchaseWithHandoffSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        purchase,
+      );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
