@@ -56,28 +56,25 @@ export const ForTheSeason = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={{ marginHorizontal: -16 }}
+        contentContainerStyle={{
+          flexDirection: "row",
+          paddingHorizontal: 16,
+          gap: 8,
+          width: (categories.length / 2) * 160,
+          flexWrap: "wrap",
+        }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            paddingHorizontal: 16,
-            gap: 8,
-            width: (categories.length / 2) * 160,
-            flexWrap: "wrap",
-          }}
-        >
-          {categories.map((category, index) => (
-            <ImageQuickLink
-              key={index}
-              onPress={() => {
-                setCategories([category.id]);
-                router.navigate("/(app)/(tabs)/search/products");
-              }}
-              source={category.image ? category.image.url : Placeholder.uri}
-              label={category.name}
-            />
-          ))}
-        </View>
+        {categories.map((category, index) => (
+          <ImageQuickLink
+            key={index}
+            onPress={() => {
+              setCategories([category.id]);
+              router.navigate("/(app)/(tabs)/search/products");
+            }}
+            source={category.image ? category.image.url : Placeholder.uri}
+            label={category.name}
+          />
+        ))}
       </ScrollView>
     </View>
   );
