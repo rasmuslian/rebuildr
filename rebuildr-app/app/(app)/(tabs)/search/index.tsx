@@ -153,7 +153,7 @@ export default function Search() {
               <ImageQuickLink
                 key={i}
                 onPress={() => {
-                  setCategories([category.id]);
+                  setCategories([category.id], category.id);
                   router.navigate("/(app)/(tabs)/search/products");
                 }}
                 source={category.image ? category.image.url : Placeholder.uri}

@@ -90,11 +90,10 @@ export const NewArrivals = () => {
         data={data?.products.products ?? []}
         onPress={() => {
           if (location) {
-            setSorting(OrderProductsEnum.Distance);
+            setSorting(OrderProductsEnum.Distance, true);
           } else {
-            setSorting(OrderProductsEnum.Latest);
+            setSorting(OrderProductsEnum.Latest, true);
           }
-
           router.navigate("/(app)/(tabs)/search/products");
         }}
         renderItem={({ item }) => {

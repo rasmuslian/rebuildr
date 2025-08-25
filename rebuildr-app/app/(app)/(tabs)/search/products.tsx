@@ -16,7 +16,7 @@ import { defaultCenter, defaultRadius } from "@constants/map";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Check } from "@components/controls/check";
@@ -86,7 +86,9 @@ export default function Products() {
     searchString: string;
   }>();
 
-  const { filter, nrOfAppliedFilters } = useFilterProduct();
+  const { filter, nrOfAppliedFilters, resetSelectedCategory } =
+    useFilterProduct();
+
   const isLoggedIn = isLoggedInVar();
   const productsPerPage = 10;
   const transportRef = useRef<BottomSheetModal>(null);
@@ -235,6 +237,10 @@ export default function Products() {
       refetch();
     }, []),
   );
+
+  useEffect(() => {
+    if (searchString) resetSelectedCategory();
+  }, [searchString]);
 
   return (
     <>

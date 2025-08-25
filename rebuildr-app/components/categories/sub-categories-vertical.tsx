@@ -24,6 +24,7 @@ export function SubCategoriesVertical({ id }: Props) {
     },
   );
 
+  const category = data?.category;
   const categories = data?.category.children ?? [];
 
   return (
@@ -32,7 +33,7 @@ export function SubCategoriesVertical({ id }: Props) {
         label="Visa alla annonser"
         onPress={() => {
           const categoryIds = categories.map((category) => category.id);
-          setCategories(categoryIds);
+          setCategories(categoryIds, category?.id);
           router.navigate("/(app)/(tabs)/search/products");
         }}
         style={{ marginBottom: 24 }}
@@ -45,7 +46,7 @@ export function SubCategoriesVertical({ id }: Props) {
         renderItem={({ item: { id, image, name } }) => (
           <TouchableOpacity
             onPress={() => {
-              setCategories([id]);
+              setCategories([id], id);
               router.navigate("/(app)/(tabs)/search/products");
             }}
             style={{
