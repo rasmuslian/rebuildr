@@ -278,7 +278,7 @@ export default function Search() {
                     }}
                   >
                     <Avatar
-                      userType={user.type}
+                      placeholder={user.type}
                       imageUrl={user.profilePicture?.url}
                     />
                     <View style={{ gap: 2, flex: 1 }}>

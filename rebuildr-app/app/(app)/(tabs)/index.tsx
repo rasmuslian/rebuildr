@@ -1,15 +1,15 @@
-import { View, Animated } from "react-native";
+import React, { useRef, useState } from "react";
 import TopBar from "@components/navigation/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
+import { View, Animated, Modal } from "react-native";
 import { TrendingNow } from "@components/trending-now/trending-now";
 import { NewArrivals } from "@components/new-arrivals/new-arrivals";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
 import { SaleBanner } from "@components/sale-banner/sale-banner";
-import { RootCategories } from "@components/root-categories/root-categories";
+import { RootCategoriesHorizontal } from "@components/categories/root-categories-horizontal";
 import { RecommendedProducts } from "@components/recommended-products/recommended-products";
 import { useThemeColor } from "@hooks/useThemeColor";
-import React, { useRef } from "react";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 
 export default function Landing() {
@@ -37,7 +37,7 @@ export default function Landing() {
             paddingTop: 24,
           }}
         >
-          <RootCategories />
+          <RootCategoriesHorizontal />
           <NewArrivals />
           <ForTheSeason />
           <SaleBanner />
