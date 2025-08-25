@@ -48,7 +48,7 @@ export const ReviewsAccordion = ({ reviews, title }: Props) => {
                 style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
               >
                 <Avatar
-                  userType={review.reviewer.type}
+                  placeholder={review.reviewer.type}
                   imageUrl={review.reviewer.profilePicture?.url}
                 />
                 <View style={{ gap: 2 }}>

@@ -25,7 +25,11 @@ export const UserCard = ({
   const isBusiness = userType ? userType === UserType.Business : false;
   return (
     <View style={{ flexDirection: "row", gap: 16, alignItems: "center" }}>
-      <Avatar userType={userType} imageUrl={profilePictureUrl} size="medium" />
+      <Avatar
+        placeholder={userType}
+        imageUrl={profilePictureUrl}
+        size="medium"
+      />
       <View>
         <Title size="medium" style={{ marginBottom: 4 }}>
           {username}

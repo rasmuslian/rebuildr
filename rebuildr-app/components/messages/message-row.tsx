@@ -50,7 +50,7 @@ export const MessageRow = ({ otherUser, message, myId }: Props) => {
         },
       ]}
     >
-      <Avatar userType={otherUser.userType} imageUrl={otherUser.url} />
+      <Avatar placeholder={otherUser.userType} imageUrl={otherUser.url} />
       <View
         style={[
           {

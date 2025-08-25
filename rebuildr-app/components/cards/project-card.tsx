@@ -3,7 +3,6 @@ import { View } from "react-native";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import PlaceholderProject from "@assets/images/placeholder-project.png";
 import { Pressable } from "react-native-gesture-handler";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
@@ -126,9 +125,8 @@ export const ProjectCard = ({ project }: Props) => {
           }}
         >
           <Avatar
-            imageUrl={
-              project.user.profilePicture?.url ?? PlaceholderProject.uri
-            }
+            imageUrl={project.user.profilePicture?.url}
+            placeholder={"PROJECT"}
           />
           <View style={{ gap: 2 }}>
             <Label size="large">{project.title}</Label>
