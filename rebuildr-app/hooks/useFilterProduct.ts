@@ -10,20 +10,34 @@ export const useFilterProduct = () => {
     productFilterVar(initialFilterProduct);
   };
 
-  const setSorting = (sorting: OrderProductsEnum) => {
-    productFilterVar({ ...filter, sorting });
+  const setSorting = (sorting: OrderProductsEnum, reset?: boolean) => {
+    if (reset) {
+      productFilterVar({ ...initialFilterProduct, sorting });
+    } else {
+      productFilterVar({ ...filter, sorting });
+    }
   };
 
   const toggleAllRootCategories = () => {
     //since its undefined it means all categories are already selected
     //make it so none are selected
     if (!filter.rootCategoryIds) {
-      productFilterVar({ ...filter, rootCategoryIds: [], categoryIds: [] });
+      productFilterVar({
+        ...filter,
+        rootCategoryIds: [],
+        categoryIds: [],
+        selectedCategoryId: undefined,
+      });
       return;
     }
 
-    productFilterVar({ ...filter, rootCategoryIds: undefined });
+    productFilterVar({
+      ...filter,
+      rootCategoryIds: undefined,
+      selectedCategoryId: undefined,
+    });
   };
+
   const toggleRootCategory = (id: string) => {
     //we go from all selected to one. Reset categoryIds
     if (!filter.rootCategoryIds) {
@@ -31,6 +45,7 @@ export const useFilterProduct = () => {
         ...filter,
         rootCategoryIds: [id],
         categoryIds: undefined,
+        selectedCategoryId: undefined,
       });
       return;
     }
@@ -40,11 +55,13 @@ export const useFilterProduct = () => {
     if (!currentCategory) {
       productFilterVar({
         ...filter,
+        selectedCategoryId: undefined,
         rootCategoryIds: [...filter.rootCategoryIds, id],
       });
     } else {
       productFilterVar({
         ...filter,
+        selectedCategoryId: undefined,
         rootCategoryIds: filter.rootCategoryIds.filter(
           (categoryId) => categoryId !== id,
         ),
@@ -54,11 +71,19 @@ export const useFilterProduct = () => {
 
   const toggleAllCategories = () => {
     if (!filter.categoryIds) {
-      productFilterVar({ ...filter, categoryIds: [] });
+      productFilterVar({
+        ...filter,
+        categoryIds: [],
+        selectedCategoryId: undefined,
+      });
       return;
     }
 
-    productFilterVar({ ...filter, categoryIds: undefined });
+    productFilterVar({
+      ...filter,
+      categoryIds: undefined,
+      selectedCategoryId: undefined,
+    });
   };
 
   const setCategories = (ids: string[], selectedCategoryId?: string) => {
