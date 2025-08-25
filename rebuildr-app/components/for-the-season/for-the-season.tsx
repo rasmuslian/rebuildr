@@ -5,7 +5,6 @@ import { View, ScrollView } from "react-native";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
 import Placeholder from "@assets/images/placeholder.png";
 import { SectionHeader } from "@components/sections/section-header";
-import { useState } from "react";
 import {
   ForTheSeasonCategoriesQuery,
   ForTheSeasonCategoriesQueryVariables,
@@ -25,7 +24,6 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 `;
 
 export const ForTheSeason = () => {
-  const [totalWidth, setTotalWidth] = useState(800);
   const { setCategories } = useFilterProduct();
 
   const { data } = useQuery<
@@ -62,16 +60,12 @@ export const ForTheSeason = () => {
           flexDirection: "row",
           paddingHorizontal: 16,
           gap: 8,
-          width: totalWidth / 2 - 200,
+          width: (categories.length / 2) * 200,
           flexWrap: "wrap",
         }}
       >
         {categories.map((category, index) => (
           <ImageQuickLink
-            onLayout={(event) => {
-              const { width } = event.nativeEvent.layout;
-              setTotalWidth((prev) => prev + width);
-            }}
             key={index}
             onPress={() => {
               setCategories([category.id]);
