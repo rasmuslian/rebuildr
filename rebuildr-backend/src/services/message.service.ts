@@ -130,6 +130,7 @@ export class MessageService {
         return qb;
       }, 'm')
       .where('m.rank = 1')
+      .orderBy('m."message_createdAt"', 'DESC')
       .getRawMany();
 
     return conversations;
