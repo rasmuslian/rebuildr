@@ -40,6 +40,7 @@ import {
   RecommendedProductsInput,
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
+import { ProjectService } from './project.service';
 
 @Injectable()
 export class ProductService {
@@ -62,6 +63,7 @@ export class ProductService {
     private shippingService: ShippingService,
     private searchResultService: SearchResultService,
     private dataSource: DataSource,
+    private projectService: ProjectService,
   ) {}
 
   async create(input: {
@@ -892,6 +894,7 @@ export class ProductService {
   async getPickupOption(input: GetTransportationOptionsInput) {
     const product = await this.productRepository.findOne({
       where: { id: input.productId },
+      relations: { project: true },
     });
     if (!product) {
       throw BadUserInputException();
@@ -899,6 +902,9 @@ export class ProductService {
 
     if (!product.pickupEnabled) {
       return null;
+    }
+    if (product.project) {
+      return await this.projectService.approximatePlace(product.project);
     }
 
     return await this.approximatePlace(product);
@@ -930,6 +936,7 @@ export class ProductService {
   async getDeliveryOptions(input: GetTransportationOptionsInput) {
     const product = await this.productRepository.findOne({
       where: { id: input.productId },
+      relations: { project: true },
     });
     if (!product) {
       throw BadUserInputException();
@@ -951,7 +958,12 @@ export class ProductService {
       coordinates: [location.lat, location.lng],
     };
 
-    const distance = await this.distanceToProduct(locationPoint, product.id);
+    const distance = product.project
+      ? await this.projectService.distanceToProject(
+          locationPoint,
+          product.project.id,
+        )
+      : await this.distanceToProduct(locationPoint, product.id);
     const isWithinRadius = distance < product.deliveryRadius;
 
     return {

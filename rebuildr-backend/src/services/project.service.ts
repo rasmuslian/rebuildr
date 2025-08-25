@@ -6,7 +6,7 @@ import {
   SetLikeProjectInput,
   UpdateProjectInput,
 } from 'src/resolvers/project.resolver';
-import { Repository } from 'typeorm';
+import { DataSource, Point, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import { User } from 'src/entities/user.entity';
@@ -18,6 +18,7 @@ export class ProjectService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
+    private dataSource: DataSource,
   ) {}
 
   async findOne(input: GetProjectInput) {
@@ -166,5 +167,13 @@ export class ProjectService {
     }
 
     return await this.projectRepository.save(project);
+  }
+
+  async distanceToProject(locationPoint: Point, projectId: string) {
+    const result = await this.dataSource.query(
+      'SELECT st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON($1), ST_SRID("addressLocation"))) as "distance" from project p WHERE p.id = $2',
+      [locationPoint, projectId],
+    );
+    return result[0].distance;
   }
 }
