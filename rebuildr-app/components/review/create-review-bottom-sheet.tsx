@@ -66,7 +66,7 @@ const starText = [
     text: "Bra affär",
   },
   {
-    text: "Toppen",
+    text: "Toppen!",
   },
 ];
 
