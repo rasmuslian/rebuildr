@@ -37,18 +37,14 @@ export const ForTheSeason = () => {
     },
   });
 
-  if (!data || data.categories.length < 1) return null;
+  const categories = data?.categories ?? [];
+  if (categories.length < 1) return null;
 
   return (
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          const categoryIds: string[] = [];
-
-          data?.categories.forEach((category) => {
-            categoryIds.push(category.id);
-          });
-
+          const categoryIds = categories.map((category) => category.id);
           setCategories(categoryIds);
           router.navigate("/(app)/(tabs)/search/products");
         }}
@@ -56,35 +52,30 @@ export const ForTheSeason = () => {
         För säsongen
       </SectionHeader>
 
-      <View style={{ gap: 8, marginHorizontal: -16 }}>
-        {[
-          data.categories.filter((_, i) => i % 2 === 1), // odd index items
-          data.categories.filter((_, i) => i % 2 === 0), // even index items
-        ].map((rowItems, rowIndex) => (
-          <ScrollView
-            key={rowIndex}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              flexDirection: "row",
-              paddingHorizontal: 16,
-              gap: 8,
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -16 }}
+        contentContainerStyle={{
+          flexDirection: "row",
+          paddingHorizontal: 16,
+          gap: 8,
+          width: (categories.length / 2) * 160,
+          flexWrap: "wrap",
+        }}
+      >
+        {categories.map((category, index) => (
+          <ImageQuickLink
+            key={index}
+            onPress={() => {
+              setCategories([category.id]);
+              router.navigate("/(app)/(tabs)/search/products");
             }}
-          >
-            {rowItems.map((category, index) => (
-              <ImageQuickLink
-                key={index}
-                onPress={() => {
-                  setCategories([category.id]);
-                  router.navigate("/(app)/(tabs)/search/products");
-                }}
-                source={category.image ? category.image.url : Placeholder.uri}
-                label={category.name}
-              />
-            ))}
-          </ScrollView>
+            source={category.image ? category.image.url : Placeholder.uri}
+            label={category.name}
+          />
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 };
