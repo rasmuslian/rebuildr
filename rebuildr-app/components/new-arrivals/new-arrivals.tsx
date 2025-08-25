@@ -45,7 +45,7 @@ const NEW_ARRIVALS = gql`
 
 export const NewArrivals = () => {
   const { onToggleProductHeart } = useLikeProduct();
-  const { setCategories } = useFilterProduct();
+  const { setSorting } = useFilterProduct();
   const [location, setLocation] = useState<LocationObjectCoords | null>(null);
 
   useFocusEffect(
@@ -89,15 +89,12 @@ export const NewArrivals = () => {
         title={location ? "Nyinkomna varor nära dig" : "Nyinkomna varor"}
         data={data?.products.products ?? []}
         onPress={() => {
-          const categoryIds: string[] = [];
+          if (location) {
+            setSorting(OrderProductsEnum.Distance);
+          } else {
+            setSorting(OrderProductsEnum.Latest);
+          }
 
-          data?.products?.products?.forEach((product) => {
-            if (product.category?.id) {
-              categoryIds.push(product.category.id);
-            }
-          });
-
-          setCategories(categoryIds);
           router.navigate("/(app)/(tabs)/search/products");
         }}
         renderItem={({ item }) => {

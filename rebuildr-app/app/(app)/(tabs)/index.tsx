@@ -1,8 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import TopBar from "@components/navigation/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
-import { View, Animated, Modal } from "react-native";
+import { View, Animated } from "react-native";
 import { TrendingNow } from "@components/trending-now/trending-now";
 import { NewArrivals } from "@components/new-arrivals/new-arrivals";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
