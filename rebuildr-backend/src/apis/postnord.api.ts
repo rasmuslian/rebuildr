@@ -28,17 +28,16 @@ export class PostnordAPI {
   ) {
     this.url = this.configService.get('POSTNORD_URL') as string;
     this.apiKey = this.configService.get('POSTNORD_API_KEY') as string;
-    if (!this.url || !this.apiKey) {
+    this.partyIdentification = {
+      partyId: this.configService.get('POSTNORD_CUSTOMER_NUMBER') as string,
+      partyIdType: '160',
+    };
+    if (!this.url || !this.apiKey || !this.partyIdentification) {
       throw new Error('Postnord variables not defined not set');
     }
     this.customFetch = new CustomFetch(this.logger, {
       accept: 'application/json',
     });
-
-    this.partyIdentification = {
-      partyId: this.configService.get('POSTNORD_CUSTOMER_NUMBER') as string,
-      partyIdType: '160',
-    };
   }
 
   /**

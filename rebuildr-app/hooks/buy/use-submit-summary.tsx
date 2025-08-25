@@ -19,12 +19,24 @@ export const useSubmitSummary = () => {
   const handleFree = (
     productId: string,
     transportationMethod: TransportationEnum,
+    delivery?: {
+      lat: number;
+      lng: number;
+      address: string;
+    },
   ) => {
     purchaseProduct({
       variables: {
         input: {
           productId,
           transportationMethod,
+          deliverToLocation: delivery
+            ? {
+                lat: delivery.lat,
+                lng: delivery.lng,
+              }
+            : undefined,
+          deliverToAddress: delivery?.address,
         },
       },
       onCompleted: (data) => {
@@ -64,7 +76,11 @@ export const useSubmitSummary = () => {
     address: string,
   ) => {
     if (price === 0) {
-      return handleFree(productId, TransportationEnum.Delivery);
+      return handleFree(productId, TransportationEnum.Delivery, {
+        lat,
+        lng,
+        address,
+      });
     }
     router.navigate({
       pathname: "/buy/[productId]/payment",
