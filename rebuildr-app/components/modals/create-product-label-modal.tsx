@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Platform } from "react-native";
+import { View } from "react-native";
 import { Body, Display, Headline } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { Check } from "@components/controls/check";
@@ -8,40 +8,22 @@ import { Button } from "@components/buttons/button";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
-
 type Props = {
-  productId: string;
   modalRef: React.RefObject<BottomSheetModal>;
+  onPressPrintProductLabel: () => void;
+  onPressDontShowMore: () => void;
 };
 
-export function CreateProductLabelModal({ productId, modalRef }: Props) {
+export function CreateProductLabelModal({
+  modalRef,
+  onPressPrintProductLabel,
+  onPressDontShowMore,
+}: Props) {
   const howItWorksSteps = [
     "Köparen scannar QR-koden med mobilen",
     "Annonsen öppnas och köparen ser bilder och mer info om varan",
     "Köparen slutför köpet direkt i RebuildR",
   ];
-
-  const print = async () => {
-    if (Platform.OS === "web") {
-      const printWindow = window.open(`/product-label/${productId}`, "_blank");
-      if (!printWindow) return;
-
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.focus();
-          printWindow.onafterprint = () => printWindow.close();
-          printWindow.print();
-        }, 500);
-      };
-    } else {
-      const response = await fetch(`/product-label/${productId}`);
-      const html = await response.text();
-      const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri);
-    }
-  };
 
   return (
     <BottomSheet ref={modalRef} title="Skapa etikett" name="createLabel">
@@ -72,11 +54,14 @@ export function CreateProductLabelModal({ productId, modalRef }: Props) {
         </View>
 
         <View style={{ gap: 8 }}>
-          <Button label="Skapa etikett for utskrift" onPress={print} />
+          <Button
+            label="Skapa etikett for utskrift"
+            onPress={onPressPrintProductLabel}
+          />
           <Button
             type="tonal"
             label="Visa inte detta igen"
-            onPress={() => {}}
+            onPress={onPressDontShowMore}
           />
         </View>
       </View>

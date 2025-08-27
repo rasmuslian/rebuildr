@@ -15,7 +15,7 @@ import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import dayjs from "dayjs";
 import { Button, ButtonProps } from "@components/buttons/button";
 import { AdGrid } from "@components/ad/ad-grid";
@@ -29,7 +29,19 @@ import { useRef } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
+import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
+
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
+type StateType = {
+  showCreateLabelModal: boolean;
+};
+
+const initialState: StateType = {
+  showCreateLabelModal: true,
+};
 
 const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {
@@ -187,6 +199,7 @@ const PRODUCT_REMOVE_PRODUCT = gql`
 `;
 
 export default function Product() {
+  const [state, setState] = usePersistedState("product-state", initialState);
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
   const removeProductRef = useRef<BottomSheetModal>(null);
@@ -220,6 +233,26 @@ export default function Product() {
   const buyButtonDisabled =
     !me || me.type === UserType.Business || product.hasOngoingPurchase;
 
+  const printProductLabel = async () => {
+    if (Platform.OS === "web") {
+      const printWindow = window.open(`/product-label/${productId}`, "_blank");
+      if (!printWindow) return;
+
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.onafterprint = () => printWindow.close();
+          printWindow.print();
+        }, 500);
+      };
+    } else {
+      const response = await fetch(`/product-label/${productId}`);
+      const html = await response.text();
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri);
+    }
+  };
+
   const ctas: ButtonProps[] = [];
 
   if (isMyProduct) {
@@ -228,7 +261,13 @@ export default function Product() {
       label: "Skapa etikett",
       type: "tonal",
       iconPosition: "right",
-      onPress: () => createProductLabelRef.current?.present(),
+      onPress: () => {
+        if (state.showCreateLabelModal) {
+          createProductLabelRef.current?.present();
+        } else {
+          printProductLabel();
+        }
+      },
     });
   }
 
@@ -474,8 +513,12 @@ export default function Product() {
       </BottomSheet>
 
       <CreateProductLabelModal
-        productId={productId}
         modalRef={createProductLabelRef}
+        onPressDontShowMore={() => {
+          createProductLabelRef.current?.close();
+          setState({ showCreateLabelModal: false });
+        }}
+        onPressPrintProductLabel={printProductLabel}
       />
     </>
   );
