@@ -17,7 +17,7 @@ import { Body, Display, Headline } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import dayjs from "dayjs";
-import { Button } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { AdGrid } from "@components/ad/ad-grid";
 import { UserCard } from "@components/cards/user-card";
 import { ProjectCard } from "@components/cards/project-card";
@@ -30,7 +30,6 @@ import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { useUser } from "@hooks/useUser";
-import { ButtonProps } from "@components/buttons/button";
 
 const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {

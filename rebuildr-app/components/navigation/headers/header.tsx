@@ -1,12 +1,11 @@
 import { Badge } from "@components/badges/badge";
-import { Button } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { dividerStyles } from "@components/dividers/divider";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router } from "expo-router";
 import { ComponentProps, PropsWithChildren, ReactElement } from "react";
 import { View } from "react-native";
-import { ButtonProps } from "@components/buttons/button";
 
 type Props = {
   title?: string | null;
