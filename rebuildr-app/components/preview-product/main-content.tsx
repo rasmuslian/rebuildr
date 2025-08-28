@@ -113,37 +113,37 @@ export const MainContent = ({
           {!!product.thickness && (
             <ProductChip
               text={measurements["thickness"].name}
-              boldText={`${product.thickness} mm`}
+              boldText={`${product.thickness} ${measurements.thickness.options.mm.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
               text={measurements["height"].name}
-              boldText={`${product.height} mm`}
+              boldText={`${product.height} ${measurements.height.options.mm.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
               text={measurements["width"].name}
-              boldText={`${product.width} mm`}
+              boldText={`${product.width} ${measurements.width.options.mm.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
               text={measurements["length"].name}
-              boldText={`${product.length} mm`}
+              boldText={`${product.length} ${measurements.length.options.mm.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
               text={measurements["diameter"].name}
-              boldText={`${product.diameter} mm`}
+              boldText={`${product.diameter} ${measurements.diameter.options.mm.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
               text={measurements["weight"].name}
-              boldText={`${product.weight} mm`}
+              boldText={`${product.weight} ${measurements.weight.options.kg.name}`}
             />
           )}
         </View>
