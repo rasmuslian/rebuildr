@@ -17,9 +17,15 @@ import {
   NewArrivalsQuery,
   NewArrivalsQueryVariables,
 } from "@/gql/graphql";
+import { useUser } from "@hooks/useUser";
 
 const NEW_ARRIVALS = gql`
-  query NewArrivals($input: ProductsInput!, $limit: Int, $offset: Int) {
+  query NewArrivals(
+    $input: ProductsInput!
+    $limit: Int
+    $offset: Int
+    $isLoggedIn: Boolean!
+  ) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
@@ -38,7 +44,13 @@ const NEW_ARRIVALS = gql`
           id
           name
         }
+        seller {
+          id
+        }
       }
+    }
+    me @include(if: $isLoggedIn) {
+      id
     }
   }
 `;
@@ -47,6 +59,7 @@ export const NewArrivals = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { setSorting } = useFilterProduct();
   const [location, setLocation] = useState<LocationObjectCoords | null>(null);
+  const { isLoggedIn } = useUser();
 
   useFocusEffect(
     useCallback(() => {
@@ -77,6 +90,7 @@ export const NewArrivals = () => {
         },
         limit: 10,
         offset: 0,
+        isLoggedIn,
       },
     },
   );
@@ -102,7 +116,7 @@ export const NewArrivals = () => {
               id={item.id}
               imageUri={item.primaryImage?.url}
               liked={!!item.likedByMe}
-              heart
+              heart={item.seller.id != data.me?.id}
               quantity={item.primaryQuantity}
               quantityUnit={item.primaryUnit}
               condition={item.condition}

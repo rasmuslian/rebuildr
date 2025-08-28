@@ -14,7 +14,12 @@ import {
 } from "@/gql/graphql";
 
 const TRENDING_NOW_QUERY = gql`
-  query TrendingNowProducts($input: ProductsInput!, $limit: Int, $offset: Int) {
+  query TrendingNowProducts(
+    $input: ProductsInput!
+    $limit: Int
+    $offset: Int
+    $isLoggedIn: Boolean!
+  ) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
@@ -43,6 +48,9 @@ const TRENDING_NOW_QUERY = gql`
         }
       }
     }
+    me @include(if: $isLoggedIn) {
+      id
+    }
   }
 `;
 
@@ -64,6 +72,7 @@ export const TrendingNow = () => {
       },
       limit: 10,
       offset: 0,
+      isLoggedIn,
     },
   });
 
@@ -134,7 +143,7 @@ export const TrendingNow = () => {
                     id={product.id}
                     imageUri={product.primaryImage?.url}
                     liked={!!product.likedByMe}
-                    heart
+                    heart={product.seller.id != data.me?.id}
                     quantity={product.primaryQuantity}
                     quantityUnit={product.primaryUnit}
                     condition={product.condition}

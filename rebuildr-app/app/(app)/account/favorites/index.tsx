@@ -132,7 +132,12 @@ export default function Favorites() {
       {data?.me.likedProjects && hasFavoritProjects && (
         <HoriztalListSection
           data={data.me.likedProjects}
-          renderItem={({ item }) => <ProjectCard project={item} />}
+          renderItem={({ item }) => (
+            <ProjectCard
+              showHeart={item.user.id != data.me.id}
+              project={item}
+            />
+          )}
           title={showHeader ? "Favoritprojekt" : ""}
           onPress={() => {
             //TODO: navigate to projects page
@@ -157,7 +162,7 @@ export default function Favorites() {
                 location: product.approximatePlace?.address,
               },
               price: product.price,
-              heart: true,
+              heart: product.seller.id != data.me.id,
               liked: !!product.likedByMe,
               onHeartPress: () => {
                 onToggleProductHeart({

@@ -325,7 +325,7 @@ export default function Products() {
               },
               price: product.price,
               status: product.status,
-              heart: true,
+              heart: product.seller.id != data.me?.id,
               liked: !!product.likedByMe,
               onHeartPress: () => {
                 onToggleProductHeart({
