@@ -413,7 +413,10 @@ export default function Product() {
                   }}
                 />
               </View>
-              <ProjectCard project={product.project} />
+              <ProjectCard
+                showHeart={data.me?.id != data.product.project?.id}
+                project={product.project}
+              />
             </View>
             <Divider />
           </>

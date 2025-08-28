@@ -120,7 +120,7 @@ export function RecommendedProducts({ title, source }: Props) {
                 id={product.id}
                 imageUri={product.primaryImage?.url}
                 liked={!!product.likedByMe}
-                heart
+                heart={product.seller.id != data.me.id}
                 quantity={product.primaryQuantity}
                 quantityUnit={product.primaryUnit}
                 condition={product.condition}

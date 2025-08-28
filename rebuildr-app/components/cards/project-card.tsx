@@ -7,8 +7,10 @@ import { Pressable } from "react-native-gesture-handler";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
 import { useLikeProject } from "@hooks/useLikeProject";
+import { useUser } from "@hooks/useUser";
 
 type Props = {
+  showHeart: boolean;
   project: {
     id: string;
     title: string;
@@ -19,9 +21,10 @@ type Props = {
   };
 };
 
-export const ProjectCard = ({ project }: Props) => {
+export const ProjectCard = ({ showHeart, project }: Props) => {
   const colors = useThemeColor();
   const { onToggleProjectHeart } = useLikeProject();
+  const { isLoggedIn } = useUser();
 
   return (
     <Pressable
@@ -93,28 +96,30 @@ export const ProjectCard = ({ project }: Props) => {
               }}
             />
 
-            <Pressable
-              style={({ pressed }) => ({
-                position: "absolute",
-                top: 8,
-                right: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-              pointerEvents="box-only"
-              onPress={() => {
-                onToggleProjectHeart({
-                  projectId: project.id,
-                  likedByMe: !!project.likedByMe,
-                });
-              }}
-            >
-              <Icon
-                strokeColor="primaryLight"
-                color={project.likedByMe ? "link" : undefined}
-                opacity={project.likedByMe ? undefined : "99"}
-                icon="heartFilled"
-              />
-            </Pressable>
+            {showHeart && isLoggedIn && (
+              <Pressable
+                style={({ pressed }) => ({
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+                pointerEvents="box-only"
+                onPress={() => {
+                  onToggleProjectHeart({
+                    projectId: project.id,
+                    likedByMe: !!project.likedByMe,
+                  });
+                }}
+              >
+                <Icon
+                  strokeColor="primaryLight"
+                  color={project.likedByMe ? "link" : undefined}
+                  opacity={project.likedByMe ? undefined : "99"}
+                  icon="heartFilled"
+                />
+              </Pressable>
+            )}
           </View>
         </View>
         <View

@@ -319,7 +319,12 @@ export default function Profile() {
             {data.user.projects && (
               <HoriztalListSection
                 data={data.user.projects}
-                renderItem={({ item }) => <ProjectCard project={item} />}
+                renderItem={({ item }) => (
+                  <ProjectCard
+                    showHeart={data.me?.id != item.user.id}
+                    project={item}
+                  />
+                )}
                 title="Projekt"
                 onPress={() => {
                   //TODO: navigate to projects page
@@ -342,7 +347,7 @@ export default function Profile() {
                   location: product.approximatePlace?.address,
                 },
                 price: product.price,
-                heart: true,
+                heart: data.me?.id != data.user.id,
                 liked: !!product.likedByMe,
                 onHeartPress: () => {
                   onToggleProductHeart({
