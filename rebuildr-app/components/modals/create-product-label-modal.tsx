@@ -39,9 +39,10 @@ export function CreateProductLabelModal({
         <View style={{ gap: 16 }}>
           <Headline size="small">Så här funkar det</Headline>
 
-          {howItWorksSteps.map((step) => (
+          {howItWorksSteps.map((step, i) => (
             <View
               style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              key={i}
             >
               <Check
                 checkColor="primaryDark"

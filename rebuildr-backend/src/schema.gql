@@ -141,6 +141,23 @@ type SearchResult {
   count: Int!
 }
 
+type ReportProduct {
+  id: ID!
+  createdAt: DateTime!
+  type: ReportProductTypeEnum!
+  message: String!
+  reporterId: String!
+}
+
+enum ReportProductTypeEnum {
+  INCORRECT_INFORMATION
+  MISLEADING_ADVERTISEMENT
+  DUPLICATE_OR_SPAM
+  IRRELEVANT_PRODUCT
+  UNREASONABLE_PRICE
+  OTHER
+}
+
 type User {
   id: ID!
   username: String
@@ -353,6 +370,7 @@ type Product {
   canDelete: Boolean!
   minimumPrice: Int!
   hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
+  reportProducts: [ReportProduct!]!
 }
 
 enum ProductConditionEnum {
@@ -716,6 +734,7 @@ type Mutation {
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
+  createReportProduct(input: CreateReportProductInput!): ReportProduct!
 }
 
 input RegisterUserInput {
@@ -961,5 +980,11 @@ input CreateReviewInput {
 input CreateReportPurchaseInput {
   purchaseId: String!
   type: ReportPurchaseTypeEnum!
+  message: String!
+}
+
+input CreateReportProductInput {
+  productId: String!
+  type: ReportProductTypeEnum!
   message: String!
 }

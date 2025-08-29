@@ -25,7 +25,7 @@ import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
@@ -34,6 +34,7 @@ import { useUser } from "@hooks/useUser";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
 
 type StateType = {
   showCreateLabelModal: boolean;
@@ -200,6 +201,7 @@ const PRODUCT_REMOVE_PRODUCT = gql`
 
 export default function Product() {
   const [state, setState] = usePersistedState("product-state", initialState);
+  const [showReportSheet, setShowReportSheet] = useState(false);
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
   const removeProductRef = useRef<BottomSheetModal>(null);
@@ -368,7 +370,12 @@ export default function Product() {
           <Body size="medium">
             Senast ändrad: {dayjs(product.updatedAt).format("D MMM, YYYY")}
           </Body>
-          <Body size="medium" isLink style={{ marginTop: 16 }}>
+          <Body
+            size="medium"
+            isLink
+            style={{ marginTop: 16 }}
+            onPress={() => setShowReportSheet(true)}
+          >
             Anmäl annonsen
           </Body>
         </View>
@@ -514,6 +521,11 @@ export default function Product() {
           )}
         </View>
       </BottomSheet>
+      <ReportProductBottomSheet
+        productId={productId}
+        show={showReportSheet}
+        onDismiss={() => setShowReportSheet(false)}
+      />
 
       <CreateProductLabelModal
         modalRef={createProductLabelRef}
