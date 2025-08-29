@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -13,6 +14,7 @@ import { User } from './user.entity';
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Review } from './review.entity';
 import { ShippingPrice } from './shipping-price.entity';
+import { ReportPurchase } from './report-purchase.entity';
 
 //To keep track of where in a purchase cycle a purchase is in
 export enum PurchaseStatusEnum {
@@ -208,4 +210,7 @@ export class Purchase {
     nullable: true,
   })
   shippingPrice?: ShippingPrice;
+
+  @OneToOne(() => ReportPurchase, (rp) => rp.purchase, { nullable: true })
+  reportPurchase?: ReportPurchase;
 }
