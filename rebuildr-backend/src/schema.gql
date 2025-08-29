@@ -31,6 +31,28 @@ enum ShippingProviderEnum {
   DHL
 }
 
+type ReportPurchase {
+  id: ID!
+  createdAt: DateTime!
+  type: ReportPurchaseTypeEnum!
+  message: String!
+  resolution: ReportPurchaseResolutionEnum
+}
+
+enum ReportPurchaseTypeEnum {
+  NOT_AS_DESCRIBED
+  DAMAGED
+  WRONG_PRODUCT
+  PRODUCT_MISSING
+  OTHER
+}
+
+enum ReportPurchaseResolutionEnum {
+  REFUND
+  PROCEED
+  OTHER
+}
+
 type Purchase {
   id: ID!
   createdAt: DateTime!
@@ -65,6 +87,7 @@ type Purchase {
   isFree: Boolean!
   isRefunded: Boolean!
   boughtForFree: Boolean!
+  reportPurchase: ReportPurchase
 }
 
 enum PurchaseStatusEnum {
@@ -692,6 +715,7 @@ type Mutation {
   createSearchResult(input: CreateSearchResultInput!): SearchResult
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
+  createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
 }
 
 input RegisterUserInput {
@@ -932,4 +956,10 @@ input CreateReviewInput {
   purchaseId: String!
   review: String!
   stars: Int!
+}
+
+input CreateReportPurchaseInput {
+  purchaseId: String!
+  type: ReportPurchaseTypeEnum!
+  message: String!
 }

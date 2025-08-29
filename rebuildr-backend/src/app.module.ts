@@ -85,6 +85,9 @@ import { DHLAPI } from './apis/dhl.api';
 import { SystemMessagesService } from './services/system-messages.service';
 import { PostnordService } from './services/postnord.service';
 import { ReviewService } from './services/review.service';
+import { ReportPurchaseResolver } from './resolvers/report-purchase.resolver';
+import { ReportPurchaseService } from './services/report-purchase.service';
+import { ReportPurchase } from './entities/report-purchase.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -131,6 +134,7 @@ export interface RequestType {
       ShippingPrice,
       SearchResult,
       Review,
+      ReportPurchase,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -234,6 +238,8 @@ export interface RequestType {
     ShippingService,
     SystemMessagesService,
     PostnordService,
+    ReportPurchaseResolver,
+    ReportPurchaseService,
   ],
 })
 export class AppModule {}
