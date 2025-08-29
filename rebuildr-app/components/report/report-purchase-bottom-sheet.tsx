@@ -212,7 +212,7 @@ export const ReportPurchaseBottomSheet = ({
                   alignItems: "center",
                 }}
               >
-                <View style={{ gap: 4 }}>
+                <View style={{ gap: 4, flex: 1 }}>
                   <Title size="medium">{reportType[type].title}</Title>
                   <Body size="medium" color="secondary">
                     {reportType[type].description}
