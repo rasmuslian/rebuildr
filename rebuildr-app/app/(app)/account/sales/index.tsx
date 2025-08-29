@@ -5,7 +5,7 @@ import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
-import { SellCard } from "@components/sales/sell.card";
+import { SellCard } from "@components/sales/sell-card";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { SectionHeader } from "@components/sections/section-header";
