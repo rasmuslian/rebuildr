@@ -33,6 +33,7 @@ import { Logger } from 'winston';
 import { LocationInputType } from './geocoding.resolver';
 import { IPurchaseLoaders } from 'src/dataloaders/purchase.loader';
 import { User } from 'src/entities/user.entity';
+import { ReportPurchase } from 'src/entities/report-purchase.entity';
 
 @InputType()
 class GetPurchaseInput {
@@ -291,5 +292,13 @@ export class PurchaseResolver {
   @ResolveField(() => Boolean)
   async boughtForFree(@Parent() purchase: Purchase) {
     return await this.purchaseService.boughtForFree(purchase);
+  }
+
+  @ResolveField(() => ReportPurchase, { nullable: true })
+  async reportPurchase(
+    @Parent() purchase: Purchase,
+    @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
+  ) {
+    return await purchaseLoaders.getReportPurchase.load(purchase.id);
   }
 }

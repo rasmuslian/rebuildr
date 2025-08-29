@@ -275,7 +275,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     });
   }
 
-  async productReportedBuyer(buyer: User, seller: User, product: Product) {
+  async purchaseReportedBuyer(buyer: User, seller: User, product: Product) {
     const message = `# Du har meddelat att något inte stämmer med varan.
     
     
@@ -291,7 +291,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse även om �
     });
   }
 
-  async productReportedSeller(buyer: User, seller: User, product: Product) {
+  async purchaseReportedSeller(buyer: User, seller: User, product: Product) {
     const message = `# Köparen har meddelat att något inte stämmer med varan. Utbetalningen är därför pausad under tiden ärendet pågår.
     
 _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om ärendet fortfarande pågår._`;
@@ -304,27 +304,51 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     });
   }
 
-  async supportErrandConcluded(
-    reporter: User,
-    otherUser: User,
+  async supportErrandConcludedBuyer(
+    buyer: User,
+    seller: User,
     product: Product,
     decision: string,
   ) {
     const message = `# Kundsupport har nu avslutat ärendet.
     
     
-# Vi har granska allt material och fattat ett beslut utifrån informationen som skickats in.
+# Vi har granskat allt material och fattat ett beslut utifrån informationen som skickats in.
 
 
 # Beslut: ${decision}.
 
 
-# Du hittar mer information i bekräftelsen som har skickats till din e-post.`;
+# Har du frågor eller funderingar? Vänligen kontakta kundtjänst.`;
 
     await this.message({
       productId: product.id,
-      senderId: otherUser.id,
-      receiverId: reporter.id,
+      senderId: seller.id,
+      receiverId: buyer.id,
+      message,
+    });
+  }
+  async supportErrandConcludedSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    decision: string,
+  ) {
+    const message = `# Kundsupport har nu avslutat ärendet.
+    
+    
+# Vi har granskat allt material och fattat ett beslut utifrån informationen som skickats in.
+
+
+# Beslut: ${decision}.
+
+
+# Har du frågor eller funderingar? Vänligen kontakta kundtjänst.`;
+
+    await this.message({
+      productId: product.id,
+      senderId: buyer.id,
+      receiverId: seller.id,
       message,
     });
   }

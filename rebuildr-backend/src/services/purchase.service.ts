@@ -57,6 +57,11 @@ import { ProductService } from './product.service';
 import { provisionBase } from 'src/constants/pricing';
 import { ShippingService } from './shipping.service';
 import { SystemMessagesService } from './system-messages.service';
+import {
+  ReportPurchase,
+  ReportPurchaseResolutionEnum,
+} from 'src/entities/report-purchase.entity';
+import { ReportPurchaseService } from './report-purchase.service';
 
 export class PurchaseService {
   constructor(
@@ -76,6 +81,9 @@ export class PurchaseService {
     private productService: ProductService,
     private shippingService: ShippingService,
     private systemMessagesService: SystemMessagesService,
+    @InjectRepository(ReportPurchase)
+    private reportPurchaseRepository: Repository<ReportPurchase>,
+    private reportPurchaseService: ReportPurchaseService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -523,7 +531,7 @@ export class PurchaseService {
       ],
       relations: { buyer: true, product: { seller: true } },
     });
-    if (!purchase.sellerRespondedAt) {
+    if (purchase && !purchase.sellerRespondedAt) {
       const responseDate = new Date();
       this.systemMessagesService.sellerRespondedBuyer(
         purchase.buyer,
@@ -684,6 +692,13 @@ export class PurchaseService {
       return true;
     }
     return false;
+  }
+
+  /**
+   * A purchase can only be reported if it has been delivered but not yet approved
+   */
+  canReport(purchase: Purchase) {
+    return purchase.status === PurchaseStatusEnum.DELIVERED;
   }
 
   async deleteMany(purchases: Purchase[]) {
@@ -931,6 +946,7 @@ export class PurchaseService {
   async resumePaymentByRocker(paymentId: string, logger: Logger) {
     const purchase = await this.purchaseRepository.findOne({
       where: { rockerPaymentId: paymentId },
+      relations: { reportPurchase: true },
     });
 
     if (!purchase) {
@@ -951,6 +967,18 @@ export class PurchaseService {
       purchaseId: purchase.id,
       buyerId: purchase.buyerId,
     });
+
+    if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
+      logger.info('Resolving report as resumed', {
+        reportId: purchase.reportPurchase.id,
+        purchaseId: purchase.id,
+      });
+      await this.reportPurchaseService.resolveRepport(
+        ReportPurchaseResolutionEnum.PROCEED,
+        purchase.reportPurchase.id,
+        logger,
+      );
+    }
 
     purchase.pausedAt = null;
     const savedPurchase = await this.purchaseRepository.save(purchase);
@@ -1410,13 +1438,34 @@ export class PurchaseService {
     }
   }
   async paymentRefunded(payload: IPaymentRefunded, logger: Logger) {
-    await this.purchaseRepository.update(
-      { rockerPaymentId: payload.paymentId },
-      { failedAt: new Date(payload.timestamp), refundId: payload.refundId },
-    );
+    const purchase = await this.purchaseRepository.findOne({
+      where: { rockerPaymentId: payload.paymentId },
+      relations: { reportPurchase: true },
+    });
+    if (!purchase) {
+      return;
+    }
+
+    //This purchase has an active report. Resolve it and unpause the purchase
+    if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
+      logger.info('Resolving report as refunded', {
+        reportId: purchase.reportPurchase.id,
+        purchaseId: purchase.id,
+      });
+      await this.reportPurchaseService.resolveRepport(
+        ReportPurchaseResolutionEnum.REFUND,
+        purchase.reportPurchase.id,
+        logger,
+      );
+      purchase.pausedAt = null;
+    }
+    purchase.failedAt = new Date(payload.timestamp);
+    purchase.refundId = payload.refundId;
+    await this.purchaseRepository.save(purchase);
 
     logger.info('Payment refunded', {
       paymentId: payload.paymentId,
+      purchaseId: purchase.id,
     });
   }
   async payoutStarted(payload: IPayoutStarted, logger: Logger) {

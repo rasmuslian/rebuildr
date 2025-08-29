@@ -30,11 +30,12 @@ import {
 } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import DeletedProduct from "@assets/images/deleted-product.png";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
+import { ProductHeader } from "@components/navigation/headers/product-header";
+import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
 
 const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -166,6 +167,7 @@ export default function ConversationProduct() {
   const [text, setText] = useState("");
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReviewSheet, setShowReviewSheet] = useState(false);
+  const [showReportSheet, setShowReportSheet] = useState(false);
   const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
@@ -264,57 +266,13 @@ export default function ConversationProduct() {
       headerComponent={
         <View style={{ gap: 16 }}>
           <Header title={otherUser?.username} />
-          <View style={{ flexDirection: "row", gap: 16 }}>
-            <View
-              style={{
-                alignItems: "flex-start",
-                flex: 1,
-              }}
-            >
-              <Title size="small" numberOfLines={1}>
-                {data?.product.title}
-              </Title>
-              <Label size="large" style={{ marginTop: 2 }}>
-                {data.product.price} kr
-              </Label>
-              {statusBadgeProps && (
-                <View style={{ marginTop: 8, flex: 1 }}>
-                  <Badge {...statusBadgeProps} />
-                </View>
-              )}
-            </View>
-            <View>
-              <Image
-                source={{
-                  uri:
-                    data.product.status === ProductStatusEnum.Deleted
-                      ? DeletedProduct.uri
-                      : data?.product.primaryImage?.url,
-                }}
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: borderRadius.small,
-                }}
-              />
-              {data.product.status === ProductStatusEnum.Sold && (
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFillObject,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: "#00000080",
-                    borderRadius: borderRadius.medium,
-                  }}
-                >
-                  <Label size="large" style={{ color: "white" }}>
-                    Såld
-                  </Label>
-                </View>
-              )}
-            </View>
-          </View>
-          <Divider />
+          <ProductHeader
+            title={data.product.title}
+            price={data.product.price}
+            statusBadgeProps={statusBadgeProps}
+            status={ProductStatusEnum.Draft}
+            imageUrl={data.product.primaryImage?.url}
+          />
         </View>
       }
       footerBottomMargin="small"
@@ -381,6 +339,7 @@ export default function ConversationProduct() {
                     createdAt={message.createdAt}
                     senderIsMe={senderIsMe}
                     onAbortPurchase={() => setShowAbortSheet(true)}
+                    onReport={() => setShowReportSheet(true)}
                   />
                 );
               })}
@@ -406,6 +365,14 @@ export default function ConversationProduct() {
           }}
         />
       )}
+      {data.latestPurchase && (
+        <ReportPurchaseBottomSheet
+          purchaseId={data.latestPurchase.id}
+          show={showReportSheet}
+          onDismiss={() => setShowReportSheet(false)}
+          onCreateReportComplete={() => refetch()}
+        />
+      )}
     </ScreenLayout>
   );
 }
@@ -417,6 +384,7 @@ type ChatBlockProps = {
   createdAt: Date;
   senderIsMe: boolean;
   onAbortPurchase: () => void;
+  onReport: () => void;
 };
 
 const ChatBlock = ({
@@ -426,6 +394,7 @@ const ChatBlock = ({
   createdAt,
   senderIsMe,
   onAbortPurchase,
+  onReport,
 }: ChatBlockProps) => {
   const colors = useThemeColor();
 
@@ -475,7 +444,11 @@ const ChatBlock = ({
           ]}
         >
           {isSystemMessage ? (
-            <SystemMessage text={message} onAbortPurchase={onAbortPurchase} />
+            <SystemMessage
+              text={message}
+              onAbortPurchase={onAbortPurchase}
+              onReport={onReport}
+            />
           ) : (
             <Body
               size="large"

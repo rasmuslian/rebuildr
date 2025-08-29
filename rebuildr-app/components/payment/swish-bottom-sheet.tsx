@@ -6,16 +6,16 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Divider } from "@components/dividers/divider";
-import { Display, Headline, Body } from "@components/typography/text";
+import { Display, Body } from "@components/typography/text";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router } from "expo-router";
 import { useRef, useEffect } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
-import { Check } from "@components/controls/check";
 import SwishImage from "@assets/images/swish-no-border.png";
 import { Button } from "@components/buttons/button";
+import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 
 const POLL_SWISH = gql`
   query PollSwish($input: GetPurchaseInput!) {
@@ -93,43 +93,16 @@ export const SwishBottomSheet = ({
           </View>
 
           <Divider />
-
-          <View style={{ gap: 16 }}>
-            <Headline size="small">Såhär gör du:</Headline>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                checkColor="primaryDark"
-                selected
-                color={colors.navigation.hovered}
-              />
-              <Body size="medium">Öppna din Swish-app</Body>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                selected
-                color={colors.navigation.hovered}
-                checkColor="primaryDark"
-              />
+          <InstructionSteps
+            steps={[
+              "Öppna din Swish-app",
               <Body size="medium">
                 Dubbelkolla att det står <Body size="medium">{price} kr</Body>{" "}
                 och att mottagaren är Rocker
-              </Body>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                checkColor="primaryDark"
-                selected
-                color={colors.navigation.hovered}
-              />
-              <Body size="medium">Godkänn betalningen i Swish</Body>
-            </View>
-          </View>
+              </Body>,
+              "Godkänn betalningen i Swis",
+            ]}
+          />
         </View>
 
         <Button

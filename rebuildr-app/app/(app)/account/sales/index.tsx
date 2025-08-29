@@ -1,11 +1,11 @@
 import { AccountSalesQuery, AccountSalesQueryVariables } from "@/gql/graphql";
-import { isFinished } from "@/utils/purchases/purchases";
+import { isSaleDone } from "@/utils/sales/sales";
 import { gql, useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
-import { SellCard } from "@components/sales/sell.card";
+import { SellCard } from "@components/sales/sell-card";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { SectionHeader } from "@components/sections/section-header";
@@ -45,6 +45,10 @@ const ACCOUNT_SALES = gql`
         }
         price
       }
+      reportPurchase {
+        id
+        resolution
+      }
     }
   }
 `;
@@ -60,10 +64,10 @@ export default function Sales() {
   }
 
   const donePurchases = data.myPurchases.filter((purchase) =>
-    isFinished(purchase),
+    isSaleDone(purchase),
   );
   const ongoingPurchases = data.myPurchases.filter(
-    (purchase) => !isFinished(purchase),
+    (purchase) => !isSaleDone(purchase),
   );
 
   const renderEmptyState = () => {

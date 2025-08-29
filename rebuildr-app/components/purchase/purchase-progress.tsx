@@ -4,6 +4,7 @@ import {
   PurchaseStatusEnum,
   ApprovePurchaseMutation,
   ApprovePurchaseMutationVariables,
+  ReportPurchaseResolutionEnum,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { Button } from "@components/buttons/button";
@@ -55,12 +56,14 @@ type PurchaseProgressProps = {
   purchaseData: PurchaseReceiptQuery;
   onAbortPurchase: () => void;
   onOpenReview: () => void;
+  onReport: () => void;
 };
 
 export const PurchaseProgress = ({
   purchaseData,
   onAbortPurchase,
   onOpenReview,
+  onReport,
 }: PurchaseProgressProps) => {
   const purchase = purchaseData.purchase;
   const me = purchaseData.me;
@@ -78,6 +81,57 @@ export const PurchaseProgress = ({
   );
   if (purchase.transportationMethod === TransportationEnum.Shipping) {
     if (isBuyer) {
+      if (purchase.reportPurchase) {
+        return purchase.reportPurchase.resolution ? (
+          <ProgressIndicator
+            steps={[
+              payedInitialEntry(purchase, me),
+              packageArrivedEntry(purchase),
+              packageDeliveredBuyerEntry(purchase),
+              reportResolvedEntry(
+                purchase,
+                me,
+                purchase.reportPurchase.resolution,
+                onOpenReview,
+              ),
+            ]}
+            current={3}
+          />
+        ) : (
+          <ProgressIndicator
+            steps={[
+              payedInitialEntry(purchase, me),
+              packageArrivedEntry(purchase),
+              packageDeliveredBuyerEntry(purchase),
+              <ProgressEntry
+                title="Du har rapporterat ett problem"
+                elements={[
+                  {
+                    type: "body",
+                    textParts: [
+                      {
+                        children: dateToString(purchase.pausedAt),
+                      },
+                    ],
+                  },
+                  {
+                    type: "body",
+                    textParts: [
+                      {
+                        children:
+                          "Du har meddelat att något inte stämmer med varan. Utbetalningen till säljaren är pausad under tiden ärendet pågår.",
+                      },
+                    ],
+                  },
+                  ...reviewDuringReportParts(purchase, me, onOpenReview),
+                ]}
+              />,
+            ]}
+            isProblem
+            current={4}
+          />
+        );
+      }
       switch (purchase.status) {
         case PurchaseStatusEnum.PaymentAccepted:
         case PurchaseStatusEnum.PaymentStarted:
@@ -250,7 +304,11 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 payedInitialEntry(purchase, me),
                 packageArrivedEntry(purchase),
                 packageDeliveredBuyerEntry(purchase),
-                buyerApproveEntry(approvePurchase, approvePurchaseLoading),
+                buyerApproveEntry(
+                  approvePurchase,
+                  approvePurchaseLoading,
+                  onReport,
+                ),
               ]}
               current={3}
             />
@@ -266,41 +324,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 packageDeliveredBuyerEntry(purchase),
                 purchaseCompleteEntry(purchase, me, onOpenReview),
               ]}
-              current={4}
-            />
-          );
-        case PurchaseStatusEnum.Paused:
-          return (
-            <ProgressIndicator
-              steps={[
-                payedInitialEntry(purchase, me),
-                packageArrivedEntry(purchase),
-                packageDeliveredBuyerEntry(purchase),
-                <ProgressEntry
-                  title="Du har rapporterat ett problem"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: dateToString(purchase.pausedAt),
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har meddelat att något inte stämmer med varan. Utbetalningen till säljaren är pausad under tiden ärendet pågår.",
-                        },
-                      ],
-                    },
-                    ...reviewDuringReportParts(purchase, me, onOpenReview),
-                  ]}
-                />,
-              ]}
-              isProblem
               current={4}
             />
           );
@@ -383,6 +406,57 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     }
 
     //seller
+    if (purchase.reportPurchase) {
+      return purchase.reportPurchase.resolution ? (
+        <ProgressIndicator
+          steps={[
+            soldInitialEntry(purchase),
+            packageDroppedOffEntry(purchase),
+            packageDeliveredSellerEntry(purchase),
+            reportResolvedEntry(
+              purchase,
+              me,
+              purchase.reportPurchase.resolution,
+              onOpenReview,
+            ),
+          ]}
+          current={3}
+        />
+      ) : (
+        <ProgressIndicator
+          isProblem
+          current={4}
+          steps={[
+            soldInitialEntry(purchase),
+            packageDroppedOffEntry(purchase),
+            packageDeliveredSellerEntry(purchase),
+            <ProgressEntry
+              title="Ett problem har rapporterats"
+              elements={[
+                {
+                  type: "body",
+                  textParts: [
+                    {
+                      children: dateToString(purchase.pausedAt),
+                    },
+                  ],
+                },
+                {
+                  type: "body",
+                  textParts: [
+                    {
+                      children:
+                        "Köparen har meddelat att något inte stämmer med varan. Utbetalningen är därför pausad under tiden ärendet pågår.",
+                    },
+                  ],
+                },
+                ...reviewDuringReportParts(purchase, me, onOpenReview),
+              ]}
+            />,
+          ]}
+        />
+      );
+    }
     switch (purchase.status) {
       case PurchaseStatusEnum.PaymentAccepted:
       case PurchaseStatusEnum.PaymentStarted:
@@ -584,41 +658,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             current={4}
           />
         );
-      case PurchaseStatusEnum.Paused:
-        return (
-          <ProgressIndicator
-            isProblem
-            current={4}
-            steps={[
-              soldInitialEntry(purchase),
-              packageDroppedOffEntry(purchase),
-              packageDeliveredSellerEntry(purchase),
-              <ProgressEntry
-                title="Ett problem har rapporterats"
-                elements={[
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: dateToString(purchase.pausedAt),
-                      },
-                    ],
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Köparen har meddelat att något inte stämmer med varan. Utbetalningen är därför pausad under tiden ärendet pågår.",
-                      },
-                    ],
-                  },
-                  ...reviewDuringReportParts(purchase, me, onOpenReview),
-                ]}
-              />,
-            ]}
-          />
-        );
       case PurchaseStatusEnum.FinishedFailed:
         if (purchase.abortedById !== purchase.buyer.id) {
           return (
@@ -736,6 +775,55 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     purchase.transportationMethod === TransportationEnum.Pickup
   ) {
     if (isBuyer) {
+      if (purchase.reportPurchase) {
+        return purchase.reportPurchase.resolution ? (
+          <ProgressIndicator
+            steps={[
+              payedInitialEntry(purchase, me),
+              sellerConfirmedDelivery(purchase, handoffIsPickup),
+              reportResolvedEntry(
+                purchase,
+                me,
+                purchase.reportPurchase.resolution,
+                onOpenReview,
+              ),
+            ]}
+            current={3}
+          />
+        ) : (
+          <ProgressIndicator
+            steps={[
+              payedInitialEntry(purchase, me),
+              sellerConfirmedDelivery(purchase, handoffIsPickup),
+              <ProgressEntry
+                title="Du har rapporterat ett problem"
+                elements={[
+                  {
+                    type: "body",
+                    textParts: [
+                      {
+                        children: dateToString(purchase.pausedAt),
+                      },
+                    ],
+                  },
+                  {
+                    type: "body",
+                    textParts: [
+                      {
+                        children:
+                          "Du har meddelat att något inte stämmer med varan. Utbetalningen till säljaren är pausad under tiden ärendet pågår.",
+                      },
+                    ],
+                  },
+                  ...reviewDuringReportParts(purchase, me, onOpenReview),
+                ]}
+              />,
+            ]}
+            isProblem
+            current={3}
+          />
+        );
+      }
       switch (purchase.status) {
         case PurchaseStatusEnum.PaymentAccepted:
         case PurchaseStatusEnum.PaymentStarted:
@@ -876,20 +964,12 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             <ProgressIndicator
               steps={[
                 payedInitialEntry(purchase, me),
-                <ProgressEntry
-                  title={`${handoffIsPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}.`,
-                        },
-                      ],
-                    },
-                  ]}
-                />,
-                buyerApproveEntry(approvePurchase, approvePurchaseLoading),
+                sellerConfirmedDelivery(purchase, handoffIsPickup),
+                buyerApproveEntry(
+                  approvePurchase,
+                  approvePurchaseLoading,
+                  onReport,
+                ),
               ]}
               current={3}
             />
@@ -921,52 +1001,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                   ? []
                   : [purchaseCompleteEntry(purchase, me, onOpenReview)]),
               ]}
-              current={3}
-            />
-          );
-        case PurchaseStatusEnum.Paused:
-          return (
-            <ProgressIndicator
-              steps={[
-                payedInitialEntry(purchase, me),
-                <ProgressEntry
-                  title={`${handoffIsPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}`,
-                        },
-                      ],
-                    },
-                  ]}
-                />,
-                <ProgressEntry
-                  title="Du har rapporterat ett problem"
-                  elements={[
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children: dateToString(purchase.pausedAt),
-                        },
-                      ],
-                    },
-                    {
-                      type: "body",
-                      textParts: [
-                        {
-                          children:
-                            "Du har meddelat att något inte stämmer med varan. Utbetalningen till säljaren är pausad under tiden ärendet pågår.",
-                        },
-                      ],
-                    },
-                    ...reviewDuringReportParts(purchase, me, onOpenReview),
-                  ]}
-                />,
-              ]}
-              isProblem
               current={3}
             />
           );
@@ -1062,6 +1096,58 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
       }
     }
     //seller
+    if (purchase.reportPurchase) {
+      return purchase.reportPurchase.resolution ? (
+        <ProgressIndicator
+          steps={[
+            soldInitialEntry(purchase),
+            deliveryConfirmedEntry(purchase),
+            reportResolvedEntry(
+              purchase,
+              me,
+              purchase.reportPurchase.resolution,
+              onOpenReview,
+            ),
+          ]}
+          current={3}
+        />
+      ) : (
+        <ProgressIndicator
+          steps={[
+            soldInitialEntry(purchase),
+            deliveryConfirmedEntry(purchase),
+            <ProgressEntry
+              title="Ett problem har rapporterats"
+              elements={[
+                {
+                  type: "body",
+                  textParts: [
+                    {
+                      children: dateToString(purchase.pausedAt),
+                    },
+                  ],
+                },
+                {
+                  type: "body",
+                  textParts: [
+                    {
+                      children:
+                        "Köparen har meddelat att något inte stämmer med varan. " +
+                        (purchase.boughtForFree
+                          ? ""
+                          : "Utbetalningen är därför pausad under tiden ärendet pågår."),
+                    },
+                  ],
+                },
+                ...reviewDuringReportParts(purchase, me, onOpenReview),
+              ]}
+            />,
+          ]}
+          isProblem
+          current={3}
+        />
+      );
+    }
     switch (purchase.status) {
       case PurchaseStatusEnum.PaymentAccepted:
       case PurchaseStatusEnum.PaymentStarted:
@@ -1313,43 +1399,6 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                 ? []
                 : [saleCompleteEntry(purchase, me, onOpenReview)]),
             ]}
-            current={3}
-          />
-        );
-      case PurchaseStatusEnum.Paused:
-        return (
-          <ProgressIndicator
-            steps={[
-              soldInitialEntry(purchase),
-              deliveryConfirmedEntry(purchase),
-              <ProgressEntry
-                title="Ett problem har rapporterats"
-                elements={[
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children: dateToString(purchase.pausedAt),
-                      },
-                    ],
-                  },
-                  {
-                    type: "body",
-                    textParts: [
-                      {
-                        children:
-                          "Köparen har meddelat att något inte stämmer med varan. " +
-                          (purchase.boughtForFree
-                            ? ""
-                            : "Utbetalningen är därför pausad under tiden ärendet pågår."),
-                      },
-                    ],
-                  },
-                  ...reviewDuringReportParts(purchase, me, onOpenReview),
-                ]}
-              />,
-            ]}
-            isProblem
             current={3}
           />
         );
@@ -1610,7 +1659,26 @@ const deliveryConfirmedEntry = (purchase: PurchaseType) => (
     ]}
   />
 );
-const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
+const sellerConfirmedDelivery = (purchase: PurchaseType, isPickup: boolean) => (
+  <ProgressEntry
+    title={`${isPickup ? "Avhämtning" : "Hemtransport"} bekräftad`}
+    elements={[
+      {
+        type: "body",
+        textParts: [
+          {
+            children: `Säljaren bekräftade att varan överlämnades den ${dayjs(purchase.deliveredAt).format("D MMMM, kl HH:mm")}`,
+          },
+        ],
+      },
+    ]}
+  />
+);
+const buyerApproveEntry = (
+  onApprove: () => void,
+  approveLoading: boolean,
+  onReport: () => void,
+) => (
   <ProgressEntry
     title="Säljaren får betalt"
     elements={[
@@ -1648,6 +1716,7 @@ const buyerApproveEntry = (onApprove: () => void, approveLoading: boolean) => (
           {
             children: "Rapportera ett problem med köp",
             isLink: true,
+            onPress: onReport,
           },
         ],
       },
@@ -1733,6 +1802,60 @@ const saleCompleteEntry = (
         ...(purchase.reviews.some((r) => r.reviewerId === me.id)
           ? []
           : reviewParts),
+      ]}
+    />
+  );
+};
+
+const reportResolvedEntry = (
+  purchase: PurchaseType,
+  me: MeType,
+  resolution: ReportPurchaseResolutionEnum,
+  onOpenReview: () => void,
+) => {
+  let decision = "";
+  const buyerIsMe = purchase.buyer.id === me.id;
+  if (resolution === ReportPurchaseResolutionEnum.Refund) {
+    decision = buyerIsMe
+      ? "Pengarna återbetalas till dig"
+      : "Pengarna återbetalas till köparen";
+  }
+  if (resolution === ReportPurchaseResolutionEnum.Proceed) {
+    decision = buyerIsMe
+      ? "Utbetalningen går vidare till säljaren"
+      : "Utbetalningen går vidare till dig";
+  }
+  return (
+    <ProgressEntry
+      title="Kundsupport har avslutat ärendet"
+      elements={[
+        {
+          type: "body",
+          textParts: [
+            {
+              children:
+                "Vi har granskat ärendet och fattat ett beslut baserat på informationen som skickats in.",
+            },
+          ],
+        },
+        {
+          type: "body",
+          textParts: [
+            {
+              children: `Beslut: ${decision}.`,
+            },
+          ],
+        },
+        {
+          type: "body",
+          textParts: [
+            {
+              children:
+                "Har du frågor eller funderingar? Vänligen kontakta kundtjänst.",
+            },
+          ],
+        },
+        ...reviewButtonPart(purchase, me, onOpenReview),
       ]}
     />
   );

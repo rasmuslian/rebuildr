@@ -1,9 +1,8 @@
-import { AccountPurchasesQuery, AccountSalesQuery } from "@/gql/graphql";
+import { AccountPurchasesQuery } from "@/gql/graphql";
 
-type PurchasesType =
-  | AccountSalesQuery["myPurchases"][number]
-  | AccountPurchasesQuery["myPurchases"][number];
+type PurchasesType = AccountPurchasesQuery["myPurchases"][number];
 
-export const isFinished = (purchase: PurchasesType) => {
-  return !!purchase.deliveredAt || !!purchase.failedAt;
+export const isPurchaseDone = (purchase: PurchasesType) => {
+  const resolvedReport = !!purchase.reportPurchase?.resolution;
+  return resolvedReport || !!purchase.approvedAt || !!purchase.failedAt;
 };

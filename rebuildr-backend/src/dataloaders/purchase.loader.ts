@@ -7,11 +7,13 @@ import { DataSource, In } from 'typeorm';
 import { DataloaderService } from './dataloader.service';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import DataLoader from 'dataloader';
+import { ReportPurchase } from 'src/entities/report-purchase.entity';
 
 export interface IPurchaseLoaders {
   getProduct: DataLoader<string, Product>;
   getBuyer: DataLoader<string, User>;
   getShippingPrice: DataLoader<string, ShippingPrice>;
+  getReportPurchase: DataLoader<string, ReportPurchase>;
 }
 
 @Injectable()
@@ -61,6 +63,11 @@ export class PurchaseLoader {
       getShippingPrice:
         this.dataloaderService.targetByParentIdLoader<ShippingPrice>(
           'shippingPrice',
+          Purchase,
+        ),
+      getReportPurchase:
+        this.dataloaderService.targetByParentIdLoader<ReportPurchase>(
+          'reportPurchase',
           Purchase,
         ),
     };

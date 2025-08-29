@@ -7,7 +7,7 @@ import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
-import { Display, Body, Headline } from "@components/typography/text";
+import { Display, Body } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ReactElement, useEffect, useRef, useState } from "react";
@@ -15,8 +15,8 @@ import { Linking, View } from "react-native";
 import { BankId } from "./bank-id";
 import * as Crypto from "expo-crypto";
 import { usePathname } from "expo-router";
-import { Check } from "@components/controls/check";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 
 const VERIFY_BOTTOM_SHEET = gql`
   mutation VerifyBottomSheet($input: AuthenticateRockerInput!) {
@@ -205,39 +205,13 @@ export const VerifyBottomSheet = ({
           )}
           <Divider />
 
-          <View style={{ gap: 16 }}>
-            <Headline size="small">Såhär gör du:</Headline>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                checkColor="primaryDark"
-                selected
-                color={primitives.primary200}
-              />
-              <Body size="medium">Starta BankID-appen i din mobil</Body>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                selected
-                color={primitives.primary200}
-                checkColor="primaryDark"
-              />
-              <Body size="medium">Tryck på Scanna QR-kod</Body>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Check
-                checkColor="primaryDark"
-                selected
-                color={primitives.primary200}
-              />
-              <Body size="medium">Rikta kameran mot QR-koden </Body>
-            </View>
-          </View>
+          <InstructionSteps
+            steps={[
+              "Starta BankID-appen i din mobil",
+              "Tryck på Scanna QR-kod",
+              "Rikta kameran mot QR-koden",
+            ]}
+          />
 
           {authenticateError && <Body color="error">Något gick fel</Body>}
         </View>
