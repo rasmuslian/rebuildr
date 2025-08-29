@@ -1,13 +1,12 @@
 import { ShippingCodeQuery, ShippingCodeQueryVariables } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Check } from "@components/controls/check";
 import { Divider } from "@components/dividers/divider";
+import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Display, Body, Headline } from "@components/typography/text";
-import { primitives } from "@constants/colors";
+import { Display } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
 import { useWindowDimensions, View } from "react-native";
 import WebView from "react-native-webview";
@@ -54,35 +53,13 @@ export default function ShippingCode() {
 
         <Divider />
 
-        <View style={{ gap: 16 }}>
-          <Headline size="small">Såhär gör du:</Headline>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Check
-              checkColor="primaryDark"
-              selected
-              color={primitives.primary200}
-            />
-            <Body size="medium">
-              Vis din QR-kod hos valfritt Postnord-ombud
-            </Body>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Check
-              selected
-              color={primitives.primary200}
-              checkColor="primaryDark"
-            />
-            <Body size="medium">Ombudet skriver ut fraktsedeln åt dig</Body>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Check
-              checkColor="primaryDark"
-              selected
-              color={primitives.primary200}
-            />
-            <Body size="medium">Paketet skickas</Body>
-          </View>
-        </View>
+        <InstructionSteps
+          steps={[
+            "Visa din QR-kod hos valfritt Postnord-ombud",
+            "Ombudet skriver ut fraktsedeln åt dig",
+            "Paketet skickas",
+          ]}
+        />
       </View>
 
       <Button
