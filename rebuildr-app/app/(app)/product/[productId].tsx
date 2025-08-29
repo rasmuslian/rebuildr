@@ -370,14 +370,16 @@ export default function Product() {
           <Body size="medium">
             Senast ändrad: {dayjs(product.updatedAt).format("D MMM, YYYY")}
           </Body>
-          <Body
-            size="medium"
-            isLink
-            style={{ marginTop: 16 }}
-            onPress={() => setShowReportSheet(true)}
-          >
-            Anmäl annonsen
-          </Body>
+          {!isMyProduct && (
+            <Body
+              size="medium"
+              isLink
+              style={{ marginTop: 16 }}
+              onPress={() => setShowReportSheet(true)}
+            >
+              Anmäl annonsen
+            </Body>
+          )}
         </View>
         <Divider />
         <View style={{ gap: 24 }}>
@@ -521,11 +523,13 @@ export default function Product() {
           )}
         </View>
       </BottomSheet>
-      <ReportProductBottomSheet
-        productId={productId}
-        show={showReportSheet}
-        onDismiss={() => setShowReportSheet(false)}
-      />
+      {!isMyProduct && (
+        <ReportProductBottomSheet
+          productId={productId}
+          show={showReportSheet}
+          onDismiss={() => setShowReportSheet(false)}
+        />
+      )}
 
       <CreateProductLabelModal
         modalRef={createProductLabelRef}
