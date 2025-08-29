@@ -71,15 +71,19 @@ export const ReportProductBottomSheet = ({
 
   const ref = useRef<BottomSheetModal>(null);
 
-  const { data } = useQuery<ReportProductQuery, ReportProductQueryVariables>(
-    REPORT_PRODUCT,
-    {
-      variables: { input: { id: productId } },
-    },
-  );
+  const { data, refetch } = useQuery<
+    ReportProductQuery,
+    ReportProductQueryVariables
+  >(REPORT_PRODUCT, {
+    variables: { input: { id: productId } },
+  });
   const [
     createReport,
-    { data: createReportData, loading: createReportLoading },
+    {
+      data: createReportData,
+      loading: createReportLoading,
+      reset: resetReportData,
+    },
   ] = useMutation<
     CreateReportProductMutation,
     CreateReportProductMutationVariables
@@ -97,12 +101,16 @@ export const ReportProductBottomSheet = ({
           message,
         },
       },
+      onCompleted: () => {
+        refetch();
+      },
     });
   };
 
   useEffect(() => {
     if (show) {
       ref.current?.present();
+      resetReportData();
     } else {
       ref.current?.dismiss();
     }
@@ -160,7 +168,7 @@ export const ReportProductBottomSheet = ({
           <Button label="Stäng" onPress={onDismiss} />
         ) : type ? (
           <Button
-            label="Rapportera problem med köp"
+            label="Skicka anmälan"
             onPress={onCreateReport}
             loading={createReportLoading}
           />
@@ -203,7 +211,7 @@ export const ReportProductBottomSheet = ({
                   alignItems: "center",
                 }}
               >
-                <View style={{ gap: 4 }}>
+                <View style={{ gap: 4, flex: 1 }}>
                   <Title size="medium">{reportType[type].title}</Title>
                   <Body size="medium" color="secondary">
                     {reportType[type].description}

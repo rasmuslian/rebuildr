@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { SystemMessagesService } from './system-messages.service';
 import { PurchaseService } from './purchase.service';
 import { Logger } from 'winston';
+import { RockerService } from './rocker.service';
 
 @Injectable()
 export class ReportPurchaseService {
@@ -22,6 +23,7 @@ export class ReportPurchaseService {
     private systemMessagesService: SystemMessagesService,
     @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
+    private rockerService: RockerService,
   ) {}
 
   async createReportPurchase(
@@ -70,6 +72,11 @@ export class ReportPurchaseService {
 
     purchase.pausedAt = new Date();
     await this.purchaseRepository.save(purchase);
+
+    await this.rockerService.pausePayment(
+      purchase.rockerPaymentId,
+      'Payment paused by buyer with id: ' + purchase.buyerId,
+    );
 
     return await this.reportPurchaseRepository.save(report);
   }
