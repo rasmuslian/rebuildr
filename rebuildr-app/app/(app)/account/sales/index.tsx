@@ -1,5 +1,5 @@
 import { AccountSalesQuery, AccountSalesQueryVariables } from "@/gql/graphql";
-import { isFinished } from "@/utils/purchases/purchases";
+import { isFinished } from "@/utils/sales/sales";
 import { gql, useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Divider } from "@components/dividers/divider";
@@ -44,6 +44,10 @@ const ACCOUNT_SALES = gql`
           url
         }
         price
+      }
+      reportPurchase {
+        id
+        resolution
       }
     }
   }

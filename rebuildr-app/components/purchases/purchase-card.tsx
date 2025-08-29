@@ -31,7 +31,7 @@ export const PurchaseCard = ({ purchase }: Props) => {
       }}
       avatars={[
         {
-          userType: product.seller.type,
+          placeholder: product.seller.type,
           imageUrl: product.seller.profilePicture?.url,
         },
       ]}

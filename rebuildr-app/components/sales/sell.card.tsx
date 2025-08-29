@@ -1,6 +1,6 @@
 import { AccountSalesQuery } from "@/gql/graphql";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
-import { isFinished } from "@/utils/purchases/purchases";
+import { isFinished } from "@/utils/sales/sales";
 import { ProductCard } from "@components/cards/product-card";
 import dayjs from "dayjs";
 import { router } from "expo-router";
@@ -31,7 +31,7 @@ export const SellCard = ({ purchase }: Props) => {
       }}
       avatars={[
         {
-          userType: purchase.buyer.type,
+          placeholder: purchase.buyer.type,
           imageUrl: purchase.buyer.profilePicture?.url,
         },
       ]}
