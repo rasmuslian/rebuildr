@@ -1,4 +1,5 @@
 import {
+  BottomSheetHandleProps,
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetView,
@@ -10,6 +11,7 @@ import {
   forwardRef,
   ForwardedRef,
   useImperativeHandle,
+  ReactElement,
 } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,23 +21,27 @@ import { Button } from "@components/buttons/button";
 
 type Props = PropsWithChildren<{
   title?: string;
+  header?: ReactElement;
   name: string;
   onDismiss?: () => void;
   noPaddingHorizontal?: boolean;
   screenHeight?: boolean;
   scrollable?: boolean;
+  footer?: ReactElement;
 }>;
 
 export const BottomSheet = forwardRef(
   (
     {
       title,
+      header,
       children,
       name,
       onDismiss,
       noPaddingHorizontal,
       screenHeight,
       scrollable,
+      footer,
     }: Props,
     outerRef: ForwardedRef<BottomSheetModal>,
   ) => {
@@ -44,6 +50,13 @@ export const BottomSheet = forwardRef(
       useRef<BottomSheetModal>() as React.MutableRefObject<BottomSheetModalMethods>;
     useImperativeHandle(outerRef, () => innerRef?.current, []);
     const colors = useThemeColor();
+
+    const headerWrapper: React.FC<BottomSheetHandleProps> = () => {
+      if (!header) {
+        return;
+      }
+      return <View style={{ paddingHorizontal: 16 }}>{header}</View>;
+    };
 
     const renderHeader = () => {
       if (!title) {
@@ -60,6 +73,7 @@ export const BottomSheet = forwardRef(
             borderBottomWidth: 1,
             borderColor: colors.dividers.neutral,
             marginBottom: 24,
+            marginTop: 8,
           }}
         >
           <Title size="medium">{title}</Title>
@@ -87,6 +101,10 @@ export const BottomSheet = forwardRef(
         handleIndicatorStyle={{
           display: "none",
         }}
+        handleComponent={headerWrapper}
+        handleStyle={{
+          paddingHorizontal: 16,
+        }}
         style={screenHeight && { marginTop: safeArea.top }}
         backdropComponent={({ style }) => (
           <Pressable
@@ -101,14 +119,15 @@ export const BottomSheet = forwardRef(
               paddingBottom: safeArea.bottom + 20,
               paddingHorizontal: noPaddingHorizontal ? 0 : 16,
             }}
-            contentContainerStyle={
+            contentContainerStyle={[
               screenHeight && {
                 flex: 1,
-              }
-            }
+              },
+            ]}
           >
             {renderHeader()}
             <View style={{ flex: 1 }}>{children}</View>
+            {footer && footer}
           </BottomSheetScrollView>
         ) : (
           <BottomSheetView

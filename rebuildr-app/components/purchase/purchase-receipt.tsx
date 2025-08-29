@@ -17,6 +17,7 @@ import { PurchaseProgress } from "./purchase-progress";
 import { useState } from "react";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
+import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -77,6 +78,10 @@ export const PURCHASE_RECEIPT = gql`
         reviewerId
         revieweeId
       }
+      reportPurchase {
+        id
+        resolution
+      }
     }
     me {
       id
@@ -93,6 +98,7 @@ type Props = {
 export const PurchaseReceipt = ({ purchaseId }: Props) => {
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReviewSheet, setShowReviewSheet] = useState(false);
+  const [showReportSheet, setShowReportSheet] = useState(false);
   const { data, refetch } = useQuery<
     PurchaseReceiptQuery,
     PurchaseReceiptQueryVariables
@@ -133,6 +139,7 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
           onOpenReview={() => {
             setShowReviewSheet(true);
           }}
+          onReport={() => setShowReportSheet(true)}
         />
       </View>
       <Divider />
@@ -208,6 +215,12 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
         onCreateReviewCompleted={() => {
           refetch();
         }}
+      />
+      <ReportPurchaseBottomSheet
+        purchaseId={data.purchase.id}
+        show={showReportSheet}
+        onDismiss={() => setShowReportSheet(false)}
+        onCreateReportComplete={() => refetch()}
       />
     </View>
   );

@@ -1,19 +1,19 @@
 import { Body } from "@components/typography/text";
 import dayjs from "dayjs";
-import { Link } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import Markdown, { RenderRules } from "react-native-markdown-display";
 
 type Props = {
   text: string;
   onAbortPurchase: () => void;
+  onReport: () => void;
 };
 enum MessageLinkEnum {
   ABORT = "ABORT",
   REPORT = "REPORT",
 }
 
-export const SystemMessage = ({ text, onAbortPurchase }: Props) => {
+export const SystemMessage = ({ text, onAbortPurchase, onReport }: Props) => {
   const rules: RenderRules = {
     //Used for normal text. Cant use 'body' or 'paragraph' since they will wrap the other rules and
     //then affect their line height
@@ -64,16 +64,14 @@ export const SystemMessage = ({ text, onAbortPurchase }: Props) => {
             );
           case MessageLinkEnum.REPORT:
             return (
-              <Link href="/report">
-                <Body
-                  onPress={() => {}}
-                  key={node.key}
-                  isLink
-                  size={childOfSmall ? "small" : "large"}
-                >
-                  {children}
-                </Body>
-              </Link>
+              <Body
+                onPress={onReport}
+                key={node.key}
+                isLink
+                size={childOfSmall ? "small" : "large"}
+              >
+                {children}
+              </Body>
             );
           default:
             //No valid link enum
