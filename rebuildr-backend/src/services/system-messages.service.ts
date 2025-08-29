@@ -319,7 +319,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 # Beslut: ${decision}.
 
 
-# Du hittar mer information i bekräftelsen som har skickats till din e-post.`;
+# Har du frågor eller funderingar? Vänligen kontakta kundtjänst.`;
 
     await this.message({
       productId: product.id,
@@ -343,7 +343,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 # Beslut: ${decision}.
 
 
-# Du hittar mer information i bekräftelsen som har skickats till din e-post.`;
+# Har du frågor eller funderingar? Vänligen kontakta kundtjänst.`;
 
     await this.message({
       productId: product.id,

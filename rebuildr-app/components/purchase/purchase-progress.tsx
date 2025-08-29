@@ -1851,7 +1851,7 @@ const reportResolvedEntry = (
           textParts: [
             {
               children:
-                "Mer information hittar du i bekräftelsen som skickats till din e-post.",
+                "Har du frågor eller funderingar? Vänligen kontakta kundtjänst.",
             },
           ],
         },
