@@ -16,6 +16,7 @@ import { borderRadius } from "@constants/sizes";
 
 export type ButtonProps = {
   type?: "filled" | "danger" | "tonal" | "text" | "outlined";
+  iconPosition?: "left" | "right";
   icon?: IconType;
   label?: string;
   loading?: boolean;
@@ -23,6 +24,7 @@ export type ButtonProps = {
 
 export const Button = ({
   type = "filled",
+  iconPosition = "left",
   onPress,
   label,
   disabled,
@@ -101,7 +103,7 @@ export const Button = ({
 
     return (
       <>
-        {icon && (
+        {icon && iconPosition == "left" && (
           <Icon
             icon={icon}
             color={disabled ? "disabled" : typeColors[type].icon}
@@ -113,12 +115,19 @@ export const Button = ({
             size="large"
             style={{
               color: disabled ? colors.text.disabled : typeColors[type].text,
+              paddingHorizontal: 8,
             }}
           >
             {label}
           </Label>
         )}
-        {!!icon && !!label && <View />}
+        {icon && iconPosition == "right" && (
+          <Icon
+            icon={icon}
+            color={disabled ? "disabled" : typeColors[type].icon}
+            size={18}
+          />
+        )}
       </>
     );
   };
@@ -150,10 +159,8 @@ export const Button = ({
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            gap: 8,
             backgroundColor: typeColors[type][buttonState],
-            paddingRight: label ? 16 : 10,
-            paddingLeft: icon ? 10 : 16,
+            paddingHorizontal: 8,
             borderRadius: borderRadius.medium,
             minWidth: 40,
             height: 40,

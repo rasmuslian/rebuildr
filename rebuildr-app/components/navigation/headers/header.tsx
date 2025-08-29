@@ -1,16 +1,15 @@
 import { Badge } from "@components/badges/badge";
-import { Button } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { dividerStyles } from "@components/dividers/divider";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { IconType } from "@icons/icon";
 import { router } from "expo-router";
 import { ComponentProps, PropsWithChildren, ReactElement } from "react";
 import { View } from "react-native";
 
 type Props = {
   title?: string | null;
-  ctas?: { icon: IconType; onPress: () => void }[];
+  ctas?: ButtonProps[];
   badge?: ComponentProps<typeof Badge> | null;
   showBackButton?: boolean;
   onBack?: () => void;
@@ -81,9 +80,7 @@ export const Header = ({
           },
         ]}
       >
-        {ctas?.map((cta, i) => (
-          <Button key={i} icon={cta.icon} onPress={cta.onPress} type="text" />
-        ))}
+        {ctas?.map((cta, i) => <Button key={i} type="text" {...cta} />)}
       </View>
       {badge && <Badge {...badge} />}
     </View>

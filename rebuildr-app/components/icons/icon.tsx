@@ -44,6 +44,7 @@ import { Edit } from "./edit";
 import { Hamburger } from "./hamburger";
 import { Instagram } from "./instagram";
 import { Linkedin } from "./linkedin";
+import { QrCode } from "./qrCode";
 
 export type IconType =
   | "placeholder"
@@ -87,6 +88,7 @@ export type IconType =
   | "message"
   | "newListing"
   | "categories"
+  | "qrCode"
   | "star";
 
 export interface IconProps extends SvgProps {
@@ -215,6 +217,8 @@ export const Icon = ({
       return <NewListing {...props} size={size} color={color} />;
     case "categories":
       return <Categories {...props} size={size} color={color} />;
+    case "qrCode":
+      return <QrCode {...props} size={size} color={color} />;
     case "star":
       return <Star {...props} size={size} color={color} />;
     default:

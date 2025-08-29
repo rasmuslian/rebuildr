@@ -1,4 +1,3 @@
-import { isLoggedInVar } from "@/apollo/config";
 import {
   ProductRemoveProductMutation,
   ProductRemoveProductMutationVariables,
@@ -16,20 +15,33 @@ import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import dayjs from "dayjs";
-import { Button } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { AdGrid } from "@components/ad/ad-grid";
 import { UserCard } from "@components/cards/user-card";
 import { ProjectCard } from "@components/cards/project-card";
 import { Header } from "@components/navigation/headers/header";
-import { IconType } from "@icons/icon";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRef } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
+import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
+import { usePersistedState } from "@hooks/use-persisted-state";
+import { useUser } from "@hooks/useUser";
+
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
+type StateType = {
+  showCreateLabelModal: boolean;
+};
+
+const initialState: StateType = {
+  showCreateLabelModal: true,
+};
 
 const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {
@@ -187,9 +199,11 @@ const PRODUCT_REMOVE_PRODUCT = gql`
 `;
 
 export default function Product() {
+  const [state, setState] = usePersistedState("product-state", initialState);
   const { onToggleProductHeart } = useLikeProduct();
-  const isLoggedIn = isLoggedInVar();
+  const { isLoggedIn } = useUser();
   const removeProductRef = useRef<BottomSheetModal>(null);
+  const createProductLabelRef = useRef<BottomSheetModal>(null);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { data } = useQuery<ProductViewQuery, ProductViewQueryVariables>(
     PRODUCT_VIEW,
@@ -202,58 +216,77 @@ export default function Product() {
     ProductRemoveProductMutationVariables
   >(PRODUCT_REMOVE_PRODUCT);
 
-  if (!data) {
-    return <LoadingSpinner />;
-  }
+  if (!data) return <LoadingSpinner />;
+  const product = data.product;
+  const me = data.me;
 
-  const onLikeProduct = () => {
-    if (!data) return;
-    onToggleProductHeart({
-      productId,
-      likedByMe: !!data.product.likedByMe,
-    });
-  };
+  const approximatePlace = product.project
+    ? product.project.approximatePlace
+    : product.approximatePlace;
 
-  const approximatePlace = data.product.project
-    ? data.product.project.approximatePlace
-    : data.product.approximatePlace;
-  const isMyProduct = data.me?.id === data.product.seller.id;
+  const isMyProduct = me?.id === product.seller.id;
 
-  const otherProducts = data.product.seller.products.filter(
-    (product) => product.id !== data.product.id,
+  const otherProducts = product.seller.products.filter(
+    (product) => product.id !== product.id,
   );
 
   const buyButtonDisabled =
-    !data.me ||
-    data.me.type === UserType.Business ||
-    data.product.hasOngoingPurchase;
+    !me || me.type === UserType.Business || product.hasOngoingPurchase;
+
+  const printProductLabel = async () => {
+    if (Platform.OS === "web") {
+      const printWindow = window.open(`/product-label/${productId}`, "_blank");
+      if (!printWindow) return;
+
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.onafterprint = () => printWindow.close();
+          printWindow.print();
+        }, 500);
+      };
+    } else {
+      const response = await fetch(`/product-label/${productId}`);
+      const html = await response.text();
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri);
+    }
+  };
+
+  const ctas: ButtonProps[] = [];
+
+  if (isMyProduct) {
+    ctas.push({
+      icon: "qrCode",
+      label: "Skapa etikett",
+      type: "tonal",
+      iconPosition: "right",
+      onPress: () => {
+        if (state.showCreateLabelModal) {
+          createProductLabelRef.current?.present();
+        } else {
+          printProductLabel();
+        }
+      },
+    });
+  }
+
+  if (!isMyProduct && isLoggedIn) {
+    ctas.push({
+      icon: product.likedByMe ? "heartFilled" : "heart",
+      onPress: () => {
+        onToggleProductHeart({
+          productId,
+          likedByMe: !!product.likedByMe,
+        });
+      },
+    });
+  }
 
   return (
     <>
       <ScreenLayout
-        headerComponent={
-          <Header
-            showDivider={false}
-            ctas={[
-              {
-                icon: "upload",
-                onPress: () => {
-                  //TODO: share function
-                },
-              },
-              ...(isLoggedIn
-                ? [
-                    {
-                      icon: (data.product.likedByMe
-                        ? "heartFilled"
-                        : "heart") as IconType,
-                      onPress: onLikeProduct,
-                    },
-                  ]
-                : []),
-            ]}
-          />
-        }
+        headerComponent={<Header showDivider={false} ctas={ctas} />}
         footerComponent={
           <View style={{ gap: 8, paddingTop: 24 }}>
             {isMyProduct ? (
@@ -294,7 +327,7 @@ export default function Product() {
                   onPress={() => {
                     router.navigate({
                       pathname: "/conversations/[productId]/[userId]",
-                      params: { productId, userId: data.product.seller.id },
+                      params: { productId, userId: product.seller.id },
                     });
                   }}
                 />
@@ -304,20 +337,20 @@ export default function Product() {
         }
         style={{ gap: 24, marginTop: 8 }}
       >
-        <ImageCarousel images={data.product.images} />
+        <ImageCarousel images={product.images} />
         <MainContent
-          product={data.product}
-          project={data.product.project ?? undefined}
-          documents={data.product.documents}
-          category={data.product.category}
-          parentCategory={data.product.category?.parent}
-          myAddress={data.me?.address}
-          sellerIsMe={data.me && data.me.id === data.product.seller.id}
+          product={product}
+          project={product.project ?? undefined}
+          documents={product.documents}
+          category={product.category}
+          parentCategory={product.category?.parent}
+          myAddress={me?.address}
+          sellerIsMe={me && me.id === product.seller.id}
         />
         <Divider />
         <BuyersProtection />
-        <AllImages images={data.product.images} />
-        {approximatePlace && data.product.pickupEnabled && (
+        <AllImages images={product.images} />
+        {approximatePlace && product.pickupEnabled && (
           <PickupPosition
             address={approximatePlace.address}
             location={{
@@ -330,10 +363,10 @@ export default function Product() {
         <View>
           <Body size="medium">
             Annonsen publiserades:{" "}
-            {dayjs(data.product.createdAt).format("D MMM, YYYY")}
+            {dayjs(product.createdAt).format("D MMM, YYYY")}
           </Body>
           <Body size="medium">
-            Senast ändrad: {dayjs(data.product.updatedAt).format("D MMM, YYYY")}
+            Senast ändrad: {dayjs(product.updatedAt).format("D MMM, YYYY")}
           </Body>
           <Body size="medium" isLink style={{ marginTop: 16 }}>
             Anmäl annonsen
@@ -343,27 +376,25 @@ export default function Product() {
         <View style={{ gap: 24 }}>
           <Headline size="small">Om säljaren</Headline>
           <UserCard
-            userType={data.product.seller.type}
-            profilePictureUrl={data.product.seller.profilePicture?.url}
-            username={data.product.seller.username ?? ""}
-            numberOfPublishedProducts={
-              data.product.seller.numberOfPublishedProducts
-            }
-            numberOfSoldProducts={data.product.seller.numberOfSoldProducts}
-            rating={data.product.seller.rating}
+            userType={product.seller.type}
+            profilePictureUrl={product.seller.profilePicture?.url}
+            username={product.seller.username ?? ""}
+            numberOfPublishedProducts={product.seller.numberOfPublishedProducts}
+            numberOfSoldProducts={product.seller.numberOfSoldProducts}
+            rating={product.seller.rating}
           />
           <Button
             label="Visa profil"
             onPress={() => {
               router.navigate({
                 pathname: "/(app)/account/profile",
-                params: { userId: data.product.seller.id },
+                params: { userId: product.seller.id },
               });
             }}
           />
         </View>
         <Divider />
-        {data.product.project && (
+        {product.project && (
           <>
             <View style={{ gap: 16 }}>
               <View
@@ -382,7 +413,10 @@ export default function Product() {
                   }}
                 />
               </View>
-              <ProjectCard project={data.product.project} />
+              <ProjectCard
+                showHeart={data.me?.id != data.product.project?.id}
+                project={product.project}
+              />
             </View>
             <Divider />
           </>
@@ -394,7 +428,7 @@ export default function Product() {
             onPress={() => {
               router.navigate({
                 pathname: "/account/profile",
-                params: { userId: data.product.seller.id },
+                params: { userId: product.seller.id },
               });
             }}
             renderItem={({ item }) => (
@@ -427,7 +461,7 @@ export default function Product() {
         title="Radera annons"
       >
         <View style={{ gap: 24 }}>
-          {data.product.canDelete ? (
+          {product.canDelete ? (
             <>
               <Display
                 size="small"
@@ -441,9 +475,7 @@ export default function Product() {
                   type="danger"
                   loading={loadingRemoveProduct}
                   onPress={() => {
-                    if (loadingRemoveProduct) {
-                      return;
-                    }
+                    if (loadingRemoveProduct) return;
                     removeProduct({
                       variables: { input: { id: productId } },
                       onCompleted: () => {
@@ -482,6 +514,15 @@ export default function Product() {
           )}
         </View>
       </BottomSheet>
+
+      <CreateProductLabelModal
+        modalRef={createProductLabelRef}
+        onPressDontShowMore={() => {
+          createProductLabelRef.current?.close();
+          setState({ showCreateLabelModal: false });
+        }}
+        onPressPrintProductLabel={printProductLabel}
+      />
     </>
   );
 }
