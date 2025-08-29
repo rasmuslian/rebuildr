@@ -88,6 +88,9 @@ import { ReviewService } from './services/review.service';
 import { ReportPurchaseResolver } from './resolvers/report-purchase.resolver';
 import { ReportPurchaseService } from './services/report-purchase.service';
 import { ReportPurchase } from './entities/report-purchase.entity';
+import { ReportProductResolver } from './resolvers/report-product.resolver';
+import { ReportProductService } from './services/report-product.service';
+import { ReportProduct } from './entities/report-product.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -135,6 +138,7 @@ export interface RequestType {
       SearchResult,
       Review,
       ReportPurchase,
+      ReportProduct,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -240,6 +244,8 @@ export interface RequestType {
     PostnordService,
     ReportPurchaseResolver,
     ReportPurchaseService,
+    ReportProductResolver,
+    ReportProductService,
   ],
 })
 export class AppModule {}

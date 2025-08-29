@@ -50,6 +50,7 @@ import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { minimumEscrow } from 'src/constants/pricing';
 import { ServicePointResponse } from './shipping.resolver';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { ReportProduct } from 'src/entities/report-product.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -659,5 +660,13 @@ export class ProductResolver {
       ({ status, buyerId }) =>
         status !== PurchaseStatusEnum.FINISHED_FAILED && buyerId !== user.id,
     );
+  }
+
+  @ResolveField(() => [ReportProduct])
+  async reportProducts(
+    @Parent() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return await productLoaders.getReportProducts.load(product.id);
   }
 }
