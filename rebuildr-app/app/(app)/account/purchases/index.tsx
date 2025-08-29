@@ -2,7 +2,7 @@ import {
   AccountPurchasesQuery,
   AccountPurchasesQueryVariables,
 } from "@/gql/graphql";
-import { isFinished } from "@/utils/purchases/purchases";
+import { isPurchaseDone } from "@/utils/purchases/purchases";
 import { gql, useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Divider } from "@components/dividers/divider";
@@ -68,10 +68,10 @@ export default function Purchases() {
   }
 
   const donePurchases = data.myPurchases.filter((purchase) =>
-    isFinished(purchase),
+    isPurchaseDone(purchase),
   );
   const ongoingPurchases = data.myPurchases.filter(
-    (purchase) => !isFinished(purchase),
+    (purchase) => !isPurchaseDone(purchase),
   );
 
   const renderEmptyState = () => {

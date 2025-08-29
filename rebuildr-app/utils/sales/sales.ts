@@ -2,7 +2,7 @@ import { AccountSalesQuery } from "@/gql/graphql";
 
 type PurchasesType = AccountSalesQuery["myPurchases"][number];
 
-export const isFinished = (purchase: PurchasesType) => {
+export const isSaleDone = (purchase: PurchasesType) => {
   const hasOngoingReport =
     purchase.reportPurchase && !purchase.reportPurchase.resolution;
 

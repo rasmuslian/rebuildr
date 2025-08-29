@@ -1,6 +1,6 @@
 import { AccountPurchasesQuery } from "@/gql/graphql";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
-import { isFinished } from "@/utils/purchases/purchases";
+import { isPurchaseDone } from "@/utils/purchases/purchases";
 import { ProductCard } from "@components/cards/product-card";
 import dayjs from "dayjs";
 import { router } from "expo-router";
@@ -13,7 +13,7 @@ export const PurchaseCard = ({ purchase }: Props) => {
   const product = purchase.product;
   return (
     <ProductCard
-      active={!isFinished(purchase)}
+      active={!isPurchaseDone(purchase)}
       onPress={() => {
         router.navigate({
           pathname: "/account/purchases/[purchaseId]",
