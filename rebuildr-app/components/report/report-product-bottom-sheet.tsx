@@ -160,7 +160,7 @@ export const ReportProductBottomSheet = ({
           <Button label="Stäng" onPress={onDismiss} />
         ) : type ? (
           <Button
-            label="Rapportera problem med köp"
+            label="Skicka anmälan"
             onPress={onCreateReport}
             loading={createReportLoading}
           />
