@@ -37,6 +37,8 @@ export default function AppLayout() {
       <Stack.Screen name="account" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="buy" options={{ headerShown: false }} />
+      <Stack.Screen name="project-list" options={{ headerShown: false }} />
+      <Stack.Screen name="project" options={{ headerShown: false }} />
     </Stack>
   );
 }

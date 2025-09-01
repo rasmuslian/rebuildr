@@ -8,6 +8,7 @@ import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
 import { useLikeProject } from "@hooks/useLikeProject";
 import { useUser } from "@hooks/useUser";
+import { router } from "expo-router";
 
 type Props = {
   showHeart: boolean;
@@ -29,7 +30,10 @@ export const ProjectCard = ({ showHeart, project }: Props) => {
   return (
     <Pressable
       onPress={() => {
-        //TODO: navigate to project page
+        router.navigate({
+          pathname: "/(app)/project/[projectId]",
+          params: { projectId: project.id },
+        });
       }}
     >
       <View style={{ gap: 16 }}>

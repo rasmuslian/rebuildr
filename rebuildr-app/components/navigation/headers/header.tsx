@@ -71,14 +71,12 @@ export const Header = ({
         {!title && middle}
       </View>
       <View
-        style={[
-          {
-            flexDirection: "row",
-            gap: 6,
-            alignItems: "center",
-            marginRight: -12,
-          },
-        ]}
+        style={{
+          flexDirection: "row",
+          gap: 6,
+          alignItems: "center",
+          marginRight: -12,
+        }}
       >
         {ctas?.map((cta, i) => <Button key={i} type="text" {...cta} />)}
       </View>

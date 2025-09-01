@@ -4,13 +4,12 @@ import {
   UserType,
 } from "@/gql/graphql";
 import { Body, Label, Title } from "@components/typography/text";
-import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
 import { defaultApproximateLocation } from "@constants/map";
 import { quantities } from "@constants/quantities";
-import { borderRadius } from "@constants/sizes";
 import { Icon } from "@icons/icon";
 import { View } from "react-native";
+import { CompanyBadge } from "@components/badges/company-badge";
 
 type Props = {
   title: string;
@@ -19,7 +18,7 @@ type Props = {
   condition: ProductConditionEnum;
   account?: {
     rating?: number | null;
-    type: UserType;
+    type?: UserType;
     location?: string | null;
   };
   price?: number;
@@ -57,19 +56,7 @@ export const AdDescription = ({
             ) : (
               <View style={{ height: 4 }} />
             )}
-            {account.type === UserType.Business && (
-              <View
-                style={{
-                  borderRadius: borderRadius.xSmall,
-                  backgroundColor: primitives.accent200,
-                  paddingHorizontal: 4,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Label size="small">Företag</Label>
-              </View>
-            )}
+            {account.type === UserType.Business && <CompanyBadge />}
           </View>
           <Body size="small" color="secondary">
             {account.location ?? defaultApproximateLocation}

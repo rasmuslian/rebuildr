@@ -81,7 +81,6 @@ export class ProjectResolver {
   constructor(private projectService: ProjectService) {}
 
   @Query(() => Project)
-  @UseGuards(GqlAuthGuard)
   async getProject(@Args('input') input: GetProjectInput) {
     return this.projectService.findOne(input);
   }
