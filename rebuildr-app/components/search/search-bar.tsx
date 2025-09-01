@@ -4,12 +4,13 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
-import { Button } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 
 type Props = {
   placeholder?: string;
   onChange?: (value: string) => void;
   onPressArrow?: () => void;
+  ctas?: ButtonProps[];
   value?: string;
   disabled?: boolean;
   style?: ViewStyle;
@@ -19,6 +20,7 @@ export const SearchBar = ({
   placeholder,
   onChange,
   onPressArrow,
+  ctas,
   onFocus,
   onBlur,
   value,
@@ -88,6 +90,15 @@ export const SearchBar = ({
             lineHeight: undefined,
           }}
         />
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 6,
+          alignItems: "center",
+        }}
+      >
+        {ctas?.map((cta, i) => <Button key={i} type="text" {...cta} />)}
       </View>
       {!!value && (
         <Pressable onPress={() => onChange?.("")}>

@@ -130,7 +130,7 @@ type Project {
   likedByMe: Boolean
   location: LocationResponse!
   approximatePlace: ApproximatePlaceResponse!
-  products: [Product!]!
+  products(searchString: String): [Product!]!
   projectPicture: File
   user: User!
 }

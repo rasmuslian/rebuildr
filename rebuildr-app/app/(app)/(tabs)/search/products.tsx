@@ -248,22 +248,13 @@ export default function Products() {
         loading={loading}
         style={{ marginTop: 24 }}
         headerComponent={
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 18,
+          <SearchBar
+            placeholder="Vad letar du efter?"
+            onFocus={() => router.navigate("/(app)/(tabs)/search")}
+            onPressArrow={() => {
+              router.canGoBack() ? router.back() : router.navigate("/");
             }}
-          >
-            <SearchBar
-              style={{ flex: 1 }}
-              placeholder="Vad letar du efter?"
-              onFocus={() => router.navigate("/(app)/(tabs)/search")}
-              onPressArrow={() =>
-                router.canGoBack() ? router.back() : router.navigate("/")
-              }
-            />
-          </View>
+          />
         }
       >
         {!!searchString && (

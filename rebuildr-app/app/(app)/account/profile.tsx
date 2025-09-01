@@ -327,7 +327,10 @@ export default function Profile() {
                 )}
                 title="Projekt"
                 onPress={() => {
-                  //TODO: navigate to projects page
+                  router.navigate({
+                    pathname: "/(app)/project-list/[userId]",
+                    params: { userId: data.user.id },
+                  });
                 }}
                 visibleItems={2}
               />

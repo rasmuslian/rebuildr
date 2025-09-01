@@ -427,12 +427,16 @@ export default function Product() {
                   icon="arrowRight"
                   type="text"
                   onPress={() => {
-                    //TODO: navigate to project
+                    if (!product.project) return;
+                    router.navigate({
+                      pathname: "/(app)/project/[projectId]",
+                      params: { projectId: product.project.id },
+                    });
                   }}
                 />
               </View>
               <ProjectCard
-                showHeart={data.me?.id != data.product.project?.id}
+                showHeart={data.me?.id != product.project.user.id}
                 project={product.project}
               />
             </View>

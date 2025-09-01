@@ -81,7 +81,6 @@ export class ProjectResolver {
   constructor(private projectService: ProjectService) {}
 
   @Query(() => Project)
-  @UseGuards(GqlAuthGuard)
   async getProject(@Args('input') input: GetProjectInput) {
     return this.projectService.findOne(input);
   }
@@ -151,10 +150,15 @@ export class ProjectResolver {
 
   @ResolveField(() => [Product])
   async products(
+    @Args('searchString', { nullable: true })
+    searchString: string | undefined,
     @Parent() project: Project,
     @Context('projectLoaders') projectLoaders: IProjectLoaders,
   ) {
-    return await projectLoaders.productsLoader.load(project.id);
+    return await projectLoaders.productsLoader.load({
+      projectId: project.id,
+      searchString,
+    });
   }
 
   @ResolveField(() => File, { nullable: true })
