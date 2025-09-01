@@ -175,7 +175,7 @@ export const ReportProductBottomSheet = ({
         ) : undefined
       }
       ref={ref}
-      screenHeight
+      screenHeight={!!createReportData || !!alreadyReported}
       onDismiss={onDismiss}
       scrollable
     >
