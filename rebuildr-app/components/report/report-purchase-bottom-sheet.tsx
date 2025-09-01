@@ -180,7 +180,6 @@ export const ReportPurchaseBottomSheet = ({
         ) : undefined
       }
       ref={ref}
-      screenHeight
       onDismiss={onDismiss}
       scrollable
     >
@@ -291,7 +290,7 @@ type EndScreenProps = {
 };
 const EndScreen = ({ title }: EndScreenProps) => {
   return (
-    <View style={{ gap: 24, marginTop: 24 }}>
+    <View style={{ gap: 24, marginTop: 24, paddingBottom: 12 }}>
       <View style={{ alignItems: "center", marginBottom: 26, marginTop: 24 }}>
         <Image
           source={BuyersProtectionImage.uri}

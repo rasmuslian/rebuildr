@@ -12,6 +12,7 @@ import {
   ForwardedRef,
   useImperativeHandle,
   ReactElement,
+  useMemo,
 } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -50,6 +51,11 @@ export const BottomSheet = forwardRef(
       useRef<BottomSheetModal>() as React.MutableRefObject<BottomSheetModalMethods>;
     useImperativeHandle(outerRef, () => innerRef?.current, []);
     const colors = useThemeColor();
+
+    const snapPoints = useMemo(
+      () => (screenHeight ? ["100%"] : undefined),
+      [screenHeight],
+    );
 
     const headerWrapper: React.FC<BottomSheetHandleProps> = () => {
       if (!header) {
@@ -91,7 +97,7 @@ export const BottomSheet = forwardRef(
         ref={innerRef}
         enableDynamicSizing={!screenHeight}
         enablePanDownToClose
-        snapPoints={screenHeight ? ["100%"] : undefined}
+        snapPoints={snapPoints}
         animateOnMount
         name={name}
         onDismiss={onDismiss}

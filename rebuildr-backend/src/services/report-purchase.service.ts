@@ -12,6 +12,7 @@ import { SystemMessagesService } from './system-messages.service';
 import { PurchaseService } from './purchase.service';
 import { Logger } from 'winston';
 import { RockerService } from './rocker.service';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class ReportPurchaseService {
@@ -24,6 +25,7 @@ export class ReportPurchaseService {
     @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     private rockerService: RockerService,
+    private mailService: MailService,
   ) {}
 
   async createReportPurchase(
@@ -77,6 +79,14 @@ export class ReportPurchaseService {
       purchase.rockerPaymentId,
       'Payment paused by buyer with id: ' + purchase.buyerId,
     );
+
+    await this.mailService.sendReportpurchaseEmail({
+      buyer: purchase.buyer,
+      seller: purchase.product.seller,
+      product: purchase.product,
+      purchase: purchase,
+      report: report,
+    });
 
     return await this.reportPurchaseRepository.save(report);
   }

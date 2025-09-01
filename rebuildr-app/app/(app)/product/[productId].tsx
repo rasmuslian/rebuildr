@@ -25,7 +25,7 @@ import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
@@ -35,6 +35,7 @@ import { useUser } from "@hooks/useUser";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
+import { LoginModalContext } from "@context/loginModalContext";
 
 type StateType = {
   showCreateLabelModal: boolean;
@@ -207,6 +208,8 @@ export default function Product() {
   const removeProductRef = useRef<BottomSheetModal>(null);
   const createProductLabelRef = useRef<BottomSheetModal>(null);
   const { productId } = useLocalSearchParams<{ productId: string }>();
+  const { setVisible } = useContext(LoginModalContext);
+
   const { data } = useQuery<ProductViewQuery, ProductViewQueryVariables>(
     PRODUCT_VIEW,
     {
@@ -375,7 +378,13 @@ export default function Product() {
               size="medium"
               isLink
               style={{ marginTop: 16 }}
-              onPress={() => setShowReportSheet(true)}
+              onPress={() => {
+                if (!isLoggedIn) {
+                  setVisible(true);
+                } else {
+                  setShowReportSheet(true);
+                }
+              }}
             >
               Anmäl annonsen
             </Body>

@@ -5,6 +5,10 @@ import mjml from 'mjml';
 import Mailgun, { Interfaces } from 'mailgun.js';
 import * as fs from 'fs';
 import { InternalServerException } from 'src/exceptions';
+import { User } from 'src/entities/user.entity';
+import { Purchase } from 'src/entities/purchase.entity';
+import { Product } from 'src/entities/product.entity';
+import { ReportPurchase } from 'src/entities/report-purchase.entity';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
@@ -14,10 +18,17 @@ const resetPasswordTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/reset-password.mjml`,
   'utf8',
 );
+const reportPurchaseTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/report-purchase.mjml`,
+  'utf8',
+);
+
+const MAILGUN_DOMAIN = 'rebuildr.se';
 
 @Injectable()
 export class MailService {
   private mailgun: Interfaces.IMailgunClient;
+  private from: string;
   private baseUrl: string;
 
   constructor() {
@@ -28,10 +39,8 @@ export class MailService {
       key: process.env.MAILGUN_API_KEY,
       url: 'https://api.eu.mailgun.net',
     });
-    this.baseUrl =
-      process.env.NODE_ENV === 'development'
-        ? 'http://localhost:8081'
-        : 'https://rebuildr-frontend-ee5eu.ondigitalocean.app';
+    this.baseUrl = process.env.WEB_BASE_URL;
+    this.from = 'Reuildr <hej@rebuildr.se>';
   }
 
   async sendVerifyEmail(input: { email: string; token: string }) {
@@ -45,13 +54,13 @@ export class MailService {
     const html = handlebarsTemplate(context);
     const data = {
       to: input.email,
-      from: 'rebuildr <no-reply@rebuildr.com>',
+      from: this.from,
       subject: 'Email verification',
       text: 'verify',
       html,
     };
     try {
-      await this.mailgun.messages.create('mg.rebuildr.se', data);
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
     } catch {
       throw InternalServerException();
     }
@@ -69,13 +78,48 @@ export class MailService {
     const html = handlebarsTemplate(context);
     const data = {
       to: input.email,
-      from: 'rebuildr <no-reply@rebuildr.com>',
+      from: this.from,
       subject: 'Reset password',
-      test: 'Reset password',
+      text: 'Reset password',
       html,
     };
     try {
-      await this.mailgun.messages.create('mg.rebuildr.se', data);
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch {
+      throw InternalServerException();
+    }
+  }
+
+  async sendReportpurchaseEmail(input: {
+    buyer: User;
+    seller: User;
+    product: Product;
+    purchase: Purchase;
+    report: ReportPurchase;
+  }) {
+    const context = {
+      productTitle: input.product.title,
+      message: input.report.message,
+      type: input.report.type,
+      buyerEmail: input.buyer.email,
+      sellerEmail: input.seller.email,
+      productId: input.product.id,
+      purchaseId: input.purchase.id,
+      offerId: input.purchase.rockerOfferId,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(reportPurchaseTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: 'hej@rebuildr.se',
+      from: this.from,
+      subject: 'Rapportering av köp',
+      text: 'Rapportering av köp',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
     } catch {
       throw InternalServerException();
     }
