@@ -4,11 +4,14 @@ import { Product, ProductStatus } from 'src/entities/product.entity';
 import { DataloaderService } from './dataloader.service';
 import { Project } from 'src/entities/project.entity';
 import { File } from 'src/entities/file.entity';
-import { DataSource, In, Not } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 
 export interface IProjectLoaders {
-  productsLoader: DataLoader<string, Product[]>;
+  productsLoader: DataLoader<
+    { projectId: string; searchString?: string },
+    Product[]
+  >;
   projectPictureLoader: DataLoader<string, File>;
   likedByUserLoader: DataLoader<{ projectId: string; userId: string }, boolean>;
   userLoader: DataLoader<string, User>;
@@ -38,20 +41,44 @@ export class ProjectLoader {
   }
 
   private productsLoader() {
-    return new DataLoader<string, Product[]>(async (projectIds) => {
-      const projects = await this.dataSource.getRepository(Project).find({
-        where: {
-          id: In(projectIds),
-          products: {
-            status: Not(In([ProductStatus.DELETED, ProductStatus.DRAFT])),
-          },
-        },
-        relations: { products: true },
-      });
+    return new DataLoader<
+      { projectId: string; searchString?: string },
+      Product[]
+    >(async (keys: readonly { projectId: string; searchString?: string }[]) => {
+      const searchString = keys[0]?.searchString;
+      const projectIds = keys.map((k) => k.projectId);
 
-      return projectIds.map(
-        (projectId) =>
-          projects.find((project) => project.id === projectId)?.products ?? [],
+      const query = this.dataSource
+        .getRepository(Product)
+        .createQueryBuilder('p');
+
+      query
+        .where('p."projectId" IN (:...projectIds)', { projectIds })
+        .andWhere('p.status NOT IN (:...excludedStatuses)', {
+          excludedStatuses: [ProductStatus.DELETED, ProductStatus.DRAFT],
+        });
+
+      if (searchString && searchString.length > 0) {
+        query
+          .addCommonTableExpression(
+            `SELECT 
+            p.id,
+            ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
+          FROM product p
+          WHERE p."textSearch" @@ plainto_tsquery(:searchString) 
+            OR similarity(p.title, :searchString) > 0
+          `,
+            'ranked_products',
+          )
+          .setParameter('searchString', searchString)
+          .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
+          .andWhere('rp.resultrank > 0.3')
+          .addSelect('rp.resultrank', 'resultrank');
+      }
+
+      const products = await query.getMany();
+      return projectIds.map((projectId) =>
+        products.filter((product) => product.projectId === projectId),
       );
     });
   }

@@ -1,7 +1,11 @@
 import { gql } from "@apollo/client";
 
 export const GET_PROJECT = gql`
-  query GetProject($input: GetProjectInput!, $isLoggedIn: Boolean!) {
+  query GetProject(
+    $input: GetProjectInput!
+    $searchString: String
+    $isLoggedIn: Boolean!
+  ) {
     getProject(input: $input) {
       id
       title
@@ -26,7 +30,7 @@ export const GET_PROJECT = gql`
           url
         }
       }
-      products {
+      products(searchString: $searchString) {
         id
         title
         status

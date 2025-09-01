@@ -150,10 +150,15 @@ export class ProjectResolver {
 
   @ResolveField(() => [Product])
   async products(
+    @Args('searchString', { nullable: true })
+    searchString: string | null,
     @Parent() project: Project,
     @Context('projectLoaders') projectLoaders: IProjectLoaders,
   ) {
-    return await projectLoaders.productsLoader.load(project.id);
+    return await projectLoaders.productsLoader.load({
+      projectId: project.id,
+      searchString,
+    });
   }
 
   @ResolveField(() => File, { nullable: true })

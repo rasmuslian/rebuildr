@@ -20,6 +20,7 @@ import { useLikeProject } from "@hooks/useLikeProject";
 import { ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
+import { useDebounceCallback } from "usehooks-ts";
 
 export default function ProjectPage() {
   const { width: screenWidth } = useWindowDimensions();
@@ -28,7 +29,7 @@ export default function ProjectPage() {
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
-
+  const [searchString, setSearchString] = useState("");
   const [contactExpanded, setContactExpanded] = useState(false);
   const contactAnimation = useRef(new Animated.Value(0)).current;
   const contactRef = useRef(0);
@@ -36,7 +37,7 @@ export default function ProjectPage() {
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
     {
-      variables: { input: { id: projectId }, isLoggedIn },
+      variables: { input: { id: projectId }, searchString, isLoggedIn },
       onError: () => router.navigate("/"),
       skip: !projectId,
     },
@@ -79,6 +80,10 @@ export default function ProjectPage() {
     });
   }
 
+  const onSearch = useDebounceCallback((value) => {
+    setSearchString(value);
+  }, 400);
+
   return (
     <ScreenLayout
       headerComponent={
@@ -88,6 +93,7 @@ export default function ProjectPage() {
           }}
           ctas={ctsa}
           placeholder="Vad letar du efter?"
+          onChange={onSearch}
         />
       }
     >
