@@ -57,8 +57,7 @@ export default function ProjectPage() {
   const contactName = project?.contactName;
   const contactEmail = project?.contactEmail;
   const contactPhone = project?.contactPhone;
-  const address = project?.address;
-  const location = project?.location;
+  const location = project?.approximatePlace;
   const showContactTitle = !!contactName || !!contactEmail || !!contactPhone;
 
   const ctsa: ButtonProps[] = [];
@@ -179,10 +178,10 @@ export default function ProjectPage() {
                     )}
                   </View>
 
-                  {address && (
+                  {location && (
                     <View>
                       <Label size="medium">Adress</Label>
-                      <Body size="medium">{address}</Body>
+                      <Body size="medium">{location.address}</Body>
                     </View>
                   )}
                 </View>

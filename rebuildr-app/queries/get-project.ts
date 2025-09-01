@@ -14,12 +14,12 @@ export const GET_PROJECT = gql`
       description
       contactEmail
       contactPhone
-      address
-      likedByMe
-      location {
+      approximatePlace {
         lat
         lng
+        address
       }
+      likedByMe
       projectPicture {
         id
         url
