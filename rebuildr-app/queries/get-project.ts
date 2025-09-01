@@ -16,6 +16,10 @@ export const GET_PROJECT = gql`
       contactPhone
       address
       likedByMe
+      location {
+        lat
+        lng
+      }
       projectPicture {
         id
         url

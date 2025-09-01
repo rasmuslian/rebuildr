@@ -17,10 +17,13 @@ import { Divider } from "@components/dividers/divider";
 import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useLikeProject } from "@hooks/useLikeProject";
-import { ButtonProps } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
 import { useDebounceCallback } from "usehooks-ts";
+import { Map } from "@components/maps/map";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 export default function ProjectPage() {
   const { width: screenWidth } = useWindowDimensions();
@@ -33,6 +36,7 @@ export default function ProjectPage() {
   const [contactExpanded, setContactExpanded] = useState(false);
   const contactAnimation = useRef(new Animated.Value(0)).current;
   const contactRef = useRef(0);
+  const showLocationRef = useRef<BottomSheetModal>(null);
 
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
@@ -54,6 +58,7 @@ export default function ProjectPage() {
   const contactEmail = project?.contactEmail;
   const contactPhone = project?.contactPhone;
   const address = project?.address;
+  const location = project?.location;
   const showContactTitle = !!contactName || !!contactEmail || !!contactPhone;
 
   const ctsa: ButtonProps[] = [];
@@ -120,7 +125,25 @@ export default function ProjectPage() {
           </View>
 
           <Display size="small">{project?.title}</Display>
-
+          {location && (
+            <Pressable onPress={() => showLocationRef.current?.present()}>
+              <Map
+                lat={location.lat}
+                lng={location.lng}
+                interactive={false}
+                height={80}
+                marker={
+                  <Button
+                    label="Visa på karta"
+                    type="text"
+                    icon="map"
+                    style={{ backgroundColor: "white" }}
+                    onPress={() => showLocationRef.current?.present()}
+                  />
+                }
+              />
+            </Pressable>
+          )}
           <View style={{ gap: contactExpanded ? 16 : 8 }}>
             <Body
               size="medium"
@@ -226,6 +249,24 @@ export default function ProjectPage() {
           </View>
         </View>
       )}
+
+      <BottomSheet
+        ref={showLocationRef}
+        title="Plats för avhämtning"
+        name="projectLocation"
+      >
+        <View style={{ marginTop: 16 }}>
+          {location && (
+            <Map
+              lat={location.lat}
+              lng={location.lng}
+              interactive={false}
+              radius={5000}
+              height={700}
+            />
+          )}
+        </View>
+      </BottomSheet>
     </ScreenLayout>
   );
 }

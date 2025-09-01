@@ -10,7 +10,7 @@ import { View } from "react-native";
 import { Image } from "expo-image";
 import mapPin from "@assets/images/map-pin.png";
 import mapEllipse from "@assets/images/map-ellipse.png";
-import { useEffect } from "react";
+import { ReactElement, useEffect } from "react";
 
 type MapProps = {
   lat: number;
@@ -20,6 +20,7 @@ type MapProps = {
   zoomDisabled?: boolean;
   onMoveEnd?: (lat: number, lng: number) => void;
   radius?: number; //in meters
+  marker?: ReactElement;
 };
 
 export const Map = ({
@@ -30,6 +31,7 @@ export const Map = ({
   zoomDisabled,
   onMoveEnd,
   radius,
+  marker,
   ...props
 }: MapProps & MapContainerProps) => {
   return (
@@ -64,39 +66,31 @@ export const Map = ({
         interactive={interactive}
         zoomDisabled={zoomDisabled}
       />
-      {radius ? (
-        <View
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 999,
-          }}
-        >
+      <View
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 999,
+        }}
+      >
+        {marker ? (
+          marker
+        ) : radius ? (
           <Image
             source={{ uri: mapEllipse.uri }}
             alt="centered ellipse"
             style={{ width: 124, height: 124 }}
           />
-        </View>
-      ) : (
-        <View
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -100%)",
-            zIndex: 999,
-          }}
-        >
+        ) : (
           <Image
             source={{ uri: mapPin.uri }}
             alt="center pin"
             style={{ width: 40, height: 40 }}
           />
-        </View>
-      )}
+        )}
+      </View>
     </MapContainer>
   );
 };

@@ -151,7 +151,7 @@ export class ProjectResolver {
   @ResolveField(() => [Product])
   async products(
     @Args('searchString', { nullable: true })
-    searchString: string | null,
+    searchString: string | undefined,
     @Parent() project: Project,
     @Context('projectLoaders') projectLoaders: IProjectLoaders,
   ) {
