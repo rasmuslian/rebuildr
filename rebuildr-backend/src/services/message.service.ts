@@ -11,6 +11,7 @@ import {
 } from 'src/resolvers/message.resolver';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { PurchaseService } from './purchase.service';
+import { MailService } from './mail.service';
 
 export interface SystemMessageInput {
   productId: string;
@@ -31,6 +32,7 @@ export class MessageService {
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
     private purchaseService: PurchaseService,
+    private mailService: MailService,
   ) {}
 
   async getConversation(
@@ -190,6 +192,8 @@ export class MessageService {
     newMessage.readAt = null;
 
     const _newMessage = await this.messageRepository.save(newMessage);
+
+    this.mailService.sendSystemMessageEmail({ product, receiver });
 
     return _newMessage;
   }
