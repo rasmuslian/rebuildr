@@ -201,7 +201,7 @@ export const ReportProductBottomSheet = ({
           {type ? (
             <View style={{ gap: 12 }}>
               <Headline size="small">
-                Vad stämmer inte med varan du fick?
+                Vad tycker du är fel med annonsen?
               </Headline>
               <View
                 style={{
@@ -226,9 +226,7 @@ export const ReportProductBottomSheet = ({
             </View>
           ) : (
             <View style={{ gap: 24 }}>
-              <Display size="small">
-                Vad stämmer inte med varan du fick?
-              </Display>
+              <Display size="small">Vad tycker du är fel med annonsen?</Display>
               {Object.values(ReportProductTypeEnum).map((type, i) => (
                 <TypeRow onPress={() => setType(type)} type={type} key={i} />
               ))}
@@ -246,7 +244,7 @@ export const ReportProductBottomSheet = ({
                 multiline
                 style={{ minHeight: 172 }}
                 value={message}
-                placeholder="Vad stämmer inte med varan du fick?"
+                placeholder="Vad tycker du är fel med annonsen?"
                 onChangeText={(t) => setMessage(t.slice(0, 5000))}
               />
               <Body size="small" color="secondary" style={{ marginTop: 12 }}>
