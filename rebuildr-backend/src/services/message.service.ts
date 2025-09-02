@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
@@ -9,8 +9,12 @@ import {
   GetConversationsInput,
   GetConversationsType,
 } from 'src/resolvers/message.resolver';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { PurchaseService } from './purchase.service';
+import { MailService } from './mail.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 export interface SystemMessageInput {
   productId: string;
@@ -31,6 +35,8 @@ export class MessageService {
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
     private purchaseService: PurchaseService,
+    private mailService: MailService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async getConversation(
@@ -191,6 +197,11 @@ export class MessageService {
 
     const _newMessage = await this.messageRepository.save(newMessage);
 
+    //Send mail if user allows it
+    if (receiver.notifyOnPurchaseUpdate) {
+      this.mailService.sendSystemMessageEmail({ product, receiver });
+    }
+
     return _newMessage;
   }
 
@@ -232,5 +243,53 @@ export class MessageService {
       },
     });
     return await this.messageRepository.remove(message);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async notifyOnUserMessages() {
+    const logger = this.logger.child({
+      cron: 'notifyOnUserMessages',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Notifying users on missed messages');
+
+    const receivers = await this.dataSource.query<
+      { receiverId: string; receiverEmail: string; productTitle: string }[]
+    >(`
+        WITH relevantIds AS (
+          SELECT m."receiverId", m."productId" 
+          FROM message m 
+          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" IS NOT NULL 
+          WHERE 
+            "readAt" IS NULL 
+            AND (receiver."notifiedOnMessageAt" < m."createdAt" OR receiver."notifiedOnMessageAt" IS NULL) 
+            AND m."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum
+          GROUP by "receiverId", "senderId", "productId")
+        SELECT u.id as "receiverId", u.email as "receiverEmail", p.title as "productTitle" from relevantIds ri
+        INNER JOIN "user" u ON ri."receiverId" = u.id
+        INNER JOIN product p ON ri."productId" = p.id;
+        `);
+
+    //send mail to all
+    receivers.forEach((receiver) => {
+      logger.info('Notifying user of message on product', {
+        productTitle: receiver.productTitle,
+        userId: receiver.receiverId,
+        userEmail: receiver.receiverEmail,
+      });
+      this.mailService.sendUserMessageEmail({
+        productTitle: receiver.productTitle,
+        receiverEmail: receiver.receiverEmail,
+      });
+    });
+
+    const receiverIds = receivers.map((receiver) => receiver.receiverId);
+
+    //update all receivers
+    this.userRepository.update(
+      { id: In(receiverIds) },
+      { notifiedOnMessageAt: new Date() },
+    );
+    return;
   }
 }

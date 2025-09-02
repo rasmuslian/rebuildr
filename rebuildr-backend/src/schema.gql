@@ -174,8 +174,7 @@ type User {
   organizationNumber: String
   organizationApprovedAt: DateTime
   notifyOnMessage: Boolean!
-  notifyOnBuy: Boolean!
-  notifyOnSale: Boolean!
+  notifyOnPurchaseUpdate: Boolean!
   profilePicture: File
   registrationStatus: RegisterStatusEnum!
   projects: [Project!]!
@@ -788,8 +787,7 @@ input UpdateUserInput {
   phoneNumber: String
   profilePicture: FileInputType
   notifyOnMessage: Boolean
-  notifyOnBuy: Boolean
-  notifyOnSale: Boolean
+  notifyOnPurchaseUpdate: Boolean
 }
 
 input FileInputType {

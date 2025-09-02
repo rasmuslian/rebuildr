@@ -57,10 +57,7 @@ import { ProductService } from './product.service';
 import { provisionBase } from 'src/constants/pricing';
 import { ShippingService } from './shipping.service';
 import { SystemMessagesService } from './system-messages.service';
-import {
-  ReportPurchase,
-  ReportPurchaseResolutionEnum,
-} from 'src/entities/report-purchase.entity';
+import { ReportPurchaseResolutionEnum } from 'src/entities/report-purchase.entity';
 import { ReportPurchaseService } from './report-purchase.service';
 
 export class PurchaseService {
@@ -81,8 +78,6 @@ export class PurchaseService {
     private productService: ProductService,
     private shippingService: ShippingService,
     private systemMessagesService: SystemMessagesService,
-    @InjectRepository(ReportPurchase)
-    private reportPurchaseRepository: Repository<ReportPurchase>,
     private reportPurchaseService: ReportPurchaseService,
   ) {}
 

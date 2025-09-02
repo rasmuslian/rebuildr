@@ -180,11 +180,8 @@ export class UserService {
     if (input.notifyOnMessage !== undefined) {
       user.notifyOnMessage = input.notifyOnMessage;
     }
-    if (input.notifyOnBuy !== undefined) {
-      user.notifyOnBuy = input.notifyOnBuy;
-    }
-    if (input.notifyOnSale !== undefined) {
-      user.notifyOnSale = input.notifyOnSale;
+    if (input.notifyOnPurchaseUpdate !== undefined) {
+      user.notifyOnPurchaseUpdate = input.notifyOnPurchaseUpdate;
     }
 
     return {
