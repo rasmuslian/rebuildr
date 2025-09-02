@@ -83,9 +83,7 @@ export class UpdateUserInput {
   @Field({ nullable: true })
   notifyOnMessage?: boolean;
   @Field({ nullable: true })
-  notifyOnBuy?: boolean;
-  @Field({ nullable: true })
-  notifyOnSale?: boolean;
+  notifyOnPurchaseUpdate?: boolean;
 }
 
 @ObjectType()

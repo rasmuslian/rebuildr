@@ -197,7 +197,10 @@ export class MessageService {
 
     const _newMessage = await this.messageRepository.save(newMessage);
 
-    this.mailService.sendSystemMessageEmail({ product, receiver });
+    //Send mail if user allows it
+    if (receiver.notifyOnPurchaseUpdate) {
+      this.mailService.sendSystemMessageEmail({ product, receiver });
+    }
 
     return _newMessage;
   }

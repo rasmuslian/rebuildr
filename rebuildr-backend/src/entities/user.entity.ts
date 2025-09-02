@@ -188,10 +188,7 @@ export class User {
   notifiedOnMessageAt?: Date;
   @Field()
   @Column({ type: Boolean, default: true })
-  notifyOnBuy: boolean;
-  @Field()
-  @Column({ type: Boolean, default: true })
-  notifyOnSale: boolean;
+  notifyOnPurchaseUpdate: boolean;
 
   @OneToMany(() => Project, (p) => p.user)
   projects: Project[];

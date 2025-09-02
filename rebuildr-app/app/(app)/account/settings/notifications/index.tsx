@@ -21,8 +21,7 @@ const ACCOUNT_SETTINGS_NOTIFICATIONS = gql`
       id
       email
       notifyOnMessage
-      notifyOnBuy
-      notifyOnSale
+      notifyOnPurchaseUpdate
     }
   }
 `;
@@ -33,8 +32,7 @@ const ACCOUNT_SETTINGS_UPDATE_NOTIFICATIONS = gql`
       user {
         id
         notifyOnMessage
-        notifyOnBuy
-        notifyOnSale
+        notifyOnPurchaseUpdate
       }
     }
   }
@@ -94,28 +92,17 @@ export default function Notifications() {
         />
         <Divider />
         <Entry
-          title="Bekräftelse på köp"
-          body="Få en bekräftelse via e-post när ditt köp har gått igenom."
-          value={data.me.notifyOnBuy}
+          title="Meddelanden om köp och försäljning"
+          body="Få ett mail när du har köpt något eller när någon har köpt en av dina annonser."
+          value={data.me.notifyOnPurchaseUpdate}
           onPress={() => {
             onUpdateNotification({
               id: data.me.id,
-              notifyOnBuy: !data.me.notifyOnBuy,
+              notifyOnPurchaseUpdate: !data.me.notifyOnPurchaseUpdate,
             });
           }}
         />
         <Divider />
-        <Entry
-          title="När någon köper av dig"
-          body="Få ett mail när någon har köpt en av dina annonser."
-          value={data.me.notifyOnSale}
-          onPress={() => {
-            onUpdateNotification({
-              id: data.me.id,
-              notifyOnSale: !data.me.notifyOnSale,
-            });
-          }}
-        />
       </View>
     </ScreenLayout>
   );
