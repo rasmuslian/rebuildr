@@ -26,6 +26,10 @@ const systemMessageTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/system-message.mjml`,
   'utf8',
 );
+const userMessageTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/user-message.mjml`,
+  'utf8',
+);
 
 const MAILGUN_DOMAIN = 'rebuildr.se';
 
@@ -142,6 +146,31 @@ export class MailService {
       from: this.from,
       subject: `Meddelande: ${input.product.title}`,
       text: `Meddelande: ${input.product.title}`,
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch {
+      throw InternalServerException();
+    }
+  }
+
+  async sendUserMessageEmail(input: {
+    productTitle: string;
+    receiverEmail: string;
+  }) {
+    const context = {
+      productTitle: input.productTitle,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(userMessageTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.receiverEmail,
+      from: this.from,
+      subject: `Meddelande: ${input.productTitle}`,
+      text: `Meddelande: ${input.productTitle}`,
       html,
     };
     try {

@@ -184,6 +184,8 @@ export class User {
   @Field()
   @Column({ type: Boolean, default: true })
   notifyOnMessage: boolean;
+  @Column({ type: Date, nullable: true })
+  notifiedOnMessageAt?: Date;
   @Field()
   @Column({ type: Boolean, default: true })
   notifyOnBuy: boolean;
