@@ -160,12 +160,14 @@ export default function User() {
     return <LoadingSpinner />;
   }
 
+  console.log("data.me :>> ", data.me);
   const hasHomeDetails =
     !!data.me.city &&
     !!data.me.address &&
     !!data.me.postCode &&
     !!data.me.name &&
     !!data.me.phoneNumber;
+  console.log("hasHomeDetails :>> ", hasHomeDetails);
 
   const detailsError = () => {
     const errors = error ? apolloBadFieldsError(error) : undefined;
@@ -295,7 +297,7 @@ export default function User() {
             }}
             isSet={hasHomeDetails}
           >
-            {hasHomeDetails ? (
+            {!hasHomeDetails ? (
               <Body size="medium" color="secondary">
                 Lägg till adressen dit du vill få varor skickade.
               </Body>
