@@ -1,10 +1,34 @@
 import { User } from 'src/entities/user.entity';
 import { MessageService, SystemMessageInput } from './message.service';
 import { Product } from 'src/entities/product.entity';
-import { Purchase } from 'src/entities/purchase.entity';
+import { Purchase, TransportationEnum } from 'src/entities/purchase.entity';
 import dayjs from 'dayjs';
 import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+
+const transportationWording: {
+  [key in TransportationEnum]: {
+    form1: string;
+  };
+} = {
+  [TransportationEnum.PICKUP]: {
+    form1: '',
+  },
+  [TransportationEnum.SHIPPING]: {
+    form1: 'avhämtning',
+  },
+  [TransportationEnum.DELIVERY]: {
+    form1: 'hemtransport',
+  },
+};
+const tradeWording = {
+  free: {
+    form1: 'affären',
+  },
+  notFree: {
+    form1: 'köpet',
+  },
+};
 
 @Injectable()
 export class SystemMessagesService {
@@ -22,11 +46,19 @@ export class SystemMessagesService {
     seller: User,
     product: Product,
     purchase: Purchase,
+    isFree = false,
   ) {
-    const message = `# Du har betalat ([](<date::D MMMM::${purchase.paymentAcceptedAt}>)) och vi har skickat en bekräftelse till ${buyer.email}
+    const message = isFree
+      ? `# Du har köpt varan för 0 kr ([](<date::D MMMM::${purchase.paymentAcceptedAt}>)) och vi har skickat en bekräftelse till ${buyer.email}.
     
 
-# Nu är nästa steg att planera avhämtningen! Börja gärna med att skriva ett meddelande här i chatten för att bestämma tid och plats med säljaren.
+# Nu är nästa steg att planera ${transportationWording[purchase.transportationMethod].form1}! Börja gärna med att skriva ett meddelande här i chatten för att bestämma tid och plats med säljaren.
+
+_Om säljaren inte svarar inom 24 timmar avbryts affären automatiskt._`
+      : `# Du har betalat ([](<date::D MMMM::${purchase.paymentAcceptedAt}>)) och vi har skickat en bekräftelse till ${buyer.email}
+    
+
+# Nu är nästa steg att planera ${transportationWording[purchase.transportationMethod].form1}! Börja gärna med att skriva ett meddelande här i chatten för att bestämma tid och plats med säljaren.
 
 _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._`;
 
@@ -43,8 +75,14 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     seller: User,
     product: Product,
     purchase: Purchase,
+    isFree = false,
   ) {
-    const message = `# Du har sålt en vara! Svara köparen i chatten och bestäm tid och plats för avhämtning.
+    const message = isFree
+      ? `# Du har sålt varan för 0kr! Svara köparen i chatten och bestäm tid och plats för ${transportationWording[purchase.transportationMethod].form1}.
+    
+    
+# Du behöver svara senast [](<date::D MMMM kl. HH:mm::${dayjs(purchase.paymentAcceptedAt).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`
+      : `# Du har sålt en vara! Svara köparen i chatten och bestäm tid och plats för ${transportationWording[purchase.transportationMethod].form1}.
     
     
 # Du behöver svara senast [](<date::D MMMM kl. HH:mm::${dayjs(purchase.paymentAcceptedAt).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`;
@@ -61,14 +99,21 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     seller: User,
     product: Product,
     responseDate: Date,
+    purchase: Purchase,
+    isFree = false,
   ) {
-    const message = `# Nu är det dags att åka och hämta din vara!
+    const message = this.isDelivery(purchase)
+      ? `# Hemtransporten sker senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>), annars avbryts ${!isFree ? 'affären automatiskt' : 'köpet och du får tillbaka dina pengar'}.
     
     
-# Hämta senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>), annars avbryts köpet automatiskt och du får tillbaka dina pengar.
+_Ångrat dig? Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](ABORT) innan dess._`
+      : `# Nu är det dags att åka och hämta din vara!
+    
+    
+# Hämta senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>), annars avbryts ${!isFree ? 'affären automatiskt' : 'köpet och du får tillbaka dina pengar'}.
 
 
-_Ångrat dig? Du kan fortfarande [avbryta köpet](ABORT) innan dess._`;
+_Ångrat dig? Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](ABORT) innan dess._`;
 
     await this.message({
       productId: product.id,
@@ -83,13 +128,22 @@ _Ångrat dig? Du kan fortfarande [avbryta köpet](ABORT) innan dess._`;
     seller: User,
     product: Product,
     responseDate: Date,
+    purchase: Purchase,
+    isFree = false,
   ) {
-    const message = `# Köparen hämtar varan senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>).
+    const message = this.isDelivery(purchase)
+      ? `# Åk och leverera senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>).
     
 
-# Kom ihåg att markera varan som överlämnad när överlämningen är klar, så kan vi betala ut pengarna till dig.
+# Kom ihåg att markera varan som överlämnad när överlämningen är klar, ${isFree ? 'så att ni båda kan lämna omdöme' : 'så kan vi betala ut pengarna till dig'}.
 
-_Ångrat dig? Inga problem! Du kan fortfarande [avbryta köpet](ABORT)._`;
+_Ångrat dig? Inga problem! Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](ABORT)._`
+      : `# Köparen hämtar varan senast [](<date::D MMMM::${dayjs(responseDate).add(7, 'day').toDate()}>).
+    
+
+# Kom ihåg att markera varan som överlämnad när överlämningen är klar, ${isFree ? 'så att ni båda kan lämna omdöme' : 'så kan vi betala ut pengarna till dig'}.
+
+_Ångrat dig? Inga problem! Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](ABORT)._`;
 
     await this.message({
       productId: product.id,
@@ -100,7 +154,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta köpet](ABORT)._`;
   }
 
   async handoffConfirmedBuyer(buyer: User, seller: User, product: Product) {
-    const message = `# Avhämtningen är bekräftad!
+    const message = `# Överlämningen är bekräftad!
     
 
 # Nu har du 48 timmar på dig att kontrollera att allt stämmer med annonsen.
@@ -241,8 +295,18 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     });
   }
 
-  async purchaseSuccessBuyer(buyer: User, seller: User, product: Product) {
-    const message = `# Köpet är klart!
+  async purchaseSuccessBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    isFree = false,
+  ) {
+    const message = isFree
+      ? `# Överlämningen är nu bekräftad och allting är klart!
+    
+
+# Nu kan du passa på att lämna ett omdöme om säljaren.`
+      : `# Köpet är klart!
     
 
 # Du har godkänt varan och pengarna har betalats ut till säljaren.
@@ -258,8 +322,18 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     });
   }
 
-  async purchaseSuccessSeller(buyer: User, seller: User, product: Product) {
-    const message = `# Köparen har godkänt varan!
+  async purchaseSuccessSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    isFree = false,
+  ) {
+    const message = isFree
+      ? `# Överlämningen är nu bekräftad och allting är klart!
+    
+
+# Nu kan du passa på att lämna ett omdöme om köparen.`
+      : `# Köparen har godkänt varan!
     
 
 # Du har fått betalt och pengarna har betalats ut till ditt utbetalningskonto.
@@ -357,8 +431,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    isFree = false,
   ) {
-    const message = `# Du har valt att avbryta köpet.
+    const message = isFree
+      ? `# Du har valt att avbryta affären.`
+      : `# Du har valt att avbryta köpet.
     
 
 # Köpet är nu avbrutet och dina pengar återbetalas automatiskt.`;
@@ -375,8 +452,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    isFree = false,
   ) {
-    const message = `# Säljaren har valt att avbryta köpet.
+    const message = isFree
+      ? `# Säljaren har valt att avbryta affären.`
+      : `# Säljaren har valt att avbryta köpet.
     
 
 # Köpet är nu avbrutet och dina pengar har återbetalats.`;
@@ -393,8 +473,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    isFree = false,
   ) {
-    const message = `# Köparen har valt att avbryta köpet.
+    const message = isFree
+      ? `# Köparen har valt att avbryta affären.`
+      : `# Köparen har valt att avbryta köpet.
     
 
 # Annonsen är nu aktiv och tillgänglig för nya köpare.`;
@@ -410,8 +493,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    isFree = false,
   ) {
-    const message = `# Köpet är nu avbrutet och köparens pengar har återbetalats.
+    const message = isFree
+      ? `# Du har valt att avbryta affären.`
+      : `# Köpet är nu avbrutet och köparens pengar har återbetalats.
     
 
 # Annonsen är nu aktiv och tillgänglig för nya köpare.`;
@@ -450,5 +536,12 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
       receiverId: seller.id,
       message,
     });
+  }
+
+  private isDelivery(purchase: Purchase) {
+    return purchase.transportationMethod === TransportationEnum.DELIVERY;
+  }
+  private tradeWording(isFree: boolean) {
+    return tradeWording[isFree ? 'free' : 'notFree'];
   }
 }

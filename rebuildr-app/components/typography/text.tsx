@@ -10,11 +10,13 @@ import {
 import { TextTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useResponsiveStyle } from "@hooks/useResponsiveStyles";
+import { Href, Link } from "expo-router";
 
 type Props = {
   color?: keyof TextTokens;
   upperCase?: boolean;
   isLink?: boolean;
+  link?: Href;
 } & TextProps;
 type DisplayProps = { size?: DisplaySize } & Props;
 type HeadlineProps = { size?: HeadlineSize } & Props;
@@ -27,19 +29,20 @@ export const Base = ({
   color = "primaryDark",
   upperCase,
   isLink,
+  link,
   ...props
 }: Props & { textStyle: TextStyle }) => {
   const colors = useThemeColor();
 
   const styles = useResponsiveStyle(textStyle) as TextStyle;
 
-  return (
+  const textComponent = (
     <Text
       {...props}
       style={[
         styles,
         { color: colors.text[color] },
-        (isLink || props.onPress) && {
+        (isLink || props.onPress || !!link) && {
           textDecorationColor: colors.text.link,
           textDecorationLine: "underline",
           color: colors.text.link,
@@ -49,6 +52,10 @@ export const Base = ({
       ]}
     />
   );
+  if (link) {
+    return <Link href={link}>{textComponent}</Link>;
+  }
+  return textComponent;
 };
 export const Display = ({ size = "large", ...props }: DisplayProps) => {
   return <Base {...props} textStyle={textStyles.display[size]} />;

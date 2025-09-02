@@ -196,9 +196,33 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
             vanliga frågor
           </Body>{" "}
           eller{" "}
-          <Body size="medium" isLink>
-            kontakta säljaren
-          </Body>
+          {buyerIsMe ? (
+            <Body
+              size="medium"
+              link={{
+                pathname: "/conversations/[productId]/[userId]",
+                params: {
+                  productId: data.purchase.product.id,
+                  userId: data.purchase.product.seller.id,
+                },
+              }}
+            >
+              kontakta säljaren
+            </Body>
+          ) : (
+            <Body
+              size="medium"
+              link={{
+                pathname: "/conversations/[productId]/[userId]",
+                params: {
+                  productId: data.purchase.product.id,
+                  userId: data.purchase.buyer.id,
+                },
+              }}
+            >
+              kontakta köparen
+            </Body>
+          )}
           .
         </Body>
       </View>

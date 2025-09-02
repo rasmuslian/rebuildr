@@ -43,7 +43,6 @@ export const ReceiptCard = ({ userType, role, payedAt, ...rest }: Props) => {
       )}
 
       <Row left="Datum" right={dayjs(payedAt).format("D MMMM, YYYY")} />
-      <Button label="Ladda hem kvitto" onPress={() => {}} />
     </View>
   );
 };

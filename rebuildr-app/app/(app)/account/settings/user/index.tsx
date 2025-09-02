@@ -295,7 +295,7 @@ export default function User() {
             }}
             isSet={hasHomeDetails}
           >
-            {hasHomeDetails ? (
+            {!hasHomeDetails ? (
               <Body size="medium" color="secondary">
                 Lägg till adressen dit du vill få varor skickade.
               </Body>
