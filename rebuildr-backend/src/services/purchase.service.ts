@@ -476,12 +476,14 @@ export class PurchaseService {
         purchase.product.seller,
         purchase.product,
         purchase,
+        true,
       );
       this.systemMessagesService.purchaseWithHandoffSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         purchase,
+        true,
       );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
@@ -527,18 +529,23 @@ export class PurchaseService {
       relations: { buyer: true, product: { seller: true } },
     });
     if (purchase && !purchase.sellerRespondedAt) {
+      const boughtForFree = await this.boughtForFree(purchase);
       const responseDate = new Date();
       this.systemMessagesService.sellerRespondedBuyer(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         responseDate,
+        purchase,
+        boughtForFree,
       );
       this.systemMessagesService.sellerRespondedSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         responseDate,
+        purchase,
+        boughtForFree,
       );
       purchase.sellerRespondedAt = responseDate;
       this.purchaseRepository.save(purchase);
@@ -626,7 +633,8 @@ export class PurchaseService {
       throw BadUserInputException('Purchase invalid');
     }
 
-    if (!purchase.deliveredAt) {
+    const boughtForFree = await this.boughtForFree(purchase);
+    if (!purchase.deliveredAt && !boughtForFree) {
       this.systemMessagesService.handoffConfirmedBuyer(
         purchase.buyer,
         purchase.product.seller,
@@ -638,13 +646,23 @@ export class PurchaseService {
         purchase.product,
       );
     }
-
     purchase.deliveredAt = new Date();
 
-    const boughtForFree = await this.boughtForFree(purchase);
     //Approve step is skipped if purchase was bought for free since approving or not approving
     //is there as a financial security
-    if (boughtForFree) {
+    if (!purchase.approvedAt && boughtForFree) {
+      this.systemMessagesService.purchaseSuccessBuyer(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        true,
+      );
+      this.systemMessagesService.purchaseSuccessSeller(
+        purchase.buyer,
+        purchase.product.seller,
+        purchase.product,
+        true,
+      );
       purchase.approvedAt = new Date();
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
@@ -810,22 +828,26 @@ export class PurchaseService {
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedByBuyerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          boughtForFree,
         );
       } else {
         this.systemMessagesService.purchaseAbortedBySellerBuyer(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedBySellerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          boughtForFree,
         );
       }
     }
