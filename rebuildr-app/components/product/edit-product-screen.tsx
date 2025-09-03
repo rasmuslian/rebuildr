@@ -1,7 +1,7 @@
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { gql, useMutation } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { ProductFields } from "@components/product/types";
+import { FileType, ProductFields } from "@components/product/types";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Href, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -25,6 +25,7 @@ import {
   ProductEditProductUpdateMutation,
   ProductEditProductUpdateMutationVariables,
   SellProductQueryQuery,
+  File as GqlFile,
 } from "@/gql/graphql";
 
 export const PRODUCT_DETAILS_FRAGMENT = gql`
@@ -100,8 +101,9 @@ export const EditProductScreen = ({
 }: Props) => {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
-  const [updateProduct, { loading: updating, error }] = useMutation<
+  const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     ProductEditProductUpdateMutation,
     ProductEditProductUpdateMutationVariables
   >(PRODUCT_EDIT_PRODUCT_UPDATE, { onError: () => {} });
@@ -110,12 +112,38 @@ export const EditProductScreen = ({
     _product: Partial<ProductFields>,
     isFinal?: boolean,
   ) => {
-    if (updating) {
+    if (loading) {
       return;
     }
     if (!product) {
       return;
     }
+
+    const addFiles = (newFiles?: FileType[], currentFiles?: FileType[]) => {
+      return (
+        newFiles
+          //Only add files that are not already on Product
+          ?.filter((file) => {
+            if (file.id === undefined || !currentFiles) {
+              return true;
+            }
+
+            return currentFiles.every((i) => i.id !== file.id);
+          })
+          .map((file) => ({
+            mimeType: file.mimeType,
+            name: file.name,
+          }))
+      );
+    };
+    const removeFiles = (newFiles?: FileType[], currentFiles?: GqlFile[]) => {
+      return currentFiles
+        ?.filter((image) =>
+          //Delete existing product's file if it does not exist in edited product
+          newFiles?.every((selectedImage) => selectedImage.id !== image.id),
+        )
+        .map((image) => image.id as string);
+    };
     return updateProduct({
       variables: {
         input: {
@@ -139,50 +167,18 @@ export const EditProductScreen = ({
             : undefined,
           brandId: _product.brandId,
           condition: _product.condition,
-          addImages: _product.images
-            //Only add images that are not already on Product
-            ?.filter((image) =>
-              product.images
-                ? product.images.every((i) => i.id !== image.id)
-                : true,
-            )
-            .map((image) => ({
-              mimeType: image.mimeType,
-              name: image.name,
-            })),
-          removeImages: product.images
-            ?.filter((image) =>
-              //Delete existing product's image if it does not exist in edited product
-              _product.images?.every(
-                (selectedImage) => selectedImage.id !== image.id,
-              ),
-            )
-            .map((image) => image.id as string),
-          addDocuments: _product.documents
-            //Only add documents that are not already on Product
-            ?.filter((document) =>
-              product.documents
-                ? product.documents.every((i) => i.id !== document.id)
-                : true,
-            )
-            .map((document) => ({
-              mimeType: document.mimeType,
-              name: document.name,
-            })),
-          removeDocuments: product.documents
-            ?.filter((document) =>
-              //Delete existing product's document if it does not exist in edited product
-              _product.documents?.every(
-                (selectedDocument) => selectedDocument.id !== document.id,
-              ),
-            )
-            .map((document) => document.id as string),
+          addImages: addFiles(_product.images, product.images),
+          removeImages: removeFiles(_product.images, dbProduct.images),
+          addDocuments: addFiles(_product.documents, product.documents),
+          removeDocuments: removeFiles(_product.documents, dbProduct.documents),
         },
       },
       onCompleted: async (data) => {
+        let mediaPromises: Promise<void>[] = [];
         if (data.updateProduct.imagePutUrls) {
-          await Promise.all(
-            data.updateProduct.imagePutUrls.map(async (putUrl, index) => {
+          mediaPromises = [
+            ...mediaPromises,
+            ...data.updateProduct.imagePutUrls.map(async (putUrl, index) => {
               const image = _product.images?.[index];
               if (image) {
                 await fetch(putUrl, {
@@ -195,11 +191,12 @@ export const EditProductScreen = ({
                 });
               }
             }),
-          );
+          ];
         }
         if (data.updateProduct.documentPutUrls) {
-          await Promise.all(
-            data.updateProduct.documentPutUrls.map(async (putUrl, index) => {
+          mediaPromises = [
+            ...mediaPromises,
+            ...data.updateProduct.documentPutUrls.map(async (putUrl, index) => {
               const doc = _product.documents?.[index];
               if (doc) {
                 await fetch(putUrl, {
@@ -212,7 +209,12 @@ export const EditProductScreen = ({
                 });
               }
             }),
-          );
+          ];
+        }
+        if (mediaPromises.length) {
+          setUploadingMedia(true);
+          await Promise.all(mediaPromises);
+          setUploadingMedia(false);
         }
         await productToState(data.updateProduct.product);
         if (isFinal) {
@@ -228,40 +230,37 @@ export const EditProductScreen = ({
       undefined | null
     >,
   ) => {
-    const images = await Promise.all(
-      _product.images.map(async (image, index) => {
-        const uri = image.url;
-        const imageExt = uri.split(".").pop();
-        const blob = await fetch(uri).then((res) => res.blob());
-        const imageData = new File([blob], `${Date.now()}.${imageExt}`);
-        return {
-          id: image.id,
-          uri: image.url,
-          index,
-          mimeType: image.mimeType,
-          file: imageData,
-          size: blob.size,
-          name: image.name,
-        };
-      }),
+    const convertDbFiles = async (files: GqlFile[]) => {
+      return await Promise.all(
+        files.map(async (file, index) => {
+          const uri = file.url;
+          const imageExt = uri.split(".").pop();
+          const blob = await fetch(uri).then((res) => res.blob());
+          const imageData = new File([blob], `${Date.now()}.${imageExt}`);
+          return {
+            id: file.id,
+            uri: file.url,
+            index,
+            mimeType: file.mimeType,
+            file: imageData,
+            size: blob.size,
+            name: file.name,
+          };
+        }),
+      );
+    };
+    const dbImages = await convertDbFiles(_product.images);
+    const images = dbImages.reduce(
+      (images, image) => {
+        if (images.some((i) => i.id === image.id)) {
+          return images;
+        }
+        return [...images, image];
+      },
+      [...(product?.images ?? [])],
     );
-    const documents = await Promise.all(
-      _product.documents.map(async (document, index) => {
-        const uri = document.url;
-        const imageExt = uri.split(".").pop();
-        const blob = await fetch(uri).then((res) => res.blob());
-        const imageData = new File([blob], `${Date.now()}.${imageExt}`);
-        return {
-          id: document.id,
-          uri: document.url,
-          index,
-          mimeType: document.mimeType,
-          file: imageData,
-          size: blob.size,
-          name: document.name,
-        };
-      }),
-    );
+
+    const documents = await convertDbFiles(_product.documents);
 
     const stateProduct = {
       categoryIds: _product.category
@@ -369,7 +368,8 @@ export const EditProductScreen = ({
   const rootCategoryId = product.categoryIds?.[0];
   const categoryId = product.categoryIds?.[1];
   const showContinue = rootCategoryId && categoryId && product.brandId;
-  const canSave = progress() >= 100 && !error;
+  const loading = updatingProduct || uploadingMedia;
+  const canSave = (progress() >= 100 && !error) || loading;
 
   return (
     <ScreenLayout
@@ -409,7 +409,7 @@ export const EditProductScreen = ({
             images={product.images ?? []}
             imageError={badFields["images"]}
             onUpdateImages={(images) => {
-              onUpdateProduct({ images });
+              setProduct({ ...product, images });
             }}
           />
           <PriceSection
@@ -499,7 +499,7 @@ export const EditProductScreen = ({
             categoryId={categoryId}
             onSelect={(brandId) => onUpdateProduct({ brandId })}
             brandId={product.brandId}
-            isLoading={updating}
+            isLoading={updatingProduct}
           />
         </>
       )}
@@ -510,6 +510,7 @@ export const EditProductScreen = ({
             onPress={onNext}
             style={{ marginTop: 24 }}
             disabled={!canSave}
+            loading={loading}
           />
           {error && (
             <Body color="error" size="small">

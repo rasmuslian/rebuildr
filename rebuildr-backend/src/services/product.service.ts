@@ -233,7 +233,7 @@ export class ProductService {
         });
       }
     }
-    if (input.addImages || input.removeImages) {
+    if (input.addImages || input.removeImages?.length) {
       const addAmount = input.addImages?.length ?? 0;
       const removeAmount = input.removeImages?.length ?? 0;
       const newAmount = product.images.length + addAmount - removeAmount;
