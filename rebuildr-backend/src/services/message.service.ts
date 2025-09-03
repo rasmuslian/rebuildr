@@ -245,7 +245,11 @@ export class MessageService {
     return await this.messageRepository.remove(message);
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(
+    process.env.NODE_ENV === 'production'
+      ? CronExpression.EVERY_HOUR
+      : CronExpression.EVERY_MINUTE,
+  )
   async notifyOnUserMessages() {
     const logger = this.logger.child({
       cron: 'notifyOnUserMessages',
@@ -259,7 +263,7 @@ export class MessageService {
         WITH relevantIds AS (
           SELECT m."receiverId", m."productId" 
           FROM message m 
-          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" IS NOT NULL 
+          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" = TRUE 
           WHERE 
             "readAt" IS NULL 
             AND (receiver."notifiedOnMessageAt" < m."createdAt" OR receiver."notifiedOnMessageAt" IS NULL) 
