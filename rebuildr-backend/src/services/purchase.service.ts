@@ -471,6 +471,7 @@ export class PurchaseService {
       isFree
     ) {
       purchase.paymentAcceptedAt = new Date();
+      purchase.paymentStartedAt = new Date();
       this.systemMessagesService.purchaseWithHandoffBuyer(
         purchase.buyer,
         purchase.product.seller,
@@ -1228,6 +1229,7 @@ export class PurchaseService {
       where: {
         paymentAcceptedAt: LessThanOrEqual(dayjs().subtract(1, 'day').toDate()),
         status: PurchaseStatusEnum.PAYMENT_ACCEPTED,
+        sellerRespondedAt: IsNull(),
         transportationMethod: Or(
           Equal(TransportationEnum.DELIVERY),
           Equal(TransportationEnum.PICKUP),
@@ -1246,24 +1248,37 @@ export class PurchaseService {
           sellerId: purchase.product.seller.id,
           productId: purchase.product.id,
         });
-        if (!purchase.rockerPaymentId) {
-          return;
+        const boughtForFree = await this.boughtForFree(purchase);
+
+        if (!boughtForFree) {
+          if (!purchase.rockerPaymentId) {
+            logger.error('Purchase is missing paymentId and is not for free');
+            return;
+          }
+          await this.rockerService.refundPayment(
+            purchase.rockerPaymentId,
+            'Refunded by System due to no response from Seller',
+          );
         }
-        await this.rockerService.refundPayment(
-          purchase.rockerPaymentId,
-          'Refunded by System due to no response from Seller',
-        );
+
         if (!purchase.failedAt) {
           this.systemMessagesService.purchaseAbortedBySellerBuyer(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            boughtForFree,
           );
           this.systemMessagesService.purchaseAbortedBySellerSeller(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            boughtForFree,
           );
+        }
+
+        if (boughtForFree) {
+          purchase.failedAt = new Date();
+          return await this.purchaseRepository.save(purchase);
         }
 
         return purchase;
