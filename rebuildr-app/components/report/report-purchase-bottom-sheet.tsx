@@ -152,7 +152,13 @@ export const ReportPurchaseBottomSheet = ({
           ) : (
             <Header
               title="Rapportera problem med köp"
-              onBack={() => onDismiss()}
+              showBackButton={false}
+              ctas={[
+                {
+                  icon: "X",
+                  onPress: () => onDismiss(),
+                },
+              ]}
             />
           )}
           {showProductHeader && (
@@ -170,16 +176,22 @@ export const ReportPurchaseBottomSheet = ({
       }
       footer={
         showCloseButton ? (
-          <Button label="Stäng" onPress={onDismiss} />
+          <Button label="Stäng" style={{ marginTop: 12 }} onPress={onDismiss} />
         ) : type ? (
           <Button
             label="Rapportera problem med köp"
             onPress={onCreateReport}
             loading={createReportLoading}
+            style={{ marginTop: 12 }}
           />
         ) : undefined
       }
       ref={ref}
+      screenHeight={
+        !!createReportData ||
+        !!data.purchase.reportPurchase ||
+        data.purchase.status !== PurchaseStatusEnum.Delivered
+      }
       onDismiss={onDismiss}
       scrollable
     >
@@ -290,7 +302,7 @@ type EndScreenProps = {
 };
 const EndScreen = ({ title }: EndScreenProps) => {
   return (
-    <View style={{ gap: 24, marginTop: 24, paddingBottom: 12 }}>
+    <View style={{ gap: 24, marginTop: 24 }}>
       <View style={{ alignItems: "center", marginBottom: 26, marginTop: 24 }}>
         <Image
           source={BuyersProtectionImage.uri}

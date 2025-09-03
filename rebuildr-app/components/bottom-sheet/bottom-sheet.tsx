@@ -132,7 +132,7 @@ export const BottomSheet = forwardRef(
             ]}
           >
             {renderHeader()}
-            <View style={{ flex: 1 }}>{children}</View>
+            <View style={[!screenHeight && { flex: 1 }]}>{children}</View>
             {footer && footer}
           </BottomSheetScrollView>
         ) : (
