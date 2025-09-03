@@ -3,13 +3,14 @@ import { useOptimizeImage } from "@hooks/useOptimizeImage";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ImagePickerResult, launchImageLibraryAsync } from "expo-image-picker";
 import { Image } from "expo-image";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { Icon } from "@icons/icon";
 import { borderRadius } from "@constants/sizes";
 import { primitives } from "@constants/colors";
 import { FileType } from "./types";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
 type Props = {
   images: FileType[];
@@ -169,6 +170,8 @@ export const ImageUploadCard = ({
   onImagePicked,
   onImageRemoved,
 }: ImageCardProps) => {
+  const [imageLoading, setImageLoading] = useState(false);
+
   const pickImage = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: "images",
@@ -204,12 +207,27 @@ export const ImageUploadCard = ({
         >
           <Image
             source={{ uri: imageUri }}
+            onLoadEnd={() => setImageLoading(false)}
+            onLoad={() => setImageLoading(true)}
             style={{
               width: "100%",
               height: "100%",
               borderRadius: 15,
             }}
           />
+          {imageLoading && (
+            <View
+              style={{
+                position: "absolute",
+                width: 32,
+                height: 32,
+                left: 50,
+                top: 50,
+              }}
+            >
+              <LoadingSpinner />
+            </View>
+          )}
           {onImageRemoved && (
             <View
               style={{
