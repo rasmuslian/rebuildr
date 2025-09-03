@@ -148,7 +148,16 @@ export const ReportProductBottomSheet = ({
               onBack={() => onDismiss()}
             />
           ) : (
-            <Header title="Anmäl annons" onBack={() => onDismiss()} />
+            <Header
+              title="Anmäl annons"
+              showBackButton={false}
+              ctas={[
+                {
+                  icon: "X",
+                  onPress: () => onDismiss(),
+                },
+              ]}
+            />
           )}
           {showProductHeader && (
             <ProductHeader
