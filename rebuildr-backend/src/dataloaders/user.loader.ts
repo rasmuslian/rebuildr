@@ -7,7 +7,7 @@ import { SearchResult } from 'src/entities/search-result.entity';
 import { DataSource, In, IsNull } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
-import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { Purchase } from 'src/entities/purchase.entity';
 import { File } from 'src/entities/file.entity';
 import { Review } from 'src/entities/review.entity';
 import { User } from 'src/entities/user.entity';
@@ -103,10 +103,6 @@ export class UserLoader {
           },
           status: ProductStatus.PUBLISHED,
           deletedAt: IsNull(),
-          purchases: [
-            { status: IsNull() },
-            { status: PurchaseStatusEnum.FINISHED_FAILED },
-          ],
         },
       });
 
