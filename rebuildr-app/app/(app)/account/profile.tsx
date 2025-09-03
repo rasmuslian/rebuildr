@@ -321,7 +321,7 @@ export default function Profile() {
                 data={data.user.projects}
                 renderItem={({ item }) => (
                   <ProjectCard
-                    showHeart={data.me?.id != item.user.id}
+                    showHeart={data.me?.id !== item.user.id}
                     project={item}
                   />
                 )}
@@ -570,6 +570,7 @@ export default function Profile() {
         username={data.user.username}
         numberOfPublishedProducts={data.user.numberOfPublishedProducts}
         numberOfSoldProducts={data.user.numberOfSoldProducts}
+        rating={data.user.rating}
       />
       {!!data.user.description && (
         <CollapsableText text={data.user.description} nrOfLines={2} />
