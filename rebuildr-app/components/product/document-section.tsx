@@ -138,9 +138,7 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
           <Title size="medium" style={{ marginBottom: 4 }}>
             Ladda upp dokument
           </Title>
-          <Body size="small">
-            Tryck för att ladda upp eller dra och släpp filer här.
-          </Body>
+          <Body size="small">Tryck för att ladda upp filer här.</Body>
         </View>
       </Pressable>
       <Body

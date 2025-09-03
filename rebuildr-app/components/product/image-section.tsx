@@ -99,9 +99,7 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
             <ImageUploadCard
               key={_index}
               onImagePicked={(res) => onImagePicked(res, _index)}
-              onImageRemoved={
-                images.length > 1 ? () => onImageRemoved(_index) : undefined
-              }
+              onImageRemoved={() => onImageRemoved(_index)}
               imageUri={images?.find(({ index }) => index === _index)?.uri}
             />
           ))}
@@ -142,7 +140,7 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
                 color="secondary"
                 style={{ textAlign: "center" }}
               >
-                Tryck för att ladda upp eller dra och släpp bilder här.
+                Tryck för att ladda upp bilder här.
               </Body>
             </View>
           </View>
