@@ -64,6 +64,7 @@ const PROFILE = gql`
         }
         products {
           id
+          status
           primaryImage {
             id
             url

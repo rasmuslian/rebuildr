@@ -48,6 +48,7 @@ export const MY_FAVORITES = gql`
         likedByMe
         products {
           id
+          status
           primaryImage {
             id
             url
@@ -134,7 +135,7 @@ export default function Favorites() {
           data={data.me.likedProjects}
           renderItem={({ item }) => (
             <ProjectCard
-              showHeart={item.user.id != data.me.id}
+              showHeart={item.user.id !== data.me.id}
               project={item}
             />
           )}

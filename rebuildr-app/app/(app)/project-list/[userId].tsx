@@ -24,6 +24,7 @@ const GET_PROJECTS = gql`
         }
         products {
           id
+          status
           primaryImage {
             id
             url
@@ -70,7 +71,7 @@ export default function ProjectsPage() {
             return (
               <ProjectCard
                 key={index}
-                showHeart={project.user.id != me?.id}
+                showHeart={project.user.id !== me?.id}
                 project={project}
               />
             );
