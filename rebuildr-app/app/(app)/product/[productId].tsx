@@ -36,6 +36,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
+import { SimilarProducts } from "@components/similar-products/similar-products";
 
 type StateType = {
   showCreateLabelModal: boolean;
@@ -477,6 +478,7 @@ export default function Product() {
             visibleItems={3}
           />
         )}
+        <SimilarProducts productId={productId} />
       </ScreenLayout>
       <BottomSheet
         ref={removeProductRef}

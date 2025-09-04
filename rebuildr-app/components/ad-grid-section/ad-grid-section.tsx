@@ -4,31 +4,40 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { Button } from "@components/buttons/button";
 import { SectionHeader } from "@components/sections/section-header";
 
-export const AdGridSection = ({
-  header,
-  products,
-  pagination,
-}: {
+type Props = {
   header?: string;
+  onHeaderPress?: () => void;
   products: ComponentProps<typeof AdGrid>[];
   pagination?: {
     onShowMore: () => void;
     loading: boolean;
     total: number;
   };
-}) => {
+};
+
+export const AdGridSection = ({
+  header,
+  onHeaderPress,
+  products,
+  pagination,
+}: Props) => {
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 48) / 2;
   return (
     <View style={{ gap: 24 }}>
-      {!!header && <SectionHeader>{header}</SectionHeader>}
+      {!!header && (
+        <SectionHeader
+          onPress={onHeaderPress ? () => onHeaderPress() : undefined}
+        >
+          {header}
+        </SectionHeader>
+      )}
       <View
         style={{
           flexDirection: "row",
           gap: 16,
           flexWrap: "wrap",
           paddingBottom: 16,
-          marginTop: 16,
         }}
       >
         {products.map((product) => (

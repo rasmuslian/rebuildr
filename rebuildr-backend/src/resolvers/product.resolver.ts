@@ -308,19 +308,22 @@ export class ProductsInput {
 }
 
 @ObjectType()
-export class ProductsResponse {
+export class PaginatedProductsResponse {
   @Field(() => [Product])
   products: Product[];
 
+  @Field(() => Int)
+  total: number;
+}
+
+@ObjectType()
+export class ProductsResponse extends PaginatedProductsResponse {
   @Field(() => LocationResponse, {
     nullable: true,
     description:
       'If address or location is supplied to Products(), this will have corresponding coordinates',
   })
   origin?: LocationResponse;
-
-  @Field(() => Int)
-  total: number;
 }
 
 @InputType()
@@ -396,6 +399,12 @@ class DeliveryOptionResponse {
 
   @Field({ nullable: true })
   postalCode?: string;
+}
+
+@InputType()
+export class SimilarProductsInput {
+  @Field()
+  similarToProductId: string;
 }
 
 @Resolver(() => Product)
@@ -668,5 +677,14 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     return await productLoaders.getReportProducts.load(product.id);
+  }
+
+  @ResolveField(() => PaginatedProductsResponse)
+  async similarProducts(
+    @Parent() product: Product,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
+    return await this.productService.similarProducts(product.id, limit, offset);
   }
 }
