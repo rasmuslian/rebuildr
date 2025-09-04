@@ -56,7 +56,8 @@ export class ProjectLoader {
         .where('p."projectId" IN (:...projectIds)', { projectIds })
         .andWhere('p.status NOT IN (:...excludedStatuses)', {
           excludedStatuses: [ProductStatus.DELETED, ProductStatus.DRAFT],
-        });
+        })
+        .orderBy('p."status", p."createdAt"');
 
       if (searchString && searchString.length > 0) {
         query

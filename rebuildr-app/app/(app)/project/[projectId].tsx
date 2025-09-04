@@ -92,9 +92,9 @@ export default function ProjectPage() {
     <ScreenLayout
       headerComponent={
         <SearchBar
-          onPressArrow={() => {
-            router.canGoBack() ? router.back() : router.navigate("/");
-          }}
+          onPressArrow={() =>
+            router.canGoBack() ? router.back() : router.navigate("/")
+          }
           ctas={ctsa}
           placeholder="Vad letar du efter?"
           onChange={onSearch}
@@ -223,7 +223,7 @@ export default function ProjectPage() {
                     id={product.id}
                     imageUri={product.primaryImage?.url}
                     liked={!!product.likedByMe}
-                    heart={project?.user.id != me?.id}
+                    heart={project?.user.id !== me?.id}
                     quantity={product.primaryQuantity}
                     quantityUnit={product.primaryUnit}
                     condition={product.condition}

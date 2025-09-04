@@ -488,6 +488,8 @@ export class PurchaseService {
       );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
+    product.status = ProductStatus.SOLD;
+    const savedProduct = this.productRepository.save(product);
 
     logger.info({
       message: 'Purchase created',
@@ -497,7 +499,7 @@ export class PurchaseService {
 
     return {
       purchase: savedPurchase,
-      product: product,
+      product: savedProduct,
       swishToken: payment?.paymentMethodData?.token,
       reference: payment?.reference,
       trustlyUrl: payment?.paymentMethodData?.paymentUri,
@@ -852,11 +854,12 @@ export class PurchaseService {
         );
       }
     }
+    purchase.product.status = ProductStatus.PUBLISHED;
+    await this.productRepository.save(purchase.product);
+
     purchase.failedAt = new Date();
     purchase.abortedById = currentUserId;
-    await this.purchaseRepository.save(purchase);
-
-    return purchase;
+    return await this.purchaseRepository.save(purchase);
   }
 
   //----------- PAUSE functions -----------------------
@@ -1277,6 +1280,8 @@ export class PurchaseService {
         }
 
         if (boughtForFree) {
+          purchase.product.status = ProductStatus.PUBLISHED;
+          await this.productRepository.save(purchase.product);
           purchase.failedAt = new Date();
           return await this.purchaseRepository.save(purchase);
         }
@@ -1464,6 +1469,10 @@ export class PurchaseService {
         'PaymentFailed: No purchase found with id: ' + payload.paymentId,
       );
     }
+    await this.productRepository.update(
+      { id: purchase.productId },
+      { status: ProductStatus.PUBLISHED },
+    );
     await this.purchaseRepository.remove(purchase);
     if (purchase.rockerOfferId) {
       this.rockerService.deleteOffer(purchase.rockerOfferId);
@@ -1491,6 +1500,10 @@ export class PurchaseService {
       );
       purchase.pausedAt = null;
     }
+    await this.productRepository.update(
+      { id: purchase.productId },
+      { status: ProductStatus.PUBLISHED },
+    );
     purchase.failedAt = new Date(payload.timestamp);
     purchase.refundId = payload.refundId;
     await this.purchaseRepository.save(purchase);

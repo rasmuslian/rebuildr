@@ -125,6 +125,7 @@ const PRODUCT_VIEW_FRAGMENT = gql`
       }
       products {
         id
+        status
         primaryImage {
           id
           url
@@ -436,7 +437,7 @@ export default function Product() {
                 />
               </View>
               <ProjectCard
-                showHeart={data.me?.id != product.project.user.id}
+                showHeart={data.me?.id !== product.project.user.id}
                 project={product.project}
               />
             </View>
