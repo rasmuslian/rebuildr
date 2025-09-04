@@ -20,6 +20,7 @@ export const PRODUCT_PREVIEW_FRAGMENT = gql`
   fragment ProductPreviewFragment on Product {
     id
     title
+    status
     description
     price
     isGiveaway
@@ -187,7 +188,7 @@ export const PreviewScreen = ({
         </View>
       }
     >
-      <ImageCarousel images={dbProduct.images} />
+      <ImageCarousel images={dbProduct.images} status={dbProduct.status} />
       <MainContent
         product={dbProduct}
         project={dbProduct.project ?? undefined}

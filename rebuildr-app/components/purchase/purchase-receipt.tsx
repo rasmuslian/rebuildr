@@ -47,6 +47,7 @@ export const PURCHASE_RECEIPT = gql`
       }
       product {
         id
+        status
         title
         price
         deliveryPrice
@@ -113,7 +114,10 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
 
   return (
     <View style={{ gap: 24 }}>
-      <ImageCarousel images={data.purchase.product.images} />
+      <ImageCarousel
+        images={data.purchase.product.images}
+        status={data.purchase.product.status}
+      />
       <View style={{ gap: 16 }}>
         <Title size="large">{data.purchase.product.title}</Title>
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
