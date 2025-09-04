@@ -233,7 +233,7 @@ export default function Product() {
   const isMyProduct = me?.id === product.seller.id;
 
   const otherProducts = product.seller.products.filter(
-    (product) => product.id !== product.id,
+    (product) => product.id !== productId,
   );
 
   const buyButtonDisabled =
@@ -343,7 +343,7 @@ export default function Product() {
         }
         style={{ gap: 24, marginTop: 8 }}
       >
-        <ImageCarousel images={product.images} />
+        <ImageCarousel images={product.images} status={product.status} />
         <MainContent
           product={product}
           project={product.project ?? undefined}

@@ -5,14 +5,16 @@ import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { View } from "react-native";
-import { Product } from "@/gql/graphql";
+import { Product, ProductStatusEnum } from "@/gql/graphql";
 import { primitives } from "@constants/colors";
+import { ProductImageOverlay } from "@components/product/product-image-overlay";
 
 type Props = {
   images: Product["images"];
+  status: Product["status"];
 };
 
-export const ImageCarousel = ({ images }: Props) => {
+export const ImageCarousel = ({ images, status }: Props) => {
   const imageRef = useRef<BottomSheetModal>(null);
 
   const nrOfIndicators = Math.min(5, images.length);
@@ -29,6 +31,9 @@ export const ImageCarousel = ({ images }: Props) => {
           contentFit="cover"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
+        {status === ProductStatusEnum.Sold && (
+          <ProductImageOverlay text="Såld" />
+        )}
         {nrOfIndicators > 1 && (
           <View
             style={{

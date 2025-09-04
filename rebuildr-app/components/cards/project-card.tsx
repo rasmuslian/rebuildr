@@ -1,5 +1,5 @@
 import { Body, Label } from "@components/typography/text";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import { Pressable } from "react-native-gesture-handler";
@@ -9,6 +9,7 @@ import { useLikeProject } from "@hooks/useLikeProject";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { ProductStatusEnum } from "@/gql/graphql";
+import { ProductImageOverlay } from "@components/product/product-image-overlay";
 
 type Props = {
   showHeart: boolean;
@@ -152,19 +153,7 @@ const Product = ({ product, position }: ProductProps) => {
         }}
       />
       {product?.status === ProductStatusEnum.Sold && (
-        <View
-          style={{
-            ...StyleSheet.absoluteFillObject,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: overlayColor,
-            ...borderStyle,
-          }}
-        >
-          <Label size="large" style={{ color: "white" }}>
-            Såld
-          </Label>
-        </View>
+        <ProductImageOverlay text="Såld" style={borderStyle} />
       )}
     </View>
   );

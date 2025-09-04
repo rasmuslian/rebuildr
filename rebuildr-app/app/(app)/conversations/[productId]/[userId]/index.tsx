@@ -270,7 +270,7 @@ export default function ConversationProduct() {
             title={data.product.title}
             price={data.product.price}
             statusBadgeProps={statusBadgeProps}
-            status={ProductStatusEnum.Draft}
+            status={data.product.status}
             imageUrl={data.product.primaryImage?.url}
           />
         </View>

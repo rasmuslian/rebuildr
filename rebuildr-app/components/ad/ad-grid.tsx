@@ -1,8 +1,6 @@
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View } from "react-native";
 import { Image } from "expo-image";
-
 import { borderRadius } from "@constants/sizes";
-import { Label } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import DeletedProduct from "@assets/images/deleted-product.png";
@@ -11,6 +9,7 @@ import { ComponentProps } from "react";
 import { AdDescription } from "./ad-description";
 import { ProductStatusEnum } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
+import { ProductImageOverlay } from "@components/product/product-image-overlay";
 
 type Props = {
   id: string;
@@ -64,23 +63,7 @@ export const AdGrid = ({
           cachePolicy="memory-disk"
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
-        {!!overlayText && (
-          <View
-            style={
-              !!overlayText && {
-                ...StyleSheet.absoluteFillObject,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#00000080",
-                borderRadius: borderRadius.medium,
-              }
-            }
-          >
-            <Label size="large" style={{ color: "white" }}>
-              {overlayText}
-            </Label>
-          </View>
-        )}
+        {!!overlayText && <ProductImageOverlay text={overlayText} />}
       </View>
       {showHeart && (
         <Pressable
