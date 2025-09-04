@@ -35,6 +35,14 @@ export const MainContent = ({
     ? project.approximatePlace
     : product.approximatePlace;
 
+  const showSpecificsMeasurements =
+    product.width ||
+    product.height ||
+    product.thickness ||
+    product.length ||
+    product.weight;
+  const showSpecificsDocuments = !!product.documents?.length;
+
   return (
     <View style={{ gap: 24 }}>
       <View>
@@ -195,39 +203,43 @@ export const MainContent = ({
               </Body>
             )}
           </View>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Mått</Label>
-            {product.width && (
-              <Body size="medium">Bredd: {product.width} mm</Body>
-            )}
-            {product.height && (
-              <Body size="medium">Höjd: {product.height} mm</Body>
-            )}
-            {product.thickness && (
-              <Body size="medium">Djup: {product.thickness} mm</Body>
-            )}
-            {product.length && (
-              <Body size="medium">Längd: {product.length} mm</Body>
-            )}
-            {product.weight && (
-              <Body size="medium">Vikt: {product.weight} kg</Body>
-            )}
-          </View>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Dokument</Label>
-            <View style={{ gap: 16 }}>
-              {documents.map((document, i) => (
-                <Pressable
-                  onPress={() => Linking.openURL(document.url)}
-                  key={i}
-                >
-                  <Body size="medium" isLink>
-                    {document.name ?? "NO_NAME"}
-                  </Body>
-                </Pressable>
-              ))}
+          {showSpecificsMeasurements && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Mått</Label>
+              {product.width && (
+                <Body size="medium">Bredd: {product.width} mm</Body>
+              )}
+              {product.height && (
+                <Body size="medium">Höjd: {product.height} mm</Body>
+              )}
+              {product.thickness && (
+                <Body size="medium">Djup: {product.thickness} mm</Body>
+              )}
+              {product.length && (
+                <Body size="medium">Längd: {product.length} mm</Body>
+              )}
+              {product.weight && (
+                <Body size="medium">Vikt: {product.weight} kg</Body>
+              )}
             </View>
-          </View>
+          )}
+          {showSpecificsDocuments && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Dokument</Label>
+              <View style={{ gap: 16 }}>
+                {documents.map((document, i) => (
+                  <Pressable
+                    onPress={() => Linking.openURL(document.url)}
+                    key={i}
+                  >
+                    <Body size="medium" isLink>
+                      {document.name ?? "NO_NAME"}
+                    </Body>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </AccordionSection>
     </View>

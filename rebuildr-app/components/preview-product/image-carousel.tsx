@@ -1,34 +1,34 @@
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef } from "react";
+import { useState } from "react";
 import { Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
-import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { View } from "react-native";
-import { Product } from "@/gql/graphql";
+import { Product, ProductStatusEnum } from "@/gql/graphql";
 import { primitives } from "@constants/colors";
+import { ProductImageOverlay } from "@components/product/product-image-overlay";
+import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 
 type Props = {
   images: Product["images"];
+  status: Product["status"];
 };
 
-export const ImageCarousel = ({ images }: Props) => {
-  const imageRef = useRef<BottomSheetModal>(null);
+export const ImageCarousel = ({ images, status }: Props) => {
+  const [showImagesSheet, setShowImagesSheet] = useState(false);
 
   const nrOfIndicators = Math.min(5, images.length);
 
   return (
     <>
-      <Pressable
-        onPress={() => {
-          imageRef.current?.present();
-        }}
-      >
+      <Pressable onPress={() => setShowImagesSheet(true)}>
         <Image
           source={images[0]?.url}
           contentFit="cover"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
+        {status === ProductStatusEnum.Sold && (
+          <ProductImageOverlay text="Såld" />
+        )}
         {nrOfIndicators > 1 && (
           <View
             style={{
@@ -59,24 +59,11 @@ export const ImageCarousel = ({ images }: Props) => {
           </View>
         )}
       </Pressable>
-      <BottomSheet
-        ref={imageRef}
-        name="images"
-        title="Alla bilder"
-        scrollable
-        screenHeight
-      >
-        <View style={{ gap: 16, marginTop: 16, flex: 1, height: "100%" }}>
-          {images.map((image, i) => (
-            <Image
-              key={i}
-              source={image.url}
-              style={{ minHeight: 230 }}
-              contentFit="contain"
-            />
-          ))}
-        </View>
-      </BottomSheet>
+      <AllImagesBottomSheet
+        images={images}
+        show={showImagesSheet}
+        onDismiss={() => setShowImagesSheet(false)}
+      />
     </>
   );
 };

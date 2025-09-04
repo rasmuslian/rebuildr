@@ -19,6 +19,7 @@ import {
   FileInputType,
   GetTransportationOptionsInput,
   OrderProductsEnum,
+  PaginatedProductsResponse,
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
@@ -1047,5 +1048,31 @@ export class ProductService {
       default:
         return [];
     }
+  }
+  async similarProducts(
+    similarToProductId: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<PaginatedProductsResponse> {
+    const query = this.productRepository.createQueryBuilder('p').innerJoin(
+      'category',
+      'c',
+      `c.id = p."categoryId" AND c."parentId" IN (
+          SELECT pc.id from product p
+            INNER JOIN category c ON c.id = p."categoryId"
+            INNER join category pc on pc.id = c."parentId"
+            WHERE p.id = '${similarToProductId}')`,
+    );
+    query.addOrderBy('p.createdAt', 'DESC');
+
+    const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
+    query.limit(safeLimit);
+    query.offset((offset ?? 0) * safeLimit);
+    const result = await query.getManyAndCount();
+
+    return {
+      products: result[0],
+      total: result[1],
+    };
   }
 }

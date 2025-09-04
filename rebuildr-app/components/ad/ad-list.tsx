@@ -4,8 +4,8 @@ import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import { ProductStatusEnum } from "@/gql/graphql";
 import DeletedProduct from "@assets/images/deleted-product.png";
-import { View, StyleSheet } from "react-native";
-import { Label } from "@components/typography/text";
+import { View } from "react-native";
+import { ProductImageOverlay } from "@components/product/product-image-overlay";
 type Props = {
   imageUrl?: string;
   status?: ProductStatusEnum;
@@ -39,19 +39,7 @@ export const AdList = ({
           }}
         />
         {status === ProductStatusEnum.Sold && (
-          <View
-            style={{
-              ...StyleSheet.absoluteFillObject,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "#00000080",
-              borderRadius: borderRadius.medium,
-            }}
-          >
-            <Label size="large" style={{ color: "white" }}>
-              Såld
-            </Label>
-          </View>
+          <ProductImageOverlay text="Såld" />
         )}
       </View>
     </View>

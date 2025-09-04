@@ -36,6 +36,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
+import { SimilarProducts } from "@components/similar-products/similar-products";
 
 type StateType = {
   showCreateLabelModal: boolean;
@@ -233,7 +234,7 @@ export default function Product() {
   const isMyProduct = me?.id === product.seller.id;
 
   const otherProducts = product.seller.products.filter(
-    (product) => product.id !== product.id,
+    (product) => product.id !== productId,
   );
 
   const buyButtonDisabled =
@@ -343,7 +344,7 @@ export default function Product() {
         }
         style={{ gap: 24, marginTop: 8 }}
       >
-        <ImageCarousel images={product.images} />
+        <ImageCarousel images={product.images} status={product.status} />
         <MainContent
           product={product}
           project={product.project ?? undefined}
@@ -477,6 +478,7 @@ export default function Product() {
             visibleItems={3}
           />
         )}
+        <SimilarProducts productId={productId} />
       </ScreenLayout>
       <BottomSheet
         ref={removeProductRef}

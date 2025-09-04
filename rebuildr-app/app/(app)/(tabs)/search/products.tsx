@@ -251,9 +251,9 @@ export default function Products() {
           <SearchBar
             placeholder="Vad letar du efter?"
             onFocus={() => router.navigate("/(app)/(tabs)/search")}
-            onPressArrow={() => {
-              router.canGoBack() ? router.back() : router.navigate("/");
-            }}
+            onPressArrow={() =>
+              router.canGoBack() ? router.back() : router.navigate("/")
+            }
           />
         }
       >
@@ -316,7 +316,7 @@ export default function Products() {
               },
               price: product.price,
               status: product.status,
-              heart: product.seller.id != data.me?.id,
+              heart: product.seller.id !== data.me?.id,
               liked: !!product.likedByMe,
               onHeartPress: () => {
                 onToggleProductHeart({
