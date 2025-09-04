@@ -1,17 +1,15 @@
 import { Avatar } from "@components/avatar/avatar";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Label, Title } from "@components/typography/text";
+import { Body } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import dayjs from "dayjs";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
 import { ReactNode, useState } from "react";
-import { Badge } from "@components/badges/badge";
-import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import {
@@ -26,7 +24,6 @@ import {
   MarkConversationAsReadMutation,
   MarkConversationAsReadMutationVariables,
   MessageTypeEnum,
-  ProductStatusEnum,
 } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
