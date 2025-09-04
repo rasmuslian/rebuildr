@@ -47,7 +47,7 @@ export const ScreenLayout = ({
         ref={scrollRef}
         onContentSizeChange={() => {
           if (onContentSizeChange === "scrollToBottom") {
-            scrollRef.current?.scrollToEnd({ animated: true });
+            scrollRef.current?.scrollToEnd({ animated: false });
           }
         }}
       >
