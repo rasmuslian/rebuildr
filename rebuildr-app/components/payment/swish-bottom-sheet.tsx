@@ -8,7 +8,6 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Divider } from "@components/dividers/divider";
 import { Display, Body } from "@components/typography/text";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useThemeColor } from "@hooks/useThemeColor";
 import { router } from "expo-router";
 import { useRef, useEffect } from "react";
 import { View } from "react-native";
@@ -41,7 +40,6 @@ export const SwishBottomSheet = ({
   show,
   onDismiss,
 }: SwishBottomSheetProps) => {
-  const colors = useThemeColor();
   const ref = useRef<BottomSheetModal>(null);
   useQuery<PollSwishQuery, PollSwishQueryVariables>(POLL_SWISH, {
     variables: { input: { id: purchaseId } },
@@ -68,7 +66,13 @@ export const SwishBottomSheet = ({
   }, [show]);
 
   return (
-    <BottomSheet name="Swish" title="Bekräfta köp" ref={ref} screenHeight>
+    <BottomSheet
+      name="Swish"
+      title="Bekräfta köp"
+      ref={ref}
+      screenHeight
+      onDismiss={() => onDismiss()}
+    >
       <>
         <View style={{ gap: 24 }}>
           <View
