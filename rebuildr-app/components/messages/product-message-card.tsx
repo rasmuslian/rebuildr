@@ -46,13 +46,13 @@ export const ProductMessageCard = ({
       adListProps={adList}
       avatars={[
         {
-          userType: getOtherUser(messages[0]).type,
+          placeholder: getOtherUser(messages[0]).type,
           imageUrl: getOtherUser(messages[0]).profilePicture?.url,
         },
         ...(messages[1]
           ? [
               {
-                userType: getOtherUser(messages[1]).type,
+                placeholder: getOtherUser(messages[1]).type,
                 imageUrl: getOtherUser(messages[1]).profilePicture?.url,
               },
             ]

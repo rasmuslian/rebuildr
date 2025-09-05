@@ -117,6 +117,7 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
       <ImageCarousel
         images={data.purchase.product.images}
         status={data.purchase.product.status}
+        displaySoldOverlay={false}
       />
       <View style={{ gap: 16 }}>
         <Title size="large">{data.purchase.product.title}</Title>

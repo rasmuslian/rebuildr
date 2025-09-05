@@ -13,7 +13,6 @@ import { ComponentProps } from "react";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { quantities } from "@constants/quantities";
 import { conditions } from "@constants/conditions";
-import { ProductImageOverlay } from "@components/product/product-image-overlay";
 
 type Props = {
   title: string;
@@ -78,9 +77,6 @@ export const ProductHeader = ({
               borderRadius: borderRadius.small,
             }}
           />
-          {status === ProductStatusEnum.Sold && (
-            <ProductImageOverlay text="Såld" />
-          )}
         </View>
       </View>
       <Divider />

@@ -11,9 +11,14 @@ import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 type Props = {
   images: Product["images"];
   status: Product["status"];
+  displaySoldOverlay?: boolean;
 };
 
-export const ImageCarousel = ({ images, status }: Props) => {
+export const ImageCarousel = ({
+  images,
+  status,
+  displaySoldOverlay = true,
+}: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
 
   const nrOfIndicators = Math.min(5, images.length);
@@ -26,7 +31,7 @@ export const ImageCarousel = ({ images, status }: Props) => {
           contentFit="cover"
           style={{ height: 383, borderRadius: borderRadius.medium }}
         />
-        {status === ProductStatusEnum.Sold && (
+        {status === ProductStatusEnum.Sold && displaySoldOverlay && (
           <ProductImageOverlay text="Såld" />
         )}
         {nrOfIndicators > 1 && (

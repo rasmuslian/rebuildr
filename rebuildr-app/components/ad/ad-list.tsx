@@ -5,7 +5,7 @@ import { borderRadius } from "@constants/sizes";
 import { ProductStatusEnum } from "@/gql/graphql";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { View } from "react-native";
-import { ProductImageOverlay } from "@components/product/product-image-overlay";
+
 type Props = {
   imageUrl?: string;
   status?: ProductStatusEnum;
@@ -38,9 +38,6 @@ export const AdList = ({
             borderRadius: borderRadius.small,
           }}
         />
-        {status === ProductStatusEnum.Sold && (
-          <ProductImageOverlay text="Såld" />
-        )}
       </View>
     </View>
   );

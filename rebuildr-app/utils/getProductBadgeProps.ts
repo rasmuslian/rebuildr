@@ -18,9 +18,6 @@ export const getProductBadgeProps = (
   if (productStatus === ProductStatusEnum.Deleted) {
     return { text: "Borttagen annons", disabled: true };
   }
-  if (productStatus === ProductStatusEnum.Sold) {
-    return { text: "Såld annons", disabled: true };
-  }
 
   if (!purchase) {
     return null;
