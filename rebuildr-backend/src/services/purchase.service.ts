@@ -489,7 +489,8 @@ export class PurchaseService {
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
     product.status = ProductStatus.SOLD;
-    const savedProduct = this.productRepository.save(product);
+    product.purchases = [...product.purchases, savedPurchase];
+    const savedProduct = await this.productRepository.save(product);
 
     logger.info({
       message: 'Purchase created',

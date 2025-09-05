@@ -1,6 +1,7 @@
 import {
   ProductRemoveProductMutation,
   ProductRemoveProductMutationVariables,
+  ProductStatusEnum,
   ProductViewQuery,
   ProductViewQueryVariables,
   UserType,
@@ -237,8 +238,7 @@ export default function Product() {
     (product) => product.id !== productId,
   );
 
-  const buyButtonDisabled =
-    !me || me.type === UserType.Business || product.hasOngoingPurchase;
+  const buyButtonDisabled = !me || me.type === UserType.Business;
 
   const printProductLabel = async () => {
     if (Platform.OS === "web") {
@@ -318,16 +318,18 @@ export default function Product() {
               </>
             ) : (
               <>
-                <Button
-                  label="Köp nu"
-                  onPress={() => {
-                    router.navigate({
-                      pathname: "/buy/[productId]",
-                      params: { productId },
-                    });
-                  }}
-                  disabled={buyButtonDisabled}
-                />
+                {data.product.status === ProductStatusEnum.Published && (
+                  <Button
+                    label="Köp nu"
+                    onPress={() => {
+                      router.navigate({
+                        pathname: "/buy/[productId]",
+                        params: { productId },
+                      });
+                    }}
+                    disabled={buyButtonDisabled}
+                  />
+                )}
                 <Button
                   label="Kontakta säljaren"
                   type="tonal"

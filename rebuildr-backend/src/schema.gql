@@ -530,7 +530,7 @@ type Query {
   popularCategories(input: PopularCategoriesInput): [Category!]!
   getConversation(input: GetConversationInput!): [Message!]!
   getConversations(input: GetConversationsInput!): [Message!]!
-  getUnreadMessagesCount: Int!
+  getUnreadConversationsCount: Int!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!

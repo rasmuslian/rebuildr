@@ -222,13 +222,17 @@ export class MessageService {
     return await this.messageRepository.save(unreadMessages);
   }
 
-  async getUnreadMessagesCount(userId: string) {
-    return await this.messageRepository.count({
-      where: {
-        receiver: { id: userId },
-        readAt: IsNull(),
-      },
-    });
+  async getUnreadConversationsCount(currentUserId: string) {
+    const conversations = await this.getConversations(
+      { type: GetConversationsType.BUYING_AND_SELLING },
+      currentUserId,
+    );
+    const totalUnread = conversations.reduce(
+      (acc, curr) =>
+        acc + (curr.senderId !== currentUserId && !curr.readAt ? 1 : 0),
+      0,
+    );
+    return totalUnread;
   }
 
   async deleteMany(messages: Message[]) {

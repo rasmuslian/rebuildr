@@ -103,11 +103,11 @@ export class MessageResolver {
 
   @Query(() => Int)
   @UseGuards(GqlOptionalAuthGuard)
-  async getUnreadMessagesCount(@CurrentUser() user?: User) {
+  async getUnreadConversationsCount(@CurrentUser() user?: User) {
     if (!user) {
       return 0;
     }
-    return await this.messageService.getUnreadMessagesCount(user.id);
+    return await this.messageService.getUnreadConversationsCount(user.id);
   }
 
   @Mutation(() => Message)
