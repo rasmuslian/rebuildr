@@ -12,7 +12,7 @@ import { Pressable, View } from "react-native";
 
 export const TAB_LAYOUT = gql`
   query TabLayout {
-    getUnreadMessagesCount
+    getUnreadConversationsCount
   }
 `;
 
@@ -120,7 +120,7 @@ export default function TabLayout() {
               "message",
               props.href,
               true,
-              data?.getUnreadMessagesCount,
+              data?.getUnreadConversationsCount,
             ),
         }}
       />
