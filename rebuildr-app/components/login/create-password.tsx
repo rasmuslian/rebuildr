@@ -22,6 +22,14 @@ const PasswordReuirementText: { [key in PasswordRequirementEnum]: string } = {
   REPEAT: "Inte mer än två upprepande tecken i rad",
 };
 
+const initalValidationResult: PasswordValidationType = {
+  ENOUGH_CHARS: null,
+  UPPER_CASE: null,
+  LOWER_CASE: null,
+  NON_LETTER: null,
+  REPEAT: null,
+};
+
 type Props = {
   password: string;
   onChangePassword: (password: string) => void;
@@ -36,15 +44,15 @@ export const CreatePassword = ({
   loading,
 }: Props) => {
   const [pwValidationResult, setPwValidationResult] =
-    useState<PasswordValidationType>({
-      ENOUGH_CHARS: null,
-      UPPER_CASE: null,
-      LOWER_CASE: null,
-      NON_LETTER: null,
-      REPEAT: null,
-    });
+    useState<PasswordValidationType>(initalValidationResult);
 
   const onChange = (password: string) => {
+    if (!password) {
+      onChangePassword(password);
+      setPwValidationResult(initalValidationResult);
+      onChangeValidity(false);
+      return;
+    }
     const nonLetterRegex = new RegExp(/[!@#$%^&*(),.?":{}|<>\d]/);
     const repeatingRegex = new RegExp(/(.)\1{2,}/);
     const validationResult: PasswordValidationType = {
