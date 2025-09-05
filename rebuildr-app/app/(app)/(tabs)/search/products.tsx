@@ -278,7 +278,14 @@ export default function Products() {
           <SubCategoriesList id={filter.selectedCategoryId} />
         )}
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
           <Body size="medium" style={{ flex: 1 }} color="secondary">
             {data?.products.total ?? 0}{" "}
             {data?.products.total === 1 ? "träff" : "träffar"}:
