@@ -141,7 +141,9 @@ export default function Favorites() {
           )}
           title={showHeader ? "Favoritprojekt" : ""}
           onPress={() => {
-            //TODO: navigate to projects page
+            router.navigate({
+              pathname: "/account/favorites/projects",
+            });
           }}
           visibleItems={2}
         />

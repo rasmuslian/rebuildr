@@ -5,7 +5,7 @@ export default function AccountLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
-      <Stack.Screen name="favorites/index" options={{ headerShown: false }} />
+      <Stack.Screen name="favorites" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="purchases" options={{ headerShown: false }} />
       <Stack.Screen name="sales" options={{ headerShown: false }} />
