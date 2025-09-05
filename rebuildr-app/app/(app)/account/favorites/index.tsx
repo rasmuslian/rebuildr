@@ -165,7 +165,7 @@ export default function Favorites() {
                 location: product.approximatePlace?.address,
               },
               price: product.price,
-              heart: product.seller.id != data.me.id,
+              heart: product.seller.id !== data.me.id,
               liked: !!product.likedByMe,
               onHeartPress: () => {
                 onToggleProductHeart({
