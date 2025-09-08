@@ -8,14 +8,15 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
-import { useWindowDimensions, View } from "react-native";
-import WebView from "react-native-webview";
+import { View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 const SHIPPING_CODE = gql`
   query ShippingCode($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
       qrCodeUrl
+      qrCodeContent
     }
   }
 `;
@@ -28,21 +29,21 @@ export default function ShippingCode() {
       variables: { input: { id: purchaseId } },
     },
   );
-  const { width } = useWindowDimensions();
-
-  const qrCodeUrl = data?.purchase.qrCodeUrl;
+  const qrCodeContent = data?.purchase.qrCodeContent;
 
   return (
     <ScreenLayout headerComponent={<Header title="Visa QR-kod" />}>
       <View style={{ gap: 24 }}>
-        {data && qrCodeUrl ? (
-          <View style={{ flex: 1, padding: 16 }}>
-            <WebView
-              source={{ uri: qrCodeUrl }}
-              style={{ width: width - 32 }}
-              // onLoadStart={() => setLoadingQr(true)}
-              // onLoadEnd={() => setLoadingQr(false)}
-            />
+        {data && qrCodeContent ? (
+          <View
+            style={{
+              flex: 1,
+              padding: 16,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <QRCode value={qrCodeContent} size={250} />
           </View>
         ) : (
           <LoadingSpinner />
