@@ -18,6 +18,14 @@ export const HoriztalListSection = <T,>({
 }: Props<T>) => {
   const { width: screenWidth } = useWindowDimensions();
 
+  const singleItem = data.length === 1;
+  let widthMultiplier = 0.4;
+  if (visibleItems === 2) {
+    widthMultiplier = 0.75;
+  }
+  if (singleItem) {
+    widthMultiplier = 1;
+  }
   return (
     <View style={{ gap: 16 }}>
       <SectionHeader onPress={onPress}>{title}</SectionHeader>
@@ -30,7 +38,7 @@ export const HoriztalListSection = <T,>({
         renderItem={({ item }) => (
           <View
             style={{
-              width: (screenWidth - 32) * (visibleItems === 2 ? 0.75 : 0.4),
+              width: (screenWidth - 32) * widthMultiplier,
             }}
           >
             {renderItem({ item })}
