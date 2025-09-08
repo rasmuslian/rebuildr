@@ -358,15 +358,17 @@ export default function Product() {
         <Divider />
         <BuyersProtection />
         <AllImages images={product.images} />
-        {approximatePlace && product.pickupEnabled && (
-          <PickupPosition
-            address={approximatePlace.address}
-            location={{
-              lat: approximatePlace.lat,
-              lng: approximatePlace.lng,
-            }}
-          />
-        )}
+        {approximatePlace &&
+          product.pickupEnabled &&
+          product.status !== ProductStatusEnum.Sold && (
+            <PickupPosition
+              address={approximatePlace.address}
+              location={{
+                lat: approximatePlace.lat,
+                lng: approximatePlace.lng,
+              }}
+            />
+          )}
         <Divider />
         <View>
           <Body size="medium">
