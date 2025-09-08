@@ -36,8 +36,13 @@ export const PickupPosition = ({ address, location }: Props) => {
           Ungefärligt område. Adress visas först när ett köp har genomförts.
         </Body>
       </View>
-      <BottomSheet ref={mapRef} name="map" title="Plats för avhämtning">
-        <View style={{ marginTop: 16 }}>
+      <BottomSheet
+        ref={mapRef}
+        name="map"
+        title="Plats för avhämtning"
+        screenHeight
+      >
+        <View>
           <Map
             lat={location.lat}
             lng={location.lng}

@@ -257,8 +257,9 @@ export default function ProjectPage() {
         ref={showLocationRef}
         title="Plats för avhämtning"
         name="projectLocation"
+        screenHeight
       >
-        <View style={{ marginTop: 16 }}>
+        <View>
           {location && (
             <Map
               lat={location.lat}
