@@ -173,6 +173,14 @@ export class AuthResolver {
     return await this.authService.login(input, req);
   }
 
+  @Mutation(() => LoginResponse)
+  async cmsLogin(
+    @Args('input') input: LoginInput,
+    @Context('req') req: RequestType,
+  ) {
+    return await this.authService.cmsLogin(input, req);
+  }
+
   @Mutation(() => GetNewTokensResponse)
   async getNewTokens(@Args('input') input: GetNewTokensInput) {
     return this.authService.getNewTokens(input.accessToken, input.refreshToken);
