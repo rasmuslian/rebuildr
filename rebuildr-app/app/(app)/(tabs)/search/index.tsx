@@ -267,7 +267,10 @@ export default function Search() {
                 <Pressable
                   key={i}
                   onPress={() => {
-                    //TODO: Navigate to profile screen
+                    router.navigate({
+                      pathname: "/account/profile",
+                      params: { userId: user.id },
+                    });
                   }}
                 >
                   <View

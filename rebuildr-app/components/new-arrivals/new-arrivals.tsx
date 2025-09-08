@@ -116,7 +116,7 @@ export const NewArrivals = () => {
               id={item.id}
               imageUri={item.primaryImage?.url}
               liked={!!item.likedByMe}
-              heart={item.seller.id != data.me?.id}
+              heart={item.seller.id !== data.me?.id}
               quantity={item.primaryQuantity}
               quantityUnit={item.primaryUnit}
               condition={item.condition}
