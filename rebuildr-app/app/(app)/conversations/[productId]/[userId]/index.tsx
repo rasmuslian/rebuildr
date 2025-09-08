@@ -548,7 +548,10 @@ const ActionButtons = ({ data, onShowReview }: ActionButtonProps) => {
           <Button
             label="Visa QR-kod"
             onPress={() => {
-              //TODO: show qr-code
+              router.navigate({
+                pathname: "/account/sales/shipping-code",
+                params: { purchaseId: purchase.id },
+              });
             }}
           />
         );

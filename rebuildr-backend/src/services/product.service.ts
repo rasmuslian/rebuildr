@@ -177,7 +177,16 @@ export class ProductService {
       return false;
     }
 
-    //TODO: check that product does not have any ongoing purchases connected to it
+    const purchases = await this.purchaseRepository.find({
+      where: {
+        productId: product.id,
+        status: Not(PurchaseStatusEnum.FINISHED_FAILED),
+      },
+    });
+    if (purchases.length) {
+      return false;
+    }
+
     return true;
   }
 
