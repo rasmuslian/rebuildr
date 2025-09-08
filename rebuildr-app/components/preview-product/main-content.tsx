@@ -83,11 +83,10 @@ export const MainContent = ({
               {!sellerIsMe && (
                 <>
                   <Body size="medium" color="secondary">
-                    {" "}
                     till{" "}
                   </Body>
                   <Body size="medium" isLink>
-                    {myAddress}
+                    {myAddress}{" "}
                   </Body>
                 </>
               )}
