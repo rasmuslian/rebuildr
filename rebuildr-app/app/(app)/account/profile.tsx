@@ -366,7 +366,6 @@ export default function Profile() {
                 total: productsData.products.total,
               }}
             />
-            <Divider />
           </>
         ) : (
           <EmptyStateCard {...emptyState} />
