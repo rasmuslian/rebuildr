@@ -10,6 +10,7 @@ import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { ProductStatusEnum } from "@/gql/graphql";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
+import { primitives } from "@constants/colors";
 
 type Props = {
   showHeart: boolean;
@@ -117,8 +118,6 @@ type ProductProps = {
   position: "left" | "up" | "down";
 };
 const Product = ({ product, position }: ProductProps) => {
-  const overlayColor = "#00000080";
-
   let borderStyle = {};
   if (position === "down") {
     borderStyle = { borderBottomRightRadius: borderRadius.medium };
@@ -139,19 +138,31 @@ const Product = ({ product, position }: ProductProps) => {
         ...borderStyle,
       }}
     >
-      <Image
-        source={
-          product?.primaryImage?.url
-            ? {
-                uri: product.primaryImage.url,
-              }
-            : undefined
-        }
-        style={{
-          aspectRatio: 1,
-          ...borderStyle,
-        }}
-      />
+      {product?.primaryImage?.url ? (
+        <Image
+          source={
+            product?.primaryImage?.url
+              ? {
+                  uri: product.primaryImage.url,
+                }
+              : undefined
+          }
+          style={{
+            aspectRatio: 1,
+            height: "100%",
+            ...borderStyle,
+          }}
+        />
+      ) : (
+        <View
+          style={{
+            aspectRatio: 1,
+            height: "100%",
+            backgroundColor: primitives.neutrals200,
+            ...borderStyle,
+          }}
+        />
+      )}
       {product?.status === ProductStatusEnum.Sold && (
         <ProductImageOverlay text="Såld" style={borderStyle} />
       )}
