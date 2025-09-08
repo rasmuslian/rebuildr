@@ -74,7 +74,11 @@ export default function ProjectPage() {
 
   if (isLoggedIn && !isMyProject && project) {
     ctsa.push({
-      icon: project.likedByMe ? "heartFilled" : "heart",
+      icon: {
+        icon: project.likedByMe ? "heart2Filled" : "heart2",
+        size: 18,
+        color: project.likedByMe ? "link" : undefined,
+      },
       onPress: () => {
         onToggleProjectHeart({
           projectId: project.id,

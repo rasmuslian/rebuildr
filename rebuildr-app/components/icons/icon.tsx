@@ -45,6 +45,8 @@ import { Hamburger } from "./hamburger";
 import { Instagram } from "./instagram";
 import { Linkedin } from "./linkedin";
 import { QrCode } from "./qrCode";
+import { Heart2 } from "./heart2";
+import { Heart2Filled } from "./heart2Filled";
 
 export type IconType =
   | "placeholder"
@@ -63,6 +65,8 @@ export type IconType =
   | "filterList"
   | "heart"
   | "heartFilled"
+  | "heart2"
+  | "heart2Filled"
   | "hamburger"
   | "instagram"
   | "linkedin"
@@ -164,6 +168,28 @@ export const Icon = ({
           color={color}
           style={props.style}
           strokeColor={_strokeColor}
+        />
+      );
+    }
+    case "heart2": {
+      const _strokeColor = strokeColor ? colors.text[strokeColor] : color;
+      return (
+        <Heart2
+          strokeColor={_strokeColor}
+          {...props}
+          size={size}
+          color={color}
+        />
+      );
+    }
+    case "heart2Filled": {
+      const _strokeColor = strokeColor ? colors.text[strokeColor] : color;
+      return (
+        <Heart2Filled
+          strokeColor={_strokeColor}
+          {...props}
+          size={size}
+          color={color}
         />
       );
     }

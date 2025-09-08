@@ -1,5 +1,5 @@
 import { useThemeColor } from "@hooks/useThemeColor";
-import React from "react";
+import React, { ComponentProps } from "react";
 
 import {
   ActivityIndicator,
@@ -17,7 +17,7 @@ import { borderRadius } from "@constants/sizes";
 export type ButtonProps = {
   type?: "filled" | "danger" | "tonal" | "text" | "outlined";
   iconPosition?: "left" | "right";
-  icon?: IconType;
+  icon?: IconType | ComponentProps<typeof Icon>;
   label?: string;
   loading?: boolean;
 } & PressableProps;
@@ -101,15 +101,25 @@ export const Button = ({
       );
     }
 
-    return (
-      <>
-        {icon && iconPosition == "left" && (
+    const renderIcon = () => {
+      if (!icon) {
+        return null;
+      }
+      if (typeof icon === "string") {
+        return (
           <Icon
             icon={icon}
             color={disabled ? "disabled" : typeColors[type].icon}
             size={18}
           />
-        )}
+        );
+      }
+      return <Icon {...icon} />;
+    };
+
+    return (
+      <>
+        {icon && iconPosition === "left" && renderIcon()}
         {label && (
           <Label
             size="large"
@@ -121,13 +131,7 @@ export const Button = ({
             {label}
           </Label>
         )}
-        {icon && iconPosition == "right" && (
-          <Icon
-            icon={icon}
-            color={disabled ? "disabled" : typeColors[type].icon}
-            size={18}
-          />
-        )}
+        {icon && iconPosition === "right" && renderIcon()}
       </>
     );
   };
