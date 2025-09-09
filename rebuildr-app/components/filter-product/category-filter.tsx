@@ -28,15 +28,6 @@ export const CategoryFilter = () => {
     CATEGORY_FILTER,
     {
       variables: { input: { parentIds: filter.rootCategoryIds } },
-      onCompleted: (data) => {
-        if (!filter.rootCategoryIds) {
-          return;
-        }
-        const remainingCategoryIds = filter.categoryIds?.filter((id) =>
-          data.getCategories.some((category) => category.id === id),
-        );
-        setCategories({ categoryIds: remainingCategoryIds ?? [] });
-      },
     },
   );
 
@@ -48,9 +39,13 @@ export const CategoryFilter = () => {
     filter.categoryIds?.some((id) => id === category.id),
   );
 
+  const isSelectedCategoryCategory = selectedCategories?.some(
+    (c) => c.id === filter.selectedCategoryId,
+  );
+
   return (
     <FilterSection
-      initialOpen={!filter.rootCategoryIds || !!filter.rootCategoryIds.length}
+      initialOpen={!isSelectedCategoryCategory}
       title="Underkategori"
       collapsedText={
         selectedCategories?.length

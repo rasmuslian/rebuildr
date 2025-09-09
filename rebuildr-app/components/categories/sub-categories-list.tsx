@@ -58,7 +58,7 @@ export function SubCategoriesList({ id }: Props) {
               setCategories({
                 categoryIds: [categoryId],
                 rootCategoryIds: [id],
-                selectedCategoryId: id,
+                selectedCategoryId: categoryId,
               });
               router.navigate("/(app)/(tabs)/search/products");
             }}

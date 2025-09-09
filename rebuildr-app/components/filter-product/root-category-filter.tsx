@@ -12,6 +12,9 @@ const ROOT_CATEGORY_FILTER = gql`
     rootCategories {
       id
       name
+      children {
+        id
+      }
     }
   }
 `;
@@ -27,7 +30,7 @@ export const RootCategoryFilter = () => {
 
   return (
     <FilterSection
-      initialOpen
+      initialOpen={!filter.selectedCategoryId}
       title="Kategori"
       collapsedText={
         selectedCategories?.length
@@ -59,7 +62,7 @@ export const RootCategoryFilter = () => {
           <Pressable
             key={i}
             onPress={() => {
-              toggleRootCategory(category.id);
+              toggleRootCategory(category);
             }}
           >
             <View

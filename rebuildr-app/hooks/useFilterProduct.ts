@@ -1,5 +1,5 @@
 import { productFilterVar } from "@/apollo/config";
-import { OrderProductsEnum } from "@/gql/graphql";
+import { Category, OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
 
@@ -38,32 +38,43 @@ export const useFilterProduct = () => {
     });
   };
 
-  const toggleRootCategory = (id: string) => {
+  const toggleRootCategory = (
+    category: Pick<Category, "id"> & { children: Pick<Category, "id">[] },
+  ) => {
     //we go from all selected to one. Reset categoryIds
     if (!filter.rootCategoryIds) {
+      //if categoryIds are already selected, deselect those that are not children to this root. leave undefined if it already is undefined
+      const newCategoryIds = filter.categoryIds?.filter((id) =>
+        category.children.some((child) => child.id === id),
+      );
       productFilterVar({
         ...filter,
-        rootCategoryIds: [id],
-        categoryIds: undefined,
+        rootCategoryIds: [category.id],
+        categoryIds: newCategoryIds,
         selectedCategoryId: undefined,
       });
       return;
     }
-    const currentCategory = filter.rootCategoryIds?.find(
-      (categoryId) => categoryId === id,
+    const isSelected = filter.rootCategoryIds.some(
+      (categoryId) => categoryId === category.id,
     );
-    if (!currentCategory) {
+    if (!isSelected) {
       productFilterVar({
         ...filter,
         selectedCategoryId: undefined,
-        rootCategoryIds: [...filter.rootCategoryIds, id],
+        rootCategoryIds: [...filter.rootCategoryIds, category.id],
       });
     } else {
+      //Also remove all child categories of this root
+      const newCategoryIds = filter.categoryIds?.filter(
+        (id) => !category.children.some((c) => c.id === id),
+      );
       productFilterVar({
         ...filter,
         selectedCategoryId: undefined,
+        categoryIds: newCategoryIds,
         rootCategoryIds: filter.rootCategoryIds.filter(
-          (categoryId) => categoryId !== id,
+          (categoryId) => categoryId !== category.id,
         ),
       });
     }
