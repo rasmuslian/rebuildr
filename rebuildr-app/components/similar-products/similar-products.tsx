@@ -2,6 +2,7 @@ import React from "react";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { gql, useQuery } from "@apollo/client";
 import {
+  Category,
   SimilarProductsQuery,
   SimilarProductsQueryVariables,
 } from "@/gql/graphql";
@@ -43,6 +44,7 @@ const SIMILAR_PRODUCTS = gql`
           category {
             id
             name
+            parentId
           }
           approximatePlace {
             address
@@ -118,15 +120,19 @@ export function SimilarProducts({ productId }: Props) {
     <AdGridSection
       header="Du kanske gillar"
       onHeaderPress={() => {
-        const categoryIds: string[] = [];
+        const categories = products
+          .filter((p) => !!p.category)
+          .map((p) => p.category as Category);
 
-        products?.forEach((product) => {
-          if (product.category?.id) {
-            categoryIds.push(product.category.id);
-          }
+        const rootCategoryIds = categories
+          .filter((c) => !!c?.parentId)
+          .map((c) => c?.parentId as string);
+
+        setCategories({
+          categoryIds: categories.map((c) => c.id),
+          rootCategoryIds,
         });
 
-        setCategories(categoryIds);
         router.navigate("/(app)/(tabs)/search/products");
       }}
       products={products}

@@ -46,16 +46,20 @@ export function SubCategoriesList({ id }: Props) {
           display: subCategories.length > 1 ? "flex" : "none",
         }}
       >
-        {subCategories.map(({ id, name, image }) => (
+        {subCategories.map(({ id: categoryId, name, image }) => (
           <TouchableOpacity
-            key={id}
+            key={categoryId}
             style={{
               width,
               alignItems: "center",
               gap: 8,
             }}
             onPress={() => {
-              setCategories([id], id);
+              setCategories({
+                categoryIds: [categoryId],
+                rootCategoryIds: [id],
+                selectedCategoryId: id,
+              });
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >

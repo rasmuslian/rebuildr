@@ -44,7 +44,10 @@ export function RootCategoriesVertical() {
           >
             <TouchableOpacity
               onPress={() => {
-                setCategories([id], id);
+                setCategories({
+                  rootCategoryIds: [id],
+                  selectedCategoryId: id,
+                });
                 router.navigate("/(app)/(tabs)/search/products");
               }}
               style={{

@@ -15,6 +15,7 @@ const CATEGORY_FILTER = gql`
   query CategoryFilter($input: GetCategoriesInput!) {
     getCategories(input: $input) {
       id
+      parentId
       name
     }
   }
@@ -31,11 +32,10 @@ export const CategoryFilter = () => {
         if (!filter.rootCategoryIds) {
           return;
         }
-        setCategories(
-          filter.categoryIds?.filter((id) =>
-            data.getCategories.some((category) => category.id === id),
-          ) ?? [],
+        const remainingCategoryIds = filter.categoryIds?.filter((id) =>
+          data.getCategories.some((category) => category.id === id),
         );
+        setCategories({ categoryIds: remainingCategoryIds ?? [] });
       },
     },
   );

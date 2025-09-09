@@ -7,6 +7,7 @@ import {
   RecommendedProductsQuery,
   RecommendedProductsQueryVariables,
   ProductsRecommendationSourceEnum,
+  Category,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
 import { SectionHeader } from "@components/sections/section-header";
@@ -47,6 +48,7 @@ const RECOMMENDED_PRODUCTS = gql`
         category {
           id
           name
+          parentId
         }
         approximatePlace {
           address
@@ -90,15 +92,18 @@ export function RecommendedProducts({ title, source }: Props) {
     <View style={{ gap: 16, paddingTop: 16 }}>
       <SectionHeader
         onPress={() => {
-          const categoryIds: string[] = [];
+          const categories = products
+            .filter((p) => !!p.category)
+            .map((p) => p.category as Category);
 
-          products?.forEach((product) => {
-            if (product.category?.id) {
-              categoryIds.push(product.category.id);
-            }
+          const rootCategoryIds = categories
+            .filter((c) => !!c?.parentId)
+            .map((c) => c?.parentId as string);
+
+          setCategories({
+            categoryIds: categories.map((c) => c.id),
+            rootCategoryIds,
           });
-
-          setCategories(categoryIds);
           router.navigate("/(app)/(tabs)/search/products");
         }}
       >

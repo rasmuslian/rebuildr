@@ -33,7 +33,7 @@ export function SubCategoriesVertical({ id }: Props) {
         label="Visa alla annonser"
         onPress={() => {
           const categoryIds = categories.map((category) => category.id);
-          setCategories(categoryIds, category?.id);
+          setCategories({ categoryIds, selectedCategoryId: category?.id });
           router.navigate("/(app)/(tabs)/search/products");
         }}
         style={{ marginBottom: 24 }}
@@ -43,10 +43,14 @@ export function SubCategoriesVertical({ id }: Props) {
         showsHorizontalScrollIndicator={false}
         data={categories}
         contentContainerStyle={{ gap: 16 }}
-        renderItem={({ item: { id, image, name } }) => (
+        renderItem={({ item: { id: categoryId, image, name } }) => (
           <TouchableOpacity
             onPress={() => {
-              setCategories([id], id);
+              setCategories({
+                categoryIds: [categoryId],
+                rootCategoryIds: [id],
+                selectedCategoryId: id,
+              });
               router.navigate("/(app)/(tabs)/search/products");
             }}
             style={{

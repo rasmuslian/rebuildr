@@ -86,16 +86,18 @@ export const useFilterProduct = () => {
     });
   };
 
-  const setCategories = (ids: string[], selectedCategoryId?: string) => {
-    if (selectedCategoryId) {
-      productFilterVar({ ...filter, categoryIds: ids, selectedCategoryId });
-    } else {
-      productFilterVar({
-        ...filter,
-        categoryIds: ids,
-        selectedCategoryId: undefined,
-      });
-    }
+  const setCategories = (input: {
+    categoryIds?: string[];
+    rootCategoryIds?: string[];
+    selectedCategoryId?: string;
+  }) => {
+    const { categoryIds, rootCategoryIds, selectedCategoryId } = input;
+    productFilterVar({
+      ...filter,
+      categoryIds,
+      rootCategoryIds: rootCategoryIds ?? filter.rootCategoryIds,
+      selectedCategoryId: selectedCategoryId ?? undefined,
+    });
   };
 
   const toggleValue = (
