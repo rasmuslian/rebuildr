@@ -43,9 +43,9 @@ export function RootCategoriesHorizontal() {
           gap: 8,
         }}
       >
-        {categories.map(({ id, name, image }) => (
+        {categories.map((c) => (
           <TouchableOpacity
-            key={id}
+            key={c.id}
             style={{
               width: 80,
               alignItems: "center",
@@ -53,15 +53,15 @@ export function RootCategoriesHorizontal() {
             }}
             onPress={() => {
               setCategories({
-                rootCategoryIds: [id],
-                selectedCategoryId: id,
+                categories: [c],
+                selectedCategoryId: c.id,
               });
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <Avatar imageUrl={image?.url} size={60} placeholder="CATEGORY" />
+            <Avatar imageUrl={c.image?.url} size={60} placeholder="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
-              {name}
+              {c.name}
             </Label>
           </TouchableOpacity>
         ))}

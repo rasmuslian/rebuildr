@@ -45,19 +45,8 @@ export const ForTheSeason = () => {
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          const rootCategoryIds = categories.reduce((acc: string[], curr) => {
-            if (curr.parentId) {
-              return [...acc, curr.parentId];
-            }
-            return [...acc, curr.id];
-          }, []);
-          const childCategoryIds = categories
-            .filter((category) => !!category.parentId)
-            .map((c) => c.id);
-
           setCategories({
-            categoryIds: childCategoryIds,
-            rootCategoryIds,
+            categories,
           });
           router.navigate("/(app)/(tabs)/search/products");
         }}
@@ -81,19 +70,10 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              const parentId = category.parentId;
-              if (!parentId) {
-                setCategories({
-                  rootCategoryIds: [category.id],
-                  selectedCategoryId: category.id,
-                });
-              } else {
-                setCategories({
-                  categoryIds: [category.id],
-                  rootCategoryIds: [parentId],
-                  selectedCategoryId: category.id,
-                });
-              }
+              setCategories({
+                categories: [category],
+                selectedCategoryId: category.id,
+              });
               router.navigate("/(app)/(tabs)/search/products");
             }}
             source={category.image ? category.image.url : Placeholder.uri}

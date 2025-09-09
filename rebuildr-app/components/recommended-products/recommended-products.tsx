@@ -96,13 +96,8 @@ export function RecommendedProducts({ title, source }: Props) {
             .filter((p) => !!p.category)
             .map((p) => p.category as Category);
 
-          const rootCategoryIds = categories
-            .filter((c) => !!c?.parentId)
-            .map((c) => c?.parentId as string);
-
           setCategories({
-            categoryIds: categories.map((c) => c.id),
-            rootCategoryIds,
+            categories,
           });
           router.navigate("/(app)/(tabs)/search/products");
         }}

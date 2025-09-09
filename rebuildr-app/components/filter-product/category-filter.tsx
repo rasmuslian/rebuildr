@@ -22,8 +22,7 @@ const CATEGORY_FILTER = gql`
 `;
 
 export const CategoryFilter = () => {
-  const { filter, toggleValue, toggleAllCategories, setCategories } =
-    useFilterProduct();
+  const { filter, toggleValue, toggleAllCategories } = useFilterProduct();
   const { data } = useQuery<CategoryFilterQuery, CategoryFilterQueryVariables>(
     CATEGORY_FILTER,
     {

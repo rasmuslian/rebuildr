@@ -34,7 +34,7 @@ export function RootCategoriesVertical() {
         showsHorizontalScrollIndicator={false}
         data={categories}
         contentContainerStyle={{ gap: 16 }}
-        renderItem={({ item: { id, name, image } }) => (
+        renderItem={({ item: category }) => (
           <View
             style={{
               flexDirection: "row",
@@ -45,8 +45,8 @@ export function RootCategoriesVertical() {
             <TouchableOpacity
               onPress={() => {
                 setCategories({
-                  rootCategoryIds: [id],
-                  selectedCategoryId: id,
+                  categories: [category],
+                  selectedCategoryId: category.id,
                 });
                 router.navigate("/(app)/(tabs)/search/products");
               }}
@@ -57,19 +57,23 @@ export function RootCategoriesVertical() {
                 flex: 1,
               }}
             >
-              <Avatar imageUrl={image?.url} size={60} placeholder="CATEGORY" />
+              <Avatar
+                imageUrl={category.image?.url}
+                size={60}
+                placeholder="CATEGORY"
+              />
               <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
-                {name}
+                {category.name}
               </Headline>
             </TouchableOpacity>
 
             <Button
-              icon={"chevronRight"}
+              icon="chevronRight"
               type="text"
               onPress={() => {
                 router.navigate({
                   pathname: "/categories/[categoryId]",
-                  params: { categoryId: id, name: name },
+                  params: { categoryId: category.id, name: category.name },
                 });
               }}
             />

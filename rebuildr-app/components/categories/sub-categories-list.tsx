@@ -46,9 +46,9 @@ export function SubCategoriesList({ id }: Props) {
           display: subCategories.length > 1 ? "flex" : "none",
         }}
       >
-        {subCategories.map(({ id: categoryId, name, image }) => (
+        {subCategories.map((c) => (
           <TouchableOpacity
-            key={categoryId}
+            key={c.id}
             style={{
               width,
               alignItems: "center",
@@ -56,16 +56,15 @@ export function SubCategoriesList({ id }: Props) {
             }}
             onPress={() => {
               setCategories({
-                categoryIds: [categoryId],
-                rootCategoryIds: [id],
-                selectedCategoryId: categoryId,
+                categories: [c],
+                selectedCategoryId: c.id,
               });
               router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <Avatar imageUrl={image?.url} size={80} placeholder="CATEGORY" />
+            <Avatar imageUrl={c.image?.url} size={80} placeholder="CATEGORY" />
             <Label size="small" style={{ textAlign: "center" }}>
-              {name}
+              {c.name}
             </Label>
           </TouchableOpacity>
         ))}

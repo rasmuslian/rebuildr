@@ -9,6 +9,7 @@ export const SUB_CATEGORIES = gql`
       children {
         id
         name
+        parentId
         image {
           id
           url

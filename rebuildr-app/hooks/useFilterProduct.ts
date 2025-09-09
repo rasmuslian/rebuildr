@@ -98,15 +98,21 @@ export const useFilterProduct = () => {
   };
 
   const setCategories = (input: {
-    categoryIds?: string[];
-    rootCategoryIds?: string[];
+    categories: Pick<Category, "id" | "parentId">[];
     selectedCategoryId?: string;
   }) => {
-    const { categoryIds, rootCategoryIds, selectedCategoryId } = input;
+    const { categories, selectedCategoryId } = input;
+    const rootCategoryIds = categories.reduce(
+      (acc: string[], curr) => [...acc, curr.parentId ?? curr.id],
+      [],
+    );
+    const categoryIds = categories
+      .filter((c) => !!c.parentId)
+      .map((c) => c.id) as string[];
     productFilterVar({
       ...filter,
       categoryIds,
-      rootCategoryIds: rootCategoryIds ?? filter.rootCategoryIds,
+      rootCategoryIds,
       selectedCategoryId: selectedCategoryId ?? undefined,
     });
   };

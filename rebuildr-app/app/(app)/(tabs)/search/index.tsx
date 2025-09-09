@@ -155,10 +155,7 @@ export default function Search() {
                 key={i}
                 onPress={() => {
                   setCategories({
-                    categoryIds: [category.id],
-                    rootCategoryIds: category.parentId
-                      ? [category.parentId]
-                      : undefined,
+                    categories: [category],
                     selectedCategoryId: category.id,
                   });
                   router.navigate("/(app)/(tabs)/search/products");
