@@ -15,28 +15,18 @@ const CATEGORY_FILTER = gql`
   query CategoryFilter($input: GetCategoriesInput!) {
     getCategories(input: $input) {
       id
+      parentId
       name
     }
   }
 `;
 
 export const CategoryFilter = () => {
-  const { filter, toggleValue, toggleAllCategories, setCategories } =
-    useFilterProduct();
+  const { filter, toggleValue, toggleAllCategories } = useFilterProduct();
   const { data } = useQuery<CategoryFilterQuery, CategoryFilterQueryVariables>(
     CATEGORY_FILTER,
     {
       variables: { input: { parentIds: filter.rootCategoryIds } },
-      onCompleted: (data) => {
-        if (!filter.rootCategoryIds) {
-          return;
-        }
-        setCategories(
-          filter.categoryIds?.filter((id) =>
-            data.getCategories.some((category) => category.id === id),
-          ) ?? [],
-        );
-      },
     },
   );
 
@@ -48,9 +38,13 @@ export const CategoryFilter = () => {
     filter.categoryIds?.some((id) => id === category.id),
   );
 
+  const isSelectedCategoryCategory = selectedCategories?.some(
+    (c) => c.id === filter.selectedCategoryId,
+  );
+
   return (
     <FilterSection
-      initialOpen={!filter.rootCategoryIds || !!filter.rootCategoryIds.length}
+      initialOpen={!isSelectedCategoryCategory}
       title="Underkategori"
       collapsedText={
         selectedCategories?.length

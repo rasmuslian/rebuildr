@@ -1,4 +1,10 @@
-import { Category, File, Product, Project } from "@/gql/graphql";
+import {
+  Category,
+  File,
+  Product,
+  ProductStatusEnum,
+  Project,
+} from "@/gql/graphql";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -53,48 +59,50 @@ export const MainContent = ({
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
       </View>
-      <View>
-        <Headline size="large" style={{ marginBottom: 8 }}>
-          {product.price} kr
-        </Headline>
-        <View style={{ gap: 2 }}>
-          {product.pickupEnabled && (
-            <Body size="medium" color="secondary">
-              • Hämta själv:{" "}
-              <Body size="medium" isLink>
-                {approximatePlace?.address}
+      {product.status !== ProductStatusEnum.Sold && (
+        <View>
+          <Headline size="large" style={{ marginBottom: 8 }}>
+            {product.price} kr
+          </Headline>
+          <View style={{ gap: 2 }}>
+            {product.pickupEnabled && (
+              <Body size="medium" color="secondary">
+                • Hämta själv:{" "}
+                <Body size="medium" isLink>
+                  {approximatePlace?.address}
+                </Body>
               </Body>
-            </Body>
-          )}
-          {!!product.shippingPrices?.length && (
-            <Body size="medium" color="secondary">
-              • Fraktleverans från{" "}
-              {product.shippingPrices.reduce(
-                (acc: number | null, curr) =>
-                  acc ? (curr.price < acc ? curr.price : acc) : curr.price,
-                null,
-              )}{" "}
-              kr
-            </Body>
-          )}
-          {product.deliveryEnabled && (
-            <Body size="medium" color="secondary">
-              • Hemtransport{" "}
-              {!sellerIsMe && (
-                <>
-                  <Body size="medium" color="secondary">
-                    till{" "}
-                  </Body>
-                  <Body size="medium" isLink>
-                    {myAddress}{" "}
-                  </Body>
-                </>
-              )}
-              från {product.deliveryPrice ?? 0} kr
-            </Body>
-          )}
+            )}
+            {!!product.shippingPrices?.length && (
+              <Body size="medium" color="secondary">
+                • Fraktleverans från{" "}
+                {product.shippingPrices.reduce(
+                  (acc: number | null, curr) =>
+                    acc ? (curr.price < acc ? curr.price : acc) : curr.price,
+                  null,
+                )}{" "}
+                kr
+              </Body>
+            )}
+            {product.deliveryEnabled && (
+              <Body size="medium" color="secondary">
+                • Hemtransport{" "}
+                {!sellerIsMe && (
+                  <>
+                    <Body size="medium" color="secondary">
+                      till{" "}
+                    </Body>
+                    <Body size="medium" isLink>
+                      {myAddress}{" "}
+                    </Body>
+                  </>
+                )}
+                från {product.deliveryPrice ?? 0} kr
+              </Body>
+            )}
+          </View>
         </View>
-      </View>
+      )}
       <Divider />
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>

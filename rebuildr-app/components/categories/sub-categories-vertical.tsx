@@ -24,7 +24,7 @@ export function SubCategoriesVertical({ id }: Props) {
     },
   );
 
-  const category = data?.category;
+  const rootCategory = data?.category;
   const categories = data?.category.children ?? [];
 
   return (
@@ -32,8 +32,7 @@ export function SubCategoriesVertical({ id }: Props) {
       <Button
         label="Visa alla annonser"
         onPress={() => {
-          const categoryIds = categories.map((category) => category.id);
-          setCategories(categoryIds, category?.id);
+          setCategories({ categories, selectedCategoryId: rootCategory?.id });
           router.navigate("/(app)/(tabs)/search/products");
         }}
         style={{ marginBottom: 24 }}
@@ -43,10 +42,13 @@ export function SubCategoriesVertical({ id }: Props) {
         showsHorizontalScrollIndicator={false}
         data={categories}
         contentContainerStyle={{ gap: 16 }}
-        renderItem={({ item: { id, image, name } }) => (
+        renderItem={({ item: category }) => (
           <TouchableOpacity
             onPress={() => {
-              setCategories([id], id);
+              setCategories({
+                categories: [category],
+                selectedCategoryId: category.id,
+              });
               router.navigate("/(app)/(tabs)/search/products");
             }}
             style={{
@@ -56,9 +58,13 @@ export function SubCategoriesVertical({ id }: Props) {
               flex: 1,
             }}
           >
-            <Avatar imageUrl={image?.url} size={60} placeholder="CATEGORY" />
+            <Avatar
+              imageUrl={category.image?.url}
+              size={60}
+              placeholder="CATEGORY"
+            />
             <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
-              {name}
+              {category.name}
             </Headline>
           </TouchableOpacity>
         )}

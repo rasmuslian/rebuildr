@@ -1091,10 +1091,7 @@ export class PurchaseService {
       throw BadUserInputException();
     }
     await this.rockerService.confirmPayment(purchase.rockerPaymentId);
-    if (!purchase.approvedAt) {
-      this.systemMessagesService.purchaseSuccessBuyer(buyer, seller, product);
-      purchase.approvedAt = new Date();
-    }
+    purchase.approvedAt = new Date();
 
     await this.purchaseRepository.save(purchase);
 
@@ -1119,6 +1116,14 @@ export class PurchaseService {
         logger,
       );
 
+      if (!purchase.paymentStartedAt) {
+        this.systemMessagesService.purchaseSuccessBuyer(buyer, seller, product);
+        this.systemMessagesService.purchaseSuccessSeller(
+          buyer,
+          seller,
+          product,
+        );
+      }
       purchase.rockerPayoutId = payoutResponse.id;
       purchase.payoutStartedAt = new Date();
 
@@ -1529,13 +1534,6 @@ export class PurchaseService {
       where: { rockerPayoutId: payload.payoutId },
       relations: { product: { seller: true }, buyer: true },
     });
-    if (!purchase.payoutReceivedAt) {
-      this.systemMessagesService.purchaseSuccessSeller(
-        purchase.buyer,
-        purchase.product.seller,
-        purchase.product,
-      );
-    }
     purchase.payoutReceivedAt = new Date(payload.timestamp);
 
     await Promise.all([

@@ -30,11 +30,11 @@ const BUY_PRODUCT_DELIVERY_OPTION = gql`
 `;
 
 type Props = {
-  price: number;
+  productPrice: number;
   productId: string;
 };
 
-export const SingleDelivery = ({ price, productId }: Props) => {
+export const SingleDelivery = ({ productPrice, productId }: Props) => {
   const { submitDelivery } = useSubmitSummary();
   const colors = useThemeColor();
   const [address, setAddress] = useState("");
@@ -78,13 +78,15 @@ export const SingleDelivery = ({ price, productId }: Props) => {
     !!deliveryOption && deliveryOption.isWithinRadius;
   const deliveryOutsideRadius =
     !!deliveryOption && !deliveryOption.isWithinRadius;
-  const totalPrice = price + (deliveryOption?.deliveryPrice ?? 0);
+  const totalPrice = productPrice + (deliveryOption?.deliveryPrice ?? 0);
 
   return (
     <View>
       <View style={{ gap: 24 }}>
         <View style={{ gap: 8 }}>
-          <Headline size="small">Hemtransport: {price} kr</Headline>
+          <Headline size="small">
+            Hemtransport: {deliveryOption?.deliveryPrice} kr
+          </Headline>
           <Body size="large">
             Fyll i din adress nedan för att se om säljaren kan leverera till
             dig.

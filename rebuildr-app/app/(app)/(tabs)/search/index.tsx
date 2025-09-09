@@ -33,6 +33,7 @@ const SEARCH = gql`
     popularCategories {
       id
       name
+      parentId
       image {
         id
         url
@@ -153,7 +154,10 @@ export default function Search() {
               <ImageQuickLink
                 key={i}
                 onPress={() => {
-                  setCategories([category.id], category.id);
+                  setCategories({
+                    categories: [category],
+                    selectedCategoryId: category.id,
+                  });
                   router.navigate("/(app)/(tabs)/search/products");
                 }}
                 source={category.image ? category.image.url : Placeholder.uri}

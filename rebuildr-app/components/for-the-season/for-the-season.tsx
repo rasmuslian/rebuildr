@@ -15,6 +15,7 @@ const FOR_THE_SEASON_CATEGORIES = gql`
     categories(input: $input) {
       id
       name
+      parentId
       image {
         id
         url
@@ -44,8 +45,9 @@ export const ForTheSeason = () => {
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          const categoryIds = categories.map((category) => category.id);
-          setCategories(categoryIds);
+          setCategories({
+            categories,
+          });
           router.navigate("/(app)/(tabs)/search/products");
         }}
       >
@@ -68,7 +70,10 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              setCategories([category.id], category.id);
+              setCategories({
+                categories: [category],
+                selectedCategoryId: category.id,
+              });
               router.navigate("/(app)/(tabs)/search/products");
             }}
             source={category.image ? category.image.url : Placeholder.uri}

@@ -102,7 +102,11 @@ export default function Products() {
       input: {
         searchString,
         orderBy: filter.sorting,
-        categoryIds: filter.categoryIds,
+        categoryIds: filter.categoryIds
+          ? filter.categoryIds
+          : filter.rootCategoryIds
+            ? filter.rootCategoryIds
+            : undefined,
         brandIds: filter.brandIds,
         conditions: filter.conditions,
         minPrice: filter.price[0],

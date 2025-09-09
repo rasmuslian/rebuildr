@@ -111,7 +111,6 @@ export default function Favorites() {
   const hasFavoritProducts = !!data?.me.likedProducts?.products.length;
   const hasFavoritProjects = !!data?.me.likedProjects?.length;
   const isEmptyPage = !hasFavoritProducts && !hasFavoritProjects;
-  const showHeader = hasFavoritProducts && hasFavoritProjects;
 
   return (
     <ScreenLayout
@@ -139,7 +138,7 @@ export default function Favorites() {
               project={item}
             />
           )}
-          title={showHeader ? "Favoritprojekt" : ""}
+          title="Favoritprojekt"
           onPress={() => {
             router.navigate({
               pathname: "/account/favorites/projects",
@@ -151,7 +150,11 @@ export default function Favorites() {
       {hasFavoritProjects && hasFavoritProducts && <Divider />}
       {hasFavoritProducts && (
         <AdGridSection
-          header={showHeader ? "Favoritannonser" : undefined}
+          header={
+            hasFavoritProducts && hasFavoritProjects
+              ? "Favoritannonser"
+              : undefined
+          }
           products={
             (data?.me.likedProducts?.products ?? []).map((product) => ({
               id: product.id,

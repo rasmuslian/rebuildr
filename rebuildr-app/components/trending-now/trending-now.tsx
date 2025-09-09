@@ -8,6 +8,7 @@ import { View, useWindowDimensions } from "react-native";
 import { useUser } from "@hooks/useUser";
 import { SectionHeader } from "@components/sections/section-header";
 import {
+  Category,
   OrderProductsEnum,
   TrendingNowProductsQuery,
   TrendingNowProductsQueryVariables,
@@ -37,6 +38,7 @@ const TRENDING_NOW_QUERY = gql`
         category {
           id
           name
+          parentId
         }
         approximatePlace {
           address
@@ -81,15 +83,13 @@ export const TrendingNow = () => {
   const width = (screenWidth - 48) / 2;
 
   const onPress = () => {
-    const categoryIds: string[] = [];
+    const categories = products
+      .filter((p) => !!p.category)
+      .map((p) => p.category as Category);
 
-    products?.forEach((product) => {
-      if (product.category?.id) {
-        categoryIds.push(product.category.id);
-      }
+    setCategories({
+      categories,
     });
-
-    setCategories(categoryIds);
     router.navigate("/(app)/(tabs)/search/products");
   };
 
