@@ -449,7 +449,7 @@ const SingleOptions = ({
           )}
           {transportationMethod === "delivery" && (
             <SingleDelivery
-              price={initialData.product.deliveryPrice ?? 0}
+              productPrice={initialData.product.price ?? 0}
               productId={initialData.product.id}
             />
           )}
