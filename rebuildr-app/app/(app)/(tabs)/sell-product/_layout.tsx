@@ -1,4 +1,5 @@
 import { isLoggedInVar } from "@/apollo/config";
+import { HandleDraftProvider } from "@context/handle-draft-context";
 import { Redirect, Slot } from "expo-router";
 
 export default function SellProductLayout() {
@@ -7,5 +8,9 @@ export default function SellProductLayout() {
   if (!isLoggedIn) {
     return <Redirect href="/" />;
   }
-  return <Slot />;
+  return (
+    <HandleDraftProvider>
+      <Slot />
+    </HandleDraftProvider>
+  );
 }

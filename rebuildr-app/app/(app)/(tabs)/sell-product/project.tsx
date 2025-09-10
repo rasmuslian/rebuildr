@@ -6,6 +6,7 @@ import {
   PRODUCT_PROJECT_FRAGMENT,
   ProjectScreen,
 } from "@components/product/project-screen";
+import { useHandleDraft } from "@hooks/sell-product/use-handle-draft";
 
 const PROJECT_GET_MY_PROJECTS = gql`
   query ProjectGetMyProjects {
@@ -21,6 +22,8 @@ const PROJECT_GET_MY_PROJECTS = gql`
 `;
 
 export default function Project() {
+  const { setVisible } = useHandleDraft();
+
   const { data, refetch } = useQuery<ProjectGetMyProjectsQuery>(
     PROJECT_GET_MY_PROJECTS,
     {
@@ -44,6 +47,7 @@ export default function Project() {
       title="Ny annons"
       nextUrl="/sell-product/transportation"
       refetchProduct={refetch}
+      onDismiss={() => setVisible(true)}
     />
   );
 }

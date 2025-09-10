@@ -6,6 +6,7 @@ import {
   PreviewScreen,
   PRODUCT_PREVIEW_FRAGMENT,
 } from "@components/product/preview-screen";
+import { useHandleDraft } from "@hooks/sell-product/use-handle-draft";
 
 const PREVIEW_DRAFTED_PRODUCT = gql`
   query PreviewDraftedProduct {
@@ -21,6 +22,8 @@ const PREVIEW_DRAFTED_PRODUCT = gql`
 `;
 
 export default function Preview() {
+  const { setVisible } = useHandleDraft();
+
   const { data } = useQuery<PreviewDraftedProductQuery>(
     PREVIEW_DRAFTED_PRODUCT,
   );
@@ -39,6 +42,7 @@ export default function Preview() {
       title="Ny annons"
       myAddress={data.me.address}
       sellerIsMe={data.me.id === data.getDraftedProduct.sellerId}
+      onDismiss={() => setVisible(true)}
     />
   );
 }

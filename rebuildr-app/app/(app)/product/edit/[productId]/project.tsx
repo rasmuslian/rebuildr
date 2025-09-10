@@ -8,7 +8,7 @@ import {
   PRODUCT_PROJECT_FRAGMENT,
   ProjectScreen,
 } from "@components/product/project-screen";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const EDIT_PRODUCT_PROJECT = gql`
   query EditProductProject($input: GetProductInput!) {
@@ -44,6 +44,12 @@ export default function Project() {
         pathname: "/product/edit/[productId]/transportation",
         params: { productId },
       }}
+      onDismiss={() =>
+        router.dismissTo({
+          pathname: "/product/[productId]",
+          params: { productId },
+        })
+      }
     />
   );
 }

@@ -8,7 +8,7 @@ import {
   PreviewScreen,
   PRODUCT_PREVIEW_FRAGMENT,
 } from "@components/product/preview-screen";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const EDIT_PRODUCT_PREVIEW = gql`
   query EditProductPreview($input: GetProductInput!) {
@@ -40,6 +40,12 @@ export default function Preview() {
       title="Redigera annons"
       myAddress={data.me.address}
       sellerIsMe={data.me.id === data.product.sellerId}
+      onDismiss={() =>
+        router.dismissTo({
+          pathname: "/product/[productId]",
+          params: { productId },
+        })
+      }
     />
   );
 }

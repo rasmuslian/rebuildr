@@ -92,12 +92,14 @@ type Props = {
   >;
   title: string;
   nextUrl: Href;
+  onDismiss: () => void;
 };
 
 export const EditProductScreen = ({
   product: dbProduct,
   title,
   nextUrl,
+  onDismiss,
 }: Props) => {
   const [product, setProduct] = useState<ProductFields>();
   const [showDetails, setShowDetails] = useState(false);
@@ -374,7 +376,9 @@ export const EditProductScreen = ({
   return (
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
-      headerComponent={<ProgressHeader title={title} prog1={progress()} />}
+      headerComponent={
+        <ProgressHeader onClose={onDismiss} title={title} prog1={progress()} />
+      }
     >
       <RootCategorySection
         onSelect={(id) => onUpdateProduct({ categoryIds: [id] })}
