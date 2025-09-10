@@ -1,8 +1,7 @@
 import { Body, Label } from "@components/typography/text";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
-import { Pressable } from "react-native-gesture-handler";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
 import { useLikeProject } from "@hooks/useLikeProject";
