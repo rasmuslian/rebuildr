@@ -9,7 +9,6 @@ import { Badge } from "@components/badges/badge";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { SearchBar } from "@components/search/search-bar";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { Body, Display, Label } from "@components/typography/text";
 import { defaultCenter, defaultRadius } from "@constants/map";
@@ -17,7 +16,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View } from "react-native";
+import { TextInput, View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Check } from "@components/controls/check";
 import { useLocationAddress } from "@hooks/useLocationAddress";
@@ -26,6 +25,10 @@ import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Slider } from "@components/slider/slider";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { SubCategoriesList } from "@components/categories/sub-categories-list";
+import { Header } from "@components/navigation/headers/header";
+import { Icon } from "@icons/icon";
+import { textStyles } from "@components/typography/typeface";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -81,6 +84,8 @@ export default function Products() {
   const [isMyLocation, setIsMyLocation] = useState(false);
   const [shipping, setShipping] = useState(true);
   const [delivery, setDelivery] = useState(true);
+
+  const colors = useThemeColor();
 
   const { searchString } = useLocalSearchParams<{
     searchString: string;
@@ -252,11 +257,29 @@ export default function Products() {
         loading={loading}
         style={{ marginTop: 24 }}
         headerComponent={
-          <SearchBar
-            placeholder="Vad letar du efter?"
-            onFocus={() => router.navigate("/(app)/(tabs)/search")}
-            onPressArrow={() =>
-              router.canGoBack() ? router.back() : router.navigate("/")
+          <Header
+            showBackButton={false}
+            middle={
+              <>
+                <Icon
+                  icon="search"
+                  size={18}
+                  style={{ marginRight: 10, height: 40 }}
+                />
+                <TextInput
+                  style={{
+                    outline: "none",
+                    flex: 1,
+                    color: colors.text.primaryDark,
+                    ...textStyles.title["medium"],
+                  }}
+                  placeholder="Vad letar du efter?"
+                  placeholderTextColor={colors.text.secondary}
+                  value={searchString}
+                  onFocus={() => router.navigate("/(app)/(tabs)/search")}
+                  autoFocus
+                />
+              </>
             }
           />
         }
