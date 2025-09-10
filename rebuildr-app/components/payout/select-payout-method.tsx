@@ -138,8 +138,8 @@ export const SelectPayoutMethod = ({ methodsBaseRoute }: Props) => {
             );
           })}
         </View>
+        <Button label="Fortsätt" onPress={onNext} />
       </View>
-      <Button label="Fortsätt" onPress={onNext} />
     </View>
   );
 };
