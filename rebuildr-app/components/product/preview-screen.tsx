@@ -155,15 +155,7 @@ export const PreviewScreen = ({
   return (
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
-      headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog3={100}
-        />
-      }
+      headerComponent={<ProgressHeader title={title} prog3={100} />}
       footerComponent={
         <View
           style={{

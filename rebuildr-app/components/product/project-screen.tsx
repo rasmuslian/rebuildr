@@ -184,15 +184,7 @@ export const ProjectScreen = ({
   return (
     <ScreenLayout
       style={{ paddingBottom: 32, marginTop: 24 }}
-      headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog2={progress()}
-        />
-      }
+      headerComponent={<ProgressHeader title={title} prog2={progress()} />}
     >
       <Display size="small" style={{ marginBottom: 16 }}>
         Koppla till projekt?

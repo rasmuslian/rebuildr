@@ -374,15 +374,7 @@ export const EditProductScreen = ({
   return (
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
-      headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog1={progress()}
-        />
-      }
+      headerComponent={<ProgressHeader title={title} prog1={progress()} />}
     >
       <RootCategorySection
         onSelect={(id) => onUpdateProduct({ categoryIds: [id] })}

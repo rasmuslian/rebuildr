@@ -50,11 +50,7 @@ export default function Layout() {
               backgroundColor: colors.background.neutral,
             }}
           >
-            <ProgressHeader
-              onClose={() => router.replace("/")}
-              title="Ny annons"
-              prog1={25}
-            />
+            <ProgressHeader title="Ny annons" prog1={25} />
           </View>
         ),
       }}

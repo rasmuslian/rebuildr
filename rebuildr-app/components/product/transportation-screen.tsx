@@ -83,15 +83,7 @@ export const TransportationScreen = ({
   return (
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
-      headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog3={progress()}
-        />
-      }
+      headerComponent={<ProgressHeader title={title} prog3={progress()} />}
     >
       <Display size="small">Leverans</Display>
       <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>

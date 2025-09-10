@@ -5,7 +5,7 @@ import { Icon } from "@icons/icon";
 import { Pressable, View } from "react-native";
 
 type Props = {
-  onClose: () => void;
+  onClose?: () => void;
   title: string;
   prog1?: number;
   prog2?: number;
@@ -31,9 +31,11 @@ export const ProgressHeader = ({
         }}
       >
         <Title size="medium">{title}</Title>
-        <Pressable onPress={onClose}>
-          <Icon icon="X" size={18} />
-        </Pressable>
+        {onClose && (
+          <Pressable onPress={onClose}>
+            <Icon icon="X" size={18} />
+          </Pressable>
+        )}
       </View>
       <View
         style={{
