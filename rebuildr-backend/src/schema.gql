@@ -721,6 +721,7 @@ type Mutation {
   showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
+  deleteDraft(input: RemoveProductInput!): Boolean!
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!

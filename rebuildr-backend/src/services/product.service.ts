@@ -838,6 +838,24 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
+  async deleteDraft(productId: string, currentUserId: string) {
+    const draft = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+    if (!draft) {
+      throw BadUserInputException();
+    }
+    if (draft.status !== ProductStatus.DRAFT) {
+      throw BadUserInputException('Product is not draft');
+    }
+    if (draft.sellerId !== currentUserId) {
+      throw ForbiddenException();
+    }
+
+    await this.delete(productId);
+    return true;
+  }
+
   async approximatePlace(product: Product) {
     if (!product.addressLocation) {
       return null;
