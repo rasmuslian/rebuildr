@@ -148,7 +148,7 @@ const Product = ({ product, position }: ProductProps) => {
           }
           style={{
             aspectRatio: 1,
-            height: "100%",
+            flexGrow: 1,
             ...borderStyle,
           }}
         />
