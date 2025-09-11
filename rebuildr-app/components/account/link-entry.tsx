@@ -1,17 +1,17 @@
 import { Button } from "@components/buttons/button";
 import { Body, Label } from "@components/typography/text";
+import { Href, Link } from "expo-router";
 import { View } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
 
 type Props = {
   label: string;
   body: string;
-  onPress: () => void;
+  link: Href;
 };
 
-export const LinkEntry = ({ label, body, onPress }: Props) => {
+export const LinkEntry = ({ label, body, link }: Props) => {
   return (
-    <Pressable onPress={onPress}>
+    <Link href={link} asChild>
       <View
         style={{
           flexDirection: "row",
@@ -23,8 +23,8 @@ export const LinkEntry = ({ label, body, onPress }: Props) => {
           <Label size="large">{label}</Label>
           <Body size="small">{body}</Body>
         </View>
-        <Button icon="arrowRight" type="text" onPress={onPress} />
+        <Button icon="arrowRight" type="text" />
       </View>
-    </Pressable>
+    </Link>
   );
 };

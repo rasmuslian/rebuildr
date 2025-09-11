@@ -498,7 +498,7 @@ export class ProductService {
       query.andWhere('"hiddenReason" IS NULL');
     }
 
-    query.andWhere(`status = 'PUBLISHED'`);
+    query.andWhere(`(status = 'PUBLISHED' OR status = 'SOLD')`);
 
     if (input.sellerId) {
       query.andWhere('"sellerId" = :sellerId', { sellerId: input.sellerId });
@@ -645,7 +645,7 @@ export class ProductService {
     if (input.excludeOwnProducts && userId) {
       query.andWhere('p.sellerId != :userId', { userId });
     }
-
+    query.addOrderBy('p."status"');
     switch (input.orderBy) {
       case OrderProductsEnum.BEST_MATCH:
         if (input.searchString && input.searchString.length > 0) {

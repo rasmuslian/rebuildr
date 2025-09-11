@@ -249,7 +249,7 @@ export class UserResolver {
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
-    return await userLoaders.publishedProductsLoader.load(user.id);
+    return await userLoaders.productsLoader.load(user.id);
   }
 
   @ResolveField(() => [Purchase])

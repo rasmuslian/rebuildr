@@ -44,16 +44,6 @@ const PROFILE = gql`
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
-      products {
-        id
-        primaryQuantity
-        primaryUnit
-        condition
-        price
-        approximatePlace {
-          address
-        }
-      }
       projects {
         id
         title
@@ -113,6 +103,7 @@ const PROFILE_PRODUCTS = gql`
     products(input: $input, limit: $limit, offset: $offset) {
       products {
         id
+        status
         title
         price
         condition
@@ -341,6 +332,7 @@ export default function Profile() {
               header="Annonser"
               products={productsData.products.products.map((product) => ({
                 id: product.id,
+                status: product.status,
                 imageUri: product.primaryImage?.url,
                 title: product.title,
                 quantity: product.primaryQuantity,
@@ -351,7 +343,7 @@ export default function Profile() {
                   location: product.approximatePlace?.address,
                 },
                 price: product.price,
-                heart: data.me?.id != data.user.id,
+                heart: data.me?.id !== data.user.id,
                 liked: !!product.likedByMe,
                 onHeartPress: () => {
                   onToggleProductHeart({

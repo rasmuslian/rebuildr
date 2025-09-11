@@ -95,30 +95,22 @@ export default function Account() {
         <LinkEntry
           label="Kontoinställningar"
           body="Hantera dina uppgifter och inställningar"
-          onPress={() => {
-            router.navigate("/account/settings");
-          }}
+          link="/account/settings"
         />
         <LinkEntry
           label="Dina favoriter"
           body={(data.me.likedProducts?.total ?? 0) + " annonser"}
-          onPress={() => {
-            router.navigate("/account/favorites");
-          }}
+          link="/account/favorites"
         />
         <LinkEntry
           label="Dina köp"
           body={data.me.purchases.length + " annonser"}
-          onPress={() => {
-            router.navigate("/account/purchases");
-          }}
+          link="/account/purchases"
         />
         <LinkEntry
           label="Dina försäljningar"
           body={data.me.sales.length + " annonser"}
-          onPress={() => {
-            router.navigate("/account/sales");
-          }}
+          link="/account/sales"
         />
       </View>
     </ScreenLayout>

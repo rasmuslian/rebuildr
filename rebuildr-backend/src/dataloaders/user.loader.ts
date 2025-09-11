@@ -17,6 +17,7 @@ export interface IUserLoaders {
   projectsLoader: DataLoader<string, Project[]>;
   soldProductsLoader: DataLoader<string, Product[]>;
   publishedProductsLoader: DataLoader<string, Product[]>;
+  productsLoader: DataLoader<string, Product[]>;
   purchasesLoader: DataLoader<string, Purchase[]>;
   salesLoader: DataLoader<string, Purchase[]>;
   likedProductsLoader: DataLoader<string, Product[]>;
@@ -104,6 +105,26 @@ export class UserLoader {
           status: ProductStatus.PUBLISHED,
           deletedAt: IsNull(),
         },
+      });
+
+      const productsMap = userIds.map((userId) =>
+        products.filter((product) => product.sellerId === userId),
+      );
+      return productsMap;
+    });
+  }
+
+  private productsLoader() {
+    return new DataLoader(async (userIds) => {
+      const products = await this.dataSource.getRepository(Product).find({
+        where: {
+          seller: {
+            id: In(userIds),
+          },
+          status: In[(ProductStatus.PUBLISHED, ProductStatus.SOLD)],
+          deletedAt: IsNull(),
+        },
+        order: { status: 'ASC', createdAt: 'DESC' },
       });
 
       const productsMap = userIds.map((userId) =>
@@ -201,6 +222,7 @@ export class UserLoader {
         this.getSearchResultsLoader(input),
       soldProductsLoader: this.soldProductsLoader(),
       publishedProductsLoader: this.publishedProductsLoader(),
+      productsLoader: this.productsLoader(),
       profilePictureLoader: this.dataloaderService.targetByParentIdLoader<File>(
         'profilePicture',
         User,

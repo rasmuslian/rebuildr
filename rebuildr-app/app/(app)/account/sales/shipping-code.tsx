@@ -7,6 +7,9 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
+import { primitives } from "@constants/colors";
+import { borderRadius } from "@constants/sizes";
+import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -22,6 +25,7 @@ const SHIPPING_CODE = gql`
 `;
 
 export default function ShippingCode() {
+  const colors = useThemeColor();
   const { purchaseId } = useLocalSearchParams<{ purchaseId: string }>();
   const { data } = useQuery<ShippingCodeQuery, ShippingCodeQueryVariables>(
     SHIPPING_CODE,
@@ -32,7 +36,23 @@ export default function ShippingCode() {
   const qrCodeContent = data?.purchase.qrCodeContent;
 
   return (
-    <ScreenLayout headerComponent={<Header title="Visa QR-kod" />}>
+    <ScreenLayout
+      headerComponent={<Header title="Visa QR-kod" />}
+      footerComponent={
+        <Button
+          label="Gå tillbaka"
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.navigate({
+                  pathname: "/account/sales/[purchaseId]",
+                  params: { purchaseId },
+                })
+          }
+          style={{ marginTop: 82 }}
+        />
+      }
+    >
       <View style={{ gap: 24 }}>
         {data && qrCodeContent ? (
           <View
@@ -43,7 +63,20 @@ export default function ShippingCode() {
               alignItems: "center",
             }}
           >
-            <QRCode value={qrCodeContent} size={250} />
+            <View
+              style={{
+                borderRadius: borderRadius.medium,
+                borderColor: colors.textField.clicked,
+                padding: 16,
+                borderWidth: 1,
+              }}
+            >
+              <QRCode
+                color={primitives.accent700}
+                value={qrCodeContent}
+                size={165}
+              />
+            </View>
           </View>
         ) : (
           <LoadingSpinner />
@@ -62,19 +95,6 @@ export default function ShippingCode() {
           ]}
         />
       </View>
-
-      <Button
-        label="Gå tillbaka"
-        onPress={() =>
-          router.canGoBack()
-            ? router.back()
-            : router.navigate({
-                pathname: "/account/sales/[purchaseId]",
-                params: { purchaseId },
-              })
-        }
-        style={{ marginTop: 82 }}
-      />
     </ScreenLayout>
   );
 }

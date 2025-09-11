@@ -5,7 +5,6 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
 import { useLogout } from "@hooks/useLogout";
-import { router } from "expo-router";
 import { View } from "react-native";
 
 export default function Settings() {
@@ -24,32 +23,24 @@ export default function Settings() {
         <LinkEntry
           label="Utbetalningskonto"
           body="Lägg till eller ändra hur du tar emot betalningar."
-          onPress={() => {
-            router.navigate("/(app)/account/settings/payout");
-          }}
+          link="/(app)/account/settings/payout"
         />
         <LinkEntry
           label="Kontaktuppgifter"
           body="Uppdatera e-post, användarnamn, lösenord och adresser."
-          onPress={() => {
-            router.navigate("/account/settings/user");
-          }}
+          link="/account/settings/user"
         />
         <LinkEntry
           label="Aviseringar"
           body="Välj vilka aviseringar du vill få via e-post."
-          onPress={() => {
-            router.navigate("/account/settings/notifications");
-          }}
+          link="/account/settings/notifications"
         />
       </View>
       <Divider />
       <LinkEntry
         label="Radera ditt RebuildRkonto"
         body="Ta bort ditt konto och all tillhörande data."
-        onPress={() => {
-          router.navigate("/account/settings/delete-account");
-        }}
+        link="/account/settings/delete-account"
       />
     </ScreenLayout>
   );
