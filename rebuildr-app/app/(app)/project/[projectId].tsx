@@ -76,7 +76,6 @@ export default function ProjectPage() {
     ctsa.push({
       icon: {
         icon: project.likedByMe ? "heart2Filled" : "heart2",
-        size: 18,
         color: project.likedByMe ? "link" : undefined,
       },
       onPress: () => {
