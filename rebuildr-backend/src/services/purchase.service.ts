@@ -1084,11 +1084,11 @@ export class PurchaseService {
     await this.rockerService.confirmPayment(purchase.rockerPaymentId);
     purchase.approvedAt = new Date();
 
-    await this.purchaseRepository.save(purchase);
+    const approvedPurchase = await this.purchaseRepository.save(purchase);
 
     if (!seller.selectedPayoutMethod) {
       logger.error('Seller has no selected payout method', {
-        purchaseId: purchase.id,
+        purchaseId: approvedPurchase.id,
         userId: seller.id,
       });
 
@@ -1096,40 +1096,44 @@ export class PurchaseService {
     }
     try {
       logger.info('Trying to create payout', {
-        purchaseId: purchase.id,
+        purchaseId: approvedPurchase.id,
         sellerId: seller.id,
         buyerId: buyer.id,
         payoutMethod: seller.selectedPayoutMethod,
       });
       const payoutResponse = await this.rockerService.createPayout(
-        purchase.rockerPaymentId,
+        approvedPurchase.rockerPaymentId,
         seller,
         logger,
       );
 
-      if (!purchase.paymentStartedAt) {
-        this.systemMessagesService.purchaseSuccessBuyer(buyer, seller, product);
-        this.systemMessagesService.purchaseSuccessSeller(
+      if (!approvedPurchase.payoutStartedAt) {
+        await this.systemMessagesService.purchaseSuccessBuyer(
+          buyer,
+          seller,
+          product,
+        );
+        await this.systemMessagesService.purchaseSuccessSeller(
           buyer,
           seller,
           product,
         );
       }
-      purchase.rockerPayoutId = payoutResponse.id;
-      purchase.payoutStartedAt = new Date();
+      approvedPurchase.rockerPayoutId = payoutResponse.id;
+      approvedPurchase.payoutStartedAt = new Date();
 
       //In case the response completes immiediately, we won't have to wait for a webhook
       //to complete the purchase
       if (payoutResponse.status === Status1Enum.COMPLETED) {
         logger.info('Payout completed (inside acceptPurchase method)', {
-          purchaseId: purchase.id,
+          purchaseId: approvedPurchase.id,
           payoutId: payoutResponse.id,
           sellerId: seller.id,
           buyerId: buyer.id,
         });
-        purchase.payoutReceivedAt = new Date();
+        approvedPurchase.payoutReceivedAt = new Date();
         await this.productRepository.update(
-          { id: purchase.productId },
+          { id: approvedPurchase.productId },
           { status: ProductStatus.SOLD },
         );
       }
@@ -1138,12 +1142,12 @@ export class PurchaseService {
         'Error when creating payout. Error message: ' + JSON.stringify(err),
       );
       await this.purchaseRepository.update(
-        { id: purchase.id },
+        { id: approvedPurchase.id },
         { payoutFailedAt: new Date() },
       );
     }
 
-    return await this.purchaseRepository.save(purchase);
+    return await this.purchaseRepository.save(approvedPurchase);
   }
   async manualAcceptPurchase(purchaseId: string, userId: string) {
     const logger = this.logger.child({
