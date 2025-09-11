@@ -3,6 +3,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { router } from "expo-router";
 import { TransportationScreen } from "@components/product/transportation-screen";
+import { useHandleDraft } from "@hooks/sell-product/use-handle-draft";
 
 const TRANSPORTATION_QUERY = gql`
   query TransportationQuery {
@@ -47,6 +48,7 @@ const TRANSPORTATION_QUERY = gql`
 `;
 
 export default function Transportation() {
+  const { setVisible } = useHandleDraft();
   const { data } = useQuery<TransportationQueryQuery>(TRANSPORTATION_QUERY, {
     onCompleted: (data) => {
       if (!data.getDraftedProduct) {
@@ -65,6 +67,7 @@ export default function Transportation() {
       product={data.getDraftedProduct}
       title="Ny annons"
       nextUrl="/sell-product/preview"
+      onDismiss={() => setVisible(true)}
     />
   );
 }

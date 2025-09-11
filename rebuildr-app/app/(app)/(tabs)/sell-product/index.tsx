@@ -9,6 +9,7 @@ import {
   EditProductScreen,
   PRODUCT_DETAILS_FRAGMENT,
 } from "@components/product/edit-product-screen";
+import { useHandleDraft } from "@hooks/sell-product/use-handle-draft";
 
 const SELL_PRODUCT_CREATE_DRAFT = gql`
   mutation SellProductCreateDraft {
@@ -33,6 +34,7 @@ const SELL_PRODUCT_QUERY = gql`
 `;
 
 export default function SellProduct() {
+  const { setVisible } = useHandleDraft();
   const { data, refetch } = useQuery<SellProductQueryQuery>(
     SELL_PRODUCT_QUERY,
     {
@@ -68,6 +70,7 @@ export default function SellProduct() {
       product={data?.getDraftedProduct}
       title="Ny annons"
       nextUrl="/sell-product/project"
+      onDismiss={() => setVisible(true)}
     />
   );
 }

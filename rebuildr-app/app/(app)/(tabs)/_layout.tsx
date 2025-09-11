@@ -31,6 +31,9 @@ export default function TabLayout() {
     loginRequired: boolean = false,
     nrUnread?: number,
   ) => {
+    const hightlight = href
+      ? pathName.split("/")[1] === href.split("/")[1]
+      : false;
     return (
       <Pressable
         style={{ alignSelf: "center" }}
@@ -49,7 +52,7 @@ export default function TabLayout() {
               paddingHorizontal: 20,
               paddingVertical: 4,
             },
-            pathName === href && {
+            hightlight && {
               backgroundColor: colors.navigation.enabled,
             },
           ]}

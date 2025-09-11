@@ -533,6 +533,15 @@ export class ProductResolver {
     return this.productService.removeProduct(input.id, user.id);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async deleteDraft(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: RemoveProductInput,
+  ) {
+    return this.productService.deleteDraft(input.id, user.id);
+  }
+
   @ResolveField(() => Category, { nullable: true })
   async category(@Root() _product: Product) {
     return this.categoryService.findOne(_product.categoryId);

@@ -113,6 +113,7 @@ type Props = {
   myAddress?: string | null;
   sellerIsMe?: boolean;
   title: string;
+  onDismiss: () => void;
 };
 
 export const PreviewScreen = ({
@@ -120,6 +121,7 @@ export const PreviewScreen = ({
   myAddress,
   sellerIsMe,
   title,
+  onDismiss,
 }: Props) => {
   const [publishProduct, { loading: publishProductLoading }] = useMutation<
     ProductPreviewPublishProductMutation,
@@ -156,13 +158,7 @@ export const PreviewScreen = ({
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
       headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog3={100}
-        />
+        <ProgressHeader onClose={onDismiss} title={title} prog3={100} />
       }
       footerComponent={
         <View

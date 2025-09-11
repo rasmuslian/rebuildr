@@ -5,7 +5,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { TransportationScreen } from "@components/product/transportation-screen";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const EDIT_PRODUCT_TRANSPORTATION = gql`
   query EditProductTransportation($input: GetProductInput!) {
@@ -68,6 +68,12 @@ export default function Transportation() {
         pathname: "/product/edit/[productId]/preview",
         params: { productId },
       }}
+      onDismiss={() =>
+        router.dismissTo({
+          pathname: "/product/[productId]",
+          params: { productId },
+        })
+      }
     />
   );
 }

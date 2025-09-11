@@ -324,22 +324,34 @@ export default function Search() {
     <ScreenLayout
       headerComponent={
         <Header
-          ctas={[{ icon: "X", onPress: () => setSearchString("") }]}
+          ctas={
+            searchString
+              ? [{ icon: "X", onPress: () => setSearchString("") }]
+              : undefined
+          }
+          showBackButton={false}
           middle={
-            <TextInput
-              style={{
-                outline: "none",
-                flex: 1,
-                color: colors.text.primaryDark,
-                ...textStyles.title["medium"],
-              }}
-              placeholder="Vad letar du efter?"
-              placeholderTextColor={colors.text.secondary}
-              value={searchString}
-              onChangeText={(s) => onChangeSearch(s)}
-              onSubmitEditing={onSearch}
-              autoFocus
-            />
+            <>
+              <Icon
+                icon="search"
+                size={18}
+                style={{ marginRight: 10, height: 40 }}
+              />
+              <TextInput
+                style={{
+                  outline: "none",
+                  flex: 1,
+                  color: colors.text.primaryDark,
+                  ...textStyles.title["medium"],
+                }}
+                placeholder="Vad letar du efter?"
+                placeholderTextColor={colors.text.secondary}
+                value={searchString}
+                onChangeText={(s) => onChangeSearch(s)}
+                onSubmitEditing={onSearch}
+                autoFocus
+              />
+            </>
           }
         />
       }

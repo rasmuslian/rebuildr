@@ -68,6 +68,7 @@ type Props = {
   title: string;
   refetchProduct: () => void;
   nextUrl: Href;
+  onDismiss: () => void;
 };
 
 export const ProjectScreen = ({
@@ -76,6 +77,7 @@ export const ProjectScreen = ({
   title,
   refetchProduct,
   nextUrl,
+  onDismiss,
 }: Props) => {
   const [skipProject, setSkipProject] = useState(!!dbProduct.noProject);
   const [connectProject, setConnectProject] = useState(!!dbProduct?.project);
@@ -185,13 +187,7 @@ export const ProjectScreen = ({
     <ScreenLayout
       style={{ paddingBottom: 32, marginTop: 24 }}
       headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog2={progress()}
-        />
+        <ProgressHeader onClose={onDismiss} title={title} prog2={progress()} />
       }
     >
       <Display size="small" style={{ marginBottom: 16 }}>

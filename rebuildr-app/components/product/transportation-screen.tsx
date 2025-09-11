@@ -18,12 +18,14 @@ type Props = {
   >;
   title: string;
   nextUrl: Href;
+  onDismiss: () => void;
 };
 
 export const TransportationScreen = ({
   product: dbProduct,
   title,
   nextUrl,
+  onDismiss,
 }: Props) => {
   const [addressEditLock, setAddressEditLock] = useState(false);
   const [shippingValid, setShippingValid] = useState(false);
@@ -84,13 +86,7 @@ export const TransportationScreen = ({
     <ScreenLayout
       style={{ gap: 24, marginTop: 24 }}
       headerComponent={
-        <ProgressHeader
-          onClose={() =>
-            router.canDismiss() ? router.dismiss() : router.replace("/")
-          }
-          title={title}
-          prog3={progress()}
-        />
+        <ProgressHeader onClose={onDismiss} title={title} prog3={progress()} />
       }
     >
       <Display size="small">Leverans</Display>
