@@ -1031,6 +1031,10 @@ export class ProductService {
           (product) => product.categoryId,
         );
 
+        if (!categoryIds.length) {
+          return [];
+        }
+
         query.andWhere(
           '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
           { categoryIds },
