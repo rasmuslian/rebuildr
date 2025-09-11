@@ -5,10 +5,11 @@ import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Skeleton } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "@/queries/profile/get-profile";
+import { queryKeys } from "@/lib/query-keys";
 
 const UserProfile = () => {
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile"],
+    queryKey: [queryKeys.GET_PROFILE],
     queryFn: getProfile,
   });
 

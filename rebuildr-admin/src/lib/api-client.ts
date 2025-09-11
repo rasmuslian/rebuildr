@@ -2,8 +2,7 @@
 
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { getCookie } from "cookies-next";
-import { refresh } from "@/actions/auth";
-
+import { refreshToken } from "@/actions/auth";
 interface GraphQLError {
   message: string;
   extensions?: { code?: string };
@@ -33,7 +32,6 @@ apiClient.interceptors.response.use(
     const originalRequest = response.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
-
     const errors = response.data.errors;
     const isUnauthenticated = errors?.some(
       (err) => err.extensions?.code === "UNAUTHENTICATED",
@@ -41,13 +39,11 @@ apiClient.interceptors.response.use(
 
     if (isUnauthenticated && !originalRequest._retry) {
       originalRequest._retry = true;
-
       try {
-        const refreshResponse = await refresh();
-        const { success, newAccessToken } = await refreshResponse.json();
+        const { success, accessToken } = await refreshToken();
 
         if (success && originalRequest.headers) {
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
           return apiClient(originalRequest);
         }
       } catch (error) {

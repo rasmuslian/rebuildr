@@ -9,6 +9,7 @@ import { useForm, Controller } from "react-hook-form";
 import { LoginSchema, LoginSchemaType } from "@/schema/login-schema";
 import { useRouter } from "next/navigation";
 import { login } from "@/actions/auth";
+import { routes } from "@/lib/routes";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -23,12 +24,10 @@ const LoginPage = () => {
   });
 
   const onSubmit = async (formData: LoginSchemaType) => {
-    try {
-      const response = await login(formData);
-      if (!response.ok) throw new Error();
-      const { success } = await response.json();
-      if (success) router.refresh();
-    } catch {
+    const { success } = await login(formData);
+    if (success) {
+      router.push(routes.ADMIN);
+    } else {
       notification.error({
         message: "Tyvärr!",
         description: "Inloggningen misslyckades.",

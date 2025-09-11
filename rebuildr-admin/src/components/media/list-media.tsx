@@ -21,7 +21,7 @@ const ListMedia = () => {
   const [state, setState] = usePersistedState("list-media", initialState);
   const { pageSize, page } = state;
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_IMAGES, page, pageSize],
     queryFn: () => listMedia({ page, pageSize }),
   });
@@ -32,7 +32,10 @@ const ListMedia = () => {
   return (
     <div className="flex flex-col gap-5 pb-5">
       {isEmpty(files) ? (
-        <EmptyContainer description="Inga bilder hittades" />
+        <EmptyContainer
+          spinner={isLoading}
+          description="Inga bilder hittades"
+        />
       ) : (
         <div className="grid grid-cols-4 gap-2">
           {files?.map((file) => (

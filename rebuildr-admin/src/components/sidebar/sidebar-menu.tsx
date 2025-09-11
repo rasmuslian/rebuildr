@@ -5,6 +5,7 @@ import type { MenuProps } from "antd";
 import { Menu } from "antd";
 import { useRouter, usePathname } from "next/navigation";
 import { logout } from "@/actions/auth";
+import { routes } from "@/lib/routes";
 
 import {
   HomeOutlined,
@@ -19,14 +20,11 @@ const SidebarMenu = () => {
   const pathname = usePathname();
 
   const onLogout = async () => {
-    try {
-      const response = await logout();
-      if (!response.ok) throw new Error("Failed to logout!");
-
-      const { success } = await response.json();
-      if (success) router.refresh();
-    } catch (error) {
-      console.error("Failed to logout :>> ", error);
+    const { success } = await logout();
+    if (success) {
+      router.push(routes.LOGIN);
+    } else {
+      console.error("Failed to logout");
     }
   };
 
@@ -51,7 +49,7 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Översikt", "/admin", <HomeOutlined />),
     { type: "divider" },
-    getItem("Bildbank", "/media/mdeia", <FileImageOutlined />),
+    getItem("Bildbank", "/admin/media", <FileImageOutlined />),
     { type: "divider" },
     {
       label: "Logga ut",

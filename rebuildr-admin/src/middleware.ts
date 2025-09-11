@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LOGIN_PAGE, DEFAULT_LOGIN_REDIRECT } from "@/lib/routes";
+import { routes } from "@/lib/routes";
 import { cookies } from "next/headers";
 
 export async function middleware(request: NextRequest) {
@@ -9,12 +9,12 @@ export async function middleware(request: NextRequest) {
   const refreshToken = cookieStore.get("refreshToken")?.value;
   const session = !!accessToken && !!refreshToken;
 
-  if (!session && !nextUrl.pathname.match(LOGIN_PAGE)) {
-    return NextResponse.redirect(new URL(LOGIN_PAGE, nextUrl));
+  if (!session && !nextUrl.pathname.match(routes.LOGIN)) {
+    return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
   }
 
-  if (session && nextUrl.pathname.match(LOGIN_PAGE)) {
-    return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+  if (session && nextUrl.pathname.match(routes.LOGIN)) {
+    return NextResponse.redirect(new URL(routes.ADMIN, nextUrl));
   }
 
   return NextResponse.next();
