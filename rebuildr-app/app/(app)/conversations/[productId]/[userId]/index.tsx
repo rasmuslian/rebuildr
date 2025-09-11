@@ -24,6 +24,7 @@ import {
   MarkConversationAsReadMutation,
   MarkConversationAsReadMutationVariables,
   MessageTypeEnum,
+  ProductStatusEnum,
 } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -487,7 +488,7 @@ const ActionButtons = ({ data, onShowReview }: ActionButtonProps) => {
   >(CONVERSATION_MARK_AS_DELIVERED, { refetchQueries: [CONVERSATION_PRODUCT] });
 
   let firstButton: ReactNode = null;
-  if (!purchase) {
+  if (!purchase && data.product.status === ProductStatusEnum.Published) {
     firstButton = !sellerIsMe ? (
       <Button
         label="Köp"

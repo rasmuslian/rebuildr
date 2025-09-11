@@ -554,12 +554,7 @@ export class PurchaseService {
           id: input.productId,
         },
         buyerId: In([input.otherUserId, currentUserId]),
-        status: Not(
-          In([
-            PurchaseStatusEnum.FINISHED_FAILED,
-            PurchaseStatusEnum.FINISHED_SUCCESS,
-          ]),
-        ),
+        status: Not(PurchaseStatusEnum.FINISHED_FAILED),
       },
       order: { createdAt: 'DESC' },
     });
