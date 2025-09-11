@@ -512,18 +512,9 @@ export class PurchaseService {
   }
 
   //If seller has written a message to buyer, we record it here
-  async handleSellerResponse(
-    productId: string,
-    senderId: string,
-    receiverId: string,
-  ) {
+  async handleSellerResponse(productId: string, receiverId: string) {
     const purchase = await this.purchaseRepository.findOne({
       where: [
-        {
-          productId: productId,
-          buyerId: senderId,
-          status: Not(PurchaseStatusEnum.FINISHED_FAILED),
-        },
         {
           productId: productId,
           buyerId: receiverId,

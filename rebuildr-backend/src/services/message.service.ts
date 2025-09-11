@@ -166,7 +166,6 @@ export class MessageService {
 
     this.purchaseService.handleSellerResponse(
       input.productId,
-      input.senderId,
       input.receiverId,
     );
 
