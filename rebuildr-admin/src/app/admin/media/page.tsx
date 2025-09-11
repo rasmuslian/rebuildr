@@ -81,6 +81,7 @@ const MediaPage = () => {
             render={({ field: { value, onChange } }) => (
               <FormField label="Bilder" error={errors.images?.message}>
                 <UploadMedia
+                  aspect={16 / 9}
                   files={value}
                   setFiles={onChange}
                   allowedFileNumber={5}

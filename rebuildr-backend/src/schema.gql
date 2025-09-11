@@ -742,6 +742,7 @@ type Mutation {
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
   cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
+  cmsDeleteFile(imageId: String!): Boolean!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   selectPayoutMethod(input: SelectPayoutMethodInput!): User!

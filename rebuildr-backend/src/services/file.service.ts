@@ -7,7 +7,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InternalServerException } from 'src/exceptions';
+import { InternalServerException, ForbiddenException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File, FileSourceEnum } from '../entities/file.entity';
 import { ConfigService } from '@nestjs/config';
@@ -181,5 +181,31 @@ export class FileService {
     });
 
     return { files, total };
+  }
+
+  async cmsDeleteFile(imageId: string) {
+    const file = await this.findOne(imageId);
+
+    if (file.source !== FileSourceEnum.ADMIN) {
+      throw ForbiddenException();
+    }
+
+    try {
+      const cmd = new DeleteObjectsCommand({
+        Bucket: this.spacesBucket,
+        Delete: {
+          Objects: [{ Key: file.id }],
+        },
+      });
+
+      const response = await this.s3.send(cmd);
+
+      if (response.Errors) throw new Error();
+      const result = await this.fileRepository.delete([imageId]);
+
+      return !!result.affected && result.affected > 0;
+    } catch {
+      throw InternalServerException('Error when deleting files');
+    }
   }
 }

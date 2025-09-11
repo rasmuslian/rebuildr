@@ -42,7 +42,6 @@ export class CmsUploadFileInput {
   @Field(() => [FileInputType], { nullable: true })
   images?: FileInputType[];
 }
-
 @ObjectType()
 export class CmsUploadFileResponse {
   @Field(() => [String])
@@ -65,6 +64,13 @@ export class FileResolver {
     @Args('input') input: CmsUploadFileInput,
   ): Promise<CmsUploadFileResponse> {
     return this.fileService.cmsUploadFile(input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeleteFile(@Args('imageId') imageId: string) {
+    return this.fileService.cmsDeleteFile(imageId);
   }
 
   @Query(() => CmsListImagesResponse)
