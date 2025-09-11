@@ -8,8 +8,8 @@ import { logout } from "@/actions/auth";
 
 import {
   HomeOutlined,
-  ProductOutlined,
   LogoutOutlined,
+  FileImageOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -50,6 +50,8 @@ const SidebarMenu = () => {
   const items: MenuItem[] = [
     { type: "divider" },
     getItem("Översikt", "/admin", <HomeOutlined />),
+    { type: "divider" },
+    getItem("Bildbank", "/media/mdeia", <FileImageOutlined />),
     { type: "divider" },
     {
       label: "Logga ut",

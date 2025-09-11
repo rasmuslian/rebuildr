@@ -115,6 +115,26 @@ export type CategoryInput = {
   id: Scalars['String']['input'];
 };
 
+export type CmsListImagesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CmsListImagesResponse = {
+  __typename?: 'CmsListImagesResponse';
+  files: Array<File>;
+  total: Scalars['Int']['output'];
+};
+
+export type CmsUploadFileInput = {
+  images?: InputMaybe<Array<FileInputType>>;
+};
+
+export type CmsUploadFileResponse = {
+  __typename?: 'CmsUploadFileResponse';
+  presignedPutUrls: Array<Scalars['String']['output']>;
+};
+
 export type CreateMessageInput = {
   message: Scalars['String']['input'];
   productId: Scalars['String']['input'];
@@ -386,6 +406,7 @@ export type Mutation = {
   cancelPurchase: Scalars['Boolean']['output'];
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsLogin: LoginResponse;
+  cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
   createOrganizationUser: User;
@@ -443,6 +464,11 @@ export type MutationCancelPurchaseArgs = {
 
 export type MutationCmsLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationCmsUploadFilesArgs = {
+  input: CmsUploadFileInput;
 };
 
 
@@ -901,6 +927,7 @@ export type Query = {
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
+  cmsListImages: CmsListImagesResponse;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
   getConversation: Array<Message>;
@@ -945,6 +972,11 @@ export type QueryCategoriesArgs = {
 
 export type QueryCategoryArgs = {
   input: CategoryInput;
+};
+
+
+export type QueryCmsListImagesArgs = {
+  input: CmsListImagesInput;
 };
 
 

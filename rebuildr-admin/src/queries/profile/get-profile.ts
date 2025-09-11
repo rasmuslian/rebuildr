@@ -3,7 +3,7 @@
 import apiClient from "@/lib/api-client";
 import { User } from "gql/graphql";
 
-const GET_PROFILE = `
+const query = `
   query Me {
     me {
       id
@@ -20,7 +20,7 @@ const GET_PROFILE = `
 
 export const getProfile = async () => {
   const response = await apiClient.post<GraphQLResponse<{ me: User }>>("/", {
-    query: GET_PROFILE,
+    query,
   });
 
   return response.data.data?.me;

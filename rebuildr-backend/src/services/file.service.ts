@@ -9,9 +9,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException } from 'src/exceptions';
 import { Repository } from 'typeorm';
-import { File } from '../entities/file.entity';
+import { File, FileSourceEnum } from '../entities/file.entity';
 import { ConfigService } from '@nestjs/config';
 import { FileInputType } from 'src/resolvers/product.resolver';
+import {
+  CmsListImagesInput,
+  CmsListImagesResponse,
+  CmsUploadFileInput,
+  CmsUploadFileResponse,
+} from 'src/resolvers/file.resolver';
 
 const SIGNED_URL_EXPIRATION = 3600;
 @Injectable()
@@ -74,6 +80,7 @@ export class FileService {
 
     return signedPutUrl;
   }
+
   async uploadFiles(files: File[], publicRead?: boolean): Promise<string[]> {
     const signedPutUrls = await Promise.all(
       files.map(async (file) => await this.uploadFile(file, publicRead)),
@@ -135,5 +142,44 @@ export class FileService {
 
   private getCDNUrl(url: string) {
     return url.replace(this.nonCDNEndpoint, this.CDNEndpoint);
+  }
+
+  async cmsUploadFile(
+    input: CmsUploadFileInput,
+  ): Promise<CmsUploadFileResponse> {
+    const images = await Promise.all(
+      input.images?.map(async (image) => {
+        const file = new File();
+        file.mimeType = image.mimeType;
+        file.name = image.name;
+        file.source = FileSourceEnum.ADMIN;
+        return await this.fileRepository.save(file);
+      }) ?? [],
+    );
+
+    return {
+      presignedPutUrls: await this.uploadFiles(images, true),
+    };
+  }
+
+  async cmsListImages(
+    input: CmsListImagesInput,
+  ): Promise<CmsListImagesResponse> {
+    const pageSize = Number(input.pageSize) || 10;
+    const page = Number(input.page) || 0;
+    const skip = Math.max(0, pageSize * page);
+
+    const [files, total] = await this.fileRepository.findAndCount({
+      where: {
+        source: FileSourceEnum.ADMIN,
+      },
+      take: pageSize,
+      skip,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return { files, total };
   }
 }

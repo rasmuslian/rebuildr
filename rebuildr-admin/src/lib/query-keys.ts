@@ -1,3 +1,3 @@
 export enum queryKeys {
-  LIST_PRODUCT = "list-product",
+  LIST_IMAGES = "list-images",
 }

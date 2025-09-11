@@ -53,6 +53,8 @@ const colors = {
   semantic_error_700: "#A53A36",
   semantic_error_800: "#852221",
   semantic_error_900: "#65090E",
+
+  ghost: "#fafafa",
 };
 
 const config: Config = {
@@ -68,6 +70,7 @@ const config: Config = {
         ...colors,
         success: colors.primary_900,
         error: colors.semantic_error_600,
+        gray: colors.neutrals_600,
       },
     },
   },

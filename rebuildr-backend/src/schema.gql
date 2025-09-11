@@ -487,6 +487,15 @@ type PayoutAccountResponse {
   bankName: String
 }
 
+type CmsListImagesResponse {
+  files: [File!]!
+  total: Int!
+}
+
+type CmsUploadFileResponse {
+  presignedPutUrls: [String!]!
+}
+
 type AuthenticateResponse {
   status: AuthResponseStatusEnum!
   qrCode: String
@@ -531,6 +540,7 @@ type Query {
   getConversation(input: GetConversationInput!): [Message!]!
   getConversations(input: GetConversationsInput!): [Message!]!
   getUnreadConversationsCount: Int!
+  cmsListImages(input: CmsListImagesInput!): CmsListImagesResponse!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
@@ -649,6 +659,11 @@ enum GetConversationsType {
   BUYING_AND_SELLING
 }
 
+input CmsListImagesInput {
+  page: Int
+  pageSize: Int
+}
+
 input GetAddressInput {
   latitude: Float!
   longitude: Float!
@@ -726,6 +741,7 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
+  cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   selectPayoutMethod(input: SelectPayoutMethodInput!): User!
@@ -894,6 +910,10 @@ input MarkAsReadInput {
   otherUserId: String!
   productId: String!
   markAsRead: Boolean!
+}
+
+input CmsUploadFileInput {
+  images: [FileInputType!]
 }
 
 input AuthenticateRockerInput {
