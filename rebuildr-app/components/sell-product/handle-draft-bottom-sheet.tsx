@@ -1,3 +1,4 @@
+import { SELL_PRODUCT_QUERY } from "@/app/(app)/(tabs)/sell-product";
 import {
   HandleDraftDeleteDraftMutation,
   HandleDraftDeleteDraftMutationVariables,
@@ -53,6 +54,7 @@ export const HandleDraftBottomSheet = () => {
         setVisible(false);
         router.replace("/");
       },
+      refetchQueries: [SELL_PRODUCT_QUERY],
     });
   };
 
