@@ -38,12 +38,11 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
     if (image) {
       const _selectedImages = [...images];
       const uri = image.uri;
-      const {
-        mimeType,
-        file,
-        uri: optimizedImageUri,
-        size,
-      } = await optimizeImage(uri);
+      const optimizedImage = await optimizeImage(uri);
+      if (!optimizedImage) {
+        return;
+      }
+      const { mimeType, file, uri: optimizedImageUri, size } = optimizedImage;
 
       _selectedImages[index] = {
         uri: optimizedImageUri,
