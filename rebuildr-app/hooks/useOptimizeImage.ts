@@ -1,16 +1,31 @@
 import * as ImageManipulator from "expo-image-manipulator";
+import heic2any from "heic2any";
 export const useOptimizeImage = () => {
-  const optimizeImage = async (uri: string) => {
-    const optimizedImage = await ImageManipulator.manipulateAsync(
-      uri,
-      [{ resize: { width: 800 } }],
-      {
-        compress: 1,
-        format: ImageManipulator.SaveFormat.JPEG,
-      },
-    );
+  const optimizeImage = async (_uri: string) => {
+    let uri: string = _uri;
 
-    const response = await fetch(optimizedImage.uri);
+    //Browsers can't handle heic or heif images which is a format from iphones
+    //convert it to jpeg before proceeding
+    if (/(heic|heif)/.test(_uri)) {
+      const response = await fetch(_uri);
+      const blob = await response.blob();
+      const jpegBlob = await heic2any({
+        blob,
+        toType: "image/jpeg",
+        quality: 0.9,
+      });
+      const singleBlob = Array.isArray(jpegBlob) ? jpegBlob[0] : jpegBlob;
+      uri = URL.createObjectURL(singleBlob);
+    }
+
+    const context = ImageManipulator.ImageManipulator.manipulate(uri);
+    context.resize({ width: 800 });
+    const img = await context.renderAsync();
+    const res = await img.saveAsync({
+      format: ImageManipulator.SaveFormat.JPEG,
+      compress: 1,
+    });
+    const response = await fetch(res.uri);
     const blob = await response.blob();
     const optimizedFile = new File([blob], `${Date.now()}.${blob.type}`, {
       type: blob.type,
@@ -18,7 +33,7 @@ export const useOptimizeImage = () => {
     return {
       file: optimizedFile,
       mimeType: blob.type,
-      uri: optimizedImage.uri,
+      uri: res.uri,
       size: blob.size,
     };
   };

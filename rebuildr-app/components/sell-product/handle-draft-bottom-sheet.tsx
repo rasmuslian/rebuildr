@@ -1,3 +1,4 @@
+import { SELL_PRODUCT_QUERY } from "@/app/(app)/(tabs)/sell-product";
 import {
   HandleDraftDeleteDraftMutation,
   HandleDraftDeleteDraftMutationVariables,
@@ -53,6 +54,7 @@ export const HandleDraftBottomSheet = () => {
         setVisible(false);
         router.replace("/");
       },
+      refetchQueries: [SELL_PRODUCT_QUERY],
     });
   };
 
@@ -71,7 +73,14 @@ export const HandleDraftBottomSheet = () => {
   }, [visible]);
 
   return (
-    <BottomSheet ref={sheetRef} name="handle draft" title="Hantera utkast">
+    <BottomSheet
+      ref={sheetRef}
+      name="handle draft"
+      title="Hantera utkast"
+      onDismiss={() => {
+        setVisible(false);
+      }}
+    >
       <View
         style={{ justifyContent: "space-between", flex: 1, marginBottom: 16 }}
       >

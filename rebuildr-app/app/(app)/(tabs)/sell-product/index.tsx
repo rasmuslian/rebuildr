@@ -20,7 +20,7 @@ const SELL_PRODUCT_CREATE_DRAFT = gql`
   ${PRODUCT_DETAILS_FRAGMENT}
 `;
 
-const SELL_PRODUCT_QUERY = gql`
+export const SELL_PRODUCT_QUERY = gql`
   query SellProductQuery {
     getDraftedProduct {
       ...ProductDetailsFragment

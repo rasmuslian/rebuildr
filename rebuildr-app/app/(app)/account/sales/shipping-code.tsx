@@ -49,7 +49,7 @@ export default function ShippingCode() {
                   params: { purchaseId },
                 })
           }
-          style={{ marginTop: 82 }}
+          style={{ marginTop: 24 }}
         />
       }
     >
