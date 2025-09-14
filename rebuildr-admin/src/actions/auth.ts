@@ -4,6 +4,8 @@ import { LoginSchemaType } from "@/schema/login-schema";
 import { loginMutation } from "@/queries/auth/login-mutation";
 import { refreshMutation } from "@/queries/auth/refresh-mutation";
 import { cookies } from "next/headers";
+import { getIronSession } from "iron-session";
+import { sessionOptions, defaultSession } from "@/lib/session";
 
 type LoginResponseType = {
   success: boolean;
@@ -25,17 +27,12 @@ export const login = async (
     const response = await loginMutation(formData);
     if (!response) return { success: false };
 
-    const cookieStore = cookies();
+    const session = await getSession();
+    session.isLoggedIn = true;
+    session.accessToken = response.accessToken;
+    session.refreshToken = response.refreshToken;
 
-    cookieStore.set("accessToken", response.accessToken, {
-      httpOnly: false,
-      sameSite: "strict",
-    });
-
-    cookieStore.set("refreshToken", response.refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-    });
+    await session.save();
 
     return { success: true };
   } catch (error) {
@@ -45,11 +42,9 @@ export const login = async (
 };
 
 export const logout = async (): Promise<LogutResponseType> => {
-  const cookieStore = cookies();
-
   try {
-    cookieStore.delete("accessToken");
-    cookieStore.delete("refreshToken");
+    const session = await getSession();
+    session.destroy();
 
     return { success: true };
   } catch (error) {
@@ -59,29 +54,34 @@ export const logout = async (): Promise<LogutResponseType> => {
 };
 
 export const refreshToken = async (): Promise<RefreshTokenResponseType> => {
-  const cookieStore = cookies();
+  const session = await getSession();
+  const accessToken = session.accessToken;
+  const refreshToken = session.refreshToken;
 
   try {
-    const accessToken = cookieStore.get("accessToken")?.value;
-    const refreshToken = cookieStore.get("refreshToken")?.value;
-
     const response = await refreshMutation({ accessToken, refreshToken });
 
     if (!response) throw new Error("Failed to refresh token!");
 
-    cookieStore.set("accessToken", response.accessToken, {
-      httpOnly: false,
-      sameSite: "strict",
-    });
-
-    cookieStore.set("refreshToken", response.refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-    });
+    session.isLoggedIn = true;
+    session.accessToken = response.accessToken;
+    session.refreshToken = response.refreshToken;
+    await session.save();
 
     return { success: true, accessToken: response.accessToken };
   } catch (error) {
     console.error(error);
+    session.destroy();
     return { success: false };
   }
+};
+
+export const getSession = async () => {
+  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+
+  if (!session.isLoggedIn) {
+    session.isLoggedIn = defaultSession.isLoggedIn;
+  }
+
+  return session;
 };

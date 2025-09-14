@@ -1,8 +1,9 @@
 "use client";
 
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { getCookie } from "cookies-next";
 import { refreshToken } from "@/actions/auth";
+import { fetchSession } from "@lib/session";
+
 interface GraphQLError {
   message: string;
   extensions?: { code?: string };
@@ -17,15 +18,18 @@ const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const accessToken = getCookie("accessToken");
+apiClient.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const session = await fetchSession();
+    const accessToken = session.accessToken;
 
-  if (accessToken && config.headers) {
-    config.headers["Authorization"] = `Bearer ${accessToken}`;
-  }
+    if (accessToken && config.headers) {
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
 
-  return config;
-});
+    return config;
+  },
+);
 
 apiClient.interceptors.response.use(
   async (response: AxiosResponse<GraphQLResponse>) => {

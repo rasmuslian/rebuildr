@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routes } from "@/lib/routes";
-import { cookies } from "next/headers";
+import { getSession } from "@/actions/auth";
 
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get("accessToken")?.value;
-  const refreshToken = cookieStore.get("refreshToken")?.value;
-  const session = !!accessToken && !!refreshToken;
+  const session = await getSession();
 
-  if (!session && !nextUrl.pathname.match(routes.LOGIN)) {
+  const isLoggedIn = session.isLoggedIn;
+
+  if (!isLoggedIn && !nextUrl.pathname.match(routes.LOGIN)) {
     return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
   }
 
-  if (session && nextUrl.pathname.match(routes.LOGIN)) {
+  if (isLoggedIn && nextUrl.pathname.match(routes.LOGIN)) {
     return NextResponse.redirect(new URL(routes.ADMIN, nextUrl));
   }
 
