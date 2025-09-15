@@ -69,6 +69,9 @@ export const TransportationScreen = ({
       dbProduct.deliveryRadius &&
       validAddress;
 
+    if (!pickupSelected && !deliverySelected && !shippingSelected) {
+      return false;
+    }
     if (pickupSelected && !pickupValid) {
       return false;
     }
