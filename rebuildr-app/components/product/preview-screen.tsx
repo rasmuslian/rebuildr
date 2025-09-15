@@ -173,7 +173,9 @@ export const PreviewScreen = ({
           <Button
             icon="arrowLeft"
             label="Tillbaka"
-            onPress={() => router.navigate("/sell-product/transportation")}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/")
+            }
           />
           <Button
             label="Publicera annons"

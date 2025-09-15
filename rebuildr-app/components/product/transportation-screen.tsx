@@ -88,6 +88,31 @@ export const TransportationScreen = ({
       headerComponent={
         <ProgressHeader onClose={onDismiss} title={title} prog3={progress()} />
       }
+      footerComponent={
+        <View
+          style={{
+            paddingTop: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Button
+            icon="arrowLeft"
+            label="Tillbaka"
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/")
+            }
+          />
+          <Button
+            label="Förhandsgranska"
+            onPress={() => onNext()}
+            style={{ flex: 1 }}
+            disabled={!canContinue()}
+            loading={false}
+          />
+        </View>
+      }
     >
       <Display size="small">Leverans</Display>
       <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>
@@ -112,29 +137,6 @@ export const TransportationScreen = ({
             onEditComplete={() => setAddressEditLock(false)}
           />
         </Suspense>
-      </View>
-      <View
-        style={{
-          paddingTop: 24,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <Button
-          icon="arrowLeft"
-          label="Tillbaka"
-          onPress={() =>
-            router.canGoBack() ? router.back() : router.replace("/")
-          }
-        />
-        <Button
-          label="Förhandsgranska"
-          onPress={() => onNext()}
-          style={{ flex: 1 }}
-          disabled={!canContinue()}
-          loading={false}
-        />
       </View>
     </ScreenLayout>
   );
