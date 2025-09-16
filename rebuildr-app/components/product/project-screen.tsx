@@ -189,6 +189,24 @@ export const ProjectScreen = ({
       headerComponent={
         <ProgressHeader onClose={onDismiss} title={title} prog2={progress()} />
       }
+      footerComponent={
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
+          <Button
+            icon="arrowLeft"
+            label="Tillbaka"
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/")
+            }
+          />
+          <Button
+            label="Fortsätt"
+            onPress={() => onNext()}
+            loading={updatingProduct}
+            style={{ flex: 1 }}
+            disabled={!canContinue()}
+          />
+        </View>
+      }
     >
       <Display size="small" style={{ marginBottom: 16 }}>
         Koppla till projekt?
@@ -314,22 +332,6 @@ export const ProjectScreen = ({
             </>
           )}
         </View>
-      </View>
-      <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
-        <Button
-          icon="arrowLeft"
-          label="Tillbaka"
-          onPress={() =>
-            router.canGoBack() ? router.back() : router.replace("/")
-          }
-        />
-        <Button
-          label="Fortsätt"
-          onPress={() => onNext()}
-          loading={updatingProduct}
-          style={{ flex: 1 }}
-          disabled={!canContinue()}
-        />
       </View>
     </ScreenLayout>
   );

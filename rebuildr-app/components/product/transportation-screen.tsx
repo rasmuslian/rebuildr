@@ -69,6 +69,9 @@ export const TransportationScreen = ({
       dbProduct.deliveryRadius &&
       validAddress;
 
+    if (!pickupSelected && !deliverySelected && !shippingSelected) {
+      return false;
+    }
     if (pickupSelected && !pickupValid) {
       return false;
     }
@@ -87,6 +90,31 @@ export const TransportationScreen = ({
       style={{ gap: 24, marginTop: 24 }}
       headerComponent={
         <ProgressHeader onClose={onDismiss} title={title} prog3={progress()} />
+      }
+      footerComponent={
+        <View
+          style={{
+            paddingTop: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Button
+            icon="arrowLeft"
+            label="Tillbaka"
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/")
+            }
+          />
+          <Button
+            label="Förhandsgranska"
+            onPress={() => onNext()}
+            style={{ flex: 1 }}
+            disabled={!canContinue()}
+            loading={false}
+          />
+        </View>
       }
     >
       <Display size="small">Leverans</Display>
@@ -112,29 +140,6 @@ export const TransportationScreen = ({
             onEditComplete={() => setAddressEditLock(false)}
           />
         </Suspense>
-      </View>
-      <View
-        style={{
-          paddingTop: 24,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <Button
-          icon="arrowLeft"
-          label="Tillbaka"
-          onPress={() =>
-            router.canGoBack() ? router.back() : router.replace("/")
-          }
-        />
-        <Button
-          label="Förhandsgranska"
-          onPress={() => onNext()}
-          style={{ flex: 1 }}
-          disabled={!canContinue()}
-          loading={false}
-        />
       </View>
     </ScreenLayout>
   );

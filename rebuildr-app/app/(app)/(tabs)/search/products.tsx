@@ -277,7 +277,6 @@ export default function Products() {
                   placeholderTextColor={colors.text.secondary}
                   value={searchString}
                   onFocus={() => router.navigate("/(app)/(tabs)/search")}
-                  autoFocus
                 />
               </>
             }
