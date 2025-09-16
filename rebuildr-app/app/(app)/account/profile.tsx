@@ -485,10 +485,7 @@ export default function Profile() {
       <ScreenLayout
         style={{ gap: 24, marginTop: 24 }}
         headerComponent={
-          <Header
-            title="Redigera profil"
-            onBack={() => router.setParams({ userId, mode: "read" })}
-          />
+          <Header title="Redigera profil" onBack={() => router.back()} />
         }
         footerComponent={
           <Button
@@ -541,7 +538,11 @@ export default function Profile() {
               ? [
                   {
                     icon: "edit" as IconType,
-                    onPress: () => router.setParams({ mode: "edit", userId }),
+                    onPress: () =>
+                      router.push({
+                        pathname: "/account/profile",
+                        params: { mode: "edit", userId },
+                      }),
                   },
                 ]
               : []),
