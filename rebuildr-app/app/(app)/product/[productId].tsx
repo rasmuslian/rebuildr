@@ -238,7 +238,7 @@ export default function Product() {
     (product) => product.id !== productId,
   );
 
-  const buyButtonDisabled = !me || me.type === UserType.Business;
+  const buyButtonDisabled = me?.type === UserType.Business;
 
   const printProductLabel = async () => {
     if (Platform.OS === "web") {
@@ -321,6 +321,10 @@ export default function Product() {
                   <Button
                     label="Köp nu"
                     onPress={() => {
+                      if (!isLoggedIn) {
+                        setVisible(true);
+                        return;
+                      }
                       router.navigate({
                         pathname: "/buy/[productId]",
                         params: { productId },

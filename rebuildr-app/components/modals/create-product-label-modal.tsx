@@ -9,7 +9,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 type Props = {
-  modalRef: React.RefObject<BottomSheetModal>;
+  modalRef: React.Ref<BottomSheetModal>;
   onPressPrintProductLabel: () => void;
   onPressDontShowMore: () => void;
 };
