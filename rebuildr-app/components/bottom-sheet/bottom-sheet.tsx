@@ -9,10 +9,10 @@ import {
   PropsWithChildren,
   useRef,
   forwardRef,
-  ForwardedRef,
   useImperativeHandle,
   ReactElement,
   useMemo,
+  Ref,
 } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -44,11 +44,12 @@ export const BottomSheet = forwardRef(
       scrollable,
       footer,
     }: Props,
-    outerRef: ForwardedRef<BottomSheetModal>,
+    outerRef: Ref<BottomSheetModal>,
   ) => {
     const safeArea = useSafeAreaInsets();
-    const innerRef =
-      useRef<BottomSheetModal>() as React.MutableRefObject<BottomSheetModalMethods>;
+    const innerRef = useRef<BottomSheetModal>(
+      null,
+    ) as React.RefObject<BottomSheetModalMethods>;
     useImperativeHandle(outerRef, () => innerRef?.current, []);
     const colors = useThemeColor();
 

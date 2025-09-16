@@ -10,7 +10,7 @@ export const HandleDraftProvider = ({ children }: { children: ReactNode }) => {
   const [visible, setVisible] = useState(false);
 
   return (
-    <HandleDraftContext.Provider
+    <HandleDraftContext
       value={{
         visible,
         setVisible: (visible: boolean) => setVisible(visible),
@@ -18,6 +18,6 @@ export const HandleDraftProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
       <HandleDraftBottomSheet />
-    </HandleDraftContext.Provider>
+    </HandleDraftContext>
   );
 };

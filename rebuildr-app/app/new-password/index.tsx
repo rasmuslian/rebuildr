@@ -10,14 +10,14 @@ import { useLocalSearchParams } from "expo-router/build/hooks";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-const NEW_PASSWORD = gql(`
+const NEW_PASSWORD = gql`
   mutation NewPassword($input: NewPasswordInput!) {
-    newPassword(input:$input) {
+    newPassword(input: $input) {
       accessToken
       refreshToken
     }
   }
-`);
+`;
 
 export default function NewPassword() {
   const [password, setPassword] = useState("");

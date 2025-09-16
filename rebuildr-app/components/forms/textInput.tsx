@@ -2,7 +2,7 @@ import { textStyles } from "@components/typography/typeface";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
-import { forwardRef, LegacyRef, useState } from "react";
+import { forwardRef, Ref, useState } from "react";
 import {
   NativeSyntheticEvent,
   Pressable,
@@ -24,7 +24,7 @@ export type Props = {
 
 export const TextInput = forwardRef(function TextInput(
   { onChange, onBlur, ...props }: Props,
-  ref: LegacyRef<RNTextInput>,
+  ref: Ref<RNTextInput>,
 ) {
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
