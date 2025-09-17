@@ -150,7 +150,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
 
     editor.ui.registry.addButton("imageBankButton", {
       icon: "image",
-      text: "Bildbank",
+      text: "Image library",
       onAction: () => setState({ isImageModalOpen: true }),
     });
 
@@ -222,8 +222,6 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <Divider orientation="left">Artikel</Divider>
-
       <TinyEditor
         id={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
         apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}

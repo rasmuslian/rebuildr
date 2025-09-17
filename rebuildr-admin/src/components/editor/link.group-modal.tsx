@@ -50,7 +50,7 @@ const LinkGroupModal = ({
       width={980}
       afterOpenChange={() => reset(defaultValues, { keepDefaultValues: false })}
     >
-      <AdminForm onSubmit={handleSubmit(onSubmit)}>
+      <AdminForm>
         <Divider orientation="left">{title}</Divider>
 
         {fields.map((field, index) => (
@@ -121,7 +121,12 @@ const LinkGroupModal = ({
 
         <Divider />
 
-        <Button type="primary" htmlType="submit" block>
+        <Button
+          type="primary"
+          htmlType="button"
+          block
+          onClick={handleSubmit(onSubmit)}
+        >
           Spara gruppen
         </Button>
 

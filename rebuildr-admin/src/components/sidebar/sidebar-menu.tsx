@@ -51,8 +51,8 @@ const SidebarMenu = () => {
     getItem("Översikt", "/admin", <HomeOutlined />),
     { type: "divider" },
     getItem("Artiklar", "/article", <FolderOpenOutlined />, [
-      getItem("Visa alla", "/admin/article"),
       getItem("Skapa artikel", "/admin/article/create"),
+      getItem("Visa alla", "/admin/article"),
     ]),
     { type: "divider" },
     getItem("Bildbank", "/admin/media", <FileImageOutlined />),

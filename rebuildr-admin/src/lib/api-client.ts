@@ -1,5 +1,3 @@
-"use client";
-
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { refreshToken } from "@/actions/auth";
 import { fetchSession } from "@lib/session";

@@ -52,16 +52,14 @@ const parseHtml = (html: string) => {
 
 const ArticlePreview = ({ html }: Props) => {
   return (
-    <div className="flex max-w-screen-lg flex-col gap-5">
-      <Divider orientation="left">Förhandsvisning</Divider>
-      <Section>
-        {isEmpty(html) ? (
-          <EmptyContainer description="Tom artikel" />
-        ) : (
-          parseHtml(html)
-        )}
-      </Section>
-    </div>
+    <Section>
+      <Divider>Förhandsvisning</Divider>
+      {isEmpty(html) ? (
+        <EmptyContainer description="Tom artikel" />
+      ) : (
+        parseHtml(html)
+      )}
+    </Section>
   );
 };
 

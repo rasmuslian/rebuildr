@@ -36,6 +36,15 @@ export type ApproximatePlaceResponse = {
   lng: Scalars['Float']['output'];
 };
 
+export type Article = {
+  __typename?: 'Article';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export enum AuthResponseStatusEnum {
   Error = 'ERROR',
   Pending = 'PENDING',
@@ -115,6 +124,22 @@ export type CategoryInput = {
   id: Scalars['String']['input'];
 };
 
+export type CmsCreateArticleInput = {
+  body: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CmsListArticlesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CmsListArticlesResponse = {
+  __typename?: 'CmsListArticlesResponse';
+  articles: Array<Article>;
+  total: Scalars['Int']['output'];
+};
+
 export type CmsListImagesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -124,6 +149,12 @@ export type CmsListImagesResponse = {
   __typename?: 'CmsListImagesResponse';
   files: Array<File>;
   total: Scalars['Int']['output'];
+};
+
+export type CmsUpdateArticleInput = {
+  body: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type CmsUploadFileInput = {
@@ -405,7 +436,10 @@ export type Mutation = {
   authenticateRocker: AuthenticateResponse;
   cancelPurchase: Scalars['Boolean']['output'];
   clearSearchHistory: Scalars['Boolean']['output'];
+  cmsCreateArticle: Article;
+  cmsDeleteFile: Scalars['Boolean']['output'];
   cmsLogin: LoginResponse;
+  cmsUpdateArticle: Article;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
@@ -462,8 +496,23 @@ export type MutationCancelPurchaseArgs = {
 };
 
 
+export type MutationCmsCreateArticleArgs = {
+  input: CmsCreateArticleInput;
+};
+
+
+export type MutationCmsDeleteFileArgs = {
+  imageId: Scalars['String']['input'];
+};
+
+
 export type MutationCmsLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationCmsUpdateArticleArgs = {
+  input: CmsUpdateArticleInput;
 };
 
 
@@ -924,9 +973,11 @@ export enum QuantityUnitEnum {
 export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
+  article: Article;
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
+  cmsListArticles: CmsListArticlesResponse;
   cmsListImages: CmsListImagesResponse;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
@@ -965,6 +1016,11 @@ export type QueryAddressToLocationArgs = {
 };
 
 
+export type QueryArticleArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryCategoriesArgs = {
   input: CategoriesInput;
 };
@@ -972,6 +1028,11 @@ export type QueryCategoriesArgs = {
 
 export type QueryCategoryArgs = {
   input: CategoryInput;
+};
+
+
+export type QueryCmsListArticlesArgs = {
+  input: CmsListArticlesInput;
 };
 
 

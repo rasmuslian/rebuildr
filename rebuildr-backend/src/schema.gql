@@ -521,6 +521,19 @@ type PurchaseProductResponse {
   trustlyUrl: String
 }
 
+type Article {
+  id: ID!
+  title: String!
+  body: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CmsListArticlesResponse {
+  articles: [Article!]!
+  total: Int!
+}
+
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
@@ -556,6 +569,8 @@ type Query {
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
+  article(id: String!): Article!
+  cmsListArticles(input: CmsListArticlesInput!): CmsListArticlesResponse!
 }
 
 input UserExistsInput {
@@ -717,6 +732,11 @@ input NearbyServicePointsInput {
   shippingProvider: ShippingProviderEnum!
 }
 
+input CmsListArticlesInput {
+  page: Int
+  pageSize: Int
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -759,6 +779,8 @@ type Mutation {
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
+  cmsCreateArticle(input: CmsCreateArticleInput!): Article!
+  cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
 }
 
 input RegisterUserInput {
@@ -1014,4 +1036,15 @@ input CreateReportProductInput {
   productId: String!
   type: ReportProductTypeEnum!
   message: String!
+}
+
+input CmsCreateArticleInput {
+  title: String!
+  body: String!
+}
+
+input CmsUpdateArticleInput {
+  id: String!
+  title: String!
+  body: String!
 }

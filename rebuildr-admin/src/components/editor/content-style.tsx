@@ -9,7 +9,7 @@ export const contentStyle = `
   .accordion {
     padding: 10px;
     margin: 20px 0px;
-    background-color: ${colors.accent_100}
+    background-color: ${colors.accent_100};
   }
   .link-group{
     background-color: ${colors.semantic_error_100};
@@ -47,7 +47,7 @@ export const contentStyle = `
     font-weight: 500;
   }
   .cta-block {
-    background-color: ${colors.secondary_200}
+    background-color: ${colors.secondary_200};
     padding: 16px;
     margin: 20px auto;
     border-radius: 8px;

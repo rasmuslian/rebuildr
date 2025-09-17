@@ -42,7 +42,7 @@ const CTAModal = ({
       width={980}
       afterOpenChange={() => reset(defaultValues, { keepDefaultValues: false })}
     >
-      <AdminForm onSubmit={handleSubmit(onSubmit)}>
+      <AdminForm>
         <Divider orientation="left">{title}</Divider>
 
         <Controller
@@ -86,7 +86,12 @@ const CTAModal = ({
           )}
         />
 
-        <Button type="primary" htmlType="submit" size="middle">
+        <Button
+          type="primary"
+          htmlType="button"
+          size="middle"
+          onClick={handleSubmit(onSubmit)}
+        >
           Spara
         </Button>
 

@@ -14,7 +14,7 @@ export const sessionOptions: SessionOptions = {
 };
 
 export async function fetchSession(): Promise<SessionData> {
-  const session = await fetch("/api/session");
+  const session = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/session`);
   const sessionData = await session.json();
   return sessionData;
 }

@@ -9,11 +9,15 @@ type Props = {
 const FormField = ({ label, error, children }: Props) => {
   return (
     <div className="flex w-full flex-col gap-2">
-      {label && <label className="text-text_secondary text-sm">{label}</label>}
+      {label && <label className="text-label-large">{label}</label>}
 
       {children}
 
-      {error && <p className="mx-3 text-sm text-red-500">{error}</p>}
+      {error && (
+        <p className="text-label-medium mx-3 text-semantic_error_600">
+          {error}
+        </p>
+      )}
     </div>
   );
 };
