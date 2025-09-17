@@ -3,6 +3,7 @@
 import React, { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider, App } from "antd";
+import { colors } from "tailwind.config";
 
 const AntdProvider = ({ children }: PropsWithChildren) => {
   return (
@@ -10,8 +11,10 @@ const AntdProvider = ({ children }: PropsWithChildren) => {
       componentSize="large"
       theme={{
         token: {
-          colorPrimary: "#863CFF",
-          colorText: "#212121",
+          colorPrimary: colors.accent_500,
+          colorText: colors.neutrals_900,
+          colorError: colors.semantic_error_600,
+          colorSuccess: colors.primary_600,
           fontFamily: "var(--font-inter)",
         },
         components: {
@@ -19,22 +22,13 @@ const AntdProvider = ({ children }: PropsWithChildren) => {
             primaryShadow: "none",
           },
           Menu: {
-            itemHoverBg: "#863CFF",
-            itemHoverColor: "#ffffff",
-            itemSelectedBg: "#863CFF",
-            itemSelectedColor: "#ffffff",
-          },
-          Tree: {
-            nodeHoverBg: "#ffc9b5",
-            nodeSelectedBg: "#ffc9b5",
-            nodeSelectedColor: "#f1542a",
-          },
-          Result: {
-            colorTextHeading: "#1D2122",
-            colorTextDescription: "#64747A",
+            itemHoverBg: colors.accent_500,
+            itemHoverColor: colors.neutrals_100,
+            itemSelectedBg: colors.accent_500,
+            itemSelectedColor: colors.neutrals_100,
           },
           Spin: {
-            colorPrimary: "#863CFF",
+            colorPrimary: colors.accent_500,
           },
         },
       }}

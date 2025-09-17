@@ -2,7 +2,7 @@ import React from "react";
 import { Pagination, Image, Button, App } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { usePersistedState } from "@/hooks/use-persisted-state";
+import { useState } from "@/hooks/use-state";
 import { listMedia } from "@/queries/media/list-media";
 import EmptyContainer from "@components/empty-container";
 import { isEmpty } from "lodash";
@@ -20,11 +20,16 @@ const initialState: StateType = {
   page: 0,
 };
 
-const ListMedia = () => {
-  const [state, setState] = usePersistedState("list-media", initialState);
+type Props = {
+  onSelectImage?: (source: string) => void;
+};
+
+const ListMedia = ({ onSelectImage }: Props) => {
+  const [state, setState] = useState(initialState);
   const { pageSize, page } = state;
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
+  const canPreview = onSelectImage ? false : true;
 
   const { data, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_IMAGES, page, pageSize],
@@ -72,21 +77,30 @@ const ListMedia = () => {
               height={200}
               style={{ objectFit: "cover" }}
               alt={file.name ?? ""}
-              preview={{
-                toolbarRender: (_, { actions: { onClose } }) => (
-                  <Button
-                    icon={<DeleteOutlined />}
-                    loading={isPending}
-                    disabled={isPending}
-                    onClick={async () => {
-                      const result = await mutateAsync(file.id);
-                      if (result) onClose();
-                    }}
-                  >
-                    Radera bilden
-                  </Button>
-                ),
+              onClick={() => {
+                if (onSelectImage) {
+                  onSelectImage(file.url);
+                }
               }}
+              preview={
+                canPreview
+                  ? {
+                      toolbarRender: (_, { actions: { onClose } }) => (
+                        <Button
+                          icon={<DeleteOutlined />}
+                          loading={isPending}
+                          disabled={isPending}
+                          onClick={async () => {
+                            const result = await mutateAsync(file.id);
+                            if (result) onClose();
+                          }}
+                        >
+                          Radera bilden
+                        </Button>
+                      ),
+                    }
+                  : false
+              }
             />
           ))}
         </div>

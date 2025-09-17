@@ -8,19 +8,15 @@ body {
 
 @layer base {
   h1 {
-    @apply text-3xl font-bold text-neutral-900;
+    @apply text-display-small;
   }
 
   h2 {
-    @apply text-2xl font-bold text-neutral-900;
+    @apply text-headline-small;
   }
 
-  h3 {
-    @apply text-xl font-bold text-neutral-900;
-  }
-
-  h4 {
-    @apply font-bold text-neutral-900;
+  p {
+    @apply text-body-medium;
   }
 
   :root {

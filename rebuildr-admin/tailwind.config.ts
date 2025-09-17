@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-const colors = {
+export const colors = {
   primary_100: "#E9F6ED",
   primary_200: "#D6E6DC",
   primary_300: "#70AEA3",
@@ -71,6 +71,27 @@ const config: Config = {
         success: colors.primary_900,
         error: colors.semantic_error_600,
         gray: colors.neutrals_600,
+      },
+      fontSize: {
+        "display-large": ["45px", { lineHeight: "52px", fontWeight: "600" }],
+        "display-medium": ["36px", { lineHeight: "44px", fontWeight: "600" }],
+        "display-small": ["30px", { lineHeight: "36px", fontWeight: "600" }],
+
+        "headline-large": ["28px", { lineHeight: "36px", fontWeight: "500" }],
+        "headline-medium": ["24px", { lineHeight: "32px", fontWeight: "500" }],
+        "headline-small": ["20px", { lineHeight: "28px", fontWeight: "500" }],
+
+        "title-large": ["22px", { lineHeight: "28px", fontWeight: "400" }],
+        "title-medium": ["16px", { lineHeight: "24px", fontWeight: "500" }],
+        "title-small": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+
+        "label-large": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+        "label-medium": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+        "label-small": ["11px", { lineHeight: "16px", fontWeight: "500" }],
+
+        "body-large": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+        "body-medium": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+        "body-small": ["12px", { lineHeight: "16px", fontWeight: "400" }],
       },
     },
   },

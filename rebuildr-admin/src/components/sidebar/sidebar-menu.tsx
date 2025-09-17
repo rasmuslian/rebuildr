@@ -11,6 +11,7 @@ import {
   HomeOutlined,
   LogoutOutlined,
   FileImageOutlined,
+  FolderOpenOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -48,6 +49,11 @@ const SidebarMenu = () => {
   const items: MenuItem[] = [
     { type: "divider" },
     getItem("Översikt", "/admin", <HomeOutlined />),
+    { type: "divider" },
+    getItem("Artiklar", "/article", <FolderOpenOutlined />, [
+      getItem("Visa alla", "/admin/article"),
+      getItem("Skapa artikel", "/admin/article/create"),
+    ]),
     { type: "divider" },
     getItem("Bildbank", "/admin/media", <FileImageOutlined />),
     { type: "divider" },
