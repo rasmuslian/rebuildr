@@ -518,7 +518,9 @@ export class ProductService {
         )
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
-        .andWhere('rp.resultrank > 0.3')
+        .andWhere(
+          `(rp.resultrank > 0.25 OR p.title ILIKE '${input.searchString}%' )`,
+        )
         .addSelect('rp.resultrank', 'resultrank');
     }
 

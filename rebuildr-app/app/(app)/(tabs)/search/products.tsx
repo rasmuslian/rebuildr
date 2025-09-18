@@ -87,9 +87,10 @@ export default function Products() {
 
   const colors = useThemeColor();
 
-  const { searchString } = useLocalSearchParams<{
+  const { searchString: searchStringParam } = useLocalSearchParams<{
     searchString: string;
   }>();
+  const [searchString, setSearchString] = useState(searchStringParam ?? "");
 
   const { filter, nrOfAppliedFilters, resetSelectedCategory } =
     useFilterProduct();
@@ -248,8 +249,11 @@ export default function Products() {
   );
 
   useEffect(() => {
-    if (searchString) resetSelectedCategory();
-  }, [searchString]);
+    setSearchString(searchStringParam ?? "");
+    if (searchStringParam) {
+      resetSelectedCategory();
+    }
+  }, [searchStringParam]);
 
   return (
     <>
