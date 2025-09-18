@@ -9,9 +9,9 @@ import { revalidatePath } from "next/cache";
  *
  * Usage:
  * ```tsx
- * await revalidateCache("/admin/article/edit/id");
+ * await revalidate("/admin/article/edit/id");
  * ```
  */
-export async function revalidateCache(path: string) {
+export async function revalidate(path: string) {
   revalidatePath(path);
 }

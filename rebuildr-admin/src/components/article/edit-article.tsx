@@ -14,7 +14,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 import { updateArticle } from "@/queries/article/update-article";
-import { revalidateCache } from "@/actions/revalidate-cache";
+import { revalidate } from "@/actions/revalidate";
 
 type Props = {
   article: Article;
@@ -52,7 +52,7 @@ const EditArticle = ({ article }: Props) => {
         message: "Hurra!",
         description: "Artikeln har sparats!",
       });
-      await revalidateCache(`${routes.EDIT_ARTICLE}/${article.id}`);
+      await revalidate(`${routes.EDIT_ARTICLE}/${article.id}`);
       router.push(routes.ARTICLE_LIST);
     },
     onError: () => {
