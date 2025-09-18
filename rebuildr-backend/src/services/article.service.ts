@@ -42,6 +42,11 @@ export class ArticleService {
     }
   }
 
+  async deleteArticle(articleId: string): Promise<boolean> {
+    const result = await this.articleRepository.softDelete(articleId);
+    return !!result.affected && result.affected > 0;
+  }
+
   async cmsListArticles(
     input: CmsListArticlesInput,
   ): Promise<CmsListArticlesResponse> {

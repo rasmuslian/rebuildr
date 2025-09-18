@@ -1,17 +1,18 @@
 "use client";
 
 import React from "react";
-import { Table, Divider, Button } from "antd";
+import { Table, Divider, Button, App } from "antd";
 import { useState } from "@/hooks/use-state";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { listArticles } from "@/queries/article/list-articles";
 import { Article } from "gql/graphql";
 import { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/utils/date-utils";
+import { deleteArticle } from "@/queries/article/delete-article";
 
 type StateType = {
   pageSize: number;
@@ -27,11 +28,44 @@ const ListArticlePage = () => {
   const router = useRouter();
   const [state, setState] = useState(initialState);
   const { pageSize, page } = state;
+  const { modal, notification } = App.useApp();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_ARTICLES, page, pageSize],
     queryFn: () => listArticles({ page, pageSize }),
   });
+
+  const confirmDelete = (title: string, id: string) => {
+    modal.confirm({
+      title: 'Säker på att du vill ta bort "' + title + '"?',
+      content:
+        "När du raderar artikeln kommer den inte längre vara tillgänglig.",
+
+      async onOk() {
+        const response = await deleteArticle(id);
+        if (response) {
+          queryClient.invalidateQueries({
+            queryKey: [queryKeys.LIST_ARTICLES],
+          });
+          notification.success({
+            message: "Artikeln har raderats!",
+            description: "Artikeln har tagits bort från systemet.",
+          });
+        } else {
+          notification.success({
+            message: "Misslyckades",
+            description: "Artikeln kunde tyvärr inte raderas. Försök igen.",
+          });
+        }
+      },
+      okText: "Radera",
+      okButtonProps: {
+        danger: true,
+      },
+      cancelText: "Avbryt",
+    });
+  };
 
   const columns: ColumnsType<Article> = [
     {
@@ -61,9 +95,15 @@ const ListArticlePage = () => {
       title: "Administrera",
       key: "action",
       width: "120px",
-      render: (_, { id }) => {
+      render: (_, { id, title }) => {
         return (
-          <div className="flex flex-row items-center justify-center">
+          <div className="flex flex-row items-center justify-center gap-4">
+            <Button
+              type="dashed"
+              size="middle"
+              icon={<DeleteOutlined />}
+              onClick={() => confirmDelete(title, id)}
+            />
             <Button
               type="dashed"
               size="middle"

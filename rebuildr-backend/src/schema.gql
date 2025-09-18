@@ -781,6 +781,7 @@ type Mutation {
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
+  cmsDeleteArticle(articleId: String!): Boolean!
 }
 
 input RegisterUserInput {

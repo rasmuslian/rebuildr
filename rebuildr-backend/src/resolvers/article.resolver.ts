@@ -83,6 +83,15 @@ export class ArticleResolver {
     return this.articleService.updateArticle(input);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeleteArticle(
+    @Args('articleId') articleId: string,
+  ): Promise<boolean> {
+    return this.articleService.deleteArticle(articleId);
+  }
+
   @Query(() => CmsListArticlesResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])

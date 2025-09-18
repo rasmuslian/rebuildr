@@ -437,6 +437,7 @@ export type Mutation = {
   cancelPurchase: Scalars['Boolean']['output'];
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
+  cmsDeleteArticle: Scalars['Boolean']['output'];
   cmsDeleteFile: Scalars['Boolean']['output'];
   cmsLogin: LoginResponse;
   cmsUpdateArticle: Article;
@@ -498,6 +499,11 @@ export type MutationCancelPurchaseArgs = {
 
 export type MutationCmsCreateArticleArgs = {
   input: CmsCreateArticleInput;
+};
+
+
+export type MutationCmsDeleteArticleArgs = {
+  articleId: Scalars['String']['input'];
 };
 
 
