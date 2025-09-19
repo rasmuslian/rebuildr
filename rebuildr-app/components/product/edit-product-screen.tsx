@@ -381,9 +381,13 @@ export const EditProductScreen = ({
       }
     >
       <RootCategorySection
-        onSelect={(id) => onUpdateProduct({ categoryIds: [id] })}
+        onSelect={(id) => {
+          setProduct({ ...product, categoryIds: [id] });
+        }}
         selectedId={product.categoryIds?.[0]}
-        onChange={() => onUpdateProduct({ categoryIds: [] })}
+        onChange={() => {
+          setProduct({ ...product, categoryIds: [] });
+        }}
       />
       {rootCategoryId && (
         <CategorySection
