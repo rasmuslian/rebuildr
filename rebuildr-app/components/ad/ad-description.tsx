@@ -52,7 +52,7 @@ export const AdDescription = ({
             {typeof account.rating === "number" ? (
               <>
                 <Icon icon="star" size={10} />
-                <Label>{account.rating}</Label>
+                <Label size="medium">{account.rating}</Label>
               </>
             ) : (
               <View style={{ height: 4 }} />
