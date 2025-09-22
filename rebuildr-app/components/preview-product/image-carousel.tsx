@@ -26,8 +26,9 @@ export const ImageCarousel = ({
   // Must be a ref or else Flatlist throws error
   const onViewRef = useRef(
     ({ viewableItems }: { viewableItems: ViewToken<File>[] }) => {
-      if (viewableItems[0]?.index !== null) {
-        setVisibleIndex(viewableItems[0].index);
+      const f = viewableItems[0];
+      if (f && f.index !== null) {
+        setVisibleIndex(f.index);
       }
     },
   );
