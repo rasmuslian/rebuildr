@@ -10,6 +10,7 @@ import { quantities } from "@constants/quantities";
 import { Icon } from "@icons/icon";
 import { View } from "react-native";
 import { CompanyBadge } from "@components/badges/company-badge";
+import { formatPrice } from "@/utils/formattings";
 
 type Props = {
   title: string;
@@ -63,8 +64,7 @@ export const AdDescription = ({
           </Body>
         </View>
       )}
-
-      <Label size="large">{price} kr</Label>
+      <Label size="large">{formatPrice(price)}</Label>
     </View>
   );
 };

@@ -9,3 +9,15 @@ export const formatPostCode = (postCode: string) => {
   const second = numberArray.slice(3, 5);
   return [...first, " ", ...second].join("");
 };
+
+export const formatPrice = (price?: number) => {
+  if (price === undefined) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("sv-SE", {
+    style: "currency",
+    currency: "SEK",
+    maximumFractionDigits: 0,
+  }).format(price);
+};

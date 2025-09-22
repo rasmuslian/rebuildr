@@ -17,6 +17,7 @@ import * as Linking from "expo-linking";
 import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { AccordionSection } from "@components/sections/accordion-section";
+import { formatPrice } from "@/utils/formattings";
 
 type Props = {
   product: Omit<Partial<Product>, "category" | "seller" | "project">;
@@ -62,7 +63,7 @@ export const MainContent = ({
       {product.status !== ProductStatusEnum.Sold && (
         <View>
           <Headline size="large" style={{ marginBottom: 8 }}>
-            {product.price} kr
+            {formatPrice(product.price)}
           </Headline>
           <View style={{ gap: 2 }}>
             {product.pickupEnabled && (
