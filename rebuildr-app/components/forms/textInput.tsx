@@ -4,10 +4,8 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
 import { forwardRef, Ref, useState } from "react";
 import {
-  NativeSyntheticEvent,
   Pressable,
   TextInput as RNTextInput,
-  TextInputFocusEventData,
   TextInputProps,
   View,
 } from "react-native";
@@ -87,9 +85,9 @@ export const TextInput = forwardRef(function TextInput(
     }
   };
 
-  const onBlurText = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const onBlurText = () => {
     setFocused(false);
-    const text = e.nativeEvent.text;
+    const text = props.value ?? "";
     if (props.inputType === "numeric") {
       const priceNumber = text.replace(/\D/g, "");
       onBlur?.(priceNumber);
@@ -106,10 +104,11 @@ export const TextInput = forwardRef(function TextInput(
       <RNTextInput
         ref={ref}
         onFocus={() => setFocused(true)}
-        onBlur={onBlurText}
+        onBlur={() => onBlurText()}
         secureTextEntry={props.hideText}
         onChangeText={(t) => onChangeText(t)}
         {...props}
+        placeholder={focused ? "" : props.placeholder}
         style={[
           {
             borderWidth: strokeWidth.regular,

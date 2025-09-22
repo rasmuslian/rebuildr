@@ -46,6 +46,7 @@ export default function Preview() {
           params: { productId },
         })
       }
+      onEdit={() => (router.canGoBack() ? router.back() : router.replace("/"))}
     />
   );
 }

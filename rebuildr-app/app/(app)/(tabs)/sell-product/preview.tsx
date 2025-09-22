@@ -39,10 +39,11 @@ export default function Preview() {
   return (
     <PreviewScreen
       product={data.getDraftedProduct}
-      title="Ny annons"
+      title="Förhandsgranska annons"
       myAddress={data.me.address}
       sellerIsMe={data.me.id === data.getDraftedProduct.sellerId}
       onDismiss={() => setVisible(true)}
+      onEdit={() => router.navigate("/sell-product")}
     />
   );
 }

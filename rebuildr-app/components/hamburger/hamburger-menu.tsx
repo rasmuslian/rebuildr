@@ -31,6 +31,10 @@ export const HamburgerMenu = () => {
     [pathname],
   );
 
+  if (!showHamburgerMenu) {
+    return null;
+  }
+
   return (
     <SlideInSheet
       open={!!showHamburgerMenu}
