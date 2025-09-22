@@ -109,56 +109,45 @@ export const MainContent = ({
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {product.primaryQuantity && product.primaryUnit && (
             <ProductChip
-              text="Antal"
               boldText={`${product.primaryQuantity} ${quantities[product.primaryUnit].short}`}
             />
           )}
           {product.secondaryQuantity && product.secondaryUnit && (
             <ProductChip
-              text="Antal"
               boldText={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].short}`}
             />
           )}
           {product.condition && (
-            <ProductChip
-              text="Skick"
-              boldText={conditions[product.condition].name}
-            />
+            <ProductChip boldText={conditions[product.condition].name} />
           )}
           {product.brand && <ProductChip boldText={product.brand.name} />}
           {!!product.thickness && (
             <ProductChip
-              text={measurements["thickness"].name}
               boldText={`${product.thickness} ${measurements.thickness.options.mm.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
-              text={measurements["height"].name}
               boldText={`${product.height} ${measurements.height.options.mm.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
-              text={measurements["width"].name}
               boldText={`${product.width} ${measurements.width.options.mm.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
-              text={measurements["length"].name}
               boldText={`${product.length} ${measurements.length.options.mm.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
-              text={measurements["diameter"].name}
               boldText={`${product.diameter} ${measurements.diameter.options.mm.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
-              text={measurements["weight"].name}
               boldText={`${product.weight} ${measurements.weight.options.kg.name}`}
             />
           )}
@@ -255,16 +244,14 @@ export const MainContent = ({
 };
 
 type ProductChipProps = {
-  text?: string;
   boldText?: string;
 };
 
-const ProductChip = ({ text, boldText }: ProductChipProps) => {
+const ProductChip = ({ boldText }: ProductChipProps) => {
   return (
     <FilterChip
       label={
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          {text && <Body size="medium">{text}: </Body>}
           {boldText && <Label size="large">{boldText}</Label>}
         </View>
       }
