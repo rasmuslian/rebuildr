@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LoginModalContext } from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -74,6 +75,7 @@ const RootLayout = () => {
             <BottomSheetModalProvider>
               <ScreenDimensionsProvider>
                 <Slot />
+                <HamburgerMenu />
                 <LoginModalView />
               </ScreenDimensionsProvider>
             </BottomSheetModalProvider>

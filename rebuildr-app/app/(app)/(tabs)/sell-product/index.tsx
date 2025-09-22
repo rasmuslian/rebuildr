@@ -70,7 +70,13 @@ export default function SellProduct() {
       product={data?.getDraftedProduct}
       title="Ny annons"
       nextUrl="/sell-product/project"
-      onDismiss={() => setVisible(true)}
+      onDismiss={() => {
+        if (!data.getDraftedProduct?.category?.hasChildren) {
+          router.back();
+          return;
+        }
+        setVisible(true);
+      }}
     />
   );
 }

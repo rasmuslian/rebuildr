@@ -6,6 +6,7 @@ import { LoginModalContext } from "@context/loginModalContext";
 import { useContext } from "react";
 import { useUser } from "@hooks/useUser";
 import { Logo } from "@components/logo/logo";
+import { showHamburgerMenuVar } from "@/apollo/config";
 
 export default function TopBar() {
   const colors = useThemeColor();
@@ -35,7 +36,7 @@ export default function TopBar() {
     },
     {
       icon: "hamburger",
-      onPress: () => router.navigate("/(app)/(tabs)/categories"),
+      onPress: () => showHamburgerMenuVar(true),
     },
   ];
 
