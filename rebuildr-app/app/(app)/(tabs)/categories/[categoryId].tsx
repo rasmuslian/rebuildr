@@ -11,20 +11,7 @@ export default function Category() {
   }>();
 
   return (
-    <ScreenLayout
-      headerComponent={
-        <Header
-          title={name}
-          ctas={[
-            {
-              icon: "X",
-              onPress: () =>
-                router.canGoBack() ? router.back() : router.navigate("/"),
-            },
-          ]}
-        />
-      }
-    >
+    <ScreenLayout headerComponent={<Header title={name} />}>
       <SubCategoriesVertical id={categoryId} />
     </ScreenLayout>
   );
