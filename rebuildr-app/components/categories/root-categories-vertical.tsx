@@ -13,7 +13,13 @@ import { ROOT_CATEGORIES } from "@/queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { Avatar } from "@components/avatar/avatar";
 
-export function RootCategoriesVertical() {
+export type RootCategoriesVerticalCategory =
+  RootCategoriesQuery["rootCategories"][number];
+
+type Props = {
+  onExpandCategory: (category: RootCategoriesVerticalCategory) => void;
+};
+export function RootCategoriesVertical({ onExpandCategory }: Props) {
   const { setCategories } = useFilterProduct();
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
     ROOT_CATEGORIES,
@@ -70,12 +76,7 @@ export function RootCategoriesVertical() {
             <Button
               icon="chevronRight"
               type="text"
-              onPress={() => {
-                router.navigate({
-                  pathname: "/categories/[categoryId]",
-                  params: { categoryId: category.id, name: category.name },
-                });
-              }}
+              onPress={() => onExpandCategory(category)}
             />
           </View>
         )}

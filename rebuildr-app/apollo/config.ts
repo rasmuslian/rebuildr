@@ -21,6 +21,7 @@ mutation GetNewTokens($input: GetNewTokensInput!) {
 }
 `);
 export const isLoggedInVar = makeVar(false);
+export const showHamburgerMenuVar = makeVar(false);
 export const productFilterVar = makeVar(initialFilterProduct);
 export const initializeApollo = async () => {
   const httpLink = createHttpLink({

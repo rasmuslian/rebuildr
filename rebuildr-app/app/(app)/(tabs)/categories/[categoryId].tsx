@@ -18,9 +18,8 @@ export default function Category() {
           ctas={[
             {
               icon: "X",
-              onPress: () => {
-                router.canGoBack() ? router.back() : router.navigate("/");
-              },
+              onPress: () =>
+                router.canGoBack() ? router.back() : router.navigate("/"),
             },
           ]}
         />

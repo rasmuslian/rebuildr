@@ -78,7 +78,9 @@ export const Header = ({
           marginRight: -12,
         }}
       >
-        {ctas?.map((cta, i) => <Button key={i} type="text" {...cta} />)}
+        {ctas?.map((cta, i) => (
+          <Button key={i} type="text" {...cta} />
+        ))}
       </View>
       {badge && <Badge {...badge} />}
     </View>
