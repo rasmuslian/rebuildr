@@ -297,24 +297,31 @@ export default function Product() {
         footerComponent={
           <View style={{ gap: 8, paddingTop: 24 }}>
             {isMyProduct ? (
-              <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                }}
+              >
                 <Button
-                  label="Redigera annons"
+                  label="Ta bort"
+                  type="tonal"
+                  onPress={() => {
+                    removeProductRef.current?.present();
+                  }}
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  label="Redigera"
                   onPress={() => {
                     router.navigate({
                       pathname: "/product/edit/[productId]",
                       params: { productId },
                     });
                   }}
+                  style={{ flex: 1 }}
                 />
-                <Button
-                  label="Radera annons"
-                  type="tonal"
-                  onPress={() => {
-                    removeProductRef.current?.present();
-                  }}
-                />
-              </>
+              </View>
             ) : (
               <>
                 {data.product.status === ProductStatusEnum.Published && (
@@ -490,20 +497,20 @@ export default function Product() {
       <BottomSheet
         ref={removeProductRef}
         name="removeProduct"
-        title="Radera annons"
+        title="Ta bort annons"
       >
-        <View style={{ gap: 24 }}>
+        <View style={{ gap: 24, marginBottom: 16 }}>
           {product.canDelete ? (
             <>
               <Display
                 size="small"
                 style={{ marginVertical: 24, textAlign: "center" }}
               >
-                Är du säker på att du vill radera annonsen?
+                Är du säker på att du vill ta bort annonsen?
               </Display>
               <View style={{ gap: 8 }}>
                 <Button
-                  label="Ja, radera"
+                  label="Ja, ta bort"
                   type="danger"
                   loading={loadingRemoveProduct}
                   onPress={() => {
@@ -536,7 +543,7 @@ export default function Product() {
                 size="small"
                 style={{ marginVertical: 24, textAlign: "center" }}
               >
-                Du kan inte radera en annons under ett pågående köp
+                Du kan inte ta bort en annons under ett pågående köp
               </Display>
               <Button
                 label="Ok"

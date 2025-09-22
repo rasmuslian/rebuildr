@@ -114,6 +114,7 @@ type Props = {
   sellerIsMe?: boolean;
   title: string;
   onDismiss: () => void;
+  onEdit: () => void;
 };
 
 export const PreviewScreen = ({
@@ -122,6 +123,7 @@ export const PreviewScreen = ({
   sellerIsMe,
   title,
   onDismiss,
+  onEdit,
 }: Props) => {
   const [publishProduct, { loading: publishProductLoading }] = useMutation<
     ProductPreviewPublishProductMutation,
@@ -164,21 +166,18 @@ export const PreviewScreen = ({
         <View
           style={{
             gap: 8,
-            alignItems: "center",
-            justifyContent: "space-between",
             flexDirection: "row",
             paddingTop: 24,
           }}
         >
           <Button
-            icon="arrowLeft"
-            label="Tillbaka"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/")
-            }
+            label="Redigera"
+            type="tonal"
+            onPress={onEdit}
+            style={{ flex: 1 }}
           />
           <Button
-            label="Publicera annons"
+            label="Publicera"
             onPress={onPublishProduct}
             loading={publishProductLoading}
             style={{ flex: 1 }}
