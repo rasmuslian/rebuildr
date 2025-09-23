@@ -25,8 +25,17 @@ export class FooterSectionService {
     input: CmsCreateFooterSectionInput,
   ): Promise<FooterSection> {
     try {
-      const article = this.footerSectionRepository.create(input);
-      return this.footerSectionRepository.save(article);
+      const footerSection = this.footerSectionRepository.create({
+        title: input.title,
+        orderIndex: input.orderIndex,
+      });
+
+      await this.footerSectionRepository.save(footerSection);
+      await this.articleFooerSectionService.syncArticles(
+        footerSection.id,
+        input.articles,
+      );
+      return footerSection;
     } catch (error) {
       throw BadUserInputException('Failed to create footer section' + error);
     }
@@ -63,6 +72,7 @@ export class FooterSectionService {
     return this.footerSectionRepository.find({
       order: {
         orderIndex: 'ASC',
+        updatedAt: 'DESC',
       },
     });
   }

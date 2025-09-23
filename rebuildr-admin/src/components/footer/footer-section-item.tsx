@@ -5,7 +5,7 @@ import { FooterSection } from "gql/graphql";
 import Section from "@components/section";
 import ArticleFooterSectionItem from "@components/footer/article-footer-section-item";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Modal, App } from "antd";
+import { Button, App } from "antd";
 import EditFooterSection from "@components/footer/edit-footer-section";
 import { deleteFooterSection } from "@/queries/footer/delete-footer-section";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -16,10 +16,10 @@ type Props = {
 };
 
 const FooerSectionItem = ({ footerSection }: Props) => {
-  const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const { notification, modal } = App.useApp();
   const queryClient = useQueryClient();
-  const { id, orderIndex, title } = footerSection;
+  const { id, orderIndex, title, articleFooterSections } = footerSection;
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (footerSectionId: string) => {
@@ -78,32 +78,26 @@ const FooerSectionItem = ({ footerSection }: Props) => {
             <Button
               icon={<EditOutlined />}
               type="dashed"
-              onClick={() => setOpen(true)}
+              onClick={() => setEditMode(true)}
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-3">
-          {footerSection.articleFooterSections.map((articleFooterSection) => (
+          {articleFooterSections.map((articleFooterSection, index) => (
             <ArticleFooterSectionItem
-              key={articleFooterSection.articleId}
+              key={index}
               articleFooterSection={articleFooterSection}
             />
           ))}
         </div>
       </Section>
 
-      <Modal
-        open={open}
-        onCancel={() => setOpen(false)}
-        footer={false}
-        width={980}
-      >
-        <EditFooterSection
-          footerSection={footerSection}
-          afterSuccess={() => setOpen(false)}
-        />
-      </Modal>
+      <EditFooterSection
+        open={editMode}
+        onCancel={() => setEditMode(false)}
+        footerSection={footerSection}
+      />
     </div>
   );
 };

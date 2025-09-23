@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FooterSection } from "gql/graphql";
-import { App } from "antd";
+import { App, Modal } from "antd";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -16,17 +16,19 @@ import { CmsUpdateFooterSectionInput } from "gql/graphql";
 import { updateFooterSection } from "@/queries/footer/update-footer-section";
 
 type Props = {
+  open: boolean;
+  onCancel: () => void;
   footerSection: FooterSection;
-  afterSuccess: () => void;
 };
 
-const EditFooterSection = ({ footerSection, afterSuccess }: Props) => {
+const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
 
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FooterSectionSchemaType>({
     resolver: zodResolver(FooterSectionSchema),
@@ -46,10 +48,10 @@ const EditFooterSection = ({ footerSection, afterSuccess }: Props) => {
       return response;
     },
     onSuccess: () => {
+      onCancel();
       queryClient.invalidateQueries({
         queryKey: [queryKeys.LIST_FOOTER_SECTIONS],
       });
-      afterSuccess();
       notification.success({
         message: "Hurra!",
         description: "Sektionen har updaterats!",
@@ -76,16 +78,36 @@ const EditFooterSection = ({ footerSection, afterSuccess }: Props) => {
 
     mutate(updatedFooterSection);
   };
+
   return (
-    <FooterSectionForm
-      title="Skapa ny sektion"
-      submitLabel="Publicera"
-      handleSubmit={handleSubmit}
-      onSubmit={onSubmit}
-      control={control}
-      errors={errors}
-      isPending={isPending}
-    />
+    <Modal
+      open={open}
+      onCancel={onCancel}
+      footer={false}
+      width={980}
+      afterOpenChange={() => {
+        reset(
+          {
+            title: footerSection.title,
+            orderIndex: footerSection.orderIndex,
+            articles: footerSection.articleFooterSections.map(
+              (footerSection) => footerSection.article,
+            ),
+          },
+          { keepDefaultValues: false },
+        );
+      }}
+    >
+      <FooterSectionForm
+        title="Skapa ny sektion"
+        submitLabel="Publicera"
+        handleSubmit={handleSubmit}
+        onSubmit={onSubmit}
+        control={control}
+        errors={errors}
+        isPending={isPending}
+      />
+    </Modal>
   );
 };
 

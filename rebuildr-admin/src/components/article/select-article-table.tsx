@@ -88,7 +88,6 @@ const SelectAricleTable = ({ articles, setArticles }: Props) => {
       bordered
       loading={isLoading}
       rowKey="id"
-      size="middle"
       pagination={{
         current: page,
         pageSize: pageSize,
