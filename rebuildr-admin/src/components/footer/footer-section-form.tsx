@@ -67,14 +67,11 @@ const FooterSectionForm = ({
           return (
             <div className="grid grid-cols-[auto_300px] gap-5">
               <FormField label="Välj artiklar" error={errors.articles?.message}>
-                <SelectAricleTable
-                  articles={value || []}
-                  setArticles={onChange}
-                />
+                <SelectAricleTable articles={value} setArticles={onChange} />
               </FormField>
 
               <DragAndDropArticles
-                articles={value || []}
+                articles={value}
                 setArticles={onChange}
                 title="Valda artiklar"
               />

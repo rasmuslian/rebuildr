@@ -27,6 +27,9 @@ const CreateFooterSection = () => {
     formState: { errors },
   } = useForm<FooterSectionSchemaType>({
     resolver: zodResolver(FooterSectionSchema),
+    defaultValues: {
+      articles: [],
+    },
   });
 
   const { mutate, isPending } = useMutation({

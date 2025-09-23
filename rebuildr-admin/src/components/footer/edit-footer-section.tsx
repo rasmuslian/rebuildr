@@ -21,6 +21,14 @@ type Props = {
   footerSection: FooterSection;
 };
 
+const getDefaultValues = (
+  footerSection: FooterSection,
+): FooterSectionSchemaType => ({
+  title: footerSection.title,
+  orderIndex: footerSection.orderIndex,
+  articles: footerSection.articleFooterSections.map((fs) => fs.article),
+});
+
 const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
@@ -32,13 +40,7 @@ const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
     formState: { errors },
   } = useForm<FooterSectionSchemaType>({
     resolver: zodResolver(FooterSectionSchema),
-    defaultValues: {
-      title: footerSection.title,
-      orderIndex: footerSection.orderIndex,
-      articles: footerSection.articleFooterSections.map(
-        (footerSection) => footerSection.article,
-      ),
-    },
+    defaultValues: getDefaultValues(footerSection),
   });
 
   const { mutate, isPending } = useMutation({
@@ -87,16 +89,7 @@ const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
       width={1280}
       style={{ top: 10 }}
       afterOpenChange={() => {
-        reset(
-          {
-            title: footerSection.title,
-            orderIndex: footerSection.orderIndex,
-            articles: footerSection.articleFooterSections.map(
-              (footerSection) => footerSection.article,
-            ),
-          },
-          { keepDefaultValues: false },
-        );
+        reset(getDefaultValues(footerSection), { keepDefaultValues: false });
       }}
     >
       <FooterSectionForm
