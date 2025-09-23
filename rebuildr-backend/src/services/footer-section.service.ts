@@ -28,7 +28,7 @@ export class FooterSectionService {
       const article = this.footerSectionRepository.create(input);
       return this.footerSectionRepository.save(article);
     } catch (error) {
-      throw BadUserInputException();
+      throw BadUserInputException('Failed to create footer section' + error);
     }
   }
 

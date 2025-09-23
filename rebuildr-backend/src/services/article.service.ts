@@ -25,7 +25,7 @@ export class ArticleService {
       const article = this.articleRepository.create(input);
       return await this.articleRepository.save(article);
     } catch (error) {
-      throw BadUserInputException();
+      throw BadUserInputException('Failed to create article' + error);
     }
   }
 

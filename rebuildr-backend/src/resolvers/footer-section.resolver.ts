@@ -90,7 +90,7 @@ export class FooterSectionResolver {
   @Roles([UserRoleEnum.ADMIN])
   async cmsDeleteFooterSection(
     @Args('footerSectionId') footerSectionId: string,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     return this.footerSectionService.deleteFooterSection(footerSectionId);
   }
 
