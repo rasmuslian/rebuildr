@@ -33,8 +33,7 @@ const EditArticle = ({ article }: Props) => {
   } = useForm<ArticleSchemaType>({
     resolver: zodResolver(ArticleSchema),
     defaultValues: {
-      title: article.title ?? "",
-      body: article.body ?? "",
+      ...article,
     },
   });
 
@@ -53,7 +52,7 @@ const EditArticle = ({ article }: Props) => {
         description: "Artikeln har sparats!",
       });
       await revalidate(`${routes.EDIT_ARTICLE}/${article.id}`);
-      router.push(routes.ARTICLE_LIST);
+      router.push(routes.LIST_ARTICLE);
     },
     onError: () => {
       notification.error({
@@ -66,8 +65,7 @@ const EditArticle = ({ article }: Props) => {
   const onSubmit = async (formData: ArticleSchemaType) => {
     const updatedArticle: CmsUpdateArticleInput = {
       id: article.id,
-      title: formData.title ?? "",
-      body: formData.body ?? "",
+      ...formData,
     };
 
     mutate(updatedArticle);

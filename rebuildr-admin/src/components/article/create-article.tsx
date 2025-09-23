@@ -24,6 +24,9 @@ const CreateArticle = () => {
     formState: { errors },
   } = useForm<ArticleSchemaType>({
     resolver: zodResolver(ArticleSchema),
+    defaultValues: {
+      body: "",
+    },
   });
 
   const { mutate, isPending } = useMutation({
@@ -38,7 +41,7 @@ const CreateArticle = () => {
         message: "Hurra!",
         description: "Artikeln har publicerats!",
       });
-      router.push(routes.ARTICLE_LIST);
+      router.push(routes.LIST_ARTICLE);
     },
     onError: () => {
       notification.error({

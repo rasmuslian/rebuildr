@@ -45,6 +45,19 @@ export type Article = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type ArticleFooterSection = {
+  __typename?: 'ArticleFooterSection';
+  article: Article;
+  articleId: Scalars['ID']['output'];
+  footerSectionId: Scalars['ID']['output'];
+  orderIndex: Scalars['Float']['output'];
+};
+
+export type ArticleOrderInput = {
+  articleId: Scalars['String']['input'];
+  orderIndex: Scalars['Int']['input'];
+};
+
 export enum AuthResponseStatusEnum {
   Error = 'ERROR',
   Pending = 'PENDING',
@@ -129,15 +142,10 @@ export type CmsCreateArticleInput = {
   title: Scalars['String']['input'];
 };
 
-export type CmsListArticlesInput = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  pageSize?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type CmsListArticlesResponse = {
-  __typename?: 'CmsListArticlesResponse';
-  articles: Array<Article>;
-  total: Scalars['Int']['output'];
+export type CmsCreateFooterSectionInput = {
+  articles: Array<ArticleOrderInput>;
+  orderIndex: Scalars['Float']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type CmsListImagesInput = {
@@ -154,6 +162,13 @@ export type CmsListImagesResponse = {
 export type CmsUpdateArticleInput = {
   body: Scalars['String']['input'];
   id: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CmsUpdateFooterSectionInput = {
+  articles: Array<ArticleOrderInput>;
+  id: Scalars['String']['input'];
+  orderIndex: Scalars['Float']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -276,6 +291,16 @@ export type FinalizeUserInput = {
   username: Scalars['String']['input'];
 };
 
+export type FooterSection = {
+  __typename?: 'FooterSection';
+  articleFooterSections: Array<ArticleFooterSection>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  orderIndex: Scalars['Float']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type GetAddressInput = {
   latitude: Scalars['Float']['input'];
   longitude: Scalars['Float']['input'];
@@ -368,6 +393,17 @@ export type LatestPurchaseInput = {
   productId: Scalars['String']['input'];
 };
 
+export type ListArticlesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ListArticlesResponse = {
+  __typename?: 'ListArticlesResponse';
+  articles: Array<Article>;
+  total: Scalars['Int']['output'];
+};
+
 export type LocationInputType = {
   lat: Scalars['Float']['input'];
   lng: Scalars['Float']['input'];
@@ -437,10 +473,13 @@ export type Mutation = {
   cancelPurchase: Scalars['Boolean']['output'];
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
+  cmsCreateFooterSection: FooterSection;
   cmsDeleteArticle: Scalars['Boolean']['output'];
   cmsDeleteFile: Scalars['Boolean']['output'];
+  cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsLogin: LoginResponse;
   cmsUpdateArticle: Article;
+  cmsUpdateFooterSection: FooterSection;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
@@ -502,6 +541,11 @@ export type MutationCmsCreateArticleArgs = {
 };
 
 
+export type MutationCmsCreateFooterSectionArgs = {
+  input: CmsCreateFooterSectionInput;
+};
+
+
 export type MutationCmsDeleteArticleArgs = {
   articleId: Scalars['String']['input'];
 };
@@ -512,6 +556,11 @@ export type MutationCmsDeleteFileArgs = {
 };
 
 
+export type MutationCmsDeleteFooterSectionArgs = {
+  footerSectionId: Scalars['String']['input'];
+};
+
+
 export type MutationCmsLoginArgs = {
   input: LoginInput;
 };
@@ -519,6 +568,11 @@ export type MutationCmsLoginArgs = {
 
 export type MutationCmsUpdateArticleArgs = {
   input: CmsUpdateArticleInput;
+};
+
+
+export type MutationCmsUpdateFooterSectionArgs = {
+  input: CmsUpdateFooterSectionInput;
 };
 
 
@@ -983,8 +1037,8 @@ export type Query = {
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
-  cmsListArticles: CmsListArticlesResponse;
   cmsListImages: CmsListImagesResponse;
+  footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
   getConversation: Array<Message>;
@@ -1000,6 +1054,8 @@ export type Query = {
   getUnreadConversationsCount: Scalars['Int']['output'];
   getUsers: Array<User>;
   latestPurchase?: Maybe<Purchase>;
+  listArticles: ListArticlesResponse;
+  listFooterSection: Array<FooterSection>;
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
   me: User;
@@ -1037,13 +1093,13 @@ export type QueryCategoryArgs = {
 };
 
 
-export type QueryCmsListArticlesArgs = {
-  input: CmsListArticlesInput;
+export type QueryCmsListImagesArgs = {
+  input: CmsListImagesInput;
 };
 
 
-export type QueryCmsListImagesArgs = {
-  input: CmsListImagesInput;
+export type QueryFooterSectionArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1104,6 +1160,11 @@ export type QueryGetUsersArgs = {
 
 export type QueryLatestPurchaseArgs = {
   input: LatestPurchaseInput;
+};
+
+
+export type QueryListArticlesArgs = {
+  input: ListArticlesInput;
 };
 
 

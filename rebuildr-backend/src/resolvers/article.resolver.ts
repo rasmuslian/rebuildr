@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   Query,
   Resolver,
@@ -38,7 +37,7 @@ export class CmsUpdateArticleInput {
 }
 
 @InputType()
-export class CmsListArticlesInput {
+export class ListArticlesInput {
   @Field(() => Int, { nullable: true })
   page?: number;
 
@@ -47,7 +46,7 @@ export class CmsListArticlesInput {
 }
 
 @ObjectType()
-export class CmsListArticlesResponse {
+export class ListArticlesResponse {
   @Field(() => [Article])
   articles: Article[];
 
@@ -55,8 +54,7 @@ export class CmsListArticlesResponse {
   total: number;
 }
 
-@Resolver()
-@Injectable()
+@Resolver(() => Article)
 export class ArticleResolver {
   constructor(private articleService: ArticleService) {}
 
@@ -92,12 +90,10 @@ export class ArticleResolver {
     return this.articleService.deleteArticle(articleId);
   }
 
-  @Query(() => CmsListArticlesResponse)
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles([UserRoleEnum.ADMIN])
-  async cmsListArticles(
-    @Args('input') input: CmsListArticlesInput,
-  ): Promise<CmsListArticlesResponse> {
-    return await this.articleService.cmsListArticles(input);
+  @Query(() => ListArticlesResponse)
+  async listArticles(
+    @Args('input') input: ListArticlesInput,
+  ): Promise<ListArticlesResponse> {
+    return await this.articleService.listArticles(input);
   }
 }

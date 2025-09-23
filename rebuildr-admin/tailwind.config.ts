@@ -55,6 +55,7 @@ export const colors = {
   semantic_error_900: "#65090E",
 
   ghost: "#fafafa",
+  light: "rgba(5,5,5,0.06)",
 };
 
 const config: Config = {

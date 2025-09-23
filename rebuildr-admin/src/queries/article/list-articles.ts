@@ -1,9 +1,9 @@
-import { CmsListArticlesInput, CmsListArticlesResponse } from "gql/graphql";
+import { ListArticlesInput, ListArticlesResponse } from "gql/graphql";
 import apiClient from "@/lib/api-client";
 
 const query = `
-  query CmsListArticles($input: CmsListArticlesInput!) {
-    cmsListArticles(input: $input) {
+  query Articles($input: ListArticlesInput!) {
+    listArticles(input: $input) {
       articles {
         id
         title
@@ -15,16 +15,16 @@ const query = `
   }
 `;
 
-export const listArticles = async (input: CmsListArticlesInput) => {
+export const listArticles = async (input: ListArticlesInput) => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsListArticles: CmsListArticlesResponse }>
+    GraphQLResponse<{ listArticles: ListArticlesResponse }>
   >("/", {
     query,
     variables: { input },
   });
 
   return {
-    articles: response.data.data?.cmsListArticles.articles,
-    total: response.data.data?.cmsListArticles.total,
+    articles: response.data.data?.listArticles.articles,
+    total: response.data.data?.listArticles.total,
   };
 };

@@ -12,6 +12,7 @@ import {
   LogoutOutlined,
   FileImageOutlined,
   FolderOpenOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -51,12 +52,15 @@ const SidebarMenu = () => {
     getItem("Översikt", "/admin", <HomeOutlined />),
     { type: "divider" },
     getItem("Artiklar", "/article", <FolderOpenOutlined />, [
-      getItem("Skapa artikel", "/admin/article/create"),
-      getItem("Visa alla", "/admin/article"),
+      getItem("Skapa artikel", routes.CREATE_ARTICLE),
+      getItem("Visa alla", routes.LIST_ARTICLE),
     ]),
     { type: "divider" },
     getItem("Bildbank", "/admin/media", <FileImageOutlined />),
     { type: "divider" },
+    getItem("Inställningar", "/setting", <SettingOutlined />, [
+      getItem("Sidfot", routes.FOOTER_SETTING),
+    ]),
     {
       label: "Logga ut",
       key: "logout",

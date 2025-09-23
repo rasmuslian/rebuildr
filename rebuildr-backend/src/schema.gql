@@ -521,6 +521,22 @@ type PurchaseProductResponse {
   trustlyUrl: String
 }
 
+type FooterSection {
+  id: ID!
+  title: String!
+  orderIndex: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  articleFooterSections: [ArticleFooterSection!]!
+}
+
+type ArticleFooterSection {
+  articleId: ID!
+  footerSectionId: ID!
+  orderIndex: Float!
+  article: Article!
+}
+
 type Article {
   id: ID!
   title: String!
@@ -529,7 +545,7 @@ type Article {
   updatedAt: DateTime!
 }
 
-type CmsListArticlesResponse {
+type ListArticlesResponse {
   articles: [Article!]!
   total: Int!
 }
@@ -570,7 +586,9 @@ type Query {
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
-  cmsListArticles(input: CmsListArticlesInput!): CmsListArticlesResponse!
+  listArticles(input: ListArticlesInput!): ListArticlesResponse!
+  footerSection(id: String!): FooterSection!
+  listFooterSection: [FooterSection!]!
 }
 
 input UserExistsInput {
@@ -732,7 +750,7 @@ input NearbyServicePointsInput {
   shippingProvider: ShippingProviderEnum!
 }
 
-input CmsListArticlesInput {
+input ListArticlesInput {
   page: Int
   pageSize: Int
 }
@@ -782,6 +800,9 @@ type Mutation {
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
   cmsDeleteArticle(articleId: String!): Boolean!
+  cmsCreateFooterSection(input: CmsCreateFooterSectionInput!): FooterSection!
+  cmsUpdateFooterSection(input: CmsUpdateFooterSectionInput!): FooterSection!
+  cmsDeleteFooterSection(footerSectionId: String!): Boolean!
 }
 
 input RegisterUserInput {
@@ -1048,4 +1069,22 @@ input CmsUpdateArticleInput {
   id: String!
   title: String!
   body: String!
+}
+
+input CmsCreateFooterSectionInput {
+  title: String!
+  orderIndex: Float!
+  articles: [ArticleOrderInput!]!
+}
+
+input ArticleOrderInput {
+  articleId: String!
+  orderIndex: Int!
+}
+
+input CmsUpdateFooterSectionInput {
+  id: String!
+  title: String!
+  orderIndex: Float!
+  articles: [ArticleOrderInput!]!
 }

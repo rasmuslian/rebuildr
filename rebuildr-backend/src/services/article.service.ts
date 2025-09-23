@@ -5,8 +5,8 @@ import { Article } from 'src/entities/article.entity';
 import {
   CmsCreateArticleInput,
   CmsUpdateArticleInput,
-  CmsListArticlesInput,
-  CmsListArticlesResponse,
+  ListArticlesInput,
+  ListArticlesResponse,
 } from 'src/resolvers/article.resolver';
 import { BadUserInputException, NotFoundException } from 'src/exceptions';
 
@@ -43,13 +43,11 @@ export class ArticleService {
   }
 
   async deleteArticle(articleId: string): Promise<boolean> {
-    const result = await this.articleRepository.softDelete(articleId);
+    const result = await this.articleRepository.delete(articleId);
     return !!result.affected && result.affected > 0;
   }
 
-  async cmsListArticles(
-    input: CmsListArticlesInput,
-  ): Promise<CmsListArticlesResponse> {
+  async listArticles(input: ListArticlesInput): Promise<ListArticlesResponse> {
     const pageSize = Number(input.pageSize) || 10;
     const page = Number(input.page) || 0;
     const skip = Math.max(0, pageSize * page);

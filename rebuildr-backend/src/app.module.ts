@@ -94,6 +94,12 @@ import { ReportProduct } from './entities/report-product.entity';
 import { Article } from './entities/article.entity';
 import { ArticleResolver } from './resolvers/article.resolver';
 import { ArticleService } from './services/article.service';
+import { FooterSection } from './entities/footer-section.entity';
+import { FooterSectionResolver } from './resolvers/footer-section.resolver';
+import { FooterSectionService } from './services/footer-section.service';
+import { ArticleFooterSection } from './entities/article-footer-section.entity';
+import { ArticleFooerSectionService } from './services/article-footer-section.service';
+import { ArticleFooterSectionResolver } from './resolvers/article-footer-section.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -143,6 +149,8 @@ export interface RequestType {
       ReportPurchase,
       ReportProduct,
       Article,
+      FooterSection,
+      ArticleFooterSection,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -252,6 +260,11 @@ export interface RequestType {
     ReportProductService,
     ArticleResolver,
     ArticleService,
+    FooterSectionResolver,
+    FooterSectionService,
+    ArticleFooterSection,
+    ArticleFooerSectionService,
+    ArticleFooterSectionResolver,
   ],
 })
 export class AppModule {}

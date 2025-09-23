@@ -12,7 +12,7 @@ import { ArticleFooterSection } from './article-footer-section.entity';
 
 @Entity()
 @ObjectType()
-export class Article extends BaseEntity {
+export class FooterSection extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,8 +22,8 @@ export class Article extends BaseEntity {
   title: string;
 
   @Field()
-  @Column()
-  body: string;
+  @Column({ default: 0 })
+  orderIndex: number;
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamp' })
@@ -33,6 +33,6 @@ export class Article extends BaseEntity {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 
-  @OneToMany(() => ArticleFooterSection, (afs) => afs.article)
+  @OneToMany(() => ArticleFooterSection, (afs) => afs.footerSection)
   articleFooterSections: ArticleFooterSection[];
 }
