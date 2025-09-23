@@ -16,7 +16,7 @@ type StateType = {
 };
 
 const initialState: StateType = {
-  pageSize: 10,
+  pageSize: 8,
   page: 1,
 };
 
@@ -41,14 +41,6 @@ const SelectAricleTable = ({ articles, setArticles }: Props) => {
       key: "title",
       width: "100%",
       ellipsis: true,
-    },
-    {
-      title: "Skapad",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: "180px",
-      ellipsis: true,
-      render: (_, { createdAt }) => <span>{formatDate(createdAt)}</span>,
     },
     {
       title: "Updaterad",
@@ -93,7 +85,7 @@ const SelectAricleTable = ({ articles, setArticles }: Props) => {
         pageSize: pageSize,
         total: data?.total,
         onChange: (page) => setState({ page }),
-        pageSizeOptions: [10, 20, 35, 50],
+        pageSizeOptions: [8, 16, 32],
         onShowSizeChange: (_, size) => setState({ pageSize: size }),
       }}
     />

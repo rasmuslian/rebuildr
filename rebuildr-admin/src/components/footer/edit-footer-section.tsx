@@ -84,7 +84,8 @@ const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
       open={open}
       onCancel={onCancel}
       footer={false}
-      width={980}
+      width={1280}
+      style={{ top: 10 }}
       afterOpenChange={() => {
         reset(
           {

@@ -81,7 +81,8 @@ const CreateFooterSection = () => {
         open={open}
         onCancel={() => setOpen(false)}
         footer={false}
-        width={980}
+        width={1280}
+        style={{ top: 10 }}
         afterClose={() => reset()}
       >
         <FooterSectionForm

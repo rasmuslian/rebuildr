@@ -4,6 +4,7 @@ import FormField from "@components/form-field";
 import { Divider, Button, Input, InputNumber } from "antd";
 import { FooterSectionSchemaType } from "@/schema/footer-section-schema";
 import SelectAricleTable from "@components/article/select-article-table";
+import DragAndDropArticles from "@components/footer/drag-and-drop-articles";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -64,12 +65,20 @@ const FooterSectionForm = ({
         name="articles"
         render={({ field: { onChange, value } }) => {
           return (
-            <FormField label="Välj artiklar" error={errors.articles?.message}>
-              <SelectAricleTable
+            <div className="grid grid-cols-[auto_300px] gap-5">
+              <FormField label="Välj artiklar" error={errors.articles?.message}>
+                <SelectAricleTable
+                  articles={value || []}
+                  setArticles={onChange}
+                />
+              </FormField>
+
+              <DragAndDropArticles
                 articles={value || []}
                 setArticles={onChange}
+                title="Valda artiklar"
               />
-            </FormField>
+            </div>
           );
         }}
       />

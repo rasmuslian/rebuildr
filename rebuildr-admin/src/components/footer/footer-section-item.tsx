@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FooterSection } from "gql/graphql";
 import Section from "@components/section";
-import ArticleFooterSectionItem from "@components/footer/article-footer-section-item";
+import FooterSectionArticle from "@components/footer/footer-section-article";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, App } from "antd";
 import EditFooterSection from "@components/footer/edit-footer-section";
@@ -85,9 +85,9 @@ const FooerSectionItem = ({ footerSection }: Props) => {
 
         <div className="flex flex-col gap-3">
           {articleFooterSections.map((articleFooterSection, index) => (
-            <ArticleFooterSectionItem
+            <FooterSectionArticle
               key={index}
-              articleFooterSection={articleFooterSection}
+              article={articleFooterSection.article}
             />
           ))}
         </div>
