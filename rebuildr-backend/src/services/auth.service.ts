@@ -11,14 +11,14 @@ import {
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
-import { BadUserInputException } from 'src/exceptions';
+import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import { RequestType } from 'src/app.module';
 import { RockerService } from './rocker.service';
 import { passwordRegex } from 'src/constants/regexp';
@@ -165,6 +165,48 @@ export class AuthService {
 
     const tokens = await this.createTokens(user);
     await this.rockerService.createForeignUser(user);
+
+    //Since user is now authenticated, attach user to request to be used in later stages of the request
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return {
+      user: user,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  }
+
+  async cmsLogin(input: LoginInput, req: RequestType) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: input.email.toLowerCase().trim(),
+      },
+      relations: {
+        refreshTokens: true,
+      },
+    });
+    if (!user) {
+      throw BadUserInputException('Invalid input');
+    }
+
+    if (user.role !== UserRoleEnum.ADMIN) {
+      throw ForbiddenException();
+    }
+
+    const passwordCorrect = await bcrypt.compare(input.password, user.password);
+    if (!passwordCorrect) {
+      throw BadUserInputException('Invalid input');
+    }
+
+    if (!user.emailVerifiedAt) {
+      throw BadUserInputException('Invalid input');
+    }
+
+    const tokens = await this.createTokens(user);
 
     //Since user is now authenticated, attach user to request to be used in later stages of the request
     req.user = {

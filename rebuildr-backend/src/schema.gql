@@ -487,6 +487,15 @@ type PayoutAccountResponse {
   bankName: String
 }
 
+type CmsListImagesResponse {
+  files: [File!]!
+  total: Int!
+}
+
+type CmsUploadFileResponse {
+  presignedPutUrls: [String!]!
+}
+
 type AuthenticateResponse {
   status: AuthResponseStatusEnum!
   qrCode: String
@@ -512,6 +521,33 @@ type PurchaseProductResponse {
   trustlyUrl: String
 }
 
+type FooterSection {
+  id: ID!
+  title: String!
+  orderIndex: Float!
+  articleFooterSections: [ArticleFooterSection!]!
+}
+
+type ArticleFooterSection {
+  articleId: ID!
+  footerSectionId: ID!
+  orderIndex: Float!
+  article: Article!
+}
+
+type Article {
+  id: ID!
+  title: String!
+  body: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ListArticlesResponse {
+  articles: [Article!]!
+  total: Int!
+}
+
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
@@ -531,6 +567,7 @@ type Query {
   getConversation(input: GetConversationInput!): [Message!]!
   getConversations(input: GetConversationsInput!): [Message!]!
   getUnreadConversationsCount: Int!
+  cmsListImages(input: CmsListImagesInput!): CmsListImagesResponse!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
@@ -546,6 +583,10 @@ type Query {
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
+  article(id: String!): Article!
+  listArticles(input: ListArticlesInput!): ListArticlesResponse!
+  footerSection(id: String!): FooterSection!
+  listFooterSection: [FooterSection!]!
 }
 
 input UserExistsInput {
@@ -649,6 +690,11 @@ enum GetConversationsType {
   BUYING_AND_SELLING
 }
 
+input CmsListImagesInput {
+  page: Int
+  pageSize: Int
+}
+
 input GetAddressInput {
   latitude: Float!
   longitude: Float!
@@ -702,12 +748,18 @@ input NearbyServicePointsInput {
   shippingProvider: ShippingProviderEnum!
 }
 
+input ListArticlesInput {
+  page: Int
+  pageSize: Int
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
   login(input: LoginInput!): LoginResponse!
+  cmsLogin(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
@@ -725,6 +777,8 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
+  cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
+  cmsDeleteFile(imageId: String!): Boolean!
   authenticateRocker(input: AuthenticateRockerInput!): AuthenticateResponse!
   createPayoutAccount(input: CreatePayoutAccountInput!): CreatePayoutAccountResponse!
   selectPayoutMethod(input: SelectPayoutMethodInput!): User!
@@ -741,6 +795,12 @@ type Mutation {
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
+  cmsCreateArticle(input: CmsCreateArticleInput!): Article!
+  cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
+  cmsDeleteArticle(articleId: String!): Boolean!
+  cmsCreateFooterSection(input: CmsCreateFooterSectionInput!): FooterSection!
+  cmsUpdateFooterSection(input: CmsUpdateFooterSectionInput!): FooterSection!
+  cmsDeleteFooterSection(footerSectionId: String!): Boolean!
 }
 
 input RegisterUserInput {
@@ -895,6 +955,10 @@ input MarkAsReadInput {
   markAsRead: Boolean!
 }
 
+input CmsUploadFileInput {
+  images: [FileInputType!]
+}
+
 input AuthenticateRockerInput {
   requestId: String!
 }
@@ -992,4 +1056,33 @@ input CreateReportProductInput {
   productId: String!
   type: ReportProductTypeEnum!
   message: String!
+}
+
+input CmsCreateArticleInput {
+  title: String!
+  body: String!
+}
+
+input CmsUpdateArticleInput {
+  id: String!
+  title: String!
+  body: String!
+}
+
+input CmsCreateFooterSectionInput {
+  title: String!
+  orderIndex: Float!
+  articles: [ArticleOrderInput!]!
+}
+
+input ArticleOrderInput {
+  articleId: String!
+  orderIndex: Int!
+}
+
+input CmsUpdateFooterSectionInput {
+  id: String!
+  title: String!
+  orderIndex: Float!
+  articles: [ArticleOrderInput!]!
 }

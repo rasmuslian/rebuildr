@@ -12,6 +12,11 @@ import { Product } from './product.entity';
 import { Category } from './category.entity';
 import { User } from './user.entity';
 
+export enum FileSourceEnum {
+  APP = 'APP',
+  ADMIN = 'ADMIN',
+}
+
 @Entity()
 @ObjectType()
 export class File {
@@ -45,4 +50,7 @@ export class File {
 
   @Column({ type: Boolean, default: false })
   private: boolean;
+
+  @Column({ type: 'enum', enum: FileSourceEnum, default: FileSourceEnum.APP })
+  source: FileSourceEnum;
 }
