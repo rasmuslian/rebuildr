@@ -25,11 +25,9 @@ export class FooterSection extends BaseEntity {
   @Column({ default: 0 })
   orderIndex: number;
 
-  @Field(() => Date)
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
-  @Field(() => Date)
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 

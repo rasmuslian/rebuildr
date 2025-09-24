@@ -63,6 +63,13 @@ export class ArticleResolver {
     return await this.articleService.findOne(id);
   }
 
+  @Query(() => ListArticlesResponse)
+  async listArticles(
+    @Args('input') input: ListArticlesInput,
+  ): Promise<ListArticlesResponse> {
+    return await this.articleService.listArticles(input);
+  }
+
   @Mutation(() => Article)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -88,12 +95,5 @@ export class ArticleResolver {
     @Args('articleId') articleId: string,
   ): Promise<boolean> {
     return this.articleService.deleteArticle(articleId);
-  }
-
-  @Query(() => ListArticlesResponse)
-  async listArticles(
-    @Args('input') input: ListArticlesInput,
-  ): Promise<ListArticlesResponse> {
-    return await this.articleService.listArticles(input);
   }
 }

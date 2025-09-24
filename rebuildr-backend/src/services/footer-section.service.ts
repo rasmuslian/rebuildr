@@ -18,7 +18,9 @@ export class FooterSectionService {
   ) {}
 
   async findOne(id: string) {
-    return this.footerSectionRepository.findOneBy({ id });
+    const footerSection = this.footerSectionRepository.findOneBy({ id });
+    if (!footerSection) throw BadUserInputException();
+    return footerSection;
   }
 
   async createFooterSection(

@@ -525,8 +525,6 @@ type FooterSection {
   id: ID!
   title: String!
   orderIndex: Float!
-  createdAt: DateTime!
-  updatedAt: DateTime!
   articleFooterSections: [ArticleFooterSection!]!
 }
 

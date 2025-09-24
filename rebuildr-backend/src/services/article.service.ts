@@ -17,7 +17,9 @@ export class ArticleService {
   ) {}
 
   async findOne(id: string) {
-    return await this.articleRepository.findOneBy({ id });
+    const article = await this.articleRepository.findOneBy({ id });
+    if (!article) throw BadUserInputException();
+    return article;
   }
 
   async createArticle(input: CmsCreateArticleInput): Promise<Article> {

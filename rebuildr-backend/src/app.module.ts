@@ -262,7 +262,6 @@ export interface RequestType {
     ArticleService,
     FooterSectionResolver,
     FooterSectionService,
-    ArticleFooterSection,
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
   ],

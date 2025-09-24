@@ -294,11 +294,9 @@ export type FinalizeUserInput = {
 export type FooterSection = {
   __typename?: 'FooterSection';
   articleFooterSections: Array<ArticleFooterSection>;
-  createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   orderIndex: Scalars['Float']['output'];
   title: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type GetAddressInput = {
@@ -492,6 +490,7 @@ export type Mutation = {
   createReview: Review;
   createSearchResult?: Maybe<SearchResult>;
   deleteAccount: User;
+  deleteDraft: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
@@ -623,6 +622,11 @@ export type MutationCreateReviewArgs = {
 
 export type MutationCreateSearchResultArgs = {
   input: CreateSearchResultInput;
+};
+
+
+export type MutationDeleteDraftArgs = {
+  input: RemoveProductInput;
 };
 
 
