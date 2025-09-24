@@ -6,7 +6,7 @@ import { useState } from "@/hooks/use-state";
 import { listMedia } from "@/queries/media/list-media";
 import EmptyContainer from "@components/empty-container";
 import { isEmpty } from "lodash";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { deleteMedia } from "@/queries/media/delete-media";
 
@@ -57,6 +57,24 @@ const ListMedia = ({ onSelectImage }: Props) => {
     },
   });
 
+  const onDownload = (url: string) => {
+    const suffix = url.slice(url.lastIndexOf("."));
+    const filename = Date.now() + suffix;
+
+    fetch(url)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(blobUrl);
+        link.remove();
+      });
+  };
+
   const files = data?.files ?? [];
   const total = data?.total ?? 0;
 
@@ -86,17 +104,27 @@ const ListMedia = ({ onSelectImage }: Props) => {
                 canPreview
                   ? {
                       toolbarRender: (_, { actions: { onClose } }) => (
-                        <Button
-                          icon={<DeleteOutlined />}
-                          loading={isPending}
-                          disabled={isPending}
-                          onClick={async () => {
-                            const result = await mutateAsync(file.id);
-                            if (result) onClose();
-                          }}
-                        >
-                          Radera bilden
-                        </Button>
+                        <div className="flex flex-row gap-5">
+                          <Button
+                            icon={<DeleteOutlined />}
+                            loading={isPending}
+                            disabled={isPending}
+                            size="middle"
+                            onClick={async () => {
+                              const result = await mutateAsync(file.id);
+                              if (result) onClose();
+                            }}
+                          >
+                            Radera bilden
+                          </Button>
+                          <Button
+                            icon={<DownloadOutlined />}
+                            size="middle"
+                            onClick={() => onDownload(file.url)}
+                          >
+                            Ladda ner bilden
+                          </Button>
+                        </div>
                       ),
                     }
                   : false
