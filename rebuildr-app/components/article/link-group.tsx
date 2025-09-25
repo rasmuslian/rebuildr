@@ -15,7 +15,7 @@ export default function LinkGroup({ children }: PropsWithChildren) {
     (c): c is ReactElement<ParsedHTMLElementProps> => React.isValidElement(c),
   );
 
-  const listItems = childrenArray.filter((child) => child.type == "li");
+  const listItems = childrenArray.filter((child) => child.type === "li");
 
   return (
     <View style={{ marginBottom: 24, gap: 16 }}>
@@ -55,7 +55,7 @@ export default function LinkGroup({ children }: PropsWithChildren) {
             </View>
             <Button
               type="text"
-              icon={"arrowRight"}
+              icon="arrowRight"
               onPress={() => router.push(link)}
             />
           </View>

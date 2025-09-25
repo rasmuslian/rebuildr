@@ -16,7 +16,7 @@ const GET_ARTICLE = gql`
   }
 `;
 
-export default function PrintproductLabel() {
+export default function ArticlePage() {
   const { articleId, title } = useLocalSearchParams<{
     articleId: string;
     title: string;

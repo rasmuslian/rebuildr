@@ -94,7 +94,7 @@ export default function ParsedArticle({ html }: Props) {
             }
           }
           default: {
-            return <Body size="small"></Body>;
+            return <Body size="small" />;
           }
         }
       }
