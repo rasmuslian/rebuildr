@@ -6,9 +6,9 @@ const query = `
   }
 `;
 
-export const deleteFooterSection = async (footerSectionId: String) => {
+export const deleteFooterSection = async (footerSectionId: string) => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsDeleteFooterSection: Boolean }>
+    GraphQLResponse<{ cmsDeleteFooterSection: boolean }>
   >("/", {
     query,
     variables: { footerSectionId },

@@ -7,7 +7,7 @@ interface GraphQLError {
   extensions?: { code?: string };
 }
 
-interface GraphQLResponse<T = any> {
+interface GraphQLResponse<T = unknown> {
   data?: T;
   errors?: GraphQLError[];
 }

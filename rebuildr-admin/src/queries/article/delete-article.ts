@@ -6,9 +6,9 @@ const query = `
   }
 `;
 
-export const deleteArticle = async (articleId: String) => {
+export const deleteArticle = async (articleId: string) => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsDeleteArticle: Boolean }>
+    GraphQLResponse<{ cmsDeleteArticle: boolean }>
   >("/", {
     query,
     variables: { articleId },

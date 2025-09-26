@@ -8,7 +8,7 @@ const query = `
 
 export const deleteMedia = async (imageId: string) => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsDeleteFile: Boolean }>
+    GraphQLResponse<{ cmsDeleteFile: boolean }>
   >("/", {
     query,
     variables: { imageId },
