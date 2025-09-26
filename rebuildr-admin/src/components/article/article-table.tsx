@@ -44,7 +44,7 @@ const ArticleTable = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [queryKeys.LIST_FOOTER_SECTIONS],
+        queryKey: [queryKeys.LIST_ARTICLES],
       });
       notification.success({
         message: "Artikeln har raderats!",
@@ -52,7 +52,7 @@ const ArticleTable = () => {
       });
     },
     onError: () => {
-      notification.success({
+      notification.error({
         message: "Misslyckades",
         description: "Artikeln kunde tyvärr inte raderas. Försök igen.",
       });

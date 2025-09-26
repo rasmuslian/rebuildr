@@ -43,6 +43,7 @@
     "expo-system-ui": "~6.0.7",
     "graphql": "^16.8.1",
     "heic2any": "^0.0.4",
+    "html-react-parser": "^5.2.6",
     "leaflet": "^1.9.4",
     "qrcode": "^1.5.4",
     "react": "19.1.0",

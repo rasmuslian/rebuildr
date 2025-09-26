@@ -17,7 +17,7 @@ import { borderRadius } from "@constants/sizes";
 export type ButtonProps = {
   type?: "filled" | "danger" | "tonal" | "text" | "outlined";
   iconPosition?: "left" | "right";
-  icon?: IconType | ComponentProps<typeof Icon>;
+  icon?: IconType | ComponentProps<typeof Icon> | React.ReactNode;
   label?: string;
   loading?: boolean;
 } & PressableProps;
@@ -102,19 +102,20 @@ export const Button = ({
     }
 
     const renderIcon = () => {
-      if (!icon) {
-        return null;
-      }
+      if (!icon) return null;
+      if (React.isValidElement(icon)) return icon;
+
       if (typeof icon === "string") {
         return (
           <Icon
-            icon={icon}
+            icon={icon as IconType}
             color={disabled ? "disabled" : typeColors[type].icon}
             size={18}
           />
         );
       }
-      return <Icon {...icon} />;
+
+      return <Icon {...(icon as ComponentProps<typeof Icon>)} />;
     };
 
     return (
