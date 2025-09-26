@@ -1,6 +1,7 @@
 import React, { ReactElement, useRef, useState } from "react";
 import { View, Animated, Easing } from "react-native";
 import { Button } from "@components/buttons/button";
+import { Icon } from "@icons/icon";
 
 interface ParsedHTMLElementProps {
   children?: React.ReactNode;
@@ -11,10 +12,10 @@ type Props = {
   isOpen?: boolean;
 };
 
-export default function Accordion({ children, isOpen = false }: Props) {
+export default function Accordion({ children, isOpen = true }: Props) {
   const [contentExpanded, setContentExpanded] = useState(isOpen);
   const contentAnimation = useRef(new Animated.Value(0)).current;
-  const rotateAnimation = useRef(new Animated.Value(0)).current;
+  const rotateAnimation = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
   const contentRef = useRef(0);
 
   const childrenArray = React.Children.toArray(children).filter(
@@ -59,9 +60,16 @@ export default function Accordion({ children, isOpen = false }: Props) {
         }}
       >
         {summary}
-        <Animated.View style={{ transform: [{ rotate }] }}>
-          <Button type="text" icon="chevronDown" onPress={toggleAccordion} />
-        </Animated.View>
+
+        <Button
+          type="text"
+          icon={
+            <Animated.View style={{ transform: [{ rotate }] }}>
+              <Icon icon="chevronDown" size={18} color="primaryDark" />
+            </Animated.View>
+          }
+          onPress={toggleAccordion}
+        />
       </View>
 
       <Animated.View style={{ height: contentAnimation, overflow: "hidden" }}>
