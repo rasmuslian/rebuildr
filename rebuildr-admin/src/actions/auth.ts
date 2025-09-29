@@ -3,6 +3,7 @@
 import { LoginSchemaType } from "@/schema/login-schema";
 import { loginMutation } from "@/queries/auth/login-mutation";
 import { refreshMutation } from "@/queries/auth/refresh-mutation";
+import { logoutMutation } from "@/queries/auth/logout-mutation";
 import { cookies } from "next/headers";
 import { getIronSession } from "iron-session";
 import { sessionOptions, defaultSession } from "@/lib/session";
@@ -42,15 +43,26 @@ export const login = async (
 };
 
 export const logout = async (): Promise<LogutResponseType> => {
-  try {
-    const session = await getSession();
-    session.destroy();
+  const session = await getSession();
+  const accessToken = session.accessToken;
+  const refreshToken = session.refreshToken;
 
-    return { success: true };
-  } catch (error) {
-    console.error(error);
-    return { success: false };
+  if (accessToken && refreshToken) {
+    const response = await logoutMutation({ accessToken, refreshToken });
+    if (response) {
+      try {
+        const session = await getSession();
+        session.destroy();
+
+        return { success: true };
+      } catch (error) {
+        console.error(error);
+        return { success: false };
+      }
+    }
   }
+
+  return { success: false };
 };
 
 export const refreshToken = async (): Promise<RefreshTokenResponseType> => {
@@ -58,22 +70,25 @@ export const refreshToken = async (): Promise<RefreshTokenResponseType> => {
   const accessToken = session.accessToken;
   const refreshToken = session.refreshToken;
 
-  try {
-    const response = await refreshMutation({ accessToken, refreshToken });
+  if (accessToken && refreshToken) {
+    try {
+      const response = await refreshMutation({ accessToken, refreshToken });
+      if (!response) throw new Error("Failed to refresh token!");
 
-    if (!response) throw new Error("Failed to refresh token!");
+      session.isLoggedIn = true;
+      session.accessToken = response.accessToken;
+      session.refreshToken = response.refreshToken;
+      await session.save();
 
-    session.isLoggedIn = true;
-    session.accessToken = response.accessToken;
-    session.refreshToken = response.refreshToken;
-    await session.save();
-
-    return { success: true, accessToken: response.accessToken };
-  } catch (error) {
-    console.error(error);
-    session.destroy();
-    return { success: false };
+      return { success: true, accessToken: response.accessToken };
+    } catch (error) {
+      console.error(error);
+      session.destroy();
+      return { success: false };
+    }
   }
+
+  return { success: false };
 };
 
 export const getSession = async () => {

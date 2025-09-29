@@ -759,6 +759,7 @@ type Mutation {
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
   login(input: LoginInput!): LoginResponse!
+  logout(input: LogoutInput!): Boolean!
   cmsLogin(input: LoginInput!): LoginResponse!
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
@@ -824,6 +825,11 @@ input FinalizeUserInput {
 input LoginInput {
   email: String!
   password: String!
+}
+
+input LogoutInput {
+  accessToken: String!
+  refreshToken: String!
 }
 
 input GetNewTokensInput {
