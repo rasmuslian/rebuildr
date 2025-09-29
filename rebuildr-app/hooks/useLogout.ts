@@ -20,17 +20,15 @@ export const useLogout = () => {
       throw new Error("Missing tokens");
     }
 
-    const { data } = await client.mutate({
+    await client.mutate({
       mutation: LOGOUT,
       variables: { input: { refreshToken, accessToken } },
     });
 
-    if (data.logout) {
-      await client.clearStore();
-      await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
-      isLoggedInVar(false);
-      router.replace("/");
-    }
+    await client.clearStore();
+    await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
+    isLoggedInVar(false);
+    router.replace("/");
   };
 
   return {
