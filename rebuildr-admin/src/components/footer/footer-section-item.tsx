@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import { FooterSection } from "gql/graphql";
 import Section from "@components/section";
-import FooterSectionArticle from "@components/footer/footer-section-article";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, App } from "antd";
+import { Button, App, List } from "antd";
 import EditFooterSection from "@components/footer/edit-footer-section";
 import { deleteFooterSection } from "@/queries/footer/delete-footer-section";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -73,24 +72,25 @@ const FooerSectionItem = ({ footerSection }: Props) => {
               icon={<DeleteOutlined />}
               loading={isPending}
               type="dashed"
+              size="middle"
               onClick={() => confirmDelete(title, id)}
             />
             <Button
               icon={<EditOutlined />}
               type="dashed"
+              size="middle"
               onClick={() => setEditMode(true)}
             />
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {articleFooterSections.map((articleFooterSection, index) => (
-            <FooterSectionArticle
-              key={index}
-              article={articleFooterSection.article}
-            />
-          ))}
-        </div>
+        <List
+          header={<p className="text-title-medium">Artiklar</p>}
+          bordered
+          size="small"
+          dataSource={articleFooterSections}
+          renderItem={(item) => <List.Item>{item.article.title}</List.Item>}
+        />
       </Section>
 
       <EditFooterSection

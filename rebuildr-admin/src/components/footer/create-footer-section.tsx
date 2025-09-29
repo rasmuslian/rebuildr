@@ -29,6 +29,7 @@ const CreateFooterSection = () => {
     resolver: zodResolver(FooterSectionSchema),
     defaultValues: {
       articles: [],
+      orderIndex: 1,
     },
   });
 

@@ -6,7 +6,7 @@ type Props = {
 
 const Section = ({ children }: Props) => {
   return (
-    <div className="flex flex-col gap-4 rounded bg-white p-4 shadow-md">
+    <div className="flex flex-1 flex-col gap-4 rounded bg-white p-4 shadow-md">
       {children}
     </div>
   );

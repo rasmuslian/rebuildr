@@ -4,7 +4,7 @@ import ListFooterSections from "@/components/footer/list-footer-sections";
 
 const FooterSetting = () => {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex max-w-screen-lg flex-col gap-5">
       <CreateFooterSection />
       <ListFooterSections />
     </div>

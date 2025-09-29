@@ -23,14 +23,14 @@ const ListFooterSections = () => {
       {isLoading ? (
         <EmptyContainer spinner={isLoading} />
       ) : (
-        <>
+        <div className="grid grid-cols-2 gap-4">
           {footerSections.map((footerSection) => (
             <FooerSectionItem
               key={footerSection.id}
               footerSection={footerSection}
             />
           ))}
-        </>
+        </div>
       )}
     </div>
   );
