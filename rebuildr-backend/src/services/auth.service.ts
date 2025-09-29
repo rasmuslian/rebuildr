@@ -223,7 +223,7 @@ export class AuthService {
     };
   }
 
-  async logout(input: LogoutInput): Promise<Boolean> {
+  async logout(input: LogoutInput): Promise<boolean> {
     const payload: AccessTokenPayload = await this.jwtService.decode(
       input.accessToken,
     );
