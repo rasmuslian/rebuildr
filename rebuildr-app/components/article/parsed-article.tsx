@@ -16,6 +16,8 @@ type Props = {
   html?: string;
 };
 
+const NotParsed = () => <Body size="small" />;
+
 export default function ParsedArticle({ html }: Props) {
   if (!html) return null;
   const cleanedHtml = html.replace(/\n/g, "");
@@ -83,6 +85,7 @@ export default function ParsedArticle({ html }: Props) {
                 <CTABlock>{domToReact(domNode.children as DOMNode[])}</CTABlock>
               );
             }
+            return <NotParsed />;
           }
           case "ul": {
             if (domNode.attribs?.class?.includes("link-group")) {
@@ -92,9 +95,10 @@ export default function ParsedArticle({ html }: Props) {
                 </LinkGroup>
               );
             }
+            return <NotParsed />;
           }
           default: {
-            return <Body size="small" />;
+            return <NotParsed />;
           }
         }
       }
