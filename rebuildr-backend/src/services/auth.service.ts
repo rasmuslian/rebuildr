@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   FinalizeUserInput,
   LoginInput,
+  LogoutInput,
   NewPasswordInput,
   RegisterUserInput,
   ResendVerificationMailInput,
@@ -220,6 +221,31 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
+  }
+
+  async logout(input: LogoutInput): Promise<boolean> {
+    const payload: AccessTokenPayload = await this.jwtService.decode(
+      input.accessToken,
+    );
+
+    const validTokens = await this.refreshTokenRepository.find({
+      where: {
+        userId: payload.sub,
+      },
+    });
+
+    for (const token of validTokens) {
+      const matchingToken = await bcrypt.compare(
+        input.refreshToken,
+        token.token,
+      );
+      if (matchingToken) {
+        const response = await this.refreshTokenRepository.delete(token);
+        return response.affected && response.affected > 0;
+      }
+    }
+
+    return false;
   }
 
   /**

@@ -434,6 +434,11 @@ export type LoginResponse = {
   user: User;
 };
 
+export type LogoutInput = {
+  accessToken: Scalars['String']['input'];
+  refreshToken: Scalars['String']['input'];
+};
+
 export type MarkAsReadInput = {
   markAsRead: Scalars['Boolean']['input'];
   otherUserId: Scalars['String']['input'];
@@ -495,6 +500,7 @@ export type Mutation = {
   getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
   login: LoginResponse;
+  logout: Scalars['Boolean']['output'];
   markConversationAsRead: Array<Message>;
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
@@ -647,6 +653,11 @@ export type MutationHideProductArgs = {
 
 export type MutationLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationLogoutArgs = {
+  input: LogoutInput;
 };
 
 

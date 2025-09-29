@@ -72,6 +72,14 @@ export class LoginInput {
   @Field(() => String)
   password: string;
 }
+@InputType()
+export class LogoutInput {
+  @Field(() => String)
+  accessToken: string;
+
+  @Field(() => String)
+  refreshToken: string;
+}
 @ObjectType()
 class LoginResponse {
   @Field(() => User)
@@ -171,6 +179,11 @@ export class AuthResolver {
     @Context('req') req: RequestType,
   ) {
     return await this.authService.login(input, req);
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Args('input') input: LogoutInput) {
+    return await this.authService.logout(input);
   }
 
   @Mutation(() => LoginResponse)
