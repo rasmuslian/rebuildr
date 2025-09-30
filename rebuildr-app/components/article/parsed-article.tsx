@@ -11,6 +11,8 @@ import { Image } from "expo-image";
 import CTABlock from "@components/article/cta-block";
 import Accordion from "@components/article/accordion";
 import LinkGroup from "@components/article/link-group";
+import { Divider } from "@components/dividers/divider";
+import { View } from "react-native";
 
 type Props = {
   html?: string;
@@ -83,6 +85,13 @@ export default function ParsedArticle({ html }: Props) {
             if (domNode.attribs?.class?.includes("cta-block")) {
               return (
                 <CTABlock>{domToReact(domNode.children as DOMNode[])}</CTABlock>
+              );
+            }
+            if (domNode.attribs?.class?.includes("divider")) {
+              return (
+                <View style={{ marginBottom: 24 }}>
+                  <Divider />
+                </View>
               );
             }
             return <NotParsed />;

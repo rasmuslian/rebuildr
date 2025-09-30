@@ -10,6 +10,10 @@ import { DownOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import cn from "classnames";
 
+interface ParsedHTMLElementProps {
+  children?: React.ReactNode;
+}
+
 const Accordion = ({ children }: PropsWithChildren) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [height, setHeight] = useState(0);
@@ -25,23 +29,21 @@ const Accordion = ({ children }: PropsWithChildren) => {
     }
   }, [isExpanded, children]);
 
-  const childrenArray = React.Children.toArray(children) as ReactElement[];
-
-  const summaryElement = childrenArray.find(
-    (child) => child.type === "summary",
+  const childrenArray = React.Children.toArray(children).filter(
+    (c): c is ReactElement<ParsedHTMLElementProps> => React.isValidElement(c),
   );
 
-  const contentElements = childrenArray.filter(
-    (child) => child.type !== "summary",
-  );
+  const summary = childrenArray[0];
+  const content = childrenArray.slice(1);
 
   return (
-    <div className="flex list-none flex-col">
-      <div className="flex flex-row items-center justify-between">
-        <h2 className="text-headline-small">{summaryElement}</h2>
+    <div className="mb-6 flex list-none flex-col">
+      <div className="flex flex-row justify-between align-middle">
+        {summary}
         <Button
           type="text"
           onClick={() => setIsExpanded(!isExpanded)}
+          size="middle"
           icon={
             <DownOutlined
               className={cn("transition duration-500 ease-in-out", {
@@ -59,7 +61,7 @@ const Accordion = ({ children }: PropsWithChildren) => {
           overflow: "hidden",
         }}
       >
-        <div className="mb-6 mt-3 flex flex-col gap-3">{contentElements}</div>
+        <div className="mt-3 flex flex-col">{content}</div>
       </div>
     </div>
   );

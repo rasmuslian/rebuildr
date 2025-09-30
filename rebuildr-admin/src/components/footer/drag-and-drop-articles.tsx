@@ -6,8 +6,8 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { Divider } from "antd";
-import FooterSectionArticle from "@components/footer/footer-section-article";
+import { Button, Divider } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 
 type Props = {
   title: string;
@@ -50,8 +50,17 @@ const DragAndDropArticles = ({ title, articles, setArticles }: Props) => {
                       {...provided.dragHandleProps}
                       {...provided.draggableProps}
                       ref={provided.innerRef}
+                      className="grid grid-cols-[auto_30px] gap-2 rounded bg-accent_100 p-2 shadow-md"
                     >
-                      <FooterSectionArticle article={item} />
+                      <p>{item.title}</p>
+                      <Button
+                        icon={<DeleteOutlined />}
+                        size="middle"
+                        type="dashed"
+                        onClick={() => {
+                          setArticles(articles.filter((a) => a.id !== item.id));
+                        }}
+                      />
                     </div>
                   )}
                 </Draggable>

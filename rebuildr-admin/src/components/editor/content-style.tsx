@@ -5,6 +5,7 @@ export const contentStyle = `
     height: auto;
     display: block;
     max-width: 100%;
+    border-radius: 12px;
   }
   .accordion {
     padding: 10px;
@@ -76,5 +77,11 @@ export const contentStyle = `
     text-decoration: none;
     font-weight: 500;
     font-size: 14px;
+  }
+  .divider {
+    margin: 20px auto;
+    width: 100%;
+    height: 1px;
+    background-color: ${colors.neutrals_300};
   }
 `;

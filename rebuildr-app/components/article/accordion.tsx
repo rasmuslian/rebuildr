@@ -56,7 +56,6 @@ export default function Accordion({ children, isOpen = true }: Props) {
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 12,
         }}
       >
         {summary}
@@ -74,6 +73,7 @@ export default function Accordion({ children, isOpen = true }: Props) {
 
       <Animated.View style={{ height: contentAnimation, overflow: "hidden" }}>
         <View
+          style={{ marginTop: 12 }}
           onLayout={(e) => {
             contentRef.current = e.nativeEvent.layout.height;
             if (contentExpanded) contentAnimation.setValue(contentRef.current);

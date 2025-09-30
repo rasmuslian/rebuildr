@@ -57,7 +57,7 @@ export class ArticleService {
     const [articles, total] = await this.articleRepository.findAndCount({
       take: pageSize,
       skip,
-      order: { createdAt: 'DESC' },
+      order: { updatedAt: 'DESC' },
     });
 
     return { articles, total };
