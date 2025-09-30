@@ -3,7 +3,7 @@ import React, { PropsWithChildren, ReactElement } from "react";
 
 interface ParsedHTMLElementProps {
   children?: React.ReactNode;
-  [key: string]: any;
+  "data-link"?: string;
 }
 
 const CTABlock = ({ children }: PropsWithChildren) => {

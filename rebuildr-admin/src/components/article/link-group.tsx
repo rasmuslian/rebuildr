@@ -4,7 +4,7 @@ import { Button } from "antd";
 
 interface ParsedHTMLElementProps {
   children?: React.ReactNode;
-  [key: string]: any;
+  "data-link"?: string;
 }
 
 const LinkGroup = ({ children }: PropsWithChildren) => {
