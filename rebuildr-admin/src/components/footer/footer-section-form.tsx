@@ -65,7 +65,7 @@ const FooterSectionForm = ({
         name="articles"
         render={({ field: { onChange, value } }) => {
           return (
-            <div className="grid grid-cols-[auto_300px] gap-5">
+            <div className="grid grid-cols-[auto_320px] gap-5">
               <FormField label="Välj artiklar" error={errors.articles?.message}>
                 <SelectAricleTable articles={value} setArticles={onChange} />
               </FormField>

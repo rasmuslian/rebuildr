@@ -29,8 +29,10 @@ const UserProfile = () => {
           />
 
           <div className="flex flex-col overflow-hidden">
-            <h4 className="truncate">{profile?.username}</h4>
-            <p className="text-gray truncate">{profile?.email}</p>
+            <h4 className="truncate text-title-medium">{profile?.username}</h4>
+            <p className="truncate text-body-small text-neutral-600">
+              {profile?.email}
+            </p>
           </div>
         </>
       )}

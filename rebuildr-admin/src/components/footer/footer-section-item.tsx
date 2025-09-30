@@ -85,7 +85,6 @@ const FooerSectionItem = ({ footerSection }: Props) => {
         </div>
 
         <List
-          header={<p className="text-title-medium">Artiklar</p>}
           bordered
           size="small"
           dataSource={articleFooterSections}

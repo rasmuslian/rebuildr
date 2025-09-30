@@ -75,6 +75,13 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
     setState({ isImageModalOpen: false });
   };
 
+  const insertDivider = () => {
+    if (!editorRef.current) return;
+    const html = `<div class="divider" />`;
+    editorRef.current.execCommand("InsertHTML", false, html);
+    editorRef.current.execCommand("InsertNewBlockAfter");
+  };
+
   const insertCTABlock = (formData: CTASchemaType) => {
     if (!editorRef.current) return;
 
@@ -166,6 +173,12 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
       onAction: () => editor.insertContent(createAccordionHTML()),
     });
 
+    editor.ui.registry.addButton("dividerButton", {
+      icon: "horizontal-rule",
+      text: "Divider",
+      onAction: () => insertDivider(),
+    });
+
     editor.ui.registry.addButton("linkGroupButton", {
       icon: "link",
       text: "Link grupp",
@@ -245,7 +258,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
             "autoresize",
           ],
           toolbar:
-            "undo redo | blocks | bold italic | link unlink | imageBankButton accordionButton linkGroupButton ctaButton",
+            "undo redo | blocks | bold italic | link unlink | imageBankButton accordionButton linkGroupButton ctaButton dividerButton",
           formats: {
             h1: { block: "h1", classes: "display-small" },
             h2: { block: "h2", classes: "headline-small" },
