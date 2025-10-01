@@ -21,3 +21,7 @@ export const formatPrice = (price?: number) => {
     maximumFractionDigits: 0,
   }).format(price);
 };
+
+export const formatSwedishNumber = (number: string) => {
+  return number.replace(/^(?:\+46|0046)/, "0");
+};

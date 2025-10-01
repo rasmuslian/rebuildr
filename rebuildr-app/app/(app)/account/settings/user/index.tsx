@@ -15,7 +15,7 @@ import { Body, Display, Headline, Title } from "@components/typography/text";
 import { PropsWithChildren, useState } from "react";
 import { View } from "react-native";
 import * as z from "zod";
-import { formatPostCode } from "@/utils/formattings";
+import { formatPostCode, formatSwedishNumber } from "@/utils/formattings";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 
 const ACCOUNT_SETTINGS_USER_FRAGMENT = gql`
@@ -305,7 +305,7 @@ export default function User() {
                   {data.me.name}
                 </Body>
                 <Body size="medium" color="secondary">
-                  {data.me.phoneNumber}
+                  {formatSwedishNumber(data.me.phoneNumber ?? "")}
                 </Body>
                 <Body size="medium" color="secondary">
                   {data.me.address}

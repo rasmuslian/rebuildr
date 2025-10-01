@@ -1,4 +1,8 @@
-import { TransportationEnum } from "@/gql/graphql";
+import {
+  SummaryCreateFreePurchaseMutation,
+  SummaryCreateFreePurchaseMutationVariables,
+  TransportationEnum,
+} from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { router } from "expo-router";
 
@@ -14,7 +18,10 @@ const SUMMARY_CREATE_FREE_PURCHASE = gql`
 `;
 
 export const useSubmitSummary = () => {
-  const [purchaseProduct] = useMutation(SUMMARY_CREATE_FREE_PURCHASE);
+  const [purchaseProduct] = useMutation<
+    SummaryCreateFreePurchaseMutation,
+    SummaryCreateFreePurchaseMutationVariables
+  >(SUMMARY_CREATE_FREE_PURCHASE);
 
   const handleFree = (
     productId: string,
