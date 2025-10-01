@@ -45,6 +45,7 @@ export const ImageCarousel = ({
         <FlatList
           data={images}
           horizontal
+          pagingEnabled
           showsHorizontalScrollIndicator={false}
           keyExtractor={(image) => image.id}
           renderItem={({ item: image, separators }) => {
