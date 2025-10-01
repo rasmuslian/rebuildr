@@ -10,12 +10,11 @@ import { Divider } from "@components/dividers/divider";
 import { Display, Body } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { Linking, View } from "react-native";
 import { BankId } from "./bank-id";
 import * as Crypto from "expo-crypto";
 import { usePathname } from "expo-router";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 
 const VERIFY_BOTTOM_SHEET = gql`
@@ -47,7 +46,6 @@ export const VerifyBottomSheet = ({
   onVerifyComplete,
 }: Props) => {
   const [showQr, setShowQr] = useState(false);
-  const ref = useRef<BottomSheetModal>(null);
 
   const pathToHere = usePathname();
   const colors = useThemeColor();
@@ -74,13 +72,8 @@ export const VerifyBottomSheet = ({
   }, []);
 
   useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      if (timer) {
-        clearInterval(timer);
-      }
-      ref.current?.dismiss();
+    if (!show && timer) {
+      clearInterval(timer);
     }
   }, [show]);
 
@@ -230,7 +223,7 @@ export const VerifyBottomSheet = ({
       name="Verify"
       title={showQr ? "BankID på annan enhet" : "Verifiera dig med BankID"}
       onDismiss={onDismiss}
-      ref={ref}
+      open={show}
     >
       <View style={{ justifyContent: "space-between", flex: 1 }}>
         {showQr ? renderQr() : renderInitial()}

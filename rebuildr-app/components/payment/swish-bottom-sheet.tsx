@@ -7,9 +7,7 @@ import { gql, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Divider } from "@components/dividers/divider";
 import { Display, Body } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { useRef, useEffect } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import SwishImage from "@assets/images/swish-no-border.png";
@@ -40,14 +38,12 @@ export const SwishBottomSheet = ({
   show,
   onDismiss,
 }: SwishBottomSheetProps) => {
-  const ref = useRef<BottomSheetModal>(null);
   useQuery<PollSwishQuery, PollSwishQueryVariables>(POLL_SWISH, {
     variables: { input: { id: purchaseId } },
     pollInterval: 1000,
     notifyOnNetworkStatusChange: true,
     onCompleted: (data) => {
       if (data.purchase.status === PurchaseStatusEnum.PaymentAccepted) {
-        ref.current?.dismiss();
         onDismiss();
         router.replace({
           pathname: "/buy/[productId]/success",
@@ -57,19 +53,11 @@ export const SwishBottomSheet = ({
     },
   });
 
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   return (
     <BottomSheet
       name="Swish"
       title="Bekräfta köp"
-      ref={ref}
+      open={show}
       screenHeight
       onDismiss={() => onDismiss()}
     >

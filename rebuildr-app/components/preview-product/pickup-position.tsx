@@ -2,8 +2,7 @@ import { Body, Headline } from "@components/typography/text";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Map } from "@components/maps/map";
-import { useRef } from "react";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useState } from "react";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
 };
 
 export const PickupPosition = ({ address, location }: Props) => {
-  const mapRef = useRef<BottomSheetModal>(null);
+  const [showMap, setShowMap] = useState(false);
 
   return (
     <>
@@ -20,7 +19,7 @@ export const PickupPosition = ({ address, location }: Props) => {
         <Headline size="small" style={{ marginBottom: 16 }}>
           Plats för avhämtning
         </Headline>
-        <Pressable onPress={() => mapRef.current?.present()}>
+        <Pressable onPress={() => setShowMap(true)}>
           <Map
             lat={location.lat}
             lng={location.lng}
@@ -37,7 +36,8 @@ export const PickupPosition = ({ address, location }: Props) => {
         </Body>
       </View>
       <BottomSheet
-        ref={mapRef}
+        open={showMap}
+        onDismiss={() => setShowMap(false)}
         name="map"
         title="Plats för avhämtning"
         screenHeight

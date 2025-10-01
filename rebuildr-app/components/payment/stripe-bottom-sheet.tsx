@@ -1,7 +1,6 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Body, Title } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Elements,
   PaymentElement,
@@ -10,7 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { createURL } from "expo-linking";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
 /**
@@ -32,16 +31,6 @@ export const StripeBottomSheet = ({
   onDismiss,
   clientSecret,
 }: Props) => {
-  const ref = useRef<BottomSheetModal>(null);
-
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   if (!process.env.EXPO_PUBLIC_ROCKER_STRIPE_PK) {
     console.error("Publishable key not set!");
     return null;
@@ -51,7 +40,7 @@ export const StripeBottomSheet = ({
     <BottomSheet
       name="Stripe"
       title="Bekräfta köp"
-      ref={ref}
+      open={show}
       screenHeight
       onDismiss={onDismiss}
       scrollable

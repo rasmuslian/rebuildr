@@ -22,7 +22,6 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
 import { useDebounceCallback } from "usehooks-ts";
 import { Map } from "@components/maps/map";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 export default function ProjectPage() {
@@ -36,7 +35,7 @@ export default function ProjectPage() {
   const [contactExpanded, setContactExpanded] = useState(false);
   const contactAnimation = useRef(new Animated.Value(0)).current;
   const contactRef = useRef(0);
-  const showLocationRef = useRef<BottomSheetModal>(null);
+  const [showLocation, setShowLocation] = useState(false);
 
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
@@ -128,7 +127,7 @@ export default function ProjectPage() {
 
           <Display size="small">{project?.title}</Display>
           {location && (
-            <Pressable onPress={() => showLocationRef.current?.present()}>
+            <Pressable onPress={() => setShowLocation(true)}>
               <Map
                 lat={location.lat}
                 lng={location.lng}
@@ -140,7 +139,7 @@ export default function ProjectPage() {
                     type="text"
                     icon="map"
                     style={{ backgroundColor: "white" }}
-                    onPress={() => showLocationRef.current?.present()}
+                    onPress={() => setShowLocation(true)}
                   />
                 }
               />
@@ -253,7 +252,8 @@ export default function ProjectPage() {
       )}
 
       <BottomSheet
-        ref={showLocationRef}
+        open={showLocation}
+        onDismiss={() => setShowLocation(false)}
         title="Plats för avhämtning"
         name="projectLocation"
         screenHeight

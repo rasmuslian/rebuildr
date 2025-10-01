@@ -5,8 +5,6 @@ import {
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Display, Body } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect } from "react";
 import { View } from "react-native";
 import { Button } from "@components/buttons/button";
 
@@ -34,8 +32,6 @@ export const AbortPurchaseBottomSheet = ({
   onDismiss,
   onAbortPurchaseCompleted,
 }: AbortPurchaseBottomSheetProps) => {
-  const ref = useRef<BottomSheetModal>(null);
-
   const [abortPurchase, { error, loading }] = useMutation<
     AbortPurchaseMutation,
     AbortPurchaseMutationVariables
@@ -51,19 +47,11 @@ export const AbortPurchaseBottomSheet = ({
     });
   };
 
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   return (
     <BottomSheet
       name="Abort purchase"
       title="Avbryt köp"
-      ref={ref}
+      open={show}
       onDismiss={onDismiss}
     >
       <View style={{ justifyContent: "space-between", flex: 1 }}>

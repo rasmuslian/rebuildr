@@ -9,10 +9,8 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Display } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useHandleDraft } from "@hooks/sell-product/use-handle-draft";
 import { router } from "expo-router";
-import { useEffect, useRef } from "react";
 import { View } from "react-native";
 
 const HANDLE_DRAFT = gql`
@@ -31,7 +29,6 @@ const HANDLE_DRAFT_DELETE_DRAFT = gql`
 
 export const HandleDraftBottomSheet = () => {
   const { visible, setVisible } = useHandleDraft();
-  const sheetRef = useRef<BottomSheetModal>(null);
 
   const { data } = useQuery<HandleDraftQuery>(HANDLE_DRAFT);
   const [deleteDraft, { loading, error }] = useMutation<
@@ -64,17 +61,9 @@ export const HandleDraftBottomSheet = () => {
     router.replace("/");
   };
 
-  useEffect(() => {
-    if (visible) {
-      sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
-  }, [visible]);
-
   return (
     <BottomSheet
-      ref={sheetRef}
+      open={visible}
       name="handle draft"
       title="Hantera utkast"
       onDismiss={() => {

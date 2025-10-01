@@ -8,8 +8,7 @@ import {
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Display, Body, Title, Headline } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import { Divider } from "@components/dividers/divider";
@@ -69,8 +68,6 @@ export const ReportProductBottomSheet = ({
   const [type, setType] = useState<ReportProductTypeEnum>();
   const [message, setMessage] = useState("");
 
-  const ref = useRef<BottomSheetModal>(null);
-
   const { data, refetch } = useQuery<
     ReportProductQuery,
     ReportProductQueryVariables
@@ -107,15 +104,6 @@ export const ReportProductBottomSheet = ({
     });
   };
 
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-      resetReportData();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   if (!data) {
     return null;
   }
@@ -138,6 +126,7 @@ export const ReportProductBottomSheet = ({
 
   return (
     <BottomSheet
+      open={show}
       name="Create Report Product"
       header={
         <View style={{ gap: 16 }}>
@@ -183,7 +172,6 @@ export const ReportProductBottomSheet = ({
           />
         ) : undefined
       }
-      ref={ref}
       screenHeight={!!createReportData || !!alreadyReported}
       onDismiss={onDismiss}
       scrollable

@@ -1,6 +1,4 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import { File } from "@/gql/graphql";
@@ -13,19 +11,9 @@ type Props = {
 };
 
 export const AllImagesBottomSheet = ({ images, show, onDismiss }: Props) => {
-  const ref = useRef<BottomSheetModal>(null);
-
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   return (
     <BottomSheet
-      ref={ref}
+      open={show}
       name="images"
       title="Alla bilder"
       scrollable

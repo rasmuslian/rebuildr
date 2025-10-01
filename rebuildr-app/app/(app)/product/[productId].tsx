@@ -25,8 +25,7 @@ import { ProjectCard } from "@components/cards/project-card";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
@@ -208,8 +207,8 @@ export default function Product() {
   const [showReportSheet, setShowReportSheet] = useState(false);
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
-  const removeProductRef = useRef<BottomSheetModal>(null);
-  const createProductLabelRef = useRef<BottomSheetModal>(null);
+  const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
+  const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
 
@@ -270,7 +269,7 @@ export default function Product() {
       iconPosition: "right",
       onPress: () => {
         if (state.showCreateLabelModal) {
-          createProductLabelRef.current?.present();
+          setShowCreateProductLabel(true);
         } else {
           printProductLabel();
         }
@@ -307,7 +306,7 @@ export default function Product() {
                   label="Ta bort"
                   type="tonal"
                   onPress={() => {
-                    removeProductRef.current?.present();
+                    setShowRemoveProductsSheet(true);
                   }}
                   style={{ flex: 1 }}
                 />
@@ -495,7 +494,8 @@ export default function Product() {
         <SimilarProducts productId={productId} />
       </ScreenLayout>
       <BottomSheet
-        ref={removeProductRef}
+        open={showRemoveProductsSheet}
+        onDismiss={() => setShowRemoveProductsSheet(false)}
         name="removeProduct"
         title="Ta bort annons"
       >
@@ -518,7 +518,7 @@ export default function Product() {
                     removeProduct({
                       variables: { input: { id: productId } },
                       onCompleted: () => {
-                        removeProductRef.current?.dismiss();
+                        setShowRemoveProductsSheet(false);
                         if (router.canGoBack()) {
                           router.back();
                         } else {
@@ -532,7 +532,7 @@ export default function Product() {
                   label="Nej"
                   type="outlined"
                   onPress={() => {
-                    removeProductRef.current?.dismiss();
+                    setShowRemoveProductsSheet(false);
                   }}
                 />
               </View>
@@ -547,7 +547,7 @@ export default function Product() {
               </Display>
               <Button
                 label="Ok"
-                onPress={() => removeProductRef.current?.dismiss()}
+                onPress={() => setShowRemoveProductsSheet(false)}
               />
             </>
           )}
@@ -562,9 +562,9 @@ export default function Product() {
       )}
 
       <CreateProductLabelModal
-        modalRef={createProductLabelRef}
+        show={showCreateProductLabel}
         onPressDontShowMore={() => {
-          createProductLabelRef.current?.close();
+          setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
         onPressPrintProductLabel={printProductLabel}
