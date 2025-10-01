@@ -343,10 +343,14 @@ export default function Product() {
                   label="Kontakta säljaren"
                   type="tonal"
                   onPress={() => {
-                    router.navigate({
-                      pathname: "/conversations/[productId]/[userId]",
-                      params: { productId, userId: product.seller.id },
-                    });
+                    if (!isLoggedIn) {
+                      setVisible(true);
+                    } else {
+                      router.navigate({
+                        pathname: "/conversations/[productId]/[userId]",
+                        params: { productId, userId: product.seller.id },
+                      });
+                    }
                   }}
                 />
               </>
