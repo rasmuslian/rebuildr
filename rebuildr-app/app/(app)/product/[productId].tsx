@@ -370,7 +370,6 @@ export default function Product() {
           sellerIsMe={me && me.id === product.seller.id}
         />
         <Divider />
-        <BuyersProtection />
         <AllImages images={product.images} />
         {approximatePlace &&
           product.pickupEnabled &&
@@ -409,7 +408,7 @@ export default function Product() {
             </Body>
           )}
         </View>
-        <Divider />
+        <BuyersProtection />
         <View style={{ gap: 24 }}>
           <Headline size="small">Om säljaren</Headline>
           <UserCard
