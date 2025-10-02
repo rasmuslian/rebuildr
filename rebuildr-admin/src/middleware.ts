@@ -6,16 +6,15 @@ export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const session = await getSession();
 
-  console.log("nextUrl :>> ", nextUrl);
-  console.log("session :>> ", session);
-
   const isLoggedIn = session.isLoggedIn;
 
   if (!isLoggedIn && !nextUrl.pathname.match(routes.LOGIN)) {
+    console.log("redirect to login ...");
     return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
   }
 
   if (isLoggedIn && nextUrl.pathname.match(routes.LOGIN)) {
+    console.log("redirect to admin ...");
     return NextResponse.redirect(new URL(routes.ADMIN, nextUrl));
   }
 
@@ -23,5 +22,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login"],
+  matcher: ["/admin", "/admin/:path*", "/login"],
 };
