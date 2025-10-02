@@ -6,6 +6,9 @@ export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const session = await getSession();
 
+  console.log("nextUrl :>> ", nextUrl);
+  console.log("session :>> ", session);
+
   const isLoggedIn = session.isLoggedIn;
 
   if (!isLoggedIn && !nextUrl.pathname.match(routes.LOGIN)) {
