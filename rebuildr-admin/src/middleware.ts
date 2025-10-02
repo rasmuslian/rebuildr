@@ -8,18 +8,7 @@ export async function middleware(request: NextRequest) {
 
   const isLoggedIn = session.isLoggedIn;
   const isLoginRoute = Boolean(nextUrl.pathname.match(routes.LOGIN));
-
-  if (isLoggedIn) {
-    console.log("isLoggedIn: true");
-  } else {
-    console.log("isLoggedIn: false");
-  }
-
-  if (isLoginRoute) {
-    console.log("isLoginRoute: true");
-  } else {
-    console.log("isLoginRoute: false");
-  }
+  console.log("isLoggedIn:", isLoggedIn, "isLoginRoute:", isLoginRoute);
 
   if (!isLoggedIn && !isLoginRoute) {
     return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
@@ -34,4 +23,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ["/admin/:path*", "/login"],
+  runtime: "nodejs",
 };
