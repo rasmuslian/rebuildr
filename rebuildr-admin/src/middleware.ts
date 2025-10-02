@@ -7,14 +7,25 @@ export async function middleware(request: NextRequest) {
   const session = await getSession();
 
   const isLoggedIn = session.isLoggedIn;
+  const isLoginRoute = Boolean(nextUrl.pathname.match(routes.LOGIN));
 
-  if (!isLoggedIn && !nextUrl.pathname.match(routes.LOGIN)) {
-    console.log("redirect to login ...");
+  if (isLoggedIn) {
+    console.log("isLoggedIn: true");
+  } else {
+    console.log("isLoggedIn: false");
+  }
+
+  if (isLoginRoute) {
+    console.log("isLoginRoute: true");
+  } else {
+    console.log("isLoginRoute: false");
+  }
+
+  if (!isLoggedIn && !isLoginRoute) {
     return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
   }
 
-  if (isLoggedIn && nextUrl.pathname.match(routes.LOGIN)) {
-    console.log("redirect to admin ...");
+  if (isLoggedIn && isLoginRoute) {
     return NextResponse.redirect(new URL(routes.ADMIN, nextUrl));
   }
 
@@ -22,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/login"],
+  matcher: ["/admin/:path*", "/login"],
 };
