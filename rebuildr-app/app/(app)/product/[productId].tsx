@@ -566,6 +566,7 @@ export default function Product() {
 
       <CreateProductLabelModal
         show={showCreateProductLabel}
+        onDismiss={() => setShowCreateProductLabel(false)}
         onPressDontShowMore={() => {
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });

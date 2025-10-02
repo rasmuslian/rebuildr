@@ -9,12 +9,14 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 type Props = {
   show: boolean;
+  onDismiss: () => void;
   onPressPrintProductLabel: () => void;
   onPressDontShowMore: () => void;
 };
 
 export function CreateProductLabelModal({
   show,
+  onDismiss,
   onPressPrintProductLabel,
   onPressDontShowMore,
 }: Props) {
@@ -27,7 +29,7 @@ export function CreateProductLabelModal({
   return (
     <BottomSheet
       open={show}
-      onDismiss={onPressDontShowMore}
+      onDismiss={onDismiss}
       title="Skapa etikett"
       name="createLabel"
     >
