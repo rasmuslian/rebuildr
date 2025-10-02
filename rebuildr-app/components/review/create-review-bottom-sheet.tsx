@@ -7,8 +7,7 @@ import {
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Display, Body, Label } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import { Pressable } from "react-native-gesture-handler";
@@ -90,7 +89,6 @@ export const CreateReviewBottomSheet = ({
   const [review, setReview] = useState("");
 
   const colors = useThemeColor();
-  const ref = useRef<BottomSheetModal>(null);
 
   const { data } = useQuery<
     ReviewBottomSheetQuery,
@@ -234,21 +232,13 @@ export const CreateReviewBottomSheet = ({
     );
   };
 
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   const buyerIsMe = data?.purchase.buyerId === data?.me.id;
 
   return (
     <BottomSheet
       name="Create Review"
       title="Lämna omdöme"
-      ref={ref}
+      open={show}
       screenHeight={state !== "initial"}
       onDismiss={onDismiss}
       scrollable={state !== "initial"}

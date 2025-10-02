@@ -308,26 +308,28 @@ export default function Profile() {
       <View style={{ gap: 24, marginTop: 16 }}>
         {productsData?.products.products.length ? (
           <>
-            {data.user.projects && (
-              <HoriztalListSection
-                data={data.user.projects}
-                renderItem={({ item }) => (
-                  <ProjectCard
-                    showHeart={data.me?.id !== item.user.id}
-                    project={item}
-                  />
-                )}
-                title="Projekt"
-                onPress={() => {
-                  router.navigate({
-                    pathname: "/(app)/project-list/[userId]",
-                    params: { userId: data.user.id },
-                  });
-                }}
-                visibleItems={2}
-              />
+            {!!data.user.projects.length && (
+              <>
+                <HoriztalListSection
+                  data={data.user.projects}
+                  renderItem={({ item }) => (
+                    <ProjectCard
+                      showHeart={data.me?.id !== item.user.id}
+                      project={item}
+                    />
+                  )}
+                  title="Projekt"
+                  onPress={() => {
+                    router.navigate({
+                      pathname: "/(app)/project-list/[userId]",
+                      params: { userId: data.user.id },
+                    });
+                  }}
+                  visibleItems={2}
+                />
+                <Divider />
+              </>
             )}
-            <Divider />
             <AdGridSection
               header="Annonser"
               products={productsData.products.products.map((product) => ({

@@ -5,17 +5,18 @@ import { Divider } from "@components/dividers/divider";
 import { Check } from "@components/controls/check";
 import { primitives } from "@constants/colors";
 import { Button } from "@components/buttons/button";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 
 type Props = {
-  modalRef: React.Ref<BottomSheetModal>;
+  show: boolean;
+  onDismiss: () => void;
   onPressPrintProductLabel: () => void;
   onPressDontShowMore: () => void;
 };
 
 export function CreateProductLabelModal({
-  modalRef,
+  show,
+  onDismiss,
   onPressPrintProductLabel,
   onPressDontShowMore,
 }: Props) {
@@ -26,7 +27,12 @@ export function CreateProductLabelModal({
   ];
 
   return (
-    <BottomSheet ref={modalRef} title="Skapa etikett" name="createLabel">
+    <BottomSheet
+      open={show}
+      onDismiss={onDismiss}
+      title="Skapa etikett"
+      name="createLabel"
+    >
       <View style={{ gap: 24 }}>
         <Display size="small">
           Skriv ut en etikett och fäst den på din vara

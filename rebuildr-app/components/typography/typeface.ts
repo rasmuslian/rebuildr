@@ -116,6 +116,7 @@ export const textStyles = {
       ...headlineBaseMobile,
       fontSize: 20,
       lineHeight: 28,
+      fontWeight: 500,
 
       desktop: {
         ...headlineBaseDesktop,

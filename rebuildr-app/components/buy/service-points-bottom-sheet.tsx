@@ -3,8 +3,6 @@ import { formatMetersToKm } from "@/utils/distanceHandling";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Body, Display, Title } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useEffect, useRef } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -21,19 +19,9 @@ export const ServicePointsBottomSheet = ({
   servicePoints,
   onSelect,
 }: Props) => {
-  const ref = useRef<BottomSheetModal>(null);
-
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   return (
     <BottomSheet
-      ref={ref}
+      open={show}
       name="Ombud"
       title="Välj ett ombud"
       onDismiss={onDismiss}

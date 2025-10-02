@@ -1,11 +1,10 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect } from "react";
-import { View } from "react-native";
-import { Image } from "expo-image";
+import { View, Image, Dimensions } from "react-native";
 import { File } from "@/gql/graphql";
 import { borderRadius } from "@constants/sizes";
+import { useEffect, useState } from "react";
 
+const screenWidth = Dimensions.get("window").width - 48;
 type Props = {
   images: File[];
   show: boolean;
@@ -13,39 +12,59 @@ type Props = {
 };
 
 export const AllImagesBottomSheet = ({ images, show, onDismiss }: Props) => {
-  const ref = useRef<BottomSheetModal>(null);
-
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   return (
     <BottomSheet
-      ref={ref}
+      open={show}
       name="images"
       title="Alla bilder"
       scrollable
       screenHeight
       onDismiss={() => onDismiss()}
     >
-      <View style={{ gap: 16, flex: 1, height: "100%" }}>
+      <View
+        style={{
+          gap: 16,
+          flex: 1,
+          height: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         {images.map((image, i) => (
-          <Image
-            key={i}
-            source={image.url}
-            style={{
-              minHeight: 230,
-              aspectRatio: 1,
-              borderRadius: borderRadius.medium,
-            }}
-            contentFit="contain"
-          />
+          <DynamicImage uri={image.url} key={i} />
         ))}
       </View>
     </BottomSheet>
+  );
+};
+
+const DynamicImage = ({ uri }: { uri: string }) => {
+  const [aspectRatio, setAspectRatio] = useState(1);
+
+  useEffect(() => {
+    Image.getSize(uri, (w, h) => {
+      setAspectRatio(w / h);
+    });
+  }, [uri]);
+
+  return (
+    <View
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: borderRadius.medium,
+      }}
+    >
+      <Image
+        source={{ uri }}
+        style={{
+          width: screenWidth,
+          height: undefined,
+          aspectRatio,
+          borderRadius: borderRadius.medium,
+        }}
+        resizeMode="contain"
+      />
+    </View>
   );
 };

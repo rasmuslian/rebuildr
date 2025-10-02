@@ -9,8 +9,7 @@ import {
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Display, Body, Title, Headline } from "@components/typography/text";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import { Divider } from "@components/dividers/divider";
@@ -76,8 +75,6 @@ export const ReportPurchaseBottomSheet = ({
   const [type, setType] = useState<ReportPurchaseTypeEnum>();
   const [message, setMessage] = useState("");
 
-  const ref = useRef<BottomSheetModal>(null);
-
   const { data } = useQuery<ReportPurchaseQuery, ReportPurchaseQueryVariables>(
     REPORT_PURCHASE,
     { variables: { input: { id: purchaseId } } },
@@ -108,14 +105,6 @@ export const ReportPurchaseBottomSheet = ({
     });
   };
 
-  useEffect(() => {
-    if (show) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [show]);
-
   if (!data) {
     return null;
   }
@@ -141,6 +130,7 @@ export const ReportPurchaseBottomSheet = ({
   return (
     <BottomSheet
       name="Create Report Purchase"
+      open={show}
       header={
         <View style={{ gap: 16 }}>
           {data.purchase.status === PurchaseStatusEnum.Delivered ? (
@@ -186,7 +176,6 @@ export const ReportPurchaseBottomSheet = ({
           />
         ) : undefined
       }
-      ref={ref}
       screenHeight={
         !!createReportData ||
         !!data.purchase.reportPurchase ||

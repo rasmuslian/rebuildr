@@ -12,10 +12,9 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { Body, Display, Label } from "@components/typography/text";
 import { defaultCenter, defaultRadius } from "@constants/map";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Check } from "@components/controls/check";
@@ -97,7 +96,7 @@ export default function Products() {
 
   const isLoggedIn = isLoggedInVar();
   const productsPerPage = 10;
-  const transportRef = useRef<BottomSheetModal>(null);
+  const [showTransportSheet, setShowTransportSheet] = useState(false);
   const { onToggleProductHeart } = useLikeProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
@@ -239,7 +238,7 @@ export default function Products() {
         delivery,
       },
     });
-    transportRef.current?.dismiss();
+    setShowTransportSheet(false);
   };
 
   useFocusEffect(
@@ -322,7 +321,7 @@ export default function Products() {
           </Body>
           <Button
             label={getTransportationLabel()}
-            onPress={() => transportRef.current?.present()}
+            onPress={() => setShowTransportSheet(true)}
             type="tonal"
           />
           <View>
@@ -371,7 +370,8 @@ export default function Products() {
         />
       </ScreenLayout>
       <BottomSheet
-        ref={transportRef}
+        open={showTransportSheet}
+        onDismiss={() => setShowTransportSheet(false)}
         name="delivery"
         title="Leveransalternativ"
         scrollable

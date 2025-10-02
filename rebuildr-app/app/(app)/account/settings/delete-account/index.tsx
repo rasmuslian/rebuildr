@@ -4,10 +4,9 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { View } from "react-native";
 import Warning from "@assets/images/warning.png";
 import { gql, useMutation } from "@apollo/client";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { Image } from "expo-image";
 import { Body, Display } from "@components/typography/text";
-import { Pressable } from "react-native-gesture-handler";
 import { useLogout } from "@hooks/useLogout";
 import { Divider } from "@components/dividers/divider";
 
@@ -71,11 +70,11 @@ export default function DeleteAccount() {
         <Body size="medium">
           Om du bara vill ändra din e-post eller sluta få aviseringar kan du
           göra det i dina{" "}
-          <Pressable onPress={() => router.navigate("/account/settings")}>
+          <Link href="/account/settings" replace>
             <Body size="medium" isLink>
               kontoinställningar.
             </Body>
-          </Pressable>
+          </Link>
         </Body>
       </View>
     </ScreenLayout>
