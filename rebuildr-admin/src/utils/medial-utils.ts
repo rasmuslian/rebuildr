@@ -1,6 +1,17 @@
 import type { UploadFile } from "antd";
 import { RcFile } from "antd/es/upload";
-import { FileInputType } from "gql/graphql";
+import { FileInputType, File } from "gql/graphql";
+
+export const getUploadFiles = (files: File[]) => {
+  return files.map((file) => {
+    const now = new Date().toISOString();
+    return {
+      uid: file.id,
+      name: file.name || now,
+      url: file.url,
+    } as UploadFile;
+  });
+};
 
 export const getFileInputTypes = (fileList: UploadFile[]) => {
   const addImages: FileInputType[] = [];

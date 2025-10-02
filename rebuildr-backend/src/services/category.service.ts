@@ -3,17 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryTree } from 'src/entities/category-tree.entity';
 import { Category } from 'src/entities/category.entity';
 import { Event, EventType } from 'src/entities/event.entity';
-import { BadUserInputException } from 'src/exceptions';
+import { NotFoundException, BadUserInputException } from 'src/exceptions';
 import {
   GetCategoriesInput,
   CategoriesInput,
   RootCategoriesInput,
+  CmsUpdateCategoryInput,
+  CmsUpdateCategoryResponse,
 } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
+import { FileService } from './file.service';
 
 @Injectable()
 export class CategoryService {
   constructor(
+    private fileService: FileService,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @InjectRepository(CategoryTree)
@@ -69,7 +73,7 @@ export class CategoryService {
     const child = await this.categoryRepository.findOne({
       where: { parentId: categeory.id },
     });
-    return !child;
+    return !!child;
   }
 
   async findPopular(_limit?: number) {
@@ -108,21 +112,40 @@ export class CategoryService {
     return await this.categoryRepository.findBy({ parentId });
   }
 
-  async update(input: {
-    id: string;
-    inSelection?: boolean;
-    inSeason?: boolean;
-  }) {
-    const category = await this.categoryRepository.findOneBy({ id: input.id });
+  async updateCategory(
+    input: CmsUpdateCategoryInput,
+  ): Promise<CmsUpdateCategoryResponse> {
+    const category = await this.categoryRepository.findOneBy({
+      id: input.id,
+    });
+
     if (!category) {
-      throw BadUserInputException(
-        'Failed to update categeory due to bad input',
-      );
+      throw NotFoundException(`Category not found`);
     }
 
-    category.inSelection = input.inSelection ?? category.inSelection;
-    category.inSeason = input.inSeason ?? category.inSeason;
+    try {
+      Object.assign(category, {
+        inSeason: input.inSeason,
+        inSelection: input.inSelection,
+        description: input.description,
+      });
 
-    return await this.categoryRepository.save(category);
+      if (input.image) {
+        if (category.image) {
+          await this.fileService.deleteFiles([category.image]);
+        }
+
+        category.image = await this.fileService.createFile(input.image);
+      }
+
+      await this.categoryRepository.save(category);
+      const imagePutUrl = category.image
+        ? await this.fileService.uploadFile(category.image, true)
+        : null;
+
+      return { category, imagePutUrl };
+    } catch (error) {
+      throw BadUserInputException('Failed to update category: ' + error);
+    }
   }
 }

@@ -11,6 +11,7 @@ import {
   Int,
   Context,
   registerEnumType,
+  ObjectType,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -22,6 +23,7 @@ import { CategoryService } from 'src/services/category.service';
 import { FileService } from 'src/services/file.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
+import { FileInputType } from './product.resolver';
 
 export enum OrderCategoriesEnum {
   ORDER_INDEX_ASC = 'ASC',
@@ -52,15 +54,30 @@ class PopularCategoriesInput {
 }
 
 @InputType()
-class UpdateCategoryInput {
+export class CmsUpdateCategoryInput {
   @Field(() => String)
   id: string;
 
-  @Field(() => Boolean, { nullable: true })
-  inSelection?: boolean;
+  @Field(() => Boolean)
+  inSelection: boolean;
 
-  @Field(() => Boolean, { nullable: true })
-  inSeason?: boolean;
+  @Field(() => Boolean)
+  inSeason: boolean;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => FileInputType, { nullable: true })
+  image?: FileInputType;
+}
+
+@ObjectType()
+export class CmsUpdateCategoryResponse {
+  @Field(() => Category)
+  category: Category;
+
+  @Field(() => String, { nullable: true })
+  imagePutUrl: string;
 }
 
 @InputType()
@@ -104,11 +121,13 @@ export class CategoryResolver {
     return this.categoryService.findPopular(input?.limit);
   }
 
-  @Mutation(() => Category)
+  @Mutation(() => CmsUpdateCategoryResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
-  updateCategory(@Args('input') input: UpdateCategoryInput) {
-    return this.categoryService.update({ ...input });
+  cmsUpdateCategory(
+    @Args('input') input: CmsUpdateCategoryInput,
+  ): Promise<CmsUpdateCategoryResponse> {
+    return this.categoryService.updateCategory(input);
   }
 
   @ResolveField(() => [Category])

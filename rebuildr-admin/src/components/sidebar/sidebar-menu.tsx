@@ -13,6 +13,7 @@ import {
   FileImageOutlined,
   FolderOpenOutlined,
   SettingOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -56,7 +57,9 @@ const SidebarMenu = () => {
       getItem("Visa alla", routes.LIST_ARTICLE),
     ]),
     { type: "divider" },
-    getItem("Bildbank", "/admin/media", <FileImageOutlined />),
+    getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),
+    { type: "divider" },
+    getItem("Bildbank", routes.MEDIA_BANK, <FileImageOutlined />),
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [
       getItem("Sidfot", routes.FOOTER_SETTING),

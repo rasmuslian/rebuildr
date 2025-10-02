@@ -487,6 +487,11 @@ type PayoutAccountResponse {
   bankName: String
 }
 
+type CmsUpdateCategoryResponse {
+  category: Category!
+  imagePutUrl: String
+}
+
 type CmsListImagesResponse {
   files: [File!]!
   total: Int!
@@ -775,7 +780,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
-  updateCategory(input: UpdateCategoryInput!): Category!
+  cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
   cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
@@ -943,10 +948,12 @@ input RemoveProductInput {
   id: String!
 }
 
-input UpdateCategoryInput {
+input CmsUpdateCategoryInput {
   id: String!
-  inSelection: Boolean
-  inSeason: Boolean
+  inSelection: Boolean!
+  inSeason: Boolean!
+  description: String!
+  image: FileInputType
 }
 
 input CreateMessageInput {

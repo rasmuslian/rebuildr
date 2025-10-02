@@ -165,6 +165,20 @@ export type CmsUpdateArticleInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsUpdateCategoryInput = {
+  description: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  image?: InputMaybe<FileInputType>;
+  inSeason: Scalars['Boolean']['input'];
+  inSelection: Scalars['Boolean']['input'];
+};
+
+export type CmsUpdateCategoryResponse = {
+  __typename?: 'CmsUpdateCategoryResponse';
+  category: Category;
+  imagePutUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type CmsUpdateFooterSectionInput = {
   articles: Array<ArticleOrderInput>;
   id: Scalars['String']['input'];
@@ -482,6 +496,7 @@ export type Mutation = {
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsLogin: LoginResponse;
   cmsUpdateArticle: Article;
+  cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
@@ -513,7 +528,6 @@ export type Mutation = {
   setLikeProduct: Product;
   setLikeProject: Project;
   showProduct: Product;
-  updateCategory: Category;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
   updateUser: UpdateUserResponse;
@@ -573,6 +587,11 @@ export type MutationCmsLoginArgs = {
 
 export type MutationCmsUpdateArticleArgs = {
   input: CmsUpdateArticleInput;
+};
+
+
+export type MutationCmsUpdateCategoryArgs = {
+  input: CmsUpdateCategoryInput;
 };
 
 
@@ -718,11 +737,6 @@ export type MutationSetLikeProjectArgs = {
 
 export type MutationShowProductArgs = {
   input: ShowProductInput;
-};
-
-
-export type MutationUpdateCategoryArgs = {
-  input: UpdateCategoryInput;
 };
 
 
@@ -1399,12 +1413,6 @@ export enum TransportationEnum {
   Pickup = 'PICKUP',
   Shipping = 'SHIPPING'
 }
-
-export type UpdateCategoryInput = {
-  id: Scalars['String']['input'];
-  inSeason?: InputMaybe<Scalars['Boolean']['input']>;
-  inSelection?: InputMaybe<Scalars['Boolean']['input']>;
-};
 
 export type UpdateProductInput = {
   addDocuments?: InputMaybe<Array<FileInputType>>;
