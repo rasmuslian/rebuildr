@@ -12,7 +12,11 @@ const EditCategoryPage = async ({ params }: Props) => {
   const category = await getCategory({ id: categoryId });
   if (!category) notFound();
 
-  return <EditCategory category={category} />;
+  return (
+    <div className="flex max-w-screen-lg flex-col gap-5">
+      <EditCategory category={category} />
+    </div>
+  );
 };
 
 export default EditCategoryPage;
