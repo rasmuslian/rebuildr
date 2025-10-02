@@ -20,18 +20,15 @@ const initialState: StateType = {
   expandedKeys: [],
 };
 
-const convertToTreeData = (categories: Category[]) => {
-  const data: TreeDataNode[] = [];
-  categories?.map((category) => {
-    data.push({
-      title: category.name,
-      key: category.id,
-      isLeaf: !category.hasChildren,
-      children: convertToTreeData(category.children),
-    });
-  });
-
-  return data;
+const convertToTreeData = (categories: Category[] = []): TreeDataNode[] => {
+  return categories.map((category) => ({
+    title: category.name,
+    key: category.id,
+    isLeaf: !category.hasChildren,
+    children: category.children?.length
+      ? convertToTreeData(category.children)
+      : undefined,
+  }));
 };
 
 const CategoryTree = ({ categories }: Props) => {
