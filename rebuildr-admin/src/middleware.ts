@@ -6,16 +6,18 @@ export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const session = await getSession();
 
+  const pathname = nextUrl.pathname;
   const isLoggedIn = session.isLoggedIn;
-  const isLoginRoute = Boolean(nextUrl.pathname.match(routes.LOGIN));
-  console.log("isLoggedIn:", isLoggedIn, "isLoginRoute:", isLoginRoute);
 
-  if (!isLoggedIn && !isLoginRoute) {
-    return NextResponse.redirect(new URL(routes.LOGIN, nextUrl));
-  }
+  const isLoginRoute = pathname === routes.LOGIN;
+  const isAdminRoute = pathname.startsWith(routes.ADMIN);
 
   if (isLoggedIn && isLoginRoute) {
-    return NextResponse.redirect(new URL(routes.ADMIN, nextUrl));
+    return NextResponse.redirect(new URL(routes.ADMIN, request.url));
+  }
+
+  if (!isLoggedIn && isAdminRoute) {
+    return NextResponse.redirect(new URL(routes.LOGIN, request.url));
   }
 
   return NextResponse.next();
