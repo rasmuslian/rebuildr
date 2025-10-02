@@ -15,15 +15,6 @@ const config = withPlaiceholder({
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/admin",
-        permanent: true,
-      },
-    ];
-  },
 });
 
 export default config;
