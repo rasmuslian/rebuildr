@@ -35,9 +35,8 @@ export class ArticleService {
     const article = await this.findOne(input.id);
     if (!article) throw NotFoundException('Article not found');
 
-    Object.assign(article, input);
-
     try {
+      Object.assign(article, input);
       return await this.articleRepository.save(article);
     } catch (error) {
       throw BadUserInputException('Failed to update article: ' + error);
