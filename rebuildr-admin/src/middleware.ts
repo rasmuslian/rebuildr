@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
   const isLoginRoute = pathname === routes.LOGIN;
   const isAdminRoute = pathname.startsWith(routes.ADMIN);
 
+  console.log("pathname :>> ", pathname);
+  console.log("isLoggedIn :>> ", isLoggedIn);
+  console.log("isLoginRoute :>> ", isLoginRoute);
+  console.log("isAdminRoute :>> ", isAdminRoute);
+
   if (isLoggedIn && isLoginRoute) {
     return NextResponse.redirect(new URL(routes.ADMIN, request.url));
   }
@@ -25,5 +30,4 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ["/admin/:path*", "/login"],
-  runtime: "nodejs",
 };
