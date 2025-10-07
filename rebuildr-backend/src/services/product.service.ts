@@ -13,6 +13,7 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
+  InternalServerException,
 } from 'src/exceptions';
 import {
   CreateProductResponse,
@@ -168,6 +169,13 @@ export class ProductService {
     product.addressLocation = seller.addressLocation;
 
     return await this.productRepository.save(product);
+  }
+  async getOrCreateDraft(currentUserId: string) {
+    const draft = await this.getDraft(currentUserId);
+    if (draft) {
+      return draft;
+    }
+    return await this.createDraft(currentUserId);
   }
 
   //A user must be admin or own the product to edit them
@@ -858,7 +866,49 @@ export class ProductService {
     return true;
   }
 
+  async address(product: Product) {
+    if (product.projectId) {
+      const project = await this.projectService.findOne({
+        id: product.projectId,
+      });
+      if (!project) {
+        throw InternalServerException('No project found');
+      }
+      return project.address;
+    }
+    return product.address;
+  }
+  async location(product: Product) {
+    if (product.projectId) {
+      const project = await this.projectService.findOne({
+        id: product.projectId,
+      });
+      if (!project) {
+        throw InternalServerException('No project found');
+      }
+      return {
+        lat: project.addressLocation.coordinates[0],
+        lng: project.addressLocation.coordinates[1],
+      };
+    }
+    if (!product.addressLocation) {
+      return null;
+    }
+    return {
+      lat: product.addressLocation.coordinates[0],
+      lng: product.addressLocation.coordinates[1],
+    };
+  }
   async approximatePlace(product: Product) {
+    if (product.projectId) {
+      const project = await this.projectService.findOne({
+        id: product.projectId,
+      });
+      if (!project) {
+        throw InternalServerException('No project found');
+      }
+      return await this.projectService.approximatePlace(project);
+    }
     if (!product.addressLocation) {
       return null;
     }

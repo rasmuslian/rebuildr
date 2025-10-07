@@ -9,7 +9,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Icon } from "@icons/icon";
 import { borderRadius } from "@constants/sizes";
 import { primitives } from "@constants/colors";
-import { FileType } from "./types";
+import { FileType } from "../upsert-product/types";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
 type Props = {

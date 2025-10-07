@@ -13,7 +13,10 @@ import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from 'src/config';
 import { swedishPostCodeRegex } from 'src/constants/regexp';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
-import { LocationType } from 'src/resolvers/geocoding.resolver';
+import {
+  ExactAndApproximatePlaceResponse,
+  LocationType,
+} from 'src/resolvers/geocoding.resolver';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -116,31 +119,22 @@ export class GeocodingService {
   }
 
   async locationToAddress(location: LocationType) {
-    let result: GeocodeResult;
-    try {
-      const r = await this.client.reverseGeocode({
-        params: {
-          latlng: { lat: location.lat, lng: location.lng },
-          language: Language.sv,
-          key: process.env.GOOGLE_GEOCODING_API_KEY,
-        },
-      });
-      result = r.data.results[0];
-    } catch {
-      throw InternalServerException();
-    }
-
-    if (!result) {
-      throw BadUserInputException('Could not find address');
-    }
-
-    return {
-      address: result.formatted_address,
-    };
+    const exactAndApproximatePlace =
+      await this.exactAndApproximatePlace(location);
+    return { address: exactAndApproximatePlace.exact.address };
   }
 
   async locationToApproximation(location: LocationType) {
-    let result: GeocodeResult;
+    const exactAndApproximatePlace =
+      await this.exactAndApproximatePlace(location);
+    return exactAndApproximatePlace.approximate;
+  }
+
+  async exactAndApproximatePlace(
+    location: LocationType,
+  ): Promise<ExactAndApproximatePlaceResponse> {
+    let approximateResult: GeocodeResult;
+    let exactResult: GeocodeResult;
     try {
       const r = await this.client.reverseGeocode({
         params: {
@@ -149,7 +143,8 @@ export class GeocodingService {
           key: process.env.GOOGLE_GEOCODING_API_KEY,
         },
       });
-      result = r.data.results.find((r) =>
+      exactResult = r.data.results[0];
+      approximateResult = r.data.results.find((r) =>
         r.types.some(
           (type) =>
             type === PlaceType2.postal_town ||
@@ -161,14 +156,21 @@ export class GeocodingService {
       throw InternalServerException();
     }
 
-    if (!result) {
+    if (!approximateResult || !exactResult) {
       throw BadUserInputException('Could not find address');
     }
 
     return {
-      address: result.formatted_address,
-      lat: result.geometry.location.lat,
-      lng: result.geometry.location.lng,
+      exact: {
+        address: exactResult.formatted_address,
+        lat: location.lat,
+        lng: location.lng,
+      },
+      approximate: {
+        address: approximateResult.formatted_address,
+        lat: approximateResult.geometry.location.lat,
+        lng: approximateResult.geometry.location.lng,
+      },
     };
   }
 }

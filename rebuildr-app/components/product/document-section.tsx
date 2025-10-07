@@ -7,7 +7,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { FileType } from "./types";
+import { FileType } from "../upsert-product/types";
 
 type Props = {
   documents: FileType[];

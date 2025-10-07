@@ -1,10 +1,4 @@
-import {
-  Category,
-  File,
-  Product,
-  ProductStatusEnum,
-  Project,
-} from "@/gql/graphql";
+import { Brand, Category, Product, ProductStatusEnum } from "@/gql/graphql";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -18,29 +12,30 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { formatPrice } from "@/utils/formattings";
+import { ProductFields } from "@components/upsert-product/upsert-product-bottom-sheet";
 
 type Props = {
-  product: Omit<Partial<Product>, "category" | "seller" | "project">;
-  project?: Pick<Project, "approximatePlace">;
+  product:
+    | Omit<Partial<Product>, "category" | "seller" | "project" | "brand">
+    | ProductFields;
+  brand?: Brand | null;
   category?: Pick<Category, "id" | "name"> | null;
   parentCategory?: Pick<Category, "id" | "name"> | null;
-  documents: File[];
+  documents: { url: string; name?: string | null }[];
   myAddress?: string | null;
   sellerIsMe?: boolean;
 };
 
 export const MainContent = ({
   product,
-  project,
+  brand,
   category,
   parentCategory,
   myAddress,
   documents,
   sellerIsMe,
 }: Props) => {
-  const approximatePlace = project
-    ? project.approximatePlace
-    : product.approximatePlace;
+  const approximatePlace = product.approximatePlace;
 
   const showSpecificsMeasurements =
     product.width ||
@@ -120,7 +115,7 @@ export const MainContent = ({
           {product.condition && (
             <ProductChip boldText={conditions[product.condition].name} />
           )}
-          {product.brand && <ProductChip boldText={product.brand.name} />}
+          {brand && <ProductChip boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
               boldText={`${product.thickness} ${measurements.thickness.options.mm.name}`}
@@ -174,7 +169,7 @@ export const MainContent = ({
           <View style={{ gap: 4 }}>
             <Label size="medium">Varumärke</Label>
             <Body size="medium" isLink>
-              {product.brand?.name}
+              {brand?.name}
             </Body>
           </View>
           <View style={{ gap: 4 }}>

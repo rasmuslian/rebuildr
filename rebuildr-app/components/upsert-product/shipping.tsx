@@ -1,12 +1,9 @@
 import {
+  ProductBottomSheetShippingQuery,
   ShippingPrice,
   ShippingProviderEnum,
-  ShippingQueryQuery,
-  ShippingQueryQueryVariables,
   ShippingUpdateUserMutation,
   ShippingUpdateUserMutationVariables,
-  UpdateShippingMutation,
-  UpdateShippingMutationVariables,
   User,
 } from "@/gql/graphql";
 import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
@@ -21,23 +18,15 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
+import { ProductFields } from "./types";
 
-const SHIPPING_QUERY = gql`
-  query ShippingQuery($input: GetProductInput!) {
+const PRODUCT_BOTTOM_SHEET_SHIPPING = gql`
+  query ProductBottomSheetShipping {
     getAllShippingPrices {
       id
       maxWeight
       price
       provider
-    }
-    product(input: $input) {
-      id
-      shippingPrices {
-        id
-        maxWeight
-        price
-        provider
-      }
     }
     me {
       id
@@ -46,22 +35,6 @@ const SHIPPING_QUERY = gql`
       postCode
       phoneNumber
       city
-    }
-  }
-`;
-
-const UPDATE_SHIPPING = gql`
-  mutation UpdateShipping($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        id
-        shippingPrices {
-          id
-          maxWeight
-          price
-          provider
-        }
-      }
     }
   }
 `;
@@ -81,22 +54,23 @@ const SHIPPING_UPDATE_USER = gql`
   }
 `;
 type Props = {
-  productId: string;
+  product: ProductFields;
+  update: (product: Partial<ProductFields>) => void;
   onShippingValid: (valid: boolean) => void;
   onShippingSelected: (selected: boolean) => void;
   shippingSelected: boolean;
 };
 
 export const Shipping = ({
-  productId,
+  product,
+  update,
   onShippingValid,
   onShippingSelected,
   shippingSelected,
 }: Props) => {
-  const { data } = useSuspenseQuery<
-    ShippingQueryQuery,
-    ShippingQueryQueryVariables
-  >(SHIPPING_QUERY, { variables: { input: { id: productId } } });
+  const { data } = useSuspenseQuery<ProductBottomSheetShippingQuery>(
+    PRODUCT_BOTTOM_SHEET_SHIPPING,
+  );
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [name, setName] = useState<string | null | undefined>(data.me.name);
   const [phoneNumber, setPhoneNumber] = useState<string | null | undefined>(
@@ -109,18 +83,12 @@ export const Shipping = ({
     data.me.postCode,
   );
   const [city, setCity] = useState<string | null | undefined>(data.me.city);
-  const [updateShipping] = useMutation<
-    UpdateShippingMutation,
-    UpdateShippingMutationVariables
-  >(UPDATE_SHIPPING);
   const [updateUser, { loading: loadingUpdateUser }] = useMutation<
     ShippingUpdateUserMutation,
     ShippingUpdateUserMutationVariables
   >(SHIPPING_UPDATE_USER);
   const colors = useThemeColor();
-  const [provider, setProvider] = useState<ShippingProviderEnum>(
-    ShippingProviderEnum.Postnord,
-  );
+  const provider: ShippingProviderEnum = ShippingProviderEnum.Postnord;
 
   const shippingValidHandler = (
     user: Partial<User>,
@@ -139,37 +107,18 @@ export const Shipping = ({
     }
     onShippingValid(false);
   };
-  useEffect(
-    () => shippingValidHandler(data.me, data.product.shippingPrices),
-    [data],
-  );
+  useEffect(() => shippingValidHandler(data.me, product.shippingPrices), []);
 
-  const onSelectPrice = (id: string) => {
-    updateShipping({
-      variables: {
-        input: {
-          id: productId,
-          shippingPriceIds: [id],
-        },
-      },
-      onCompleted: (d) => {
-        shippingValidHandler(data.me, d.updateProduct.product.shippingPrices);
-      },
+  const onSelectPrice = (shippingPrice: ShippingPrice) => {
+    update({
+      shippingPrices: [shippingPrice],
     });
+    shippingValidHandler(data.me, [shippingPrice]);
   };
   const onSelectShipping = () => {
     if (shippingSelected) {
-      updateShipping({
-        variables: {
-          input: {
-            id: productId,
-            shippingPriceIds: [],
-          },
-        },
-        onCompleted: () => {
-          onShippingSelected(false);
-        },
-      });
+      update({ shippingPrices: [] });
+      onShippingSelected(false);
     } else {
       onShippingSelected(true);
     }
@@ -187,14 +136,14 @@ export const Shipping = ({
         },
       },
       onCompleted: (d) => {
-        shippingValidHandler(d.updateUser.user, data.product.shippingPrices);
+        shippingValidHandler(d.updateUser.user, product.shippingPrices);
         setIsEditingDetails(false);
       },
     });
   };
 
   const isSelected = (shippingPrice: ShippingPrice) => {
-    return !!data.product.shippingPrices?.find(
+    return !!product.shippingPrices?.find(
       (existingPrice) => existingPrice.id === shippingPrice.id,
     );
   };
@@ -222,10 +171,7 @@ export const Shipping = ({
           {data.getAllShippingPrices
             .filter((shippingPrice) => shippingPrice.provider === provider)
             .map((shippingPrice, i) => (
-              <Pressable
-                key={i}
-                onPress={() => onSelectPrice(shippingPrice.id)}
-              >
+              <Pressable key={i} onPress={() => onSelectPrice(shippingPrice)}>
                 <View
                   style={[
                     {

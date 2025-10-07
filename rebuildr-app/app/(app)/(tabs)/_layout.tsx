@@ -4,9 +4,10 @@ import { gql, useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
+import { useSellProductContext } from "@context/sell-product-context";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
-import { Href, router, Tabs, usePathname } from "expo-router";
+import { router, Tabs, usePathname } from "expo-router";
 import { useContext } from "react";
 import { Pressable, View } from "react-native";
 
@@ -19,61 +20,11 @@ export const TAB_LAYOUT = gql`
 export default function TabLayout() {
   const colors = useThemeColor();
   const isLoggedIn = isLoggedInVar();
-  const { setVisible } = useContext(LoginModalContext);
+  const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const pathName = usePathname();
+  const { setVisible: setSellProductVisible } = useSellProductContext();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
-
-  const renderTabButton = (
-    label: string,
-    icon: IconType,
-    href?: string,
-    loginRequired: boolean = false,
-    nrUnread?: number,
-  ) => {
-    const hightlight = href
-      ? pathName.split("/")[1] === href.split("/")[1]
-      : false;
-    return (
-      <Pressable
-        style={{ alignSelf: "center" }}
-        onPress={() => {
-          if (!isLoggedIn && loginRequired) {
-            setVisible(true);
-          } else {
-            router.navigate(href as Href);
-          }
-        }}
-      >
-        <View
-          style={[
-            {
-              borderRadius: 16,
-              paddingHorizontal: 20,
-              paddingVertical: 4,
-            },
-            hightlight && {
-              backgroundColor: colors.navigation.enabled,
-            },
-          ]}
-        >
-          <Icon icon={icon} customColor={colors.logo.vector} />
-          {!!nrUnread && (
-            <View style={{ position: "absolute", right: 12, top: 0 }}>
-              <Badge text={nrUnread.toString()} />
-            </View>
-          )}
-        </View>
-        <Label
-          size="small"
-          color="secondary"
-          style={{ marginTop: 4, textAlign: "center" }}
-        >
-          {label}
-        </Label>
-      </Pressable>
-    );
-  };
 
   return (
     <Tabs
@@ -86,47 +37,131 @@ export default function TabLayout() {
           borderTopWidth: 0,
         },
       }}
+      tabBar={(props) => {
+        const isHighlighted = (href: string) => {
+          const hightlight = pathName.split("/")[1] === href;
+          return hightlight;
+        };
+
+        const tabEntries: {
+          name: string;
+          icon: IconType;
+          onPress: () => void;
+          highlight: boolean;
+          badgeNumber?: number;
+        }[] = [
+          {
+            name: "Hem",
+            icon: "home",
+            onPress: () => {
+              router.navigate("/");
+            },
+            highlight: isHighlighted(""),
+          },
+          {
+            name: "Kategorier",
+            icon: "categories",
+            onPress: () => {
+              router.navigate("/categories");
+            },
+            highlight: isHighlighted("categories"),
+          },
+          {
+            name: "Ny annons",
+            icon: "newListing",
+            onPress: () => {
+              if (!isLoggedIn) {
+                setLoginVisible(true);
+              } else {
+                setSellProductVisible(true);
+              }
+            },
+            highlight: false,
+          },
+          {
+            name: "Hitta",
+            icon: "search",
+            onPress: () => {
+              router.navigate("/search");
+            },
+            highlight: isHighlighted("search"),
+          },
+          {
+            name: "Inkorg",
+            icon: "message",
+            onPress: () => {
+              if (!isLoggedIn) {
+                setLoginVisible(true);
+              } else {
+                router.navigate("/conversations");
+              }
+            },
+            highlight: isHighlighted("conversations"),
+            badgeNumber: data?.getUnreadConversationsCount,
+          },
+        ];
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 12,
+
+              backgroundColor: colors.background.primary,
+              height: 80,
+              paddingTop: 12,
+              borderTopWidth: 0,
+              paddingBottom: 16,
+              paddingHorizontal: 8,
+              justifyContent: "space-between",
+            }}
+          >
+            {tabEntries.map((tabEntry, i) => {
+              return (
+                <Pressable
+                  style={{ alignSelf: "center" }}
+                  onPress={tabEntry.onPress}
+                  key={i}
+                >
+                  <View
+                    style={[
+                      {
+                        borderRadius: 16,
+                        paddingHorizontal: 20,
+                        paddingVertical: 4,
+                      },
+                      tabEntry.highlight && {
+                        backgroundColor: colors.navigation.enabled,
+                      },
+                    ]}
+                  >
+                    <Icon
+                      icon={tabEntry.icon}
+                      customColor={colors.logo.vector}
+                    />
+                    {!!tabEntry.badgeNumber && (
+                      <View style={{ position: "absolute", right: 12, top: 0 }}>
+                        <Badge text={tabEntry.badgeNumber.toString()} />
+                      </View>
+                    )}
+                  </View>
+                  <Label
+                    size="small"
+                    color="secondary"
+                    style={{ marginTop: 4, textAlign: "center" }}
+                  >
+                    {tabEntry.name}
+                  </Label>
+                </Pressable>
+              );
+            })}
+          </View>
+        );
+      }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarButton: (props) => renderTabButton("Hem", "home", props.href),
-        }}
-      />
-      <Tabs.Screen
-        name="categories"
-        options={{
-          tabBarButton: (props) =>
-            renderTabButton("Kategorier", "categories", props.href),
-        }}
-      />
-      <Tabs.Screen
-        name="sell-product"
-        options={{
-          tabBarButton: (props) =>
-            renderTabButton("Ny annons", "newListing", props.href, true),
-        }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          tabBarButton: (props) =>
-            renderTabButton("Hitta", "search", props.href),
-        }}
-      />
-      <Tabs.Screen
-        name="conversations/index"
-        options={{
-          tabBarButton: (props) =>
-            renderTabButton(
-              "Inkorg",
-              "message",
-              props.href,
-              true,
-              data?.getUnreadConversationsCount,
-            ),
-        }}
-      />
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="categories" />
+      <Tabs.Screen name="search" />
+      <Tabs.Screen name="conversations" />
     </Tabs>
   );
 }

@@ -2,7 +2,6 @@ import { Check } from "@components/controls/check";
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -14,14 +13,12 @@ type Props = {
 };
 
 export const PriceSection = ({
-  price: _price,
+  price,
   minimumPrice,
   priceError,
-  isGiveaway: _isGiveaway,
+  isGiveaway,
   onUpdate,
 }: Props) => {
-  const [price, setPrice] = useState(_price);
-  const [isGiveaway, setIsGiveaway] = useState(_isGiveaway);
   const colors = useThemeColor();
 
   const priceHigherThan = minimumPrice - 1;
@@ -49,17 +46,9 @@ export const PriceSection = ({
                 : undefined,
             onChange: (p) => {
               const newPrice = Math.max(0, p);
-              setPrice(newPrice);
-              setIsGiveaway(newPrice <= 0);
+              onUpdate(newPrice <= 0, newPrice);
             },
-            onBlur: (p) => {
-              const newPrice = Math.max(0, p);
-              const newIsGiveAway = newPrice <= 0;
-              setPrice(p);
-              setIsGiveaway(newIsGiveAway);
-              onUpdate(newIsGiveAway, newPrice);
-            },
-            errorText: priceError,
+            error: priceError,
           },
         ]}
       />
@@ -74,8 +63,6 @@ export const PriceSection = ({
         <Check
           selected={isGiveaway}
           onPress={() => {
-            setPrice(0);
-            setIsGiveaway(!isGiveaway);
             onUpdate(!isGiveaway, isGiveaway ? 0 : price);
           }}
         />

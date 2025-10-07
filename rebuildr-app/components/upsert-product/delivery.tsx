@@ -1,10 +1,10 @@
 import {
-  DeliveryQueryQuery,
-  DeliveryQueryQueryVariables,
-  DeliveryUpdateMutation,
-  DeliveryUpdateMutationVariables,
+  ExactAndApproximatePlaceQuery,
+  ExactAndApproximatePlaceQueryVariables,
+  ProductBottomSheetDeliveryQuery,
+  ProductBottomSheetDeliveryQueryVariables,
 } from "@/gql/graphql";
-import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Check } from "@components/controls/check";
 import { Divider } from "@components/dividers/divider";
@@ -13,126 +13,70 @@ import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { meterToKilometer } from "@/utils/conversions";
 import { Slider } from "@components/slider/slider";
+import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
+import { ProductFields } from "./types";
 
-const DELIVERY_QUERY = gql`
-  query DeliveryQuery($input: GetProductInput!) {
-    product(input: $input) {
+const PRODUCT_BOTTOM_SHEET_DELIVERY = gql`
+  query ProductBottomSheetDelivery($input: GetProjectInput!) {
+    getProject(input: $input) {
       id
-      address
-      deliveryRadius
-      deliveryPrice
-      deliveryEnabled
-      location {
-        lat
-        lng
-      }
-      approximatePlace {
-        lat
-        lng
-        address
-      }
-      project {
-        id
-        title
-        address
-        location {
-          lat
-          lng
-        }
-        approximatePlace {
-          lat
-          lng
-          address
-        }
-      }
-    }
-  }
-`;
-
-const DELIVERY_UPDATE = gql`
-  mutation DeliveryUpdate($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        id
-        address
-        deliveryRadius
-        deliveryPrice
-        deliveryEnabled
-        location {
-          lat
-          lng
-        }
-        approximatePlace {
-          lat
-          lng
-          address
-        }
-        project {
-          id
-          title
-          address
-          location {
-            lat
-            lng
-          }
-          approximatePlace {
-            lat
-            lng
-            address
-          }
-        }
-      }
+      title
     }
   }
 `;
 
 type Props = {
-  productId: string;
+  product: ProductFields;
+  update: (product: Partial<ProductFields>) => void;
   canEdit: boolean;
   onEditing: () => void;
   onEditComplete: () => void;
 };
 
 export const Delivery = ({
-  productId,
+  product,
+  update,
   canEdit,
   onEditing,
   onEditComplete,
 }: Props) => {
-  const [_price, setPrice] = useState<number>();
-  const [_radius, setRadius] = useState<number>();
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
   const colors = useThemeColor();
-  const { data } = useSuspenseQuery<
-    DeliveryQueryQuery,
-    DeliveryQueryQueryVariables
-  >(DELIVERY_QUERY, {
-    variables: { input: { id: productId } },
-  });
-  const [updateDelivery, { loading: updatingDelivery }] = useMutation<
-    DeliveryUpdateMutation,
-    DeliveryUpdateMutationVariables
-  >(DELIVERY_UPDATE);
+  const [getProject, { data }] = useLazyQuery<
+    ProductBottomSheetDeliveryQuery,
+    ProductBottomSheetDeliveryQueryVariables
+  >(PRODUCT_BOTTOM_SHEET_DELIVERY);
+  useEffect(() => {
+    if (product.project) {
+      getProject({
+        variables: {
+          input: {
+            id: product.project.id,
+          },
+        },
+      });
+    }
+  }, [product.project]);
 
-  const radius = _radius ?? data.product.deliveryRadius ?? defaultRadius;
-  const price = _price ?? data.product.deliveryPrice ?? 0;
-  const _location = data.product.project
-    ? {
-        lat: data.product.project.location.lat,
-        lng: data.product.project.location.lng,
-      }
-    : data.product.location
-      ? { lat: data.product.location.lat, lng: data.product.location.lng }
-      : undefined;
+  const radius = product.deliveryRadius ?? defaultRadius;
+  const price = product.deliveryPrice ?? 0;
+  const _location = product.location
+    ? { lat: product.location.lat, lng: product.location.lng }
+    : undefined;
   const [isEditing, setIsEditing] = useState(!_location);
+
+  const [getPlace] = useLazyQuery<
+    ExactAndApproximatePlaceQuery,
+    ExactAndApproximatePlaceQueryVariables
+  >(EXACT_AND_APPROXIMATE_PLACE);
 
   const {
     address,
@@ -143,43 +87,17 @@ export const Delivery = ({
     autoCompletes,
     selectAutoComplete,
   } = useLocationAddress({
-    address: data.product.project?.address ?? data.product.address ?? undefined,
+    address: product.address ?? undefined,
     location: _location,
   });
 
-  const approximateAddress =
-    data.product.project?.approximatePlace.address ??
-    data.product.approximatePlace?.address;
+  const approximateAddress = product.approximatePlace?.address;
 
-  const onBlurPrice = () => {
-    if (updatingDelivery) {
-      return;
-    }
-
-    updateDelivery({
-      variables: {
-        input: {
-          id: productId,
-          deliveryPrice: price,
-        },
-      },
-    });
-  };
   const onSetRadius = (r: number) => {
-    setRadius(r);
+    update({ deliveryRadius: r });
   };
   const onChangeRadius = (radius: number) => {
-    if (updatingDelivery) {
-      return;
-    }
-    updateDelivery({
-      variables: {
-        input: {
-          id: productId,
-          deliveryRadius: Math.round(radius),
-        },
-      },
-    });
+    update({ deliveryRadius: Math.round(radius) });
   };
   const onUpdateAddress = (s: string) => {
     setIsMyLocation(false);
@@ -201,45 +119,38 @@ export const Delivery = ({
       setMyLocation();
     }
   };
-  const onSaveAddress = () => {
-    if (updatingDelivery) {
-      return;
-    }
-    updateDelivery({
-      variables: {
-        input: {
-          id: productId,
-          location: { lat: location[0], lng: location[1] },
-        },
-      },
-      onCompleted: () => {
-        onEditComplete();
-        setIsEditing(false);
-      },
+  const onSaveAddress = async () => {
+    const { data } = await getPlace({
+      variables: { input: { lat: location[0], lng: location[1] } },
     });
+    const place = data?.exactAndApproximatePlace;
+    if (!place) return;
+    update({
+      location: { lat: place.exact.lat, lng: place.exact.lng },
+      address: place.exact.address,
+      approximatePlace: place.approximate,
+      project: undefined,
+      noProject: true,
+    });
+    onEditComplete();
+    setIsEditing(false);
   };
   const onSelectDelivery = () => {
-    if (updatingDelivery) {
-      return;
-    }
-    updateDelivery({
-      variables: {
-        input: {
-          id: productId,
-          deliveryEnabled: !data.product.deliveryEnabled,
-          deliveryPrice: price,
-          deliveryRadius: Math.round(radius),
-        },
-      },
+    update({
+      deliveryEnabled: !product.deliveryEnabled,
+      deliveryPrice: price,
+      deliveryRadius: Math.round(radius),
     });
   };
+
+  const project = product.project && data?.getProject;
 
   return (
     <ToggleCard
       title="Hemtransport"
       description="Du erbjuder hemtransport och levererar produkten direkt till köparen."
       onPress={onSelectDelivery}
-      enabled={data.product.deliveryEnabled}
+      enabled={product.deliveryEnabled}
     >
       <View>
         <View style={{ gap: 24 }}>
@@ -249,8 +160,7 @@ export const Delivery = ({
                 {
                   type: "price",
                   value: price,
-                  onChange: (p) => setPrice(p),
-                  onBlur: () => onBlurPrice(),
+                  onChange: (p) => update({ deliveryPrice: p }),
                   heading: "Transportpris",
                 },
               ]}
@@ -265,14 +175,14 @@ export const Delivery = ({
 
           <View>
             <Title size="medium">Hur långt kan du åka?</Title>
-            {data.product.project && !isEditing && (
+            {project && !isEditing && (
               <Body size="medium" style={{ marginTop: 4 }}>
-                Annonsen är kopplad till projektet "{data.product.project.title}
+                Annonsen är kopplad till projektet "{project.title}
                 ", vilket innebär att hemleveransen utgår från:
               </Body>
             )}
           </View>
-          {!isEditing && data.product.project && (
+          {project && !isEditing && (
             <View style={{ gap: 12 }}>
               <View>
                 <Label size="medium">Adress</Label>
@@ -322,7 +232,7 @@ export const Delivery = ({
               </Body>
             )}
           </View>
-          {!isEditing && !data.product.project && (
+          {!project && !isEditing && (
             <View style={{ gap: 12 }}>
               <View>
                 <Label size="medium">Adress</Label>
@@ -332,8 +242,8 @@ export const Delivery = ({
               </View>
               <Body size="small" color="secondary">
                 Köparen ser inte din exakta adress ({address}), bara ett
-                ungefärligt område på kartan enligt nedan. Din adress visas
-                först när ett köp har genomförts.
+                ungefärligt område på kartan enligt ovan. Din adress visas först
+                när ett köp har genomförts.
               </Body>
             </View>
           )}
@@ -407,14 +317,14 @@ export const Delivery = ({
                 type="tonal"
                 disabled={!canEdit}
               />
-              {data.product.project && (
+              {project && (
                 <Body
                   size="small"
                   style={{ textAlign: "center" }}
                   color="secondary"
                 >
                   Ändring av adress tar bort kopplingen till projektet "
-                  {data.product.project.title}".
+                  {project.title}".
                 </Body>
               )}
             </View>

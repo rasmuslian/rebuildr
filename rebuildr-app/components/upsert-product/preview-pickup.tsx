@@ -1,81 +1,72 @@
 import {
-  PreviewPickupQueryQuery,
-  PreviewPickupQueryQueryVariables,
+  ProductBottomSheetPreviewPickupQuery,
+  ProductBottomSheetPreviewPickupQueryVariables,
 } from "@/gql/graphql";
-import { gql, useSuspenseQuery } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { View } from "react-native";
+import { useEffect } from "react";
+import { ProductFields } from "./types";
 
-const PREVIEW_PICKUP_QUERY = gql`
-  query PreviewPickupQuery($input: GetProductInput!) {
-    product(input: $input) {
+const PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP = gql`
+  query ProductBottomSheetPreviewPickup($input: GetProjectInput!) {
+    getProject(input: $input) {
       id
-      address
-      approximatePlace {
-        lat
-        lng
-        address
-      }
-      project {
-        id
-        title
-        address
-        approximatePlace {
-          lat
-          lng
-          address
-        }
-      }
+      title
     }
   }
 `;
 
 type Props = {
-  productId: string;
+  product: ProductFields;
   onChangeAddress: () => void;
   canChangeAddress: boolean;
 };
 
 export const PreviewPickup = ({
-  productId,
+  product,
   onChangeAddress,
   canChangeAddress,
 }: Props) => {
-  const { data } = useSuspenseQuery<
-    PreviewPickupQueryQuery,
-    PreviewPickupQueryQueryVariables
-  >(PREVIEW_PICKUP_QUERY, {
-    variables: { input: { id: productId } },
-  });
+  const approximateAddress = product.approximatePlace?.address;
 
-  const approximateAddress =
-    data.product.project?.approximatePlace.address ??
-    data.product.approximatePlace?.address;
-  const address = data.product.project?.address ?? data.product.address;
-  const location = data.product.project
-    ? [
-        data.product.project.approximatePlace.lat,
-        data.product.project.approximatePlace.lng,
-      ]
-    : data.product.approximatePlace
-      ? [data.product.approximatePlace.lat, data.product.approximatePlace.lng]
-      : undefined;
+  const [getProject, { data }] = useLazyQuery<
+    ProductBottomSheetPreviewPickupQuery,
+    ProductBottomSheetPreviewPickupQueryVariables
+  >(PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP);
+  useEffect(() => {
+    if (product.project) {
+      getProject({
+        variables: {
+          input: {
+            id: product.project.id,
+          },
+        },
+      });
+    }
+  }, [product.project]);
+  const address = product.address;
+  const location = product.approximatePlace
+    ? [product.approximatePlace.lat, product.approximatePlace.lng]
+    : undefined;
   if (!approximateAddress || !address || !location) {
     console.error("No address found");
     return <LoadingSpinner />;
   }
 
+  const project = product.project && data?.getProject;
+
   return (
     <View style={{ gap: 12 }}>
       <View>
         <Title size="medium">Plats för avhämtning</Title>
-        {data.product.project && (
+        {project && (
           <Body size="medium" style={{ marginTop: 4 }}>
-            Annonsen är kopplad till projektet {data.product.project.title},
-            vilket innebär att platsen för avhämtning är:
+            Annonsen är kopplad till projektet {project.title}, vilket innebär
+            att platsen för avhämtning är:
           </Body>
         )}
       </View>
@@ -106,10 +97,10 @@ export const PreviewPickup = ({
           type="tonal"
           disabled={!canChangeAddress}
         />
-        {data.product.project && (
+        {project && (
           <Body size="small" style={{ textAlign: "center" }} color="secondary">
             Ändring av adress tar bort kopplingen till projektet "
-            {data.product.project.title}".
+            {project.title}".
           </Body>
         )}
       </View>

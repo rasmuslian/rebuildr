@@ -17,8 +17,6 @@ import { AdList } from "@components/ad/ad-list";
 import { Button } from "@components/buttons/button";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { Divider } from "@components/dividers/divider";
-import { Form } from "@components/forms/form";
-import { TextInput } from "@components/forms/textInput";
 import { ProgressHeader } from "@components/navigation/headers/progress-header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Title } from "@components/typography/text";

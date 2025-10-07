@@ -48,7 +48,7 @@ export const BottomSheet = ({
   scrollable,
   footer,
   open,
-  stackBehavior,
+  stackBehavior = "push",
 }: Props) => {
   const safeArea = useSafeAreaInsets();
   const innerRef = useRef<BottomSheetModal>(
@@ -123,14 +123,23 @@ export const BottomSheet = ({
       stackBehavior={stackBehavior}
       ref={innerRef}
       enableDynamicSizing={!screenHeight}
-      enablePanDownToClose
+      enablePanDownToClose={!screenHeight}
       snapPoints={snapPoints}
       animateOnMount
       name={name}
       onDismiss={onDismiss}
-      backgroundStyle={{
-        borderRadius: 28,
-      }}
+      backgroundComponent={() => (
+        <Animated.View
+          style={[
+            animatedBorderRadiusStyle,
+            {
+              backgroundColor: colors.background.neutral,
+              position: "absolute",
+              inset: 0,
+            },
+          ]}
+        />
+      )}
       handleIndicatorStyle={{
         display: "none",
       }}
@@ -152,12 +161,12 @@ export const BottomSheet = ({
             paddingBottom: safeArea.bottom + 20,
             flex: 1,
           }}
-          contentContainerStyle={[
+          contentContainerStyle={
             screenHeight && {
               justifyContent: "space-between",
               flex: 1,
-            },
-          ]}
+            }
+          }
         >
           <Animated.View
             style={[

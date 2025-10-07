@@ -10,7 +10,7 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { SectionHeader } from "@components/sections/section-header";
 import { Body, Display, Headline } from "@components/typography/text";
-import { router } from "expo-router";
+import { useSellProductContext } from "@context/sell-product-context";
 import { View } from "react-native";
 
 const ACCOUNT_SALES = gql`
@@ -54,6 +54,7 @@ const ACCOUNT_SALES = gql`
 `;
 
 export default function Sales() {
+  const { setVisible } = useSellProductContext();
   const { data } = useQuery<AccountSalesQuery, AccountSalesQueryVariables>(
     ACCOUNT_SALES,
     { variables: { input: { myRole: "seller" } } },
@@ -77,7 +78,7 @@ export default function Sales() {
         description="Du har inte sålt något ännu. När du gör en försäljning kommer den att visas här."
         cta={{
           label: "Lägg upp en annons",
-          onPress: () => router.navigate("/sell-product"),
+          onPress: () => setVisible(true),
         }}
       />
     );

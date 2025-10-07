@@ -359,10 +359,10 @@ type Product {
   images: [File!]!
   documents: [File!]!
   likedByMe: Boolean
-  location: LocationResponse
   price: Float!
   brand: Brand
   project: Project
+  location: LocationResponse
   approximatePlace: ApproximatePlaceResponse
   shippingPrices: [ShippingPrice!]
   deliveryPrice: Float
@@ -424,6 +424,17 @@ type ApproximatePlaceResponse {
   lat: Float!
   lng: Float!
   address: String!
+}
+
+type ExactPlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
+}
+
+type ExactAndApproximatePlaceResponse {
+  exact: ExactPlaceResponse!
+  approximate: ApproximatePlaceResponse!
 }
 
 type ServicePointResponse {
@@ -561,6 +572,7 @@ type Query {
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
+  getOrCreateDraftProduct: Product!
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
   getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
   getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
@@ -576,10 +588,12 @@ type Query {
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
+  exactAndApproximatePlace(input: LocationInputType!): ExactAndApproximatePlaceResponse!
   purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
   myPurchase(input: MyPurchaseInput!): Purchase
   myPurchases(input: MyPurchasesInput!): [Purchase!]!
+  brand(id: String!): Brand!
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!

@@ -445,6 +445,12 @@ export class ProductResolver {
     return await this.productService.getDraft(_user.id);
   }
 
+  @Query(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async getOrCreateDraftProduct(@CurrentUser() _user: AuthedUserType) {
+    return await this.productService.getOrCreateDraft(_user.id);
+  }
+
   @Query(() => ApproximatePlaceResponse, { nullable: true })
   async getPickupOption(@Args('input') input: GetTransportationOptionsInput) {
     return this.productService.getPickupOption(input);
@@ -595,17 +601,6 @@ export class ProductResolver {
     });
   }
 
-  @ResolveField(() => LocationResponse, { nullable: true })
-  async location(@Root() _product: Product) {
-    if (!_product.addressLocation) {
-      return null;
-    }
-    return {
-      lat: _product.addressLocation.coordinates[0],
-      lng: _product.addressLocation.coordinates[1],
-    };
-  }
-
   @ResolveField(() => Float)
   async price(@Root() product: Product) {
     return product.price / 100;
@@ -625,6 +620,15 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     return productLoaders.projectLoader.load(_product.id);
+  }
+
+  @ResolveField(() => String, { nullable: true })
+  async address(@Root() product: Product) {
+    return await this.productService.address(product);
+  }
+  @ResolveField(() => LocationResponse, { nullable: true })
+  async location(@Root() _product: Product) {
+    return await this.productService.location(_product);
   }
 
   @ResolveField(() => ApproximatePlaceResponse, { nullable: true })

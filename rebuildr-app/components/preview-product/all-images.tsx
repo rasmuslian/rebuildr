@@ -1,4 +1,3 @@
-import { Product } from "@/gql/graphql";
 import { Headline } from "@components/typography/text";
 import { useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
@@ -8,7 +7,7 @@ import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 import { Pressable } from "react-native-gesture-handler";
 
 type Props = {
-  images: Product["images"];
+  images: { url: string }[];
 };
 
 export const AllImages = ({ images }: Props) => {

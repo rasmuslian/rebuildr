@@ -67,13 +67,27 @@ export class LocationResponse {
 }
 
 @ObjectType()
-export class ApproximatePlaceResponse {
+class PlaceResponse {
   @Field()
   lat: number;
   @Field()
   lng: number;
   @Field()
   address: string;
+}
+
+@ObjectType()
+export class ApproximatePlaceResponse extends PlaceResponse {}
+
+@ObjectType()
+class ExactPlaceResponse extends PlaceResponse {}
+
+@ObjectType()
+export class ExactAndApproximatePlaceResponse {
+  @Field(() => ExactPlaceResponse)
+  exact: ExactPlaceResponse;
+  @Field(() => ApproximatePlaceResponse)
+  approximate: ApproximatePlaceResponse;
 }
 
 @Resolver()
@@ -97,5 +111,10 @@ export class GeocodingResolver {
   @Query(() => LocationResponse)
   async addressToLocation(@Args('input') input: AddressToLocationInput) {
     return this.geocodingService.addressToLocation(input.address);
+  }
+
+  @Query(() => ExactAndApproximatePlaceResponse)
+  async exactAndApproximatePlace(@Args('input') input: LocationInputType) {
+    return this.geocodingService.exactAndApproximatePlace(input);
   }
 }

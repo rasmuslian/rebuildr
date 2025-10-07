@@ -24,7 +24,7 @@ type FieldType =
   | (BaseFieldProps & Omit<TextInputProps, "error"> & { type: "text" })
   | (BaseFieldProps & MaskedInputProps & { type: "masked" })
   | (BaseFieldProps & SearchInputProps & { type: "search" })
-  | (BaseFieldProps & PriceInputProps & { type: "price" })
+  | (BaseFieldProps & Omit<PriceInputProps, "error"> & { type: "price" })
   | (BaseFieldProps & SelectInputProps & { type: "select" })
   | (BaseFieldProps & ToggleInputProps & { type: "toggle" })
   | (BaseFieldProps & CheckboxInputProps & { type: "checkbox" });

@@ -1,41 +1,34 @@
-import {
-  ProductProjectFragmentFragment,
-  ProductProjectGetProjectQuery,
-  ProductProjectGetProjectQueryVariables,
-  ProductProjectUpdateProductMutation,
-  ProductProjectUpdateProductMutationVariables,
-  ProjectGetMyProjectsQuery,
-} from "@/gql/graphql";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Href, router } from "expo-router";
-import { Suspense, useState } from "react";
-import { ProgressHeader } from "./progress-header";
-import { Body, Display, Headline, Label } from "@components/typography/text";
 import { View } from "react-native";
-import { borderRadius } from "@constants/sizes";
 import { Toggle } from "@components/controls/toggle";
-import { Form } from "@components/forms/form";
 import { Divider } from "@components/dividers/divider";
-import { CreateProject } from "@components/project/create-project";
+import { Form } from "@components/forms/form";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { CreateProject } from "@components/project/create-project";
 import { PreviewProject } from "@components/project/preview-project";
+import { Display, Body, Headline, Label } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import React, { Suspense, useEffect, useState } from "react";
 import { EditProject as EditProjectSection } from "@components/project/edit-project";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
+import {
+  ProductBottomSheetProjectGetProjectQuery,
+  ProductBottomSheetProjectGetProjectQueryVariables,
+  ProductBottomSheetProjectMyProjectsQuery,
+} from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
+import { ProductFields } from "./types";
 
-export const PRODUCT_PROJECT_FRAGMENT = gql`
-  fragment ProductProjectFragment on Product {
-    id
-    noProject
-    project {
+const PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS = gql`
+  query ProductBottomSheetProjectMyProjects {
+    myProjects {
       id
+      title
     }
   }
 `;
-
-const PRODUCT_PROJECT_GET_PROJECT = gql`
-  query ProductProjectGetProject($input: GetProjectInput!) {
+const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
+  query ProductBottomSheetProjectGetProject($input: GetProjectInput!) {
     getProject(input: $input) {
       id
       title
@@ -47,167 +40,131 @@ const PRODUCT_PROJECT_GET_PROJECT = gql`
         lat
         lng
       }
-    }
-  }
-`;
-
-const PRODUCT_PROJECT_UPDATE_PRODUCT = gql`
-  mutation ProductProjectUpdateProduct($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        ...ProductProjectFragment
+      approximatePlace {
+        lat
+        lng
+        address
       }
     }
   }
-  ${PRODUCT_PROJECT_FRAGMENT}
 `;
 
 type Props = {
-  product: ProductProjectFragmentFragment;
-  projects: ProjectGetMyProjectsQuery["myProjects"];
-  title: string;
-  refetchProduct: () => void;
-  nextUrl: Href;
-  onDismiss: () => void;
+  product: ProductFields;
+  update: (product: Partial<ProductFields>) => void;
+  onNext: () => void;
+  nextIsDisabled: boolean;
+  badFields?: { [key: string]: string };
+  onBack: () => void;
+  updateProgress: (progress: number) => void;
 };
 
-export const ProjectScreen = ({
-  product: dbProduct,
-  projects,
-  title,
-  refetchProduct,
-  nextUrl,
-  onDismiss,
+export const Project = ({
+  product,
+  update,
+  onNext,
+  onBack,
+  nextIsDisabled,
+  updateProgress,
 }: Props) => {
-  const [skipProject, setSkipProject] = useState(!!dbProduct.noProject);
-  const [connectProject, setConnectProject] = useState(!!dbProduct?.project);
-  const [projectId, setProjectId] = useState<string | undefined>(
-    dbProduct?.project?.id,
-  );
+  const [skipProject, setSkipProject] = useState(!!product.noProject);
+  const [connectProject, setConnectProject] = useState(!!product.project);
   const [isEditing, setIsEditing] = useState(false);
+
+  const progress = () => {
+    if (skipProject) {
+      return 100;
+    }
+
+    if (isEditing || product.project?.id === newProjectOption) {
+      return 50;
+    }
+
+    if (!!product.project?.id && connectProject) {
+      return 100;
+    }
+
+    return 0;
+  };
+  useEffect(() => {
+    const p = progress();
+    updateProgress(p);
+  }, [isEditing, product.project?.id, connectProject, skipProject]);
+
   const newProjectOption = "1";
   const colors = useThemeColor();
 
+  const { data, refetch } = useQuery<ProductBottomSheetProjectMyProjectsQuery>(
+    PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS,
+  );
   const [getProject] = useLazyQuery<
-    ProductProjectGetProjectQuery,
-    ProductProjectGetProjectQueryVariables
-  >(PRODUCT_PROJECT_GET_PROJECT);
-  const [updateProduct, { loading: updatingProduct }] = useMutation<
-    ProductProjectUpdateProductMutation,
-    ProductProjectUpdateProductMutationVariables
-  >(PRODUCT_PROJECT_UPDATE_PRODUCT);
+    ProductBottomSheetProjectGetProjectQuery,
+    ProductBottomSheetProjectGetProjectQueryVariables
+  >(PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT);
 
-  const onProjectCreated = (id: string) => {
-    setProjectId(id);
-    getProject({
+  const onSelectProjectId = async (id: string) => {
+    if (id === newProjectOption) {
+      update({ project: { id } });
+      return;
+    }
+    const { data } = await getProject({
       variables: {
         input: {
           id,
         },
       },
     });
-    refetchProduct();
+    const project = data?.getProject;
+    if (!project) return;
+    update({
+      noProject: false,
+      project: {
+        id,
+      },
+      address: project.address,
+      location: project.location,
+      approximatePlace: project.approximatePlace,
+    });
+  };
+
+  const onProjectCreated = async (id: string) => {
+    refetch();
+    await onSelectProjectId(id);
   };
 
   const onSelectNotConnect = () => {
+    update({
+      noProject: true,
+    });
     setConnectProject(false);
     setSkipProject(!skipProject);
     setIsEditing(false);
   };
   const onSelectConnect = () => {
+    update({
+      noProject: false,
+    });
     setSkipProject(false);
     setConnectProject(!connectProject);
     setIsEditing(false);
-  };
-
-  const canContinue = () => {
-    if (skipProject) {
-      return true;
-    }
-
-    if (
-      connectProject &&
-      !isEditing &&
-      !!projectId &&
-      projectId !== newProjectOption
-    ) {
-      return true;
-    }
-
-    return false;
-  };
-  const onNext = () => {
-    if (updatingProduct) {
-      return;
-    }
-
-    updateProduct({
-      variables: {
-        input: {
-          id: dbProduct.id,
-          projectId: skipProject ? null : projectId,
-          noProject: skipProject,
-        },
-      },
-      onCompleted: () => {
-        router.navigate(nextUrl);
-      },
-    });
-  };
-  const progress = () => {
-    if (skipProject) {
-      return 100;
-    }
-
-    if (isEditing || projectId === newProjectOption) {
-      return 50;
-    }
-
-    if (!!projectId && connectProject) {
-      return 100;
-    }
-
-    return 0;
   };
 
   const projectOptions = [
     {
       value: newProjectOption,
       label: "Nytt projekt",
-      disabled: projectId === newProjectOption,
+      disabled: product.project?.id === newProjectOption,
     },
-    ...projects.map((p) => ({
-      value: p.id,
-      label: p.title,
-      disabled: projectId === p.id,
-    })),
+    ...(data?.myProjects
+      ? data.myProjects.map((p) => ({
+          value: p.id,
+          label: p.title,
+          disabled: product.project?.id === p.id,
+        }))
+      : []),
   ];
-
   return (
-    <ScreenLayout
-      style={{ paddingBottom: 32, marginTop: 24 }}
-      headerComponent={
-        <ProgressHeader onClose={onDismiss} title={title} prog2={progress()} />
-      }
-      footerComponent={
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
-          <Button
-            icon="arrowLeft"
-            label="Tillbaka"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/")
-            }
-          />
-          <Button
-            label="Fortsätt"
-            onPress={() => onNext()}
-            loading={updatingProduct}
-            style={{ flex: 1 }}
-            disabled={!canContinue()}
-          />
-        </View>
-      }
-    >
+    <View style={{ gap: 24, marginTop: 24 }}>
       <Display size="small" style={{ marginBottom: 16 }}>
         Koppla till projekt?
       </Display>
@@ -296,43 +253,53 @@ export const ProjectScreen = ({
                   {
                     type: "select",
                     heading: "Välj projekt",
-                    value: projectId,
+                    value: product.project?.id,
                     placeholder: "Välj",
                     options: projectOptions,
                     onSelect: (value) => {
-                      setProjectId(value);
+                      onSelectProjectId(value);
                     },
                   },
                 ]}
               />
-              {projectId === newProjectOption && (
+              {product.project?.id === newProjectOption && (
                 <>
                   <Divider />
                   <CreateProject onCreate={onProjectCreated} />
                 </>
               )}
-              {!!projectId && projectId !== newProjectOption && (
-                <>
-                  <Divider />
-                  <Suspense fallback={<LoadingSpinner />}>
-                    {isEditing ? (
-                      <EditProjectSection
-                        id={projectId}
-                        onEdited={() => setIsEditing(false)}
-                      />
-                    ) : (
-                      <PreviewProject
-                        id={projectId}
-                        onEdit={() => setIsEditing(true)}
-                      />
-                    )}
-                  </Suspense>
-                </>
-              )}
+              {!!product.project?.id &&
+                product.project.id !== newProjectOption && (
+                  <>
+                    <Divider />
+                    <Suspense fallback={<LoadingSpinner />}>
+                      {isEditing ? (
+                        <EditProjectSection
+                          id={product.project?.id}
+                          onEdited={() => setIsEditing(false)}
+                        />
+                      ) : (
+                        <PreviewProject
+                          id={product.project?.id}
+                          onEdit={() => setIsEditing(true)}
+                        />
+                      )}
+                    </Suspense>
+                  </>
+                )}
             </>
           )}
         </View>
       </View>
-    </ScreenLayout>
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
+        <Button icon="arrowLeft" label="Tillbaka" onPress={() => onBack()} />
+        <Button
+          label="Fortsätt"
+          onPress={() => onNext()}
+          style={{ flex: 1 }}
+          disabled={nextIsDisabled}
+        />
+      </View>
+    </View>
   );
 };

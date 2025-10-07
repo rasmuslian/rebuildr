@@ -1,5 +1,5 @@
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 
 export default function CategoryLayout() {
-  return <Stack screenOptions={{ headerShown: false }}></Stack>;
+  return <Slot />;
 }

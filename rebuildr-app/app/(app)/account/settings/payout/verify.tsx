@@ -11,7 +11,7 @@ export default function Verify() {
         showQRTitle="Verifiera dig med BankID"
         showQRBody="Du verkar inte ha kopplat något utbetalningskonto ännu. För att få betalt behöver du först verifiera dig med BankID."
         onVerifyComplete={() =>
-          router.navigate("/sell-product/payout/payout-method")
+          router.navigate("/account/settings/payout/payout-method")
         }
       />
     </ScreenLayout>
