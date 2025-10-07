@@ -1,7 +1,5 @@
 import {
-  QuantityUnitEnum,
   ProductConditionEnum,
-  ShippingProviderEnum,
   File as GqlFile,
   ProductStatusEnum,
   UpsertProductBottomSheetQuery,
@@ -11,7 +9,7 @@ import {
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { FileType } from "@components/product/types";
+import { FileType, ProductFields } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
 import { ProgressHeader } from "@components/product/progress-header";
 import { Project } from "./project";
@@ -24,61 +22,31 @@ import { PayoutHandler } from "../sell-product/payout-handler";
 import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 
-export type ProductFields = {
-  //initial
-  categoryIds?: string[];
-  title?: string;
-  description?: string;
-  price?: number;
-  primaryQuantity?: number;
-  primaryUnit?: QuantityUnitEnum;
-  secondaryQuantity?: number;
-  secondaryUnit?: QuantityUnitEnum;
-  thickness?: number;
-  height?: number;
-  width?: number;
-  length?: number;
-  diameter?: number;
-  weight?: number;
-  isGiveaway?: boolean;
-  condition: ProductConditionEnum;
-  brandId?: string | null;
-  images?: FileType[];
-  documents?: FileType[];
-  minimumPrice?: number;
+export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
+  query UpsertProductBottomSheet($input: GetProductInput!) {
+    product(input: $input) {
+      ...UpsertProductProductFragment
+    }
+    me {
+      id
+      selectedPayoutMethod
+    }
+  }
+  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
 
-  //project
-  noProject?: boolean;
-  project?: {
-    id: string;
-  };
-
-  //transportation
-  pickupEnabled: boolean;
-  address?: string;
-  location?: {
-    lat: number;
-    lng: number;
-  };
-  approximatePlace?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
-
-  shippingPrices: {
-    id: string;
-    maxWeight: number;
-    price: number;
-    provider: ShippingProviderEnum;
-  }[];
-
-  deliveryRadius?: number;
-  deliveryPrice?: number;
-  deliveryEnabled: boolean;
-
-  status: ProductStatusEnum;
-};
+const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
+  mutation UpsertProductUpdateProduct($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        ...UpsertProductProductFragment
+      }
+      imagePutUrls
+      documentPutUrls
+    }
+  }
+  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
 
 export const initialProduct: ProductFields = {
   //initial
@@ -119,32 +87,6 @@ export const initialProduct: ProductFields = {
 
   status: ProductStatusEnum.Draft,
 };
-
-export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
-  query UpsertProductBottomSheet($input: GetProductInput!) {
-    product(input: $input) {
-      ...UpsertProductProductFragment
-    }
-    me {
-      id
-      selectedPayoutMethod
-    }
-  }
-  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
-`;
-
-const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
-  mutation UpsertProductUpdateProduct($input: UpdateProductInput!) {
-    updateProduct(input: $input) {
-      product {
-        ...UpsertProductProductFragment
-      }
-      imagePutUrls
-      documentPutUrls
-    }
-  }
-  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
-`;
 
 type FieldErrorsType = { [key in string]: string };
 const detailsErrorFields = [

@@ -17,7 +17,7 @@ import {
   ProductBottomSheetProjectMyProjectsQuery,
 } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
-import { ProductFields } from "./upsert-product-bottom-sheet";
+import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS = gql`
   query ProductBottomSheetProjectMyProjects {

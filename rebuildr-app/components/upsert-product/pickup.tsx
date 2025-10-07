@@ -8,8 +8,8 @@ import { useState } from "react";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { EditPickup } from "./edit-pickup";
 import { PreviewPickup } from "./preview-pickup";
-import { ProductFields } from "./upsert-product-bottom-sheet";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
+import { ProductFields } from "./types";
 
 type Props = {
   product: ProductFields;

@@ -9,7 +9,7 @@ import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { View } from "react-native";
 import { useEffect } from "react";
-import { ProductFields } from "./upsert-product-bottom-sheet";
+import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP = gql`
   query ProductBottomSheetPreviewPickup($input: GetProjectInput!) {

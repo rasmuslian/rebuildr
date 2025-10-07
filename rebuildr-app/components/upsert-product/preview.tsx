@@ -15,7 +15,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Button } from "@components/buttons/button";
-import { ProductFields } from "./upsert-product-bottom-sheet";
+import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
   query ProductBottomSheetPreviewCategory($input: CategoryInput!) {

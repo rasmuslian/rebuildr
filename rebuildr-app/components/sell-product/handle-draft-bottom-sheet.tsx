@@ -3,7 +3,7 @@ import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Display } from "@components/typography/text";
-import { ProductFields } from "@components/upsert-product/upsert-product-bottom-sheet";
+import { ProductFields } from "@components/upsert-product/types";
 import { View } from "react-native";
 
 const SELL_PRODUCT_BOTTOM_SHEET_DELETE = gql`

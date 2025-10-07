@@ -14,7 +14,7 @@ import { Title, Body } from "@components/typography/text";
 import { useState } from "react";
 import { Button } from "@components/buttons/button";
 import { measurementKeys } from "@constants/measurements";
-import { ProductFields } from "./upsert-product-bottom-sheet";
+import { ProductFields } from "./types";
 
 type Props = {
   product: ProductFields;

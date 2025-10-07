@@ -20,8 +20,8 @@ import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { meterToKilometer } from "@/utils/conversions";
 import { Slider } from "@components/slider/slider";
-import { ProductFields } from "./upsert-product-bottom-sheet";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
+import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_DELIVERY = gql`
   query ProductBottomSheetDelivery($input: GetProjectInput!) {

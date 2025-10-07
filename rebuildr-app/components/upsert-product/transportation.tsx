@@ -6,7 +6,7 @@ import { Button } from "@components/buttons/button";
 import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
-import { ProductFields } from "./upsert-product-bottom-sheet";
+import { ProductFields } from "./types";
 
 type Props = {
   product: ProductFields;
