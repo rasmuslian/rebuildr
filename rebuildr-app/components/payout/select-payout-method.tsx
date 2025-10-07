@@ -1,7 +1,6 @@
 import { PayoutMethodQueryQuery, UserType } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline, Title } from "@components/typography/text";
 import {
   PayoutMethodOrganizationType,
@@ -11,7 +10,6 @@ import {
 } from "@constants/payouts";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Href, router } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { Radio } from "@components/controls/radio";

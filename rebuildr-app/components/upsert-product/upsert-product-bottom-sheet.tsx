@@ -483,7 +483,6 @@ export const UpsertProductBottomSheet = ({
     setProduct(initialProduct);
     setStep("details");
 
-    // onHide();
     onHide();
   };
 

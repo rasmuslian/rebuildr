@@ -1,5 +1,5 @@
+import { UpsertProductBottomSheet } from "@components/upsert-product/upsert-product-bottom-sheet";
 import { useEditProductContext } from "@context/edit-product-context";
-import { UpsertProductBottomSheet } from "../upsert-product/upsert-product-bottom-sheet";
 
 export const EditProductBottomSheet = () => {
   const { visible, productId, editProduct } = useEditProductContext();
