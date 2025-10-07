@@ -30,8 +30,8 @@ export default function Layout() {
     //Make sure to skip route bankId screens in case user is Business
     if (
       data.me.type === UserType.Business &&
-      (pathname === "/sell-product/payout/change-method" ||
-        pathname === "/sell-product/payout/verify")
+      (pathname === "/account/settings/payout/change-method" ||
+        pathname === "/account/settings/payout/verify")
     ) {
       router.replace("/account/settings/payout");
     }
