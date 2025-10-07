@@ -29,11 +29,12 @@ const SELECT_PAYOUT_METHOD_QUERY = gql`
 `;
 
 type Props = {
-  //Route to the different payout methods. This assumes that the screens are on the same level in the navigation
-  methodsBaseRoute: string;
+  onSelectMethod: (
+    method: PayoutMethodType | PayoutMethodOrganizationType,
+  ) => void;
 };
 
-export const SelectPayoutMethod = ({ methodsBaseRoute }: Props) => {
+export const SelectPayoutMethod = ({ onSelectMethod }: Props) => {
   const [chosenMethod, setChosenMethod] = useState<
     PayoutMethodType | PayoutMethodOrganizationType
   >();
@@ -69,25 +70,8 @@ export const SelectPayoutMethod = ({ methodsBaseRoute }: Props) => {
     }
   };
   const onNext = () => {
-    switch (chosenMethod) {
-      case "Swish":
-        router.navigate(`${methodsBaseRoute}/swish` as Href);
-        break;
-      case "Trustly":
-        router.navigate(`${methodsBaseRoute}/trustly` as Href);
-        break;
-      case "Bankkonto":
-        router.navigate(`${methodsBaseRoute}/rix` as Href);
-        break;
-      case "Bankgiro":
-        router.navigate(`${methodsBaseRoute}/bankgiro` as Href);
-        break;
-      case "Plusgiro":
-        router.navigate(`${methodsBaseRoute}/plusgiro` as Href);
-        break;
-      default:
-        return null;
-    }
+    if (!chosenMethod) return;
+    onSelectMethod(chosenMethod);
   };
 
   return (

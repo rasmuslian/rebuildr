@@ -3,13 +3,13 @@ import { FlatList, Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import { View, ViewToken } from "react-native";
-import { File, Product, ProductStatusEnum } from "@/gql/graphql";
+import { Product, ProductStatusEnum } from "@/gql/graphql";
 import { primitives } from "@constants/colors";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
 import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 
 type Props = {
-  images: Product["images"];
+  images: { url: string }[];
   status: Product["status"];
   displaySoldOverlay?: boolean;
 };
@@ -25,7 +25,7 @@ export const ImageCarousel = ({
 
   // Must be a ref or else Flatlist throws error
   const onViewRef = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken<File>[] }) => {
+    ({ viewableItems }: { viewableItems: ViewToken<{ url: string }>[] }) => {
       const f = viewableItems[0];
       if (f && f.index !== null) {
         setVisibleIndex(f.index);
@@ -47,7 +47,6 @@ export const ImageCarousel = ({
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(image) => image.id}
           renderItem={({ item: image, separators }) => {
             return (
               <View>

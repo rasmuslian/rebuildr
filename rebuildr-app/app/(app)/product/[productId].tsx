@@ -362,7 +362,6 @@ export default function Product() {
         <ImageCarousel images={product.images} status={product.status} />
         <MainContent
           product={product}
-          project={product.project ?? undefined}
           documents={product.documents}
           category={product.category}
           parentCategory={product.category?.parent}

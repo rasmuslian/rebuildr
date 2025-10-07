@@ -1,6 +1,5 @@
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
-import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -8,8 +7,8 @@ type Props = {
   titleError?: string;
   description: string;
   descriptionError?: string;
-  onBlurTitle: (t: string) => void;
-  onBlurDescription: (d: string) => void;
+  onChangeTitle: (t: string) => void;
+  onChangeDescription: (d: string) => void;
 };
 
 export const DescriptionSection = ({
@@ -17,12 +16,9 @@ export const DescriptionSection = ({
   titleError,
   description: _description,
   descriptionError,
-  onBlurTitle,
-  onBlurDescription,
+  onChangeTitle,
+  onChangeDescription,
 }: Props) => {
-  const [title, setTitle] = useState(_title);
-  const [description, setDescription] = useState(_description);
-
   return (
     <View>
       <Display size="small" style={{ marginBottom: 16 }}>
@@ -37,17 +33,15 @@ export const DescriptionSection = ({
         fields={[
           {
             type: "text",
-            value: title,
-            onBlur: () => onBlurTitle(title),
-            onChangeText: (t) => setTitle(t),
+            value: _title,
+            onChangeText: onChangeTitle,
             heading: "Annonsrubrik",
             error: titleError,
           },
           {
             type: "text",
-            value: description,
-            onBlur: () => onBlurDescription(description),
-            onChangeText: (t) => setDescription(t.slice(0, 5000)),
+            value: _description,
+            onChangeText: (t) => onChangeDescription(t.slice(0, 5000)),
             heading: "Beskrivning",
             multiline: true,
             placeholder:
@@ -58,7 +52,7 @@ export const DescriptionSection = ({
         ]}
       />
       <Body size="small" color="secondary" style={{ marginTop: 12 }}>
-        {description.length} av 5000 tecken
+        {_description.length} av 5000 tecken
       </Body>
     </View>
   );

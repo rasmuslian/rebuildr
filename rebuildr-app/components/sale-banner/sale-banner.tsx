@@ -2,15 +2,16 @@ import { View, ImageBackground, TouchableOpacity } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
 import { Title, Headline } from "@components/typography/text";
-import { router } from "expo-router";
 import { Icon } from "@icons/icon";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useContext } from "react";
 import { useUser } from "@hooks/useUser";
+import { useSellProductContext } from "@context/sell-product-context";
 
 export function SaleBanner() {
   const colors = useThemeColor();
-  const { setVisible } = useContext(LoginModalContext);
+  const { setVisible: setLoginVisible } = useContext(LoginModalContext);
+  const { setVisible: setSellProductVisible } = useSellProductContext();
   const { isLoggedIn } = useUser();
 
   return (
@@ -18,9 +19,9 @@ export function SaleBanner() {
       style={{ paddingVertical: 16 }}
       onPress={() => {
         if (isLoggedIn) {
-          router.navigate("/(app)/(tabs)/sell-product");
+          setSellProductVisible(true);
         } else {
-          setVisible(true);
+          setLoginVisible(true);
         }
       }}
     >

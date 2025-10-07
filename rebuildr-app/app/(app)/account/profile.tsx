@@ -33,6 +33,7 @@ import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { TabRail } from "@components/tabs/tab-rail";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
+import { useSellProductContext } from "@context/sell-product-context";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -155,6 +156,7 @@ export default function Profile() {
     ProfileUpdateUserMutation,
     ProfileUpdateUserMutationVariables
   >(PROFILE_UPDATE_USER);
+  const { setVisible } = useSellProductContext();
 
   const PRODUCTS_PER_PAGE = 10;
   const colors = useThemeColor();
@@ -291,7 +293,7 @@ export default function Profile() {
             "Just nu har du inga annonser ute, men det är enkelt att komma igång",
           cta: {
             label: "Lägg upp en annons",
-            onPress: () => router.navigate("/sell-product"),
+            onPress: () => setVisible(true),
           },
         }
       : {

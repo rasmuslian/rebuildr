@@ -1,0 +1,166 @@
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { Display, Headline } from "@components/typography/text";
+import { Suspense, useEffect, useState } from "react";
+import { View } from "react-native";
+import { ProductFields } from "./sell-product-bottom-sheet";
+import { Button } from "@components/buttons/button";
+import { Pickup } from "./pickup";
+import { Shipping } from "./shipping";
+import { Delivery } from "./delivery";
+import { gql } from "@apollo/client";
+
+export const EXACT_AND_APPROXIMATE_PLACE = gql`
+  query ExactAndApproximatePlace($input: LocationInputType!) {
+    exactAndApproximatePlace(input: $input) {
+      exact {
+        lat
+        lng
+        address
+      }
+      approximate {
+        lat
+        lng
+        address
+      }
+    }
+  }
+`;
+
+type Props = {
+  product: ProductFields;
+  update: (product: Partial<ProductFields>) => void;
+  onNext: () => void;
+  onBack: () => void;
+  nextIsDisabled: boolean;
+  badFields?: { [key: string]: string };
+  updateProgress: (progress: number) => void;
+};
+
+export const Transportation = ({
+  product,
+  update,
+  onNext,
+  onBack,
+  nextIsDisabled,
+  updateProgress,
+}: Props) => {
+  const [addressEditLock, setAddressEditLock] = useState(false);
+  const [shippingValid, setShippingValid] = useState(false);
+  const [shippingSelected, setShippingSelected] = useState(
+    !!product.shippingPrices?.length,
+  );
+
+  useEffect(() => {
+    updateProgress(progress());
+  }, [
+    product.address,
+    product.pickupEnabled,
+    product.shippingPrices,
+    product.deliveryRadius,
+    product.deliveryPrice,
+    shippingSelected,
+    addressEditLock,
+  ]);
+  const progress = () => {
+    const address = product.address;
+    let nrMethodsChosen = 0;
+    let progress = 0;
+
+    if (product.pickupEnabled) {
+      progress += address && !addressEditLock ? 100 : 50;
+      nrMethodsChosen += 1;
+    }
+    if (shippingSelected) {
+      progress += product.shippingPrices?.length ? 100 : 50;
+      nrMethodsChosen += 1;
+    }
+
+    if (product.deliveryEnabled) {
+      progress += address && !addressEditLock ? 100 : 50;
+      nrMethodsChosen += 1;
+    }
+
+    progress = progress / nrMethodsChosen;
+
+    return Math.min(100, Math.max(0, progress));
+  };
+
+  const canContinue = () => {
+    if (addressEditLock) {
+      return false;
+    }
+
+    const validAddress = product.address;
+    const pickupSelected = product.pickupEnabled;
+    const pickupValid = validAddress;
+    const deliverySelected = product.deliveryEnabled;
+    const deliveryValid =
+      typeof product.deliveryPrice === "number" &&
+      product.deliveryRadius &&
+      validAddress;
+
+    if (!pickupSelected && !deliverySelected && !shippingSelected) {
+      return false;
+    }
+    if (pickupSelected && !pickupValid) {
+      return false;
+    }
+    if (deliverySelected && !deliveryValid) {
+      return false;
+    }
+    if (shippingSelected && !shippingValid) {
+      return false;
+    }
+
+    return true;
+  };
+
+  return (
+    <View style={{ gap: 24, marginTop: 24 }}>
+      <Display size="small">Leverans</Display>
+      <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>
+      <View style={{ gap: 16, paddingBottom: 16 }}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Pickup
+            product={product}
+            update={update}
+            canEdit={!addressEditLock}
+            onEditing={() => setAddressEditLock(true)}
+            onEditComplete={() => setAddressEditLock(false)}
+          />
+          <Shipping
+            product={product}
+            update={update}
+            onShippingValid={(valid) => setShippingValid(valid)}
+            shippingSelected={shippingSelected}
+            onShippingSelected={(selected) => setShippingSelected(selected)}
+          />
+          <Delivery
+            product={product}
+            update={update}
+            canEdit={!addressEditLock}
+            onEditing={() => setAddressEditLock(true)}
+            onEditComplete={() => setAddressEditLock(false)}
+          />
+        </Suspense>
+      </View>
+      <View
+        style={{
+          paddingTop: 24,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Button icon="arrowLeft" label="Tillbaka" onPress={() => onBack()} />
+        <Button
+          label="Förhandsgranska"
+          onPress={() => onNext()}
+          style={{ flex: 1 }}
+          disabled={!canContinue() || nextIsDisabled}
+          loading={false}
+        />
+      </View>
+    </View>
+  );
+};

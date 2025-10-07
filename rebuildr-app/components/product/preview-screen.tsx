@@ -188,7 +188,6 @@ export const PreviewScreen = ({
       <ImageCarousel images={dbProduct.images} status={dbProduct.status} />
       <MainContent
         product={dbProduct}
-        project={dbProduct.project ?? undefined}
         category={dbProduct.category}
         parentCategory={dbProduct.category?.parent}
         documents={dbProduct.documents}

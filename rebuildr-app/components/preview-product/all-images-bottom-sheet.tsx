@@ -1,12 +1,11 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { View, Image, Dimensions } from "react-native";
-import { File } from "@/gql/graphql";
 import { borderRadius } from "@constants/sizes";
 import { useEffect, useState } from "react";
 
 const screenWidth = Dimensions.get("window").width - 48;
 type Props = {
-  images: File[];
+  images: { url: string }[];
   show: boolean;
   onDismiss: () => void;
 };

@@ -48,7 +48,7 @@ export const BottomSheet = ({
   scrollable,
   footer,
   open,
-  stackBehavior,
+  stackBehavior = "push",
 }: Props) => {
   const safeArea = useSafeAreaInsets();
   const innerRef = useRef<BottomSheetModal>(
@@ -123,7 +123,7 @@ export const BottomSheet = ({
       stackBehavior={stackBehavior}
       ref={innerRef}
       enableDynamicSizing={!screenHeight}
-      enablePanDownToClose
+      enablePanDownToClose={!screenHeight}
       snapPoints={snapPoints}
       animateOnMount
       name={name}

@@ -1,5 +1,5 @@
 import { Slot } from "expo-router";
 
-export default function CategoryLayout() {
+export default function ConversationsLayout() {
   return <Slot />;
 }

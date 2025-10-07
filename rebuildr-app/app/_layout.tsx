@@ -22,6 +22,8 @@ import { LoginModalContext } from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
+import { SellProductBottomSheet } from "@components/sell-product/sell-product-bottom-sheet";
+import { SellProductProdiver } from "@context/sell-product-context";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -71,15 +73,18 @@ const RootLayout = () => {
             setVisible: setShowLoginModal,
           }}
         >
-          <GestureHandlerRootView>
-            <BottomSheetModalProvider>
-              <ScreenDimensionsProvider>
-                <Slot />
-                <HamburgerMenu />
-                <LoginModalView />
-              </ScreenDimensionsProvider>
-            </BottomSheetModalProvider>
-          </GestureHandlerRootView>
+          <SellProductProdiver>
+            <GestureHandlerRootView>
+              <BottomSheetModalProvider>
+                <ScreenDimensionsProvider>
+                  <Slot />
+                  <HamburgerMenu />
+                  <LoginModalView />
+                  <SellProductBottomSheet />
+                </ScreenDimensionsProvider>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </SellProductProdiver>
         </LoginModalContext.Provider>
       </ApolloProvider>
     </>

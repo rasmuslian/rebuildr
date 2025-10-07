@@ -1,4 +1,4 @@
-import { HandleDraftBottomSheet } from "@components/sell-product/handle-draft-bottom-sheet";
+import { HandleDraftBottomSheet } from "@components/sell-product/handle-draft-bottom-sheet-old";
 import { createContext, ReactNode, useState } from "react";
 
 export const HandleDraftContext = createContext({
