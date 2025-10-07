@@ -128,9 +128,18 @@ export const BottomSheet = ({
       animateOnMount
       name={name}
       onDismiss={onDismiss}
-      backgroundStyle={{
-        borderRadius: 28,
-      }}
+      backgroundComponent={() => (
+        <Animated.View
+          style={[
+            animatedBorderRadiusStyle,
+            {
+              backgroundColor: colors.background.neutral,
+              position: "absolute",
+              inset: 0,
+            },
+          ]}
+        />
+      )}
       handleIndicatorStyle={{
         display: "none",
       }}
@@ -138,7 +147,7 @@ export const BottomSheet = ({
       handleStyle={{
         paddingHorizontal: 16,
       }}
-      style={screenHeight && { marginTop: safeArea.top }}
+      style={[screenHeight && { marginTop: safeArea.top }]}
       backdropComponent={({ style }) => (
         <Pressable
           style={[style, { backgroundColor: "#0000004D" }]}
@@ -152,12 +161,12 @@ export const BottomSheet = ({
             paddingBottom: safeArea.bottom + 20,
             flex: 1,
           }}
-          contentContainerStyle={[
+          contentContainerStyle={
             screenHeight && {
               justifyContent: "space-between",
               flex: 1,
-            },
-          ]}
+            }
+          }
         >
           <Animated.View
             style={[
