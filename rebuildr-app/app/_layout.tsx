@@ -24,6 +24,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
 import { SellProductBottomSheet } from "@components/sell-product/sell-product-bottom-sheet";
 import { SellProductProdiver } from "@context/sell-product-context";
+import { EditProductBottomSheet } from "@components/edit-product/edit-product-bottom-sheet";
+import { EditProductProdiver } from "@context/edit-product-context";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -74,16 +76,19 @@ const RootLayout = () => {
           }}
         >
           <SellProductProdiver>
-            <GestureHandlerRootView>
-              <BottomSheetModalProvider>
-                <ScreenDimensionsProvider>
-                  <Slot />
-                  <HamburgerMenu />
-                  <LoginModalView />
-                  <SellProductBottomSheet />
-                </ScreenDimensionsProvider>
-              </BottomSheetModalProvider>
-            </GestureHandlerRootView>
+            <EditProductProdiver>
+              <GestureHandlerRootView>
+                <BottomSheetModalProvider>
+                  <ScreenDimensionsProvider>
+                    <Slot />
+                    <HamburgerMenu />
+                    <LoginModalView />
+                    <SellProductBottomSheet />
+                    <EditProductBottomSheet />
+                  </ScreenDimensionsProvider>
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
+            </EditProductProdiver>
           </SellProductProdiver>
         </LoginModalContext.Provider>
       </ApolloProvider>

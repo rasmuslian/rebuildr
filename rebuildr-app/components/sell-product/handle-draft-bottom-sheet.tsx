@@ -3,8 +3,8 @@ import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Display } from "@components/typography/text";
+import { ProductFields } from "@components/upsert-product/upsert-product-bottom-sheet";
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 
 const SELL_PRODUCT_BOTTOM_SHEET_DELETE = gql`
   mutation SellProductBottomSheetDelete($input: RemoveProductInput!) {

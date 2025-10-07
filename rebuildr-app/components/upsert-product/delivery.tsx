@@ -20,8 +20,8 @@ import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { meterToKilometer } from "@/utils/conversions";
 import { Slider } from "@components/slider/slider";
-import { ProductFields } from "./sell-product-bottom-sheet";
-import { EXACT_AND_APPROXIMATE_PLACE } from "./transportation";
+import { ProductFields } from "./upsert-product-bottom-sheet";
+import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 
 const PRODUCT_BOTTOM_SHEET_DELIVERY = gql`
   query ProductBottomSheetDelivery($input: GetProjectInput!) {
@@ -160,8 +160,7 @@ export const Delivery = ({
                 {
                   type: "price",
                   value: price,
-                  onChange: (p) => update({ deliveryPrice: p }), //(p) => setPrice(p),
-                  // onBlur: () => onBlurPrice(),
+                  onChange: (p) => update({ deliveryPrice: p }),
                   heading: "Transportpris",
                 },
               ]}

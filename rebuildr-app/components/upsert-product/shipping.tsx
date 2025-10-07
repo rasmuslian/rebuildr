@@ -18,7 +18,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { ProductFields } from "./sell-product-bottom-sheet";
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 const PRODUCT_BOTTOM_SHEET_SHIPPING = gql`
   query ProductBottomSheetShipping {

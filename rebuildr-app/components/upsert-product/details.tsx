@@ -1,5 +1,4 @@
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 import { Toggle } from "@components/controls/toggle";
 import { BrandSection } from "@components/product/brand-section";
 import { CategorySection } from "@components/product/category-section";
@@ -15,6 +14,7 @@ import { Title, Body } from "@components/typography/text";
 import { useState } from "react";
 import { Button } from "@components/buttons/button";
 import { measurementKeys } from "@constants/measurements";
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 type Props = {
   product: ProductFields;

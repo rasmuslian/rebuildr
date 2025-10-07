@@ -8,8 +8,8 @@ import { useState } from "react";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { EditPickup } from "./edit-pickup";
 import { PreviewPickup } from "./preview-pickup";
-import { ProductFields } from "./sell-product-bottom-sheet";
-import { EXACT_AND_APPROXIMATE_PLACE } from "./transportation";
+import { ProductFields } from "./upsert-product-bottom-sheet";
+import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 
 type Props = {
   product: ProductFields;
@@ -79,8 +79,8 @@ export const Pickup = ({
     });
   };
 
-  const address = product.address; //project?.address ?? data.product.address;
-  const location = product.location; //project?.location ?? data.product.location;
+  const address = product.address;
+  const location = product.location;
 
   return (
     <ToggleCard

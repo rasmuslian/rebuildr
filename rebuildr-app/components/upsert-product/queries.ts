@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
-export const SELL_PRODUCT_BOTTOM_SHEET_PRODUCT_FRAGMENT = gql`
-  fragment SellProductBottomSheetProductFragment on Product {
+export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
+  fragment UpsertProductProductFragment on Product {
     id
     title
     description
@@ -69,6 +69,23 @@ export const SELL_PRODUCT_BOTTOM_SHEET_PRODUCT_FRAGMENT = gql`
       maxWeight
       price
       provider
+    }
+  }
+`;
+
+export const EXACT_AND_APPROXIMATE_PLACE = gql`
+  query ExactAndApproximatePlace($input: LocationInputType!) {
+    exactAndApproximatePlace(input: $input) {
+      exact {
+        lat
+        lng
+        address
+      }
+      approximate {
+        lat
+        lng
+        address
+      }
     }
   }
 `;

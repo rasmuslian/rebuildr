@@ -1,5 +1,4 @@
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 import { Toggle } from "@components/controls/toggle";
 import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
@@ -18,6 +17,7 @@ import {
   ProductBottomSheetProjectMyProjectsQuery,
 } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 const PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS = gql`
   query ProductBottomSheetProjectMyProjects {

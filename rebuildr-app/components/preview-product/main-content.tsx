@@ -12,7 +12,7 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { formatPrice } from "@/utils/formattings";
-import { ProductFields } from "@components/sell-product/sell-product-bottom-sheet";
+import { ProductFields } from "@components/upsert-product/upsert-product-bottom-sheet";
 
 type Props = {
   product:

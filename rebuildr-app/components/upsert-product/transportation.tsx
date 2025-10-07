@@ -2,29 +2,11 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Display, Headline } from "@components/typography/text";
 import { Suspense, useEffect, useState } from "react";
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
-import { gql } from "@apollo/client";
-
-export const EXACT_AND_APPROXIMATE_PLACE = gql`
-  query ExactAndApproximatePlace($input: LocationInputType!) {
-    exactAndApproximatePlace(input: $input) {
-      exact {
-        lat
-        lng
-        address
-      }
-      approximate {
-        lat
-        lng
-        address
-      }
-    }
-  }
-`;
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 type Props = {
   product: ProductFields;

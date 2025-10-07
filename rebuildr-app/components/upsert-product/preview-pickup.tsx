@@ -8,8 +8,8 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 import { useEffect } from "react";
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP = gql`
   query ProductBottomSheetPreviewPickup($input: GetProjectInput!) {

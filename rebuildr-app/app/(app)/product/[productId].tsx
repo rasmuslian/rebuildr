@@ -37,6 +37,7 @@ import * as Sharing from "expo-sharing";
 import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
 import { SimilarProducts } from "@components/similar-products/similar-products";
+import { useEditProductContext } from "@context/edit-product-context";
 
 type StateType = {
   showCreateLabelModal: boolean;
@@ -211,6 +212,7 @@ export default function Product() {
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
+  const { editProduct } = useEditProductContext();
 
   const { data } = useQuery<ProductViewQuery, ProductViewQueryVariables>(
     PRODUCT_VIEW,
@@ -313,10 +315,7 @@ export default function Product() {
                 <Button
                   label="Redigera"
                   onPress={() => {
-                    router.navigate({
-                      pathname: "/product/edit/[productId]",
-                      params: { productId },
-                    });
+                    editProduct(productId);
                   }}
                   style={{ flex: 1 }}
                 />

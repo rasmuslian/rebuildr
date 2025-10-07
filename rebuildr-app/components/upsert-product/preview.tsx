@@ -4,7 +4,6 @@ import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { View } from "react-native";
-import { ProductFields } from "./sell-product-bottom-sheet";
 import {
   ProductBottomSheetPreviewBrandQuery,
   ProductBottomSheetPreviewBrandQueryVariables,
@@ -16,6 +15,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Button } from "@components/buttons/button";
+import { ProductFields } from "./upsert-product-bottom-sheet";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
   query ProductBottomSheetPreviewCategory($input: CategoryInput!) {
@@ -53,9 +53,16 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
   loading: boolean;
+  nextText: string;
 };
 
-export const Preview = ({ product, onBack, onNext, loading }: Props) => {
+export const Preview = ({
+  product,
+  onBack,
+  onNext,
+  loading,
+  nextText,
+}: Props) => {
   const { data } = useQuery<ProductBottomSheetPreviewQuery>(
     PRODUCT_BOTTOM_SHEET_PREVIEW,
     {
@@ -136,7 +143,7 @@ export const Preview = ({ product, onBack, onNext, loading }: Props) => {
           style={{ flex: 1 }}
         />
         <Button
-          label="Publicera"
+          label={nextText}
           onPress={onNext}
           style={{ flex: 1 }}
           loading={loading}
