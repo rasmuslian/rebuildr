@@ -147,7 +147,7 @@ export const BottomSheet = ({
       handleStyle={{
         paddingHorizontal: 16,
       }}
-      style={[screenHeight && { marginTop: safeArea.top }]}
+      style={screenHeight && { marginTop: safeArea.top }}
       backdropComponent={({ style }) => (
         <Pressable
           style={[style, { backgroundColor: "#0000004D" }]}
