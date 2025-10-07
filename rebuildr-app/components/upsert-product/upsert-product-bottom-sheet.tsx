@@ -176,7 +176,7 @@ export const UpsertProductBottomSheet = ({
         categoryIds: dbProduct?.category
           ? [...dbProduct?.category.ancestorIds, dbProduct?.category.id]
           : [],
-        title: dbProduct?.title ?? undefined,
+        title: dbProduct?.title || undefined,
         description: dbProduct?.description ?? undefined,
         price: dbProduct?.price,
         primaryQuantity: dbProduct?.primaryQuantity ?? undefined,
@@ -364,6 +364,7 @@ export const UpsertProductBottomSheet = ({
 
         firstStepWithErrors(badFields);
         setFieldErrors(badFields);
+        setShowHandleDraft(false);
       },
     });
   };
@@ -533,6 +534,7 @@ export const UpsertProductBottomSheet = ({
             update={onUpdateProduct}
             onNext={onVerifyDetails}
             nextIsDisabled={progressDetails() < 100}
+            badFields={fieldErrors}
           />
         )}
         {step === "project" && (
