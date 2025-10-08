@@ -30,11 +30,17 @@ const GET_PRODUCT = gql`
       condition
       price
       thickness
+      thicknessUnit
       width
+      widthUnit
       height
+      heightUnit
       length
+      lengthUnit
       diameter
+      diameterUnit
       weight
+      weightUnit
       brand {
         id
         name
@@ -87,37 +93,37 @@ export default function PrintproductLabel() {
 
   if (product.thickness) {
     measurementsList.push(
-      `${measurements.thickness.name}: ${product.thickness} ${measurements.thickness.options.mm.name}`,
+      `${measurements.thickness.name}: ${product.thickness} ${measurements.thickness.options[product.thicknessUnit]?.name}`,
     );
   }
 
   if (product.width) {
     measurementsList.push(
-      `${measurements.width.name}: ${product.width} ${measurements.width.options.mm.name}`,
+      `${measurements.width.name}: ${product.width} ${measurements.width.options[product.widthUnit]?.name}`,
     );
   }
 
   if (product.length) {
     measurementsList.push(
-      `${measurements.length.name}: ${product.length} ${measurements.length.options.mm.name}`,
+      `${measurements.length.name}: ${product.length} ${measurements.length.options[product.lengthUnit]?.name}`,
     );
   }
 
   if (product.height) {
     measurementsList.push(
-      `${measurements.height.name}: ${product.height} ${measurements.height.options.mm.name}`,
+      `${measurements.height.name}: ${product.height} ${measurements.height.options[product.heightUnit]?.name}`,
     );
   }
 
   if (product.diameter) {
     measurementsList.push(
-      `${measurements.diameter.name}: ${product.diameter} ${measurements.diameter.options.mm.name}`,
+      `${measurements.diameter.name}: ${product.diameter} ${measurements.diameter.options[product.diameterUnit]?.name}`,
     );
   }
 
   if (product.weight) {
     measurementsList.push(
-      `${measurements.weight.name}: ${product.weight} ${measurements.weight.options.kg.name}`,
+      `${measurements.weight.name}: ${product.weight} ${measurements.weight.options[product.weightUnit]?.name}`,
     );
   }
 

@@ -13,11 +13,17 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     secondaryQuantity
     secondaryUnit
     height
+    heightUnit
     width
+    widthUnit
     length
+    lengthUnit
     thickness
+    thicknessUnit
     diameter
+    diameterUnit
     weight
+    weightUnit
     status
     images {
       id

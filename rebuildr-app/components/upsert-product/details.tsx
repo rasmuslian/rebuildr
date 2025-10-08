@@ -133,16 +133,56 @@ export const Details = ({
             <>
               <MeasurementsSection
                 value={{
-                  thickness: product.thickness,
-                  height: product.height,
-                  width: product.width,
-                  length: product.length,
-                  diameter: product.diameter,
-                  weight: product.weight,
+                  thickness:
+                    product.thickness !== undefined
+                      ? {
+                          value: product.thickness,
+                          unit: product.thicknessUnit,
+                        }
+                      : undefined,
+                  height:
+                    product.height !== undefined
+                      ? { value: product.height, unit: product.heightUnit }
+                      : undefined,
+                  width:
+                    product.width !== undefined
+                      ? { value: product.width, unit: product.widthUnit }
+                      : undefined,
+                  length:
+                    product.length !== undefined
+                      ? { value: product.length, unit: product.lengthUnit }
+                      : undefined,
+                  diameter:
+                    product.diameter !== undefined
+                      ? { value: product.diameter, unit: product.diameterUnit }
+                      : undefined,
+                  weight:
+                    product.weight !== undefined
+                      ? { value: product.weight, unit: product.weightUnit }
+                      : undefined,
                 }}
-                onChange={(measurementType, value) =>
-                  update({ [measurementType]: value })
-                }
+                onChange={(measurementType, value, unit) => {
+                  switch (measurementType) {
+                    case "thickness":
+                      update({ thickness: value, thicknessUnit: unit });
+                      break;
+                    case "height":
+                      update({ height: value, heightUnit: unit });
+                      break;
+                    case "width":
+                      update({ width: value, widthUnit: unit });
+                      break;
+                    case "length":
+                      update({ length: value, lengthUnit: unit });
+                      break;
+                    case "diameter":
+                      update({ diameter: value, diameterUnit: unit });
+                      break;
+                    case "weight":
+                      update({ weight: value, weightUnit: unit });
+                      break;
+                  }
+                }}
               />
               <DocumentSection
                 documents={product.documents ?? []}

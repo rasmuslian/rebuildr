@@ -1,3 +1,4 @@
+import { MeasurementUnitEnum } from "@/gql/graphql";
 import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { Label } from "@components/typography/text";
@@ -6,29 +7,17 @@ import {
   MeasurementsObjectType,
   MeasurementType,
 } from "@constants/measurements";
-import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
-  thickness?: number;
-  height?: number;
-  width?: number;
-  length?: number;
-  diameter?: number;
-  weight?: number;
   value: MeasurementsObjectType;
-  onChange: (input: MeasurementType, value: number) => void;
+  onChange: (
+    input: MeasurementType,
+    value: number,
+    unit: MeasurementUnitEnum,
+  ) => void;
 };
-export const MeasurementsSection = ({
-  thickness: _thickness,
-  height: _height,
-  width: _width,
-  length: _length,
-  diameter: _diameter,
-  weight: _weight,
-  value,
-  onChange,
-}: Props) => {
+export const MeasurementsSection = ({ value, onChange }: Props) => {
   return (
     <View style={{ zIndex: 1 }}>
       <Label size="medium" style={{ marginBottom: 20 }}>
@@ -39,11 +28,12 @@ export const MeasurementsSection = ({
         {Object.keys(measurements).map((measurement, i, arr) => (
           <View key={i} style={{ zIndex: arr.length - i }}>
             <Measurement
-              onChange={(m) => onChange(measurement as MeasurementType, m)}
-              type={measurement as MeasurementType}
-              initialValue={
-                value[measurement as MeasurementType]?.toString() ?? "0"
+              onChange={(value, unit) =>
+                onChange(measurement as MeasurementType, value, unit)
               }
+              type={measurement as MeasurementType}
+              initialValue={value[measurement as MeasurementType]?.value ?? 0}
+              unit={value[measurement as MeasurementType]?.unit}
             />
           </View>
         ))}
@@ -53,20 +43,19 @@ export const MeasurementsSection = ({
 };
 
 type MeasurementProps = {
-  onChange: (measurement: number) => void;
+  onChange: (measurement: number, unit: MeasurementUnitEnum) => void;
   type: MeasurementType;
-  initialValue: string;
+  initialValue: number;
+  unit?: MeasurementUnitEnum;
 };
-const Measurement = ({ onChange, type, initialValue }: MeasurementProps) => {
+const Measurement = ({
+  onChange,
+  type,
+  initialValue,
+  unit: _unit,
+}: MeasurementProps) => {
   const options = measurements[type].options;
-
-  const [value, setValue] = useState(initialValue);
-  const [option, setOption] = useState(Object.keys(options)[0]);
-
-  const convert = () => {
-    const measurement = parseInt(value, 10);
-    onChange(measurement * measurements[type].options[option].conversion);
-  };
+  const unit = _unit ? _unit : (Object.keys(options)[0] as MeasurementUnitEnum);
 
   return (
     <View
@@ -80,22 +69,20 @@ const Measurement = ({ onChange, type, initialValue }: MeasurementProps) => {
       <View style={{ minWidth: 213, gap: 4 }}>
         <Label size="medium">{measurements[type].name}</Label>
         <TextInput
-          value={value}
-          onBlur={() => convert()}
-          onChange={(v) => setValue(v)}
+          value={initialValue.toString()}
+          onChange={(v) => onChange(parseInt(v, 10), unit)}
           inputType="numeric"
         />
       </View>
       <View style={{ flex: 1 }}>
         <SelectInput
-          value={option}
+          value={unit}
           options={Object.keys(options).map((o) => ({
-            label: options[o].name,
-            value: o,
+            label: options[o as MeasurementUnitEnum]?.name ?? "MISSING UNIT",
+            value: o as MeasurementUnitEnum,
           }))}
-          onSelect={(value) => {
-            setOption(value);
-            setValue("0");
+          onSelect={(unit) => {
+            onChange(initialValue, unit);
           }}
         />
       </View>

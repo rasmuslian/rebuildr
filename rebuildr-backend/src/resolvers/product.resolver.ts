@@ -20,6 +20,7 @@ import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Category } from 'src/entities/category.entity';
 import {
+  MeasurementUnitEnum,
   Product,
   ProductConditionEnum,
   ProductStatus,
@@ -177,21 +178,33 @@ export class UpdateProductInput {
 
   @Field({ nullable: true })
   height?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  heightUnit?: MeasurementUnitEnum;
 
   @Field({ nullable: true })
   width?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  widthUnit?: MeasurementUnitEnum;
 
   @Field({ nullable: true })
   length?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  lengthUnit?: MeasurementUnitEnum;
 
   @Field({ nullable: true })
   thickness?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  thicknessUnit?: MeasurementUnitEnum;
 
   @Field({ nullable: true })
   diameter?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  diameterUnit?: MeasurementUnitEnum;
 
   @Field({ nullable: true })
   weight?: number;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  weightUnit?: MeasurementUnitEnum;
 
   @Field(() => ProductConditionEnum, { nullable: true })
   condition?: ProductConditionEnum;

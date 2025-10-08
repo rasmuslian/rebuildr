@@ -39,6 +39,15 @@ export enum ProductStatus {
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 
+export enum MeasurementUnitEnum {
+  M = 'M',
+  DM = 'DM',
+  CM = 'CM',
+  MM = 'MM',
+  KG = 'KG',
+}
+registerEnumType(MeasurementUnitEnum, { name: 'MeasurementUnitEnum' });
+
 @Entity()
 @ObjectType()
 export class Product {
@@ -135,45 +144,87 @@ export class Product {
 
   @Field({
     nullable: true,
-    description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   height?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.MM,
+  })
+  heightUnit: MeasurementUnitEnum;
 
   @Field({
     nullable: true,
-    description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   width?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.MM,
+  })
+  widthUnit: MeasurementUnitEnum;
 
   @Field({
     nullable: true,
-    description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   length?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.MM,
+  })
+  lengthUnit: MeasurementUnitEnum;
 
   @Field({
     nullable: true,
-    description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   thickness?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.MM,
+  })
+  thicknessUnit: MeasurementUnitEnum;
 
   @Field({
     nullable: true,
-    description: 'Unit: millimeter',
   })
   @Column({ nullable: true })
   diameter?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.MM,
+  })
+  diameterUnit: MeasurementUnitEnum;
 
   @Field({
     nullable: true,
-    description: 'Unit: kg',
   })
   @Column({ nullable: true })
   weight?: number;
+  @Field(() => MeasurementUnitEnum)
+  @Column({
+    type: 'enum',
+    enum: MeasurementUnitEnum,
+    enumName: 'measurement_unit_enum',
+    default: MeasurementUnitEnum.KG,
+  })
+  weightUnit: MeasurementUnitEnum;
 
   @Field(() => ProductConditionEnum)
   @Column('enum', {

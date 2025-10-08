@@ -6,6 +6,7 @@ import {
   UpsertProductBottomSheetQueryVariables,
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
+  MeasurementUnitEnum,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -21,6 +22,7 @@ import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { PayoutHandler } from "../sell-product/payout-handler";
 import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
+import { measurementKeys } from "@constants/measurements";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -59,11 +61,17 @@ export const initialProduct: ProductFields = {
   secondaryQuantity: undefined,
   secondaryUnit: undefined,
   thickness: undefined,
+  thicknessUnit: MeasurementUnitEnum.Mm,
   height: undefined,
+  heightUnit: MeasurementUnitEnum.Mm,
   width: undefined,
+  widthUnit: MeasurementUnitEnum.Mm,
   length: undefined,
+  lengthUnit: MeasurementUnitEnum.Mm,
   diameter: undefined,
+  diameterUnit: MeasurementUnitEnum.Mm,
   weight: undefined,
+  weightUnit: MeasurementUnitEnum.Kg,
   isGiveaway: undefined,
   condition: ProductConditionEnum.Good,
   brandId: undefined,
@@ -178,17 +186,23 @@ export const UpsertProductBottomSheet = ({
           : [],
         title: dbProduct?.title || undefined,
         description: dbProduct?.description ?? undefined,
-        price: dbProduct?.price,
+        price: dbProduct?.price || undefined,
         primaryQuantity: dbProduct?.primaryQuantity ?? undefined,
         primaryUnit: dbProduct?.primaryUnit ?? undefined,
         secondaryQuantity: dbProduct?.secondaryQuantity ?? undefined,
         secondaryUnit: dbProduct?.secondaryUnit ?? undefined,
         thickness: dbProduct?.thickness ?? undefined,
+        thicknessUnit: dbProduct?.thicknessUnit ?? undefined,
         height: dbProduct?.height ?? undefined,
+        heightUnit: dbProduct?.heightUnit ?? undefined,
         width: dbProduct?.width ?? undefined,
+        widthUnit: dbProduct?.widthUnit ?? undefined,
         length: dbProduct?.length ?? undefined,
+        lengthUnit: dbProduct?.lengthUnit ?? undefined,
         diameter: dbProduct?.diameter ?? undefined,
+        diameterUnit: dbProduct?.diameterUnit ?? undefined,
         weight: dbProduct?.weight ?? undefined,
+        weightUnit: dbProduct?.weightUnit ?? undefined,
         isGiveaway: dbProduct?.isGiveaway,
         condition: dbProduct?.condition,
         brandId: dbProduct?.brand ? dbProduct?.brand.id : undefined,
@@ -279,11 +293,17 @@ export const UpsertProductBottomSheet = ({
           secondaryQuantity: product.secondaryQuantity ?? null,
           secondaryUnit: product.secondaryUnit ?? null,
           thickness: product.thickness,
+          thicknessUnit: product.thicknessUnit,
           height: product.height,
+          heightUnit: product.heightUnit,
           width: product.width,
+          widthUnit: product.widthUnit,
           length: product.length,
+          lengthUnit: product.lengthUnit,
           diameter: product.diameter,
+          diameterUnit: product.diameterUnit,
           weight: product.weight,
+          weightUnit: product.weightUnit,
           isGiveAway: product.isGiveaway,
           categoryId: product.categoryIds
             ? (product.categoryIds.at(-1) ?? null)
@@ -419,7 +439,8 @@ export const UpsertProductBottomSheet = ({
         !!product.description ||
         product.images?.length ||
         !!product.primaryQuantity ||
-        !!product.brandId;
+        !!product.brandId ||
+        measurementKeys.some((key) => product[key] !== undefined);
       if (!saveDraft) {
         onFinish();
         return;

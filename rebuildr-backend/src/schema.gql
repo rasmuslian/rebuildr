@@ -328,24 +328,18 @@ type Product {
   primaryUnit: QuantityUnitEnum
   secondaryQuantity: Float
   secondaryUnit: QuantityUnitEnum
-
-  """Unit: millimeter"""
   height: Float
-
-  """Unit: millimeter"""
+  heightUnit: MeasurementUnitEnum!
   width: Float
-
-  """Unit: millimeter"""
+  widthUnit: MeasurementUnitEnum!
   length: Float
-
-  """Unit: millimeter"""
+  lengthUnit: MeasurementUnitEnum!
   thickness: Float
-
-  """Unit: millimeter"""
+  thicknessUnit: MeasurementUnitEnum!
   diameter: Float
-
-  """Unit: kg"""
+  diameterUnit: MeasurementUnitEnum!
   weight: Float
+  weightUnit: MeasurementUnitEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   distanceFromPosition: Float
@@ -371,6 +365,14 @@ type Product {
   hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
   reportProducts: [ReportProduct!]!
   similarProducts(offset: Int, limit: Int): PaginatedProductsResponse!
+}
+
+enum MeasurementUnitEnum {
+  M
+  DM
+  CM
+  MM
+  KG
 }
 
 enum ProductConditionEnum {
@@ -924,11 +926,17 @@ input UpdateProductInput {
   secondaryQuantity: Float
   secondaryUnit: QuantityUnitEnum
   height: Float
+  heightUnit: MeasurementUnitEnum
   width: Float
+  widthUnit: MeasurementUnitEnum
   length: Float
+  lengthUnit: MeasurementUnitEnum
   thickness: Float
+  thicknessUnit: MeasurementUnitEnum
   diameter: Float
+  diameterUnit: MeasurementUnitEnum
   weight: Float
+  weightUnit: MeasurementUnitEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
   addImages: [FileInputType!]
