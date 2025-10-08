@@ -1,4 +1,9 @@
-import { Brand, Category, Product, ProductStatusEnum } from "@/gql/graphql";
+import {
+  Brand,
+  Category,
+  ProductStatusEnum,
+  ProductViewQuery,
+} from "@/gql/graphql";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -12,12 +17,10 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { AccordionSection } from "@components/sections/accordion-section";
 import { formatPrice } from "@/utils/formattings";
-import { ProductFields } from "@components/upsert-product/upsert-product-bottom-sheet";
+import { ProductFields } from "@components/upsert-product/types";
 
 type Props = {
-  product:
-    | Omit<Partial<Product>, "category" | "seller" | "project" | "brand">
-    | ProductFields;
+  product: ProductViewQuery["product"] | ProductFields;
   brand?: Brand | null;
   category?: Pick<Category, "id" | "name"> | null;
   parentCategory?: Pick<Category, "id" | "name"> | null;
@@ -118,32 +121,32 @@ export const MainContent = ({
           {brand && <ProductChip boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
-              boldText={`${product.thickness} ${measurements.thickness.options.mm.name}`}
+              boldText={`${product.thickness} ${measurements.thickness.options[product.thicknessUnit]?.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
-              boldText={`${product.height} ${measurements.height.options.mm.name}`}
+              boldText={`${product.height} ${measurements.height.options[product.heightUnit]?.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
-              boldText={`${product.width} ${measurements.width.options.mm.name}`}
+              boldText={`${product.width} ${measurements.width.options[product.widthUnit]?.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
-              boldText={`${product.length} ${measurements.length.options.mm.name}`}
+              boldText={`${product.length} ${measurements.length.options[product.lengthUnit]?.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
-              boldText={`${product.diameter} ${measurements.diameter.options.mm.name}`}
+              boldText={`${product.diameter} ${measurements.diameter.options[product.diameterUnit]?.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
-              boldText={`${product.weight} ${measurements.weight.options.kg.name}`}
+              boldText={`${product.weight} ${measurements.weight.options[product.weightUnit]?.name}`}
             />
           )}
         </View>

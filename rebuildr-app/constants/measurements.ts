@@ -1,26 +1,28 @@
-type OptionsType = {
-  [key: string]: { name: string; conversion: number };
+import { MeasurementUnitEnum } from "@/gql/graphql";
+
+export type OptionsType = {
+  [key in MeasurementUnitEnum]?: { name: string; conversion: number };
 };
 const meterOptions: OptionsType = {
-  mm: {
+  MM: {
     name: "mm",
     conversion: 1,
   },
-  cm: {
+  CM: {
     name: "cm",
     conversion: 10,
   },
-  dm: {
+  DM: {
     name: "dm",
     conversion: 100,
   },
-  m: {
+  M: {
     name: "m",
     conversion: 1000,
   },
 };
 const kgOptions: OptionsType = {
-  kg: {
+  KG: {
     name: "kg/m",
     conversion: 1,
   },
@@ -65,4 +67,6 @@ export const measurements: {
     options: kgOptions,
   },
 } as const;
-export type MeasurementsObjectType = { [key in MeasurementType]?: number };
+export type MeasurementsObjectType = {
+  [key in MeasurementType]?: { value: number; unit: MeasurementUnitEnum };
+};

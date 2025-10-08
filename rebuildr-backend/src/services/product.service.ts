@@ -320,20 +320,38 @@ export class ProductService {
     if (input.height !== undefined) {
       product.height = input.height;
     }
+    if (input.heightUnit !== undefined) {
+      product.heightUnit = input.heightUnit;
+    }
     if (input.width !== undefined) {
       product.width = input.width;
+    }
+    if (input.widthUnit !== undefined) {
+      product.widthUnit = input.widthUnit;
     }
     if (input.length !== undefined) {
       product.length = input.length;
     }
+    if (input.lengthUnit !== undefined) {
+      product.lengthUnit = input.lengthUnit;
+    }
     if (input.thickness !== undefined) {
       product.thickness = input.thickness;
+    }
+    if (input.thicknessUnit !== undefined) {
+      product.thicknessUnit = input.thicknessUnit;
     }
     if (input.diameter !== undefined) {
       product.diameter = input.diameter;
     }
+    if (input.diameterUnit !== undefined) {
+      product.diameterUnit = input.diameterUnit;
+    }
     if (input.weight !== undefined) {
       product.weight = input.weight;
+    }
+    if (input.weightUnit !== undefined) {
+      product.weightUnit = input.weightUnit;
     }
     //Quantities
     if (input.primaryUnit && input.primaryQuantity) {

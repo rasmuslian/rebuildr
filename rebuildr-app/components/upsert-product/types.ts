@@ -1,4 +1,5 @@
 import {
+  MeasurementUnitEnum,
   ProductConditionEnum,
   ProductStatusEnum,
   QuantityUnitEnum,
@@ -26,11 +27,17 @@ export type ProductFields = {
   secondaryQuantity?: number;
   secondaryUnit?: QuantityUnitEnum;
   thickness?: number;
+  thicknessUnit: MeasurementUnitEnum;
   height?: number;
+  heightUnit: MeasurementUnitEnum;
   width?: number;
+  widthUnit: MeasurementUnitEnum;
   length?: number;
+  lengthUnit: MeasurementUnitEnum;
   diameter?: number;
+  diameterUnit: MeasurementUnitEnum;
   weight?: number;
+  weightUnit: MeasurementUnitEnum;
   isGiveaway?: boolean;
   condition: ProductConditionEnum;
   brandId?: string | null;

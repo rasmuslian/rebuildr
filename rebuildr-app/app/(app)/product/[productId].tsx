@@ -65,11 +65,17 @@ const PRODUCT_VIEW_FRAGMENT = gql`
     secondaryQuantity
     secondaryUnit
     height
+    heightUnit
     width
+    widthUnit
     length
+    lengthUnit
     thickness
+    thicknessUnit
     diameter
+    diameterUnit
     weight
+    weightUnit
     hasOngoingPurchase(includeOwnPurchases: true)
     images {
       id

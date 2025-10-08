@@ -7,23 +7,23 @@ import { Icon } from "@icons/icon";
 import { ReactElement, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
-export type Props = {
-  value?: string;
+export type Props<T> = {
+  value?: T;
   disabled?: boolean;
   onPress?: () => void;
   placeholder?: string;
   error?: boolean;
   dropdown?: (collapseDropdown: () => void) => ReactElement;
-  options: { value: string; label: string; disabled?: boolean }[];
-  onSelect: (value: string) => void;
+  options: { value: T; label: string; disabled?: boolean }[];
+  onSelect: (value: T) => void;
 };
 
-export const SelectInput = ({ ...props }: Props) => {
+export const SelectInput = <T,>({ ...props }: Props<T>) => {
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionHover, setOptionHover] = useState<number | undefined>();
-  const ref = useRef<View>(null);
+  const ref = useRef<View | null>(null);
   useOutsidePress(ref, () => {
     setShowOptions(false);
   });
