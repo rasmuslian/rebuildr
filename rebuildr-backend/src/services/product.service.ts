@@ -14,8 +14,15 @@ import {
   BadUserInputException,
   ForbiddenException,
   InternalServerException,
+  NotFoundException,
 } from 'src/exceptions';
 import {
+  CmsCreateProductInput,
+  CmsCreateProductResponse,
+  CmsListProductsInput,
+  CmsListProductsResponse,
+  CmsUpdateProductInput,
+  CmsUpdateProductResponse,
   CreateProductResponse,
   FileInputType,
   GetTransportationOptionsInput,
@@ -24,7 +31,16 @@ import {
   ProductsInput,
   UpdateProductInput,
 } from 'src/resolvers/product.resolver';
-import { DataSource, Equal, In, IsNull, Not, Point, Repository } from 'typeorm';
+import {
+  DataSource,
+  Equal,
+  In,
+  IsNull,
+  Not,
+  Point,
+  Repository,
+  ILike,
+} from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
@@ -1175,5 +1191,168 @@ export class ProductService {
       products: result[0],
       total: result[1],
     };
+  }
+
+  async cmsGetProduct(productId: string) {
+    const product = await this.productRepository.findOneBy({ id: productId });
+    if (!product) throw BadUserInputException();
+    return product;
+  }
+
+  async cmsListProducts(
+    input: CmsListProductsInput,
+  ): Promise<CmsListProductsResponse> {
+    const { pageSize = 10, page = 0, searchString = '' } = input;
+    const skip = Math.max(0, pageSize * page);
+
+    const [products, total] = await this.productRepository.findAndCount({
+      where: [
+        {
+          status: Not(ProductStatus.DRAFT),
+          title: ILike(`%${searchString}%`),
+        },
+        {
+          status: Not(ProductStatus.DRAFT),
+          seller: {
+            username: ILike(`%${searchString}%`),
+          },
+        },
+        {
+          status: Not(ProductStatus.DRAFT),
+          seller: {
+            email: ILike(`%${searchString}%`),
+          },
+        },
+        {
+          status: Not(ProductStatus.DRAFT),
+          category: {
+            name: ILike(`%${searchString}%`),
+          },
+        },
+      ],
+      take: pageSize,
+      skip,
+      order: { updatedAt: 'DESC' },
+      relations: {
+        seller: true,
+        category: true,
+      },
+    });
+
+    return {
+      products,
+      total,
+    };
+  }
+
+  async cmsCreateProduct(
+    input: CmsCreateProductInput,
+    userId: string,
+  ): Promise<CmsCreateProductResponse> {
+    try {
+      const product = this.productRepository.create({
+        ...input,
+        sellerId: userId,
+        status: ProductStatus.PUBLISHED,
+        price: input.price * 100,
+        images: await this.fileService.createFiles(input.images),
+      });
+
+      return {
+        product: await this.productRepository.save(product),
+        imagePutUrls: await this.fileService.uploadFiles(product.images, true),
+      };
+    } catch (error) {
+      throw BadUserInputException('Failed to create product' + error);
+    }
+  }
+
+  async cmsUpdateProduct(
+    input: CmsUpdateProductInput,
+  ): Promise<CmsUpdateProductResponse> {
+    const product = await this.productRepository.findOne({
+      where: { id: input.id },
+      relations: { images: true },
+    });
+
+    if (!product) throw NotFoundException('Product not found');
+
+    try {
+      const images = product.images;
+      const removeIds = new Set(input.removeImages);
+      const keepImages = images.filter((img) => !removeIds.has(img.id));
+      const removeImages = images.filter((img) => removeIds.has(img.id));
+
+      await this.fileService.deleteFiles(removeImages);
+      const addImages = await this.fileService.createFiles(input.addImages);
+
+      Object.assign<Product, Partial<Product>>(product, {
+        ...input,
+        price: input.price * 100,
+        images: [...keepImages, ...addImages],
+      });
+
+      return {
+        product: await this.productRepository.save(product),
+        imagePutUrls: await this.fileService.uploadFiles(product.images),
+      };
+    } catch (error) {
+      throw BadUserInputException(`Failed to update product: ${error}`);
+    }
+  }
+
+  async cmsHideProduct(productId: string, hiddenReason: string) {
+    const product = await this.productRepository.findOneBy({ id: productId });
+    if (!product) throw NotFoundException('Product not found');
+
+    try {
+      product.hiddenReason = hiddenReason;
+      return await this.productRepository.save(product);
+    } catch (error) {
+      throw BadUserInputException(`Failed to hide product: ${error}`);
+    }
+  }
+
+  async cmsUnhideProduct(productId: string): Promise<Product> {
+    const product = await this.productRepository.findOneBy({ id: productId });
+    if (!product) throw NotFoundException('Product not found');
+
+    try {
+      product.hiddenReason = null;
+      return await this.productRepository.save(product);
+    } catch (error) {
+      throw BadUserInputException(`Failed to unhide product: ${error}`);
+    }
+  }
+
+  async cmsDeleteProduct(productId: string): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: { images: true, documents: true },
+    });
+
+    if (!product) throw NotFoundException('Product not found');
+
+    const canDelete = this.canDelete(product);
+    if (!canDelete) throw ForbiddenException('Product got ongoing purchase');
+
+    try {
+      await Promise.all([
+        this.fileService.deleteFiles(product.images),
+        this.fileService.deleteFiles(product.documents),
+      ]);
+
+      Object.assign<Product, Partial<Product>>(product, {
+        deletedAt: new Date(),
+        status: ProductStatus.DELETED,
+        images: [],
+        documents: [],
+        likedBy: [],
+      });
+
+      return await this.productRepository.save(product);
+    } catch (error) {
+      throw BadUserInputException(`Failed to delete product: ${error}`);
+    }
   }
 }

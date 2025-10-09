@@ -2,23 +2,27 @@
 
 import React from "react";
 import { Divider } from "antd";
+import classNames from "classnames";
 
 type Props = {
   title?: string;
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
+  type?: "flat" | "raised";
   children: React.ReactNode;
 };
 
-const AdminForm = ({ title, onSubmit, children }: Props) => {
+const AdminForm = ({ title, onSubmit, type = "flat", children }: Props) => {
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit ?? undefined}>
-      {title && (
-        <Divider orientation="start">
-          <h3>{title}</h3>
-        </Divider>
-      )}
+    <form onSubmit={onSubmit ?? undefined} className="flex flex-col gap-4">
+      {title && <Divider orientation="start">{title}</Divider>}
 
-      {children}
+      <div
+        className={classNames("flex flex-1 flex-col gap-4", {
+          "rounded bg-white p-4 shadow-md": type === "raised",
+        })}
+      >
+        {children}
+      </div>
     </form>
   );
 };

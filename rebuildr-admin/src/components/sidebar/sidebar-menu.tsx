@@ -14,6 +14,7 @@ import {
   FolderOpenOutlined,
   SettingOutlined,
   InboxOutlined,
+  ProductOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -52,14 +53,19 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Översikt", "/admin", <HomeOutlined />),
     { type: "divider" },
-    getItem("Artiklar", "/article", <FolderOpenOutlined />, [
-      getItem("Skapa artikel", routes.CREATE_ARTICLE),
-      getItem("Visa alla", routes.LIST_ARTICLE),
+    getItem("Produkter", "/product", <ProductOutlined />, [
+      getItem("Skapa product", routes.CREATE_PRODUCT),
+      getItem("Visa alla produkter", routes.LIST_PRODUCT),
     ]),
     { type: "divider" },
     getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),
     { type: "divider" },
     getItem("Bildbank", routes.MEDIA_BANK, <FileImageOutlined />),
+    { type: "divider" },
+    getItem("Artiklar", "/article", <FolderOpenOutlined />, [
+      getItem("Skapa artikel", routes.CREATE_ARTICLE),
+      getItem("Visa alla artiklar", routes.LIST_ARTICLE),
+    ]),
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [
       getItem("Sidfot", routes.FOOTER_SETTING),

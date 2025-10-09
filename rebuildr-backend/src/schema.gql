@@ -488,6 +488,21 @@ type DeliveryOptionResponse {
   postalCode: String
 }
 
+type CmsListProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type CmsCreateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+}
+
+type CmsUpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+}
+
 type UpdateUserResponse {
   user: User!
   profilePicturePutUrl: String
@@ -578,6 +593,8 @@ type Query {
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
   getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
   getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
+  cmsGetProduct(productId: String!): Product!
+  cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
   category(input: CategoryInput!): Category!
   categories(input: CategoriesInput!): [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -668,6 +685,12 @@ input GetTransportationOptionsInput {
   productId: String!
   postCode: String
   address: String
+}
+
+input CmsListProductsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
 }
 
 input CategoryInput {
@@ -788,6 +811,11 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   deleteAccount: User!
+  cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
+  cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
+  cmsHideProduct(productId: String!, hiddenReason: String!): Product!
+  cmsUnhideProduct(productId: String!): Product!
+  cmsDeleteProduct(productId: String!): Product!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
@@ -893,6 +921,28 @@ input CreateOrganizationUserInput {
   organizationNumber: String!
   organizationName: String!
   creatorId: String!
+}
+
+input CmsCreateProductInput {
+  title: String!
+  description: String!
+  price: Float!
+  images: [FileInputType!]!
+  categoryId: String!
+  brandId: String!
+  condition: ProductConditionEnum!
+}
+
+input CmsUpdateProductInput {
+  id: String!
+  title: String!
+  description: String!
+  price: Float!
+  categoryId: String!
+  brandId: String!
+  condition: ProductConditionEnum!
+  addImages: [FileInputType!]
+  removeImages: [String!]
 }
 
 input CreateProductInput {

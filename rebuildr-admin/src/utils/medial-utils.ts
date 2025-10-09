@@ -1,6 +1,17 @@
 import type { UploadFile } from "antd";
 import { RcFile } from "antd/es/upload";
 import { FileInputType, File } from "gql/graphql";
+import { map, difference } from "lodash";
+
+export const getRemovedFileIds = (
+  initialFiles: File[],
+  currentFiles: UploadFile[],
+) => {
+  const initialIds = map(initialFiles, "id");
+  const currentIds = map(currentFiles, "uid");
+  const removedFiles = difference(initialIds, currentIds);
+  return removedFiles;
+};
 
 export const getUploadFiles = (files: File[]) => {
   return files.map((file) => {
