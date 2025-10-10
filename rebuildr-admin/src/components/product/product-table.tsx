@@ -23,6 +23,7 @@ import { routes } from "@/lib/routes";
 import { deleteProduct } from "@/queries/product/delete-product";
 import { hideProduct } from "@/queries/product/hide-product";
 import { unhideProduct } from "@/queries/product/unhide-product";
+import FormField from "@components/form-field";
 
 type StateType = {
   searchString: string;
@@ -143,21 +144,26 @@ const ProductTable = () => {
       width: 700,
       title: 'Säker på att du vill dölja "' + title + '"?',
       content: (
-        <div className="flex flex-col gap-5">
+        <div className="mb-6 flex flex-col gap-5">
           <p>När du döljer produkten kommer den inte längre vara synlig.</p>
 
-          <Input.TextArea
-            placeholder="Ange orsaken..."
-            rows={5}
-            onChange={(e) => {
-              hiddenReason = e.target.value.trim();
-              modalInstance.update({
-                okButtonProps: {
-                  disabled: hiddenReason.length === 0,
-                },
-              });
-            }}
-          />
+          <FormField label="Döljningsorsak" required={true}>
+            <Input.TextArea
+              placeholder="Ange orsaken..."
+              rows={8}
+              showCount
+              size="middle"
+              maxLength={300}
+              onChange={(e) => {
+                hiddenReason = e.target.value.trim();
+                modalInstance.update({
+                  okButtonProps: {
+                    disabled: hiddenReason.length === 0,
+                  },
+                });
+              }}
+            />
+          </FormField>
         </div>
       ),
       async onOk() {
@@ -177,14 +183,20 @@ const ProductTable = () => {
       width: 700,
       title: 'Säker på att du vill visa "' + title + '" igen?',
       content: (
-        <div className="flex flex-col gap-5">
+        <div className="mb-6 flex flex-col gap-5">
           <p>När du visar produkten kommer den bli synlig igen.</p>
-          <Input.TextArea
-            placeholder="Ange orsaken..."
-            rows={5}
-            value={hiddenReason}
-            disabled
-          />
+
+          <FormField label="Döljningsorsak" required={true}>
+            <Input.TextArea
+              placeholder="Ange orsaken..."
+              rows={8}
+              value={hiddenReason}
+              disabled
+              showCount
+              size="middle"
+              maxLength={300}
+            />
+          </FormField>
         </div>
       ),
       async onOk() {
