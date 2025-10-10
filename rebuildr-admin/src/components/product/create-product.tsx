@@ -24,10 +24,14 @@ const CreateProduct = () => {
     watch,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
     defaultValues: {
       images: [],
+      secondaryMeasurement: {
+        enabled: false,
+      },
     },
   });
 
@@ -62,6 +66,10 @@ const CreateProduct = () => {
       condition: formData.condition,
       price: formData.price,
       images: getFileInputTypes(formData.images),
+      primaryQuantity: formData.primaryMeasurement.quantity,
+      primaryUnit: formData.primaryMeasurement.unit,
+      secondaryQuantity: formData.secondaryMeasurement.quantity,
+      secondaryUnit: formData.secondaryMeasurement.unit,
     };
 
     const response = await mutateAsync(newProduct);
@@ -80,6 +88,7 @@ const CreateProduct = () => {
       onSubmit={onSubmit}
       submitLabel="Publicera"
       watch={watch}
+      setValue={setValue}
     />
   );
 };

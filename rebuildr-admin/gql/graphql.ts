@@ -155,6 +155,10 @@ export type CmsCreateProductInput = {
   description: Scalars['String']['input'];
   images: Array<FileInputType>;
   price: Scalars['Float']['input'];
+  primaryQuantity: Scalars['Float']['input'];
+  primaryUnit: QuantityUnitEnum;
+  secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
+  secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   title: Scalars['String']['input'];
 };
 
@@ -222,7 +226,11 @@ export type CmsUpdateProductInput = {
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
   price: Scalars['Float']['input'];
+  primaryQuantity: Scalars['Float']['input'];
+  primaryUnit: QuantityUnitEnum;
   removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
+  secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
+  secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   title: Scalars['String']['input'];
 };
 

@@ -10,6 +10,10 @@ const query = `
       condition
       price
       status
+      primaryQuantity
+      primaryUnit
+      secondaryQuantity
+      secondaryUnit
       category {
         id
         name

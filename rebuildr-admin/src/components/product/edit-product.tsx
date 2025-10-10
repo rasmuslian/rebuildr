@@ -35,6 +35,7 @@ const EditProduct = ({ product }: Props) => {
     watch,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
     defaultValues: {
@@ -45,6 +46,15 @@ const EditProduct = ({ product }: Props) => {
       condition: product.condition,
       price: product.price,
       images: product.images ? getUploadFiles(product.images) : [],
+      primaryMeasurement: {
+        quantity: product.primaryQuantity ?? undefined,
+        unit: product.primaryUnit ?? undefined,
+      },
+      secondaryMeasurement: {
+        enabled: !!product.secondaryQuantity && !!product.secondaryUnit,
+        quantity: product.secondaryQuantity ?? undefined,
+        unit: product.secondaryUnit ?? undefined,
+      },
     },
   });
 
@@ -82,6 +92,10 @@ const EditProduct = ({ product }: Props) => {
       price: formData.price,
       addImages: getFileInputTypes(formData.images),
       removeImages: getRemovedFileIds(product.images, formData.images),
+      primaryQuantity: formData.primaryMeasurement.quantity,
+      primaryUnit: formData.primaryMeasurement.unit,
+      secondaryQuantity: formData.secondaryMeasurement.quantity ?? null,
+      secondaryUnit: formData.secondaryMeasurement.unit ?? null,
     };
 
     const response = await mutateAsync(updatedProduct);
@@ -100,6 +114,7 @@ const EditProduct = ({ product }: Props) => {
       onSubmit={onSubmit}
       submitLabel="Spara"
       watch={watch}
+      setValue={setValue}
     />
   );
 };

@@ -465,6 +465,18 @@ export class CmsCreateProductInput {
 
   @Field(() => ProductConditionEnum)
   condition: ProductConditionEnum;
+
+  @Field()
+  primaryQuantity: number;
+
+  @Field(() => QuantityUnitEnum)
+  primaryUnit: QuantityUnitEnum;
+
+  @Field({ nullable: true })
+  secondaryQuantity?: number;
+
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  secondaryUnit?: QuantityUnitEnum;
 }
 
 @ObjectType()
@@ -503,6 +515,18 @@ export class CmsUpdateProductInput {
 
   @Field(() => [String], { nullable: true })
   removeImages: string[];
+
+  @Field()
+  primaryQuantity: number;
+
+  @Field(() => QuantityUnitEnum)
+  primaryUnit: QuantityUnitEnum;
+
+  @Field({ nullable: true })
+  secondaryQuantity?: number;
+
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  secondaryUnit?: QuantityUnitEnum;
 }
 
 @ObjectType()

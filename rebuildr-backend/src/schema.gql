@@ -931,6 +931,10 @@ input CmsCreateProductInput {
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
+  primaryQuantity: Float!
+  primaryUnit: QuantityUnitEnum!
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
 }
 
 input CmsUpdateProductInput {
@@ -943,6 +947,10 @@ input CmsUpdateProductInput {
   condition: ProductConditionEnum!
   addImages: [FileInputType!]
   removeImages: [String!]
+  primaryQuantity: Float!
+  primaryUnit: QuantityUnitEnum!
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
 }
 
 input CreateProductInput {
