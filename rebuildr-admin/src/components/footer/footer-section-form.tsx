@@ -39,7 +39,11 @@ const FooterSectionForm = ({
         control={control}
         name="title"
         render={({ field }) => (
-          <FormField label="Rubrik" error={errors.title?.message}>
+          <FormField
+            label="Rubrik"
+            required={true}
+            error={errors.title?.message}
+          >
             <Input {...field} placeholder="Ange rubrik..." />
           </FormField>
         )}
@@ -49,7 +53,11 @@ const FooterSectionForm = ({
         control={control}
         name="orderIndex"
         render={({ field }) => (
-          <FormField label="Position" error={errors.orderIndex?.message}>
+          <FormField
+            label="Position"
+            required={true}
+            error={errors.orderIndex?.message}
+          >
             <InputNumber
               {...field}
               placeholder="Ange sorteringsposition (t.ex. 1, 2, 3 …)"
@@ -66,7 +74,11 @@ const FooterSectionForm = ({
         render={({ field: { onChange, value } }) => {
           return (
             <div className="grid grid-cols-[auto_320px] gap-5">
-              <FormField label="Välj artiklar" error={errors.articles?.message}>
+              <FormField
+                label="Välj artiklar"
+                required={true}
+                error={errors.articles?.message}
+              >
                 <SelectAricleTable articles={value} setArticles={onChange} />
               </FormField>
 

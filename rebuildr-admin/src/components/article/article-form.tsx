@@ -44,7 +44,11 @@ const ArticleForm = ({
             control={control}
             name="title"
             render={({ field }) => (
-              <FormField label="Rubrik" error={errors.title?.message}>
+              <FormField
+                label="Rubrik"
+                required={true}
+                error={errors.title?.message}
+              >
                 <Input {...field} placeholder="Titel" />
               </FormField>
             )}
