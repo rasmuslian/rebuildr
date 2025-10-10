@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import EmptyContainer from "@/components/empty-container";
 import { TreeSelect } from "antd";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +21,11 @@ const SelectCategory = ({ categoryId, onSelectCategory }: Props) => {
     staleTime: 1000 * 60 * 10,
   });
 
+  const treeData = useMemo(
+    () => convertCategoryToTreeData(categories),
+    [categories],
+  );
+
   return (
     <TreeSelect
       treeLine
@@ -29,7 +34,7 @@ const SelectCategory = ({ categoryId, onSelectCategory }: Props) => {
       placeholder="Välj kategori ..."
       size="large"
       defaultValue={categoryId}
-      treeData={convertCategoryToTreeData(categories)}
+      treeData={treeData}
       treeNodeFilterProp="title"
       onSelect={(value) => onSelectCategory(value)}
       notFoundContent={

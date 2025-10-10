@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import EmptyContainer from "@/components/empty-container";
 import { Select, SelectProps } from "antd";
 import { useQuery } from "@tanstack/react-query";
@@ -13,23 +13,21 @@ type Props = {
 };
 
 const SelectBrand = ({ brandId, onSelectBrand }: Props) => {
-  const options: SelectProps["options"] = [];
-
-  const { data, isLoading } = useQuery({
+  const { data: brands = [], isLoading } = useQuery({
     queryKey: [queryKeys.LIST_BRAND],
     queryFn: () => listBrands(),
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,
   });
 
-  const brands = data ?? [];
-
-  brands.forEach((brand) => {
-    options.push({
-      label: brand.name,
-      value: brand.id,
-    });
-  });
+  const options: SelectProps["options"] = useMemo(
+    () =>
+      brands.map((brand) => ({
+        label: brand.name,
+        value: brand.id,
+      })),
+    [brands],
+  );
 
   return (
     <Select

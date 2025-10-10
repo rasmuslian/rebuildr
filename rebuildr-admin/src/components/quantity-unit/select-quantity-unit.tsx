@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Select, SelectProps } from "antd";
 import EmptyContainer from "@/components/empty-container";
 import { QuantityUnitEnum } from "gql/graphql";
@@ -12,15 +12,14 @@ type Props = {
 };
 
 const SelectQuantityUnit = ({ quantityUnit, onSelectQuantityUnit }: Props) => {
-  const options: SelectProps["options"] = [];
-  const productQuantityUnits = Object.values(QuantityUnitEnum);
-
-  productQuantityUnits?.forEach((productQuantityUnit) => {
-    options.push({
-      label: quantities[productQuantityUnit].short,
-      value: productQuantityUnit,
-    });
-  });
+  const options: SelectProps["options"] = useMemo(
+    () =>
+      Object.values(QuantityUnitEnum).map((unit) => ({
+        label: quantities[unit].short,
+        value: unit,
+      })),
+    [],
+  );
 
   return (
     <Select

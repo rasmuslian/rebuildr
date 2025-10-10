@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Select, SelectProps } from "antd";
 import EmptyContainer from "@/components/empty-container";
 import { ProductConditionEnum } from "gql/graphql";
@@ -12,15 +12,14 @@ type Props = {
 };
 
 const SelectCondition = ({ condition, onSelectCondition }: Props) => {
-  const options: SelectProps["options"] = [];
-  const productConditions = Object.values(ProductConditionEnum);
-
-  productConditions?.forEach((productCondition) => {
-    options.push({
-      label: conditions[productCondition].name,
-      value: productCondition,
-    });
-  });
+  const options: SelectProps["options"] = useMemo(
+    () =>
+      Object.values(ProductConditionEnum).map((condition) => ({
+        label: conditions[condition].name,
+        value: condition,
+      })),
+    [],
+  );
 
   return (
     <Select
