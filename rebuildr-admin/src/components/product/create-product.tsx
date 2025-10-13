@@ -13,6 +13,7 @@ import { getFileInputTypes, uploadFiles } from "@utils/medial-utils";
 import { CmsCreateProductInput } from "gql/graphql";
 import { createProduct } from "@/queries/product/create-product";
 import { queryKeys } from "@/lib/query-keys";
+import { omit } from "lodash";
 
 const CreateProduct = () => {
   const { notification } = App.useApp();
@@ -30,6 +31,9 @@ const CreateProduct = () => {
     defaultValues: {
       images: [],
       secondaryMeasurement: {
+        enabled: false,
+      },
+      measurement: {
         enabled: false,
       },
     },
@@ -70,6 +74,8 @@ const CreateProduct = () => {
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity,
       secondaryUnit: formData.secondaryMeasurement.unit,
+      address: formData.address,
+      measurement: omit(formData.measurement, ["enabled"]),
     };
 
     const response = await mutateAsync(newProduct);

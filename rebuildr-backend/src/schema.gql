@@ -924,33 +924,52 @@ input CreateOrganizationUserInput {
 }
 
 input CmsCreateProductInput {
-  title: String!
-  description: String!
-  price: Float!
-  images: [FileInputType!]!
-  categoryId: String!
-  brandId: String!
-  condition: ProductConditionEnum!
   primaryQuantity: Float!
   primaryUnit: QuantityUnitEnum!
   secondaryQuantity: Float
   secondaryUnit: QuantityUnitEnum
+  title: String!
+  description: String!
+  price: Float!
+  categoryId: String!
+  brandId: String!
+  condition: ProductConditionEnum!
+  address: String!
+  measurement: MeasurementInput
+  images: [FileInputType!]!
+}
+
+input MeasurementInput {
+  height: Float
+  heightUnit: MeasurementUnitEnum
+  width: Float
+  widthUnit: MeasurementUnitEnum
+  length: Float
+  lengthUnit: MeasurementUnitEnum
+  thickness: Float
+  thicknessUnit: MeasurementUnitEnum
+  diameter: Float
+  diameterUnit: MeasurementUnitEnum
+  weight: Float
+  weightUnit: MeasurementUnitEnum
 }
 
 input CmsUpdateProductInput {
-  id: String!
+  primaryQuantity: Float!
+  primaryUnit: QuantityUnitEnum!
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
   title: String!
   description: String!
   price: Float!
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
+  address: String!
+  measurement: MeasurementInput
+  id: String!
   addImages: [FileInputType!]
   removeImages: [String!]
-  primaryQuantity: Float!
-  primaryUnit: QuantityUnitEnum!
-  secondaryQuantity: Float
-  secondaryUnit: QuantityUnitEnum
 }
 
 input CreateProductInput {

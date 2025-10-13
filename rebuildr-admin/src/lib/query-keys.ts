@@ -6,4 +6,5 @@ export enum queryKeys {
   LIST_PRODUCTS = "list-products",
   LIST_CATEGORY = "lisy-category",
   LIST_BRAND = "lisy-brand",
+  SEARCH_ADDRESS = "search-address",
 }

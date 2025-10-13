@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Table, Divider, Tag, Button, App, Input } from "antd";
 import { useState } from "@/hooks/use-state";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -210,11 +210,11 @@ const ProductTable = () => {
     });
   };
 
-  const onSearchStringChange = debounce(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onSearchStringChange = useCallback(
+    debounce((event: React.ChangeEvent<HTMLInputElement>) => {
       setState({ searchString: event.target.value, page: initialState.page });
-    },
-    400,
+    }, 400),
+    [],
   );
 
   const getProductStatusTag = (status: ProductStatusEnum) => {

@@ -1250,12 +1250,21 @@ export class ProductService {
     userId: string,
   ): Promise<CmsCreateProductResponse> {
     try {
+      const { measurement, images, price, address, ...rest } = input;
+      const location = await this.geocodingService.addressToLocation(address);
+
       const product = this.productRepository.create({
-        ...input,
+        ...rest,
+        ...measurement,
         sellerId: userId,
         status: ProductStatus.PUBLISHED,
-        price: input.price * 100,
-        images: await this.fileService.createFiles(input.images),
+        price: price * 100,
+        images: await this.fileService.createFiles(images),
+        address,
+        addressLocation: {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        },
       });
 
       return {
@@ -1278,18 +1287,29 @@ export class ProductService {
     if (!product) throw NotFoundException('Product not found');
 
     try {
-      const images = product.images;
-      const removeIds = new Set(input.removeImages);
-      const keepImages = images.filter((img) => !removeIds.has(img.id));
-      const removeImages = images.filter((img) => removeIds.has(img.id));
+      const { measurement, removeImages, addImages, address, price, ...rest } =
+        input;
 
-      await this.fileService.deleteFiles(removeImages);
-      const addImages = await this.fileService.createFiles(input.addImages);
+      const location = await this.geocodingService.addressToLocation(address);
+
+      const images = product.images;
+      const removeIds = new Set(removeImages);
+      const keepImagesList = images.filter((img) => !removeIds.has(img.id));
+      const removeImagesList = images.filter((img) => removeIds.has(img.id));
+
+      await this.fileService.deleteFiles(removeImagesList);
+      const addImagesList = await this.fileService.createFiles(addImages);
 
       Object.assign<Product, Partial<Product>>(product, {
-        ...input,
-        price: input.price * 100,
-        images: [...keepImages, ...addImages],
+        ...rest,
+        ...measurement,
+        address,
+        addressLocation: {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        },
+        price: price * 100,
+        images: [...keepImagesList, ...addImagesList],
       });
 
       return {

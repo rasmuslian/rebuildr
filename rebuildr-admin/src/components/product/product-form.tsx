@@ -10,6 +10,9 @@ import SelectCategory from "@components/category/select-category";
 import SelectBrand from "@components/brand/select-brand";
 import SelectCondition from "@components/condition/select-condition";
 import SelectQuantityUnit from "@components/quantity-unit/select-quantity-unit";
+import SelectMeasurement from "@components/measurement/select-measurement";
+import { measurements, MeasurementType } from "@/constants/measurements";
+import SearchAddress from "@components/address/search-address";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -48,7 +51,11 @@ const ProductForm = ({
         control={control}
         name="images"
         render={({ field: { value, onChange } }) => (
-          <FormField label="Bild" error={errors.images?.message}>
+          <FormField
+            label="Bild"
+            required={true}
+            error={errors.images?.message}
+          >
             <UploadMedia
               files={value}
               setFiles={onChange}
@@ -62,7 +69,11 @@ const ProductForm = ({
         control={control}
         name="title"
         render={({ field }) => (
-          <FormField label="Rubrik" error={errors.title?.message}>
+          <FormField
+            label="Rubrik"
+            required={true}
+            error={errors.title?.message}
+          >
             <Input {...field} placeholder="Titel" />
           </FormField>
         )}
@@ -72,7 +83,11 @@ const ProductForm = ({
         control={control}
         name="description"
         render={({ field }) => (
-          <FormField label="Beskrivning" error={errors.description?.message}>
+          <FormField
+            label="Beskrivning"
+            required={true}
+            error={errors.description?.message}
+          >
             <Input.TextArea {...field} rows={4} placeholder="Beskrivning ..." />
           </FormField>
         )}
@@ -82,7 +97,7 @@ const ProductForm = ({
         control={control}
         name="price"
         render={({ field: { value, onChange } }) => (
-          <FormField label="Pris" error={errors.price?.message}>
+          <FormField label="Pris" required={true} error={errors.price?.message}>
             <InputNumber
               value={value}
               onChange={onChange}
@@ -98,7 +113,11 @@ const ProductForm = ({
         control={control}
         name="categoryId"
         render={({ field: { value, onChange } }) => (
-          <FormField label="Kategori" error={errors.categoryId?.message}>
+          <FormField
+            label="Kategori"
+            required={true}
+            error={errors.categoryId?.message}
+          >
             <SelectCategory
               categoryId={value}
               onSelectCategory={(categoryId) => onChange(categoryId)}
@@ -111,7 +130,11 @@ const ProductForm = ({
         control={control}
         name="brandId"
         render={({ field: { value, onChange } }) => (
-          <FormField label="Märke" error={errors.brandId?.message}>
+          <FormField
+            label="Märke"
+            required={true}
+            error={errors.brandId?.message}
+          >
             <SelectBrand
               brandId={value}
               onSelectBrand={(brandId) => onChange(brandId)}
@@ -124,10 +147,31 @@ const ProductForm = ({
         control={control}
         name="condition"
         render={({ field: { value, onChange } }) => (
-          <FormField label="Skick" error={errors.condition?.message}>
+          <FormField
+            label="Skick"
+            required={true}
+            error={errors.condition?.message}
+          >
             <SelectCondition
               condition={value}
               onSelectCondition={(condition) => onChange(condition)}
+            />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name={"address"}
+        render={({ field: { value, onChange } }) => (
+          <FormField
+            label="Adress"
+            required={true}
+            error={errors.address?.message}
+          >
+            <SearchAddress
+              address={value}
+              onSelectAddress={(address) => onChange(address)}
             />
           </FormField>
         )}
@@ -145,6 +189,7 @@ const ProductForm = ({
             render={({ field: { value, onChange } }) => (
               <FormField
                 label="Antal"
+                required={true}
                 error={errors.primaryMeasurement?.quantity?.message}
               >
                 <InputNumber
@@ -164,6 +209,7 @@ const ProductForm = ({
             render={({ field: { value, onChange } }) => (
               <FormField
                 label="Enhet"
+                required={true}
                 error={errors.primaryMeasurement?.unit?.message}
               >
                 <SelectQuantityUnit
@@ -248,6 +294,88 @@ const ProductForm = ({
               )}
             />
           </div>
+        </div>
+      )}
+
+      <Controller
+        control={control}
+        name="measurement.enabled"
+        render={({ field: { value, onChange } }) => (
+          <FormField error={errors.secondaryMeasurement?.enabled?.message}>
+            <Checkbox
+              checked={value}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                onChange(checked);
+
+                if (!checked) {
+                  setValue("measurement", {
+                    enabled: false,
+                    diameter: undefined,
+                    diameterUnit: undefined,
+                    thickness: undefined,
+                    thicknessUnit: undefined,
+                    height: undefined,
+                    heightUnit: undefined,
+                    length: undefined,
+                    lengthUnit: undefined,
+                    weight: undefined,
+                    weightUnit: undefined,
+                    width: undefined,
+                    widthUnit: undefined,
+                  });
+                }
+              }}
+            >
+              Lägg till produktdetaljer
+            </Checkbox>
+          </FormField>
+        )}
+      />
+
+      {watch("measurement.enabled") && (
+        <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
+          <Divider orientation="left" size="small">
+            Produktdetaljer
+          </Divider>
+
+          {Object.entries(measurements).map(([key, measurement]) => {
+            const measurementType = key as MeasurementType;
+
+            return (
+              <div className="flex flex-row gap-5" key={measurementType}>
+                <Controller
+                  control={control}
+                  name={`measurement.${measurementType}`}
+                  render={({ field: { value, onChange } }) => (
+                    <FormField label={measurement.name}>
+                      <InputNumber
+                        value={value}
+                        onChange={onChange}
+                        placeholder={`${measurement.name} ...`}
+                        style={{ width: "100%" }}
+                        type="number"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name={`measurement.${measurementType}Unit`}
+                  render={({ field: { value, onChange } }) => (
+                    <FormField label={`${measurement.name} enhet`}>
+                      <SelectMeasurement
+                        measurementType={measurementType}
+                        measurementUnit={value}
+                        onSelectSeasurementUnit={(unit) => onChange(unit)}
+                      />
+                    </FormField>
+                  )}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 

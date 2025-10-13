@@ -10,10 +10,23 @@ const query = `
       condition
       price
       status
+      address
       primaryQuantity
       primaryUnit
       secondaryQuantity
       secondaryUnit
+      diameter
+      diameterUnit
+      weight
+      weightUnit
+      thickness
+      thicknessUnit
+      length
+      lengthUnit
+      width
+      widthUnit
+      height
+      heightUnit
       category {
         id
         name

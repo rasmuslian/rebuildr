@@ -149,11 +149,13 @@ export type CmsCreateFooterSectionInput = {
 };
 
 export type CmsCreateProductInput = {
+  address: Scalars['String']['input'];
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
   description: Scalars['String']['input'];
   images: Array<FileInputType>;
+  measurement?: InputMaybe<MeasurementInput>;
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
@@ -220,11 +222,13 @@ export type CmsUpdateFooterSectionInput = {
 
 export type CmsUpdateProductInput = {
   addImages?: InputMaybe<Array<FileInputType>>;
+  address: Scalars['String']['input'];
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
+  measurement?: InputMaybe<MeasurementInput>;
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
@@ -528,6 +532,21 @@ export type MarkAsReadInput = {
 
 export type MarkPurchaseAsDeliveredInput = {
   purchaseId: Scalars['String']['input'];
+};
+
+export type MeasurementInput = {
+  diameter?: InputMaybe<Scalars['Float']['input']>;
+  diameterUnit?: InputMaybe<MeasurementUnitEnum>;
+  height?: InputMaybe<Scalars['Float']['input']>;
+  heightUnit?: InputMaybe<MeasurementUnitEnum>;
+  length?: InputMaybe<Scalars['Float']['input']>;
+  lengthUnit?: InputMaybe<MeasurementUnitEnum>;
+  thickness?: InputMaybe<Scalars['Float']['input']>;
+  thicknessUnit?: InputMaybe<MeasurementUnitEnum>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
+  weightUnit?: InputMaybe<MeasurementUnitEnum>;
+  width?: InputMaybe<Scalars['Float']['input']>;
+  widthUnit?: InputMaybe<MeasurementUnitEnum>;
 };
 
 export enum MeasurementUnitEnum {

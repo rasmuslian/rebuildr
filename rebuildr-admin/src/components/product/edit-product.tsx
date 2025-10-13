@@ -20,6 +20,8 @@ import {
 import { CmsUpdateProductInput } from "gql/graphql";
 import { updateProduct } from "@/queries/product/update-product";
 import { queryKeys } from "@/lib/query-keys";
+import { measurementKeys } from "@/constants/measurements";
+import { omit } from "lodash";
 
 type Props = {
   product: Product;
@@ -55,6 +57,16 @@ const EditProduct = ({ product }: Props) => {
         quantity: product.secondaryQuantity ?? undefined,
         unit: product.secondaryUnit ?? undefined,
       },
+      measurement: {
+        enabled: measurementKeys.some((key) => Boolean(product[key])),
+        ...Object.fromEntries(
+          measurementKeys.flatMap((key) => [
+            [key, product[key] ?? undefined],
+            [`${key}Unit`, product[`${key}Unit`] ?? undefined],
+          ]),
+        ),
+      },
+      address: product.address ?? "",
     },
   });
 
@@ -96,6 +108,8 @@ const EditProduct = ({ product }: Props) => {
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity ?? null,
       secondaryUnit: formData.secondaryMeasurement.unit ?? null,
+      address: formData.address,
+      measurement: omit(formData.measurement, ["enabled"]),
     };
 
     const response = await mutateAsync(updatedProduct);

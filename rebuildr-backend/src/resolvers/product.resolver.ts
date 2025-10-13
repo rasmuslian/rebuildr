@@ -444,28 +444,46 @@ export class CmsListProductsResponse {
 }
 
 @InputType()
-export class CmsCreateProductInput {
-  @Field(() => String)
-  title: string;
+class MeasurementInput {
+  @Field({ nullable: true })
+  height?: number;
 
-  @Field(() => String)
-  description: string;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  heightUnit?: MeasurementUnitEnum;
 
-  @Field()
-  price: number;
+  @Field({ nullable: true })
+  width?: number;
 
-  @Field(() => [FileInputType])
-  images: FileInputType[];
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  widthUnit?: MeasurementUnitEnum;
 
-  @Field()
-  categoryId: string;
+  @Field({ nullable: true })
+  length?: number;
 
-  @Field(() => String)
-  brandId: string;
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  lengthUnit?: MeasurementUnitEnum;
 
-  @Field(() => ProductConditionEnum)
-  condition: ProductConditionEnum;
+  @Field({ nullable: true })
+  thickness?: number;
 
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  thicknessUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  diameter?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  diameterUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  weight?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  weightUnit?: MeasurementUnitEnum;
+}
+
+@InputType()
+class QuantityInput {
   @Field()
   primaryQuantity: number;
 
@@ -477,6 +495,39 @@ export class CmsCreateProductInput {
 
   @Field(() => QuantityUnitEnum, { nullable: true })
   secondaryUnit?: QuantityUnitEnum;
+}
+
+@InputType()
+class CmsBaseProductInput extends QuantityInput {
+  @Field(() => String)
+  title: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field()
+  price: number;
+
+  @Field(() => String)
+  categoryId: string;
+
+  @Field(() => String)
+  brandId: string;
+
+  @Field(() => ProductConditionEnum)
+  condition: ProductConditionEnum;
+
+  @Field(() => String)
+  address: string;
+
+  @Field(() => MeasurementInput, { nullable: true })
+  measurement?: MeasurementInput;
+}
+
+@InputType()
+export class CmsCreateProductInput extends CmsBaseProductInput {
+  @Field(() => [FileInputType])
+  images: FileInputType[];
 }
 
 @ObjectType()
@@ -488,47 +539,16 @@ export class CmsCreateProductResponse {
   imagePutUrls: string[];
 }
 @InputType()
-export class CmsUpdateProductInput {
+export class CmsUpdateProductInput extends CmsBaseProductInput {
   @Field(() => String)
   id: string;
 
-  @Field(() => String)
-  title: string;
-
-  @Field(() => String)
-  description: string;
-
-  @Field()
-  price: number;
-
-  @Field()
-  categoryId: string;
-
-  @Field(() => String)
-  brandId: string;
-
-  @Field(() => ProductConditionEnum)
-  condition: ProductConditionEnum;
-
   @Field(() => [FileInputType], { nullable: true })
-  addImages: FileInputType[];
+  addImages?: FileInputType[];
 
   @Field(() => [String], { nullable: true })
-  removeImages: string[];
-
-  @Field()
-  primaryQuantity: number;
-
-  @Field(() => QuantityUnitEnum)
-  primaryUnit: QuantityUnitEnum;
-
-  @Field({ nullable: true })
-  secondaryQuantity?: number;
-
-  @Field(() => QuantityUnitEnum, { nullable: true })
-  secondaryUnit?: QuantityUnitEnum;
+  removeImages?: string[];
 }
-
 @ObjectType()
 export class CmsUpdateProductResponse {
   @Field(() => Product)
