@@ -109,7 +109,11 @@ const EditProduct = ({ product }: Props) => {
       secondaryQuantity: formData.secondaryMeasurement.quantity ?? null,
       secondaryUnit: formData.secondaryMeasurement.unit ?? null,
       address: formData.address,
-      measurement: omit(formData.measurement, ["enabled"]),
+      measurement: Object.fromEntries(
+        Object.entries(omit(formData.measurement, ["enabled"])).map(
+          ([key, value]) => [key, value === undefined ? null : value],
+        ),
+      ),
     };
 
     const response = await mutateAsync(updatedProduct);

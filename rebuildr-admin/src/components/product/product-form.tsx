@@ -11,7 +11,11 @@ import SelectBrand from "@components/brand/select-brand";
 import SelectCondition from "@components/condition/select-condition";
 import SelectQuantityUnit from "@components/quantity-unit/select-quantity-unit";
 import SelectMeasurement from "@components/measurement/select-measurement";
-import { measurements, MeasurementType } from "@/constants/measurements";
+import {
+  measurements,
+  MeasurementType,
+  measurementKeys,
+} from "@/constants/measurements";
 import SearchAddress from "@components/address/search-address";
 import {
   UseFormHandleSubmit,
@@ -311,18 +315,9 @@ const ProductForm = ({
                 if (!checked) {
                   setValue("measurement", {
                     enabled: false,
-                    diameter: undefined,
-                    diameterUnit: undefined,
-                    thickness: undefined,
-                    thicknessUnit: undefined,
-                    height: undefined,
-                    heightUnit: undefined,
-                    length: undefined,
-                    lengthUnit: undefined,
-                    weight: undefined,
-                    weightUnit: undefined,
-                    width: undefined,
-                    widthUnit: undefined,
+                    ...Object.fromEntries(
+                      measurementKeys.flatMap((key) => [[key, undefined]]),
+                    ),
                   });
                 }
               }}
