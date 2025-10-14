@@ -34,11 +34,7 @@ const EditProductPage = async ({ params }: Props) => {
     );
   }
 
-  return (
-    <div className="flex max-w-screen-lg flex-col gap-5">
-      <EditProduct product={product} />
-    </div>
-  );
+  return <EditProduct product={product} />;
 };
 
 export default EditProductPage;

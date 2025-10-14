@@ -30,7 +30,7 @@ const SelectMeasurement = ({
     <Select
       showSearch
       optionFilterProp="label"
-      placeholder={`Välj ${measurement.name.toLowerCase()} enhet ...`}
+      placeholder="Välj enhet ..."
       options={options}
       defaultValue={measurementUnit}
       onChange={(measurementUnit) => onSelectSeasurementUnit(measurementUnit)}

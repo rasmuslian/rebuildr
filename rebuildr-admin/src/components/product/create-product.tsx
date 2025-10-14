@@ -10,7 +10,7 @@ import { App } from "antd";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 import { getFileInputTypes, uploadFiles } from "@utils/medial-utils";
-import { CmsCreateProductInput } from "gql/graphql";
+import { CmsCreateProductInput, MeasurementUnitEnum } from "gql/graphql";
 import { createProduct } from "@/queries/product/create-product";
 import { queryKeys } from "@/lib/query-keys";
 import { omit } from "lodash";
@@ -35,6 +35,12 @@ const CreateProduct = () => {
       },
       measurement: {
         enabled: false,
+        thicknessUnit: MeasurementUnitEnum.Mm,
+        heightUnit: MeasurementUnitEnum.Mm,
+        widthUnit: MeasurementUnitEnum.Mm,
+        diameterUnit: MeasurementUnitEnum.Mm,
+        lengthUnit: MeasurementUnitEnum.Mm,
+        weightUnit: MeasurementUnitEnum.Kg,
       },
     },
   });
