@@ -15,6 +15,7 @@ import {
   SettingOutlined,
   InboxOutlined,
   ProductOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -56,6 +57,11 @@ const SidebarMenu = () => {
     getItem("Produkter", "/product", <ProductOutlined />, [
       getItem("Skapa product", routes.CREATE_PRODUCT),
       getItem("Visa alla produkter", routes.LIST_PRODUCT),
+    ]),
+    { type: "divider" },
+    getItem("Projekter", "/project", <ProjectOutlined />, [
+      getItem("Skapa projekt", routes.CREATE_PROJECT),
+      getItem("Visa alla projekter", routes.LIST_PROJECT),
     ]),
     { type: "divider" },
     getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),

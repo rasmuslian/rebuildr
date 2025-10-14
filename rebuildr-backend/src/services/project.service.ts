@@ -1,14 +1,22 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from 'src/entities/project.entity';
 import {
+  CmsCreateProjectInput,
+  CmsUpdateProjectInput,
+  CmsListProjectsInput,
+  CmsListProjectsResponse,
   CreateProjectInput,
   GetProjectInput,
   SetLikeProjectInput,
   UpdateProjectInput,
 } from 'src/resolvers/project.resolver';
-import { DataSource, Point, Repository } from 'typeorm';
+import { DataSource, Point, Repository, ILike } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
-import { BadUserInputException, ForbiddenException } from 'src/exceptions';
+import {
+  BadUserInputException,
+  ForbiddenException,
+  NotFoundException,
+} from 'src/exceptions';
 import { User } from 'src/entities/user.entity';
 
 export class ProjectService {
@@ -175,5 +183,79 @@ export class ProjectService {
       [locationPoint, projectId],
     );
     return result[0].distance;
+  }
+
+  async cmsListProjects(
+    input: CmsListProjectsInput,
+  ): Promise<CmsListProjectsResponse> {
+    const { pageSize = 10, page = 0, searchString = '' } = input;
+    const skip = Math.max(0, pageSize * page);
+
+    const [projects, total] = await this.projectRepository.findAndCount({
+      where: [
+        {
+          title: ILike(`%${searchString}%`),
+        },
+      ],
+      take: pageSize,
+      skip,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      projects,
+      total,
+    };
+  }
+
+  async cmsCreateProject(
+    input: CmsCreateProjectInput,
+    userId: string,
+  ): Promise<Project> {
+    try {
+      const { address, ...rest } = input;
+      const location = await this.geocodingService.addressToLocation(address);
+
+      const project = this.projectRepository.create({
+        ...rest,
+        userId,
+        address,
+        addressLocation: {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        },
+      });
+
+      return this.projectRepository.save(project);
+    } catch (error) {
+      throw BadUserInputException('Failed to create project' + error);
+    }
+  }
+
+  async cmsUpdateProject(input: CmsUpdateProjectInput): Promise<Project> {
+    const { id, address, ...rest } = input;
+
+    const project = await this.projectRepository.findOne({
+      where: { id },
+    });
+
+    if (!project) throw NotFoundException('Project not found');
+
+    try {
+      const location = await this.geocodingService.addressToLocation(address);
+
+      Object.assign<Project, Partial<Project>>(project, {
+        ...rest,
+        address,
+        addressLocation: {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        },
+      });
+
+      return this.projectRepository.save(project);
+    } catch (error) {
+      throw BadUserInputException(`Failed to update project: ${error}`);
+    }
   }
 }

@@ -10,6 +10,8 @@ import {
   ResolveField,
   Resolver,
   Root,
+  Int,
+  ObjectType,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { Project } from 'src/entities/project.entity';
@@ -26,6 +28,9 @@ import { IProjectLoaders } from 'src/dataloaders/project.loader';
 import { File } from 'src/entities/file.entity';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { User } from 'src/entities/user.entity';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRoleEnum } from 'src/entities/user.entity';
 
 @InputType()
 export class GetProjectInput {
@@ -76,6 +81,57 @@ export class SetLikeProjectInput {
   like: boolean;
 }
 
+@InputType()
+export class CmsListProjectsInput {
+  @Field(() => Int, { nullable: true })
+  page?: number;
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
+}
+
+@ObjectType()
+export class CmsListProjectsResponse {
+  @Field(() => [Project])
+  projects: Project[];
+
+  @Field(() => Int)
+  total: number;
+}
+
+@InputType()
+class CmsBaseProjectInput {
+  @Field(() => String)
+  title: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => String)
+  address: string;
+
+  @Field({ nullable: true })
+  contactName?: string;
+
+  @Field({ nullable: true })
+  contactEmail?: string;
+
+  @Field({ nullable: true })
+  contactPhone?: string;
+}
+
+@InputType()
+export class CmsCreateProjectInput extends CmsBaseProjectInput {}
+
+@InputType()
+export class CmsUpdateProjectInput extends CmsBaseProjectInput {
+  @Field(() => String)
+  id: string;
+}
+
 @Resolver(() => Project)
 export class ProjectResolver {
   constructor(private projectService: ProjectService) {}
@@ -89,6 +145,34 @@ export class ProjectResolver {
   @UseGuards(GqlAuthGuard)
   async myProjects(@CurrentUser() user: AuthedUserType) {
     return this.projectService.findMany({ userId: user.id });
+  }
+
+  @Query(() => CmsListProjectsResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsListProjects(
+    @Args('input') input: CmsListProjectsInput,
+  ): Promise<CmsListProjectsResponse> {
+    return this.projectService.cmsListProjects(input);
+  }
+
+  @Mutation(() => Project)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsCreateProject(
+    @Args('input') input: CmsCreateProjectInput,
+    @CurrentUser() _user: AuthedUserType,
+  ): Promise<Project> {
+    return this.projectService.cmsCreateProject(input, _user.id);
+  }
+
+  @Mutation(() => Project)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUpdateProject(
+    @Args('input') input: CmsUpdateProjectInput,
+  ): Promise<Project> {
+    return this.projectService.cmsUpdateProject(input);
   }
 
   @Mutation(() => Project)

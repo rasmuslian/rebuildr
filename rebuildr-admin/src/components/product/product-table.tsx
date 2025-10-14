@@ -232,7 +232,7 @@ const ProductTable = () => {
 
   const columns: ColumnsType<Product> = [
     {
-      title: "Titel",
+      title: "Rubrik",
       dataIndex: "title",
       key: "title",
       width: "300px",
@@ -342,7 +342,7 @@ const ProductTable = () => {
       <Divider orientation="left">Alla produkter</Divider>
 
       <SearchField
-        placeholder="Sök på titel, säljare, säljarens email eller kategori"
+        placeholder="Sök på rubrik, säljare, säljarens email eller kategori"
         defaultValue={searchString}
         onChange={onSearchStringChange}
       />

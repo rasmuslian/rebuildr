@@ -170,6 +170,15 @@ export type CmsCreateProductResponse = {
   product: Product;
 };
 
+export type CmsCreateProjectInput = {
+  address: Scalars['String']['input'];
+  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  contactName?: InputMaybe<Scalars['String']['input']>;
+  contactPhone?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
 export type CmsListImagesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -190,6 +199,18 @@ export type CmsListProductsInput = {
 export type CmsListProductsResponse = {
   __typename?: 'CmsListProductsResponse';
   products: Array<Product>;
+  total: Scalars['Int']['output'];
+};
+
+export type CmsListProjectsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsListProjectsResponse = {
+  __typename?: 'CmsListProjectsResponse';
+  projects: Array<Project>;
   total: Scalars['Int']['output'];
 };
 
@@ -242,6 +263,16 @@ export type CmsUpdateProductResponse = {
   __typename?: 'CmsUpdateProductResponse';
   imagePutUrls: Array<Scalars['String']['output']>;
   product: Product;
+};
+
+export type CmsUpdateProjectInput = {
+  address: Scalars['String']['input'];
+  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  contactName?: InputMaybe<Scalars['String']['input']>;
+  contactPhone?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type CmsUploadFileInput = {
@@ -586,6 +617,7 @@ export type Mutation = {
   cmsCreateArticle: Article;
   cmsCreateFooterSection: FooterSection;
   cmsCreateProduct: CmsCreateProductResponse;
+  cmsCreateProject: Project;
   cmsDeleteArticle: Scalars['Boolean']['output'];
   cmsDeleteFile: Scalars['Boolean']['output'];
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
@@ -597,6 +629,7 @@ export type Mutation = {
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
   cmsUpdateProduct: CmsUpdateProductResponse;
+  cmsUpdateProject: Project;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
@@ -669,6 +702,11 @@ export type MutationCmsCreateProductArgs = {
 };
 
 
+export type MutationCmsCreateProjectArgs = {
+  input: CmsCreateProjectInput;
+};
+
+
 export type MutationCmsDeleteArticleArgs = {
   articleId: Scalars['String']['input'];
 };
@@ -722,6 +760,11 @@ export type MutationCmsUpdateFooterSectionArgs = {
 
 export type MutationCmsUpdateProductArgs = {
   input: CmsUpdateProductInput;
+};
+
+
+export type MutationCmsUpdateProjectArgs = {
+  input: CmsUpdateProjectInput;
 };
 
 
@@ -1195,6 +1238,7 @@ export type Query = {
   cmsGetProduct: Product;
   cmsListImages: CmsListImagesResponse;
   cmsListProducts: CmsListProductsResponse;
+  cmsListProjects: CmsListProjectsResponse;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
@@ -1269,6 +1313,11 @@ export type QueryCmsListImagesArgs = {
 
 export type QueryCmsListProductsArgs = {
   input: CmsListProductsInput;
+};
+
+
+export type QueryCmsListProjectsArgs = {
+  input: CmsListProjectsInput;
 };
 
 
