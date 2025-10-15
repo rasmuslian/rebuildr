@@ -67,10 +67,7 @@ const ProjectForm = ({
             required={true}
             error={errors.address?.message}
           >
-            <SelectAddress
-              address={value}
-              onSelectAddress={(address) => onChange(address)}
-            />
+            <SelectAddress value={value} onChange={onChange} />
           </FormField>
         )}
       />

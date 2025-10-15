@@ -149,10 +149,7 @@ const ProductForm = ({
                 required={true}
                 error={errors.categoryId?.message}
               >
-                <SelectCategory
-                  categoryId={value}
-                  onSelectCategory={(categoryId) => onChange(categoryId)}
-                />
+                <SelectCategory value={value} onChange={onChange} />
               </FormField>
             )}
           />
@@ -166,10 +163,7 @@ const ProductForm = ({
                 required={true}
                 error={errors.brandId?.message}
               >
-                <SelectBrand
-                  brandId={value}
-                  onSelectBrand={(brandId) => onChange(brandId)}
-                />
+                <SelectBrand value={value} onChange={onChange} />
               </FormField>
             )}
           />
@@ -183,10 +177,7 @@ const ProductForm = ({
                 required={true}
                 error={errors.condition?.message}
               >
-                <SelectCondition
-                  condition={value}
-                  onSelectCondition={(condition) => onChange(condition)}
-                />
+                <SelectCondition value={value} onChange={onChange} />
               </FormField>
             )}
           />
@@ -206,8 +197,8 @@ const ProductForm = ({
                 }
               >
                 <SelectAddress
-                  address={value}
-                  onSelectAddress={(address) => onChange(address)}
+                  value={value}
+                  onChange={onChange}
                   disabled={watch("project.hasProject")}
                 />
               </FormField>
@@ -218,7 +209,7 @@ const ProductForm = ({
         <div className="flex flex-col gap-5">
           <Section>
             <div className="flex flex-col rounded-md bg-neutral-100 p-4">
-              <Divider orientation="left" size="small">
+              <Divider orientation="left" plain>
                 Primära antal och enhet
               </Divider>
 
@@ -238,6 +229,7 @@ const ProductForm = ({
                         placeholder="Antal ..."
                         style={{ width: "100%" }}
                         type="number"
+                        size="middle"
                       />
                     </FormField>
                   )}
@@ -252,12 +244,7 @@ const ProductForm = ({
                       required={true}
                       error={errors.primaryMeasurement?.unit?.message}
                     >
-                      <SelectQuantityUnit
-                        quantityUnit={value}
-                        onSelectQuantityUnit={(quantityUnit) =>
-                          onChange(quantityUnit)
-                        }
-                      />
+                      <SelectQuantityUnit value={value} onChange={onChange} />
                     </FormField>
                   )}
                 />
@@ -294,7 +281,7 @@ const ProductForm = ({
 
             {watch("secondaryMeasurement.enabled") && (
               <div className="flex flex-col rounded-md bg-neutral-100 p-4">
-                <Divider orientation="left" size="small">
+                <Divider orientation="left" plain>
                   Sekundär antal och enhet
                 </Divider>
 
@@ -313,6 +300,7 @@ const ProductForm = ({
                           placeholder="Antal ..."
                           style={{ width: "100%" }}
                           type="number"
+                          size="middle"
                         />
                       </FormField>
                     )}
@@ -326,12 +314,7 @@ const ProductForm = ({
                         label="Enhet"
                         error={errors.secondaryMeasurement?.unit?.message}
                       >
-                        <SelectQuantityUnit
-                          quantityUnit={value ?? undefined}
-                          onSelectQuantityUnit={(quantityUnit) =>
-                            onChange(quantityUnit)
-                          }
-                        />
+                        <SelectQuantityUnit value={value} onChange={onChange} />
                       </FormField>
                     )}
                   />
@@ -353,14 +336,12 @@ const ProductForm = ({
                       onChange(checked);
 
                       if (!checked) {
-                        setValue("measurement", {
-                          enabled: false,
-                          ...Object.fromEntries(
-                            measurementKeys.flatMap((key) => [
-                              [key, undefined],
-                            ]),
-                          ),
-                        });
+                        const resetMeasurement = measurementKeys.reduce(
+                          (acc, key) => ({ ...acc, [key]: undefined }),
+                          { enabled: false },
+                        );
+
+                        setValue("measurement", resetMeasurement);
                       }
                     }}
                   >
@@ -372,7 +353,7 @@ const ProductForm = ({
 
             {watch("measurement.enabled") && (
               <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
-                <Divider orientation="left" size="small">
+                <Divider orientation="left" plain>
                   Produktdetaljer
                 </Divider>
 
@@ -396,6 +377,7 @@ const ProductForm = ({
                               onChange={onChange}
                               placeholder={`${measurement.name} ...`}
                               style={{ width: "100%" }}
+                              size="middle"
                               type="number"
                             />
                           </FormField>
@@ -410,7 +392,7 @@ const ProductForm = ({
                             <SelectMeasurement
                               measurementType={measurementType}
                               measurementUnit={value}
-                              onSelectSeasurementUnit={(unit) => onChange(unit)}
+                              onSelectSeasurementUnit={onChange}
                             />
                           </FormField>
                         )}

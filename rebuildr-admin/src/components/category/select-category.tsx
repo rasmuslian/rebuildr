@@ -9,11 +9,11 @@ import { listCategories } from "@/queries/category/list-categories";
 import { convertCategoryToTreeData } from "@/utils/category-utils";
 
 type Props = {
-  categoryId?: string;
-  onSelectCategory: (categoryId: string) => void;
+  value?: string;
+  onChange: (categoryId: string) => void;
 };
 
-const SelectCategory = ({ categoryId, onSelectCategory }: Props) => {
+const SelectCategory = ({ value, onChange }: Props) => {
   const { data: categories, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_CATEGORY],
     queryFn: () => listCategories(),
@@ -33,10 +33,10 @@ const SelectCategory = ({ categoryId, onSelectCategory }: Props) => {
       loading={isLoading}
       placeholder="Välj kategori ..."
       size="large"
-      defaultValue={categoryId}
+      value={value}
       treeData={treeData}
       treeNodeFilterProp="title"
-      onSelect={(value) => onSelectCategory(value)}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer
           description={"Kunde inte hitta"}

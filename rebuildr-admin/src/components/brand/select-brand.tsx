@@ -8,11 +8,11 @@ import { queryKeys } from "@/lib/query-keys";
 import { listBrands } from "@/queries/brand/list-brand";
 
 type Props = {
-  brandId?: string;
-  onSelectBrand: (brandId: string) => void;
+  value?: string;
+  onChange: (brandId: string) => void;
 };
 
-const SelectBrand = ({ brandId, onSelectBrand }: Props) => {
+const SelectBrand = ({ value, onChange }: Props) => {
   const { data: brands = [], isLoading } = useQuery({
     queryKey: [queryKeys.LIST_BRAND],
     queryFn: () => listBrands(),
@@ -35,9 +35,9 @@ const SelectBrand = ({ brandId, onSelectBrand }: Props) => {
       loading={isLoading}
       optionFilterProp="label"
       placeholder="Välj märke ..."
-      defaultValue={brandId}
+      value={value}
       options={options}
-      onSelect={(value) => onSelectBrand(value)}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer
           description={"Kunde inte hitta"}

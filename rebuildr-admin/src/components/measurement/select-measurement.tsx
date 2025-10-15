@@ -31,8 +31,9 @@ const SelectMeasurement = ({
       showSearch
       optionFilterProp="label"
       placeholder="Välj enhet ..."
+      size="middle"
       options={options}
-      defaultValue={measurementUnit}
+      value={measurementUnit}
       onChange={(measurementUnit) => onSelectSeasurementUnit(measurementUnit)}
       notFoundContent={
         <EmptyContainer description="Kunde inte hitta" size="small" />

@@ -7,11 +7,11 @@ import { QuantityUnitEnum } from "gql/graphql";
 import { quantities } from "@/constants/quantities";
 
 type Props = {
-  quantityUnit?: QuantityUnitEnum;
-  onSelectQuantityUnit: (quantityUnit: QuantityUnitEnum) => void;
+  value?: QuantityUnitEnum;
+  onChange: (quantityUnit: QuantityUnitEnum) => void;
 };
 
-const SelectQuantityUnit = ({ quantityUnit, onSelectQuantityUnit }: Props) => {
+const SelectQuantityUnit = ({ value, onChange }: Props) => {
   const options: SelectProps["options"] = useMemo(
     () =>
       Object.values(QuantityUnitEnum).map((unit) => ({
@@ -25,10 +25,11 @@ const SelectQuantityUnit = ({ quantityUnit, onSelectQuantityUnit }: Props) => {
     <Select
       optionFilterProp="label"
       placeholder="Välj enhet ..."
+      size="middle"
       showSearch
       options={options}
-      defaultValue={quantityUnit}
-      onChange={(value) => onSelectQuantityUnit(value)}
+      value={value}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer description={"Kunde inte hitta"} size="small" />
       }

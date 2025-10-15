@@ -9,16 +9,12 @@ import { searchAddress } from "@/queries/geocoding/search-address";
 import { debounce, isEmpty } from "lodash";
 
 type Props = {
-  address?: string;
-  onSelectAddress: (address: string) => void;
+  value?: string;
+  onChange: (address: string) => void;
   disabled?: boolean;
 };
 
-const SelectAddress = ({
-  address,
-  onSelectAddress,
-  disabled = false,
-}: Props) => {
+const SelectAddress = ({ value, onChange, disabled = false }: Props) => {
   const [searchString, setSearchString] = useState("");
   const { data: results = [], isLoading } = useQuery({
     queryKey: [queryKeys.SEARCH_ADDRESS, searchString],
@@ -50,9 +46,9 @@ const SelectAddress = ({
       placeholder="Sök på adress ..."
       filterOption={false}
       options={options}
-      value={address}
+      value={value}
       onSearch={onSearch}
-      onChange={onSelectAddress}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer
           description={

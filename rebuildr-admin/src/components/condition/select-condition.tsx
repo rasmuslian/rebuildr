@@ -7,11 +7,11 @@ import { ProductConditionEnum } from "gql/graphql";
 import { conditions } from "@/constants/conditions";
 
 type Props = {
-  condition: ProductConditionEnum;
-  onSelectCondition: (condition: ProductConditionEnum) => void;
+  value: ProductConditionEnum;
+  onChange: (condition: ProductConditionEnum) => void;
 };
 
-const SelectCondition = ({ condition, onSelectCondition }: Props) => {
+const SelectCondition = ({ value, onChange }: Props) => {
   const options: SelectProps["options"] = useMemo(
     () =>
       Object.values(ProductConditionEnum).map((condition) => ({
@@ -27,8 +27,8 @@ const SelectCondition = ({ condition, onSelectCondition }: Props) => {
       placeholder="Välj skick ..."
       showSearch
       options={options}
-      defaultValue={condition}
-      onChange={(value) => onSelectCondition(value)}
+      value={value}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer description={"Kunde inte hitta"} size="small" />
       }
