@@ -113,9 +113,31 @@ export const ProductSchema = z.object({
     weightUnit: z.nativeEnum(MeasurementUnitEnum).optional(),
   }),
 
-  address: z
-    .string({ message: "Du måste ange adress." })
-    .min(1, { message: "Du måste ange adress." }),
+  sellerId: z.string().optional(),
+
+  project: z
+    .object({
+      hasProject: z.boolean(),
+      projectId: z.string().optional(),
+      address: z.string().optional(),
+    })
+    .superRefine(({ hasProject, projectId, address }, ctx) => {
+      if (hasProject && projectId === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["projectId"],
+          message: "Du måste ange projekt.",
+        });
+      }
+
+      if (!hasProject && address === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["address"],
+          message: "Du måste ange address.",
+        });
+      }
+    }),
 });
 
 export type ProductSchemaType = z.infer<typeof ProductSchema>;

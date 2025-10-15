@@ -258,4 +258,14 @@ export class ProjectService {
       throw BadUserInputException(`Failed to update project: ${error}`);
     }
   }
+
+  async cmsGetUserProjects(userId: string): Promise<Project[]> {
+    const projects = this.projectRepository.find({
+      where: {
+        userId,
+      },
+    });
+
+    return projects;
+  }
 }

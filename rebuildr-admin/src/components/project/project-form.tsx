@@ -5,7 +5,7 @@ import { ProjectSchemaType } from "@/schema/project-schema";
 import { Button, Divider, Input } from "antd";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
-import SearchAddress from "@components/address/search-address";
+import SelectAddress from "@components/address/select-address";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -67,7 +67,7 @@ const ProjectForm = ({
             required={true}
             error={errors.address?.message}
           >
-            <SearchAddress
+            <SelectAddress
               address={value}
               onSelectAddress={(address) => onChange(address)}
             />

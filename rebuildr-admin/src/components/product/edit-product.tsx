@@ -37,6 +37,7 @@ const EditProduct = ({ product }: Props) => {
     watch,
     handleSubmit,
     formState: { errors },
+    clearErrors,
     setValue,
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
@@ -66,7 +67,12 @@ const EditProduct = ({ product }: Props) => {
           ]),
         ),
       },
-      address: product.address ?? "",
+      sellerId: product.sellerId,
+      project: {
+        hasProject: !product.noProject,
+        projectId: product.project?.id,
+        address: product.address ?? undefined,
+      },
     },
   });
 
@@ -108,12 +114,14 @@ const EditProduct = ({ product }: Props) => {
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity ?? null,
       secondaryUnit: formData.secondaryMeasurement.unit ?? null,
-      address: formData.address,
       measurement: Object.fromEntries(
         Object.entries(omit(formData.measurement, ["enabled"])).map(
-          ([key, value]) => [key, value === undefined ? null : value],
+          ([key, value]) => [key, value ?? null],
         ),
       ),
+      noProject: !formData.project.hasProject,
+      projectId: formData.project.projectId ?? null,
+      address: formData.project.address ?? null,
     };
 
     const response = await mutateAsync(updatedProduct);
@@ -133,6 +141,7 @@ const EditProduct = ({ product }: Props) => {
       submitLabel="Spara"
       watch={watch}
       setValue={setValue}
+      clearErrors={clearErrors}
     />
   );
 };

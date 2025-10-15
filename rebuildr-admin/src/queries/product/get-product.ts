@@ -27,6 +27,8 @@ const query = `
       widthUnit
       height
       heightUnit
+      noProject
+      sellerId
       category {
         id
         name
@@ -39,6 +41,10 @@ const query = `
         id
         name
         url
+      }
+      project {
+        id
+        title
       }
     }
   }

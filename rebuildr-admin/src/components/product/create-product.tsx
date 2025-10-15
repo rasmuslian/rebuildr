@@ -25,6 +25,7 @@ const CreateProduct = () => {
     watch,
     handleSubmit,
     formState: { errors },
+    clearErrors,
     setValue,
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
@@ -41,6 +42,9 @@ const CreateProduct = () => {
         diameterUnit: MeasurementUnitEnum.Mm,
         lengthUnit: MeasurementUnitEnum.Mm,
         weightUnit: MeasurementUnitEnum.Kg,
+      },
+      project: {
+        hasProject: false,
       },
     },
   });
@@ -80,8 +84,10 @@ const CreateProduct = () => {
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity,
       secondaryUnit: formData.secondaryMeasurement.unit,
-      address: formData.address,
       measurement: omit(formData.measurement, ["enabled"]),
+      noProject: !formData.project.hasProject,
+      projectId: formData.project.projectId ?? null,
+      address: formData.project.address ?? null,
     };
 
     const response = await mutateAsync(newProduct);
@@ -101,6 +107,7 @@ const CreateProduct = () => {
       submitLabel="Publicera"
       watch={watch}
       setValue={setValue}
+      clearErrors={clearErrors}
     />
   );
 };

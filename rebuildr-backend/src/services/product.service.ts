@@ -1247,7 +1247,7 @@ export class ProductService {
 
   async cmsCreateProduct(
     input: CmsCreateProductInput,
-    userId: string,
+    sellerId: string,
   ): Promise<CmsCreateProductResponse> {
     try {
       const { measurement, images, price, address, ...rest } = input;
@@ -1256,7 +1256,7 @@ export class ProductService {
       const product = this.productRepository.create({
         ...rest,
         ...measurement,
-        sellerId: userId,
+        sellerId,
         status: ProductStatus.PUBLISHED,
         price: price * 100,
         images: await this.fileService.createFiles(images),

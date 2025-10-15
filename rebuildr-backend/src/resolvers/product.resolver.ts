@@ -517,8 +517,14 @@ class CmsBaseProductInput extends QuantityInput {
   @Field(() => ProductConditionEnum)
   condition: ProductConditionEnum;
 
-  @Field(() => String)
-  address: string;
+  @Field({ nullable: true })
+  address?: string;
+
+  @Field()
+  noProject: boolean;
+
+  @Field({ nullable: true })
+  projectId?: string;
 
   @Field(() => MeasurementInput, { nullable: true })
   measurement?: MeasurementInput;
@@ -637,9 +643,9 @@ export class ProductResolver {
   @Roles([UserRoleEnum.ADMIN])
   async cmsCreateProduct(
     @Args('input') input: CmsCreateProductInput,
-    @CurrentUser() _user: AuthedUserType,
+    @CurrentUser() user: AuthedUserType,
   ): Promise<CmsCreateProductResponse> {
-    return this.productService.cmsCreateProduct(input, _user.id);
+    return this.productService.cmsCreateProduct(input, user.id);
   }
 
   @Mutation(() => CmsUpdateProductResponse)

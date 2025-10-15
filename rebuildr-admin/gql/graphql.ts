@@ -149,16 +149,18 @@ export type CmsCreateFooterSectionInput = {
 };
 
 export type CmsCreateProductInput = {
-  address: Scalars['String']['input'];
+  address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
   description: Scalars['String']['input'];
   images: Array<FileInputType>;
   measurement?: InputMaybe<MeasurementInput>;
+  noProject: Scalars['Boolean']['input'];
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
+  projectId?: InputMaybe<Scalars['String']['input']>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   title: Scalars['String']['input'];
@@ -243,16 +245,18 @@ export type CmsUpdateFooterSectionInput = {
 
 export type CmsUpdateProductInput = {
   addImages?: InputMaybe<Array<FileInputType>>;
-  address: Scalars['String']['input'];
+  address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
   measurement?: InputMaybe<MeasurementInput>;
+  noProject: Scalars['Boolean']['input'];
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
+  projectId?: InputMaybe<Scalars['String']['input']>;
   removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
@@ -1236,6 +1240,7 @@ export type Query = {
   categories: Array<Category>;
   category: Category;
   cmsGetProduct: Product;
+  cmsGetUserProjects: Array<Project>;
   cmsListImages: CmsListImagesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
@@ -1303,6 +1308,11 @@ export type QueryCategoryArgs = {
 
 export type QueryCmsGetProductArgs = {
   productId: Scalars['String']['input'];
+};
+
+
+export type QueryCmsGetUserProjectsArgs = {
+  sellerId?: InputMaybe<Scalars['String']['input']>;
 };
 
 

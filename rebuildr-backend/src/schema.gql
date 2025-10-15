@@ -622,6 +622,7 @@ type Query {
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
   cmsListProjects(input: CmsListProjectsInput!): CmsListProjectsResponse!
+  cmsGetUserProjects(sellerId: String): [Project!]!
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
@@ -948,7 +949,9 @@ input CmsCreateProductInput {
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
-  address: String!
+  address: String
+  noProject: Boolean!
+  projectId: String
   measurement: MeasurementInput
   images: [FileInputType!]!
 }
@@ -979,7 +982,9 @@ input CmsUpdateProductInput {
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
-  address: String!
+  address: String
+  noProject: Boolean!
+  projectId: String
   measurement: MeasurementInput
   id: String!
   addImages: [FileInputType!]

@@ -33,6 +33,7 @@ const SelectBrand = ({ brandId, onSelectBrand }: Props) => {
     <Select
       showSearch
       loading={isLoading}
+      optionFilterProp="label"
       placeholder="Välj märke ..."
       defaultValue={brandId}
       options={options}

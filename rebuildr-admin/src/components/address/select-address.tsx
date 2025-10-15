@@ -9,13 +9,18 @@ import { searchAddress } from "@/queries/geocoding/search-address";
 import { debounce, isEmpty } from "lodash";
 
 type Props = {
-  address: string;
+  address?: string;
   onSelectAddress: (address: string) => void;
+  disabled?: boolean;
 };
 
-const SearchAddress = ({ address, onSelectAddress }: Props) => {
+const SelectAddress = ({
+  address,
+  onSelectAddress,
+  disabled = false,
+}: Props) => {
   const [searchString, setSearchString] = useState("");
-  const { data: result = [], isLoading } = useQuery({
+  const { data: results = [], isLoading } = useQuery({
     queryKey: [queryKeys.SEARCH_ADDRESS, searchString],
     queryFn: () => searchAddress({ searchString }),
     enabled: !isEmpty(searchString),
@@ -23,11 +28,11 @@ const SearchAddress = ({ address, onSelectAddress }: Props) => {
 
   const options: SelectProps["options"] = useMemo(
     () =>
-      result.map((address) => ({
-        label: address,
-        value: address,
+      results.map((result) => ({
+        label: result,
+        value: result,
       })),
-    [result],
+    [results],
   );
 
   const onSearch = useCallback(
@@ -39,14 +44,15 @@ const SearchAddress = ({ address, onSelectAddress }: Props) => {
 
   return (
     <Select
+      disabled={disabled}
       showSearch
       loading={isLoading}
       placeholder="Sök på adress ..."
       filterOption={false}
       options={options}
-      defaultValue={address}
+      value={address}
       onSearch={onSearch}
-      onSelect={onSelectAddress}
+      onChange={onSelectAddress}
       notFoundContent={
         <EmptyContainer
           description={
@@ -62,4 +68,4 @@ const SearchAddress = ({ address, onSelectAddress }: Props) => {
   );
 };
 
-export default SearchAddress;
+export default SelectAddress;

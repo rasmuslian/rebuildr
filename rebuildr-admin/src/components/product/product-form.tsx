@@ -11,13 +11,14 @@ import SelectBrand from "@components/brand/select-brand";
 import SelectCondition from "@components/condition/select-condition";
 import SelectQuantityUnit from "@components/quantity-unit/select-quantity-unit";
 import SelectMeasurement from "@components/measurement/select-measurement";
+import SelectProject from "@components/project/select-project";
+import SelectAddress from "@components/address/select-address";
 import Section from "@components/section";
 import {
   measurements,
   MeasurementType,
   measurementKeys,
 } from "@/constants/measurements";
-import SearchAddress from "@components/address/search-address";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -25,6 +26,7 @@ import {
   UseFormWatch,
   Controller,
   UseFormSetValue,
+  UseFormClearErrors,
 } from "react-hook-form";
 
 type Props = {
@@ -35,6 +37,7 @@ type Props = {
   control: Control<ProductSchemaType>;
   watch: UseFormWatch<ProductSchemaType>;
   setValue: UseFormSetValue<ProductSchemaType>;
+  clearErrors: UseFormClearErrors<ProductSchemaType>;
   submitLabel: string;
   isPending: boolean;
 };
@@ -47,6 +50,7 @@ const ProductForm = ({
   control,
   watch,
   setValue,
+  clearErrors,
   submitLabel,
   isPending,
 }: Props) => {
@@ -109,7 +113,7 @@ const ProductForm = ({
               >
                 <Input.TextArea
                   {...field}
-                  rows={4}
+                  rows={10}
                   placeholder="Beskrivning ..."
                 />
               </FormField>
@@ -189,110 +193,44 @@ const ProductForm = ({
 
           <Controller
             control={control}
-            name={"address"}
+            name={"project.address"}
             render={({ field: { value, onChange } }) => (
               <FormField
                 label="Adress"
-                required={true}
-                error={errors.address?.message}
+                required={!watch("project.hasProject")}
+                error={errors.project?.address?.message}
+                description={
+                  watch("project.hasProject")
+                    ? "Projektets adress kommer att användas."
+                    : undefined
+                }
               >
-                <SearchAddress
+                <SelectAddress
                   address={value}
                   onSelectAddress={(address) => onChange(address)}
+                  disabled={watch("project.hasProject")}
                 />
               </FormField>
             )}
           />
         </Section>
 
-        <Section>
-          <div className="flex flex-col rounded-md bg-neutral-100 p-4">
-            <Divider orientation="left" size="small">
-              Primära antal och enhet
-            </Divider>
-
-            <div className="flex flex-row gap-5">
-              <Controller
-                control={control}
-                name="primaryMeasurement.quantity"
-                render={({ field: { value, onChange } }) => (
-                  <FormField
-                    label="Antal"
-                    required={true}
-                    error={errors.primaryMeasurement?.quantity?.message}
-                  >
-                    <InputNumber
-                      value={value}
-                      onChange={onChange}
-                      placeholder="Antal ..."
-                      style={{ width: "100%" }}
-                      type="number"
-                    />
-                  </FormField>
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="primaryMeasurement.unit"
-                render={({ field: { value, onChange } }) => (
-                  <FormField
-                    label="Enhet"
-                    required={true}
-                    error={errors.primaryMeasurement?.unit?.message}
-                  >
-                    <SelectQuantityUnit
-                      quantityUnit={value}
-                      onSelectQuantityUnit={(quantityUnit) =>
-                        onChange(quantityUnit)
-                      }
-                    />
-                  </FormField>
-                )}
-              />
-            </div>
-          </div>
-
-          <Controller
-            control={control}
-            name="secondaryMeasurement.enabled"
-            render={({ field: { value, onChange } }) => (
-              <FormField error={errors.secondaryMeasurement?.enabled?.message}>
-                <Checkbox
-                  checked={value}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    onChange(checked);
-
-                    if (!checked) {
-                      setValue("secondaryMeasurement", {
-                        enabled: false,
-                        quantity: undefined,
-                        unit: undefined,
-                      });
-                    }
-                  }}
-                >
-                  Lägg till ytterligare antal och enhet
-                </Checkbox>
-              </FormField>
-            )}
-          />
-
-          {watch("secondaryMeasurement.enabled") && (
+        <div className="flex flex-col gap-5">
+          <Section>
             <div className="flex flex-col rounded-md bg-neutral-100 p-4">
               <Divider orientation="left" size="small">
-                Sekundär antal och enhet
+                Primära antal och enhet
               </Divider>
 
               <div className="flex flex-row gap-5">
                 <Controller
                   control={control}
-                  name="secondaryMeasurement.quantity"
+                  name="primaryMeasurement.quantity"
                   render={({ field: { value, onChange } }) => (
                     <FormField
                       label="Antal"
-                      error={errors.secondaryMeasurement?.quantity?.message}
+                      required={true}
+                      error={errors.primaryMeasurement?.quantity?.message}
                     >
                       <InputNumber
                         value={value}
@@ -307,14 +245,15 @@ const ProductForm = ({
 
                 <Controller
                   control={control}
-                  name="secondaryMeasurement.unit"
+                  name="primaryMeasurement.unit"
                   render={({ field: { value, onChange } }) => (
                     <FormField
                       label="Enhet"
-                      error={errors.secondaryMeasurement?.unit?.message}
+                      required={true}
+                      error={errors.primaryMeasurement?.unit?.message}
                     >
                       <SelectQuantityUnit
-                        quantityUnit={value ?? undefined}
+                        quantityUnit={value}
                         onSelectQuantityUnit={(quantityUnit) =>
                           onChange(quantityUnit)
                         }
@@ -324,84 +263,210 @@ const ProductForm = ({
                 />
               </div>
             </div>
-          )}
 
-          <Controller
-            control={control}
-            name="measurement.enabled"
-            render={({ field: { value, onChange } }) => (
-              <FormField error={errors.secondaryMeasurement?.enabled?.message}>
-                <Checkbox
-                  checked={value}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    onChange(checked);
-
-                    if (!checked) {
-                      setValue("measurement", {
-                        enabled: false,
-                        ...Object.fromEntries(
-                          measurementKeys.flatMap((key) => [[key, undefined]]),
-                        ),
-                      });
-                    }
-                  }}
+            <Controller
+              control={control}
+              name="secondaryMeasurement.enabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField
+                  error={errors.secondaryMeasurement?.enabled?.message}
                 >
-                  Lägg till produktdetaljer
-                </Checkbox>
-              </FormField>
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+
+                      if (!checked) {
+                        setValue("secondaryMeasurement", {
+                          enabled: false,
+                          quantity: undefined,
+                          unit: undefined,
+                        });
+                      }
+                    }}
+                  >
+                    Lägg till ytterligare antal och enhet
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            {watch("secondaryMeasurement.enabled") && (
+              <div className="flex flex-col rounded-md bg-neutral-100 p-4">
+                <Divider orientation="left" size="small">
+                  Sekundär antal och enhet
+                </Divider>
+
+                <div className="flex flex-row gap-5">
+                  <Controller
+                    control={control}
+                    name="secondaryMeasurement.quantity"
+                    render={({ field: { value, onChange } }) => (
+                      <FormField
+                        label="Antal"
+                        error={errors.secondaryMeasurement?.quantity?.message}
+                      >
+                        <InputNumber
+                          value={value}
+                          onChange={onChange}
+                          placeholder="Antal ..."
+                          style={{ width: "100%" }}
+                          type="number"
+                        />
+                      </FormField>
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="secondaryMeasurement.unit"
+                    render={({ field: { value, onChange } }) => (
+                      <FormField
+                        label="Enhet"
+                        error={errors.secondaryMeasurement?.unit?.message}
+                      >
+                        <SelectQuantityUnit
+                          quantityUnit={value ?? undefined}
+                          onSelectQuantityUnit={(quantityUnit) =>
+                            onChange(quantityUnit)
+                          }
+                        />
+                      </FormField>
+                    )}
+                  />
+                </div>
+              </div>
             )}
-          />
 
-          {watch("measurement.enabled") && (
-            <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
-              <Divider orientation="left" size="small">
-                Produktdetaljer
-              </Divider>
+            <Controller
+              control={control}
+              name="measurement.enabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField
+                  error={errors.secondaryMeasurement?.enabled?.message}
+                >
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
 
-              {Object.entries(measurements).map(([key, measurement]) => {
-                const measurementType = key as MeasurementType;
+                      if (!checked) {
+                        setValue("measurement", {
+                          enabled: false,
+                          ...Object.fromEntries(
+                            measurementKeys.flatMap((key) => [
+                              [key, undefined],
+                            ]),
+                          ),
+                        });
+                      }
+                    }}
+                  >
+                    Lägg till produktdetaljer
+                  </Checkbox>
+                </FormField>
+              )}
+            />
 
-                return (
-                  <div className="flex flex-row gap-5" key={measurementType}>
-                    <Controller
-                      control={control}
-                      name={`measurement.${measurementType}`}
-                      render={({ field: { value, onChange } }) => (
-                        <FormField
-                          label={measurement.name}
-                          error={errors.measurement?.[measurementType]?.message}
-                        >
-                          <InputNumber
-                            value={value}
-                            onChange={onChange}
-                            placeholder={`${measurement.name} ...`}
-                            style={{ width: "100%" }}
-                            type="number"
-                          />
-                        </FormField>
-                      )}
-                    />
+            {watch("measurement.enabled") && (
+              <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
+                <Divider orientation="left" size="small">
+                  Produktdetaljer
+                </Divider>
 
-                    <Controller
-                      control={control}
-                      name={`measurement.${measurementType}Unit`}
-                      render={({ field: { value, onChange } }) => (
-                        <FormField label={`${measurement.name} enhet`}>
-                          <SelectMeasurement
-                            measurementType={measurementType}
-                            measurementUnit={value}
-                            onSelectSeasurementUnit={(unit) => onChange(unit)}
-                          />
-                        </FormField>
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Section>
+                {Object.entries(measurements).map(([key, measurement]) => {
+                  const measurementType = key as MeasurementType;
+
+                  return (
+                    <div className="flex flex-row gap-5" key={measurementType}>
+                      <Controller
+                        control={control}
+                        name={`measurement.${measurementType}`}
+                        render={({ field: { value, onChange } }) => (
+                          <FormField
+                            label={measurement.name}
+                            error={
+                              errors.measurement?.[measurementType]?.message
+                            }
+                          >
+                            <InputNumber
+                              value={value}
+                              onChange={onChange}
+                              placeholder={`${measurement.name} ...`}
+                              style={{ width: "100%" }}
+                              type="number"
+                            />
+                          </FormField>
+                        )}
+                      />
+
+                      <Controller
+                        control={control}
+                        name={`measurement.${measurementType}Unit`}
+                        render={({ field: { value, onChange } }) => (
+                          <FormField label={`${measurement.name} enhet`}>
+                            <SelectMeasurement
+                              measurementType={measurementType}
+                              measurementUnit={value}
+                              onSelectSeasurementUnit={(unit) => onChange(unit)}
+                            />
+                          </FormField>
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+
+          <Section>
+            <Controller
+              control={control}
+              name="project.hasProject"
+              render={({ field: { value, onChange } }) => (
+                <FormField error={errors.project?.hasProject?.message}>
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+                      if (!checked) {
+                        setValue("project.projectId", undefined);
+                        clearErrors("project.projectId");
+                      } else {
+                        clearErrors("project.address");
+                      }
+                    }}
+                  >
+                    Koppla till ett projekt
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name={"project.projectId"}
+              render={({ field: { onChange } }) => (
+                <FormField
+                  label="Projekt"
+                  error={errors.project?.projectId?.message}
+                  required={watch("project.hasProject")}
+                >
+                  <SelectProject
+                    sellerId={watch("sellerId")}
+                    projectId={watch("project.projectId")}
+                    disabled={!watch("project.hasProject")}
+                    onSelectProject={onChange}
+                  />
+                </FormField>
+              )}
+            />
+          </Section>
+        </div>
       </div>
     </AdminForm>
   );

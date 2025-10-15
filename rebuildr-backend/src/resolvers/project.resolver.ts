@@ -156,6 +156,17 @@ export class ProjectResolver {
     return this.projectService.cmsListProjects(input);
   }
 
+  @Query(() => [Project])
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsGetUserProjects(
+    @CurrentUser() user: AuthedUserType,
+    @Args('sellerId', { nullable: true }) sellerId?: string,
+  ): Promise<Project[]> {
+    const userId = sellerId ?? user.id;
+    return this.projectService.cmsGetUserProjects(userId);
+  }
+
   @Mutation(() => Project)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
