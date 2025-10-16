@@ -10,6 +10,7 @@ import { LoginSchema, LoginSchemaType } from "@/schema/login-schema";
 import { useRouter } from "next/navigation";
 import { login } from "@/actions/auth";
 import { routes } from "@/lib/routes";
+import { useMutation } from "@tanstack/react-query";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -23,22 +24,30 @@ const LoginForm = () => {
     resolver: zodResolver(LoginSchema),
   });
 
-  const onSubmit = async (formData: LoginSchemaType) => {
-    const { success } = await login(formData);
-    if (success) {
+  const { mutate: onLogin, isPending } = useMutation({
+    mutationFn: async (formData: LoginSchemaType) => {
+      const { success } = await login(formData);
+      if (!success) throw new Error();
+      return success;
+    },
+    onSuccess: async () => {
       router.push(routes.ADMIN);
-    } else {
+    },
+    onError: () => {
       notification.error({
         message: "Tyvärr!",
         description: "Inloggningen misslyckades.",
       });
-    }
-  };
+    },
+  });
 
   return (
     <div className="flex h-screen w-screen items-center justify-center p-3">
       <div className="w-full max-w-[400px]">
-        <AdminForm title="Vänligen logga in" onSubmit={handleSubmit(onSubmit)}>
+        <AdminForm
+          title="Vänligen logga in"
+          onSubmit={handleSubmit((formData) => onLogin(formData))}
+        >
           <Controller
             control={control}
             name="email"
@@ -72,7 +81,12 @@ const LoginForm = () => {
             )}
           />
 
-          <Button size="large" type="primary" htmlType="submit">
+          <Button
+            size="large"
+            type="primary"
+            htmlType="submit"
+            loading={isPending}
+          >
             Logga in
           </Button>
         </AdminForm>

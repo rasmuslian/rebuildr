@@ -6,6 +6,7 @@ import { Menu } from "antd";
 import { useRouter, usePathname } from "next/navigation";
 import { logout } from "@/actions/auth";
 import { routes } from "@/lib/routes";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   HomeOutlined,
@@ -16,6 +17,7 @@ import {
   InboxOutlined,
   ProductOutlined,
   ProjectOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -24,14 +26,19 @@ const SidebarMenu = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const onLogout = async () => {
-    const { success } = await logout();
-    if (success) {
+  const { mutate: onLogout, isPending } = useMutation({
+    mutationFn: async () => {
+      const { success } = await logout();
+      if (!success) throw new Error();
+      return success;
+    },
+    onSuccess: async () => {
       router.push(routes.LOGIN);
-    } else {
+    },
+    onError: () => {
       console.error("Failed to logout");
-    }
-  };
+    },
+  });
 
   const getItem = (
     label: React.ReactNode,
@@ -44,6 +51,7 @@ const SidebarMenu = () => {
       icon,
       label,
       children,
+      disabled: isPending,
       onClick: () => {
         if (!children) router.push(key.toString());
       },
@@ -76,11 +84,12 @@ const SidebarMenu = () => {
     getItem("Inställningar", "/setting", <SettingOutlined />, [
       getItem("Sidfot", routes.FOOTER_SETTING),
     ]),
+    { type: "divider" },
     {
       label: "Logga ut",
       key: "logout",
-      icon: <LogoutOutlined />,
-      onClick: async () => await onLogout(),
+      icon: isPending ? <LoadingOutlined /> : <LogoutOutlined />,
+      onClick: () => onLogout(),
     },
   ];
 
