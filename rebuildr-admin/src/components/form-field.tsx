@@ -25,7 +25,7 @@ const FormField = ({
       )}
 
       {description && (
-        <p className="w-fit bg-semantic_error_200 p-1 text-label-small">
+        <p className="w-fit bg-accent_200 p-1 text-label-small">
           {description}
         </p>
       )}

@@ -76,7 +76,7 @@ const ProductForm = ({
             name="images"
             render={({ field: { value, onChange } }) => (
               <FormField
-                label="Bild"
+                label="Bilder"
                 required={true}
                 error={errors.images?.message}
               >
@@ -124,15 +124,14 @@ const ProductForm = ({
           <Controller
             control={control}
             name="price"
-            render={({ field: { value, onChange } }) => (
+            render={({ field }) => (
               <FormField
                 label="Pris (kr)"
                 required={true}
                 error={errors.price?.message}
               >
                 <InputNumber
-                  value={value}
-                  onChange={onChange}
+                  {...field}
                   placeholder="Pris ..."
                   style={{ width: "100%" }}
                   type="number"
@@ -144,11 +143,9 @@ const ProductForm = ({
           <Controller
             control={control}
             name="isGiveaway"
-            render={({ field: { value, onChange } }) => (
+            render={({ field }) => (
               <FormField error={errors.isGiveaway?.message}>
-                <Checkbox checked={value} onChange={onChange}>
-                  Bortskänkes
-                </Checkbox>
+                <Checkbox {...field}>Bortskänkes</Checkbox>
               </FormField>
             )}
           />
@@ -222,23 +219,18 @@ const ProductForm = ({
         <div className="flex flex-col gap-5">
           <Section>
             <div className="flex flex-col rounded-md bg-neutral-100 p-4">
-              <Divider orientation="left" plain>
-                Primära antal och enhet
-              </Divider>
-
               <div className="flex flex-row gap-5">
                 <Controller
                   control={control}
                   name="primaryMeasurement.quantity"
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field }) => (
                     <FormField
                       label="Antal"
                       required={true}
                       error={errors.primaryMeasurement?.quantity?.message}
                     >
                       <InputNumber
-                        value={value}
-                        onChange={onChange}
+                        {...field}
                         placeholder="Antal ..."
                         style={{ width: "100%" }}
                         type="number"
@@ -294,22 +286,18 @@ const ProductForm = ({
 
             {watch("secondaryMeasurement.enabled") && (
               <div className="flex flex-col rounded-md bg-neutral-100 p-4">
-                <Divider orientation="left" plain>
-                  Sekundär antal och enhet
-                </Divider>
-
                 <div className="flex flex-row gap-5">
                   <Controller
                     control={control}
                     name="secondaryMeasurement.quantity"
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field }) => (
                       <FormField
                         label="Antal"
+                        required={true}
                         error={errors.secondaryMeasurement?.quantity?.message}
                       >
                         <InputNumber
-                          value={value}
-                          onChange={onChange}
+                          {...field}
                           placeholder="Antal ..."
                           style={{ width: "100%" }}
                           type="number"
@@ -325,6 +313,7 @@ const ProductForm = ({
                     render={({ field: { value, onChange } }) => (
                       <FormField
                         label="Enhet"
+                        required={true}
                         error={errors.secondaryMeasurement?.unit?.message}
                       >
                         <SelectQuantityUnit value={value} onChange={onChange} />
@@ -366,10 +355,6 @@ const ProductForm = ({
 
             {watch("measurement.enabled") && (
               <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
-                <Divider orientation="left" plain>
-                  Produktdetaljer
-                </Divider>
-
                 {Object.entries(measurements).map(([key, measurement]) => {
                   const measurementType = key as MeasurementType;
 
@@ -378,7 +363,7 @@ const ProductForm = ({
                       <Controller
                         control={control}
                         name={`measurement.${measurementType}`}
-                        render={({ field: { value, onChange } }) => (
+                        render={({ field }) => (
                           <FormField
                             label={measurement.name}
                             error={
@@ -386,8 +371,7 @@ const ProductForm = ({
                             }
                           >
                             <InputNumber
-                              value={value}
-                              onChange={onChange}
+                              {...field}
                               placeholder={`${measurement.name} ...`}
                               style={{ width: "100%" }}
                               size="middle"
@@ -462,10 +446,6 @@ const ProductForm = ({
             />
           </Section>
 
-          <Divider orientation="left" size="small">
-            Leverans
-          </Divider>
-
           <Section error={errors.transportation?.selected?.message}>
             <Controller
               control={control}
@@ -512,6 +492,7 @@ const ProductForm = ({
                 render={({ field: { value, onChange } }) => (
                   <FormField
                     label="Välj vikt på paketet"
+                    required={true}
                     error={
                       errors.transportation?.shipping?.shippingPriceId?.message
                     }
@@ -549,6 +530,7 @@ const ProductForm = ({
                   render={({ field }) => (
                     <FormField
                       label="Max avstånd för hemtransport (km)"
+                      required={true}
                       error={errors.transportation?.delivery?.radius?.message}
                     >
                       <InputNumber
@@ -567,6 +549,7 @@ const ProductForm = ({
                   render={({ field }) => (
                     <FormField
                       label="Transportpris (kr)"
+                      required={true}
                       error={errors.transportation?.delivery?.price?.message}
                     >
                       <InputNumber
