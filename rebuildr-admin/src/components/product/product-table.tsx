@@ -298,6 +298,7 @@ const ProductTable = () => {
       title: "Administrera",
       key: "action",
       width: "120px",
+      fixed: "right",
       render: (_, { title, id, status, hiddenReason }) => {
         const isPublished = status === ProductStatusEnum.Published;
         const isHidden = !isEmpty(hiddenReason);
