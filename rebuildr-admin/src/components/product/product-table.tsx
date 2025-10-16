@@ -220,13 +220,13 @@ const ProductTable = () => {
   const getProductStatusTag = (status: ProductStatusEnum) => {
     switch (status) {
       case ProductStatusEnum.Published:
-        return <Tag color={"default"}>Publicerad</Tag>;
+        return <Tag color={"blue"}>Publicerad</Tag>;
       case ProductStatusEnum.Sold:
         return <Tag color={"green"}>Såld</Tag>;
       case ProductStatusEnum.Deleted:
-        return <Tag color={"error"}>Raderad</Tag>;
+        return <Tag color={"red"}>Raderad</Tag>;
       case ProductStatusEnum.Draft:
-        return <Tag color={"yellow"}>Draft</Tag>;
+        return <Tag color={"gold"}>Utkast</Tag>;
     }
   };
 
