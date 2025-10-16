@@ -47,12 +47,16 @@ const CreateProduct = () => {
       project: {
         hasProject: false,
       },
-      pickupEnabled: false,
-      delivery: {
-        enabled: false,
-      },
-      shipping: {
-        enabled: false,
+      transportation: {
+        pickup: {
+          enabled: false,
+        },
+        delivery: {
+          enabled: false,
+        },
+        shipping: {
+          enabled: false,
+        },
       },
     },
   });
@@ -80,7 +84,7 @@ const CreateProduct = () => {
   });
 
   const onSubmit = async (formData: ProductSchemaType) => {
-    const { delivery, shipping } = formData;
+    const { delivery, shipping, pickup } = formData.transportation;
 
     const newProduct: CmsCreateProductInput = {
       title: formData.title,
@@ -99,10 +103,10 @@ const CreateProduct = () => {
       noProject: !formData.project.hasProject,
       projectId: formData.project.projectId ?? null,
       address: formData.project.address ?? null,
-      pickupEnabled: formData.pickupEnabled,
+      pickupEnabled: pickup.enabled,
       deliveryEnabled: delivery.enabled,
-      deliveryPrice: delivery.enabled ? delivery.price : undefined,
-      deliveryRadius: delivery.enabled ? delivery.radius : undefined,
+      deliveryPrice: delivery.price ?? undefined,
+      deliveryRadius: delivery.radius ?? undefined,
       shippingPriceIds:
         shipping.enabled && shipping.shippingPriceId
           ? [shipping.shippingPriceId]

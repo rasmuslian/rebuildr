@@ -17,7 +17,7 @@ export const ProductSchema = z.object({
 
   price: z.coerce
     .number({ message: "Du måste ange pris." })
-    .nonnegative({ message: "Priset måste vara större än 0." }),
+    .nonnegative({ message: "Priset kan inte vara negativt." }),
 
   isGiveaway: z.boolean(),
 
@@ -141,57 +141,62 @@ export const ProductSchema = z.object({
       }
     }),
 
-  pickupEnabled: z.boolean(),
-
-  delivery: z
+  transportation: z
     .object({
-      enabled: z.boolean(),
-      radius: z.number().optional().nullable(),
-      price: z.number().optional().nullable(),
+      selected: z.boolean().optional(),
+      pickup: z.object({
+        enabled: z.boolean(),
+      }),
+      delivery: z.object({
+        enabled: z.boolean(),
+        price: z
+          .number()
+          .nonnegative({ message: "Priset kan inte vara negativt." })
+          .optional()
+          .nullable(),
+        radius: z
+          .number()
+          .nonnegative({ message: "Avståndet kan inte vara negativt." })
+          .optional()
+          .nullable(),
+      }),
+      shipping: z.object({
+        enabled: z.boolean(),
+        shippingPriceId: z.string().optional(),
+      }),
     })
-    .superRefine(({ enabled, radius, price }, ctx) => {
-      if (!enabled) return;
+    .superRefine(({ pickup, delivery, shipping }, ctx) => {
+      if (delivery.enabled) {
+        if (delivery.price == null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["delivery.price"],
+            message: "Du måste ange transportpris.",
+          });
+        }
 
-      if (!radius) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["radius"],
-          message: "Du måste ange avstånd.",
-        });
-      } else if (radius <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["radius"],
-          message: "Avståndet måste vara större än 0.",
-        });
+        if (delivery.radius == null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["delivery.radius"],
+            message: "Du måste ange avstånd.",
+          });
+        }
       }
 
-      if (!price) {
+      if (shipping.enabled && !shipping.shippingPriceId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["price"],
-          message: "Du måste ange transportpris.",
-        });
-      } else if (price <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["price"],
-          message: "Priset måste vara större än 0.",
-        });
-      }
-    }),
-
-  shipping: z
-    .object({
-      enabled: z.boolean(),
-      shippingPriceId: z.string().optional(),
-    })
-    .superRefine(({ enabled, shippingPriceId }, ctx) => {
-      if (enabled && !shippingPriceId) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["shippingPriceId"],
+          path: ["shipping.shippingPriceId"],
           message: "Du måste ange vikt på paketet.",
+        });
+      }
+
+      if (!pickup.enabled && !delivery.enabled && !shipping.enabled) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["selected"],
+          message: "Du måste välja minst en leverans metod.",
         });
       }
     }),

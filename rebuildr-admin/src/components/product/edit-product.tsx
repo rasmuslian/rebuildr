@@ -74,21 +74,25 @@ const EditProduct = ({ product }: Props) => {
         projectId: product.project?.id,
         address: product.address ?? undefined,
       },
-      pickupEnabled: product.pickupEnabled,
-      delivery: {
-        enabled: product.deliveryEnabled,
-        radius: product.deliveryRadius
-          ? product.deliveryRadius / 1000
-          : undefined,
-        price: product.deliveryPrice,
-      },
-      shipping: {
-        enabled: product.shippingPrices?.length
-          ? product.shippingPrices.length > 0
-          : false,
-        shippingPriceId: product.shippingPrices?.length
-          ? product.shippingPrices[0].id
-          : undefined,
+      transportation: {
+        pickup: {
+          enabled: product.pickupEnabled,
+        },
+        delivery: {
+          enabled: product.deliveryEnabled,
+          radius: product.deliveryRadius
+            ? product.deliveryRadius / 1000
+            : undefined,
+          price: product.deliveryPrice,
+        },
+        shipping: {
+          enabled: product.shippingPrices?.length
+            ? product.shippingPrices.length > 0
+            : false,
+          shippingPriceId: product.shippingPrices?.length
+            ? product.shippingPrices[0].id
+            : undefined,
+        },
       },
     },
   });
@@ -117,7 +121,7 @@ const EditProduct = ({ product }: Props) => {
   });
 
   const onSubmit = async (formData: ProductSchemaType) => {
-    const { delivery, shipping } = formData;
+    const { delivery, shipping, pickup } = formData.transportation;
 
     const updatedProduct: CmsUpdateProductInput = {
       id: product.id,
@@ -142,10 +146,10 @@ const EditProduct = ({ product }: Props) => {
       noProject: !formData.project.hasProject,
       projectId: formData.project.projectId ?? null,
       address: formData.project.address ?? null,
-      pickupEnabled: formData.pickupEnabled,
+      pickupEnabled: pickup.enabled,
       deliveryEnabled: delivery.enabled,
-      deliveryPrice: delivery.enabled ? delivery.price : undefined,
-      deliveryRadius: delivery.enabled ? delivery.radius : undefined,
+      deliveryPrice: delivery.price ?? undefined,
+      deliveryRadius: delivery.radius ?? undefined,
       shippingPriceIds:
         shipping.enabled && shipping.shippingPriceId
           ? [shipping.shippingPriceId]

@@ -466,13 +466,20 @@ const ProductForm = ({
             Leverans
           </Divider>
 
-          <Section>
+          <Section error={errors.transportation?.selected?.message}>
             <Controller
               control={control}
-              name="pickupEnabled"
+              name="transportation.pickup.enabled"
               render={({ field: { value, onChange } }) => (
-                <FormField error={errors.pickupEnabled?.message}>
-                  <Checkbox checked={value} onChange={onChange}>
+                <FormField>
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+                      if (checked) clearErrors("transportation.selected");
+                    }}
+                  >
                     Avhämtning
                   </Checkbox>
                 </FormField>
@@ -481,24 +488,33 @@ const ProductForm = ({
 
             <Controller
               control={control}
-              name="shipping.enabled"
+              name="transportation.shipping.enabled"
               render={({ field: { value, onChange } }) => (
-                <FormField error={errors.shipping?.enabled?.message}>
-                  <Checkbox checked={value} onChange={onChange}>
+                <FormField>
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+                      if (checked) clearErrors("transportation.selected");
+                    }}
+                  >
                     Fraktleverans
                   </Checkbox>
                 </FormField>
               )}
             />
 
-            {watch("shipping.enabled") && (
+            {watch("transportation.shipping.enabled") && (
               <Controller
                 control={control}
-                name="shipping.shippingPriceId"
+                name="transportation.shipping.shippingPriceId"
                 render={({ field: { value, onChange } }) => (
                   <FormField
                     label="Välj vikt på paketet"
-                    error={errors.shipping?.shippingPriceId?.message}
+                    error={
+                      errors.transportation?.shipping?.shippingPriceId?.message
+                    }
                   >
                     <SelectShippingPrice value={value} onChange={onChange} />
                   </FormField>
@@ -508,25 +524,32 @@ const ProductForm = ({
 
             <Controller
               control={control}
-              name="delivery.enabled"
+              name="transportation.delivery.enabled"
               render={({ field: { value, onChange } }) => (
-                <FormField error={errors.delivery?.enabled?.message}>
-                  <Checkbox checked={value} onChange={onChange}>
+                <FormField>
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+                      if (checked) clearErrors("transportation.selected");
+                    }}
+                  >
                     Hemtransport
                   </Checkbox>
                 </FormField>
               )}
             />
 
-            {watch("delivery.enabled") && (
+            {watch("transportation.delivery.enabled") && (
               <>
                 <Controller
                   control={control}
-                  name="delivery.radius"
+                  name="transportation.delivery.radius"
                   render={({ field }) => (
                     <FormField
                       label="Max avstånd för hemtransport (km)"
-                      error={errors.delivery?.radius?.message}
+                      error={errors.transportation?.delivery?.radius?.message}
                     >
                       <InputNumber
                         {...field}
@@ -540,11 +563,11 @@ const ProductForm = ({
 
                 <Controller
                   control={control}
-                  name="delivery.price"
+                  name="transportation.delivery.price"
                   render={({ field }) => (
                     <FormField
                       label="Transportpris (kr)"
-                      error={errors.delivery?.price?.message}
+                      error={errors.transportation?.delivery?.price?.message}
                     >
                       <InputNumber
                         {...field}
