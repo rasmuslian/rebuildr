@@ -946,6 +946,7 @@ input CmsCreateProductInput {
   title: String!
   description: String!
   price: Float!
+  isGiveaway: Boolean!
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
@@ -953,6 +954,11 @@ input CmsCreateProductInput {
   noProject: Boolean!
   projectId: String
   measurement: MeasurementInput
+  pickupEnabled: Boolean!
+  deliveryEnabled: Boolean!
+  deliveryPrice: Float
+  deliveryRadius: Float
+  shippingPriceIds: [String!]
   images: [FileInputType!]!
 }
 
@@ -979,6 +985,7 @@ input CmsUpdateProductInput {
   title: String!
   description: String!
   price: Float!
+  isGiveaway: Boolean!
   categoryId: String!
   brandId: String!
   condition: ProductConditionEnum!
@@ -986,6 +993,11 @@ input CmsUpdateProductInput {
   noProject: Boolean!
   projectId: String
   measurement: MeasurementInput
+  pickupEnabled: Boolean!
+  deliveryEnabled: Boolean!
+  deliveryPrice: Float
+  deliveryRadius: Float
+  shippingPriceIds: [String!]
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]

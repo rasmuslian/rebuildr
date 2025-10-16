@@ -508,6 +508,9 @@ class CmsBaseProductInput extends QuantityInput {
   @Field()
   price: number;
 
+  @Field()
+  isGiveaway: boolean;
+
   @Field(() => String)
   categoryId: string;
 
@@ -528,6 +531,21 @@ class CmsBaseProductInput extends QuantityInput {
 
   @Field(() => MeasurementInput, { nullable: true })
   measurement?: MeasurementInput;
+
+  @Field()
+  pickupEnabled: boolean;
+
+  @Field()
+  deliveryEnabled: boolean;
+
+  @Field({ nullable: true })
+  deliveryPrice?: number;
+
+  @Field({ nullable: true })
+  deliveryRadius?: number;
+
+  @Field(() => [String], { nullable: true })
+  shippingPriceIds?: string[];
 }
 
 @InputType()

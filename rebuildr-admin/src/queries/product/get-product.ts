@@ -9,6 +9,7 @@ const query = `
       description
       condition
       price
+      isGiveaway
       status
       address
       primaryQuantity
@@ -29,6 +30,15 @@ const query = `
       heightUnit
       noProject
       sellerId
+      pickupEnabled
+      deliveryEnabled
+      deliveryPrice
+      deliveryRadius
+      shippingPrices {
+        id
+        maxWeight
+        price
+      }
       category {
         id
         name

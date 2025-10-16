@@ -5,7 +5,7 @@ import EmptyContainer from "@/components/empty-container";
 import { Select, SelectProps } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { listBrands } from "@/queries/brand/list-brand";
+import { listBrands } from "@/queries/brand/list-brands";
 
 type Props = {
   value?: string;
@@ -35,7 +35,7 @@ const SelectBrand = ({ value, onChange }: Props) => {
       loading={isLoading}
       optionFilterProp="label"
       placeholder="Välj märke ..."
-      value={value}
+      value={isLoading ? undefined : value}
       options={options}
       onChange={onChange}
       notFoundContent={

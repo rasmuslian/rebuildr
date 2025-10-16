@@ -33,7 +33,7 @@ const SelectCategory = ({ value, onChange }: Props) => {
       loading={isLoading}
       placeholder="Välj kategori ..."
       size="large"
-      value={value}
+      value={isLoading ? undefined : value}
       treeData={treeData}
       treeNodeFilterProp="title"
       onChange={onChange}

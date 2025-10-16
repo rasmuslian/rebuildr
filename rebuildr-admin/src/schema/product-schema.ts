@@ -17,7 +17,9 @@ export const ProductSchema = z.object({
 
   price: z.coerce
     .number({ message: "Du måste ange pris." })
-    .positive({ message: "Priset måste vara större än 0." }),
+    .nonnegative({ message: "Priset måste vara större än 0." }),
+
+  isGiveaway: z.boolean(),
 
   images: z
     .array(z.custom<UploadFile>())
@@ -122,7 +124,7 @@ export const ProductSchema = z.object({
       address: z.string().optional(),
     })
     .superRefine(({ hasProject, projectId, address }, ctx) => {
-      if (hasProject && projectId === undefined) {
+      if (hasProject && !projectId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["projectId"],
@@ -130,11 +132,66 @@ export const ProductSchema = z.object({
         });
       }
 
-      if (!hasProject && address === undefined) {
+      if (!hasProject && !address) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["address"],
           message: "Du måste ange address.",
+        });
+      }
+    }),
+
+  pickupEnabled: z.boolean(),
+
+  delivery: z
+    .object({
+      enabled: z.boolean(),
+      radius: z.number().optional().nullable(),
+      price: z.number().optional().nullable(),
+    })
+    .superRefine(({ enabled, radius, price }, ctx) => {
+      if (!enabled) return;
+
+      if (!radius) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["radius"],
+          message: "Du måste ange avstånd.",
+        });
+      } else if (radius <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["radius"],
+          message: "Avståndet måste vara större än 0.",
+        });
+      }
+
+      if (!price) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["price"],
+          message: "Du måste ange transportpris.",
+        });
+      } else if (price <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["price"],
+          message: "Priset måste vara större än 0.",
+        });
+      }
+    }),
+
+  shipping: z
+    .object({
+      enabled: z.boolean(),
+      shippingPriceId: z.string().optional(),
+    })
+    .superRefine(({ enabled, shippingPriceId }, ctx) => {
+      if (enabled && !shippingPriceId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["shippingPriceId"],
+          message: "Du måste ange vikt på paketet.",
         });
       }
     }),

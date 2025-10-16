@@ -5,8 +5,9 @@ export enum queryKeys {
   LIST_FOOTER_SECTIONS = "list-footer-sections",
   LIST_PRODUCTS = "list-products",
   LIST_PROJECTS = "list-projects",
-  LIST_CATEGORY = "lisy-category",
-  LIST_BRAND = "lisy-brand",
+  LIST_CATEGORY = "list-category",
+  LIST_BRAND = "list-brand",
+  LIST_SHIPPING_PRICE = "list-shipping-price",
   SEARCH_ADDRESS = "search-address",
   LIST_USER_PROJECTS = "list-user-projects",
 }

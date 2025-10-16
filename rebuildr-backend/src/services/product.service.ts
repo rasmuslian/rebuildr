@@ -1250,21 +1250,38 @@ export class ProductService {
     sellerId: string,
   ): Promise<CmsCreateProductResponse> {
     try {
-      const { measurement, images, price, address, ...rest } = input;
-      const location = await this.geocodingService.addressToLocation(address);
+      const {
+        measurement,
+        images,
+        price,
+        deliveryRadius,
+        deliveryPrice,
+        shippingPriceIds,
+        ...rest
+      } = input;
+
+      const location = await this.geocodingService.addressToLocation(
+        input.address,
+      );
+
+      const shippingPrices = await this.shippingPriceRepository.find({
+        where: { id: In(shippingPriceIds) },
+      });
 
       const product = this.productRepository.create({
-        ...rest,
-        ...measurement,
         sellerId,
         status: ProductStatus.PUBLISHED,
         price: price * 100,
         images: await this.fileService.createFiles(images),
-        address,
         addressLocation: {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         },
+        deliveryRadius: deliveryRadius ? deliveryRadius * 10000 : undefined,
+        deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
+        shippingPrices: shippingPrices,
+        ...rest,
+        ...measurement,
       });
 
       return {
@@ -1287,10 +1304,20 @@ export class ProductService {
     if (!product) throw NotFoundException('Product not found');
 
     try {
-      const { measurement, removeImages, addImages, address, price, ...rest } =
-        input;
+      const {
+        measurement,
+        removeImages,
+        addImages,
+        price,
+        deliveryRadius,
+        deliveryPrice,
+        shippingPriceIds,
+        ...rest
+      } = input;
 
-      const location = await this.geocodingService.addressToLocation(address);
+      const location = await this.geocodingService.addressToLocation(
+        input.address,
+      );
 
       const images = product.images;
       const removeIds = new Set(removeImages);
@@ -1300,16 +1327,22 @@ export class ProductService {
       await this.fileService.deleteFiles(removeImagesList);
       const addImagesList = await this.fileService.createFiles(addImages);
 
+      const shippingPrices = await this.shippingPriceRepository.find({
+        where: { id: In(shippingPriceIds) },
+      });
+
       Object.assign<Product, Partial<Product>>(product, {
-        ...rest,
-        ...measurement,
-        address,
         addressLocation: {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         },
         price: price * 100,
         images: [...keepImagesList, ...addImagesList],
+        deliveryRadius: deliveryRadius ? deliveryRadius * 10000 : undefined,
+        deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
+        shippingPrices: shippingPrices,
+        ...rest,
+        ...measurement,
       });
 
       return {

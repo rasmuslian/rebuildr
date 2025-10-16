@@ -153,16 +153,22 @@ export type CmsCreateProductInput = {
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
+  deliveryEnabled: Scalars['Boolean']['input'];
+  deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
+  deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
   description: Scalars['String']['input'];
   images: Array<FileInputType>;
+  isGiveaway: Scalars['Boolean']['input'];
   measurement?: InputMaybe<MeasurementInput>;
   noProject: Scalars['Boolean']['input'];
+  pickupEnabled: Scalars['Boolean']['input'];
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
   projectId?: InputMaybe<Scalars['String']['input']>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
+  shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
   title: Scalars['String']['input'];
 };
 
@@ -249,10 +255,15 @@ export type CmsUpdateProductInput = {
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
   condition: ProductConditionEnum;
+  deliveryEnabled: Scalars['Boolean']['input'];
+  deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
+  deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
+  isGiveaway: Scalars['Boolean']['input'];
   measurement?: InputMaybe<MeasurementInput>;
   noProject: Scalars['Boolean']['input'];
+  pickupEnabled: Scalars['Boolean']['input'];
   price: Scalars['Float']['input'];
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
@@ -260,6 +271,7 @@ export type CmsUpdateProductInput = {
   removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
+  shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
   title: Scalars['String']['input'];
 };
 

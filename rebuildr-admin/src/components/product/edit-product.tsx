@@ -48,6 +48,7 @@ const EditProduct = ({ product }: Props) => {
       categoryId: product.category?.id,
       condition: product.condition,
       price: product.price,
+      isGiveaway: product.isGiveaway,
       images: product.images ? getUploadFiles(product.images) : [],
       primaryMeasurement: {
         quantity: product.primaryQuantity ?? undefined,
@@ -72,6 +73,22 @@ const EditProduct = ({ product }: Props) => {
         hasProject: !product.noProject,
         projectId: product.project?.id,
         address: product.address ?? undefined,
+      },
+      pickupEnabled: product.pickupEnabled,
+      delivery: {
+        enabled: product.deliveryEnabled,
+        radius: product.deliveryRadius
+          ? product.deliveryRadius / 1000
+          : undefined,
+        price: product.deliveryPrice,
+      },
+      shipping: {
+        enabled: product.shippingPrices?.length
+          ? product.shippingPrices.length > 0
+          : false,
+        shippingPriceId: product.shippingPrices?.length
+          ? product.shippingPrices[0].id
+          : undefined,
       },
     },
   });
@@ -100,6 +117,8 @@ const EditProduct = ({ product }: Props) => {
   });
 
   const onSubmit = async (formData: ProductSchemaType) => {
+    const { delivery, shipping } = formData;
+
     const updatedProduct: CmsUpdateProductInput = {
       id: product.id,
       title: formData.title,
@@ -108,6 +127,7 @@ const EditProduct = ({ product }: Props) => {
       categoryId: formData.categoryId,
       condition: formData.condition,
       price: formData.price,
+      isGiveaway: formData.isGiveaway,
       addImages: getFileInputTypes(formData.images),
       removeImages: getRemovedFileIds(product.images, formData.images),
       primaryQuantity: formData.primaryMeasurement.quantity,
@@ -122,6 +142,14 @@ const EditProduct = ({ product }: Props) => {
       noProject: !formData.project.hasProject,
       projectId: formData.project.projectId ?? null,
       address: formData.project.address ?? null,
+      pickupEnabled: formData.pickupEnabled,
+      deliveryEnabled: delivery.enabled,
+      deliveryPrice: delivery.enabled ? delivery.price : undefined,
+      deliveryRadius: delivery.enabled ? delivery.radius : undefined,
+      shippingPriceIds:
+        shipping.enabled && shipping.shippingPriceId
+          ? [shipping.shippingPriceId]
+          : [],
     };
 
     const response = await mutateAsync(updatedProduct);

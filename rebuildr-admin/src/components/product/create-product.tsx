@@ -30,6 +30,7 @@ const CreateProduct = () => {
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
     defaultValues: {
+      isGiveaway: false,
       images: [],
       secondaryMeasurement: {
         enabled: false,
@@ -45,6 +46,13 @@ const CreateProduct = () => {
       },
       project: {
         hasProject: false,
+      },
+      pickupEnabled: false,
+      delivery: {
+        enabled: false,
+      },
+      shipping: {
+        enabled: false,
       },
     },
   });
@@ -72,6 +80,8 @@ const CreateProduct = () => {
   });
 
   const onSubmit = async (formData: ProductSchemaType) => {
+    const { delivery, shipping } = formData;
+
     const newProduct: CmsCreateProductInput = {
       title: formData.title,
       description: formData.description,
@@ -79,6 +89,7 @@ const CreateProduct = () => {
       categoryId: formData.categoryId,
       condition: formData.condition,
       price: formData.price,
+      isGiveaway: formData.isGiveaway,
       images: getFileInputTypes(formData.images),
       primaryQuantity: formData.primaryMeasurement.quantity,
       primaryUnit: formData.primaryMeasurement.unit,
@@ -88,6 +99,14 @@ const CreateProduct = () => {
       noProject: !formData.project.hasProject,
       projectId: formData.project.projectId ?? null,
       address: formData.project.address ?? null,
+      pickupEnabled: formData.pickupEnabled,
+      deliveryEnabled: delivery.enabled,
+      deliveryPrice: delivery.enabled ? delivery.price : undefined,
+      deliveryRadius: delivery.enabled ? delivery.radius : undefined,
+      shippingPriceIds:
+        shipping.enabled && shipping.shippingPriceId
+          ? [shipping.shippingPriceId]
+          : [],
     };
 
     const response = await mutateAsync(newProduct);

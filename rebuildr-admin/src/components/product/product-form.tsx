@@ -13,6 +13,7 @@ import SelectQuantityUnit from "@components/quantity-unit/select-quantity-unit";
 import SelectMeasurement from "@components/measurement/select-measurement";
 import SelectProject from "@components/project/select-project";
 import SelectAddress from "@components/address/select-address";
+import SelectShippingPrice from "@components/shipping-price/select-shipping-price";
 import Section from "@components/section";
 import {
   measurements,
@@ -97,7 +98,7 @@ const ProductForm = ({
                 required={true}
                 error={errors.title?.message}
               >
-                <Input {...field} placeholder="Titel" />
+                <Input {...field} placeholder="Rubrik ..." />
               </FormField>
             )}
           />
@@ -125,7 +126,7 @@ const ProductForm = ({
             name="price"
             render={({ field: { value, onChange } }) => (
               <FormField
-                label="Pris"
+                label="Pris (kr)"
                 required={true}
                 error={errors.price?.message}
               >
@@ -136,6 +137,18 @@ const ProductForm = ({
                   style={{ width: "100%" }}
                   type="number"
                 />
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="isGiveaway"
+            render={({ field: { value, onChange } }) => (
+              <FormField error={errors.isGiveaway?.message}>
+                <Checkbox checked={value} onChange={onChange}>
+                  Bortskänkes
+                </Checkbox>
               </FormField>
             )}
           />
@@ -447,6 +460,103 @@ const ProductForm = ({
                 </FormField>
               )}
             />
+          </Section>
+
+          <Divider orientation="left" size="small">
+            Leverans
+          </Divider>
+
+          <Section>
+            <Controller
+              control={control}
+              name="pickupEnabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField error={errors.pickupEnabled?.message}>
+                  <Checkbox checked={value} onChange={onChange}>
+                    Avhämtning
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="shipping.enabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField error={errors.shipping?.enabled?.message}>
+                  <Checkbox checked={value} onChange={onChange}>
+                    Fraktleverans
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            {watch("shipping.enabled") && (
+              <Controller
+                control={control}
+                name="shipping.shippingPriceId"
+                render={({ field: { value, onChange } }) => (
+                  <FormField
+                    label="Välj vikt på paketet"
+                    error={errors.shipping?.shippingPriceId?.message}
+                  >
+                    <SelectShippingPrice value={value} onChange={onChange} />
+                  </FormField>
+                )}
+              />
+            )}
+
+            <Controller
+              control={control}
+              name="delivery.enabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField error={errors.delivery?.enabled?.message}>
+                  <Checkbox checked={value} onChange={onChange}>
+                    Hemtransport
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            {watch("delivery.enabled") && (
+              <>
+                <Controller
+                  control={control}
+                  name="delivery.radius"
+                  render={({ field }) => (
+                    <FormField
+                      label="Max avstånd för hemtransport (km)"
+                      error={errors.delivery?.radius?.message}
+                    >
+                      <InputNumber
+                        {...field}
+                        style={{ width: "100%" }}
+                        placeholder="Avstånd ..."
+                        type="number"
+                      />
+                    </FormField>
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name="delivery.price"
+                  render={({ field }) => (
+                    <FormField
+                      label="Transportpris (kr)"
+                      error={errors.delivery?.price?.message}
+                    >
+                      <InputNumber
+                        {...field}
+                        style={{ width: "100%" }}
+                        placeholder="Transportpris ..."
+                        type="number"
+                      />
+                    </FormField>
+                  )}
+                />
+              </>
+            )}
           </Section>
         </div>
       </div>
