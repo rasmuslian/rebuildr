@@ -241,7 +241,6 @@ const ProductTable = () => {
       title: "Säljare",
       key: "seller",
       width: "180px",
-      ellipsis: true,
       render: (_, { seller }) => <span>{seller.username}</span>,
     },
     {
@@ -249,7 +248,6 @@ const ProductTable = () => {
       key: "sellerEmail",
       dataIndex: "sellerEmail",
       width: "300px",
-      ellipsis: true,
       render: (_, { seller }) => <span>{seller.email}</span>,
     },
     {
@@ -257,7 +255,6 @@ const ProductTable = () => {
       dataIndex: "category",
       key: "category",
       width: "200px",
-      ellipsis: true,
       render: (_, { category }) => <span>{category?.name}</span>,
     },
     {
@@ -265,7 +262,6 @@ const ProductTable = () => {
       dataIndex: "brand",
       key: "brand",
       width: "150px",
-      ellipsis: true,
       render: (_, { brand }) => <span>{brand?.name}</span>,
     },
     {
@@ -273,7 +269,6 @@ const ProductTable = () => {
       dataIndex: "condition",
       key: "condition",
       width: "150px",
-      ellipsis: true,
       render: (_, { condition }) => <span>{conditions[condition].name}</span>,
     },
     {
@@ -281,14 +276,12 @@ const ProductTable = () => {
       key: "priceInKr",
       dataIndex: "priceInKr",
       width: "100px",
-      ellipsis: true,
       render: (_, { price }) => <span>{formatPrice(price)}</span>,
     },
     {
       title: "Status",
       key: "status",
       width: "200px",
-      ellipsis: true,
       render: (_, { status, hiddenReason }) => {
         const isHidden = !isEmpty(hiddenReason);
         const productStatus = getProductStatusTag(status);
