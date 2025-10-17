@@ -488,6 +488,21 @@ type DeliveryOptionResponse {
   postalCode: String
 }
 
+type CmsListProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type CmsCreateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+}
+
+type CmsUpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+}
+
 type UpdateUserResponse {
   user: User!
   profilePicturePutUrl: String
@@ -539,6 +554,11 @@ type PurchaseProductResponse {
   trustlyUrl: String
 }
 
+type CmsListProjectsResponse {
+  projects: [Project!]!
+  total: Int!
+}
+
 type FooterSection {
   id: ID!
   title: String!
@@ -578,6 +598,8 @@ type Query {
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
   getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
   getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
+  cmsGetProduct(productId: String!): Product!
+  cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
   category(input: CategoryInput!): Category!
   categories(input: CategoriesInput!): [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -599,6 +621,8 @@ type Query {
   brands: [Brand!]!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
+  cmsListProjects(input: CmsListProjectsInput!): CmsListProjectsResponse!
+  cmsGetUserProjects(sellerId: String): [Project!]!
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
@@ -668,6 +692,12 @@ input GetTransportationOptionsInput {
   productId: String!
   postCode: String
   address: String
+}
+
+input CmsListProductsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
 }
 
 input CategoryInput {
@@ -750,6 +780,12 @@ input GetProjectInput {
   id: String!
 }
 
+input CmsListProjectsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+}
+
 input GetShippingPriceInput {
   id: String!
 }
@@ -788,6 +824,11 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   deleteAccount: User!
+  cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
+  cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
+  cmsHideProduct(productId: String!, hiddenReason: String!): Product!
+  cmsUnhideProduct(productId: String!): Product!
+  cmsDeleteProduct(productId: String!): Product!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
@@ -809,6 +850,8 @@ type Mutation {
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Boolean!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
+  cmsCreateProject(input: CmsCreateProjectInput!): Project!
+  cmsUpdateProject(input: CmsUpdateProjectInput!): Project!
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
@@ -893,6 +936,71 @@ input CreateOrganizationUserInput {
   organizationNumber: String!
   organizationName: String!
   creatorId: String!
+}
+
+input CmsCreateProductInput {
+  primaryQuantity: Float!
+  primaryUnit: QuantityUnitEnum!
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
+  title: String!
+  description: String!
+  price: Float!
+  isGiveaway: Boolean!
+  categoryId: String!
+  brandId: String!
+  condition: ProductConditionEnum!
+  address: String
+  noProject: Boolean!
+  projectId: String
+  measurement: MeasurementInput
+  pickupEnabled: Boolean!
+  deliveryEnabled: Boolean!
+  deliveryPrice: Float
+  deliveryRadius: Float
+  shippingPriceIds: [String!]
+  images: [FileInputType!]!
+}
+
+input MeasurementInput {
+  height: Float
+  heightUnit: MeasurementUnitEnum
+  width: Float
+  widthUnit: MeasurementUnitEnum
+  length: Float
+  lengthUnit: MeasurementUnitEnum
+  thickness: Float
+  thicknessUnit: MeasurementUnitEnum
+  diameter: Float
+  diameterUnit: MeasurementUnitEnum
+  weight: Float
+  weightUnit: MeasurementUnitEnum
+}
+
+input CmsUpdateProductInput {
+  primaryQuantity: Float!
+  primaryUnit: QuantityUnitEnum!
+  secondaryQuantity: Float
+  secondaryUnit: QuantityUnitEnum
+  title: String!
+  description: String!
+  price: Float!
+  isGiveaway: Boolean!
+  categoryId: String!
+  brandId: String!
+  condition: ProductConditionEnum!
+  address: String
+  noProject: Boolean!
+  projectId: String
+  measurement: MeasurementInput
+  pickupEnabled: Boolean!
+  deliveryEnabled: Boolean!
+  deliveryPrice: Float
+  deliveryRadius: Float
+  shippingPriceIds: [String!]
+  id: String!
+  addImages: [FileInputType!]
+  removeImages: [String!]
 }
 
 input CreateProductInput {
@@ -1045,6 +1153,25 @@ input CancelPurchaseInput {
 
 input AbortPurchaseInput {
   purchaseId: String!
+}
+
+input CmsCreateProjectInput {
+  title: String!
+  description: String!
+  address: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+}
+
+input CmsUpdateProjectInput {
+  title: String!
+  description: String!
+  address: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  id: String!
 }
 
 input CreateProjectInput {

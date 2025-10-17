@@ -29,7 +29,6 @@ import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { CategoryService } from 'src/services/category.service';
-import { FileService } from 'src/services/file.service';
 import { ProductService } from 'src/services/product.service';
 import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
@@ -52,6 +51,9 @@ import { minimumEscrow } from 'src/constants/pricing';
 import { ServicePointResponse } from './shipping.resolver';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRoleEnum } from 'src/entities/user.entity';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -420,13 +422,172 @@ export class SimilarProductsInput {
   similarToProductId: string;
 }
 
+@InputType()
+export class CmsListProductsInput {
+  @Field(() => Int, { nullable: true })
+  page?: number;
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
+}
+
+@ObjectType()
+export class CmsListProductsResponse {
+  @Field(() => [Product])
+  products: Product[];
+
+  @Field(() => Int)
+  total: number;
+}
+
+@InputType()
+class MeasurementInput {
+  @Field({ nullable: true })
+  height?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  heightUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  width?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  widthUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  length?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  lengthUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  thickness?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  thicknessUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  diameter?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  diameterUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  weight?: number;
+
+  @Field(() => MeasurementUnitEnum, { nullable: true })
+  weightUnit?: MeasurementUnitEnum;
+}
+
+@InputType()
+class QuantityInput {
+  @Field()
+  primaryQuantity: number;
+
+  @Field(() => QuantityUnitEnum)
+  primaryUnit: QuantityUnitEnum;
+
+  @Field({ nullable: true })
+  secondaryQuantity?: number;
+
+  @Field(() => QuantityUnitEnum, { nullable: true })
+  secondaryUnit?: QuantityUnitEnum;
+}
+
+@InputType()
+class CmsBaseProductInput extends QuantityInput {
+  @Field(() => String)
+  title: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field()
+  price: number;
+
+  @Field()
+  isGiveaway: boolean;
+
+  @Field(() => String)
+  categoryId: string;
+
+  @Field(() => String)
+  brandId: string;
+
+  @Field(() => ProductConditionEnum)
+  condition: ProductConditionEnum;
+
+  @Field({ nullable: true })
+  address?: string;
+
+  @Field()
+  noProject: boolean;
+
+  @Field({ nullable: true })
+  projectId?: string;
+
+  @Field(() => MeasurementInput, { nullable: true })
+  measurement?: MeasurementInput;
+
+  @Field()
+  pickupEnabled: boolean;
+
+  @Field()
+  deliveryEnabled: boolean;
+
+  @Field({ nullable: true })
+  deliveryPrice?: number;
+
+  @Field({ nullable: true })
+  deliveryRadius?: number;
+
+  @Field(() => [String], { nullable: true })
+  shippingPriceIds?: string[];
+}
+
+@InputType()
+export class CmsCreateProductInput extends CmsBaseProductInput {
+  @Field(() => [FileInputType])
+  images: FileInputType[];
+}
+
+@ObjectType()
+export class CmsCreateProductResponse {
+  @Field(() => Product)
+  product: Product;
+
+  @Field(() => [String])
+  imagePutUrls: string[];
+}
+@InputType()
+export class CmsUpdateProductInput extends CmsBaseProductInput {
+  @Field(() => String)
+  id: string;
+
+  @Field(() => [FileInputType], { nullable: true })
+  addImages?: FileInputType[];
+
+  @Field(() => [String], { nullable: true })
+  removeImages?: string[];
+}
+@ObjectType()
+export class CmsUpdateProductResponse {
+  @Field(() => Product)
+  product: Product;
+
+  @Field(() => [String])
+  imagePutUrls: string[];
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     private categoryService: CategoryService,
-    private fileService: FileService,
     private eventService: EventService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
@@ -468,15 +629,78 @@ export class ProductResolver {
   async getPickupOption(@Args('input') input: GetTransportationOptionsInput) {
     return this.productService.getPickupOption(input);
   }
+
   @Query(() => [ShippingOptionResponse])
   async getShippingOptions(
     @Args('input') input: GetTransportationOptionsInput,
   ) {
     return this.productService.getShippingOptions(input);
   }
+
   @Query(() => DeliveryOptionResponse, { nullable: true })
   async getDeliveryOption(@Args('input') input: GetTransportationOptionsInput) {
     return this.productService.getDeliveryOptions(input);
+  }
+
+  @Query(() => Product)
+  async cmsGetProduct(@Args('productId') productId: string): Promise<Product> {
+    return this.productService.cmsGetProduct(productId);
+  }
+
+  @Query(() => CmsListProductsResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsListProducts(
+    @Args('input') input: CmsListProductsInput,
+  ): Promise<CmsListProductsResponse> {
+    return this.productService.cmsListProducts(input);
+  }
+
+  @Mutation(() => CmsCreateProductResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsCreateProduct(
+    @Args('input') input: CmsCreateProductInput,
+    @CurrentUser() user: AuthedUserType,
+  ): Promise<CmsCreateProductResponse> {
+    return this.productService.cmsCreateProduct(input, user.id);
+  }
+
+  @Mutation(() => CmsUpdateProductResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUpdateProduct(
+    @Args('input') input: CmsUpdateProductInput,
+  ): Promise<CmsUpdateProductResponse> {
+    return this.productService.cmsUpdateProduct(input);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsHideProduct(
+    @Args('productId') productId: string,
+    @Args('hiddenReason') hiddenReason: string,
+  ): Promise<Product> {
+    return this.productService.cmsHideProduct(productId, hiddenReason);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUnhideProduct(
+    @Args('productId') productId: string,
+  ): Promise<Product> {
+    return this.productService.cmsUnhideProduct(productId);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeleteProduct(
+    @Args('productId') productId: string,
+  ): Promise<Product> {
+    return this.productService.cmsDeleteProduct(productId);
   }
 
   @Mutation(() => CreateProductResponse)

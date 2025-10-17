@@ -3,4 +3,11 @@ export enum queryKeys {
   LIST_IMAGES = "list-images",
   LIST_ARTICLES = "list-articles",
   LIST_FOOTER_SECTIONS = "list-footer-sections",
+  LIST_PRODUCTS = "list-products",
+  LIST_PROJECTS = "list-projects",
+  LIST_CATEGORY = "list-category",
+  LIST_BRAND = "list-brand",
+  LIST_SHIPPING_PRICE = "list-shipping-price",
+  SEARCH_ADDRESS = "search-address",
+  LIST_USER_PROJECTS = "list-user-projects",
 }

@@ -148,6 +148,45 @@ export type CmsCreateFooterSectionInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsCreateProductInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  brandId: Scalars['String']['input'];
+  categoryId: Scalars['String']['input'];
+  condition: ProductConditionEnum;
+  deliveryEnabled: Scalars['Boolean']['input'];
+  deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
+  deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
+  description: Scalars['String']['input'];
+  images: Array<FileInputType>;
+  isGiveaway: Scalars['Boolean']['input'];
+  measurement?: InputMaybe<MeasurementInput>;
+  noProject: Scalars['Boolean']['input'];
+  pickupEnabled: Scalars['Boolean']['input'];
+  price: Scalars['Float']['input'];
+  primaryQuantity: Scalars['Float']['input'];
+  primaryUnit: QuantityUnitEnum;
+  projectId?: InputMaybe<Scalars['String']['input']>;
+  secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
+  secondaryUnit?: InputMaybe<QuantityUnitEnum>;
+  shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  title: Scalars['String']['input'];
+};
+
+export type CmsCreateProductResponse = {
+  __typename?: 'CmsCreateProductResponse';
+  imagePutUrls: Array<Scalars['String']['output']>;
+  product: Product;
+};
+
+export type CmsCreateProjectInput = {
+  address: Scalars['String']['input'];
+  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  contactName?: InputMaybe<Scalars['String']['input']>;
+  contactPhone?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
 export type CmsListImagesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -156,6 +195,30 @@ export type CmsListImagesInput = {
 export type CmsListImagesResponse = {
   __typename?: 'CmsListImagesResponse';
   files: Array<File>;
+  total: Scalars['Int']['output'];
+};
+
+export type CmsListProductsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsListProductsResponse = {
+  __typename?: 'CmsListProductsResponse';
+  products: Array<Product>;
+  total: Scalars['Int']['output'];
+};
+
+export type CmsListProjectsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsListProjectsResponse = {
+  __typename?: 'CmsListProjectsResponse';
+  projects: Array<Project>;
   total: Scalars['Int']['output'];
 };
 
@@ -183,6 +246,48 @@ export type CmsUpdateFooterSectionInput = {
   articles: Array<ArticleOrderInput>;
   id: Scalars['String']['input'];
   orderIndex: Scalars['Float']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CmsUpdateProductInput = {
+  addImages?: InputMaybe<Array<FileInputType>>;
+  address?: InputMaybe<Scalars['String']['input']>;
+  brandId: Scalars['String']['input'];
+  categoryId: Scalars['String']['input'];
+  condition: ProductConditionEnum;
+  deliveryEnabled: Scalars['Boolean']['input'];
+  deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
+  deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
+  description: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  isGiveaway: Scalars['Boolean']['input'];
+  measurement?: InputMaybe<MeasurementInput>;
+  noProject: Scalars['Boolean']['input'];
+  pickupEnabled: Scalars['Boolean']['input'];
+  price: Scalars['Float']['input'];
+  primaryQuantity: Scalars['Float']['input'];
+  primaryUnit: QuantityUnitEnum;
+  projectId?: InputMaybe<Scalars['String']['input']>;
+  removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
+  secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
+  secondaryUnit?: InputMaybe<QuantityUnitEnum>;
+  shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  title: Scalars['String']['input'];
+};
+
+export type CmsUpdateProductResponse = {
+  __typename?: 'CmsUpdateProductResponse';
+  imagePutUrls: Array<Scalars['String']['output']>;
+  product: Product;
+};
+
+export type CmsUpdateProjectInput = {
+  address: Scalars['String']['input'];
+  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  contactName?: InputMaybe<Scalars['String']['input']>;
+  contactPhone?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  id: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -285,6 +390,19 @@ export type DeliveryOptionResponse = {
   distanceFromProduct: Scalars['Float']['output'];
   isWithinRadius: Scalars['Boolean']['output'];
   postalCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type ExactAndApproximatePlaceResponse = {
+  __typename?: 'ExactAndApproximatePlaceResponse';
+  approximate: ApproximatePlaceResponse;
+  exact: ExactPlaceResponse;
+};
+
+export type ExactPlaceResponse = {
+  __typename?: 'ExactPlaceResponse';
+  address: Scalars['String']['output'];
+  lat: Scalars['Float']['output'];
+  lng: Scalars['Float']['output'];
 };
 
 export type File = {
@@ -463,6 +581,29 @@ export type MarkPurchaseAsDeliveredInput = {
   purchaseId: Scalars['String']['input'];
 };
 
+export type MeasurementInput = {
+  diameter?: InputMaybe<Scalars['Float']['input']>;
+  diameterUnit?: InputMaybe<MeasurementUnitEnum>;
+  height?: InputMaybe<Scalars['Float']['input']>;
+  heightUnit?: InputMaybe<MeasurementUnitEnum>;
+  length?: InputMaybe<Scalars['Float']['input']>;
+  lengthUnit?: InputMaybe<MeasurementUnitEnum>;
+  thickness?: InputMaybe<Scalars['Float']['input']>;
+  thicknessUnit?: InputMaybe<MeasurementUnitEnum>;
+  weight?: InputMaybe<Scalars['Float']['input']>;
+  weightUnit?: InputMaybe<MeasurementUnitEnum>;
+  width?: InputMaybe<Scalars['Float']['input']>;
+  widthUnit?: InputMaybe<MeasurementUnitEnum>;
+};
+
+export enum MeasurementUnitEnum {
+  Cm = 'CM',
+  Dm = 'DM',
+  Kg = 'KG',
+  M = 'M',
+  Mm = 'MM'
+}
+
 export type Message = {
   __typename?: 'Message';
   createdAt: Scalars['DateTime']['output'];
@@ -491,13 +632,20 @@ export type Mutation = {
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
   cmsCreateFooterSection: FooterSection;
+  cmsCreateProduct: CmsCreateProductResponse;
+  cmsCreateProject: Project;
   cmsDeleteArticle: Scalars['Boolean']['output'];
   cmsDeleteFile: Scalars['Boolean']['output'];
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
+  cmsDeleteProduct: Product;
+  cmsHideProduct: Product;
   cmsLogin: LoginResponse;
+  cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
+  cmsUpdateProduct: CmsUpdateProductResponse;
+  cmsUpdateProject: Project;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
@@ -565,6 +713,16 @@ export type MutationCmsCreateFooterSectionArgs = {
 };
 
 
+export type MutationCmsCreateProductArgs = {
+  input: CmsCreateProductInput;
+};
+
+
+export type MutationCmsCreateProjectArgs = {
+  input: CmsCreateProjectInput;
+};
+
+
 export type MutationCmsDeleteArticleArgs = {
   articleId: Scalars['String']['input'];
 };
@@ -580,8 +738,24 @@ export type MutationCmsDeleteFooterSectionArgs = {
 };
 
 
+export type MutationCmsDeleteProductArgs = {
+  productId: Scalars['String']['input'];
+};
+
+
+export type MutationCmsHideProductArgs = {
+  hiddenReason: Scalars['String']['input'];
+  productId: Scalars['String']['input'];
+};
+
+
 export type MutationCmsLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationCmsUnhideProductArgs = {
+  productId: Scalars['String']['input'];
 };
 
 
@@ -597,6 +771,16 @@ export type MutationCmsUpdateCategoryArgs = {
 
 export type MutationCmsUpdateFooterSectionArgs = {
   input: CmsUpdateFooterSectionInput;
+};
+
+
+export type MutationCmsUpdateProductArgs = {
+  input: CmsUpdateProductInput;
+};
+
+
+export type MutationCmsUpdateProjectArgs = {
+  input: CmsUpdateProjectInput;
 };
 
 
@@ -843,19 +1027,19 @@ export type Product = {
   deliveryPrice?: Maybe<Scalars['Float']['output']>;
   deliveryRadius?: Maybe<Scalars['Float']['output']>;
   description?: Maybe<Scalars['String']['output']>;
-  /** Unit: millimeter */
   diameter?: Maybe<Scalars['Float']['output']>;
+  diameterUnit: MeasurementUnitEnum;
   distanceFromPosition?: Maybe<Scalars['Float']['output']>;
   documents: Array<File>;
   hasOngoingPurchase: Scalars['Boolean']['output'];
-  /** Unit: millimeter */
   height?: Maybe<Scalars['Float']['output']>;
+  heightUnit: MeasurementUnitEnum;
   hiddenReason?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   images: Array<File>;
   isGiveaway: Scalars['Boolean']['output'];
-  /** Unit: millimeter */
   length?: Maybe<Scalars['Float']['output']>;
+  lengthUnit: MeasurementUnitEnum;
   likedByMe?: Maybe<Scalars['Boolean']['output']>;
   location?: Maybe<LocationResponse>;
   minimumPrice: Scalars['Int']['output'];
@@ -874,14 +1058,14 @@ export type Product = {
   shippingPrices?: Maybe<Array<ShippingPrice>>;
   similarProducts: PaginatedProductsResponse;
   status: ProductStatusEnum;
-  /** Unit: millimeter */
   thickness?: Maybe<Scalars['Float']['output']>;
+  thicknessUnit: MeasurementUnitEnum;
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
-  /** Unit: kg */
   weight?: Maybe<Scalars['Float']['output']>;
-  /** Unit: millimeter */
+  weightUnit: MeasurementUnitEnum;
   width?: Maybe<Scalars['Float']['output']>;
+  widthUnit: MeasurementUnitEnum;
 };
 
 
@@ -1063,10 +1247,16 @@ export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
   article: Article;
+  brand: Brand;
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
+  cmsGetProduct: Product;
+  cmsGetUserProjects: Array<Project>;
   cmsListImages: CmsListImagesResponse;
+  cmsListProducts: CmsListProductsResponse;
+  cmsListProjects: CmsListProjectsResponse;
+  exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
@@ -1074,6 +1264,7 @@ export type Query = {
   getConversations: Array<Message>;
   getDeliveryOption?: Maybe<DeliveryOptionResponse>;
   getDraftedProduct?: Maybe<Product>;
+  getOrCreateDraftProduct: Product;
   getPickupOption?: Maybe<ApproximatePlaceResponse>;
   getProject: Project;
   getSearchResults: Array<SearchResult>;
@@ -1112,6 +1303,11 @@ export type QueryArticleArgs = {
 };
 
 
+export type QueryBrandArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryCategoriesArgs = {
   input: CategoriesInput;
 };
@@ -1122,8 +1318,33 @@ export type QueryCategoryArgs = {
 };
 
 
+export type QueryCmsGetProductArgs = {
+  productId: Scalars['String']['input'];
+};
+
+
+export type QueryCmsGetUserProjectsArgs = {
+  sellerId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryCmsListImagesArgs = {
   input: CmsListImagesInput;
+};
+
+
+export type QueryCmsListProductsArgs = {
+  input: CmsListProductsInput;
+};
+
+
+export type QueryCmsListProjectsArgs = {
+  input: CmsListProjectsInput;
+};
+
+
+export type QueryExactAndApproximatePlaceArgs = {
+  input: LocationInputType;
 };
 
 
@@ -1425,10 +1646,13 @@ export type UpdateProductInput = {
   deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   diameter?: InputMaybe<Scalars['Float']['input']>;
+  diameterUnit?: InputMaybe<MeasurementUnitEnum>;
   height?: InputMaybe<Scalars['Float']['input']>;
+  heightUnit?: InputMaybe<MeasurementUnitEnum>;
   id: Scalars['String']['input'];
   isGiveAway?: InputMaybe<Scalars['Boolean']['input']>;
   length?: InputMaybe<Scalars['Float']['input']>;
+  lengthUnit?: InputMaybe<MeasurementUnitEnum>;
   location?: InputMaybe<LocationInputType>;
   noProject?: InputMaybe<Scalars['Boolean']['input']>;
   pickupEnabled?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1443,9 +1667,12 @@ export type UpdateProductInput = {
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
   status?: InputMaybe<ProductStatusEnum>;
   thickness?: InputMaybe<Scalars['Float']['input']>;
+  thicknessUnit?: InputMaybe<MeasurementUnitEnum>;
   title?: InputMaybe<Scalars['String']['input']>;
   weight?: InputMaybe<Scalars['Float']['input']>;
+  weightUnit?: InputMaybe<MeasurementUnitEnum>;
   width?: InputMaybe<Scalars['Float']['input']>;
+  widthUnit?: InputMaybe<MeasurementUnitEnum>;
 };
 
 export type UpdateProductResponse = {

@@ -1,6 +1,8 @@
-export const formatPrice = (price?: number | null) => {
-  if (price) {
-    return price.toFixed(2).replace(".", ",") + " kr";
-  }
-  return null;
+export const formatPrice = (price: number) => {
+  return new Intl.NumberFormat("sv-SE", {
+    style: "currency",
+    currency: "SEK",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price);
 };

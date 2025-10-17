@@ -36,6 +36,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "tinymce": "^8.0.2",
+    "validator": "^13.15.15",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -51,6 +52,7 @@
     "@types/react": "^18.3.13",
     "@types/react-csv": "^1.1.10",
     "@types/react-dom": "^18",
+    "@types/validator": "^13.15.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.18",
     "postcss": "^8",
