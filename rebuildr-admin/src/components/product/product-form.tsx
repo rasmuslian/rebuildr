@@ -128,18 +128,29 @@ const ProductForm = ({
 
           <Controller
             control={control}
-            name="price"
-            render={({ field }) => (
+            name="pricing.price"
+            render={({ field: { value, onChange } }) => (
               <FormField
                 label="Pris (kr)"
-                required={true}
-                error={errors.price?.message}
+                required={!watch("pricing.isGiveaway")}
+                error={errors.pricing?.price?.message}
               >
                 <InputNumber
-                  {...field}
+                  value={value}
+                  onChange={(price) => {
+                    onChange(price);
+                    if (!price || price === 0) {
+                      setValue("pricing.isGiveaway", true);
+                      onChange(0);
+                    } else {
+                      setValue("pricing.isGiveaway", false);
+                      onChange(price);
+                    }
+                  }}
                   placeholder="Pris ..."
                   style={{ width: "100%" }}
                   type="number"
+                  min={0}
                 />
               </FormField>
             )}
@@ -147,10 +158,22 @@ const ProductForm = ({
 
           <Controller
             control={control}
-            name="isGiveaway"
-            render={({ field }) => (
-              <FormField error={errors.isGiveaway?.message}>
-                <Checkbox {...field}>Bortskänkes</Checkbox>
+            name="pricing.isGiveaway"
+            render={({ field: { value, onChange } }) => (
+              <FormField error={errors.pricing?.isGiveaway?.message}>
+                <Checkbox
+                  checked={value}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    onChange(checked);
+                    if (checked) {
+                      setValue("pricing.price", 0);
+                      clearErrors("pricing.price");
+                    }
+                  }}
+                >
+                  Bortskänkes
+                </Checkbox>
               </FormField>
             )}
           />

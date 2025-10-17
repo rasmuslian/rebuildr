@@ -7,6 +7,10 @@ import {
 } from "gql/graphql";
 
 export const ProductSchema = z.object({
+  images: z
+    .array(z.custom<UploadFile>())
+    .min(1, { message: "Du måste välja minst en bild." }),
+
   title: z
     .string({ message: "Du måste ange rubrik." })
     .min(2, { message: "Rubriken måste vara minst 2 tecken!" }),
@@ -15,15 +19,21 @@ export const ProductSchema = z.object({
     .string({ message: "Du måste ange beskrivning." })
     .min(3, { message: "Beskrivningen måste vara minst 3 tecken!" }),
 
-  price: z.coerce
-    .number({ message: "Du måste ange pris." })
-    .nonnegative({ message: "Priset kan inte vara negativt." }),
-
-  isGiveaway: z.boolean(),
-
-  images: z
-    .array(z.custom<UploadFile>())
-    .min(1, { message: "Du måste välja minst en bild." }),
+  pricing: z
+    .object({
+      price: z.number().optional(),
+      isGiveaway: z.boolean(),
+    })
+    .superRefine(({ price, isGiveaway }, ctx) => {
+      if (isGiveaway) return;
+      if (price === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["price"],
+          message: "Priset måste vara större än 0.",
+        });
+      }
+    }),
 
   categoryId: z.string({ message: "Du måste ange kategori." }),
 
@@ -34,7 +44,7 @@ export const ProductSchema = z.object({
   }),
 
   primaryMeasurement: z.object({
-    quantity: z.coerce
+    quantity: z
       .number({ message: "Du måste ange antal." })
       .positive({ message: "Antal måste vara större än 0." }),
 

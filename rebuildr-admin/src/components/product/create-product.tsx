@@ -30,8 +30,10 @@ const CreateProduct = () => {
   } = useForm<ProductSchemaType>({
     resolver: zodResolver(ProductSchema),
     defaultValues: {
-      isGiveaway: false,
       images: [],
+      pricing: {
+        isGiveaway: false,
+      },
       secondaryMeasurement: {
         enabled: false,
       },
@@ -92,8 +94,8 @@ const CreateProduct = () => {
       brandId: formData.brandId,
       categoryId: formData.categoryId,
       condition: formData.condition,
-      price: formData.price,
-      isGiveaway: formData.isGiveaway,
+      price: formData.pricing.price ?? 0,
+      isGiveaway: formData.pricing.isGiveaway,
       images: getFileInputTypes(formData.images),
       primaryQuantity: formData.primaryMeasurement.quantity,
       primaryUnit: formData.primaryMeasurement.unit,

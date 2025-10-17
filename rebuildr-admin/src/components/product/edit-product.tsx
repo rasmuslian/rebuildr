@@ -47,8 +47,10 @@ const EditProduct = ({ product }: Props) => {
       brandId: product.brand?.id,
       categoryId: product.category?.id,
       condition: product.condition,
-      price: product.price,
-      isGiveaway: product.isGiveaway,
+      pricing: {
+        price: product.price,
+        isGiveaway: product.isGiveaway,
+      },
       images: product.images ? getUploadFiles(product.images) : [],
       primaryMeasurement: {
         quantity: product.primaryQuantity ?? undefined,
@@ -130,8 +132,8 @@ const EditProduct = ({ product }: Props) => {
       brandId: formData.brandId,
       categoryId: formData.categoryId,
       condition: formData.condition,
-      price: formData.price,
-      isGiveaway: formData.isGiveaway,
+      price: formData.pricing.price ?? 0,
+      isGiveaway: formData.pricing.isGiveaway,
       addImages: getFileInputTypes(formData.images),
       removeImages: getRemovedFileIds(product.images, formData.images),
       primaryQuantity: formData.primaryMeasurement.quantity,

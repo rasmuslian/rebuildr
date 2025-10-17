@@ -9,6 +9,11 @@ const AntdProvider = ({ children }: PropsWithChildren) => {
   return (
     <ConfigProvider
       componentSize="large"
+      checkbox={{
+        style: {
+          width: "fit-content",
+        },
+      }}
       theme={{
         token: {
           colorPrimary: colors.accent_500,
