@@ -236,7 +236,6 @@ const ProductTable = () => {
       dataIndex: "title",
       key: "title",
       width: "300px",
-      ellipsis: true,
     },
     {
       title: "Säljare",
