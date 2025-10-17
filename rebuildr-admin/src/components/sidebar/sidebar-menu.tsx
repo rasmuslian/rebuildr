@@ -69,7 +69,7 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Projekter", "/project", <ProjectOutlined />, [
       getItem("Skapa projekt", routes.CREATE_PROJECT),
-      getItem("Visa alla projekter", routes.LIST_PROJECT),
+      getItem("Visa alla projekt", routes.LIST_PROJECT),
     ]),
     { type: "divider" },
     getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),

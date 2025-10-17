@@ -74,7 +74,7 @@ const ProjectForm = ({
 
       <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
         <Divider orientation="left" size="small">
-          Kontakt uppgifter
+          Kontaktuppgifter
         </Divider>
 
         <Controller
