@@ -8,15 +8,11 @@ import { measurements, MeasurementType } from "@/constants/measurements";
 
 type Props = {
   measurementType: MeasurementType;
-  measurementUnit?: MeasurementUnitEnum;
-  onSelectSeasurementUnit: (measurementUnit: MeasurementUnitEnum) => void;
+  value?: MeasurementUnitEnum;
+  onChange: (measurementUnit: MeasurementUnitEnum) => void;
 };
 
-const SelectMeasurement = ({
-  measurementType,
-  measurementUnit,
-  onSelectSeasurementUnit,
-}: Props) => {
+const SelectMeasurement = ({ measurementType, value, onChange }: Props) => {
   const measurement = measurements[measurementType];
 
   const options: SelectProps["options"] = Object.entries(
@@ -33,8 +29,8 @@ const SelectMeasurement = ({
       placeholder="Välj enhet ..."
       size="middle"
       options={options}
-      value={measurementUnit}
-      onChange={(measurementUnit) => onSelectSeasurementUnit(measurementUnit)}
+      value={value}
+      onChange={onChange}
       notFoundContent={
         <EmptyContainer description="Kunde inte hitta" size="small" />
       }

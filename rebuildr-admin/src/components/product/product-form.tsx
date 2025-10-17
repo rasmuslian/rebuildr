@@ -416,8 +416,8 @@ const ProductForm = ({
                           <FormField label={`${measurement.name} enhet`}>
                             <SelectMeasurement
                               measurementType={measurementType}
-                              measurementUnit={value}
-                              onSelectSeasurementUnit={onChange}
+                              value={value}
+                              onChange={onChange}
                             />
                           </FormField>
                         )}
