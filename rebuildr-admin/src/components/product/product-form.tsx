@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Divider, Input, InputNumber, Checkbox } from "antd";
+import { Button, Input, InputNumber, Checkbox } from "antd";
 import { ProductSchemaType } from "@/schema/product-schema";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
@@ -58,12 +58,17 @@ const ProductForm = ({
   return (
     <AdminForm onSubmit={handleSubmit(onSubmit)}>
       <Section>
-        <div className="grid grid-cols-[auto_448px] gap-8">
-          <Divider size="small" orientation="left" type="horizontal">
+        <div className="flex flex-row justify-between gap-4">
+          <p className="flex flex-col justify-center text-title-medium">
             {title}
-          </Divider>
+          </p>
 
-          <Button type="primary" htmlType="submit" loading={isPending} block>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={isPending}
+            style={{ width: 180 }}
+          >
             {submitLabel}
           </Button>
         </div>
