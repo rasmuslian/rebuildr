@@ -288,10 +288,18 @@ const ProductTable = () => {
     {
       title: "Status",
       key: "status",
-      width: "150px",
+      width: "200px",
       ellipsis: true,
-      render: (_, { status }) => {
-        return getProductStatusTag(status);
+      render: (_, { status, hiddenReason }) => {
+        const isHidden = !isEmpty(hiddenReason);
+        const productStatus = getProductStatusTag(status);
+
+        return (
+          <div>
+            {productStatus}
+            {isHidden && <Tag color="red-inverse">Döljd</Tag>}
+          </div>
+        );
       },
     },
     {
