@@ -25,7 +25,7 @@ type FieldType =
   | (BaseFieldProps & MaskedInputProps & { type: "masked" })
   | (BaseFieldProps & SearchInputProps & { type: "search" })
   | (BaseFieldProps & Omit<PriceInputProps, "error"> & { type: "price" })
-  | (BaseFieldProps & SelectInputProps & { type: "select" })
+  | (BaseFieldProps & SelectInputProps<string> & { type: "select" })
   | (BaseFieldProps & ToggleInputProps & { type: "toggle" })
   | (BaseFieldProps & CheckboxInputProps & { type: "checkbox" });
 
@@ -90,7 +90,7 @@ export const Form = ({ fields, style: _style }: Props) => {
                     <PriceInput {...(rest as PriceInputProps)} />
                   ) : null}
                   {field.type === "select" ? (
-                    <SelectInput {...(rest as SelectInputProps)} />
+                    <SelectInput {...(rest as SelectInputProps<string>)} />
                   ) : null}
                   {field.type === "toggle" ? (
                     <ToggleInput {...(rest as ToggleInputProps)} />

@@ -183,36 +183,36 @@ export class RockerService {
     return response;
   }
 
-  async createPayment(input: {
-    offerId: string;
-    buyerId: string;
-    paymentMethod: SupportedPaymentMethod;
-    swishPaymentType?: PaymentTypeEnum;
-    successUri?: string;
-    failureUri?: string;
-  }) {
-    const { paymentMethod, offerId, buyerId } = input;
-    if (paymentMethod === SupportedPaymentMethod.SWISH) {
-      return await this.rockerApi.createSwishPayment(
-        offerId,
-        buyerId,
-        input.swishPaymentType ?? PaymentTypeEnum.MOBILE,
-      );
-    }
-    if (paymentMethod === SupportedPaymentMethod.STRIPE) {
-      return await this.rockerApi.createStripePayment(offerId, buyerId);
-    }
-    if (paymentMethod === SupportedPaymentMethod.TRUSTLY) {
-      return await this.rockerApi.createTrustlyPayment(
-        offerId,
-        buyerId,
-        input.successUri,
-        input.failureUri,
-      );
-    }
+  // async createPayment(input: {
+  //   offerId: string;
+  //   buyerId: string;
+  //   paymentMethod: SupportedPaymentMethod;
+  //   swishPaymentType?: PaymentTypeEnum;
+  //   successUri?: string;
+  //   failureUri?: string;
+  // }) {
+  //   const { paymentMethod, offerId, buyerId } = input;
+  //   if (paymentMethod === SupportedPaymentMethod.SWISH) {
+  //     return await this.rockerApi.createSwishPayment(
+  //       offerId,
+  //       buyerId,
+  //       input.swishPaymentType ?? PaymentTypeEnum.MOBILE,
+  //     );
+  //   }
+  //   if (paymentMethod === SupportedPaymentMethod.STRIPE) {
+  //     return await this.rockerApi.createStripePayment(offerId, buyerId);
+  //   }
+  //   if (paymentMethod === SupportedPaymentMethod.TRUSTLY) {
+  //     return await this.rockerApi.createTrustlyPayment(
+  //       offerId,
+  //       buyerId,
+  //       input.successUri,
+  //       input.failureUri,
+  //     );
+  //   }
 
-    throw BadUserInputException('Unsupported payment method');
-  }
+  //   throw BadUserInputException('Unsupported payment method');
+  // }
 
   async getPayment(paymentId: string) {
     return await this.rockerApi.getPayment(paymentId);

@@ -11,7 +11,6 @@ import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
-import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthedUserType, jwtConstants } from './auth/constants';
@@ -100,6 +99,8 @@ import { FooterSectionService } from './services/footer-section.service';
 import { ArticleFooterSection } from './entities/article-footer-section.entity';
 import { ArticleFooerSectionService } from './services/article-footer-section.service';
 import { ArticleFooterSectionResolver } from './resolvers/article-footer-section.resolver';
+import { StripWebhookController } from './controllers/stripe-webhook.controller';
+import { StripeService } from './services/stripe.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -209,7 +210,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, RockerWebhookController],
+  controllers: [RockerWebhookController, StripWebhookController],
   providers: [
     JwtStrategy,
     AppService,
@@ -264,6 +265,7 @@ export interface RequestType {
     FooterSectionService,
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
+    StripeService,
   ],
 })
 export class AppModule {}

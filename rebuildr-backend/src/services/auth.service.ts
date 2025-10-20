@@ -165,7 +165,7 @@ export class AuthService {
     }
 
     const tokens = await this.createTokens(user);
-    await this.rockerService.createForeignUser(user);
+    // await this.rockerService.createForeignUser(user);
 
     //Since user is now authenticated, attach user to request to be used in later stages of the request
     req.user = {

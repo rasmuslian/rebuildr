@@ -44,8 +44,7 @@ registerEnumType(TransportationEnum, { name: 'TransportationEnum' });
 
 export enum SupportedPaymentMethod {
   SWISH = 'SWISH',
-  STRIPE = 'STRIPE',
-  TRUSTLY = 'TRUSTLY',
+  CARD = 'CARD',
 }
 registerEnumType(SupportedPaymentMethod, {
   name: 'PaymentMethod',
@@ -80,11 +79,26 @@ export class Purchase {
   @Column({ nullable: true })
   rockerPaymentId?: string;
 
+  @Column({ nullable: true, comment: "payment id on buyer's side" })
+  paymentIntentId?: string;
+
+  @Column({ nullable: true, comment: 'charge made on payment' })
+  chargeId?: string;
+
+  @Column({ nullable: true, comment: 'tranfer regarding payment' })
+  transferId?: string;
+
+  @Column({ nullable: true, comment: "payment id on seller's side" })
+  destinationPaymentId?: string;
+
   @Column({ nullable: true })
   rockerOfferId?: string;
 
   @Column({ nullable: true })
   rockerPayoutId?: string;
+
+  @Column({ nullable: true })
+  payoutId?: string;
 
   @Field(() => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })

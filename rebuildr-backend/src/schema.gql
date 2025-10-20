@@ -109,8 +109,7 @@ enum PurchaseStatusEnum {
 
 enum PaymentMethod {
   SWISH
-  STRIPE
-  TRUSTLY
+  CARD
 }
 
 enum TransportationEnum {
@@ -175,6 +174,8 @@ type User {
   organizationApprovedAt: DateTime
   notifyOnMessage: Boolean!
   notifyOnPurchaseUpdate: Boolean!
+  sellerAccountIsCreated: Boolean!
+  sellerAccountIsEnabled: Boolean!
   profilePicture: File
   registrationStatus: RegisterStatusEnum!
   projects: [Project!]!
@@ -188,7 +189,7 @@ type User {
   likedProjects: [Project!]
   location: LocationResponse
   reviewed: [Review!]!
-  payoutAccount: PayoutAccountResponse
+  payoutAccount: PayoutAccount
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
 }
 
@@ -508,11 +509,16 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
-type PayoutAccountResponse {
-  provider: PayoutAccountEnum!
-  phoneNumber: String
-  accountName: String
+type PayoutAccount {
+  type: String!
+  routingNumber: String
+  last4: String
   bankName: String
+}
+
+type OnboardSellerAccountResponse {
+  user: User!
+  clientSecret: String!
 }
 
 type CmsUpdateCategoryResponse {
@@ -824,6 +830,8 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   deleteAccount: User!
+  onboardSellerAccount: OnboardSellerAccountResponse!
+  addPayoutAccount(token: String!): User!
   cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!
@@ -848,7 +856,7 @@ type Mutation {
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
-  cancelPurchase(input: CancelPurchaseInput!): Boolean!
+  cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
   cmsUpdateProject(input: CmsUpdateProjectInput!): Project!

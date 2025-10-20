@@ -8,7 +8,6 @@ import {
   PaymentMethod,
   PaymentTrustlySuccessQuery,
   PaymentTrustlySuccessQueryVariables,
-  PaymentTypeEnum,
   ShippingProviderEnum,
   TransportationEnum,
 } from "@/gql/graphql";
@@ -24,22 +23,19 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams, usePathname } from "expo-router";
 import React, { ReactElement, useEffect, useState } from "react";
-import { Linking, Platform, View } from "react-native";
+import { View } from "react-native";
 import { Image } from "expo-image";
-import SwishPaymentOption from "@assets/images/swish-payment-option.png";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
 import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
-import TrustlyPaymentOption from "@assets/images/trustly-payment-option.png";
+import AmExPaymentOption from "@assets/images/american-express-payment-option.png";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
-import { VerifyBottomSheet } from "@components/bank-id/verify-bottom-sheet";
 import {
   TransportationString,
   transportationStringToEnum,
 } from "@/utils/transportationMethods";
 import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 import { SwishBottomSheet } from "@components/payment/swish-bottom-sheet";
-import { createURL } from "expo-linking";
 import { Toggle } from "@components/controls/toggle";
 
 const BUY_PRODUCT_PAYMENT = gql`
@@ -94,14 +90,16 @@ const PAYMENT_TRUSTLY_SUCCESS = gql`
 
 const PAYMENT_CANCEL_PURCHASE = gql`
   mutation PaymentCancelPurchase($input: CancelPurchaseInput!) {
-    cancelPurchase(input: $input)
+    cancelPurchase(input: $input) {
+      id
+      status
+    }
   }
 `;
 
 export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
-  const [showBankId, setShowBankId] = useState(false);
   const [showSwishSheet, setShowSwishSheet] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [paymentError, setPaymentError] = useState("");
@@ -161,14 +159,9 @@ export default function Payment() {
   };
 
   const onPurchase = () => {
-    if (queriesLoading) {
+    if (createPurchaseLoading) {
       return;
     }
-    setShowBankId(true);
-  };
-
-  const onVerifyComplete = () => {
-    setShowBankId(false);
 
     const transportationMethodEnum =
       transportationStringToEnum(transportationMethod);
@@ -214,67 +207,30 @@ export default function Payment() {
     const createPurchaseInput =
       partialInput as BuyProductCreatePurchaseMutationVariables["input"];
 
-    if (paymentMethod === PaymentMethod.Swish) {
-      createPurchase({
-        variables: {
-          input: {
-            ...createPurchaseInput,
-            swishType:
-              Platform.OS === "web"
-                ? PaymentTypeEnum.Web
-                : PaymentTypeEnum.Mobile,
-          },
-        },
-        onCompleted: () => {
-          setShowSwishSheet(true);
-        },
-      });
-    }
-    if (paymentMethod === PaymentMethod.Stripe) {
+    //Hide Swish until Stripe supports it
+    // if (paymentMethod === PaymentMethod.Swish) {
+    //   createPurchase({
+    //     variables: {
+    //       input: {
+    //         ...createPurchaseInput,
+    //         swishType:
+    //           Platform.OS === "web"
+    //             ? PaymentTypeEnum.Web
+    //             : PaymentTypeEnum.Mobile,
+    //       },
+    //     },
+    //     onCompleted: () => {
+    //       setShowSwishSheet(true);
+    //     },
+    //   });
+    // }
+    if (paymentMethod === PaymentMethod.Card) {
       createPurchase({
         variables: {
           input: createPurchaseInput,
         },
         onCompleted: async () => {
           setShowStripeModal(true);
-        },
-      });
-    }
-    if (paymentMethod === PaymentMethod.Trustly) {
-      let url = "";
-      if (Platform.OS === "web") {
-        url = window.location.origin + path;
-      }
-      if (Platform.OS === "ios" || Platform.OS === "android") {
-        url = "rebuildr://" + path;
-      }
-      const successUrl = createURL(url, {
-        queryParams: { ...localSearchParams, trustlyResult: trustlySuccess },
-      });
-      const failureUrl = createURL(url, {
-        queryParams: { ...localSearchParams, trustlyResult: trustlyFailure },
-      });
-      createPurchase({
-        variables: {
-          input: { ...createPurchaseInput, successUrl, failureUrl },
-        },
-        onCompleted: async (data) => {
-          if (!data.purchaseProduct.trustlyUrl) {
-            setPaymentError("Något gick fel");
-            return;
-          }
-          const canOpen = await Linking.canOpenURL(
-            data.purchaseProduct.trustlyUrl,
-          );
-          if (!canOpen) {
-            setPaymentError("Kunde inte öppna Trustly");
-            return;
-          }
-          if (Platform.OS === "web") {
-            window.location.href = data.purchaseProduct.trustlyUrl;
-          } else {
-            await Linking.openURL(data.purchaseProduct.trustlyUrl);
-          }
         },
       });
     }
@@ -370,15 +326,17 @@ export default function Payment() {
         <Display size="small">Hur vill du betala?</Display>
         <View style={{ gap: 24 }}>
           <Body size="large">
-            Alla betalalternativ tillhandahålls av Rocker.
+            Alla betalalternativ tillhandahålls av Stripe.
           </Body>
           <Body>
-            Betalningen till säljaren hålls av Rocker tills du har tagit emot
+            Betalningen till säljaren hålls av Stripe tills du har tagit emot
             varan och haft 48 timmar på dig att kontrollera att allt stämmer.
           </Body>
         </View>
       </View>
       <View style={{ gap: 8 }}>
+        {/* 
+        //Hide Swish until Stripe supports it
         <PaymentCard
           title="Betala med Swish"
           onToggle={() => onSelectPaymentMethod(PaymentMethod.Swish)}
@@ -389,11 +347,11 @@ export default function Payment() {
               style={{ width: 60, height: 18 }}
             />,
           ]}
-        />
+        /> */}
         <PaymentCard
           title="Betala med kort"
-          onToggle={() => onSelectPaymentMethod(PaymentMethod.Stripe)}
-          toggledOn={paymentMethod === PaymentMethod.Stripe}
+          onToggle={() => onSelectPaymentMethod(PaymentMethod.Card)}
+          toggledOn={paymentMethod === PaymentMethod.Card}
           logoComponents={[
             <Image
               source={VisaPaymentOption.uri}
@@ -403,16 +361,9 @@ export default function Payment() {
               source={MastercardPaymentOption.uri}
               style={{ width: 30, height: 18 }}
             />,
-          ]}
-        />
-        <PaymentCard
-          title="Direkt från din bank"
-          onToggle={() => onSelectPaymentMethod(PaymentMethod.Trustly)}
-          toggledOn={paymentMethod === PaymentMethod.Trustly}
-          logoComponents={[
             <Image
-              source={TrustlyPaymentOption.uri}
-              style={{ width: 60, height: 13 }}
+              source={AmExPaymentOption.uri}
+              style={{ width: 40, height: 18 }}
             />,
           ]}
         />
@@ -494,24 +445,6 @@ export default function Payment() {
           style={{ flex: 1 }}
         />
       </View>
-      <VerifyBottomSheet
-        title="Bekräfta din identitet hos Rocker"
-        text={
-          <View style={{ gap: 24 }}>
-            <Body size="medium">
-              Du behöver verifiera dig med BankID hos vår betalpartner Rocker.
-            </Body>
-            <Body size="medium">
-              Det är en trygghetsåtgärd som gör att betalningen hanteras säkert
-              och hålls tills köpet är klart.
-            </Body>
-          </View>
-        }
-        qrTitle="Öppnad BankID och scanna koden"
-        show={showBankId}
-        onVerifyComplete={onVerifyComplete}
-        onDismiss={() => setShowBankId(false)}
-      />
       {createPurchaseData && paymentMethod === PaymentMethod.Swish && (
         <SwishBottomSheet
           price={totalPrice}
@@ -521,7 +454,7 @@ export default function Payment() {
           onDismiss={() => setShowSwishSheet(false)}
         />
       )}
-      {paymentMethod === PaymentMethod.Stripe &&
+      {paymentMethod === PaymentMethod.Card &&
         !!createPurchaseData?.purchaseProduct.reference && (
           <StripeBottomSheet
             show={showStripeModal}

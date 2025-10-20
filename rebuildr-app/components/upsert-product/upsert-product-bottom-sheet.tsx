@@ -31,7 +31,7 @@ export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
     }
     me {
       id
-      selectedPayoutMethod
+      sellerAccountIsEnabled
     }
   }
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
@@ -233,13 +233,13 @@ export const UpsertProductBottomSheet = ({
     };
     if (data) {
       //check if user has payout account
-      if (!data.me.selectedPayoutMethod && mode === "create") {
+      if (!data.me.sellerAccountIsEnabled && mode === "create") {
         setStep("payout");
       }
       //convert to productState
       productToState(data.product);
     }
-  }, [data]);
+  }, [visible, data]);
 
   //Find the first step that contains errors
   const firstStepWithErrors = (errorFields: FieldErrorsType) => {
@@ -317,6 +317,18 @@ export const UpsertProductBottomSheet = ({
             product.documents,
             data.product.documents,
           ),
+
+          //project
+          projectId: product.project?.id,
+          noProject: product.noProject,
+
+          //transportation
+          pickupEnabled: product.pickupEnabled,
+          location: product.location,
+          shippingPriceIds: product.shippingPrices.map((sp) => sp.id),
+          deliveryRadius: product.deliveryRadius,
+          deliveryPrice: product.deliveryPrice,
+          deliveryEnabled: product.deliveryEnabled,
 
           status: published ? ProductStatusEnum.Published : undefined,
         },
@@ -591,7 +603,10 @@ export const UpsertProductBottomSheet = ({
           />
         )}
         {step === "payout" && (
-          <PayoutHandler onFinish={() => setStep("details")} />
+          <PayoutHandler
+            onFinish={() => setStep("details")}
+            onAbort={onFinish}
+          />
         )}
       </View>
       <HandleDraftBottomSheet

@@ -1,4 +1,4 @@
-import { AccountSettingsPayoutQueryQuery, UserType } from "@/gql/graphql";
+import { AccountSettingsPayoutQueryQuery } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
@@ -9,9 +9,11 @@ import { Body, Display, Title } from "@components/typography/text";
 import { payoutAccountToMethod } from "@constants/payouts";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Redirect, router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
+import Bankkonto from "@assets/svgs/bankkonto.svg";
+import { Image } from "expo-image";
 
 const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   query AccountSettingsPayoutQuery {
@@ -19,10 +21,10 @@ const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
       id
       type
       payoutAccount {
-        provider
-        accountName
+        type
+        routingNumber
         bankName
-        phoneNumber
+        last4
       }
     }
   }
@@ -44,75 +46,103 @@ export default function Payout() {
     return <LoadingSpinner />;
   }
 
-  const payoutAccount = data.me.payoutAccount;
-  if (!payoutAccount) {
-    if (data.me.type === UserType.Business) {
-      return <Redirect href="/account/settings/payout/payout-method" />;
-    }
-    return <Redirect href="/account/settings/payout/verify" />;
-  }
-
-  return (
-    <ScreenLayout style={{ gap: 24 }}>
-      <Display size="small">Du får dina utbetalningar till:</Display>
-      <View
-        style={{
-          borderColor: colors.buttons.outlinedStroke.disabled,
-          borderRadius: borderRadius.medium,
-          borderWidth: 1,
-          padding: 16,
-          gap: 16,
-        }}
-      >
-        <View style={{ gap: 16, flexDirection: "row", alignItems: "center" }}>
-          <PayoutMethodIcon
-            method={payoutAccountToMethod[payoutAccount.provider]}
-          />
-          <View style={{ gap: 4 }}>
-            <Title size="medium">
-              {payoutAccountToMethod[payoutAccount.provider]}
-            </Title>
-            {payoutAccount.phoneNumber && (
-              <Body size="medium" color="secondary">
-                {payoutAccount.phoneNumber}
-              </Body>
-            )}
-            {payoutAccount.accountName && (
-              <Body size="medium" color="secondary">
-                {payoutAccount.accountName}
-              </Body>
-            )}
-            {payoutAccount.bankName && (
-              <Body size="medium" color="secondary">
-                {payoutAccount.bankName}
-              </Body>
-            )}
+  const renderNoPayoutAccount = () => {
+    return (
+      <View style={{ justifyContent: "space-between", flex: 1, gap: 24 }}>
+        <View style={{ gap: 24 }}>
+          <View
+            style={{
+              paddingVertical: 24,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View style={{ flexDirection: "row", paddingVertical: 24 }}>
+              <Image
+                source={Bankkonto.uri}
+                style={{ width: 187, height: 187 }}
+              />
+            </View>
           </View>
         </View>
-        <Divider />
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Body size="medium" color="secondary">
-            Vill du ändra till ett annat utbetalningskonto?
-          </Body>
-          <Button
-            label="Ändra"
-            type="tonal"
-            onPress={() => {
-              if (data.me.type === UserType.Business) {
-                router.navigate("/(app)/account/settings/payout/payout-method");
-                return;
-              }
-              router.navigate("/(app)/account/settings/payout/change-method");
-            }}
-          />
-        </View>
+        <Display size="small" style={{ textAlign: "center" }}>
+          Koppla ett utbetalningskonto
+        </Display>
+        <Body size="medium" style={{ textAlign: "center" }}>
+          Du har inget utbetalningskonto kopplat. För att få betalt, lägg till
+          ett utbetalningskonto.
+        </Body>
       </View>
+    );
+  };
+
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      footerComponent={
+        <Button
+          label="Lägg till utbetalningskonto"
+          onPress={() => {
+            router.navigate("/account/settings/payout/add");
+          }}
+        />
+      }
+    >
+      {data.me.payoutAccount ? (
+        <>
+          <Display size="small">Du får dina utbetalningar till:</Display>
+          <View
+            style={{
+              borderColor: colors.buttons.outlinedStroke.disabled,
+              borderRadius: borderRadius.medium,
+              borderWidth: 1,
+              padding: 16,
+              gap: 16,
+            }}
+          >
+            <View
+              style={{ gap: 16, flexDirection: "row", alignItems: "center" }}
+            >
+              <PayoutMethodIcon method={payoutAccountToMethod["RIX"]} />
+              <View style={{ gap: 4 }}>
+                <Title size="medium">{payoutAccountToMethod["RIX"]}</Title>
+                {data.me.payoutAccount && (
+                  <Body size="medium" color="secondary">
+                    {data.me.payoutAccount.routingNumber}•••
+                    {data.me.payoutAccount.last4}
+                  </Body>
+                )}
+                {data.me.payoutAccount?.bankName && (
+                  <Body size="medium" color="secondary">
+                    {data.me.payoutAccount?.bankName}
+                  </Body>
+                )}
+              </View>
+            </View>
+            <Divider />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Body size="medium" color="secondary">
+                Vill du ändra till ett annat utbetalningskonto?
+              </Body>
+              <Button
+                label="Ändra"
+                type="tonal"
+                onPress={() => {
+                  router.navigate("/account/settings/payout/add");
+                }}
+              />
+            </View>
+          </View>
+        </>
+      ) : (
+        renderNoPayoutAccount()
+      )}
     </ScreenLayout>
   );
 }
