@@ -41,13 +41,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
 import { ProductLoader } from './dataloaders/product.loader';
 import { CategoryLoader } from './dataloaders/category.loader';
-import { RockerService } from './services/rocker.service';
-import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
-import { RockerResolver } from './resolvers/rocker.resolver';
 import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
-import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { EnvironmentVariables, validateConfig } from './config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -210,7 +206,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [RockerWebhookController, StripWebhookController],
+  controllers: [StripWebhookController],
   providers: [
     JwtStrategy,
     AppService,
@@ -234,9 +230,6 @@ export interface RequestType {
     GeocodingResolver,
     EventService,
     GqlThrottlerGuard,
-    RockerResolver,
-    RockerService,
-    RockerAPI,
     PostnordAPI,
     DHLAPI,
     PurchaseService,

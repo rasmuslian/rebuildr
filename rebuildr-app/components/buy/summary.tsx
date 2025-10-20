@@ -59,10 +59,6 @@ export const Summary = ({
             source={MastercardPaymentOption.uri}
             style={{ width: 30, height: 18 }}
           />
-          {/* <Image
-            source={TrustlyPaymentOption.uri}
-            style={{ width: 60, height: 13 }}
-          /> */}
           <Image
             source={AmExPaymentOption.uri}
             style={{ width: 60, height: 13 }}

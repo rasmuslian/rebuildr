@@ -113,7 +113,6 @@ export class MailService {
       sellerEmail: input.seller.email,
       productId: input.product.id,
       purchaseId: input.purchase.id,
-      offerId: input.purchase.rockerOfferId,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(reportPurchaseTemplate).html,

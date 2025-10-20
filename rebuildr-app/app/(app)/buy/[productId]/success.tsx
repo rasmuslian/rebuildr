@@ -45,7 +45,7 @@ export default function Success() {
         <Body size="medium" style={{ textAlign: "center" }}>
           {data.purchase.boughtForFree
             ? `Du får en bekräftelse skickad till ${data.me.email}`
-            : `Du får en bekräftelse från Rocker till ${data?.me.email}`}
+            : `Du får en bekräftelse från Stripe till ${data?.me.email}`}
         </Body>
       </View>
       <PurchaseReceipt purchaseId={purchaseId} />

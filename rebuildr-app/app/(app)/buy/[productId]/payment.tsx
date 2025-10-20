@@ -6,12 +6,10 @@ import {
   PaymentCancelPurchaseMutation,
   PaymentCancelPurchaseMutationVariables,
   PaymentMethod,
-  PaymentTrustlySuccessQuery,
-  PaymentTrustlySuccessQueryVariables,
   ShippingProviderEnum,
   TransportationEnum,
 } from "@/gql/graphql";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { AdList } from "@components/ad/ad-list";
 import { Button } from "@components/buttons/button";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
@@ -22,7 +20,7 @@ import { Body, Display, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams, usePathname } from "expo-router";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
@@ -35,7 +33,6 @@ import {
   transportationStringToEnum,
 } from "@/utils/transportationMethods";
 import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
-import { SwishBottomSheet } from "@components/payment/swish-bottom-sheet";
 import { Toggle } from "@components/controls/toggle";
 
 const BUY_PRODUCT_PAYMENT = gql`
@@ -75,15 +72,6 @@ const BUY_PRODUCT_CREATE_PURCHASE = gql`
       }
       swishToken
       reference
-      trustlyUrl
-    }
-  }
-`;
-
-const PAYMENT_TRUSTLY_SUCCESS = gql`
-  query PaymentTrustlySuccess($input: MyPurchaseInput!) {
-    myPurchase(input: $input) {
-      id
     }
   }
 `;
@@ -100,16 +88,13 @@ const PAYMENT_CANCEL_PURCHASE = gql`
 export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
-  const [showSwishSheet, setShowSwishSheet] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
   const localSearchParams = useLocalSearchParams<{
     productId: string;
     transportationMethod: TransportationString;
     servicePointId?: string;
     deliverToLocation?: string;
     deliverToAddress?: string;
-    trustlyResult?: string;
   }>();
   const {
     productId,
@@ -117,12 +102,9 @@ export default function Payment() {
     servicePointId,
     deliverToLocation,
     deliverToAddress,
-    trustlyResult,
   } = localSearchParams;
   const colors = useThemeColor();
   const path = usePathname();
-  const trustlySuccess = "success";
-  const trustlyFailure = "failure";
 
   const { data, loading } = useQuery<
     BuyProductPaymentQuery,
@@ -137,11 +119,6 @@ export default function Payment() {
     BuyProductCreatePurchaseMutation,
     BuyProductCreatePurchaseMutationVariables
   >(BUY_PRODUCT_CREATE_PURCHASE);
-  const [paymentTrustlySuccess, { loading: trustlySuccessLoading }] =
-    useLazyQuery<
-      PaymentTrustlySuccessQuery,
-      PaymentTrustlySuccessQueryVariables
-    >(PAYMENT_TRUSTLY_SUCCESS);
   const [cancelPayment] = useMutation<
     PaymentCancelPurchaseMutation,
     PaymentCancelPurchaseMutationVariables
@@ -250,40 +227,6 @@ export default function Payment() {
     });
   };
 
-  useEffect(() => {
-    //path is not always ready when this useeffect fires. Makes sure path is populated before continuing
-    if (!path || path === "/") {
-      return;
-    }
-
-    if (trustlyResult === trustlySuccess) {
-      paymentTrustlySuccess({
-        variables: {
-          input: {
-            productId,
-          },
-        },
-        onCompleted: (data) => {
-          if (!data.myPurchase) {
-            console.error("No purchase found!");
-            router.replace("/");
-            return;
-          }
-          router.replace({
-            pathname: "/buy/[productId]/success",
-            params: {
-              productId,
-              purchaseId: data.myPurchase.id,
-            },
-          });
-        },
-      });
-    }
-    if (trustlyResult === trustlyFailure) {
-      setPaymentError("Något gick fel vid betalningen");
-    }
-  }, [trustlyResult, path]);
-
   if (
     !data ||
     (transportationMethod !== "pickup" &&
@@ -301,8 +244,7 @@ export default function Payment() {
     totalPrice += data.product.deliveryPrice ?? 0;
   }
 
-  const queriesLoading =
-    loading || createPurchaseLoading || trustlySuccessLoading;
+  const queriesLoading = loading || createPurchaseLoading;
   return (
     <ScreenLayout
       headerComponent={
@@ -419,11 +361,6 @@ export default function Payment() {
         <Display size="medium">{totalPrice} kr</Display>
       </View>
       <BuyersProtection />
-      {!!paymentError && (
-        <Body color="error" size="medium">
-          {paymentError}
-        </Body>
-      )}
       <View style={{ flexDirection: "row", gap: 8 }}>
         <Button
           label="Tillbaka"
@@ -445,15 +382,6 @@ export default function Payment() {
           style={{ flex: 1 }}
         />
       </View>
-      {createPurchaseData && paymentMethod === PaymentMethod.Swish && (
-        <SwishBottomSheet
-          price={totalPrice}
-          productId={productId}
-          purchaseId={createPurchaseData.purchaseProduct.purchase.id}
-          show={showSwishSheet}
-          onDismiss={() => setShowSwishSheet(false)}
-        />
-      )}
       {paymentMethod === PaymentMethod.Card &&
         !!createPurchaseData?.purchaseProduct.reference && (
           <StripeBottomSheet

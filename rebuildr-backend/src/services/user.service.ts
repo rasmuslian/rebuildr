@@ -10,7 +10,6 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
-  InternalServerException,
 } from 'src/exceptions';
 import { ILike, IsNull, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
@@ -19,7 +18,6 @@ import {
   GetUsersInput,
   UpdateUserInput,
 } from 'src/resolvers/user.resolver';
-import { RockerService } from './rocker.service';
 import { FileService } from './file.service';
 import {
   passwordRegex,
@@ -39,7 +37,6 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
-    private rockerService: RockerService,
     private fileService: FileService,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
@@ -240,17 +237,6 @@ export class UserService {
     creator.organizations = creator.organizations || [];
     creator.organizations.push(organizationUser);
 
-    try {
-      const rockerResponse = await this.rockerService.createOrganizationUser(
-        organizationUser,
-        creator,
-      );
-      organizationUser.rockerUserId = rockerResponse.id;
-    } catch (e) {
-      console.log(e);
-      throw InternalServerException('Failure when creating organization');
-    }
-
     const _creator = await this.userRepository.save(creator);
     organizationUser.organizationUsers = [_creator];
     const _organizationUser = await this.userRepository.save(organizationUser);
@@ -434,14 +420,6 @@ export class UserService {
       userToDelete.profilePicture = null;
     }
     await this.refreshTokenRepository.remove(userToDelete.refreshTokens);
-
-    //Rocker fields
-    userToDelete.rockerUserId = null;
-    userToDelete.payoutAccountBankGiroId = null;
-    userToDelete.payoutAccountPlusGiroId = null;
-    userToDelete.payoutAccountRixId = null;
-    userToDelete.payoutAccountSwishId = null;
-    userToDelete.selectedPayoutMethod = null;
 
     userToDelete.deletedAt = new Date();
     return this.userRepository.save(userToDelete);

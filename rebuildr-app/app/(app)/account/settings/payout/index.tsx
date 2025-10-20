@@ -6,7 +6,6 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { PayoutMethodIcon } from "@components/payout/payout-methods/payout-method-icon";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Title } from "@components/typography/text";
-import { payoutAccountToMethod } from "@constants/payouts";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useFocusEffect } from "expo-router";
@@ -103,9 +102,9 @@ export default function Payout() {
             <View
               style={{ gap: 16, flexDirection: "row", alignItems: "center" }}
             >
-              <PayoutMethodIcon method={payoutAccountToMethod["RIX"]} />
+              <PayoutMethodIcon />
               <View style={{ gap: 4 }}>
-                <Title size="medium">{payoutAccountToMethod["RIX"]}</Title>
+                <Title size="medium">Bankkonto</Title>
                 {data.me.payoutAccount && (
                   <Body size="medium" color="secondary">
                     {data.me.payoutAccount.routingNumber}•••
