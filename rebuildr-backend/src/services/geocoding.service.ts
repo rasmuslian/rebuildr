@@ -144,14 +144,13 @@ export class GeocodingService {
         },
       });
       exactResult = r.data.results[0];
-      approximateResult = r.data.results.find((r) =>
-        r.types.some(
+      approximateResult = r.data.results.find((r) => {
+        return r.types.some(
           (type) =>
-            type === PlaceType2.postal_town ||
-            type === PlaceType2.administrative_area_level_2 ||
-            type === PlaceType2.administrative_area_level_1,
-        ),
-      );
+            type === PlaceType2.political ||
+            type === PlaceType2.sublocality_level_1,
+        );
+      });
     } catch {
       throw InternalServerException();
     }
@@ -160,14 +159,23 @@ export class GeocodingService {
       throw BadUserInputException('Could not find address');
     }
 
+    //'Sverige' is unecessary and therefore removed from adresses
+    const removeSweden = (address: string) => {
+      const split = address.split(',');
+      const trim = split.map((x) => x.trim());
+      const filter = trim.filter((x) => x !== 'Sverige');
+      const join = filter.join(', ');
+      return join;
+    };
+
     return {
       exact: {
-        address: exactResult.formatted_address,
+        address: removeSweden(exactResult.formatted_address),
         lat: location.lat,
         lng: location.lng,
       },
       approximate: {
-        address: approximateResult.formatted_address,
+        address: removeSweden(approximateResult.formatted_address),
         lat: approximateResult.geometry.location.lat,
         lng: approximateResult.geometry.location.lng,
       },
