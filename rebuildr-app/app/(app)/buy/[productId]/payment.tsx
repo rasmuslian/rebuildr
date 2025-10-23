@@ -70,7 +70,6 @@ const BUY_PRODUCT_CREATE_PURCHASE = gql`
         id
         status
       }
-      swishToken
       reference
     }
   }

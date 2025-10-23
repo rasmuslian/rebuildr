@@ -113,6 +113,9 @@ export class StripeService {
             },
           },
         },
+        metadata: {
+          userId: user.id,
+        },
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
@@ -169,6 +172,9 @@ export class StripeService {
             payments: 'application',
           },
           requirement_collection: 'application',
+        },
+        metadata: {
+          userId: organizationUser.id,
         },
         settings: {
           payouts: {
@@ -263,7 +269,7 @@ export class StripeService {
     sellerAccountId: string,
     amount: number,
     fee: number,
-    buyerEmail: string,
+    buyer: User,
     paymentMethod: SupportedPaymentMethod,
   ) {
     const paymentMethods: string[] = [];
@@ -275,15 +281,26 @@ export class StripeService {
         paymentMethods.push('swish');
         break;
     }
+    if (!buyer.customerId) {
+      const customer = await this.stripe.customers.create({
+        email: buyer.email,
+        metadata: {
+          userId: buyer.id,
+        },
+      });
+      buyer.customerId = customer.id;
+      await this.userRepository.save(buyer);
+    }
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: amount,
       currency: 'sek',
       payment_method_types: paymentMethods,
       application_fee_amount: fee,
+      customer: buyer.customerId,
       transfer_data: {
         destination: sellerAccountId,
       },
-      receipt_email: buyerEmail,
+      receipt_email: buyer.email,
     });
 
     return {
@@ -341,6 +358,24 @@ export class StripeService {
         error: e,
       });
       throw new Error('Payout failed');
+    }
+  }
+
+  async deleteAccount(user: User) {
+    try {
+      const deletedAccount = await this.stripe.accounts.del(
+        user.connectedAccountId,
+      );
+      if (user.customerId) {
+        await this.stripe.customers.del(user.customerId);
+      }
+
+      return deletedAccount;
+    } catch (e) {
+      this.logger.error('Error in Stripe deleteAccount', {
+        e,
+      });
+      throw InternalServerException();
     }
   }
   //-------------------- WEBHOOK HANDLERS ----------------------------

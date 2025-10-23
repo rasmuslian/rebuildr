@@ -346,7 +346,7 @@ export class PurchaseService {
         product.seller.connectedAccountId,
         escrow + fee,
         fee,
-        buyer.email,
+        buyer,
         input.paymentMethod,
       );
       clientSecret = paymentResponse.clientSecret;

@@ -1,8 +1,16 @@
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, ViewStyle } from "react-native";
 
-export const LoadingSpinner = () => {
+type Props = {
+  style?: ViewStyle;
+};
+export const LoadingSpinner = ({ style }: Props) => {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View
+      style={[
+        { flex: 1, justifyContent: "center", alignItems: "center" },
+        style,
+      ]}
+    >
       <ActivityIndicator />
     </View>
   );

@@ -196,6 +196,12 @@ export class User {
   })
   connectedAccountId?: string;
 
+  @Column({
+    nullable: true,
+    comment: 'Id pointing to Customer at Stripe',
+  })
+  customerId?: string;
+
   @OneToMany(() => Project, (p) => p.user)
   projects: Project[];
 

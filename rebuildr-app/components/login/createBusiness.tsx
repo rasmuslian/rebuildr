@@ -1,31 +1,18 @@
-import {
-  CreateBusinessMutation,
-  CreateBusinessMutationVariables,
-  CreateBusinessQueryQuery,
-} from "@/gql/graphql";
-import { apolloBadFieldsError } from "@/utils/apollo-errors";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { CreateBusinessQueryQuery } from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Display, Title } from "@components/typography/text";
+import { useCreateOrganization } from "@hooks/use-create-organization";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
 const CREATE_BUSINESS_QUERY = gql`
   query CreateBusinessQuery {
     me {
       id
-    }
-  }
-`;
-const CREATE_BUSINESS = gql`
-  mutation CreateBusiness($input: CreateOrganizationUserInput!) {
-    createOrganizationUser(input: $input) {
-      id
-      username
-      organizationNumber
     }
   }
 `;
@@ -36,48 +23,27 @@ type Props = {
 };
 
 export const CreateBusiness = ({ onDone, onExit }: Props) => {
-  const [number, setNumber] = useState("");
-  const [name, setName] = useState("");
+  const {
+    orgNumber,
+    changeOrgNumber,
+    name,
+    changeName,
+    fieldErrors,
+    error: createOrganizationError,
+    canCreate,
+    create,
+    loading: createOrganizationLoading,
+    data: createOrganizationData,
+  } = useCreateOrganization();
   const colors = useThemeColor();
 
-  const { data, loading } = useQuery<CreateBusinessQueryQuery>(
-    CREATE_BUSINESS_QUERY,
-  );
-  const [createBusiness, { error }] = useMutation<
-    CreateBusinessMutation,
-    CreateBusinessMutationVariables
-  >(CREATE_BUSINESS);
+  const { data } = useQuery<CreateBusinessQueryQuery>(CREATE_BUSINESS_QUERY);
 
-  const onCreateBusinesss = () => {
-    if (!data || loading) {
-      return;
+  useEffect(() => {
+    if (createOrganizationData) {
+      onDone();
     }
-    createBusiness({
-      variables: {
-        input: {
-          organizationNumber: number,
-          organizationName: name,
-          creatorId: data.me.id,
-        },
-      },
-      onCompleted: () => {
-        onDone();
-      },
-      onError: () => {},
-    });
-  };
-
-  const onChangeNumber = (v: string) => {
-    //only digits and max 10 of them
-    const r = new RegExp(/^[0-9]{0,10}$/);
-    if (!r.test(v)) {
-      return;
-    }
-    setNumber(v);
-  };
-
-  const canContinue = number.length === 10 && name.length > 0;
-  const errors = error ? apolloBadFieldsError(error) : undefined;
+  }, [createOrganizationData]);
 
   if (!data) {
     return <ActivityIndicator />;
@@ -113,11 +79,13 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
               heading: "Organisationsnummer",
               description:
                 "Ange ditt företags organisationsnummer (10 siffror).",
-              value: number,
-              onChangeText: (v) => onChangeNumber(v),
+              value: orgNumber,
+              onChangeText: changeOrgNumber,
               error:
-                !!error ||
-                !!errors?.find((field) => field.name === "organizationNumber"),
+                !!createOrganizationError ||
+                !!fieldErrors?.find(
+                  (field) => field.name === "organizationNumber",
+                ),
             },
             {
               type: "text",
@@ -127,16 +95,17 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
               helperText:
                 "💡 Observera: Vi verifierar inte företagsnamnet, så se till att du skriver in det exakt som du vill att det ska synas för kunder.",
               value: name,
-              onChangeText: (v) => setName(v),
+              onChangeText: changeName,
             },
           ]}
         />
       </View>
       <Button
         label="Fortsätt"
-        onPress={() => onCreateBusinesss()}
+        onPress={create}
         style={{ marginTop: 24 }}
-        disabled={!canContinue}
+        disabled={!canCreate}
+        loading={createOrganizationLoading}
       />
     </>
   );

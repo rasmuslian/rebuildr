@@ -16,6 +16,7 @@ import { GeocodingService } from './geocoding.service';
 import {
   CreateOrganizationUserInput,
   GetUsersInput,
+  UpdateOrganizationUserInput,
   UpdateUserInput,
 } from 'src/resolvers/user.resolver';
 import { FileService } from './file.service';
@@ -51,6 +52,22 @@ export class UserService {
 
   async findOneByEmail(email: string) {
     return await this.userRepository.findOneBy({ email });
+  }
+
+  async findOrganizationOwner(organizationUser: User) {
+    if (organizationUser.type === UserType.PERSONAL) {
+      return null;
+    }
+
+    const owner = await this.userRepository.findOne({
+      where: {
+        organizations: {
+          id: organizationUser.id,
+        },
+      },
+    });
+
+    return owner;
   }
 
   async getUsers(input: GetUsersInput): Promise<User[]> {
@@ -201,13 +218,19 @@ export class UserService {
    * @returns The created organization user
    */
 
-  async createOrganizationUser(input: CreateOrganizationUserInput) {
+  async createOrganizationUser(
+    input: CreateOrganizationUserInput,
+    currentUserId: string,
+  ) {
     const creator = await this.userRepository.findOne({
-      where: { id: input.creatorId },
+      where: { id: currentUserId },
       relations: { organizations: true },
     });
     if (!creator) {
       throw BadUserInputException('Creator not found');
+    }
+    if (creator.organizations.some((o) => !o.deletedAt)) {
+      throw ForbiddenException('User can only have one organization');
     }
     const organizationExist = await this.organizationExists(
       input.organizationNumber,
@@ -233,6 +256,7 @@ export class UserService {
     const organizationUser = new User();
     organizationUser.organizationNumber = organizationNumber;
     organizationUser.username = input.organizationName;
+    organizationUser.type = UserType.BUSINESS;
 
     creator.organizations = creator.organizations || [];
     creator.organizations.push(organizationUser);
@@ -241,6 +265,69 @@ export class UserService {
     organizationUser.organizationUsers = [_creator];
     const _organizationUser = await this.userRepository.save(organizationUser);
     return _organizationUser;
+  }
+  async updateOrganizationUser(
+    input: UpdateOrganizationUserInput,
+    currentUserId: string,
+  ) {
+    const organization = await this.userRepository.findOne({
+      where: { id: input.id },
+      relations: {
+        organizationUsers: true,
+      },
+    });
+
+    if (
+      organization.id !== currentUserId &&
+      !organization.organizationUsers.some((ou) => ou.id === currentUserId)
+    ) {
+      throw ForbiddenException();
+    }
+
+    if (input.organizationName) {
+      const usernameTaken = await this.userRepository.existsBy({
+        username: input.username,
+      });
+      if (usernameTaken) {
+        throw BadFieldsInputException([
+          { message: 'Username taken', name: 'username', type: 'VALUE_TAKEN' },
+        ]);
+      }
+      organization.username = input.organizationName;
+    }
+
+    if (input.address) {
+      organization.address = input.address;
+      const location = await this.geocodingService.addressToLocation(
+        input.address,
+      );
+
+      organization.addressLocation = {
+        type: 'Point',
+        coordinates: [location.lat, location.lng],
+      };
+    }
+    if (input.city) {
+      organization.city = input.city;
+    }
+    if (input.name) {
+      organization.name = input.name;
+    }
+    if (input.phoneNumber) {
+      if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
+        throw BadUserInputException('Invalid phone number');
+      }
+      organization.phoneNumber = input.phoneNumber;
+    }
+
+    if (input.postCode) {
+      if (!swedishPostCodeRegex.test(input.postCode)) {
+        throw BadUserInputException('Invalid post code');
+      }
+      organization.postCode = input.postCode;
+    }
+
+    return await this.userRepository.save(organization);
   }
 
   async organizationExists(organizationNumber: string) {
@@ -390,6 +477,10 @@ export class UserService {
       throw ForbiddenException(
         "Can't delete user while they have ongoing purchases",
       );
+    }
+
+    if (userToDelete.connectedAccountId) {
+      await this.stripeService.deleteAccount(userToDelete);
     }
 
     //Anonymize products

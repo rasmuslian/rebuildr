@@ -13,7 +13,12 @@ import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
-import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
+import {
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload, jwtConstants } from 'src/auth/constants';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
@@ -298,7 +303,11 @@ export class AuthService {
   }
 
   async createTokens(user: User) {
-    //create accessToken
+    const accessToken = await this.createJwtToken(user);
+    const refreshToken = await this.createRefreshToken(user);
+    return { accessToken, refreshToken };
+  }
+  createJwtToken = async (user: User) => {
     const payload: AccessTokenPayload = {
       sub: user.id,
       email: user.email,
@@ -308,7 +317,9 @@ export class AuthService {
       expiresIn: jwtConstants.expiresIn,
     });
 
-    //create refreshToken
+    return accessToken;
+  };
+  async createRefreshToken(user: User) {
     const token = crypto.randomBytes(20).toString('hex');
     const hash = await bcrypt.hash(token, 10);
     const refreshToken = new RefreshToken();
@@ -317,8 +328,27 @@ export class AuthService {
     refreshToken.user = user;
     user.refreshTokens = [...(user.refreshTokens ?? []), refreshToken];
     await this.refreshTokenRepository.save(refreshToken);
+    return token;
+  }
 
-    return { accessToken, refreshToken: token };
+  async invalidateRefreshToken(oldRefreshTokenId: string) {
+    const now = new Date();
+
+    await this.refreshTokenRepository.update(
+      { id: oldRefreshTokenId, expiresAt: MoreThanOrEqual(now) },
+      { expiresAt: now },
+    );
+  }
+
+  async updateRefreshToken(
+    user: User,
+    oldRefreshTokenId?: string,
+  ): Promise<string> {
+    if (oldRefreshTokenId) {
+      await this.invalidateRefreshToken(oldRefreshTokenId);
+    }
+    const refreshToken = await this.createRefreshToken(user);
+    return refreshToken;
   }
 
   async resetPassword(input: ResetPasswordInput) {
@@ -371,5 +401,26 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.createTokens(user);
 
     return { user: user, accessToken, refreshToken };
+  }
+
+  /**
+   *
+   * @param id The id of the user to switch to
+   * @returns The user, accessToken and refreshToken
+   */
+  async switchAccount(id: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw BadUserInputException();
+    }
+
+    const refreshToken = await this.updateRefreshToken(user);
+    const accessToken = await this.createJwtToken(user);
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
   }
 }
