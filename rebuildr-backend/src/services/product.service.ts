@@ -324,7 +324,7 @@ export class ProductService {
       const category = await this.categoryRepository.findOne({
         where: { id: Equal(input.categoryId) },
       });
-      product.category = category;
+      product.categoryId = category.id;
     }
     //null means removing the project
     if (!!input.projectId || input.projectId === null) {

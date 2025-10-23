@@ -219,7 +219,9 @@ export const UpsertProductBottomSheet = ({
 
         //transportation
         address: dbProduct.address ?? undefined,
-        location: dbProduct.location ?? undefined,
+        location: dbProduct.location
+          ? { lat: dbProduct.location.lat, lng: dbProduct.location.lng }
+          : undefined,
         approximatePlace: dbProduct.approximatePlace ?? undefined,
         pickupEnabled: dbProduct.pickupEnabled,
         deliveryEnabled: dbProduct.deliveryEnabled,
