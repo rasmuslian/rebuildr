@@ -33,6 +33,7 @@ const PRODUCT_BOTTOM_SHEET_PREVIEW_BRAND = gql`
   query ProductBottomSheetPreviewBrand($id: String!) {
     brand(id: $id) {
       id
+      type
       name
     }
   }
@@ -107,6 +108,7 @@ export const Preview = ({
       />
       <MainContent
         product={product}
+        brand={brandData.brand}
         category={categoryData.category}
         parentCategory={categoryData.category.parent}
         documents={

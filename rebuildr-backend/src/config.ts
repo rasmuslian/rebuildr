@@ -12,9 +12,6 @@ const envSchema = z.object({
   SPACES_KEY: z.string().min(1),
   SPACES_SECRET: z.string().min(1),
   MAILGUN_API_KEY: z.string().min(1),
-  ROCKER_MERCHANT_ID: z.string().min(1),
-  ROCKER_API_KEY: z.string().min(1),
-  ROCKER_WEBHOOK_SECRET: z.string().min(1),
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
     .default('development'),

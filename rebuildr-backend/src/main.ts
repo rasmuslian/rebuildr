@@ -9,6 +9,7 @@ import { GraphQLError } from 'graphql';
 import { ExternalExceptionFilter } from '@nestjs/core/exceptions/external-exception-filter';
 import { AuthenticationError } from '@nestjs/apollo';
 import { Logger } from 'winston';
+import * as bodyParser from 'body-parser';
 
 @Catch(GraphQLError)
 export class AuthenticationErrorFilter<
@@ -41,6 +42,9 @@ export class AuthenticationErrorFilter<
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
+  // Stripe webhook needs raw body
+  app.use('/stripe-webhook', bodyParser.raw({ type: 'application/json' }));
 
   app.enableCors();
   await app.listen(3000);

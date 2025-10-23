@@ -21,7 +21,6 @@ import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { BadUserInputException, ForbiddenException } from 'src/exceptions';
 import { RequestType } from 'src/app.module';
-import { RockerService } from './rocker.service';
 import { passwordRegex } from 'src/constants/regexp';
 
 @Injectable()
@@ -34,7 +33,6 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private mailService: MailService,
-    private rockerService: RockerService,
   ) {}
 
   async registerUser(input: RegisterUserInput) {
@@ -165,7 +163,6 @@ export class AuthService {
     }
 
     const tokens = await this.createTokens(user);
-    await this.rockerService.createForeignUser(user);
 
     //Since user is now authenticated, attach user to request to be used in later stages of the request
     req.user = {

@@ -1572,7 +1572,7 @@ const payedInitialEntry = (purchase: PurchaseType, me: MeType) => {
           type: "body",
           textParts: [
             {
-              children: `Du får en bekräftelse från Rocker till ${me.email}`,
+              children: `Du får en bekräftelse från Stripe till ${me.email}`,
             },
           ],
         },

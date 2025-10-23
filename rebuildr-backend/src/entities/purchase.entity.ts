@@ -19,15 +19,15 @@ import { ReportPurchase } from './report-purchase.entity';
 //To keep track of where in a purchase cycle a purchase is in
 export enum PurchaseStatusEnum {
   CLAIMED = 'CLAIMED', //Initial state of a purchase, buyer has claimed the product
-  PAYMENT_STARTED = 'PAYMENT_STARTED', //Buyer has initiated payment to Rocker
-  PAYMENT_ACCEPTED = 'PAYMENT_ACCEPTED', //The payment is accepted by Rocker
+  PAYMENT_STARTED = 'PAYMENT_STARTED', //Buyer has initiated payment to Stripe
+  PAYMENT_ACCEPTED = 'PAYMENT_ACCEPTED', //The payment is accepted by Stripe
   SHIPMENT_BOOKED = 'SHIPMENT_BOOKED', //(OPTIONAL) Seller has booked a shipment
   SHIPMENT_DROPPED_OFF = 'SHIPMENT_DROPPED_OFF', //(OPTIONAL) Seller has dropped off product at shipping provider
   SHIPPING_STARTED = 'SHIPPING_STARTED', //(OPTIONAL) Shipping provider has started transporting the product
   SHIPPING_DELIVERED = 'SHIPPING_DELIVERED', //(OPTIONAL) Shipping provider has delivered the product to a service point
   DELIVERED = 'DELIVERED', //The product has been delivered to the buyer either through shipping or through handoff
   APPROVED = 'APPROVED', //(OPTIONAL) Buyer has accepted the product
-  PAYOUT_STARTED = 'PAYOUT_STARTED', //Rocker has started payout to seller
+  PAYOUT_STARTED = 'PAYOUT_STARTED', //Stripe has started payout to seller
   FINISHED_FAILED = 'FINISHED_FAILED', //Purchase was for any reason canceled
   FINISHED_SUCCESS = 'FINISHED_SUCCESS', //Seller has received the money and the Purchase is complete
   PAUSED = 'PAUSED', //Buyer has pauset the purchase
@@ -44,8 +44,7 @@ registerEnumType(TransportationEnum, { name: 'TransportationEnum' });
 
 export enum SupportedPaymentMethod {
   SWISH = 'SWISH',
-  STRIPE = 'STRIPE',
-  TRUSTLY = 'TRUSTLY',
+  CARD = 'CARD',
 }
 registerEnumType(SupportedPaymentMethod, {
   name: 'PaymentMethod',
@@ -80,11 +79,26 @@ export class Purchase {
   @Column({ nullable: true })
   rockerPaymentId?: string;
 
+  @Column({ nullable: true, comment: "payment id on buyer's side" })
+  paymentIntentId?: string;
+
+  @Column({ nullable: true, comment: 'charge made on payment' })
+  chargeId?: string;
+
+  @Column({ nullable: true, comment: 'tranfer regarding payment' })
+  transferId?: string;
+
+  @Column({ nullable: true, comment: "payment id on seller's side" })
+  destinationPaymentId?: string;
+
   @Column({ nullable: true })
   rockerOfferId?: string;
 
   @Column({ nullable: true })
   rockerPayoutId?: string;
+
+  @Column({ nullable: true })
+  payoutId?: string;
 
   @Field(() => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })

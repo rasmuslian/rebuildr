@@ -12,7 +12,6 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { PaymentTypeEnum } from 'src/apis/types/rocker-types';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -61,9 +60,6 @@ export class PurchaseProductInput {
   @Field(() => String, { nullable: true })
   deliverToAddress?: string;
 
-  @Field(() => PaymentTypeEnum, { nullable: true })
-  swishType?: PaymentTypeEnum;
-
   @Field(() => TransportationEnum)
   transportationMethod: TransportationEnum;
 
@@ -83,13 +79,7 @@ class PurchaseProductResponse {
   purchase: Purchase;
 
   @Field({ nullable: true })
-  swishToken?: string;
-
-  @Field({ nullable: true })
   reference?: string;
-
-  @Field({ nullable: true })
-  trustlyUrl?: string;
 }
 
 @InputType()
@@ -227,7 +217,7 @@ export class PurchaseResolver {
     );
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Purchase)
   @UseGuards(GqlAuthGuard)
   async cancelPurchase(
     @Args('input') input: CancelPurchaseInput,
@@ -281,7 +271,7 @@ export class PurchaseResolver {
 
   @ResolveField(() => Boolean)
   async isFree(@Parent() purchase: Purchase) {
-    return !purchase.rockerPaymentId;
+    return !purchase.paymentIntentId;
   }
 
   @ResolveField(() => Boolean)

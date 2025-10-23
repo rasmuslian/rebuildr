@@ -4,10 +4,9 @@ import { Body, Display } from "@components/typography/text";
 import { ComponentProps } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
-import SwishPaymentOption from "@assets/images/swish-payment-option.png";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
 import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
-import TrustlyPaymentOption from "@assets/images/trustly-payment-option.png";
+import AmExPaymentOption from "@assets/images/american-express-payment-option.png";
 
 type Props = {
   text: string;
@@ -46,10 +45,12 @@ export const Summary = ({
             alignSelf: "center",
           }}
         >
+          {/* 
+          //Hide Swish until Stripe supports it
           <Image
             source={SwishPaymentOption.uri}
             style={{ width: 60, height: 18 }}
-          />
+          /> */}
           <Image
             source={VisaPaymentOption.uri}
             style={{ width: 40, height: 16 }}
@@ -59,7 +60,7 @@ export const Summary = ({
             style={{ width: 30, height: 18 }}
           />
           <Image
-            source={TrustlyPaymentOption.uri}
+            source={AmExPaymentOption.uri}
             style={{ width: 60, height: 13 }}
           />
         </View>

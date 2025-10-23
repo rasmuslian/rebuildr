@@ -23,7 +23,6 @@
           Säljarens e-post: <b>{{sellerEmail}}</b><br/>
           Produktens id: <b>{{productId}}</b><br/>
           Köpets id: <b>{{purchaseId}}</b><br/>
-          Offer id Rocker: <b>{{offerId}}</b><br/>
         </mj-text>
       </mj-column>
     </mj-section>

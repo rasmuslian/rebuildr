@@ -10,7 +10,6 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
-  InternalServerException,
 } from 'src/exceptions';
 import { ILike, IsNull, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
@@ -19,7 +18,6 @@ import {
   GetUsersInput,
   UpdateUserInput,
 } from 'src/resolvers/user.resolver';
-import { RockerService } from './rocker.service';
 import { FileService } from './file.service';
 import {
   passwordRegex,
@@ -31,6 +29,7 @@ import * as bcrypt from 'bcrypt';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
+import { StripeService } from './stripe.service';
 
 @Injectable()
 export class UserService {
@@ -38,12 +37,12 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
-    private rockerService: RockerService,
     private fileService: FileService,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    private stripeService: StripeService,
   ) {}
 
   async findOne(id: string) {
@@ -238,17 +237,6 @@ export class UserService {
     creator.organizations = creator.organizations || [];
     creator.organizations.push(organizationUser);
 
-    try {
-      const rockerResponse = await this.rockerService.createOrganizationUser(
-        organizationUser,
-        creator,
-      );
-      organizationUser.rockerUserId = rockerResponse.id;
-    } catch (e) {
-      console.log(e);
-      throw InternalServerException('Failure when creating organization');
-    }
-
     const _creator = await this.userRepository.save(creator);
     organizationUser.organizationUsers = [_creator];
     const _organizationUser = await this.userRepository.save(organizationUser);
@@ -274,30 +262,98 @@ export class UserService {
     };
   }
 
-  /**
-   * Function user to retrieve information about the selected payoutAccount
-   * It uses what information Rocker can provide.
-   */
-  async getPayoutAccount(user: User) {
-    if (!user.selectedPayoutMethod) {
-      return null;
+  async onboardSellerAccount(currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user) {
+      return BadUserInputException();
     }
-    const accounts = await this.rockerService.getPayoutAccounts(user);
 
-    const account = accounts.find(
-      (account) =>
-        this.rockerService.payoutAccountToPayoutMethod(
-          user.selectedPayoutMethod,
-        ) === account.provider,
-    );
-    if (!account) {
-      return null;
+    return await this.stripeService.onboardAccount(user);
+  }
+  async createSellerAccount(currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user) {
+      return BadUserInputException();
     }
+
+    return await this.stripeService.createConnectedAccount(user);
+  }
+
+  async updateSellerAccount(currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user) {
+      return BadUserInputException();
+    }
+
+    if (!user.connectedAccountId) {
+      throw BadUserInputException('Missing seller account');
+    }
+
+    const { clientSecret } = await this.stripeService.onBoardAccount(
+      user.connectedAccountId,
+    );
 
     return {
-      ...account,
-      provider: user.selectedPayoutMethod,
+      user,
+      clientSecret,
     };
+  }
+  async addPayoutAccount(currentUserId: string, token: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+
+    if (!user) {
+      return BadUserInputException();
+    }
+
+    if (!user.connectedAccountId) {
+      throw BadUserInputException('Missing seller account');
+    }
+    await this.stripeService.createExternalAccountCard(
+      user.connectedAccountId,
+      token,
+    );
+
+    return user;
+  }
+  async getPayoutAccount(currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+    if (!user) {
+      return BadUserInputException();
+    }
+
+    if (!user.connectedAccountId) {
+      throw BadUserInputException('Missing seller account');
+    }
+    const accounts = await this.stripeService.retrieveExternalAccounts(
+      user.connectedAccountId,
+    );
+
+    const account = accounts.find((account) => account.default);
+    return account;
+  }
+
+  async sellerAccountIsCreated(user: User) {
+    if (!user.connectedAccountId) {
+      return false;
+    }
+    return true;
+  }
+  async sellerAccountIsEnabled(user: User) {
+    if (!user.connectedAccountId) {
+      return false;
+    }
+
+    return await this.stripeService.accountIsEnabled(user.connectedAccountId);
   }
 
   /**
@@ -364,14 +420,6 @@ export class UserService {
       userToDelete.profilePicture = null;
     }
     await this.refreshTokenRepository.remove(userToDelete.refreshTokens);
-
-    //Rocker fields
-    userToDelete.rockerUserId = null;
-    userToDelete.payoutAccountBankGiroId = null;
-    userToDelete.payoutAccountPlusGiroId = null;
-    userToDelete.payoutAccountRixId = null;
-    userToDelete.payoutAccountSwishId = null;
-    userToDelete.selectedPayoutMethod = null;
 
     userToDelete.deletedAt = new Date();
     return this.userRepository.save(userToDelete);

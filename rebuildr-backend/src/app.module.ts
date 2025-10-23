@@ -11,7 +11,6 @@ import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
-import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthedUserType, jwtConstants } from './auth/constants';
@@ -42,13 +41,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { GqlThrottlerGuard } from './guards/gql-throttler.guard';
 import { ProductLoader } from './dataloaders/product.loader';
 import { CategoryLoader } from './dataloaders/category.loader';
-import { RockerService } from './services/rocker.service';
-import { RockerAPI } from './apis/rocker.api';
 import { CacheModule } from '@nestjs/cache-manager';
-import { RockerResolver } from './resolvers/rocker.resolver';
 import { Purchase } from './entities/purchase.entity';
 import { PurchaseService } from './services/purchase.service';
-import { RockerWebhookController } from './controllers/rocker-webhook.controller';
 import { PurchaseResolver } from './resolvers/purchase.resolver';
 import { EnvironmentVariables, validateConfig } from './config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -100,6 +95,8 @@ import { FooterSectionService } from './services/footer-section.service';
 import { ArticleFooterSection } from './entities/article-footer-section.entity';
 import { ArticleFooerSectionService } from './services/article-footer-section.service';
 import { ArticleFooterSectionResolver } from './resolvers/article-footer-section.resolver';
+import { StripWebhookController } from './controllers/stripe-webhook.controller';
+import { StripeService } from './services/stripe.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -209,7 +206,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, RockerWebhookController],
+  controllers: [StripWebhookController],
   providers: [
     JwtStrategy,
     AppService,
@@ -233,9 +230,6 @@ export interface RequestType {
     GeocodingResolver,
     EventService,
     GqlThrottlerGuard,
-    RockerResolver,
-    RockerService,
-    RockerAPI,
     PostnordAPI,
     DHLAPI,
     PurchaseService,
@@ -264,6 +258,7 @@ export interface RequestType {
     FooterSectionService,
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
+    StripeService,
   ],
 })
 export class AppModule {}

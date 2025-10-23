@@ -21,7 +21,7 @@ type Props = {
   purchaseId: string;
   show: boolean;
   onDismiss: () => void;
-  clientSecret: string; //'clientSecret' is retrieved from Rocker when creating a Purchase on backend
+  clientSecret: string; //'clientSecret' is retrieved from Server when creating a Purchase
 };
 
 export const StripeBottomSheet = ({
@@ -31,11 +31,11 @@ export const StripeBottomSheet = ({
   onDismiss,
   clientSecret,
 }: Props) => {
-  if (!process.env.EXPO_PUBLIC_ROCKER_STRIPE_PK) {
+  if (!process.env.EXPO_PUBLIC_STRIPE_PK) {
     console.error("Publishable key not set!");
     return null;
   }
-  const stripePromise = loadStripe(process.env.EXPO_PUBLIC_ROCKER_STRIPE_PK);
+  const stripePromise = loadStripe(process.env.EXPO_PUBLIC_STRIPE_PK);
   return (
     <BottomSheet
       name="Stripe"

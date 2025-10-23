@@ -20,7 +20,6 @@ import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Project } from 'src/entities/project.entity';
 import {
-  PayoutAccountEnum,
   RegistrationStatusEnum,
   User,
   UserRoleEnum,
@@ -132,15 +131,15 @@ export class GetUsersInput {
 }
 
 @ObjectType()
-export class PayoutAccountResponse {
-  @Field(() => PayoutAccountEnum)
-  provider: PayoutAccountEnum;
+export class PayoutAccount {
+  @Field(() => String)
+  type: string;
 
   @Field({ nullable: true })
-  phoneNumber?: string;
+  routingNumber?: string;
 
   @Field({ nullable: true })
-  accountName?: string;
+  last4?: string;
 
   @Field({ nullable: true })
   bankName?: string;
@@ -155,6 +154,14 @@ export class RecommendedProductsInput {
   excludeOwnProducts?: boolean;
 }
 
+@ObjectType()
+export class OnboardSellerAccountResponse {
+  @Field(() => User)
+  user: User;
+
+  @Field()
+  clientSecret: string;
+}
 @Resolver(() => User)
 export class UserResolver {
   constructor(
@@ -206,6 +213,29 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard)
   async deleteAccount(@CurrentUser() user: AuthedUserType) {
     return await this.userService.delete(user.id, user.id);
+  }
+
+  @Mutation(() => OnboardSellerAccountResponse)
+  @UseGuards(GqlAuthGuard)
+  async onboardSellerAccount(@CurrentUser() user: AuthedUserType) {
+    return await this.userService.onboardSellerAccount(user.id);
+  }
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async addPayoutAccount(
+    @CurrentUser() user: AuthedUserType,
+    @Args('token') token: string,
+  ) {
+    return await this.userService.addPayoutAccount(user.id, token);
+  }
+
+  @ResolveField(() => Boolean)
+  async sellerAccountIsCreated(@Parent() user: User) {
+    return await this.userService.sellerAccountIsCreated(user);
+  }
+  @ResolveField(() => Boolean)
+  async sellerAccountIsEnabled(@Parent() user: User) {
+    return await this.userService.sellerAccountIsEnabled(user);
   }
 
   @ResolveField(() => File, { nullable: true })
@@ -316,9 +346,10 @@ export class UserResolver {
     return userLoaders.reviewedLoader.load(user.id);
   }
 
-  @ResolveField(() => PayoutAccountResponse, { nullable: true })
+  @ResolveField(() => PayoutAccount, { nullable: true })
+  @UseGuards(GqlAuthGuard)
   async payoutAccount(@Parent() user: User) {
-    return await this.userService.getPayoutAccount(user);
+    return await this.userService.getPayoutAccount(user.id);
   }
 
   @ResolveField(() => [Product])

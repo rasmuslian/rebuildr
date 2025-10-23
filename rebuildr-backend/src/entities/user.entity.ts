@@ -190,6 +190,12 @@ export class User {
   @Column({ type: Boolean, default: true })
   notifyOnPurchaseUpdate: boolean;
 
+  @Column({
+    nullable: true,
+    comment: 'Id pointing to connected account at Stripe',
+  })
+  connectedAccountId?: string;
+
   @OneToMany(() => Project, (p) => p.user)
   projects: Project[];
 
