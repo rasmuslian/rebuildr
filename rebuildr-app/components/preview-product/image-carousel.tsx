@@ -47,6 +47,7 @@ export const ImageCarousel = ({
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8 }}
           renderItem={({ item: image, separators }) => {
             return (
               <View>

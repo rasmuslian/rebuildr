@@ -33,6 +33,7 @@ type Props = PropsWithChildren<{
   screenHeight?: boolean;
   scrollable?: boolean;
   footer?: ReactElement;
+  isStickyFooter?: boolean;
   stackBehavior?: BottomSheetModalStackBehavior;
   open: boolean;
 }>;
@@ -47,6 +48,7 @@ export const BottomSheet = ({
   screenHeight,
   scrollable,
   footer,
+  isStickyFooter,
   open,
   stackBehavior = "push",
 }: Props) => {
@@ -156,37 +158,46 @@ export const BottomSheet = ({
       )}
     >
       {scrollable ? (
-        <BottomSheetScrollView
-          style={{
-            paddingBottom: safeArea.bottom + 20,
-            flex: 1,
-          }}
-          contentContainerStyle={
-            screenHeight && {
-              justifyContent: "space-between",
+        <>
+          <BottomSheetScrollView
+            style={{
+              paddingBottom: safeArea.bottom + 20,
               flex: 1,
-            }
-          }
-        >
-          <Animated.View
-            style={[
-              animatedBorderRadiusStyle,
-              {
-                backgroundColor: colors.background.neutral,
-                paddingHorizontal: noPaddingHorizontal ? 0 : 16,
+            }}
+            contentContainerStyle={
+              screenHeight && {
+                justifyContent: "space-between",
                 flex: 1,
-              },
-            ]}
+              }
+            }
           >
-            {renderHeader()}
-            <View style={[!screenHeight && { flex: 1 }]}>{children}</View>
-          </Animated.View>
-          {footer && (
-            <View style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}>
+            <Animated.View
+              style={[
+                animatedBorderRadiusStyle,
+                {
+                  backgroundColor: colors.background.neutral,
+                  paddingHorizontal: noPaddingHorizontal ? 0 : 16,
+                  flex: 1,
+                },
+              ]}
+            >
+              {renderHeader()}
+              <View style={[!screenHeight && { flex: 1 }]}>{children}</View>
+              {footer && !isStickyFooter && (
+                <View
+                  style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}
+                >
+                  {footer}
+                </View>
+              )}
+            </Animated.View>
+          </BottomSheetScrollView>
+          {footer && isStickyFooter && (
+            <View style={{ paddingHorizontal: 16, marginBottom: 32 }}>
               {footer}
             </View>
           )}
-        </BottomSheetScrollView>
+        </>
       ) : (
         <BottomSheetView
           style={[

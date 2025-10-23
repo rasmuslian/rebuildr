@@ -14,7 +14,6 @@ import {
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Button } from "@components/buttons/button";
 import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
@@ -50,20 +49,9 @@ const PRODUCT_BOTTOM_SHEET_PREVIEW = gql`
 
 type Props = {
   product: ProductFields;
-  update: (product: Partial<ProductFields>) => void;
-  onNext: () => void;
-  onBack: () => void;
-  loading: boolean;
-  nextText: string;
 };
 
-export const Preview = ({
-  product,
-  onBack,
-  onNext,
-  loading,
-  nextText,
-}: Props) => {
+export const Preview = ({ product }: Props) => {
   const { data } = useQuery<ProductBottomSheetPreviewQuery>(
     PRODUCT_BOTTOM_SHEET_PREVIEW,
     {
@@ -131,26 +119,6 @@ export const Preview = ({
           }}
         />
       )}
-      <View
-        style={{
-          gap: 8,
-          flexDirection: "row",
-          paddingTop: 24,
-        }}
-      >
-        <Button
-          label="Redigera"
-          type="tonal"
-          onPress={onBack}
-          style={{ flex: 1 }}
-        />
-        <Button
-          label={nextText}
-          onPress={onNext}
-          style={{ flex: 1 }}
-          loading={loading}
-        />
-      </View>
     </View>
   );
 };

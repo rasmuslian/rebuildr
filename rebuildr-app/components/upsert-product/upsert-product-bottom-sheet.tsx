@@ -23,6 +23,7 @@ import { PayoutHandler } from "../sell-product/payout-handler";
 import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { measurementKeys } from "@constants/measurements";
+import { Button } from "@components/buttons/button";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -522,6 +523,34 @@ export const UpsertProductBottomSheet = ({
     onHide();
   };
 
+  const renderFooter = () => {
+    if (step === "preview") {
+      return (
+        <View
+          style={{
+            gap: 8,
+            flexDirection: "row",
+            paddingTop: 24,
+          }}
+        >
+          <Button
+            label="Redigera"
+            type="tonal"
+            onPress={() => setStep("details")}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label={mode === "create" ? "Publicera" : "Spara"}
+            onPress={onVerifyPreview}
+            style={{ flex: 1 }}
+            loading={updateDraftLoading}
+          />
+        </View>
+      );
+    }
+    return undefined;
+  };
+
   if (!data) {
     return null;
   }
@@ -561,6 +590,8 @@ export const UpsertProductBottomSheet = ({
           }
         />
       }
+      footer={renderFooter()}
+      isStickyFooter
     >
       <View style={{ marginBottom: 32 }}>
         {step === "details" && (
@@ -594,16 +625,7 @@ export const UpsertProductBottomSheet = ({
             onBack={() => setStep("project")}
           />
         )}
-        {step === "preview" && (
-          <Preview
-            product={product}
-            update={onUpdateProduct}
-            onNext={onVerifyPreview}
-            onBack={() => setStep("details")}
-            loading={updateDraftLoading}
-            nextText={mode === "create" ? "Publicera" : "Spara"}
-          />
-        )}
+        {step === "preview" && <Preview product={product} />}
         {step === "payout" && (
           <PayoutHandler
             onFinish={() => setStep("details")}
