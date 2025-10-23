@@ -107,9 +107,32 @@ export class CreateOrganizationUserInput {
 
   @Field(() => String)
   organizationName: string;
+}
+@InputType()
+export class UpdateOrganizationUserInput {
+  @Field()
+  id: string;
 
-  @Field(() => String)
-  creatorId: string;
+  @Field({ nullable: true })
+  organizationName?: string;
+
+  @Field({ nullable: true })
+  address?: string;
+
+  @Field({ nullable: true })
+  username?: string;
+
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  postCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
 }
 
 @InputType()
@@ -205,8 +228,18 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard)
   async createOrganizationUser(
     @Args('input') input: CreateOrganizationUserInput,
+    @CurrentUser() user: AuthedUserType,
   ): Promise<User> {
-    return await this.userService.createOrganizationUser(input);
+    return await this.userService.createOrganizationUser(input, user.id);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async updateOrganizationUser(
+    @Args('input') input: UpdateOrganizationUserInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.userService.updateOrganizationUser(input, user.id);
   }
 
   @Mutation(() => User)
@@ -366,5 +399,23 @@ export class UserResolver {
       limit,
       offset,
     );
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async organizationAccount(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    const organizations = await userLoaders.getOrganizations.load(user.id);
+    return organizations?.[0];
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async organizationOwner(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    const owners = await userLoaders.getOrganizationOwners.load(user.id);
+    return owners?.[0];
   }
 }

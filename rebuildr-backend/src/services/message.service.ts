@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserType } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
 import {
   GetConversationsInput,
@@ -178,7 +178,17 @@ export class MessageService {
 
   async sendSystemMessage(input: SystemMessageInput) {
     const [receiver, sender, product] = await Promise.all([
-      this.userRepository.findOneByOrFail({ id: input.receiverId }),
+      (async () => {
+        const user = await this.userRepository.findOneOrFail({
+          where: { id: input.receiverId },
+          relations: { organizationUsers: true },
+        });
+        if (user.type === UserType.BUSINESS) {
+          const owner = user.organizationUsers[0];
+          return await this.userRepository.findOneByOrFail({ id: owner.id });
+        }
+        return user;
+      })(),
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
     ]).catch(() => {
@@ -261,34 +271,53 @@ export class MessageService {
     logger.info('Notifying users on missed messages');
 
     const receivers = await this.dataSource.query<
-      { receiverId: string; receiverEmail: string; productTitle: string }[]
+      {
+        receiverId: string;
+        receiverEmail: string;
+        userType: UserType;
+        productTitle: string;
+      }[]
     >(`
         WITH relevantIds AS (
-          SELECT m."receiverId", m."productId" 
-          FROM message m 
-          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" = TRUE 
-          WHERE 
-            "readAt" IS NULL 
-            AND (receiver."notifiedOnMessageAt" < m."createdAt" OR receiver."notifiedOnMessageAt" IS NULL) 
+          SELECT m."receiverId", m."productId"
+          FROM message m
+          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" = TRUE
+          WHERE
+            "readAt" IS NULL
+            AND (receiver."notifiedOnMessageAt" < m."createdAt" OR receiver."notifiedOnMessageAt" IS NULL)
             AND m."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum
           GROUP by "receiverId", "senderId", "productId")
-        SELECT u.id as "receiverId", u.email as "receiverEmail", p.title as "productTitle" from relevantIds ri
+        SELECT u.id as "receiverId", u.email as "receiverEmail", u.type as "userType", p.title as "productTitle" from relevantIds ri
         INNER JOIN "user" u ON ri."receiverId" = u.id
-        INNER JOIN product p ON ri."productId" = p.id;
+        INNER JOIN product p ON ri."productId" = p.id
         `);
 
     //send mail to all
-    receivers.forEach((receiver) => {
-      logger.info('Notifying user of message on product', {
-        productTitle: receiver.productTitle,
-        userId: receiver.receiverId,
-        userEmail: receiver.receiverEmail,
-      });
-      this.mailService.sendUserMessageEmail({
-        productTitle: receiver.productTitle,
-        receiverEmail: receiver.receiverEmail,
-      });
-    });
+    Promise.all(
+      receivers.map(async (receiver) => {
+        let receiverEmail = receiver.receiverEmail;
+        logger.info('Notifying user of message on product', {
+          productTitle: receiver.productTitle,
+          userId: receiver.receiverId,
+          userEmail: receiver.receiverEmail,
+          userType: receiver.userType,
+        });
+        if (receiver.userType === UserType.BUSINESS) {
+          const owner = await this.userRepository.findOne({
+            where: {
+              organizations: {
+                id: receiver.receiverId,
+              },
+            },
+          });
+          receiverEmail = owner.email;
+        }
+        this.mailService.sendUserMessageEmail({
+          productTitle: receiver.productTitle,
+          receiverEmail,
+        });
+      }),
+    );
 
     const receiverIds = receivers.map((receiver) => receiver.receiverId);
 

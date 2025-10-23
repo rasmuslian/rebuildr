@@ -191,6 +191,8 @@ type User {
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
+  organizationAccount: User
+  organizationOwner: User
 }
 
 enum UserRoleEnum {
@@ -808,8 +810,10 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
+  switchAccount(id: String!): LoginResponse!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
+  updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
   deleteAccount: User!
   onboardSellerAccount: OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
@@ -921,7 +925,17 @@ input FileInputType {
 input CreateOrganizationUserInput {
   organizationNumber: String!
   organizationName: String!
-  creatorId: String!
+}
+
+input UpdateOrganizationUserInput {
+  id: String!
+  organizationName: String
+  address: String
+  username: String
+  name: String
+  postCode: String
+  city: String
+  phoneNumber: String
 }
 
 input CmsCreateProductInput {
