@@ -327,6 +327,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     seller: User,
     product: Product,
     isFree = false,
+    firstSale = false,
   ) {
     const message = isFree
       ? `# Överlämningen är nu bekräftad och allting är klart!
@@ -336,7 +337,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
       : `# Köparen har godkänt varan!
     
 
-# Du har fått betalt och pengarna har betalats ut till ditt utbetalningskonto.
+# ${firstSale ? 'Eftersom det här är din första försäljning kan det ta upp till 7 vardagar innan pengarna finns på plats. Därefter tar det normalt 1-3 bankdagar.' : 'Pengarna beräknas nå dig inom 1-3 bankdagar.'}
 
 
 # Nu kan du passa på att lämna ett omdöme om köparen.`;

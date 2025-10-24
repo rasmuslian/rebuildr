@@ -780,6 +780,16 @@ export class PurchaseService {
       throw BadUserInputException();
     }
     if (!purchase.approvedAt) {
+      const nrOfCompletedSales = await this.purchaseRepository.count({
+        where: {
+          payoutReceivedAt: Not(null),
+          product: {
+            seller: {
+              id: purchase.product.seller.id,
+            },
+          },
+        },
+      });
       await this.systemMessagesService.purchaseSuccessBuyer(
         buyer,
         seller,
@@ -789,6 +799,7 @@ export class PurchaseService {
         buyer,
         seller,
         product,
+        nrOfCompletedSales > 0,
       );
     }
     purchase.approvedAt = new Date();
