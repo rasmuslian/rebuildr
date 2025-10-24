@@ -6,10 +6,11 @@ import {
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Body, Headline } from "@components/typography/text";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Entry } from "./entry";
 import { gql, useMutation } from "@apollo/client";
+import { apolloBadFieldsError } from "@/utils/apollo-errors";
 
 const ORGANIZATION_SETTING_UPDATE = gql`
   mutation OrganizationSettingUpdate($input: UpdateOrganizationUserInput!) {
@@ -27,7 +28,7 @@ type Props = {
 export const OrganizationSetting = ({ user }: Props) => {
   const [name, setName] = useState(user.username ?? "");
   const [edit, setEdit] = useState(!user.organizationNumber || !user.username);
-  const [updateOrganization, { loading }] = useMutation<
+  const [updateOrganization, { data, loading, error }] = useMutation<
     OrganizationSettingUpdateMutation,
     OrganizationSettingUpdateMutationVariables
   >(ORGANIZATION_SETTING_UPDATE);
@@ -45,7 +46,14 @@ export const OrganizationSetting = ({ user }: Props) => {
     });
   };
 
-  const canCreate = name.length > 0;
+  useEffect(() => {
+    if (data) {
+      setEdit(false);
+    }
+  }, [data]);
+
+  const canUpdate = name.length > 0;
+  const fieldErrors = error ? apolloBadFieldsError(error) : undefined;
 
   return (
     <View style={{ gap: 16 }}>
@@ -89,11 +97,26 @@ export const OrganizationSetting = ({ user }: Props) => {
                   onChange: setName,
                   helperText:
                     "💡 Observera: Vi verifierar inte företagsnamnet, så se till att du skriver in det exakt som du vill att det ska synas för kunder.",
+                  error: fieldErrors?.find((field) => field.name === "username")
+                    ? "Företagsnamnet är upptaget"
+                    : undefined,
                 },
               ]}
             />
           </View>
-          <Button label="Spara" onPress={onUpdate} disabled={!canCreate} />
+          <View style={{ gap: 4 }}>
+            {error && (
+              <Body size="small" color="error">
+                Något gick fel
+              </Body>
+            )}
+            <Button
+              label="Spara"
+              onPress={onUpdate}
+              disabled={!canUpdate}
+              loading={loading}
+            />
+          </View>
         </View>
       )}
     </View>

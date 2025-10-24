@@ -286,7 +286,7 @@ export class UserService {
 
     if (input.organizationName) {
       const usernameTaken = await this.userRepository.existsBy({
-        username: input.username,
+        username: input.organizationName,
       });
       if (usernameTaken) {
         throw BadFieldsInputException([
