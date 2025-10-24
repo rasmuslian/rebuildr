@@ -51,7 +51,9 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    return await this.userRepository.findOneBy({ email });
+    return await this.userRepository.findOneBy({
+      email: email.toLowerCase().trim(),
+    });
   }
 
   async findOrganizationOwner(organizationUser: User) {
