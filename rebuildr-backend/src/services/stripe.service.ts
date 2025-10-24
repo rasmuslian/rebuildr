@@ -67,16 +67,13 @@ export class StripeService {
     const firstName = nameParts?.[0];
     const lastName = nameParts?.[1];
 
-    let phone = user.phoneNumber;
-    if (user.phoneNumber) {
-      phone = formatCountryCodePhonenumber(phone);
-    }
-
     const individualParams: Stripe.AccountCreateParams.Individual = {
       first_name: firstName,
       last_name: lastName,
       email: user.email,
-      phone: phone,
+      phone: user.phoneNumber
+        ? formatCountryCodePhonenumber(user.phoneNumber)
+        : undefined,
       address: {
         line1: user.address,
         postal_code: user.postCode ?? undefined,
