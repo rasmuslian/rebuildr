@@ -102,7 +102,7 @@ export const useStripeConnect = () => {
             bodyMdFontWeight: "500px",
             headingSmFontWeight: "500px",
 
-            fontFamily: "-Poppins, sans-serif",
+            fontFamily: "Poppins, sans-serif",
 
             bodySmFontSize: `${textStyles.body.medium.fontSize.toString()}px`,
             bodyMdFontSize: `${textStyles.body.large.fontSize.toString()}px`,
