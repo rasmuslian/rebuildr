@@ -145,7 +145,7 @@ export class StripeService {
         business_type: 'company',
         company: {
           structure: 'private_corporation',
-          name: organizationUser.name,
+          name: organizationUser.username,
           address: {
             line1: organizationUser.address,
             postal_code: organizationUser.postCode,
@@ -158,7 +158,7 @@ export class StripeService {
           tax_id: organizationUser.organizationNumber ?? undefined,
         },
         business_profile: {
-          name: organizationUser.name,
+          name: organizationUser.username,
         },
         email: owner.email,
         controller: {
