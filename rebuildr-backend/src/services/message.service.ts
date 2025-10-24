@@ -15,6 +15,7 @@ import { MailService } from './mail.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { UserService } from './user.service';
 
 export interface SystemMessageInput {
   productId: string;
@@ -37,6 +38,7 @@ export class MessageService {
     private purchaseService: PurchaseService,
     private mailService: MailService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private userService: UserService,
   ) {}
 
   async getConversation(
@@ -178,17 +180,7 @@ export class MessageService {
 
   async sendSystemMessage(input: SystemMessageInput) {
     const [receiver, sender, product] = await Promise.all([
-      (async () => {
-        const user = await this.userRepository.findOneOrFail({
-          where: { id: input.receiverId },
-          relations: { organizationUsers: true },
-        });
-        if (user.type === UserType.BUSINESS) {
-          const owner = user.organizationUsers[0];
-          return await this.userRepository.findOneByOrFail({ id: owner.id });
-        }
-        return user;
-      })(),
+      this.userRepository.findOneByOrFail({ id: input.receiverId }),
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
     ]).catch(() => {
@@ -206,9 +198,19 @@ export class MessageService {
 
     const _newMessage = await this.messageRepository.save(newMessage);
 
+    //If the receiver is an organization, the email is sent to the owner instead
+    let mailReceiver = receiver;
+    if (receiver.type === UserType.BUSINESS) {
+      const owner = await this.userService.findOrganizationOwner(receiver);
+      mailReceiver = owner;
+    }
+
     //Send mail if user allows it
-    if (receiver.notifyOnPurchaseUpdate) {
-      this.mailService.sendSystemMessageEmail({ product, receiver });
+    if (mailReceiver.notifyOnPurchaseUpdate) {
+      this.mailService.sendSystemMessageEmail({
+        product,
+        receiver: mailReceiver,
+      });
     }
 
     return _newMessage;
