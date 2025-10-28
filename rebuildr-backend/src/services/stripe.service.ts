@@ -426,30 +426,35 @@ export class StripeService {
 
     await this.userRepository.save(user);
   }
-  async linkChargeToPurchase(charge: Stripe.Charge) {
+  async linkChargeToPurchase(charge: Stripe.Charge, logger: Logger) {
     const paymentIntentId = idFromObject(charge.payment_intent);
     const purchase = await this.purchaseRepository.findOne({
       where: { paymentIntentId },
     });
     if (!purchase) {
-      this.logger.error('linkChargeToPurchase: Could not find purchase', {
+      logger.error('linkChargeToPurchase: Could not find purchase', {
         charge,
       });
       return;
     }
+    logger.info('Link Charge to Purchase', {
+      paymentIntentId,
+      purchaseId: purchase.id,
+      chargeId: charge.id,
+    });
     purchase.chargeId = charge.id;
     return await this.purchaseRepository.save(purchase);
   }
 
-  async linkTransferToPurchase(transfer: Stripe.Transfer) {
+  async linkTransferToPurchase(transfer: Stripe.Transfer, logger: Logger) {
     if (!transfer.source_transaction) {
-      this.logger.error('linkTransferToPurchase: Missing source transaction', {
+      logger.error('linkTransferToPurchase: Missing source transaction', {
         transfer,
       });
       return;
     }
     if (!transfer.destination_payment) {
-      this.logger.info(
+      logger.info(
         'linkTransferToPurchase: Transfer is not a transfer to a connected account',
         {
           transfer,
@@ -469,6 +474,12 @@ export class StripeService {
       });
       return;
     }
+    logger.info('Link Transfer to Purchase', {
+      paymentIntentId: purchase.paymentIntentId,
+      chargeId,
+      purchaseId: purchase.id,
+      transferId: transfer.id,
+    });
     purchase.transferId = transfer.id;
     purchase.destinationPaymentId = idFromObject(transfer.destination_payment);
     return await this.purchaseRepository.save(purchase);
