@@ -28,13 +28,6 @@
 
 ## Installation
 
-Install 1 password cli in order to populate you're environment file on start.
-With brew:
-
-```bash
-$ brew install 1password-cli --cask
-```
-
 Install dependencies
 
 ```bash
@@ -54,6 +47,7 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+<!--
 ## Test
 
 ```bash
@@ -65,6 +59,19 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+``` -->
+
+## Migration
+
+```bash
+# create migration
+npm run migration:generate migration/MIGRATION-NAME
+
+# run migration
+npm run migration:run
+
+# undo migration
+npm run migration:revert
 ```
 
 ## Support
