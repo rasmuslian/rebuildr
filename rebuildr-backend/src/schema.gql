@@ -931,7 +931,6 @@ input UpdateOrganizationUserInput {
   id: String!
   organizationName: String
   address: String
-  username: String
   name: String
   postCode: String
   city: String

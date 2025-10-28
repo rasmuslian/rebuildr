@@ -88,7 +88,10 @@ export class StripWebhookController {
         });
         break;
       case 'charge.succeeded':
-        await this.stripeService.linkChargeToPurchase(event.data.object);
+        await this.stripeService.linkChargeToPurchase(
+          event.data.object,
+          logger,
+        );
         return;
       case 'payment_intent.created':
         await this.purchaseService.paymentStarted(event.data.object, logger);
@@ -113,7 +116,10 @@ export class StripWebhookController {
         break;
       case 'transfer.updated':
       case 'transfer.created':
-        await this.stripeService.linkTransferToPurchase(event.data.object);
+        await this.stripeService.linkTransferToPurchase(
+          event.data.object,
+          logger,
+        );
         break;
       default:
         logger.info('Event type not supported', {

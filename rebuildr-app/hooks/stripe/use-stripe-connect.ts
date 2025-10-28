@@ -57,6 +57,7 @@ export const useStripeConnect = () => {
         fetchClientSecret,
         appearance: {
           overlays: "dialog",
+          //Appearance variables: https://docs.stripe.com/connect/embedded-appearance-options
           variables: {
             //Color
             colorPrimary: colors.buttons.filled.enabled,

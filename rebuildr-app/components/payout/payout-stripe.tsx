@@ -11,6 +11,8 @@ import {
 } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
+import { useState } from "react";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
 const PAYOUT_CHECK_SELLER_ACCOUNT = gql`
   query PayoutCheckSellerAccount {
@@ -27,12 +29,17 @@ type Props = {
 };
 
 export default function PayoutStripe({ onExit, onAbort }: Props) {
+  const [loading, setLoading] = useState(true);
   const { stripeConnectInstance, createConnectInstance } = useStripeConnect();
 
   const [checkSellerAccount] = useLazyQuery<
     PayoutCheckSellerAccountQuery,
     PayoutCheckSellerAccountQueryVariables
   >(PAYOUT_CHECK_SELLER_ACCOUNT);
+
+  const onLoaderStart = () => {
+    setLoading(false);
+  };
 
   const onExitOnboarding = async () => {
     //Check if sellerAccount is enabled. If not, there are probably some requirements left
@@ -50,15 +57,19 @@ export default function PayoutStripe({ onExit, onAbort }: Props) {
     <View style={{ gap: 32 }}>
       {stripeConnectInstance && (
         <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
-          <ConnectAccountOnboarding
-            collectionOptions={{
-              fields: "eventually_due",
-              futureRequirements: "include",
-            }}
-            onExit={() => {
-              onExitOnboarding();
-            }}
-          />
+          <View style={{ marginTop: 10 }}>
+            {loading && <LoadingSpinner />}
+            <ConnectAccountOnboarding
+              collectionOptions={{
+                fields: "eventually_due",
+                futureRequirements: "include",
+              }}
+              onLoaderStart={onLoaderStart}
+              onExit={() => {
+                onExitOnboarding();
+              }}
+            />
+          </View>
         </ConnectComponentsProvider>
       )}
       <Divider />

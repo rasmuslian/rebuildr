@@ -51,7 +51,9 @@ export class UserService {
   }
 
   async findOneByEmail(email: string) {
-    return await this.userRepository.findOneBy({ email });
+    return await this.userRepository.findOneBy({
+      email: email.toLowerCase().trim(),
+    });
   }
 
   async findOrganizationOwner(organizationUser: User) {
@@ -286,7 +288,7 @@ export class UserService {
 
     if (input.organizationName) {
       const usernameTaken = await this.userRepository.existsBy({
-        username: input.username,
+        username: input.organizationName,
       });
       if (usernameTaken) {
         throw BadFieldsInputException([
