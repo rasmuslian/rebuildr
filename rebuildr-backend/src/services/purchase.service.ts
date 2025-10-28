@@ -42,6 +42,7 @@ import { ReportPurchaseResolutionEnum } from 'src/entities/report-purchase.entit
 import { ReportPurchaseService } from './report-purchase.service';
 import { StripeService } from './stripe.service';
 import Stripe from 'stripe';
+import { idFromObject } from 'src/utility/stripe/utils';
 
 export class PurchaseService {
   constructor(
@@ -1203,6 +1204,10 @@ export class PurchaseService {
           purchase,
         );
       }
+    }
+    const chargeId = idFromObject(payload.latest_charge);
+    if (!purchase.chargeId) {
+      purchase.chargeId = chargeId;
     }
 
     await this.purchaseRepository.save(purchase);

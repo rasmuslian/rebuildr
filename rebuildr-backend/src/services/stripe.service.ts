@@ -437,6 +437,14 @@ export class StripeService {
       });
       return;
     }
+    if (purchase.chargeId) {
+      logger.info('LinkChargeToPurchase: Charge already linked', {
+        paymentIntentId,
+        purchaseId: purchase.id,
+        chargeId: charge.id,
+      });
+      return purchase;
+    }
     logger.info('Link Charge to Purchase', {
       paymentIntentId,
       purchaseId: purchase.id,
@@ -448,10 +456,15 @@ export class StripeService {
 
   async linkTransferToPurchase(transfer: Stripe.Transfer, logger: Logger) {
     if (!transfer.source_transaction) {
-      logger.error('linkTransferToPurchase: Missing source transaction', {
-        transfer,
-      });
-      return;
+      logger.error(
+        'linkTransferToPurchase: Missing source transaction (charge id)',
+        {
+          transfer,
+        },
+      );
+      throw new Error(
+        'linkTransferToPurchase: Missing source transaction (charge id)',
+      );
     }
     if (!transfer.destination_payment) {
       logger.info(
@@ -459,6 +472,9 @@ export class StripeService {
         {
           transfer,
         },
+      );
+      throw new Error(
+        'linkTransferToPurchase: Transfer is not a transfer to a connected account',
       );
     }
     const chargeId = idFromObject(transfer.source_transaction);
@@ -472,7 +488,7 @@ export class StripeService {
       this.logger.error('linkTransferToPurchase: Could not find purchase', {
         transfer: transfer,
       });
-      return;
+      throw new Error('linkTransferToPurchase: Could not find purchase');
     }
     logger.info('Link Transfer to Purchase', {
       paymentIntentId: purchase.paymentIntentId,
