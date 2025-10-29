@@ -552,11 +552,11 @@ export class ProductService {
     if (input.searchString) {
       query
         .addCommonTableExpression(
-          `SELECT 
+          `SELECT
             p.id,
             ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
           FROM product p
-          WHERE p."textSearch" @@ plainto_tsquery(:searchString) 
+          WHERE p."textSearch" @@ plainto_tsquery(:searchString)
             OR similarity(p.title, :searchString) > 0
           `,
           'ranked_products',
@@ -616,7 +616,7 @@ export class ProductService {
 
     //Transportation
     query.andWhere(`
-      (${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'} 
+      (${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'}
         OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
         OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
 
@@ -1182,7 +1182,7 @@ export class ProductService {
             INNER JOIN category c ON c.id = p."categoryId"
             INNER join category pc on pc.id = c."parentId"
             WHERE p.id = '${similarToProductId}')`,
-    );
+    ).where('p.id != :similarToProductId', { similarToProductId });
     query.addOrderBy('p.createdAt', 'DESC');
 
     const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;

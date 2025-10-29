@@ -9,6 +9,7 @@ import {
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 
 type Props = {
   productId: string;
@@ -66,6 +67,7 @@ const SIMILAR_PRODUCTS = gql`
 
 export function SimilarProducts({ productId }: Props) {
   const { setCategories } = useFilterProduct();
+  const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
 
   const { data, fetchMore, loading } = useQuery<
@@ -116,6 +118,25 @@ export function SimilarProducts({ productId }: Props) {
   if (!data || data.product.similarProducts.products.length < 1) return null;
   const products = data.product.similarProducts.products;
 
+  const adGridProducts = products.map((product) => ({
+    id: product.id,
+    imageUri: product.primaryImage?.url,
+    liked: !!product.likedByMe,
+    heart: true,
+    quantity: product.primaryQuantity,
+    quantityUnit: product.primaryUnit,
+    condition: product.condition,
+    title: product.title,
+    price: product.price,
+    status: product.status,
+    onHeartPress: () => {
+      onToggleProductHeart({
+        productId: product.id,
+        likedByMe: !!product.likedByMe,
+      });
+    },
+  }));
+
   return (
     <AdGridSection
       header="Du kanske gillar"
@@ -130,7 +151,7 @@ export function SimilarProducts({ productId }: Props) {
 
         router.navigate("/(app)/(tabs)/search/products");
       }}
-      products={products}
+      products={adGridProducts}
       pagination={{
         onShowMore,
         total: data?.product.similarProducts.total ?? 0,
