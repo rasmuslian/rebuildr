@@ -123,7 +123,7 @@ export class UserLoader {
           seller: {
             id: In(userIds),
           },
-          status: In[(ProductStatus.PUBLISHED, ProductStatus.SOLD)],
+          status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
           deletedAt: IsNull(),
         },
         order: { status: 'ASC', createdAt: 'DESC' },
