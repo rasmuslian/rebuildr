@@ -1,8 +1,13 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { FlatList, Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
-import { View, ViewToken } from "react-native";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Product, ProductStatusEnum } from "@/gql/graphql";
 import { primitives } from "@constants/colors";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
@@ -20,21 +25,17 @@ export const ImageCarousel = ({
   displaySoldOverlay = true,
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
+  const { width: screenWidth } = useWindowDimensions();
 
   const [visibleIndex, setVisibleIndex] = useState(0);
+  const imageWidth = screenWidth - 32;
+  const imageHeight = imageWidth;
 
-  // Must be a ref or else Flatlist throws error
-  const onViewRef = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken<{ url: string }>[] }) => {
-      const f = viewableItems[0];
-      if (f && f.index !== null) {
-        setVisibleIndex(f.index);
-      }
-    },
-  );
-
-  // How much of the item must be visible
-  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const position = event.nativeEvent.contentOffset.x;
+    const index = Math.round(position / (imageWidth + 8));
+    setVisibleIndex(index);
+  };
 
   const maxNumberOfIndicators = 5;
   const nrOfIndicators = Math.min(maxNumberOfIndicators, images.length);
@@ -48,14 +49,14 @@ export const ImageCarousel = ({
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8 }}
-          renderItem={({ item: image, separators }) => {
+          renderItem={({ item: image }) => {
             return (
               <View>
                 <Image
                   source={image.url}
                   contentFit="cover"
                   style={{
-                    height: 363,
+                    height: imageHeight,
                     borderRadius: borderRadius.medium,
                     aspectRatio: 1,
                   }}
@@ -66,8 +67,7 @@ export const ImageCarousel = ({
               </View>
             );
           }}
-          onViewableItemsChanged={onViewRef.current}
-          viewabilityConfig={viewConfigRef.current}
+          onScroll={onScroll}
         />
         {nrOfIndicators > 1 && (
           <View
