@@ -22,17 +22,23 @@ type Props = {
     };
   }[];
   title: string;
+  emptyDescription: string;
 };
 
-export const ReviewsAccordion = ({ reviews, title }: Props) => {
+export const ReviewsAccordion = ({
+  reviews,
+  title,
+  emptyDescription,
+}: Props) => {
   const [segments, setSegments] = useState(1);
   const segmentSize = 8;
 
   const colors = useThemeColor();
+  const noReviews = reviews.length === 0;
 
   return (
     <View style={{ gap: 16 }}>
-      <AccordionSection initialOpen title={title}>
+      <AccordionSection initialOpen title={title} hideGap={noReviews}>
         <View style={{ gap: 16 }}>
           {reviews.slice(0, segmentSize * segments).map((review, i) => (
             <View
@@ -73,6 +79,16 @@ export const ReviewsAccordion = ({ reviews, title }: Props) => {
               label="Läs in fler"
               onPress={() => setSegments(segments + 1)}
             />
+          )}
+          {noReviews && (
+            <Body
+              size="medium"
+              style={{
+                color: colors.text.secondary,
+              }}
+            >
+              {emptyDescription}
+            </Body>
           )}
         </View>
       </AccordionSection>

@@ -469,11 +469,13 @@ export default function Profile() {
             <ReviewsAccordion
               title="Från andra köpare"
               reviews={salesReviewed}
+              emptyDescription="Inga omdömen från köpare ännu"
             />
             <Divider />
             <ReviewsAccordion
               title="Från andra säljare"
               reviews={buysReviewed}
+              emptyDescription="Inga omdömen från säljare ännu"
             />
           </View>
         ) : (

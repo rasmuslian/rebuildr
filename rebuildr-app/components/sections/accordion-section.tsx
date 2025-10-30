@@ -5,12 +5,18 @@ import { View } from "react-native";
 type Props = {
   title: string;
   initialOpen?: boolean;
+  hideGap?: boolean;
 } & PropsWithChildren;
-export const AccordionSection = ({ title, initialOpen, children }: Props) => {
+export const AccordionSection = ({
+  title,
+  initialOpen,
+  hideGap,
+  children,
+}: Props) => {
   const [isOpen, setIsOpen] = useState(!!initialOpen);
 
   return (
-    <View style={{ gap: 16 }}>
+    <View style={{ gap: hideGap ? 0 : 16 }}>
       <SectionHeader
         icon={isOpen ? "chevronUp" : "chevronDown"}
         onPress={() => setIsOpen(!isOpen)}
