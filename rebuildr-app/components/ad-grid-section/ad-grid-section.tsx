@@ -46,12 +46,11 @@ export const AdGridSection = ({
           </View>
         ))}
       </View>
-      {!!pagination && (
+      {!!pagination && !(products.length >= pagination.total) && (
         <Button
           label="Läs in fler"
           onPress={pagination.onShowMore}
           loading={pagination.loading}
-          disabled={products.length >= pagination.total}
           style={{ marginTop: 24 }}
         />
       )}
