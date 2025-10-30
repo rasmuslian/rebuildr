@@ -1,4 +1,3 @@
-import { useApolloClient } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Header } from "@components/navigation/headers/header";
@@ -6,11 +5,9 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Display } from "@components/typography/text";
 import { useCreateOrganization } from "@hooks/use-create-organization";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function AddBusiness() {
-  const [refetchLoading, setRefetchLoading] = useState(false);
-  const client = useApolloClient();
   const {
     orgNumber,
     changeOrgNumber,
@@ -26,18 +23,8 @@ export default function AddBusiness() {
 
   useEffect(() => {
     if (data) {
-      setRefetchLoading(true);
-      client
-        .refetchQueries({
-          updateCache(cache) {
-            cache.evict({ fieldName: "organizationAccount" });
-          },
-        })
-        .then(() => {
-          setRefetchLoading(false);
-          if (router.canGoBack()) router.back();
-          else router.navigate("/account/settings");
-        });
+      if (router.canGoBack()) router.back();
+      else router.navigate("/account/settings");
     }
   }, [data]);
 
@@ -48,7 +35,7 @@ export default function AddBusiness() {
         <Button
           label="Spara"
           onPress={create}
-          loading={loading || refetchLoading}
+          loading={loading}
           disabled={!canCreate}
         />
       }

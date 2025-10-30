@@ -35,7 +35,7 @@ const SETTINGS_USER_FRAGMENT = gql`
   }
 `;
 
-const SETTINGS = gql`
+export const SETTINGS = gql`
   query Settings {
     me {
       ...SettingsUserFragment

@@ -5,6 +5,7 @@ import {
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { gql, useMutation } from "@apollo/client";
 import { useState } from "react";
+import { SETTINGS } from "@/app/(app)/account/settings";
 
 const USE_CREATE_ORGANIZATION = gql`
   mutation UseCreateOrganization($input: CreateOrganizationUserInput!) {
@@ -53,6 +54,8 @@ export const useCreateOrganization = (props?: Props) => {
           organizationName: name,
         },
       },
+      refetchQueries: [{ query: SETTINGS }],
+      awaitRefetchQueries: true,
     });
   };
 
