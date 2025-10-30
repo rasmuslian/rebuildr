@@ -108,6 +108,19 @@ export const Shipping = ({
     onShippingValid(false);
   };
   useEffect(() => shippingValidHandler(data.me, product.shippingPrices), []);
+  useEffect(() => {
+    if (
+      data.me &&
+      product.shippingPrices.length &&
+      (name == null ||
+        phoneNumber == null ||
+        address == null ||
+        postCode == null ||
+        city == null)
+    ) {
+      setIsEditingDetails(true);
+    }
+  }, [product.shippingPrices]);
 
   const onSelectPrice = (shippingPrice: ShippingPrice) => {
     update({
