@@ -94,7 +94,7 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
           style={{ marginTop: 24 }}
         >
           {Array.from({
-            length: images.length < 5 ? images.length + 1 : 5,
+            length: images.length < 10 ? images.length + 1 : 10,
           }).map((_, _index) => (
             <ImageUploadCard
               key={_index}
