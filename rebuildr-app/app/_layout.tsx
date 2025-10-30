@@ -26,6 +26,7 @@ import { SellProductBottomSheet } from "@components/sell-product/sell-product-bo
 import { SellProductProdiver } from "@context/sell-product-context";
 import { EditProductBottomSheet } from "@components/edit-product/edit-product-bottom-sheet";
 import { EditProductProdiver } from "@context/edit-product-context";
+import { isIOSDevice } from "@/utils/deviceInfo";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -42,6 +43,7 @@ const RootLayout = () => {
 
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
   const [showLoginModal, setShowLoginModal] = useState(false);
+
 
   useEffect(() => {
     initializeApollo()
@@ -68,6 +70,12 @@ const RootLayout = () => {
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossOrigin=""
       />
+      {isIOSDevice() && (
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
+        />
+      )}
       <ApolloProvider client={client}>
         <LoginModalContext.Provider
           value={{
