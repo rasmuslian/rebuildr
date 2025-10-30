@@ -74,9 +74,11 @@ export const ImageCarousel = ({
             style={{
               position: "absolute",
               bottom: 16,
-              left: "40%",
+              left: 0,
+              right: 0,
               flexDirection: "row",
               alignItems: "center",
+              justifyContent: "center",
               gap: 8,
             }}
           >
