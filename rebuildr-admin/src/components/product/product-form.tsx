@@ -6,6 +6,7 @@ import { ProductSchemaType } from "@/schema/product-schema";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
 import UploadMedia from "@components/media/upload-media";
+import UploadDocument from "@components/media/upload-doccument";
 import SelectCategory from "@components/category/select-category";
 import SelectBrand from "@components/brand/select-brand";
 import SelectCondition from "@components/condition/select-condition";
@@ -425,6 +426,24 @@ const ProductForm = ({
                     </div>
                   );
                 })}
+
+                <Controller
+                  control={control}
+                  name="documents"
+                  render={({ field: { value, onChange } }) => (
+                    <FormField
+                      label="Dokument"
+                      required={false}
+                      error={errors.documents?.message}
+                    >
+                      <UploadDocument
+                        files={value}
+                        setFiles={onChange}
+                        allowedFileNumber={10}
+                      />
+                    </FormField>
+                  )}
+                />
               </div>
             )}
           </Section>

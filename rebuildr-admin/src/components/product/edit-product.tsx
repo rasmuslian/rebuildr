@@ -52,6 +52,7 @@ const EditProduct = ({ product }: Props) => {
         isGiveaway: product.isGiveaway,
       },
       images: product.images ? getUploadFiles(product.images) : [],
+      documents: product.documents ? getUploadFiles(product.documents) : [],
       primaryMeasurement: {
         quantity: product.primaryQuantity ?? undefined,
         unit: product.primaryUnit ?? undefined,
@@ -62,7 +63,10 @@ const EditProduct = ({ product }: Props) => {
         unit: product.secondaryUnit ?? undefined,
       },
       measurement: {
-        enabled: measurementKeys.some((key) => Boolean(product[key])),
+        enabled:
+          measurementKeys.some((key) => Boolean(product[key])) ||
+          product.documents.length > 0,
+
         ...Object.fromEntries(
           measurementKeys.flatMap((key) => [
             [key, product[key] ?? undefined],
@@ -136,6 +140,8 @@ const EditProduct = ({ product }: Props) => {
       isGiveaway: formData.pricing.isGiveaway,
       addImages: getFileInputTypes(formData.images),
       removeImages: getRemovedFileIds(product.images, formData.images),
+      addDocuments: getFileInputTypes(formData.documents),
+      removeDocuments: getRemovedFileIds(product.documents, formData.documents),
       primaryQuantity: formData.primaryMeasurement.quantity,
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity ?? null,
@@ -161,6 +167,9 @@ const EditProduct = ({ product }: Props) => {
     const response = await mutateAsync(updatedProduct);
     if (response.imagePutUrls) {
       await uploadFiles(response.imagePutUrls, formData.images);
+    }
+    if (response.documentPutUrls) {
+      await uploadFiles(response.documentPutUrls, formData.documents);
     }
   };
 

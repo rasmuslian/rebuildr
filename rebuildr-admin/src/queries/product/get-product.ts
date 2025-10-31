@@ -52,6 +52,11 @@ const query = `
         name
         url
       }
+      documents {
+        id
+        name
+        url
+      }
       project {
         id
         title

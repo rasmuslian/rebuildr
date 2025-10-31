@@ -31,6 +31,7 @@ const CreateProduct = () => {
     resolver: zodResolver(ProductSchema),
     defaultValues: {
       images: [],
+      documents: [],
       pricing: {
         isGiveaway: false,
       },
@@ -97,6 +98,7 @@ const CreateProduct = () => {
       price: formData.pricing.price ?? 0,
       isGiveaway: formData.pricing.isGiveaway,
       images: getFileInputTypes(formData.images),
+      documents: getFileInputTypes(formData.documents),
       primaryQuantity: formData.primaryMeasurement.quantity,
       primaryUnit: formData.primaryMeasurement.unit,
       secondaryQuantity: formData.secondaryMeasurement.quantity,
@@ -118,6 +120,9 @@ const CreateProduct = () => {
     const response = await mutateAsync(newProduct);
     if (response.imagePutUrls) {
       await uploadFiles(response.imagePutUrls, formData.images);
+    }
+    if (response.documentPutUrls) {
+      await uploadFiles(response.documentPutUrls, formData.documents);
     }
   };
 

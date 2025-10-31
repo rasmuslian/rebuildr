@@ -49,11 +49,7 @@ const CategoryForm = ({
         name="image"
         render={({ field: { value, onChange } }) => (
           <FormField label="Bild" error={errors.image?.message}>
-            <UploadMedia
-              files={value}
-              setFiles={onChange}
-              allowedFileNumber={1}
-            />
+            <UploadMedia files={value} setFiles={onChange} />
           </FormField>
         )}
       />

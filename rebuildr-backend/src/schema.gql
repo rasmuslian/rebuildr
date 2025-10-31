@@ -499,11 +499,13 @@ type CmsListProductsResponse {
 type CmsCreateProductResponse {
   product: Product!
   imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
 }
 
 type CmsUpdateProductResponse {
   product: Product!
   imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
 }
 
 type UpdateUserResponse {
@@ -959,6 +961,7 @@ input CmsCreateProductInput {
   deliveryRadius: Float
   shippingPriceIds: [String!]
   images: [FileInputType!]!
+  documents: [FileInputType!]!
 }
 
 input MeasurementInput {
@@ -1000,6 +1003,8 @@ input CmsUpdateProductInput {
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]
+  addDocuments: [FileInputType!]
+  removeDocuments: [String!]
 }
 
 input CreateProductInput {

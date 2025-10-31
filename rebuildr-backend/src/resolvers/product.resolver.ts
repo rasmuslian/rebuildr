@@ -552,6 +552,9 @@ class CmsBaseProductInput extends QuantityInput {
 export class CmsCreateProductInput extends CmsBaseProductInput {
   @Field(() => [FileInputType])
   images: FileInputType[];
+
+  @Field(() => [FileInputType])
+  documents: FileInputType[];
 }
 
 @ObjectType()
@@ -561,6 +564,9 @@ export class CmsCreateProductResponse {
 
   @Field(() => [String])
   imagePutUrls: string[];
+
+  @Field(() => [String])
+  documentPutUrls: string[];
 }
 @InputType()
 export class CmsUpdateProductInput extends CmsBaseProductInput {
@@ -572,6 +578,12 @@ export class CmsUpdateProductInput extends CmsBaseProductInput {
 
   @Field(() => [String], { nullable: true })
   removeImages?: string[];
+
+  @Field(() => [FileInputType], { nullable: true })
+  addDocuments?: FileInputType[];
+
+  @Field(() => [String], { nullable: true })
+  removeDocuments?: string[];
 }
 @ObjectType()
 export class CmsUpdateProductResponse {
@@ -580,6 +592,9 @@ export class CmsUpdateProductResponse {
 
   @Field(() => [String])
   imagePutUrls: string[];
+
+  @Field(() => [String])
+  documentPutUrls: string[];
 }
 
 @Resolver(() => Product)
