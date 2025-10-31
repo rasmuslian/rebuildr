@@ -1,5 +1,5 @@
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, ScaledSize } from "react-native";
 
 export interface MediaBreakPoints {
   desktop: number;
@@ -18,23 +18,28 @@ export const ScreenDimensionsProvider = ({ children }: PropsWithChildren) => {
   const [breakPoint, setBreakPoint] =
     useState<keyof MediaBreakPoints>("mobile");
 
+  const findAndSetBreakPoint = (window: ScaledSize) => {
+    const breakPoint = Object.keys(mediaBreakPoints).find((bp, i, array) => {
+      if (window.width >= mediaBreakPoints[bp as keyof MediaBreakPoints]) {
+        return true;
+      }
+
+      //smallest breakpoint is last and works as default
+      if (i === array.length - 1) {
+        return true;
+      }
+
+      return false;
+    });
+    setBreakPoint(breakPoint as keyof MediaBreakPoints);
+  };
+
   useEffect(() => {
     const listener = Dimensions.addEventListener("change", ({ window }) => {
-      const breakPoint = Object.keys(mediaBreakPoints).find((bp, i, array) => {
-        if (window.width >= mediaBreakPoints[bp as keyof MediaBreakPoints]) {
-          return true;
-        }
-
-        //smallest breakpoint is last and works as default
-        if (i === array.length - 1) {
-          return true;
-        }
-
-        return false;
-      });
-      setBreakPoint(breakPoint as keyof MediaBreakPoints);
+      findAndSetBreakPoint(window);
     });
-
+    const window = Dimensions.get("window");
+    findAndSetBreakPoint(window);
     return () => {
       listener.remove();
     };
