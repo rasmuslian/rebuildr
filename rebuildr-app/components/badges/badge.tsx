@@ -1,4 +1,5 @@
 import { Label } from "@components/typography/text";
+import { TextTokens } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
@@ -8,6 +9,7 @@ type BadgeProps = {
   disabled?: boolean;
   error?: boolean;
   text?: string;
+  theme?: "light" | "dark";
 };
 
 export const Badge = ({
@@ -15,8 +17,9 @@ export const Badge = ({
   text = "0",
   disabled,
   error,
+  theme = "light",
 }: BadgeProps) => {
-  const colors = useThemeColor();
+  const colors = useThemeColor(theme);
   let statusColor: string | undefined = undefined;
   if (disabled) {
     statusColor = colors.check.false.disabled;
@@ -39,6 +42,16 @@ export const Badge = ({
   }
 
   const isLarge = size === "large";
+  let labelColor: keyof TextTokens = "primaryLight";
+
+  if (disabled) {
+    labelColor = "disabled";
+  } else if (isLarge) {
+    labelColor = "primaryDark";
+  } else if (theme === "dark") {
+    labelColor = "primaryDark";
+  }
+
   return (
     <View
       style={{
@@ -52,10 +65,7 @@ export const Badge = ({
         alignItems: "center",
       }}
     >
-      <Label
-        size={size === "medium" ? "small" : "large"}
-        color={disabled ? "disabled" : isLarge ? "primaryDark" : "primaryLight"}
-      >
+      <Label size={size === "medium" ? "small" : "large"} color={labelColor}>
         {text}
       </Label>
     </View>

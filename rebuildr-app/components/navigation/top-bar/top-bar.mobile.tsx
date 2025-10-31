@@ -4,14 +4,12 @@ import { Icon, IconType } from "@icons/icon";
 import { router } from "expo-router";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useContext } from "react";
-import { useUser } from "@hooks/useUser";
 import { Logo } from "@components/logo/logo";
 import { showHamburgerMenuVar } from "@/apollo/config";
 
-export default function TopBar() {
+export default function TopBarMobile({ isLoggedIn }: { isLoggedIn: boolean }) {
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
-  const { isLoggedIn } = useUser();
 
   const icons: { icon: IconType; onPress: () => void }[] = [
     {

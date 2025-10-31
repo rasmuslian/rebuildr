@@ -15,11 +15,12 @@ import { TextTokens } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 
 export type ButtonProps = {
-  type?: "filled" | "danger" | "tonal" | "text" | "outlined";
+  type?: "filled" | "danger" | "tonal" | "text" | "outlined" | "outlinedStroke";
   iconPosition?: "left" | "right";
   icon?: IconType | ComponentProps<typeof Icon> | React.ReactNode;
   label?: string;
   loading?: boolean;
+  theme?: "light" | "dark";
 } & PressableProps;
 
 export const Button = ({
@@ -30,9 +31,10 @@ export const Button = ({
   disabled,
   loading,
   icon,
+  theme = "light",
   ...rest
 }: ButtonProps) => {
-  const colors = useThemeColor();
+  const colors = useThemeColor(theme);
   const typeColors: {
     [key: string]: {
       enabled?: string;
@@ -87,6 +89,15 @@ export const Button = ({
       disabled: colors.buttons.outlinedFill.disabled,
       text: colors.text.primaryDark,
       icon: "primaryDark",
+    },
+    outlinedStroke: {
+      enabled: colors.buttons.outlinedStroke.enabled,
+      hovered: colors.buttons.outlinedStroke.hovered,
+      focused: colors.buttons.outlinedStroke.focused,
+      pressed: colors.buttons.outlinedStroke.pressed,
+      disabled: colors.buttons.outlinedStroke.disabled,
+      text: colors.text.primaryDark,
+      icon: "primaryLight",
     },
   };
 

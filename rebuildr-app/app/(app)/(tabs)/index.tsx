@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import TopBar from "@components/navigation/top-bar";
+import TopBar from "@components/navigation/top-bar/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
 import { View, Animated } from "react-native";

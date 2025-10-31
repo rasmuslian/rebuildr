@@ -16,6 +16,7 @@ import { View } from "react-native";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 import { AccordionSection } from "@components/sections/accordion-section";
+import TopBar from "@components/navigation/top-bar/top-bar";
 
 const GET_CONVERSATIONS = gql`
   query getConversations($input: GetConversationsInput!) {
@@ -151,80 +152,85 @@ export default function Conversations() {
   };
 
   return (
-    <ScreenLayout
-      headerComponent={<Header title="Inkorg" showBackButton={false} />}
-      style={{ gap: 24 }}
-    >
-      <Display size="small">
-        Du har {totalUnread} {totalUnread === 1 ? "oläst" : "olästa"}
-      </Display>
-      <TabRail
-        tabs={[
-          {
-            title: "Säljer",
-            onActivate: () => setTab("sell"),
-            active: tab === "sell",
-            ...(nrUnreadSell
-              ? {
-                  badge: {
-                    text: nrUnreadSell.toString(),
-                  },
-                }
-              : {}),
-          },
-          {
-            title: "Köper",
-            onActivate: () => setTab("buy"),
-            active: tab === "buy",
-            ...(nrUnreadBuy
-              ? {
-                  badge: {
-                    text: nrUnreadBuy.toString(),
-                  },
-                }
-              : {}),
-          },
-        ]}
-      />
-      <View>
-        <Headline size="small">
-          {tab === "buy"
-            ? `Köper: ${nrUnreadBuy} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`
-            : `Säljer: ${nrUnreadSell} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`}
-        </Headline>
-        {unread.length ? (
-          <View style={{ marginTop: 24, gap: 16 }}>{renderCards(unread)}</View>
-        ) : (
-          <Body size="medium" color="secondary" style={{ marginTop: 2 }}>
-            Härligt! Du har läst alla meddelanden.
-          </Body>
-        )}
-      </View>
-      <Divider />
-      {read.length ? (
-        <AccordionSection
-          initialOpen
-          title={
-            tab === "buy"
-              ? "Köper: Alla meddelanden"
-              : "Säljer: Alla meddelanden"
-          }
-        >
-          <View style={{ gap: 16 }}>{renderCards(read)}</View>
-        </AccordionSection>
-      ) : (
-        <View style={{ gap: 2 }}>
+    <View style={{ flex: 1 }}>
+      <TopBar showFor={["desktop"]} theme="light" />
+      <ScreenLayout
+        headerComponent={<Header title="Inkorg" showBackButton={false} />}
+        style={{ gap: 24 }}
+      >
+        <Display size="small">
+          Du har {totalUnread} {totalUnread === 1 ? "oläst" : "olästa"}
+        </Display>
+        <TabRail
+          tabs={[
+            {
+              title: "Säljer",
+              onActivate: () => setTab("sell"),
+              active: tab === "sell",
+              ...(nrUnreadSell
+                ? {
+                    badge: {
+                      text: nrUnreadSell.toString(),
+                    },
+                  }
+                : {}),
+            },
+            {
+              title: "Köper",
+              onActivate: () => setTab("buy"),
+              active: tab === "buy",
+              ...(nrUnreadBuy
+                ? {
+                    badge: {
+                      text: nrUnreadBuy.toString(),
+                    },
+                  }
+                : {}),
+            },
+          ]}
+        />
+        <View>
           <Headline size="small">
             {tab === "buy"
-              ? "Köper: Alla meddelanden"
-              : "Säljer: Alla meddelanden"}
+              ? `Köper: ${nrUnreadBuy} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`
+              : `Säljer: ${nrUnreadSell} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`}
           </Headline>
-          <Body size="medium" color="secondary">
-            Här var det tomt.
-          </Body>
+          {unread.length ? (
+            <View style={{ marginTop: 24, gap: 16 }}>
+              {renderCards(unread)}
+            </View>
+          ) : (
+            <Body size="medium" color="secondary" style={{ marginTop: 2 }}>
+              Härligt! Du har läst alla meddelanden.
+            </Body>
+          )}
         </View>
-      )}
-    </ScreenLayout>
+        <Divider />
+        {read.length ? (
+          <AccordionSection
+            initialOpen
+            title={
+              tab === "buy"
+                ? "Köper: Alla meddelanden"
+                : "Säljer: Alla meddelanden"
+            }
+          >
+            <View style={{ gap: 16 }}>{renderCards(read)}</View>
+          </AccordionSection>
+        ) : (
+          <View style={{ gap: 2 }}>
+            <Headline size="small">
+              {tab === "buy"
+                ? "Köper: Alla meddelanden"
+                : "Säljer: Alla meddelanden"}
+            </Headline>
+            <Body size="medium" color="secondary">
+              Här var det tomt.
+            </Body>
+          </View>
+        )}
+      </ScreenLayout>
+    </View>
   );
 }
 
