@@ -1256,6 +1256,7 @@ export class ProductService {
       const {
         measurement,
         images,
+        documents,
         price,
         deliveryRadius,
         deliveryPrice,
@@ -1276,6 +1277,7 @@ export class ProductService {
         status: ProductStatus.PUBLISHED,
         price: price * 100,
         images: await this.fileService.createFiles(images),
+        documents: await this.fileService.createFiles(documents),
         addressLocation: {
           type: 'Point',
           coordinates: [location.lat, location.lng],
@@ -1290,6 +1292,10 @@ export class ProductService {
       return {
         product: await this.productRepository.save(product),
         imagePutUrls: await this.fileService.uploadFiles(product.images, true),
+        documentPutUrls: await this.fileService.uploadFiles(
+          product.documents,
+          true,
+        ),
       };
     } catch (error) {
       throw BadUserInputException('Failed to create product' + error);
@@ -1301,7 +1307,7 @@ export class ProductService {
   ): Promise<CmsUpdateProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id: input.id },
-      relations: { images: true },
+      relations: { images: true, documents: true },
     });
 
     if (!product) throw NotFoundException('Product not found');
@@ -1311,6 +1317,8 @@ export class ProductService {
         measurement,
         removeImages,
         addImages,
+        removeDocuments,
+        addDocuments,
         price,
         deliveryRadius,
         deliveryPrice,
@@ -1321,18 +1329,34 @@ export class ProductService {
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
-
-      const images = product.images;
-      const removeIds = new Set(removeImages);
-      const keepImagesList = images.filter((img) => !removeIds.has(img.id));
-      const removeImagesList = images.filter((img) => removeIds.has(img.id));
-
-      await this.fileService.deleteFiles(removeImagesList);
-      const addImagesList = await this.fileService.createFiles(addImages);
-
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(shippingPriceIds) },
       });
+
+      const removeImageIds = new Set(removeImages);
+      const removeDocumentIds = new Set(removeDocuments);
+
+      const keepImageList = product.images.filter(
+        (img) => !removeImageIds.has(img.id),
+      );
+      const removeImageList = product.images.filter((img) =>
+        removeImageIds.has(img.id),
+      );
+
+      const keepDocumentList = product.documents.filter(
+        (doc) => !removeDocumentIds.has(doc.id),
+      );
+      const removeDocumentList = product.documents.filter((doc) =>
+        removeDocumentIds.has(doc.id),
+      );
+
+      await this.fileService.deleteFiles([
+        ...removeImageList,
+        ...removeDocumentList,
+      ]);
+
+      const addImageList = await this.fileService.createFiles(addImages);
+      const addDocumentList = await this.fileService.createFiles(addDocuments);
 
       Object.assign<Product, Partial<Product>>(product, {
         addressLocation: {
@@ -1340,7 +1364,8 @@ export class ProductService {
           coordinates: [location.lat, location.lng],
         },
         price: price * 100,
-        images: [...keepImagesList, ...addImagesList],
+        images: [...keepImageList, ...addImageList],
+        documents: [...keepDocumentList, ...addDocumentList],
         deliveryRadius: deliveryRadius ? deliveryRadius * 1000 : undefined,
         deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
         shippingPrices: shippingPrices,
@@ -1350,7 +1375,11 @@ export class ProductService {
 
       return {
         product: await this.productRepository.save(product),
-        imagePutUrls: await this.fileService.uploadFiles(product.images),
+        imagePutUrls: await this.fileService.uploadFiles(product.images, true),
+        documentPutUrls: await this.fileService.uploadFiles(
+          product.documents,
+          true,
+        ),
       };
     } catch (error) {
       throw BadUserInputException(`Failed to update product: ${error}`);

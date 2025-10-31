@@ -11,6 +11,8 @@ export const ProductSchema = z.object({
     .array(z.custom<UploadFile>())
     .min(1, { message: "Du måste välja minst en bild." }),
 
+  documents: z.array(z.custom<UploadFile>()),
+
   title: z
     .string({ message: "Du måste ange rubrik." })
     .min(2, { message: "Rubriken måste vara minst 2 tecken!" }),

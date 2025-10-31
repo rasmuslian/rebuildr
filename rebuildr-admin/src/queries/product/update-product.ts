@@ -5,6 +5,7 @@ const query = `
   mutation CmsupdateProduct($input: CmsUpdateProductInput!) {
     cmsUpdateProduct(input: $input) {
       imagePutUrls
+      documentPutUrls
       product {
         id
         title

@@ -58,23 +58,6 @@ export type ArticleOrderInput = {
   orderIndex: Scalars['Int']['input'];
 };
 
-export enum AuthResponseStatusEnum {
-  Error = 'ERROR',
-  Pending = 'PENDING',
-  Success = 'SUCCESS'
-}
-
-export type AuthenticateResponse = {
-  __typename?: 'AuthenticateResponse';
-  autoStartToken?: Maybe<Scalars['String']['output']>;
-  qrCode?: Maybe<Scalars['String']['output']>;
-  status: AuthResponseStatusEnum;
-};
-
-export type AuthenticateRockerInput = {
-  requestId: Scalars['String']['input'];
-};
-
 export type Brand = {
   __typename?: 'Brand';
   id: Scalars['ID']['output'];
@@ -157,6 +140,7 @@ export type CmsCreateProductInput = {
   deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
   deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
   description: Scalars['String']['input'];
+  documents: Array<FileInputType>;
   images: Array<FileInputType>;
   isGiveaway: Scalars['Boolean']['input'];
   measurement?: InputMaybe<MeasurementInput>;
@@ -174,6 +158,7 @@ export type CmsCreateProductInput = {
 
 export type CmsCreateProductResponse = {
   __typename?: 'CmsCreateProductResponse';
+  documentPutUrls: Array<Scalars['String']['output']>;
   imagePutUrls: Array<Scalars['String']['output']>;
   product: Product;
 };
@@ -250,6 +235,7 @@ export type CmsUpdateFooterSectionInput = {
 };
 
 export type CmsUpdateProductInput = {
+  addDocuments?: InputMaybe<Array<FileInputType>>;
   addImages?: InputMaybe<Array<FileInputType>>;
   address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
@@ -268,6 +254,7 @@ export type CmsUpdateProductInput = {
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
   projectId?: InputMaybe<Scalars['String']['input']>;
+  removeDocuments?: InputMaybe<Array<Scalars['String']['input']>>;
   removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
@@ -277,6 +264,7 @@ export type CmsUpdateProductInput = {
 
 export type CmsUpdateProductResponse = {
   __typename?: 'CmsUpdateProductResponse';
+  documentPutUrls: Array<Scalars['String']['output']>;
   imagePutUrls: Array<Scalars['String']['output']>;
   product: Product;
 };
@@ -307,26 +295,8 @@ export type CreateMessageInput = {
 };
 
 export type CreateOrganizationUserInput = {
-  creatorId: Scalars['String']['input'];
   organizationName: Scalars['String']['input'];
   organizationNumber: Scalars['String']['input'];
-};
-
-export type CreatePayoutAccountInput = {
-  accountName?: InputMaybe<Scalars['String']['input']>;
-  accountNumber?: InputMaybe<Scalars['String']['input']>;
-  clearingNumber?: InputMaybe<Scalars['String']['input']>;
-  failureUrl?: InputMaybe<Scalars['String']['input']>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  phoneNumber?: InputMaybe<Scalars['String']['input']>;
-  successUrl?: InputMaybe<Scalars['String']['input']>;
-  type: PayoutAccountEnum;
-};
-
-export type CreatePayoutAccountResponse = {
-  __typename?: 'CreatePayoutAccountResponse';
-  trustlyUrl?: Maybe<Scalars['String']['output']>;
-  user: User;
 };
 
 export type CreateProductInput = {
@@ -627,8 +597,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   abortPurchase: Purchase;
   acceptPurchase: Purchase;
-  authenticateRocker: AuthenticateResponse;
-  cancelPurchase: Scalars['Boolean']['output'];
+  addPayoutAccount: User;
+  cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
   cmsCreateFooterSection: FooterSection;
@@ -650,7 +620,6 @@ export type Mutation = {
   createDraftProduct: Product;
   createMessage: Message;
   createOrganizationUser: User;
-  createPayoutAccount: CreatePayoutAccountResponse;
   createProduct: CreateProductResponse;
   createProject: Project;
   createReportProduct: ReportProduct;
@@ -667,15 +636,17 @@ export type Mutation = {
   markConversationAsRead: Array<Message>;
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
+  onboardSellerAccount: OnboardSellerAccountResponse;
   purchaseProduct: PurchaseProductResponse;
   registerUser: User;
   removeProduct: Product;
   resendVerificationMail: ResendVerificationMailResponse;
   resetPassword: ResetPasswordResponse;
-  selectPayoutMethod: User;
   setLikeProduct: Product;
   setLikeProject: Project;
   showProduct: Product;
+  switchAccount: LoginResponse;
+  updateOrganizationUser: User;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
   updateUser: UpdateUserResponse;
@@ -693,8 +664,8 @@ export type MutationAcceptPurchaseArgs = {
 };
 
 
-export type MutationAuthenticateRockerArgs = {
-  input: AuthenticateRockerInput;
+export type MutationAddPayoutAccountArgs = {
+  token: Scalars['String']['input'];
 };
 
 
@@ -799,11 +770,6 @@ export type MutationCreateOrganizationUserArgs = {
 };
 
 
-export type MutationCreatePayoutAccountArgs = {
-  input: CreatePayoutAccountInput;
-};
-
-
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
 };
@@ -904,11 +870,6 @@ export type MutationResetPasswordArgs = {
 };
 
 
-export type MutationSelectPayoutMethodArgs = {
-  input: SelectPayoutMethodInput;
-};
-
-
 export type MutationSetLikeProductArgs = {
   input: SetLikeProductInput;
 };
@@ -921,6 +882,16 @@ export type MutationSetLikeProjectArgs = {
 
 export type MutationShowProductArgs = {
   input: ShowProductInput;
+};
+
+
+export type MutationSwitchAccountArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateOrganizationUserArgs = {
+  input: UpdateOrganizationUserInput;
 };
 
 
@@ -963,6 +934,12 @@ export type NewPasswordInput = {
   resetPasswordToken: Scalars['String']['input'];
 };
 
+export type OnboardSellerAccountResponse = {
+  __typename?: 'OnboardSellerAccountResponse';
+  clientSecret: Scalars['String']['output'];
+  user: User;
+};
+
 export enum OrderCategoriesEnum {
   OrderIndexAsc = 'ORDER_INDEX_ASC',
   OrderIndexDesc = 'ORDER_INDEX_DESC'
@@ -984,15 +961,17 @@ export type PaginatedProductsResponse = {
 };
 
 export enum PaymentMethod {
-  Stripe = 'STRIPE',
-  Swish = 'SWISH',
-  Trustly = 'TRUSTLY'
+  Card = 'CARD',
+  Swish = 'SWISH'
 }
 
-export enum PaymentTypeEnum {
-  Mobile = 'MOBILE',
-  Web = 'WEB'
-}
+export type PayoutAccount = {
+  __typename?: 'PayoutAccount';
+  bankName?: Maybe<Scalars['String']['output']>;
+  last4?: Maybe<Scalars['String']['output']>;
+  routingNumber?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
+};
 
 export enum PayoutAccountEnum {
   Bankgiro = 'BANKGIRO',
@@ -1001,14 +980,6 @@ export enum PayoutAccountEnum {
   Swish = 'SWISH',
   Trustly = 'TRUSTLY'
 }
-
-export type PayoutAccountResponse = {
-  __typename?: 'PayoutAccountResponse';
-  accountName?: Maybe<Scalars['String']['output']>;
-  bankName?: Maybe<Scalars['String']['output']>;
-  phoneNumber?: Maybe<Scalars['String']['output']>;
-  provider: PayoutAccountEnum;
-};
 
 export type PopularCategoriesInput = {
   limit: Scalars['Int']['input'];
@@ -1198,7 +1169,6 @@ export type PurchaseProductInput = {
   servicePointId?: InputMaybe<Scalars['String']['input']>;
   shippingProvider?: InputMaybe<ShippingProviderEnum>;
   successUrl?: InputMaybe<Scalars['String']['input']>;
-  swishType?: InputMaybe<PaymentTypeEnum>;
   transportationMethod: TransportationEnum;
 };
 
@@ -1207,8 +1177,6 @@ export type PurchaseProductResponse = {
   product: Product;
   purchase: Purchase;
   reference?: Maybe<Scalars['String']['output']>;
-  swishToken?: Maybe<Scalars['String']['output']>;
-  trustlyUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export enum PurchaseStatusEnum {
@@ -1581,10 +1549,6 @@ export type SearchResult = {
   searchString: Scalars['String']['output'];
 };
 
-export type SelectPayoutMethodInput = {
-  method: PayoutAccountEnum;
-};
-
 export type ServicePointResponse = {
   __typename?: 'ServicePointResponse';
   city: Scalars['String']['output'];
@@ -1634,6 +1598,16 @@ export enum TransportationEnum {
   Pickup = 'PICKUP',
   Shipping = 'SHIPPING'
 }
+
+export type UpdateOrganizationUserInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  organizationName?: InputMaybe<Scalars['String']['input']>;
+  phoneNumber?: InputMaybe<Scalars['String']['input']>;
+  postCode?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type UpdateProductInput = {
   addDocuments?: InputMaybe<Array<FileInputType>>;
@@ -1729,9 +1703,11 @@ export type User = {
   notifyOnPurchaseUpdate: Scalars['Boolean']['output'];
   numberOfPublishedProducts: Scalars['Int']['output'];
   numberOfSoldProducts: Scalars['Int']['output'];
+  organizationAccount?: Maybe<User>;
   organizationApprovedAt?: Maybe<Scalars['DateTime']['output']>;
   organizationNumber?: Maybe<Scalars['String']['output']>;
-  payoutAccount?: Maybe<PayoutAccountResponse>;
+  organizationOwner?: Maybe<User>;
+  payoutAccount?: Maybe<PayoutAccount>;
   phoneNumber?: Maybe<Scalars['String']['output']>;
   postCode?: Maybe<Scalars['String']['output']>;
   products: Array<Product>;
@@ -1745,6 +1721,8 @@ export type User = {
   role: UserRoleEnum;
   sales: Array<Purchase>;
   selectedPayoutMethod?: Maybe<PayoutAccountEnum>;
+  sellerAccountIsCreated: Scalars['Boolean']['output'];
+  sellerAccountIsEnabled: Scalars['Boolean']['output'];
   type: UserType;
   username?: Maybe<Scalars['String']['output']>;
 };

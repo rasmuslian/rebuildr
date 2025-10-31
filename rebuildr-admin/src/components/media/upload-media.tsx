@@ -8,11 +8,10 @@ import ImgCrop from "antd-img-crop";
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
 type Props = {
-  disabled?: boolean;
   aspect?: number;
   files: UploadFile[];
   setFiles: (fileList: UploadFile[]) => void;
-  allowedFileNumber: number;
+  allowedFileNumber?: number;
 };
 
 const getBase64 = (file: FileType): Promise<string> => {
@@ -25,7 +24,6 @@ const getBase64 = (file: FileType): Promise<string> => {
 };
 
 const UploadMedia = ({
-  disabled = false,
   aspect = 1,
   files = [],
   setFiles,
@@ -56,7 +54,6 @@ const UploadMedia = ({
         showGrid
       >
         <Upload
-          disabled={disabled}
           accept=".jpeg, .jpg, .webp, .png"
           listType="picture-card"
           fileList={files}
