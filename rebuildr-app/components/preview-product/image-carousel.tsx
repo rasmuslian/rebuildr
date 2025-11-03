@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FlatList, Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import {
+  GestureResponderEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
@@ -25,16 +26,50 @@ export const ImageCarousel = ({
   displaySoldOverlay = true,
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [visibleIndex, setVisibleIndex] = useState(0);
+
+  const flatListRef = useRef<FlatList>(null);
   const { width: screenWidth } = useWindowDimensions();
 
-  const [visibleIndex, setVisibleIndex] = useState(0);
   const imageWidth = screenWidth - 32;
   const imageHeight = imageWidth;
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const position = event.nativeEvent.contentOffset.x;
-    const index = Math.round(position / (imageWidth + 8));
+  const scrollToIndex = (index: number) => {
     setVisibleIndex(index);
+    setCurrentIndex(index);
+
+    //Set an animation timeout to "lock" the flatlist while 'scrollToIndex'
+    //moves the view to 'index'
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 350);
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+  };
+
+  const onTouchEnd = () => {
+    scrollToIndex(currentIndex);
+  };
+
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (animating) return;
+
+    const offset = event.nativeEvent.contentOffset.x;
+    const itemWidth = imageWidth + 8;
+    const currentPosition = currentIndex * itemWidth;
+    const positionDiff = offset - currentPosition;
+    const direction = positionDiff < 0 ? "left" : "right";
+    const percentObscuredItem = Math.abs(positionDiff) / itemWidth;
+    const threshold = 0.2;
+
+    if (percentObscuredItem < threshold) return;
+
+    const nextIndex = currentIndex + (direction === "left" ? -1 : 1);
+    const clamedIndex = Math.max(Math.min(nextIndex, images.length - 1), 0);
+
+    if (clamedIndex !== currentIndex) {
+      scrollToIndex(nextIndex);
+    }
   };
 
   const maxNumberOfIndicators = 5;
@@ -44,10 +79,11 @@ export const ImageCarousel = ({
     <Pressable onPress={() => setShowImagesSheet(true)}>
       <View>
         <FlatList
+          ref={flatListRef}
           data={images}
           horizontal
-          pagingEnabled
           showsHorizontalScrollIndicator={false}
+          scrollEnabled={!animating}
           contentContainerStyle={{ gap: 8 }}
           renderItem={({ item: image }) => {
             return (
@@ -68,6 +104,7 @@ export const ImageCarousel = ({
             );
           }}
           onScroll={onScroll}
+          onTouchEnd={onTouchEnd}
         />
         {nrOfIndicators > 1 && (
           <View
