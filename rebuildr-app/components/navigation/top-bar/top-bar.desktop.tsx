@@ -1,11 +1,11 @@
 import { Logo } from "@components/logo/logo";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Pressable, View } from "react-native";
+import { Pressable, View, Animated } from "react-native";
 import { router } from "expo-router";
 import { showHamburgerMenuVar } from "@/apollo/config";
 import { Icon, IconType } from "@icons/icon";
 import { Button } from "@components/buttons/button";
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
@@ -13,17 +13,24 @@ import { TabLayoutQuery } from "@/gql/graphql";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
+import { SearchBar } from "@components/search/search-bar";
 
 export default function TopBarDesktop({
   isLoggedIn,
   theme,
+  showSearchBar = true,
+  animateSearchBar = false,
 }: {
   isLoggedIn: boolean;
   theme: "light" | "dark";
+  showSearchBar?: boolean;
+  animateSearchBar?: boolean;
 }) {
   const colors = useThemeColor();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
+
+  const searchOpacity = useRef(new Animated.Value(0)).current; // Start invisible
 
   const { data: tabData } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
@@ -50,6 +57,14 @@ export default function TopBarDesktop({
       },
     ];
 
+  useEffect(() => {
+    Animated.timing(searchOpacity, {
+      toValue: showSearchBar ? 1 : 0,
+      duration: animateSearchBar ? 200 : 0,
+      useNativeDriver: true,
+    }).start();
+  }, [showSearchBar]);
+
   return (
     <View>
       <View
@@ -65,13 +80,35 @@ export default function TopBarDesktop({
           height: 72,
         }}
       >
-        <Pressable onPress={() => router.navigate("/")}>
-          <Logo
-            width={118}
-            height={24}
-            customColor={theme === "light" ? colors.logo.vector : undefined}
-          />
-        </Pressable>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
+          <Pressable onPress={() => router.navigate("/")}>
+            <Logo
+              width={118}
+              height={24}
+              customColor={theme === "light" ? colors.logo.vector : undefined}
+            />
+          </Pressable>
+          <Animated.View
+            style={{
+              opacity: searchOpacity,
+            }}
+          >
+            <SearchBar
+              placeholder="Vad letar du efter?"
+              onFocus={() => router.navigate("/(app)/(tabs)/search")}
+              style={{
+                borderBottomWidth: 0,
+                width: 320,
+              }}
+              backgroundColor={colors.background.neutral}
+              borderStyle={
+                theme === "light"
+                  ? { borderColor: colors.dividers.neutral, borderWidth: 1 }
+                  : undefined
+              }
+            />
+          </Animated.View>
+        </View>
         <View
           style={{
             display: "flex",

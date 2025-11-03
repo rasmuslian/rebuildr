@@ -1,69 +1,33 @@
-import { View, ImageBackground, Animated } from "react-native";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Headline } from "@components/typography/text";
-import { SearchBar } from "@components/search/search-bar";
-import React, { useState } from "react";
-import { router } from "expo-router";
+import { Animated } from "react-native";
+import React from "react";
+import { useScreenType } from "@hooks/useScreenType";
+import HeroMobile from "./hero.mobile";
+import HeroDesktop from "./hero.desktop";
 
 type Props = {
   scrollY: Animated.Value;
+  showFor?: "mobile" | "desktop";
 };
 
-export default function Hero({ scrollY }: Props) {
-  const colors = useThemeColor();
-  const [headlineHeight, setHeadlineHeight] = useState(0);
-
-  return (
-    <ImageBackground
-      source={require("@assets/images/main-background.png")}
-      resizeMode="cover"
-      style={{
-        backgroundColor: colors.logo.vector,
-        width: "100%",
-        overflow: "hidden",
-      }}
-    >
-      <View
-        style={{
-          paddingVertical: 24,
-          paddingHorizontal: 16,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Animated.View
-          style={{
-            opacity: scrollY.interpolate({
-              inputRange: [0, headlineHeight],
-              outputRange: [1, 0],
-              extrapolate: "clamp",
-            }),
-            height: scrollY.interpolate({
-              inputRange: [0, headlineHeight],
-              outputRange: [headlineHeight, 0],
-              extrapolate: "clamp",
-            }),
-            overflow: "hidden",
-          }}
-        >
-          <Headline
-            onLayout={(e) => setHeadlineHeight(e.nativeEvent.layout.height)}
-            size="small"
-            style={{
-              color: colors.logo.background,
-              paddingBottom: 12,
-            }}
-          >
-            Sveriges marknadsplats för återbrukat byggmaterial
-          </Headline>
-        </Animated.View>
-
-        <SearchBar
-          style={{ borderBottomWidth: 0 }}
-          placeholder="Vad letar du efter? "
-          onFocus={() => router.navigate("/(app)/(tabs)/search")}
-        />
-      </View>
-    </ImageBackground>
-  );
+export default function Hero({ scrollY, showFor = "mobile" }: Props) {
+  const { isMobile, isDesktop } = useScreenType();
+  if (isMobile && showFor === "mobile") {
+    return (
+      <HeroMobile
+        scrollY={scrollY}
+        headline="Sveriges marknadsplats för återbrukat byggmaterial"
+        searchBar="Vad letar du efter?"
+      />
+    );
+  } else if (isDesktop && showFor === "desktop") {
+    return (
+      <HeroDesktop
+        scrollY={scrollY}
+        headline="Sveriges marknadsplats för återbrukat byggmaterial"
+        searchBar="Vad letar du efter?"
+      />
+    );
+  } else {
+    return null;
+  }
 }

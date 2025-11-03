@@ -14,6 +14,8 @@ type Props = {
   value?: string;
   disabled?: boolean;
   style?: ViewStyle;
+  backgroundColor?: string;
+  borderStyle?: ViewStyle;
 } & Omit<TextInputProps, "onChange" | "style">;
 
 export const SearchBar = ({
@@ -27,6 +29,8 @@ export const SearchBar = ({
   disabled,
   defaultValue,
   style,
+  backgroundColor,
+  borderStyle,
   ...rest
 }: Props) => {
   const colors = useThemeColor();
@@ -60,8 +64,11 @@ export const SearchBar = ({
             alignItems: "center",
             paddingVertical: 10,
             paddingHorizontal: 10,
-            backgroundColor: !value ? colors.background.secondary : "none",
+            backgroundColor: !value
+              ? (backgroundColor ?? colors.background.secondary)
+              : "none",
             borderRadius: borderRadius.medium,
+            ...borderStyle,
           },
         ]}
       >

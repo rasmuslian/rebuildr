@@ -6,9 +6,13 @@ import { useScreenType } from "@hooks/useScreenType";
 export default function TopBar({
   showFor = ["mobile", "desktop"],
   theme = "dark",
+  showSearchBar = true,
+  animateSearchBar = false,
 }: {
   showFor?: ("mobile" | "desktop")[];
   theme?: "light" | "dark";
+  showSearchBar?: boolean;
+  animateSearchBar?: boolean;
 }) {
   const { isLoggedIn } = useUser();
   const { isMobile } = useScreenType();
@@ -20,7 +24,14 @@ export default function TopBar({
     return null;
   }
   if (showFor.includes("desktop") === true) {
-    return <TopBarDesktop isLoggedIn={isLoggedIn} theme={theme} />;
+    return (
+      <TopBarDesktop
+        isLoggedIn={isLoggedIn}
+        theme={theme}
+        showSearchBar={showSearchBar}
+        animateSearchBar={animateSearchBar}
+      />
+    );
   }
   return null;
 }
