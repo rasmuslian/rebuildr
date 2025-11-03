@@ -9,7 +9,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { App } from "antd";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
-import { getFileInputTypes, uploadFiles } from "@utils/medial-utils";
+import { getFileInputTypes, uploadFiles } from "@utils/file-utils";
 import { CmsCreateProductInput, MeasurementUnitEnum } from "gql/graphql";
 import { createProduct } from "@/queries/product/create-product";
 import { queryKeys } from "@/lib/query-keys";

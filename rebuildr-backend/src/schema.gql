@@ -525,6 +525,11 @@ type OnboardSellerAccountResponse {
   clientSecret: String!
 }
 
+type CmsListUsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
 type CmsUpdateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -582,6 +587,7 @@ type Query {
   userExists(input: UserExistsInput!): User
   user(input: GetUserInput!): User!
   getUsers(input: GetUsersInput!): [User!]!
+  cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
@@ -637,6 +643,12 @@ input GetUsersInput {
   name: String!
   page: Int
   pageSize: Int
+}
+
+input CmsListUsersInput {
+  page: Int
+  pageSize: Int
+  searchString: String
 }
 
 input GetProductInput {
@@ -813,6 +825,7 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
   switchAccount(id: String!): LoginResponse!
+  cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
@@ -901,6 +914,12 @@ input NewPasswordInput {
   email: String!
   password: String!
   resetPasswordToken: String!
+}
+
+input CmsUpdateUsersInput {
+  id: String!
+  role: UserRoleEnum!
+  address: String
 }
 
 input UpdateUserInput {

@@ -18,6 +18,7 @@ import {
   ProductOutlined,
   ProjectOutlined,
   LoadingOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -73,6 +74,8 @@ const SidebarMenu = () => {
     ]),
     { type: "divider" },
     getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),
+    { type: "divider" },
+    getItem("Användare", routes.LIST_USER, <UserOutlined />),
     { type: "divider" },
     getItem("Bildbank", routes.MEDIA_BANK, <FileImageOutlined />),
     { type: "divider" },

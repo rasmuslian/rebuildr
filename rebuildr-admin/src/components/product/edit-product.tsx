@@ -16,7 +16,7 @@ import {
   getUploadFiles,
   getRemovedFileIds,
   uploadFiles,
-} from "@utils/medial-utils";
+} from "@utils/file-utils";
 import { CmsUpdateProductInput } from "gql/graphql";
 import { updateProduct } from "@/queries/product/update-product";
 import { queryKeys } from "@/lib/query-keys";

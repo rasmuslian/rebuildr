@@ -207,6 +207,18 @@ export type CmsListProjectsResponse = {
   total: Scalars['Int']['output'];
 };
 
+export type CmsListUsersInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsListUsersResponse = {
+  __typename?: 'CmsListUsersResponse';
+  total: Scalars['Int']['output'];
+  users: Array<User>;
+};
+
 export type CmsUpdateArticleInput = {
   body: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -277,6 +289,12 @@ export type CmsUpdateProjectInput = {
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsUpdateUsersInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  role: UserRoleEnum;
 };
 
 export type CmsUploadFileInput = {
@@ -616,6 +634,7 @@ export type Mutation = {
   cmsUpdateFooterSection: FooterSection;
   cmsUpdateProduct: CmsUpdateProductResponse;
   cmsUpdateProject: Project;
+  cmsUpdateUser: User;
   cmsUploadFiles: CmsUploadFileResponse;
   createDraftProduct: Product;
   createMessage: Message;
@@ -752,6 +771,11 @@ export type MutationCmsUpdateProductArgs = {
 
 export type MutationCmsUpdateProjectArgs = {
   input: CmsUpdateProjectInput;
+};
+
+
+export type MutationCmsUpdateUserArgs = {
+  input: CmsUpdateUsersInput;
 };
 
 
@@ -1224,6 +1248,7 @@ export type Query = {
   cmsListImages: CmsListImagesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
+  cmsListUsers: CmsListUsersResponse;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
@@ -1308,6 +1333,11 @@ export type QueryCmsListProductsArgs = {
 
 export type QueryCmsListProjectsArgs = {
   input: CmsListProjectsInput;
+};
+
+
+export type QueryCmsListUsersArgs = {
+  input: CmsListUsersInput;
 };
 
 
