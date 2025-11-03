@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FlatList, Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import {
+  GestureResponderEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
@@ -25,16 +26,39 @@ export const ImageCarousel = ({
   displaySoldOverlay = true,
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
-  const { width: screenWidth } = useWindowDimensions();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [animating, setAnimating] = useState(false);
 
-  const [visibleIndex, setVisibleIndex] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
   const imageWidth = screenWidth - 32;
   const imageHeight = imageWidth;
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const position = event.nativeEvent.contentOffset.x;
-    const index = Math.round(position / (imageWidth + 8));
+  const flatListRef = useRef<FlatList>(null);
+
+  const [visibleIndex, setVisibleIndex] = useState(0);
+
+  const scrollToIndex = (index: number) => {
     setVisibleIndex(index);
+    setCurrentIndex(index);
+
+    //Set an animation timeout to "lock" the flatlist while 'scrollToIndex'
+    //moves the view to 'index'
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 350);
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+  };
+
+  const onTouchEnd = (event: GestureResponderEvent) => {
+    scrollToIndex(currentIndex);
+  };
+
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offset = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offset / (imageWidth + 8));
+
+    if (index !== currentIndex) {
+      scrollToIndex(index);
+    }
   };
 
   const maxNumberOfIndicators = 5;
@@ -44,10 +68,11 @@ export const ImageCarousel = ({
     <Pressable onPress={() => setShowImagesSheet(true)}>
       <View>
         <FlatList
+          ref={flatListRef}
           data={images}
           horizontal
-          pagingEnabled
           showsHorizontalScrollIndicator={false}
+          scrollEnabled={!animating}
           contentContainerStyle={{ gap: 8 }}
           renderItem={({ item: image }) => {
             return (
@@ -68,6 +93,7 @@ export const ImageCarousel = ({
             );
           }}
           onScroll={onScroll}
+          onTouchEnd={onTouchEnd}
         />
         {nrOfIndicators > 1 && (
           <View
