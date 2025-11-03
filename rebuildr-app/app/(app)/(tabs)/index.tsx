@@ -11,10 +11,12 @@ import { RootCategoriesHorizontal } from "@components/categories/root-categories
 import { RecommendedProducts } from "@components/recommended-products/recommended-products";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
   const [headlineHeight, setHeadlineHeight] = useState(0);
 
@@ -59,7 +61,7 @@ export default function Landing() {
           style={{
             backgroundColor: colors.background.neutral,
             flexGrow: 1,
-            paddingHorizontal: 16,
+            paddingHorizontal: isDesktop ? 75 : 16,
             paddingBottom: 32,
             paddingTop: 24,
           }}

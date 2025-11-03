@@ -14,6 +14,7 @@ import { SectionHeader } from "@components/sections/section-header";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Divider } from "@components/dividers/divider";
 import { router } from "expo-router";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   title: string;
@@ -68,6 +69,7 @@ export function RecommendedProducts({ title, source }: Props) {
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
   const { isLoggedIn } = useUser();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<
     RecommendedProductsQuery,
@@ -86,7 +88,9 @@ export function RecommendedProducts({ title, source }: Props) {
 
   if (!data || data.me.recommendedProducts.length < 1) return null;
   const products = data.me.recommendedProducts;
-  const width = (screenWidth - 48) / 2;
+  const width = isDesktop
+    ? (screenWidth - 75 * 2) / 4 - 16
+    : (screenWidth - 48) / 2 - 16;
 
   return (
     <View style={{ gap: 16, paddingTop: 16 }}>
@@ -101,6 +105,7 @@ export function RecommendedProducts({ title, source }: Props) {
           });
           router.navigate("/(app)/(tabs)/search/products");
         }}
+        buttonTitle={isDesktop ? "Visa alla" : undefined}
       >
         {title}
       </SectionHeader>

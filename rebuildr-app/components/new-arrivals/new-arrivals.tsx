@@ -1,10 +1,7 @@
-import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { gql, useQuery } from "@apollo/client";
-import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router, useFocusEffect } from "expo-router";
-import { View } from "react-native";
+import { useFocusEffect } from "expo-router";
 import {
   LocationObjectCoords,
   PermissionStatus,
@@ -18,6 +15,9 @@ import {
   NewArrivalsQueryVariables,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
+import { useScreenType } from "@hooks/useScreenType";
+import { NewArrivalsMobile } from "./new-arrivals.mobile";
+import { NewArrivalsDesktop } from "./new-arrivals.desktop";
 
 const NEW_ARRIVALS = gql`
   query NewArrivals(
@@ -60,6 +60,7 @@ export const NewArrivals = () => {
   const { setSorting } = useFilterProduct();
   const [location, setLocation] = useState<LocationObjectCoords | null>(null);
   const { isLoggedIn } = useUser();
+  const { isDesktop } = useScreenType();
 
   useFocusEffect(
     useCallback(() => {
@@ -97,43 +98,22 @@ export const NewArrivals = () => {
 
   if (!data || data.products.products.length < 1) return null;
 
-  return (
-    <View style={{ paddingTop: 16, paddingBottom: 24 }}>
-      <HoriztalListSection
-        title={location ? "Nyinkomna varor nära dig" : "Nyinkomna varor"}
-        data={data?.products.products ?? []}
-        onPress={() => {
-          if (location) {
-            setSorting(OrderProductsEnum.Distance, true);
-          } else {
-            setSorting(OrderProductsEnum.Latest, true);
-          }
-          router.navigate("/(app)/(tabs)/search/products");
-        }}
-        renderItem={({ item }) => {
-          return (
-            <AdGrid
-              id={item.id}
-              imageUri={item.primaryImage?.url}
-              liked={!!item.likedByMe}
-              heart={item.seller.id !== data.me?.id}
-              quantity={item.primaryQuantity}
-              quantityUnit={item.primaryUnit}
-              condition={item.condition}
-              title={item.title}
-              price={item.price}
-              status={item.status}
-              onHeartPress={() => {
-                onToggleProductHeart({
-                  productId: item.id,
-                  likedByMe: !!item.likedByMe,
-                });
-              }}
-            />
-          );
-        }}
-        visibleItems={3}
+  if (isDesktop) {
+    return (
+      <NewArrivalsDesktop
+        data={data}
+        location={location}
+        setSorting={setSorting}
+        onToggleProductHeart={onToggleProductHeart}
       />
-    </View>
+    );
+  }
+  return (
+    <NewArrivalsMobile
+      data={data}
+      location={location}
+      setSorting={setSorting}
+      onToggleProductHeart={onToggleProductHeart}
+    />
   );
-};
+}

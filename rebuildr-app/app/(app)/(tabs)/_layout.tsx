@@ -5,6 +5,7 @@ import { Badge } from "@components/badges/badge";
 import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useSellProductContext } from "@context/sell-product-context";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
 import { router, Tabs, usePathname } from "expo-router";
@@ -23,6 +24,7 @@ export default function TabLayout() {
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const pathName = usePathname();
   const { setVisible: setSellProductVisible } = useSellProductContext();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
@@ -38,6 +40,9 @@ export default function TabLayout() {
         },
       }}
       tabBar={(props) => {
+        if (isDesktop) {
+          return null;
+        }
         const isHighlighted = (href: string) => {
           const hightlight = pathName.split("/")[1] === href;
           return hightlight;

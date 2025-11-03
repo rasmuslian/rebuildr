@@ -9,6 +9,7 @@ import {
   ForTheSeasonCategoriesQuery,
   ForTheSeasonCategoriesQueryVariables,
 } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
 
 const FOR_THE_SEASON_CATEGORIES = gql`
   query ForTheSeasonCategories($input: CategoriesInput!) {
@@ -26,6 +27,7 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 
 export const ForTheSeason = () => {
   const { setCategories } = useFilterProduct();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -50,6 +52,7 @@ export const ForTheSeason = () => {
           });
           router.navigate("/(app)/(tabs)/search/products");
         }}
+        buttonTitle={isDesktop ? "Visa alla" : undefined}
       >
         För säsongen
       </SectionHeader>
@@ -61,8 +64,8 @@ export const ForTheSeason = () => {
         contentContainerStyle={{
           flexDirection: "row",
           paddingHorizontal: 16,
-          gap: 8,
-          width: (categories.length / 2) * 200,
+          gap: isDesktop ? 12 : 8,
+          width: isDesktop ? "100%" : (categories.length / 2) * 200,
           flexWrap: "wrap",
         }}
       >

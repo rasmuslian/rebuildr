@@ -13,6 +13,7 @@ import {
   TrendingNowProductsQuery,
   TrendingNowProductsQueryVariables,
 } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
 
 const TRENDING_NOW_QUERY = gql`
   query TrendingNowProducts(
@@ -61,6 +62,7 @@ export const TrendingNow = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { setCategories } = useFilterProduct();
   const { isLoggedIn } = useUser();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<
     TrendingNowProductsQuery,
@@ -72,7 +74,7 @@ export const TrendingNow = () => {
         selectionCategories: true,
         excludeOwnProducts: true,
       },
-      limit: 10,
+      limit: isDesktop ? 6 : 10,
       offset: 0,
       isLoggedIn,
     },
@@ -80,7 +82,9 @@ export const TrendingNow = () => {
 
   if (!data || data.products.products.length < 1) return null;
   const products = data.products.products;
-  const width = (screenWidth - 48) / 2;
+  const width = isDesktop
+    ? (screenWidth - 75 * 2) / 6 - 16
+    : (screenWidth - 48) / 2 - 16;
 
   const onPress = () => {
     const categories = products
@@ -95,7 +99,7 @@ export const TrendingNow = () => {
 
   return (
     <View style={{ paddingVertical: 16 }}>
-      {isLoggedIn ? (
+      {isLoggedIn && !isDesktop ? (
         <HoriztalListSection
           title="Trendar nu"
           data={products}
@@ -126,7 +130,12 @@ export const TrendingNow = () => {
         />
       ) : (
         <View style={{ gap: 16, paddingTop: 16 }}>
-          <SectionHeader onPress={onPress}>Trendar nu</SectionHeader>
+          <SectionHeader
+            onPress={onPress}
+            buttonTitle={isDesktop ? "Visa alla" : undefined}
+          >
+            Trendar nu
+          </SectionHeader>
 
           <View
             style={{

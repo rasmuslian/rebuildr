@@ -48,7 +48,7 @@ export const Avatar = ({
       {...imageProps}
       style={[
         { width: radius, height: radius },
-        { borderRadius: 38 },
+        { borderRadius: radius },
         imageProps.style,
       ]}
     />
