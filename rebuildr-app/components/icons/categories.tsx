@@ -1,4 +1,4 @@
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import { IconProps } from "./icon";
 
 export const Categories = (props: IconProps) => (
@@ -9,13 +9,27 @@ export const Categories = (props: IconProps) => (
     viewBox="0 0 24 24"
     {...props}
   >
-    <Path
-      vectorEffect="non-scaling-stroke"
+    <Circle cx="6.5" cy="6.5" r="3.55" stroke={props.color} strokeWidth="1.9" />
+    <Circle
+      cx="17.5"
+      cy="6.5"
+      r="3.55"
       stroke={props.color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.9}
-      d="M9.167 3.75H4.75a1 1 0 0 0-1 1v4.417a1 1 0 0 0 1 1h4.417a1 1 0 0 0 1-1V4.75a1 1 0 0 0-1-1ZM16.335 3.42 13.503 6.25a1 1 0 0 0 0 1.414l2.832 2.832a1 1 0 0 0 1.414 0l2.832-2.832a1 1 0 0 0 0-1.414L17.749 3.42a1 1 0 0 0-1.414 0ZM19.25 13.833h-4.417a1 1 0 0 0-1 1v4.417a1 1 0 0 0 1 1h4.417a1 1 0 0 0 1-1v-4.417a1 1 0 0 0-1-1ZM9.167 13.833H4.75a1 1 0 0 0-1 1v4.417a1 1 0 0 0 1 1h4.417a1 1 0 0 0 1-1v-4.417a1 1 0 0 0-1-1Z"
+      strokeWidth="1.9"
+    />
+    <Circle
+      cx="6.5"
+      cy="17.5"
+      r="3.55"
+      stroke={props.color}
+      strokeWidth="1.9"
+    />
+    <Circle
+      cx="17.5"
+      cy="17.5"
+      r="3.55"
+      stroke={props.color}
+      strokeWidth="1.9"
     />
   </Svg>
 );
