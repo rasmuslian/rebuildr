@@ -556,7 +556,7 @@ export class UserService {
     const { id, address, role } = input;
 
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw NotFoundException('Product not found');
+    if (!user) throw NotFoundException('User not found');
 
     try {
       if (address) {
