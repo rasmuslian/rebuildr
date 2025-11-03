@@ -8,6 +8,7 @@ import { SubCategoriesVertical } from "@components/categories/sub-categories-ver
 import { Divider } from "@components/dividers/divider";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body } from "@components/typography/text";
+import { useScreenType } from "@hooks/useScreenType";
 import { Href, Link, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -18,6 +19,7 @@ export const HamburgerMenu = () => {
   const [category, setCategory] = useState<
     RootCategoriesVerticalCategory | undefined
   >();
+  const { isDesktop } = useScreenType();
 
   const onClose = () => {
     showHamburgerMenuVar(false);
@@ -30,10 +32,6 @@ export const HamburgerMenu = () => {
     },
     [pathname],
   );
-
-  if (!showHamburgerMenu) {
-    return null;
-  }
 
   return (
     <SlideInSheet
@@ -51,9 +49,9 @@ export const HamburgerMenu = () => {
         />
       )}
       {!category && (
-        <>
+        <View style={{ marginTop: isDesktop ? 48 : 24 }}>
           <Divider />
-          <View style={{ gap: 18 }}>
+          <View style={{ gap: 18, marginTop: isDesktop ? 24 : 16 }}>
             {/**TODO: fix links */}
             <Entry title="Populärt på Rebuildr" link="/" />
             <Entry title="Varumärken" link="/" />
@@ -62,7 +60,7 @@ export const HamburgerMenu = () => {
             <Entry title="Sälj som företag" link="/" />
             <Entry title="Vår vision" link="/" />
           </View>
-        </>
+        </View>
       )}
     </SlideInSheet>
   );
