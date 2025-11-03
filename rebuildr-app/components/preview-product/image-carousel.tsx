@@ -28,14 +28,13 @@ export const ImageCarousel = ({
   const [showImagesSheet, setShowImagesSheet] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animating, setAnimating] = useState(false);
-
-  const { width: screenWidth } = useWindowDimensions();
-  const imageWidth = screenWidth - 32;
-  const imageHeight = imageWidth;
+  const [visibleIndex, setVisibleIndex] = useState(0);
 
   const flatListRef = useRef<FlatList>(null);
+  const { width: screenWidth } = useWindowDimensions();
 
-  const [visibleIndex, setVisibleIndex] = useState(0);
+  const imageWidth = screenWidth - 32;
+  const imageHeight = imageWidth;
 
   const scrollToIndex = (index: number) => {
     setVisibleIndex(index);
@@ -48,16 +47,28 @@ export const ImageCarousel = ({
     flatListRef.current?.scrollToIndex({ index, animated: true });
   };
 
-  const onTouchEnd = (event: GestureResponderEvent) => {
+  const onTouchEnd = () => {
     scrollToIndex(currentIndex);
   };
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offset = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offset / (imageWidth + 8));
+    if (animating) return;
 
-    if (index !== currentIndex) {
-      scrollToIndex(index);
+    const offset = event.nativeEvent.contentOffset.x;
+    const itemWidth = imageWidth + 8;
+    const currentPosition = currentIndex * itemWidth;
+    const positionDiff = offset - currentPosition;
+    const direction = positionDiff < 0 ? "left" : "right";
+    const percentObscuredItem = Math.abs(positionDiff) / itemWidth;
+    const threshold = 0.2;
+
+    if (percentObscuredItem < threshold) return;
+
+    const nextIndex = currentIndex + (direction === "left" ? -1 : 1);
+    const clamedIndex = Math.max(Math.min(nextIndex, images.length - 1), 0);
+
+    if (clamedIndex !== currentIndex) {
+      scrollToIndex(nextIndex);
     }
   };
 
