@@ -1,0 +1,64 @@
+import React from "react";
+import { UserSchemaType } from "@/schema/user-schema";
+import AdminForm from "@components/admin-form";
+import FormField from "@components/form-field";
+import { Checkbox, Button } from "antd";
+import SelectAddress from "@components/address/select-address";
+import {
+  UseFormHandleSubmit,
+  FieldErrors,
+  Control,
+  Controller,
+} from "react-hook-form";
+
+type Props = {
+  title: string;
+  handleSubmit: UseFormHandleSubmit<UserSchemaType>;
+  onSubmit: (formValues: UserSchemaType) => void;
+  errors: FieldErrors<UserSchemaType>;
+  control: Control<UserSchemaType>;
+  submitLabel: string;
+  isPending: boolean;
+};
+
+const UserForm = ({
+  title,
+  onSubmit,
+  handleSubmit,
+  errors,
+  control,
+  submitLabel,
+  isPending,
+}: Props) => {
+  return (
+    <AdminForm title={title} onSubmit={handleSubmit(onSubmit)}>
+      <Controller
+        control={control}
+        name={"address"}
+        render={({ field: { value, onChange } }) => (
+          <FormField label="Adress" error={errors.address?.message}>
+            <SelectAddress value={value} onChange={onChange} />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="isAdmin"
+        render={({ field: { value, onChange } }) => (
+          <FormField error={errors.isAdmin?.message}>
+            <Checkbox checked={value} onChange={onChange}>
+              Admin
+            </Checkbox>
+          </FormField>
+        )}
+      />
+
+      <Button type="primary" htmlType="submit" loading={isPending}>
+        {submitLabel}
+      </Button>
+    </AdminForm>
+  );
+};
+
+export default UserForm;

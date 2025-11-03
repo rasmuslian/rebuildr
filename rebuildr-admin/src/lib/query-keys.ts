@@ -2,6 +2,7 @@ export enum queryKeys {
   GET_PROFILE = "get-profile",
   LIST_IMAGES = "list-images",
   LIST_ARTICLES = "list-articles",
+  LIST_USERS = "list-users",
   LIST_FOOTER_SECTIONS = "list-footer-sections",
   LIST_PRODUCTS = "list-products",
   LIST_PROJECTS = "list-projects",

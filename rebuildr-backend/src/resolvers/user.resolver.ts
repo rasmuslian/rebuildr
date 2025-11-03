@@ -35,6 +35,8 @@ import { Review } from 'src/entities/review.entity';
 import { FileInputType, ProductsResponse } from './product.resolver';
 import { ProductService } from 'src/services/product.service';
 import { ProjectService } from 'src/services/project.service';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 
 export enum ProductsRecommendationSourceEnum {
   LIKES = 'LIKES',
@@ -182,6 +184,38 @@ export class OnboardSellerAccountResponse {
   @Field()
   clientSecret: string;
 }
+
+@InputType()
+export class CmsListUsersInput {
+  @Field(() => Int, { nullable: true })
+  page?: number;
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
+}
+
+@ObjectType()
+export class CmsListUsersResponse {
+  @Field(() => [User])
+  users: User[];
+
+  @Field(() => Int)
+  total: number;
+}
+@InputType()
+export class CmsUpdateUsersInput {
+  @Field(() => String, { nullable: false })
+  id: string;
+
+  @Field(() => UserRoleEnum, { nullable: false })
+  role: UserRoleEnum;
+
+  @Field(() => String, { nullable: true })
+  address?: string;
+}
 @Resolver(() => User)
 export class UserResolver {
   constructor(
@@ -210,6 +244,24 @@ export class UserResolver {
   @UseGuards(GqlOptionalAuthGuard)
   async getUsers(@Args('input') input: GetUsersInput): Promise<User[]> {
     return this.userService.getUsers(input);
+  }
+
+  @Query(() => CmsListUsersResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsListUsers(
+    @Args('input') input: CmsListUsersInput,
+  ): Promise<CmsListUsersResponse> {
+    return this.userService.cmsListUsers(input);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUpdateUser(
+    @Args('input') input: CmsUpdateUsersInput,
+  ): Promise<User> {
+    return this.userService.cmsUpdateUser(input);
   }
 
   @Mutation(() => UpdateUserResponse)

@@ -10,10 +10,14 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
+  NotFoundException,
 } from 'src/exceptions';
 import { ILike, IsNull, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
+  CmsListUsersInput,
+  CmsListUsersResponse,
+  CmsUpdateUsersInput,
   CreateOrganizationUserInput,
   GetUsersInput,
   UpdateOrganizationUserInput,
@@ -516,5 +520,59 @@ export class UserService {
 
     userToDelete.deletedAt = new Date();
     return this.userRepository.save(userToDelete);
+  }
+
+  async cmsListUsers(input: CmsListUsersInput): Promise<CmsListUsersResponse> {
+    const { pageSize = 10, page = 0, searchString = '' } = input;
+    const skip = Math.max(0, pageSize * page);
+
+    const [users, total] = await this.userRepository.findAndCount({
+      where: [
+        {
+          name: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+        },
+        {
+          username: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+        },
+        {
+          email: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+        },
+      ],
+      take: pageSize,
+      skip,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      users,
+      total,
+    };
+  }
+
+  async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
+    const { id, address, role } = input;
+
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw NotFoundException('Product not found');
+
+    try {
+      if (address) {
+        const location = await this.geocodingService.addressToLocation(address);
+        user.address = address;
+        user.addressLocation = {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        };
+      }
+
+      user.role = role;
+
+      return this.userRepository.save(user);
+    } catch (error) {
+      throw BadUserInputException(`Failed to update user: ${error}`);
+    }
   }
 }

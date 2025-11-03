@@ -15,7 +15,7 @@ import {
   getFileInputTypes,
   getUploadFiles,
   uploadFiles,
-} from "@utils/medial-utils";
+} from "@utils/file-utils";
 import { App } from "antd";
 
 type Props = {

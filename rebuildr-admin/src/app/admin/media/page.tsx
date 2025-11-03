@@ -13,7 +13,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { CmsUploadFileInput } from "gql/graphql";
 import { createMedia } from "@/queries/media/create-media";
 import { queryKeys } from "@/lib/query-keys";
-import { getFileInputTypes, uploadFiles } from "@/utils/medial-utils";
+import { getFileInputTypes, uploadFiles } from "@/utils/file-utils";
 import ListMedia from "@/components/media/list-media";
 
 const MediaPage = () => {

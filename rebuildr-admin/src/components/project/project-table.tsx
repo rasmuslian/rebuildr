@@ -49,7 +49,6 @@ const ProjectTable = () => {
       dataIndex: "title",
       key: "title",
       width: "250px",
-      ellipsis: true,
     },
     {
       title: "Kontakt uppgifter",
@@ -59,21 +58,18 @@ const ProjectTable = () => {
           title: "Namn",
           key: "contactName",
           width: "180px",
-          ellipsis: true,
           render: (_, { contactName }) => <span>{contactName}</span>,
         },
         {
           title: "Email",
           key: "contactEmail",
           width: "300px",
-          ellipsis: true,
           render: (_, { contactEmail }) => <span>{contactEmail}</span>,
         },
         {
           title: "Telefon",
           key: "contactPhone",
           width: "180px",
-          ellipsis: true,
           render: (_, { contactPhone }) => <span>{contactPhone}</span>,
         },
       ],
@@ -83,13 +79,12 @@ const ProjectTable = () => {
       dataIndex: "address",
       key: "address",
       width: "320px",
-      ellipsis: true,
     },
     {
       title: "Administrera",
       key: "action",
       width: "80px",
-      ellipsis: true,
+      fixed: "right",
       render: (_, { id }) => {
         return (
           <div className="flex flex-row items-center justify-center gap-4">
