@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { updateUser } from "@/queries/user/update-user";
-import { App } from "antd";
+import { App, Descriptions, DescriptionsProps, Divider } from "antd";
 
 type Props = {
   user: User;
@@ -64,16 +64,51 @@ const EditUser = ({ user, onSettled }: Props) => {
     mutate(updatedUser);
   };
 
+  const userInformation: DescriptionsProps["items"] = [
+    {
+      key: "name",
+      label: "Namn",
+      children: user.name,
+    },
+    {
+      key: "username",
+      label: "Användarnamn",
+      children: user.username,
+    },
+    {
+      key: "email",
+      label: "Email",
+      children: user.email,
+    },
+    {
+      key: "phone",
+      label: "Telefonnummer",
+      children: user.phoneNumber,
+    },
+  ];
+
   return (
-    <UserForm
-      title="Redigera användare"
-      control={control}
-      errors={errors}
-      isPending={isPending}
-      handleSubmit={handleSubmit}
-      onSubmit={onSubmit}
-      submitLabel="Spara"
-    />
+    <div className="flex flex-col gap-5">
+      <Divider orientation="start">Användarinformation</Divider>
+
+      <Descriptions
+        layout="horizontal"
+        bordered
+        items={userInformation}
+        column={1}
+        styles={{ label: { width: "200px" } }}
+      />
+
+      <UserForm
+        title="Redigera användare"
+        control={control}
+        errors={errors}
+        isPending={isPending}
+        handleSubmit={handleSubmit}
+        onSubmit={onSubmit}
+        submitLabel="Spara"
+      />
+    </div>
   );
 };
 
