@@ -2,7 +2,7 @@ import React from "react";
 import { UserSchemaType } from "@/schema/user-schema";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
-import { Checkbox, Button } from "antd";
+import { Checkbox, Button, Input } from "antd";
 import SelectAddress from "@components/address/select-address";
 import {
   UseFormHandleSubmit,
@@ -32,6 +32,46 @@ const UserForm = ({
 }: Props) => {
   return (
     <AdminForm title={title} onSubmit={handleSubmit(onSubmit)}>
+      <Controller
+        control={control}
+        name="name"
+        render={({ field }) => (
+          <FormField label="Namn" error={errors.name?.message}>
+            <Input {...field} placeholder="Namn" />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="phoneNumber"
+        render={({ field }) => (
+          <FormField label="Telefonnummer" error={errors.phoneNumber?.message}>
+            <Input {...field} placeholder="Telefonnummer" />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="city"
+        render={({ field }) => (
+          <FormField label="Stad" error={errors.city?.message}>
+            <Input {...field} placeholder="Stad" />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="postCode"
+        render={({ field }) => (
+          <FormField label="Postnummer" error={errors.postCode?.message}>
+            <Input {...field} placeholder="Postnummer" />
+          </FormField>
+        )}
+      />
+
       <Controller
         control={control}
         name={"address"}

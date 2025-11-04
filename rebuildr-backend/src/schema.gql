@@ -920,6 +920,10 @@ input CmsUpdateUsersInput {
   id: String!
   role: UserRoleEnum!
   address: String
+  name: String
+  city: String
+  postCode: String
+  phoneNumber: String
 }
 
 input UpdateUserInput {

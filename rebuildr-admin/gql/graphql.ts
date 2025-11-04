@@ -293,7 +293,11 @@ export type CmsUpdateProjectInput = {
 
 export type CmsUpdateUsersInput = {
   address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  phoneNumber?: InputMaybe<Scalars['String']['input']>;
+  postCode?: InputMaybe<Scalars['String']['input']>;
   role: UserRoleEnum;
 };
 
