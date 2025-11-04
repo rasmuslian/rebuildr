@@ -28,6 +28,10 @@ import { Header } from "@components/navigation/headers/header";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { FilterProduct } from "@components/filter-product/filter-product";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -83,8 +87,10 @@ export default function Products() {
   const [isMyLocation, setIsMyLocation] = useState(false);
   const [shipping, setShipping] = useState(true);
   const [delivery, setDelivery] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
 
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
 
   const { searchString: searchStringParam } = useLocalSearchParams<{
     searchString: string;
@@ -219,6 +225,96 @@ export default function Products() {
 
     return "Inga leveranssätt";
   };
+
+  const renderTransportationOptions = () => {
+    return (
+      <View style={{ gap: 16, marginTop: isDesktop ? 24 : 0 }}>
+        {/**Pickup */}
+        <ToggleCard
+          title="Hämta själv hos säljaren"
+          description="Du hämtar varan själv genom att kontakta säljaren för att bestämma tid och plats."
+          enabled={!!pickup}
+          offColor="disabled"
+          onPress={onTogglePickup}
+        >
+          {pickup && (
+            <View style={{ gap: 24 }}>
+              <View style={{ gap: 12 }}>
+                <Label size="medium">Välj max avstånd från dig</Label>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 16,
+                    alignItems: "center",
+                  }}
+                >
+                  <Slider
+                    type="continuous"
+                    sliderProps={{
+                      min: 1000,
+                      max: 80000,
+                      value: pickupDistance,
+                      onChange: (v) => setPickupDistance(v),
+                      width: 240,
+                    }}
+                  />
+                  <Body size="medium">
+                    {meterToKilometer(pickupDistance)} km
+                  </Body>
+                </View>
+              </View>
+              <View style={{ gap: 12 }}>
+                <Map
+                  lat={location[0]}
+                  lng={location[1]}
+                  zoomDisabled
+                  zoom={10}
+                  radius={pickupDistance}
+                  onMoveEnd={onMapMove}
+                />
+              </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Check selected={isMyLocation} onPress={onToggleMyLocation} />
+                <Body size="medium">Använd min plats</Body>
+              </View>
+            </View>
+          )}
+        </ToggleCard>
+
+        {/**Shipping */}
+        <ToggleCard
+          title="Fraktleverans"
+          description="Säljaren skickar varan till dig med ett transportbolag."
+          enabled={shipping}
+          onPress={onToggleShipping}
+          offColor="disabled"
+        />
+
+        {/**Delivery */}
+        <ToggleCard
+          title="Hemtransport"
+          description="Säljaren erbjuder hemleverans till dig."
+          enabled={delivery}
+          onPress={onToggleDelivery}
+          offColor="disabled"
+        />
+
+        <Button
+          label="Spara"
+          onPress={() => onApplyTranportationOptions()}
+          loading={loading}
+        />
+      </View>
+    );
+  };
+
   //----------------------------
 
   const onApplyTranportationOptions = async () => {
@@ -259,31 +355,36 @@ export default function Products() {
       <ScreenLayout
         loading={loading}
         style={{ marginTop: 24 }}
+        desktopFooter
         headerComponent={
-          <Header
-            showBackButton={false}
-            middle={
-              <>
-                <Icon
-                  icon="search"
-                  size={18}
-                  style={{ marginRight: 10, height: 40 }}
-                />
-                <TextInput
-                  style={{
-                    outline: "none",
-                    flex: 1,
-                    color: colors.text.primaryDark,
-                    ...textStyles.title["medium"],
-                  }}
-                  placeholder="Vad letar du efter?"
-                  placeholderTextColor={colors.text.secondary}
-                  value={searchString}
-                  onFocus={() => router.navigate("/(app)/(tabs)/search")}
-                />
-              </>
-            }
-          />
+          isDesktop ? (
+            <TopBar showFor={["desktop"]} theme="light" />
+          ) : (
+            <Header
+              showBackButton={false}
+              middle={
+                <>
+                  <Icon
+                    icon="search"
+                    size={18}
+                    style={{ marginRight: 10, height: 40 }}
+                  />
+                  <TextInput
+                    style={{
+                      outline: "none",
+                      flex: 1,
+                      color: colors.text.primaryDark,
+                      ...textStyles.title["medium"],
+                    }}
+                    placeholder="Vad letar du efter?"
+                    placeholderTextColor={colors.text.secondary}
+                    value={searchString}
+                    onFocus={() => router.navigate("/(app)/(tabs)/search")}
+                  />
+                </>
+              }
+            />
+          )
         }
       >
         {!!searchString && (
@@ -291,7 +392,7 @@ export default function Products() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: isDesktop ? "flex-start" : "center",
               marginBottom: 24,
             }}
           >
@@ -312,7 +413,7 @@ export default function Products() {
             flexDirection: "row",
             alignItems: "center",
             gap: 8,
-            marginBottom: 16,
+            marginBottom: isDesktop ? 32 : 16,
           }}
         >
           <Body size="medium" style={{ flex: 1 }} color="secondary">
@@ -328,7 +429,13 @@ export default function Products() {
             <Button
               icon="filterList2"
               type="tonal"
-              onPress={() => router.navigate("/search/filter")}
+              onPress={() => {
+                if (isDesktop) {
+                  setShowFilter(true);
+                } else {
+                  router.navigate("/search/filter");
+                }
+              }}
             />
             {!!nrOfAppliedFilters() && (
               <View style={{ position: "absolute", right: 1, top: 1 }}>
@@ -369,98 +476,72 @@ export default function Products() {
           }}
         />
       </ScreenLayout>
-      <BottomSheet
-        open={showTransportSheet}
-        onDismiss={() => setShowTransportSheet(false)}
-        name="delivery"
-        title="Leveransalternativ"
-        scrollable
-      >
-        <View style={{ gap: 16 }}>
-          {/**Pickup */}
-          <ToggleCard
-            title="Hämta själv hos säljaren"
-            description="Du hämtar varan själv genom att kontakta säljaren för att bestämma tid och plats."
-            enabled={!!pickup}
-            offColor="disabled"
-            onPress={onTogglePickup}
-          >
-            {pickup && (
-              <View style={{ gap: 24 }}>
-                <View style={{ gap: 12 }}>
-                  <Label size="medium">Välj max avstånd från dig</Label>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 16,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Slider
-                      type="continuous"
-                      sliderProps={{
-                        min: 1000,
-                        max: 80000,
-                        value: pickupDistance,
-                        onChange: (v) => setPickupDistance(v),
-                        width: 240,
-                      }}
-                    />
-                    <Body size="medium">
-                      {meterToKilometer(pickupDistance)} km
-                    </Body>
-                  </View>
-                </View>
-                <View style={{ gap: 12 }}>
-                  <Map
-                    lat={location[0]}
-                    lng={location[1]}
-                    zoomDisabled
-                    zoom={10}
-                    radius={pickupDistance}
-                    onMoveEnd={onMapMove}
-                  />
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 16,
-                    alignItems: "center",
-                  }}
-                >
-                  <Check selected={isMyLocation} onPress={onToggleMyLocation} />
-                  <Body size="medium">Använd min plats</Body>
-                </View>
-              </View>
-            )}
-          </ToggleCard>
-
-          {/**Shipping */}
-          <ToggleCard
-            title="Fraktleverans"
-            description="Säljaren skickar varan till dig med ett transportbolag."
-            enabled={shipping}
-            onPress={onToggleShipping}
-            offColor="disabled"
-          />
-
-          {/**Delivery */}
-          <ToggleCard
-            title="Hemtransport"
-            description="Säljaren erbjuder hemleverans till dig."
-            enabled={delivery}
-            onPress={onToggleDelivery}
-            offColor="disabled"
-          />
-
-          <Button
-            label="Spara"
-            onPress={() => onApplyTranportationOptions()}
-            loading={loading}
-          />
-        </View>
-      </BottomSheet>
+      {isDesktop && (
+        <SlideInSheet
+          open={showTransportSheet}
+          onClose={() => setShowTransportSheet(false)}
+          title="Leveransalternativ"
+        >
+          {renderTransportationOptions()}
+        </SlideInSheet>
+      )}
+      {!isDesktop && (
+        <BottomSheet
+          open={showTransportSheet}
+          onDismiss={() => setShowTransportSheet(false)}
+          name="delivery"
+          title="Leveransalternativ"
+          scrollable
+        >
+          {renderTransportationOptions()}
+        </BottomSheet>
+      )}
+      {isDesktop && (
+        <FilterSlideSheet
+          open={showFilter}
+          onClose={() => setShowFilter(false)}
+        />
+      )}
     </>
   );
 }
+
+type FilterSlideInProps = {
+  open: boolean;
+  onClose: () => void;
+};
+
+const FilterSlideSheet = ({ open, onClose }: FilterSlideInProps) => {
+  const { reset } = useFilterProduct();
+
+  return (
+    <SlideInSheet
+      title="Filtrera"
+      open={open}
+      onClose={onClose}
+      style={{ gap: 12 }}
+      footer={
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 8,
+            marginTop: 16,
+          }}
+        >
+          <Button label="Rensa alla" type="tonal" onPress={() => reset()} />
+          <Button
+            label="Visa resultat"
+            onPress={() =>
+              router.canGoBack()
+                ? router.back()
+                : router.navigate("/(app)/(tabs)/search/products")
+            }
+            style={{ flex: 1 }}
+          />
+        </View>
+      }
+    >
+      <FilterProduct />
+    </SlideInSheet>
+  );
+};

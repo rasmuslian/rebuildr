@@ -3,6 +3,7 @@ import { View, useWindowDimensions } from "react-native";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Button } from "@components/buttons/button";
 import { SectionHeader } from "@components/sections/section-header";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   header?: string;
@@ -22,7 +23,12 @@ export const AdGridSection = ({
   pagination,
 }: Props) => {
   const { width: screenWidth } = useWindowDimensions();
-  const width = (screenWidth - 48) / 2;
+  const { isDesktop } = useScreenType();
+  const gapSize = isDesktop ? 24 : 16;
+  const width = isDesktop
+    ? (screenWidth - 75 * 2) / 4 - gapSize
+    : (screenWidth - 48) / 2 - gapSize;
+
   return (
     <View style={{ gap: 24 }}>
       {!!header && (
@@ -35,7 +41,7 @@ export const AdGridSection = ({
       <View
         style={{
           flexDirection: "row",
-          gap: 16,
+          gap: gapSize,
           flexWrap: "wrap",
           paddingBottom: 16,
         }}

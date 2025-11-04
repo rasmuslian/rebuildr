@@ -4,7 +4,7 @@ import { Title } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useRef, useEffect, PropsWithChildren } from "react";
+import { useRef, useEffect, PropsWithChildren, ReactElement } from "react";
 import {
   Animated,
   ScrollView,
@@ -20,6 +20,7 @@ type Props = {
   onBack?: () => void;
   title?: string;
   style?: ViewStyle;
+  footer?: ReactElement;
 } & PropsWithChildren;
 
 export const SlideInSheet = ({
@@ -29,6 +30,7 @@ export const SlideInSheet = ({
   children,
   title,
   style,
+  footer,
 }: Props) => {
   const colors = useThemeColor();
   const { width: screenWidth } = useWindowDimensions();
@@ -135,10 +137,23 @@ export const SlideInSheet = ({
           )}
           <ScrollView
             style={[{ paddingTop: 24 }, style]}
-            contentContainerStyle={{ paddingHorizontal: isDesktop ? 48 : 16 }}
+            contentContainerStyle={[
+              { paddingHorizontal: isDesktop ? 48 : 16 },
+              style,
+            ]}
           >
             {children}
           </ScrollView>
+          {footer && (
+            <View
+              style={{
+                paddingHorizontal: isDesktop ? 48 : 16,
+                marginBottom: 32,
+              }}
+            >
+              {footer}
+            </View>
+          )}
         </View>
       </Animated.View>
     </Animated.View>

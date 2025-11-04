@@ -1,11 +1,5 @@
 import { Button } from "@components/buttons/button";
-import { Divider } from "@components/dividers/divider";
-import { BrandFilter } from "@components/filter-product/brand-filter";
-import { CategoryFilter } from "@components/filter-product/category-filter";
-import { ConditionFilter } from "@components/filter-product/condition-filter";
-import { PriceFilter } from "@components/filter-product/price-filter";
-import { RootCategoryFilter } from "@components/filter-product/root-category-filter";
-import { SortingFilter } from "@components/filter-product/sorting-filter";
+import { FilterProduct } from "@components/filter-product/filter-product";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { useFilterProduct } from "@hooks/useFilterProduct";
@@ -39,17 +33,7 @@ export default function Filter() {
         </View>
       }
     >
-      <SortingFilter />
-      <Divider />
-      <RootCategoryFilter />
-      <Divider />
-      <CategoryFilter />
-      <Divider />
-      <BrandFilter />
-      <Divider />
-      <ConditionFilter />
-      <Divider />
-      <PriceFilter />
+      <FilterProduct />
     </ScreenLayout>
   );
 }
