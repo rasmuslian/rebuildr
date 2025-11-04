@@ -41,15 +41,12 @@ export default function Landing() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View
-        style={{ paddingHorizontal: isDesktop ? horizontalPadding.desktop : 0 }}
-      >
-        <TopBar />
-      </View>
+      <TopBar />
       <Hero scrollY={scrollY} />
 
       <Animated.ScrollView
         scrollEventThrottle={8}
+        showsHorizontalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
