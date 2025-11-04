@@ -1,4 +1,5 @@
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import Footer from "@components/navigation/footer";
 import { horizontalPadding } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -10,6 +11,7 @@ interface PageProps extends PropsWithChildren {
   footerComponent?: React.ReactNode;
   footerStyle?: StyleProp<ViewStyle>;
   footerBottomMargin?: "small" | "default";
+  desktopFooter?: boolean;
   headerComponent?: React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
   loading?: boolean;
@@ -22,6 +24,7 @@ export const ScreenLayout = ({
   footerComponent,
   footerStyle,
   footerBottomMargin: _footerBottomMargin = "default",
+  desktopFooter,
   headerComponent,
   headerStyle,
   loading,
@@ -44,7 +47,16 @@ export const ScreenLayout = ({
       }}
     >
       {headerComponent && (
-        <View style={[{ paddingHorizontal }, headerStyle]}>
+        <View
+          style={[
+            {
+              paddingHorizontal: isDesktop
+                ? undefined
+                : horizontalPadding.mobile,
+            },
+            headerStyle,
+          ]}
+        >
           {headerComponent}
         </View>
       )}
@@ -71,6 +83,7 @@ export const ScreenLayout = ({
         >
           {loading ? <LoadingSpinner /> : children}
         </View>
+        {desktopFooter && isDesktop && <Footer />}
       </ScrollView>
 
       {footerComponent && (

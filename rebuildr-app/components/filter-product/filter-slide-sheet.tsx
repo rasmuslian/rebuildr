@@ -1,18 +1,25 @@
-import { Button } from "@components/buttons/button";
-import { FilterProduct } from "@components/filter-product/filter-product";
-import { Header } from "@components/navigation/headers/header";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { View } from "react-native";
+import { FilterProduct } from "./filter-product";
+import { Button } from "@components/buttons/button";
 
-export default function Filter() {
+type Props = {
+  open: boolean;
+  onClose: () => void;
+};
+
+export const FilterSlideSheet = ({ open, onClose }: Props) => {
   const { reset } = useFilterProduct();
+
   return (
-    <ScreenLayout
-      style={{ gap: 12, marginBottom: 32 }}
-      headerComponent={<Header title="Filtrera" />}
-      footerComponent={
+    <SlideInSheet
+      title="Filtrera"
+      open={open}
+      onClose={onClose}
+      style={{ gap: 12 }}
+      footer={
         <View
           style={{
             flexDirection: "row",
@@ -34,6 +41,6 @@ export default function Filter() {
       }
     >
       <FilterProduct />
-    </ScreenLayout>
+    </SlideInSheet>
   );
-}
+};

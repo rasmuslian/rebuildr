@@ -3,31 +3,31 @@ import {
   SearchProductsQuery,
   SearchProductsQueryVariables,
 } from "@/gql/graphql";
-import { meterToKilometer } from "@/utils/conversions";
 import { gql, useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { ToggleCard } from "@components/toggle-card/toggle-card";
-import { Body, Display, Label } from "@components/typography/text";
-import { defaultCenter, defaultRadius } from "@constants/map";
+import { Body, Display } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
-import { Map } from "@components/maps/map";
-import { Check } from "@components/controls/check";
-import { useLocationAddress } from "@hooks/useLocationAddress";
-import { formatMetersToKm } from "@/utils/distanceHandling";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
-import { Slider } from "@components/slider/slider";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { SubCategoriesList } from "@components/categories/sub-categories-list";
 import { Header } from "@components/navigation/headers/header";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { FilterSlideSheet } from "@components/filter-product/filter-slide-sheet";
+import {
+  TransportationFilterOptions,
+  TransportationOptions,
+} from "@components/search/transportation-options";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -77,14 +77,12 @@ const SEARCH_PRODUCTS_QUERY = gql`
 `;
 
 export default function Products() {
-  //Transportation variables
-  const [pickup, setPickup] = useState(true);
-  const [pickupDistance, setPickupDistance] = useState(defaultRadius);
-  const [isMyLocation, setIsMyLocation] = useState(false);
-  const [shipping, setShipping] = useState(true);
-  const [delivery, setDelivery] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
+  const [transportationLabel, setTransportationLabel] =
+    useState("Alla leveranssätt");
 
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
 
   const { searchString: searchStringParam } = useLocalSearchParams<{
     searchString: string;
@@ -148,80 +146,9 @@ export default function Products() {
     });
   };
 
-  //--------Transportation logic------------
-  const { location, setMyLocation, setMapLocation } = useLocationAddress({
-    location: data?.me?.location ?? {
-      lat: defaultCenter[0],
-      lng: defaultCenter[1],
-    },
-  });
-
-  const onToggleMyLocation = () => {
-    setIsMyLocation(!isMyLocation);
-    if (!isMyLocation) {
-      setMyLocation();
-    }
-  };
-  const onMapMove = (lat: number, lng: number) => {
-    setIsMyLocation(false);
-    setMapLocation(lat, lng);
-  };
-  const onTogglePickup = () => {
-    if (!pickup) {
-      setPickup(true);
-      return;
-    }
-    if (!delivery && !shipping) {
-      return null;
-    }
-    setPickup(false);
-  };
-  const onToggleShipping = () => {
-    if (!shipping) {
-      setShipping(true);
-      return;
-    }
-    if (!delivery && !pickup) {
-      return null;
-    }
-    setShipping(false);
-  };
-  const onToggleDelivery = () => {
-    if (!delivery) {
-      setDelivery(true);
-      return;
-    }
-    if (!pickup && !shipping) {
-      return null;
-    }
-    setDelivery(false);
-  };
-  const getTransportationLabel = () => {
-    if (pickup && delivery && shipping) {
-      return "Alla leveranssätt";
-    }
-    if (
-      (pickup && delivery) ||
-      (pickup && shipping) ||
-      (delivery && shipping)
-    ) {
-      return "Flera leveranssätt";
-    }
-    if (pickup) {
-      return `Hämta själv • ${formatMetersToKm(pickupDistance)} km`;
-    }
-    if (shipping) {
-      return "Fraktleverans";
-    }
-    if (delivery) {
-      return "Hemtransport";
-    }
-
-    return "Inga leveranssätt";
-  };
-  //----------------------------
-
-  const onApplyTranportationOptions = async () => {
+  const onApplyTranportationOptions = async (
+    options: TransportationFilterOptions,
+  ) => {
     await refetch({
       input: {
         searchString,
@@ -231,11 +158,7 @@ export default function Products() {
         conditions: filter.conditions,
         minPrice: filter.price[0],
         maxPrice: filter.price[1],
-        distance: pickup ? pickupDistance : undefined,
-        location: pickup ? { lat: location[0], lng: location[1] } : undefined,
-        pickup,
-        shipping,
-        delivery,
+        ...options,
       },
     });
     setShowTransportSheet(false);
@@ -259,31 +182,36 @@ export default function Products() {
       <ScreenLayout
         loading={loading}
         style={{ marginTop: 24 }}
+        desktopFooter
         headerComponent={
-          <Header
-            showBackButton={false}
-            middle={
-              <>
-                <Icon
-                  icon="search"
-                  size={18}
-                  style={{ marginRight: 10, height: 40 }}
-                />
-                <TextInput
-                  style={{
-                    outline: "none",
-                    flex: 1,
-                    color: colors.text.primaryDark,
-                    ...textStyles.title["medium"],
-                  }}
-                  placeholder="Vad letar du efter?"
-                  placeholderTextColor={colors.text.secondary}
-                  value={searchString}
-                  onFocus={() => router.navigate("/(app)/(tabs)/search")}
-                />
-              </>
-            }
-          />
+          isDesktop ? (
+            <TopBar showFor={["desktop"]} theme="light" />
+          ) : (
+            <Header
+              showBackButton={false}
+              middle={
+                <>
+                  <Icon
+                    icon="search"
+                    size={18}
+                    style={{ marginRight: 10, height: 40 }}
+                  />
+                  <TextInput
+                    style={{
+                      outline: "none",
+                      flex: 1,
+                      color: colors.text.primaryDark,
+                      ...textStyles.title["medium"],
+                    }}
+                    placeholder="Vad letar du efter?"
+                    placeholderTextColor={colors.text.secondary}
+                    value={searchString}
+                    onFocus={() => router.navigate("/(app)/(tabs)/search")}
+                  />
+                </>
+              }
+            />
+          )
         }
       >
         {!!searchString && (
@@ -291,7 +219,7 @@ export default function Products() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: isDesktop ? "flex-start" : "center",
               marginBottom: 24,
             }}
           >
@@ -312,7 +240,7 @@ export default function Products() {
             flexDirection: "row",
             alignItems: "center",
             gap: 8,
-            marginBottom: 16,
+            marginBottom: isDesktop ? 32 : 16,
           }}
         >
           <Body size="medium" style={{ flex: 1 }} color="secondary">
@@ -320,7 +248,7 @@ export default function Products() {
             {data?.products.total === 1 ? "träff" : "träffar"}:
           </Body>
           <Button
-            label={getTransportationLabel()}
+            label={transportationLabel}
             onPress={() => setShowTransportSheet(true)}
             type="tonal"
           />
@@ -328,7 +256,13 @@ export default function Products() {
             <Button
               icon="filterList2"
               type="tonal"
-              onPress={() => router.navigate("/search/filter")}
+              onPress={() => {
+                if (isDesktop) {
+                  setShowFilter(true);
+                } else {
+                  router.navigate("/search/filter");
+                }
+              }}
             />
             {!!nrOfAppliedFilters() && (
               <View style={{ position: "absolute", right: 1, top: 1 }}>
@@ -369,98 +303,41 @@ export default function Products() {
           }}
         />
       </ScreenLayout>
-      <BottomSheet
-        open={showTransportSheet}
-        onDismiss={() => setShowTransportSheet(false)}
-        name="delivery"
-        title="Leveransalternativ"
-        scrollable
-      >
-        <View style={{ gap: 16 }}>
-          {/**Pickup */}
-          <ToggleCard
-            title="Hämta själv hos säljaren"
-            description="Du hämtar varan själv genom att kontakta säljaren för att bestämma tid och plats."
-            enabled={!!pickup}
-            offColor="disabled"
-            onPress={onTogglePickup}
+      {isDesktop ? (
+        <>
+          <SlideInSheet
+            open={showTransportSheet}
+            onClose={() => setShowTransportSheet(false)}
+            title="Leveransalternativ"
           >
-            {pickup && (
-              <View style={{ gap: 24 }}>
-                <View style={{ gap: 12 }}>
-                  <Label size="medium">Välj max avstånd från dig</Label>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 16,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Slider
-                      type="continuous"
-                      sliderProps={{
-                        min: 1000,
-                        max: 80000,
-                        value: pickupDistance,
-                        onChange: (v) => setPickupDistance(v),
-                        width: 240,
-                      }}
-                    />
-                    <Body size="medium">
-                      {meterToKilometer(pickupDistance)} km
-                    </Body>
-                  </View>
-                </View>
-                <View style={{ gap: 12 }}>
-                  <Map
-                    lat={location[0]}
-                    lng={location[1]}
-                    zoomDisabled
-                    zoom={10}
-                    radius={pickupDistance}
-                    onMoveEnd={onMapMove}
-                  />
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 16,
-                    alignItems: "center",
-                  }}
-                >
-                  <Check selected={isMyLocation} onPress={onToggleMyLocation} />
-                  <Body size="medium">Använd min plats</Body>
-                </View>
-              </View>
-            )}
-          </ToggleCard>
-
-          {/**Shipping */}
-          <ToggleCard
-            title="Fraktleverans"
-            description="Säljaren skickar varan till dig med ett transportbolag."
-            enabled={shipping}
-            onPress={onToggleShipping}
-            offColor="disabled"
+            <TransportationOptions
+              data={data}
+              loading={loading}
+              setTransportationLabel={setTransportationLabel}
+              onApply={onApplyTranportationOptions}
+            />
+          </SlideInSheet>
+          <FilterSlideSheet
+            open={showFilter}
+            onClose={() => setShowFilter(false)}
           />
-
-          {/**Delivery */}
-          <ToggleCard
-            title="Hemtransport"
-            description="Säljaren erbjuder hemleverans till dig."
-            enabled={delivery}
-            onPress={onToggleDelivery}
-            offColor="disabled"
-          />
-
-          <Button
-            label="Spara"
-            onPress={() => onApplyTranportationOptions()}
+        </>
+      ) : (
+        <BottomSheet
+          open={showTransportSheet}
+          onDismiss={() => setShowTransportSheet(false)}
+          name="delivery"
+          title="Leveransalternativ"
+          scrollable
+        >
+          <TransportationOptions
+            data={data}
             loading={loading}
+            setTransportationLabel={setTransportationLabel}
+            onApply={onApplyTranportationOptions}
           />
-        </View>
-      </BottomSheet>
+        </BottomSheet>
+      )}
     </>
   );
 }
