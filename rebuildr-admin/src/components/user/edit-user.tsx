@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { updateUser } from "@/queries/user/update-user";
-import { App, Descriptions, DescriptionsProps, Divider } from "antd";
+import { App } from "antd";
 
 type Props = {
   user: User;
@@ -29,6 +29,10 @@ const EditUser = ({ user, onSettled }: Props) => {
     defaultValues: {
       address: user.address ?? undefined,
       isAdmin: user.role === UserRoleEnum.Admin,
+      name: user.name ?? undefined,
+      city: user.city ?? undefined,
+      postCode: user.postCode ?? undefined,
+      phoneNumber: user.phoneNumber ?? undefined,
     },
   });
 
@@ -55,60 +59,31 @@ const EditUser = ({ user, onSettled }: Props) => {
   });
 
   const onSubmit = async (formData: UserSchemaType) => {
+    const { isAdmin } = formData;
+
     const updatedUser: CmsUpdateUsersInput = {
       id: user.id,
-      address: formData.address,
-      role: formData.isAdmin ? UserRoleEnum.Admin : UserRoleEnum.User,
+      role: isAdmin ? UserRoleEnum.Admin : UserRoleEnum.User,
+      city: formData.city ?? null,
+      address: formData.address ?? null,
+      name: formData.name ?? null,
+      phoneNumber: formData.phoneNumber ?? null,
+      postCode: formData.postCode ?? null,
     };
 
     mutate(updatedUser);
   };
 
-  const userInformation: DescriptionsProps["items"] = [
-    {
-      key: "name",
-      label: "Namn",
-      children: user.name,
-    },
-    {
-      key: "username",
-      label: "Användarnamn",
-      children: user.username,
-    },
-    {
-      key: "email",
-      label: "Email",
-      children: user.email,
-    },
-    {
-      key: "phone",
-      label: "Telefonnummer",
-      children: user.phoneNumber,
-    },
-  ];
-
   return (
-    <div className="flex flex-col gap-5">
-      <Divider orientation="start">Användarinformation</Divider>
-
-      <Descriptions
-        layout="horizontal"
-        bordered
-        items={userInformation}
-        column={1}
-        styles={{ label: { width: "200px" } }}
-      />
-
-      <UserForm
-        title="Redigera användare"
-        control={control}
-        errors={errors}
-        isPending={isPending}
-        handleSubmit={handleSubmit}
-        onSubmit={onSubmit}
-        submitLabel="Spara"
-      />
-    </div>
+    <UserForm
+      title="Redigera användare"
+      control={control}
+      errors={errors}
+      isPending={isPending}
+      handleSubmit={handleSubmit}
+      onSubmit={onSubmit}
+      submitLabel="Spara"
+    />
   );
 };
 

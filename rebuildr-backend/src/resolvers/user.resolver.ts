@@ -215,6 +215,18 @@ export class CmsUpdateUsersInput {
 
   @Field(() => String, { nullable: true })
   address?: string;
+
+  @Field(() => String, { nullable: true })
+  name?: string;
+
+  @Field(() => String, { nullable: true })
+  city?: string;
+
+  @Field(() => String, { nullable: true })
+  postCode?: string;
+
+  @Field(() => String, { nullable: true })
+  phoneNumber?: string;
 }
 @Resolver(() => User)
 export class UserResolver {

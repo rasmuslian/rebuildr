@@ -13,6 +13,8 @@ const query = `
         phoneNumber
         role
         type
+        city
+        postCode
       }
       total
     }

@@ -553,7 +553,7 @@ export class UserService {
   }
 
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
-    const { id, address, role } = input;
+    const { id, address, ...rest } = input;
 
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw NotFoundException('User not found');
@@ -568,7 +568,9 @@ export class UserService {
         };
       }
 
-      user.role = role;
+      Object.assign<User, Partial<User>>(user, {
+        ...rest,
+      });
 
       return this.userRepository.save(user);
     } catch (error) {
