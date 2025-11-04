@@ -18,7 +18,7 @@ type Props = {
   open: boolean;
   onClose?: () => void;
   onBack?: () => void;
-  title: string;
+  title?: string;
   style?: ViewStyle;
 } & PropsWithChildren;
 
@@ -101,34 +101,38 @@ export const SlideInSheet = ({
             paddingBottom: 20,
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginVertical: 8,
-              paddingHorizontal: isDesktop ? 48 : 16,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              {onBack && (
-                <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
-                  <Icon icon="arrowLeft" size={18} />
-                </Pressable>
-              )}
-              <Title size="medium">{title}</Title>
-            </View>
-            <Button icon="X" onPress={onClose} type="text" />
-          </View>
-          <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
-            <Divider />
-          </View>
+          {(title || onBack) && (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginVertical: 8,
+                  paddingHorizontal: isDesktop ? 48 : 16,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  {onBack && (
+                    <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
+                      <Icon icon="arrowLeft" size={18} />
+                    </Pressable>
+                  )}
+                  {title && <Title size="medium">{title}</Title>}
+                </View>
+                <Button icon="X" onPress={onClose} type="text" />
+              </View>
+              <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
+                <Divider />
+              </View>
+            </>
+          )}
           <ScrollView
             style={[{ paddingTop: 24 }, style]}
             contentContainerStyle={{ paddingHorizontal: isDesktop ? 48 : 16 }}

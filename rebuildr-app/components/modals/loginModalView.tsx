@@ -30,6 +30,8 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -69,6 +71,7 @@ const REGISTER_USER = gql`
 
 const LoginModalView = () => {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
@@ -194,6 +197,68 @@ const LoginModalView = () => {
     }
   }, [visible]);
 
+  const viewChildren = [
+    state === "email" && (
+      <Email
+        onSubmit={(email) => {
+          onSubmitEmail(email);
+        }}
+        initialEmail={email}
+      />
+    ),
+    state === "password" && (
+      <Password
+        onBack={() => setState("email")}
+        onSubmit={(password) => {
+          onSubmitPassword(password);
+        }}
+        onForgotPassword={onForgotPassword}
+        wrongPassword={wrongPassword}
+      />
+    ),
+    state === "forgotPassword" && (
+      <ForgotPassword
+        onBack={() => setState("password")}
+        onSubmit={onRequestPasswordReset}
+        currentEmail={email}
+      />
+    ),
+    state === "verify" && (
+      <Verify email={email} onSuccess={(id) => onVerifiedSuccess(id)} />
+    ),
+    state === "details" && (
+      <Details
+        onDone={() => {
+          setVisible(false);
+          router.replace("/");
+        }}
+        onCreateBusiness={onCreateBusiness}
+        onExit={() => {
+          setVisible(false);
+          logout();
+          reloadAppAsync();
+          router.replace("/");
+        }}
+      />
+    ),
+    state === "business" && (
+      <CreateBusiness
+        onDone={() => {
+          reloadAppAsync();
+          setVisible(false);
+        }}
+        onExit={() => {
+          reloadAppAsync();
+          setVisible(false);
+        }}
+      />
+    ),
+  ];
+
+  if (isDesktop) {
+    return <SlideInSheet open={visible}>{viewChildren}</SlideInSheet>;
+  }
+
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -218,61 +283,7 @@ const LoginModalView = () => {
     >
       <BottomSheetView>
         <ScreenLayout style={{ marginTop: 0, marginBottom: 0 }}>
-          {state === "email" && (
-            <Email
-              onSubmit={(email) => {
-                onSubmitEmail(email);
-              }}
-              initialEmail={email}
-            />
-          )}
-          {state === "password" && (
-            <Password
-              onBack={() => setState("email")}
-              onSubmit={(password) => {
-                onSubmitPassword(password);
-              }}
-              onForgotPassword={onForgotPassword}
-              wrongPassword={wrongPassword}
-            />
-          )}
-          {state === "forgotPassword" && (
-            <ForgotPassword
-              onBack={() => setState("password")}
-              onSubmit={onRequestPasswordReset}
-              currentEmail={email}
-            />
-          )}
-          {state === "verify" && (
-            <Verify email={email} onSuccess={(id) => onVerifiedSuccess(id)} />
-          )}
-          {state === "details" && (
-            <Details
-              onDone={() => {
-                setVisible(false);
-                router.replace("/");
-              }}
-              onCreateBusiness={onCreateBusiness}
-              onExit={() => {
-                setVisible(false);
-                logout();
-                reloadAppAsync();
-                router.replace("/");
-              }}
-            />
-          )}
-          {state === "business" && (
-            <CreateBusiness
-              onDone={() => {
-                reloadAppAsync();
-                setVisible(false);
-              }}
-              onExit={() => {
-                reloadAppAsync();
-                setVisible(false);
-              }}
-            />
-          )}
+          {viewChildren}
         </ScreenLayout>
       </BottomSheetView>
     </BottomSheetModal>
