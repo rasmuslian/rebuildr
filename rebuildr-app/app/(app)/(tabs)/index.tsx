@@ -12,6 +12,7 @@ import { RecommendedProducts } from "@components/recommended-products/recommende
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
+import { horizontalPadding } from "@constants/sizes";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -40,8 +41,12 @@ export default function Landing() {
 
   return (
     <View style={{ flex: 1 }}>
-      <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
-      <Hero scrollY={scrollY} showFor="mobile" />
+      <View
+        style={{ paddingHorizontal: isDesktop ? horizontalPadding.desktop : 0 }}
+      >
+        <TopBar />
+      </View>
+      <Hero scrollY={scrollY} />
 
       <Animated.ScrollView
         scrollEventThrottle={8}

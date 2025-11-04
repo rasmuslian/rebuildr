@@ -7,3 +7,8 @@ export const borderRadius = {
 export const strokeWidth = {
   regular: 1,
 };
+
+export const horizontalPadding = {
+  desktop: 75,
+  mobile: 16,
+};

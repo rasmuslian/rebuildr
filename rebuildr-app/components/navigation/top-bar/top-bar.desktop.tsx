@@ -70,7 +70,6 @@ export default function TopBarDesktop({
       <View
         style={{
           width: "100%",
-          paddingHorizontal: 75,
           backgroundColor:
             theme === "light" ? colors.background.neutral : colors.logo.vector,
           justifyContent: "space-between",
@@ -169,10 +168,10 @@ export default function TopBarDesktop({
         </View>
       </View>
       {theme === "light" && (
-        <View style={{ marginTop: -1, marginHorizontal: 75 }}>
+        <View style={{ marginTop: -1 }}>
           <Divider />
         </View>
       )}
     </View>
   );
-};
+}
