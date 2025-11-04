@@ -10,6 +10,8 @@ import {
   ListFooterSectionQuery,
   ListFooterSectionQueryVariables,
 } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
+import { horizontalPadding } from "@constants/sizes";
 
 const LIST_FOOTER_SECTION = gql`
   query ListFooterSection {
@@ -31,6 +33,7 @@ const LIST_FOOTER_SECTION = gql`
 `;
 
 export default function Footer() {
+  const { isDesktop } = useScreenType();
   const { data } = useQuery<
     ListFooterSectionQuery,
     ListFooterSectionQueryVariables
@@ -43,7 +46,9 @@ export default function Footer() {
       style={{
         backgroundColor: primitives.primary900,
         width: "100%",
-        paddingHorizontal: 16,
+        paddingHorizontal: isDesktop
+          ? horizontalPadding.desktop
+          : horizontalPadding.mobile,
         paddingVertical: 24,
       }}
     >

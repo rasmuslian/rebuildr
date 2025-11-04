@@ -14,6 +14,7 @@ import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
 import { SearchBar } from "@components/search/search-bar";
+import { horizontalPadding } from "@constants/sizes";
 
 export default function TopBarDesktop({
   isLoggedIn,
@@ -70,7 +71,7 @@ export default function TopBarDesktop({
       <View
         style={{
           width: "100%",
-          paddingHorizontal: 75,
+          paddingHorizontal: horizontalPadding.desktop,
           backgroundColor:
             theme === "light" ? colors.background.neutral : colors.logo.vector,
           justifyContent: "space-between",
@@ -169,10 +170,12 @@ export default function TopBarDesktop({
         </View>
       </View>
       {theme === "light" && (
-        <View style={{ marginTop: -1, marginHorizontal: 75 }}>
+        <View
+          style={{ marginTop: -1, marginHorizontal: horizontalPadding.desktop }}
+        >
           <Divider />
         </View>
       )}
     </View>
   );
-};
+}

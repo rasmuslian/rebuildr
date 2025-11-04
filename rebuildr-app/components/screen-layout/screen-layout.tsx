@@ -1,4 +1,6 @@
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { horizontalPadding } from "@constants/sizes";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { PropsWithChildren, useRef } from "react";
 import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
@@ -26,7 +28,11 @@ export const ScreenLayout = ({
   onContentSizeChange = "nothing",
 }: PageProps) => {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const scrollRef = useRef<ScrollView>(null);
+  const paddingHorizontal = isDesktop
+    ? horizontalPadding.desktop
+    : horizontalPadding.mobile;
 
   const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
   return (
@@ -38,7 +44,7 @@ export const ScreenLayout = ({
       }}
     >
       {headerComponent && (
-        <View style={[{ paddingHorizontal: 16 }, headerStyle]}>
+        <View style={[{ paddingHorizontal }, headerStyle]}>
           {headerComponent}
         </View>
       )}
@@ -56,7 +62,7 @@ export const ScreenLayout = ({
             {
               flexGrow: 1,
               backgroundColor: colors.background.neutral,
-              paddingHorizontal: 16,
+              paddingHorizontal,
               marginBottom: 32,
               marginTop: 24,
             },
@@ -70,7 +76,7 @@ export const ScreenLayout = ({
       {footerComponent && (
         <View
           style={[
-            { paddingHorizontal: 16, marginBottom: footerBottomMargin },
+            { paddingHorizontal, marginBottom: footerBottomMargin },
             footerStyle,
           ]}
         >
