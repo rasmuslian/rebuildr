@@ -79,7 +79,7 @@ const SEARCH_PRODUCTS_QUERY = gql`
 export default function Products() {
   const [showFilter, setShowFilter] = useState(false);
   const [transportationLabel, setTransportationLabel] =
-    useState("Inga leveranssätt");
+    useState("Alla leveranssätt");
 
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -303,21 +303,26 @@ export default function Products() {
           }}
         />
       </ScreenLayout>
-      {isDesktop && (
-        <SlideInSheet
-          open={showTransportSheet}
-          onClose={() => setShowTransportSheet(false)}
-          title="Leveransalternativ"
-        >
-          <TransportationOptions
-            data={data}
-            loading={loading}
-            setTransportationLabel={setTransportationLabel}
-            onApply={onApplyTranportationOptions}
+      {isDesktop ? (
+        <>
+          <SlideInSheet
+            open={showTransportSheet}
+            onClose={() => setShowTransportSheet(false)}
+            title="Leveransalternativ"
+          >
+            <TransportationOptions
+              data={data}
+              loading={loading}
+              setTransportationLabel={setTransportationLabel}
+              onApply={onApplyTranportationOptions}
+            />
+          </SlideInSheet>
+          <FilterSlideSheet
+            open={showFilter}
+            onClose={() => setShowFilter(false)}
           />
-        </SlideInSheet>
-      )}
-      {!isDesktop && (
+        </>
+      ) : (
         <BottomSheet
           open={showTransportSheet}
           onDismiss={() => setShowTransportSheet(false)}
@@ -332,12 +337,6 @@ export default function Products() {
             onApply={onApplyTranportationOptions}
           />
         </BottomSheet>
-      )}
-      {isDesktop && (
-        <FilterSlideSheet
-          open={showFilter}
-          onClose={() => setShowFilter(false)}
-        />
       )}
     </>
   );
