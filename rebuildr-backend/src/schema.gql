@@ -832,6 +832,7 @@ type Mutation {
   deleteAccount: User!
   onboardSellerAccount: OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
+  signupNewsLetter(email: String!): Boolean!
   cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!

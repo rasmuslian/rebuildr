@@ -6,7 +6,7 @@ export interface MediaBreakPoints {
   mobile: number;
 }
 
-const mediaBreakPoints: MediaBreakPoints = {
+export const mediaBreakPoints: MediaBreakPoints = {
   desktop: 1280,
   mobile: 360,
 };

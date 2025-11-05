@@ -3,6 +3,7 @@ import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Redirect, Stack } from "expo-router";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { ComingSoon } from "@components/coming-soon/coming-soon";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -20,6 +21,10 @@ export default function AppLayout() {
       isLoggedIn: isLoggedInVar(),
     },
   });
+
+  if (process.env.EXPO_PUBLIC_SHOW_COMING_SOON) {
+    return <ComingSoon />;
+  }
 
   if (data?.me?.registrationStatus === RegisterStatusEnum.Details) {
     return <Redirect href="/sign-up/details" />;

@@ -98,31 +98,35 @@ const RootLayout = () => {
         />
       )}
       <ApolloProvider client={client}>
-        <LoginModalContext.Provider
-          value={{
-            visible: showLoginModal,
-            setVisible: setShowLoginModal,
-          }}
-        >
-          <SellProductProdiver>
-            <EditProductProdiver>
-              <GestureHandlerRootView>
-                <BottomSheetModalProvider>
-                  <ScreenDimensionsProvider>
-                    <SearchDropdownContextProvider>
-                      <Slot />
-                      <HamburgerMenu />
-                      <LoginModalView />
-                      <SellProductBottomSheet />
-                      <EditProductBottomSheet />
-                      <SearchDropdown />
-                    </SearchDropdownContextProvider>
-                  </ScreenDimensionsProvider>
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </EditProductProdiver>
-          </SellProductProdiver>
-        </LoginModalContext.Provider>
+        {process.env.EXPO_PUBLIC_SHOW_COMING_SOON ? (
+          <Slot />
+        ) : (
+          <LoginModalContext.Provider
+            value={{
+              visible: showLoginModal,
+              setVisible: setShowLoginModal,
+            }}
+          >
+            <SellProductProdiver>
+              <EditProductProdiver>
+                <GestureHandlerRootView>
+                  <BottomSheetModalProvider>
+                    <ScreenDimensionsProvider>
+                      <SearchDropdownContextProvider>
+                        <Slot />
+                        <HamburgerMenu />
+                        <LoginModalView />
+                        <SellProductBottomSheet />
+                        <EditProductBottomSheet />
+                        <SearchDropdown />
+                      </SearchDropdownContextProvider>
+                    </ScreenDimensionsProvider>
+                  </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+              </EditProductProdiver>
+            </SellProductProdiver>
+          </LoginModalContext.Provider>
+        )}
       </ApolloProvider>
     </>
   );
