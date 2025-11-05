@@ -7,9 +7,14 @@ import HeroDesktop from "./hero.desktop";
 type Props = {
   scrollY: Animated.Value;
   showFor?: "mobile" | "desktop";
+  showSearchBar?: boolean;
 };
 
-export default function Hero({ scrollY, showFor = "mobile" }: Props) {
+export default function Hero({
+  scrollY,
+  showFor = "mobile",
+  showSearchBar,
+}: Props) {
   const { isMobile, isDesktop } = useScreenType();
   if (isMobile && showFor === "mobile") {
     return (
@@ -22,9 +27,9 @@ export default function Hero({ scrollY, showFor = "mobile" }: Props) {
   } else if (isDesktop && showFor === "desktop") {
     return (
       <HeroDesktop
-        scrollY={scrollY}
         headline="Sveriges marknadsplats för återbrukat byggmaterial"
         searchBar="Vad letar du efter?"
+        showSearchBar={showSearchBar}
       />
     );
   } else {

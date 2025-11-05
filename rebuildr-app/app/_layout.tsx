@@ -27,6 +27,8 @@ import { SellProductProdiver } from "@context/sell-product-context";
 import { EditProductBottomSheet } from "@components/edit-product/edit-product-bottom-sheet";
 import { EditProductProdiver } from "@context/edit-product-context";
 import { isIOSDevice } from "@/utils/deviceInfo";
+import { SearchDropdown } from "@components/search/search-dropdown";
+import { SearchDropdownContextProvider } from "@context/search-dropdown-context";
 require("dayjs/locale/sv");
 
 dayjs.locale("sv");
@@ -43,7 +45,6 @@ const RootLayout = () => {
 
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
   const [showLoginModal, setShowLoginModal] = useState(false);
-
 
   useEffect(() => {
     initializeApollo()
@@ -88,11 +89,14 @@ const RootLayout = () => {
               <GestureHandlerRootView>
                 <BottomSheetModalProvider>
                   <ScreenDimensionsProvider>
-                    <Slot />
-                    <HamburgerMenu />
-                    <LoginModalView />
-                    <SellProductBottomSheet />
-                    <EditProductBottomSheet />
+                    <SearchDropdownContextProvider>
+                      <Slot />
+                      <HamburgerMenu />
+                      <LoginModalView />
+                      <SellProductBottomSheet />
+                      <EditProductBottomSheet />
+                      <SearchDropdown />
+                    </SearchDropdownContextProvider>
                   </ScreenDimensionsProvider>
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>

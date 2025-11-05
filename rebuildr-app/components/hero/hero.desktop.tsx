@@ -1,17 +1,20 @@
-import { View, ImageBackground, Animated } from "react-native";
+import { View, ImageBackground } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Headline } from "@components/typography/text";
 import { SearchBar } from "@components/search/search-bar";
 import React from "react";
-import { router } from "expo-router";
 
 type Props = {
-  scrollY: Animated.Value;
   headline: string;
   searchBar: string;
+  showSearchBar?: boolean;
 };
 
-export default function HeroDesktop({ scrollY, headline, searchBar }: Props) {
+export default function HeroDesktop({
+  headline,
+  searchBar,
+  showSearchBar,
+}: Props) {
   const colors = useThemeColor();
 
   return (
@@ -45,7 +48,8 @@ export default function HeroDesktop({ scrollY, headline, searchBar }: Props) {
         <SearchBar
           style={{ borderBottomWidth: 0, width: 633, paddingVertical: 0 }}
           placeholder={searchBar}
-          onFocus={() => router.navigate("/(app)/(tabs)/search")}
+          visible={showSearchBar}
+          searchOnSubmit
         />
       </View>
     </ImageBackground>

@@ -95,8 +95,9 @@ export default function TopBarDesktop({
             }}
           >
             <SearchBar
+              visible={showSearchBar}
+              searchOnSubmit
               placeholder="Vad letar du efter?"
-              onFocus={() => router.navigate("/(app)/(tabs)/search")}
               style={{
                 borderBottomWidth: 0,
                 width: 320,
