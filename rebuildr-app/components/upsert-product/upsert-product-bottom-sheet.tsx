@@ -24,6 +24,7 @@ import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { measurementKeys } from "@constants/measurements";
 import { Button } from "@components/buttons/button";
+import * as Sentry from "@sentry/react-native";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -375,9 +376,14 @@ export const UpsertProductBottomSheet = ({
           ];
         }
         if (mediaPromises.length) {
-          setUploadingMedia(true);
-          await Promise.all(mediaPromises);
-          setUploadingMedia(false);
+          try {
+            setUploadingMedia(true);
+            await Promise.all(mediaPromises);
+          } catch (e) {
+            Sentry.captureException(e);
+          } finally {
+            setUploadingMedia(false);
+          }
         }
         if (published) {
           onFinish();
