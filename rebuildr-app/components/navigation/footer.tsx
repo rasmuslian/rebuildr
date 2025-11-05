@@ -49,13 +49,15 @@ export default function Footer() {
         paddingHorizontal: isDesktop
           ? horizontalPadding.desktop
           : horizontalPadding.mobile,
-        paddingVertical: 24,
+        paddingBottom: 24,
+        paddingTop: isDesktop ? 48 : 24,
       }}
     >
       <FlatList
+        key={isDesktop ? "desktop" : "mobile"}
         data={footerSections}
         keyExtractor={(item) => item.title}
-        numColumns={2}
+        numColumns={isDesktop ? 5 : 2}
         columnWrapperStyle={{ justifyContent: "space-between" }}
         renderItem={({ index, item: { articleFooterSections, title } }) => {
           const itemsInLastRow = footerSections.length % 2 || 2;
