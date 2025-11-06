@@ -327,7 +327,9 @@ export const UpsertProductBottomSheet = ({
 
           //transportation
           pickupEnabled: product.pickupEnabled,
-          location: product.location,
+          location: product.location
+            ? { lat: product.location.lat, lng: product.location.lng }
+            : undefined,
           shippingPriceIds: product.shippingPrices.map((sp) => sp.id),
           deliveryRadius: product.deliveryRadius,
           deliveryPrice: product.deliveryPrice,
