@@ -23,7 +23,7 @@ const meterOptions: OptionsType = {
 };
 const kgOptions: OptionsType = {
   KG: {
-    name: "kg/m",
+    name: "kg",
     conversion: 1,
   },
 };
