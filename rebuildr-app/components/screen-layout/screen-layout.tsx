@@ -71,6 +71,7 @@ export const ScreenLayout = ({
             scrollRef.current?.scrollToEnd({ animated: false });
           }
         }}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
         <View
           style={[
