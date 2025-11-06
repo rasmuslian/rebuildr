@@ -20,8 +20,13 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import { CreatePassword } from "./create-password";
+import {
+  SCREEN_BOTTOM_MARGIN,
+  SCREEN_TOP_MARGIN,
+} from "@components/screen-layout/screen-layout";
+import { useScreenType } from "@hooks/useScreenType";
 
 const DETAILS_QUERY = gql`
   query DetailsQuery {
@@ -56,6 +61,8 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
   const [createBusiness, setCreateBusiness] = useState(false);
 
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
+  const { height: screenHeight } = useWindowDimensions();
 
   const { data } = useQuery<DetailsQueryQuery>(DETAILS_QUERY);
   const [updateDetails, { data: updateDetailsData, reset, loading }] =
@@ -107,7 +114,15 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
 
   return (
     <>
-      <View style={{ flex: 1 }}>
+      <View
+        style={[{
+            flex: 1,
+          },
+          isDesktop && {
+            minHeight: screenHeight - SCREEN_TOP_MARGIN - SCREEN_BOTTOM_MARGIN,
+          },
+        ]}
+      >
         <View
           style={{
             flexDirection: "row",
@@ -131,7 +146,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
           style={{
             borderBottomWidth: 1,
             borderColor: colors.dividers.neutral,
-            paddingBottom: 16,
+            paddingVertical: 16,
           }}
         >
           <View
@@ -323,15 +338,30 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
             </View>
           </View>
         )}
+        {isDesktop && (
+          <>
+            <View style={{ flex: 1 }} />
+            <Button
+              label="Fortsätt"
+              onPress={() => {
+                onProceed();
+              }}
+              disabled={!canContinue()}
+              style={{ marginTop: 24 }}
+            />
+          </>
+        )}
       </View>
-      <Button
-        label="Fortsätt"
-        onPress={() => {
-          onProceed();
-        }}
-        disabled={!canContinue()}
-        style={{ marginTop: 24 }}
-      />
+      {!isDesktop && (
+        <Button
+          label="Fortsätt"
+          onPress={() => {
+            onProceed();
+          }}
+          disabled={!canContinue()}
+          style={{ marginTop: 24 }}
+        />
+      )}
     </>
   );
 };

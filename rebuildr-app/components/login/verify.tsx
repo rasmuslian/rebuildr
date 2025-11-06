@@ -12,6 +12,7 @@ import { textStyles } from "@components/typography/typeface";
 import { ColorTokens } from "@constants/colors";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { LoginModalContext } from "@context/loginModalContext";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -52,6 +53,7 @@ type Props = {
 export const Verify = ({ email, onSuccess }: Props) => {
   const [code, setCode] = useState("");
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const { setVisible } = useContext(LoginModalContext);
   const cellCount = 6;
   const ref = useBlurOnFulfill({ value: code, cellCount });
@@ -59,7 +61,7 @@ export const Verify = ({ email, onSuccess }: Props) => {
     value: code,
     setValue: setCode,
   });
-  const styles = Style(colors);
+  const styles = Style(colors, isDesktop);
 
   const [verifyEmail, { error, reset }] = useMutation<
     VerifyEmailMutation,
@@ -153,21 +155,18 @@ export const Verify = ({ email, onSuccess }: Props) => {
           />
           <Body size="small" style={{ marginTop: 12 }}>
             Om du inte fått koden inom några minuter,{" "}
-            <Pressable
+            <Body
+              size="small"
+              style={{
+                textDecorationLine: "underline",
+                textDecorationColor: colors.text.link,
+              }}
               onPress={() =>
                 resendVerificationEmail({ variables: { input: { email } } })
               }
             >
-              <Body
-                size="small"
-                style={{
-                  textDecorationLine: "underline",
-                  textDecorationColor: colors.text.link,
-                }}
-              >
-                klicka här för att skicka en ny
-              </Body>
-            </Pressable>
+              klicka här för att skicka en ny
+            </Body>
           </Body>
         </View>
         <Button label="Fortsätt" onPress={() => verifyEmail()} />
@@ -176,7 +175,7 @@ export const Verify = ({ email, onSuccess }: Props) => {
   );
 };
 
-const Style = (colors: ColorTokens) =>
+const Style = (colors: ColorTokens, isDesktop: boolean) =>
   StyleSheet.create({
     codeFieldRoot: { marginVertical: 4 },
     cell: {
@@ -189,7 +188,7 @@ const Style = (colors: ColorTokens) =>
       backgroundColor: colors.background.neutral,
       borderRadius: borderRadius.small,
       height: 40,
-      width: 47,
+      width: isDesktop ? 57 : 47,
       ...textStyles.body["medium"],
       color: colors.text.primaryDark,
     },
