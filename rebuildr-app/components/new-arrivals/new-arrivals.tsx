@@ -89,7 +89,7 @@ export const NewArrivals = () => {
             lng: location?.longitude,
           },
         },
-        limit: 10,
+        limit: isDesktop ? 4 : 10,
         offset: 0,
         isLoggedIn,
       },
