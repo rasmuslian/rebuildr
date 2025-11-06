@@ -1,6 +1,13 @@
 import { useQuery } from "@apollo/client";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import {
+  LocationObjectCoords,
+  PermissionStatus,
+  getForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+} from "expo-location";
+import { useState, useCallback } from "react";
 import {
   OrderProductsEnum,
   AdRowSectionQuery,
@@ -14,10 +21,23 @@ import {
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
-export const NewArrivals = () => {
+export const NearYou = () => {
   const { setSorting } = useFilterProduct();
+  const [location, setLocation] = useState<LocationObjectCoords | null>(null);
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const { status } = await getForegroundPermissionsAsync();
+        if (status !== PermissionStatus.GRANTED) return;
+
+        const { coords } = await getCurrentPositionAsync();
+        setLocation(coords);
+      })();
+    }, []),
+  );
 
   const { data } = useQuery<AdRowSectionQuery, AdRowSectionQueryVariables>(
     AD_ROW_SECTION,
@@ -25,7 +45,11 @@ export const NewArrivals = () => {
       variables: {
         input: {
           excludeOwnProducts: true,
-          orderBy: OrderProductsEnum.Latest,
+          orderBy: OrderProductsEnum.Distance,
+          location: location && {
+            lat: location?.latitude,
+            lng: location?.longitude,
+          },
         },
         limit: isDesktop ? 4 : 10,
         offset: 0,
@@ -34,6 +58,8 @@ export const NewArrivals = () => {
     },
   );
 
+  if (!location) return null;
+
   if (!data) {
     return <LoadingSpinner />;
   }
@@ -41,9 +67,9 @@ export const NewArrivals = () => {
   return (
     <AdRowSection
       data={data}
-      title="Nyinkomna varor"
+      title="Varor nära dig"
       onPress={() => {
-        setSorting(OrderProductsEnum.Latest, true);
+        setSorting(OrderProductsEnum.Distance, true);
         router.navigate("/(app)/(tabs)/search/products");
       }}
     />

@@ -13,6 +13,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { SearchDropdownContext } from "@context/search-dropdown-context";
+import { NearYou } from "@components/near-you/near-you";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -80,6 +81,7 @@ export default function Landing() {
         >
           <RootCategoriesHorizontal />
           <NewArrivals />
+          <NearYou />
           <ForTheSeason />
           <SaleBanner />
           <RecommendedProducts
