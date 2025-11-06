@@ -17,8 +17,8 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { View } from "react-native";
 import { ProjectCard } from "@components/cards/project-card";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
@@ -171,11 +171,18 @@ export default function Profile() {
 
   const isMyProfile = data?.me ? data.me.id === data.user.id : false;
 
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, []),
+  );
+
   //-------- PRODUCTS FUNCTIONS --------------
   const {
     data: productsData,
     loading: productsLoading,
     fetchMore,
+    refetch,
   } = useQuery<ProfileProductsQuery, ProfileProductsQueryVariables>(
     PROFILE_PRODUCTS,
     {
