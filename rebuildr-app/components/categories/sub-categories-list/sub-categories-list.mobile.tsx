@@ -1,8 +1,6 @@
 import { View, TouchableOpacity, useWindowDimensions } from "react-native";
-import { useQuery } from "@apollo/client";
 import React from "react";
-import { SubCategoriesQuery, SubCategoriesQueryVariables } from "@/gql/graphql";
-import { SUB_CATEGORIES } from "@/queries";
+import { SubCategoriesQuery } from "@/gql/graphql";
 import { Display, Body, Label } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { useFilterProduct } from "@hooks/useFilterProduct";
@@ -10,25 +8,15 @@ import { router } from "expo-router";
 import { Avatar } from "@components/avatar/avatar";
 
 type Props = {
-  id: string;
+  category: SubCategoriesQuery["category"];
 };
 
-export function SubCategoriesList({ id }: Props) {
+export function SubCategoriesListMobile({ category }: Props) {
   const { setCategories } = useFilterProduct();
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 56) / 3;
 
-  const { data } = useQuery<SubCategoriesQuery, SubCategoriesQueryVariables>(
-    SUB_CATEGORIES,
-    {
-      variables: {
-        input: { id },
-      },
-    },
-  );
-
-  const category = data?.category;
-  const subCategories = data?.category.children ?? [];
+  const subCategories = category.children ?? [];
 
   return (
     <View style={{ marginBottom: 24, gap: 24 }}>
@@ -46,7 +34,7 @@ export function SubCategoriesList({ id }: Props) {
           display: subCategories.length > 1 ? "flex" : "none",
         }}
       >
-        {subCategories.map((c) => (
+        {[...subCategories, ...subCategories].map((c) => (
           <TouchableOpacity
             key={c.id}
             style={{
