@@ -99,7 +99,9 @@ const RootLayout = () => {
       )}
       <ApolloProvider client={client}>
         {process.env.EXPO_PUBLIC_SHOW_COMING_SOON ? (
-          <Slot />
+          <ScreenDimensionsProvider>
+            <Slot />
+          </ScreenDimensionsProvider>
         ) : (
           <LoginModalContext.Provider
             value={{

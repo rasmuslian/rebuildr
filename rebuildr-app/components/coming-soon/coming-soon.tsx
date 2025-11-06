@@ -1,7 +1,7 @@
 import { Body, Display } from "@components/typography/text";
 import { ImageBackground } from "expo-image";
 import ComingSoonBackground from "@assets/images/coming-soon-background.png";
-import { useWindowDimensions, View } from "react-native";
+import { View } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Button } from "@components/buttons/button";
 import { useState } from "react";
@@ -14,7 +14,7 @@ import {
   ComingSoonSignUpMutationVariables,
 } from "@/gql/graphql";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { mediaBreakPoints } from "@context/screenDimensionsContext";
+import { useScreenType } from "@hooks/useScreenType";
 
 const COMING_SOON_SIGN_UP = gql`
   mutation ComingSoonSignUp($input: String!) {
@@ -26,8 +26,7 @@ export const ComingSoon = () => {
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState("");
   const colors = useThemeColor();
-  const { width } = useWindowDimensions();
-  const isDesktop = width > mediaBreakPoints.desktop;
+  const { isDesktop } = useScreenType();
 
   const [signup, { data, loading, error }] = useMutation<
     ComingSoonSignUpMutation,
@@ -36,17 +35,21 @@ export const ComingSoon = () => {
   return (
     <ImageBackground
       source={ComingSoonBackground}
-      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 16,
+      }}
     >
       <View
         style={{
-          gap: 40,
+          gap: isDesktop ? 40 : 24,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: colors.logo.background,
-          padding: isDesktop ? 32 : 16,
+          padding: 32,
           borderRadius: borderRadius.medium,
-          maxWidth: width - 16 * 2,
         }}
       >
         <Logo
