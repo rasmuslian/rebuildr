@@ -1,4 +1,10 @@
-import { TextInput, TextInputProps, View, ViewStyle } from "react-native";
+import {
+  TextInput,
+  TextInputProps,
+  TextInputSubmitEditingEvent,
+  View,
+  ViewStyle,
+} from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
@@ -8,9 +14,15 @@ import { Button, ButtonProps } from "@components/buttons/button";
 import { useContext, useEffect, useRef, useState } from "react";
 import { SearchDropdownContext } from "@context/search-dropdown-context";
 import { useScreenType } from "@hooks/useScreenType";
-import { DoSearchQuery, DoSearchQueryVariables } from "@/gql/graphql";
-import { DO_SEARCH } from "@/app/(app)/(tabs)/search";
-import { useLazyQuery } from "@apollo/client";
+import {
+  CreateSearchResultMutation,
+  CreateSearchResultMutationVariables,
+  DoSearchQuery,
+  DoSearchQueryVariables,
+} from "@/gql/graphql";
+import { CREATE_SEARCH_RESULT, DO_SEARCH } from "@/app/(app)/(tabs)/search";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { router } from "expo-router";
 
 type Props = {
   visible?: boolean;
@@ -58,6 +70,11 @@ export const SearchBar = ({
     DoSearchQuery,
     DoSearchQueryVariables
   >(DO_SEARCH);
+
+  const [createSearchResult] = useMutation<
+    CreateSearchResultMutation,
+    CreateSearchResultMutationVariables
+  >(CREATE_SEARCH_RESULT);
 
   useEffect(() => {
     if (!visible) {
@@ -119,6 +136,18 @@ export const SearchBar = ({
     }
   };
 
+  const onSubmit = (event: TextInputSubmitEditingEvent) => {
+    const { text } = event.nativeEvent;
+    if (text) {
+      createSearchResult({ variables: { input: { searchString: text } } });
+    }
+    router.navigate({
+      pathname: "/search/products",
+      params: { searchString: text },
+    });
+    setShowDropdown(false);
+  };
+
   return (
     <View
       style={[
@@ -166,6 +195,7 @@ export const SearchBar = ({
           onChangeText={handleChange}
           onFocus={onFocus ?? openDropdown}
           onBlur={onBlur ?? closeDropdown}
+          onSubmitEditing={searchOnSubmit ? onSubmit : undefined}
           placeholder={placeholder}
           placeholderTextColor={colors.text.secondary}
           value={value}
