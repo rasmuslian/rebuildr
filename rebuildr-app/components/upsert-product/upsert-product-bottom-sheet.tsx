@@ -25,6 +25,7 @@ import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { measurementKeys } from "@constants/measurements";
 import { Button } from "@components/buttons/button";
 import * as Sentry from "@sentry/react-native";
+import { Body } from "@components/typography/text";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -140,7 +141,7 @@ export const UpsertProductBottomSheet = ({
     UpsertProductBottomSheetQuery,
     UpsertProductBottomSheetQueryVariables
   >(UPSERT_PRODUCT_BOTTOM_SHEET, { variables: { input: { id: productId } } });
-  const [updateProduct, { loading: updatingProduct }] = useMutation<
+  const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT);
@@ -328,7 +329,9 @@ export const UpsertProductBottomSheet = ({
 
           //transportation
           pickupEnabled: product.pickupEnabled,
-          location: product.location,
+          location: product.location
+            ? { lat: product.location.lat, lng: product.location.lng }
+            : undefined,
           shippingPriceIds: product.shippingPrices.map((sp) => sp.id),
           deliveryRadius: product.deliveryRadius,
           deliveryPrice: product.deliveryPrice,
@@ -534,23 +537,34 @@ export const UpsertProductBottomSheet = ({
       return (
         <View
           style={{
-            gap: 8,
-            flexDirection: "row",
             paddingTop: 24,
+            gap: 6,
           }}
         >
-          <Button
-            label="Redigera"
-            type="tonal"
-            onPress={() => setStep("details")}
-            style={{ flex: 1 }}
-          />
-          <Button
-            label={mode === "create" ? "Publicera" : "Spara"}
-            onPress={onVerifyPreview}
-            style={{ flex: 1 }}
-            loading={updateDraftLoading}
-          />
+          {error && (
+            <Body size="small" color="error">
+              Något gick fel, vänligen gå tillbaka och se över alla fält
+            </Body>
+          )}
+          <View
+            style={{
+              gap: 8,
+              flexDirection: "row",
+            }}
+          >
+            <Button
+              label="Redigera"
+              type="tonal"
+              onPress={() => setStep("details")}
+              style={{ flex: 1 }}
+            />
+            <Button
+              label={mode === "create" ? "Publicera" : "Spara"}
+              onPress={onVerifyPreview}
+              style={{ flex: 1 }}
+              loading={updateDraftLoading}
+            />
+          </View>
         </View>
       );
     }

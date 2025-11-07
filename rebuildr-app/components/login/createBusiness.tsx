@@ -2,12 +2,22 @@ import { CreateBusinessQueryQuery } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
+import {
+  SCREEN_BOTTOM_MARGIN,
+  SCREEN_TOP_MARGIN,
+} from "@components/screen-layout/screen-layout";
 import { Display, Title } from "@components/typography/text";
 import { useCreateOrganization } from "@hooks/use-create-organization";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { useEffect } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 const CREATE_BUSINESS_QUERY = gql`
   query CreateBusinessQuery {
@@ -36,6 +46,8 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
     data: createOrganizationData,
   } = useCreateOrganization();
   const colors = useThemeColor();
+  const { height: screenHeight } = useWindowDimensions();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<CreateBusinessQueryQuery>(CREATE_BUSINESS_QUERY);
 
@@ -51,7 +63,15 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
 
   return (
     <>
-      <View style={{ flex: 1 }}>
+      <View
+        style={[{
+            flex: 1,
+          },
+          isDesktop && {
+            minHeight: screenHeight - SCREEN_TOP_MARGIN - SCREEN_BOTTOM_MARGIN,
+          },
+        ]}
+      >
         <View
           style={{
             flexDirection: "row",
@@ -99,14 +119,28 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
             },
           ]}
         />
+        {isDesktop && (
+          <>
+            <View style={{ flex: 1 }} />
+            <Button
+              label="Fortsätt"
+              onPress={create}
+              style={{ marginTop: 24 }}
+              disabled={!canCreate}
+              loading={createOrganizationLoading}
+            />
+          </>
+        )}
       </View>
-      <Button
-        label="Fortsätt"
-        onPress={create}
-        style={{ marginTop: 24 }}
-        disabled={!canCreate}
-        loading={createOrganizationLoading}
-      />
+      {!isDesktop && (
+        <Button
+          label="Fortsätt"
+          onPress={create}
+          style={{ marginTop: 24 }}
+          disabled={!canCreate}
+          loading={createOrganizationLoading}
+        />
+      )}
     </>
   );
 };

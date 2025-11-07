@@ -1,43 +1,34 @@
-import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { AdGrid } from "@components/ad/ad-grid";
-import { router } from "expo-router";
 import { View } from "react-native";
-import { LocationObjectCoords } from "expo-location";
-import { OrderProductsEnum, NewArrivalsQuery } from "@/gql/graphql";
+import { SectionHeader } from "@components/sections/section-header";
+import { AdRowSectionQuery } from "@/gql/graphql";
 
 type Props = {
-  data?: NewArrivalsQuery;
-  location?: LocationObjectCoords | null;
-  setSorting: (order: OrderProductsEnum, reset: boolean) => void;
+  data: AdRowSectionQuery;
+  onPress: () => void;
+  title: string;
   onToggleProductHeart: (args: {
     productId: string;
     likedByMe: boolean;
   }) => void;
 };
 
-export const NewArrivalsMobile = ({
+export const AdRowSectionDesktop = ({
   data,
-  location,
-  setSorting,
+  onPress,
+  title,
   onToggleProductHeart,
 }: Props) => {
   if (!data || data.products.products.length < 1) return null;
 
   return (
     <View style={{ paddingTop: 16, paddingBottom: 24 }}>
-      <HoriztalListSection
-        title={location ? "Nyinkomna varor nära dig" : "Nyinkomna varor"}
-        data={data?.products.products ?? []}
-        onPress={() => {
-          if (location) {
-            setSorting(OrderProductsEnum.Distance, true);
-          } else {
-            setSorting(OrderProductsEnum.Latest, true);
-          }
-          router.navigate("/(app)/(tabs)/search/products");
-        }}
-        renderItem={({ item }) => {
-          return (
+      <SectionHeader onPress={() => onPress()} buttonTitle="Visa alla">
+        {title}
+      </SectionHeader>
+      <View style={{ flexDirection: "row", gap: 16, paddingTop: 16 }}>
+        {data?.products?.products?.map((item) => (
+          <View style={{ flex: 1 }} key={item.id}>
             <AdGrid
               id={item.id}
               imageUri={item.primaryImage?.url}
@@ -56,10 +47,9 @@ export const NewArrivalsMobile = ({
                 });
               }}
             />
-          );
-        }}
-        visibleItems={3}
-      />
+          </View>
+        ))}
+      </View>
     </View>
   );
 };

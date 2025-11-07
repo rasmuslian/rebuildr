@@ -15,7 +15,6 @@ import { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
-import { SubCategoriesList } from "@components/categories/sub-categories-list";
 import { Header } from "@components/navigation/headers/header";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
@@ -28,6 +27,7 @@ import {
   TransportationFilterOptions,
   TransportationOptions,
 } from "@components/search/transportation-options";
+import { SubCategoriesList } from "@components/categories/sub-categories-list/sub-categories-list";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(

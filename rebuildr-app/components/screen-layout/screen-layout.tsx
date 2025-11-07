@@ -18,6 +18,9 @@ interface PageProps extends PropsWithChildren {
   onContentSizeChange?: "scrollToBottom" | "nothing";
 }
 
+export const SCREEN_TOP_MARGIN = 24;
+export const SCREEN_BOTTOM_MARGIN = 32;
+
 export const ScreenLayout = ({
   children,
   style,
@@ -68,6 +71,7 @@ export const ScreenLayout = ({
             scrollRef.current?.scrollToEnd({ animated: false });
           }
         }}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
         <View
           style={[
@@ -75,8 +79,8 @@ export const ScreenLayout = ({
               flexGrow: 1,
               backgroundColor: colors.background.neutral,
               paddingHorizontal,
-              marginBottom: 32,
-              marginTop: 24,
+              marginBottom: SCREEN_BOTTOM_MARGIN,
+              marginTop: SCREEN_TOP_MARGIN,
             },
             style,
           ]}
