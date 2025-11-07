@@ -11,7 +11,7 @@ const meterOptions: UnitOptions = {
 };
 
 const kgOptions: UnitOptions = {
-  KG: { name: "kg/m", conversion: 1 },
+  KG: { name: "kg", conversion: 1 },
 };
 
 export const measurementKeys = [
