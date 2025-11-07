@@ -15,9 +15,9 @@ import { Pressable } from "react-native-gesture-handler";
 import * as Linking from "expo-linking";
 import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
-import { AccordionSection } from "@components/sections/accordion-section";
 import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
+import { SectionHeader } from "@components/sections/section-header";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -155,7 +155,8 @@ export const MainContent = ({
         )}
       </View>
       <Divider />
-      <AccordionSection title="Fullständig specifikation">
+      <View style={{ gap: 16 }}>
+        <SectionHeader>Fullständig specifikation</SectionHeader>
         <View style={{ gap: 16 }}>
           <View style={{ gap: 4 }}>
             <Label size="medium">Kategori</Label>
@@ -236,7 +237,7 @@ export const MainContent = ({
             </View>
           )}
         </View>
-      </AccordionSection>
+      </View>
     </View>
   );
 };
