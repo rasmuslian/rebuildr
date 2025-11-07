@@ -9,24 +9,29 @@ import { useContext, useEffect, useRef } from "react";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
-import { TabLayoutQuery } from "@/gql/graphql";
+import { GetMeQuery, TabLayoutQuery } from "@/gql/graphql";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
 import { SearchBar } from "@components/search/search-bar";
 import { horizontalPadding } from "@constants/sizes";
+import { Avatar } from "@components/avatar/avatar";
+
+type Props = {
+  isLoggedIn: boolean;
+  theme: "light" | "dark";
+  showSearchBar?: boolean;
+  animateSearchBar?: boolean;
+  me?: GetMeQuery["me"];
+};
 
 export default function TopBarDesktop({
   isLoggedIn,
   theme,
   showSearchBar = true,
   animateSearchBar = false,
-}: {
-  isLoggedIn: boolean;
-  theme: "light" | "dark";
-  showSearchBar?: boolean;
-  animateSearchBar?: boolean;
-}) {
+  me,
+}: Props) {
   const colors = useThemeColor();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
@@ -35,28 +40,32 @@ export default function TopBarDesktop({
 
   const { data: tabData } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
-  const icons: { icon: IconType; onPress: () => void; badgeNumber?: number }[] =
-    [
-      {
-        icon: "user",
-        onPress: () => {
-          router.navigate("/(app)/account");
-        },
+  const icons: {
+    icon?: IconType;
+    onPress: () => void;
+    badgeNumber?: number;
+    avatarUrl?: string;
+  }[] = [
+    {
+      avatarUrl: me?.profilePicture?.url,
+      onPress: () => {
+        router.navigate("/(app)/account");
       },
-      {
-        icon: "heart",
-        onPress: () => {
-          router.navigate("/account/favorites");
-        },
+    },
+    {
+      icon: "heart",
+      onPress: () => {
+        router.navigate("/account/favorites");
       },
-      {
-        icon: "message",
-        onPress: () => {
-          router.navigate("/conversations");
-        },
-        badgeNumber: tabData?.getUnreadConversationsCount,
+    },
+    {
+      icon: "message",
+      onPress: () => {
+        router.navigate("/conversations");
       },
-    ];
+      badgeNumber: tabData?.getUnreadConversationsCount,
+    },
+  ];
 
   useEffect(() => {
     Animated.timing(searchOpacity, {
@@ -121,7 +130,7 @@ export default function TopBarDesktop({
         >
           <View style={{ flexDirection: "row" }}>
             {isLoggedIn &&
-              icons.map(({ icon, onPress, badgeNumber }, index) => (
+              icons.map(({ icon, onPress, badgeNumber, avatarUrl }, index) => (
                 <Pressable key={index} onPress={onPress}>
                   <View
                     style={{
@@ -132,11 +141,16 @@ export default function TopBarDesktop({
                       alignItems: "center",
                     }}
                   >
-                    <Icon
-                      icon={icon}
-                      size={18}
-                      color={theme === "dark" ? "primaryLight" : "primaryDark"}
-                    />
+                    {icon && (
+                      <Icon
+                        icon={icon}
+                        size={18}
+                        color={
+                          theme === "dark" ? "primaryLight" : "primaryDark"
+                        }
+                      />
+                    )}
+                    {avatarUrl && <Avatar imageUrl={avatarUrl} size={24} />}
                     {!!badgeNumber && (
                       <View style={{ position: "absolute", right: 2, top: 2 }}>
                         <Badge text={badgeNumber.toString()} theme={theme} />

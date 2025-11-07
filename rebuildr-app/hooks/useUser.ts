@@ -7,6 +7,10 @@ const GET_ME = gql`
     me {
       id
       username
+      profilePicture {
+        id
+        url
+      }
     }
   }
 `;

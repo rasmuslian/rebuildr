@@ -14,12 +14,12 @@ export default function TopBar({
   showSearchBar?: boolean;
   animateSearchBar?: boolean;
 }) {
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, me } = useUser();
   const { isMobile } = useScreenType();
 
   if (isMobile) {
     if (showFor.includes("mobile") === true) {
-      return <TopBarMobile isLoggedIn={isLoggedIn} />;
+      return <TopBarMobile isLoggedIn={isLoggedIn} me={me} />;
     }
     return null;
   }
@@ -30,6 +30,7 @@ export default function TopBar({
         theme={theme}
         showSearchBar={showSearchBar}
         animateSearchBar={animateSearchBar}
+        me={me}
       />
     );
   }
