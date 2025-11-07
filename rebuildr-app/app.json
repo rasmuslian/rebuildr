@@ -37,6 +37,14 @@
           "locationAlwaysAndWhenInUsePermission": "Tillåt $(PRODUCT_NAME) att använda din plats."
         }
       ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "rebuildr-app",
+          "organization": "swace-digital"
+        }
+      ],
       "expo-font",
       "expo-router"
     ]

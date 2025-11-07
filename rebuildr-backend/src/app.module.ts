@@ -97,6 +97,8 @@ import { ArticleFooerSectionService } from './services/article-footer-section.se
 import { ArticleFooterSectionResolver } from './resolvers/article-footer-section.resolver';
 import { StripWebhookController } from './controllers/stripe-webhook.controller';
 import { StripeService } from './services/stripe.service';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { APP_FILTER } from '@nestjs/core';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -105,6 +107,7 @@ export interface RequestType {
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     WinstonModule.forRoot(instanceLogger),
     ConfigModule.forRoot({
       envFilePath: ['.env.local.1p'],
@@ -208,6 +211,10 @@ export interface RequestType {
   ],
   controllers: [StripWebhookController],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
     JwtStrategy,
     AppService,
     AuthResolver,

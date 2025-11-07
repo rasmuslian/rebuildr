@@ -1,15 +1,33 @@
-import { NestFactory } from '@nestjs/core';
+// Import this first!
+import './instrument';
+
+import { BaseExceptionFilter, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
   WINSTON_MODULE_NEST_PROVIDER,
   WINSTON_MODULE_PROVIDER,
 } from 'nest-winston';
-import { Catch, Inject } from '@nestjs/common';
+
+import { ArgumentsHost, Catch, Inject } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
 import { ExternalExceptionFilter } from '@nestjs/core/exceptions/external-exception-filter';
 import { AuthenticationError } from '@nestjs/apollo';
 import { Logger } from 'winston';
 import * as bodyParser from 'body-parser';
+import { GqlContextType } from '@nestjs/graphql';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
+
+@Catch()
+export class SentryFilter extends BaseExceptionFilter {
+  @SentryExceptionCaptured()
+  catch(exception: Error, host: ArgumentsHost) {
+    if (host.getType<GqlContextType>() === 'graphql') {
+      new ExternalExceptionFilter().catch(exception, host);
+    } else {
+      super.catch(exception, host);
+    }
+  }
+}
 
 @Catch(GraphQLError)
 export class AuthenticationErrorFilter<
