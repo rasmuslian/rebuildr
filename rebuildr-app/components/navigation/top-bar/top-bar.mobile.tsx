@@ -1,43 +1,22 @@
 import { View, Pressable } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon, IconType } from "@icons/icon";
+import { Icon } from "@icons/icon";
 import { router } from "expo-router";
 import { LoginModalContext } from "@context/loginModalContext";
-import { useContext } from "react";
+import { PropsWithChildren, useContext } from "react";
 import { Logo } from "@components/logo/logo";
 import { showHamburgerMenuVar } from "@/apollo/config";
+import { GetMeQuery } from "@/gql/graphql";
+import { Avatar } from "@components/avatar/avatar";
 
-export default function TopBarMobile({ isLoggedIn }: { isLoggedIn: boolean }) {
+type Props = {
+  isLoggedIn: boolean;
+  me?: GetMeQuery["me"];
+};
+
+export default function TopBarMobile({ isLoggedIn, me }: Props) {
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
-
-  const icons: { icon: IconType; onPress: () => void }[] = [
-    {
-      icon: "heart",
-      onPress: () => {
-        if (isLoggedIn) {
-          router.navigate("/account/favorites");
-        } else {
-          setVisible(true);
-        }
-      },
-    },
-    {
-      icon: "user",
-      onPress: () => {
-        if (isLoggedIn) {
-          router.navigate("/(app)/account");
-        } else {
-          setVisible(true);
-        }
-      },
-    },
-    {
-      icon: "hamburger",
-      onPress: () => showHamburgerMenuVar(true),
-    },
-  ];
-
   return (
     <View
       style={{
@@ -56,26 +35,73 @@ export default function TopBarMobile({ isLoggedIn }: { isLoggedIn: boolean }) {
       </Pressable>
 
       <View style={{ display: "flex", flexDirection: "row" }}>
-        {icons.map(({ icon, onPress }, index) => (
-          <Pressable
-            key={index}
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              width: 40,
-              height: 40,
-            }}
-            onPress={onPress}
-          >
+        <ActionButton
+          onPress={() => {
+            if (isLoggedIn) {
+              router.navigate("/account/favorites");
+            } else {
+              setVisible(true);
+            }
+          }}
+        >
+          <Icon
+            icon="heart"
+            customColor={colors.logo.background}
+            width={18}
+            height={18}
+          />
+        </ActionButton>
+
+        <ActionButton
+          onPress={() => {
+            if (isLoggedIn) {
+              router.navigate("/(app)/account");
+            } else {
+              setVisible(true);
+            }
+          }}
+        >
+          {me ? (
+            <Avatar imageUrl={me?.profilePicture?.url} size={24} />
+          ) : (
             <Icon
-              icon={icon}
+              icon="user"
               customColor={colors.logo.background}
               width={18}
               height={18}
             />
-          </Pressable>
-        ))}
+          )}
+        </ActionButton>
+
+        <ActionButton onPress={() => showHamburgerMenuVar(true)}>
+          <Icon
+            icon="hamburger"
+            customColor={colors.logo.background}
+            width={18}
+            height={18}
+          />
+        </ActionButton>
       </View>
     </View>
   );
 }
+
+type ActionButtonProps = {
+  onPress: () => void;
+} & PropsWithChildren;
+
+const ActionButton = ({ onPress, children }: ActionButtonProps) => {
+  return (
+    <Pressable
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        width: 40,
+        height: 40,
+      }}
+      onPress={onPress}
+    >
+      {children}
+    </Pressable>
+  );
+};
