@@ -141,7 +141,7 @@ export default function TopBarDesktop({
                       alignItems: "center",
                     }}
                   >
-                    {icon && (
+                    {icon ? (
                       <Icon
                         icon={icon}
                         size={18}
@@ -149,8 +149,9 @@ export default function TopBarDesktop({
                           theme === "dark" ? "primaryLight" : "primaryDark"
                         }
                       />
+                    ) : (
+                      <Avatar imageUrl={avatarUrl} size={18} />
                     )}
-                    {avatarUrl && <Avatar imageUrl={avatarUrl} size={24} />}
                     {!!badgeNumber && (
                       <View style={{ position: "absolute", right: 2, top: 2 }}>
                         <Badge text={badgeNumber.toString()} theme={theme} />
