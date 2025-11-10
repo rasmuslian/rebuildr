@@ -4,7 +4,11 @@ import { View } from "react-native";
 import { Form } from "@components/forms/form";
 import { Icon } from "@icons/icon";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { maximumPrice, minimumPrice } from "@context/filter-product-context";
+import {
+  initialFilterProduct,
+  maximumPrice,
+  minimumPrice,
+} from "@context/filter-product-context";
 import { Slider } from "@components/slider/slider";
 
 export const PriceFilter = () => {
@@ -55,7 +59,10 @@ export const PriceFilter = () => {
   return (
     <FilterSection
       title="Pris"
-      initialOpen
+      initialOpen={
+        filter.price[0] !== initialFilterProduct.price[0] ||
+        filter.price[1] !== initialFilterProduct.price[1]
+      }
       collapsedText={`${filter.price[0]} kr - ${filter.price[1]} kr`}
     >
       <View style={{ gap: 24 }}>

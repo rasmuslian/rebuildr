@@ -17,7 +17,7 @@ export const ConditionFilter = () => {
   return (
     <FilterSection
       title="Skick"
-      initialOpen
+      initialOpen={!!filter.conditions}
       collapsedText={
         filter.conditions?.length
           ? `${conditions[filter.conditions[0]].name}` +

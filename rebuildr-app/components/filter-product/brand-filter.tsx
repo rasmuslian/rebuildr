@@ -70,7 +70,7 @@ export const BrandFilter = () => {
   return (
     <FilterSection
       title="Varumärke"
-      initialOpen
+      initialOpen={!!filter.brandIds}
       collapsedText={
         filter.brandIds?.length
           ? `${data.brands.find((brand) => filter.brandIds?.[0] === brand.id)?.name}` +
@@ -120,12 +120,9 @@ export const BrandFilter = () => {
               <FilterSection
                 title={letter}
                 key={letter}
-                initialOpen={
-                  i === 0 ||
-                  brandsSortedByLetter[letter].some((brand) =>
-                    filter.brandIds?.some((id) => brand.id === id),
-                  )
-                }
+                initialOpen={brandsSortedByLetter[letter].some((brand) =>
+                  filter.brandIds?.some((id) => brand.id === id),
+                )}
               >
                 {brandsSortedByLetter[letter]
                   .filter((brand) =>
