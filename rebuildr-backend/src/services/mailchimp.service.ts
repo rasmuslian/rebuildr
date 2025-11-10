@@ -2,6 +2,18 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import { BadUserInputException } from 'src/exceptions';
 
+interface MailchimpError extends Error {
+  status?: number;
+  response?: {
+    body?: {
+      type?: string;
+      title?: string;
+      status?: number;
+      detail?: string;
+    };
+  };
+}
+
 @Injectable()
 export class MailchimpService implements OnModuleInit {
   onModuleInit() {
@@ -23,8 +35,11 @@ export class MailchimpService implements OnModuleInit {
       });
 
       return true;
-    } catch (error: any) {
-      if (error.response?.body?.title === 'Member Exists') {
+    } catch (error) {
+      const err = error as MailchimpError;
+      const title = err.response?.body?.title;
+
+      if (title === 'Member Exists') {
         throw BadUserInputException('Email redan finns!');
       }
 
