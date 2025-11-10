@@ -327,8 +327,7 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   async signupNewsLetter(@Args('email') email: string) {
-    const listId = process.env.MAILCHIMP_NEWLETTER_AUDIENCE_ID;
-    return await this.mailchimpService.addSubscriber(listId, email);
+    return await this.mailchimpService.addSubscriberToNewsletterList(email);
   }
 
   @ResolveField(() => Boolean)
