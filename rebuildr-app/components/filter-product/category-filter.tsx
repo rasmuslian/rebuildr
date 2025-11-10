@@ -44,7 +44,7 @@ export const CategoryFilter = () => {
 
   return (
     <FilterSection
-      initialOpen={!isSelectedCategoryCategory}
+      initialOpen={!isSelectedCategoryCategory && !!filter.categoryIds}
       title="Underkategori"
       collapsedText={
         selectedCategories?.length
