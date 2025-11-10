@@ -33,6 +33,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { CaslAbilityFactory } from './casl/casl-ability.factory';
 import { GqlOptionalAuthGuard } from './auth/gql-optional-auth.guard';
 import { MailService } from './services/mail.service';
+import { MailchimpService } from './services/mailchimp.service';
 import { RolesGuard } from './auth/roles.guard';
 import { GeocodingResolver } from './resolvers/geocoding.resolver';
 import { Event } from './entities/event.entity';
@@ -233,6 +234,7 @@ export interface RequestType {
     CaslAbilityFactory,
     GqlOptionalAuthGuard,
     MailService,
+    MailchimpService,
     RolesGuard,
     GeocodingResolver,
     EventService,

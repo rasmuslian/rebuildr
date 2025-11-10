@@ -10,8 +10,6 @@ import { Purchase } from 'src/entities/purchase.entity';
 import { Product } from 'src/entities/product.entity';
 import { ReportPurchase } from 'src/entities/report-purchase.entity';
 
-import mailchimp from '@mailchimp/mailchimp_marketing';
-
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
   'utf8',
@@ -42,10 +40,6 @@ export class MailService {
   private baseUrl: string;
 
   constructor() {
-    mailchimp.setConfig({
-      apiKey: 'YOUR_API_KEY',
-      server: 'YOUR_SERVER_PREFIX',
-    });
     const mailgun = new Mailgun(FormData);
 
     this.mailgun = mailgun.client({
@@ -183,10 +177,5 @@ export class MailService {
     } catch {
       throw InternalServerException();
     }
-  }
-
-  async signupForComingSoonNewsLetter(email: string) {
-    //TODO: add email to mailchimp email list here
-    return true;
   }
 }

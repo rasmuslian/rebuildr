@@ -1,0 +1,34 @@
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import mailchimp from '@mailchimp/mailchimp_marketing';
+import { BadUserInputException } from 'src/exceptions';
+
+@Injectable()
+export class MailchimpService implements OnModuleInit {
+  onModuleInit() {
+    mailchimp.setConfig({
+      apiKey: process.env.MAILCHIMP_API_KEY,
+      server: process.env.MAILCHIMP_SERVER_PREFIX,
+    });
+  }
+
+  async ping() {
+    return mailchimp.ping.get();
+  }
+
+  async addSubscriber(listId: string, email: string): Promise<boolean> {
+    try {
+      await mailchimp.lists.addListMember(listId, {
+        email_address: email,
+        status: 'subscribed',
+      });
+
+      return true;
+    } catch (error: any) {
+      if (error.response?.body?.title === 'Member Exists') {
+        throw BadUserInputException('Email redan finns!');
+      }
+
+      throw BadUserInputException('Lyckades inte lägga till email!');
+    }
+  }
+}

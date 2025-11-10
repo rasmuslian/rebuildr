@@ -37,7 +37,7 @@ import { ProductService } from 'src/services/product.service';
 import { ProjectService } from 'src/services/project.service';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { MailService } from 'src/services/mail.service';
+import { MailchimpService } from 'src/services/mailchimp.service';
 
 export enum ProductsRecommendationSourceEnum {
   LIKES = 'LIKES',
@@ -235,7 +235,7 @@ export class UserResolver {
     private userService: UserService,
     private productService: ProductService,
     private projectService: ProjectService,
-    private maileService: MailService,
+    private mailchimpService: MailchimpService,
   ) {}
 
   @Query(() => User)
@@ -327,7 +327,8 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   async signupNewsLetter(@Args('email') email: string) {
-    return await this.maileService.signupForComingSoonNewsLetter(email);
+    const listId = process.env.MAILCHIMP_NEWLETTER_AUDIENCE_ID;
+    return await this.mailchimpService.addSubscriber(listId, email);
   }
 
   @ResolveField(() => Boolean)

@@ -96,7 +96,7 @@ export const ComingSoon = () => {
                       placeholder: "Ange din e-post...",
                       onSubmitEditing: () =>
                         signup({ variables: { input: email } }),
-                      error: error && "Något gick fel",
+                      error: error?.message ?? undefined,
                     },
                   ]}
                 />
