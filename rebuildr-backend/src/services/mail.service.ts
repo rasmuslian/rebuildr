@@ -48,7 +48,7 @@ export class MailService {
       url: 'https://api.eu.mailgun.net',
     });
     this.baseUrl = process.env.WEB_BASE_URL;
-    this.from = 'Reuildr <hej@rebuildr.se>';
+    this.from = 'Reuildr <noreply@rebuildr.se>';
   }
 
   async sendVerifyEmail(input: { email: string; token: string }) {

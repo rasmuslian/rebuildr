@@ -668,6 +668,7 @@ export type Mutation = {
   setLikeProduct: Product;
   setLikeProject: Project;
   showProduct: Product;
+  signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   updateOrganizationUser: User;
   updateProduct: UpdateProductResponse;
@@ -910,6 +911,11 @@ export type MutationSetLikeProjectArgs = {
 
 export type MutationShowProductArgs = {
   input: ShowProductInput;
+};
+
+
+export type MutationSignupNewsLetterArgs = {
+  email: Scalars['String']['input'];
 };
 
 

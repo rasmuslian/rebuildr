@@ -5,10 +5,16 @@ type Props = {
   width: number;
   height: number;
   customColor?: string;
+  theme?: "dark" | "light";
 };
 
-export const Logo = ({ width, height, customColor }: Props) => {
-  const colors = useThemeColor();
+export const Logo = ({
+  width,
+  height,
+  customColor,
+  theme = "light",
+}: Props) => {
+  const colors = useThemeColor(theme);
 
   return (
     <Svg width={width} height={height} fill="none" viewBox="0 0 121 24">
