@@ -24,24 +24,46 @@ type Props = {
     productId: string;
   };
   myId: string;
+  active?: boolean;
+  onMessagePress?: (message: {
+    productId: string;
+    userId?: string;
+    key: number;
+  }) => void;
 };
 
-export const MessageRow = ({ otherUser, message, myId }: Props) => {
+export const MessageRow = ({
+  otherUser,
+  message,
+  myId,
+  active,
+  onMessagePress,
+}: Props) => {
   const colors = useThemeColor();
 
   const sendeIsMe = myId === message.sender.id;
 
+  const handlePress = () => {
+    if (onMessagePress) {
+      onMessagePress({
+        productId: message.productId,
+        userId: otherUser.id,
+        key: 0,
+      });
+    } else {
+      router.navigate({
+        pathname: "/conversations/[productId]/[userId]",
+        params: {
+          productId: message.productId,
+          userId: otherUser.id,
+        },
+      });
+    }
+  };
+
   return (
     <Pressable
-      onPress={() => {
-        router.navigate({
-          pathname: "/conversations/[productId]/[userId]",
-          params: {
-            productId: message.productId,
-            userId: otherUser.id,
-          },
-        });
-      }}
+      onPress={handlePress}
       style={[
         {
           flexDirection: "row",
@@ -57,7 +79,7 @@ export const MessageRow = ({ otherUser, message, myId }: Props) => {
             flex: 1,
             borderRadius: borderRadius.medium,
           },
-          message.readAt || sendeIsMe
+          message.readAt || sendeIsMe || active
             ? {
                 backgroundColor: colors.buttons.tonal.enabled,
                 paddingHorizontal: 17,

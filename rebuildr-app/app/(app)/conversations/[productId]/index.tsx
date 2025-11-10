@@ -5,7 +5,6 @@ import {
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { MessageRow } from "@components/messages/message-row";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router, useLocalSearchParams } from "expo-router";
@@ -13,8 +12,9 @@ import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
 import { AdList } from "@components/ad/ad-list";
+import { ProductConversationsList } from "@components/conversations/product-conversations-list";
 
-const CONVERSATIONS = gql`
+export const CONVERSATIONS = gql`
   query conversations($input: GetConversationsInput!) {
     getConversations(input: $input) {
       id
@@ -109,31 +109,7 @@ export default function ConversationsProduct() {
       }
     >
       <View style={{ gap: 16 }}>
-        {data.getConversations.map((conversation, i) => {
-          const otherUser =
-            data.me.id === conversation.sender.id
-              ? conversation.receiver
-              : conversation.sender;
-          return (
-            <MessageRow
-              key={i}
-              otherUser={{
-                id: otherUser.id,
-                userType: otherUser.type,
-                username: otherUser.username,
-                url: otherUser.profilePicture?.url,
-              }}
-              message={{
-                message: conversation.message,
-                sender: { id: conversation.sender.id },
-                createdAt: conversation.createdAt,
-                readAt: conversation.readAt,
-                productId: product.id,
-              }}
-              myId={data.me.id}
-            />
-          );
-        })}
+        <ProductConversationsList data={data} />
       </View>
     </ScreenLayout>
   );

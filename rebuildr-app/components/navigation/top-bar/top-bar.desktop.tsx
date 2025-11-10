@@ -1,7 +1,7 @@
 import { Logo } from "@components/logo/logo";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Pressable, View, Animated } from "react-native";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { showHamburgerMenuVar } from "@/apollo/config";
 import { Icon, IconType } from "@icons/icon";
 import { Button } from "@components/buttons/button";
@@ -33,6 +33,7 @@ export default function TopBarDesktop({
   me,
 }: Props) {
   const colors = useThemeColor();
+  const pathname = usePathname();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
 
@@ -44,6 +45,7 @@ export default function TopBarDesktop({
     icon?: IconType;
     onPress: () => void;
     badgeNumber?: number;
+    active: boolean;
     avatarUrl?: string;
   }[] = [
     {
@@ -51,12 +53,14 @@ export default function TopBarDesktop({
       onPress: () => {
         router.navigate("/(app)/account");
       },
+      active: pathname.startsWith("/account"),
     },
     {
       icon: "heart",
       onPress: () => {
         router.navigate("/account/favorites");
       },
+      active: pathname.startsWith("/account/favorites"),
     },
     {
       icon: "message",
@@ -64,6 +68,7 @@ export default function TopBarDesktop({
         router.navigate("/conversations");
       },
       badgeNumber: tabData?.getUnreadConversationsCount,
+      active: pathname.startsWith("/conversations"),
     },
   ];
 
@@ -130,36 +135,43 @@ export default function TopBarDesktop({
         >
           <View style={{ flexDirection: "row" }}>
             {isLoggedIn &&
-              icons.map(({ icon, onPress, badgeNumber, avatarUrl }, index) => (
-                <Pressable key={index} onPress={onPress}>
-                  <View
-                    style={{
-                      position: "relative",
-                      height: 40,
-                      width: 40,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    {icon ? (
-                      <Icon
-                        icon={icon}
-                        size={18}
-                        color={
-                          theme === "dark" ? "primaryLight" : "primaryDark"
-                        }
-                      />
-                    ) : (
-                      <Avatar imageUrl={avatarUrl} size={18} />
-                    )}
-                    {!!badgeNumber && (
-                      <View style={{ position: "absolute", right: 2, top: 2 }}>
-                        <Badge text={badgeNumber.toString()} theme={theme} />
-                      </View>
-                    )}
-                  </View>
-                </Pressable>
-              ))}
+              icons.map(({ icon, onPress, badgeNumber, avatarUrl, active }, index) => (
+                  <Pressable key={index} onPress={onPress}>
+                    <View
+                      style={{
+                        position: "relative",
+                        height: 40,
+                        width: 40,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor:
+                          theme === "light" && active
+                            ? colors.buttons.tonal.enabled
+                            : undefined,
+                        borderRadius: 12,
+                      }}
+                    >
+                      {icon ? (
+                        <Icon
+                          icon={icon}
+                          size={18}
+                          color={
+                            theme === "dark" ? "primaryLight" : "primaryDark"
+                          }
+                        />
+                      ) : (
+                        <Avatar imageUrl={avatarUrl} size={18} />
+                      )}
+                      {!!badgeNumber && (
+                        <View
+                          style={{ position: "absolute", right: 2, top: 2 }}
+                        >
+                          <Badge text={badgeNumber.toString()} theme={theme} />
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                ))}
           </View>
           <Button
             type={theme === "dark" ? "outlinedStroke" : "tonal"}

@@ -4,19 +4,11 @@ import {
   GetConversationsType,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { ProductMessageCard } from "@components/messages/product-message-card";
-import { Header } from "@components/navigation/headers/header";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { TabRail } from "@components/tabs/tab-rail";
-import { Body, Display, Headline } from "@components/typography/text";
 import { useState } from "react";
-import { View } from "react-native";
-import dayjs from "dayjs";
-import { router } from "expo-router";
-import { AccordionSection } from "@components/sections/accordion-section";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { useScreenType } from "@hooks/useScreenType";
+import { ConversationsMobile } from "@components/conversations/conversations.mobile";
+import { ConversationsDesktop } from "@components/conversations/conversations.desktop";
 
 const GET_CONVERSATIONS = gql`
   query getConversations($input: GetConversationsInput!) {
@@ -74,6 +66,7 @@ const GET_CONVERSATIONS = gql`
 
 export default function Conversations() {
   const [tab, setTab] = useState<"sell" | "buy">("sell");
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<
     GetConversationsQuery,
@@ -93,144 +86,32 @@ export default function Conversations() {
   const { totalUnread, nrUnreadBuy, nrUnreadSell, unread, read } =
     parseConversations(data, tab);
 
-  const renderCards = (
-    conversationsGroup: {
-      productId: string;
-      conversations: GetConversationsQuery["getConversations"];
-    }[],
-  ) => {
-    return conversationsGroup.map((conversationGroup, i) => {
-      const product = conversationGroup.conversations[0].product;
-      const sortedByLatest = conversationGroup.conversations.sort((a, b) =>
-        dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1,
-      );
-      const isMoreThanOneUser = sortedByLatest.length > 1;
-      const firstConversation = sortedByLatest[0];
-
-      return (
-        <ProductMessageCard
-          key={i}
-          myId={data.me.id}
-          adList={{
-            title: product.title,
-            status: product.status,
-            quantity: product.primaryQuantity ?? 0,
-            quantityUnit: product.primaryUnit ?? undefined,
-            condition: product.condition,
-            price: product.price,
-            imageUrl: product.primaryImage?.url,
-          }}
-          messages={sortedByLatest.map((conversation) => ({
-            sender: conversation.sender,
-            receiver: conversation.receiver,
-            message: conversation.message,
-            messageType: conversation.messageType,
-            createdAt: conversation.createdAt,
-            readAt: conversation.readAt,
-          }))}
-          onPress={() =>
-            //If there is only one user in the group, navigate directly to their conversation screen
-            !isMoreThanOneUser
-              ? router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: {
-                    productId: conversationGroup.productId,
-                    userId:
-                      firstConversation.sender.id === data.me.id
-                        ? firstConversation.receiver.id
-                        : firstConversation.sender.id,
-                  },
-                })
-              : router.navigate({
-                  pathname: "/conversations/[productId]",
-                  params: { productId: conversationGroup.productId },
-                })
-          }
-        />
-      );
-    });
-  };
+  if (isDesktop) {
+    return (
+      <ConversationsDesktop
+        totalUnread={totalUnread}
+        nrUnreadSell={nrUnreadSell}
+        nrUnreadBuy={nrUnreadBuy}
+        tab={tab}
+        setTab={setTab}
+        unread={unread}
+        read={read}
+        myId={data.me.id}
+      />
+    );
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <TopBar showFor={["desktop"]} theme="light" />
-      <ScreenLayout
-        headerComponent={<Header title="Inkorg" showBackButton={false} />}
-        style={{ gap: 24 }}
-      >
-        <Display size="small">
-          Du har {totalUnread} {totalUnread === 1 ? "oläst" : "olästa"}
-        </Display>
-        <TabRail
-          tabs={[
-            {
-              title: "Säljer",
-              onActivate: () => setTab("sell"),
-              active: tab === "sell",
-              ...(nrUnreadSell
-                ? {
-                    badge: {
-                      text: nrUnreadSell.toString(),
-                    },
-                  }
-                : {}),
-            },
-            {
-              title: "Köper",
-              onActivate: () => setTab("buy"),
-              active: tab === "buy",
-              ...(nrUnreadBuy
-                ? {
-                    badge: {
-                      text: nrUnreadBuy.toString(),
-                    },
-                  }
-                : {}),
-            },
-          ]}
-        />
-        <View>
-          <Headline size="small">
-            {tab === "buy"
-              ? `Köper: ${nrUnreadBuy} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`
-              : `Säljer: ${nrUnreadSell} ${nrUnreadSell === 1 ? "Oläst" : "Olästa"}`}
-          </Headline>
-          {unread.length ? (
-            <View style={{ marginTop: 24, gap: 16 }}>
-              {renderCards(unread)}
-            </View>
-          ) : (
-            <Body size="medium" color="secondary" style={{ marginTop: 2 }}>
-              Härligt! Du har läst alla meddelanden.
-            </Body>
-          )}
-        </View>
-        <Divider />
-        {read.length ? (
-          <AccordionSection
-            initialOpen
-            title={
-              tab === "buy"
-                ? "Köper: Alla meddelanden"
-                : "Säljer: Alla meddelanden"
-            }
-          >
-            <View style={{ gap: 16 }}>{renderCards(read)}</View>
-          </AccordionSection>
-        ) : (
-          <View style={{ gap: 2 }}>
-            <Headline size="small">
-              {tab === "buy"
-                ? "Köper: Alla meddelanden"
-                : "Säljer: Alla meddelanden"}
-            </Headline>
-            <Body size="medium" color="secondary">
-              Här var det tomt.
-            </Body>
-          </View>
-        )}
-      </ScreenLayout>
-    </View>
+    <ConversationsMobile
+      totalUnread={totalUnread}
+      nrUnreadSell={nrUnreadSell}
+      nrUnreadBuy={nrUnreadBuy}
+      tab={tab}
+      setTab={setTab}
+      unread={unread}
+      read={read}
+      myId={data.me.id}
+    />
   );
 }
 

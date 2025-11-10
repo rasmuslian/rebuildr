@@ -16,6 +16,7 @@ type Props = {
     readAt?: Date;
   }[];
   onPress: () => void;
+  selected?: boolean;
 };
 
 export const ProductMessageCard = ({
@@ -23,6 +24,7 @@ export const ProductMessageCard = ({
   myId,
   messages,
   onPress,
+  selected,
 }: Props) => {
   const nrOfUnread = messages.reduce(
     (acc, curr) => acc + (curr.sender.id !== myId && !curr.readAt ? 1 : 0),
@@ -42,7 +44,7 @@ export const ProductMessageCard = ({
   return (
     <ProductCard
       onPress={onPress}
-      active={nrOfUnread > 0}
+      active={selected !== undefined ? selected : nrOfUnread > 0}
       adListProps={adList}
       avatars={[
         {
