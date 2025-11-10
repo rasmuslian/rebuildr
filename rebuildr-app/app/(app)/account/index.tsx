@@ -20,6 +20,12 @@ export const MY_ACCOUNT = gql`
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
+      products {
+        id
+      }
+      projects {
+        id
+      }
       likedProducts {
         total
       }
@@ -93,14 +99,25 @@ export default function Account() {
       <View style={{ gap: 16 }}>
         <Divider />
         <LinkEntry
-          label="Kontoinställningar"
-          body="Hantera dina uppgifter och inställningar"
-          link="/account/settings"
+          label="Dina projekt"
+          body={(data.me.projects.length ?? 0) + " projekt"}
+          link={{
+            pathname: "/project-list/[userId]",
+            params: { userId: data.me.id },
+          }}
         />
         <LinkEntry
-          label="Dina favoriter"
-          body={(data.me.likedProducts?.total ?? 0) + " annonser"}
-          link="/account/favorites"
+          label="Dina annonser"
+          body={(data.me.products.length ?? 0) + " annonser"}
+          link={{
+            pathname: "/account/profile",
+            params: { userId: data.me.id },
+          }}
+        />
+        <LinkEntry
+          label="Dina försäljningar"
+          body={data.me.sales.length + " annonser"}
+          link="/account/sales"
         />
         <LinkEntry
           label="Dina köp"
@@ -108,9 +125,14 @@ export default function Account() {
           link="/account/purchases"
         />
         <LinkEntry
-          label="Dina försäljningar"
-          body={data.me.sales.length + " annonser"}
-          link="/account/sales"
+          label="Dina favoriter"
+          body={(data.me.likedProducts?.total ?? 0) + " annonser"}
+          link="/account/favorites"
+        />
+        <LinkEntry
+          label="Kontoinställningar"
+          body="Hantera dina uppgifter och inställningar"
+          link="/account/settings"
         />
       </View>
     </ScreenLayout>
