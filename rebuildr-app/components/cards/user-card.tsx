@@ -45,8 +45,12 @@ export const UserCard = ({
             marginTop: 4,
           }}
         >
-          {!!rating && <Icon icon="star" size={10} />}
-          <Body size="small">{rating}</Body>
+          {typeof rating === "number" && (
+            <>
+              <Icon icon="star" size={10} />
+              <Body size="small">{rating}</Body>
+            </>
+          )}
           {isBusiness && (
             <View>
               <Badge size="medium" text="Företag" />
