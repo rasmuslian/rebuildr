@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, useWindowDimensions } from "react-native";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
 import Placeholder from "@assets/images/placeholder.png";
 import { SectionHeader } from "@components/sections/section-header";
@@ -25,9 +25,12 @@ const FOR_THE_SEASON_CATEGORIES = gql`
   }
 `;
 
+const CATEGORY_WIDTH = 225;
+
 export const ForTheSeason = () => {
   const { setCategories } = useFilterProduct();
   const { isDesktop } = useScreenType();
+  const { width: screenWidth } = useWindowDimensions();
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -42,6 +45,10 @@ export const ForTheSeason = () => {
 
   const categories = data?.categories ?? [];
   if (categories.length < 1) return null;
+
+  const nrOfCategoriesShown = isDesktop
+    ? (screenWidth / CATEGORY_WIDTH) * 2
+    : categories.length;
 
   return (
     <View style={{ paddingVertical: 16, gap: 16 }}>
@@ -65,11 +72,11 @@ export const ForTheSeason = () => {
           flexDirection: "row",
           paddingHorizontal: 16,
           gap: isDesktop ? 12 : 8,
-          width: isDesktop ? "100%" : (categories.length / 2) * 200,
+          width: isDesktop ? "100%" : (categories.length / 2) * CATEGORY_WIDTH,
           flexWrap: "wrap",
         }}
       >
-        {categories.map((category, index) => (
+        {categories.slice(0, nrOfCategoriesShown).map((category, index) => (
           <ImageQuickLink
             key={index}
             onPress={() => {
