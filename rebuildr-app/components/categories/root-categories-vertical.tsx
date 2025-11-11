@@ -1,7 +1,6 @@
 import React from "react";
-import { View, FlatList, TouchableOpacity } from "react-native";
+import { View, FlatList, Pressable } from "react-native";
 import { useQuery } from "@apollo/client";
-import { Button } from "@components/buttons/button";
 import { Headline } from "@components/typography/text";
 import { router } from "expo-router";
 import {
@@ -12,14 +11,12 @@ import {
 import { ROOT_CATEGORIES } from "@/queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { Avatar } from "@components/avatar/avatar";
+import { Icon } from "@icons/icon";
 
 export type RootCategoriesVerticalCategory =
   RootCategoriesQuery["rootCategories"][number];
 
-type Props = {
-  onExpandCategory: (category: RootCategoriesVerticalCategory) => void;
-};
-export function RootCategoriesVertical({ onExpandCategory }: Props) {
+export function RootCategoriesVertical() {
   const { setCategories } = useFilterProduct();
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
     ROOT_CATEGORIES,
@@ -41,44 +38,46 @@ export function RootCategoriesVertical({ onExpandCategory }: Props) {
         data={categories}
         contentContainerStyle={{ gap: 16 }}
         renderItem={({ item: category }) => (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
+          <Pressable
+            onPress={() => {
+              setCategories({
+                categories: [category],
+                selectedCategoryId: category.id,
+              });
+              router.navigate("/(app)/(tabs)/search/products");
             }}
           >
-            <TouchableOpacity
-              onPress={() => {
-                setCategories({
-                  categories: [category],
-                  selectedCategoryId: category.id,
-                });
-                router.navigate("/(app)/(tabs)/search/products");
-              }}
+            <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 12,
-                flex: 1,
+                justifyContent: "space-between",
               }}
             >
-              <Avatar
-                imageUrl={category.image?.url}
-                size={60}
-                placeholder="CATEGORY"
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12,
+                  flex: 1,
+                }}
+              >
+                <Avatar
+                  imageUrl={category.image?.url}
+                  size={60}
+                  placeholder="CATEGORY"
+                />
+                <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
+                  {category.name}
+                </Headline>
+              </View>
+              <Icon
+                icon="chevronRight"
+                size={18}
+                style={{ paddingHorizontal: 8 }}
               />
-              <Headline size="small" ellipsizeMode="tail" numberOfLines={1}>
-                {category.name}
-              </Headline>
-            </TouchableOpacity>
-
-            <Button
-              icon="chevronRight"
-              type="text"
-              onPress={() => onExpandCategory(category)}
-            />
-          </View>
+            </View>
+          </Pressable>
         )}
       />
     </View>

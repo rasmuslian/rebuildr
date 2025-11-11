@@ -4,7 +4,6 @@ import {
   RootCategoriesVertical,
   RootCategoriesVerticalCategory,
 } from "@components/categories/root-categories-vertical";
-import { SubCategoriesVertical } from "@components/categories/sub-categories-vertical";
 import { Divider } from "@components/dividers/divider";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body } from "@components/typography/text";
@@ -41,13 +40,7 @@ export const HamburgerMenu = () => {
       title={category ? category.name : "Kategorier"}
       style={{ gap: 24 }}
     >
-      {category ? (
-        <SubCategoriesVertical id={category.id} />
-      ) : (
-        <RootCategoriesVertical
-          onExpandCategory={(category) => setCategory(category)}
-        />
-      )}
+      <RootCategoriesVertical />
       {!category && (
         <View style={{ marginTop: isDesktop ? 48 : 24 }}>
           <Divider />
