@@ -30,7 +30,7 @@ export const ConditionSection = ({
       <Display size="small" style={{ marginBottom: 24 }}>
         Ange skick
       </Display>
-      <View style={{ gap: 4, marginBottom: 24 }}>
+      <View style={{ gap: 4, marginBottom: 16 }}>
         <Title size="medium">Vad är skicket?</Title>
         <Body size="medium">
           Att ange rätt skick är viktigt för både dig och köparen. Det skapar
@@ -40,17 +40,7 @@ export const ConditionSection = ({
           </Body>
         </Body>
       </View>
-      <View style={{ gap: 16 }}>
-        <Slider
-          type="step"
-          sliderProps={{
-            values: values(),
-            value: condition,
-            onChange: (v) => setCondition(v),
-            onRelease: (v) => onSelect(v),
-            compareFunction: (v1, v2) => v1 === v2,
-          }}
-        />
+      <View style={{ gap: 24 }}>
         <View
           style={{
             backgroundColor: colors.background.secondary,
@@ -64,6 +54,16 @@ export const ConditionSection = ({
             {conditions[condition].description}
           </Body>
         </View>
+        <Slider
+          type="step"
+          sliderProps={{
+            values: values(),
+            value: condition,
+            onChange: (v) => setCondition(v),
+            onRelease: (v) => onSelect(v),
+            compareFunction: (v1, v2) => v1 === v2,
+          }}
+        />
       </View>
     </View>
   );
