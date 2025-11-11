@@ -1,5 +1,9 @@
 import { OrderProductsEnum, ProductConditionEnum } from "@/gql/graphql";
 
+export enum FilterProductCameFromEnum {
+  categories,
+}
+
 export const minimumPrice = 0;
 export const maximumPrice = 10000;
 //undefined means include all
@@ -12,6 +16,7 @@ export type Filter = {
   conditions?: ProductConditionEnum[];
   price: [number, number]; // lower, higher
   selectedCategoryId?: string;
+  cameFrom?: FilterProductCameFromEnum;
 };
 
 export const initialFilterProduct: Filter = {
@@ -22,4 +27,5 @@ export const initialFilterProduct: Filter = {
   conditions: undefined,
   price: [minimumPrice, maximumPrice],
   selectedCategoryId: undefined,
+  cameFrom: undefined,
 };

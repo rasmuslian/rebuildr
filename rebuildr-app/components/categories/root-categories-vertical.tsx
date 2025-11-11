@@ -12,6 +12,7 @@ import { ROOT_CATEGORIES } from "@/queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
+import { FilterProductCameFromEnum } from "@context/filter-product-context";
 
 export type RootCategoriesVerticalCategory =
   RootCategoriesQuery["rootCategories"][number];
@@ -43,6 +44,7 @@ export function RootCategoriesVertical() {
               setCategories({
                 categories: [category],
                 selectedCategoryId: category.id,
+                cameFrom: FilterProductCameFromEnum.categories,
               });
               router.navigate("/(app)/(tabs)/search/products");
             }}

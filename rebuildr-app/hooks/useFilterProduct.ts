@@ -1,7 +1,11 @@
 import { productFilterVar } from "@/apollo/config";
 import { Category, OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
-import { Filter, initialFilterProduct } from "@context/filter-product-context";
+import {
+  Filter,
+  FilterProductCameFromEnum,
+  initialFilterProduct,
+} from "@context/filter-product-context";
 
 export const useFilterProduct = () => {
   const filter = useReactiveVar(productFilterVar);
@@ -100,8 +104,9 @@ export const useFilterProduct = () => {
   const setCategories = (input: {
     categories: Pick<Category, "id" | "parentId">[];
     selectedCategoryId?: string;
+    cameFrom?: FilterProductCameFromEnum;
   }) => {
-    const { categories, selectedCategoryId } = input;
+    const { categories, selectedCategoryId, cameFrom } = input;
     const rootCategoryIds = categories.reduce(
       (acc: string[], curr) => [...acc, curr.parentId ?? curr.id],
       [],
@@ -114,6 +119,7 @@ export const useFilterProduct = () => {
       categoryIds,
       rootCategoryIds,
       selectedCategoryId: selectedCategoryId ?? undefined,
+      cameFrom,
     });
   };
 
