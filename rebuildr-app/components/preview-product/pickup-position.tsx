@@ -3,7 +3,10 @@ import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Map } from "@components/maps/map";
 import { useState } from "react";
-import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import { PickupPositionBottomSheet } from "./pickup-position-bottom-sheet";
+import { useScreenType } from "@hooks/useScreenType";
+import {  PickupPositionPopupContent } from "./pickup-position-popup-content";
+import { usePopupContext } from "@context/popup-context";
 
 type Props = {
   address: string;
@@ -12,6 +15,19 @@ type Props = {
 
 export const PickupPosition = ({ address, location }: Props) => {
   const [showMap, setShowMap] = useState(false);
+  const { setVisible, setContent } = usePopupContext();
+  const { isMobile } = useScreenType();
+
+  const handleOnPress = () => {
+    if (isMobile) {
+      setShowMap(true);
+    } else {
+      setContent(
+        <PickupPositionPopupContent address={address} location={location} />,
+      );
+      setVisible(true);
+    }
+  };
 
   return (
     <>
@@ -19,7 +35,7 @@ export const PickupPosition = ({ address, location }: Props) => {
         <Headline size="small" style={{ marginBottom: 16 }}>
           Plats för avhämtning
         </Headline>
-        <Pressable onPress={() => setShowMap(true)}>
+        <Pressable onPress={handleOnPress}>
           <Map
             lat={location.lat}
             lng={location.lng}
@@ -35,23 +51,13 @@ export const PickupPosition = ({ address, location }: Props) => {
           Ungefärligt område. Adress visas först när ett köp har genomförts.
         </Body>
       </View>
-      <BottomSheet
-        open={showMap}
-        onDismiss={() => setShowMap(false)}
-        name="map"
-        title="Plats för avhämtning"
-        screenHeight
-      >
-        <View>
-          <Map
-            lat={location.lat}
-            lng={location.lng}
-            interactive={false}
-            radius={5000}
-            height={700}
-          />
-        </View>
-      </BottomSheet>
+      {isMobile && (
+        <PickupPositionBottomSheet
+          open={showMap}
+          onDismiss={() => setShowMap(false)}
+          location={location}
+        />
+      )}
     </>
   );
 };

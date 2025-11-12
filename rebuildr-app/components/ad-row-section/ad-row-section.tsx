@@ -56,7 +56,8 @@ export const AdRowSection = ({ data, onPress, title }: Props) => {
   if (isDesktop) {
     return (
       <AdRowSectionDesktop
-        data={data}
+        products={data.products.products}
+        me={data.me}
         title={title}
         onPress={onPress}
         onToggleProductHeart={onToggleProductHeart}

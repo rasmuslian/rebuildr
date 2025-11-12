@@ -10,6 +10,7 @@ import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   productId: string;
@@ -67,6 +68,7 @@ const SIMILAR_PRODUCTS = gql`
 
 export function SimilarProducts({ productId }: Props) {
   const { setCategories } = useFilterProduct();
+  const { isDesktop } = useScreenType();
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
 
@@ -78,7 +80,7 @@ export function SimilarProducts({ productId }: Props) {
       input: {
         id: productId,
       },
-      limit: 10,
+      limit: isDesktop ? 8 : 10,
       offset: 0,
       isLoggedIn,
     },

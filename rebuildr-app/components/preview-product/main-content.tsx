@@ -17,7 +17,7 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
-import { SectionHeader } from "@components/sections/section-header";
+import { AccordionSection } from "@components/sections/accordion-section";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -27,6 +27,7 @@ type Props = {
   documents: { url: string; name?: string | null }[];
   myAddress?: string | null;
   sellerIsMe?: boolean;
+  actionSection?: React.ReactNode;
 };
 
 export const MainContent = ({
@@ -37,6 +38,7 @@ export const MainContent = ({
   myAddress,
   documents,
   sellerIsMe,
+  actionSection,
 }: Props) => {
   const approximatePlace = product.approximatePlace;
 
@@ -102,6 +104,7 @@ export const MainContent = ({
           </View>
         </View>
       )}
+      {actionSection}
       <Divider />
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
@@ -155,8 +158,7 @@ export const MainContent = ({
         )}
       </View>
       <Divider />
-      <View style={{ gap: 16 }}>
-        <SectionHeader>Fullständig specifikation</SectionHeader>
+      <AccordionSection title="Fullständig specifikation" initialOpen>
         <View style={{ gap: 16 }}>
           <View style={{ gap: 4 }}>
             <Label size="medium">Kategori</Label>
@@ -237,7 +239,7 @@ export const MainContent = ({
             </View>
           )}
         </View>
-      </View>
+      </AccordionSection>
     </View>
   );
 };

@@ -1,30 +1,29 @@
 import { Body, Label } from "@components/typography/text";
 import { View, Pressable } from "react-native";
-import { Image } from "expo-image";
-import { borderRadius } from "@constants/sizes";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
 import { useLikeProject } from "@hooks/useLikeProject";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { ProductStatusEnum } from "@/gql/graphql";
-import { ProductImageOverlay } from "@components/product/product-image-overlay";
-import { primitives } from "@constants/colors";
+import { ImageCardPart } from "./image-card-part";
+
+export type ProjectCardProject = {
+  id: string;
+  title: string;
+  projectPicture?: { url: string } | null;
+  products: {
+    id: string;
+    primaryImage?: { url: string } | null;
+    status: ProductStatusEnum;
+  }[];
+  likedByMe?: boolean | null;
+  user: { id: string; profilePicture?: { url: string } | null };
+};
 
 type Props = {
   showHeart: boolean;
-  project: {
-    id: string;
-    title: string;
-    projectPicture?: { url: string } | null;
-    products: {
-      id: string;
-      primaryImage?: { url: string } | null;
-      status: ProductStatusEnum;
-    }[];
-    likedByMe?: boolean | null;
-    user: { profilePicture?: { url: string } | null };
-  };
+  project: ProjectCardProject;
 };
 
 export const ProjectCard = ({ showHeart, project }: Props) => {
@@ -47,7 +46,11 @@ export const ProjectCard = ({ showHeart, project }: Props) => {
             gap: 4,
           }}
         >
-          <Product product={project.products[0]} position="left" />
+          <ImageCardPart
+            imageUrl={project.products[0]?.primaryImage?.url}
+            sold={project.products[0]?.status === ProductStatusEnum.Sold}
+            position="left"
+          />
           <View
             style={{
               justifyContent: "space-between",
@@ -56,8 +59,16 @@ export const ProjectCard = ({ showHeart, project }: Props) => {
               position: "relative",
             }}
           >
-            <Product product={project.products[1]} position="up" />
-            <Product product={project.products[2]} position="down" />
+            <ImageCardPart
+              imageUrl={project.products[1]?.primaryImage?.url}
+              sold={project.products[1]?.status === ProductStatusEnum.Sold}
+              position="up"
+            />
+            <ImageCardPart
+              imageUrl={project.products[2]?.primaryImage?.url}
+              sold={project.products[2]?.status === ProductStatusEnum.Sold}
+              position="down"
+            />
             {showHeart && isLoggedIn && (
               <Pressable
                 style={({ pressed }) => ({
@@ -109,62 +120,5 @@ export const ProjectCard = ({ showHeart, project }: Props) => {
         </View>
       </View>
     </Pressable>
-  );
-};
-
-type ProductProps = {
-  product?: Props["project"]["products"][number];
-  position: "left" | "up" | "down";
-};
-const Product = ({ product, position }: ProductProps) => {
-  let borderStyle = {};
-  if (position === "down") {
-    borderStyle = { borderBottomRightRadius: borderRadius.medium };
-  }
-  if (position === "up") {
-    borderStyle = { borderTopRightRadius: borderRadius.medium };
-  }
-  if (position === "left") {
-    borderStyle = {
-      borderTopLeftRadius: borderRadius.medium,
-      borderBottomLeftRadius: borderRadius.medium,
-    };
-  }
-  return (
-    <View
-      style={{
-        flex: position === "left" ? 2 : 1,
-        ...borderStyle,
-      }}
-    >
-      {product?.primaryImage?.url ? (
-        <Image
-          source={
-            product?.primaryImage?.url
-              ? {
-                  uri: product.primaryImage.url,
-                }
-              : undefined
-          }
-          style={{
-            aspectRatio: 1,
-            flexGrow: 1,
-            ...borderStyle,
-          }}
-        />
-      ) : (
-        <View
-          style={{
-            aspectRatio: 1,
-            height: "100%",
-            backgroundColor: primitives.neutrals200,
-            ...borderStyle,
-          }}
-        />
-      )}
-      {product?.status === ProductStatusEnum.Sold && (
-        <ProductImageOverlay text="Såld" style={borderStyle} />
-      )}
-    </View>
   );
 };

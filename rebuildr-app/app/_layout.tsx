@@ -30,6 +30,8 @@ import { isIOSDevice } from "@/utils/deviceInfo";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchDropdownContextProvider } from "@context/search-dropdown-context";
 import * as Sentry from '@sentry/react-native';
+import { PopupProvider } from "@context/popup-context";
+import { Popup } from "@components/popup/popup";
 
 Sentry.init({
   dsn: 'https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816',
@@ -109,24 +111,27 @@ const RootLayout = () => {
               setVisible: setShowLoginModal,
             }}
           >
-            <SellProductProdiver>
-              <EditProductProdiver>
-                <GestureHandlerRootView>
-                  <BottomSheetModalProvider>
-                    <ScreenDimensionsProvider>
-                      <SearchDropdownContextProvider>
-                        <Slot />
-                        <HamburgerMenu />
-                        <LoginModalView />
-                        <SellProductBottomSheet />
-                        <EditProductBottomSheet />
-                        <SearchDropdown />
-                      </SearchDropdownContextProvider>
-                    </ScreenDimensionsProvider>
-                  </BottomSheetModalProvider>
-                </GestureHandlerRootView>
-              </EditProductProdiver>
-            </SellProductProdiver>
+            <PopupProvider>
+              <SellProductProdiver>
+                <EditProductProdiver>
+                  <GestureHandlerRootView>
+                    <BottomSheetModalProvider>
+                      <ScreenDimensionsProvider>
+                        <SearchDropdownContextProvider>
+                          <Slot />
+                          <HamburgerMenu />
+                          <LoginModalView />
+                          <SellProductBottomSheet />
+                          <EditProductBottomSheet />
+                          <SearchDropdown />
+                          <Popup />
+                        </SearchDropdownContextProvider>
+                      </ScreenDimensionsProvider>
+                    </BottomSheetModalProvider>
+                  </GestureHandlerRootView>
+                </EditProductProdiver>
+              </SellProductProdiver>
+            </PopupProvider>
           </LoginModalContext.Provider>
         )}
       </ApolloProvider>

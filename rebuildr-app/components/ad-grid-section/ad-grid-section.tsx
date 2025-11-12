@@ -34,6 +34,7 @@ export const AdGridSection = ({
       {!!header && (
         <SectionHeader
           onPress={onHeaderPress ? () => onHeaderPress() : undefined}
+          buttonTitle={isDesktop ? "Visa alla" : undefined}
         >
           {header}
         </SectionHeader>

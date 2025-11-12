@@ -21,6 +21,7 @@ export type ButtonProps = {
   label?: string;
   loading?: boolean;
   theme?: "light" | "dark";
+  showShadow?: boolean;
 } & PressableProps;
 
 export const Button = ({
@@ -32,6 +33,7 @@ export const Button = ({
   loading,
   icon,
   theme = "light",
+  showShadow = false,
   ...rest
 }: ButtonProps) => {
   const colors = useThemeColor(theme);
@@ -53,7 +55,7 @@ export const Button = ({
       pressed: colors.buttons.filled.pressed,
       disabled: colors.buttons.filled.disabled,
       text: colors.text.primaryLight,
-      icon: "primaryLight",
+      icon: theme === "dark" ? "primaryDark" : "primaryLight",
     },
     danger: {
       enabled: colors.buttons.danger.enabled,
@@ -185,6 +187,9 @@ export const Button = ({
             borderWidth: 1,
             paddingHorizontal: 7,
             borderColor: colors.buttons.outlinedStroke[buttonState],
+          },
+          showShadow && {
+            boxShadow: "0px 4px 16px 0px rgba(0, 0, 0, 0.15)",
           },
           rest.style as StyleProp<ViewStyle>,
         ];
