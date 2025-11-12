@@ -25,7 +25,7 @@ export const PickupPosition = ({ address, location }: Props) => {
       setContent(
         <PickupPositionPopupContent address={address} location={location} />,
       );
-      setVisible(true);
+      setVisible("full");
     }
   };
 

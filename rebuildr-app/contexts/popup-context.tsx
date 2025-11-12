@@ -1,14 +1,16 @@
 import { createContext, PropsWithChildren, use, useState } from "react";
 
+type PopupVisible = "full" | "partial" | false;
+
 export const PopupContext = createContext<{
-  visible: boolean;
-  setVisible: (v: boolean) => void;
+  visible: PopupVisible;
+  setVisible: (v: PopupVisible) => void;
   content: React.ReactNode | null;
   setContent: (content: React.ReactNode | null) => void;
 } | null>(null);
 
 export const PopupProvider = ({ children }: PropsWithChildren) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState<PopupVisible>(false);
   const [content, setContent] = useState<React.ReactNode | null>(null);
   return (
     <PopupContext.Provider

@@ -125,7 +125,7 @@ export const ProductDesktop = ({
 
   const showAllImagesPopup = () => {
     setContent(<AllImagesPopupContent images={product.images} />);
-    setPopupVisible(true);
+    setPopupVisible("full");
   };
 
   const showMapPopup = () => {
@@ -136,7 +136,7 @@ export const ProductDesktop = ({
         location={location}
       />,
     );
-    setPopupVisible(true);
+    setPopupVisible("full");
   };
 
   const handleCategoryPress = (category: Pick<Category, "id" | "parentId">) => {
