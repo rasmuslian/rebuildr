@@ -225,6 +225,7 @@ export default function ConversationProduct() {
           />
           <TextInput
             value={message}
+            placeholder="Skriv ditt meddelande..."
             onChange={setMessage}
             onKeyPress={(e) => {
               if (e.nativeEvent.key === "Enter") {
