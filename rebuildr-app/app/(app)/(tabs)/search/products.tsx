@@ -28,6 +28,7 @@ import {
   TransportationOptions,
 } from "@components/search/transportation-options";
 import { SubCategoriesList } from "@components/categories/sub-categories-list/sub-categories-list";
+import { FilterProductCameFromEnum } from "@context/filter-product-context";
 
 const SEARCH_PRODUCTS_QUERY = gql`
   query SearchProducts(
@@ -188,7 +189,16 @@ export default function Products() {
             <TopBar showFor={["desktop"]} theme="light" />
           ) : (
             <Header
-              showBackButton={false}
+              showBackButton={
+                filter.cameFrom === FilterProductCameFromEnum.categories
+              }
+              onBack={
+                filter.cameFrom === FilterProductCameFromEnum.categories
+                  ? () => {
+                      router.navigate("/categories");
+                    }
+                  : undefined
+              }
               middle={
                 <>
                   <Icon
