@@ -5,14 +5,16 @@ export type Props = {} & Omit<TextInputProps, "trailing">;
 export const SearchInput = (props: Props) => {
   return (
     <TextInput
-      trailing={{
-        icon: props.value ? "X" : "search",
-        onPress: () => {
-          if (props.value) {
-            props.onChange?.("");
-          }
+      trailing={[
+        {
+          icon: props.value ? "X" : "search",
+          onPress: () => {
+            if (props.value) {
+              props.onChange?.("");
+            }
+          },
         },
-      }}
+      ]}
       {...props}
     />
   );

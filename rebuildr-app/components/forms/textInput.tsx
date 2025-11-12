@@ -15,7 +15,7 @@ export type Props = {
   disabled?: boolean;
   hideText?: boolean;
   inputType?: "default" | "numeric";
-  trailing?: { icon: IconType; onPress: () => void };
+  trailing?: { icon: IconType; onPress: () => void }[];
   onChange?: (t: string) => void;
   onBlur?: (t: string) => void;
 } & Omit<TextInputProps, "onChange" | "onBlur">;
@@ -126,10 +126,21 @@ export const TextInput = forwardRef(function TextInput(
         ]}
       />
       {props.trailing && (
-        <View style={{ position: "absolute", right: 8, top: 8 }}>
-          <Pressable onPress={props.trailing.onPress}>
-            <Icon icon={props.trailing.icon} />
-          </Pressable>
+        <View
+          style={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          {props.trailing.map((icon, i) => (
+            <Pressable onPress={icon.onPress} key={i}>
+              <Icon icon={icon.icon} />
+            </Pressable>
+          ))}
         </View>
       )}
     </Pressable>
