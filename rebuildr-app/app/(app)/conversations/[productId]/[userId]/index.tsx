@@ -18,6 +18,8 @@ import { ChatActionButtons } from "@components/conversations/chat-action-buttons
 import { Conversation } from "@components/conversations/conversation";
 import { useCreateMessage } from "@hooks/conversation/use-create-message";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
+import { useDocumentHandler } from "@hooks/use-document-handler";
+import { useImageHandler } from "@hooks/use-image-handler";
 
 export const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -30,6 +32,15 @@ export const CONVERSATION_PRODUCT = gql`
       message
       messageType
       createdAt
+      images {
+        id
+        url
+      }
+      documents {
+        id
+        name
+        url
+      }
       sender {
         id
         type
@@ -89,8 +100,9 @@ export const CONVERSATION_PRODUCT = gql`
 `;
 
 export default function ConversationProduct() {
-  const [text, setText] = useState("");
+  const [message, setMessage] = useState("");
   const [showReviewSheet, setShowReviewSheet] = useState(false);
+
   const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
@@ -98,6 +110,8 @@ export default function ConversationProduct() {
 
   const { loading: createMessageLoading, onCreateMessage } = useCreateMessage();
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
+  const { pickDocument } = useDocumentHandler();
+  const { pickImage } = useImageHandler();
 
   const { data, refetch } = useQuery<
     ConversationProductQuery,
@@ -127,18 +141,48 @@ export default function ConversationProduct() {
     return <LoadingSpinner />;
   }
 
-  const onSendMessage = (message: string) => {
-    if (createMessageLoading || !text) {
+  const onSendMessage = (input: {
+    message: string;
+    images?: { mimeType: string; file: File }[];
+    documents?: { mimeType: string; file: File; name: string }[];
+  }) => {
+    if (createMessageLoading) {
       return;
     }
+
     onCreateMessage({
       receiverId: otherUserId,
       productId,
-      message,
+      ...input,
       onCompleted: () => {
         refetch();
-        setText("");
+        setMessage("");
       },
+    });
+  };
+
+  const onPickImage = async () => {
+    const image = await pickImage();
+    if (!image) return;
+    onSendMessage({
+      message,
+      images: [{ mimeType: image.mimeType, file: image.file }],
+    });
+  };
+
+  const onPickDocument = async () => {
+    const document = await pickDocument();
+    if (!document) return;
+
+    onSendMessage({
+      message,
+      documents: [
+        {
+          mimeType: document.mimeType,
+          file: document.file,
+          name: document.name,
+        },
+      ],
     });
   };
 
@@ -180,13 +224,20 @@ export default function ConversationProduct() {
             onShowReview={() => setShowReviewSheet(true)}
           />
           <TextInput
-            value={text}
-            onChange={setText}
+            value={message}
+            onChange={setMessage}
             onKeyPress={(e) => {
               if (e.nativeEvent.key === "Enter") {
-                onSendMessage(text);
+                onSendMessage({ message });
               }
             }}
+            trailing={[
+              { icon: "paperclip", onPress: onPickDocument },
+              {
+                icon: "addPhoto",
+                onPress: onPickImage,
+              },
+            ]}
           />
         </View>
       }
