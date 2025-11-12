@@ -24,8 +24,6 @@ import { ProjectCard } from "@components/cards/project-card";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Icon, IconType } from "@icons/icon";
 import { TextInput } from "@components/forms/textInput";
-import { launchImageLibraryAsync } from "expo-image-picker";
-import { useOptimizeImage } from "@hooks/useOptimizeImage";
 import { ReviewsAccordion } from "@components/profile/reviews-accordion";
 import { numberToString } from "@/utils/number-strings";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
@@ -34,6 +32,7 @@ import { TabRail } from "@components/tabs/tab-rail";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useSellProductContext } from "@context/sell-product-context";
+import { useImageHandler } from "@hooks/use-image-handler";
 
 const PROFILE = gql`
   query Profile($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -151,12 +150,12 @@ export default function Profile() {
     file: File;
     size: number;
   }>();
-  const { optimizeImage } = useOptimizeImage();
   const [updateProfile, { loading: updateProfileLoading }] = useMutation<
     ProfileUpdateUserMutation,
     ProfileUpdateUserMutationVariables
   >(PROFILE_UPDATE_USER);
   const { setVisible } = useSellProductContext();
+  const { pickImage } = useImageHandler();
 
   const PRODUCTS_PER_PAGE = 10;
   const colors = useThemeColor();
@@ -224,33 +223,9 @@ export default function Profile() {
 
   //-------- EDIT PROFILE FUNCTIONS ---------------
   const onPickProfilePicture = async () => {
-    const result = await launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-
-    if (result?.canceled) return;
-    const image = result?.assets[0];
-    if (image) {
-      const uri = image.uri;
-      const {
-        mimeType,
-        file,
-        uri: optimizedImageUri,
-        size,
-      } = await optimizeImage(uri);
-
-      const _image = {
-        uri: optimizedImageUri,
-        mimeType,
-        file,
-        size,
-        name: image.fileName,
-      };
-
-      setProfilePicture(_image);
-    }
+    const image = await pickImage();
+    if (!image) return;
+    setProfilePicture(image);
   };
   const onSaveProfile = () => {
     if (updateProfileLoading) {

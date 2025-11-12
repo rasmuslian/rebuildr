@@ -1,7 +1,5 @@
 import { Body, Display, Title } from "@components/typography/text";
-import { useOptimizeImage } from "@hooks/useOptimizeImage";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { ImagePickerResult, launchImageLibraryAsync } from "expo-image-picker";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -11,6 +9,7 @@ import { borderRadius } from "@constants/sizes";
 import { primitives } from "@constants/colors";
 import { FileType } from "../upsert-product/types";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { useImageHandler } from "@hooks/use-image-handler";
 
 type Props = {
   images: FileType[];
@@ -20,40 +19,20 @@ type Props = {
 
 export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
   const colors = useThemeColor();
-  const { optimizeImage } = useOptimizeImage();
+  const { pickImage } = useImageHandler();
 
-  const pickImage = async () => {
-    const result = await launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
+  const onPickImage = async (index: number) => {
+    const image = await pickImage();
+    if (!image) return;
+    const _selectedImages = [...images];
 
-    onImagePicked(result, 0);
-  };
+    _selectedImages[index] = {
+      ...image,
+      index,
+      name: image.name,
+    };
 
-  const onImagePicked = async (result: ImagePickerResult, index: number) => {
-    if (result?.canceled) return;
-    const image = result?.assets[0];
-    if (image) {
-      const _selectedImages = [...images];
-      const uri = image.uri;
-      const optimizedImage = await optimizeImage(uri);
-      if (!optimizedImage) {
-        return;
-      }
-      const { mimeType, file, uri: optimizedImageUri, size } = optimizedImage;
-
-      _selectedImages[index] = {
-        uri: optimizedImageUri,
-        index,
-        mimeType,
-        file,
-        size,
-        name: image.fileName,
-      };
-      onUpdateImages(_selectedImages);
-    }
+    onUpdateImages(_selectedImages);
   };
 
   const onImageRemoved = async (index: number) => {
@@ -98,14 +77,14 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
           }).map((_, _index) => (
             <ImageUploadCard
               key={_index}
-              onImagePicked={(res) => onImagePicked(res, _index)}
+              onImagePicked={() => onPickImage(_index)}
               onImageRemoved={() => onImageRemoved(_index)}
               imageUri={images?.find(({ index }) => index === _index)?.uri}
             />
           ))}
         </ScrollView>
       ) : (
-        <Pressable onPress={() => pickImage()}>
+        <Pressable onPress={() => onPickImage(0)}>
           <View
             style={{
               borderRadius: borderRadius.medium,
@@ -160,7 +139,7 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
 
 type ImageCardProps = {
   imageUri?: string;
-  onImagePicked: (result: ImagePickerResult) => void;
+  onImagePicked: () => void;
   onImageRemoved?: () => void;
 };
 
@@ -171,22 +150,13 @@ export const ImageUploadCard = ({
 }: ImageCardProps) => {
   const [imageLoading, setImageLoading] = useState(false);
 
-  const pickImage = async () => {
-    const result = await launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-
-    onImagePicked(result);
-  };
   const colors = useThemeColor();
 
   const width = 140;
   const height = 140;
   return (
     <Pressable
-      onPress={pickImage}
+      onPress={onImagePicked}
       style={{
         height,
         width,
