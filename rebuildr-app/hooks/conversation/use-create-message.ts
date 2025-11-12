@@ -119,10 +119,9 @@ export const useCreateMessage = () => {
             await Promise.all(mediaPromises);
           } catch (e) {
             Sentry.captureException(e);
-          } finally {
-            onCompleted?.();
           }
         }
+        onCompleted?.();
       },
     });
   };

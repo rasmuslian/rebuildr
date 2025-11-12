@@ -2,7 +2,6 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
-import { TextInput } from "@components/forms/textInput";
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
@@ -16,10 +15,8 @@ import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { ProductHeader } from "@components/navigation/headers/product-header";
 import { ChatActionButtons } from "@components/conversations/chat-action-buttons";
 import { Conversation } from "@components/conversations/conversation";
-import { useCreateMessage } from "@hooks/conversation/use-create-message";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
-import { useDocumentHandler } from "@hooks/use-document-handler";
-import { useImageHandler } from "@hooks/use-image-handler";
+import { MessageInput } from "@components/conversations/message-input";
 
 export const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -100,7 +97,6 @@ export const CONVERSATION_PRODUCT = gql`
 `;
 
 export default function ConversationProduct() {
-  const [message, setMessage] = useState("");
   const [showReviewSheet, setShowReviewSheet] = useState(false);
 
   const { productId, userId: otherUserId } = useLocalSearchParams<{
@@ -108,10 +104,7 @@ export default function ConversationProduct() {
     userId: string;
   }>();
 
-  const { loading: createMessageLoading, onCreateMessage } = useCreateMessage();
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
-  const { pickDocument } = useDocumentHandler();
-  const { pickImage } = useImageHandler();
 
   const { data, refetch } = useQuery<
     ConversationProductQuery,
@@ -140,51 +133,6 @@ export default function ConversationProduct() {
   if (!data) {
     return <LoadingSpinner />;
   }
-
-  const onSendMessage = (input: {
-    message: string;
-    images?: { mimeType: string; file: File }[];
-    documents?: { mimeType: string; file: File; name: string }[];
-  }) => {
-    if (createMessageLoading) {
-      return;
-    }
-
-    onCreateMessage({
-      receiverId: otherUserId,
-      productId,
-      ...input,
-      onCompleted: () => {
-        refetch();
-        setMessage("");
-      },
-    });
-  };
-
-  const onPickImage = async () => {
-    const image = await pickImage();
-    if (!image) return;
-    onSendMessage({
-      message,
-      images: [{ mimeType: image.mimeType, file: image.file }],
-    });
-  };
-
-  const onPickDocument = async () => {
-    const document = await pickDocument();
-    if (!document) return;
-
-    onSendMessage({
-      message,
-      documents: [
-        {
-          mimeType: document.mimeType,
-          file: document.file,
-          name: document.name,
-        },
-      ],
-    });
-  };
 
   const sellerIsMe = data.me.id === data.product.seller.id;
 
@@ -223,22 +171,10 @@ export default function ConversationProduct() {
             data={data}
             onShowReview={() => setShowReviewSheet(true)}
           />
-          <TextInput
-            value={message}
-            placeholder="Skriv ditt meddelande..."
-            onChange={setMessage}
-            onKeyPress={(e) => {
-              if (e.nativeEvent.key === "Enter") {
-                onSendMessage({ message });
-              }
-            }}
-            trailing={[
-              { icon: "paperclip", onPress: onPickDocument },
-              {
-                icon: "addPhoto",
-                onPress: onPickImage,
-              },
-            ]}
+          <MessageInput
+            receiverId={otherUserId}
+            productId={productId}
+            onMessageSent={refetch}
           />
         </View>
       }
