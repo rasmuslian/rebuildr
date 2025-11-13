@@ -78,7 +78,7 @@ export const ComingSoon = () => {
                 color: colors.logo.vector,
               }}
             >
-              Här öppnar inom kort Sveriges nya marknadsplats för återbruka
+              Här öppnar inom kort Sveriges nya marknadsplats för återbruk av
               byggmaterial och verktyg. I väntan på detta kan du anmäla dig till
               vårt nyhetsbrev och följa vårt arbete med RebuildR bakom
               kulisserna.
