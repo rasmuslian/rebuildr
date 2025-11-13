@@ -2,7 +2,7 @@ import { ConversationProductQuery } from "@/gql/graphql";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 import { ChatBlock } from "@components/conversations/chat-block";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
-import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
+import { CreateReview } from "@components/review/create-review";
 import { Body } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import dayjs from "dayjs";
@@ -101,7 +101,7 @@ export const Conversation = ({
         />
       )}
       {data.latestPurchase && (
-        <CreateReviewBottomSheet
+        <CreateReview
           purchaseId={data.latestPurchase.id}
           show={showReviewSheet}
           onDismiss={() => setShowReviewSheet(false)}
