@@ -69,13 +69,15 @@ export class StripeService {
     const lastName = nameParts?.[1];
 
     const validPhoneNumber = swedishPhoneNumberRegex.test(user.phoneNumber);
-    const phoneNumber = validPhoneNumber ? user.phoneNumber : undefined;
 
     const individualParams: Stripe.AccountCreateParams.Individual = {
       first_name: firstName,
       last_name: lastName,
       email: user.email,
-      phone: phoneNumber,
+      //If phone number is not valid for some reason, don't prefill it. Instead let the user enter a valid phone number through Stripe's embedded form
+      phone: validPhoneNumber
+        ? formatCountryCodePhonenumber(user.phoneNumber)
+        : undefined,
       address: {
         line1: user.address,
         postal_code: user.postCode ?? undefined,
