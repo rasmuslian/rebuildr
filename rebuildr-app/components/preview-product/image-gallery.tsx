@@ -11,7 +11,14 @@ type Props = {
 
 export const ImageGallery = ({ images, status, displaySoldOverlay }: Props) => {
   return (
-    <View style={{ flex: 1, flexDirection: "row", gap: 8 }}>
+    <View
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        gap: 8,
+        aspectRatio: 1.09,
+      }}
+    >
       <ImageCardPart
         imageUrl={images[0]?.url}
         sold={false}
@@ -37,4 +44,4 @@ export const ImageGallery = ({ images, status, displaySoldOverlay }: Props) => {
       )}
     </View>
   );
-}
+};

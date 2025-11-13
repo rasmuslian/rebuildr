@@ -7,6 +7,7 @@ import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
 import { ProductFields } from "./types";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   product: ProductFields;
@@ -26,6 +27,7 @@ export const Transportation = ({
   nextIsDisabled,
   updateProgress,
 }: Props) => {
+  const { isDesktop } = useScreenType();
   const [addressEditLock, setAddressEditLock] = useState(false);
   const [shippingValid, setShippingValid] = useState(false);
   const [shippingSelected, setShippingSelected] = useState(
@@ -127,12 +129,22 @@ export const Transportation = ({
         </Suspense>
       </View>
       <View
-        style={{
-          paddingTop: 24,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-        }}
+        style={[{
+            paddingTop: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          },
+          isDesktop && {
+            position: "sticky",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: "white",
+            paddingBottom: 32,
+          },
+        ]}
       >
         <Button icon="arrowLeft" label="Tillbaka" onPress={() => onBack()} />
         <Button

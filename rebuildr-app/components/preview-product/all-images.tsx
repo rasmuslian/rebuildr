@@ -36,7 +36,7 @@ export const AllImages = ({
       ? Math.ceil((parentWidth - 16) / imagesPerRow)
       : 0;
     return (
-      <View style={{ flex: 1 }}>
+      <View>
         <Headline size="small">Alla bilder</Headline>
         <Pressable onPress={handleAllImagesPress}>
           <View style={{ gap: 8, marginTop: 16 }}>

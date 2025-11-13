@@ -1,6 +1,6 @@
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Gesture } from "react-native-gesture-handler";
 import Animated, {
@@ -98,6 +98,11 @@ export const DoubleSlider = ({
         : translateX2.value,
     width: Math.abs(translateX2.value - translateX.value),
   }));
+
+  useEffect(() => {
+    translateX.value = Math.min(valuePosition, width - rightCalibration);
+    translateX2.value = Math.min(valuePosition2, width - rightCalibration);
+  }, [width]);
 
   return (
     <View>

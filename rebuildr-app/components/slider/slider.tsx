@@ -6,20 +6,23 @@ import { StepSlider, StepSliderProps } from "./step-slider";
 type Props<T> =
   | {
       type: "continuous";
+      parentWidth?: number;
       sliderProps: ContinuousSliderProps;
     }
   | {
       type: "double";
+      parentWidth?: number;
       sliderProps: DoubleSliderProps;
     }
   | {
       type: "step";
+      parentWidth?: number;
       sliderProps: StepSliderProps<T>;
     };
 
-export const Slider = <T,>({ type, sliderProps }: Props<T>) => {
+export const Slider = <T,>({ type, sliderProps, parentWidth }: Props<T>) => {
   const { width: screenWidth } = useWindowDimensions();
-  const maxWidth = screenWidth - 48;
+  const maxWidth = parentWidth ?? screenWidth - 48;
   const width = sliderProps.width
     ? Math.min(sliderProps.width, maxWidth)
     : maxWidth;

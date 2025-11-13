@@ -21,6 +21,7 @@ type Props = {
   title?: string;
   style?: ViewStyle;
   footer?: ReactElement;
+  bottomMargin?: number;
 } & PropsWithChildren;
 
 export const SlideInSheet = ({
@@ -31,6 +32,7 @@ export const SlideInSheet = ({
   title,
   style,
   footer,
+  bottomMargin = 20,
 }: Props) => {
   const colors = useThemeColor();
   const { width: screenWidth } = useWindowDimensions();
@@ -101,7 +103,7 @@ export const SlideInSheet = ({
             width,
             backgroundColor: colors.background.neutral,
             elevation: 5,
-            paddingBottom: 20,
+            paddingBottom: bottomMargin,
           }}
         >
           {(title || onBack) && (

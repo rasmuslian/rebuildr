@@ -15,6 +15,11 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ProductFields } from "./types";
+import { useEffect, useRef, useState } from "react";
+import { useScreenType } from "@hooks/useScreenType";
+import { ImageGallery } from "@components/preview-product/image-gallery";
+import { usePopupContext } from "@context/popup-context";
+import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
   query ProductBottomSheetPreviewCategory($input: CategoryInput!) {
@@ -52,6 +57,11 @@ type Props = {
 };
 
 export const Preview = ({ product }: Props) => {
+  const ref = useRef<View>(null);
+  const { isDesktop } = useScreenType();
+  const { setVisible: setPopupVisible, setContent } = usePopupContext();
+  const [width, setWidth] = useState<number | undefined>(undefined);
+
   const { data } = useQuery<ProductBottomSheetPreviewQuery>(
     PRODUCT_BOTTOM_SHEET_PREVIEW,
     {
@@ -63,6 +73,7 @@ export const Preview = ({ product }: Props) => {
       skip: !product.categoryIds?.[1],
     },
   );
+
   const { data: categoryData } = useQuery<
     ProductBottomSheetPreviewCategoryQuery,
     ProductBottomSheetPreviewCategoryQueryVariables
@@ -74,6 +85,7 @@ export const Preview = ({ product }: Props) => {
     },
     skip: !product.categoryIds?.[1],
   });
+
   const { data: brandData } = useQuery<
     ProductBottomSheetPreviewBrandQuery,
     ProductBottomSheetPreviewBrandQueryVariables
@@ -84,16 +96,41 @@ export const Preview = ({ product }: Props) => {
     skip: !product.brandId,
   });
 
+  const showAllImagesPopup = () => {
+    if (!product.images) return;
+    setContent(
+      <AllImagesPopupContent
+        images={product.images?.map((i) => ({ url: i.uri }))}
+      />,
+    );
+    setPopupVisible(true);
+  };
+
+  useEffect(() => {
+    if (ref.current && isDesktop) {
+      ref.current.measure((x, y, width, height, pageX, pageY) => {
+        setWidth(width - 16);
+      });
+    }
+  }, [ref, isDesktop]);
+
   if (!data || !categoryData || !brandData) {
     return <LoadingSpinner />;
   }
 
   return (
-    <View style={{ gap: 24, marginTop: 24 }}>
-      <ImageCarousel
-        images={product.images?.map((i) => ({ url: i.uri })) ?? []}
-        status={ProductStatusEnum.Draft}
-      />
+    <View ref={ref} style={{ gap: 24, marginTop: 24 }}>
+      {isDesktop ? (
+        <ImageGallery
+          images={product.images?.map((i) => ({ url: i.uri })) ?? []}
+          status={ProductStatusEnum.Draft}
+        />
+      ) : (
+        <ImageCarousel
+          images={product.images?.map((i) => ({ url: i.uri })) ?? []}
+          status={ProductStatusEnum.Draft}
+        />
+      )}
       <MainContent
         product={product}
         brand={brandData.brand}
@@ -109,7 +146,12 @@ export const Preview = ({ product }: Props) => {
         sellerIsMe
       />
       <Divider />
-      <AllImages images={product.images?.map((i) => ({ url: i.uri })) ?? []} />
+      <AllImages
+        images={product.images?.map((i) => ({ url: i.uri })) ?? []}
+        imagesPerRow={isDesktop ? 3 : undefined}
+        parentWidth={width}
+        onAllImagesPress={showAllImagesPopup}
+      />
       {product.approximatePlace && product.pickupEnabled && (
         <PickupPosition
           address={product.approximatePlace.address}

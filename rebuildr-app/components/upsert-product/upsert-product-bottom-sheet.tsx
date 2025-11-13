@@ -26,6 +26,8 @@ import { measurementKeys } from "@constants/measurements";
 import { Button } from "@components/buttons/button";
 import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -121,6 +123,7 @@ export const UpsertProductBottomSheet = ({
   visible,
   onHide,
 }: Props) => {
+  const { isDesktop } = useScreenType();
   const [product, setProduct] = useState<ProductFields>(initialProduct);
   const [step, setStep] = useState<
     "details" | "project" | "transportation" | "preview" | "payout"
@@ -446,6 +449,7 @@ export const UpsertProductBottomSheet = ({
   };
 
   const onDismissSheet = () => {
+    console.log("onDismissSheet called");
     if (mode === "edit") {
       onFinish();
       return;
@@ -532,8 +536,10 @@ export const UpsertProductBottomSheet = ({
     onHide();
   };
 
+  const showFooter = step === "preview";
+
   const renderFooter = () => {
-    if (step === "preview") {
+    if (showFooter) {
       return (
         <View
           style={{
@@ -577,6 +583,89 @@ export const UpsertProductBottomSheet = ({
 
   const updateDraftLoading = updatingProduct || uploadingMedia;
 
+  const header = (
+    <ProgressHeader
+      prog1={
+        mode === "edit"
+          ? progressDetails()
+          : step === "payout"
+            ? 25
+            : progressDetails()
+      }
+      prog2={step !== "details" ? projectProgress : undefined}
+      prog3={
+        step !== "details" && step !== "project"
+          ? transportationProgress
+          : undefined
+      }
+      onClose={onDismissSheet}
+      title={
+        mode === "edit"
+          ? "Redigera annons"
+          : step === "preview"
+            ? "Förhandsgranska annons"
+            : "Ny annons"
+      }
+    />
+  );
+
+  const viewChildren = [
+    step === "details" && (
+      <Details
+        product={product}
+        update={onUpdateProduct}
+        onNext={onVerifyDetails}
+        nextIsDisabled={progressDetails() < 100}
+        badFields={fieldErrors}
+      />
+    ),
+    step === "project" && (
+      <Project
+        product={product}
+        update={onUpdateProduct}
+        onNext={onVerifyProject}
+        nextIsDisabled={!projectProgress || projectProgress < 100}
+        updateProgress={(progress) => setProjectProgress(progress)}
+        onBack={() => setStep("details")}
+      />
+    ),
+    step === "transportation" && (
+      <Transportation
+        product={product}
+        update={onUpdateProduct}
+        onNext={onVerifyTransportation}
+        nextIsDisabled={!transportationProgress || transportationProgress < 100}
+        updateProgress={(progress) => setTransportationProgress(progress)}
+        onBack={() => setStep("project")}
+      />
+    ),
+    step === "preview" && <Preview product={product} />,
+    step === "payout" && (
+      <PayoutHandler onFinish={() => setStep("details")} onAbort={onFinish} />
+    ),
+  ];
+
+  if (isDesktop) {
+    return (
+      <SlideInSheet open={visible} bottomMargin={0}>
+        <View>{header}</View>
+        <View>{viewChildren}</View>
+        {showFooter && (
+          <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
+        )}
+        <HandleDraftBottomSheet
+          show={showHandleDraft}
+          onDismiss={() => setShowHandleDraft(false)}
+          dbDraft={data.product}
+          product={product}
+          onSaveDraft={() => onSave(false)}
+          saveLoading={updateDraftLoading}
+          onProductDeleted={onProductDeleted}
+        />
+      </SlideInSheet>
+    );
+  }
+
   return (
     <BottomSheet
       title={mode === "edit" ? "Redigera annons" : "Ny annons"}
@@ -585,74 +674,11 @@ export const UpsertProductBottomSheet = ({
       screenHeight
       open={visible}
       onDismiss={onDismissSheet}
-      header={
-        <ProgressHeader
-          prog1={
-            mode === "edit"
-              ? progressDetails()
-              : step === "payout"
-                ? 25
-                : progressDetails()
-          }
-          prog2={step !== "details" ? projectProgress : undefined}
-          prog3={
-            step !== "details" && step !== "project"
-              ? transportationProgress
-              : undefined
-          }
-          onClose={onDismissSheet}
-          title={
-            mode === "edit"
-              ? "Redigera annons"
-              : step === "preview"
-                ? "Förhandsgranska annons"
-                : "Ny annons"
-          }
-        />
-      }
+      header={header}
       footer={renderFooter()}
       isStickyFooter
     >
-      <View style={{ marginBottom: 32 }}>
-        {step === "details" && (
-          <Details
-            product={product}
-            update={onUpdateProduct}
-            onNext={onVerifyDetails}
-            nextIsDisabled={progressDetails() < 100}
-            badFields={fieldErrors}
-          />
-        )}
-        {step === "project" && (
-          <Project
-            product={product}
-            update={onUpdateProduct}
-            onNext={onVerifyProject}
-            nextIsDisabled={!projectProgress || projectProgress < 100}
-            updateProgress={(progress) => setProjectProgress(progress)}
-            onBack={() => setStep("details")}
-          />
-        )}
-        {step === "transportation" && (
-          <Transportation
-            product={product}
-            update={onUpdateProduct}
-            onNext={onVerifyTransportation}
-            nextIsDisabled={
-              !transportationProgress || transportationProgress < 100
-            }
-            updateProgress={(progress) => setTransportationProgress(progress)}
-            onBack={() => setStep("project")}
-          />
-        )}
-        {step === "preview" && <Preview product={product} />}
-        {step === "payout" && (
-          <PayoutHandler
-            onFinish={() => setStep("details")}
-            onAbort={onFinish}
-          />
-        )}
-      </View>
+      <View style={{ marginBottom: 32 }}>{viewChildren}</View>
       <HandleDraftBottomSheet
         show={showHandleDraft}
         onDismiss={() => setShowHandleDraft(false)}

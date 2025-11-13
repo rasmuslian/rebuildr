@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Button } from "@components/buttons/button";
 import { measurementKeys } from "@constants/measurements";
 import { ProductFields } from "./types";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   product: ProductFields;
@@ -31,6 +32,7 @@ export const Details = ({
   nextIsDisabled,
   badFields,
 }: Props) => {
+  const { isDesktop } = useScreenType();
   const [showDetails, setShowDetails] = useState(() => {
     const measurementSet = measurementKeys.some(
       (measurementKey) => !!product[measurementKey],
@@ -44,7 +46,13 @@ export const Details = ({
   const showContinue = rootCategoryId && categoryId && product.brandId;
 
   return (
-    <View style={{ gap: 24, marginTop: 24 }}>
+    <View
+      style={{
+        gap: 24,
+        marginTop: 24,
+        paddingBottom: isDesktop && !showContinue ? 32 : 0,
+      }}
+    >
       <RootCategorySection
         onSelect={(id) => {
           update({ ...product, categoryIds: [id] });
@@ -202,7 +210,20 @@ export const Details = ({
         </>
       )}
       {showContinue && (
-        <View style={{ gap: 6 }}>
+        <View
+          style={[
+            { gap: 6 },
+            isDesktop && {
+              position: "sticky",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              backgroundColor: "white",
+              paddingBottom: 32,
+            },
+          ]}
+        >
           <Button
             label="Fortsätt"
             onPress={onNext}

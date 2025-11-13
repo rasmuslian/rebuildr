@@ -1,6 +1,6 @@
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { Gesture } from "react-native-gesture-handler";
 import Animated, {
@@ -73,6 +73,10 @@ export const StepSlider = <T,>({
   const animatedProgressBarStyle = useAnimatedStyle(() => ({
     width: translateX.value,
   }));
+
+  useEffect(() => {
+    translateX.value = indexOfValue * stepWidth;
+  }, [width]);
 
   return (
     <View>
