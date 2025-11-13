@@ -54,7 +54,6 @@ export const MessageInput = ({
     if (createMessageLoading) {
       return;
     }
-    console.log("message:", message);
 
     onCreateMessage({
       receiverId,
@@ -74,7 +73,6 @@ export const MessageInput = ({
       onChange={setMessage}
       onKeyPress={(e) => {
         if (e.nativeEvent.key === "Enter") {
-          console.log("sending...");
           onSendMessage({ message });
         }
       }}
