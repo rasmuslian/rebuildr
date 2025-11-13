@@ -19,6 +19,8 @@ import {
   CreateReviewQuery,
   CreateReviewQueryVariables,
 } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
 const CREATE_REVIEW = gql`
   query CreateReview($input: GetPurchaseInput!) {
@@ -89,6 +91,7 @@ export const CreateReview = ({
   const [review, setReview] = useState("");
 
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<CreateReviewQuery, CreateReviewQueryVariables>(
     CREATE_REVIEW,
@@ -254,6 +257,14 @@ export const CreateReview = ({
       )}
     </View>
   );
+
+  if (isDesktop) {
+    return (
+      <SlideInSheet open={show} onClose={onDismiss} title="Lämna omdöme">
+        {content}
+      </SlideInSheet>
+    );
+  }
 
   return (
     <BottomSheet
