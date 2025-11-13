@@ -9,6 +9,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Summary } from "./summary";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
+import { mapDefaultApproximateRadius } from "@constants/map";
 
 const SINGLE_PICKUP_OPTION = gql`
   query SinglePickupOption(
@@ -69,7 +70,7 @@ export const SinglePickup = ({ productId }: Props) => {
       </View>
       <View style={{ gap: 16 }}>
         <Map
-          radius={3000}
+          radius={mapDefaultApproximateRadius}
           interactive={false}
           lat={data.getPickupOption.lat}
           lng={data.getPickupOption.lng}

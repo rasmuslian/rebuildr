@@ -5,8 +5,9 @@ import { Map } from "@components/maps/map";
 import { useState } from "react";
 import { PickupPositionBottomSheet } from "./pickup-position-bottom-sheet";
 import { useScreenType } from "@hooks/useScreenType";
-import {  PickupPositionPopupContent } from "./pickup-position-popup-content";
+import { PickupPositionPopupContent } from "./pickup-position-popup-content";
 import { usePopupContext } from "@context/popup-context";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 
 type Props = {
   address: string;
@@ -40,7 +41,7 @@ export const PickupPosition = ({ address, location }: Props) => {
             lat={location.lat}
             lng={location.lng}
             interactive={false}
-            radius={5000}
+            radius={mapDefaultApproximateRadiusLarge}
             zoom={10}
           />
         </Pressable>

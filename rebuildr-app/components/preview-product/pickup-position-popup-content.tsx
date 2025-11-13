@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Body, Headline } from "@components/typography/text";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 
 type Props = {
   address: string;
@@ -24,7 +25,7 @@ export const PickupPositionPopupContent = ({ address, location }: Props) => {
           lat={location.lat}
           lng={location.lng}
           interactive={false}
-          radius={5000}
+          radius={mapDefaultApproximateRadiusLarge}
           height={700}
         />
       </View>

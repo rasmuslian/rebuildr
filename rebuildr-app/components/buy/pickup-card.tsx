@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { Map } from "@components/maps/map";
 import { Body, Title } from "@components/typography/text";
 import { BuyProductTransportationOptionsQuery } from "@/gql/graphql";
+import { mapDefaultApproximateRadius } from "@constants/map";
 
 type Props = {
   methodSelected?: boolean;
@@ -34,7 +35,7 @@ export const PickupCard = ({
           </Body>
         </View>
         <Map
-          radius={3000}
+          radius={mapDefaultApproximateRadius}
           interactive={false}
           lat={pickupOption.lat}
           lng={pickupOption.lng}

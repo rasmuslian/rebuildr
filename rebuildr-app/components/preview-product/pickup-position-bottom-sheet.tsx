@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Map } from "@components/maps/map";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 
 type Props = {
   open: boolean;
@@ -26,7 +27,7 @@ export const PickupPositionBottomSheet = ({
           lat={location.lat}
           lng={location.lng}
           interactive={false}
-          radius={5000}
+          radius={mapDefaultApproximateRadiusLarge}
           height={700}
         />
       </View>

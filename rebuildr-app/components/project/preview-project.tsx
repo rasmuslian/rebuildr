@@ -6,6 +6,7 @@ import { gql, useSuspenseQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import { View } from "react-native";
 
 const PREVIEW_PROJECT_QUERY = gql`
@@ -75,7 +76,7 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
         <Map
           lat={project.approximatePlace.lat}
           lng={project.approximatePlace.lng}
-          radius={5000}
+          radius={mapDefaultApproximateRadiusLarge}
           interactive={false}
           zoom={10}
         />
