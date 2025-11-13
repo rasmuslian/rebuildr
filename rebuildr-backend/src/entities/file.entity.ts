@@ -11,6 +11,7 @@ import {
 import { Product } from './product.entity';
 import { Category } from './category.entity';
 import { User } from './user.entity';
+import { Message } from './message.entity';
 
 export enum FileSourceEnum {
   APP = 'APP',
@@ -53,4 +54,16 @@ export class File {
 
   @Column({ type: 'enum', enum: FileSourceEnum, default: FileSourceEnum.APP })
   source: FileSourceEnum;
+
+  @ManyToOne(() => Message, (message) => message.images, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  messageImage?: Message;
+
+  @ManyToOne(() => Message, (message) => message.documents, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  messageDocument?: Message;
 }

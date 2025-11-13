@@ -3,11 +3,11 @@ import { Body, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { FileType } from "../upsert-product/types";
+import { useDocumentHandler } from "@hooks/use-document-handler";
 
 type Props = {
   documents: FileType[];
@@ -17,7 +17,9 @@ type Props = {
 const MAX_TOTAL_BYTES = 20000000;
 
 export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
-  const [showError, setShowError] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
+  const { pickDocument } = useDocumentHandler();
   const colors = useThemeColor();
 
   const getTotalSize = () => {
@@ -36,49 +38,33 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
   };
 
   const selectDocument = async () => {
-    setShowError(false);
-    const result = await DocumentPicker.getDocumentAsync({
-      type: [
-        "application/pdf", // .pdf
-        "application/msword", // .doc
-        "text/plain", // .txt
-      ],
-    });
-    if (result?.canceled) return;
-    const document = result.assets?.[0];
-    if (!document) {
-      return;
-    }
-    const blob = await fetch(document.uri).then((res) => res.blob());
-    const file = new File([blob], document.name);
+    setSizeError(false);
+    setUploadError(null);
 
-    if (!document.mimeType) {
-      setShowError(true);
-      throw new Error("Unsupported or unknows document type");
-    }
-    if (!document.size) {
-      setShowError(true);
-      throw new Error("Document has no size");
-    }
+    try {
+      const document = await pickDocument();
+      if (!document) return;
 
-    const total =
-      documents.reduce((acc, curr) => acc + curr.size, 0) + document.size;
-    if (total > MAX_TOTAL_BYTES) {
-      setShowError(true);
-      return;
+      const total =
+        documents.reduce((acc, curr) => acc + curr.size, 0) + document.size;
+      if (total > MAX_TOTAL_BYTES) {
+        setSizeError(true);
+        return;
+      }
+      onUpdateFiles([
+        ...documents,
+        {
+          uri: document.uri,
+          index: documents.length,
+          mimeType: document.mimeType,
+          file: document.file,
+          size: document.size,
+          name: document.name,
+        },
+      ]);
+    } catch {
+      setUploadError("Något gick fel vid uppladdning av dokument");
     }
-
-    onUpdateFiles([
-      ...documents,
-      {
-        uri: document.uri,
-        index: documents.length,
-        mimeType: document.mimeType,
-        file,
-        size: document.size,
-        name: document.name,
-      },
-    ]);
   };
 
   const removeDocument = (index: number) => {
@@ -143,11 +129,16 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
       </Pressable>
       <Body
         size="small"
-        color={showError ? "error" : "secondary"}
+        color={sizeError ? "error" : "secondary"}
         style={{ marginTop: 12 }}
       >
         {documents.length} Dokument ({getTotalSize()} MB av 20 MB)
       </Body>
+      {uploadError && (
+        <Body size="small" color="error" style={{ marginTop: 4 }}>
+          {uploadError}hej
+        </Body>
+      )}
       <View style={{ gap: 16, marginTop: 16 }}>
         {documents.map((document, i) => (
           <View

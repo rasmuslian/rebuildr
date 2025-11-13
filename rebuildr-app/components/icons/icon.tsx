@@ -47,6 +47,7 @@ import { Linkedin } from "./linkedin";
 import { QrCode } from "./qrCode";
 import { Heart2 } from "./heart2";
 import { Heart2Filled } from "./heart2Filled";
+import { Paperclip } from "./paperclip";
 
 export type IconType =
   | "placeholder"
@@ -93,7 +94,8 @@ export type IconType =
   | "newListing"
   | "categories"
   | "qrCode"
-  | "star";
+  | "star"
+  | "paperclip";
 
 export interface IconProps extends SvgProps {
   size: number;
@@ -247,6 +249,8 @@ export const Icon = ({
       return <QrCode {...props} size={size} color={color} />;
     case "star":
       return <Star {...props} size={size} color={color} />;
+    case "paperclip":
+      return <Paperclip {...props} size={size} color={color} />;
     default:
       break;
   }

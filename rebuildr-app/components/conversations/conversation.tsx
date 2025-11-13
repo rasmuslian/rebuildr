@@ -80,6 +80,8 @@ export const Conversation = ({
                     type={message.messageType}
                     sender={message.sender}
                     createdAt={message.createdAt}
+                    images={message.images}
+                    documents={message.documents}
                     senderIsMe={senderIsMe}
                     onAbortPurchase={() => setShowAbortSheet(true)}
                     onReport={() => setShowReportSheet(true)}

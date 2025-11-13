@@ -22,6 +22,9 @@ import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
+import { FileInputType } from './product.resolver';
+import { IMessageLoaders } from 'src/dataloaders/message.loader';
+import { File } from 'src/entities/file.entity';
 
 @InputType()
 class CreateMessageInput {
@@ -31,6 +34,10 @@ class CreateMessageInput {
   productId: string;
   @Field()
   message: string;
+  @Field(() => [FileInputType], { nullable: true })
+  images?: FileInputType[];
+  @Field(() => [FileInputType], { nullable: true })
+  documents?: FileInputType[];
 }
 
 @InputType()
@@ -121,6 +128,8 @@ export class MessageResolver {
       receiverId: input.receiverId,
       productId: input.productId,
       message: input.message,
+      images: input.images,
+      documents: input.documents,
     });
   }
 
@@ -159,5 +168,21 @@ export class MessageResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
     return await userLoaders.getUserLoader.load(message.receiverId);
+  }
+
+  @ResolveField(() => [File])
+  async images(
+    @Parent() message: Message,
+    @Context('messageLoaders') messageLoaders: IMessageLoaders,
+  ): Promise<File[]> {
+    return await messageLoaders.imagesLoader.load(message.id);
+  }
+
+  @ResolveField(() => [File])
+  async documents(
+    @Parent() message: Message,
+    @Context('messageLoaders') messageLoaders: IMessageLoaders,
+  ): Promise<File[]> {
+    return await messageLoaders.documentsLoader.load(message.id);
   }
 }

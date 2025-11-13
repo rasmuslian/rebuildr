@@ -8,10 +8,12 @@ export const MaskedInput = (props: Props) => {
 
   return (
     <TextInput
-      trailing={{
-        icon: hideText ? "eye" : "eyeOff",
-        onPress: () => setHideText(!hideText),
-      }}
+      trailing={[
+        {
+          icon: hideText ? "eye" : "eyeOff",
+          onPress: () => setHideText(!hideText),
+        },
+      ]}
       hideText={hideText}
       {...props}
     />

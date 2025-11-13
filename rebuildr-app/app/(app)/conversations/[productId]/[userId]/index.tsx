@@ -2,7 +2,6 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
-import { TextInput } from "@components/forms/textInput";
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
@@ -16,8 +15,8 @@ import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { ProductHeader } from "@components/navigation/headers/product-header";
 import { ChatActionButtons } from "@components/conversations/chat-action-buttons";
 import { Conversation } from "@components/conversations/conversation";
-import { useCreateMessage } from "@hooks/conversation/use-create-message";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
+import { MessageInput } from "@components/conversations/message-input";
 
 export const CONVERSATION_PRODUCT = gql`
   query ConversationProduct(
@@ -30,6 +29,15 @@ export const CONVERSATION_PRODUCT = gql`
       message
       messageType
       createdAt
+      images {
+        id
+        url
+      }
+      documents {
+        id
+        name
+        url
+      }
       sender {
         id
         type
@@ -89,14 +97,13 @@ export const CONVERSATION_PRODUCT = gql`
 `;
 
 export default function ConversationProduct() {
-  const [text, setText] = useState("");
   const [showReviewSheet, setShowReviewSheet] = useState(false);
+
   const { productId, userId: otherUserId } = useLocalSearchParams<{
     productId: string;
     userId: string;
   }>();
 
-  const { loading: createMessageLoading, onCreateMessage } = useCreateMessage();
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
 
   const { data, refetch } = useQuery<
@@ -126,21 +133,6 @@ export default function ConversationProduct() {
   if (!data) {
     return <LoadingSpinner />;
   }
-
-  const onSendMessage = (message: string) => {
-    if (createMessageLoading || !text) {
-      return;
-    }
-    onCreateMessage({
-      receiverId: otherUserId,
-      productId,
-      message,
-      onCompleted: () => {
-        refetch();
-        setText("");
-      },
-    });
-  };
 
   const sellerIsMe = data.me.id === data.product.seller.id;
 
@@ -179,14 +171,10 @@ export default function ConversationProduct() {
             data={data}
             onShowReview={() => setShowReviewSheet(true)}
           />
-          <TextInput
-            value={text}
-            onChange={setText}
-            onKeyPress={(e) => {
-              if (e.nativeEvent.key === "Enter") {
-                onSendMessage(text);
-              }
-            }}
+          <MessageInput
+            receiverId={otherUserId}
+            productId={productId}
+            onMessageSent={refetch}
           />
         </View>
       }

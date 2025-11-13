@@ -23,8 +23,6 @@ import { Header } from "@components/navigation/headers/header";
 import { ProductHeader } from "@components/navigation/headers/product-header";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { ChatActionButtons } from "@components/conversations/chat-action-buttons";
-import { TextInput } from "@components/forms/textInput";
-import { useCreateMessage } from "@hooks/conversation/use-create-message";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
 import { TAB_LAYOUT } from "../../app/(app)/(tabs)/_layout";
 import { CONVERSATIONS } from "../../app/(app)/conversations/[productId]";
@@ -32,6 +30,7 @@ import { ProductConversationsList } from "@components/conversations/product-conv
 import { AdList } from "@components/ad/ad-list";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import dayjs from "dayjs";
+import { MessageInput } from "./message-input";
 
 type Props = {
   totalUnread: number;
@@ -219,9 +218,7 @@ const Chat = ({
   showReviewSheet,
   setShowReviewSheet,
 }: ChatProps) => {
-  const [text, setText] = useState("");
   const { height: windowHeight } = useWindowDimensions();
-  const { loading: createMessageLoading, onCreateMessage } = useCreateMessage();
 
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
 
@@ -268,20 +265,6 @@ const Chat = ({
     sellerIsMe ? "seller" : "buyer",
     data.latestPurchase,
   );
-  const onSendMessage = (message: string) => {
-    if (createMessageLoading || !text) {
-      return;
-    }
-    onCreateMessage({
-      receiverId: otherUser.id,
-      productId: data.product.id,
-      message,
-      onCompleted: () => {
-        refetch();
-        setText("");
-      },
-    });
-  };
 
   return (
     <View
@@ -321,14 +304,10 @@ const Chat = ({
             onShowReview={() => setShowReviewSheet(true)}
           />
           <View style={{ flex: 1 }}>
-            <TextInput
-              value={text}
-              onChange={setText}
-              onKeyPress={(e) => {
-                if (e.nativeEvent.key === "Enter") {
-                  onSendMessage(text);
-                }
-              }}
+            <MessageInput
+              receiverId={otherUser.id}
+              productId={data.product.id}
+              onMessageSent={refetch}
             />
           </View>
         </View>

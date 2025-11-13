@@ -16,6 +16,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { UserService } from './user.service';
+import { FileInputType } from 'src/resolvers/product.resolver';
+import { FileService } from './file.service';
 
 export interface SystemMessageInput {
   productId: string;
@@ -39,6 +41,7 @@ export class MessageService {
     private mailService: MailService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private userService: UserService,
+    private fileService: FileService,
   ) {}
 
   async getConversation(
@@ -149,6 +152,8 @@ export class MessageService {
     receiverId: string;
     productId: string;
     message: string;
+    images?: FileInputType[];
+    documents?: FileInputType[];
   }) {
     if (input.receiverId === input.senderId) {
       throw BadUserInputException('Cannot send message on own product');
@@ -175,6 +180,20 @@ export class MessageService {
     message.sender = sender;
     message.product = product;
     message.message = input.message;
+
+    const images = input.images;
+    if (images) {
+      const files = await this.fileService.createFiles(images, true);
+      message.images = files;
+      message.imagePutUrls = await this.fileService.uploadFiles(files);
+    }
+    const documents = input.documents;
+    if (documents) {
+      const files = await this.fileService.createFiles(documents, true);
+      message.documents = files;
+      message.documentPutUrls = await this.fileService.uploadFiles(files);
+    }
+
     return await this.messageRepository.save(message);
   }
 

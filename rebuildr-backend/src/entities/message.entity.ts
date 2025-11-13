@@ -4,11 +4,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
+import { File } from './file.entity';
 
 export enum MessageTypeEnum {
   USER = 'USER',
@@ -63,4 +65,16 @@ export class Message {
   @Field(() => MessageTypeEnum)
   @Column('enum', { enum: MessageTypeEnum, default: MessageTypeEnum.USER })
   messageType: MessageTypeEnum;
+
+  @Field(() => [String], { nullable: true })
+  imagePutUrls?: string[] | null;
+
+  @OneToMany(() => File, (file) => file.messageImage)
+  images: File[];
+
+  @Field(() => [String], { nullable: true })
+  documentPutUrls?: string[] | null;
+
+  @OneToMany(() => File, (file) => file.messageDocument)
+  documents: File[];
 }

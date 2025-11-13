@@ -229,6 +229,28 @@ enum ProductsRecommendationSourceEnum {
   SEARCH_HISTORY
 }
 
+type Message {
+  id: ID!
+  createdAt: DateTime!
+  message: String!
+  senderId: ID!
+  receiverId: ID!
+  readAt: DateTime
+  messageType: MessageTypeEnum!
+  imagePutUrls: [String!]
+  documentPutUrls: [String!]
+  product: Product!
+  sender: User!
+  receiver: User!
+  images: [File!]!
+  documents: [File!]!
+}
+
+enum MessageTypeEnum {
+  USER
+  SYSTEM
+}
+
 type File {
   id: ID!
   name: String
@@ -297,24 +319,6 @@ enum QuantityUnitEnum {
   PACKAGES
   BOARDS
   KG
-}
-
-type Message {
-  id: ID!
-  createdAt: DateTime!
-  message: String!
-  senderId: ID!
-  receiverId: ID!
-  readAt: DateTime
-  messageType: MessageTypeEnum!
-  product: Product!
-  sender: User!
-  receiver: User!
-}
-
-enum MessageTypeEnum {
-  USER
-  SYSTEM
 }
 
 type Product {
@@ -1118,6 +1122,8 @@ input CreateMessageInput {
   receiverId: String!
   productId: String!
   message: String!
+  images: [FileInputType!]
+  documents: [FileInputType!]
 }
 
 input MarkAsReadInput {

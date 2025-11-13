@@ -100,6 +100,7 @@ import { StripWebhookController } from './controllers/stripe-webhook.controller'
 import { StripeService } from './services/stripe.service';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+import { MessageLoader } from './dataloaders/message.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -164,6 +165,7 @@ export interface RequestType {
         ProjectLoader,
         ReviewLoader,
         PurchaseLoader,
+        MessageLoader,
         ConfigService,
       ],
       useFactory: (
@@ -174,6 +176,7 @@ export interface RequestType {
         projectLoaderService: ProjectLoader,
         reviewLoaderService: ReviewLoader,
         purchaseLoaderService: PurchaseLoader,
+        messageLoaderService: MessageLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -189,6 +192,7 @@ export interface RequestType {
             projectLoaders: projectLoaderService.createLoaders(),
             reviewLoaders: reviewLoaderService.createLoaders(),
             purchaseLoaders: purchaseLoaderService.createLoaders(),
+            messageLoaders: messageLoaderService.createLoaders(),
             req,
             res,
           }),
