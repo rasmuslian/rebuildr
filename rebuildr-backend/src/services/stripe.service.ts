@@ -11,6 +11,7 @@ import { GeocodingService } from './geocoding.service';
 import { Purchase, SupportedPaymentMethod } from 'src/entities/purchase.entity';
 import { idFromObject } from 'src/utility/stripe/utils';
 import { formatCountryCodePhonenumber } from 'src/utility/phone-number';
+import { swedishPhoneNumberRegex } from 'src/constants/regexp';
 
 @Injectable()
 export class StripeService {
@@ -67,13 +68,14 @@ export class StripeService {
     const firstName = nameParts?.[0];
     const lastName = nameParts?.[1];
 
+    const validPhoneNumber = swedishPhoneNumberRegex.test(user.phoneNumber);
+    const phoneNumber = validPhoneNumber ? user.phoneNumber : undefined;
+
     const individualParams: Stripe.AccountCreateParams.Individual = {
       first_name: firstName,
       last_name: lastName,
       email: user.email,
-      phone: user.phoneNumber
-        ? formatCountryCodePhonenumber(user.phoneNumber)
-        : undefined,
+      phone: phoneNumber,
       address: {
         line1: user.address,
         postal_code: user.postCode ?? undefined,
@@ -422,7 +424,7 @@ export class StripeService {
       }
     }
     const { phone } = userIsIndividual ? individual : company;
-    user.phoneNumber = user.phoneNumber ?? phone;
+    user.phoneNumber = phone;
 
     await this.userRepository.save(user);
   }
