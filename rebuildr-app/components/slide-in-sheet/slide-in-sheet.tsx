@@ -4,7 +4,13 @@ import { Title } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useRef, useEffect, PropsWithChildren, ReactElement } from "react";
+import {
+  useRef,
+  useEffect,
+  PropsWithChildren,
+  ReactElement,
+  useState,
+} from "react";
 import {
   Animated,
   ScrollView,
@@ -40,6 +46,7 @@ export const SlideInSheet = ({
   const width = isDesktop ? 500 : screenWidth;
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [display, setDisplay] = useState<"none" | "flex">("none");
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -53,6 +60,11 @@ export const SlideInSheet = ({
       duration: 300,
       useNativeDriver: true,
     }).start();
+    if (!open) {
+      setTimeout(() => setDisplay("none"), 300);
+    } else {
+      setDisplay("flex");
+    }
   }, [open]);
 
   return (
@@ -96,6 +108,7 @@ export const SlideInSheet = ({
         />
         <View
           style={{
+            display,
             position: "absolute",
             top: 0,
             right: 0,
