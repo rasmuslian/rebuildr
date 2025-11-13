@@ -17,7 +17,8 @@ type Props = {
 const MAX_TOTAL_BYTES = 20000000;
 
 export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
-  const [showError, setShowError] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
   const { pickDocument } = useDocumentHandler();
   const colors = useThemeColor();
 
@@ -37,7 +38,8 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
   };
 
   const selectDocument = async () => {
-    setShowError(false);
+    setSizeError(false);
+    setUploadError(null);
 
     try {
       const document = await pickDocument();
@@ -46,7 +48,7 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
       const total =
         documents.reduce((acc, curr) => acc + curr.size, 0) + document.size;
       if (total > MAX_TOTAL_BYTES) {
-        setShowError(true);
+        setSizeError(true);
         return;
       }
       onUpdateFiles([
@@ -61,7 +63,7 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
         },
       ]);
     } catch {
-      setShowError(true);
+      setUploadError("Något gick fel vid uppladdning av dokument");
     }
   };
 
@@ -127,11 +129,16 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
       </Pressable>
       <Body
         size="small"
-        color={showError ? "error" : "secondary"}
+        color={sizeError ? "error" : "secondary"}
         style={{ marginTop: 12 }}
       >
         {documents.length} Dokument ({getTotalSize()} MB av 20 MB)
       </Body>
+      {uploadError && (
+        <Body size="small" color="error" style={{ marginTop: 4 }}>
+          {uploadError}hej
+        </Body>
+      )}
       <View style={{ gap: 16, marginTop: 16 }}>
         {documents.map((document, i) => (
           <View
