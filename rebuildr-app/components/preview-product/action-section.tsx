@@ -1,5 +1,6 @@
 import { ProductStatusEnum } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
+import { useBuyModalContext } from "@context/buy-modal-context";
 import { useEditProductContext } from "@context/edit-product-context";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useScreenType } from "@hooks/useScreenType";
@@ -29,6 +30,8 @@ export const ActionSection = ({
   const { setVisible } = useContext(LoginModalContext);
   const { editProduct } = useEditProductContext();
   const { isMobile } = useScreenType();
+  const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
+    useBuyModalContext();
   return (
     <View style={{ gap: 8, paddingTop: isMobile ? 24 : 0 }}>
       {isMyProduct ? (
@@ -62,10 +65,15 @@ export const ActionSection = ({
                   setVisible(true);
                   return;
                 }
-                router.navigate({
-                  pathname: "/buy/[productId]",
-                  params: { productId },
-                });
+                if (isMobile) {
+                  router.navigate({
+                    pathname: "/buy/[productId]",
+                    params: { productId },
+                  });
+                } else {
+                  setBuyModalContent({ buyState: "summary", productId });
+                  setBuyModalVisible(true);
+                }
               }}
               disabled={buyButtonDisabled}
             />

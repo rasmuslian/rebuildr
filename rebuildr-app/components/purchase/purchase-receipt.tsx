@@ -18,6 +18,8 @@ import { useState } from "react";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
+import { useScreenType } from "@hooks/useScreenType";
+import { ImageGallery } from "@components/preview-product/image-gallery";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -97,6 +99,7 @@ type Props = {
 };
 
 export const PurchaseReceipt = ({ purchaseId }: Props) => {
+  const { isDesktop } = useScreenType();
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReviewSheet, setShowReviewSheet] = useState(false);
   const [showReportSheet, setShowReportSheet] = useState(false);
@@ -114,11 +117,19 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
 
   return (
     <View style={{ gap: 24 }}>
-      <ImageCarousel
-        images={data.purchase.product.images}
-        status={data.purchase.product.status}
-        displaySoldOverlay={false}
-      />
+      {isDesktop ? (
+        <ImageGallery
+          images={data.purchase.product.images}
+          status={data.purchase.product.status}
+          displaySoldOverlay={false}
+        />
+      ) : (
+        <ImageCarousel
+          images={data.purchase.product.images}
+          status={data.purchase.product.status}
+          displaySoldOverlay={false}
+        />
+      )}
       <View style={{ gap: 16 }}>
         <Title size="large">{data.purchase.product.title}</Title>
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>

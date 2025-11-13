@@ -32,6 +32,8 @@ import { SearchDropdownContextProvider } from "@context/search-dropdown-context"
 import * as Sentry from '@sentry/react-native';
 import { PopupProvider } from "@context/popup-context";
 import { Popup } from "@components/popup/popup";
+import { BuyModalProvider } from "@context/buy-modal-context";
+import { BuyModal } from "@components/buy/buy-modal";
 
 Sentry.init({
   dsn: 'https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816',
@@ -118,13 +120,16 @@ const RootLayout = () => {
                     <BottomSheetModalProvider>
                       <ScreenDimensionsProvider>
                         <SearchDropdownContextProvider>
-                          <Slot />
-                          <HamburgerMenu />
-                          <LoginModalView />
-                          <SellProductBottomSheet />
-                          <EditProductBottomSheet />
-                          <SearchDropdown />
-                          <Popup />
+                          <BuyModalProvider>
+                            <Slot />
+                            <HamburgerMenu />
+                            <LoginModalView />
+                            <SellProductBottomSheet />
+                            <EditProductBottomSheet />
+                            <SearchDropdown />
+                            <Popup />
+                            <BuyModal />
+                          </BuyModalProvider>
                         </SearchDropdownContextProvider>
                       </ScreenDimensionsProvider>
                     </BottomSheetModalProvider>

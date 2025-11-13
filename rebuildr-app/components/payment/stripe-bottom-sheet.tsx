@@ -1,6 +1,8 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Body, Title } from "@components/typography/text";
+import { useBuyModalContext } from "@context/buy-modal-context";
+import { useScreenType } from "@hooks/useScreenType";
 import {
   Elements,
   PaymentElement,
@@ -35,7 +37,7 @@ export const StripeBottomSheet = ({
     console.error("Publishable key not set!");
     return null;
   }
-  const stripePromise = loadStripe(process.env.EXPO_PUBLIC_STRIPE_PK);
+
   return (
     <BottomSheet
       name="Stripe"
@@ -45,15 +47,41 @@ export const StripeBottomSheet = ({
       onDismiss={onDismiss}
       scrollable
     >
-      <>
-        <View style={{ gap: 24 }}>
-          <Title>Bearbetar köp...</Title>
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <CheckoutForm productId={productId} purchaseId={purchaseId} />
-          </Elements>
-        </View>
-      </>
+      <StripCheckoutForm
+        productId={productId}
+        purchaseId={purchaseId}
+        clientSecret={clientSecret}
+      />
     </BottomSheet>
+  );
+};
+
+type StripCheckoutFormProps = {
+  productId: string;
+  purchaseId: string;
+  clientSecret: string;
+};
+
+export const StripCheckoutForm = ({
+  productId,
+  purchaseId,
+  clientSecret,
+}: StripCheckoutFormProps) => {
+  if (!process.env.EXPO_PUBLIC_STRIPE_PK) {
+    console.error("Publishable key not set!");
+    return null;
+  }
+
+  const stripePromise = loadStripe(process.env.EXPO_PUBLIC_STRIPE_PK);
+  return (
+    <>
+      <View style={{ gap: 24 }}>
+        <Title>Bearbetar köp...</Title>
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          <CheckoutForm productId={productId} purchaseId={purchaseId} />
+        </Elements>
+      </View>
+    </>
   );
 };
 
@@ -68,6 +96,8 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
   const redirectPath = createURL(`/buy/${productId}/stripe`, {
     queryParams: { purchaseId },
   });
+  const { isDesktop } = useScreenType();
+  const { setContent } = useBuyModalContext();
 
   const handleSubmit = async (event: any) => {
     // We don't want to let default form submission happen here,
@@ -86,7 +116,16 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
       confirmParams: {
         return_url: redirectPath,
       },
+      redirect: "if_required",
     });
+
+    if (isDesktop && result.paymentIntent?.status === "succeeded") {
+      setContent({
+        buyState: "stripe",
+        productId,
+        purchaseId,
+      });
+    }
 
     if (result.error) {
       // Show error to your customer (for example, payment details incomplete)

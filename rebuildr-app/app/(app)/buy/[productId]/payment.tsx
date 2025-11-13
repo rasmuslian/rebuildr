@@ -19,8 +19,8 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
-import React, { ReactElement, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { ReactElement, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
@@ -34,6 +34,8 @@ import {
 } from "@/utils/transportationMethods";
 import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 import { Toggle } from "@components/controls/toggle";
+import { useScreenType } from "@hooks/useScreenType";
+import { useBuyModalContext } from "@context/buy-modal-context";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -85,9 +87,6 @@ const PAYMENT_CANCEL_PURCHASE = gql`
 `;
 
 export default function Payment() {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
-  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
-  const [showStripeModal, setShowStripeModal] = useState(false);
   const localSearchParams = useLocalSearchParams<{
     productId: string;
     transportationMethod: TransportationString;
@@ -95,15 +94,68 @@ export default function Payment() {
     deliverToLocation?: string;
     deliverToAddress?: string;
   }>();
-  const {
-    productId,
-    transportationMethod,
-    servicePointId,
-    deliverToLocation,
-    deliverToAddress,
-  } = localSearchParams;
+  return <PaymentContent {...localSearchParams} />;
+}
+
+export type PaymentDeliveryProps = {
+  transportationMethod: TransportationString;
+  servicePointId?: string;
+  deliverToLocation?: string;
+  deliverToAddress?: string;
+};
+
+type PaymentContentProps = {
+  productId: string;
+} & PaymentDeliveryProps;
+
+export const PaymentContent = ({
+  productId,
+  transportationMethod,
+  servicePointId,
+  deliverToLocation,
+  deliverToAddress,
+}: PaymentContentProps) => {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
   const colors = useThemeColor();
-  const path = usePathname();
+  const { isDesktop, isMobile } = useScreenType();
+  const { setVisible, setContent } = useBuyModalContext();
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => {
+      setContent(null);
+    }, 500);
+  };
+
+  useEffect(() => {
+    if (
+      isDesktop &&
+      paymentMethod === PaymentMethod.Card &&
+      !!createPurchaseData?.purchaseProduct.reference
+    ) {
+      if (showStripeModal) {
+        setContent({
+          buyState: "stripeForm",
+          productId,
+          purchaseId: createPurchaseData.purchaseProduct.purchase.id,
+          stripeClientSecret: createPurchaseData.purchaseProduct.reference,
+        });
+      } else {
+        setContent({
+          buyState: "payment",
+          productId,
+          delivery: {
+            transportationMethod,
+            servicePointId,
+            deliverToLocation,
+            deliverToAddress,
+          },
+        });
+      }
+    }
+  }, [showStripeModal]);
 
   const { data, loading } = useQuery<
     BuyProductPaymentQuery,
@@ -246,8 +298,13 @@ export default function Payment() {
   const queriesLoading = loading || createPurchaseLoading;
   return (
     <ScreenLayout
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
       headerComponent={
-        <ProgressHeader title="Bekräfta köp" progress={progress()} />
+        <ProgressHeader
+          title="Bekräfta köp"
+          progress={progress()}
+          onBack={isDesktop ? handleClose : undefined}
+        />
       }
       style={{ gap: 24, marginTop: 16 }}
     >
@@ -276,7 +333,7 @@ export default function Payment() {
         </View>
       </View>
       <View style={{ gap: 8 }}>
-        {/* 
+        {/*
         //Hide Swish until Stripe supports it
         <PaymentCard
           title="Betala med Swish"
@@ -364,14 +421,18 @@ export default function Payment() {
         <Button
           label="Tillbaka"
           icon="arrowLeft"
-          onPress={() =>
-            router.canGoBack()
-              ? router.back()
-              : router.navigate({
-                  pathname: "/buy/[productId]",
-                  params: { productId },
-                })
-          }
+          onPress={() => {
+            if (isDesktop) {
+              setContent({ buyState: "summary", productId });
+            } else if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.navigate({
+                pathname: "/buy/[productId]",
+                params: { productId },
+              });
+            }
+          }}
         />
         <Button
           label="Betala"
@@ -381,7 +442,7 @@ export default function Payment() {
           style={{ flex: 1 }}
         />
       </View>
-      {paymentMethod === PaymentMethod.Card &&
+      {isMobile && paymentMethod === PaymentMethod.Card &&
         !!createPurchaseData?.purchaseProduct.reference && (
           <StripeBottomSheet
             show={showStripeModal}
@@ -393,7 +454,7 @@ export default function Payment() {
         )}
     </ScreenLayout>
   );
-}
+};
 
 type PaymentCardProps = {
   title: string;

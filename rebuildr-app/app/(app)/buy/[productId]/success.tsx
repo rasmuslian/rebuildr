@@ -5,6 +5,8 @@ import { Header } from "@components/navigation/headers/header";
 import { PurchaseReceipt } from "@components/purchase/purchase-receipt";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display } from "@components/typography/text";
+import { useBuyModalContext } from "@context/buy-modal-context";
+import { useScreenType } from "@hooks/useScreenType";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
@@ -23,16 +25,33 @@ const PURCHASE_SUCCESS = gql`
 
 export default function Success() {
   const { purchaseId } = useLocalSearchParams<{ purchaseId: string }>();
+  return <SuccessContent purchaseId={purchaseId} />;
+}
+
+export const SuccessContent = ({ purchaseId }: { purchaseId: string }) => {
+  const { isDesktop } = useScreenType();
+  const { setVisible, setContent } = useBuyModalContext();
   const { data } = useQuery<PurchaseSuccessQuery>(PURCHASE_SUCCESS, {
     variables: { input: { id: purchaseId } },
   });
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => {
+      setContent(null);
+    }, 500);
+  };
 
   if (!data) {
     return <LoadingSpinner />;
   }
 
   return (
-    <ScreenLayout headerComponent={<Header title="Om köpet" />}>
+    <ScreenLayout
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
+      headerComponent={
+        <Header title="Om köpet" onBack={isDesktop ? handleClose : undefined} />
+      }
+    >
       <View style={{ gap: 24, marginBottom: 32 }}>
         <Display
           size="small"
@@ -51,4 +70,4 @@ export default function Success() {
       <PurchaseReceipt purchaseId={purchaseId} />
     </ScreenLayout>
   );
-}
+};

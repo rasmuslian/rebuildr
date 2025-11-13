@@ -16,6 +16,7 @@ interface PageProps extends PropsWithChildren {
   headerStyle?: StyleProp<ViewStyle>;
   loading?: boolean;
   onContentSizeChange?: "scrollToBottom" | "nothing";
+  contentHorizontalPadding?: number;
 }
 
 export const SCREEN_TOP_MARGIN = 24;
@@ -32,13 +33,16 @@ export const ScreenLayout = ({
   headerStyle,
   loading,
   onContentSizeChange = "nothing",
+  contentHorizontalPadding,
 }: PageProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const scrollRef = useRef<ScrollView>(null);
-  const paddingHorizontal = isDesktop
-    ? horizontalPadding.desktop
-    : horizontalPadding.mobile;
+  const paddingHorizontal = contentHorizontalPadding !== undefined
+      ? contentHorizontalPadding
+      : isDesktop
+        ? horizontalPadding.desktop
+        : horizontalPadding.mobile;
 
   const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
   return (

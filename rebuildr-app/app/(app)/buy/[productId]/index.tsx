@@ -27,6 +27,9 @@ import { ShippingDetails } from "@components/buy/shipping-details";
 import { PickupCard } from "@components/buy/pickup-card";
 import { SinglePickup } from "@components/buy/single-pickup";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
+import { useScreenType } from "@hooks/useScreenType";
+import { useBuyModalContext } from "@context/buy-modal-context";
+
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
     product(input: $input) {
@@ -94,14 +97,34 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
 `;
 
 export default function BuyProductInitial() {
-  const [progress, setProgress] = useState(10);
+  return <Buy />;
+}
 
-  const { productId } = useLocalSearchParams<{ productId: string }>();
+type Props = {
+  productId?: string;
+};
+
+export const Buy = ({ productId: _productId }: Props) => {
+  const [progress, setProgress] = useState(10);
+  const { isDesktop } = useScreenType();
+  const { setVisible, setContent } = useBuyModalContext();
+
+  const { productId: paramProductId } = useLocalSearchParams<{
+    productId: string;
+  }>();
+  const productId = _productId ?? paramProductId;
 
   const { data } = useQuery<
     BuyProductInitialQuery,
     BuyProductInitialQueryVariables
   >(BUY_PRODUCT_INITIAL, { variables: { input: { id: productId } } });
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => {
+      setContent(null);
+    }, 500);
+  };
 
   if (!data) {
     return <LoadingSpinner />;
@@ -140,10 +163,12 @@ export default function BuyProductInitial() {
   return (
     <>
       <ScreenLayout
+        contentHorizontalPadding={isDesktop ? 0 : undefined}
         headerComponent={
           <ProgressHeader
             title="Bekräfta köp"
             progress={singleTransportationOption ? singleProgress : progress}
+            onBack={isDesktop ? handleClose : undefined}
           />
         }
         style={{ gap: 24, marginTop: 16 }}

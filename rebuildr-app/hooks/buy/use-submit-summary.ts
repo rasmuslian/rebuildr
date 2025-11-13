@@ -1,9 +1,12 @@
+import { PaymentDeliveryProps } from "@/app/(app)/buy/[productId]/payment";
 import {
   SummaryCreateFreePurchaseMutation,
   SummaryCreateFreePurchaseMutationVariables,
   TransportationEnum,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
+import { useBuyModalContext } from "@context/buy-modal-context";
+import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 
 const SUMMARY_CREATE_FREE_PURCHASE = gql`
@@ -22,6 +25,8 @@ export const useSubmitSummary = () => {
     SummaryCreateFreePurchaseMutation,
     SummaryCreateFreePurchaseMutationVariables
   >(SUMMARY_CREATE_FREE_PURCHASE);
+  const { isDesktop } = useScreenType();
+  const { setContent } = useBuyModalContext();
 
   const handleFree = (
     productId: string,
@@ -47,12 +52,36 @@ export const useSubmitSummary = () => {
         },
       },
       onCompleted: (data) => {
-        router.navigate({
-          pathname: "/buy/[productId]/success",
-          params: { productId, purchaseId: data.purchaseProduct.purchase.id },
-        });
+        if (isDesktop) {
+          setContent({
+            buyState: "success",
+            purchaseId: data.purchaseProduct.purchase.id,
+          });
+        } else {
+          router.navigate({
+            pathname: "/buy/[productId]/success",
+            params: { productId, purchaseId: data.purchaseProduct.purchase.id },
+          });
+        }
       },
     });
+  };
+
+  const navigateToPayment = (
+    productId: string,
+    paymentProps: PaymentDeliveryProps,
+  ) => {
+    if (isDesktop) {
+      setContent({ buyState: "payment", productId, delivery: paymentProps });
+    } else {
+      router.navigate({
+        pathname: "/buy/[productId]/payment",
+        params: {
+          productId,
+          ...paymentProps,
+        },
+      });
+    }
   };
 
   const submitPickup = (productId: string, price: number) => {
@@ -60,19 +89,12 @@ export const useSubmitSummary = () => {
       return handleFree(productId, TransportationEnum.Pickup);
     }
 
-    router.navigate({
-      pathname: "/buy/[productId]/payment",
-      params: { productId, transportationMethod: "pickup" },
-    });
+    navigateToPayment(productId, { transportationMethod: "pickup" });
   };
   const submitShipping = (productId: string, servicePointId: string) => {
-    router.navigate({
-      pathname: "/buy/[productId]/payment",
-      params: {
-        productId,
-        transportationMethod: "shipping",
-        servicePointId,
-      },
+    navigateToPayment(productId, {
+      transportationMethod: "shipping",
+      servicePointId,
     });
   };
   const submitDelivery = (
@@ -89,14 +111,10 @@ export const useSubmitSummary = () => {
         address,
       });
     }
-    router.navigate({
-      pathname: "/buy/[productId]/payment",
-      params: {
-        productId,
-        transportationMethod: "delivery",
-        deliverToLocation: `${lat},${lng}`,
-        deliverToAddress: address,
-      },
+    navigateToPayment(productId, {
+      transportationMethod: "delivery",
+      deliverToLocation: `${lat},${lng}`,
+      deliverToAddress: address,
     });
   };
 

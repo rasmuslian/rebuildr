@@ -12,6 +12,8 @@ import {
   ProductStatusEnum,
 } from "@/gql/graphql";
 import { CONVERSATION_PRODUCT } from "@/app/(app)/conversations/[productId]/[userId]";
+import { useScreenType } from "@hooks/useScreenType";
+import { useBuyModalContext } from "@context/buy-modal-context";
 
 const CONVERSATION_ACCEPT_PURCHASE = gql`
   mutation ConversationAcceptPurchase($input: AcceptPurchaseInput!) {
@@ -40,6 +42,9 @@ type Props = {
 export const ChatActionButtons = ({ data, onShowReview }: Props) => {
   const purchase = data.latestPurchase;
   const sellerIsMe = data.me.id === data.product.seller.id;
+  const { isDesktop } = useScreenType();
+  const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
+    useBuyModalContext();
 
   const [acceptPurchase, { loading: acceptPurchaseLoading }] = useMutation<
     ConversationAcceptPurchaseMutation,
@@ -56,10 +61,18 @@ export const ChatActionButtons = ({ data, onShowReview }: Props) => {
       <Button
         label="Köp"
         onPress={() => {
-          router.navigate({
-            pathname: "/buy/[productId]",
-            params: { productId: data.product.id },
-          });
+          if (isDesktop) {
+            setBuyModalContent({
+              buyState: "summary",
+              productId: data.product.id,
+            });
+            setBuyModalVisible(true);
+          } else {
+            router.navigate({
+              pathname: "/buy/[productId]",
+              params: { productId: data.product.id },
+            });
+          }
         }}
       />
     ) : null;
