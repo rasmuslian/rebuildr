@@ -10,6 +10,7 @@ import { Body, Label, Title } from "@components/typography/text";
 import { View } from "react-native";
 import { useEffect } from "react";
 import { ProductFields } from "./types";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP = gql`
   query ProductBottomSheetPreviewPickup($input: GetProjectInput!) {
@@ -87,7 +88,7 @@ export const PreviewPickup = ({
         lat={location[0]}
         lng={location[1]}
         interactive={false}
-        radius={5000}
+        radius={mapDefaultApproximateRadiusLarge}
         zoom={10}
       />
       <View style={{ gap: 12 }}>

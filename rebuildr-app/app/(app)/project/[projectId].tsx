@@ -23,6 +23,7 @@ import { GET_PROJECT } from "@/queries";
 import { useDebounceCallback } from "usehooks-ts";
 import { Map } from "@components/maps/map";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 
 export default function ProjectPage() {
   const { width: screenWidth } = useWindowDimensions();
@@ -264,7 +265,7 @@ export default function ProjectPage() {
               lat={location.lat}
               lng={location.lng}
               interactive={false}
-              radius={5000}
+              radius={mapDefaultApproximateRadiusLarge}
               height={700}
             />
           )}
