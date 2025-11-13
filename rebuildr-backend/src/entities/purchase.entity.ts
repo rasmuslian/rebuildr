@@ -76,9 +76,6 @@ export class Purchase {
   @ManyToOne(() => User, (u) => u.purchases)
   buyer: User;
 
-  @Column({ nullable: true })
-  rockerPaymentId?: string;
-
   @Column({ nullable: true, comment: "payment id on buyer's side" })
   paymentIntentId?: string;
 
@@ -90,12 +87,6 @@ export class Purchase {
 
   @Column({ nullable: true, comment: "payment id on seller's side" })
   destinationPaymentId?: string;
-
-  @Column({ nullable: true })
-  rockerOfferId?: string;
-
-  @Column({ nullable: true })
-  rockerPayoutId?: string;
 
   @Column({ nullable: true })
   payoutId?: string;

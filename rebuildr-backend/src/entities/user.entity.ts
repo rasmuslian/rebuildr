@@ -136,23 +136,6 @@ export class User {
   @ManyToMany(() => Project, (project) => project.likedBy)
   likedProjects: Project[];
 
-  @Column({ nullable: true })
-  rockerUserId?: string; //id used in Rocker
-
-  //following id's are id of each respective payout account method
-  @Column({ nullable: true })
-  payoutAccountSwishId?: string;
-  @Column({ nullable: true })
-  payoutAccountRixId?: string;
-  @Column({ nullable: true })
-  payoutAccountBankGiroId?: string;
-  @Column({ nullable: true })
-  payoutAccountPlusGiroId?: string;
-
-  @Field(() => PayoutAccountEnum, { nullable: true })
-  @Column('enum', { enum: PayoutAccountEnum, nullable: true })
-  selectedPayoutMethod?: PayoutAccountEnum;
-
   @OneToMany(() => Purchase, (p) => p.buyer)
   purchases: Purchase[];
 
