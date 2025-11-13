@@ -47,6 +47,7 @@ export const SlideInSheet = ({
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [display, setDisplay] = useState<"none" | "flex">("none");
+  const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -61,11 +62,15 @@ export const SlideInSheet = ({
       useNativeDriver: true,
     }).start();
     if (!open) {
-      setTimeout(() => setDisplay("none"), 300);
+      setTimeout(() => {
+        setDisplay("none");
+        setContent(null);
+      }, 300);
     } else {
+      setContent(children);
       setDisplay("flex");
     }
-  }, [open]);
+  }, [open, children]);
 
   return (
     <Animated.View
@@ -158,7 +163,7 @@ export const SlideInSheet = ({
               style,
             ]}
           >
-            {children}
+            {content}
           </ScrollView>
           {footer && (
             <View
