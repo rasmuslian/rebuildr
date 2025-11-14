@@ -256,7 +256,11 @@ const LoginModalView = () => {
   ];
 
   if (isDesktop) {
-    return <SlideInSheet open={visible}>{viewChildren}</SlideInSheet>;
+    return (
+      <SlideInSheet open={visible} onClose={handleClosePress}>
+        {viewChildren}
+      </SlideInSheet>
+    );
   }
 
   return (

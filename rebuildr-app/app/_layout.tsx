@@ -29,14 +29,15 @@ import { EditProductProdiver } from "@context/edit-product-context";
 import { isIOSDevice } from "@/utils/deviceInfo";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchDropdownContextProvider } from "@context/search-dropdown-context";
-import * as Sentry from '@sentry/react-native';
+import * as Sentry from "@sentry/react-native";
 import { PopupProvider } from "@context/popup-context";
 import { Popup } from "@components/popup/popup";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
+import { SlideInSheetProvider } from "@context/slide-in-sheet-context";
 
 Sentry.init({
-  dsn: 'https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816',
+  dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
 
   // Adds more context data to events (IP address, cookies, user, etc.)
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
@@ -48,7 +49,10 @@ Sentry.init({
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1,
-  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration(),
+  ],
 
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
@@ -119,18 +123,20 @@ const RootLayout = () => {
                   <GestureHandlerRootView>
                     <BottomSheetModalProvider>
                       <ScreenDimensionsProvider>
-                        <SearchDropdownContextProvider>
-                          <BuyModalProvider>
-                            <Slot />
-                            <HamburgerMenu />
-                            <LoginModalView />
-                            <SellProductBottomSheet />
-                            <EditProductBottomSheet />
-                            <SearchDropdown />
-                            <Popup />
-                            <BuyModal />
-                          </BuyModalProvider>
-                        </SearchDropdownContextProvider>
+                        <BuyModalProvider>
+                          <SlideInSheetProvider>
+                            <SearchDropdownContextProvider>
+                              <Slot />
+                              <HamburgerMenu />
+                              <LoginModalView />
+                              <SellProductBottomSheet />
+                              <EditProductBottomSheet />
+                              <SearchDropdown />
+                              <Popup />
+                              <BuyModal />
+                            </SearchDropdownContextProvider>
+                          </SlideInSheetProvider>
+                        </BuyModalProvider>
                       </ScreenDimensionsProvider>
                     </BottomSheetModalProvider>
                   </GestureHandlerRootView>
