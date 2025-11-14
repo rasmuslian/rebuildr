@@ -48,7 +48,7 @@ export default function ProjectsPage() {
 
   if (isDesktop) {
     return (
-      <ScreenLayout headerComponent={<TopBar />}>
+      <ScreenLayout headerComponent={<TopBar theme="light" />}>
         {loading ? (
           <LoadingSpinner />
         ) : (
