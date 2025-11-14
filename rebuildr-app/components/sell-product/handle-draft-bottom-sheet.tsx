@@ -92,11 +92,14 @@ export const HandleDraftBottomSheet = ({
   );
 
   useEffect(() => {
-    if (show) {
-      setContent(content);
-      setVisible("partial");
-    } else {
-      setVisible(false);
+    if (isDesktop) {
+      if (show) {
+        setContent(content);
+        setVisible("partial");
+      } else {
+        setVisible(false);
+        setContent(null);
+      }
     }
   }, [show]);
 

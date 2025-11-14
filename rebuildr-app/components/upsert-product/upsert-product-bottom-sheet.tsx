@@ -28,6 +28,7 @@ import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { usePopupContext } from "@context/popup-context";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -131,6 +132,8 @@ export const UpsertProductBottomSheet = ({
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
+  const { setVisible: setPopupVisible, setContent: setPopupContent } =
+    usePopupContext();
 
   //progress
   const [projectProgress, setProjectProgress] = useState<number | undefined>(
@@ -396,6 +399,9 @@ export const UpsertProductBottomSheet = ({
         } else {
           onHide();
           setShowHandleDraft(false);
+          setPopupVisible(false);
+          setPopupContent(null);
+          setProduct(initialProduct);
         }
       },
       onError: (error) => {
@@ -530,6 +536,8 @@ export const UpsertProductBottomSheet = ({
   const onFinish = () => {
     //reset
     setShowHandleDraft(false);
+    setPopupVisible(false);
+    setPopupContent(null);
     setProduct(initialProduct);
     setStep("details");
 
