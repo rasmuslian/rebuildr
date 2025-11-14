@@ -103,7 +103,7 @@ export const Preview = ({ product }: Props) => {
         images={product.images?.map((i) => ({ url: i.uri }))}
       />,
     );
-    setPopupVisible(true);
+    setPopupVisible("full");
   };
 
   useEffect(() => {
