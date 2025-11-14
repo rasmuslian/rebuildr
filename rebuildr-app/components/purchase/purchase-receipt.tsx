@@ -96,9 +96,15 @@ export const PURCHASE_RECEIPT = gql`
 
 type Props = {
   purchaseId: string;
+  showDesktopCarousel?: boolean;
+  carouselDesktopWidth?: number;
 };
 
-export const PurchaseReceipt = ({ purchaseId }: Props) => {
+export const PurchaseReceipt = ({
+  purchaseId,
+  showDesktopCarousel = false,
+  carouselDesktopWidth,
+}: Props) => {
   const { isDesktop } = useScreenType();
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReviewSheet, setShowReviewSheet] = useState(false);
@@ -117,7 +123,7 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
 
   return (
     <View style={{ gap: 24 }}>
-      {isDesktop ? (
+      {isDesktop && !showDesktopCarousel ? (
         <ImageGallery
           images={data.purchase.product.images}
           status={data.purchase.product.status}
@@ -128,6 +134,8 @@ export const PurchaseReceipt = ({ purchaseId }: Props) => {
           images={data.purchase.product.images}
           status={data.purchase.product.status}
           displaySoldOverlay={false}
+          width={carouselDesktopWidth}
+          ratio={carouselDesktopWidth ? 2 : 1}
         />
       )}
       <View style={{ gap: 16 }}>

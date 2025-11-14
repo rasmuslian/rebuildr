@@ -8,18 +8,37 @@ import { PurchaseCard } from "./purchase-card";
 import { Body, Headline } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { AccordionSection } from "@components/sections/accordion-section";
+import { useEffect } from "react";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   myPurchases: AccountPurchasesQuery["myPurchases"];
+  onPurchasePress?: (purchaseId: string) => void;
+  selectedPurchaseId?: string | null;
 };
 
-export const PurchasesList = ({ myPurchases }: Props) => {
+export const PurchasesList = ({
+  myPurchases,
+  onPurchasePress,
+  selectedPurchaseId,
+}: Props) => {
+  const { isDesktop } = useScreenType();
   const donePurchases = myPurchases.filter((purchase) =>
     isPurchaseDone(purchase),
   );
   const ongoingPurchases = myPurchases.filter(
     (purchase) => !isPurchaseDone(purchase),
   );
+
+  useEffect(() => {
+    if (myPurchases.length > 0 && !!onPurchasePress && !selectedPurchaseId) {
+      if (ongoingPurchases.length > 0) {
+        onPurchasePress?.(ongoingPurchases[0].id);
+      } else if (donePurchases.length > 0) {
+        onPurchasePress?.(donePurchases[0].id);
+      }
+    }
+  }, [myPurchases]);
 
   if (myPurchases.length === 0) {
     return (
@@ -34,15 +53,33 @@ export const PurchasesList = ({ myPurchases }: Props) => {
     );
   }
 
+  const ongoingPurchasesContent = ongoingPurchases?.map((purchase) => (
+    <PurchaseCard
+      purchase={purchase}
+      key={purchase.id}
+      onPress={onPurchasePress}
+      selected={selectedPurchaseId === purchase.id}
+    />
+  ));
+
   return (
     <>
       {ongoingPurchases.length ? (
-        <View style={{ marginBottom: 24, gap: 16 }}>
-          <SectionHeader>{`Pågående: ${ongoingPurchases.length} st`}</SectionHeader>
-          {ongoingPurchases.map((purchase) => (
-            <PurchaseCard purchase={purchase} key={purchase.id} />
-          ))}
-        </View>
+        <>
+          {isDesktop ? (
+            <AccordionSection
+              title={`Pågående: ${ongoingPurchases.length} st`}
+              initialOpen
+            >
+              {ongoingPurchasesContent}
+            </AccordionSection>
+          ) : (
+            <View style={{ marginBottom: 24, gap: 16 }}>
+              <SectionHeader>{`Pågående: ${ongoingPurchases.length} st`}</SectionHeader>
+              {ongoingPurchasesContent}
+            </View>
+          )}
+        </>
       ) : (
         <View style={{ marginBottom: 16 }}>
           <Headline size="small">Pågående</Headline>
@@ -60,7 +97,12 @@ export const PurchasesList = ({ myPurchases }: Props) => {
           >
             <View style={{ gap: 16 }}>
               {donePurchases.map((purchase) => (
-                <PurchaseCard purchase={purchase} key={purchase.id} />
+                <PurchaseCard
+                  purchase={purchase}
+                  key={purchase.id}
+                  onPress={onPurchasePress}
+                  selected={selectedPurchaseId === purchase.id}
+                />
               ))}
             </View>
           </AccordionSection>

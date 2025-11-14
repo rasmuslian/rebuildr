@@ -3,7 +3,6 @@ import { FlatList, Pressable } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 import {
-  GestureResponderEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
@@ -18,12 +17,16 @@ type Props = {
   images: { url: string }[];
   status: Product["status"];
   displaySoldOverlay?: boolean;
+  width?: number;
+  ratio?: number;
 };
 
 export const ImageCarousel = ({
   images,
   status,
   displaySoldOverlay = true,
+  width,
+  ratio = 1,
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,8 +36,8 @@ export const ImageCarousel = ({
   const flatListRef = useRef<FlatList>(null);
   const { width: screenWidth } = useWindowDimensions();
 
-  const imageWidth = screenWidth - 32;
-  const imageHeight = imageWidth;
+  const imageWidth = width ? width : screenWidth - 32;
+  const imageHeight = imageWidth / ratio;
 
   const scrollToIndex = (index: number) => {
     setVisibleIndex(index);
@@ -77,7 +80,7 @@ export const ImageCarousel = ({
 
   return (
     <Pressable onPress={() => setShowImagesSheet(true)}>
-      <View>
+      <View style={{ width: imageWidth }}>
         <FlatList
           ref={flatListRef}
           data={images}
@@ -94,7 +97,7 @@ export const ImageCarousel = ({
                   style={{
                     height: imageHeight,
                     borderRadius: borderRadius.medium,
-                    aspectRatio: 1,
+                    aspectRatio: ratio,
                   }}
                 />
                 {status === ProductStatusEnum.Sold && displaySoldOverlay && (
