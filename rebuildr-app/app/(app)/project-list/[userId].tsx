@@ -10,6 +10,9 @@ import {
   PROJECTS_LIST_FRAGMENT,
   ProjectsList,
 } from "@components/project/projects-list";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
+import { View } from "react-native";
 
 const GET_PROJECTS = gql`
   query GetProjects($input: GetUserInput!, $isLoggedIn: Boolean!) {
@@ -29,6 +32,7 @@ const GET_PROJECTS = gql`
 
 export default function ProjectsPage() {
   const { isLoggedIn } = useUser();
+  const { isDesktop } = useScreenType();
   const { userId } = useLocalSearchParams<{ userId: string }>();
 
   const { data, loading } = useQuery<
@@ -41,6 +45,25 @@ export default function ProjectsPage() {
   });
 
   const projects = data?.user.projects ?? [];
+
+  if (isDesktop) {
+    return (
+      <ScreenLayout headerComponent={<TopBar />}>
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <View style={{ gap: 16 }}>
+            <Header
+              title="Projekt"
+              showBackButton={false}
+              showDivider={false}
+            />
+            <ProjectsList projects={projects} />
+          </View>
+        )}
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout headerComponent={<Header title="Projekt" />}>
