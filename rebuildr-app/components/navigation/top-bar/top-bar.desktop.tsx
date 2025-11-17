@@ -13,11 +13,11 @@ import { GetMeQuery, TabLayoutQuery } from "@/gql/graphql";
 import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
-import { SearchBar } from "@components/search/search-bar";
 import { horizontalPadding } from "@constants/sizes";
 import { Avatar } from "@components/avatar/avatar";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import AccountContent from "@components/account/account-content";
+import { SearchBar } from "@components/search/search-bar";
 
 type Props = {
   isLoggedIn: boolean;

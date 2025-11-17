@@ -1,8 +1,8 @@
 import { View, ImageBackground } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Headline } from "@components/typography/text";
-import { SearchBar } from "@components/search/search-bar";
 import React from "react";
+import { Search } from "@components/search/search";
 
 type Props = {
   headline: string;
@@ -45,8 +45,8 @@ export default function HeroDesktop({
           {headline}
         </Headline>
 
-        <SearchBar
-          style={{ borderBottomWidth: 0, width: 633, paddingVertical: 0 }}
+        <Search
+          style={{ width: 633 }}
           placeholder={searchBar}
           visible={showSearchBar}
           searchOnSubmit
