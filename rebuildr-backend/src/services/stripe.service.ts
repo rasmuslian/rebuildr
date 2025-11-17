@@ -50,9 +50,18 @@ export class StripeService {
       },
     });
 
+    const account = await this.retrieveAccount(
+      connectedUser.connectedAccountId,
+    );
+
     return {
       clientSecret: accountSession.client_secret,
       user: connectedUser,
+      fields: [
+        ...account.requirements.currently_due,
+        ...account.requirements.eventually_due,
+        ...account.requirements.past_due,
+      ],
     };
   }
 
@@ -204,21 +213,6 @@ export class StripeService {
         default_for_currency: true,
       },
     );
-  }
-
-  async onBoardAccount(connectedAccountId: string) {
-    const accountSession = await this.stripe.accountSessions.create({
-      account: connectedAccountId,
-      components: {
-        account_onboarding: {
-          enabled: true,
-        },
-      },
-    });
-
-    return {
-      clientSecret: accountSession.client_secret,
-    };
   }
 
   async accountIsEnabled(connectedAccountId: string) {

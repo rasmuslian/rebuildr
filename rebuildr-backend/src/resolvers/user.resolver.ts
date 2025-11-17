@@ -184,6 +184,9 @@ export class OnboardSellerAccountResponse {
 
   @Field()
   clientSecret: string;
+
+  @Field(() => [String])
+  fields: string[];
 }
 
 @InputType()
