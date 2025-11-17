@@ -376,27 +376,6 @@ export class UserService {
     return await this.stripeService.createConnectedAccount(user);
   }
 
-  async updateSellerAccount(currentUserId: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: currentUserId },
-    });
-    if (!user) {
-      return BadUserInputException();
-    }
-
-    if (!user.connectedAccountId) {
-      throw BadUserInputException('Missing seller account');
-    }
-
-    const { clientSecret } = await this.stripeService.onBoardAccount(
-      user.connectedAccountId,
-    );
-
-    return {
-      user,
-      clientSecret,
-    };
-  }
   async addPayoutAccount(currentUserId: string, token: string) {
     const user = await this.userRepository.findOne({
       where: { id: currentUserId },

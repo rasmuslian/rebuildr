@@ -168,7 +168,6 @@ type User {
   city: String
   phoneNumber: String
   role: UserRoleEnum!
-  selectedPayoutMethod: PayoutAccountEnum
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
@@ -198,14 +197,6 @@ type User {
 enum UserRoleEnum {
   USER
   ADMIN
-}
-
-enum PayoutAccountEnum {
-  SWISH
-  TRUSTLY
-  RIX
-  BANKGIRO
-  PLUSGIRO
 }
 
 enum UserType {
@@ -527,6 +518,7 @@ type PayoutAccount {
 type OnboardSellerAccountResponse {
   user: User!
   clientSecret: String!
+  fields: [String!]!
 }
 
 type CmsListUsersResponse {

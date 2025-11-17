@@ -19,16 +19,17 @@ const ONBOARD_SELLER_ACCOUNT = gql`
         id
       }
       clientSecret
+      fields
     }
   }
 `;
 
 export const useStripeConnect = () => {
   const [stripeConnectInstance, setStripeConnectInstance] =
-    useState<StripeConnectInstance>();
+    useState<StripeConnectInstance | null>(null);
   const colors = useThemeColor();
 
-  const [onboardAccount, { loading }] = useMutation<
+  const [onboardAccount, { data, loading }] = useMutation<
     OnboardSellerAccountMutation,
     OnboardSellerAccountMutationVariables
   >(ONBOARD_SELLER_ACCOUNT);
@@ -133,5 +134,9 @@ export const useStripeConnect = () => {
     createConnectInstance();
   }, []);
 
-  return { stripeConnectInstance, createConnectInstance };
+  return {
+    stripeConnectInstance,
+    createConnectInstance,
+    fields: data?.onboardSellerAccount.fields,
+  };
 };
