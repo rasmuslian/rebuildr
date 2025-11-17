@@ -224,17 +224,19 @@ export const SearchBar = ({
           </Pressable>
         )}
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 6,
-          alignItems: "center",
-        }}
-      >
-        {ctas?.map((cta, i) => (
-          <Button key={i} type="text" {...cta} />
-        ))}
-      </View>
+      {ctas && (
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 6,
+            alignItems: "center",
+          }}
+        >
+          {ctas?.map((cta, i) => (
+            <Button key={i} type="text" {...cta} />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
