@@ -28,7 +28,6 @@ import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { usePopupContext } from "@context/popup-context";
 
 export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
   query UpsertProductBottomSheet($input: GetProductInput!) {
@@ -132,8 +131,6 @@ export const UpsertProductBottomSheet = ({
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
-  const { setVisible: setPopupVisible, setContent: setPopupContent } =
-    usePopupContext();
 
   //progress
   const [projectProgress, setProjectProgress] = useState<number | undefined>(
@@ -399,8 +396,6 @@ export const UpsertProductBottomSheet = ({
         } else {
           onHide();
           setShowHandleDraft(false);
-          setPopupVisible(false);
-          setPopupContent(null);
           setProduct(initialProduct);
         }
       },
@@ -455,7 +450,6 @@ export const UpsertProductBottomSheet = ({
   };
 
   const onDismissSheet = () => {
-    console.log("onDismissSheet called");
     if (mode === "edit") {
       onFinish();
       return;
@@ -536,8 +530,6 @@ export const UpsertProductBottomSheet = ({
   const onFinish = () => {
     //reset
     setShowHandleDraft(false);
-    setPopupVisible(false);
-    setPopupContent(null);
     setProduct(initialProduct);
     setStep("details");
 
@@ -655,12 +647,14 @@ export const UpsertProductBottomSheet = ({
 
   if (isDesktop) {
     return (
-      <SlideInSheet open={visible} bottomMargin={0}>
-        <View>{header}</View>
-        <View>{viewChildren}</View>
-        {showFooter && (
-          <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
-        )}
+      <>
+        <SlideInSheet open={visible} bottomMargin={0}>
+          <View>{header}</View>
+          <View>{viewChildren}</View>
+          {showFooter && (
+            <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
+          )}
+        </SlideInSheet>
         <HandleDraftBottomSheet
           show={showHandleDraft}
           onDismiss={() => setShowHandleDraft(false)}
@@ -670,7 +664,7 @@ export const UpsertProductBottomSheet = ({
           saveLoading={updateDraftLoading}
           onProductDeleted={onProductDeleted}
         />
-      </SlideInSheet>
+      </>
     );
   }
 

@@ -2,11 +2,10 @@ import { SellProductBottomSheetQueryQuery } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
+import { Popup } from "@components/popup/popup";
 import { Display } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
-import { usePopupContext } from "@context/popup-context";
 import { useScreenType } from "@hooks/useScreenType";
-import { useEffect } from "react";
 import { View } from "react-native";
 
 const SELL_PRODUCT_BOTTOM_SHEET_DELETE = gql`
@@ -34,7 +33,6 @@ export const HandleDraftBottomSheet = ({
   onProductDeleted,
 }: Props) => {
   const { isDesktop } = useScreenType();
-  const { setVisible, setContent } = usePopupContext();
   const [deleteDraft, { loading }] = useMutation(
     SELL_PRODUCT_BOTTOM_SHEET_DELETE,
   );
@@ -91,20 +89,12 @@ export const HandleDraftBottomSheet = ({
     </View>
   );
 
-  useEffect(() => {
-    if (isDesktop) {
-      if (show) {
-        setContent(content);
-        setVisible("partial");
-      } else {
-        setVisible(false);
-        setContent(null);
-      }
-    }
-  }, [show]);
-
   if (isDesktop) {
-    return null;
+    return (
+      <Popup open={show} onClose={onDismiss}>
+        {content}
+      </Popup>
+    );
   }
 
   return (

@@ -15,6 +15,7 @@ import { BuyersProtection } from "@components/buyers-protection/buyers-protectio
 import { Divider } from "@components/dividers/divider";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import TopBar from "@components/navigation/top-bar/top-bar";
+import { Popup } from "@components/popup/popup";
 import { ActionSection } from "@components/preview-product/action-section";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
@@ -34,7 +35,6 @@ import {
 import { SimilarProducts } from "@components/similar-products/similar-products";
 import { Body } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
-import { usePopupContext } from "@context/popup-context";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useLikeProduct } from "@hooks/useLikeProduct";
@@ -101,8 +101,9 @@ export const ProductDesktop = ({
   const rightColumnRef = useRef<View>(null);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
-  const { setVisible: setPopupVisible, setContent } = usePopupContext();
   const { setCategories } = useFilterProduct();
+  const [showImagePopup, setShowImagePopup] = useState(false);
+  const [showMapPopup, setShowMapPopup] = useState(false);
 
   useEffect(() => {
     if (rightColumnRef.current) {
@@ -124,19 +125,12 @@ export const ProductDesktop = ({
     : null;
 
   const showAllImagesPopup = () => {
-    setContent(<AllImagesPopupContent images={product.images} />);
-    setPopupVisible("full");
+    setShowImagePopup(true);
   };
 
-  const showMapPopup = () => {
+  const handleShowMapPopup = () => {
     if (!location || !approximatePlace) return;
-    setContent(
-      <PickupPositionPopupContent
-        address={approximatePlace.address}
-        location={location}
-      />,
-    );
-    setPopupVisible("full");
+    setShowMapPopup(true);
   };
 
   const handleCategoryPress = (category: Pick<Category, "id" | "parentId">) => {
@@ -227,7 +221,7 @@ export const ProductDesktop = ({
                     theme="dark"
                     showShadow
                     onPress={() => {
-                      showMapPopup();
+                      handleShowMapPopup();
                     }}
                   />
                 )}
@@ -383,6 +377,25 @@ export const ProductDesktop = ({
           printProductLabel({ productId: product.id })
         }
       />
+      <Popup
+        open={showImagePopup}
+        onClose={() => setShowImagePopup(false)}
+        type="full"
+      >
+        <AllImagesPopupContent images={product.images} />
+      </Popup>
+      <Popup
+        open={showMapPopup}
+        onClose={() => setShowMapPopup(false)}
+        type="full"
+      >
+        {location && approximatePlace && (
+          <PickupPositionPopupContent
+            address={approximatePlace.address}
+            location={location}
+          />
+        )}
+      </Popup>
     </>
   );
 };

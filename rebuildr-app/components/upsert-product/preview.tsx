@@ -18,8 +18,8 @@ import { ProductFields } from "./types";
 import { useEffect, useRef, useState } from "react";
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
-import { usePopupContext } from "@context/popup-context";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
+import { Popup } from "@components/popup/popup";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
   query ProductBottomSheetPreviewCategory($input: CategoryInput!) {
@@ -59,8 +59,8 @@ type Props = {
 export const Preview = ({ product }: Props) => {
   const ref = useRef<View>(null);
   const { isDesktop } = useScreenType();
-  const { setVisible: setPopupVisible, setContent } = usePopupContext();
   const [width, setWidth] = useState<number | undefined>(undefined);
+  const [showAllImagesPopup, setShowAllImagesPopup] = useState(false);
 
   const { data } = useQuery<ProductBottomSheetPreviewQuery>(
     PRODUCT_BOTTOM_SHEET_PREVIEW,
@@ -96,14 +96,9 @@ export const Preview = ({ product }: Props) => {
     skip: !product.brandId,
   });
 
-  const showAllImagesPopup = () => {
+  const handleShowAllImagesPopup = () => {
     if (!product.images) return;
-    setContent(
-      <AllImagesPopupContent
-        images={product.images?.map((i) => ({ url: i.uri }))}
-      />,
-    );
-    setPopupVisible("full");
+    setShowAllImagesPopup(true);
   };
 
   useEffect(() => {
@@ -150,7 +145,7 @@ export const Preview = ({ product }: Props) => {
         images={product.images?.map((i) => ({ url: i.uri })) ?? []}
         imagesPerRow={isDesktop ? 3 : undefined}
         parentWidth={width}
-        onAllImagesPress={showAllImagesPopup}
+        onAllImagesPress={handleShowAllImagesPopup}
       />
       {product.approximatePlace && product.pickupEnabled && (
         <PickupPosition
@@ -160,6 +155,17 @@ export const Preview = ({ product }: Props) => {
             lng: product.approximatePlace.lng,
           }}
         />
+      )}
+      {product.images && product.images.length > 0 && (
+        <Popup
+          open={showAllImagesPopup}
+          onClose={() => setShowAllImagesPopup(false)}
+          type="full"
+        >
+          <AllImagesPopupContent
+            images={product.images?.map((i) => ({ url: i.uri }))}
+          />
+        </Popup>
       )}
     </View>
   );

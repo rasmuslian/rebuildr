@@ -1,46 +1,25 @@
 import { Button } from "@components/buttons/button";
 import { primitives } from "@constants/colors";
 import { usePopupContext } from "@context/popup-context";
-import { useEffect, useRef } from "react";
-import { Animated, Pressable, View } from "react-native";
-import { Easing } from "react-native-reanimated";
+import { PropsWithChildren, useEffect } from "react";
+import { Pressable, View } from "react-native";
 
-export const Popup = () => {
-  const { visible, setVisible, content } = usePopupContext();
-  const contentAnimation = useRef(new Animated.Value(0)).current;
-  const isVisible = visible !== false;
-  const isFull = visible === "full";
+type Props = {
+  open: boolean;
+  onClose?: () => void;
+  type?: "full" | "partial";
+} & PropsWithChildren;
 
-  useEffect(() => {
-    // Using animated to make sure that map is rendering properly on open
-    Animated.timing(contentAnimation, {
-      toValue: isVisible ? 1 : 0,
-      duration: 300,
-      easing: Easing.ease,
-      useNativeDriver: false,
-    }).start();
-  }, [isVisible]);
+export const Popup = ({ open, onClose, type, children }: Props) => {
+  const { setVisible, setContent } = usePopupContext();
+  const isFull = type === "full";
 
   const handleClose = () => {
-    setVisible(false);
+    onClose?.();
   };
 
-  return (
-    <Animated.View
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 2000,
-        backgroundColor: "rgba(0, 0, 0, 0.3)",
-        opacity: contentAnimation,
-        pointerEvents: isVisible ? "auto" : "none",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+  const content = (
+    <>
       {!isFull && (
         <Pressable
           onPress={handleClose}
@@ -61,7 +40,7 @@ export const Popup = () => {
           borderRadius: !isFull ? 12 : 0,
         }}
       >
-        {content}
+        {children}
       </View>
       <View style={{ position: "absolute", top: 24, right: 18 }}>
         <Button
@@ -74,6 +53,21 @@ export const Popup = () => {
           showShadow
         />
       </View>
-    </Animated.View>
+    </>
   );
+
+  useEffect(() => {
+    setVisible(open);
+    if (open) {
+      setContent(content);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      setContent(content);
+    }
+  }, [children]);
+
+  return null;
 };

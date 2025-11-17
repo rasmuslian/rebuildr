@@ -117,7 +117,7 @@ export const SlideInSheet = ({
     if (open) {
       setContent(content);
     }
-  }, [content]);
+  }, [children]);
 
   return null;
 };

@@ -22,14 +22,15 @@ import { Map } from "@components/maps/map";
 import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { PickupPositionPopupContent } from "@components/preview-product/pickup-position-popup-content";
-import { usePopupContext } from "@context/popup-context";
+import { useState } from "react";
+import { Popup } from "@components/popup/popup";
 
 export const ProjectDesktop = () => {
   const { onToggleProductHeart } = useLikeProduct();
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
-  const { setVisible: setPopupVisible, setContent } = usePopupContext();
+  const [showMapPopup, setShowMapPopup] = useState(false);
 
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
@@ -80,15 +81,9 @@ export const ProjectDesktop = () => {
     });
   }
 
-  const showMapPopup = () => {
+  const handleShowMapPopup = () => {
     if (!location || !location) return;
-    setContent(
-      <PickupPositionPopupContent
-        address={location.address}
-        location={location}
-      />,
-    );
-    setPopupVisible("full");
+    setShowMapPopup(true);
   };
 
   return (
@@ -149,7 +144,7 @@ export const ProjectDesktop = () => {
             </View>
             <View style={{ flex: 1 }}>
               {location && (
-                <Pressable onPress={showMapPopup}>
+                <Pressable onPress={handleShowMapPopup}>
                   <Map
                     lat={location.lat}
                     lng={location.lng}
@@ -210,6 +205,18 @@ export const ProjectDesktop = () => {
             })}
           </View>
         </View>
+      )}
+      {!!location && (
+        <Popup
+          open={showMapPopup}
+          onClose={() => setShowMapPopup(false)}
+          type="full"
+        >
+          <PickupPositionPopupContent
+            address={location.address}
+            location={location}
+          />
+        </Popup>
       )}
     </ScreenLayout>
   );

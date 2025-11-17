@@ -117,11 +117,11 @@ const RootLayout = () => {
               setVisible: setShowLoginModal,
             }}
           >
-            <PopupProvider>
-              <SellProductProdiver>
-                <EditProductProdiver>
-                  <GestureHandlerRootView>
-                    <BottomSheetModalProvider>
+            <SellProductProdiver>
+              <EditProductProdiver>
+                <GestureHandlerRootView>
+                  <BottomSheetModalProvider>
+                    <PopupProvider>
                       <ScreenDimensionsProvider>
                         <BuyModalProvider>
                           <SlideInSheetProvider>
@@ -132,18 +132,17 @@ const RootLayout = () => {
                               <SellProductBottomSheet />
                               <EditProductBottomSheet />
                               <SearchDropdown />
-                              <Popup />
                               <BuyModal />
                             </SearchDropdownContextProvider>
                           </SlideInSheetProvider>
                         </BuyModalProvider>
                       </ScreenDimensionsProvider>
-                    </BottomSheetModalProvider>
-                  </GestureHandlerRootView>
-                </EditProductProdiver>
-              </SellProductProdiver>
-            </PopupProvider>
-          </LoginModalContext.Provider>
+                    </PopupProvider>
+                  </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+              </EditProductProdiver>
+            </SellProductProdiver>
+        </LoginModalContext.Provider>
         )}
       </ApolloProvider>
     </>
