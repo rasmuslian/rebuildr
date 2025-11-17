@@ -16,10 +16,10 @@ import { View } from "react-native";
 import { PurchaseProgress } from "./purchase-progress";
 import { useState } from "react";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
-import { CreateReviewBottomSheet } from "@components/review/create-review-bottom-sheet";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
+import { CreateReview } from "@components/review/create-review";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -260,7 +260,7 @@ export const PurchaseReceipt = ({
         onDismiss={() => setShowAbortSheet(false)}
         onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
       />
-      <CreateReviewBottomSheet
+      <CreateReview
         purchaseId={data.purchase.id}
         show={showReviewSheet}
         onDismiss={() => setShowReviewSheet(false)}

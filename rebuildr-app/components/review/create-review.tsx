@@ -1,11 +1,4 @@
-import {
-  CreateReviewMutation,
-  CreateReviewMutationVariables,
-  ReviewBottomSheetQuery,
-  ReviewBottomSheetQueryVariables,
-} from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Display, Body, Label } from "@components/typography/text";
 import { useState } from "react";
 import { View } from "react-native";
@@ -19,9 +12,18 @@ import { Form } from "@components/forms/form";
 import { Button } from "@components/buttons/button";
 import FlowerHand from "@assets/images/flower-hand.png";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import {
+  CreateReviewCreateReviewMutation,
+  CreateReviewCreateReviewMutationVariables,
+  CreateReviewQuery,
+  CreateReviewQueryVariables,
+} from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
-const REVIEW_BOTTOM_SHEET = gql`
-  query ReviewBottomSheet($input: GetPurchaseInput!) {
+const CREATE_REVIEW = gql`
+  query CreateReview($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
       buyerId
@@ -41,8 +43,8 @@ const REVIEW_BOTTOM_SHEET = gql`
   }
 `;
 
-const CREATE_REVIEW = gql`
-  mutation CreateReview($input: CreateReviewInput!) {
+const CREATE_REVIEW_CREATE_REVIEW = gql`
+  mutation CreateReviewCreateReview($input: CreateReviewInput!) {
     createReview(input: $input) {
       id
       stars
@@ -69,38 +71,39 @@ const starText = [
   },
 ];
 
-type CreateReviewBottomSheetProps = {
+export type ReviewState = "initial" | "submit" | "success";
+
+type Props = {
   purchaseId: string;
-  show: boolean;
   onDismiss: () => void;
   onCreateReviewCompleted: () => void;
+  show: boolean;
 };
 
-export const CreateReviewBottomSheet = ({
+export const CreateReview = ({
   purchaseId,
-  show,
   onDismiss,
   onCreateReviewCompleted,
-}: CreateReviewBottomSheetProps) => {
+  show,
+}: Props) => {
   const [stars, setStars] = useState(0);
-  const [state, setState] = useState<"initial" | "submit" | "success">(
-    "initial",
-  );
+  const [state, setState] = useState<ReviewState>("initial");
   const [review, setReview] = useState("");
 
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
 
-  const { data } = useQuery<
-    ReviewBottomSheetQuery,
-    ReviewBottomSheetQueryVariables
-  >(REVIEW_BOTTOM_SHEET, {
-    variables: { input: { id: purchaseId } },
-  });
+  const { data } = useQuery<CreateReviewQuery, CreateReviewQueryVariables>(
+    CREATE_REVIEW,
+    {
+      variables: { input: { id: purchaseId } },
+    },
+  );
 
   const [createReview, { loading: createReviewLoading }] = useMutation<
-    CreateReviewMutation,
-    CreateReviewMutationVariables
-  >(CREATE_REVIEW);
+    CreateReviewCreateReviewMutation,
+    CreateReviewCreateReviewMutationVariables
+  >(CREATE_REVIEW_CREATE_REVIEW);
 
   const onSubmitReview = () => {
     createReview({
@@ -234,6 +237,35 @@ export const CreateReviewBottomSheet = ({
 
   const buyerIsMe = data?.purchase.buyerId === data?.me.id;
 
+  const content = (
+    <View
+      style={{
+        justifyContent: "space-between",
+        flex: 1,
+        paddingBottom: 12,
+        gap: 24,
+      }}
+    >
+      {!data ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          {state === "success" && renderSuccessPart()}
+          {state !== "success" && renderStarPart()}
+          {state === "submit" && renderSubmitPart()}
+        </>
+      )}
+    </View>
+  );
+
+  if (isDesktop) {
+    return (
+      <SlideInSheet open={show} onClose={onDismiss} title="Lämna omdöme">
+        {content}
+      </SlideInSheet>
+    );
+  }
+
   return (
     <BottomSheet
       name="Create Review"
@@ -243,24 +275,7 @@ export const CreateReviewBottomSheet = ({
       onDismiss={onDismiss}
       scrollable={state !== "initial"}
     >
-      <View
-        style={{
-          justifyContent: "space-between",
-          flex: 1,
-          paddingBottom: 12,
-          gap: 24,
-        }}
-      >
-        {!data ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            {state === "success" && renderSuccessPart()}
-            {state !== "success" && renderStarPart()}
-            {state === "submit" && renderSubmitPart()}
-          </>
-        )}
-      </View>
+      {content}
     </BottomSheet>
   );
 };
