@@ -2,19 +2,28 @@ import { AccountSalesQuery } from "@/gql/graphql";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { isSaleDone } from "@/utils/sales/sales";
 import { ProductCard } from "@components/cards/product-card";
+import { useScreenType } from "@hooks/useScreenType";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 
 type Props = {
   purchase: AccountSalesQuery["myPurchases"][number];
+  onPress?: (purchaseId: string) => void;
+  selected?: boolean;
 };
 
-export const SellCard = ({ purchase }: Props) => {
+export const SellCard = ({ purchase, onPress, selected }: Props) => {
   const product = purchase.product;
+  const { isDesktop } = useScreenType();
+  const active = isDesktop ? selected : !isSaleDone(purchase);
   return (
     <ProductCard
-      active={!isSaleDone(purchase)}
+      active={active}
       onPress={() => {
+        if (onPress) {
+          onPress(purchase.id);
+          return;
+        }
         router.navigate({
           pathname: "/account/sales/[purchaseId]",
           params: { purchaseId: purchase.id },
