@@ -11,6 +11,7 @@ import { Button } from "@components/buttons/button";
 import { ProgressIndicator } from "@components/progress-indicator/progress-indicator";
 import { Body, Label } from "@components/typography/text";
 import { shippingProviderStrings } from "@constants/shippingProviders";
+import { useScreenType } from "@hooks/useScreenType";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 import React, { ComponentProps } from "react";
@@ -65,6 +66,7 @@ export const PurchaseProgress = ({
   onOpenReview,
   onReport,
 }: PurchaseProgressProps) => {
+  const { isDesktop } = useScreenType();
   const purchase = purchaseData.purchase;
   const me = purchaseData.me;
   const isBuyer = me.id === purchase.buyer.id;
@@ -909,7 +911,9 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         label: "Chatta med säljaren",
                         onPress: () => {
                           router.navigate({
-                            pathname: "/conversations/[productId]/[userId]",
+                            pathname: isDesktop
+                              ? "/conversations"
+                              : "/conversations/[productId]/[userId]",
                             params: {
                               productId: purchase.product.id,
                               userId: purchase.product.seller.id,
@@ -1263,7 +1267,9 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       label: "Chatta med köparen",
                       onPress: () => {
                         router.navigate({
-                          pathname: "/conversations/[productId]/[userId]",
+                          pathname: isDesktop
+                            ? "/conversations"
+                            : "/conversations/[productId]/[userId]",
                           params: {
                             productId: purchase.product.id,
                             userId: purchase.buyer.id,

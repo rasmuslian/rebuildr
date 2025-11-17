@@ -7,7 +7,7 @@ import { Icon } from "@icons/icon";
 import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { ConversationEmptyState } from "@components/conversations/conversation-empty-state";
 import { ConversationsList } from "@components/conversations/conversations-list";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Conversation } from "@components/conversations/conversation";
 import { useQuery } from "@apollo/client";
 import {
@@ -31,34 +31,15 @@ import { AdList } from "@components/ad/ad-list";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import dayjs from "dayjs";
 import { MessageInput } from "./message-input";
+import { useLocalSearchParams } from "expo-router";
+import { parseConversations } from "@/utils/conversations/parse-conversations";
 
 type Props = {
-  totalUnread: number;
-  nrUnreadSell: number;
-  nrUnreadBuy: number;
-  tab: "buy" | "sell";
-  setTab: (tab: "buy" | "sell") => void;
-  unread: {
-    productId: string;
-    conversations: GetConversationsQuery["getConversations"];
-  }[];
-  read: {
-    productId: string;
-    conversations: GetConversationsQuery["getConversations"];
-  }[];
+  data: GetConversationsQuery;
   myId: string;
 };
 
-export const ConversationsDesktop = ({
-  totalUnread,
-  nrUnreadSell,
-  nrUnreadBuy,
-  tab,
-  setTab,
-  unread,
-  read,
-  myId,
-}: Props) => {
+export const ConversationsDesktop = ({ data, myId }: Props) => {
   const colors = useThemeColor();
   const { height: windowHeight } = useWindowDimensions();
   const [showReviewSheet, setShowReviewSheet] = useState(false);
@@ -70,6 +51,21 @@ export const ConversationsDesktop = ({
       }
     | undefined
   >(undefined);
+  const { productId, userId: otherUserId } = useLocalSearchParams<{
+    productId: string;
+    userId: string;
+  }>();
+  const isNavigationSelect = useRef(false);
+  const { all: buyConversations } = parseConversations(data, "buy");
+  const { all: sellConversations } = parseConversations(data, "sell");
+  const hasOnlyBuyConversations =
+    sellConversations.length === 0 && buyConversations.length > 0;
+  const [tab, setTab] = useState<"sell" | "buy">(
+    hasOnlyBuyConversations ? "buy" : "sell",
+  );
+
+  const { totalUnread, nrUnreadBuy, nrUnreadSell, unread, read } =
+    parseConversations(data, tab);
 
   const renderRightColumn = () => {
     if (selectedConversation?.userId) {
@@ -94,31 +90,49 @@ export const ConversationsDesktop = ({
   };
 
   useEffect(() => {
-    let conversation;
-    if (unread.length > 0) {
-      conversation = unread[0];
-    } else if (read.length > 0) {
-      conversation = read[0];
-    } else {
-      setSelectedConversation(undefined);
-      return;
+    if (isNavigationSelect.current === false) {
+      let conversation;
+      if (unread.length > 0) {
+        conversation = unread[0];
+      } else if (read.length > 0) {
+        conversation = read[0];
+      } else {
+        setSelectedConversation(undefined);
+        return;
+      }
+      const sortedByLatest = conversation.conversations.sort(
+        (a: any, b: any) => (dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1),
+      );
+      const isMoreThanOneUser = sortedByLatest.length > 1;
+      const firstConversation = sortedByLatest[0];
+      const userId = isMoreThanOneUser
+        ? undefined
+        : firstConversation.sender.id === myId
+          ? firstConversation.receiver.id
+          : firstConversation.sender.id;
+      setSelectedConversation({
+        productId: conversation.productId,
+        userId,
+        key: 0,
+      });
     }
-    const sortedByLatest = conversation.conversations.sort((a: any, b: any) =>
-      dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1,
-    );
-    const isMoreThanOneUser = sortedByLatest.length > 1;
-    const firstConversation = sortedByLatest[0];
-    const userId = isMoreThanOneUser
-      ? undefined
-      : firstConversation.sender.id === myId
-        ? firstConversation.receiver.id
-        : firstConversation.sender.id;
+    isNavigationSelect.current = false;
+  }, [tab]);
+
+  useEffect(() => {
+    if (!otherUserId) return;
     setSelectedConversation({
-      productId: conversation.productId,
-      userId,
+      productId: productId!,
+      userId: otherUserId,
       key: 0,
     });
-  }, [tab]);
+    isNavigationSelect.current = true;
+    if (sellConversations.find((convo) => convo.productId === productId)) {
+      setTab("sell");
+    } else {
+      setTab("buy");
+    }
+  }, [productId, otherUserId]);
 
   return (
     <ScreenLayout
