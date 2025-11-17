@@ -36,84 +36,88 @@ export const SlideInSheet = ({
 
   const { setVisible, setContent } = useSlideInSheetContext();
 
-  useEffect(() => {
-    setVisible(open);
-  }, [open]);
-
-  useEffect(() => {
-    setContent(
-      <>
-        <Pressable
-          onPress={onClose}
-          style={{ width: "100%", height: "100%" }}
-        />
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width,
-            backgroundColor: colors.background.neutral,
-            elevation: 5,
-            paddingBottom: bottomMargin,
-          }}
-        >
-          {(title || onBack) && (
-            <>
+  const content = (
+    <>
+      <Pressable onPress={onClose} style={{ width: "100%", height: "100%" }} />
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width,
+          backgroundColor: colors.background.neutral,
+          elevation: 5,
+          paddingBottom: bottomMargin,
+        }}
+      >
+        {(title || onBack) && (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginVertical: 8,
+                paddingHorizontal: isDesktop ? 48 : 16,
+              }}
+            >
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent: "space-between",
                   alignItems: "center",
-                  marginVertical: 8,
-                  paddingHorizontal: isDesktop ? 48 : 16,
+                  gap: 6,
                 }}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  {onBack && (
-                    <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
-                      <Icon icon="arrowLeft" size={18} />
-                    </Pressable>
-                  )}
-                  {title && <Title size="medium">{title}</Title>}
-                </View>
-                <Button icon="X" onPress={onClose} type="text" />
+                {onBack && (
+                  <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
+                    <Icon icon="arrowLeft" size={18} />
+                  </Pressable>
+                )}
+                {title && <Title size="medium">{title}</Title>}
               </View>
-              <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
-                <Divider />
-              </View>
-            </>
-          )}
-          <ScrollView
-            style={[{ paddingTop: 24 }, style]}
-            contentContainerStyle={[
-              { paddingHorizontal: isDesktop ? 48 : 16 },
-              style,
-            ]}
-          >
-            {children}
-          </ScrollView>
-          {footer && (
-            <View
-              style={{
-                paddingHorizontal: isDesktop ? 48 : 16,
-                marginBottom: 32,
-              }}
-            >
-              {footer}
+              <Button icon="X" onPress={onClose} type="text" />
             </View>
-          )}
-        </View>
-      </>,
-    );
-  }, [children]);
+            <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
+              <Divider />
+            </View>
+          </>
+        )}
+        <ScrollView
+          style={[{ paddingTop: 24 }, style]}
+          contentContainerStyle={[
+            { paddingHorizontal: isDesktop ? 48 : 16 },
+            style,
+          ]}
+        >
+          {children}
+        </ScrollView>
+        {footer && (
+          <View
+            style={{
+              paddingHorizontal: isDesktop ? 48 : 16,
+              marginBottom: 32,
+            }}
+          >
+            {footer}
+          </View>
+        )}
+      </View>
+    </>
+  );
+
+  useEffect(() => {
+    setVisible(open);
+    if (open) {
+      setContent(content);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      setContent(content);
+    }
+  }, [content]);
 
   return null;
 };

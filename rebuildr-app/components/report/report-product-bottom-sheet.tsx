@@ -19,6 +19,8 @@ import { TextInput } from "@components/forms/textInput";
 import { Header } from "@components/navigation/headers/header";
 import FlowerHand from "@assets/images/flower-hand.png";
 import { reportType } from "@constants/report-product";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
 const REPORT_PRODUCT = gql`
   query ReportProduct($input: GetProductInput!) {
@@ -67,6 +69,7 @@ export const ReportProductBottomSheet = ({
 }: ReportProductBottomSheetProps) => {
   const [type, setType] = useState<ReportProductTypeEnum>();
   const [message, setMessage] = useState("");
+  const { isDesktop } = useScreenType();
 
   const { data, refetch } = useQuery<
     ReportProductQuery,
@@ -124,58 +127,8 @@ export const ReportProductBottomSheet = ({
   const showProductHeader = !alreadyReported && !createReportData;
   const showCloseButton = !!alreadyReported || !!createReportData;
 
-  return (
-    <BottomSheet
-      open={show}
-      name="Create Report Product"
-      header={
-        <View style={{ gap: 16 }}>
-          {!alreadyReported ? (
-            <ProgressHeader
-              title="Anmäl annons"
-              progress={progress()}
-              onBack={() => onDismiss()}
-            />
-          ) : (
-            <Header
-              title="Anmäl annons"
-              showBackButton={false}
-              ctas={[
-                {
-                  icon: "X",
-                  onPress: () => onDismiss(),
-                },
-              ]}
-            />
-          )}
-          {showProductHeader && (
-            <ProductHeader
-              title={data.product.title}
-              price={data.product.price}
-              condition={data.product.condition}
-              quantity={data.product.primaryQuantity}
-              quantityUnit={data.product.primaryUnit}
-              status={data.product.status}
-              imageUrl={data.product.primaryImage?.url}
-            />
-          )}
-        </View>
-      }
-      footer={
-        showCloseButton ? (
-          <Button label="Stäng" onPress={onDismiss} />
-        ) : type ? (
-          <Button
-            label="Skicka anmälan"
-            onPress={onCreateReport}
-            loading={createReportLoading}
-          />
-        ) : undefined
-      }
-      screenHeight={!!createReportData || !!alreadyReported}
-      onDismiss={onDismiss}
-      scrollable
-    >
+  const content = (
+    <>
       {createReportData ? (
         <EndScreen
           title="Tack för att du delade med dig!"
@@ -251,6 +204,78 @@ export const ReportProductBottomSheet = ({
           </View>
         </View>
       )}
+    </>
+  );
+
+  const header = (
+    <View style={{ gap: 16 }}>
+      {!alreadyReported ? (
+        <ProgressHeader
+          title="Anmäl annons"
+          progress={progress()}
+          onBack={onDismiss}
+        />
+      ) : (
+        <Header
+          title="Anmäl annons"
+          showBackButton={false}
+          ctas={[
+            {
+              icon: "X",
+              onPress: onDismiss,
+            },
+          ]}
+        />
+      )}
+      {showProductHeader && (
+        <ProductHeader
+          title={data.product.title}
+          price={data.product.price}
+          condition={data.product.condition}
+          quantity={data.product.primaryQuantity}
+          quantityUnit={data.product.primaryUnit}
+          status={data.product.status}
+          imageUrl={data.product.primaryImage?.url}
+        />
+      )}
+    </View>
+  );
+
+  const footer = showCloseButton ? (
+    <Button label="Stäng" onPress={onDismiss} />
+  ) : type ? (
+    <Button
+      label="Skicka anmälan"
+      onPress={onCreateReport}
+      loading={createReportLoading}
+    />
+  ) : undefined;
+
+  if (isDesktop) {
+    return (
+      <SlideInSheet open={show}>
+        <>
+          {header}
+          <View style={{ flex: 1 }}>{content}</View>
+          {!!footer && (
+            <View style={{ marginTop: 24, marginBottom: 32 }}>{footer}</View>
+          )}
+        </>
+      </SlideInSheet>
+    );
+  }
+
+  return (
+    <BottomSheet
+      open={show}
+      name="Create Report Product"
+      header={header}
+      footer={footer}
+      screenHeight={!!createReportData || !!alreadyReported}
+      onDismiss={onDismiss}
+      scrollable
+    >
+      {content}
     </BottomSheet>
   );
 };
