@@ -1,5 +1,6 @@
-import { Button } from "@components/buttons/button";
 import { Body, Label } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import { Icon } from "@icons/icon";
 import { Href, Link } from "expo-router";
 import { View } from "react-native";
 
@@ -23,7 +24,16 @@ export const LinkEntry = ({ label, body, link }: Props) => {
           <Label size="large">{label}</Label>
           <Body size="small">{body}</Body>
         </View>
-        <Button icon="arrowRight" type="text" />
+        <View
+          style={{
+            paddingHorizontal: 8,
+            borderRadius: borderRadius.medium,
+            minWidth: 40,
+            height: 40,
+          }}
+        >
+          <Icon icon="arrowRight" color="primaryDark" size={18} />
+        </View>
       </View>
     </Link>
   );

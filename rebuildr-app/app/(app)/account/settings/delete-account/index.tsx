@@ -10,6 +10,8 @@ import { Body, Display } from "@components/typography/text";
 import { useLogout } from "@hooks/useLogout";
 import { Divider } from "@components/dividers/divider";
 import { DeleteAccountMeQuery, UserType } from "@/gql/graphql";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
+import { useScreenType } from "@hooks/useScreenType";
 
 const DELETE_ACCOUNT_ME = gql`
   query DeleteAccountMe {
@@ -33,44 +35,10 @@ export default function DeleteAccount() {
   const [deleteAccount, { loading: deleteAccountLoading, error }] =
     useMutation(DELETE_ACCOUNT);
   const { logout } = useLogout();
+  const { isDesktop } = useScreenType();
 
-  return (
-    <ScreenLayout
-      style={{ gap: 24 }}
-      loading={loading}
-      headerComponent={<Header title="Radera ditt RebuildRkonto" />}
-      footerComponent={
-        <View style={{ gap: 8 }}>
-          {error && (
-            <Body size="small" color="error">
-              Något gick fel vid radering av kontot. Om du har pågående affärer
-              så kan du inte radera ditt konto.
-            </Body>
-          )}
-          <Button
-            label="Radera konto"
-            onPress={() => {
-              deleteAccount({
-                onCompleted: () => {
-                  logout();
-                },
-              });
-            }}
-            type="danger"
-            loading={deleteAccountLoading}
-          />
-          <Button
-            label="Avbryt"
-            onPress={() =>
-              router.canGoBack()
-                ? router.back()
-                : router.navigate("/account/settings")
-            }
-            type="outlined"
-          />
-        </View>
-      }
-    >
+  const content = (
+    <>
       <View
         style={{ padding: 24, justifyContent: "center", alignItems: "center" }}
       >
@@ -100,6 +68,65 @@ export default function DeleteAccount() {
           </View>
         </>
       )}
+    </>
+  );
+
+  const footer = (
+    <View style={{ gap: 8 }}>
+      {error && (
+        <Body size="small" color="error">
+          Något gick fel vid radering av kontot. Om du har pågående affärer så
+          kan du inte radera ditt konto.
+        </Body>
+      )}
+      <Button
+        label="Radera konto"
+        onPress={() => {
+          deleteAccount({
+            onCompleted: () => {
+              logout();
+            },
+          });
+        }}
+        type="danger"
+        loading={deleteAccountLoading}
+      />
+      <Button
+        label="Avbryt"
+        onPress={() =>
+          router.canGoBack()
+            ? router.back()
+            : router.navigate("/account/settings")
+        }
+        type="outlined"
+      />
+    </View>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          contentHorizontalPadding={0}
+          style={{ gap: 24 }}
+          loading={loading}
+          headerComponent={<Header title="Radera ditt RebuildRkonto" />}
+          footerComponent={footer}
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      loading={loading}
+      headerComponent={<Header title="Radera ditt RebuildRkonto" />}
+      footerComponent={footer}
+    >
+      {content}
     </ScreenLayout>
   );
 }

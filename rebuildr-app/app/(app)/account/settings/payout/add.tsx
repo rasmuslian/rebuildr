@@ -19,6 +19,9 @@ import {
   AddBankPayoutAccountMutationVariables,
 } from "@/gql/graphql";
 import { router } from "expo-router";
+import { useScreenType } from "@hooks/useScreenType";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
+import { Header } from "@components/navigation/headers/header";
 
 const ADD_BANK_PAYOUT_ACCOUNT_ME = gql`
   query AddBankPayoutAccountMe {
@@ -39,6 +42,7 @@ const ADD_BANK_PAYOUT_ACCOUNT = gql`
 
 export default function Add() {
   const [ownerName, setOwnerName] = useState("");
+  const { isDesktop } = useScreenType();
   const [addingPayoutAccount, setAddingPayoutAccount] = useState(false);
   const [error, setError] = useState(false);
   const { data } = useQuery<AddBankPayoutAccountMeQuery>(
@@ -87,25 +91,8 @@ export default function Add() {
     }
   }, [data]);
 
-  return (
-    <ScreenLayout
-      style={{ flex: 1, gap: 24 }}
-      footerComponent={
-        <View style={{ gap: 4 }}>
-          {error && (
-            <Body size="small" color="error">
-              Något gick fel
-            </Body>
-          )}
-          <Button
-            label="Koppla Bankkonto"
-            disabled={!stripe || !ownerName}
-            onPress={() => onAddBankPayoutAccount()}
-            loading={addingPayoutAccount}
-          />
-        </View>
-      }
-    >
+  const content = (
+    <>
       <View
         style={{
           marginVertical: 24,
@@ -135,6 +122,59 @@ export default function Add() {
         </View>
       )}
       {!data && <LoadingSpinner />}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          contentHorizontalPadding={0}
+          style={{ flex: 1, gap: 24 }}
+          headerComponent={<Header title="Utbetalningskonto" />}
+          footerComponent={
+            <View style={{ gap: 4 }}>
+              {error && (
+                <Body size="small" color="error">
+                  Något gick fel
+                </Body>
+              )}
+              <Button
+                label="Koppla Bankkonto"
+                disabled={!stripe || !ownerName}
+                onPress={() => onAddBankPayoutAccount()}
+                loading={addingPayoutAccount}
+              />
+            </View>
+          }
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      style={{ flex: 1, gap: 24 }}
+      headerComponent={<Header title="Utbetalningskonto" />}
+      footerComponent={
+        <View style={{ gap: 4 }}>
+          {error && (
+            <Body size="small" color="error">
+              Något gick fel
+            </Body>
+          )}
+          <Button
+            label="Koppla Bankkonto"
+            disabled={!stripe || !ownerName}
+            onPress={() => onAddBankPayoutAccount()}
+            loading={addingPayoutAccount}
+          />
+        </View>
+      }
+    >
+      {content}
     </ScreenLayout>
   );
 }

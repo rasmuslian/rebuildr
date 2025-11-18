@@ -13,6 +13,9 @@ import { useCallback } from "react";
 import { View } from "react-native";
 import Bankkonto from "@assets/svgs/bankkonto.svg";
 import { Image } from "expo-image";
+import { useScreenType } from "@hooks/useScreenType";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
+import { Header } from "@components/navigation/headers/header";
 
 const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   query AccountSettingsPayoutQuery {
@@ -31,6 +34,7 @@ const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
 
 export default function Payout() {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const { data, refetch } = useQuery<AccountSettingsPayoutQueryQuery>(
     ACCOUNT_SETTINGS_PAYOUT_QUERY,
   );
@@ -42,6 +46,13 @@ export default function Payout() {
   );
 
   if (!data) {
+    if (isDesktop) {
+      return (
+        <TransparentModal>
+          <LoadingSpinner />
+        </TransparentModal>
+      );
+    }
     return <LoadingSpinner />;
   }
 
@@ -75,18 +86,8 @@ export default function Payout() {
     );
   };
 
-  return (
-    <ScreenLayout
-      style={{ gap: 24 }}
-      footerComponent={
-        <Button
-          label="Lägg till utbetalningskonto"
-          onPress={() => {
-            router.navigate("/account/settings/payout/add");
-          }}
-        />
-      }
-    >
+  const content = (
+    <>
       {data.me.payoutAccount ? (
         <>
           <Display size="small">Du får dina utbetalningar till:</Display>
@@ -142,6 +143,45 @@ export default function Payout() {
       ) : (
         renderNoPayoutAccount()
       )}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          style={{ gap: 24 }}
+          contentHorizontalPadding={0}
+          headerComponent={<Header title="Utbetalningskonto" />}
+          footerComponent={
+            <Button
+              label="Lägg till utbetalningskonto"
+              onPress={() => {
+                router.navigate("/account/settings/payout/add");
+              }}
+            />
+          }
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      headerComponent={<Header title="Utbetalningskonto" />}
+      footerComponent={
+        <Button
+          label="Lägg till utbetalningskonto"
+          onPress={() => {
+            router.navigate("/account/settings/payout/add");
+          }}
+        />
+      }
+    >
+      {content}
     </ScreenLayout>
   );
 }

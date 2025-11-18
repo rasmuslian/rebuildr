@@ -15,8 +15,10 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Body, Display, Headline, Label } from "@components/typography/text";
 import { useLogout } from "@hooks/useLogout";
+import { useScreenType } from "@hooks/useScreenType";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -66,6 +68,7 @@ const SWITCH_ACCOUNT_MUTATION = gql`
 export default function Settings() {
   const [isSwitching, setIsSwitching] = useState(false);
   const { logout, loading: logoutLoading } = useLogout();
+  const { isDesktop } = useScreenType();
 
   const { data, loading, refetch } = useQuery<SettingsQuery>(SETTINGS);
 
@@ -100,20 +103,8 @@ export default function Settings() {
     }
   }, [switchAccountData]);
 
-  return (
-    <ScreenLayout
-      style={{ gap: 24 }}
-      headerComponent={<Header title="Kontoinställningar" />}
-      footerComponent={
-        <Button
-          label="Logga ut"
-          onPress={logout}
-          type="outlined"
-          loading={logoutLoading}
-        />
-      }
-      loading={loading}
-    >
+  const content = (
+    <>
       {(loading || isSwitching) && (
         <LoadingSpinner
           style={{
@@ -182,6 +173,47 @@ export default function Settings() {
         body="Ta bort ditt konto och all tillhörande data."
         link="/account/settings/delete-account"
       />
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          contentHorizontalPadding={0}
+          style={{ gap: 24 }}
+          headerComponent={<Header title="Kontoinställningar" />}
+          footerComponent={
+            <Button
+              label="Logga ut"
+              onPress={logout}
+              type="outlined"
+              loading={logoutLoading}
+            />
+          }
+          loading={loading}
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      headerComponent={<Header title="Kontoinställningar" />}
+      footerComponent={
+        <Button
+          label="Logga ut"
+          onPress={logout}
+          type="outlined"
+          loading={logoutLoading}
+        />
+      }
+      loading={loading}
+    >
+      {content}
     </ScreenLayout>
   );
 }

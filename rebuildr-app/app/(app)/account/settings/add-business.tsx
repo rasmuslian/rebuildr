@@ -2,8 +2,10 @@ import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Display } from "@components/typography/text";
 import { useCreateOrganization } from "@hooks/use-create-organization";
+import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { useEffect } from "react";
 
@@ -20,6 +22,7 @@ export default function AddBusiness() {
     loading,
     data,
   } = useCreateOrganization();
+  const { isDesktop } = useScreenType();
 
   useEffect(() => {
     if (data) {
@@ -28,19 +31,8 @@ export default function AddBusiness() {
     }
   }, [data]);
 
-  return (
-    <ScreenLayout
-      headerComponent={<Header title="Lägg till ett företagskonto" />}
-      footerComponent={
-        <Button
-          label="Spara"
-          onPress={create}
-          loading={loading}
-          disabled={!canCreate}
-        />
-      }
-      style={{ gap: 24 }}
-    >
+  const content = (
+    <>
       <Display size="small">Om ditt företag</Display>
       <Form
         style={{ gap: 24 }}
@@ -70,6 +62,45 @@ export default function AddBusiness() {
           },
         ]}
       />
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          contentHorizontalPadding={0}
+          headerComponent={<Header title="Lägg till ett företagskonto" />}
+          footerComponent={
+            <Button
+              label="Spara"
+              onPress={create}
+              loading={loading}
+              disabled={!canCreate}
+            />
+          }
+          style={{ gap: 24 }}
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      headerComponent={<Header title="Lägg till ett företagskonto" />}
+      footerComponent={
+        <Button
+          label="Spara"
+          onPress={create}
+          loading={loading}
+          disabled={!canCreate}
+        />
+      }
+      style={{ gap: 24 }}
+    >
+      {content}
     </ScreenLayout>
   );
 }

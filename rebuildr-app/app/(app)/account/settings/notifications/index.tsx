@@ -10,7 +10,9 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Body, Display, Title } from "@components/typography/text";
+import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
@@ -39,6 +41,7 @@ const ACCOUNT_SETTINGS_UPDATE_NOTIFICATIONS = gql`
 `;
 
 export default function Notifications() {
+  const { isDesktop } = useScreenType();
   const { data } = useQuery<AccountSettingsNotificationsQuery>(
     ACCOUNT_SETTINGS_NOTIFICATIONS,
   );
@@ -57,14 +60,18 @@ export default function Notifications() {
   };
 
   if (!data) {
+    if (isDesktop) {
+      return (
+        <TransparentModal>
+          <LoadingSpinner />
+        </TransparentModal>
+      );
+    }
     return <LoadingSpinner />;
   }
 
-  return (
-    <ScreenLayout
-      headerComponent={<Header title="Aviseringar" />}
-      style={{ gap: 24 }}
-    >
+  const content = (
+    <>
       <Display size="small">Välj hur du vill få aviseringar</Display>
       <Body size="medium">
         Alla aviseringar skickas till {data.me.email}. Vill du ändra din
@@ -104,6 +111,29 @@ export default function Notifications() {
         />
         <Divider />
       </View>
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <TransparentModal>
+        <ScreenLayout
+          contentHorizontalPadding={0}
+          headerComponent={<Header title="Aviseringar" />}
+          style={{ gap: 24 }}
+        >
+          {content}
+        </ScreenLayout>
+      </TransparentModal>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      headerComponent={<Header title="Aviseringar" />}
+      style={{ gap: 24 }}
+    >
+      {content}
     </ScreenLayout>
   );
 }
