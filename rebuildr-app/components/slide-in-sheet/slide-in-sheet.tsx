@@ -59,36 +59,7 @@ export const SlideInSheet = ({
         }}
       >
         {(title || onBack) && (
-          <>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginVertical: 8,
-                paddingHorizontal: isDesktop ? 48 : 16,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                {onBack && (
-                  <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
-                    <Icon icon="arrowLeft" size={18} />
-                  </Pressable>
-                )}
-                {title && <Title size="medium">{title}</Title>}
-              </View>
-              <Button icon="X" onPress={onClose} type="text" />
-            </View>
-            <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
-              <Divider />
-            </View>
-          </>
+          <SlideInHeader title={title} onBack={onBack} onClose={onClose} />
         )}
         <ScrollView
           style={[{ paddingTop: 24 }, style]}
@@ -127,4 +98,50 @@ export const SlideInSheet = ({
   }, [children]);
 
   return null;
+};
+
+type SlideInHeaderProps = {
+  title?: string;
+  onBack?: () => void;
+  onClose?: () => void;
+};
+
+export const SlideInHeader = ({
+  title,
+  onBack,
+  onClose,
+}: SlideInHeaderProps) => {
+  const { isDesktop } = useScreenType();
+  return (
+    <>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginVertical: 8,
+          paddingHorizontal: isDesktop ? 48 : 16,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          {onBack && (
+            <Pressable onPress={onBack} style={{ paddingRight: 16 }}>
+              <Icon icon="arrowLeft" size={18} />
+            </Pressable>
+          )}
+          {title && <Title size="medium">{title}</Title>}
+        </View>
+        <Button icon="X" onPress={onClose} type="text" />
+      </View>
+      <View style={{ paddingHorizontal: isDesktop ? 48 : 16 }}>
+        <Divider />
+      </View>
+    </>
+  );
 };

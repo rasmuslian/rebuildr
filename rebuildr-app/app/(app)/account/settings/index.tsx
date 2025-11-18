@@ -6,6 +6,7 @@ import {
   UserType,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
+import { AccountState } from "@components/account/account-wrapper.desktop";
 import { LinkEntry } from "@components/account/link-entry";
 import { Avatar } from "@components/avatar/avatar";
 import { Badge } from "@components/badges/badge";
@@ -15,7 +16,6 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Body, Display, Headline, Label } from "@components/typography/text";
 import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
@@ -65,7 +65,12 @@ const SWITCH_ACCOUNT_MUTATION = gql`
   ${SETTINGS_USER_FRAGMENT}
 `;
 
-export default function Settings() {
+type Props = {
+  onBack?: () => void;
+  onNavigation?: (state: AccountState) => void;
+};
+
+export default function Settings({ onBack, onNavigation }: Props) {
   const [isSwitching, setIsSwitching] = useState(false);
   const { logout, loading: logoutLoading } = useLogout();
   const { isDesktop } = useScreenType();
@@ -103,8 +108,21 @@ export default function Settings() {
     }
   }, [switchAccountData]);
 
-  const content = (
-    <>
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
+      headerComponent={<Header title="Kontoinställningar" onBack={onBack} />}
+      footerComponent={
+        <Button
+          label="Logga ut"
+          onPress={logout}
+          type="outlined"
+          loading={logoutLoading}
+        />
+      }
+      loading={loading}
+    >
       {(loading || isSwitching) && (
         <LoadingSpinner
           style={{
@@ -142,18 +160,23 @@ export default function Settings() {
         <LinkEntry
           label="Utbetalningskonto"
           body="Lägg till eller ändra hur du tar emot betalningar."
-          link="/(app)/account/settings/payout"
+          link={onNavigation ? undefined : "/account/settings/payout"}
+          onPress={() => onNavigation?.({ page: "payout-index", params: {} })}
         />
         <LinkEntry
           label="Kontaktuppgifter"
           body="Uppdatera e-post, användarnamn, lösenord och adresser."
-          link="/account/settings/user"
+          link={onNavigation ? undefined : "/account/settings/user"}
+          onPress={() => onNavigation?.({ page: "user", params: {} })}
         />
         {data?.me.type === UserType.Personal && (
           <LinkEntry
             label="Aviseringar"
             body="Välj vilka aviseringar du vill få via e-post."
-            link="/account/settings/notifications"
+            link={onNavigation ? undefined : "/account/settings/notifications"}
+            onPress={() =>
+              onNavigation?.({ page: "notifications", params: {} })
+            }
           />
         )}
       </View>
@@ -163,7 +186,8 @@ export default function Settings() {
           <LinkEntry
             label="Lägg till ett företagskonto"
             body="Perfekt! Vi hjälper dig att komma igång med företagskontot, enkelt och smidigt!"
-            link="/account/settings/add-business"
+            link={onNavigation ? undefined : "/account/settings/add-business"}
+            onPress={() => onNavigation?.({ page: "business-add", params: {} })}
           />
           <Divider />
         </>
@@ -171,49 +195,9 @@ export default function Settings() {
       <LinkEntry
         label="Radera ditt RebuildRkonto"
         body="Ta bort ditt konto och all tillhörande data."
-        link="/account/settings/delete-account"
+        link={onNavigation ? undefined : "/account/settings/delete-account"}
+        onPress={() => onNavigation?.({ page: "delete-account", params: {} })}
       />
-    </>
-  );
-
-  if (isDesktop) {
-    return (
-      <TransparentModal>
-        <ScreenLayout
-          contentHorizontalPadding={0}
-          style={{ gap: 24 }}
-          headerComponent={<Header title="Kontoinställningar" />}
-          footerComponent={
-            <Button
-              label="Logga ut"
-              onPress={logout}
-              type="outlined"
-              loading={logoutLoading}
-            />
-          }
-          loading={loading}
-        >
-          {content}
-        </ScreenLayout>
-      </TransparentModal>
-    );
-  }
-
-  return (
-    <ScreenLayout
-      style={{ gap: 24 }}
-      headerComponent={<Header title="Kontoinställningar" />}
-      footerComponent={
-        <Button
-          label="Logga ut"
-          onPress={logout}
-          type="outlined"
-          loading={logoutLoading}
-        />
-      }
-      loading={loading}
-    >
-      {content}
     </ScreenLayout>
   );
 }

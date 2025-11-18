@@ -18,6 +18,7 @@ import { Avatar } from "@components/avatar/avatar";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import AccountContent from "@components/account/account-content";
 import { SearchBar } from "@components/search/search-bar";
+import { AccountWrapperDesktop } from "@components/account/account-wrapper.desktop";
 
 type Props = {
   isLoggedIn: boolean;
@@ -208,12 +209,8 @@ export default function TopBarDesktop({
           <Divider />
         </View>
       )}
-      <SlideInSheet
-        open={openAccount}
-        onClose={() => setOpenAccount(false)}
-        title="Konto"
-      >
-        <AccountContent />
+      <SlideInSheet open={openAccount} onClose={() => setOpenAccount(false)}>
+        <AccountWrapperDesktop onClose={() => setOpenAccount(false)} />
       </SlideInSheet>
     </View>
   );

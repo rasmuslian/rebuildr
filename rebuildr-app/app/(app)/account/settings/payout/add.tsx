@@ -20,8 +20,8 @@ import {
 } from "@/gql/graphql";
 import { router } from "expo-router";
 import { useScreenType } from "@hooks/useScreenType";
-import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Header } from "@components/navigation/headers/header";
+import { AccountState } from "@components/account/account-wrapper.desktop";
 
 const ADD_BANK_PAYOUT_ACCOUNT_ME = gql`
   query AddBankPayoutAccountMe {
@@ -40,7 +40,12 @@ const ADD_BANK_PAYOUT_ACCOUNT = gql`
   }
 `;
 
-export default function Add() {
+type Props = {
+  onNavigation?: (state: AccountState) => void;
+  onBack?: () => void;
+};
+
+export default function Add({ onNavigation, onBack }: Props) {
   const [ownerName, setOwnerName] = useState("");
   const { isDesktop } = useScreenType();
   const [addingPayoutAccount, setAddingPayoutAccount] = useState(false);
@@ -82,7 +87,11 @@ export default function Add() {
       variables: { input: token.id },
     });
     setAddingPayoutAccount(false);
-    router.replace("/account/settings/payout");
+    if (onNavigation) {
+      onNavigation({ page: "payout-index" });
+    } else {
+      router.replace("/account/settings/payout");
+    }
   };
 
   useEffect(() => {
@@ -91,8 +100,27 @@ export default function Add() {
     }
   }, [data]);
 
-  const content = (
-    <>
+  return (
+    <ScreenLayout
+      style={{ flex: 1, gap: 24 }}
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
+      headerComponent={<Header title="Utbetalningskonto" onBack={onBack} />}
+      footerComponent={
+        <View style={{ gap: 4 }}>
+          {error && (
+            <Body size="small" color="error">
+              Något gick fel
+            </Body>
+          )}
+          <Button
+            label="Koppla Bankkonto"
+            disabled={!stripe || !ownerName}
+            onPress={() => onAddBankPayoutAccount()}
+            loading={addingPayoutAccount}
+          />
+        </View>
+      }
+    >
       <View
         style={{
           marginVertical: 24,
@@ -122,59 +150,6 @@ export default function Add() {
         </View>
       )}
       {!data && <LoadingSpinner />}
-    </>
-  );
-
-  if (isDesktop) {
-    return (
-      <TransparentModal>
-        <ScreenLayout
-          contentHorizontalPadding={0}
-          style={{ flex: 1, gap: 24 }}
-          headerComponent={<Header title="Utbetalningskonto" />}
-          footerComponent={
-            <View style={{ gap: 4 }}>
-              {error && (
-                <Body size="small" color="error">
-                  Något gick fel
-                </Body>
-              )}
-              <Button
-                label="Koppla Bankkonto"
-                disabled={!stripe || !ownerName}
-                onPress={() => onAddBankPayoutAccount()}
-                loading={addingPayoutAccount}
-              />
-            </View>
-          }
-        >
-          {content}
-        </ScreenLayout>
-      </TransparentModal>
-    );
-  }
-
-  return (
-    <ScreenLayout
-      style={{ flex: 1, gap: 24 }}
-      headerComponent={<Header title="Utbetalningskonto" />}
-      footerComponent={
-        <View style={{ gap: 4 }}>
-          {error && (
-            <Body size="small" color="error">
-              Något gick fel
-            </Body>
-          )}
-          <Button
-            label="Koppla Bankkonto"
-            disabled={!stripe || !ownerName}
-            onPress={() => onAddBankPayoutAccount()}
-            loading={addingPayoutAccount}
-          />
-        </View>
-      }
-    >
-      {content}
     </ScreenLayout>
   );
 }

@@ -5,12 +5,12 @@ import {
   UpdateUserInput,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
+import { AccountState } from "@components/account/account-wrapper.desktop";
 import { Toggle } from "@components/controls/toggle";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Body, Display, Title } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
@@ -40,7 +40,12 @@ const ACCOUNT_SETTINGS_UPDATE_NOTIFICATIONS = gql`
   }
 `;
 
-export default function Notifications() {
+type Props = {
+  onNavigation?: (state: AccountState) => void;
+  onBack?: () => void;
+};
+
+export default function Notifications({ onNavigation, onBack }: Props) {
   const { isDesktop } = useScreenType();
   const { data } = useQuery<AccountSettingsNotificationsQuery>(
     ACCOUNT_SETTINGS_NOTIFICATIONS,
@@ -60,13 +65,6 @@ export default function Notifications() {
   };
 
   if (!data) {
-    if (isDesktop) {
-      return (
-        <TransparentModal>
-          <LoadingSpinner />
-        </TransparentModal>
-      );
-    }
     return <LoadingSpinner />;
   }
 
@@ -77,7 +75,13 @@ export default function Notifications() {
         Alla aviseringar skickas till {data.me.email}. Vill du ändra din
         e-postadress?{" "}
         <Pressable
-          onPress={() => router.replace("/(app)/account/settings/user")}
+          onPress={() => {
+            if (onNavigation) {
+              onNavigation({ page: "user" });
+              return;
+            }
+            router.replace("/(app)/account/settings/user");
+          }}
         >
           <Body size="medium" isLink>
             Klicka här
@@ -114,23 +118,10 @@ export default function Notifications() {
     </>
   );
 
-  if (isDesktop) {
-    return (
-      <TransparentModal>
-        <ScreenLayout
-          contentHorizontalPadding={0}
-          headerComponent={<Header title="Aviseringar" />}
-          style={{ gap: 24 }}
-        >
-          {content}
-        </ScreenLayout>
-      </TransparentModal>
-    );
-  }
-
   return (
     <ScreenLayout
-      headerComponent={<Header title="Aviseringar" />}
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
+      headerComponent={<Header title="Aviseringar" onBack={onBack} />}
       style={{ gap: 24 }}
     >
       {content}

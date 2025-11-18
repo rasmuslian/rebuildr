@@ -14,8 +14,8 @@ import { View } from "react-native";
 import Bankkonto from "@assets/svgs/bankkonto.svg";
 import { Image } from "expo-image";
 import { useScreenType } from "@hooks/useScreenType";
-import { TransparentModal } from "@components/transparent-modal.tsx/transparent-modal";
 import { Header } from "@components/navigation/headers/header";
+import { AccountState } from "@components/account/account-wrapper.desktop";
 
 const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   query AccountSettingsPayoutQuery {
@@ -32,7 +32,12 @@ const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   }
 `;
 
-export default function Payout() {
+type Props = {
+  onNavigation?: (state: AccountState) => void;
+  onBack?: () => void;
+};
+
+export default function Payout({ onNavigation, onBack }: Props) {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { data, refetch } = useQuery<AccountSettingsPayoutQueryQuery>(
@@ -46,13 +51,6 @@ export default function Payout() {
   );
 
   if (!data) {
-    if (isDesktop) {
-      return (
-        <TransparentModal>
-          <LoadingSpinner />
-        </TransparentModal>
-      );
-    }
     return <LoadingSpinner />;
   }
 
@@ -86,8 +84,24 @@ export default function Payout() {
     );
   };
 
-  const content = (
-    <>
+  return (
+    <ScreenLayout
+      style={{ gap: 24 }}
+      contentHorizontalPadding={isDesktop ? 0 : undefined}
+      headerComponent={<Header title="Utbetalningskonto" onBack={onBack} />}
+      footerComponent={
+        <Button
+          label="Lägg till utbetalningskonto"
+          onPress={() => {
+            if (onNavigation) {
+              onNavigation({ page: "payout-add" });
+              return;
+            }
+            router.navigate("/account/settings/payout/add");
+          }}
+        />
+      }
+    >
       {data.me.payoutAccount ? (
         <>
           <Display size="small">Du får dina utbetalningar till:</Display>
@@ -143,45 +157,6 @@ export default function Payout() {
       ) : (
         renderNoPayoutAccount()
       )}
-    </>
-  );
-
-  if (isDesktop) {
-    return (
-      <TransparentModal>
-        <ScreenLayout
-          style={{ gap: 24 }}
-          contentHorizontalPadding={0}
-          headerComponent={<Header title="Utbetalningskonto" />}
-          footerComponent={
-            <Button
-              label="Lägg till utbetalningskonto"
-              onPress={() => {
-                router.navigate("/account/settings/payout/add");
-              }}
-            />
-          }
-        >
-          {content}
-        </ScreenLayout>
-      </TransparentModal>
-    );
-  }
-
-  return (
-    <ScreenLayout
-      style={{ gap: 24 }}
-      headerComponent={<Header title="Utbetalningskonto" />}
-      footerComponent={
-        <Button
-          label="Lägg till utbetalningskonto"
-          onPress={() => {
-            router.navigate("/account/settings/payout/add");
-          }}
-        />
-      }
-    >
-      {content}
     </ScreenLayout>
   );
 }

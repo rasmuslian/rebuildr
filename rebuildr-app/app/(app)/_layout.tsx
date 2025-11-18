@@ -14,10 +14,6 @@ const APP_QUERY = gql`
   }
 `;
 
-export const unstable_settings = {
-  initialRouteName: "(tabs)",
-};
-
 export default function AppLayout() {
   const { data } = useQuery<AppQueryQuery>(APP_QUERY, {
     fetchPolicy: "network-only",

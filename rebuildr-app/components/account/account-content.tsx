@@ -9,6 +9,7 @@ import { router, useFocusEffect } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
+import { useScreenType } from "@hooks/useScreenType";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -42,9 +43,19 @@ export const MY_ACCOUNT = gql`
   }
 `;
 
-export default function AccountContent() {
+type AccountState = {
+  page: "index" | "settings";
+  params?: Record<string, string | number>;
+};
+
+type Props = {
+  onNavigation?: (state: AccountState) => void;
+};
+
+export default function AccountContent({ onNavigation }: Props) {
   const [editMode, setEditMode] = useState(false);
   const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+  const { isDesktop } = useScreenType();
   const me = data?.me;
 
   useFocusEffect(
@@ -124,7 +135,10 @@ export default function AccountContent() {
         <LinkEntry
           label="Kontoinställningar"
           body="Hantera dina uppgifter och inställningar"
-          link="/account/settings"
+          link={onNavigation ? undefined : "/account/settings"}
+          onPress={
+            onNavigation ? () => onNavigation({ page: "settings" }) : undefined
+          }
         />
       </View>
     </View>
