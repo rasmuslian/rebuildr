@@ -5,6 +5,9 @@ import { Header } from "@components/navigation/headers/header";
 import { gql, useQuery } from "@apollo/client";
 import { GetArticleQuery, GetArticleQueryVariables } from "@/gql/graphql";
 import ParsedArticle from "@components/article/parsed-article";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
+import { View } from "react-native";
 
 const GET_ARTICLE = gql`
   query GetArticle($articleId: String!) {
@@ -17,6 +20,7 @@ const GET_ARTICLE = gql`
 `;
 
 export default function ArticlePage() {
+  const { isDesktop } = useScreenType();
   const { articleId, title } = useLocalSearchParams<{
     articleId: string;
     title: string;
@@ -30,6 +34,19 @@ export default function ArticlePage() {
       },
     },
   );
+
+  if (isDesktop) {
+    return (
+      <ScreenLayout
+        loading={loading}
+        headerComponent={<TopBar theme="light" />}
+      >
+        <View style={{ width: 720, alignSelf: "center" }}>
+          <ParsedArticle html={data?.article.body} />
+        </View>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout
