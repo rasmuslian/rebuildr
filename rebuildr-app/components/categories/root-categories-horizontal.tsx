@@ -34,7 +34,6 @@ export function RootCategoriesHorizontal() {
   return (
     <View
       style={{
-        paddingBottom: 16,
         marginHorizontal: -16,
       }}
     >
