@@ -5,7 +5,7 @@ import { router, usePathname } from "expo-router";
 import { showHamburgerMenuVar } from "@/apollo/config";
 import { Icon, IconType } from "@icons/icon";
 import { Button } from "@components/buttons/button";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
@@ -16,6 +16,8 @@ import { Divider } from "@components/dividers/divider";
 import { SearchBar } from "@components/search/search-bar";
 import { horizontalPadding } from "@constants/sizes";
 import { Avatar } from "@components/avatar/avatar";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import AccountContent from "@components/account/account-content";
 
 type Props = {
   isLoggedIn: boolean;
@@ -36,9 +38,9 @@ export default function TopBarDesktop({
   const pathname = usePathname();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
+  const [openAccount, setOpenAccount] = useState(false);
 
-  const searchOpacity = useRef(new Animated.Value(0)).current; // Start invisible
-
+  const searchOpacity = useRef(new Animated.Value(0)).current;
   const { data: tabData } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
   const icons: {
@@ -51,7 +53,7 @@ export default function TopBarDesktop({
     {
       avatarUrl: me?.profilePicture?.url,
       onPress: () => {
-        router.navigate("/(app)/account");
+        setOpenAccount(true);
       },
       active: pathname.startsWith("/account"),
     },
@@ -135,7 +137,8 @@ export default function TopBarDesktop({
         >
           <View style={{ flexDirection: "row" }}>
             {isLoggedIn &&
-              icons.map(({ icon, onPress, badgeNumber, avatarUrl, active }, index) => (
+              icons.map(
+                ({ icon, onPress, badgeNumber, avatarUrl, active }, index) => (
                   <Pressable key={index} onPress={onPress}>
                     <View
                       style={{
@@ -171,7 +174,8 @@ export default function TopBarDesktop({
                       )}
                     </View>
                   </Pressable>
-                ))}
+                ),
+              )}
           </View>
           <Button
             type={theme === "dark" ? "outlinedStroke" : "tonal"}
@@ -204,6 +208,13 @@ export default function TopBarDesktop({
           <Divider />
         </View>
       )}
+      <SlideInSheet
+        open={openAccount}
+        onClose={() => setOpenAccount(false)}
+        title="Konto"
+      >
+        <AccountContent />
+      </SlideInSheet>
     </View>
   );
 }

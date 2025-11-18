@@ -1,0 +1,132 @@
+import { View } from "react-native";
+import React, { useState, useCallback } from "react";
+import { MyAccountQuery } from "@/gql/graphql";
+import { Button } from "@components/buttons/button";
+import { UserCard } from "@components/cards/user-card";
+import { Divider } from "@components/dividers/divider";
+import { LinkEntry } from "./link-entry";
+import { router, useFocusEffect } from "expo-router";
+import { gql, useQuery } from "@apollo/client";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { EditProfile } from "@components/profile/edit-profile";
+
+export const MY_ACCOUNT = gql`
+  query MyAccount {
+    me {
+      id
+      username
+      type
+      numberOfSoldProducts
+      numberOfPublishedProducts
+      rating
+      products {
+        id
+      }
+      projects {
+        id
+      }
+      likedProducts {
+        total
+      }
+      sales {
+        id
+      }
+      purchases {
+        id
+      }
+      profilePicture {
+        id
+        url
+      }
+    }
+  }
+`;
+
+export default function AccountContent() {
+  const [editMode, setEditMode] = useState(false);
+  const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+  const me = data?.me;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, []),
+  );
+
+  if (!me) return <LoadingSpinner />;
+
+  if (editMode) {
+    return <EditProfile onEditCompleted={() => setEditMode(false)} />;
+  }
+
+  return (
+    <View style={{ gap: 24 }}>
+      <UserCard
+        userType={me.type}
+        profilePictureUrl={me.profilePicture?.url}
+        username={me.username}
+        numberOfPublishedProducts={me.numberOfPublishedProducts}
+        numberOfSoldProducts={me.numberOfSoldProducts}
+        rating={me.rating}
+      />
+
+      <View style={{ gap: 8 }}>
+        <Button
+          label="Se din profil"
+          onPress={() => {
+            router.navigate({
+              pathname: "/account/profile",
+              params: { userId: me.id },
+            });
+          }}
+        />
+        <Button
+          label="Redigera din profil"
+          type="tonal"
+          onPress={() => {
+            setEditMode(true);
+          }}
+        />
+      </View>
+      <View style={{ gap: 16 }}>
+        <Divider />
+        <LinkEntry
+          label="Dina projekt"
+          body={(me.projects.length ?? 0) + " projekt"}
+          link={{
+            pathname: "/project-list/[userId]",
+            params: { userId: me.id },
+          }}
+        />
+        <LinkEntry
+          label="Dina annonser"
+          body={(me.products.length ?? 0) + " annonser"}
+          link={{
+            pathname: "/account/profile",
+            params: { userId: me.id },
+          }}
+        />
+        <LinkEntry
+          label="Dina försäljningar"
+          body={me.sales.length + " annonser"}
+          link="/account/sales"
+        />
+        <LinkEntry
+          label="Dina köp"
+          body={me.purchases.length + " annonser"}
+          link="/account/purchases"
+        />
+        <LinkEntry
+          label="Dina favoriter"
+          body={(me.likedProducts?.total ?? 0) + " annonser"}
+          link="/account/favorites"
+        />
+        <LinkEntry
+          label="Kontoinställningar"
+          body="Hantera dina uppgifter och inställningar"
+          link="/account/settings"
+        />
+      </View>
+    </View>
+  );
+}
