@@ -24,6 +24,7 @@ export default function ProfileProjects({ profileQuery }: Props) {
   const user = profileQuery.data.user;
 
   if (profileQuery.loading) return <LoadingSpinner />;
+  if (projects.length === 0) return null;
 
   if (isDesktop) {
     return (
