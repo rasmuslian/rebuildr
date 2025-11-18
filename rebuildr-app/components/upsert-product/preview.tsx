@@ -156,7 +156,7 @@ export const Preview = ({ product }: Props) => {
           }}
         />
       )}
-      {product.images && product.images.length > 0 && (
+      {isDesktop && product.images && product.images.length > 0 && (
         <Popup
           open={showAllImagesPopup}
           onClose={() => setShowAllImagesPopup(false)}

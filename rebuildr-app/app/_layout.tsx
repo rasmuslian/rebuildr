@@ -120,8 +120,8 @@ const RootLayout = () => {
             <SellProductProdiver>
               <EditProductProdiver>
                 <GestureHandlerRootView>
-                  <BottomSheetModalProvider>
-                    <PopupProvider>
+                  <PopupProvider>
+                    <BottomSheetModalProvider>
                       <ScreenDimensionsProvider>
                         <BuyModalProvider>
                           <SlideInSheetProvider>
@@ -137,8 +137,8 @@ const RootLayout = () => {
                           </SlideInSheetProvider>
                         </BuyModalProvider>
                       </ScreenDimensionsProvider>
-                    </PopupProvider>
-                  </BottomSheetModalProvider>
+                    </BottomSheetModalProvider>
+                  </PopupProvider>
                 </GestureHandlerRootView>
               </EditProductProdiver>
             </SellProductProdiver>
