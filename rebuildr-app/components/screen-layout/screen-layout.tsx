@@ -21,6 +21,8 @@ interface PageProps extends PropsWithChildren {
 
 export const SCREEN_TOP_MARGIN = 24;
 export const SCREEN_BOTTOM_MARGIN = 32;
+export const SCREEN_HORIZONTAL_MARGIN_DESKTOP = 75;
+export const SCREEN_HORIZONTAL_MARGIN_MOBILE = 16;
 
 export const ScreenLayout = ({
   children,
@@ -38,7 +40,8 @@ export const ScreenLayout = ({
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const scrollRef = useRef<ScrollView>(null);
-  const paddingHorizontal = contentHorizontalPadding !== undefined
+  const paddingHorizontal =
+    contentHorizontalPadding !== undefined
       ? contentHorizontalPadding
       : isDesktop
         ? horizontalPadding.desktop

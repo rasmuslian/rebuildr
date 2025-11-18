@@ -111,7 +111,7 @@ export const ProductMobile = ({
 
   if (!isMyProduct && isLoggedIn) {
     ctas.push({
-      icon: product.likedByMe ? "heartFilled" : "heart",
+      icon: product.likedByMe ? "heart2Filled" : "heart2",
       onPress: () => {
         onToggleProductHeart({
           productId,

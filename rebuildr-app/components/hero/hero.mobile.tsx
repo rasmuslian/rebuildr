@@ -1,9 +1,9 @@
 import { View, ImageBackground, Animated } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Headline } from "@components/typography/text";
-import { SearchBar } from "@components/search/search-bar";
 import React, { useState } from "react";
 import { router } from "expo-router";
+import { Search } from "@components/search/search";
 
 type Props = {
   scrollY: Animated.Value;
@@ -60,8 +60,7 @@ export default function HeroMobile({ scrollY, headline, searchBar }: Props) {
           </Headline>
         </Animated.View>
 
-        <SearchBar
-          style={{ borderBottomWidth: 0 }}
+        <Search
           placeholder={searchBar}
           onFocus={() => router.navigate("/(app)/(tabs)/search")}
         />

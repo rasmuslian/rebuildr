@@ -76,7 +76,7 @@ export default function Landing() {
             flexGrow: 1,
             paddingHorizontal: isDesktop ? 75 : 16,
             paddingBottom: 32,
-            paddingTop: 24,
+            paddingTop: isDesktop ? 44 : 16,
           }}
         >
           <RootCategoriesHorizontal />

@@ -15,6 +15,10 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { Divider } from "@components/dividers/divider";
 import { router } from "expo-router";
 import { useScreenType } from "@hooks/useScreenType";
+import {
+  SCREEN_HORIZONTAL_MARGIN_DESKTOP,
+  SCREEN_HORIZONTAL_MARGIN_MOBILE,
+} from "@components/screen-layout/screen-layout";
 
 type Props = {
   title: string;
@@ -88,9 +92,17 @@ export function RecommendedProducts({ title, source }: Props) {
 
   if (!data || data.me.recommendedProducts.length < 1) return null;
   const products = data.me.recommendedProducts;
-  const width = isDesktop
-    ? (screenWidth - 75 * 2) / 4 - 16
-    : (screenWidth - 48) / 2 - 16;
+  const productsPerRow = isDesktop ? 4 : 2;
+  const columngap = 16;
+  const screenWidthExcludingGap =
+    screenWidth - (productsPerRow - 1) * columngap;
+  const width =
+    (screenWidthExcludingGap -
+      (isDesktop
+        ? SCREEN_HORIZONTAL_MARGIN_DESKTOP
+        : SCREEN_HORIZONTAL_MARGIN_MOBILE) *
+        2) /
+    productsPerRow;
 
   return (
     <View style={{ gap: 16, paddingTop: 16 }}>
@@ -113,7 +125,7 @@ export function RecommendedProducts({ title, source }: Props) {
       <View
         style={{
           flexDirection: "row",
-          gap: 16,
+          gap: columngap,
           flexWrap: "wrap",
           paddingBottom: 16,
         }}
@@ -125,7 +137,7 @@ export function RecommendedProducts({ title, source }: Props) {
                 id={product.id}
                 imageUri={product.primaryImage?.url}
                 liked={!!product.likedByMe}
-                heart={product.seller.id != data.me.id}
+                heart={product.seller.id !== data.me.id}
                 quantity={product.primaryQuantity}
                 quantityUnit={product.primaryUnit}
                 condition={product.condition}

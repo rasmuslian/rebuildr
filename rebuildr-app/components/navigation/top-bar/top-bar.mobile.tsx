@@ -45,7 +45,7 @@ export default function TopBarMobile({ isLoggedIn, me }: Props) {
           }}
         >
           <Icon
-            icon="heart"
+            icon="heart2"
             customColor={colors.logo.background}
             width={18}
             height={18}
