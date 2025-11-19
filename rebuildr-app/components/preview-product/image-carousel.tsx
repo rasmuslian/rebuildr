@@ -14,7 +14,7 @@ import { ProductImageOverlay } from "@components/product/product-image-overlay";
 import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 
 type Props = {
-  images: { url: string }[];
+  images: { id?: string; url: string }[];
   status: Product["status"];
   displaySoldOverlay?: boolean;
   width?: number;
@@ -30,7 +30,6 @@ export const ImageCarousel = ({
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [animating, setAnimating] = useState(false);
   const [visibleIndex, setVisibleIndex] = useState(0);
 
   const flatListRef = useRef<FlatList>(null);
@@ -42,12 +41,6 @@ export const ImageCarousel = ({
   const scrollToIndex = (index: number) => {
     setVisibleIndex(index);
     setCurrentIndex(index);
-
-    //Set an animation timeout to "lock" the flatlist while 'scrollToIndex'
-    //moves the view to 'index'
-    setAnimating(true);
-    setTimeout(() => setAnimating(false), 350);
-    flatListRef.current?.scrollToIndex({ index, animated: true });
   };
 
   const onTouchEnd = () => {
@@ -55,15 +48,13 @@ export const ImageCarousel = ({
   };
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (animating) return;
-
     const offset = event.nativeEvent.contentOffset.x;
     const itemWidth = imageWidth + 8;
     const currentPosition = currentIndex * itemWidth;
     const positionDiff = offset - currentPosition;
     const direction = positionDiff < 0 ? "left" : "right";
     const percentObscuredItem = Math.abs(positionDiff) / itemWidth;
-    const threshold = 0.2;
+    const threshold = 0.5;
 
     if (percentObscuredItem < threshold) return;
 
@@ -86,7 +77,9 @@ export const ImageCarousel = ({
           data={images}
           horizontal
           showsHorizontalScrollIndicator={false}
-          scrollEnabled={!animating}
+          keyExtractor={(data) => {
+            return data.id ? data.id : Math.random().toString();
+          }}
           contentContainerStyle={{ gap: 8 }}
           renderItem={({ item: image }) => {
             return (
@@ -106,6 +99,8 @@ export const ImageCarousel = ({
               </View>
             );
           }}
+          pagingEnabled
+          decelerationRate="fast"
           onScroll={onScroll}
           onTouchEnd={onTouchEnd}
         />
