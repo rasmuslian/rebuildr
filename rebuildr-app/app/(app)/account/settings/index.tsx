@@ -96,7 +96,7 @@ export default function Settings({ onBack, onNavigation }: Props) {
             ["refresh_token", switchAccountData.switchAccount.refreshToken],
           ]);
 
-          await client.clearStore();
+          await client.resetStore();
           refetch();
         } catch (e) {
           console.error(e);
