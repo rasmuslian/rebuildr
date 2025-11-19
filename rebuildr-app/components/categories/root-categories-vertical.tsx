@@ -17,7 +17,11 @@ import { FilterProductCameFromEnum } from "@context/filter-product-context";
 export type RootCategoriesVerticalCategory =
   RootCategoriesQuery["rootCategories"][number];
 
-export function RootCategoriesVertical() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export function RootCategoriesVertical({ onNavigate }: Props) {
   const { setCategories } = useFilterProduct();
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
     ROOT_CATEGORIES,
@@ -47,6 +51,7 @@ export function RootCategoriesVertical() {
                 cameFrom: FilterProductCameFromEnum.categories,
               });
               router.navigate("/(app)/(tabs)/search/products");
+              onNavigate?.();
             }}
           >
             <View

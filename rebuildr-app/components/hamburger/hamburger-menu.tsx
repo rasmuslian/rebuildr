@@ -40,7 +40,7 @@ export const HamburgerMenu = () => {
       title={category ? category.name : "Kategorier"}
       style={{ gap: 24 }}
     >
-      <RootCategoriesVertical />
+      <RootCategoriesVertical onNavigate={isDesktop ? onClose : undefined} />
       {!category && (
         <View style={{ marginTop: isDesktop ? 48 : 24 }}>
           <Divider />
