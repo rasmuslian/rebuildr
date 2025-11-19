@@ -45,18 +45,15 @@ export default function ProfileProjects({ profileQuery }: Props) {
           <FlatList
             data={projects}
             columnWrapperStyle={{
-              justifyContent: "space-between",
-              gap: 24,
+              marginHorizontal: -8,
             }}
             numColumns={4}
             renderItem={({ item }) => (
-              <View style={{ flex: 1 }}>
-                {
-                  <ProjectCard
-                    showHeart={me?.id !== item.user.id}
-                    project={item}
-                  />
-                }
+              <View style={{ flexBasis: "25%", padding: 8 }}>
+                <ProjectCard
+                  showHeart={me?.id !== item.user.id}
+                  project={item}
+                />
               </View>
             )}
           />
