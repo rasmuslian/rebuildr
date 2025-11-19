@@ -26,8 +26,8 @@ export const AdGridSection = ({
   const { isDesktop } = useScreenType();
   const gapSize = isDesktop ? 24 : 16;
   const width = isDesktop
-    ? (screenWidth - 75 * 2) / 4 - gapSize
-    : (screenWidth - 48) / 2 - gapSize;
+    ? (screenWidth - 75 * 2) / 4 - (gapSize * 3) / 4
+    : (screenWidth - 48) / 2;
 
   return (
     <View style={{ gap: 24 }}>
