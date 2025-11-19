@@ -5,7 +5,6 @@ import { useSlideInSheetContext } from "@context/slide-in-sheet-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { usePathname } from "expo-router";
 import { useEffect, PropsWithChildren, ReactElement } from "react";
 import { ScrollView, View, ViewStyle, useWindowDimensions } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
@@ -36,12 +35,6 @@ export const SlideInSheet = ({
   const width = isDesktop ? 500 : screenWidth;
 
   const { setVisible, setContent } = useSlideInSheetContext();
-  const pathname = usePathname();
-
-  // Close the sheet on route change
-  useEffect(() => {
-    onClose?.();
-  }, [pathname]);
 
   const content = (
     <>
@@ -96,6 +89,12 @@ export const SlideInSheet = ({
       setContent(content);
     }
   }, [children]);
+
+  useEffect(() => {
+    return () => {
+      setVisible(false);
+    };
+  }, []);
 
   return null;
 };

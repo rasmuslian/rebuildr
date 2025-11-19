@@ -648,7 +648,7 @@ export const UpsertProductBottomSheet = ({
   if (isDesktop) {
     return (
       <>
-        <SlideInSheet open={visible} bottomMargin={0}>
+        <SlideInSheet open={visible} bottomMargin={0} onClose={onDismissSheet}>
           <View>{header}</View>
           <View>{viewChildren}</View>
           {showFooter && (
