@@ -56,7 +56,7 @@ export default function TopBarDesktop({
       onPress: () => {
         setOpenAccount(true);
       },
-      active: pathname.startsWith("/account"),
+      active: false,
     },
     {
       icon: "heart",

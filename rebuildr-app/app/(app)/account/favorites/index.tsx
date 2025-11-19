@@ -10,6 +10,10 @@ import { ProjectCard } from "@components/cards/project-card";
 import { Divider } from "@components/dividers/divider";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
+import { View } from "react-native";
+import { SectionHeader } from "@components/sections/section-header";
 
 export const MY_FAVORITES = gql`
   query MyFavorites($limit: Int, $offset: Int) {
@@ -67,7 +71,8 @@ export const MY_FAVORITES = gql`
 `;
 
 export default function Favorites() {
-  const PRODUCTS_PER_PAGE = 10;
+  const { isDesktop } = useScreenType();
+  const PRODUCTS_PER_PAGE = isDesktop ? 8 : 10;
   const { onToggleProductHeart } = useLikeProduct();
 
   const { data, loading, fetchMore } = useQuery<
@@ -112,12 +117,14 @@ export default function Favorites() {
   const hasFavoritProjects = !!data?.me.likedProjects?.length;
   const isEmptyPage = !hasFavoritProducts && !hasFavoritProjects;
 
-  return (
-    <ScreenLayout
-      headerComponent={<Header title="Favoriter" />}
-      loading={loading}
-      style={{ gap: 24 }}
-    >
+  const onFavoritesPress = () => {
+    router.navigate({
+      pathname: "/account/favorites/projects",
+    });
+  };
+
+  const content = (
+    <>
       <Display size="small">En samlad plats för dina favoriter</Display>
       {isEmptyPage && (
         <EmptyStateCard
@@ -130,22 +137,45 @@ export default function Favorites() {
         />
       )}
       {data?.me.likedProjects && hasFavoritProjects && (
-        <HoriztalListSection
-          data={data.me.likedProjects}
-          renderItem={({ item }) => (
-            <ProjectCard
-              showHeart={item.user.id !== data.me.id}
-              project={item}
+        <>
+          {isDesktop ? (
+            <>
+              <SectionHeader onPress={onFavoritesPress} buttonTitle="Visa alla">
+                Favoritprojekt
+              </SectionHeader>
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginHorizontal: -8,
+                  flexWrap: "wrap",
+                }}
+              >
+                {data.me.likedProjects.slice(0, 2).map((project) => (
+                  <View style={{ flexBasis: "50%", paddingHorizontal: 8 }}>
+                    <ProjectCard
+                      key={project.id}
+                      showHeart={project.user.id !== data.me.id}
+                      project={project}
+                    />
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <HoriztalListSection
+              data={data.me.likedProjects}
+              renderItem={({ item }) => (
+                <ProjectCard
+                  showHeart={item.user.id !== data.me.id}
+                  project={item}
+                />
+              )}
+              title="Favoritprojekt"
+              onPress={onFavoritesPress}
+              visibleItems={2}
             />
           )}
-          title="Favoritprojekt"
-          onPress={() => {
-            router.navigate({
-              pathname: "/account/favorites/projects",
-            });
-          }}
-          visibleItems={2}
-        />
+        </>
       )}
       {hasFavoritProjects && hasFavoritProducts && <Divider />}
       {hasFavoritProducts && (
@@ -185,6 +215,28 @@ export default function Favorites() {
           }}
         />
       )}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <ScreenLayout
+        headerComponent={<TopBar theme="light" />}
+        loading={loading}
+        style={{ gap: 24 }}
+      >
+        {content}
+      </ScreenLayout>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      headerComponent={<Header title="Favoriter" />}
+      loading={loading}
+      style={{ gap: 24 }}
+    >
+      {content}
     </ScreenLayout>
   );
 }
