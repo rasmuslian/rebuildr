@@ -110,6 +110,16 @@ export class Product {
   })
   addressLocation?: Point;
 
+  @Column('geometry', {
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  approximateLocation?: Point;
+
+  @Column({ nullable: true })
+  approximateAddress?: string;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   hiddenReason?: string;

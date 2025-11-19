@@ -135,6 +135,12 @@ export class ProductService {
       type: 'Point',
       coordinates: [location.lat, location.lng],
     };
+    const approximateLocation = await this.geocodingService.locationToApproximation(location);
+    product.approximateLocation = {
+      type: 'Point',
+      coordinates: [approximateLocation.lat, approximateLocation.lng],
+    };
+    product.approximateAddress = approximateLocation.address;
     const images = await Promise.all(
       input.images?.map((image) => {
         return this.fileService.createFile({ mimeType: image.mimeType });
@@ -394,6 +400,12 @@ export class ProductService {
         type: 'Point',
         coordinates: [input.location.lat, input.location.lng],
       };
+      const approximateLocation = await this.geocodingService.locationToApproximation(input.location);
+      product.approximateLocation = {
+        type: 'Point',
+        coordinates: [approximateLocation.lat, approximateLocation.lng],
+      };
+      product.approximateAddress = approximateLocation.address;
       //Remove connection to project when new address is added to product
       product.project = null;
     }
@@ -949,6 +961,15 @@ export class ProductService {
     if (!product.addressLocation) {
       return null;
     }
+
+    if (product.approximateLocation) {
+      return {
+        address: product.approximateAddress,
+        lat: product.approximateLocation.coordinates[0],
+        lng: product.approximateLocation.coordinates[1],
+      };
+    }
+    // TODO: Remove this fallback after a while when all products have approximate location saved
     const approximation = await this.geocodingService.locationToApproximation({
       lat: product.addressLocation.coordinates[0],
       lng: product.addressLocation.coordinates[1],
@@ -1438,6 +1459,47 @@ export class ProductService {
       return await this.productRepository.save(product);
     } catch (error) {
       throw BadUserInputException(`Failed to delete product: ${error}`);
+    }
+  }
+
+  async syncApproximateLocations() {
+    const batchSize = 100;
+    let offset = 0;
+    while (true) {
+      const products = await this.productRepository.find({
+        where: {
+          approximateLocation: IsNull(),
+          status: ProductStatus.PUBLISHED,
+        },
+        take: batchSize,
+        skip: offset
+      });
+      if (products.length === 0) {
+        break;
+      }
+
+      const updatedProducts = [];
+      for (const product of products) {
+        try {
+        const location = {
+          lat: product.addressLocation.coordinates[0],
+          lng: product.addressLocation.coordinates[1],
+        };
+        const approximateLocation =
+          await this.geocodingService.locationToApproximation(location);
+        product.approximateLocation = {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        };
+        product.approximateAddress = approximateLocation.address;
+        updatedProducts.push(product);
+      } catch (error) {
+        console.log(`Failed to approximate location for product ${product.id}: ${error}`);
+       }
+    }
+
+      await this.productRepository.save(updatedProducts);
+      offset += batchSize;
     }
   }
 }

@@ -952,4 +952,16 @@ export class ProductResolver {
   ) {
     return await this.productService.similarProducts(product.id, limit, offset);
   }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async syncProductsApproximateLocations() {
+    this.productService.syncApproximateLocations().catch((err) => {
+      this.logger.error(
+        'Error syncing products approximate locations: ' + err.message,
+      );
+    });
+    return true;
+  }
 }

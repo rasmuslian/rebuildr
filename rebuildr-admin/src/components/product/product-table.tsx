@@ -24,6 +24,7 @@ import { deleteProduct } from "@/queries/product/delete-product";
 import { hideProduct } from "@/queries/product/hide-product";
 import { unhideProduct } from "@/queries/product/unhide-product";
 import FormField from "@components/form-field";
+import { syncApproximateLocations } from "@/queries/product/sync-approximate-locations";
 
 type StateType = {
   searchString: string;
@@ -48,6 +49,29 @@ const ProductTable = () => {
     queryKey: [queryKeys.LIST_PRODUCTS, page, pageSize, searchString],
     queryFn: () => listProducts({ page: page - 1, pageSize, searchString }),
   });
+
+  const { mutateAsync: syncProductLocations, isPending: isSyncingLocations } =
+    useMutation({
+      mutationFn: async () => {
+        const response = await syncApproximateLocations();
+        if (!response) throw new Error();
+        return response;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PRODUCTS] });
+        notification.success({
+          message: "Platser synkroniserade",
+          description: "Produktplatser har synkroniserats framgångsrikt.",
+        });
+      },
+      onError: () => {
+        notification.error({
+          message: "Synkronisering misslyckades",
+          description:
+            "Produktplatser kunde tyvärr inte synkroniseras. Försök igen senare.",
+        });
+      },
+    });
 
   const { mutateAsync: deleteMutation, isPending: isDeleting } = useMutation({
     mutationFn: async (productId: string) => {
@@ -347,6 +371,13 @@ const ProductTable = () => {
         defaultValue={searchString}
         onChange={onSearchStringChange}
       />
+      <Button
+        // type="dashed"
+        // size="middle"
+        // icon={<DeleteOutlined />}
+        onClick={() => syncProductLocations()}
+        disabled={isSyncingLocations}
+      >Synkronisera produktplatser</Button>
 
       <Table
         columns={columns}
