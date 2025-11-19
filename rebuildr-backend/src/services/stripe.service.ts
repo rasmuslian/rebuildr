@@ -10,8 +10,10 @@ import { Logger } from 'winston';
 import { GeocodingService } from './geocoding.service';
 import { Purchase, SupportedPaymentMethod } from 'src/entities/purchase.entity';
 import { idFromObject } from 'src/utility/stripe/utils';
-import { formatCountryCodePhonenumber } from 'src/utility/phone-number';
-import { swedishPhoneNumberRegex } from 'src/constants/regexp';
+import {
+  formatCountryCodePhonenumber,
+  isValidPhonenumber,
+} from 'src/utility/phone-number';
 
 @Injectable()
 export class StripeService {
@@ -77,7 +79,7 @@ export class StripeService {
     const firstName = nameParts?.[0];
     const lastName = nameParts?.[1];
 
-    const validPhoneNumber = swedishPhoneNumberRegex.test(user.phoneNumber);
+    const validPhoneNumber = isValidPhonenumber(user.phoneNumber);
 
     const individualParams: Stripe.AccountCreateParams.Individual = {
       first_name: firstName,
@@ -150,6 +152,8 @@ export class StripeService {
       throw InternalServerException();
     }
 
+    const validPhoneNumber = isValidPhonenumber(organizationUser.phoneNumber);
+
     try {
       const accountBusiness = await this.stripe.accounts.create({
         business_type: 'company',
@@ -162,7 +166,7 @@ export class StripeService {
             city: organizationUser.city,
             country: 'SE',
           },
-          phone: organizationUser.phoneNumber
+          phone: validPhoneNumber
             ? formatCountryCodePhonenumber(organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
