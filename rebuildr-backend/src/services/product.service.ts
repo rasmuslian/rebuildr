@@ -60,6 +60,7 @@ import {
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
 import { MapPin } from 'src/entities/map-pin.entity';
+import { map } from 'rxjs';
 
 @Injectable()
 export class ProductService {
@@ -1256,6 +1257,14 @@ export class ProductService {
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const mapPin = new MapPin({
+        address: approximateLocation.address,
+        location: {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        },
+      });
 
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(shippingPriceIds) },
@@ -1274,6 +1283,7 @@ export class ProductService {
         deliveryRadius: deliveryRadius ? deliveryRadius * 1000 : undefined,
         deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
         shippingPrices: shippingPrices,
+        mapPin: mapPin,
         ...rest,
         ...measurement,
       });
@@ -1296,7 +1306,7 @@ export class ProductService {
   ): Promise<CmsUpdateProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id: input.id },
-      relations: { images: true, documents: true },
+      relations: { images: true, documents: true, mapPin: true },
     });
 
     if (!product) throw NotFoundException('Product not found');
@@ -1318,6 +1328,14 @@ export class ProductService {
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+
+      const mapPin = product.mapPin || new MapPin();
+      mapPin.address = approximateLocation.address;
+      mapPin.location = {
+        type: 'Point',
+        coordinates: [approximateLocation.lat, approximateLocation.lng],
+      };
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(shippingPriceIds) },
       });
@@ -1358,6 +1376,7 @@ export class ProductService {
         deliveryRadius: deliveryRadius ? deliveryRadius * 1000 : undefined,
         deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
         shippingPrices: shippingPrices,
+        mapPin: mapPin,
         ...rest,
         ...measurement,
       });
