@@ -15,6 +15,7 @@ type Props = {
   onBack?: () => void;
   middle?: ReactElement;
   showDivider?: boolean;
+  ctaRowMarginRight?: number;
 } & PropsWithChildren;
 
 export const Header = ({
@@ -25,6 +26,7 @@ export const Header = ({
   onBack,
   middle,
   showDivider = true,
+  ctaRowMarginRight,
 }: Props) => {
   const colors = useThemeColor();
 
@@ -75,7 +77,7 @@ export const Header = ({
           flexDirection: "row",
           gap: 6,
           alignItems: "center",
-          marginRight: -12,
+          marginRight: ctaRowMarginRight ?? -12,
         }}
       >
         {ctas?.map((cta, i) => (
