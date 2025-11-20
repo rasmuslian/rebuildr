@@ -6,7 +6,6 @@ import DataLoader from "dataloader";
 import { MapPin } from "src/entities/map-pin.entity";
 
 export interface IMapPinLoaders {
-  mapPinLoader: DataLoader<string, MapPin>;
   mapPinsByProductIdsLoader: DataLoader<string, MapPin | null>;
   mapPinsByUserIdsLoader: DataLoader<string, MapPin | null>;
   mapPinsByProjectIdsLoader: DataLoader<string, MapPin | null>;

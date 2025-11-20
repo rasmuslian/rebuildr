@@ -118,6 +118,18 @@ enum TransportationEnum {
   DELIVERY
 }
 
+type MapPin {
+  id: ID!
+  location: LocationResponse!
+  pinType: MapPinTypeEnum
+}
+
+enum MapPinTypeEnum {
+  PRODUCT
+  PROJECT
+  USER
+}
+
 type Project {
   id: ID!
   title: String!
