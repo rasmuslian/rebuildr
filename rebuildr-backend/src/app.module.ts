@@ -104,6 +104,7 @@ import { MessageLoader } from './dataloaders/message.loader';
 import { MapPinService } from './services/map-pin.service';
 import { MapPin } from './entities/map-pin.entity';
 import { MapPinLoader } from './dataloaders/map-pin.loader';
+import { MapPinResolver } from './resolvers/map-pin.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -280,6 +281,7 @@ export interface RequestType {
     ArticleFooterSectionResolver,
     StripeService,
     MapPinService,
+    MapPinResolver,
   ],
 })
 export class AppModule {}

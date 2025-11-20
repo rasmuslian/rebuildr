@@ -2,16 +2,16 @@ import apiClient from "@/lib/api-client";
 
 const query = `
   mutation Mutation {
-    syncProductsApproximateLocations
+    syncApproximateLocations
   }
 `;
 
 export const syncApproximateLocations = async () => {
   const response = await apiClient.post<
-    GraphQLResponse<{ syncProductsApproximateLocations: boolean }>
+    GraphQLResponse<{ syncApproximateLocations: boolean }>
   >("/", {
     query,
   });
 
-  return response.data.data?.syncProductsApproximateLocations;
+  return response.data.data?.syncApproximateLocations;
 };

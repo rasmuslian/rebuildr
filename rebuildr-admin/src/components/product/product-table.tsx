@@ -24,7 +24,7 @@ import { deleteProduct } from "@/queries/product/delete-product";
 import { hideProduct } from "@/queries/product/hide-product";
 import { unhideProduct } from "@/queries/product/unhide-product";
 import FormField from "@components/form-field";
-import { syncApproximateLocations } from "@/queries/product/sync-approximate-locations";
+import { syncApproximateLocations } from "@/queries/map-pin/sync-approximate-locations";
 
 type StateType = {
   searchString: string;

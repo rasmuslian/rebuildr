@@ -12,7 +12,6 @@ export enum MapPinTypeEnum {
 
 registerEnumType(MapPinTypeEnum, { name: "MapPinTypeEnum" });
 
-// Used for approximate location display on maps
 @Entity()
 @ObjectType()
 export class MapPin {

@@ -59,7 +59,6 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
-import { MapPinService } from './map-pin.service';
 import { MapPin } from 'src/entities/map-pin.entity';
 
 @Injectable()
@@ -84,7 +83,6 @@ export class ProductService {
     private searchResultService: SearchResultService,
     private dataSource: DataSource,
     private projectService: ProjectService,
-    private mapPinService: MapPinService,
   ) {}
 
   async create(input: {
@@ -1429,51 +1427,6 @@ export class ProductService {
       return await this.productRepository.save(product);
     } catch (error) {
       throw BadUserInputException(`Failed to delete product: ${error}`);
-    }
-  }
-
-  async syncApproximateLocations() {
-    const batchSize = 100;
-    let offset = 0;
-    while (true) {
-
-      const products = await this.productRepository.createQueryBuilder('product')
-        .leftJoin(MapPin, 'map_pin', 'map_pin."productId" = product.id')
-        .where('map_pin.id IS NULL')
-        .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
-        .limit(batchSize)
-        .offset(offset)
-        .getMany();
-
-      if (products.length === 0) {
-        break;
-      }
-
-      const mapPins = [];
-      for (const product of products) {
-        try {
-          const location = {
-            lat: product.addressLocation.coordinates[0],
-            lng: product.addressLocation.coordinates[1],
-          };
-          const approximateLocation =
-            await this.geocodingService.locationToApproximation(location);
-
-          mapPins.push(new MapPin({
-            productId: product.id,
-            location: {
-              type: 'Point',
-              coordinates: [approximateLocation.lat, approximateLocation.lng],
-            },
-            address: approximateLocation.address,
-          }));
-        } catch (error) {
-          console.log(`Failed to approximate location for product ${product.id}: ${error}`);
-        }
-      }
-
-      await this.mapPinService.createMany(mapPins);
-      offset += batchSize;
     }
   }
 }

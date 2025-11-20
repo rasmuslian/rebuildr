@@ -1,8 +1,12 @@
-import { forwardRef, Inject } from "@nestjs/common";
-import { Parent, ResolveField, Resolver } from "@nestjs/graphql";
+import { forwardRef, Inject, UseGuards } from "@nestjs/common";
+import { Mutation, Parent, ResolveField, Resolver } from "@nestjs/graphql";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
 import { LocationResponse } from "./geocoding.resolver";
+import { UserRoleEnum } from "src/entities/user.entity";
+import { Roles } from "src/decorators/roles.decorator";
+import { GqlAuthGuard } from "src/auth/gql-auth.guard";
+import { RolesGuard } from "src/auth/roles.guard";
 
 @Resolver(() => MapPin)
 export class MapPinResolver {
@@ -31,5 +35,13 @@ export class MapPinResolver {
       return 'PROJECT';
     }
     return null;
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async syncApproximateLocations() {
+    await this.mapPinService.syncApproximateLocations();
+    return true;
   }
 }
