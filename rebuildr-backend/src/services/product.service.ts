@@ -237,6 +237,7 @@ export class ProductService {
       relations: {
         images: true,
         documents: true,
+        mapPin: true,
       },
     });
 
@@ -894,7 +895,11 @@ export class ProductService {
   async removeProduct(productId: string, currentUserId: string) {
     const product = await this.productRepository.findOne({
       where: { id: productId },
-      relations: { images: true, documents: true },
+      relations: {
+        images: true,
+        documents: true,
+        mapPin: true,
+      },
     });
     if (!product) {
       throw BadUserInputException();
