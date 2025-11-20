@@ -1,5 +1,5 @@
 import { forwardRef, Inject, UseGuards } from "@nestjs/common";
-import {  Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
+import {  Field, Mutation, ObjectType, Parent, ResolveField, Resolver } from "@nestjs/graphql";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
 import { LocationResponse } from "./geocoding.resolver";
