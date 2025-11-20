@@ -54,8 +54,6 @@ import { ReportProduct } from 'src/entities/report-product.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
-import { MapPin } from 'src/entities/map-pin.entity';
-import { IMapPinLoaders } from 'src/dataloaders/map-pin.loader';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
