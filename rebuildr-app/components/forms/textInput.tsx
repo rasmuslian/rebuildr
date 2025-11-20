@@ -8,6 +8,7 @@ import {
   TextInput as RNTextInput,
   TextInputProps,
   View,
+  ViewStyle,
 } from "react-native";
 
 export type Props = {
@@ -18,7 +19,8 @@ export type Props = {
   trailing?: { icon: IconType; onPress: () => void }[];
   onChange?: (t: string) => void;
   onBlur?: (t: string) => void;
-} & Omit<TextInputProps, "onChange" | "onBlur">;
+  style?: ViewStyle;
+} & Omit<TextInputProps, "onChange" | "onBlur" | "style">;
 
 export const TextInput = forwardRef(function TextInput(
   { onChange, onBlur, ...props }: Props,
@@ -101,48 +103,63 @@ export const TextInput = forwardRef(function TextInput(
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
     >
-      <RNTextInput
-        ref={ref}
-        onFocus={() => setFocused(true)}
-        onBlur={() => onBlurText()}
-        secureTextEntry={props.hideText}
-        onChangeText={(t) => onChangeText(t)}
-        {...props}
-        placeholder={focused ? "" : props.placeholder}
+      <View
         style={[
           {
-            borderWidth: strokeWidth.regular,
-            borderColor: getBorderColor(),
-            padding: 16,
-            paddingRight: 12,
-            backgroundColor: colors.background.neutral,
-            borderRadius: borderRadius.medium,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: 8,
             height: 40,
-            ...textStyles.body["medium"],
-            color: getTextColor(),
-            outline: "none",
+
+            //border
+            borderColor: getBorderColor(),
+            borderWidth: strokeWidth.regular,
+            borderRadius: borderRadius.medium,
+
+            //padding
+            paddingTop: 8,
+            paddingLeft: 16,
+            paddingRight: 12,
+            paddingBottom: 16,
           },
           props.style,
         ]}
-      />
-      {props.trailing && (
-        <View
-          style={{
-            position: "absolute",
-            right: 8,
-            top: 8,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          {props.trailing.map((icon, i) => (
-            <Pressable onPress={icon.onPress} key={i}>
-              <Icon icon={icon.icon} />
-            </Pressable>
-          ))}
-        </View>
-      )}
+      >
+        <RNTextInput
+          ref={ref}
+          onFocus={() => setFocused(true)}
+          onBlur={() => onBlurText()}
+          secureTextEntry={props.hideText}
+          onChangeText={(t) => onChangeText(t)}
+          {...props}
+          placeholder={focused ? "" : props.placeholder}
+          style={[
+            {
+              flex: 1,
+              textAlignVertical: "top",
+              textAlign: "left",
+              ...textStyles.body["medium"],
+              color: getTextColor(),
+              outline: "none",
+            },
+          ]}
+        />
+        {props.trailing && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {props.trailing.map((icon, i) => (
+              <Pressable onPress={icon.onPress} key={i}>
+                <Icon icon={icon.icon} />
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </View>
     </Pressable>
   );
 });
