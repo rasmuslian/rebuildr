@@ -641,8 +641,24 @@ export class ProductResolver {
   }
 
   @Query(() => ApproximatePlaceResponse, { nullable: true })
-  async getPickupOption(@Args('input') input: GetTransportationOptionsInput) {
-    return this.productService.getPickupOption(input);
+  async getPickupOption(
+    @Args('input') input: GetTransportationOptionsInput,
+    @Context('productLoaders') productLoaders: IProductLoaders) {
+    const product = await productLoaders.getProduct.load(input.productId);
+    if (!product.pickupEnabled) {
+      return null;
+    }
+    const mapPin = await productLoaders.mapPinLoader.load(input.productId);
+    if (!mapPin) {
+      return null;
+    }
+    return {
+      address: mapPin?.address,
+      location: {
+        lat: mapPin?.location.coordinates[0],
+        lng: mapPin?.location.coordinates[1],
+      },
+    };
   }
 
   @Query(() => [ShippingOptionResponse])

@@ -969,39 +969,6 @@ export class ProductService {
       lng: product.addressLocation.coordinates[1],
     };
   }
-  async approximatePlace(product: Product) {
-    if (product.projectId) {
-      const project = await this.projectService.findOne({
-        id: product.projectId,
-      });
-      if (!project) {
-        throw InternalServerException('No project found');
-      }
-      return await this.projectService.approximatePlace(project);
-    }
-    if (!product.addressLocation) {
-      return null;
-    }
-    console.log('product.mapPin', product.mapPin);
-    if (product.mapPin) {
-      return {
-        address: product.mapPin.address,
-        lat: product.mapPin.location.coordinates[0],
-        lng: product.mapPin.location.coordinates[1],
-      };
-    }
-    // TODO: Remove this fallback after a while when all products have approximate location saved
-    const approximation = await this.geocodingService.locationToApproximation({
-      lat: product.addressLocation.coordinates[0],
-      lng: product.addressLocation.coordinates[1],
-    });
-    const approximateAddress = approximation.address;
-    return {
-      address: approximateAddress,
-      lat: approximation.lat,
-      lng: approximation.lng,
-    };
-  }
 
   async canDelete(product: Product) {
     //Can not delete any product with an ongoing purchase
@@ -1050,24 +1017,6 @@ export class ProductService {
     return await this.productRepository.remove(product);
   }
 
-  async getPickupOption(input: GetTransportationOptionsInput) {
-    const product = await this.productRepository.findOne({
-      where: { id: input.productId },
-      relations: { project: true },
-    });
-    if (!product) {
-      throw BadUserInputException();
-    }
-
-    if (!product.pickupEnabled) {
-      return null;
-    }
-    if (product.project) {
-      return await this.projectService.approximatePlace(product.project);
-    }
-
-    return await this.approximatePlace(product);
-  }
   async getShippingOptions(input: GetTransportationOptionsInput) {
     const product = await this.productRepository.findOne({
       where: { id: input.productId },

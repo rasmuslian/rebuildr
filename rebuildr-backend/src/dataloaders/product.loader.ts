@@ -10,7 +10,7 @@ import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
-import { MapPin } from 'dist/src/entities/map-pin.entity';
+import { MapPin } from 'src/entities/map-pin.entity';
 
 export interface IProductLoaders {
   getProduct: DataLoader<string, Product>;
