@@ -20,20 +20,6 @@ export class MapPinLoader {
     @InjectDataSource() private dataSource: DataSource,
   ) {}
 
-  private getMapPinLoader() {
-    return new DataLoader<string, MapPin>(async (mapPinIds) => {
-      const mapPins = await this.dataSource.getRepository(MapPin).find({
-        where: {
-          id: In(mapPinIds),
-        },
-      });
-
-      return mapPinIds.map((mapPinId) =>
-        mapPins.find((mapPin) => mapPin.id === mapPinId),
-      ) as MapPin[];
-    });
-  }
-
   private mapPinsByProductIdsLoader() {
     return new DataLoader<string, MapPin | null>(async (productIds) => {
       const mapPins = await this.dataSource.getRepository(MapPin).find({
@@ -78,7 +64,6 @@ export class MapPinLoader {
 
   createLoaders() {
     return {
-      mapPinLoader: this.getMapPinLoader(),
       mapPinsByProductIdsLoader: this.mapPinsByProductIdsLoader(),
       mapPinsByUserIdsLoader: this.mapPinsByUserIdsLoader(),
       mapPinsByProjectIdsLoader: this.mapPinsByProjectIdsLoader(),

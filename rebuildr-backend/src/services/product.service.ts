@@ -139,8 +139,7 @@ export class ProductService {
       coordinates: [location.lat, location.lng],
     };
     const approximateLocation = await this.geocodingService.locationToApproximation(location);
-    await this.mapPinService.create({
-      productId: product.id,
+    product.mapPin = new MapPin({
       address: approximateLocation.address,
       location: {
         type: 'Point',
@@ -410,17 +409,13 @@ export class ProductService {
       const approximateLocation = await this.geocodingService.locationToApproximation(input.location);
 
       if (product.mapPin) {
-        await this.mapPinService.update({
-          ...product.mapPin,
-          address: approximateLocation.address,
-          location: {
-            type: 'Point',
-            coordinates: [approximateLocation.lat, approximateLocation.lng],
-          },
-        });
+        product.mapPin.address = approximateLocation.address;
+        product.mapPin.location = {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        };
       } else {
-        await this.mapPinService.create({
-          productId: product.id,
+        product.mapPin = new MapPin({
           address: approximateLocation.address,
           location: {
             type: 'Point',
@@ -919,9 +914,6 @@ export class ProductService {
     await this.fileService.deleteFiles(product.documents);
     product.documents = [];
     product.likedBy = [];
-    if (product.mapPin) {
-      await this.mapPinService.delete(product.mapPin.id);
-    }
 
     return await this.productRepository.save(product);
   }
@@ -990,7 +982,7 @@ export class ProductService {
     if (!product.addressLocation) {
       return null;
     }
-
+    console.log('product.mapPin', product.mapPin);
     if (product.mapPin) {
       return {
         address: product.mapPin.address,

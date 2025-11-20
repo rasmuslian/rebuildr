@@ -103,6 +103,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { MessageLoader } from './dataloaders/message.loader';
 import { MapPinService } from './services/map-pin.service';
 import { MapPin } from './entities/map-pin.entity';
+import { MapPinLoader } from './dataloaders/map-pin.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -169,6 +170,7 @@ export interface RequestType {
         ReviewLoader,
         PurchaseLoader,
         MessageLoader,
+        MapPinLoader,
         ConfigService,
       ],
       useFactory: (
@@ -180,6 +182,7 @@ export interface RequestType {
         reviewLoaderService: ReviewLoader,
         purchaseLoaderService: PurchaseLoader,
         messageLoaderService: MessageLoader,
+        mapPinLoaderService: MapPinLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -196,6 +199,7 @@ export interface RequestType {
             reviewLoaders: reviewLoaderService.createLoaders(),
             purchaseLoaders: purchaseLoaderService.createLoaders(),
             messageLoaders: messageLoaderService.createLoaders(),
+            mapPinLoaders: mapPinLoaderService.createLoaders(),
             req,
             res,
           }),

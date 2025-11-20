@@ -34,23 +34,23 @@ export class MapPin {
   address?: string;
 
   @Column({ nullable: true })
-  productId: string;
+  productId?: string;
 
   @OneToOne(() => Product, product => product.mapPin, { nullable: true })
   @JoinColumn()
-  product: Product;
+  product?: Product;
 
   @Column({ nullable: true })
-  userId: string;
+  userId?: string;
 
   @OneToOne(() => User, user => user.mapPin, { nullable: true })
   @JoinColumn()
-  user: User;
+  user?: User;
 
   @Column({ nullable: true })
-  projectId: string;
+  projectId?: string;
 
   @OneToOne(() => Project, project => project.mapPin, { nullable: true })
   @JoinColumn()
-  project: Project;
+  project?: Project;
 }
