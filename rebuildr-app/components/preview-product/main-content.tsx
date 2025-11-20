@@ -17,7 +17,7 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
-import { AccordionSection } from "@components/sections/accordion-section";
+import { SectionHeader } from "@components/sections/section-header";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -158,88 +158,87 @@ export const MainContent = ({
         )}
       </View>
       <Divider />
-      <AccordionSection title="Fullständig specifikation" initialOpen>
-        <View style={{ gap: 16 }}>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Kategori</Label>
-            <Body size="medium">
-              <Body size="medium" isLink>
-                {parentCategory?.name}
-              </Body>
-              ,
-              <Body size="medium" isLink>
-                {category?.name}
-              </Body>
-            </Body>
-          </View>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Varumärke</Label>
+      <SectionHeader>Specifikation</SectionHeader>
+      <View style={{ gap: 16 }}>
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Kategori</Label>
+          <Body size="medium">
             <Body size="medium" isLink>
-              {brand?.name}
+              {parentCategory?.name}
             </Body>
-          </View>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Antal och enhet</Label>
+            ,
+            <Body size="medium" isLink>
+              {category?.name}
+            </Body>
+          </Body>
+        </View>
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Varumärke</Label>
+          <Body size="medium" isLink>
+            {brand?.name}
+          </Body>
+        </View>
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Antal och enhet</Label>
+          <Body size="medium">
+            {product.primaryQuantity}{" "}
+            {product.primaryUnit ? quantities[product.primaryUnit].short : ""}
+          </Body>
+          {product.secondaryQuantity && (
             <Body size="medium">
-              {product.primaryQuantity}{" "}
-              {product.primaryUnit ? quantities[product.primaryUnit].short : ""}
+              {product.secondaryQuantity}{" "}
+              {product.secondaryUnit
+                ? quantities[product.secondaryUnit].short
+                : ""}
             </Body>
-            {product.secondaryQuantity && (
-              <Body size="medium">
-                {product.secondaryQuantity}{" "}
-                {product.secondaryUnit
-                  ? quantities[product.secondaryUnit].short
-                  : ""}
-              </Body>
-            )}
-          </View>
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Skick</Label>
-            {product.condition && (
-              <Body size="medium" isLink>
-                {conditions[product.condition].name}
-              </Body>
-            )}
-          </View>
-          {showSpecificsMeasurements && (
-            <View style={{ gap: 4 }}>
-              <Label size="medium">Mått</Label>
-              {product.width && (
-                <Body size="medium">Bredd: {product.width} mm</Body>
-              )}
-              {product.height && (
-                <Body size="medium">Höjd: {product.height} mm</Body>
-              )}
-              {product.thickness && (
-                <Body size="medium">Djup: {product.thickness} mm</Body>
-              )}
-              {product.length && (
-                <Body size="medium">Längd: {product.length} mm</Body>
-              )}
-              {product.weight && (
-                <Body size="medium">Vikt: {product.weight} kg</Body>
-              )}
-            </View>
-          )}
-          {showSpecificsDocuments && (
-            <View style={{ gap: 4 }}>
-              <Label size="medium">Dokument</Label>
-              <View style={{ gap: 16 }}>
-                {documents.map((document, i) => (
-                  <Pressable
-                    onPress={() => Linking.openURL(document.url)}
-                    key={i}
-                  >
-                    <Body size="medium" isLink>
-                      {document.name ?? "NO_NAME"}
-                    </Body>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
           )}
         </View>
-      </AccordionSection>
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Skick</Label>
+          {product.condition && (
+            <Body size="medium" isLink>
+              {conditions[product.condition].name}
+            </Body>
+          )}
+        </View>
+        {showSpecificsMeasurements && (
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Mått</Label>
+            {product.width && (
+              <Body size="medium">Bredd: {product.width} mm</Body>
+            )}
+            {product.height && (
+              <Body size="medium">Höjd: {product.height} mm</Body>
+            )}
+            {product.thickness && (
+              <Body size="medium">Djup: {product.thickness} mm</Body>
+            )}
+            {product.length && (
+              <Body size="medium">Längd: {product.length} mm</Body>
+            )}
+            {product.weight && (
+              <Body size="medium">Vikt: {product.weight} kg</Body>
+            )}
+          </View>
+        )}
+        {showSpecificsDocuments && (
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Dokument</Label>
+            <View style={{ gap: 16 }}>
+              {documents.map((document, i) => (
+                <Pressable
+                  onPress={() => Linking.openURL(document.url)}
+                  key={i}
+                >
+                  <Body size="medium" isLink>
+                    {document.name ?? "NO_NAME"}
+                  </Body>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
