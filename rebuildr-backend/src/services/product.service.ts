@@ -914,6 +914,9 @@ export class ProductService {
     await this.fileService.deleteFiles(product.documents);
     product.documents = [];
     product.likedBy = [];
+    if (product.mapPin) {
+      await this.mapPinService.delete(product.mapPin.id);
+    }
 
     return await this.productRepository.save(product);
   }

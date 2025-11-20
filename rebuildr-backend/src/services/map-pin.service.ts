@@ -34,4 +34,8 @@ export class MapPinService {
   async update(mapPin: MapPin): Promise<MapPin> {
     return await this.mapPinRepository.save(mapPin);
   }
+
+  async delete(mapPinId: string): Promise<void> {
+    await this.mapPinRepository.delete({ id: mapPinId });
+  }
 }
