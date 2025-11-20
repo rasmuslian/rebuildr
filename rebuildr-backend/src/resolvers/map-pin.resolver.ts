@@ -79,6 +79,20 @@ export class MapPinResolver {
     return null;
   }
 
+  @ResolveField(() => String, { nullable: true })
+  async pinTypeId(@Parent() mapPin: MapPin) {
+    if (mapPin.productId) {
+      return mapPin.productId;
+    }
+    if (mapPin.userId) {
+      return mapPin.userId;
+    }
+    if (mapPin.projectId) {
+      return mapPin.projectId;
+    }
+    return null;
+  }
+
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -87,7 +101,7 @@ export class MapPinResolver {
     return true;
   }
 
-  @Query(() => [MapPin])
+  @Query(() => MapPinResponse)
   async mapPinsInRadius(@Args('input') input: MapPinsRadiusLocationInput) {
     return this.mapPinService.findAllInRadius(
       input.point,
@@ -96,7 +110,7 @@ export class MapPinResolver {
     );
   }
 
-  @Query(() => [MapPin])
+  @Query(() => MapPinResponse)
   async mapPinsInBoundingBox(@Args('input') input: MapPinsBoxLocationInput) {
     return this.mapPinService.findAllInBoundingBox(
       input.southWest,

@@ -5,6 +5,7 @@ import { Project } from "src/entities/project.entity";
 import { User } from "src/entities/user.entity";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { LocationResponse } from "src/resolvers/geocoding.resolver";
+import { MapPinResponse } from "src/resolvers/map-pin.resolver";
 import { Brackets } from "typeorm";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
@@ -166,7 +167,7 @@ export class MapPinService {
     point: LocationResponse,
     radius: number,
     types?: MapPinTypeEnum[],
-  ): Promise<MapPin[]> {
+  ): Promise<MapPinResponse> {
     const query = this.mapPinRepository
       .createQueryBuilder("mapPin")
       .where(
@@ -198,14 +199,18 @@ export class MapPinService {
         }),
       );
     }
-    return await query.getMany();
+    const [mapPins, total] = await query.getManyAndCount();
+    return {
+      mapPins,
+      total
+    };
   }
 
   async findAllInBoundingBox(
     southWest: LocationResponse,
     northEast: LocationResponse,
     types?: MapPinTypeEnum[],
-  ): Promise<MapPin[]> {
+  ): Promise<MapPinResponse> {
     const query = this.mapPinRepository
       .createQueryBuilder("mapPin")
       .where(
@@ -238,6 +243,10 @@ export class MapPinService {
         }),
       );
     }
-    return await query.getMany();
+    const [mapPins, total] = await query.getManyAndCount();
+    return {
+      mapPins,
+      total
+    };
   }
 }
