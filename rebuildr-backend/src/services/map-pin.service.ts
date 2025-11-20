@@ -5,6 +5,7 @@ import { Project } from "src/entities/project.entity";
 import { User } from "src/entities/user.entity";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { LocationResponse } from "src/resolvers/geocoding.resolver";
+import { Brackets } from "typeorm";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
 
@@ -164,29 +165,79 @@ export class MapPinService {
   async findAllInRadius(
     point: LocationResponse,
     radius: number,
-    type?: MapPinTypeEnum,
+    types?: MapPinTypeEnum[],
   ): Promise<MapPin[]> {
     const query = this.mapPinRepository
       .createQueryBuilder("mapPin")
       .where(
         `ST_DWithin(
           mapPin.location,
-          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography,
           :radius
         )`,
         { lng: point.lng, lat: point.lat, radius },
       );
-      switch (type) {
-      case MapPinTypeEnum.PRODUCT:
-        query.andWhere("mapPin.productId IS NOT NULL");
-        break;
-      case MapPinTypeEnum.PROJECT:
-        query.andWhere("mapPin.projectId IS NOT NULL");
-        break;
-      case MapPinTypeEnum.USER:
-        query.andWhere("mapPin.userId IS NOT NULL");
-        break;
+    if (types && types.length > 0) {
+      query.andWhere(
+        new Brackets((qb) => {
+          types.forEach((type, index) => {
+            const condition =
+              type === MapPinTypeEnum.PRODUCT
+                ? "mapPin.productId IS NOT NULL"
+                : type === MapPinTypeEnum.PROJECT
+                ? "mapPin.projectId IS NOT NULL"
+                : type === MapPinTypeEnum.USER
+                ? "mapPin.userId IS NOT NULL"
+                : "1=0";
+            if (index === 0) {
+              qb.where(condition);
+            } else {
+              qb.orWhere(condition);
+            }
+          });
+        }),
+      );
     }
-      return await query.getMany();
+    return await query.getMany();
+  }
+
+  async findAllInBoundingBox(
+    southWest: LocationResponse,
+    northEast: LocationResponse,
+    types?: MapPinTypeEnum[],
+  ): Promise<MapPin[]> {
+    const query = this.mapPinRepository
+      .createQueryBuilder("mapPin")
+      .where(
+        `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
+        {
+          swLat: southWest.lat,
+          swLng: southWest.lng,
+          neLat: northEast.lat,
+          neLng: northEast.lng,
+        },
+      );
+    if (types && types.length > 0) {
+      query.andWhere(
+        new Brackets((qb) => {
+          types.forEach((type, index) => {
+            const condition =
+              type === MapPinTypeEnum.PRODUCT
+                ? "mapPin.productId IS NOT NULL"
+                : type === MapPinTypeEnum.PROJECT
+                ? "mapPin.projectId IS NOT NULL"
+                : type === MapPinTypeEnum.USER
+                ? "mapPin.userId IS NOT NULL"
+                : "1=0";
+            if (index === 0) {
+              qb.where(condition);
+            } else {
+              qb.orWhere(condition);
+            }
+          });
+        }),
+      );
+    }
+    return await query.getMany();
   }
 }

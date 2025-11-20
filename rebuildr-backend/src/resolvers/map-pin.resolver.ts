@@ -27,15 +27,27 @@ class PointInput {
 }
 
 @InputType()
-class MapPinsLocationInput {
+class MapPinsRadiusLocationInput {
   @Field(() => PointInput)
   point: PointInput;
 
   @Field()
   radius: number;
 
-  @Field(() => MapPinTypeEnum, { nullable: true })
-  type?: MapPinTypeEnum;
+  @Field(() => [MapPinTypeEnum], { nullable: true })
+  types?: [MapPinTypeEnum];
+}
+
+@InputType()
+class MapPinsBoxLocationInput {
+  @Field(() => PointInput)
+  southWest: PointInput;
+
+  @Field(() => PointInput)
+  northEast: PointInput;
+
+  @Field(() => [MapPinTypeEnum], { nullable: true })
+  types?: MapPinTypeEnum[];
 }
 
 @Resolver(() => MapPin)
@@ -76,11 +88,20 @@ export class MapPinResolver {
   }
 
   @Query(() => [MapPin])
-  async mapPins(@Args('input') input: MapPinsLocationInput) {
+  async mapPinsInRadius(@Args('input') input: MapPinsRadiusLocationInput) {
     return this.mapPinService.findAllInRadius(
       input.point,
       input.radius,
-      input.type,
+      input.types,
+    );
+  }
+
+  @Query(() => [MapPin])
+  async mapPinsInBoundingBox(@Args('input') input: MapPinsBoxLocationInput) {
+    return this.mapPinService.findAllInBoundingBox(
+      input.southWest,
+      input.northEast,
+      input.types,
     );
   }
 }
