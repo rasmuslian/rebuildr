@@ -23,6 +23,7 @@ export const SlideInSheetProvider = ({ children }: PropsWithChildren) => {
   const width = isDesktop ? 500 : screenWidth;
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const shouldClearRef = useRef(true);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -37,9 +38,14 @@ export const SlideInSheetProvider = ({ children }: PropsWithChildren) => {
       useNativeDriver: true,
     }).start();
     if (!visible) {
+      shouldClearRef.current = true;
       setTimeout(() => {
+        // To avoid the content being set to null if new content has been set.
+        if (!shouldClearRef.current) return;
         setContent(null);
       }, 300);
+    } else {
+      shouldClearRef.current = false;
     }
   }, [visible]);
 

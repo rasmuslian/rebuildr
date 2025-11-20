@@ -224,9 +224,7 @@ export const PurchaseReceipt = ({
             <Body
               size="medium"
               link={{
-                pathname: isDesktop
-                  ? "/conversations"
-                  : "/conversations/[productId]/[userId]",
+                pathname: "/conversations/[productId]/[userId]",
                 params: {
                   productId: data.purchase.product.id,
                   userId: data.purchase.product.seller.id,
@@ -239,9 +237,7 @@ export const PurchaseReceipt = ({
             <Body
               size="medium"
               link={{
-                pathname: isDesktop
-                  ? "/conversations"
-                  : "/conversations/[productId]/[userId]",
+                pathname: "/conversations/[productId]/[userId]",
                 params: {
                   productId: data.purchase.product.id,
                   userId: data.purchase.buyer.id,

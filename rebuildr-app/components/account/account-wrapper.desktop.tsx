@@ -27,11 +27,15 @@ export type AccountState = {
 
 type Props = {
   onClose: () => void;
+  initialPage: AccountState["page"] | false;
 };
 
-export const AccountWrapperDesktop = ({ onClose }: Props) => {
+export const AccountWrapperDesktop = ({
+  onClose,
+  initialPage = "index",
+}: Props) => {
   const [state, setState] = useState<AccountState>({
-    page: "index",
+    page: initialPage || "index",
     params: {},
   });
 
@@ -96,5 +100,7 @@ export const AccountWrapperDesktop = ({ onClose }: Props) => {
           onBack={() => setState({ page: "settings", params: {} })}
         />
       );
+    default:
+      return null;
   }
 };

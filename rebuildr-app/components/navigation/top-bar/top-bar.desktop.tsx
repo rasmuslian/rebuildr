@@ -1,7 +1,7 @@
 import { Logo } from "@components/logo/logo";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Pressable, View, Animated } from "react-native";
-import { router, usePathname } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { showHamburgerMenuVar } from "@/apollo/config";
 import { Icon, IconType } from "@icons/icon";
 import { Button } from "@components/buttons/button";
@@ -16,9 +16,11 @@ import { Divider } from "@components/dividers/divider";
 import { horizontalPadding } from "@constants/sizes";
 import { Avatar } from "@components/avatar/avatar";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import AccountContent from "@components/account/account-content";
 import { SearchBar } from "@components/search/search-bar";
-import { AccountWrapperDesktop } from "@components/account/account-wrapper.desktop";
+import {
+  AccountState,
+  AccountWrapperDesktop,
+} from "@components/account/account-wrapper.desktop";
 
 type Props = {
   isLoggedIn: boolean;
@@ -39,10 +41,26 @@ export default function TopBarDesktop({
   const pathname = usePathname();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
-  const [openAccount, setOpenAccount] = useState(false);
+  const [openAccount, setOpenAccount] = useState<AccountState["page"] | false>(
+    false,
+  );
+  const params = useLocalSearchParams();
 
   const searchOpacity = useRef(new Animated.Value(0)).current;
   const { data: tabData } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
+
+  useEffect(() => {
+    if (!openAccount && params.account) {
+      console.log("Setting open account to:", params.account);
+      setOpenAccount(params.account as AccountState["page"]);
+    }
+  }, [params.account]);
+
+  useEffect(() => {
+    if (params.category === "all") {
+      showHamburgerMenuVar(true);
+    }
+  }, [params.category]);
 
   const icons: {
     icon?: IconType;
@@ -54,7 +72,7 @@ export default function TopBarDesktop({
     {
       avatarUrl: me?.profilePicture?.url,
       onPress: () => {
-        setOpenAccount(true);
+        setOpenAccount("index");
       },
       active: false,
     },
@@ -209,8 +227,11 @@ export default function TopBarDesktop({
           <Divider />
         </View>
       )}
-      <SlideInSheet open={openAccount} onClose={() => setOpenAccount(false)}>
-        <AccountWrapperDesktop onClose={() => setOpenAccount(false)} />
+      <SlideInSheet open={!!openAccount} onClose={() => setOpenAccount(false)}>
+        <AccountWrapperDesktop
+          onClose={() => setOpenAccount(false)}
+          initialPage={openAccount}
+        />
       </SlideInSheet>
     </View>
   );

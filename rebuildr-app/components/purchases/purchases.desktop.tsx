@@ -13,6 +13,7 @@ import { PurchaseReceipt } from "@components/purchase/purchase-receipt";
 import { Header } from "@components/navigation/headers/header";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { gql, useQuery } from "@apollo/client";
+import { useLocalSearchParams } from "expo-router";
 
 type Props = {
   myPurchases: AccountPurchasesQuery["myPurchases"];
@@ -20,6 +21,9 @@ type Props = {
 
 export const PurchasesDesktop = ({ myPurchases }: Props) => {
   const ref = useRef<View>(null);
+  const { purchaseId } = useLocalSearchParams<{
+    purchaseId: string;
+  }>();
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
     null,
   );
@@ -35,6 +39,11 @@ export const PurchasesDesktop = ({ myPurchases }: Props) => {
       });
     }
   }, [ref]);
+
+  useEffect(() => {
+    if (!purchaseId) return;
+    setSelectedPurchaseId(purchaseId);
+  }, [purchaseId]);
 
   return (
     <ScreenLayout

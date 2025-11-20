@@ -29,7 +29,7 @@ export const ActionSection = ({
   const { isLoggedIn } = useUser();
   const { setVisible } = useContext(LoginModalContext);
   const { editProduct } = useEditProductContext();
-  const { isMobile, isDesktop } = useScreenType();
+  const { isMobile } = useScreenType();
   const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
     useBuyModalContext();
   return (
@@ -86,9 +86,7 @@ export const ActionSection = ({
                 setVisible(true);
               } else {
                 router.navigate({
-                  pathname: isDesktop
-                    ? "/conversations"
-                    : "/conversations/[productId]/[userId]",
+                  pathname: "/conversations/[productId]/[userId]",
                   params: { productId, userId: sellerId },
                 });
               }

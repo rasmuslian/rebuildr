@@ -120,7 +120,6 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
   }, [tab]);
 
   useEffect(() => {
-    if (!otherUserId) return;
     setSelectedConversation({
       productId: productId!,
       userId: otherUserId,

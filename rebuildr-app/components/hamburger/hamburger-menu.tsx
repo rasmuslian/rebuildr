@@ -25,12 +25,14 @@ export const HamburgerMenu = () => {
     setCategory(undefined);
   };
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    if (isDesktop) {
+      return;
+    }
+    return () => {
       showHamburgerMenuVar(false);
-    },
-    [pathname],
-  );
+    };
+  }, [isDesktop, pathname]);
 
   return (
     <SlideInSheet

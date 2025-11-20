@@ -11,6 +11,7 @@ import { PurchaseReceipt } from "@components/purchase/purchase-receipt";
 import { SalesList } from "@components/sales/sales-list";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 
@@ -23,6 +24,9 @@ export const SalesDesktop = ({ myPurchases }: Props) => {
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
     null,
   );
+  const { purchaseId } = useLocalSearchParams<{
+    purchaseId: string;
+  }>();
   const [rightColumnWidth, setRightColumnWidth] = useState(0);
 
   const colors = useThemeColor();
@@ -35,6 +39,12 @@ export const SalesDesktop = ({ myPurchases }: Props) => {
       });
     }
   }, [ref]);
+
+  useEffect(() => {
+    if (!purchaseId) return;
+    setSelectedPurchaseId(purchaseId);
+  }, [purchaseId]);
+
   return (
     <ScreenLayout
       headerComponent={<TopBar theme="light" />}

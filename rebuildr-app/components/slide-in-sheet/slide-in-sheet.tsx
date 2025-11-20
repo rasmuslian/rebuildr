@@ -93,6 +93,7 @@ export const SlideInSheet = ({
   useEffect(() => {
     return () => {
       setVisible(false);
+      onClose?.();
     };
   }, []);
 
