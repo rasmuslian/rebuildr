@@ -567,7 +567,7 @@ export class UserService {
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
     const { id, address, ...rest } = input;
 
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id }, relations: { mapPin: true } });
     if (!user) throw NotFoundException('User not found');
 
     try {
@@ -579,13 +579,21 @@ export class UserService {
           coordinates: [location.lat, location.lng],
         };
         const approximateLocation = await this.geocodingService.locationToApproximation(location);
-        user.mapPin = new MapPin({
-          address: approximateLocation.address,
-          location: {
+        if(user.mapPin) {
+          user.mapPin.address = approximateLocation.address;
+          user.mapPin.location = {
             type: 'Point',
             coordinates: [approximateLocation.lat, approximateLocation.lng],
-          },
-        });
+          };
+        } else {
+          user.mapPin = new MapPin({
+            address: approximateLocation.address,
+            location: {
+              type: 'Point',
+              coordinates: [approximateLocation.lat, approximateLocation.lng],
+            },
+          });
+        }
       }
 
       Object.assign<User, Partial<User>>(user, {

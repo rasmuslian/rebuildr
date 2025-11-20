@@ -60,7 +60,6 @@ import {
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
 import { MapPin } from 'src/entities/map-pin.entity';
-import { map } from 'rxjs';
 
 @Injectable()
 export class ProductService {

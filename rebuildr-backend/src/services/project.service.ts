@@ -236,6 +236,14 @@ export class ProjectService {
     try {
       const { address, ...rest } = input;
       const location = await this.geocodingService.addressToLocation(address);
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const mapPin = new MapPin({
+        address: approximateLocation.address,
+        location: {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        },
+      });
 
       const project = this.projectRepository.create({
         ...rest,
@@ -245,6 +253,7 @@ export class ProjectService {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         },
+        mapPin,
       });
 
       return this.projectRepository.save(project);
@@ -258,12 +267,21 @@ export class ProjectService {
 
     const project = await this.projectRepository.findOne({
       where: { id },
+      relations: { mapPin: true },
     });
 
     if (!project) throw NotFoundException('Project not found');
 
     try {
       const location = await this.geocodingService.addressToLocation(address);
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+
+      const mapPin = project.mapPin || new MapPin();
+      mapPin.address = approximateLocation.address;
+      mapPin.location = {
+        type: 'Point',
+        coordinates: [approximateLocation.lat, approximateLocation.lng],
+      };
 
       Object.assign<Project, Partial<Project>>(project, {
         ...rest,
@@ -272,6 +290,7 @@ export class ProjectService {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         },
+        mapPin,
       });
 
       return this.projectRepository.save(project);
