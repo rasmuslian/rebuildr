@@ -19,6 +19,7 @@ import { SearchResult } from './search-result.entity';
 import { File } from './file.entity';
 import { Review } from './review.entity';
 import { ReportProduct } from './report-product.entity';
+import { MapPin } from './map-pin.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -199,4 +200,7 @@ export class User {
 
   @OneToMany(() => ReportProduct, (rp) => rp.reporter)
   reportProducts: ReportProduct[];
+
+  @OneToOne(() => MapPin, mapPin => mapPin.user, { nullable: true, cascade: true })
+  mapPin?: MapPin;
 }

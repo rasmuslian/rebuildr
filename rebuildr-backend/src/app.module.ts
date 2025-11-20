@@ -101,6 +101,8 @@ import { StripeService } from './services/stripe.service';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { MessageLoader } from './dataloaders/message.loader';
+import { MapPinService } from './services/map-pin.service';
+import { MapPin } from './entities/map-pin.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -153,6 +155,7 @@ export interface RequestType {
       Article,
       FooterSection,
       ArticleFooterSection,
+      MapPin,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -272,6 +275,7 @@ export interface RequestType {
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
     StripeService,
+    MapPinService,
   ],
 })
 export class AppModule {}

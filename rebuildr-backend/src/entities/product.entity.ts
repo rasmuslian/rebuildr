@@ -7,6 +7,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -21,6 +22,7 @@ import { Message } from './message.entity';
 import { Project } from './project.entity';
 import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
+import { MapPin } from './map-pin.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -109,16 +111,6 @@ export class Product {
     nullable: true,
   })
   addressLocation?: Point;
-
-  @Column('geometry', {
-    spatialFeatureType: 'Point',
-    srid: 4326,
-    nullable: true,
-  })
-  approximateLocation?: Point;
-
-  @Column({ nullable: true })
-  approximateAddress?: string;
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
@@ -310,4 +302,7 @@ export class Product {
 
   @OneToMany(() => ReportProduct, (rp) => rp.product)
   reportProducts: ReportProduct[];
+
+  @OneToOne(() => MapPin, mapPin => mapPin.product, { nullable: true, cascade: true })
+  mapPin?: MapPin;
 }

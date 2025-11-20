@@ -59,6 +59,8 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
+import { MapPinService } from './map-pin.service';
+import { MapPin } from 'src/entities/map-pin.entity';
 
 @Injectable()
 export class ProductService {
@@ -82,6 +84,7 @@ export class ProductService {
     private searchResultService: SearchResultService,
     private dataSource: DataSource,
     private projectService: ProjectService,
+    private mapPinService: MapPinService,
   ) {}
 
   async create(input: {
@@ -136,11 +139,14 @@ export class ProductService {
       coordinates: [location.lat, location.lng],
     };
     const approximateLocation = await this.geocodingService.locationToApproximation(location);
-    product.approximateLocation = {
-      type: 'Point',
-      coordinates: [approximateLocation.lat, approximateLocation.lng],
-    };
-    product.approximateAddress = approximateLocation.address;
+    await this.mapPinService.create({
+      productId: product.id,
+      address: approximateLocation.address,
+      location: {
+        type: 'Point',
+        coordinates: [approximateLocation.lat, approximateLocation.lng],
+      },
+    });
     const images = await Promise.all(
       input.images?.map((image) => {
         return this.fileService.createFile({ mimeType: image.mimeType });
@@ -401,11 +407,26 @@ export class ProductService {
         coordinates: [input.location.lat, input.location.lng],
       };
       const approximateLocation = await this.geocodingService.locationToApproximation(input.location);
-      product.approximateLocation = {
-        type: 'Point',
-        coordinates: [approximateLocation.lat, approximateLocation.lng],
-      };
-      product.approximateAddress = approximateLocation.address;
+
+      if (product.mapPin) {
+        await this.mapPinService.update({
+          ...product.mapPin,
+          address: approximateLocation.address,
+          location: {
+            type: 'Point',
+            coordinates: [approximateLocation.lat, approximateLocation.lng],
+          },
+        });
+      } else {
+        await this.mapPinService.create({
+          productId: product.id,
+          address: approximateLocation.address,
+          location: {
+            type: 'Point',
+            coordinates: [approximateLocation.lat, approximateLocation.lng],
+          },
+        });
+      }
       //Remove connection to project when new address is added to product
       product.project = null;
     }
@@ -962,11 +983,11 @@ export class ProductService {
       return null;
     }
 
-    if (product.approximateLocation) {
+    if (product.mapPin) {
       return {
-        address: product.approximateAddress,
-        lat: product.approximateLocation.coordinates[0],
-        lng: product.approximateLocation.coordinates[1],
+        address: product.mapPin.address,
+        lat: product.mapPin.location.coordinates[0],
+        lng: product.mapPin.location.coordinates[1],
       };
     }
     // TODO: Remove this fallback after a while when all products have approximate location saved
@@ -1466,39 +1487,43 @@ export class ProductService {
     const batchSize = 100;
     let offset = 0;
     while (true) {
-      const products = await this.productRepository.find({
-        where: {
-          approximateLocation: IsNull(),
-          status: ProductStatus.PUBLISHED,
-        },
-        take: batchSize,
-        skip: offset
-      });
+
+      const products = await this.productRepository.createQueryBuilder('product')
+        .leftJoin(MapPin, 'map_pin', 'map_pin."productId" = product.id')
+        .where('map_pin.id IS NULL')
+        .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
+        .limit(batchSize)
+        .offset(offset)
+        .getMany();
+
       if (products.length === 0) {
         break;
       }
 
-      const updatedProducts = [];
+      const mapPins = [];
       for (const product of products) {
         try {
-        const location = {
-          lat: product.addressLocation.coordinates[0],
-          lng: product.addressLocation.coordinates[1],
-        };
-        const approximateLocation =
-          await this.geocodingService.locationToApproximation(location);
-        product.approximateLocation = {
-          type: 'Point',
-          coordinates: [approximateLocation.lat, approximateLocation.lng],
-        };
-        product.approximateAddress = approximateLocation.address;
-        updatedProducts.push(product);
-      } catch (error) {
-        console.log(`Failed to approximate location for product ${product.id}: ${error}`);
-       }
-    }
+          const location = {
+            lat: product.addressLocation.coordinates[0],
+            lng: product.addressLocation.coordinates[1],
+          };
+          const approximateLocation =
+            await this.geocodingService.locationToApproximation(location);
 
-      await this.productRepository.save(updatedProducts);
+          mapPins.push(new MapPin({
+            productId: product.id,
+            location: {
+              type: 'Point',
+              coordinates: [approximateLocation.lat, approximateLocation.lng],
+            },
+            address: approximateLocation.address,
+          }));
+        } catch (error) {
+          console.log(`Failed to approximate location for product ${product.id}: ${error}`);
+        }
+      }
+
+      await this.mapPinService.createMany(mapPins);
       offset += batchSize;
     }
   }
