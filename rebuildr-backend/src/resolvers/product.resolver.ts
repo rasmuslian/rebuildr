@@ -653,11 +653,9 @@ export class ProductResolver {
       return null;
     }
     return {
-      address: mapPin?.address,
-      location: {
-        lat: mapPin?.location.coordinates[0],
-        lng: mapPin?.location.coordinates[1],
-      },
+      address: mapPin.address,
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
     };
   }
 
@@ -908,11 +906,9 @@ export class ProductResolver {
       return null;
     }
     return {
-      address: mapPin?.address,
-      location: {
-        lat: mapPin?.location.coordinates[0],
-        lng: mapPin?.location.coordinates[1],
-      },
+      address: mapPin.address,
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
     };
   }
 
