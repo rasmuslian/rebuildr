@@ -1,5 +1,5 @@
 import { forwardRef, Inject, UseGuards } from "@nestjs/common";
-import {  Field, Mutation, ObjectType, Parent, ResolveField, Resolver } from "@nestjs/graphql";
+import { Args, Field, InputType, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
 import { LocationResponse } from "./geocoding.resolver";
@@ -15,6 +15,27 @@ export class MapPinResponse {
 
   @Field(() => Number)
   total: number;
+}
+
+@InputType()
+class PointInput {
+  @Field()
+  lat: number;
+
+  @Field()
+  lng: number;
+}
+
+@InputType()
+class MapPinsLocationInput {
+  @Field(() => PointInput)
+  point: PointInput;
+
+  @Field()
+  radius: number;
+
+  @Field(() => MapPinTypeEnum, { nullable: true })
+  type?: MapPinTypeEnum;
 }
 
 @Resolver(() => MapPin)
@@ -52,5 +73,14 @@ export class MapPinResolver {
   async syncApproximateLocations() {
     await this.mapPinService.syncApproximateLocations();
     return true;
+  }
+
+  @Query(() => [MapPin])
+  async mapPins(@Args('input') input: MapPinsLocationInput) {
+    return this.mapPinService.findAllInRadius(
+      input.point,
+      input.radius,
+      input.type,
+    );
   }
 }

@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { MapPin } from "src/entities/map-pin.entity";
 import { Product, ProductStatus } from "src/entities/product.entity";
 import { Project } from "src/entities/project.entity";
 import { User } from "src/entities/user.entity";
+import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
+import { LocationResponse } from "src/resolvers/geocoding.resolver";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
 
@@ -158,5 +159,34 @@ export class MapPinService {
       await this.userRepository.save(updatedUsers);
       offset += batchSize;
     }
+  }
+
+  async findAllInRadius(
+    point: LocationResponse,
+    radius: number,
+    type?: MapPinTypeEnum,
+  ): Promise<MapPin[]> {
+    const query = this.mapPinRepository
+      .createQueryBuilder("mapPin")
+      .where(
+        `ST_DWithin(
+          mapPin.location,
+          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+          :radius
+        )`,
+        { lng: point.lng, lat: point.lat, radius },
+      );
+      switch (type) {
+      case MapPinTypeEnum.PRODUCT:
+        query.andWhere("mapPin.productId IS NOT NULL");
+        break;
+      case MapPinTypeEnum.PROJECT:
+        query.andWhere("mapPin.projectId IS NOT NULL");
+        break;
+      case MapPinTypeEnum.USER:
+        query.andWhere("mapPin.userId IS NOT NULL");
+        break;
+    }
+      return await query.getMany();
   }
 }

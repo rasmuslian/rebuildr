@@ -637,6 +637,7 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
+  mapPins(input: MapPinsLocationInput!): [MapPin!]!
 }
 
 input UserExistsInput {
@@ -820,6 +821,17 @@ input NearbyServicePointsInput {
 input ListArticlesInput {
   page: Int
   pageSize: Int
+}
+
+input MapPinsLocationInput {
+  point: PointInput!
+  radius: Float!
+  type: MapPinTypeEnum
+}
+
+input PointInput {
+  lat: Float!
+  lng: Float!
 }
 
 type Mutation {
