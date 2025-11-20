@@ -1,7 +1,8 @@
 import { forwardRef, Inject } from "@nestjs/common";
 import { Parent, ResolveField, Resolver } from "@nestjs/graphql";
-import { MapPin } from "src/entities/map-pin.entity";
+import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
+import { LocationResponse } from "./geocoding.resolver";
 
 @Resolver(() => MapPin)
 export class MapPinResolver {
@@ -10,17 +11,15 @@ export class MapPinResolver {
     private mapPinService: MapPinService,
   ) {}
 
-  @ResolveField(() => Number)
-  async lat(@Parent() mapPin: MapPin) {
-    return mapPin.location.coordinates[0];
+  @ResolveField(() => LocationResponse)
+  async location(@Parent() mapPin: MapPin) {
+    return {
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
+    };
   }
 
-  @ResolveField(() => Number)
-  async lng(@Parent() mapPin: MapPin) {
-    return mapPin.location.coordinates[1];
-  }
-
-  @ResolveField(() => String)
+  @ResolveField(() => MapPinTypeEnum, { nullable: true })
   async pinType(@Parent() mapPin: MapPin) {
     if (mapPin.productId) {
       return 'PRODUCT';

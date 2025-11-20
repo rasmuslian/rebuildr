@@ -18,6 +18,11 @@ export class MapPinService {
     address: string;
     location: Point;
   }): Promise<MapPin> {
+    // Throw error if more than one of productId, projectId, userId is provided
+    const providedIds = [input.productId, input.projectId, input.userId].filter(id => id !== undefined);
+    if (providedIds.length > 1) {
+      throw new Error("Only one of productId, projectId, or userId can be provided.");
+    }
     const mapPin = new MapPin();
     mapPin.address = input.address;
     mapPin.location = input.location;

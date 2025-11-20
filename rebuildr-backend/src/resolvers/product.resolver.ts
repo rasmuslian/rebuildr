@@ -966,12 +966,4 @@ export class ProductResolver {
     });
     return true;
   }
-
-  @ResolveField(() => MapPin)
-  async mapPin(
-    @Root() product: Product,
-    @Context('mapPinLoaders') mapPinLoaders: IMapPinLoaders,
-  ) {
-    return mapPinLoaders.mapPinsByProductIdsLoader.load(product.id);
-  }
 }

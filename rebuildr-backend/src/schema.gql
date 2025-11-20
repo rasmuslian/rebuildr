@@ -118,10 +118,6 @@ enum TransportationEnum {
   DELIVERY
 }
 
-type MapPin {
-  id: ID!
-}
-
 type Project {
   id: ID!
   title: String!
@@ -367,7 +363,6 @@ type Product {
   hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
   reportProducts: [ReportProduct!]!
   similarProducts(offset: Int, limit: Int): PaginatedProductsResponse!
-  mapPin: MapPin!
 }
 
 enum MeasurementUnitEnum {
