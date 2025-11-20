@@ -884,8 +884,20 @@ export class ProductResolver {
   }
 
   @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
-  async approximatePlace(@Root() product: Product) {
-    return this.productService.approximatePlace(product);
+  async approximatePlace(
+    @Root() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders) {
+    const mapPin = await productLoaders.mapPinLoader.load(product.id);
+    if (!mapPin) {
+      return null;
+    }
+    return {
+      address: mapPin?.address,
+      location: {
+        lat: mapPin?.location.coordinates[0],
+        lng: mapPin?.location.coordinates[1],
+      },
+    };
   }
 
   @ResolveField(() => [ShippingPrice], { nullable: true })
