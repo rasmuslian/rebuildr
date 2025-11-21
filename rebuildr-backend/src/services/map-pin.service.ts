@@ -25,6 +25,20 @@ export class MapPinService {
     return await this.mapPinRepository.save(mapPins);
   }
 
+  async upsert(mapPin: MapPin): Promise<MapPin> {
+    return await this.mapPinRepository.save(mapPin);
+  }
+
+  async getByPinTypeId({ productId, projectId, userId }: { productId?: string; projectId?: string; userId?: string }): Promise<MapPin | null> {
+    return await this.mapPinRepository.findOneBy({ productId, projectId, userId });
+  }
+
+  async removeMapPin(id: string): Promise<void> {
+    if (id) {
+      await this.mapPinRepository.delete(id);
+    }
+  }
+
   async syncApproximateLocations() {
     const batchSize = 100;
     let offset = 0;

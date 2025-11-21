@@ -23,4 +23,5 @@ export enum routes {
   LIST_USER = "/admin/user",
 
   FOOTER_SETTING = "/admin/setting/footer",
+  DEVELOPER_SETTING = "/admin/setting/developer",
 }

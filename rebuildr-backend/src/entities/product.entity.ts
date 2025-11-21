@@ -303,6 +303,6 @@ export class Product {
   @OneToMany(() => ReportProduct, (rp) => rp.product)
   reportProducts: ReportProduct[];
 
-  @OneToOne(() => MapPin, mapPin => mapPin.product, { nullable: true, cascade: true })
+  @OneToOne(() => MapPin, mapPin => mapPin.product, { nullable: true, })
   mapPin?: MapPin;
 }

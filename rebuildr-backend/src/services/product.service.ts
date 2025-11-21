@@ -59,7 +59,6 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
-import { MapPin } from 'src/entities/map-pin.entity';
 
 @Injectable()
 export class ProductService {
@@ -136,14 +135,6 @@ export class ProductService {
       type: 'Point',
       coordinates: [location.lat, location.lng],
     };
-    const approximateLocation = await this.geocodingService.locationToApproximation(location);
-    product.mapPin = new MapPin({
-      address: approximateLocation.address,
-      location: {
-        type: 'Point',
-        coordinates: [approximateLocation.lat, approximateLocation.lng],
-      },
-    });
     const images = await Promise.all(
       input.images?.map((image) => {
         return this.fileService.createFile({ mimeType: image.mimeType });
@@ -234,7 +225,6 @@ export class ProductService {
       relations: {
         images: true,
         documents: true,
-        mapPin: true,
       },
     });
 
@@ -404,23 +394,6 @@ export class ProductService {
         type: 'Point',
         coordinates: [input.location.lat, input.location.lng],
       };
-      const approximateLocation = await this.geocodingService.locationToApproximation(input.location);
-
-      if (product.mapPin) {
-        product.mapPin.address = approximateLocation.address;
-        product.mapPin.location = {
-          type: 'Point',
-          coordinates: [approximateLocation.lat, approximateLocation.lng],
-        };
-      } else {
-        product.mapPin = new MapPin({
-          address: approximateLocation.address,
-          location: {
-            type: 'Point',
-            coordinates: [approximateLocation.lat, approximateLocation.lng],
-          },
-        });
-      }
       //Remove connection to project when new address is added to product
       product.project = null;
     }
@@ -891,7 +864,6 @@ export class ProductService {
       relations: {
         images: true,
         documents: true,
-        mapPin: true,
       },
     });
     if (!product) {
@@ -1256,14 +1228,6 @@ export class ProductService {
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
-      const mapPin = new MapPin({
-        address: approximateLocation.address,
-        location: {
-          type: 'Point',
-          coordinates: [approximateLocation.lat, approximateLocation.lng],
-        },
-      });
 
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(shippingPriceIds) },
@@ -1282,7 +1246,6 @@ export class ProductService {
         deliveryRadius: deliveryRadius ? deliveryRadius * 1000 : undefined,
         deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
         shippingPrices: shippingPrices,
-        mapPin: mapPin,
         ...rest,
         ...measurement,
       });
@@ -1305,7 +1268,7 @@ export class ProductService {
   ): Promise<CmsUpdateProductResponse> {
     const product = await this.productRepository.findOne({
       where: { id: input.id },
-      relations: { images: true, documents: true, mapPin: true },
+      relations: { images: true, documents: true },
     });
 
     if (!product) throw NotFoundException('Product not found');
@@ -1327,14 +1290,6 @@ export class ProductService {
       const location = await this.geocodingService.addressToLocation(
         input.address,
       );
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
-
-      const mapPin = product.mapPin || new MapPin();
-      mapPin.address = approximateLocation.address;
-      mapPin.location = {
-        type: 'Point',
-        coordinates: [approximateLocation.lat, approximateLocation.lng],
-      };
       const shippingPrices = await this.shippingPriceRepository.find({
         where: { id: In(shippingPriceIds) },
       });
@@ -1375,7 +1330,6 @@ export class ProductService {
         deliveryRadius: deliveryRadius ? deliveryRadius * 1000 : undefined,
         deliveryPrice: deliveryPrice ? deliveryPrice * 100 : undefined,
         shippingPrices: shippingPrices,
-        mapPin: mapPin,
         ...rest,
         ...measurement,
       });
