@@ -5,11 +5,11 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
 
 type Props = {
-  price: number;
+  price?: number;
   minimumPrice: number;
   priceError?: string;
   isGiveaway: boolean;
-  onUpdate: (isGiveaway: boolean, price: number) => void;
+  onUpdate: (isGiveaway: boolean, price?: number) => void;
 };
 
 export const PriceSection = ({
@@ -39,6 +39,7 @@ export const PriceSection = ({
           {
             type: "price",
             value: price,
+            placeholder: "kr",
             heading: "Pris",
             description:
               priceHigherThan > 0
@@ -63,7 +64,7 @@ export const PriceSection = ({
         <Check
           selected={isGiveaway}
           onPress={() => {
-            onUpdate(!isGiveaway, isGiveaway ? 0 : price);
+            onUpdate(!isGiveaway, isGiveaway ? undefined : 0);
           }}
         />
         <Body size="medium">Bortskänkes</Body>

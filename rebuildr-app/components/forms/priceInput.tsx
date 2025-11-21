@@ -1,18 +1,21 @@
-import { useState } from "react";
 import { TextInput, Props as TextInputProps } from "./textInput";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 export type Props = {
-  value: number;
+  value?: number;
   onChange: (p: number) => void;
   onBlur?: (p: number) => void;
 } & Omit<TextInputProps, "value" | "onChange" | "onBlur">;
 
-export const PriceInput = ({ value, onChange, onBlur, ...props }: Props) => {
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
+export const PriceInput = ({
+  value: _value,
+  onChange,
+  onBlur,
+  ...props
+}: Props) => {
+  const colors = useThemeColor();
 
   const onChangePrice = (newPrice: string) => {
-    const caretPos = newPrice.length;
-    setSelection({ start: caretPos, end: caretPos });
     onChange(parseInt(newPrice, 10));
   };
 
@@ -20,27 +23,22 @@ export const PriceInput = ({ value, onChange, onBlur, ...props }: Props) => {
     onBlur?.(parseInt(newPrice, 10));
   };
 
-  const handleSelectionChange = (e: any) => {
-    const pos = e.nativeEvent.selection;
-    const priceLength = value.toString().length;
-
-    // Prevent caret from going into the "kr" part
-    if (pos.start > priceLength || pos.end > priceLength) {
-      setSelection({ start: priceLength, end: priceLength });
-    } else {
-      setSelection(pos);
-    }
-  };
-
   return (
     <TextInput
       inputType="numeric"
-      value={value + " kr"}
+      value={(_value ?? "") + " kr"}
+      textColor={_value === undefined ? colors.text.secondary : undefined}
       onChange={(p) => onChangePrice(p)}
-      onSelectionChange={handleSelectionChange}
-      selection={selection}
+      selection={
+        _value
+          ? {
+              start: _value.toString().length,
+              end: _value.toString().length,
+            }
+          : { start: 0, end: 0 }
+      }
       onBlur={(p) => onBlurPrice(p)}
-      placeholder="0 kr"
+      placeholder="kr"
       {...props}
     />
   );

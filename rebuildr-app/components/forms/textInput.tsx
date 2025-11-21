@@ -20,6 +20,7 @@ export type Props = {
   onChange?: (t: string) => void;
   onBlur?: (t: string) => void;
   style?: ViewStyle;
+  textColor?: string;
 } & Omit<TextInputProps, "onChange" | "onBlur" | "style">;
 
 export const TextInput = forwardRef(function TextInput(
@@ -51,6 +52,9 @@ export const TextInput = forwardRef(function TextInput(
   };
 
   const getTextColor = () => {
+    if (props.textColor) {
+      return props.textColor;
+    }
     if (props.disabled) {
       return colors.text.disabled;
     }
