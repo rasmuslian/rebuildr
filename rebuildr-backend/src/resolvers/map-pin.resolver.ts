@@ -34,13 +34,13 @@ export class MapPinResolver {
 
   @ResolveField(() => MapPinTypeEnum, { nullable: true })
   async pinType(@Parent() mapPin: MapPin) {
-    if (mapPin.productId) {
+    if (mapPin.product) {
       return 'PRODUCT';
     }
-    if (mapPin.userId) {
+    if (mapPin.user) {
       return 'USER';
     }
-    if (mapPin.projectId) {
+    if (mapPin.project) {
       return 'PROJECT';
     }
     return null;

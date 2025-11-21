@@ -29,8 +29,8 @@ export class MapPinService {
     return await this.mapPinRepository.save(mapPin);
   }
 
-  async getByPinTypeId({ productId, projectId, userId }: { productId?: string; projectId?: string; userId?: string }): Promise<MapPin | null> {
-    return await this.mapPinRepository.findOneBy({ productId, projectId, userId });
+  async getOne(id: string): Promise<MapPin | null> {
+    return await this.mapPinRepository.findOneBy({ id });
   }
 
   async removeMapPin(id: string): Promise<void> {
@@ -44,8 +44,7 @@ export class MapPinService {
     let offset = 0;
     while (true) {
       const products = await this.productRepository.createQueryBuilder('product')
-        .leftJoin(MapPin, 'map_pin', 'map_pin."productId" = product.id')
-        .where('map_pin.id IS NULL')
+        .where('product.mapPinId IS NULL')
         .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
         .limit(batchSize)
         .offset(offset)
@@ -55,7 +54,7 @@ export class MapPinService {
         break;
       }
 
-      const mapPins = [];
+      const updatedProducts = [];
       for (const product of products) {
         try {
           const location = {
@@ -65,28 +64,27 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-          mapPins.push(new MapPin({
-            productId: product.id,
+          product.mapPin = (new MapPin({
             location: {
               type: 'Point',
               coordinates: [approximateLocation.lat, approximateLocation.lng],
             },
             address: approximateLocation.address,
           }));
+          updatedProducts.push(product);
         } catch (error) {
           console.log(`Failed to approximate location for product ${product.id}: ${error}`);
         }
       }
 
-      await this.mapPinRepository.save(mapPins);
+      await this.productRepository.save(updatedProducts);
       offset += batchSize;
     }
 
     offset = 0;
     while (true) {
       const projects = await this.projectRepository.createQueryBuilder('project')
-        .leftJoin(MapPin, 'map_pin', 'map_pin."projectId" = project.id')
-        .where('map_pin.id IS NULL')
+        .where('project.mapPinId IS NULL')
         .limit(batchSize)
         .offset(offset)
         .getMany();
@@ -95,7 +93,7 @@ export class MapPinService {
         break;
       }
 
-      const mapPins = [];
+      const updatedProjects = [];
       for (const project of projects) {
         try {
           const location = {
@@ -105,28 +103,27 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-          mapPins.push(new MapPin({
-            projectId: project.id,
+          project.mapPin = (new MapPin({
             location: {
               type: 'Point',
               coordinates: [approximateLocation.lat, approximateLocation.lng],
             },
             address: approximateLocation.address,
           }));
+          updatedProjects.push(project);
         } catch (error) {
           console.log(`Failed to approximate location for project ${project.id}: ${error}`);
         }
       }
 
-      await this.mapPinRepository.save(mapPins);
+      await this.projectRepository.save(updatedProjects);
       offset += batchSize;
     }
 
     offset = 0;
     while (true) {
       const users = await this.userRepository.createQueryBuilder('user')
-        .leftJoin(MapPin, 'map_pin', 'map_pin."userId" = user.id')
-        .where('map_pin.id IS NULL')
+        .where('user.mapPinId IS NULL')
         .limit(batchSize)
         .offset(offset)
         .getMany();
@@ -135,7 +132,7 @@ export class MapPinService {
         break;
       }
 
-      const mapPins = [];
+      const updatedUsers = [];
       for (const user of users) {
         try {
           const location = {
@@ -145,20 +142,20 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-          mapPins.push(new MapPin({
-            userId: user.id,
+          user.mapPin = (new MapPin({
             location: {
               type: 'Point',
               coordinates: [approximateLocation.lat, approximateLocation.lng],
             },
             address: approximateLocation.address,
           }));
+          updatedUsers.push(user);
         } catch (error) {
           console.log(`Failed to approximate location for user ${user.id}: ${error}`);
         }
       }
 
-      await this.mapPinRepository.save(mapPins);
+      await this.userRepository.save(updatedUsers);
       offset += batchSize;
     }
   }

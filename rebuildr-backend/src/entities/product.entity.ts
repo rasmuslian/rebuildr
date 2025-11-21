@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -303,6 +304,14 @@ export class Product {
   @OneToMany(() => ReportProduct, (rp) => rp.product)
   reportProducts: ReportProduct[];
 
-  @OneToOne(() => MapPin, mapPin => mapPin.product, { nullable: true, })
+  @Column({ nullable: true })
+  mapPinId?: string;
+
+  @OneToOne(() => MapPin, mapPin => mapPin.product, {
+    nullable: true,
+    cascade: true,
+    orphanedRowAction: 'delete'
+  })
+  @JoinColumn()
   mapPin?: MapPin;
 }

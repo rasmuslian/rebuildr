@@ -9,6 +9,7 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
@@ -201,6 +202,10 @@ export class User {
   @OneToMany(() => ReportProduct, (rp) => rp.reporter)
   reportProducts: ReportProduct[];
 
+  @Column({ nullable: true })
+  mapPinId?: string;
+
   @OneToOne(() => MapPin, mapPin => mapPin.user, { nullable: true, cascade: true })
+  @JoinColumn()
   mapPin?: MapPin;
 }

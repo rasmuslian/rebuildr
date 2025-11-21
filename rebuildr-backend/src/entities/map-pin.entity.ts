@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { Column, Entity, JoinColumn, OneToOne, Point, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToOne, Point, PrimaryGeneratedColumn } from "typeorm";
 import { Project } from "./project.entity";
 import { User } from "./user.entity";
 import { Product } from "./product.entity";
@@ -32,24 +32,12 @@ export class MapPin {
   @Column({ nullable: true })
   address?: string;
 
-  @Column({ nullable: true })
-  productId?: string;
-
   @OneToOne(() => Product, product => product.mapPin, { nullable: true })
-  @JoinColumn()
   product?: Product;
 
-  @Column({ nullable: true })
-  userId?: string;
-
   @OneToOne(() => User, user => user.mapPin, { nullable: true })
-  @JoinColumn()
   user?: User;
 
-  @Column({ nullable: true })
-  projectId?: string;
-
   @OneToOne(() => Project, project => project.mapPin, { nullable: true })
-  @JoinColumn()
   project?: Project;
 }

@@ -24,38 +24,40 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
   // Lifecycle hooks
   async afterInsert(event: InsertEvent<Product>) {
     if (event.entity.addressLocation) {
-      event.entity.mapPin = new MapPin(await this.newApproximateLocationMapPin(event.entity.addressLocation));
-      await this.mapPinService.upsert(event.entity.mapPin);
+        await this.createMapPin(event);
     }
   }
 
-  async beforeUpdate(event: UpdateEvent<Product>) {
+  async afterUpdate(event: UpdateEvent<Product>) {
+    if ((!event.entity) || (!event.databaseEntity)) {
+      return;
+    }
+
     if ([ProductStatus.SOLD, ProductStatus.DELETED].includes(event.entity.status) &&
         event.databaseEntity.status !== event.entity.status) {
-      const mapPin = await this.mapPinService.getByPinTypeId({ productId: event.entity.id });
-      if (mapPin) {
-        await this.mapPinService.removeMapPin(mapPin.id);
+      if (event.entity.mapPinId) {
+        const mapPinId = event.entity.mapPinId;
+        await event.manager.update(Product, { id: event.entity.id }, { mapPinId: null });
+        await event.manager.delete(MapPin, { id: mapPinId });
       }
     }
     if (event.entity.status === ProductStatus.PUBLISHED && event.databaseEntity.status === ProductStatus.SOLD) {
-      const mapPin = await this.mapPinService.getByPinTypeId({ productId: event.entity.id });
-      if (event.entity.addressLocation && !mapPin) {
-        event.entity.mapPin = new MapPin(await this.newApproximateLocationMapPin(event.entity.addressLocation));
-        await this.mapPinService.upsert(event.entity.mapPin);
+      if (!event.entity.mapPinId) {
+        await this.createMapPin(event);
       }
     }
     if (event.databaseEntity.addressLocation !== event.entity.addressLocation &&
         ![ProductStatus.DELETED, ProductStatus.SOLD].includes(event.entity.status)) {
-      const newMapPin = await this.newApproximateLocationMapPin(event.entity.addressLocation);
-      const mapPin = await this.mapPinService.getByPinTypeId({ productId: event.entity.id });
-      if (mapPin) {
+      if (event.entity.mapPinId) {
+        const mapPinData = await this.newApproximateLocationMapPin(event.entity.addressLocation);
+        const mapPin = await this.mapPinService.getOne(event.entity.mapPinId);
         event.entity.mapPin = mapPin;
-        event.entity.mapPin.address = newMapPin.address;
-        event.entity.mapPin.location = newMapPin.location;
+        event.entity.mapPin.address = mapPinData.address;
+        event.entity.mapPin.location = mapPinData.location;
+        await event.manager.save(mapPin);
       } else {
-        event.entity.mapPin = new MapPin(newMapPin);
+        await this.createMapPin(event);
       }
-      await this.mapPinService.upsert(event.entity.mapPin);
     }
   }
 
@@ -77,5 +79,27 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
         coordinates: [approximateLocation.lat, approximateLocation.lng],
       },
     };
+  }
+
+  async createMapPin(event: InsertEvent<Product> | UpdateEvent<Product>): Promise<void> {
+    if (event.entity.addressLocation) {
+      const mapPinData = await this.newApproximateLocationMapPin(event.entity.addressLocation)
+      const mapPin = event.manager.create(MapPin, {
+        ...mapPinData,
+        product: event.entity,
+      });
+
+      await event.manager.save(mapPin);
+    }
+  }
+
+  async updateMapPin(event: UpdateEvent<Product>): Promise<void> {
+    if (event.entity.mapPinId && event.entity.addressLocation) {
+      const mapPin = await this.mapPinService.getOne(event.entity.mapPinId);
+      const mapPinData = await this.newApproximateLocationMapPin(event.entity.addressLocation);
+      mapPin.address = mapPinData.address;
+      mapPin.location = mapPinData.location;
+      await event.manager.save(mapPin);
+    }
   }
 }
