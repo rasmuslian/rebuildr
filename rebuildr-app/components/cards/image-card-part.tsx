@@ -7,7 +7,7 @@ import { ProductImageOverlay } from "@components/product/product-image-overlay";
 type Props = {
   imageUrl?: string;
   sold: boolean;
-  position: "left" | "up" | "down";
+  position: "left" | "up" | "down" | "full";
   imageAspectRatio?: number;
 };
 
@@ -28,6 +28,11 @@ export const ImageCardPart = ({
     borderStyle = {
       borderTopLeftRadius: borderRadius.medium,
       borderBottomLeftRadius: borderRadius.medium,
+    };
+  }
+  if (position === "full") {
+    borderStyle = {
+      borderRadius: borderRadius.medium,
     };
   }
   return (

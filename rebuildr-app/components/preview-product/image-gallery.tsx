@@ -10,6 +10,33 @@ type Props = {
 };
 
 export const ImageGallery = ({ images, status, displaySoldOverlay }: Props) => {
+  if (images.length === 0) {
+    return null;
+  }
+
+  if (images.length < 3) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          gap: 8,
+          aspectRatio: 1.09,
+        }}
+      >
+        <ImageCardPart
+          imageUrl={images[0]?.url}
+          sold={false}
+          position="full"
+          imageAspectRatio={0}
+        />
+        {status === ProductStatusEnum.Sold && displaySoldOverlay && (
+          <ProductImageOverlay text="Såld" />
+        )}
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
