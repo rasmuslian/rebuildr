@@ -81,14 +81,14 @@ export class MapPinResolver {
 
   @ResolveField(() => String, { nullable: true })
   async pinTypeId(@Parent() mapPin: MapPin) {
-    if (mapPin.productId) {
-      return mapPin.productId;
+    if (mapPin.product) {
+      return mapPin.product.id;
     }
-    if (mapPin.userId) {
-      return mapPin.userId;
+    if (mapPin.user) {
+      return mapPin.user.id;
     }
-    if (mapPin.projectId) {
-      return mapPin.projectId;
+    if (mapPin.project) {
+      return mapPin.project.id;
     }
     return null;
   }

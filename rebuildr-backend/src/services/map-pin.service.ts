@@ -6,7 +6,6 @@ import { User } from "src/entities/user.entity";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { LocationResponse } from "src/resolvers/geocoding.resolver";
 import { MapPinResponse } from "src/resolvers/map-pin.resolver";
-import { Brackets } from "typeorm";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
 
@@ -49,6 +48,7 @@ export class MapPinService {
       const products = await this.productRepository.createQueryBuilder('product')
         .where('product.mapPinId IS NULL')
         .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
+        .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
         .getMany();
@@ -88,6 +88,7 @@ export class MapPinService {
     while (true) {
       const projects = await this.projectRepository.createQueryBuilder('project')
         .where('project.mapPinId IS NULL')
+        .andWhere('project.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
         .getMany();
@@ -127,6 +128,7 @@ export class MapPinService {
     while (true) {
       const users = await this.userRepository.createQueryBuilder('user')
         .where('user.mapPinId IS NULL')
+        .andWhere('user.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
         .getMany();
@@ -168,42 +170,16 @@ export class MapPinService {
     radius: number,
     types?: MapPinTypeEnum[],
   ): Promise<MapPinResponse> {
-    const query = this.mapPinRepository
-      .createQueryBuilder("mapPin")
-      .where(
-        `ST_DWithin(
-          mapPin.location,
-          ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography,
-          :radius
-        )`,
-        { lng: point.lng, lat: point.lat, radius },
-      );
-    if (types && types.length > 0) {
-      query.andWhere(
-        new Brackets((qb) => {
-          types.forEach((type, index) => {
-            const condition =
-              type === MapPinTypeEnum.PRODUCT
-                ? "mapPin.productId IS NOT NULL"
-                : type === MapPinTypeEnum.PROJECT
-                ? "mapPin.projectId IS NOT NULL"
-                : type === MapPinTypeEnum.USER
-                ? "mapPin.userId IS NOT NULL"
-                : "1=0";
-            if (index === 0) {
-              qb.where(condition);
-            } else {
-              qb.orWhere(condition);
-            }
-          });
-        }),
-      );
-    }
-    const [mapPins, total] = await query.getManyAndCount();
-    return {
-      mapPins,
-      total
-    };
+    const result = await this.getMapPinForTypes(
+      `mapPin.location && ST_Buffer(ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography, :radius)`,
+      {
+        lat: point.lat,
+        lng: point.lng,
+        radius,
+      },
+      types,
+    );
+    return result;
   }
 
   async findAllInBoundingBox(
@@ -211,39 +187,79 @@ export class MapPinService {
     northEast: LocationResponse,
     types?: MapPinTypeEnum[],
   ): Promise<MapPinResponse> {
+    const result = await this.getMapPinForTypes(
+      `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
+      {
+        swLng: southWest.lng,
+        swLat: southWest.lat,
+        neLng: northEast.lng,
+        neLat: northEast.lat,
+      },
+      types,
+    );
+    return result;
+  }
+
+
+  private async getMapPinForTypes(
+    whereClause: string,
+    whereParams: unknown,
+    types?: MapPinTypeEnum[],
+  ): Promise<MapPinResponse>{
+
+    if (!types || types?.length === 0) {
+
     const query = this.mapPinRepository
       .createQueryBuilder("mapPin")
       .where(
-        `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
-        {
-          swLat: southWest.lat,
-          swLng: southWest.lng,
-          neLat: northEast.lat,
-          neLng: northEast.lng,
-        },
+        whereClause,
+        whereParams,
       );
-    if (types && types.length > 0) {
-      query.andWhere(
-        new Brackets((qb) => {
-          types.forEach((type, index) => {
-            const condition =
-              type === MapPinTypeEnum.PRODUCT
-                ? "mapPin.productId IS NOT NULL"
-                : type === MapPinTypeEnum.PROJECT
-                ? "mapPin.projectId IS NOT NULL"
-                : type === MapPinTypeEnum.USER
-                ? "mapPin.userId IS NOT NULL"
-                : "1=0";
-            if (index === 0) {
-              qb.where(condition);
-            } else {
-              qb.orWhere(condition);
-            }
-          });
-        }),
-      );
+      const [mapPins, total] = await query.getManyAndCount();
+      return {
+        mapPins,
+        total
+      };
     }
-    const [mapPins, total] = await query.getManyAndCount();
+
+    let mapPins: MapPin[] = [];
+    let total = 0;
+    if (types.includes(MapPinTypeEnum.PRODUCT)) {
+      const productPinsQuery = this.mapPinRepository
+        .createQueryBuilder("mapPin")
+        .where(
+          whereClause,
+          whereParams,
+        )
+        .innerJoinAndSelect("mapPin.product", "product");
+      const [productMapPins, productTotal] = await productPinsQuery.getManyAndCount();
+      mapPins = mapPins.concat(productMapPins);
+      total += productTotal;
+    }
+    if (types.includes(MapPinTypeEnum.PROJECT)) {
+      const projectPinsQuery = this.mapPinRepository
+        .createQueryBuilder("mapPin")
+        .where(
+          whereClause,
+          whereParams,
+        )
+        .innerJoinAndSelect("mapPin.project", "project");
+      const [projectMapPins, projectTotal] = await projectPinsQuery.getManyAndCount();
+      mapPins = mapPins.concat(projectMapPins);
+      total += projectTotal;
+    }
+    if (types.includes(MapPinTypeEnum.USER)) {
+      const userPinsQuery = this.mapPinRepository
+        .createQueryBuilder("mapPin")
+        .where(
+          whereClause,
+          whereParams,
+        )
+        .innerJoinAndSelect("mapPin.user", "user");
+      const [userMapPins, userTotal] = await userPinsQuery.getManyAndCount();
+      mapPins = mapPins.concat(userMapPins);
+      total += userTotal;
+    }
     return {
       mapPins,
       total

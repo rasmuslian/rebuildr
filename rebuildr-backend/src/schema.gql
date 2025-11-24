@@ -122,6 +122,7 @@ type MapPin {
   id: ID!
   location: LocationResponse!
   pinType: MapPinTypeEnum
+  pinTypeId: String
 }
 
 enum MapPinTypeEnum {
@@ -590,6 +591,11 @@ type ListArticlesResponse {
   total: Int!
 }
 
+type MapPinResponse {
+  mapPins: [MapPin!]!
+  total: Float!
+}
+
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
@@ -637,7 +643,8 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  mapPins(input: MapPinsLocationInput!): [MapPin!]!
+  mapPinsInRadius(input: MapPinsRadiusLocationInput!): MapPinResponse!
+  mapPinsInBoundingBox(input: MapPinsBoxLocationInput!): MapPinResponse!
 }
 
 input UserExistsInput {
@@ -823,15 +830,21 @@ input ListArticlesInput {
   pageSize: Int
 }
 
-input MapPinsLocationInput {
+input MapPinsRadiusLocationInput {
   point: PointInput!
   radius: Float!
-  type: MapPinTypeEnum
+  types: [MapPinTypeEnum!]
 }
 
 input PointInput {
   lat: Float!
   lng: Float!
+}
+
+input MapPinsBoxLocationInput {
+  southWest: PointInput!
+  northEast: PointInput!
+  types: [MapPinTypeEnum!]
 }
 
 type Mutation {

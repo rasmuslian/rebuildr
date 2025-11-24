@@ -46,15 +46,12 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
         await this.createMapPin(event);
       }
     }
-    if (event.databaseEntity.addressLocation !== event.entity.addressLocation &&
-        ![ProductStatus.DELETED, ProductStatus.SOLD].includes(event.entity.status)) {
+
+    const coordinatesChanged = event.databaseEntity.addressLocation?.coordinates[0] !== event.entity.addressLocation?.coordinates[0] ||
+      event.databaseEntity.addressLocation?.coordinates[1] !== event.entity.addressLocation?.coordinates[1];
+    if (coordinatesChanged && ![ProductStatus.DELETED, ProductStatus.SOLD].includes(event.entity.status)) {
       if (event.entity.mapPinId) {
-        const mapPinData = await this.newApproximateLocationMapPin(event.entity.addressLocation);
-        const mapPin = await this.mapPinService.getOne(event.entity.mapPinId);
-        event.entity.mapPin = mapPin;
-        event.entity.mapPin.address = mapPinData.address;
-        event.entity.mapPin.location = mapPinData.location;
-        await event.manager.save(mapPin);
+        await this.updateMapPin(event);
       } else {
         await this.createMapPin(event);
       }
