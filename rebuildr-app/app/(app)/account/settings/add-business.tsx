@@ -1,3 +1,4 @@
+import { formatOrgNumber } from "@/utils/formattings";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Header } from "@components/navigation/headers/header";
@@ -63,7 +64,7 @@ export default function AddBusiness({ onBack }: Props) {
             description: "Ange ditt företags organisationsnummer (10 siffror).",
             type: "text",
             inputType: "numeric",
-            value: orgNumber,
+            value: formatOrgNumber(orgNumber),
             onChange: changeOrgNumber,
             error:
               !!error ||
