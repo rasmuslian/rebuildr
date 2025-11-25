@@ -9,9 +9,24 @@ import { GqlAuthGuard } from "src/auth/gql-auth.guard";
 import { RolesGuard } from "src/auth/roles.guard";
 
 @ObjectType()
-export class MapPinResponse {
+export class MapPinParent {
   @Field(() => [MapPin])
-  mapPins: MapPin[];
+  pins?: MapPin[];
+
+  @Field(() => String)
+  id!: string;
+
+  @Field(() => LocationResponse)
+  location?: LocationResponse;
+
+  @Field(() => Number)
+  total: number;
+}
+
+@ObjectType()
+export class MapPinResponse {
+  @Field(() => [MapPinParent])
+  mapPins: MapPinParent[];
 
   @Field(() => Number)
   total: number;

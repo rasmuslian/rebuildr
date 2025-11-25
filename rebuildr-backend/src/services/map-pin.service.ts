@@ -5,7 +5,7 @@ import { Project } from "src/entities/project.entity";
 import { User } from "src/entities/user.entity";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { LocationResponse } from "src/resolvers/geocoding.resolver";
-import { MapPinResponse } from "src/resolvers/map-pin.resolver";
+import { MapPinParent, MapPinResponse } from "src/resolvers/map-pin.resolver";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
 
@@ -215,15 +215,11 @@ export class MapPinService {
         whereClause,
         whereParams,
       );
-      const [mapPins, total] = await query.getManyAndCount();
-      return {
-        mapPins,
-        total
-      };
+      const [mapPins] = await query.getManyAndCount();
+      return this.groupMapPins(mapPins);
     }
 
     let mapPins: MapPin[] = [];
-    let total = 0;
     if (types.includes(MapPinTypeEnum.PRODUCT)) {
       const productPinsQuery = this.mapPinRepository
         .createQueryBuilder("mapPin")
@@ -232,9 +228,8 @@ export class MapPinService {
           whereParams,
         )
         .innerJoinAndSelect("mapPin.product", "product");
-      const [productMapPins, productTotal] = await productPinsQuery.getManyAndCount();
+      const [productMapPins] = await productPinsQuery.getManyAndCount();
       mapPins = mapPins.concat(productMapPins);
-      total += productTotal;
     }
     if (types.includes(MapPinTypeEnum.PROJECT)) {
       const projectPinsQuery = this.mapPinRepository
@@ -244,9 +239,8 @@ export class MapPinService {
           whereParams,
         )
         .innerJoinAndSelect("mapPin.project", "project");
-      const [projectMapPins, projectTotal] = await projectPinsQuery.getManyAndCount();
+      const [projectMapPins] = await projectPinsQuery.getManyAndCount();
       mapPins = mapPins.concat(projectMapPins);
-      total += projectTotal;
     }
     if (types.includes(MapPinTypeEnum.USER)) {
       const userPinsQuery = this.mapPinRepository
@@ -256,13 +250,31 @@ export class MapPinService {
           whereParams,
         )
         .innerJoinAndSelect("mapPin.user", "user");
-      const [userMapPins, userTotal] = await userPinsQuery.getManyAndCount();
+      const [userMapPins] = await userPinsQuery.getManyAndCount();
       mapPins = mapPins.concat(userMapPins);
-      total += userTotal;
     }
+    return this.groupMapPins(mapPins);
+  }
+
+  private groupMapPins = (mapPins: MapPin[]) => {
+    const groupedMapPins = mapPins.reduce((uniqueMap, pin) => {
+      const key = pin.location.coordinates.toString();
+      uniqueMap[key] ||= {
+        id: pin.id,
+        location: {
+          lat: pin.location.coordinates[0],
+          lng: pin.location.coordinates[1]
+        },
+        pins: [],
+        total: 0
+      } as MapPinParent;
+      uniqueMap[key].pins.push(pin);
+      uniqueMap[key].total += 1;
+      return uniqueMap;
+    }, {} as Record<string, MapPinParent>);
     return {
-      mapPins,
-      total
+      mapPins: Object.values(groupedMapPins),
+      total: Object.values(groupedMapPins).length,
     };
   }
 }

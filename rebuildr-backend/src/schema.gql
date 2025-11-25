@@ -591,8 +591,15 @@ type ListArticlesResponse {
   total: Int!
 }
 
+type MapPinParent {
+  pins: [MapPin!]!
+  id: String!
+  location: LocationResponse!
+  total: Float!
+}
+
 type MapPinResponse {
-  mapPins: [MapPin!]!
+  mapPins: [MapPinParent!]!
   total: Float!
 }
 
