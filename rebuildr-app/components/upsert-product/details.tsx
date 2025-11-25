@@ -84,7 +84,7 @@ export const Details = ({
             }}
           />
           <PriceSection
-            price={product.price ?? 0}
+            price={product.price}
             minimumPrice={product.minimumPrice ?? 0}
             priceError={badFields?.["price"]}
             isGiveaway={!!product.isGiveaway}

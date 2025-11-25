@@ -69,8 +69,10 @@ export const MessageInput = ({
   return (
     <TextInput
       value={message}
-      placeholder="Skriv ditt meddelande..."
+      placeholder="Skriv ett meddelande..."
       onChange={setMessage}
+      multiline
+      style={{ height: 80, paddingTop: 8 }}
       onKeyPress={(e) => {
         if (e.nativeEvent.key === "Enter") {
           onSendMessage({ message });
