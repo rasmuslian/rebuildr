@@ -200,7 +200,7 @@ export const Buy = ({ productId: _productId }: Props) => {
       </ScreenLayout>
     </>
   );
-}
+};
 type MultipleOptionsProps = {
   initialData: BuyProductInitialQuery;
   updateProgress: (progress: number) => void;
@@ -227,7 +227,7 @@ const MultipleOptions = ({
 
   const [
     getTransportationOptions,
-    { data: transportationData, loading: transportationLoading },
+    { data: transportationData, loading: transportationLoading, error },
   ] = useLazyQuery<
     BuyProductTransportationOptionsQuery,
     BuyProductTransportationOptionsQueryVariables
@@ -323,6 +323,7 @@ const MultipleOptions = ({
               value: postCode,
               onChange: (t) => setPostCode(t),
               helperText: "Tex. 34333",
+              error: error ? "Något gick fel" : undefined,
             },
           ]}
         />
