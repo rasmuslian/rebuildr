@@ -12,6 +12,7 @@ import { View } from "react-native";
 import { Summary } from "./summary";
 import { gql, useMutation } from "@apollo/client";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
+import { formatPostCode } from "@/utils/formattings";
 
 const SHIPPING_DETAILS_UPDATE_USER = gql`
   mutation ShippingDetailsUpdateUser($input: UpdateUserInput!) {
@@ -109,7 +110,7 @@ export const ShippingDetails = ({
           },
           {
             type: "text",
-            value: postCode,
+            value: formatPostCode(postCode),
             onChange: (t) => setPostCode(t),
             heading: "Postnummer",
             horizontalSize: 1,

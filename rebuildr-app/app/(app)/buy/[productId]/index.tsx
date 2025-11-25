@@ -29,6 +29,7 @@ import { SinglePickup } from "@components/buy/single-pickup";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
+import { formatPostCode } from "@/utils/formattings";
 
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
@@ -320,9 +321,9 @@ const MultipleOptions = ({
             {
               heading: "Ditt Postnummer",
               type: "text",
-              value: postCode,
+              value: formatPostCode(postCode),
               onChange: (t) => setPostCode(t),
-              helperText: "Tex. 34333",
+              helperText: "Tex. 343 33",
               error: error ? "Något gick fel" : undefined,
             },
           ]}
