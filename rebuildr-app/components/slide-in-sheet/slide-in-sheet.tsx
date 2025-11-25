@@ -1,13 +1,25 @@
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
 import { Title } from "@components/typography/text";
-import { useSlideInSheetContext } from "@context/slide-in-sheet-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { useEffect, PropsWithChildren, ReactElement } from "react";
-import { ScrollView, View, ViewStyle, useWindowDimensions } from "react-native";
+import {
+  useEffect,
+  PropsWithChildren,
+  ReactElement,
+  useRef,
+  useState,
+} from "react";
+import {
+  Animated,
+  ScrollView,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+} from "react-native";
 import { Pressable } from "react-native-gesture-handler";
+import { Portal } from "@gorhom/portal";
 
 type Props = {
   open: boolean;
@@ -34,70 +46,117 @@ export const SlideInSheet = ({
   const { isDesktop } = useScreenType();
   const width = isDesktop ? 500 : screenWidth;
 
-  const { setVisible, setContent } = useSlideInSheetContext();
-
-  const content = (
-    <>
-      <Pressable onPress={onClose} style={{ width: "100%", height: "100%" }} />
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width,
-          backgroundColor: colors.background.neutral,
-          elevation: 5,
-          paddingBottom: bottomMargin,
-        }}
-      >
-        {(title || onBack) && (
-          <SlideInHeader title={title} onBack={onBack} onClose={onClose} />
-        )}
-        <ScrollView
-          style={[{ paddingTop: 24 }, style]}
-          contentContainerStyle={[
-            { paddingHorizontal: isDesktop ? 48 : 16 },
-            style,
-          ]}
-        >
-          {children}
-        </ScrollView>
-        {footer && (
-          <View
-            style={{
-              paddingHorizontal: isDesktop ? 48 : 16,
-              marginBottom: 32,
-            }}
-          >
-            {footer}
-          </View>
-        )}
-      </View>
-    </>
-  );
+  const slideAnim = useRef(new Animated.Value(width)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [displayState, setDisplayState] = useState<"none" | "flex">("none");
 
   useEffect(() => {
-    setVisible(open);
+    Animated.timing(slideAnim, {
+      toValue: open ? 0 : width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(fadeAnim, {
+      toValue: open ? 0.3 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
     if (open) {
-      setContent(content);
+      setDisplayState("flex");
+    } else {
+      setTimeout(() => {
+        setDisplayState("none");
+      }, 300);
     }
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      setContent(content);
-    }
-  }, [children]);
+  return (
+    <Portal>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            overflow: "hidden",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: open ? "auto" : "none",
+          },
+          {
+            backgroundColor: fadeAnim.interpolate({
+              inputRange: [0, 0.5],
+              outputRange: ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.5)"],
+            }),
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1000,
+            },
+            {
+              transform: [{ translateX: slideAnim }],
+            },
+          ]}
+        >
+          {/**Content of a SlideInSheet */}
 
-  useEffect(() => {
-    return () => {
-      setVisible(false);
-      onClose?.();
-    };
-  }, []);
-
-  return null;
+          <Pressable
+            onPress={onClose}
+            style={{ width: "100%", height: "100%" }}
+          />
+          <View
+            style={[{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width,
+                backgroundColor: colors.background.neutral,
+                elevation: 5,
+                paddingBottom: bottomMargin,
+              },
+              {
+                display: displayState,
+              },
+            ]}
+          >
+            {(title || onBack) && (
+              <SlideInHeader title={title} onBack={onBack} onClose={onClose} />
+            )}
+            <ScrollView
+              style={[{ paddingTop: 24 }, style]}
+              contentContainerStyle={[
+                { paddingHorizontal: isDesktop ? 48 : 16 },
+                style,
+              ]}
+            >
+              {children}
+            </ScrollView>
+            {footer && (
+              <View
+                style={{
+                  paddingHorizontal: isDesktop ? 48 : 16,
+                  marginBottom: 32,
+                }}
+              >
+                {footer}
+              </View>
+            )}
+          </View>
+        </Animated.View>
+      </Animated.View>
+    </Portal>
+  );
 };
 
 type SlideInHeaderProps = {

@@ -33,8 +33,8 @@ import * as Sentry from "@sentry/react-native";
 import { PopupProvider } from "@context/popup-context";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
-import { SlideInSheetProvider } from "@context/slide-in-sheet-context";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
+import { PortalProvider } from "@gorhom/portal";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -124,7 +124,7 @@ const RootLayout = () => {
                     <BottomSheetModalProvider>
                       <ScreenDimensionsProvider>
                         <BuyModalProvider>
-                          <SlideInSheetProvider>
+                          <PortalProvider>
                             <SearchDropdownContextProvider>
                               <ReRouteHandler>
                                 <Slot />
@@ -136,7 +136,7 @@ const RootLayout = () => {
                                 <BuyModal />
                               </ReRouteHandler>
                             </SearchDropdownContextProvider>
-                          </SlideInSheetProvider>
+                          </PortalProvider>
                         </BuyModalProvider>
                       </ScreenDimensionsProvider>
                     </BottomSheetModalProvider>
