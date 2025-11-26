@@ -38,6 +38,17 @@ export default function AddBusiness({ onBack }: Props) {
     }
   }, [data]);
 
+  const fieldError = fieldErrors?.find(
+    (field) => field.name === "organizationNumber",
+  );
+  let errorText: string | boolean | undefined = error ? true : undefined;
+  if (fieldError?.type === "VALUE_TAKEN") {
+    errorText = "Organisationsnummer upptaget";
+  }
+  if (fieldError?.type === "BAD_INPUT") {
+    errorText = "Ogiltigt organisationsnummer";
+  }
+
   return (
     <ScreenLayout
       contentHorizontalPadding={isDesktop ? 0 : undefined}
@@ -65,11 +76,7 @@ export default function AddBusiness({ onBack }: Props) {
             inputType: "numeric",
             value: orgNumber,
             onChange: changeOrgNumber,
-            error:
-              !!error ||
-              !!fieldErrors?.find(
-                (field) => field.name === "organizationNumber",
-              ),
+            error: errorText,
           },
           {
             heading: "Företagsnamn",
