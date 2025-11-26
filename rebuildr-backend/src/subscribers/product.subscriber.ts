@@ -39,8 +39,6 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
       return;
     }
 
-    const hasProjet = !!event.entity.projectId;
-
     if ([ProductStatus.SOLD, ProductStatus.DELETED].includes(event.entity.status) &&
         event.databaseEntity.status !== event.entity.status) {
       if (event.entity.mapPinId) {
@@ -51,7 +49,7 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
     }
     if (event.entity.status === ProductStatus.PUBLISHED && event.databaseEntity.status === ProductStatus.SOLD) {
       if (!event.entity.mapPinId) {
-        if (hasProjet) {
+        if (event.entity.projectId) {
           const project = await event.manager.findOne(Project, {
             where: { id: event.entity.projectId },
           });
@@ -64,11 +62,32 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
 
     const coordinatesChanged = event.databaseEntity.addressLocation?.coordinates[0] !== event.entity.addressLocation?.coordinates[0] ||
       event.databaseEntity.addressLocation?.coordinates[1] !== event.entity.addressLocation?.coordinates[1];
-    if (!hasProjet && coordinatesChanged && ![ProductStatus.DELETED, ProductStatus.SOLD].includes(event.entity.status)) {
+    if (!event.entity.projectId && coordinatesChanged && ![ProductStatus.DELETED, ProductStatus.SOLD].includes(event.entity.status)) {
       if (event.entity.mapPinId) {
         await this.updateMapPin(event);
       } else {
         await this.createMapPin(event);
+      }
+    }
+
+    // Removal of project association
+    if (event.databaseEntity.projectId && !event.entity.projectId) {
+      if (event.entity.mapPinId) {
+        await this.updateMapPin(event);
+      } else {
+        await this.createMapPin(event);
+      }
+    } else if (
+      (!event.databaseEntity.projectId && event.entity.projectId) ||
+      (event.databaseEntity.projectId && event.entity.projectId && event.databaseEntity.projectId !== event.entity.projectId)
+    ) {
+      const project = await event.manager.findOne(Project, {
+        where: { id: event.entity.projectId },
+      });
+      if (event.entity.mapPinId) {
+        await this.updateMapPin(event, project?.addressLocation);
+      } else {
+        await this.createMapPin(event, project?.addressLocation);
       }
     }
   }
@@ -106,10 +125,11 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
     }
   }
 
-  async updateMapPin(event: UpdateEvent<Product>): Promise<void> {
-    if (event.entity.mapPinId && event.entity.addressLocation) {
+  async updateMapPin(event: UpdateEvent<Product>, location?: Point): Promise<void> {
+    const mapPinLocation = location ? location : event.entity.addressLocation;
+    if (event.entity.mapPinId && mapPinLocation) {
       const mapPin = await this.mapPinService.getOne(event.entity.mapPinId);
-      const mapPinData = await this.newApproximateLocationMapPin(event.entity.addressLocation);
+      const mapPinData = await this.newApproximateLocationMapPin(mapPinLocation);
       mapPin.address = mapPinData.address;
       mapPin.location = mapPinData.location;
       await event.manager.save(mapPin);
