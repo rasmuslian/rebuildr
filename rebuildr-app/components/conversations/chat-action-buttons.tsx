@@ -182,6 +182,14 @@ export const ChatActionButtons = ({ data, onShowReview }: Props) => {
   };
   const secondButton = renderSecondButton();
 
+  if (isDesktop) {
+    return (
+      <>
+        {firstButton}
+        {secondButton}
+      </>
+    );
+  }
   return (
     <View style={{ flexDirection: "row", gap: 8 }}>
       <View style={{ flex: 1 }}>{firstButton}</View>

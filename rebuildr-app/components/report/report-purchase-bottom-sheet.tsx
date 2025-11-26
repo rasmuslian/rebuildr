@@ -153,6 +153,7 @@ export const ReportPurchaseBottomSheet = ({
           )}
           {showProductHeader && (
             <ProductHeader
+              id={data.purchase.product.id}
               title={data.purchase.product.title}
               price={data.purchase.product.price}
               condition={data.purchase.product.condition}

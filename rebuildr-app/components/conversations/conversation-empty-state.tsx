@@ -1,7 +1,7 @@
 import { Body, Headline } from "@components/typography/text";
 import { View } from "react-native";
 import { Image } from "expo-image";
-import Conversation from "@assets/images/conversation.png";
+import Conversation from "@assets/svgs/conversation.svg";
 
 export const ConversationEmptyState = () => {
   return (

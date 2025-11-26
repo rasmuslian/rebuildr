@@ -155,6 +155,7 @@ export default function ConversationProduct() {
         <View style={{ gap: 16 }}>
           <Header title={otherUser?.username} />
           <ProductHeader
+            id={data.product.id}
             title={data.product.title}
             price={data.product.price}
             statusBadgeProps={statusBadgeProps}

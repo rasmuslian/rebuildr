@@ -120,6 +120,9 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
   }, [tab]);
 
   useEffect(() => {
+    if (!productId && !otherUserId) {
+      return;
+    }
     setSelectedConversation({
       productId: productId!,
       userId: otherUserId,
@@ -165,18 +168,6 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
             ]}
           >
             <Title size="medium">Inkorg</Title>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Pressable onPress={() => {}}>
-                <Icon size={18} icon="filterList2" />
-              </Pressable>
-            </View>
           </View>
           <ScrollView
             style={{ height: (windowHeight * 2) / 3 }}
@@ -291,11 +282,13 @@ const Chat = ({
       <View style={{ gap: 16 }}>
         <Header title={otherUser?.username} showBackButton={false} />
         <ProductHeader
+          id={data.product.id}
           title={data.product.title}
           price={data.product.price}
           statusBadgeProps={statusBadgeProps}
           status={data.product.status}
           imageUrl={data.product.primaryImage?.url}
+          shouldNavigate
         />
       </View>
       <ScrollView
