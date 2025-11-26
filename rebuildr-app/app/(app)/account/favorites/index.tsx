@@ -150,8 +150,8 @@ export default function Favorites() {
                   flexWrap: "wrap",
                 }}
               >
-                {data.me.likedProjects.slice(0, 2).map((project) => (
-                  <View style={{ flexBasis: "50%", paddingHorizontal: 8 }}>
+                {data.me.likedProjects.slice(0, 4).map((project) => (
+                  <View style={{ flexBasis: "25%", paddingHorizontal: 8 }}>
                     <ProjectCard
                       key={project.id}
                       showHeart={project.user.id !== data.me.id}
