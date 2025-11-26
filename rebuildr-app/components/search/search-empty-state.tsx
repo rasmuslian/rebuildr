@@ -2,7 +2,6 @@ import { ImageQuickLink } from "@components/buttons/imageQuickLink";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { Pressable, View } from "react-native";
-import Placeholder from "@assets/images/placeholder.png";
 import { router } from "expo-router";
 import { Button } from "@components/buttons/button";
 import { Icon } from "@icons/icon";
@@ -10,6 +9,7 @@ import { ClearSearchHistoryMutation, SearchQuery } from "@/gql/graphql";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useMutation } from "@apollo/client";
 import { CLEAR_SEARCH_HISTORY_MUTATION } from "@/app/(app)/(tabs)/search";
+import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
 
 type Props = {
   data: SearchQuery | undefined;
@@ -51,7 +51,9 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
                 });
                 router.navigate("/(app)/(tabs)/search/products");
               }}
-              source={category.image ? category.image.url : Placeholder.uri}
+              source={
+                category.image ? category.image.url : PlaceholderCategory.uri
+              }
               label={category.name}
             />
           ))}
