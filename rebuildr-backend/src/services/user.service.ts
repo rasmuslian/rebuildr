@@ -409,7 +409,7 @@ export class UserService {
     }
 
     if (!user.connectedAccountId) {
-      throw BadUserInputException('Missing seller account');
+      return null;
     }
     const accounts = await this.stripeService.retrieveExternalAccounts(
       user.connectedAccountId,
