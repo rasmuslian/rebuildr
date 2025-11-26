@@ -1,10 +1,9 @@
 import { Inject } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
-import { MapPin } from "src/entities/map-pin.entity";
 import { Product } from "src/entities/product.entity";
 import { Project } from "src/entities/project.entity";
 import { GeocodingService } from "src/services/geocoding.service";
-import { DataSource, EntityManager, EntitySubscriberInterface, EventSubscriber, Point, UpdateEvent } from "typeorm";
+import { DataSource, EntitySubscriberInterface, EventSubscriber, UpdateEvent } from "typeorm";
 
 @EventSubscriber()
 export class ProjectSubscriber implements EntitySubscriberInterface<Project> {
