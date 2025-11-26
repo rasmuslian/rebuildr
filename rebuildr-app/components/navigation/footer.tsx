@@ -103,14 +103,17 @@ export default function Footer() {
 
       <View style={{ flexDirection: "column", gap: 16 }}>
         <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            borderBottomWidth: 1,
-            borderTopWidth: 1,
-            borderColor: primitives.primary700,
-            paddingVertical: 24,
-          }}
+          style={[
+            {
+              flexDirection: "row",
+              justifyContent: "space-between",
+              borderBottomWidth: 1,
+              borderTopWidth: 1,
+              borderColor: primitives.primary700,
+              paddingVertical: 24,
+            },
+            isDesktop ? { alignItems: "center", borderBottomWidth: 0 } : {},
+          ]}
         >
           <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Body size="small" color="primaryLight">
