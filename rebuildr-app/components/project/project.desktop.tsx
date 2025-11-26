@@ -92,7 +92,7 @@ export const ProjectDesktop = () => {
         <LoadingSpinner />
       ) : (
         <View style={{ gap: 24 }}>
-          <View style={{ flexDirection: "row", gap: 24 }}>
+          <View style={{ flexDirection: "row", gap: 72 }}>
             <View style={{ flex: 1 }}>
               <View style={{ gap: 16 }}>
                 <Display size="small">{project?.title}</Display>
