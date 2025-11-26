@@ -2,6 +2,7 @@ import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Display, Title } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { useContext, useState } from "react";
@@ -18,6 +19,7 @@ export default function Email({ onSubmit, initialEmail }: Props) {
   const [error, setError] = useState(false);
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
+  const { isDesktop } = useScreenType();
 
   const onEnterEmail = (email: string) => {
     const result = z.string().email().safeParse(email);
@@ -52,7 +54,7 @@ export default function Email({ onSubmit, initialEmail }: Props) {
           paddingBottom: 32,
         }}
       >
-        <Display style={{ marginBottom: 16 }} size="small">
+        <Display style={{ marginBottom: isDesktop ? 24 : 16 }} size="small">
           Skriv in din e-post för att fortsätta
         </Display>
         <Form
@@ -77,7 +79,7 @@ export default function Email({ onSubmit, initialEmail }: Props) {
           ]}
         />
         <Button
-          style={{ marginTop: 24 }}
+          style={{ marginTop: isDesktop ? 48 : 24 }}
           label="Logga in / Skapa konto"
           onPress={() => onEnterEmail(email)}
         />

@@ -2,6 +2,7 @@ import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Body, Display, Title } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { useContext, useState } from "react";
@@ -23,6 +24,7 @@ export default function Password({
   const [password, setPassword] = useState("");
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
+  const { isDesktop } = useScreenType();
 
   return (
     <View>
@@ -52,7 +54,7 @@ export default function Password({
           paddingBottom: 32,
         }}
       >
-        <Display style={{ marginBottom: 16 }} size="small">
+        <Display style={{ marginBottom: isDesktop ? 24 : 16 }} size="small">
           Hej igen!
         </Display>
         <Form
@@ -80,7 +82,7 @@ export default function Password({
           </Body>
         </Pressable>
         <Button
-          style={{ marginTop: 24 }}
+          style={{ marginTop: isDesktop ? 48 : 24 }}
           label="Logga in"
           onPress={() => onSubmit(password)}
         />
