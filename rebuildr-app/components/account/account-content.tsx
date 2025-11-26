@@ -9,7 +9,6 @@ import { router, useFocusEffect } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
-import { useScreenType } from "@hooks/useScreenType";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -55,7 +54,6 @@ type Props = {
 export default function AccountContent({ onNavigation }: Props) {
   const [editMode, setEditMode] = useState(false);
   const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
-  const { isDesktop } = useScreenType();
   const me = data?.me;
 
   useFocusEffect(
@@ -113,7 +111,7 @@ export default function AccountContent({ onNavigation }: Props) {
           label="Dina annonser"
           body={(me.products.length ?? 0) + " annonser"}
           link={{
-            pathname: "/account/profile",
+            pathname: "/product-list/[userId]",
             params: { userId: me.id },
           }}
         />

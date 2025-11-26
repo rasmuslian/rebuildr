@@ -5,7 +5,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { useUser } from "@hooks/useUser";
 import { GetProjectsQuery, GetProjectsQueryVariables } from "@/gql/graphql";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import {
   PROJECTS_LIST_FRAGMENT,
   ProjectsList,
@@ -48,26 +47,24 @@ export default function ProjectsPage() {
 
   if (isDesktop) {
     return (
-      <ScreenLayout headerComponent={<TopBar theme="light" />}>
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <View style={{ gap: 16 }}>
-            <Header
-              title="Projekt"
-              showBackButton={false}
-              showDivider={false}
-            />
-            <ProjectsList projects={projects} />
-          </View>
-        )}
+      <ScreenLayout
+        headerComponent={<TopBar theme="light" />}
+        loading={loading}
+      >
+        <View style={{ gap: 16 }}>
+          <Header title="Projekt" showBackButton={false} showDivider={false} />
+          <ProjectsList projects={projects} />
+        </View>
       </ScreenLayout>
     );
   }
 
   return (
-    <ScreenLayout headerComponent={<Header title="Projekt" />}>
-      {loading ? <LoadingSpinner /> : <ProjectsList projects={projects} />}
+    <ScreenLayout
+      headerComponent={<Header title="Projekt" />}
+      loading={loading}
+    >
+      <ProjectsList projects={projects} />
     </ScreenLayout>
   );
 }
