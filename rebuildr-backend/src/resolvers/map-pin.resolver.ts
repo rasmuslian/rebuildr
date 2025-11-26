@@ -1,5 +1,5 @@
 import { forwardRef, Inject, UseGuards } from "@nestjs/common";
-import { Args, Field, InputType, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
+import { Args, Context, Field, InputType, Mutation, ObjectType, Parent, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
 import { LocationResponse } from "./geocoding.resolver";
@@ -8,6 +8,8 @@ import { Roles } from "src/decorators/roles.decorator";
 import { GqlAuthGuard } from "src/auth/gql-auth.guard";
 import { RolesGuard } from "src/auth/roles.guard";
 import { ProductsInput } from "./product.resolver";
+import { Product } from "src/entities/product.entity";
+import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
 
 @ObjectType()
 export class MapPinParent {
@@ -22,6 +24,9 @@ export class MapPinParent {
 
   @Field(() => Number)
   total: number;
+
+  @Field(() => String, { nullable: true })
+  price?: string;
 }
 
 @ObjectType()
@@ -141,5 +146,14 @@ export class MapPinResolver {
       input.types,
       input.productsInput,
     );
+  }
+
+
+  @ResolveField(() => Product, { nullable: true })
+  async product(
+    @Root() _mapPin: MapPin,
+    @Context('mapPinLoaders') mapPinLoaders: IMapPinLoaders,
+  ) {
+    return mapPinLoaders.productLoader.load(_mapPin.id);
   }
 }
