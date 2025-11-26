@@ -10,6 +10,7 @@ import {
   ReactElement,
   useRef,
   useState,
+  useMemo,
 } from "react";
 import {
   Animated,
@@ -43,6 +44,7 @@ export const SlideInSheet = ({
   bottomMargin = 20,
   hideScrollIndicator = false,
 }: Props) => {
+  const key = useMemo(() => `slide-in-sheet-${Math.random().toString(8)}`, []);
   const colors = useThemeColor();
   const { width: screenWidth } = useWindowDimensions();
   const { isDesktop } = useScreenType();
@@ -75,7 +77,7 @@ export const SlideInSheet = ({
   }, [open]);
 
   return (
-    <Portal>
+    <Portal key={key} hostName="OverlayProvider">
       <Animated.View
         style={[
           {
@@ -117,7 +119,8 @@ export const SlideInSheet = ({
             style={{ width: "100%", height: "100%" }}
           />
           <View
-            style={[{
+            style={[
+              {
                 position: "absolute",
                 top: 0,
                 right: 0,

@@ -1,8 +1,8 @@
 import { Button } from "@components/buttons/button";
 import { primitives } from "@constants/colors";
-import { usePopupContext } from "@context/popup-context";
-import { PropsWithChildren, useEffect } from "react";
-import { Pressable, View } from "react-native";
+import { Portal } from "@gorhom/portal";
+import { PropsWithChildren, useEffect, useMemo, useRef } from "react";
+import { Animated, Easing, Pressable, View } from "react-native";
 
 type Props = {
   open: boolean;
@@ -11,63 +11,74 @@ type Props = {
 } & PropsWithChildren;
 
 export const Popup = ({ open, onClose, type, children }: Props) => {
-  const { setVisible, setContent } = usePopupContext();
   const isFull = type === "full";
+  const contentAnimation = useRef(new Animated.Value(0)).current;
+  const key = useMemo(() => `popup-${Math.random().toString(8)}`, []);
 
   const handleClose = () => {
     onClose?.();
   };
 
-  const content = (
-    <>
-      {!isFull && (
-        <Pressable
-          onPress={handleClose}
-          style={{
-            position: "absolute",
-            flex: 1,
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      )}
-      <View
-        style={{
-          flex: isFull ? 1 : undefined,
-          width: isFull ? "100%" : "50%",
-          height: isFull ? "100%" : "auto",
-          backgroundColor: primitives.neutrals100,
-          borderRadius: !isFull ? 12 : 0,
-        }}
-      >
-        {children}
-      </View>
-      <View style={{ position: "absolute", top: 24, right: 18 }}>
-        <Button
-          label="Stäng"
-          onPress={handleClose}
-          icon="X"
-          iconPosition="right"
-          type="filled"
-          theme="dark"
-          showShadow
-        />
-      </View>
-    </>
-  );
-
   useEffect(() => {
-    setVisible(open);
-    if (open) {
-      setContent(content);
-    }
+    Animated.timing(contentAnimation, {
+      toValue: open ? 1 : 0,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: false,
+    }).start();
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      setContent(content);
-    }
-  }, [children]);
-
-  return null;
+  return (
+    <Portal key={key} hostName="OverlayProvider">
+      <Animated.View
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2000,
+          backgroundColor: "rgba(0, 0, 0, 0.3)",
+          opacity: contentAnimation,
+          pointerEvents: open ? "auto" : "none",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {!isFull && (
+          <Pressable
+            onPress={handleClose}
+            style={{
+              position: "absolute",
+              flex: 1,
+              width: "100%",
+              height: "100%",
+            }}
+          />
+        )}
+        <View
+          style={{
+            flex: isFull ? 1 : undefined,
+            width: isFull ? "100%" : "50%",
+            height: isFull ? "100%" : "auto",
+            backgroundColor: primitives.neutrals100,
+            borderRadius: !isFull ? 12 : 0,
+          }}
+        >
+          {children}
+        </View>
+        <View style={{ position: "absolute", top: 24, right: 18 }}>
+          <Button
+            label="Stäng"
+            onPress={handleClose}
+            icon="X"
+            iconPosition="right"
+            type="filled"
+            theme="dark"
+            showShadow
+          />
+        </View>
+      </Animated.View>
+    </Portal>
+  );
 };

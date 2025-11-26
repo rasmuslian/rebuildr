@@ -30,11 +30,10 @@ import { isIOSDevice } from "@/utils/deviceInfo";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchDropdownContextProvider } from "@context/search-dropdown-context";
 import * as Sentry from "@sentry/react-native";
-import { PopupProvider } from "@context/popup-context";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
-import { PortalProvider } from "@gorhom/portal";
+import { PortalHost, PortalProvider } from "@gorhom/portal";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -120,31 +119,30 @@ const RootLayout = () => {
             <SellProductProdiver>
               <EditProductProdiver>
                 <GestureHandlerRootView>
-                  <PopupProvider>
+                  <PortalProvider>
                     <BottomSheetModalProvider>
                       <ScreenDimensionsProvider>
                         <BuyModalProvider>
-                          <PortalProvider>
-                            <SearchDropdownContextProvider>
-                              <ReRouteHandler>
-                                <Slot />
-                                <HamburgerMenu />
-                                <LoginModalView />
-                                <SellProductBottomSheet />
-                                <EditProductBottomSheet />
-                                <SearchDropdown />
-                                <BuyModal />
-                              </ReRouteHandler>
-                            </SearchDropdownContextProvider>
-                          </PortalProvider>
+                          <SearchDropdownContextProvider>
+                            <ReRouteHandler>
+                              <Slot />
+                              <HamburgerMenu />
+                              <LoginModalView />
+                              <SellProductBottomSheet />
+                              <EditProductBottomSheet />
+                              <SearchDropdown />
+                              <BuyModal />
+                              <PortalHost name="OverlayProvider" />
+                            </ReRouteHandler>
+                          </SearchDropdownContextProvider>
                         </BuyModalProvider>
                       </ScreenDimensionsProvider>
                     </BottomSheetModalProvider>
-                  </PopupProvider>
+                  </PortalProvider>
                 </GestureHandlerRootView>
               </EditProductProdiver>
             </SellProductProdiver>
-        </LoginModalContext.Provider>
+          </LoginModalContext.Provider>
         )}
       </ApolloProvider>
     </>
