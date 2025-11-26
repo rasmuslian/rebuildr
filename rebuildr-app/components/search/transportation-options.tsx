@@ -135,11 +135,14 @@ export const TransportationOptions = ({
             <View style={{ gap: 12 }}>
               <Label size="medium">Välj max avstånd från dig</Label>
               <View
-                style={{
-                  flexDirection: "row",
-                  gap: 16,
-                  alignItems: "center",
-                }}
+                style={[
+                  {
+                    flexDirection: "row",
+                    gap: 16,
+                    alignItems: "center",
+                  },
+                  isDesktop && { gap: 0, justifyContent: "space-between" },
+                ]}
               >
                 <Slider
                   type="continuous"
@@ -148,7 +151,7 @@ export const TransportationOptions = ({
                     max: 80000,
                     value: pickupDistance,
                     onChange: (v) => setPickupDistance(v),
-                    width: 240,
+                    width: isDesktop ? 290 : 240,
                   }}
                 />
                 <Body size="medium">{meterToKilometer(pickupDistance)} km</Body>

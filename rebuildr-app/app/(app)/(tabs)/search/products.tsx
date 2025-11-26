@@ -319,6 +319,7 @@ export default function Products() {
             open={showTransportSheet}
             onClose={() => setShowTransportSheet(false)}
             title="Leveransalternativ"
+            hideScrollIndicator
           >
             <TransportationOptions
               data={data}

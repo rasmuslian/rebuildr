@@ -29,6 +29,7 @@ type Props = {
   style?: ViewStyle;
   footer?: ReactElement;
   bottomMargin?: number;
+  hideScrollIndicator?: boolean;
 } & PropsWithChildren;
 
 export const SlideInSheet = ({
@@ -40,6 +41,7 @@ export const SlideInSheet = ({
   style,
   footer,
   bottomMargin = 20,
+  hideScrollIndicator = false,
 }: Props) => {
   const colors = useThemeColor();
   const { width: screenWidth } = useWindowDimensions();
@@ -139,6 +141,8 @@ export const SlideInSheet = ({
                 { paddingHorizontal: isDesktop ? 48 : 16 },
                 style,
               ]}
+              showsVerticalScrollIndicator={!hideScrollIndicator}
+              showsHorizontalScrollIndicator={!hideScrollIndicator}
             >
               {children}
             </ScrollView>
