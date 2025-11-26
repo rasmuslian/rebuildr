@@ -62,7 +62,7 @@ export function RootCategoriesHorizontal() {
             }}
             onPress={() => {
               setCategories({
-                categories: [c],
+                categories: [...c.children],
                 selectedCategoryId: c.id,
               });
               router.navigate("/(app)/(tabs)/search/products");

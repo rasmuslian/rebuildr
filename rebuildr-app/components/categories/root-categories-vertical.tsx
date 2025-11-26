@@ -46,7 +46,7 @@ export function RootCategoriesVertical({ onNavigate }: Props) {
           <Pressable
             onPress={() => {
               setCategories({
-                categories: [category],
+                categories: [...category.children],
                 selectedCategoryId: category.id,
                 cameFrom: FilterProductCameFromEnum.categories,
               });
