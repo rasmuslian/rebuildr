@@ -86,7 +86,6 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [
       getItem("Sidfot", routes.FOOTER_SETTING),
-      getItem("Utvecklarinställningar", routes.DEVELOPER_SETTING),
     ]),
     { type: "divider" },
     {
