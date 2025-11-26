@@ -22,6 +22,17 @@ export const formatPrice = (price?: number) => {
   }).format(price);
 };
 
+export const formatRating = (rating?: number) => {
+  if (rating === undefined) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  }).format(rating);
+};
+
 export const formatSwedishNumber = (number: string) => {
   return number.replace(/^(?:\+46|0046)/, "0");
 };
