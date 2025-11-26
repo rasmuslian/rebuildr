@@ -46,8 +46,112 @@ export class MapPinService {
     const batchSize = 100;
     let offset = 0;
     while (true) {
+      const projects = await this.projectRepository.createQueryBuilder('project')
+        .leftJoinAndSelect('project.products', 'product', 'product.status = :status', { status: ProductStatus.PUBLISHED })
+        .where('project.addressLocation IS NOT NULL')
+        .limit(batchSize)
+        .offset(offset)
+        .getMany();
+
+      if (projects.length === 0) {
+        break;
+      }
+
+      const updatedProjects = [];
+      const updatedProducts = [];
+      for (const project of projects) {
+        try {
+          const location = {
+            lat: project.addressLocation.coordinates[0],
+            lng: project.addressLocation.coordinates[1],
+          };
+          const approximateLocation =
+            await this.geocodingService.locationToApproximation(location);
+
+
+          project.mapPin = new MapPin({
+            location: {
+                type: 'Point',
+                coordinates: [approximateLocation.lat, approximateLocation.lng],
+              },
+            address: approximateLocation.address,
+          });
+          if (project.mapPinId) {
+            project.mapPin.id = project.mapPinId;
+          }
+          updatedProjects.push(project);
+          if (project.products && project.products.length > 0) {
+            for (const product of project.products) {
+              if (product.mapPinId) {
+                product.mapPin = new MapPin({
+                  address: approximateLocation.address,
+                  location: {
+                    type: "Point",
+                    coordinates: [approximateLocation.lat, approximateLocation.lng],
+                  },
+                });
+                if (product.mapPinId) {
+                  product.mapPin.id = product.mapPinId;
+                }
+                updatedProducts.push(product);
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`Failed to approximate location for project ${project.id}: ${error}`);
+        }
+      }
+
+      await this.projectRepository.save(updatedProjects);
+      offset += batchSize;
+    }
+
+    offset = 0;
+    while (true) {
+      const users = await this.userRepository.createQueryBuilder('user')
+        .andWhere('user.addressLocation IS NOT NULL')
+        .limit(batchSize)
+        .offset(offset)
+        .getMany();
+
+      if (users.length === 0) {
+        break;
+      }
+
+      const updatedUsers = [];
+      for (const user of users) {
+        try {
+          const location = {
+            lat: user.addressLocation.coordinates[0],
+            lng: user.addressLocation.coordinates[1],
+          };
+          const approximateLocation =
+            await this.geocodingService.locationToApproximation(location);
+
+          user.mapPin = (new MapPin({
+            location: {
+              type: 'Point',
+              coordinates: [approximateLocation.lat, approximateLocation.lng],
+            },
+            address: approximateLocation.address,
+          }));
+          if (user.mapPinId) {
+            user.mapPin.id = user.mapPinId;
+          }
+          updatedUsers.push(user);
+        } catch (error) {
+          console.log(`Failed to approximate location for user ${user.id}: ${error}`);
+        }
+      }
+
+      await this.userRepository.save(updatedUsers);
+      offset += batchSize;
+    }
+
+    offset = 0;
+    while (true) {
       const products = await this.productRepository.createQueryBuilder('product')
-        .where('product.mapPinId IS NULL')
+        .andWhere('product.projectId IS NULL')
         .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
@@ -75,6 +179,9 @@ export class MapPinService {
             },
             address: approximateLocation.address,
           }));
+          if (product.mapPinId) {
+            product.mapPin.id = product.mapPinId;
+          }
           updatedProducts.push(product);
         } catch (error) {
           console.log(`Failed to approximate location for product ${product.id}: ${error}`);
@@ -85,85 +192,6 @@ export class MapPinService {
       offset += batchSize;
     }
 
-    offset = 0;
-    while (true) {
-      const projects = await this.projectRepository.createQueryBuilder('project')
-        .where('project.mapPinId IS NULL')
-        .andWhere('project.addressLocation IS NOT NULL')
-        .limit(batchSize)
-        .offset(offset)
-        .getMany();
-
-      if (projects.length === 0) {
-        break;
-      }
-
-      const updatedProjects = [];
-      for (const project of projects) {
-        try {
-          const location = {
-            lat: project.addressLocation.coordinates[0],
-            lng: project.addressLocation.coordinates[1],
-          };
-          const approximateLocation =
-            await this.geocodingService.locationToApproximation(location);
-
-          project.mapPin = (new MapPin({
-            location: {
-              type: 'Point',
-              coordinates: [approximateLocation.lat, approximateLocation.lng],
-            },
-            address: approximateLocation.address,
-          }));
-          updatedProjects.push(project);
-        } catch (error) {
-          console.log(`Failed to approximate location for project ${project.id}: ${error}`);
-        }
-      }
-
-      await this.projectRepository.save(updatedProjects);
-      offset += batchSize;
-    }
-
-    offset = 0;
-    while (true) {
-      const users = await this.userRepository.createQueryBuilder('user')
-        .where('user.mapPinId IS NULL')
-        .andWhere('user.addressLocation IS NOT NULL')
-        .limit(batchSize)
-        .offset(offset)
-        .getMany();
-
-      if (users.length === 0) {
-        break;
-      }
-
-      const updatedUsers = [];
-      for (const user of users) {
-        try {
-          const location = {
-            lat: user.addressLocation.coordinates[0],
-            lng: user.addressLocation.coordinates[1],
-          };
-          const approximateLocation =
-            await this.geocodingService.locationToApproximation(location);
-
-          user.mapPin = (new MapPin({
-            location: {
-              type: 'Point',
-              coordinates: [approximateLocation.lat, approximateLocation.lng],
-            },
-            address: approximateLocation.address,
-          }));
-          updatedUsers.push(user);
-        } catch (error) {
-          console.log(`Failed to approximate location for user ${user.id}: ${error}`);
-        }
-      }
-
-      await this.userRepository.save(updatedUsers);
-      offset += batchSize;
-    }
   }
 
   async findAllInRadius(
