@@ -8,6 +8,7 @@ import { LocationResponse } from "src/resolvers/geocoding.resolver";
 import { MapPinParent, MapPinResponse } from "src/resolvers/map-pin.resolver";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
+import { ProductsInput } from "src/resolvers/product.resolver";
 
 @Injectable()
 export class MapPinService {
@@ -169,6 +170,7 @@ export class MapPinService {
     point: LocationResponse,
     radius: number,
     types?: MapPinTypeEnum[],
+    productsInput?: ProductsInput,
   ): Promise<MapPinResponse> {
     const result = await this.getMapPinForTypes(
       `mapPin.location && ST_Buffer(ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography, :radius)`,
@@ -178,6 +180,7 @@ export class MapPinService {
         radius,
       },
       types,
+      productsInput,
     );
     return result;
   }
@@ -186,6 +189,7 @@ export class MapPinService {
     southWest: LocationResponse,
     northEast: LocationResponse,
     types?: MapPinTypeEnum[],
+    productsInput?: ProductsInput,
   ): Promise<MapPinResponse> {
     const result = await this.getMapPinForTypes(
       `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
@@ -196,6 +200,7 @@ export class MapPinService {
         neLat: northEast.lat,
       },
       types,
+      productsInput,
     );
     return result;
   }
@@ -205,6 +210,7 @@ export class MapPinService {
     whereClause: string,
     whereParams: unknown,
     types?: MapPinTypeEnum[],
+    productsInput?: ProductsInput,
   ): Promise<MapPinResponse>{
 
     if (!types || types?.length === 0) {
@@ -228,6 +234,93 @@ export class MapPinService {
           whereParams,
         )
         .innerJoinAndSelect("mapPin.product", "product");
+
+      if (productsInput) {
+
+        if (productsInput.sellerId) {
+          productPinsQuery.andWhere('product."sellerId" = :sellerId', { sellerId: productsInput.sellerId });
+        }
+
+        if (productsInput.searchString) {
+          productPinsQuery
+            .addCommonTableExpression(
+              `SELECT
+                product.id,
+                ts_rank(product."textSearch", plainto_tsquery(:searchString), 0) + similarity(product.title, :searchString) as resultrank
+              FROM product product
+              WHERE product."textSearch" @@ plainto_tsquery(:searchString)
+                OR similarity(product.title, :searchString) > 0
+              `,
+              'ranked_products',
+            )
+            .setParameter('searchString', productsInput.searchString)
+            .innerJoin('ranked_products', 'rp', 'rp.id = product.id')
+            .andWhere(
+              `(rp.resultrank > 0.25 OR product.title ILIKE '${productsInput.searchString}%' )`,
+            );
+        }
+        if (
+          productsInput.categoryIds ||
+          productsInput.selectionCategories ||
+          productsInput.seasonalCategories
+        ) {
+          productPinsQuery.innerJoin('category', 'c', 'product."categoryId" = c.id');
+
+          if (productsInput.categoryIds?.length) {
+            productPinsQuery.andWhere(
+              '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
+              {
+                categoryIds: productsInput.categoryIds,
+              },
+            );
+          } else if (productsInput.selectionCategories) {
+            productPinsQuery.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+            productPinsQuery.andWhere('(c."inSelection" OR parent."inSelection")');
+          } else {
+            productPinsQuery.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+            productPinsQuery.andWhere('(c."inSeason" OR parent."inSeason")');
+          }
+        }
+
+        if (productsInput.brandIds) {
+          if (!productsInput.brandIds.length) {
+            productPinsQuery.andWhere('product."brandId" IS NULL');
+          }
+          if (productsInput.brandIds.length) {
+            productPinsQuery.andWhere('product."brandId" IN (:...brandIds)', {
+              brandIds: productsInput.brandIds,
+            });
+          }
+        }
+
+        if (productsInput.conditions) {
+          if (!productsInput.conditions.length) {
+            productPinsQuery.andWhere('product.condition IS NULL');
+          }
+          if (productsInput.conditions.length) {
+            productPinsQuery.andWhere('product.condition IN (:...conditions)', {
+              conditions: productsInput.conditions,
+            });
+          }
+        }
+
+        //Prices
+        if (productsInput.minPrice !== undefined) {
+          productPinsQuery.andWhere('product.price / 100 >= :minPrice', {
+            minPrice: productsInput.minPrice,
+          });
+        }
+        if (productsInput.maxPrice !== undefined) {
+          productPinsQuery.andWhere('product.price / 100 <= :maxPrice', {
+            maxPrice: productsInput.maxPrice,
+          });
+        }
+
+        if (productsInput.giveaway) {
+          productPinsQuery.andWhere('"isGiveaway" = TRUE');
+        }
+
+      }
       const [productMapPins] = await productPinsQuery.getManyAndCount();
       mapPins = mapPins.concat(productMapPins);
     }

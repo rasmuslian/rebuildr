@@ -7,6 +7,7 @@ import { UserRoleEnum } from "src/entities/user.entity";
 import { Roles } from "src/decorators/roles.decorator";
 import { GqlAuthGuard } from "src/auth/gql-auth.guard";
 import { RolesGuard } from "src/auth/roles.guard";
+import { ProductsInput } from "./product.resolver";
 
 @ObjectType()
 export class MapPinParent {
@@ -51,6 +52,9 @@ class MapPinsRadiusLocationInput {
 
   @Field(() => [MapPinTypeEnum], { nullable: true })
   types?: [MapPinTypeEnum];
+
+  @Field(() => ProductsInput, { nullable: true })
+  productsInput?: ProductsInput;
 }
 
 @InputType()
@@ -63,6 +67,9 @@ class MapPinsBoxLocationInput {
 
   @Field(() => [MapPinTypeEnum], { nullable: true })
   types?: MapPinTypeEnum[];
+
+  @Field(() => ProductsInput, { nullable: true })
+  productsInput?: ProductsInput;
 }
 
 @Resolver(() => MapPin)
@@ -122,6 +129,7 @@ export class MapPinResolver {
       input.point,
       input.radius,
       input.types,
+      input.productsInput,
     );
   }
 
@@ -131,6 +139,7 @@ export class MapPinResolver {
       input.southWest,
       input.northEast,
       input.types,
+      input.productsInput,
     );
   }
 }

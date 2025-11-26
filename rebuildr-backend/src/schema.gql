@@ -841,6 +841,7 @@ input MapPinsRadiusLocationInput {
   point: PointInput!
   radius: Float!
   types: [MapPinTypeEnum!]
+  productsInput: ProductsInput
 }
 
 input PointInput {
@@ -852,6 +853,7 @@ input MapPinsBoxLocationInput {
   southWest: PointInput!
   northEast: PointInput!
   types: [MapPinTypeEnum!]
+  productsInput: ProductsInput
 }
 
 type Mutation {
