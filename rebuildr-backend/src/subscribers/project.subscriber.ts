@@ -39,27 +39,24 @@ export class ProjectSubscriber implements EntitySubscriberInterface<Project> {
           relations: { mapPin: true }
         },
       );
+      const location = {
+        lat: event.entity.addressLocation.coordinates[0],
+        lng: event.entity.addressLocation.coordinates[1],
+      };
+      const approximateLocation =
+        await this.geocodingService.locationToApproximation(location);
       for (const product of products) {
         if (product.mapPinId) {
-          await this.updateMapPin(product.mapPin, event.entity.addressLocation, event.manager);
+          const mapPin = product.mapPin;
+          mapPin.address = approximateLocation.address;
+          mapPin.location = {
+            type: "Point",
+            coordinates: [approximateLocation.lat, approximateLocation.lng],
+          };
+          await event.manager.save(mapPin);
         }
         // Should we handle create map pin if missing?
       }
     }
-  }
-
-  async updateMapPin(mapPin: MapPin, newLocation: Point, manager: EntityManager) {
-    const location = {
-      lat: newLocation.coordinates[0],
-      lng: newLocation.coordinates[1],
-    };
-    const approximateLocation =
-      await this.geocodingService.locationToApproximation(location);
-    mapPin.address = approximateLocation.address;
-    mapPin.location = {
-      type: "Point",
-      coordinates: [approximateLocation.lat, approximateLocation.lng],
-    };
-    await manager.save(mapPin);
   }
 }
