@@ -53,6 +53,7 @@ export const AccountWrapperDesktop = ({
       return (
         <Settings
           onBack={() => setState({ page: "index", params: {} })}
+          onClose={onClose}
           onNavigation={setState}
         />
       );
@@ -93,7 +94,12 @@ export const AccountWrapperDesktop = ({
         />
       );
     case "user":
-      return <User onBack={() => setState({ page: "settings", params: {} })} />;
+      return (
+        <User
+          onBack={() => setState({ page: "settings", params: {} })}
+          initialSection={state.params?.initialSection as string | undefined}
+        />
+      );
     case "business-add":
       return (
         <AddBusiness

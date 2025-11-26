@@ -12,14 +12,19 @@ import { PickupAddressSetting } from "@components/userSettings/pickup-address-se
 import { OrganizationSetting } from "@components/userSettings/organization-setting";
 import { ACCOUNT_SETTINGS_USER } from "@components/userSettings/queries";
 import { useScreenType } from "@hooks/useScreenType";
+import { useLocalSearchParams } from "expo-router";
 
 type Props = {
   onBack?: () => void;
+  initialSection?: string;
 };
 
-export default function User({ onBack }: Props) {
+export default function User({ onBack, initialSection }: Props) {
   const { data } = useQuery<AccountSettingsUserQuery>(ACCOUNT_SETTINGS_USER);
   const { isDesktop } = useScreenType();
+  const { initialSection: initialSectionFromParams } = useLocalSearchParams<{
+    initialSection?: string;
+  }>();
 
   if (!data) {
     return <LoadingSpinner />;
@@ -42,14 +47,19 @@ export default function User({ onBack }: Props) {
         )}
         {data.me.type === UserType.Personal && (
           <>
-            <EmailSetting user={data.me} />
+            <EmailSetting
+              user={data.me}
+              initialOpen={
+                initialSection === "email" ||
+                initialSectionFromParams === "email"
+              }
+            />
             <Divider />
             <AccountSetting user={data.me} />
             <Divider />
           </>
         )}
         <PickupAddressSetting user={data.me} />
-        <Divider />
       </View>
     </ScreenLayout>
   );

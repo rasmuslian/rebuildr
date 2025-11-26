@@ -8,7 +8,7 @@ import { useMutation } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Body, Headline } from "@components/typography/text";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import z from "zod";
 import { Entry } from "./entry";
@@ -16,9 +16,11 @@ import { ACCOUNT_SETTINGS_UPDATE_USER } from "./queries";
 
 type Props = {
   user: AccountSettingsUserQuery["me"];
+  initialOpen?: boolean;
 };
-export const EmailSetting = ({ user }: Props) => {
+export const EmailSetting = ({ user, initialOpen }: Props) => {
   const [email, setEmail] = useState<string | null>(null);
+  const [emailChanged, setEmailChanged] = useState(false);
   const [errorEmail, setErrorEmail] = useState<string>();
 
   const [updateUser, { loading: updateUserLoading }] = useMutation<
@@ -59,6 +61,12 @@ export const EmailSetting = ({ user }: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (initialOpen) {
+      setEmail(user.email ?? "");
+    }
+  }, [initialOpen]);
+
   return (
     <View style={{ gap: 16 }}>
       {email === null ? (
@@ -81,7 +89,10 @@ export const EmailSetting = ({ user }: Props) => {
               {
                 type: "text",
                 value: email,
-                onChange: (t) => setEmail(t),
+                onChange: (t) => {
+                  setEmail(t);
+                  setEmailChanged(true);
+                },
                 error: !!errorEmail,
                 heading: "Ange din e-postadress",
               },
@@ -91,6 +102,7 @@ export const EmailSetting = ({ user }: Props) => {
             label="Spara"
             onPress={onSaveEmail}
             loading={updateUserLoading}
+            disabled={!emailChanged}
           />
           {!!errorEmail && (
             <Body size="small" color="error">

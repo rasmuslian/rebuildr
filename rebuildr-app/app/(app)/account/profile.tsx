@@ -55,10 +55,6 @@ export default function Profile() {
       onPress: () => setEditMode(true),
     });
   }
-  actionButtons.push({
-    icon: "upload",
-    onPress: () => console.log("Share !"),
-  });
 
   if (editMode && !isDesktop) {
     return (

@@ -1,4 +1,4 @@
-import { View, Image, ScrollView, useWindowDimensions } from "react-native";
+import { View, Image, ScrollView } from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { useEffect, useState } from "react";
 
@@ -29,9 +29,6 @@ export const AllImagesPopupContent = ({ images }: Props) => {
 
 const DynamicImage = ({ uri }: { uri: string }) => {
   const [aspectRatio, setAspectRatio] = useState(1);
-  const { height: screenHeight } = useWindowDimensions();
-
-  const imageMaxHeight = Math.min(screenHeight - 180, 640);
 
   useEffect(() => {
     Image.getSize(uri, (w, h) => {
@@ -50,7 +47,7 @@ const DynamicImage = ({ uri }: { uri: string }) => {
       <Image
         source={{ uri }}
         style={{
-          height: imageMaxHeight,
+          width: 640,
           aspectRatio,
           borderRadius: borderRadius.medium,
         }}

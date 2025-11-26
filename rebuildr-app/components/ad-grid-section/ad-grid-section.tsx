@@ -25,9 +25,7 @@ export const AdGridSection = ({
   const { width: screenWidth } = useWindowDimensions();
   const { isDesktop } = useScreenType();
   const gapSize = isDesktop ? 24 : 16;
-  const width = isDesktop
-    ? (screenWidth - 75 * 2) / 4 - (gapSize * 3) / 4
-    : (screenWidth - 48) / 2;
+  const width = (screenWidth - 48) / 2;
 
   return (
     <View style={{ gap: 24 }}>
@@ -40,15 +38,30 @@ export const AdGridSection = ({
         </SectionHeader>
       )}
       <View
-        style={{
-          flexDirection: "row",
-          gap: gapSize,
-          flexWrap: "wrap",
-          paddingBottom: 16,
-        }}
+        style={[
+          isDesktop
+            ? {
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginHorizontal: -12,
+              }
+            : {
+                flexDirection: "row",
+                gap: gapSize,
+                flexWrap: "wrap",
+              },
+        ]}
       >
         {products.map((product) => (
-          <View style={{ width }} key={product.id}>
+          <View
+            style={[
+              { paddingBottom: 16 },
+              isDesktop
+                ? { paddingHorizontal: 12, flexBasis: "25%" }
+                : { width },
+            ]}
+            key={product.id}
+          >
             <AdGrid {...product} />
           </View>
         ))}

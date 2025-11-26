@@ -29,11 +29,11 @@ export const FilterChip = ({
   return (
     <Pressable
       {...rest}
-      disabled={disabled}
+      disabled={onPress ? disabled : true}
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
+      onFocus={onPress ? () => setFocused(true) : undefined}
       onBlur={() => setFocused(false)}
       style={() => {
         let chipState: keyof typeof colorSet = "enabled";

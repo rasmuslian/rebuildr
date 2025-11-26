@@ -21,16 +21,17 @@ export const EmptyStateCard = ({
         padding: 16,
         backgroundColor: colors.background.secondary,
         borderRadius: borderRadius.medium,
-        gap: 16,
       }}
     >
-      <Headline size="small" style={{ textAlign: "center" }}>
-        {header}
-      </Headline>
-      <Body size="medium" style={{ textAlign: "center" }}>
-        {description}
-      </Body>
-      {cta && <Button style={{ marginTop: 8 }} {...cta} />}
+      <View style={{ maxWidth: 700, alignSelf: "center", gap: 16 }}>
+        <Headline size="small" style={{ textAlign: "center" }}>
+          {header}
+        </Headline>
+        <Body size="medium" style={{ textAlign: "center" }}>
+          {description}
+        </Body>
+        {cta && <Button style={{ marginTop: 8 }} {...cta} />}
+      </View>
     </View>
   );
 };
