@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { ProductFields } from "./types";
+import { formatPostCode } from "@/utils/formattings";
 
 const PRODUCT_BOTTOM_SHEET_SHIPPING = gql`
   query ProductBottomSheetShipping {
@@ -262,7 +263,7 @@ export const Shipping = ({
                   },
                   {
                     type: "text",
-                    value: postCode ?? data.me.postCode ?? "",
+                    value: formatPostCode(postCode ?? data.me.postCode ?? ""),
                     onChange: (t) => setPostCode(t),
                     heading: "Postnummer",
                     horizontalSize: 1,
