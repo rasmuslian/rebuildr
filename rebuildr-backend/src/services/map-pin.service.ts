@@ -360,25 +360,14 @@ export class MapPinService {
         },
         pins: [],
         total: 0,
-        price: pin.product ? (pin.product.price / 100).toString() : null,
+        prices: [],
       } as MapPinParent;
       uniqueMap[key].pins.push(pin);
       uniqueMap[key].total += 1;
-      if (pin.product && pin.product.price !== null) {
-        // if more than one product, show price interval
-        if (uniqueMap[key].total > 1 && uniqueMap[key].price !== null) {
-          const minPrice = Math.min(
-            parseInt(uniqueMap[key].price),
-            pin.product.price / 100,
-          );
-          const maxPrice = Math.max(
-            parseInt(uniqueMap[key].price),
-            pin.product.price / 100,
-          );
-          uniqueMap[key].price =
-            minPrice === maxPrice ? minPrice.toString() : `${minPrice} - ${maxPrice}`;
-        }
+      if (pin.product) {
+        uniqueMap[key].prices.push((pin.product.price / 100));
       }
+      uniqueMap[key].prices.sort((a, b) => a - b);
       return uniqueMap;
     }, {} as Record<string, MapPinParent>);
     return {

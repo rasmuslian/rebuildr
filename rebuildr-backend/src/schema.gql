@@ -597,7 +597,7 @@ type MapPinParent {
   id: String!
   location: LocationResponse!
   total: Float!
-  price: String
+  prices: [Float!]
 }
 
 type MapPinResponse {

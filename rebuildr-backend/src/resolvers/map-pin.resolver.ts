@@ -25,8 +25,8 @@ export class MapPinParent {
   @Field(() => Number)
   total: number;
 
-  @Field(() => String, { nullable: true })
-  price?: string;
+  @Field(() => [Number], { nullable: true })
+  prices?: number[];
 }
 
 @ObjectType()
