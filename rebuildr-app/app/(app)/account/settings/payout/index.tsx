@@ -56,7 +56,7 @@ export default function Payout({ onNavigation, onBack }: Props) {
 
   const renderNoPayoutAccount = () => {
     return (
-      <View style={{ justifyContent: "space-between", flex: 1, gap: 24 }}>
+      <View style={{ flex: 1, gap: 24 }}>
         <View style={{ gap: 24 }}>
           <View
             style={{
