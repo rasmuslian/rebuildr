@@ -4,6 +4,7 @@ import { Icon } from "@icons/icon";
 import { Badge } from "@components/badges/badge";
 import { UserType } from "@/gql/graphql";
 import { Avatar } from "@components/avatar/avatar";
+import { formatRating } from "@/utils/formattings";
 
 type Props = {
   userType?: UserType;
@@ -48,7 +49,7 @@ export const UserCard = ({
           {typeof rating === "number" && (
             <>
               <Icon icon="star" size={10} />
-              <Body size="small">{rating}</Body>
+              <Body size="small">{formatRating(rating)}</Body>
             </>
           )}
           {isBusiness && (
