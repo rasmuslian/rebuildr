@@ -30,6 +30,7 @@ import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { formatPostCode } from "@/utils/formattings";
+import { progressValues } from "@components/buy/constants";
 
 const BUY_PRODUCT_INITIAL = gql`
   query BuyProductInitial($input: GetProductInput!) {
@@ -106,7 +107,7 @@ type Props = {
 };
 
 export const Buy = ({ productId: _productId }: Props) => {
-  const [progress, setProgress] = useState(10);
+  const [progress, setProgress] = useState(progressValues.initial);
   const { isDesktop } = useScreenType();
   const { setVisible, setContent } = useBuyModalContext();
 
@@ -150,15 +151,15 @@ export const Buy = ({ productId: _productId }: Props) => {
         ? undefined
         : "delivery";
   }
-  let singleProgress = 30;
+  let singleProgress = progressValues.selectTransportation;
   if (
     singleTransportationOption === "pickup" ||
     singleTransportationOption === "delivery"
   ) {
-    singleProgress = 75;
+    singleProgress = progressValues.transportationSelected;
   }
   if (singleTransportationOption === "shipping") {
-    singleProgress = 50;
+    singleProgress = progressValues.transportationSelected;
   }
 
   return (
@@ -275,14 +276,14 @@ const MultipleOptions = ({
   const onSelectTransportationMethod = (newMethod: TransportationString) => {
     if (newMethod === transportationMethod) {
       setTransportationMethod(undefined);
-      updateProgress(30);
+      updateProgress(progressValues.selectTransportation);
       return;
     }
     if (newMethod === "delivery" || newMethod === "pickup") {
-      updateProgress(75);
+      updateProgress(progressValues.transportationSelected);
     }
     if (newMethod === "shipping") {
-      updateProgress(50);
+      updateProgress(progressValues.transportationSelected);
     }
     setTransportationMethod(newMethod);
   };

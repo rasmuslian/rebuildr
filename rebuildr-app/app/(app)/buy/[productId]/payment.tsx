@@ -36,6 +36,7 @@ import { StripeBottomSheet } from "@components/payment/stripe-bottom-sheet";
 import { Toggle } from "@components/controls/toggle";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
+import { progressValues } from "@components/buy/constants";
 
 const BUY_PRODUCT_PAYMENT = gql`
   query BuyProductPayment($input: GetProductInput!) {
@@ -177,9 +178,9 @@ export const PaymentContent = ({
 
   const progress = () => {
     if (isTermsAccepted && !!paymentMethod) {
-      return 100;
+      return progressValues.done;
     }
-    return 80;
+    return progressValues.payment;
   };
 
   const onSelectPaymentMethod = (method: PaymentMethod) => {
