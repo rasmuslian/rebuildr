@@ -1,4 +1,4 @@
-import { ConversationProductQuery, MessageTypeEnum } from "@/gql/graphql";
+import { ConversationProductQuery } from "@/gql/graphql";
 import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
 import { ChatBlock } from "@components/conversations/chat-block";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
