@@ -3,8 +3,7 @@ import TopBar from "@components/navigation/top-bar/top-bar";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
-import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 import { ConversationEmptyState } from "@components/conversations/conversation-empty-state";
 import { ConversationsList } from "@components/conversations/conversations-list";
 import { useEffect, useRef, useState } from "react";
@@ -170,7 +169,8 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
             <Title size="medium">Inkorg</Title>
           </View>
           <ScrollView
-            style={{ height: (windowHeight * 2) / 3 }}
+            style={{ height: (windowHeight * 4) / 5 }}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingVertical: 24,
               gap: 16,
@@ -294,6 +294,7 @@ const Chat = ({
       <ScrollView
         style={{ height: windowHeight / 2 }}
         contentContainerStyle={{ flexGrow: 1, paddingVertical: 24, gap: 8 }}
+        showsVerticalScrollIndicator={false}
       >
         <Conversation
           data={data}

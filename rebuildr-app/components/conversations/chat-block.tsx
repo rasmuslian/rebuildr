@@ -8,7 +8,7 @@ import { ConversationProductQuery, MessageTypeEnum } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   message: string;
@@ -37,6 +37,16 @@ export const ChatBlock = ({
 }: Props) => {
   const [showTime, setShowTime] = useState(alwaysShowTime);
   const isSystemMessage = type === MessageTypeEnum.System;
+  const ref = useRef<View>(null);
+  const [maxWidth, setMaxWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.measure((fx, fy, width, height, px, py) => {
+        setMaxWidth(width);
+      });
+    }
+  }, [message, images, documents]);
 
   return (
     <Pressable
@@ -44,7 +54,10 @@ export const ChatBlock = ({
         setShowTime(alwaysShowTime || !showTime);
       }}
     >
-      <View style={{ alignItems: senderIsMe ? "flex-end" : "flex-start" }}>
+      <View
+        ref={ref}
+        style={{ alignItems: senderIsMe ? "flex-end" : "flex-start" }}
+      >
         <View
           style={{
             flexDirection: "row",
@@ -67,6 +80,11 @@ export const ChatBlock = ({
               isSystemMessage={isSystemMessage}
               onAbortPurchase={onAbortPurchase}
               onReport={onReport}
+              maxWidth={
+                maxWidth !== null
+                  ? maxWidth - (!senderIsMe ? 48 : 0) - 16 - 48
+                  : undefined
+              }
             />
           )}
           {images && <ImageMessage images={images} />}
@@ -94,6 +112,7 @@ type TextMessageProps = {
   isSystemMessage: boolean;
   onAbortPurchase: () => void;
   onReport: () => void;
+  maxWidth?: number;
 };
 
 const TextMessage = ({
@@ -102,6 +121,7 @@ const TextMessage = ({
   isSystemMessage,
   onAbortPurchase,
   onReport,
+  maxWidth,
 }: TextMessageProps) => {
   const colors = useThemeColor();
 
@@ -115,6 +135,7 @@ const TextMessage = ({
           paddingHorizontal: 16,
           paddingVertical: 8,
           flex: 1,
+          maxWidth,
         },
         senderIsMe
           ? {
