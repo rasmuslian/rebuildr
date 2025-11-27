@@ -10,6 +10,7 @@ import {
 } from "@/gql/graphql";
 import { defaultCenter } from "@constants/map";
 import * as Location from "expo-location";
+import { useDebounce } from "./use-debounce";
 
 const LOCATION_SEARCH_QUERY = gql`
   query LocationSearchQuery($input: LocationSearchInput!) {
@@ -58,6 +59,8 @@ export const useLocationAddress = (input?: {
       setLocation([data.addressToLocation.lat, data.addressToLocation.lng]);
     },
   });
+
+  const debouncedLocationSearch = useDebounce(locationSearch, 200);
   const [locationToAddress, { loading: locationToAddressLoading }] =
     useLazyQuery<LocationToAddressQuery, LocationToAddressQueryVariables>(
       LOCATION_TO_ADDRESS_QUERY,
@@ -65,7 +68,7 @@ export const useLocationAddress = (input?: {
 
   const onUpdateAddress = (s: string) => {
     setAddress(s);
-    locationSearch({ variables: { input: { searchString: s } } });
+    debouncedLocationSearch({ variables: { input: { searchString: s } } });
   };
 
   const onSelectAddress = (address: string) => {

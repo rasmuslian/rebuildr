@@ -22,6 +22,7 @@ import {
 import { CREATE_SEARCH_RESULT, DO_SEARCH } from "@/app/(app)/(tabs)/search";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { router } from "expo-router";
+import { useDebounce } from "@hooks/use-debounce";
 
 type Props = {
   visible?: boolean;
@@ -60,6 +61,25 @@ export const Search = ({
     setSearchData,
     setSearchString,
   } = useContext(SearchDropdownContext);
+
+  const handleSearch = (text: string) => {
+    setSearchString(text);
+    if (onChange) {
+      onChange?.(text);
+      return;
+    }
+
+    if (isDesktop && text.length > 0) {
+      search({
+        variables: {
+          searchResultsInput: { searchString: text },
+          usersInput: { name: text },
+        },
+      });
+    }
+  };
+
+  const debouncedSearch = useDebounce(handleSearch, 200);
 
   const [search, { data: searchData }] = useLazyQuery<
     DoSearchQuery,
@@ -115,20 +135,7 @@ export const Search = ({
 
   const handleChange = (text: string) => {
     setValue(text);
-    setSearchString(text);
-    if (onChange) {
-      onChange?.(text);
-      return;
-    }
-
-    if (isDesktop && text.length > 0) {
-      search({
-        variables: {
-          searchResultsInput: { searchString: text },
-          usersInput: { name: text },
-        },
-      });
-    }
+    debouncedSearch(text);
   };
 
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
