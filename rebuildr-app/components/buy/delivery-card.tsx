@@ -138,10 +138,10 @@ export const DeliveryCard = ({
                   km från säljaren
                 </Body>
                 <Body size="medium" color="secondary" style={{ marginTop: 8 }}>
-                  {address}
+                  {address.split(",")[0]}
                 </Body>
                 <Body size="medium" color="secondary">
-                  {deliveryOption.postalCode}
+                  {`${deliveryOption.postalCode}${address.replace(address.split(",")[0], "").trim()}`}
                 </Body>
               </View>
               <Button
