@@ -44,14 +44,22 @@ export default function LinkGroup({ children }: PropsWithChildren) {
               justifyContent: "space-between",
             }}
           >
-            <View style={{ flex: 1, marginRight: 16 }}>
+            <View
+              style={{
+                flex: 1,
+                marginRight: 16,
+                justifyContent: "center",
+                gap: 2,
+              }}
+            >
               <Label size="large" numberOfLines={1} ellipsizeMode="tail">
                 {label}
               </Label>
-
-              <Body size="small" numberOfLines={1} ellipsizeMode="tail">
-                {paragraph}
-              </Body>
+              {paragraph && (
+                <Body size="small" numberOfLines={1} ellipsizeMode="tail">
+                  {paragraph}
+                </Body>
+              )}
             </View>
             <Button
               type="text"

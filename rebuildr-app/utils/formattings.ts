@@ -22,6 +22,28 @@ export const formatPrice = (price?: number) => {
   }).format(price);
 };
 
+export const formatRating = (rating?: number) => {
+  if (rating === undefined) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  }).format(rating);
+};
+
 export const formatSwedishNumber = (number: string) => {
   return number.replace(/^(?:\+46|0046)/, "0");
+};
+
+export const formatOrgNumber = (number: string) => {
+  const numberArray = number.trim().replace(" ", "").split("");
+  if (numberArray.length !== 10) {
+    return number;
+  }
+
+  const first = numberArray.slice(0, 6);
+  const second = numberArray.slice(6, 10);
+  return [...first, "-", ...second].join("");
 };

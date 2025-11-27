@@ -1,4 +1,5 @@
 import { CreateBusinessQueryQuery } from "@/gql/graphql";
+import { formatOrgNumber } from "@/utils/formattings";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
@@ -64,7 +65,8 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
   return (
     <>
       <View
-        style={[{
+        style={[
+          {
             flex: 1,
           },
           isDesktop && {
@@ -99,7 +101,7 @@ export const CreateBusiness = ({ onDone, onExit }: Props) => {
               heading: "Organisationsnummer",
               description:
                 "Ange ditt företags organisationsnummer (10 siffror).",
-              value: orgNumber,
+              value: formatOrgNumber(orgNumber),
               onChangeText: changeOrgNumber,
               error:
                 !!createOrganizationError ||

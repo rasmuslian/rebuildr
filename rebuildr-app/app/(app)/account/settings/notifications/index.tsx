@@ -77,10 +77,13 @@ export default function Notifications({ onNavigation, onBack }: Props) {
         <Pressable
           onPress={() => {
             if (onNavigation) {
-              onNavigation({ page: "user" });
+              onNavigation({
+                page: "user",
+                params: { initialSection: "email" },
+              });
               return;
             }
-            router.replace("/(app)/account/settings/user");
+            router.replace("/(app)/account/settings/user?initialSection=email");
           }}
         >
           <Body size="medium" isLink>
@@ -113,7 +116,6 @@ export default function Notifications({ onNavigation, onBack }: Props) {
             });
           }}
         />
-        <Divider />
       </View>
     </>
   );

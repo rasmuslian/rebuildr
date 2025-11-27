@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Portal } from "@gorhom/portal";
+import { usePathname } from "expo-router";
 
 type Props = {
   open: boolean;
@@ -53,6 +54,15 @@ export const SlideInSheet = ({
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [displayState, setDisplayState] = useState<"none" | "flex">("none");
+  const initialRef = useRef(true);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (initialRef.current) {
+      return;
+    }
+    onClose?.();
+  }, [pathname]);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -70,6 +80,10 @@ export const SlideInSheet = ({
     if (open) {
       setDisplayState("flex");
     } else {
+      if (initialRef.current) {
+        initialRef.current = false;
+        return;
+      }
       setTimeout(() => {
         setDisplayState("none");
       }, 300);

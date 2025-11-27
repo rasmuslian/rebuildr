@@ -28,6 +28,12 @@ export default function Profile() {
   const { isDesktop } = useScreenType();
   const { isLoggedIn } = useUser();
   const { userId } = useLocalSearchParams<{ userId: string }>();
+  const [userCardKey, setUserCardKey] = useState(
+    `user-card-${Date.now().toString()}`,
+  );
+  const [topBarKey, setTopBarKey] = useState(
+    `top-bar-${Date.now().toString()}`,
+  );
 
   const {
     data: profileData,
@@ -55,10 +61,6 @@ export default function Profile() {
       onPress: () => setEditMode(true),
     });
   }
-  actionButtons.push({
-    icon: "upload",
-    onPress: () => console.log("Share !"),
-  });
 
   if (editMode && !isDesktop) {
     return (
@@ -79,7 +81,7 @@ export default function Profile() {
         <ScreenLayout
           style={{ marginTop: 48, gap: 24 }}
           desktopFooter
-          headerComponent={<TopBar theme="light" />}
+          headerComponent={<TopBar theme="light" key={topBarKey} />}
         >
           <View
             style={{
@@ -89,6 +91,7 @@ export default function Profile() {
           >
             <View style={{ flexDirection: "column", gap: 24, maxWidth: 640 }}>
               <UserCard
+                key={userCardKey}
                 userType={user.type}
                 profilePictureUrl={user.profilePicture?.url}
                 username={user.username}
@@ -147,7 +150,13 @@ export default function Profile() {
           title="Redigera profil"
           onClose={() => setEditMode(false)}
         >
-          <EditProfile onEditCompleted={() => setEditMode(false)} />
+          <EditProfile
+            onEditCompleted={() => {
+              setEditMode(false);
+              setUserCardKey(`user-card-${Date.now().toString()}`);
+              setTopBarKey(`top-bar-${Date.now().toString()}`);
+            }}
+          />
         </SlideInSheet>
       </>
     );

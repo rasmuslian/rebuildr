@@ -25,26 +25,28 @@ export const Avatar = ({
     radius = size;
   }
 
-  const getImageUrl = () => {
-    if (imageUrl) return imageUrl;
+  let placeholderImage;
 
-    switch (placeholder) {
-      case "SYSTEM":
-        return LogoIcon.uri;
-      case "CATEGORY":
-        return PlaceholderCategory.uri;
-      case "PROJECT":
-      case UserType.Personal:
-      case UserType.Business:
-        return PlaceholderProfile.uri;
-      default:
-        return PlaceholderProfile.uri;
-    }
-  };
-
+  switch (placeholder) {
+    case "SYSTEM":
+      placeholderImage = LogoIcon.uri;
+      break;
+    case "CATEGORY":
+      placeholderImage = PlaceholderCategory.uri;
+      break;
+    case "PROJECT":
+    case UserType.Personal:
+    case UserType.Business:
+      placeholderImage = PlaceholderProfile.uri;
+      break;
+    default:
+      placeholderImage = PlaceholderProfile.uri;
+      break;
+  }
   return (
     <Image
-      source={getImageUrl()}
+      source={imageUrl}
+      placeholder={placeholderImage}
       {...imageProps}
       style={[
         { width: radius, height: radius },

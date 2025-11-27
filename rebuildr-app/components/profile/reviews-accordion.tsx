@@ -23,12 +23,14 @@ type Props = {
   }[];
   title: string;
   emptyDescription: string;
+  emptyCardSection?: React.ReactNode;
 };
 
 export const ReviewsAccordion = ({
   reviews,
   title,
   emptyDescription,
+  emptyCardSection,
 }: Props) => {
   const [segments, setSegments] = useState(1);
   const segmentSize = 8;
@@ -80,16 +82,17 @@ export const ReviewsAccordion = ({
               onPress={() => setSegments(segments + 1)}
             />
           )}
-          {noReviews && (
-            <Body
-              size="medium"
-              style={{
-                color: colors.text.secondary,
-              }}
-            >
-              {emptyDescription}
-            </Body>
-          )}
+          {noReviews &&
+            (emptyCardSection ?? (
+              <Body
+                size="medium"
+                style={{
+                  color: colors.text.secondary,
+                }}
+              >
+                {emptyDescription}
+              </Body>
+            ))}
         </View>
       </AccordionSection>
     </View>

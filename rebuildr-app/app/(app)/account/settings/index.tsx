@@ -67,10 +67,11 @@ const SWITCH_ACCOUNT_MUTATION = gql`
 
 type Props = {
   onBack?: () => void;
+  onClose?: () => void;
   onNavigation?: (state: AccountState) => void;
 };
 
-export default function Settings({ onBack, onNavigation }: Props) {
+export default function Settings({ onBack, onClose, onNavigation }: Props) {
   const [isSwitching, setIsSwitching] = useState(false);
   const { logout, loading: logoutLoading } = useLogout();
   const { isDesktop } = useScreenType();
@@ -85,6 +86,11 @@ export default function Settings({ onBack, onNavigation }: Props) {
   const onSwitchAccount = (accountId: string) => {
     setIsSwitching(true);
     switchAccount({ variables: { id: accountId } });
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    onClose?.();
   };
 
   useEffect(() => {
@@ -116,7 +122,7 @@ export default function Settings({ onBack, onNavigation }: Props) {
       footerComponent={
         <Button
           label="Logga ut"
-          onPress={logout}
+          onPress={handleLogout}
           type="outlined"
           loading={logoutLoading}
         />

@@ -10,6 +10,7 @@ import { Divider } from "@components/dividers/divider";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useScreenType } from "@hooks/useScreenType";
+import { AccordionSection } from "@components/sections/accordion-section";
 
 type Props = {
   isMyProfile: boolean;
@@ -17,7 +18,7 @@ type Props = {
 };
 
 export default function ProfileReviews({ isMyProfile, profileQuery }: Props) {
-  const { isDesktop } = useScreenType();
+  const { isDesktop, isMobile } = useScreenType();
   const user = profileQuery.user;
   const colors = useThemeColor();
 
@@ -27,6 +28,34 @@ export default function ProfileReviews({ isMyProfile, profileQuery }: Props) {
   const buysReviewed = user.reviewed.filter(
     (review) => review.purchase.buyerId === user.id,
   );
+  const noReviewsText = isMyProfile
+    ? "Inga omdömen än"
+    : "Inga omdömen här just nu";
+  const noSalesText = isMyProfile
+    ? "Du har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!"
+    : "Den här säljaren har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!";
+  const noBuysText = isMyProfile
+    ? "Du har inte fått några omdömen ännu. När du genomför ett köp kan säljaren lämna en recension som hamnar här!"
+    : "Den här köparen har inte fått några omdömen ännu. När någon genomför ett köp kan säljaren lämna en recension här!";
+
+  const emptyReviewsContent = () => {
+    if (isMobile) {
+      return (
+        <EmptyStateCard header={noReviewsText} description={noSalesText} />
+      );
+    }
+    return (
+      <View style={{ gap: 24 }}>
+        <AccordionSection initialOpen title="Från andra köpare">
+          <EmptyStateCard header={noReviewsText} description={noSalesText} />
+        </AccordionSection>
+        <Divider />
+        <AccordionSection initialOpen title="Från andra säljare">
+          <EmptyStateCard header={noReviewsText} description={noBuysText} />
+        </AccordionSection>
+      </View>
+    );
+  };
 
   return (
     <View
@@ -125,23 +154,38 @@ export default function ProfileReviews({ isMyProfile, profileQuery }: Props) {
             title="Från andra köpare"
             reviews={salesReviewed}
             emptyDescription="Inga omdömen från köpare ännu"
+            emptyCardSection={
+              isDesktop ? (
+                <View style={{ paddingTop: 16 }}>
+                  <EmptyStateCard
+                    header={noReviewsText}
+                    description={noSalesText}
+                  />
+                </View>
+              ) : undefined
+            }
           />
           <Divider />
           <ReviewsAccordion
             title="Från andra säljare"
             reviews={buysReviewed}
             emptyDescription="Inga omdömen från säljare ännu"
+            emptyCardSection={
+              isDesktop ? (
+                <View style={{ paddingTop: 16 }}>
+                  <EmptyStateCard
+                    header={noReviewsText}
+                    description={noBuysText}
+                  />
+                </View>
+              ) : undefined
+            }
           />
         </View>
       ) : (
-        <EmptyStateCard
-          header={isMyProfile ? "Inga omdömen än" : "Inga omdömen här just nu"}
-          description={
-            isMyProfile
-              ? "Du har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension som hamnar här!"
-              : "Den här säljaren har inte fått några omdömen ännu. När någon genomför ett köp kan de lämna en recension här!"
-          }
-        />
+        <View style={isDesktop ? { flex: 2 } : {}}>
+          {emptyReviewsContent()}
+        </View>
       )}
     </View>
   );
