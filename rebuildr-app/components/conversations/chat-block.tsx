@@ -8,6 +8,7 @@ import { ConversationProductQuery, MessageTypeEnum } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
+import { useState } from "react";
 
 type Props = {
   message: string;
@@ -16,6 +17,7 @@ type Props = {
   images?: ConversationProductQuery["getConversation"][0]["images"];
   documents?: ConversationProductQuery["getConversation"][0]["documents"];
   createdAt: Date;
+  alwaysShowTime?: boolean;
   senderIsMe: boolean;
   onAbortPurchase: () => void;
   onReport: () => void;
@@ -28,49 +30,61 @@ export const ChatBlock = ({
   images,
   documents,
   createdAt,
+  alwaysShowTime,
   senderIsMe,
   onAbortPurchase,
   onReport,
 }: Props) => {
+  const [showTime, setShowTime] = useState(alwaysShowTime);
   const isSystemMessage = type === MessageTypeEnum.System;
 
   return (
-    <View style={{ alignItems: senderIsMe ? "flex-end" : "flex-start" }}>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 8,
-          alignItems: "flex-end",
-        }}
-      >
-        {!senderIsMe && (
-          <Avatar
-            placeholder={isSystemMessage ? "SYSTEM" : sender?.type}
-            imageUrl={isSystemMessage ? undefined : sender?.profilePicture?.url}
-          />
-        )}
-        {message !== "" && (
-          <TextMessage
-            message={message}
-            senderIsMe={senderIsMe}
-            isSystemMessage={isSystemMessage}
-            onAbortPurchase={onAbortPurchase}
-            onReport={onReport}
-          />
-        )}
-        {images && <ImageMessage images={images} />}
-        {documents && (
-          <DocumentMessage documents={documents} senderIsMe={senderIsMe} />
+    <Pressable
+      onPress={() => {
+        setShowTime(alwaysShowTime || !showTime);
+      }}
+    >
+      <View style={{ alignItems: senderIsMe ? "flex-end" : "flex-start" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-end",
+          }}
+        >
+          {!senderIsMe && (
+            <Avatar
+              style={{ marginRight: 8 }}
+              placeholder={isSystemMessage ? "SYSTEM" : sender?.type}
+              imageUrl={
+                isSystemMessage ? undefined : sender?.profilePicture?.url
+              }
+            />
+          )}
+          {message !== "" && (
+            <TextMessage
+              message={message}
+              senderIsMe={senderIsMe}
+              isSystemMessage={isSystemMessage}
+              onAbortPurchase={onAbortPurchase}
+              onReport={onReport}
+            />
+          )}
+          {images && <ImageMessage images={images} />}
+          {documents && (
+            <DocumentMessage documents={documents} senderIsMe={senderIsMe} />
+          )}
+        </View>
+        {showTime && (
+          <Body
+            size="small"
+            style={{ marginLeft: 48, marginTop: 6, marginBottom: 6 }}
+            color="secondary"
+          >
+            {dayjs(createdAt).format("HH:mm")}
+          </Body>
         )}
       </View>
-      <Body
-        size="small"
-        style={{ marginLeft: 48, marginTop: 6 }}
-        color="secondary"
-      >
-        {dayjs(createdAt).format("HH:mm")}
-      </Body>
-    </View>
+    </Pressable>
   );
 };
 
