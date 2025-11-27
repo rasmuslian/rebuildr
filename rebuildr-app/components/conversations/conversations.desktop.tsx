@@ -17,7 +17,6 @@ import {
   GetConversationsQuery,
   GetConversationsType,
 } from "@/gql/graphql";
-import { CONVERSATION_PRODUCT } from "../../app/(app)/conversations/[productId]/[userId]";
 import { Header } from "@components/navigation/headers/header";
 import { ProductHeader } from "@components/navigation/headers/product-header";
 import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
@@ -32,6 +31,7 @@ import dayjs from "dayjs";
 import { MessageInput } from "./message-input";
 import { useLocalSearchParams } from "expo-router";
 import { parseConversations } from "@/utils/conversations/parse-conversations";
+import { CONVERSATION_PRODUCT } from "./queries";
 
 type Props = {
   data: GetConversationsQuery;
