@@ -412,7 +412,9 @@ export const PaymentContent = ({
           </Body>
         )}
         {transportationMethod === "delivery" && (
-          <Body size="medium">Du betalar (ink. hemtransport 0 kr):</Body>
+          <Body size="medium">
+            Du betalar (ink. hemtransport {data.product.deliveryPrice} kr):
+          </Body>
         )}
         <Display size="medium">{totalPrice} kr</Display>
       </View>
@@ -442,7 +444,8 @@ export const PaymentContent = ({
           style={{ flex: 1 }}
         />
       </View>
-      {isMobile && paymentMethod === PaymentMethod.Card &&
+      {isMobile &&
+        paymentMethod === PaymentMethod.Card &&
         !!createPurchaseData?.purchaseProduct.reference && (
           <StripeBottomSheet
             show={showStripeModal}
