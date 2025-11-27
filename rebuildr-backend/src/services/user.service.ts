@@ -247,6 +247,7 @@ export class UserService {
           message:
             'An organization with given organization number already exist',
           name: 'organizationNumber',
+          type: 'VALUE_TAKEN',
         },
       ]);
     }
@@ -254,7 +255,11 @@ export class UserService {
     const onlyDigits = input.organizationNumber.replace(/\D/g, '');
     if (onlyDigits.length !== 10) {
       throw BadFieldsInputException([
-        { message: 'Invalid organization number', name: 'organizationNumber' },
+        {
+          message: 'Invalid organization number',
+          name: 'organizationNumber',
+          type: 'BAD_VALUE',
+        },
       ]);
     }
     const organizationNumber = onlyDigits;
@@ -404,7 +409,7 @@ export class UserService {
     }
 
     if (!user.connectedAccountId) {
-      throw BadUserInputException('Missing seller account');
+      return null;
     }
     const accounts = await this.stripeService.retrieveExternalAccounts(
       user.connectedAccountId,
