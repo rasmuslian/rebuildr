@@ -19,10 +19,10 @@ import {
   DoSearchQuery,
   DoSearchQueryVariables,
 } from "@/gql/graphql";
-import { CREATE_SEARCH_RESULT, DO_SEARCH } from "@/app/(app)/(tabs)/search";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { router } from "expo-router";
 import { useDebounce } from "@hooks/use-debounce";
+import { CREATE_SEARCH_RESULT, DO_SEARCH } from "./queries";
 
 type Props = {
   visible?: boolean;

@@ -200,6 +200,7 @@ const LoginModalView = () => {
   const viewChildren = [
     state === "email" && (
       <Email
+        key="email"
         onSubmit={(email) => {
           onSubmitEmail(email);
         }}
@@ -208,6 +209,7 @@ const LoginModalView = () => {
     ),
     state === "password" && (
       <Password
+        key="password"
         onBack={() => setState("email")}
         onSubmit={(password) => {
           onSubmitPassword(password);
@@ -218,16 +220,22 @@ const LoginModalView = () => {
     ),
     state === "forgotPassword" && (
       <ForgotPassword
+        key="forgotPassword"
         onBack={() => setState("password")}
         onSubmit={onRequestPasswordReset}
         currentEmail={email}
       />
     ),
     state === "verify" && (
-      <Verify email={email} onSuccess={(id) => onVerifiedSuccess(id)} />
+      <Verify
+        key="verify"
+        email={email}
+        onSuccess={(id) => onVerifiedSuccess(id)}
+      />
     ),
     state === "details" && (
       <Details
+        key="details"
         onDone={() => {
           setVisible(false);
           router.replace("/");
@@ -243,6 +251,7 @@ const LoginModalView = () => {
     ),
     state === "business" && (
       <CreateBusiness
+        key="business"
         onDone={() => {
           reloadAppAsync();
           setVisible(false);

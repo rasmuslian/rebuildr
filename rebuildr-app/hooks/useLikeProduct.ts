@@ -4,8 +4,8 @@ import {
   ProductViewLikeProductMutationVariables,
 } from "@/gql/graphql";
 
-import { MY_FAVORITES } from "@/app/(app)/account/favorites";
 import { useUser } from "@hooks/useUser";
+import { MY_FAVORITES } from "@components/account/queries";
 
 const PRODUCT_VIEW_LIKE_PRODUCT = gql`
   mutation ProductViewLikeProduct($input: SetLikeProductInput!) {

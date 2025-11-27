@@ -5,10 +5,10 @@ import { Dropdown } from "@components/dropdown/dropdown";
 import { SearchDropdownContext } from "@context/search-dropdown-context";
 import { useContext } from "react";
 import { View } from "react-native";
-import { SEARCH } from "@/app/(app)/(tabs)/search";
 import { isLoggedInVar } from "@/apollo/config";
 import { SearchWithResults } from "./search-with-results";
 import { SearchEmptyState } from "./search-empty-state";
+import { SEARCH } from "./queries";
 
 export const SearchDropdown = () => {
   const { visible, position, setVisible, searchData, searchString } =
