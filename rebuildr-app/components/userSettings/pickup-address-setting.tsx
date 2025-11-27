@@ -135,7 +135,7 @@ export const PickupAddressSetting = ({ user }: Props) => {
               },
               {
                 type: "text",
-                value: postCode,
+                value: formatPostCode(postCode),
                 onChange: (t) => setPostCode(t),
                 heading: "Postnummer",
                 horizontalSize: 1,

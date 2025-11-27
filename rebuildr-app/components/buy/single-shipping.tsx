@@ -15,6 +15,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { ServicePointsBottomSheet } from "./service-points-bottom-sheet";
 import { Summary } from "./summary";
+import { formatPostCode } from "@/utils/formattings";
 
 const BUY_SINGLE_SHIPPING_OPTION = gql`
   query BuySingleShippingOption($input: GetTransportationOptionsInput!) {
@@ -102,7 +103,7 @@ export const SingleShipping = ({
               {
                 heading: "Ditt Postnummer",
                 type: "text",
-                value: postCode,
+                value: formatPostCode(postCode),
                 onChange: (t) => setPostCode(t),
                 helperText: "Tex. 34333",
               },

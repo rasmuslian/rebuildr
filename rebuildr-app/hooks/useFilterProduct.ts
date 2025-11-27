@@ -136,13 +136,11 @@ export const useFilterProduct = () => {
     if (!selected) {
       productFilterVar({
         ...filter,
-        selectedCategoryId: undefined,
         [filterKey]: [...filter[filterKey], value],
       });
     } else {
       productFilterVar({
         ...filter,
-        selectedCategoryId: undefined,
         [filterKey]: filter[filterKey].filter((v) => v !== value),
       });
     }
