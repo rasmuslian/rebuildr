@@ -153,17 +153,6 @@ export class ProjectService {
     return await this.projectRepository.save(project);
   }
 
-  async approximatePlace(project: Project) {
-    if (project.mapPin) {
-      return {
-        address: project.mapPin.address,
-        lat: project.mapPin.location.coordinates[0],
-        lng: project.mapPin.location.coordinates[1],
-      };
-    }
-    return null;;
-  }
-
   async setLikeProject(
     userId: string,
     { id: projectId, like }: SetLikeProjectInput,
