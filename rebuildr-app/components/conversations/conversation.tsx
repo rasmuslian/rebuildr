@@ -5,9 +5,9 @@ import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bo
 import { CreateReview } from "@components/review/create-review";
 import { Body } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
-import dayjs from "dayjs";
 import { useState } from "react";
 import { View } from "react-native";
+import dayjs from "dayjs";
 
 type Props = {
   data: ConversationProductQuery;
@@ -36,6 +36,39 @@ export const Conversation = ({
       },
       {},
     );
+
+  const groupByUserAndTime = (messages: (typeof conversationByDate)[0]) => {
+    return messages.reduce(
+      (acc: (typeof conversationByDate)[0][], curr, i, arr) => {
+        const prevMessage = arr[i - 1];
+        //Create new group!
+        if (!prevMessage) {
+          return [...acc, [curr]];
+        }
+        if (prevMessage.sender.id !== curr.sender.id) {
+          return [...acc, [curr]];
+        }
+        if (prevMessage.messageType !== curr.messageType) {
+          return [...acc, [curr]];
+        }
+        const diffInTime = dayjs(curr.createdAt).diff(
+          dayjs(prevMessage.createdAt),
+          "minutes",
+        );
+        if (diffInTime > 5) {
+          return [...acc, [curr]];
+        }
+
+        //Add to latest group
+        const lastIndex = acc.length - 1;
+        const currentGroup = acc[lastIndex] ?? [];
+        const newAcc = [...acc];
+        newAcc[lastIndex] = [...currentGroup, curr];
+        return newAcc;
+      },
+      [],
+    );
+  };
   return (
     <>
       {Object.entries(conversationByDate).map((entry) => {
@@ -70,23 +103,25 @@ export const Conversation = ({
                 }}
               />
             </View>
-            <View style={{ gap: 8 }}>
-              {messages.map((message, i) => {
-                const senderIsMe = message.sender.id === data.me.id;
-                return (
+            <View style={{ gap: 2 }}>
+              {groupByUserAndTime(messages).map((group) => {
+                const sender = group[0]?.sender;
+                const senderIsMe = sender.id === data.me.id;
+                return group.map((message, i, arr) => (
                   <ChatBlock
                     key={i}
                     message={message.message}
                     type={message.messageType}
                     sender={message.sender}
                     createdAt={message.createdAt}
+                    alwaysShowTime={i === arr.length - 1}
                     images={message.images}
                     documents={message.documents}
                     senderIsMe={senderIsMe}
                     onAbortPurchase={() => setShowAbortSheet(true)}
                     onReport={() => setShowReportSheet(true)}
                   />
-                );
+                ));
               })}
             </View>
           </View>
