@@ -42,9 +42,17 @@ export const CategoryFilter = () => {
     (c) => c.id === filter.selectedCategoryId,
   );
 
+  const allCategoriesSelected = data.getCategories.every((c) =>
+    selectedCategories.find((selectedCategory) => selectedCategory.id === c.id),
+  );
+
   return (
     <FilterSection
-      initialOpen={!isSelectedCategoryCategory && !!filter.categoryIds}
+      initialOpen={
+        !isSelectedCategoryCategory &&
+        !!filter.categoryIds &&
+        !allCategoriesSelected
+      }
       title="Underkategori"
       collapsedText={
         selectedCategories?.length

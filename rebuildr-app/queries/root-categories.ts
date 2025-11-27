@@ -9,6 +9,10 @@ export const ROOT_CATEGORIES = gql`
         id
         url
       }
+      children {
+        id
+        parentId
+      }
     }
   }
 `;
