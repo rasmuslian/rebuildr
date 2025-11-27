@@ -140,14 +140,6 @@ export const Project = ({
     setSkipProject(!skipProject);
     setIsEditing(false);
   };
-  const onSelectConnect = () => {
-    update({
-      noProject: false,
-    });
-    setSkipProject(false);
-    setConnectProject(!connectProject);
-    setIsEditing(false);
-  };
 
   const projectOptions = [
     {
@@ -163,6 +155,19 @@ export const Project = ({
         }))
       : []),
   ];
+
+  const onSelectConnect = () => {
+    update({
+      noProject: false,
+    });
+    setSkipProject(false);
+    setConnectProject(!connectProject);
+    setIsEditing(false);
+    if (projectOptions.length === 1) {
+      onSelectProjectId("1");
+    }
+  };
+
   return (
     <View style={{ gap: 24, marginTop: 24 }}>
       <Display size="small" style={{ marginBottom: 16 }}>
