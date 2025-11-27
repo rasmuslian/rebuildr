@@ -1,0 +1,56 @@
+import { gql } from "@apollo/client";
+
+export const MY_FAVORITES = gql`
+  query MyFavorites($limit: Int, $offset: Int) {
+    me {
+      id
+      likedProducts(limit: $limit, offset: $offset) {
+        total
+        products {
+          id
+          primaryImage {
+            id
+            url
+          }
+          title
+          primaryQuantity
+          condition
+          likedByMe
+          seller {
+            id
+            type
+            rating
+          }
+          approximatePlace {
+            address
+          }
+          price
+        }
+      }
+      likedProjects {
+        id
+        title
+        projectPicture {
+          id
+          url
+        }
+        likedByMe
+        products {
+          id
+          status
+          primaryImage {
+            id
+            url
+          }
+        }
+        user {
+          id
+          profilePicture {
+            id
+            url
+          }
+        }
+      }
+    }
+  }
+`;

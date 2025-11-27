@@ -11,9 +11,9 @@ import {
   ConversationProductQuery,
   ProductStatusEnum,
 } from "@/gql/graphql";
-import { CONVERSATION_PRODUCT } from "@/app/(app)/conversations/[productId]/[userId]";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
+import { CONVERSATION_PRODUCT } from "./queries";
 
 const CONVERSATION_ACCEPT_PURCHASE = gql`
   mutation ConversationAcceptPurchase($input: AcceptPurchaseInput!) {

@@ -7,7 +7,7 @@ import {
   SearchQuery,
   SearchQueryVariables,
 } from "@/gql/graphql";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Icon } from "@icons/icon";
 import { TextInput } from "react-native";
@@ -18,68 +18,11 @@ import { textStyles } from "@components/typography/typeface";
 import { Header } from "@components/navigation/headers/header";
 import { SearchEmptyState } from "@components/search/search-empty-state";
 import { SearchWithResults } from "@components/search/search-with-results";
-
-export const SEARCH = gql`
-  query Search($isLoggedIn: Boolean!, $searchResult: GetSearchResultsInput!) {
-    popularCategories {
-      id
-      name
-      parentId
-      image {
-        id
-        url
-      }
-    }
-    getSearchResults(input: $searchResult) @include(if: $isLoggedIn) {
-      id
-      searchString
-      count
-    }
-    me @include(if: $isLoggedIn) {
-      id
-    }
-  }
-`;
-
-export const DO_SEARCH = gql`
-  query DoSearch(
-    $searchResultsInput: GetSimilarSearchResultsInput!
-    $usersInput: GetUsersInput!
-  ) {
-    getSimilarSearchResults(input: $searchResultsInput) {
-      id
-      searchString
-      count
-    }
-    getUsers(input: $usersInput) {
-      id
-      username
-      type
-      numberOfPublishedProducts
-      numberOfSoldProducts
-      profilePicture {
-        id
-        url
-      }
-    }
-  }
-`;
-
-export const CLEAR_SEARCH_HISTORY_MUTATION = gql`
-  mutation ClearSearchHistory {
-    clearSearchHistory
-  }
-`;
-
-export const CREATE_SEARCH_RESULT = gql`
-  mutation CreateSearchResult($input: CreateSearchResultInput!) {
-    createSearchResult(input: $input) {
-      id
-      searchString
-      count
-    }
-  }
-`;
+import {
+  CREATE_SEARCH_RESULT,
+  DO_SEARCH,
+  SEARCH,
+} from "@components/search/queries";
 
 export default function Search() {
   const [searchString, setSearchString] = useState("");

@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import {
   ConversationProductQuery,
   ConversationProductQueryVariables,
@@ -17,84 +17,7 @@ import { ChatActionButtons } from "@components/conversations/chat-action-buttons
 import { Conversation } from "@components/conversations/conversation";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
 import { MessageInput } from "@components/conversations/message-input";
-
-export const CONVERSATION_PRODUCT = gql`
-  query ConversationProduct(
-    $input: GetConversationInput!
-    $getProductInput: GetProductInput!
-    $latestPurchaseInput: LatestPurchaseInput!
-  ) {
-    getConversation(input: $input) {
-      id
-      message
-      messageType
-      createdAt
-      images {
-        id
-        url
-      }
-      documents {
-        id
-        name
-        url
-      }
-      sender {
-        id
-        type
-        username
-        profilePicture {
-          id
-          url
-        }
-      }
-      receiver {
-        id
-        username
-        profilePicture {
-          id
-          url
-        }
-      }
-    }
-    product(input: $getProductInput) {
-      id
-      title
-      price
-      status
-      seller {
-        id
-        username
-      }
-      primaryImage {
-        id
-        url
-      }
-    }
-    latestPurchase(input: $latestPurchaseInput) {
-      id
-      status
-      paymentAcceptedAt
-      shipmentBookedAt
-      shipmentDeliveredAt
-      deliveredAt
-      failedAt
-      approvedAt
-      qrCodeUrl
-      isShipping
-      transportationMethod
-      sellerRespondedAt
-      reviews {
-        id
-        reviewerId
-        revieweeId
-      }
-    }
-    me {
-      id
-      username
-    }
-  }
-`;
+import { CONVERSATION_PRODUCT } from "@components/conversations/queries";
 
 export default function ConversationProduct() {
   const [showReviewSheet, setShowReviewSheet] = useState(false);

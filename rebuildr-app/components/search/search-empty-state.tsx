@@ -8,8 +8,8 @@ import { Icon } from "@icons/icon";
 import { ClearSearchHistoryMutation, SearchQuery } from "@/gql/graphql";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useMutation } from "@apollo/client";
-import { CLEAR_SEARCH_HISTORY_MUTATION } from "@/app/(app)/(tabs)/search";
 import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
+import { CLEAR_SEARCH_HISTORY_MUTATION } from "./queries";
 
 type Props = {
   data: SearchQuery | undefined;

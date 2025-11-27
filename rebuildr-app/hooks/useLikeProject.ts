@@ -4,8 +4,8 @@ import {
   ProjectLikeMutationVariables,
 } from "@/gql/graphql";
 
-import { MY_FAVORITES } from "@/app/(app)/account/favorites";
 import { useUser } from "@hooks/useUser";
+import { MY_FAVORITES } from "@components/account/queries";
 
 const PROJECT_LIKE_MUTATION = gql`
   mutation ProjectLike($input: SetLikeProjectInput!) {

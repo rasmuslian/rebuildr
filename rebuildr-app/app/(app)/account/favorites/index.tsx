@@ -14,61 +14,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { View } from "react-native";
 import { SectionHeader } from "@components/sections/section-header";
-
-export const MY_FAVORITES = gql`
-  query MyFavorites($limit: Int, $offset: Int) {
-    me {
-      id
-      likedProducts(limit: $limit, offset: $offset) {
-        total
-        products {
-          id
-          primaryImage {
-            id
-            url
-          }
-          title
-          primaryQuantity
-          condition
-          likedByMe
-          seller {
-            id
-            type
-            rating
-          }
-          approximatePlace {
-            address
-          }
-          price
-        }
-      }
-      likedProjects {
-        id
-        title
-        projectPicture {
-          id
-          url
-        }
-        likedByMe
-        products {
-          id
-          status
-          primaryImage {
-            id
-            url
-          }
-        }
-        user {
-          id
-          profilePicture {
-            id
-            url
-          }
-        }
-      }
-    }
-  }
-`;
+import { MY_FAVORITES } from "@components/account/queries";
 
 export default function Favorites() {
   const { isDesktop } = useScreenType();
