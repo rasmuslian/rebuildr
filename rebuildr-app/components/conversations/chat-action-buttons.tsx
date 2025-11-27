@@ -10,6 +10,7 @@ import {
   ConversationMarkAsDeliveredMutationVariables,
   ConversationProductQuery,
   ProductStatusEnum,
+  UserType,
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
@@ -74,6 +75,7 @@ export const ChatActionButtons = ({ data, onShowReview }: Props) => {
             });
           }
         }}
+        disabled={data.me.type === UserType.Business}
       />
     ) : null;
   }
