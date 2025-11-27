@@ -4,6 +4,7 @@ import { TabRail } from "@components/tabs/tab-rail";
 import { Body, Display, Headline } from "@components/typography/text";
 import { View } from "react-native";
 import { ConversationCards } from "./conversation-cards";
+import { ConversationsPerProductType } from "@/utils/conversations/parse-conversations";
 
 type Props = {
   totalUnread: number;
@@ -11,8 +12,8 @@ type Props = {
   nrUnreadBuy: number;
   tab: "buy" | "sell";
   setTab: (tab: "buy" | "sell") => void;
-  unread: any[];
-  read: any[];
+  unread: ConversationsPerProductType;
+  read: ConversationsPerProductType;
   myId: string;
   selectedConversation?: { productId: string; userId?: string; key: number };
   onSelectConversation?: (args: {
