@@ -10,6 +10,7 @@ import { RolesGuard } from "src/auth/roles.guard";
 import { ProductsInput } from "./product.resolver";
 import { Product } from "src/entities/product.entity";
 import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
+import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
 
 @ObjectType()
 export class MapPinParent {
@@ -129,6 +130,7 @@ export class MapPinResolver {
   }
 
   @Query(() => MapPinResponse)
+  @UseGuards(GqlOptionalAuthGuard)
   async mapPinsInRadius(@Args('input') input: MapPinsRadiusLocationInput) {
     return this.mapPinService.findAllInRadius(
       input.point,
@@ -139,6 +141,7 @@ export class MapPinResolver {
   }
 
   @Query(() => MapPinResponse)
+  @UseGuards(GqlOptionalAuthGuard)
   async mapPinsInBoundingBox(@Args('input') input: MapPinsBoxLocationInput) {
     return this.mapPinService.findAllInBoundingBox(
       input.southWest,
