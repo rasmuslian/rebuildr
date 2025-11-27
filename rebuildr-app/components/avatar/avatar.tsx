@@ -45,8 +45,7 @@ export const Avatar = ({
   }
   return (
     <Image
-      source={imageUrl}
-      placeholder={placeholderImage}
+      source={imageUrl ?? placeholderImage}
       {...imageProps}
       style={[
         { width: radius, height: radius },
