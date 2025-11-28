@@ -13,7 +13,6 @@ import { ComponentProps } from "react";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { quantities } from "@constants/quantities";
 import { conditions } from "@constants/conditions";
-import { router } from "expo-router";
 
 type Props = {
   id: string;
@@ -25,7 +24,8 @@ type Props = {
   statusBadgeProps?: ComponentProps<typeof Badge> | null;
   imageUrl?: string;
   status: ProductStatusEnum;
-  shouldNavigate?: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
 };
 
 export const ProductHeader = ({
@@ -38,17 +38,17 @@ export const ProductHeader = ({
   statusBadgeProps,
   imageUrl,
   status,
-  shouldNavigate = false,
+  disabled = true,
+  onPress,
 }: Props) => {
   const quantityUnit = _quantityUnit ?? QuantityUnitEnum.Amount;
   return (
     <Pressable
-      disabled={!shouldNavigate}
+      disabled={disabled || !onPress}
       onPress={() => {
-        router.navigate({
-          pathname: "/product/[productId]",
-          params: { productId: id },
-        });
+        if (onPress) {
+          onPress();
+        }
       }}
     >
       <View style={{ gap: 16 }}>

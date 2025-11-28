@@ -18,6 +18,7 @@ import { Conversation } from "@components/conversations/conversation";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
 import { MessageInput } from "@components/conversations/message-input";
 import { CONVERSATION_PRODUCT } from "@components/conversations/queries";
+import { useChatHeaderNavigation } from "@hooks/use-chat-header-navigation";
 
 export default function ConversationProduct() {
   const [showReviewSheet, setShowReviewSheet] = useState(false);
@@ -52,12 +53,19 @@ export default function ConversationProduct() {
       });
     },
   });
+  const sellerIsMe = data?.me.id === data?.product.seller.id;
+
+  const { action: headerAction, disabled: headerActionDisabled } =
+    useChatHeaderNavigation({
+      productId,
+      productStatus: data?.product?.status,
+      role: sellerIsMe ? "seller" : "buyer",
+      purchase: data?.latestPurchase,
+    });
 
   if (!data) {
     return <LoadingSpinner />;
   }
-
-  const sellerIsMe = data.me.id === data.product.seller.id;
 
   const statusBadgeProps = getProductBadgeProps(
     data.product.status,
@@ -84,6 +92,8 @@ export default function ConversationProduct() {
             statusBadgeProps={statusBadgeProps}
             status={data.product.status}
             imageUrl={data.product.primaryImage?.url}
+            disabled={headerActionDisabled}
+            onPress={headerAction}
           />
         </View>
       }

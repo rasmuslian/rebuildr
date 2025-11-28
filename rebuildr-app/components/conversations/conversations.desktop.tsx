@@ -32,6 +32,7 @@ import { MessageInput } from "./message-input";
 import { useLocalSearchParams } from "expo-router";
 import { parseConversations } from "@/utils/conversations/parse-conversations";
 import { CONVERSATION_PRODUCT } from "./queries";
+import { useChatHeaderNavigation } from "@hooks/use-chat-header-navigation";
 
 type Props = {
   data: GetConversationsQuery;
@@ -252,6 +253,16 @@ const Chat = ({
     },
   });
 
+  const sellerIsMe = data?.me.id === data?.product.seller.id;
+
+  const { action: headerAction, disabled: headerActionDisabled } =
+    useChatHeaderNavigation({
+      productId,
+      productStatus: data?.product?.status,
+      role: sellerIsMe ? "seller" : "buyer",
+      purchase: data?.latestPurchase,
+    });
+
   if (!data || loading) {
     return <LoadingSpinner />;
   }
@@ -261,8 +272,6 @@ const Chat = ({
       ? data.getConversation[0].receiver
       : data.getConversation[0].sender
     : data.product.seller;
-
-  const sellerIsMe = data.me.id === data.product.seller.id;
 
   const statusBadgeProps = getProductBadgeProps(
     data.product.status,
@@ -288,7 +297,8 @@ const Chat = ({
           statusBadgeProps={statusBadgeProps}
           status={data.product.status}
           imageUrl={data.product.primaryImage?.url}
-          shouldNavigate
+          disabled={headerActionDisabled}
+          onPress={headerAction}
         />
       </View>
       <ScrollView
