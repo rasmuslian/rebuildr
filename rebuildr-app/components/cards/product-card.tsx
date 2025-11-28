@@ -62,7 +62,7 @@ export const ProductCard = ({
           alignItems: "center",
         }}
       >
-        <View style={{ minWidth: 52 }}>
+        <View style={[avatars[1] ? { minWidth: 52 } : {}]}>
           <Avatar
             size={32}
             style={{
