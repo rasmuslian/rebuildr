@@ -11,6 +11,7 @@ import { ProductsInput } from "./product.resolver";
 import { Product } from "src/entities/product.entity";
 import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
 import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
+import { Project } from "src/entities/project.entity";
 
 @ObjectType()
 export class MapPinParent {
@@ -28,6 +29,15 @@ export class MapPinParent {
 
   @Field(() => [Number], { nullable: true })
   prices?: number[];
+
+  @Field(() => MapPinTypeEnum)
+  type: MapPinTypeEnum;
+
+  @Field(() => [Product], { nullable: true })
+  products?: Product[];
+
+  @Field(() => [Project], { nullable: true })
+  projects?: Project[];
 }
 
 @ObjectType()

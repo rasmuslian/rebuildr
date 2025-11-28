@@ -598,6 +598,9 @@ type MapPinParent {
   location: LocationResponse!
   total: Float!
   prices: [Float!]
+  type: MapPinTypeEnum!
+  products: [Product!]
+  projects: [Project!]
 }
 
 type MapPinResponse {

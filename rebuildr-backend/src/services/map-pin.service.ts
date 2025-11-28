@@ -261,7 +261,8 @@ export class MapPinService {
           whereClause,
           whereParams,
         )
-        .innerJoinAndSelect("mapPin.product", "product");
+        .innerJoinAndSelect("mapPin.product", "product")
+        .leftJoinAndSelect("product.project", "project");
 
       if (productsInput) {
 
@@ -377,8 +378,8 @@ export class MapPinService {
     return this.groupMapPins(mapPins);
   }
 
-  private groupMapPins = (mapPins: MapPin[]) => {
-    const groupedMapPins = mapPins.reduce((uniqueMap, pin) => {
+  private reduceMapPinsByLocation = (mapPins: MapPin[]): Record<string, MapPinParent> => {
+    return mapPins.reduce((uniqueMap, pin) => {
       const key = pin.location.coordinates.toString();
       uniqueMap[key] ||= {
         id: pin.id,
@@ -389,15 +390,44 @@ export class MapPinService {
         pins: [],
         total: 0,
         prices: [],
+        products: [],
+        projects: [],
+        type: (pin.product?.projectId) ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
       } as MapPinParent;
       uniqueMap[key].pins.push(pin);
       uniqueMap[key].total += 1;
       if (pin.product) {
         uniqueMap[key].prices.push((pin.product.price / 100));
+        uniqueMap[key].products.push(pin.product);
+        if (pin.product.project) {
+          uniqueMap[key].projects.push(pin.product.project);
+        }
+      } else if (pin.project) {
+        uniqueMap[key].projects.push(pin.project);
       }
       uniqueMap[key].prices.sort((a, b) => a - b);
       return uniqueMap;
     }, {} as Record<string, MapPinParent>);
+  }
+
+  private groupMapPins = (mapPins: MapPin[]) => {
+    const projectMapPins = mapPins.filter((pin) => pin.product?.projectId);
+    const productMapPins = mapPins.filter((pin) => pin.product && !pin.product.projectId);
+
+    const groupedMapPins = this.reduceMapPinsByLocation(projectMapPins);
+
+    const reducedProductMapPins = this.reduceMapPinsByLocation(productMapPins);
+    Object.values(reducedProductMapPins).forEach((pinParent) => {
+      const key = pinParent.location.lat + ',' + pinParent.location.lng;
+      if (groupedMapPins[key]) {
+        groupedMapPins[key].pins.push(...pinParent.pins);
+        groupedMapPins[key].total += pinParent.total;
+        groupedMapPins[key].prices.push(...pinParent.prices);
+        groupedMapPins[key].prices.sort((a, b) => a - b);
+      } else {
+        groupedMapPins[key] = pinParent;
+      }
+    });
     return {
       mapPins: Object.values(groupedMapPins),
       total: Object.values(groupedMapPins).length,
