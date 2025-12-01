@@ -11,7 +11,7 @@ import {
   useMemo,
   useEffect,
 } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, View, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -36,6 +36,7 @@ type Props = PropsWithChildren<{
   isStickyFooter?: boolean;
   stackBehavior?: BottomSheetModalStackBehavior;
   open: boolean;
+  containerStyle?: ViewStyle;
 }>;
 
 export const BottomSheet = ({
@@ -51,6 +52,7 @@ export const BottomSheet = ({
   isStickyFooter,
   open,
   stackBehavior = "push",
+  containerStyle,
 }: Props) => {
   const safeArea = useSafeAreaInsets();
   const innerRef = useRef<BottomSheetModal>(
@@ -62,7 +64,7 @@ export const BottomSheet = ({
   useEffect(() => {
     if (open) {
       innerRef.current?.present();
-      if (screenHeight) {
+      if (screenHeight && scrollable) {
         topBorderRadius.value = withTiming(0, {
           duration: 500,
           easing: Easing.ease,
@@ -75,7 +77,7 @@ export const BottomSheet = ({
       });
       innerRef.current?.dismiss();
     }
-  }, [open]);
+  }, [open, scrollable, screenHeight]);
 
   const animatedBorderRadiusStyle = useAnimatedStyle(() => {
     return {
@@ -182,7 +184,9 @@ export const BottomSheet = ({
               ]}
             >
               {renderHeader()}
-              <View style={[!screenHeight && { flex: 1 }]}>{children}</View>
+              <View style={[!screenHeight && { flex: 1 }, containerStyle]}>
+                {children}
+              </View>
               {footer && !isStickyFooter && (
                 <View
                   style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}

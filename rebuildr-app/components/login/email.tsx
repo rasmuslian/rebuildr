@@ -1,12 +1,9 @@
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
-import { Display, Title } from "@components/typography/text";
-import { LoginModalContext } from "@context/loginModalContext";
+import { Display } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
-import { useContext, useState } from "react";
-import { Pressable, View } from "react-native";
+import { useState } from "react";
+import { View } from "react-native";
 import { z } from "zod";
 
 type Props = {
@@ -17,8 +14,6 @@ type Props = {
 export default function Email({ onSubmit, initialEmail }: Props) {
   const [email, setEmail] = useState(initialEmail ?? "");
   const [error, setError] = useState(false);
-  const colors = useThemeColor();
-  const { setVisible } = useContext(LoginModalContext);
   const { isDesktop } = useScreenType();
 
   const onEnterEmail = (email: string) => {
@@ -33,57 +28,35 @@ export default function Email({ onSubmit, initialEmail }: Props) {
 
   return (
     <View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottomWidth: 1,
-          borderColor: colors.dividers.neutral,
-          paddingBottom: 8,
-        }}
-      >
-        <Title size="medium">Logga in eller skapa konto</Title>
-        <Pressable onPress={() => setVisible(false)}>
-          <Icon icon="X" size={18} />
-        </Pressable>
-      </View>
-      <View
-        style={{
-          paddingTop: 24,
-          paddingBottom: 32,
-        }}
-      >
-        <Display style={{ marginBottom: isDesktop ? 24 : 16 }} size="small">
-          Skriv in din e-post för att fortsätta
-        </Display>
-        <Form
-          fields={[
-            {
-              type: "text",
-              heading: "E-postadress",
-              onChangeText: (text) => {
-                if (error) {
-                  setError(false);
-                }
-                setEmail(text);
-              },
-              value: email,
-              onKeyPress(e) {
-                if (e.nativeEvent.key === "Enter") {
-                  onEnterEmail(email);
-                }
-              },
-              error,
+      <Display style={{ marginBottom: isDesktop ? 24 : 16 }} size="small">
+        Skriv in din e-post för att fortsätta
+      </Display>
+      <Form
+        fields={[
+          {
+            type: "text",
+            heading: "E-postadress",
+            onChangeText: (text) => {
+              if (error) {
+                setError(false);
+              }
+              setEmail(text);
             },
-          ]}
-        />
-        <Button
-          style={{ marginTop: isDesktop ? 48 : 24 }}
-          label="Logga in / Skapa konto"
-          onPress={() => onEnterEmail(email)}
-        />
-      </View>
+            value: email,
+            onKeyPress(e) {
+              if (e.nativeEvent.key === "Enter") {
+                onEnterEmail(email);
+              }
+            },
+            error,
+          },
+        ]}
+      />
+      <Button
+        style={{ marginTop: isDesktop ? 48 : 24 }}
+        label="Logga in / Skapa konto"
+        onPress={() => onEnterEmail(email)}
+      />
     </View>
   );
 }

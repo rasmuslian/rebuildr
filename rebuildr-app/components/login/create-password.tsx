@@ -98,7 +98,7 @@ export const CreatePassword = ({
 
           return (
             <View
-              style={{ flexDirection: "row", alignItems: "center" }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
               key={i}
             >
               {pwValidationResult[req] === null && (

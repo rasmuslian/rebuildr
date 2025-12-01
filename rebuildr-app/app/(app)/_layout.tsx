@@ -1,9 +1,11 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Redirect, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ComingSoon } from "@components/coming-soon/coming-soon";
+import { LoginModalContext } from "@context/loginModalContext";
+import { use } from "react";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -15,6 +17,7 @@ const APP_QUERY = gql`
 `;
 
 export default function AppLayout() {
+  const { setVisible } = use(LoginModalContext);
   const { data } = useQuery<AppQueryQuery>(APP_QUERY, {
     fetchPolicy: "network-only",
     variables: {
@@ -27,7 +30,7 @@ export default function AppLayout() {
   }
 
   if (data?.me?.registrationStatus === RegisterStatusEnum.Details) {
-    return <Redirect href="/sign-up/details" />;
+    setVisible(true);
   }
 
   if (!data) {
