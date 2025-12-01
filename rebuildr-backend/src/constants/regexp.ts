@@ -1,5 +1,5 @@
 export const swedishPhoneNumberRegex = new RegExp(
-  /^(?:(?:\+46|0046|0)[ ]?\d{1,4}[ ]?\d{3}[ ]?\d{2}[ ]?\d{2})$/,
+  /^(?:\+46\s?7\d|0046\s?7\d|07\d)(?:[\s-]?\d){7}$/,
 );
 
 export const passwordRegex = new RegExp(
