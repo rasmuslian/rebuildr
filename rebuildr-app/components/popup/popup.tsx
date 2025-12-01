@@ -59,7 +59,7 @@ export const Popup = ({ open, onClose, type, children }: Props) => {
         <View
           style={{
             flex: isFull ? 1 : undefined,
-            width: isFull ? "100%" : "50%",
+            width: isFull ? "100%" : 620,
             height: isFull ? "100%" : "auto",
             backgroundColor: primitives.neutrals100,
             borderRadius: !isFull ? 12 : 0,
@@ -67,17 +67,19 @@ export const Popup = ({ open, onClose, type, children }: Props) => {
         >
           {children}
         </View>
-        <View style={{ position: "absolute", top: 24, right: 18 }}>
-          <Button
-            label="Stäng"
-            onPress={handleClose}
-            icon="X"
-            iconPosition="right"
-            type="filled"
-            theme="dark"
-            showShadow
-          />
-        </View>
+        {isFull && (
+          <View style={{ position: "absolute", top: 24, right: 18 }}>
+            <Button
+              label="Stäng"
+              onPress={handleClose}
+              icon="X"
+              iconPosition="right"
+              type="filled"
+              theme="dark"
+              showShadow
+            />
+          </View>
+        )}
       </Animated.View>
     </Portal>
   );

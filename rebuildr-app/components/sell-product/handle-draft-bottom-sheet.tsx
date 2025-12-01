@@ -2,6 +2,7 @@ import { SellProductBottomSheetQueryQuery } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
+import { Header } from "@components/navigation/headers/header";
 import { Popup } from "@components/popup/popup";
 import { Display } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
@@ -58,11 +59,7 @@ export const HandleDraftBottomSheet = ({
     <View
       style={[
         { justifyContent: "space-between", flex: 1, marginBottom: 16 },
-        isDesktop && {
-          paddingHorizontal: 40,
-          paddingVertical: 24,
-          alignItems: "center",
-        },
+        isDesktop && { marginBottom: 0 },
       ]}
     >
       <View style={{ gap: 24, marginVertical: 24 }}>
@@ -71,7 +68,7 @@ export const HandleDraftBottomSheet = ({
         </Display>
       </View>
 
-      <View style={[{ gap: 8, paddingTop: 24 }, isDesktop && { width: 400 }]}>
+      <View style={[{ gap: 8, paddingTop: 24 }]}>
         <Button
           label="Ja, spara utkast"
           onPress={onSaveDraft}
@@ -92,7 +89,25 @@ export const HandleDraftBottomSheet = ({
   if (isDesktop) {
     return (
       <Popup open={show} onClose={onDismiss}>
-        {content}
+        <View
+          style={{
+            padding: 24,
+            justifyContent: "center",
+          }}
+        >
+          <Header
+            title="Hantera utkast"
+            showBackButton={false}
+            showDivider
+            ctas={[
+              {
+                icon: "X",
+                onPress: onDismiss,
+              },
+            ]}
+          />
+          <View style={{ padding: 48, paddingTop: 24 }}>{content}</View>
+        </View>
       </Popup>
     );
   }

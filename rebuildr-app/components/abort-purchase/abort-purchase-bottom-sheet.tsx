@@ -9,6 +9,7 @@ import { View } from "react-native";
 import { Button } from "@components/buttons/button";
 import { useScreenType } from "@hooks/useScreenType";
 import { Popup } from "@components/popup/popup";
+import { Header } from "@components/navigation/headers/header";
 
 const ABORT_PURCHASE = gql`
   mutation AbortPurchase($input: AbortPurchaseInput!) {
@@ -51,7 +52,12 @@ export const AbortPurchaseBottomSheet = ({
   };
 
   const content = (
-    <View style={{ justifyContent: "space-between", flex: 1 }}>
+    <View
+      style={[
+        { justifyContent: "space-between", flex: 1 },
+        isDesktop && { gap: 24 },
+      ]}
+    >
       <View style={{ gap: 24 }}>
         <Display size="small" style={{ textAlign: "center" }}>
           Är du säker på att du vill avbryta köpet?
@@ -84,10 +90,20 @@ export const AbortPurchaseBottomSheet = ({
           style={{
             padding: 24,
             justifyContent: "center",
-            alignItems: "center",
           }}
         >
-          {content}
+          <Header
+            title="Avbryt köp"
+            showBackButton={false}
+            showDivider
+            ctas={[
+              {
+                icon: "X",
+                onPress: onDismiss,
+              },
+            ]}
+          />
+          <View style={{ padding: 48 }}>{content}</View>
         </View>
       </Popup>
     );
