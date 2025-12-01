@@ -151,7 +151,13 @@ export class UserService {
     }
     if (input.phoneNumber) {
       if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
-        throw BadUserInputException('Invalid phone number');
+        throw BadFieldsInputException([
+          {
+            message: 'Invalid phone number',
+            name: 'phoneNumber',
+            type: 'BAD_VALUE',
+          },
+        ]);
       }
       user.phoneNumber = input.phoneNumber;
     }
@@ -180,7 +186,9 @@ export class UserService {
     }
     if (input.postCode) {
       if (!swedishPostCodeRegex.test(input.postCode)) {
-        throw BadUserInputException('Invalid post code');
+        throw BadFieldsInputException([
+          { message: 'Invalid post code', name: 'postCode', type: 'BAD_VALUE' },
+        ]);
       }
       user.postCode = input.postCode;
     }
