@@ -1,14 +1,11 @@
-import { GetConversationsQuery } from "@/gql/graphql";
+import { ConversationsPerProductType } from "@/utils/conversations/parse-conversations";
 import { ProductMessageCard } from "@components/messages/product-message-card";
 import { useScreenType } from "@hooks/useScreenType";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 
 type Props = {
-  conversationsGroup: {
-    productId: string;
-    conversations: GetConversationsQuery["getConversations"];
-  }[];
+  conversationsGroup: ConversationsPerProductType;
   myId: string;
   selectedConversation?: { productId: string; userId?: string; key: number };
   onSelectConversation?: (args: {

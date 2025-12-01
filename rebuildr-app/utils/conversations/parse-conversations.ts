@@ -1,5 +1,9 @@
 import { GetConversationsQuery } from "@/gql/graphql";
 
+export type ConversationsPerProductType = {
+  productId: string;
+  conversations: GetConversationsQuery["getConversations"];
+}[];
 export const parseConversations = (
   data: GetConversationsQuery,
   tab: "sell" | "buy",
@@ -27,13 +31,7 @@ export const parseConversations = (
   );
   const conversations = tab === "buy" ? buyConversations : sellConversations;
   const conversationsPerProduct = conversations.reduce(
-    (
-      acc: {
-        productId: string;
-        conversations: GetConversationsQuery["getConversations"];
-      }[],
-      curr,
-    ) => {
+    (acc: ConversationsPerProductType, curr) => {
       const existingIndex = acc.findIndex(
         (group) => group.productId === curr.product.id,
       );
