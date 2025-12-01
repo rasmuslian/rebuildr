@@ -880,6 +880,11 @@ export class ProductResolver {
     return productLoaders.brandLoader.load(_product.id);
   }
 
+  @ResolveField(() => String, { nullable: true })
+  async projectId(@Root() product: Product) {
+    return product.projectId;
+  }
+
   @ResolveField(() => Project, { nullable: true })
   async project(
     @Root() _product: Product,

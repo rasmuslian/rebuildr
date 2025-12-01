@@ -367,6 +367,7 @@ type Product {
   likedByMe: Boolean
   price: Float!
   brand: Brand
+  projectId: String
   project: Project
   location: LocationResponse
   approximatePlace: ApproximatePlaceResponse
