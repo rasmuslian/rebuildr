@@ -592,19 +592,22 @@ type ListArticlesResponse {
   total: Int!
 }
 
-type MapPinParent {
-  pins: [MapPin!]!
+type MapPinGroup {
   id: String!
   location: LocationResponse!
-  total: Float!
   prices: [Float!]
   type: MapPinTypeEnum!
   products: [Product!]
-  projects: [Project!]
+  projectIds: [String!]
+}
+
+type ProductMapPinResponse {
+  pins: [MapPinGroup!]!
+  total: Float!
 }
 
 type MapPinResponse {
-  mapPins: [MapPinParent!]!
+  mapPins: [MapPin!]!
   total: Float!
 }
 
@@ -655,8 +658,9 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  mapPinsInRadius(input: MapPinsRadiusLocationInput!): MapPinResponse!
-  mapPinsInBoundingBox(input: MapPinsBoxLocationInput!): MapPinResponse!
+  productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!): ProductMapPinResponse!
+  productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!): ProductMapPinResponse!
+  mapPinsInBoundingBox(southWest: PointInput!, northEast: PointInput!): MapPinResponse!
 }
 
 input UserExistsInput {
@@ -842,10 +846,9 @@ input ListArticlesInput {
   pageSize: Int
 }
 
-input MapPinsRadiusLocationInput {
+input ProductMapPinsRadiusLocationInput {
   point: PointInput!
   radius: Float!
-  types: [MapPinTypeEnum!]
   productsInput: ProductsInput
 }
 
@@ -854,10 +857,9 @@ input PointInput {
   lng: Float!
 }
 
-input MapPinsBoxLocationInput {
+input ProductMapPinsBoxLocationInput {
   southWest: PointInput!
   northEast: PointInput!
-  types: [MapPinTypeEnum!]
   productsInput: ProductsInput
 }
 

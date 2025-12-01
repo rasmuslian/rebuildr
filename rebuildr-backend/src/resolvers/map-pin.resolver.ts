@@ -11,21 +11,14 @@ import { ProductsInput } from "./product.resolver";
 import { Product } from "src/entities/product.entity";
 import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
 import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
-import { Project } from "src/entities/project.entity";
 
 @ObjectType()
-export class MapPinParent {
-  @Field(() => [MapPin])
-  pins?: MapPin[];
-
+export class MapPinGroup {
   @Field(() => String)
   id!: string;
 
   @Field(() => LocationResponse)
   location?: LocationResponse;
-
-  @Field(() => Number)
-  total: number;
 
   @Field(() => [Number], { nullable: true })
   prices?: number[];
@@ -36,14 +29,23 @@ export class MapPinParent {
   @Field(() => [Product], { nullable: true })
   products?: Product[];
 
-  @Field(() => [Project], { nullable: true })
-  projects?: Project[];
+  @Field(() => [String], { nullable: true })
+  projectIds?: string[];
+}
+
+@ObjectType()
+export class ProductMapPinResponse {
+  @Field(() => [MapPinGroup])
+  pins: MapPinGroup[];
+
+  @Field(() => Number)
+  total: number;
 }
 
 @ObjectType()
 export class MapPinResponse {
-  @Field(() => [MapPinParent])
-  mapPins: MapPinParent[];
+  @Field(() => [MapPin])
+  mapPins: MapPin[];
 
   @Field(() => Number)
   total: number;
@@ -59,30 +61,24 @@ class PointInput {
 }
 
 @InputType()
-class MapPinsRadiusLocationInput {
+class ProductMapPinsRadiusLocationInput {
   @Field(() => PointInput)
   point: PointInput;
 
   @Field()
   radius: number;
 
-  @Field(() => [MapPinTypeEnum], { nullable: true })
-  types?: [MapPinTypeEnum];
-
   @Field(() => ProductsInput, { nullable: true })
   productsInput?: ProductsInput;
 }
 
 @InputType()
-class MapPinsBoxLocationInput {
+class ProductMapPinsBoxLocationInput {
   @Field(() => PointInput)
   southWest: PointInput;
 
   @Field(() => PointInput)
   northEast: PointInput;
-
-  @Field(() => [MapPinTypeEnum], { nullable: true })
-  types?: MapPinTypeEnum[];
 
   @Field(() => ProductsInput, { nullable: true })
   productsInput?: ProductsInput;
@@ -139,28 +135,34 @@ export class MapPinResolver {
     return true;
   }
 
-  @Query(() => MapPinResponse)
+  @Query(() => ProductMapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)
-  async mapPinsInRadius(@Args('input') input: MapPinsRadiusLocationInput) {
-    return this.mapPinService.findAllInRadius(
+  async productMapPinsInRadius(@Args('input') input: ProductMapPinsRadiusLocationInput) {
+    return this.mapPinService.findProductPinsInRadius(
       input.point,
       input.radius,
-      input.types,
+      input.productsInput,
+    );
+  }
+
+  @Query(() => ProductMapPinResponse)
+  @UseGuards(GqlOptionalAuthGuard)
+  async productMapPinsInBoundingBox(@Args('input') input: ProductMapPinsBoxLocationInput) {
+    return this.mapPinService.findProductPinsInBoundingBox(
+      input.southWest,
+      input.northEast,
       input.productsInput,
     );
   }
 
   @Query(() => MapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)
-  async mapPinsInBoundingBox(@Args('input') input: MapPinsBoxLocationInput) {
-    return this.mapPinService.findAllInBoundingBox(
-      input.southWest,
-      input.northEast,
-      input.types,
-      input.productsInput,
-    );
+  async mapPinsInBoundingBox(
+    @Args('southWest') southWest: PointInput,
+    @Args('northEast') northEast: PointInput,
+  ) {
+    return this.mapPinService.findMapPinsInBoundingBox(southWest, northEast);
   }
-
 
   @ResolveField(() => Product, { nullable: true })
   async product(
