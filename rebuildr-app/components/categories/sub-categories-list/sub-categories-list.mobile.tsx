@@ -34,7 +34,7 @@ export function SubCategoriesListMobile({ category }: Props) {
           display: subCategories.length > 1 ? "flex" : "none",
         }}
       >
-        {[...subCategories, ...subCategories].map((c) => (
+        {subCategories.map((c) => (
           <TouchableOpacity
             key={c.id}
             style={{
