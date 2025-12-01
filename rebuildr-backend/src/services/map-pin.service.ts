@@ -405,13 +405,15 @@ export class MapPinService {
     const groupedMapPins = this.reduceMapPinsByLocation(projectMapPins);
 
     const reducedProductMapPins = this.reduceMapPinsByLocation(productMapPins);
-    Object.values(reducedProductMapPins).forEach((pinParent) => {
-      const key = pinParent.location.lat + ',' + pinParent.location.lng;
+    Object.values(reducedProductMapPins).forEach((pinGroup) => {
+      const key = pinGroup.location.lat + ',' + pinGroup.location.lng;
       if (groupedMapPins[key]) {
-        groupedMapPins[key].prices.push(...pinParent.prices);
+        groupedMapPins[key].prices.push(...pinGroup.prices);
         groupedMapPins[key].prices.sort((a, b) => a - b);
+        groupedMapPins[key].products.push(...pinGroup.products);
+        groupedMapPins[key].projectIds?.push(...(pinGroup.projectIds));
       } else {
-        groupedMapPins[key] = pinParent;
+        groupedMapPins[key] = pinGroup;
       }
     });
     return {
