@@ -4,10 +4,8 @@ import React, {
   useContext,
   useEffect,
   useState,
-  useMemo,
 } from "react";
-import { Pressable } from "react-native-gesture-handler";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
 import Password from "@components/login/password";
@@ -26,12 +24,13 @@ import {
 } from "@/gql/graphql";
 import { Details } from "@components/login/details";
 import { CreateBusiness } from "@components/login/createBusiness";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
-import { useThemeColor } from "@hooks/useThemeColor";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import { Header } from "@components/navigation/headers/header";
+import { View } from "react-native";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -70,7 +69,6 @@ const REGISTER_USER = gql`
 `;
 
 const LoginModalView = () => {
-  const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
@@ -125,13 +123,32 @@ const LoginModalView = () => {
     RegisterUserMutationVariables
   >(REGISTER_USER);
 
-  const snapPoints = useMemo(() => ["50%", "100%"], []);
   const fullScreenIndex = 2;
   const sheetRef = useRef<BottomSheetModal>(null);
 
   const handleClosePress = useCallback(() => {
-    reset();
-    setVisible(false);
+    switch (state) {
+      case "email":
+      case "password":
+      case "forgotPassword":
+      case "verify":
+        reset();
+        setVisible(false);
+        break;
+      case "details":
+        setVisible(false);
+        logout();
+        reloadAppAsync();
+        router.replace("/");
+        break;
+      case "business":
+        reloadAppAsync();
+        setVisible(false);
+        break;
+      default:
+        reset();
+        setVisible(false);
+    }
   }, [setVisible]);
 
   const onSubmitEmail = (email: string) => {
@@ -264,42 +281,70 @@ const LoginModalView = () => {
     ),
   ];
 
+  const getTitle = () => {
+    switch (state) {
+      case "email":
+        return "Logga in eller skapa konto";
+      case "password":
+      case "forgotPassword":
+        return "Logga in";
+      case "verify":
+      case "details":
+      case "business":
+        return "Skapa ditt nya konto";
+      default:
+        return "";
+    }
+  };
+  let onBackFunction = null;
+  if (state === "password") {
+    onBackFunction = () => setState("email");
+  }
+  if (state === "forgotPassword") {
+    onBackFunction = () => setState("password");
+  }
+
   if (isDesktop) {
     return (
-      <SlideInSheet open={visible} onClose={handleClosePress}>
+      <SlideInSheet
+        title={getTitle()}
+        open={visible}
+        onClose={handleClosePress}
+        style={{ flex: 1 }}
+      >
         {viewChildren}
       </SlideInSheet>
     );
   }
 
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      enableDynamicSizing
-      snapPoints={snapPoints}
-      onDismiss={handleClosePress}
-      handleIndicatorStyle={{
-        display: "none",
-      }}
-      backgroundStyle={{
-        backgroundColor: colors.background.neutral,
-        borderRadius: ["email", "password", "forgotPassword"].includes(state)
-          ? undefined
-          : 0,
-      }}
-      backdropComponent={({ style }) => (
-        <Pressable
-          style={[style, { backgroundColor: "#0000004D" }]}
-          onPress={() => sheetRef.current?.close()}
+    <BottomSheet
+      name="login"
+      scrollable={["verify", "details", "business"].includes(state)}
+      screenHeight={["verify", "details", "business"].includes(state)}
+      containerStyle={{ flex: 1 }}
+      header={
+        <Header
+          title={getTitle()}
+          showBackButton={!!onBackFunction}
+          onBack={onBackFunction ?? undefined}
+          ctas={[
+            {
+              icon: "X",
+              onPress: () => {
+                handleClosePress();
+              },
+            },
+          ]}
         />
-      )}
+      }
+      open={visible}
+      onDismiss={handleClosePress}
     >
-      <BottomSheetView>
-        <ScreenLayout style={{ marginTop: 0, marginBottom: 0 }}>
-          {viewChildren}
-        </ScreenLayout>
-      </BottomSheetView>
-    </BottomSheetModal>
+      <View style={{ marginTop: 24, marginBottom: 12, flex: 1 }}>
+        {viewChildren}
+      </View>
+    </BottomSheet>
   );
 };
 

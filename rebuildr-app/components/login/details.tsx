@@ -18,14 +18,9 @@ import {
 } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { Icon } from "@icons/icon";
 import React, { useState } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { CreatePassword } from "./create-password";
-import {
-  SCREEN_BOTTOM_MARGIN,
-  SCREEN_TOP_MARGIN,
-} from "@components/screen-layout/screen-layout";
 import { useScreenType } from "@hooks/useScreenType";
 
 const DETAILS_QUERY = gql`
@@ -62,7 +57,6 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
 
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
-  const { height: screenHeight } = useWindowDimensions();
 
   const { data } = useQuery<DetailsQueryQuery>(DETAILS_QUERY);
   const [updateDetails, { data: updateDetailsData, reset, loading }] =
@@ -114,32 +108,8 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
 
   return (
     <>
-      <View
-        style={[{
-            flex: 1,
-          },
-          isDesktop && {
-            minHeight: screenHeight - SCREEN_TOP_MARGIN - SCREEN_BOTTOM_MARGIN,
-          },
-        ]}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottomWidth: 1,
-            borderColor: colors.dividers.neutral,
-            paddingBottom: 8,
-          }}
-        >
-          <Title size="medium">Skapa ditt nya konto</Title>
-          <Pressable onPress={() => onExit()}>
-            <Icon icon="X" size={18} />
-          </Pressable>
-        </View>
-
-        <Display size="small" style={{ marginVertical: 24 }}>
+      <View style={{ flex: 1 }}>
+        <Display size="small" style={{ marginBottom: 24 }}>
           Kom igång
         </Display>
         <View
@@ -339,8 +309,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
           </View>
         )}
         {isDesktop && (
-          <>
-            <View style={{ flex: 1 }} />
+          <View style={{ flex: 1, justifyContent: "flex-end" }}>
             <Button
               label="Fortsätt"
               onPress={() => {
@@ -349,7 +318,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
               disabled={!canContinue()}
               style={{ marginTop: 24 }}
             />
-          </>
+          </View>
         )}
       </View>
       {!isDesktop && (
