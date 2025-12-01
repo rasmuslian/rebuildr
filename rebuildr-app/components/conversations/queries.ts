@@ -74,6 +74,7 @@ export const CONVERSATION_PRODUCT = gql`
     me {
       id
       username
+      type
     }
   }
 `;
