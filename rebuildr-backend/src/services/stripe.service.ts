@@ -100,7 +100,7 @@ export class StripeService {
       const account = await this.stripe.accounts.create({
         business_type: 'individual',
         individual: individualParams,
-        //This option must exist even though this is an individual. Link to sellers profile
+        //This option must exist even though this is an individual.
         business_profile: {
           product_description: 'Säljare hos Rebuildr',
           mcc: '5734', //Computer Software Stores (Stripe default. Not really relevant for this system as an individual).
