@@ -220,6 +220,8 @@ export class MapPinService {
     point: LocationResponse,
     radius: number,
     productsInput?: ProductsInput,
+    offset?: number,
+    limit?: number,
   ): Promise<ProductMapPinResponse> {
     const result = await this.getFilteredMapPinsForProducts(
       `mapPin.location && ST_Buffer(ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography, :radius)`,
@@ -229,6 +231,8 @@ export class MapPinService {
         radius,
       },
       productsInput,
+      offset,
+      limit,
     );
     return result;
   }
@@ -237,6 +241,8 @@ export class MapPinService {
     southWest: LocationResponse,
     northEast: LocationResponse,
     productsInput?: ProductsInput,
+    offset?: number,
+    limit?: number,
   ): Promise<ProductMapPinResponse> {
     const result = await this.getFilteredMapPinsForProducts(
       `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
@@ -247,6 +253,8 @@ export class MapPinService {
         neLat: northEast.lat,
       },
       productsInput,
+      offset,
+      limit,
     );
     return result;
   }
@@ -256,6 +264,8 @@ export class MapPinService {
     whereClause: string,
     whereParams: unknown,
     productsInput?: ProductsInput,
+    offset?: number,
+    limit?: number,
   ): Promise<ProductMapPinResponse>{
     const productPinsQuery = this.mapPinRepository
       .createQueryBuilder("mapPin")
@@ -264,6 +274,13 @@ export class MapPinService {
         whereParams,
       )
       .innerJoinAndSelect("mapPin.product", "product");
+
+    if (offset !== undefined) {
+      productPinsQuery.offset(offset);
+    }
+    if (limit !== undefined) {
+      productPinsQuery.limit(limit);
+    }
 
     if (productsInput) {
 

@@ -658,8 +658,8 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!): ProductMapPinResponse!
-  productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!): ProductMapPinResponse!
+  productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
+  productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   mapPinsInBoundingBox(southWest: PointInput!, northEast: PointInput!): MapPinResponse!
 }
 

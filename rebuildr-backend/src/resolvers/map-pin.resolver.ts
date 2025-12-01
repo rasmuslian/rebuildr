@@ -1,5 +1,5 @@
 import { forwardRef, Inject, UseGuards } from "@nestjs/common";
-import { Args, Context, Field, InputType, Mutation, ObjectType, Parent, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
+import { Args, Context, Field, InputType, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { MapPinService } from "src/services/map-pin.service";
 import { LocationResponse } from "./geocoding.resolver";
@@ -137,21 +137,33 @@ export class MapPinResolver {
 
   @Query(() => ProductMapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)
-  async productMapPinsInRadius(@Args('input') input: ProductMapPinsRadiusLocationInput) {
+  async productMapPinsInRadius(
+    @Args('input') input: ProductMapPinsRadiusLocationInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
     return this.mapPinService.findProductPinsInRadius(
       input.point,
       input.radius,
       input.productsInput,
+      offset,
+      limit,
     );
   }
 
   @Query(() => ProductMapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)
-  async productMapPinsInBoundingBox(@Args('input') input: ProductMapPinsBoxLocationInput) {
+  async productMapPinsInBoundingBox(
+    @Args('input') input: ProductMapPinsBoxLocationInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
     return this.mapPinService.findProductPinsInBoundingBox(
       input.southWest,
       input.northEast,
       input.productsInput,
+      offset,
+      limit,
     );
   }
 
