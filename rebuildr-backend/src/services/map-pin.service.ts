@@ -382,9 +382,67 @@ export class MapPinService {
     }
     const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 
+
+    const result = await this.mapPinRepository.query(
+     `
+      SELECT
+        grid_id as "gridId",
+        COUNT(*) AS count,
+        ST_Collect(location) as location,
+        ST_X(ST_Centroid(ST_Collect(location))) AS latitude,
+        ST_Y(ST_Centroid(ST_Collect(location))) AS longitude,
+        ARRAY_AGG(id) AS "mapPinIds",
+        ARRAY_AGG("productId") AS "productIds",
+        ARRAY_AGG("projectId") AS "projectIds",
+        ARRAY_AGG(price order by price ASC) AS prices,
+        ARRAY_LENGTH(ARRAY_AGG(id), 1) = 1 AS "isSingle"
+      FROM (
+        SELECT
+          id,
+          location,
+          ST_SnapToGrid(
+            location,
+            $${innerParams.length + 1}
+          ) AS grid_id,
+          "product_id" as "productId",
+          "project_id" as "projectId",
+          price
+        FROM (${innerSql}) AS filtered
+      ) AS sub
+      GROUP BY grid_id
+      `,
+      [
+        ...innerParams,
+        this.cellSizeForZoom(zoom),
+      ]
+    );
+
+    return {
+      pins: result.map((r) => ({
+        count: r.count,
+        location: {
+          lat: r.latitude,
+          lng: r.longitude,
+        },
+        mapPinIds: r.mapPinIds,
+        productIds: r.productIds,
+        projectIds: r.projectIds.filter(Boolean),
+        type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
+        prices: r.prices,
+        isSingle: r.isSingle,
+      })),
+      total: result.length,
+    };
+  }
+
+  private cellSizeForZoom(zoom?: number): number {
+    if (zoom === undefined) {
+      return 0.05;
+    }
     // TODO: Tweak this cell size mapping as needed
     let cellSize = 0.05;
     switch (zoom) {
+      case 0:
       case 1:
         cellSize = 50;
         break;
@@ -428,56 +486,6 @@ export class MapPinService {
       default:
         cellSize = 0.001;
     }
-
-    const result = await this.mapPinRepository.query(
-     `
-      SELECT
-        grid_id as "gridId",
-        COUNT(*) AS count,
-        ST_Collect(location) as location,
-        ST_X(ST_Centroid(ST_Collect(location))) AS latitude,
-        ST_Y(ST_Centroid(ST_Collect(location))) AS longitude,
-        ARRAY_AGG(id) AS "mapPinIds",
-        ARRAY_AGG("productId") AS "productIds",
-        ARRAY_AGG("projectId") AS "projectIds",
-        ARRAY_AGG(price order by price ASC) AS prices,
-        ARRAY_LENGTH(ARRAY_AGG(id), 1) = 1 AS "isSingle"
-      FROM (
-        SELECT
-          id,
-          location,
-          ST_SnapToGrid(
-            location,
-            $${innerParams.length + 1}
-          ) AS grid_id,
-          "product_id" as "productId",
-          "project_id" as "projectId",
-          price
-        FROM (${innerSql}) AS filtered
-      ) AS sub
-      GROUP BY grid_id
-      `,
-      [
-        ...innerParams,
-        cellSize,
-      ]
-    );
-
-    return {
-      pins: result.map((r) => ({
-        count: r.count,
-        location: {
-          lat: r.latitude,
-          lng: r.longitude,
-        },
-        mapPinIds: r.mapPinIds,
-        productIds: r.productIds,
-        projectIds: r.projectIds.filter(Boolean),
-        type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
-        prices: r.prices,
-        isSingle: r.isSingle,
-      })),
-      total: result.length,
-    };
+    return cellSize;
   }
 }
