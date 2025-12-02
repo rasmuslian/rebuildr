@@ -387,15 +387,12 @@ export class MapPinService {
      `
       SELECT
         grid_id as "gridId",
-        COUNT(*) AS count,
         ST_Collect(location) as location,
         ST_X(ST_Centroid(ST_Collect(location))) AS latitude,
         ST_Y(ST_Centroid(ST_Collect(location))) AS longitude,
-        ARRAY_AGG(id) AS "mapPinIds",
         ARRAY_AGG("productId") AS "productIds",
         ARRAY_AGG("projectId") AS "projectIds",
-        ARRAY_AGG(price order by price ASC) AS prices,
-        ARRAY_LENGTH(ARRAY_AGG(id), 1) = 1 AS "isSingle"
+        ARRAY_AGG(price order by price ASC) AS prices
       FROM (
         SELECT
           id,
@@ -419,17 +416,14 @@ export class MapPinService {
 
     return {
       pins: result.map((r) => ({
-        count: r.count,
         location: {
           lat: r.latitude,
           lng: r.longitude,
         },
-        mapPinIds: r.mapPinIds,
         productIds: r.productIds,
         projectIds: r.projectIds.filter(Boolean),
         type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
-        prices: r.prices,
-        isSingle: r.isSingle,
+        prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,
     };
