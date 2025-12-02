@@ -13,6 +13,7 @@ import { Summary } from "./summary";
 import { gql, useMutation } from "@apollo/client";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
 import { formatPostCode } from "@/utils/formattings";
+import { apolloBadFieldsError } from "@/utils/apollo-errors";
 
 const SHIPPING_DETAILS_UPDATE_USER = gql`
   mutation ShippingDetailsUpdateUser($input: UpdateUserInput!) {
@@ -55,7 +56,7 @@ export const ShippingDetails = ({
   );
   const [city, setCity] = useState<string>(initialData.me.city ?? "");
 
-  const [updateUser, { loading: updateUserloading }] = useMutation<
+  const [updateUser, { loading: updateUserloading, error }] = useMutation<
     ShippingDetailsUpdateUserMutation,
     ShippingDetailsUpdateUserMutationVariables
   >(SHIPPING_DETAILS_UPDATE_USER);
@@ -81,6 +82,8 @@ export const ShippingDetails = ({
     });
   };
 
+  const fieldErrors = error ? apolloBadFieldsError(error) : undefined;
+
   return (
     <View style={{ gap: 24 }}>
       <Display size="small">Dina uppgifter</Display>
@@ -99,6 +102,11 @@ export const ShippingDetails = ({
             onChange: (t) => setPhoneNumber(t),
             heading: "Telefonnummer",
             description: `För leveransansvarig från ${shippingProviderStrings[shippingProvider]}.`,
+            error: fieldErrors
+              ? fieldErrors.find((e) => e.name === "phoneNumber")
+                ? "Felaktigt telefonnummer"
+                : undefined
+              : undefined,
           },
           {
             type: "text",
@@ -114,6 +122,11 @@ export const ShippingDetails = ({
             onChange: (t) => setPostCode(t),
             heading: "Postnummer",
             horizontalSize: 1,
+            error: fieldErrors
+              ? fieldErrors.find((e) => e.name === "postCode")
+                ? "Felaktigt postnummer"
+                : undefined
+              : undefined,
           },
           {
             type: "text",
