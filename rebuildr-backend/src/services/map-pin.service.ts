@@ -5,7 +5,7 @@ import { Project } from "src/entities/project.entity";
 import { User } from "src/entities/user.entity";
 import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
 import { LocationResponse } from "src/resolvers/geocoding.resolver";
-import { MapPinGroup, MapPinResponse, ProductMapPinResponse } from "src/resolvers/map-pin.resolver";
+import { MapPinResponse, ProductMapPinResponse } from "src/resolvers/map-pin.resolver";
 import { Repository } from "typeorm/repository/Repository";
 import { GeocodingService } from "./geocoding.service";
 import { ProductsInput } from "src/resolvers/product.resolver";
@@ -220,6 +220,7 @@ export class MapPinService {
     point: LocationResponse,
     radius: number,
     productsInput?: ProductsInput,
+    zoom?: number,
     offset?: number,
     limit?: number,
   ): Promise<ProductMapPinResponse> {
@@ -231,6 +232,7 @@ export class MapPinService {
         radius,
       },
       productsInput,
+      zoom,
       offset,
       limit,
     );
@@ -241,6 +243,7 @@ export class MapPinService {
     southWest: LocationResponse,
     northEast: LocationResponse,
     productsInput?: ProductsInput,
+    zoom?: number,
     offset?: number,
     limit?: number,
   ): Promise<ProductMapPinResponse> {
@@ -253,6 +256,7 @@ export class MapPinService {
         neLat: northEast.lat,
       },
       productsInput,
+      zoom,
       offset,
       limit,
     );
@@ -264,16 +268,24 @@ export class MapPinService {
     whereClause: string,
     whereParams: unknown,
     productsInput?: ProductsInput,
+    zoom?: number,
     offset?: number,
     limit?: number,
   ): Promise<ProductMapPinResponse>{
     const productPinsQuery = this.mapPinRepository
       .createQueryBuilder("mapPin")
+      .select(
+        `"mapPin".id AS id,
+        "mapPin".location AS location,
+        product.id AS product_id,
+        product."projectId" AS project_id,
+        product.price AS price`,
+      )
       .where(
         whereClause,
         whereParams,
       )
-      .innerJoinAndSelect("mapPin.product", "product");
+      .innerJoin("mapPin.product", "product");
 
     if (offset !== undefined) {
       productPinsQuery.offset(offset);
@@ -368,57 +380,109 @@ export class MapPinService {
       }
 
     }
-    const mapPins = await productPinsQuery.getMany();
-    return this.groupMapPins(mapPins);
-  }
+    const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 
-  private reduceMapPinsByLocation = (mapPins: MapPin[]): Record<string, MapPinGroup> => {
-    return mapPins.reduce((uniqueMap, pin) => {
-      const key = pin.location.coordinates.toString();
-      uniqueMap[key] ||= {
-        id: pin.id,
-        location: {
-          lat: pin.location.coordinates[0],
-          lng: pin.location.coordinates[1]
-        },
-        prices: [],
-        products: [],
-        projectIds: [],
-        type: (pin.product?.projectId) ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
-      } as MapPinGroup;
-      if (pin.product) {
-        uniqueMap[key].prices.push((pin.product.price / 100));
-        uniqueMap[key].products.push(pin.product);
-        if (pin.product.projectId) {
-          uniqueMap[key].projectIds.push(pin.product.projectId);
-        }
-      }
-      uniqueMap[key].prices.sort((a, b) => a - b);
-      return uniqueMap;
-    }, {} as Record<string, MapPinGroup>);
-  }
+    // TODO: Tweak this cell size mapping as needed
+    let cellSize = 0.05;
+    switch (zoom) {
+      case 1:
+        cellSize = 50;
+        break;
+      case 2:
+        cellSize = 20;
+        break;
+      case 3:
+        cellSize = 10;
+        break;
+      case 4:
+        cellSize = 5;
+        break;
+      case 5:
+      case 6:
+        cellSize = 2;
+        break;
+      case 7:
+      case 8:
+        cellSize = 1;
+        break;
+      case 9:
+      case 10:
+        cellSize = 0.5;
+        break;
+      case 11:
+      case 12:
+        cellSize = 0.25;
+        break;
+      case 13:
+      case 14:
+        cellSize = 0.1;
+        break;
+      case 15:
+      case 16:
+        cellSize = 0.05;
+        break;
+      case 17:
+      case 18:
+        cellSize = 0.02;
+        break;
+      default:
+        cellSize = 0.001;
+    }
 
-  private groupMapPins = (mapPins: MapPin[]) => {
-    const projectMapPins = mapPins.filter((pin) => pin.product?.projectId);
-    const productMapPins = mapPins.filter((pin) => pin.product && !pin.product.projectId);
+    const result = await this.mapPinRepository.query(
+     `
+      SELECT
+        grid_id as "gridId",
+        COUNT(*) AS count,
+        ST_Collect(location) as location,
+        ST_X(ST_Centroid(ST_Collect(location))) AS latitude,
+        ST_Y(ST_Centroid(ST_Collect(location))) AS longitude,
+        ARRAY_AGG(id) AS "mapPinIds",
+        ARRAY_AGG("productId") AS "productIds",
+        ARRAY_AGG("projectId") AS "projectIds",
+        ARRAY_AGG(price order by price ASC) AS prices,
+        ARRAY_LENGTH(ARRAY_AGG(id), 1) = 1 AS "isSingle"
+      FROM (
+        SELECT
+          id,
+          location,
+          ST_SnapToGrid(
+            location,
+            $${innerParams.length + 1}
+          ) AS grid_id,
+          "product_id" as "productId",
+          "project_id" as "projectId",
+          price
+        FROM (${innerSql}) AS filtered
+      ) AS sub
+      GROUP BY grid_id
+      `,
+      [
+        ...innerParams,
+        cellSize,
+      ]
+    );
 
-    const groupedMapPins = this.reduceMapPinsByLocation(projectMapPins);
-
-    const reducedProductMapPins = this.reduceMapPinsByLocation(productMapPins);
-    Object.values(reducedProductMapPins).forEach((pinGroup) => {
-      const key = pinGroup.location.lat + ',' + pinGroup.location.lng;
-      if (groupedMapPins[key]) {
-        groupedMapPins[key].prices.push(...pinGroup.prices);
-        groupedMapPins[key].prices.sort((a, b) => a - b);
-        groupedMapPins[key].products.push(...pinGroup.products);
-        groupedMapPins[key].projectIds?.push(...(pinGroup.projectIds));
-      } else {
-        groupedMapPins[key] = pinGroup;
-      }
-    });
     return {
-      pins: Object.values(groupedMapPins),
-      total: Object.values(groupedMapPins).length,
+      pins: result.map((r) => ({
+        count: r.count,
+        location: {
+          lat: r.latitude,
+          lng: r.longitude,
+        },
+        mapPinIds: r.mapPinIds,
+        products: r.productIds.map((pid: string, index: number) => {
+          return {
+            id: pid,
+            projectId: r.projectIds[index],
+          }
+        }),
+        projectIds: r.projectIds.filter(Boolean),
+        type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
+        prices: r.prices,
+        isSingle: r.isSingle,
+      })),
+      total: result.length,
     };
   }
 }

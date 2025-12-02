@@ -13,10 +13,16 @@ import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
 import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
 
 @ObjectType()
-export class MapPinGroup {
+class MapPinGroupProduct {
   @Field(() => String)
-  id!: string;
+  id: string;
 
+  @Field(() => String, { nullable: true })
+  projectId?: string | null;
+}
+
+@ObjectType()
+export class MapPinGroup {
   @Field(() => LocationResponse)
   location?: LocationResponse;
 
@@ -26,8 +32,8 @@ export class MapPinGroup {
   @Field(() => MapPinTypeEnum)
   type: MapPinTypeEnum;
 
-  @Field(() => [Product], { nullable: true })
-  products?: Product[];
+  @Field(() => [MapPinGroupProduct], { nullable: true })
+  products?: MapPinGroupProduct[];
 
   @Field(() => [String], { nullable: true })
   projectIds?: string[];
@@ -70,6 +76,9 @@ class ProductMapPinsRadiusLocationInput {
 
   @Field(() => ProductsInput, { nullable: true })
   productsInput?: ProductsInput;
+
+  @Field(() => Int, { nullable: true })
+  zoom?: number;
 }
 
 @InputType()
@@ -82,6 +91,9 @@ class ProductMapPinsBoxLocationInput {
 
   @Field(() => ProductsInput, { nullable: true })
   productsInput?: ProductsInput;
+
+  @Field(() => Int, { nullable: true })
+  zoom?: number;
 }
 
 @Resolver(() => MapPin)
@@ -146,6 +158,7 @@ export class MapPinResolver {
       input.point,
       input.radius,
       input.productsInput,
+      input.zoom,
       offset,
       limit,
     );
@@ -162,6 +175,7 @@ export class MapPinResolver {
       input.southWest,
       input.northEast,
       input.productsInput,
+      input.zoom,
       offset,
       limit,
     );

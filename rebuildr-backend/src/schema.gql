@@ -593,12 +593,16 @@ type ListArticlesResponse {
   total: Int!
 }
 
-type MapPinGroup {
+type MapPinGroupProduct {
   id: String!
+  projectId: String
+}
+
+type MapPinGroup {
   location: LocationResponse!
   prices: [Float!]
   type: MapPinTypeEnum!
-  products: [Product!]
+  products: [MapPinGroupProduct!]
   projectIds: [String!]
 }
 
@@ -851,6 +855,7 @@ input ProductMapPinsRadiusLocationInput {
   point: PointInput!
   radius: Float!
   productsInput: ProductsInput
+  zoom: Int
 }
 
 input PointInput {
@@ -862,6 +867,7 @@ input ProductMapPinsBoxLocationInput {
   southWest: PointInput!
   northEast: PointInput!
   productsInput: ProductsInput
+  zoom: Int
 }
 
 type Mutation {
