@@ -14,7 +14,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ProgressHeader } from "@components/navigation/headers/progress-header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline } from "@components/typography/text";
-import { useLocalSearchParams } from "expo-router";
+import { useGlobalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { TransportationString } from "@/utils/transportationMethods";
@@ -111,7 +111,7 @@ export const Buy = ({ productId: _productId }: Props) => {
   const { isDesktop } = useScreenType();
   const { setVisible, setContent } = useBuyModalContext();
 
-  const { productId: paramProductId } = useLocalSearchParams<{
+  const { productId: paramProductId } = useGlobalSearchParams<{
     productId: string;
   }>();
   const productId = _productId ?? paramProductId;
@@ -225,7 +225,7 @@ const MultipleOptions = ({
   const [deliveryOption, setDeliveryOption] = useState<
     BuyProductDeliveryOptionCardQuery["getDeliveryOption"] & { address: string }
   >();
-  const { productId } = useLocalSearchParams<{ productId: string }>();
+  const { productId } = useGlobalSearchParams<{ productId: string }>();
 
   const [
     getTransportationOptions,

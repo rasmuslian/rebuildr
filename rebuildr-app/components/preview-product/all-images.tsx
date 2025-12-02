@@ -45,6 +45,7 @@ export const AllImages = ({
                 .fill(1)
                 .map((_, row) => (
                   <View
+                    key={row}
                     style={{
                       flexDirection: "row",
                       justifyContent: "flex-start",
