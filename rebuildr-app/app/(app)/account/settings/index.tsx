@@ -41,6 +41,7 @@ export const SETTINGS = gql`
   query Settings {
     me {
       ...SettingsUserFragment
+      sellerAccountIsEnabled
       organizationAccount {
         ...SettingsUserFragment
       }
@@ -163,12 +164,14 @@ export default function Settings({ onBack, onClose, onNavigation }: Props) {
         </>
       )}
       <View style={{ gap: 16 }}>
-        <LinkEntry
-          label="Utbetalningskonto"
-          body="Lägg till eller ändra hur du tar emot betalningar."
-          link={onNavigation ? undefined : "/account/settings/payout"}
-          onPress={() => onNavigation?.({ page: "payout-index", params: {} })}
-        />
+        {data?.me.sellerAccountIsEnabled && (
+          <LinkEntry
+            label="Utbetalningskonto"
+            body="Lägg till eller ändra hur du tar emot betalningar."
+            link={onNavigation ? undefined : "/account/settings/payout"}
+            onPress={() => onNavigation?.({ page: "payout-index", params: {} })}
+          />
+        )}
         <LinkEntry
           label="Kontaktuppgifter"
           body="Uppdatera e-post, användarnamn, lösenord och adresser."

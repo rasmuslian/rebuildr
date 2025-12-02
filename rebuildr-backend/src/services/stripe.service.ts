@@ -14,6 +14,7 @@ import {
   formatCountryCodePhonenumber,
   isValidPhonenumber,
 } from 'src/utility/phone-number';
+import * as Sentry from '@sentry/nestjs';
 
 @Injectable()
 export class StripeService {
@@ -260,8 +261,16 @@ export class StripeService {
   }
 
   async retrieveAccount(connectedAccountId: string) {
-    const account = await this.stripe.accounts.retrieve(connectedAccountId);
-    return account;
+    try {
+      const account = await this.stripe.accounts.retrieve(connectedAccountId);
+      return account;
+    } catch (e) {
+      Sentry.captureException(e);
+      this.logger.error('Could not retrieve stripe account', {
+        connectedAccountId,
+      });
+      throw new Error('Could not retrieve stripe account');
+    }
   }
 
   async createPayment(
