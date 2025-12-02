@@ -29,15 +29,12 @@ export class CategoryService {
   }
 
   async findAll(input: CategoriesInput) {
-    if (input.seasonalCategories) {
-      return await this.categoryRepository.find({
-        where: {
-          inSeason: true,
-        },
-      });
-    }
-
-    return await this.categoryRepository.find();
+    return await this.categoryRepository.find({
+      where: {
+        inSeason: input.seasonalCategories,
+        inSelection: input.trending,
+      },
+    });
   }
 
   async findAllRoot(input: RootCategoriesInput) {
