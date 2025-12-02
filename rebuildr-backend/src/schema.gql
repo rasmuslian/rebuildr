@@ -593,16 +593,11 @@ type ListArticlesResponse {
   total: Int!
 }
 
-type MapPinGroupProduct {
-  id: String!
-  projectId: String
-}
-
 type MapPinGroup {
   location: LocationResponse!
   prices: [Float!]
   type: MapPinTypeEnum!
-  products: [MapPinGroupProduct!]
+  productIds: [String!]
   projectIds: [String!]
 }
 

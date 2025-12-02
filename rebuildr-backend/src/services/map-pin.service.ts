@@ -471,12 +471,7 @@ export class MapPinService {
           lng: r.longitude,
         },
         mapPinIds: r.mapPinIds,
-        products: r.productIds.map((pid: string, index: number) => {
-          return {
-            id: pid,
-            projectId: r.projectIds[index],
-          }
-        }),
+        productIds: r.productIds,
         projectIds: r.projectIds.filter(Boolean),
         type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
         prices: r.prices,

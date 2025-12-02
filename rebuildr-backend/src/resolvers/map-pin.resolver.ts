@@ -13,15 +13,6 @@ import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
 import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
 
 @ObjectType()
-class MapPinGroupProduct {
-  @Field(() => String)
-  id: string;
-
-  @Field(() => String, { nullable: true })
-  projectId?: string | null;
-}
-
-@ObjectType()
 export class MapPinGroup {
   @Field(() => LocationResponse)
   location?: LocationResponse;
@@ -32,8 +23,8 @@ export class MapPinGroup {
   @Field(() => MapPinTypeEnum)
   type: MapPinTypeEnum;
 
-  @Field(() => [MapPinGroupProduct], { nullable: true })
-  products?: MapPinGroupProduct[];
+  @Field(() => [String], { nullable: true })
+  productIds?: string[];
 
   @Field(() => [String], { nullable: true })
   projectIds?: string[];
