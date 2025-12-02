@@ -431,10 +431,10 @@ export class MapPinService {
 
   private cellSizeForZoom(zoom?: number): number {
     if (zoom === undefined) {
-      return 0.05;
+      return 0.01;
     }
     // TODO: Tweak this cell size mapping as needed
-    let cellSize = 0.05;
+    let cellSize = 0;
     switch (zoom) {
       case 0:
       case 1:
@@ -463,19 +463,7 @@ export class MapPinService {
         break;
       case 11:
       case 12:
-        cellSize = 0.25;
-        break;
-      case 13:
-      case 14:
         cellSize = 0.1;
-        break;
-      case 15:
-      case 16:
-        cellSize = 0.05;
-        break;
-      case 17:
-      case 18:
-        cellSize = 0.02;
         break;
       default:
         cellSize = 0.001;
