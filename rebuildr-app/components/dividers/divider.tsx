@@ -15,4 +15,8 @@ export const dividerStyles = (colors: ColorTokens) =>
       borderBottomWidth: 1,
       borderColor: colors.dividers.neutral,
     },
+    topDivider: {
+      borderTopWidth: 1,
+      borderColor: colors.dividers.neutral,
+    },
   });
