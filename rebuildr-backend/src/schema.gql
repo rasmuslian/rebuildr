@@ -705,6 +705,7 @@ input CategoryInput {
 
 input CategoriesInput {
   seasonalCategories: Boolean
+  trending: Boolean
 }
 
 input GetCategoriesInput {

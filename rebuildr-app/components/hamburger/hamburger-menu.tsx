@@ -1,16 +1,38 @@
 import { showHamburgerMenuVar } from "@/apollo/config";
-import { useReactiveVar } from "@apollo/client";
+import {
+  HamburgerMenuQuery,
+  HamburgerMenuQueryVariables,
+  OrderProductsEnum,
+} from "@/gql/graphql";
+import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import {
   RootCategoriesVertical,
   RootCategoriesVerticalCategory,
 } from "@components/categories/root-categories-vertical";
-import { Divider } from "@components/dividers/divider";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Body } from "@components/typography/text";
+import { Headline } from "@components/typography/text";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
+import { useForegroundPermissions } from "expo-location";
 import { Href, Link, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+
+const HAMBURGER_MENU = gql`
+  query HamburgerMenu($input: CategoriesInput!) {
+    categories(input: $input) {
+      id
+      name
+      parentId
+      inSelection
+      inSeason
+      image {
+        id
+        url
+      }
+    }
+  }
+`;
 
 export const HamburgerMenu = () => {
   const showHamburgerMenu = useReactiveVar(showHamburgerMenuVar);
@@ -19,6 +41,19 @@ export const HamburgerMenu = () => {
     RootCategoriesVerticalCategory | undefined
   >();
   const { isDesktop } = useScreenType();
+  const { setSorting, setCategories } = useFilterProduct();
+  const [status] = useForegroundPermissions();
+
+  const { data } = useQuery<HamburgerMenuQuery, HamburgerMenuQueryVariables>(
+    HAMBURGER_MENU,
+    {
+      variables: {
+        input: {
+          seasonalCategories: true,
+        },
+      },
+    },
+  );
 
   const onClose = () => {
     showHamburgerMenuVar(false);
@@ -34,6 +69,10 @@ export const HamburgerMenu = () => {
     };
   }, [isDesktop, pathname]);
 
+  const seasonalCategories = data?.categories.filter((c) => c.inSeason) ?? [];
+  const trendingCategories =
+    data?.categories.filter((c) => c.inSelection) ?? [];
+
   return (
     <SlideInSheet
       open={!!showHamburgerMenu}
@@ -42,21 +81,49 @@ export const HamburgerMenu = () => {
       title={category ? category.name : "Kategorier"}
       style={{ gap: 24 }}
     >
-      <RootCategoriesVertical onNavigate={isDesktop ? onClose : undefined} />
       {!category && (
-        <View style={{ marginTop: isDesktop ? 48 : 24 }}>
-          <Divider />
-          <View style={{ gap: 18, marginTop: isDesktop ? 24 : 16 }}>
-            {/**TODO: fix links */}
-            <Entry title="Populärt på Rebuildr" link="/" />
-            <Entry title="Varumärken" link="/" />
-            <Entry title="Rädda byggmaterial" link="/" />
-            <Entry title="Vad är det värt?" link="/" />
-            <Entry title="Sälj som företag" link="/" />
-            <Entry title="Vår vision" link="/" />
-          </View>
+        <View style={{ gap: 14 }}>
+          <Entry
+            title="Nyinkomna varor"
+            link="/search/products"
+            onPress={() => setSorting(OrderProductsEnum.Latest, true)}
+          />
+          {status?.granted && (
+            <Entry
+              title="Varor nära dig"
+              link="/search/products"
+              onPress={() => setSorting(OrderProductsEnum.Distance, true)}
+            />
+          )}
+          {seasonalCategories.length > 0 && (
+            <Entry
+              title="För säsong"
+              link="/search/products"
+              onPress={() =>
+                setCategories({
+                  categories: seasonalCategories,
+                })
+              }
+            />
+          )}
+          {trendingCategories.length > 0 && (
+            <Entry
+              title="Trendar nu"
+              link="/search/products"
+              onPress={() =>
+                setCategories({
+                  categories: trendingCategories,
+                })
+              }
+            />
+          )}
+          {/** [MISSING LINK] Will link to a static page later on */}
+          <Entry title="Närmaste hubb" link="/" />
         </View>
       )}
+      <View style={{ marginTop: isDesktop ? 48 : 24 }}>
+        <RootCategoriesVertical onNavigate={isDesktop ? onClose : undefined} />
+      </View>
     </SlideInSheet>
   );
 };
@@ -64,14 +131,17 @@ export const HamburgerMenu = () => {
 type EntryProps = {
   title: string;
   link: Href;
+  onPress?: () => void;
 };
 
-const Entry = ({ title, link }: EntryProps) => {
+const Entry = ({ title, link, onPress }: EntryProps) => {
   return (
-    <View style={{ marginVertical: 10 }}>
-      <Link href={link}>
-        <Body size="medium">{title}</Body>
-      </Link>
+    <View style={{ marginVertical: 6 }}>
+      <Pressable onPress={onPress}>
+        <Link href={link}>
+          <Headline size="small">{title}</Headline>
+        </Link>
+      </Pressable>
     </View>
   );
 };
