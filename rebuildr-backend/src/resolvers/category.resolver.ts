@@ -40,6 +40,9 @@ class CategoryInput {
 export class CategoriesInput {
   @Field({ nullable: true })
   seasonalCategories?: boolean;
+
+  @Field({ nullable: true })
+  trending?: boolean;
 }
 @InputType()
 export class RootCategoriesInput {
