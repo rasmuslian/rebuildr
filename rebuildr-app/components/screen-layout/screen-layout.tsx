@@ -1,3 +1,4 @@
+import { dividerStyles } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { horizontalPadding } from "@constants/sizes";
@@ -11,6 +12,7 @@ interface PageProps extends PropsWithChildren {
   footerComponent?: React.ReactNode;
   footerStyle?: StyleProp<ViewStyle>;
   footerBottomMargin?: "small" | "default";
+  footerBorder?: boolean;
   desktopFooter?: boolean;
   headerComponent?: React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
@@ -30,6 +32,7 @@ export const ScreenLayout = ({
   footerComponent,
   footerStyle,
   footerBottomMargin: _footerBottomMargin = "default",
+  footerBorder,
   desktopFooter,
   headerComponent,
   headerStyle,
@@ -102,6 +105,7 @@ export const ScreenLayout = ({
         <View
           style={[
             { paddingHorizontal, marginBottom: footerBottomMargin },
+            footerBorder && dividerStyles(colors).topDivider,
             footerStyle,
           ]}
         >

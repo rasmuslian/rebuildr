@@ -127,6 +127,7 @@ export const ProductMobile = ({
         headerComponent={
           <Header showDivider={false} ctas={ctas} ctaRowMarginRight={0} />
         }
+        footerBorder
         footerComponent={
           <ActionSection
             productId={productId}
