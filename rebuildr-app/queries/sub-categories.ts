@@ -6,6 +6,10 @@ export const SUB_CATEGORIES = gql`
       id
       name
       description
+      parent {
+        id
+        name
+      }
       children {
         id
         name

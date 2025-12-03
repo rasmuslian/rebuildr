@@ -228,36 +228,6 @@ export const ProductDesktop = ({
               </View>
             </View>
             <View style={{ flex: 1, gap: 24 }} ref={rightColumnRef}>
-              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                {product.category?.parent && (
-                  <Body
-                    size="medium"
-                    isLink
-                    onPress={() =>
-                      handleCategoryPress({
-                        id: product.category!.parent!.id,
-                      })
-                    }
-                  >
-                    {product.category?.parent?.name}
-                  </Body>
-                )}
-                <Body size="medium">{", "}</Body>
-                {product.category && (
-                  <Body
-                    size="medium"
-                    isLink
-                    onPress={() =>
-                      handleCategoryPress({
-                        id: product.category!.id,
-                        parentId: product.category!.parent?.id,
-                      })
-                    }
-                  >
-                    {product.category?.name}
-                  </Body>
-                )}
-              </View>
               <MainContent
                 product={product}
                 brand={product.brand}

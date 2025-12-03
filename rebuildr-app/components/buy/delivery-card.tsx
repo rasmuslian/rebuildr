@@ -48,13 +48,19 @@ export const DeliveryCard = ({
   deliveryOption,
 }: Props) => {
   const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
 
   const [getDeliveryOption, { loading: deliveryOptionLoading }] = useLazyQuery<
     BuyProductDeliveryOptionCardQuery,
     BuyProductDeliveryOptionCardQueryVariables
   >(BUY_PRODUCT_DELIVERY_OPTION, {
     onCompleted: (data) => {
+      setAddressError("");
       if (data.getDeliveryOption) {
+        if (!data.getDeliveryOption.postalCode) {
+          setAddressError("Inkludera även ditt postnummer");
+          return;
+        }
         updateDeliveryOption({ ...data.getDeliveryOption, address });
       }
     },
@@ -103,6 +109,7 @@ export const DeliveryCard = ({
               <AddressAutoCompleteInput
                 heading="Ange din gatuadress"
                 changeAddress={setAddress}
+                error={addressError}
               />
               <Button
                 label="Kolla min adress"
