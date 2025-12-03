@@ -194,20 +194,41 @@ export const MainContent = ({
         {showSpecificsMeasurements && (
           <View style={{ gap: 4 }}>
             <Label size="medium">Mått</Label>
-            {product.width && (
-              <Body size="medium">Bredd: {product.width} mm</Body>
+            {!!product.width && (
+              <Body size="medium">
+                Bredd: {product.width}{" "}
+                {measurements.width.options[product.widthUnit]?.name}
+              </Body>
             )}
-            {product.height && (
-              <Body size="medium">Höjd: {product.height} mm</Body>
+            {!!product.height && (
+              <Body size="medium">
+                Höjd: {product.height}{" "}
+                {measurements.height.options[product.heightUnit]?.name}
+              </Body>
             )}
-            {product.thickness && (
-              <Body size="medium">Djup: {product.thickness} mm</Body>
+            {!!product.thickness && (
+              <Body size="medium">
+                Djup: {product.thickness}{" "}
+                {measurements.thickness.options[product.thicknessUnit]?.name}
+              </Body>
             )}
-            {product.length && (
-              <Body size="medium">Längd: {product.length} mm</Body>
+            {!!product.length && (
+              <Body size="medium">
+                Längd: {product.length}{" "}
+                {measurements.length.options[product.lengthUnit]?.name}
+              </Body>
             )}
-            {product.weight && (
-              <Body size="medium">Vikt: {product.weight} kg</Body>
+            {!!product.diameter && (
+              <Body size="medium">
+                Diameter: {product.diameter}{" "}
+                {measurements.diameter.options[product.diameterUnit]?.name}
+              </Body>
+            )}
+            {!!product.weight && (
+              <Body size="medium">
+                Vikt: {product.weight}{" "}
+                {measurements.weight.options[product.weightUnit]?.name}
+              </Body>
             )}
           </View>
         )}
