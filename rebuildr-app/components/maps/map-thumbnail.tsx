@@ -1,6 +1,5 @@
 import { ReactElement, useEffect } from "react";
-import { StyleProp, ViewStyle } from "react-native";
-import { View } from "react-native";
+import { StyleProp, ViewStyle, View } from "react-native";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { borderRadius } from "@constants/sizes";
