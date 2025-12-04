@@ -1,18 +1,20 @@
-import { isLoggedInVar } from "@/apollo/config";
 import {
   SearchProductsQuery,
   SearchProductsQueryVariables,
 } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import {
+  ScreenLayout,
+  SCREEN_TOP_MARGIN,
+} from "@components/screen-layout/screen-layout";
 import { Body, Display } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { TextInput, View } from "react-native";
+import { Dispatch, useCallback, useEffect } from "react";
+import { TextInput, View, useWindowDimensions } from "react-native";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { Header } from "@components/navigation/headers/header";
@@ -29,74 +31,33 @@ import {
 } from "@components/search/transportation-options";
 import { SubCategoriesList } from "@components/categories/sub-categories-list/sub-categories-list";
 import { FilterProductCameFromEnum } from "@context/filter-product-context";
+import InteractiveMap from "@components/maps/interactive-map";
+import { SEARCH_PRODUCTS_QUERY } from "@/queries";
+import { useReducerState } from "@hooks/useReducerState";
+import { useUser } from "@hooks/useUser";
+import { borderRadius } from "@constants/sizes";
+import MapThumbnail from "@components/maps/map-thumbnail";
+import { useLocationContext } from "@context/location-context";
 
-const SEARCH_PRODUCTS_QUERY = gql`
-  query SearchProducts(
-    $input: ProductsInput!
-    $limit: Int
-    $offset: Int
-    $isLoggedIn: Boolean!
-  ) {
-    products(input: $input, limit: $limit, offset: $offset) {
-      products {
-        id
-        title
-        status
-        price
-        condition
-        primaryQuantity
-        primaryUnit
-        likedByMe
-        brand {
-          id
-          name
-        }
-        primaryImage {
-          id
-          url
-        }
-        approximatePlace {
-          address
-        }
-        seller {
-          id
-          type
-          rating
-        }
-      }
-      total
-    }
-    me @include(if: $isLoggedIn) {
-      id
-      location {
-        lat
-        lng
-      }
-      address
-    }
-  }
-`;
+type StateType = {
+  showFilter: boolean;
+  transportationLabel: string;
+  showTransportSheet: boolean;
+};
+
+const initialState: StateType = {
+  showFilter: false,
+  transportationLabel: "Alla leveranssätt",
+  showTransportSheet: false,
+};
 
 export default function Products() {
-  const [showFilter, setShowFilter] = useState(false);
-  const [transportationLabel, setTransportationLabel] =
-    useState("Alla leveranssätt");
-
-  const colors = useThemeColor();
+  const PAGE_SIZE = 10;
+  const [state, setState] = useReducerState<StateType>(initialState);
   const { isDesktop } = useScreenType();
-
-  const { searchString: searchStringParam } = useLocalSearchParams<{
-    searchString: string;
-  }>();
-  const [searchString, setSearchString] = useState(searchStringParam ?? "");
-
-  const { filter, nrOfAppliedFilters, resetSelectedCategory } =
-    useFilterProduct();
-
-  const isLoggedIn = isLoggedInVar();
-  const productsPerPage = 10;
-  const [showTransportSheet, setShowTransportSheet] = useState(false);
-  const { onToggleProductHeart } = useLikeProduct();
+  const { isLoggedIn } = useUser();
+  const { searchString } = useLocalSearchParams<{ searchString: string }>();
+  const { filter, resetSelectedCategory, setSearchString } = useFilterProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
     SearchProductsQuery,
@@ -104,19 +65,15 @@ export default function Products() {
   >(SEARCH_PRODUCTS_QUERY, {
     variables: {
       input: {
-        searchString,
+        searchString: filter.searchString,
         orderBy: filter.sorting,
-        categoryIds: filter.categoryIds
-          ? filter.categoryIds
-          : filter.rootCategoryIds
-            ? filter.rootCategoryIds
-            : undefined,
+        categoryIds: filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
         brandIds: filter.brandIds,
         conditions: filter.conditions,
         minPrice: filter.price[0],
         maxPrice: filter.price[1],
       },
-      limit: productsPerPage,
+      limit: PAGE_SIZE,
       offset: 0,
       isLoggedIn,
     },
@@ -125,10 +82,8 @@ export default function Products() {
   const onShowMore = async () => {
     await fetchMore({
       variables: {
-        offset: Math.ceil(
-          (data?.products?.products.length ?? 0) / productsPerPage,
-        ),
-        limit: productsPerPage,
+        offset: Math.ceil((data?.products?.products.length ?? 0) / PAGE_SIZE),
+        limit: PAGE_SIZE,
       },
       updateQuery: (prev, { fetchMoreResult }) => {
         if (!fetchMoreResult?.products?.products.length) return prev;
@@ -152,7 +107,7 @@ export default function Products() {
   ) => {
     await refetch({
       input: {
-        searchString,
+        searchString: filter.searchString,
         orderBy: filter.sorting,
         categoryIds: filter.categoryIds,
         brandIds: filter.brandIds,
@@ -162,7 +117,7 @@ export default function Products() {
         ...options,
       },
     });
-    setShowTransportSheet(false);
+    setState({ showTransportSheet: false });
   };
 
   useFocusEffect(
@@ -172,11 +127,58 @@ export default function Products() {
   );
 
   useEffect(() => {
-    setSearchString(searchStringParam ?? "");
-    if (searchStringParam) {
+    if (searchString) {
       resetSelectedCategory();
+      setSearchString(searchString);
     }
-  }, [searchStringParam]);
+  }, [searchString]);
+
+  if (isDesktop) {
+    return (
+      <DesktopLayout
+        data={data}
+        loading={loading}
+        onShowMore={onShowMore}
+        onApplyTranportationOptions={onApplyTranportationOptions}
+        state={state}
+        setState={setState}
+      />
+    );
+  }
+
+  return (
+    <MobileLayout
+      data={data}
+      loading={loading}
+      onShowMore={onShowMore}
+      onApplyTranportationOptions={onApplyTranportationOptions}
+      state={state}
+      setState={setState}
+    />
+  );
+}
+
+type Props = {
+  loading: boolean;
+  data?: SearchProductsQuery;
+  onShowMore: () => void;
+  onApplyTranportationOptions: (options: TransportationFilterOptions) => void;
+  state: StateType;
+  setState: Dispatch<Partial<StateType>>;
+};
+
+const DesktopLayout = ({
+  loading,
+  data,
+  onShowMore,
+  onApplyTranportationOptions,
+  state,
+  setState,
+}: Props) => {
+  const { filter, nrOfAppliedFilters } = useFilterProduct();
+  const { onToggleProductHeart } = useLikeProduct();
+  const { height: screenHeight } = useWindowDimensions();
+  const MAP_HEIGHT = screenHeight - 72 - 48;
 
   return (
     <>
@@ -184,58 +186,195 @@ export default function Products() {
         loading={loading}
         style={{ marginTop: 24 }}
         desktopFooter
-        headerComponent={
-          isDesktop ? (
-            <TopBar showFor={["desktop"]} theme="light" />
-          ) : (
-            <Header
-              showBackButton={
-                filter.cameFrom === FilterProductCameFromEnum.categories
+        headerComponent={<TopBar showFor={["desktop"]} theme="light" />}
+      >
+        <View style={{ flexDirection: "row", gap: 48 }}>
+          <View style={{ flex: 1 }}>
+            {!!filter.searchString && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  marginBottom: 24,
+                }}
+              >
+                <Display size="small">“</Display>
+                <Display size="small" numberOfLines={1} ellipsizeMode="tail">
+                  {filter.searchString}
+                </Display>
+                <Display size="small">“</Display>
+              </View>
+            )}
+
+            {!!filter.selectedCategoryId && (
+              <SubCategoriesList id={filter.selectedCategoryId} />
+            )}
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 32,
+              }}
+            >
+              <Body size="medium" style={{ flex: 1 }} color="secondary">
+                {data?.products.total ?? 0}{" "}
+                {data?.products.total === 1 ? "träff" : "träffar"}:
+              </Body>
+              <Button
+                label={state.transportationLabel}
+                onPress={() => setState({ showTransportSheet: true })}
+                type="tonal"
+              />
+              <View>
+                <Button
+                  icon="filterList2"
+                  type="tonal"
+                  onPress={() => setState({ showFilter: true })}
+                />
+                {!!nrOfAppliedFilters() && (
+                  <View style={{ position: "absolute", right: 1, top: 1 }}>
+                    <Badge text={`${nrOfAppliedFilters()}`} />
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <AdGridSection
+              desktopColumnNumber={2}
+              products={
+                data?.products.products.map((product) => ({
+                  id: product.id,
+                  imageUri: product.primaryImage?.url,
+                  title: product.title,
+                  quantity: product.primaryQuantity,
+                  condition: product.condition,
+                  account: {
+                    rating: product.seller.rating,
+                    type: product.seller.type,
+                    location: product.approximatePlace?.address,
+                  },
+                  price: product.price,
+                  status: product.status,
+                  heart: product.seller.id !== data.me?.id,
+                  liked: !!product.likedByMe,
+                  onHeartPress: () => {
+                    onToggleProductHeart({
+                      productId: product.id,
+                      likedByMe: !!product.likedByMe,
+                    });
+                  },
+                })) ?? []
               }
-              onBack={
-                filter.cameFrom === FilterProductCameFromEnum.categories
-                  ? () => {
-                      router.navigate("/categories");
-                    }
-                  : undefined
-              }
-              middle={
-                <>
-                  <Icon
-                    icon="search"
-                    size={18}
-                    style={{ marginRight: 10, height: 40 }}
-                  />
-                  <TextInput
-                    style={{
-                      outline: "none",
-                      flex: 1,
-                      color: colors.text.primaryDark,
-                      ...textStyles.title["medium"],
-                    }}
-                    placeholder="Vad letar du efter?"
-                    placeholderTextColor={colors.text.secondary}
-                    value={searchString}
-                    onFocus={() => router.navigate("/(app)/(tabs)/search")}
-                  />
-                </>
-              }
+              pagination={{
+                onShowMore,
+                total: data?.products.total ?? 0,
+                loading,
+              }}
             />
-          )
+          </View>
+
+          <InteractiveMap
+            style={{
+              position: "sticky",
+              top: SCREEN_TOP_MARGIN,
+              flex: 1,
+              height: MAP_HEIGHT,
+              borderRadius: borderRadius.medium,
+            }}
+          />
+        </View>
+      </ScreenLayout>
+
+      <SlideInSheet
+        open={state.showTransportSheet}
+        onClose={() => setState({ showTransportSheet: false })}
+        title="Leveransalternativ"
+      >
+        <TransportationOptions
+          data={data}
+          loading={loading}
+          setTransportationLabel={(label) =>
+            setState({ transportationLabel: label })
+          }
+          onApply={onApplyTranportationOptions}
+        />
+      </SlideInSheet>
+
+      <FilterSlideSheet
+        open={state.showFilter}
+        onClose={() => setState({ showFilter: false })}
+      />
+    </>
+  );
+};
+
+const MobileLayout = ({
+  loading,
+  data,
+  onShowMore,
+  onApplyTranportationOptions,
+  state,
+  setState,
+}: Props) => {
+  const { filter, nrOfAppliedFilters } = useFilterProduct();
+  const { onToggleProductHeart } = useLikeProduct();
+  const colors = useThemeColor();
+  const { userCoords } = useLocationContext();
+
+  return (
+    <>
+      <ScreenLayout
+        loading={loading}
+        style={{ marginTop: 24 }}
+        headerComponent={
+          <Header
+            showBackButton={
+              filter.cameFrom === FilterProductCameFromEnum.categories
+            }
+            onBack={
+              filter.cameFrom === FilterProductCameFromEnum.categories
+                ? () => router.navigate("/categories")
+                : undefined
+            }
+            middle={
+              <>
+                <Icon
+                  icon="search"
+                  size={18}
+                  style={{ marginRight: 10, height: 40 }}
+                />
+                <TextInput
+                  style={{
+                    outline: "none",
+                    flex: 1,
+                    color: colors.text.primaryDark,
+                    ...textStyles.title["medium"],
+                  }}
+                  placeholder="Vad letar du efter?"
+                  placeholderTextColor={colors.text.secondary}
+                  value={filter.searchString}
+                  onFocus={() => router.navigate("/(app)/(tabs)/search")}
+                />
+              </>
+            }
+          />
         }
       >
-        {!!searchString && (
+        {!!filter.searchString && (
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: isDesktop ? "flex-start" : "center",
+              justifyContent: "center",
               marginBottom: 24,
             }}
           >
             <Display size="small">“</Display>
             <Display size="small" numberOfLines={1} ellipsizeMode="tail">
-              {searchString}
+              {filter.searchString}
             </Display>
             <Display size="small">“</Display>
           </View>
@@ -250,7 +389,7 @@ export default function Products() {
             flexDirection: "row",
             alignItems: "center",
             gap: 8,
-            marginBottom: isDesktop ? 32 : 16,
+            marginBottom: 16,
           }}
         >
           <Body size="medium" style={{ flex: 1 }} color="secondary">
@@ -258,21 +397,15 @@ export default function Products() {
             {data?.products.total === 1 ? "träff" : "träffar"}:
           </Body>
           <Button
-            label={transportationLabel}
-            onPress={() => setShowTransportSheet(true)}
+            label={state.transportationLabel}
+            onPress={() => setState({ showTransportSheet: true })}
             type="tonal"
           />
           <View>
             <Button
               icon="filterList2"
               type="tonal"
-              onPress={() => {
-                if (isDesktop) {
-                  setShowFilter(true);
-                } else {
-                  router.navigate("/search/filter");
-                }
-              }}
+              onPress={() => router.navigate("/search/filter")}
             />
             {!!nrOfAppliedFilters() && (
               <View style={{ position: "absolute", right: 1, top: 1 }}>
@@ -281,6 +414,23 @@ export default function Products() {
             )}
           </View>
         </View>
+
+        <MapThumbnail
+          coords={
+            userCoords ? [userCoords.latitude, userCoords.longitude] : undefined
+          }
+          style={{ marginBottom: 16 }}
+          cta={
+            <Button
+              label="Visa på karta"
+              type="text"
+              icon="map"
+              style={{ backgroundColor: "white" }}
+              onPress={() => router.navigate("/map")}
+            />
+          }
+        />
+
         <AdGridSection
           products={
             data?.products.products.map((product) => ({
@@ -313,41 +463,23 @@ export default function Products() {
           }}
         />
       </ScreenLayout>
-      {isDesktop ? (
-        <>
-          <SlideInSheet
-            open={showTransportSheet}
-            onClose={() => setShowTransportSheet(false)}
-            title="Leveransalternativ"
-          >
-            <TransportationOptions
-              data={data}
-              loading={loading}
-              setTransportationLabel={setTransportationLabel}
-              onApply={onApplyTranportationOptions}
-            />
-          </SlideInSheet>
-          <FilterSlideSheet
-            open={showFilter}
-            onClose={() => setShowFilter(false)}
-          />
-        </>
-      ) : (
-        <BottomSheet
-          open={showTransportSheet}
-          onDismiss={() => setShowTransportSheet(false)}
-          name="delivery"
-          title="Leveransalternativ"
-          scrollable
-        >
-          <TransportationOptions
-            data={data}
-            loading={loading}
-            setTransportationLabel={setTransportationLabel}
-            onApply={onApplyTranportationOptions}
-          />
-        </BottomSheet>
-      )}
+
+      <BottomSheet
+        open={state.showTransportSheet}
+        onDismiss={() => setState({ showTransportSheet: false })}
+        name="delivery"
+        title="Leveransalternativ"
+        scrollable
+      >
+        <TransportationOptions
+          data={data}
+          loading={loading}
+          setTransportationLabel={(label) =>
+            setState({ transportationLabel: label })
+          }
+          onApply={onApplyTranportationOptions}
+        />
+      </BottomSheet>
     </>
   );
-}
+};

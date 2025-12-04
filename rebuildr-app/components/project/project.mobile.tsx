@@ -24,6 +24,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import { Map } from "@components/maps/map";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { mapDefaultApproximateRadiusLarge } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 export const ProjectMobile = () => {
   const { width: screenWidth } = useWindowDimensions();
@@ -127,25 +128,20 @@ export const ProjectMobile = () => {
           </View>
 
           <Display size="small">{project?.title}</Display>
-          {location && (
-            <Pressable onPress={() => setShowLocation(true)}>
-              <Map
-                lat={location.lat}
-                lng={location.lng}
-                interactive={false}
-                height={80}
-                marker={
-                  <Button
-                    label="Visa på karta"
-                    type="text"
-                    icon="map"
-                    style={{ backgroundColor: "white" }}
-                    onPress={() => setShowLocation(true)}
-                  />
-                }
+
+          <MapThumbnail
+            coords={location ? [location.lat, location.lng] : undefined}
+            cta={
+              <Button
+                label="Visa på karta"
+                type="text"
+                icon="map"
+                style={{ backgroundColor: "white" }}
+                onPress={() => setShowLocation(true)}
               />
-            </Pressable>
-          )}
+            }
+          />
+
           <View style={{ gap: contactExpanded ? 16 : 8 }}>
             <Body
               size="medium"

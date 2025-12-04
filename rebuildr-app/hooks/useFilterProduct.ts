@@ -183,6 +183,20 @@ export const useFilterProduct = () => {
     });
   };
 
+  const setSearchString = (searchString: string) => {
+    productFilterVar({
+      ...filter,
+      searchString: searchString,
+    });
+  };
+
+  const resetSearchString = () => {
+    productFilterVar({
+      ...filter,
+      searchString: undefined,
+    });
+  };
+
   return {
     filter,
     reset,
@@ -195,5 +209,7 @@ export const useFilterProduct = () => {
     setPrice,
     nrOfAppliedFilters,
     resetSelectedCategory,
+    setSearchString,
+    resetSearchString,
   };
 };
