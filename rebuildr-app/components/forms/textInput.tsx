@@ -2,7 +2,7 @@ import { textStyles } from "@components/typography/typeface";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon, IconType } from "@icons/icon";
-import { forwardRef, Ref, useState } from "react";
+import { Ref, useState } from "react";
 import {
   Pressable,
   TextInput as RNTextInput,
@@ -21,12 +21,10 @@ export type Props = {
   onBlur?: (t: string) => void;
   style?: ViewStyle;
   textColor?: string;
+  ref?: Ref<RNTextInput>;
 } & Omit<TextInputProps, "onChange" | "onBlur" | "style">;
 
-export const TextInput = forwardRef(function TextInput(
-  { onChange, onBlur, ...props }: Props,
-  ref: Ref<RNTextInput>,
-) {
+export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -130,7 +128,7 @@ export const TextInput = forwardRef(function TextInput(
         ]}
       >
         <RNTextInput
-          ref={ref}
+          ref={props.ref}
           onFocus={() => setFocused(true)}
           onBlur={() => onBlurText()}
           secureTextEntry={props.hideText}
@@ -166,4 +164,4 @@ export const TextInput = forwardRef(function TextInput(
       </View>
     </Pressable>
   );
-});
+};
