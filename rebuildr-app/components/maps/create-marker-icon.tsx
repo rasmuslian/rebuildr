@@ -4,14 +4,10 @@ import ReactDOMServer from "react-dom/server";
 type Props = {
   iconSource: string;
   priceLabel?: string;
-  likedByMe?: boolean;
+  total?: number;
 };
 
-export function createMarkerIcon({
-  iconSource,
-  priceLabel,
-  likedByMe = false,
-}: Props) {
+export function createMarkerIcon({ iconSource, priceLabel, total }: Props) {
   const icon = (
     <div
       style={{
@@ -22,18 +18,25 @@ export function createMarkerIcon({
         position: "relative",
       }}
     >
-      {likedByMe && (
-        <img
-          src="/icons/like.svg"
+      {total && (
+        <div
           style={{
-            width: 22,
-            height: 22,
+            background: "#000",
+            borderRadius: 12,
+            width: 24,
+            height: 24,
             zIndex: 20,
             position: "absolute",
             top: -11,
             left: 26,
+            textAlign: "center",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
-        />
+        >
+          <span style={{ color: "#FFF" }}>{total}</span>
+        </div>
       )}
 
       <img

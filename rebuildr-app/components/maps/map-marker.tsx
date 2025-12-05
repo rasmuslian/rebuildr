@@ -39,6 +39,8 @@ export default function MapMarker({ pin }: Props) {
     priceLabel = formatPrice(minPrice);
   }
 
+  const productIds = pin.productIds ?? [];
+
   const iconSource =
     state.activePin?.location === pin.location
       ? `/icons/${pin.type.toLowerCase()}-marker-dark.svg`
@@ -48,8 +50,9 @@ export default function MapMarker({ pin }: Props) {
     return createMarkerIcon({
       iconSource,
       priceLabel: state.showPrice ? priceLabel : undefined,
+      total: productIds.length > 1 ? productIds.length : undefined,
     });
-  }, [iconSource, priceLabel, state.showPrice]);
+  }, [iconSource, priceLabel, state.showPrice, productIds]);
 
   return (
     <Marker
