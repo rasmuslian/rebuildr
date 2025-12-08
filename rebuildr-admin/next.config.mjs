@@ -13,6 +13,10 @@ const config = withPlaiceholder({
         protocol: "https",
         hostname: "rebuildr-staging.ams3.cdn.digitaloceanspaces.com",
       },
+      {
+        protocol: "https",
+        hostname: "rebuildr.ams3.cdn.digitaloceanspaces.com",
+      },
     ],
   },
 });
