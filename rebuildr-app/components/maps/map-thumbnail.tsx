@@ -3,6 +3,7 @@ import { StyleProp, ViewStyle, View } from "react-native";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { borderRadius } from "@constants/sizes";
+import { defaultCenter } from "@constants/map";
 
 type Props = {
   style?: StyleProp<ViewStyle>;
@@ -19,7 +20,7 @@ export default function MapThumbnail({ style, cta, coords }: Props) {
       ]}
     >
       <MapContainer
-        center={[62.0, 15.0]}
+        center={defaultCenter}
         zoom={5}
         style={{ height: "100%", width: "100%" }}
         zoomControl={false}
@@ -60,12 +61,7 @@ const Controller = ({ coords }: ControllerProps) => {
   const map = useMap();
 
   useEffect(() => {
-    if (coords) {
-      map.flyTo(coords, 13, {
-        animate: true,
-        duration: 0.5,
-      });
-    }
+    if (coords) map.setView(coords, 13);
   }, [coords]);
 
   return null;

@@ -1,13 +1,12 @@
 import React, { useEffect } from "react";
 import MapMarker from "@components/maps/map-marker";
 import UserLocationMarker from "@components/maps/user-location-marker";
-import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
 import { useDebounceCallback } from "usehooks-ts";
-import { useMapContext, Bounds, MapProvider } from "@context/map-context";
+import { useMapContext, MapProvider } from "@context/map-context";
 import { StyleProp, View, ViewStyle } from "react-native";
 import { Check } from "@components/controls/check";
 import { Label } from "@components/typography/text";
-import { LatLngExpression, Map as MapType } from "leaflet";
 
 type Props = {
   style?: StyleProp<ViewStyle>;
@@ -115,29 +114,21 @@ const Controller = () => {
   const { state, setState } = useMapContext();
   const map = useMap();
 
-  const boundDebounce = useDebounceCallback((bounds: Bounds) => {
-    setState({ bounds });
+  const boundDebounce = useDebounceCallback(() => {
+    map.whenReady(() => {
+      const bounds = map.getBounds();
+      const northEast = bounds.getNorthEast();
+      const southWest = bounds.getSouthWest();
+      setState({ bounds: { northEast, southWest } });
+    });
   }, 500);
 
-  const zoomDebounce = useDebounceCallback((zoom: number) => {
-    setState({ zoom });
+  const zoomDebounce = useDebounceCallback(() => {
+    map.whenReady(() => {
+      const zoom = map.getZoom();
+      setState({ zoom });
+    });
   }, 500);
-
-  const flyToDebounce = useDebounceCallback(
-    (center: LatLngExpression, mapInstance: MapType) => {
-      mapInstance.whenReady(() => {
-        mapInstance.flyTo(center, 13, {
-          animate: true,
-          duration: 0.5,
-        });
-      });
-    },
-    500,
-  );
-
-  useEffect(() => {
-    flyToDebounce(state.center, map);
-  }, [state.center, map]);
 
   useMapEvents({
     click: (e) => {
@@ -151,21 +142,17 @@ const Controller = () => {
       }
       setState({ activePin: undefined });
     },
-    moveend: (e) => {
-      const bounds = e.target.getBounds();
-      const northEast = bounds.getNorthEast();
-      const southWest = bounds.getSouthWest();
-
-      boundDebounce({
-        northEast: { lat: northEast.lat, lng: northEast.lng },
-        southWest: { lat: southWest.lat, lng: southWest.lng },
-      });
-    },
-    zoomend: (e) => {
-      const zoom = e.target.getZoom();
-      zoomDebounce(zoom);
-    },
+    moveend: () => boundDebounce(),
+    zoomend: () => zoomDebounce(),
   });
+
+  useEffect(() => {
+    map.whenReady(() => {
+      map.setView(state.center, 13);
+    });
+
+    boundDebounce();
+  }, [state.center]);
 
   return null;
 };

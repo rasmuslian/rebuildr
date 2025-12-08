@@ -12,8 +12,9 @@ import { MAP_PINS_QUERY } from "@/queries";
 import { LatLngExpression } from "leaflet";
 import { useLocationContext } from "@context/location-context";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import { defaultCenter } from "@constants/map";
 
-export type Bounds = {
+type Bounds = {
   northEast: PointInput;
   southWest: PointInput;
 };
@@ -32,7 +33,7 @@ type StateType = {
 
 const initialState: StateType = {
   showPrice: false,
-  center: [62.0, 15.0],
+  center: defaultCenter,
   zoom: 5,
   bounds: undefined,
   pins: [],
