@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ComingSoon } from "@components/coming-soon/coming-soon";
 import { LoginModalContext } from "@context/loginModalContext";
 import { use } from "react";
+import { shouldShowComingSoon } from "@/utils/coming-soon";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -25,7 +26,9 @@ export default function AppLayout() {
     },
   });
 
-  if (process.env.EXPO_PUBLIC_SHOW_COMING_SOON) {
+  const showComingSoon = shouldShowComingSoon();
+
+  if (showComingSoon) {
     return <ComingSoon />;
   }
 
