@@ -34,6 +34,7 @@ import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
+import { shouldShowComingSoon } from "@/utils/coming-soon";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -85,6 +86,8 @@ const RootLayout = () => {
     return null;
   }
 
+  const showComingSoon = shouldShowComingSoon();
+
   return (
     <>
       <link
@@ -105,7 +108,7 @@ const RootLayout = () => {
         />
       )}
       <ApolloProvider client={client}>
-        {process.env.EXPO_PUBLIC_SHOW_COMING_SOON ? (
+        {showComingSoon ? (
           <ScreenDimensionsProvider>
             <Slot />
           </ScreenDimensionsProvider>
