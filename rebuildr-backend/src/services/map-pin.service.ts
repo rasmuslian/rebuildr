@@ -1,14 +1,21 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Product, ProductStatus } from "src/entities/product.entity";
-import { Project } from "src/entities/project.entity";
-import { User } from "src/entities/user.entity";
-import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
-import { LocationResponse } from "src/resolvers/geocoding.resolver";
-import { MapPinResponse, ProductMapPinResponse } from "src/resolvers/map-pin.resolver";
-import { Repository } from "typeorm/repository/Repository";
-import { GeocodingService } from "./geocoding.service";
-import { ProductsInput } from "src/resolvers/product.resolver";
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product, ProductStatus } from 'src/entities/product.entity';
+import { Project } from 'src/entities/project.entity';
+import { User } from 'src/entities/user.entity';
+import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
+import { LocationResponse } from 'src/resolvers/geocoding.resolver';
+import {
+  MapPinResponse,
+  ProductMapPinResponse,
+} from 'src/resolvers/map-pin.resolver';
+import { Repository } from 'typeorm/repository/Repository';
+import { GeocodingService } from './geocoding.service';
+import { ProductsInput } from 'src/resolvers/product.resolver';
+import { ObjectLiteral } from 'typeorm';
+import { BadUserInputException } from 'src/exceptions';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class MapPinService {
@@ -22,6 +29,7 @@ export class MapPinService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async createMany(mapPins: MapPin[]): Promise<MapPin[]> {
@@ -36,18 +44,26 @@ export class MapPinService {
     return await this.mapPinRepository.findOneBy({ id });
   }
 
-  async removeMapPin(id: string): Promise<void> {
-    if (id) {
-      await this.mapPinRepository.delete(id);
+  async removeMapPin(id: string): Promise<MapPin> {
+    const mapPin = await this.getOne(id);
+    if (!mapPin) {
+      throw BadUserInputException();
     }
+    return this.mapPinRepository.remove(mapPin);
   }
 
   async syncApproximateLocations() {
     const batchSize = 100;
     let offset = 0;
     while (true) {
-      const projects = await this.projectRepository.createQueryBuilder('project')
-        .leftJoinAndSelect('project.products', 'product', 'product.status = :status', { status: ProductStatus.PUBLISHED })
+      const projects = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect(
+          'project.products',
+          'product',
+          'product.status = :status',
+          { status: ProductStatus.PUBLISHED },
+        )
         .where('project.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
@@ -68,12 +84,11 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-
           project.mapPin = new MapPin({
             location: {
-                type: 'Point',
-                coordinates: [approximateLocation.lat, approximateLocation.lng],
-              },
+              type: 'Point',
+              coordinates: [approximateLocation.lat, approximateLocation.lng],
+            },
             address: approximateLocation.address,
           });
           if (project.mapPinId) {
@@ -86,8 +101,11 @@ export class MapPinService {
                 product.mapPin = new MapPin({
                   address: approximateLocation.address,
                   location: {
-                    type: "Point",
-                    coordinates: [approximateLocation.lat, approximateLocation.lng],
+                    type: 'Point',
+                    coordinates: [
+                      approximateLocation.lat,
+                      approximateLocation.lng,
+                    ],
                   },
                 });
                 if (product.mapPinId) {
@@ -98,7 +116,12 @@ export class MapPinService {
             }
           }
         } catch (error) {
-          console.log(`Failed to approximate location for project ${project.id}: ${error}`);
+          this.logger.error(
+            `Failed to approximate location for project ${project.id}: ${error}`,
+            {
+              projectId: project.id,
+            },
+          );
         }
       }
 
@@ -108,7 +131,8 @@ export class MapPinService {
 
     offset = 0;
     while (true) {
-      const users = await this.userRepository.createQueryBuilder('user')
+      const users = await this.userRepository
+        .createQueryBuilder('user')
         .andWhere('user.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
@@ -128,19 +152,24 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-          user.mapPin = (new MapPin({
+          user.mapPin = new MapPin({
             location: {
               type: 'Point',
               coordinates: [approximateLocation.lat, approximateLocation.lng],
             },
             address: approximateLocation.address,
-          }));
+          });
           if (user.mapPinId) {
             user.mapPin.id = user.mapPinId;
           }
           updatedUsers.push(user);
         } catch (error) {
-          console.log(`Failed to approximate location for user ${user.id}: ${error}`);
+          this.logger.error(
+            `Failed to approximate location for user ${user.id}: ${error}`,
+            {
+              userId: user.id,
+            },
+          );
         }
       }
 
@@ -150,9 +179,12 @@ export class MapPinService {
 
     offset = 0;
     while (true) {
-      const products = await this.productRepository.createQueryBuilder('product')
+      const products = await this.productRepository
+        .createQueryBuilder('product')
         .andWhere('product.projectId IS NULL')
-        .andWhere('product.status = :status', { status: ProductStatus.PUBLISHED })
+        .andWhere('product.status = :status', {
+          status: ProductStatus.PUBLISHED,
+        })
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
@@ -172,19 +204,24 @@ export class MapPinService {
           const approximateLocation =
             await this.geocodingService.locationToApproximation(location);
 
-          product.mapPin = (new MapPin({
+          product.mapPin = new MapPin({
             location: {
               type: 'Point',
               coordinates: [approximateLocation.lat, approximateLocation.lng],
             },
             address: approximateLocation.address,
-          }));
+          });
           if (product.mapPinId) {
             product.mapPin.id = product.mapPinId;
           }
           updatedProducts.push(product);
         } catch (error) {
-          console.log(`Failed to approximate location for product ${product.id}: ${error}`);
+          this.logger.error(
+            `Failed to approximate location for product ${product.id}: ${error}`,
+            {
+              productId: product.id,
+            },
+          );
         }
       }
 
@@ -198,7 +235,7 @@ export class MapPinService {
     northEast: LocationResponse,
   ): Promise<MapPinResponse> {
     const result = await this.mapPinRepository
-      .createQueryBuilder("mapPin")
+      .createQueryBuilder('mapPin')
       .where(
         `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
         {
@@ -263,17 +300,16 @@ export class MapPinService {
     return result;
   }
 
-
   private async getFilteredMapPinsForProducts(
     whereClause: string,
-    whereParams: unknown,
+    whereParams: ObjectLiteral,
     productsInput?: ProductsInput,
     zoom?: number,
     offset?: number,
     limit?: number,
-  ): Promise<ProductMapPinResponse>{
+  ): Promise<ProductMapPinResponse> {
     const productPinsQuery = this.mapPinRepository
-      .createQueryBuilder("mapPin")
+      .createQueryBuilder('mapPin')
       .select(
         `"mapPin".id AS id,
         "mapPin".location AS location,
@@ -281,11 +317,8 @@ export class MapPinService {
         product."projectId" AS project_id,
         product.price AS price`,
       )
-      .where(
-        whereClause,
-        whereParams,
-      )
-      .innerJoin("mapPin.product", "product");
+      .where(whereClause, whereParams)
+      .innerJoin('mapPin.product', 'product');
 
     if (offset !== undefined) {
       productPinsQuery.offset(offset);
@@ -295,10 +328,13 @@ export class MapPinService {
     }
 
     if (productsInput) {
-
       if (productsInput.sellerId) {
-        productPinsQuery.andWhere('product."sellerId" = :sellerId', { sellerId: productsInput.sellerId });
+        productPinsQuery.andWhere('product."sellerId" = :sellerId', {
+          sellerId: productsInput.sellerId,
+        });
       }
+
+      productPinsQuery.andWhere(`(product."status" = 'PUBLISHED')`);
 
       if (productsInput.searchString) {
         productPinsQuery
@@ -323,7 +359,11 @@ export class MapPinService {
         productsInput.selectionCategories ||
         productsInput.seasonalCategories
       ) {
-        productPinsQuery.innerJoin('category', 'c', 'product."categoryId" = c.id');
+        productPinsQuery.innerJoin(
+          'category',
+          'c',
+          'product."categoryId" = c.id',
+        );
 
         if (productsInput.categoryIds?.length) {
           productPinsQuery.andWhere(
@@ -333,10 +373,20 @@ export class MapPinService {
             },
           );
         } else if (productsInput.selectionCategories) {
-          productPinsQuery.leftJoin('category', 'parent', 'parent.id = c."parentId"');
-          productPinsQuery.andWhere('(c."inSelection" OR parent."inSelection")');
+          productPinsQuery.leftJoin(
+            'category',
+            'parent',
+            'parent.id = c."parentId"',
+          );
+          productPinsQuery.andWhere(
+            '(c."inSelection" OR parent."inSelection")',
+          );
         } else {
-          productPinsQuery.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+          productPinsQuery.leftJoin(
+            'category',
+            'parent',
+            'parent.id = c."parentId"',
+          );
           productPinsQuery.andWhere('(c."inSeason" OR parent."inSeason")');
         }
       }
@@ -378,13 +428,11 @@ export class MapPinService {
       if (productsInput.giveaway) {
         productPinsQuery.andWhere('"isGiveaway" = TRUE');
       }
-
     }
     const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 
-
     const result = await this.mapPinRepository.query(
-     `
+      `
       SELECT
         grid_id as "gridId",
         ST_Collect(location) as location,
@@ -408,10 +456,7 @@ export class MapPinService {
       ) AS sub
       GROUP BY grid_id
       `,
-      [
-        ...innerParams,
-        this.cellSizeForZoom(zoom),
-      ]
+      [...innerParams, this.cellSizeForZoom(zoom)],
     );
 
     return {
@@ -422,7 +467,10 @@ export class MapPinService {
         },
         productIds: r.productIds,
         projectIds: r.projectIds.filter(Boolean),
-        type: r.projectIds.filter(Boolean).length > 0 ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
+        type:
+          r.projectIds.filter(Boolean).length > 0
+            ? MapPinTypeEnum.PROJECT
+            : MapPinTypeEnum.PRODUCT,
         prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,

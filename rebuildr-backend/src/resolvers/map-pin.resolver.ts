@@ -1,16 +1,29 @@
-import { forwardRef, Inject, UseGuards } from "@nestjs/common";
-import { Args, Context, Field, InputType, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
-import { MapPin, MapPinTypeEnum } from "src/entities/map-pin.entity";
-import { MapPinService } from "src/services/map-pin.service";
-import { LocationResponse } from "./geocoding.resolver";
-import { UserRoleEnum } from "src/entities/user.entity";
-import { Roles } from "src/decorators/roles.decorator";
-import { GqlAuthGuard } from "src/auth/gql-auth.guard";
-import { RolesGuard } from "src/auth/roles.guard";
-import { ProductsInput } from "./product.resolver";
-import { Product } from "src/entities/product.entity";
-import { IMapPinLoaders } from "src/dataloaders/map-pin.loader";
-import { GqlOptionalAuthGuard } from "src/auth/gql-optional-auth.guard";
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
+import {
+  Args,
+  Context,
+  Field,
+  InputType,
+  Int,
+  Mutation,
+  ObjectType,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+  Root,
+} from '@nestjs/graphql';
+import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
+import { MapPinService } from 'src/services/map-pin.service';
+import { LocationResponse } from './geocoding.resolver';
+import { UserRoleEnum } from 'src/entities/user.entity';
+import { Roles } from 'src/decorators/roles.decorator';
+import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { ProductsInput } from './product.resolver';
+import { Product } from 'src/entities/product.entity';
+import { IMapPinLoaders } from 'src/dataloaders/map-pin.loader';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 
 @ObjectType()
 export class MapPinGroup {
@@ -100,34 +113,6 @@ export class MapPinResolver {
       lat: mapPin.location.coordinates[0],
       lng: mapPin.location.coordinates[1],
     };
-  }
-
-  @ResolveField(() => MapPinTypeEnum, { nullable: true })
-  async pinType(@Parent() mapPin: MapPin) {
-    if (mapPin.product) {
-      return 'PRODUCT';
-    }
-    if (mapPin.user) {
-      return 'USER';
-    }
-    if (mapPin.project) {
-      return 'PROJECT';
-    }
-    return null;
-  }
-
-  @ResolveField(() => String, { nullable: true })
-  async pinTypeId(@Parent() mapPin: MapPin) {
-    if (mapPin.product) {
-      return mapPin.product.id;
-    }
-    if (mapPin.user) {
-      return mapPin.user.id;
-    }
-    if (mapPin.project) {
-      return mapPin.project.id;
-    }
-    return null;
   }
 
   @Mutation(() => Boolean)

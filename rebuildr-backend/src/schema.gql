@@ -121,15 +121,7 @@ enum TransportationEnum {
 type MapPin {
   id: ID!
   location: LocationResponse!
-  pinType: MapPinTypeEnum
-  pinTypeId: String
   product: Product
-}
-
-enum MapPinTypeEnum {
-  PRODUCT
-  PROJECT
-  USER
 }
 
 type Project {
@@ -599,6 +591,12 @@ type MapPinGroup {
   type: MapPinTypeEnum!
   productIds: [String!]
   projectIds: [String!]
+}
+
+enum MapPinTypeEnum {
+  PRODUCT
+  PROJECT
+  USER
 }
 
 type ProductMapPinResponse {

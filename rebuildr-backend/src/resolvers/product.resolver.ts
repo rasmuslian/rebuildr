@@ -643,7 +643,8 @@ export class ProductResolver {
   @Query(() => ApproximatePlaceResponse, { nullable: true })
   async getPickupOption(
     @Args('input') input: GetTransportationOptionsInput,
-    @Context('productLoaders') productLoaders: IProductLoaders) {
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
     const product = await productLoaders.getProduct.load(input.productId);
     if (!product.pickupEnabled) {
       return null;
@@ -880,11 +881,6 @@ export class ProductResolver {
     return productLoaders.brandLoader.load(_product.id);
   }
 
-  @ResolveField(() => String, { nullable: true })
-  async projectId(@Root() product: Product) {
-    return product.projectId;
-  }
-
   @ResolveField(() => Project, { nullable: true })
   async project(
     @Root() _product: Product,
@@ -905,7 +901,8 @@ export class ProductResolver {
   @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
   async approximatePlace(
     @Root() product: Product,
-    @Context('productLoaders') productLoaders: IProductLoaders) {
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
     const mapPin = await productLoaders.mapPinLoader.load(product.id);
     if (!mapPin) {
       return null;
