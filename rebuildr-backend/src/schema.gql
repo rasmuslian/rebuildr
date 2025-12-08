@@ -359,7 +359,6 @@ type Product {
   likedByMe: Boolean
   price: Float!
   brand: Brand
-  projectId: String
   project: Project
   location: LocationResponse
   approximatePlace: ApproximatePlaceResponse
@@ -604,11 +603,6 @@ type ProductMapPinResponse {
   total: Float!
 }
 
-type MapPinResponse {
-  mapPins: [MapPin!]!
-  total: Float!
-}
-
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
@@ -658,7 +652,6 @@ type Query {
   listFooterSection: [FooterSection!]!
   productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
-  mapPinsInBoundingBox(southWest: PointInput!, northEast: PointInput!): MapPinResponse!
 }
 
 input UserExistsInput {

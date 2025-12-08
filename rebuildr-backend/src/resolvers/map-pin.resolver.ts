@@ -141,15 +141,6 @@ export class MapPinResolver {
     );
   }
 
-  @Query(() => MapPinResponse)
-  @UseGuards(GqlOptionalAuthGuard)
-  async mapPinsInBoundingBox(
-    @Args('southWest') southWest: PointInput,
-    @Args('northEast') northEast: PointInput,
-  ) {
-    return this.mapPinService.findMapPinsInBoundingBox(southWest, northEast);
-  }
-
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
