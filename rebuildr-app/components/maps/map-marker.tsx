@@ -31,7 +31,7 @@ export default function MapMarker({ pin }: Props) {
   const maxPrice = prices.length ? prices[prices.length - 1] : undefined;
   let priceLabel: string;
 
-  if (!minPrice) {
+  if (minPrice === undefined) {
     priceLabel = formatPrice(0);
   } else if (maxPrice && minPrice !== maxPrice) {
     priceLabel = `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
