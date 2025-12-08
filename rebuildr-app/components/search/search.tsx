@@ -53,7 +53,7 @@ export const Search = ({
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
-  const [value, setValue] = useState<string>("");
+  const [value, setValue] = useState<string>(defaultValue ?? "");
   const {
     visible: dropdownVisible,
     setVisible: setShowDropdown,

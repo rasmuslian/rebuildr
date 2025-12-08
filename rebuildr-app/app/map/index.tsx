@@ -13,7 +13,7 @@ export default function Map() {
   const { height: screenHeight } = useWindowDimensions();
   const searchBarHeight = 57;
   const mapHeight = screenHeight - searchBarHeight;
-  const { setSearchString } = useFilterProduct();
+  const { filter, setSearchString } = useFilterProduct();
 
   const onSearch = useDebounceCallback((value: string) => {
     setSearchString(value);
@@ -25,6 +25,7 @@ export default function Map() {
         onPressArrow={() => router.navigate("/search/products")}
         placeholder="Vad letar du efter?"
         onChange={onSearch}
+        defaultValue={filter.searchString}
         style={{
           borderBottomWidth: 0,
           paddingHorizontal: horizontalPadding.mobile,
