@@ -120,8 +120,8 @@ enum TransportationEnum {
 
 type MapPin {
   id: ID!
-  location: LocationResponse!
   product: Product
+  location: LocationResponse!
 }
 
 type Project {

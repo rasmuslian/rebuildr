@@ -107,22 +107,6 @@ export class MapPinResolver {
     private mapPinService: MapPinService,
   ) {}
 
-  @ResolveField(() => LocationResponse)
-  async location(@Parent() mapPin: MapPin) {
-    return {
-      lat: mapPin.location.coordinates[0],
-      lng: mapPin.location.coordinates[1],
-    };
-  }
-
-  @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles([UserRoleEnum.ADMIN])
-  async syncApproximateLocations() {
-    await this.mapPinService.syncApproximateLocations();
-    return true;
-  }
-
   @Query(() => ProductMapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)
   async productMapPinsInRadius(
@@ -166,11 +150,27 @@ export class MapPinResolver {
     return this.mapPinService.findMapPinsInBoundingBox(southWest, northEast);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async syncApproximateLocations() {
+    await this.mapPinService.syncApproximateLocations();
+    return true;
+  }
+
   @ResolveField(() => Product, { nullable: true })
   async product(
     @Root() _mapPin: MapPin,
     @Context('mapPinLoaders') mapPinLoaders: IMapPinLoaders,
   ) {
     return mapPinLoaders.productLoader.load(_mapPin.id);
+  }
+
+  @ResolveField(() => LocationResponse)
+  async location(@Parent() mapPin: MapPin) {
+    return {
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
+    };
   }
 }
