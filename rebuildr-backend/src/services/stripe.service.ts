@@ -326,9 +326,15 @@ export class StripeService {
   }
 
   async refundPayment(paymentIntentId: string) {
+    try {
+
     return await this.stripe.refunds.create({
       payment_intent: paymentIntentId,
     });
+    } catch(e) {
+      this.logger.error("refundPayment: error", {e})
+      throw new Error()
+    }
   }
 
   async getPayoutAmount(paymentIntentId: string) {
