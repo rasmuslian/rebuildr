@@ -869,6 +869,7 @@ type Mutation {
   cmsCreateFooterSection(input: CmsCreateFooterSectionInput!): FooterSection!
   cmsUpdateFooterSection(input: CmsUpdateFooterSectionInput!): FooterSection!
   cmsDeleteFooterSection(footerSectionId: String!): Boolean!
+  deleteConnectedAccount(id: String!): Boolean!
 }
 
 input RegisterUserInput {

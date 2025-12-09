@@ -511,4 +511,19 @@ export class StripeService {
     purchase.destinationPaymentId = idFromObject(transfer.destination_payment);
     return await this.purchaseRepository.save(purchase);
   }
+
+  //This function is used to delete a connected account. Will only work on accounts whose balance is 0.
+  //Only meant to clean up accidental accounts, which are not connected to a Rebuildr user.
+  async delete(connectedAccountId: string) {
+    try {
+      await this.stripe.accounts.del(connectedAccountId);
+      return true;
+    } catch (e) {
+      this.logger.error('Failed deleting account', {
+        e,
+        connectedAccountId,
+      });
+      throw new Error('Failed deleting account');
+    }
+  }
 }

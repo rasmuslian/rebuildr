@@ -101,6 +101,7 @@ import { StripeService } from './services/stripe.service';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { MessageLoader } from './dataloaders/message.loader';
+import { StripeResolver } from './resolvers/stripe.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -272,6 +273,7 @@ export interface RequestType {
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
     StripeService,
+    StripeResolver,
   ],
 })
 export class AppModule {}
