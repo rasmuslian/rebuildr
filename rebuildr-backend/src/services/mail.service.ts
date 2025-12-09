@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import FormData from 'form-data';
 import handlebars from 'handlebars';
 import mjml from 'mjml';
@@ -9,6 +9,8 @@ import { User } from 'src/entities/user.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { Product } from 'src/entities/product.entity';
 import { ReportPurchase } from 'src/entities/report-purchase.entity';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
@@ -39,7 +41,9 @@ export class MailService {
   private from: string;
   private baseUrl: string;
 
-  constructor() {
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
     const mailgun = new Mailgun(FormData);
 
     this.mailgun = mailgun.client({
@@ -69,7 +73,8 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
-    } catch {
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
   }
@@ -93,7 +98,8 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
-    } catch {
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
   }
@@ -127,7 +133,8 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
-    } catch {
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
   }
@@ -149,7 +156,8 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
-    } catch {
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
   }
@@ -174,7 +182,8 @@ export class MailService {
     };
     try {
       await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
-    } catch {
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
   }
