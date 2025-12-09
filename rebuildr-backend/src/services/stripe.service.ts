@@ -516,6 +516,10 @@ export class StripeService {
   //Only meant to clean up accidental accounts, which are not connected to a Rebuildr user.
   async delete(connectedAccountId: string) {
     try {
+      const user = await this.userRepository.findOneBy({ connectedAccountId });
+      if (user) {
+        throw new Error('Cannot delete stripe account if connected to user');
+      }
       await this.stripe.accounts.del(connectedAccountId);
       return true;
     } catch (e) {
