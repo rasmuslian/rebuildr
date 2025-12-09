@@ -91,10 +91,8 @@ export const TrendingNow = () => {
       .filter((p) => !!p.category)
       .map((p) => p.category as Category);
 
-    setCategories({
-      categories,
-    });
-    router.navigate("/(app)/(tabs)/search/products");
+    setCategories({ categories });
+    router.navigate("/search/products");
   };
 
   return (

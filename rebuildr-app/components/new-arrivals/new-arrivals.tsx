@@ -44,7 +44,7 @@ export const NewArrivals = () => {
       title="Nyinkomna varor"
       onPress={() => {
         setSorting(OrderProductsEnum.Latest, true);
-        router.navigate("/(app)/(tabs)/search/products");
+        router.navigate("/search/products");
       }}
     />
   );

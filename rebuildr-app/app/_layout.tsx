@@ -28,7 +28,7 @@ import { EditProductBottomSheet } from "@components/edit-product/edit-product-bo
 import { EditProductProdiver } from "@context/edit-product-context";
 import { isIOSDevice } from "@/utils/deviceInfo";
 import { SearchDropdown } from "@components/search/search-dropdown";
-import { SearchDropdownContextProvider } from "@context/search-dropdown-context";
+import { SearchProvider } from "@context/search-context";
 import * as Sentry from "@sentry/react-native";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
@@ -125,7 +125,7 @@ const RootLayout = () => {
                       <BottomSheetModalProvider>
                         <ScreenDimensionsProvider>
                           <BuyModalProvider>
-                            <SearchDropdownContextProvider>
+                            <SearchProvider>
                               <ReRouteHandler>
                                 <Slot />
                                 <HamburgerMenu />
@@ -136,7 +136,7 @@ const RootLayout = () => {
                                 <BuyModal />
                                 <PortalHost name="OverlayProvider" />
                               </ReRouteHandler>
-                            </SearchDropdownContextProvider>
+                            </SearchProvider>
                           </BuyModalProvider>
                         </ScreenDimensionsProvider>
                       </BottomSheetModalProvider>

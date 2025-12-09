@@ -52,7 +52,7 @@ export const NearYou = () => {
       title="Varor nära dig"
       onPress={() => {
         setSorting(OrderProductsEnum.Distance, true);
-        router.navigate("/(app)/(tabs)/search/products");
+        router.navigate("/search/products");
       }}
     />
   );

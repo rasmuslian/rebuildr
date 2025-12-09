@@ -10,8 +10,8 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
-import { useContext, useEffect, useRef, useState } from "react";
-import { SearchDropdownContext } from "@context/search-dropdown-context";
+import { useEffect, useRef } from "react";
+import { useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
 import {
   CreateSearchResultMutation,
@@ -23,6 +23,7 @@ import { useLazyQuery, useMutation } from "@apollo/client";
 import { router } from "expo-router";
 import { useDebounce } from "@hooks/use-debounce";
 import { CREATE_SEARCH_RESULT, DO_SEARCH } from "./queries";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 
 type Props = {
   visible?: boolean;
@@ -49,21 +50,14 @@ export const Search = ({
   searchOnSubmit = false,
   ...rest
 }: Props) => {
+  const filter = useFilterProduct();
+  const { searchState, setSearchState } = useSearchContext();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
-  const [value, setValue] = useState<string>(defaultValue ?? "");
-  const {
-    visible: dropdownVisible,
-    setVisible: setShowDropdown,
-    setPosition,
-    setSearchData,
-    setSearchString,
-  } = useContext(SearchDropdownContext);
 
-  const handleSearch = (text: string) => {
-    setSearchString(text);
+  const debouncedSearch = useDebounce((text: string) => {
     if (onChange) {
       onChange?.(text);
       return;
@@ -77,14 +71,16 @@ export const Search = ({
         },
       });
     }
-  };
+  }, 200);
 
-  const debouncedSearch = useDebounce(handleSearch, 200);
-
-  const [search, { data: searchData }] = useLazyQuery<
-    DoSearchQuery,
-    DoSearchQueryVariables
-  >(DO_SEARCH);
+  const [search] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
+    DO_SEARCH,
+    {
+      onCompleted: (data) => {
+        setSearchState({ searchData: data });
+      },
+    },
+  );
 
   const [createSearchResult] = useMutation<
     CreateSearchResultMutation,
@@ -93,48 +89,40 @@ export const Search = ({
 
   useEffect(() => {
     if (!visible) {
-      setShowDropdown(false);
+      setSearchState({ dropdownVisible: false });
       handleChange("");
       textInputRef.current?.blur();
     }
   }, [visible]);
 
-  useEffect(() => {
-    if (searchData === undefined) {
-      return;
-    }
-    setSearchData(searchData);
-  }, [searchData]);
-
-  const inputBackgroundColor = dropdownVisible
+  const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
     : backgroundColor || colors.background.secondary;
 
   const openDropdown = () => {
-    if (!isDesktop) {
-      return;
-    }
+    if (!isDesktop) return;
+
     if (inputWrapperRef.current) {
       inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
-        setPosition({ x: pageX, y: pageY + height - 12, width });
+        setSearchState({
+          dropdownPosition: { x: pageX, y: pageY + height - 12, width },
+        });
       });
       setTimeout(() => {
-        setShowDropdown(true);
+        setSearchState({ dropdownVisible: true });
       }, 10);
     }
   };
 
   const closeDropdown = () => {
-    if (!isDesktop) {
-      return;
-    }
+    if (!isDesktop) return;
     setTimeout(() => {
-      setShowDropdown(false);
+      setSearchState({ dropdownVisible: false });
     }, 100);
   };
 
   const handleChange = (text: string) => {
-    setValue(text);
+    setSearchState({ searchString: text });
     debouncedSearch(text);
   };
 
@@ -143,11 +131,10 @@ export const Search = ({
     if (text) {
       createSearchResult({ variables: { input: { searchString: text } } });
     }
-    router.navigate({
-      pathname: "/search/products",
-      params: { searchString: text },
-    });
-    setShowDropdown(false);
+
+    filter.setSearchString(text);
+    setSearchState({ dropdownVisible: false });
+    router.navigate("/search/products");
   };
 
   return (
@@ -180,7 +167,7 @@ export const Search = ({
         onSubmitEditing={searchOnSubmit ? onSubmit : undefined}
         placeholder={placeholder}
         placeholderTextColor={colors.text.secondary}
-        value={value}
+        value={searchState.searchString ?? ""}
         editable={!disabled && visible}
         defaultValue={defaultValue}
         style={{
@@ -193,7 +180,7 @@ export const Search = ({
           lineHeight: undefined,
         }}
       />
-      {!!dropdownVisible && (
+      {searchState.dropdownVisible && (
         <Pressable
           onPress={() => {
             handleChange("");

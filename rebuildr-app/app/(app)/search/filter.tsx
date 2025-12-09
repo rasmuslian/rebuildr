@@ -26,7 +26,7 @@ export default function Filter() {
             onPress={() =>
               router.canGoBack()
                 ? router.back()
-                : router.navigate("/(app)/(tabs)/search/products")
+                : router.navigate("/search/products")
             }
             style={{ flex: 1 }}
           />

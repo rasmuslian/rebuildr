@@ -12,8 +12,8 @@ import {
 } from "@components/screen-layout/screen-layout";
 import { Body, Display } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { Dispatch, useCallback, useEffect } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { Dispatch, useCallback } from "react";
 import { TextInput, View, useWindowDimensions } from "react-native";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
@@ -56,8 +56,7 @@ export default function Products() {
   const [state, setState] = useReducerState<StateType>(initialState);
   const { isDesktop } = useScreenType();
   const { isLoggedIn } = useUser();
-  const { searchString } = useLocalSearchParams<{ searchString: string }>();
-  const { filter, resetSelectedCategory, setSearchString } = useFilterProduct();
+  const { filter } = useFilterProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
     SearchProductsQuery,
@@ -125,13 +124,6 @@ export default function Products() {
       refetch();
     }, []),
   );
-
-  useEffect(() => {
-    if (searchString) {
-      resetSelectedCategory();
-      setSearchString(searchString);
-    }
-  }, [searchString]);
 
   if (isDesktop) {
     return (

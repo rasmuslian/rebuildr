@@ -54,9 +54,7 @@ export const useLocationContext = () => {
   const contextData = useContext(Context);
 
   if (!contextData) {
-    throw new Error(
-      "Location context is used outside of its provider. Tell your developers this.",
-    );
+    throw new Error("Location context is used outside of its provider.");
   }
   return contextData;
 };

@@ -99,9 +99,7 @@ export const useMapContext = () => {
   const contextData = useContext(Context);
 
   if (!contextData) {
-    throw new Error(
-      "Map context is used outside of its provider. Tell your developers this.",
-    );
+    throw new Error("Map context is used outside of its provider.");
   }
   return contextData;
 };

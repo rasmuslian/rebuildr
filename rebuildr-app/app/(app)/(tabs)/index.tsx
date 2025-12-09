@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
@@ -12,23 +12,20 @@ import { RecommendedProducts } from "@components/recommended-products/recommende
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
-import { SearchDropdownContext } from "@context/search-dropdown-context";
 import { NearYou } from "@components/near-you/near-you";
+import { useSearchContext } from "@context/search-context";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
-  const { visible: searchVisible, setVisible: setSearchVisible } = useContext(
-    SearchDropdownContext,
-  );
+  const { searchState, setSearchState } = useSearchContext();
   const [headlineHeight, setHeadlineHeight] = useState(0);
 
   useEffect(() => {
-    if (headlineHeight === 0) {
-      return;
-    }
+    if (headlineHeight === 0) return;
+
     const listener = scrollY.addListener(({ value }) => {
       const breakpoint = headlineHeight - 48;
       if (value > breakpoint && !showSearchBarTopBar) {
@@ -36,15 +33,15 @@ export default function Landing() {
       } else if (value <= breakpoint && showSearchBarTopBar) {
         setShowSearchBarTopBar(false);
       }
-      if (isDesktop && searchVisible && !showSearchBarTopBar) {
-        setSearchVisible(false);
+      if (isDesktop && searchState.dropdownVisible && !showSearchBarTopBar) {
+        setSearchState({ dropdownVisible: false });
       }
     });
 
     return () => {
       scrollY.removeListener(listener);
     };
-  }, [headlineHeight, showSearchBarTopBar, searchVisible]);
+  }, [headlineHeight, showSearchBarTopBar, searchState.dropdownVisible]);
 
   return (
     <View style={{ flex: 1 }}>

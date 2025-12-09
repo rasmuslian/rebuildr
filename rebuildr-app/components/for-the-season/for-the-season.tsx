@@ -57,7 +57,7 @@ export const ForTheSeason = () => {
           setCategories({
             categories,
           });
-          router.navigate("/(app)/(tabs)/search/products");
+          router.navigate("/search/products");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}
       >
@@ -84,7 +84,7 @@ export const ForTheSeason = () => {
                 categories: [category],
                 selectedCategoryId: category.id,
               });
-              router.navigate("/(app)/(tabs)/search/products");
+              router.navigate("/search/products");
             }}
             source={category.image ? category.image.url : Placeholder.uri}
             label={category.name}

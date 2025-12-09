@@ -18,6 +18,7 @@ import { textStyles } from "@components/typography/typeface";
 import { Header } from "@components/navigation/headers/header";
 import { SearchEmptyState } from "@components/search/search-empty-state";
 import { SearchWithResults } from "@components/search/search-with-results";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 import {
   CREATE_SEARCH_RESULT,
   DO_SEARCH,
@@ -25,6 +26,7 @@ import {
 } from "@components/search/queries";
 
 export default function Search() {
+  const filter = useFilterProduct();
   const [searchString, setSearchString] = useState("");
   const colors = useThemeColor();
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
@@ -60,10 +62,9 @@ export default function Search() {
     if (searchString) {
       createSearchResult({ variables: { input: { searchString } } });
     }
-    router.navigate({
-      pathname: "/search/products",
-      params: { searchString },
-    });
+
+    filter.setSearchString(searchString);
+    router.navigate("/search/products");
   };
 
   return (

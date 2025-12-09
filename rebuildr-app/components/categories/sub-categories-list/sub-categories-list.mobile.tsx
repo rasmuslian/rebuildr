@@ -49,7 +49,7 @@ export function SubCategoriesListMobile({ category }: Props) {
                 categories: [c],
                 selectedCategoryId: c.id,
               });
-              router.navigate("/(app)/(tabs)/search/products");
+              router.navigate("/search/products");
             }}
           >
             <Avatar imageUrl={c.image?.url} size={80} placeholder="CATEGORY" />

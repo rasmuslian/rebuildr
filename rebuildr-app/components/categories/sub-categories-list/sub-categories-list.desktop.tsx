@@ -45,7 +45,7 @@ export function SubCategoriesListDesktop({ category }: Props) {
                 categories: [c],
                 selectedCategoryId: c.id,
               });
-              router.navigate("/(app)/(tabs)/search/products");
+              router.navigate("/search/products");
             }}
           >
             <Avatar imageUrl={c.image?.url} size={88} placeholder="CATEGORY" />

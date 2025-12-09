@@ -2,17 +2,15 @@ import { SearchQuery, SearchQueryVariables } from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
 import { Dropdown } from "@components/dropdown/dropdown";
-import { SearchDropdownContext } from "@context/search-dropdown-context";
-import { useContext } from "react";
 import { View } from "react-native";
 import { isLoggedInVar } from "@/apollo/config";
 import { SearchWithResults } from "./search-with-results";
 import { SearchEmptyState } from "./search-empty-state";
 import { SEARCH } from "./queries";
+import { useSearchContext } from "@context/search-context";
 
 export const SearchDropdown = () => {
-  const { visible, position, setVisible, searchData, searchString } =
-    useContext(SearchDropdownContext);
+  const { searchState, setSearchState } = useSearchContext();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
@@ -22,19 +20,23 @@ export const SearchDropdown = () => {
   });
 
   const handleClose = () => {
-    setVisible(false);
+    setSearchState({ dropdownVisible: false });
   };
 
   return (
-    <Dropdown visible={visible} position={position} onClose={handleClose}>
+    <Dropdown
+      visible={searchState.dropdownVisible}
+      position={searchState.dropdownPosition}
+      onClose={handleClose}
+    >
       <View style={{ marginTop: 12 }}>
         <Divider />
       </View>
       <View style={{ padding: 16, gap: 16 }}>
-        {searchString ? (
+        {searchState.searchString ? (
           <SearchWithResults
-            data={searchData}
-            searchString={searchString}
+            data={searchState.searchData}
+            searchString={searchState.searchString}
             size="small"
           />
         ) : (

@@ -186,6 +186,10 @@ export const useFilterProduct = () => {
   const setSearchString = (searchString: string) => {
     productFilterVar({
       ...filter,
+      rootCategoryIds: initialFilterProduct.rootCategoryIds,
+      categoryIds: initialFilterProduct.categoryIds,
+      brandIds: initialFilterProduct.brandIds,
+      selectedCategoryId: initialFilterProduct.selectedCategoryId,
       searchString: searchString,
     });
   };
