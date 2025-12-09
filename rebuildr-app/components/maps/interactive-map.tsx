@@ -117,16 +117,20 @@ const Controller = () => {
   const boundDebounce = useDebounceCallback(() => {
     map.whenReady(() => {
       const bounds = map.getBounds();
-      const northEast = bounds.getNorthEast();
-      const southWest = bounds.getSouthWest();
-      setState({ bounds: { northEast, southWest } });
+      if (bounds) {
+        const northEast = bounds.getNorthEast();
+        const southWest = bounds.getSouthWest();
+        setState({ bounds: { northEast, southWest } });
+      }
     });
   }, 500);
 
   const zoomDebounce = useDebounceCallback(() => {
     map.whenReady(() => {
       const zoom = map.getZoom();
-      setState({ zoom });
+      if (zoom) {
+        setState({ zoom });
+      }
     });
   }, 500);
 
