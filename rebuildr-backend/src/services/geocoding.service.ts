@@ -8,8 +8,9 @@ import {
   PlaceType2,
   Status,
 } from '@googlemaps/google-maps-services-js';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { EnvironmentVariables } from 'src/config';
 import { swedishPostCodeRegex } from 'src/constants/regexp';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
@@ -18,13 +19,17 @@ import {
   LocationType,
 } from 'src/resolvers/geocoding.resolver';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from 'winston';
 
 @Injectable()
 export class GeocodingService {
   private client: Client;
   private sessionToken: string;
 
-  constructor(private configService: ConfigService<EnvironmentVariables>) {
+  constructor(
+    private configService: ConfigService<EnvironmentVariables>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
     this.client = new Client({});
     this.sessionToken = uuidv4();
   }
@@ -41,7 +46,7 @@ export class GeocodingService {
           input: s,
           key: this.configService.get('GOOGLE_PLACES_AUTOCOMPLETE_API_KEY'),
           language: Language.sv,
-          types: PlaceAutocompleteType.geocode,
+          types: PlaceAutocompleteType.address,
           components: ['country:se'],
           sessiontoken: this.sessionToken,
         },
@@ -98,10 +103,15 @@ export class GeocodingService {
         },
       });
       result = r.data.results[0];
-    } catch {
+    } catch (e) {
+      this.logger.error('geocode: error', { e, address, components });
       throw InternalServerException();
     }
     if (!result) {
+      this.logger.error('geocode: address could not be located', {
+        address,
+        components,
+      });
       throw BadUserInputException('Address could not be located');
     }
     const location = result.geometry.location;
@@ -151,11 +161,15 @@ export class GeocodingService {
             type === PlaceType2.sublocality_level_1,
         );
       });
-    } catch {
+    } catch (e) {
+      this.logger.error('exactAndApproximatePlace: error', { e, location });
       throw InternalServerException();
     }
 
     if (!approximateResult || !exactResult) {
+      this.logger.error('exactAndApproximatePlace: Could not find address', {
+        location,
+      });
       throw BadUserInputException('Could not find address');
     }
 
