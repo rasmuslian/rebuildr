@@ -3,7 +3,7 @@ import {
   Maybe,
   ProductConditionEnum,
   ProductStatusEnum,
-  ProductViewFragmentFragment,
+  ProductViewQuery,
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
@@ -41,7 +41,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 
 type Props = {
-  product: ProductViewFragmentFragment;
+  product: ProductViewQuery["product"];
   me:
     | {
         id: string;
@@ -263,6 +263,7 @@ export const ProductDesktop = ({
                   <PickupPosition
                     address={approximatePlace.address}
                     location={location}
+                    distanceFromLocation={product.distanceFromLocation}
                   />
                   <Divider />
                 </>

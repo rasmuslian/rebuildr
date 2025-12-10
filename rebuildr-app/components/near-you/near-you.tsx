@@ -36,10 +36,10 @@ export const NearYou = () => {
         limit: isDesktop ? 4 : 10,
         offset: 0,
         isLoggedIn,
-        distanceFrom: location
+        distanceFrom: userCoords
           ? {
-              lat: location?.latitude,
-              lng: location?.longitude,
+              lat: userCoords.latitude,
+              lng: userCoords.longitude,
             }
           : undefined,
       },

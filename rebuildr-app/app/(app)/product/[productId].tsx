@@ -11,11 +11,17 @@ import { PRODUCT_VIEW_FRAGMENT } from "@/queries/product-view-fragment";
 import { useScreenType } from "@hooks/useScreenType";
 import { ProductMobile } from "@components/product/product.mobile";
 import { ProductDesktop } from "@components/product/product.desktop";
+import { useLocationContext } from "@context/location-context";
 
 const PRODUCT_VIEW = gql`
-  query ProductView($input: GetProductInput!, $isLoggedIn: Boolean!) {
+  query ProductView(
+    $input: GetProductInput!
+    $isLoggedIn: Boolean!
+    $distanceFrom: LocationInputType
+  ) {
     product(input: $input) {
       ...ProductViewFragment
+      distanceFromLocation(location: $distanceFrom)
     }
     me @include(if: $isLoggedIn) {
       id
@@ -27,6 +33,7 @@ const PRODUCT_VIEW = gql`
 `;
 
 export default function Product() {
+  const { userCoords } = useLocationContext();
   const { isLoggedIn } = useUser();
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { isDesktop } = useScreenType();
@@ -34,7 +41,13 @@ export default function Product() {
   const { data } = useQuery<ProductViewQuery, ProductViewQueryVariables>(
     PRODUCT_VIEW,
     {
-      variables: { input: { id: productId }, isLoggedIn },
+      variables: {
+        input: { id: productId },
+        isLoggedIn,
+        distanceFrom: userCoords
+          ? { lat: userCoords.latitude, lng: userCoords.longitude }
+          : undefined,
+      },
     },
   );
 
