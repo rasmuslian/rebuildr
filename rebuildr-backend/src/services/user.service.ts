@@ -143,7 +143,8 @@ export class UserService {
         type: 'Point',
         coordinates: [location.lat, location.lng],
       };
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const approximateLocation =
+        await this.geocodingService.locationToApproximation(location);
       user.mapPin = new MapPin({
         address: approximateLocation.address,
         location: {
@@ -158,7 +159,7 @@ export class UserService {
     if (input.name) {
       user.name = input.name;
     }
-    if (input.phoneNumber) {
+    if (input.phoneNumber !== undefined) {
       if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
         throw BadFieldsInputException([
           {
@@ -335,7 +336,8 @@ export class UserService {
         coordinates: [location.lat, location.lng],
       };
 
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const approximateLocation =
+        await this.geocodingService.locationToApproximation(location);
       organization.mapPin = new MapPin({
         address: approximateLocation.address,
         location: {
@@ -567,7 +569,10 @@ export class UserService {
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
     const { id, address, ...rest } = input;
 
-    const user = await this.userRepository.findOne({ where: { id }, relations: { mapPin: true } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { mapPin: true },
+    });
     if (!user) throw NotFoundException('User not found');
 
     try {
@@ -578,8 +583,9 @@ export class UserService {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         };
-        const approximateLocation = await this.geocodingService.locationToApproximation(location);
-        if(user.mapPin) {
+        const approximateLocation =
+          await this.geocodingService.locationToApproximation(location);
+        if (user.mapPin) {
           user.mapPin.address = approximateLocation.address;
           user.mapPin.location = {
             type: 'Point',
