@@ -3,7 +3,7 @@ import {
   Maybe,
   ProductConditionEnum,
   ProductStatusEnum,
-  ProductViewFragmentFragment,
+  ProductViewQuery,
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
@@ -36,7 +36,7 @@ import { ActionSection } from "@components/preview-product/action-section";
 import { RemoveProductSheet } from "@components/preview-product/remove-product-sheet";
 
 type Props = {
-  product: ProductViewFragmentFragment;
+  product: ProductViewQuery["product"];
   me:
     | {
         __typename?: "User" | undefined;
@@ -157,13 +157,17 @@ export const ProductMobile = ({
         {approximatePlace &&
           product.pickupEnabled &&
           product.status !== ProductStatusEnum.Sold && (
-            <PickupPosition
-              address={approximatePlace.address}
-              location={{
-                lat: approximatePlace.lat,
-                lng: approximatePlace.lng,
-              }}
-            />
+            <>
+              <Divider />
+              <PickupPosition
+                address={approximatePlace.address}
+                location={{
+                  lat: approximatePlace.lat,
+                  lng: approximatePlace.lng,
+                }}
+                distanceFromLocation={product.distanceFromLocation}
+              />
+            </>
           )}
         <Divider />
         <InfoSection

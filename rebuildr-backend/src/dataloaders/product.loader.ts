@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, In } from 'typeorm';
+import { DataSource, In, SelectQueryBuilder } from 'typeorm';
 import DataLoader from 'dataloader';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
@@ -11,6 +11,7 @@ import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
 import { MapPin } from 'src/entities/map-pin.entity';
+import { LocationInputType } from 'src/resolvers/geocoding.resolver';
 
 export interface IProductLoaders {
   getProduct: DataLoader<string, Product>;
@@ -25,6 +26,10 @@ export interface IProductLoaders {
   getProductPurchases: DataLoader<string, Purchase[]>;
   getReportProducts: DataLoader<string, ReportProduct[]>;
   mapPinLoader: DataLoader<string, MapPin>;
+  distanceToLocationLoader: DataLoader<
+    { productId: string; location: LocationInputType },
+    number
+  >;
 }
 
 @Injectable()
@@ -104,6 +109,54 @@ export class ProductLoader {
     });
   }
 
+  private distanceToLocationLoader() {
+    return new DataLoader(
+      async (
+        keys: readonly {
+          productId: string;
+          location: { lat: number; lng: number };
+        }[],
+      ) => {
+        const ids = keys.map((k) => k.productId);
+        const location = keys[0].location;
+        const locationPoint = {
+          type: 'Point',
+          coordinates: [location.lat, location.lng],
+        };
+
+        const data = await this.dataSource
+          .createQueryBuilder()
+          .select('id')
+          .addSelect(
+            'st_distancesphere("addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:locationPoint), ST_SRID("addressLocation")))',
+            'distance',
+          )
+          .setParameter('locationPoint', locationPoint)
+          .from(
+            (
+              qb: SelectQueryBuilder<{ id: string; addressLocation: string }>,
+            ) => {
+              return qb
+                .subQuery()
+                .select('p.id', 'id')
+                .from('product', 'p')
+                .leftJoin('project', 'pj', 'p."projectId" = pj.id')
+                .addSelect(
+                  'CASE WHEN pj.id IS NOT NULL THEN pj."addressLocation" ELSE p."addressLocation" END "addressLocation"',
+                )
+                .where('p.id IN (:...ids)', { ids });
+            },
+            'inner',
+          )
+          .getRawMany();
+
+        return keys.map(
+          (key) => data.find((r) => r.id === key.productId)?.distance,
+        );
+      },
+    );
+  }
+
   createLoaders(): IProductLoaders {
     return {
       getProduct: this.getProduct(),
@@ -138,6 +191,7 @@ export class ProductLoader {
         ReportProduct[]
       >('reportProducts', Product),
       mapPinLoader: this.mapPinLoader(),
+      distanceToLocationLoader: this.distanceToLocationLoader(),
     };
   }
 }

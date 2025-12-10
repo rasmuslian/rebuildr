@@ -978,4 +978,18 @@ export class ProductResolver {
   ) {
     return await this.productService.similarProducts(product.id, limit, offset);
   }
+
+  @ResolveField(() => Number, { nullable: true })
+  async distanceFromLocation(
+    @Parent() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+    @Args('location', { nullable: true }) location?: LocationInputType,
+  ) {
+    if (!location) return null;
+
+    return await productLoaders.distanceToLocationLoader.load({
+      productId: product.id,
+      location,
+    });
+  }
 }

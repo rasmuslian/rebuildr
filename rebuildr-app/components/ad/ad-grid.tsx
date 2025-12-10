@@ -10,6 +10,8 @@ import { AdDescription } from "./ad-description";
 import { ProductStatusEnum } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
+import { Label } from "@components/typography/text";
+import { meterToKilometer } from "@/utils/conversions";
 
 type Props = {
   id: string;
@@ -20,6 +22,7 @@ type Props = {
   disabled?: boolean;
   liked?: boolean;
   status?: ProductStatusEnum;
+  distance?: number | null;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -31,6 +34,7 @@ export const AdGrid = ({
   disabled,
   liked,
   status,
+  distance,
   ...adDescriptionProps
 }: Props) => {
   const { isLoggedIn } = useUser();
@@ -65,6 +69,23 @@ export const AdGrid = ({
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
       </View>
+      {distance && (
+        <View
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            paddingVertical: 2,
+            paddingHorizontal: 6,
+            borderRadius: borderRadius.xSmall,
+            backgroundColor: "#00000099",
+          }}
+        >
+          <Label size="medium" color="primaryLight">
+            {meterToKilometer(distance)} km
+          </Label>
+        </View>
+      )}
       {showHeart && (
         <Pressable
           style={({ pressed }) => ({

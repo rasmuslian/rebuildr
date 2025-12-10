@@ -18,6 +18,7 @@ type Props = {
     primaryUnit?: QuantityUnitEnum | null;
     condition: ProductConditionEnum;
     price: number;
+    distanceFromLocation?: number | null;
     primaryImage?: {
       __typename?: "File";
       id: string;
@@ -78,6 +79,7 @@ export const AdRowSectionDesktop = ({
                 title={item.title}
                 price={item.price}
                 status={item.status}
+                distance={item.distanceFromLocation}
                 onHeartPress={() => {
                   onToggleProductHeart({
                     productId: item.id,

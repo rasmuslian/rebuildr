@@ -40,6 +40,7 @@ export const AdRowSectionMobile = ({
               title={item.title}
               price={item.price}
               status={item.status}
+              distance={item.distanceFromLocation}
               onHeartPress={() => {
                 onToggleProductHeart({
                   productId: item.id,

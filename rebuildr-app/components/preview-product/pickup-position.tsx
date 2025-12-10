@@ -1,4 +1,4 @@
-import { Body, Headline } from "@components/typography/text";
+import { Body, Headline, Label } from "@components/typography/text";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Map } from "@components/maps/map";
@@ -8,13 +8,19 @@ import { useScreenType } from "@hooks/useScreenType";
 import { PickupPositionPopupContent } from "./pickup-position-popup-content";
 import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import { Popup } from "@components/popup/popup";
+import { formatMetersToKm } from "@/utils/distanceHandling";
 
 type Props = {
   address: string;
   location: { lat: number; lng: number };
+  distanceFromLocation?: number | null;
 };
 
-export const PickupPosition = ({ address, location }: Props) => {
+export const PickupPosition = ({
+  address,
+  location,
+  distanceFromLocation,
+}: Props) => {
   const [showMap, setShowMap] = useState(false);
   const { isMobile } = useScreenType();
 
@@ -39,6 +45,14 @@ export const PickupPosition = ({ address, location }: Props) => {
         <Body size="small" color="secondary">
           Ungefärligt område. Adress visas först när ett köp har genomförts.
         </Body>
+        {!!distanceFromLocation && (
+          <Body size="medium" style={{ marginTop: 16 }}>
+            Avstånd från nuvarande plats:{" "}
+            <Label size="large">
+              {formatMetersToKm(distanceFromLocation)} km
+            </Label>
+          </Body>
+        )}
       </View>
       {isMobile ? (
         <PickupPositionBottomSheet
