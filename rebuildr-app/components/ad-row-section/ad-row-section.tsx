@@ -11,6 +11,7 @@ export const AD_ROW_SECTION = gql`
     $limit: Int
     $offset: Int
     $isLoggedIn: Boolean!
+    $distanceFrom: LocationInputType
   ) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
@@ -22,6 +23,7 @@ export const AD_ROW_SECTION = gql`
         primaryUnit
         condition
         price
+        distanceFromLocation(location: $distanceFrom)
         primaryImage {
           id
           url

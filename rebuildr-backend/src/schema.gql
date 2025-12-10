@@ -369,6 +369,7 @@ type Product {
   hasOngoingPurchase(includeOwnPurchases: Boolean): Boolean!
   reportProducts: [ReportProduct!]!
   similarProducts(offset: Int, limit: Int): PaginatedProductsResponse!
+  distanceFromLocation(location: LocationInputType): Float
 }
 
 enum MeasurementUnitEnum {
@@ -392,6 +393,11 @@ enum ProductStatusEnum {
   PUBLISHED
   SOLD
   DELETED
+}
+
+input LocationInputType {
+  lat: Float!
+  lng: Float!
 }
 
 type ResendVerificationMailResponse {
@@ -698,11 +704,6 @@ input ProductsInput {
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
-}
-
-input LocationInputType {
-  lat: Float!
-  lng: Float!
 }
 
 enum OrderProductsEnum {

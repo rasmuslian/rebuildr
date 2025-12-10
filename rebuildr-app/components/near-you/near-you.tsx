@@ -36,6 +36,12 @@ export const NearYou = () => {
         limit: isDesktop ? 4 : 10,
         offset: 0,
         isLoggedIn,
+        distanceFrom: location
+          ? {
+              lat: location?.latitude,
+              lng: location?.longitude,
+            }
+          : undefined,
       },
     },
   );
