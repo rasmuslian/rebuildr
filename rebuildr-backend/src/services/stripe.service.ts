@@ -326,9 +326,15 @@ export class StripeService {
   }
 
   async refundPayment(paymentIntentId: string) {
+    try {
+
     return await this.stripe.refunds.create({
       payment_intent: paymentIntentId,
     });
+    } catch(e) {
+      this.logger.error("refundPayment: error", {e})
+      throw new Error()
+    }
   }
 
   async getPayoutAmount(paymentIntentId: string) {
@@ -510,5 +516,24 @@ export class StripeService {
     purchase.transferId = transfer.id;
     purchase.destinationPaymentId = idFromObject(transfer.destination_payment);
     return await this.purchaseRepository.save(purchase);
+  }
+
+  //This function is used to delete a connected account. Will only work on accounts whose balance is 0.
+  //Only meant to clean up accidental accounts, which are not connected to a Rebuildr user.
+  async delete(connectedAccountId: string) {
+    try {
+      const user = await this.userRepository.findOneBy({ connectedAccountId });
+      if (user) {
+        throw new Error('Cannot delete stripe account if connected to user');
+      }
+      await this.stripe.accounts.del(connectedAccountId);
+      return true;
+    } catch (e) {
+      this.logger.error('Failed deleting account', {
+        e,
+        connectedAccountId,
+      });
+      throw new Error('Failed deleting account');
+    }
   }
 }

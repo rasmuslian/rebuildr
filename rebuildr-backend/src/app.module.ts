@@ -107,6 +107,7 @@ import { MapPinLoader } from './dataloaders/map-pin.loader';
 import { MapPinResolver } from './resolvers/map-pin.resolver';
 import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
+import { StripeResolver } from './resolvers/stripe.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -286,6 +287,7 @@ export interface RequestType {
     MapPinResolver,
     ProductSubscriber,
     ProjectSubscriber,
+    StripeResolver,
   ],
 })
 export class AppModule {}

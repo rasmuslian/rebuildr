@@ -48,6 +48,10 @@ export const ChatBlock = ({
     }
   }, [message, images, documents]);
 
+  useEffect(() => {
+    setShowTime(alwaysShowTime);
+  }, [alwaysShowTime]);
+
   return (
     <Pressable
       onPress={() => {

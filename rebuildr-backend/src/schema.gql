@@ -916,6 +916,7 @@ type Mutation {
   cmsUpdateFooterSection(input: CmsUpdateFooterSectionInput!): FooterSection!
   cmsDeleteFooterSection(footerSectionId: String!): Boolean!
   syncApproximateLocations: Boolean!
+  deleteConnectedAccount(id: String!): Boolean!
 }
 
 input RegisterUserInput {
