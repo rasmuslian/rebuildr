@@ -9,6 +9,7 @@ import { Icon } from "@icons/icon";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import { useSearchContext } from "@context/search-context";
 
 type Props = {
   data: DoSearchQuery | undefined;
@@ -22,6 +23,8 @@ export const SearchWithResults = ({
   size = "large",
 }: Props) => {
   const filterContext = useFilterProduct();
+  const searchContext = useSearchContext();
+
   const colors = useThemeColor();
   const Header = ({ children }: { children: React.ReactNode }) => {
     if (size === "large") {
@@ -70,6 +73,11 @@ export const SearchWithResults = ({
                 filterContext.resetAndSetSearchString(
                   searchResult.searchString,
                 );
+                searchContext.setSearchState({
+                  dropdownVisible: false,
+                  searchString: searchResult.searchString,
+                });
+                searchContext.search(searchResult.searchString);
                 router.navigate("/search/products");
               }}
             >

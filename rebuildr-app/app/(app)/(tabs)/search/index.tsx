@@ -18,7 +18,6 @@ import { SearchWithResults } from "@components/search/search-with-results";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { CREATE_SEARCH_RESULT, SEARCH } from "@components/search/queries";
 import { useSearchContext } from "@context/search-context";
-import { useDebounce } from "@hooks/use-debounce";
 
 export default function Search() {
   const { searchState, setSearchState, search } = useSearchContext();
@@ -37,20 +36,9 @@ export default function Search() {
     CreateSearchResultMutationVariables
   >(CREATE_SEARCH_RESULT);
 
-  const debouncedSearch = useDebounce((text: string) => {
-    if (text.length > 0) {
-      search({
-        variables: {
-          searchResultsInput: { searchString: text },
-          usersInput: { name: text },
-        },
-      });
-    }
-  }, 200);
-
   const handleChange = (text: string) => {
     setSearchState({ searchString: text });
-    debouncedSearch(text);
+    search(text);
   };
 
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
