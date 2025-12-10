@@ -284,6 +284,7 @@ const DesktopLayout = ({
         open={state.showTransportSheet}
         onClose={() => setState({ showTransportSheet: false })}
         title="Leveransalternativ"
+        contentWaitOnAnimation
       >
         <TransportationOptions
           data={data}

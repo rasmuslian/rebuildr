@@ -31,6 +31,7 @@ type Props = {
   style?: ViewStyle;
   footer?: ReactElement;
   bottomMargin?: number;
+  contentWaitOnAnimation?: boolean;
 } & PropsWithChildren;
 
 export const SlideInSheet = ({
@@ -42,12 +43,15 @@ export const SlideInSheet = ({
   style,
   footer,
   bottomMargin = 20,
+  contentWaitOnAnimation,
 }: Props) => {
+  const [showContent, setShowContent] = useState(!contentWaitOnAnimation);
   const key = useMemo(() => `slide-in-sheet-${Math.random().toString(8)}`, []);
   const colors = useThemeColor();
   const { width: screenWidth } = useWindowDimensions();
   const { isDesktop } = useScreenType();
   const width = isDesktop ? 500 : screenWidth;
+  const animationTime = 300;
 
   const slideAnim = useRef(new Animated.Value(width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -65,15 +69,19 @@ export const SlideInSheet = ({
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: open ? 0 : width,
-      duration: 300,
+      duration: animationTime,
       useNativeDriver: true,
     }).start();
 
     Animated.timing(fadeAnim, {
       toValue: open ? 0.3 : 0,
-      duration: 300,
+      duration: animationTime,
       useNativeDriver: true,
     }).start();
+
+    if (contentWaitOnAnimation) {
+      setTimeout(() => setShowContent(open), animationTime);
+    }
 
     if (open) {
       setDisplayState("flex");
@@ -84,7 +92,7 @@ export const SlideInSheet = ({
       }
       setTimeout(() => {
         setDisplayState("none");
-      }, 300);
+      }, animationTime);
     }
   }, [open]);
 
@@ -125,7 +133,6 @@ export const SlideInSheet = ({
           ]}
         >
           {/**Content of a SlideInSheet */}
-
           <Pressable
             onPress={onClose}
             style={{ width: "100%", height: "100%" }}
@@ -159,7 +166,7 @@ export const SlideInSheet = ({
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
             >
-              {children}
+              {showContent && children}
             </ScrollView>
             {footer && (
               <View
