@@ -6,7 +6,9 @@ import React, {
   useEffect,
 } from "react";
 import { useReducerState } from "@hooks/useReducerState";
-import { DoSearchQuery } from "@/gql/graphql";
+import { DoSearchQuery, DoSearchQueryVariables } from "@/gql/graphql";
+import { useLazyQuery, LazyQueryExecFunction } from "@apollo/client";
+import { DO_SEARCH } from "@components/search/queries";
 
 type StateType = {
   dropdownVisible: boolean;
@@ -25,6 +27,8 @@ const initialState: StateType = {
 type ContextType = {
   searchState: StateType;
   setSearchState: Dispatch<Partial<StateType>>;
+  search: LazyQueryExecFunction<DoSearchQuery, DoSearchQueryVariables>;
+  reset: () => void;
 };
 
 const Context = createContext<ContextType | null>(null);
@@ -38,11 +42,24 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
     }
   }, [state.dropdownVisible]);
 
+  const [search] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
+    DO_SEARCH,
+    {
+      onCompleted: (data) => {
+        setState({ searchData: data });
+      },
+    },
+  );
+
+  const reset = () => setState(initialState);
+
   return (
     <Context.Provider
       value={{
         searchState: state,
         setSearchState: setState,
+        search,
+        reset,
       }}
     >
       {children}

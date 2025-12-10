@@ -16,13 +16,11 @@ import { useScreenType } from "@hooks/useScreenType";
 import {
   CreateSearchResultMutation,
   CreateSearchResultMutationVariables,
-  DoSearchQuery,
-  DoSearchQueryVariables,
 } from "@/gql/graphql";
-import { useLazyQuery, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { router } from "expo-router";
 import { useDebounce } from "@hooks/use-debounce";
-import { CREATE_SEARCH_RESULT, DO_SEARCH } from "./queries";
+import { CREATE_SEARCH_RESULT } from "./queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
 type Props = {
@@ -51,7 +49,7 @@ export const Search = ({
   ...rest
 }: Props) => {
   const filter = useFilterProduct();
-  const { searchState, setSearchState } = useSearchContext();
+  const { searchState, setSearchState, search } = useSearchContext();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
@@ -72,15 +70,6 @@ export const Search = ({
       });
     }
   }, 200);
-
-  const [search] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
-    DO_SEARCH,
-    {
-      onCompleted: (data) => {
-        setSearchState({ searchData: data });
-      },
-    },
-  );
 
   const [createSearchResult] = useMutation<
     CreateSearchResultMutation,

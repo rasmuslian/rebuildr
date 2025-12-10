@@ -39,7 +39,7 @@ export default function TopBarDesktop({
   animateSearchBar = false,
   me,
 }: Props) {
-  const { setSearchState } = useSearchContext();
+  const searchContext = useSearchContext();
   const filter = useFilterProduct();
   const colors = useThemeColor();
   const pathname = usePathname();
@@ -124,7 +124,7 @@ export default function TopBarDesktop({
           <Pressable
             onPress={() => {
               filter.reset();
-              setSearchState({ searchString: undefined });
+              searchContext.reset();
               router.navigate("/");
             }}
           >

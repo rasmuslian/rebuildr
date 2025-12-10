@@ -11,6 +11,7 @@ import { Icon, IconType } from "@icons/icon";
 import { router, Tabs, usePathname } from "expo-router";
 import { useContext } from "react";
 import { Pressable, View } from "react-native";
+import { useSearchContext } from "@context/search-context";
 
 export const TAB_LAYOUT = gql`
   query TabLayout {
@@ -25,6 +26,7 @@ export default function TabLayout() {
   const pathName = usePathname();
   const { setVisible: setSellProductVisible } = useSellProductContext();
   const { isDesktop } = useScreenType();
+  const searchContext = useSearchContext();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
@@ -59,6 +61,7 @@ export default function TabLayout() {
             name: "Hem",
             icon: "home",
             onPress: () => {
+              searchContext.reset();
               router.navigate("/");
             },
             highlight: isHighlighted(""),
