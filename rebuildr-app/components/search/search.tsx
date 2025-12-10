@@ -10,7 +10,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
 import {
@@ -19,13 +19,11 @@ import {
 } from "@/gql/graphql";
 import { useMutation } from "@apollo/client";
 import { router } from "expo-router";
-import { useDebounce } from "@hooks/use-debounce";
 import { CREATE_SEARCH_RESULT } from "./queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
 type Props = {
   visible?: boolean;
-  placeholder?: string;
   onChange?: (value: string) => void;
   disabled?: boolean;
   style?: ViewStyle;
@@ -36,12 +34,9 @@ type Props = {
 
 export const Search = ({
   visible = true,
-  placeholder,
   onChange,
   onFocus,
-  onBlur,
   disabled,
-  defaultValue,
   style,
   backgroundColor,
   borderStyle,
@@ -55,64 +50,34 @@ export const Search = ({
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
 
-  const debouncedSearch = useDebounce((text: string) => {
-    if (onChange) {
-      onChange?.(text);
-      return;
-    }
-
-    if (isDesktop && text.length > 0) {
-      search({
-        variables: {
-          searchResultsInput: { searchString: text },
-          usersInput: { name: text },
-        },
-      });
-    }
-  }, 200);
-
   const [createSearchResult] = useMutation<
     CreateSearchResultMutation,
     CreateSearchResultMutationVariables
   >(CREATE_SEARCH_RESULT);
-
-  useEffect(() => {
-    if (!visible) {
-      setSearchState({ dropdownVisible: false });
-      handleChange("");
-      textInputRef.current?.blur();
-    }
-  }, [visible]);
 
   const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
     : backgroundColor || colors.background.secondary;
 
   const openDropdown = () => {
-    if (!isDesktop) return;
-
-    if (inputWrapperRef.current) {
+    if (isDesktop && inputWrapperRef.current) {
       inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
         setSearchState({
           dropdownPosition: { x: pageX, y: pageY + height - 12, width },
+          dropdownVisible: true,
         });
       });
-      setTimeout(() => {
-        setSearchState({ dropdownVisible: true });
-      }, 10);
     }
   };
 
-  const closeDropdown = () => {
-    if (!isDesktop) return;
-    setTimeout(() => {
-      setSearchState({ dropdownVisible: false });
-    }, 100);
-  };
-
-  const handleChange = (text: string) => {
+  const onChangeText = (text: string) => {
     setSearchState({ searchString: text });
-    debouncedSearch(text);
+
+    if (onChange) {
+      onChange(text);
+    } else {
+      search(text);
+    }
   };
 
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
@@ -150,15 +115,12 @@ export const Search = ({
       <TextInput
         {...rest}
         ref={textInputRef}
-        onChangeText={handleChange}
+        onChangeText={onChangeText}
         onFocus={onFocus ?? openDropdown}
-        onBlur={onBlur ?? closeDropdown}
         onSubmitEditing={searchOnSubmit ? onSubmit : undefined}
-        placeholder={placeholder}
         placeholderTextColor={colors.text.secondary}
         value={searchState.searchString ?? ""}
         editable={!disabled && visible}
-        defaultValue={defaultValue}
         style={{
           outlineStyle: undefined,
           outlineWidth: 0,
@@ -172,8 +134,10 @@ export const Search = ({
       {searchState.dropdownVisible && (
         <Pressable
           onPress={() => {
-            handleChange("");
-            closeDropdown();
+            onChangeText("");
+            if (isDesktop) {
+              setSearchState({ dropdownVisible: false });
+            }
           }}
         >
           <View style={{ marginLeft: 8 }}>

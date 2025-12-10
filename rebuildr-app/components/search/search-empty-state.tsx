@@ -10,6 +10,7 @@ import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useMutation } from "@apollo/client";
 import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
 import { CLEAR_SEARCH_HISTORY_MUTATION } from "./queries";
+import { useSearchContext } from "@context/search-context";
 
 type Props = {
   data: SearchQuery | undefined;
@@ -18,6 +19,7 @@ type Props = {
 
 export const SearchEmptyState = ({ data, size = "large" }: Props) => {
   const filterContext = useFilterProduct();
+  const searchContext = useSearchContext();
 
   const [clearSearchHistory, { client }] =
     useMutation<ClearSearchHistoryMutation>(CLEAR_SEARCH_HISTORY_MUTATION, {
@@ -48,6 +50,11 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
                 filterContext.setCategories({
                   categories: [category],
                   selectedCategoryId: category.id,
+                });
+
+                searchContext.setSearchState({
+                  dropdownVisible: false,
+                  searchString: undefined,
                 });
                 router.navigate("/search/products");
               }}
@@ -83,6 +90,11 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
               <Pressable
                 key={i}
                 onPress={() => {
+                  searchContext.setSearchState({
+                    dropdownVisible: false,
+                    searchString: searchResult.searchString,
+                  });
+                  searchContext.search(searchResult.searchString);
                   filterContext.resetAndSetSearchString(
                     searchResult.searchString,
                   );
