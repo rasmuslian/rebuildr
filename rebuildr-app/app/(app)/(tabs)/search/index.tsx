@@ -22,7 +22,7 @@ import { useDebounce } from "@hooks/use-debounce";
 
 export default function Search() {
   const { searchState, setSearchState, search } = useSearchContext();
-  const filter = useFilterProduct();
+  const filterContext = useFilterProduct();
   const colors = useThemeColor();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
@@ -60,7 +60,7 @@ export default function Search() {
       createSearchResult({ variables: { input: { searchString: text } } });
     }
 
-    filter.setSearchString(text);
+    filterContext.resetAndSetSearchString(text);
     router.navigate("/search/products");
   };
 

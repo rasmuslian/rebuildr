@@ -21,7 +21,7 @@ export const SearchWithResults = ({
   searchString,
   size = "large",
 }: Props) => {
-  const filter = useFilterProduct();
+  const filterContext = useFilterProduct();
   const colors = useThemeColor();
   const Header = ({ children }: { children: React.ReactNode }) => {
     if (size === "large") {
@@ -67,7 +67,9 @@ export const SearchWithResults = ({
             <Pressable
               key={i}
               onPress={() => {
-                filter.setSearchString(searchResult.searchString);
+                filterContext.resetAndSetSearchString(
+                  searchResult.searchString,
+                );
                 router.navigate("/search/products");
               }}
             >

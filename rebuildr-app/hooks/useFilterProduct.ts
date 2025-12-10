@@ -183,21 +183,10 @@ export const useFilterProduct = () => {
     });
   };
 
-  const setSearchString = (searchString: string) => {
+  const resetAndSetSearchString = (searchString: string) => {
     productFilterVar({
-      ...filter,
-      rootCategoryIds: initialFilterProduct.rootCategoryIds,
-      categoryIds: initialFilterProduct.categoryIds,
-      brandIds: initialFilterProduct.brandIds,
-      selectedCategoryId: initialFilterProduct.selectedCategoryId,
-      searchString: searchString,
-    });
-  };
-
-  const resetSearchString = () => {
-    productFilterVar({
-      ...filter,
-      searchString: undefined,
+      ...initialFilterProduct,
+      searchString,
     });
   };
 
@@ -213,7 +202,6 @@ export const useFilterProduct = () => {
     setPrice,
     nrOfAppliedFilters,
     resetSelectedCategory,
-    setSearchString,
-    resetSearchString,
+    resetAndSetSearchString,
   };
 };
