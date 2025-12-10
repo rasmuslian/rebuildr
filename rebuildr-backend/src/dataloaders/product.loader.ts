@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, In } from 'typeorm';
+import { DataSource, In, SelectQueryBuilder } from 'typeorm';
 import DataLoader from 'dataloader';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
@@ -132,8 +132,22 @@ export class ProductLoader {
             'distance',
           )
           .setParameter('locationPoint', locationPoint)
-          .from('product', 'p')
-          .where('id IN (:...ids)', { ids })
+          .from(
+            (
+              qb: SelectQueryBuilder<{ id: string; addressLocation: string }>,
+            ) => {
+              return qb
+                .subQuery()
+                .select('p.id', 'id')
+                .from('product', 'p')
+                .leftJoin('project', 'pj', 'p."projectId" = pj.id')
+                .addSelect(
+                  'CASE WHEN pj.id IS NOT NULL THEN pj."addressLocation" ELSE p."addressLocation" END "addressLocation"',
+                )
+                .where('p.id IN (:...ids)', { ids });
+            },
+            'inner',
+          )
           .getRawMany();
 
         return keys.map(
