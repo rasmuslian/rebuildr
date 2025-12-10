@@ -84,6 +84,8 @@ export const ShippingDetails = ({
 
   const fieldErrors = error ? apolloBadFieldsError(error) : undefined;
 
+  const canSave = !!name && !!phoneNumber && !!address && !!postCode && !!city;
+
   return (
     <View style={{ gap: 24 }}>
       <Display size="small">Dina uppgifter</Display>
@@ -99,7 +101,7 @@ export const ShippingDetails = ({
           {
             type: "text",
             value: phoneNumber,
-            onChange: (t) => setPhoneNumber(t),
+            onChange: setPhoneNumber,
             heading: "Telefonnummer",
             description: `För leveransansvarig från ${shippingProviderStrings[shippingProvider]}.`,
             error: fieldErrors
@@ -145,6 +147,7 @@ export const ShippingDetails = ({
           onPress: () => {
             onToPayment();
           },
+          disabled: !canSave,
         }}
         secondaryButton={{
           label: "Tillbaka",
