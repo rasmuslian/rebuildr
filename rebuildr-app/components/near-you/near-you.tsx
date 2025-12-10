@@ -1,13 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router, useFocusEffect } from "expo-router";
-import {
-  LocationObjectCoords,
-  PermissionStatus,
-  getForegroundPermissionsAsync,
-  getCurrentPositionAsync,
-} from "expo-location";
-import { useState, useCallback } from "react";
+import { router } from "expo-router";
 import {
   OrderProductsEnum,
   AdRowSectionQuery,
@@ -20,24 +13,13 @@ import {
   AdRowSection,
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { useLocationContext } from "@context/location-context";
 
 export const NearYou = () => {
   const { setSorting } = useFilterProduct();
-  const [location, setLocation] = useState<LocationObjectCoords | null>(null);
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
-
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        const { status } = await getForegroundPermissionsAsync();
-        if (status !== PermissionStatus.GRANTED) return;
-
-        const { coords } = await getCurrentPositionAsync();
-        setLocation(coords);
-      })();
-    }, []),
-  );
+  const { userCoords } = useLocationContext();
 
   const { data } = useQuery<AdRowSectionQuery, AdRowSectionQueryVariables>(
     AD_ROW_SECTION,
@@ -46,9 +28,9 @@ export const NearYou = () => {
         input: {
           excludeOwnProducts: true,
           orderBy: OrderProductsEnum.Distance,
-          location: location && {
-            lat: location?.latitude,
-            lng: location?.longitude,
+          location: userCoords && {
+            lat: userCoords.latitude,
+            lng: userCoords.longitude,
           },
         },
         limit: isDesktop ? 4 : 10,
@@ -70,7 +52,7 @@ export const NearYou = () => {
       title="Varor nära dig"
       onPress={() => {
         setSorting(OrderProductsEnum.Distance, true);
-        router.navigate("/(app)/(tabs)/search/products");
+        router.navigate("/search/products");
       }}
     />
   );

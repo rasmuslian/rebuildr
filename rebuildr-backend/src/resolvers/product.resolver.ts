@@ -641,8 +641,23 @@ export class ProductResolver {
   }
 
   @Query(() => ApproximatePlaceResponse, { nullable: true })
-  async getPickupOption(@Args('input') input: GetTransportationOptionsInput) {
-    return this.productService.getPickupOption(input);
+  async getPickupOption(
+    @Args('input') input: GetTransportationOptionsInput,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    const product = await productLoaders.getProduct.load(input.productId);
+    if (!product.pickupEnabled) {
+      return null;
+    }
+    const mapPin = await productLoaders.mapPinLoader.load(input.productId);
+    if (!mapPin) {
+      return null;
+    }
+    return {
+      address: mapPin.address,
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
+    };
   }
 
   @Query(() => [ShippingOptionResponse])
@@ -884,8 +899,19 @@ export class ProductResolver {
   }
 
   @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
-  async approximatePlace(@Root() product: Product) {
-    return this.productService.approximatePlace(product);
+  async approximatePlace(
+    @Root() product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    const mapPin = await productLoaders.mapPinLoader.load(product.id);
+    if (!mapPin) {
+      return null;
+    }
+    return {
+      address: mapPin.address,
+      lat: mapPin.location.coordinates[0],
+      lng: mapPin.location.coordinates[1],
+    };
   }
 
   @ResolveField(() => [ShippingPrice], { nullable: true })

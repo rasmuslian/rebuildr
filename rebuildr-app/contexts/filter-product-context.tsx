@@ -17,6 +17,7 @@ export type Filter = {
   price: [number, number]; // lower, higher
   selectedCategoryId?: string;
   cameFrom?: FilterProductCameFromEnum;
+  searchString?: string;
 };
 
 export const initialFilterProduct: Filter = {
@@ -28,4 +29,5 @@ export const initialFilterProduct: Filter = {
   price: [minimumPrice, maximumPrice],
   selectedCategoryId: undefined,
   cameFrom: undefined,
+  searchString: undefined,
 };

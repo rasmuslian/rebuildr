@@ -118,6 +118,12 @@ enum TransportationEnum {
   DELIVERY
 }
 
+type MapPin {
+  id: ID!
+  product: Product
+  location: LocationResponse!
+}
+
 type Project {
   id: ID!
   title: String!
@@ -128,7 +134,7 @@ type Project {
   address: String!
   likedByMe: Boolean
   location: LocationResponse!
-  approximatePlace: ApproximatePlaceResponse!
+  approximatePlace: ApproximatePlaceResponse
   products(searchString: String): [Product!]!
   projectPicture: File
   user: User!
@@ -578,6 +584,25 @@ type ListArticlesResponse {
   total: Int!
 }
 
+type MapPinGroup {
+  location: LocationResponse!
+  prices: [Float!]
+  type: MapPinTypeEnum!
+  productIds: [String!]
+  projectIds: [String!]
+}
+
+enum MapPinTypeEnum {
+  PRODUCT
+  PROJECT
+  USER
+}
+
+type ProductMapPinResponse {
+  pins: [MapPinGroup!]!
+  total: Float!
+}
+
 type Query {
   me: User!
   userExists(input: UserExistsInput!): User
@@ -625,6 +650,8 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
+  productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
+  productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
 }
 
 input UserExistsInput {
@@ -810,6 +837,25 @@ input ListArticlesInput {
   pageSize: Int
 }
 
+input ProductMapPinsRadiusLocationInput {
+  point: PointInput!
+  radius: Float!
+  productsInput: ProductsInput
+  zoom: Int
+}
+
+input PointInput {
+  lat: Float!
+  lng: Float!
+}
+
+input ProductMapPinsBoxLocationInput {
+  southWest: PointInput!
+  northEast: PointInput!
+  productsInput: ProductsInput
+  zoom: Int
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -869,6 +915,7 @@ type Mutation {
   cmsCreateFooterSection(input: CmsCreateFooterSectionInput!): FooterSection!
   cmsUpdateFooterSection(input: CmsUpdateFooterSectionInput!): FooterSection!
   cmsDeleteFooterSection(footerSectionId: String!): Boolean!
+  syncApproximateLocations: Boolean!
   deleteConnectedAccount(id: String!): Boolean!
 }
 

@@ -8,6 +8,7 @@ import { ProjectLoader } from './project.loader';
 import { ReviewLoader } from './review.loader';
 import { PurchaseLoader } from './purchase.loader';
 import { MessageLoader } from './message.loader';
+import { MapPinLoader } from './map-pin.loader';
 
 @Module({
   providers: [
@@ -20,6 +21,7 @@ import { MessageLoader } from './message.loader';
     ReviewLoader,
     PurchaseLoader,
     MessageLoader,
+    MapPinLoader,
   ],
   exports: [
     DataloaderService,
@@ -31,6 +33,7 @@ import { MessageLoader } from './message.loader';
     ReviewLoader,
     PurchaseLoader,
     MessageLoader,
+    MapPinLoader,
   ],
 })
 export class DataloaderModule {}

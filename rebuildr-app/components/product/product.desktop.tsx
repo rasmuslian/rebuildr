@@ -1,6 +1,5 @@
 import {
   ApproximatePlaceResponse,
-  Category,
   Maybe,
   ProductConditionEnum,
   ProductStatusEnum,
@@ -33,10 +32,8 @@ import {
   ScreenLayout,
 } from "@components/screen-layout/screen-layout";
 import { SimilarProducts } from "@components/similar-products/similar-products";
-import { Body } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
 import { usePersistedState } from "@hooks/use-persisted-state";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
@@ -101,7 +98,6 @@ export const ProductDesktop = ({
   const rightColumnRef = useRef<View>(null);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
-  const { setCategories } = useFilterProduct();
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showMapPopup, setShowMapPopup] = useState(false);
 
@@ -131,14 +127,6 @@ export const ProductDesktop = ({
   const handleShowMapPopup = () => {
     if (!location || !approximatePlace) return;
     setShowMapPopup(true);
-  };
-
-  const handleCategoryPress = (category: Pick<Category, "id" | "parentId">) => {
-    setCategories({
-      categories: [category],
-      selectedCategoryId: category.id,
-    });
-    router.navigate("/(app)/(tabs)/search/products");
   };
 
   const ctas: ButtonProps[] = [];

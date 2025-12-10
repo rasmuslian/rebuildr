@@ -7,7 +7,7 @@ import { Pressable, View } from "react-native";
 type Props = {
   parentCategory?: Pick<Category, "id" | "name"> | null;
   category?: Pick<Category, "id" | "name"> | null;
-}
+};
 
 export const Breadcrums = ({ parentCategory, category }: Props) => {
   const { setCategories } = useFilterProduct();
@@ -20,7 +20,7 @@ export const Breadcrums = ({ parentCategory, category }: Props) => {
       categories: id ? categories : [],
       selectedCategoryId: id || undefined,
     });
-    router.navigate("/(app)/(tabs)/search/products");
+    router.navigate("/search/products");
   };
 
   return (
@@ -57,5 +57,5 @@ export const Breadcrums = ({ parentCategory, category }: Props) => {
         </>
       )}
     </View>
-  )
+  );
 };

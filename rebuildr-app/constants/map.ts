@@ -1,7 +1,8 @@
 import * as L from "leaflet";
 export const defaultCenter: L.LatLngTuple = [
-  59.861365680637014, 17.6392102780016,
-];
+  59.331394502005914, 18.05491447448731,
+]; // Stockholm central
+
 export const defaultRadius = 30000; //30km
 
 export const mapDefaultApproximateRadius = 500; //3000

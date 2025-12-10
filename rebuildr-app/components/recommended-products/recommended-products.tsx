@@ -115,7 +115,7 @@ export function RecommendedProducts({ title, source }: Props) {
           setCategories({
             categories,
           });
-          router.navigate("/(app)/(tabs)/search/products");
+          router.navigate("/search/products");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}
       >

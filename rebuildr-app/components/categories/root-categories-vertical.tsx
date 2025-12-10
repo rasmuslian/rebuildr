@@ -50,7 +50,7 @@ export function RootCategoriesVertical({ onNavigate }: Props) {
                 selectedCategoryId: category.id,
                 cameFrom: FilterProductCameFromEnum.categories,
               });
-              router.navigate("/(app)/(tabs)/search/products");
+              router.navigate("/search/products");
               onNavigate?.();
             }}
           >

@@ -14,6 +14,7 @@ type Props = {
     loading: boolean;
     total: number;
   };
+  desktopColumnNumber?: number;
 };
 
 export const AdGridSection = ({
@@ -21,6 +22,7 @@ export const AdGridSection = ({
   onHeaderPress,
   products,
   pagination,
+  desktopColumnNumber = 4,
 }: Props) => {
   const { width: screenWidth } = useWindowDimensions();
   const { isDesktop } = useScreenType();
@@ -57,7 +59,10 @@ export const AdGridSection = ({
             style={[
               { paddingBottom: 16 },
               isDesktop
-                ? { paddingHorizontal: 12, flexBasis: "25%" }
+                ? {
+                    paddingHorizontal: 12,
+                    flexBasis: `${100 / desktopColumnNumber}%`,
+                  }
                 : { width },
             ]}
             key={product.id}

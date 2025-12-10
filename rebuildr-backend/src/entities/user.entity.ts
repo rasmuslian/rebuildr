@@ -9,6 +9,7 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { RefreshToken } from './refresh-token.entity';
@@ -19,6 +20,7 @@ import { SearchResult } from './search-result.entity';
 import { File } from './file.entity';
 import { Review } from './review.entity';
 import { ReportProduct } from './report-product.entity';
+import { MapPin } from './map-pin.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -199,4 +201,11 @@ export class User {
 
   @OneToMany(() => ReportProduct, (rp) => rp.reporter)
   reportProducts: ReportProduct[];
+
+  @Column({ nullable: true })
+  mapPinId?: string;
+
+  @OneToOne(() => MapPin, mapPin => mapPin.user, { nullable: true, cascade: true })
+  @JoinColumn()
+  mapPin?: MapPin;
 }

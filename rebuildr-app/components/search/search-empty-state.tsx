@@ -17,7 +17,7 @@ type Props = {
 };
 
 export const SearchEmptyState = ({ data, size = "large" }: Props) => {
-  const { setCategories } = useFilterProduct();
+  const filterContext = useFilterProduct();
 
   const [clearSearchHistory, { client }] =
     useMutation<ClearSearchHistoryMutation>(CLEAR_SEARCH_HISTORY_MUTATION, {
@@ -45,11 +45,11 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
             <ImageQuickLink
               key={i}
               onPress={() => {
-                setCategories({
+                filterContext.setCategories({
                   categories: [category],
                   selectedCategoryId: category.id,
                 });
-                router.navigate("/(app)/(tabs)/search/products");
+                router.navigate("/search/products");
               }}
               source={
                 category.image ? category.image.url : PlaceholderCategory.uri
@@ -82,12 +82,12 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
             {data.getSearchResults.map((searchResult, i) => (
               <Pressable
                 key={i}
-                onPress={() =>
-                  router.navigate({
-                    pathname: "/search/products",
-                    params: { searchString: searchResult.searchString },
-                  })
-                }
+                onPress={() => {
+                  filterContext.resetAndSetSearchString(
+                    searchResult.searchString,
+                  );
+                  router.navigate("/search/products");
+                }}
               >
                 <View
                   style={{

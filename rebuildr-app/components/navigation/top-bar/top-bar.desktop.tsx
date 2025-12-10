@@ -21,6 +21,8 @@ import {
   AccountState,
   AccountWrapperDesktop,
 } from "@components/account/account-wrapper.desktop";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { useSearchContext } from "@context/search-context";
 
 type Props = {
   isLoggedIn: boolean;
@@ -37,6 +39,8 @@ export default function TopBarDesktop({
   animateSearchBar = false,
   me,
 }: Props) {
+  const searchContext = useSearchContext();
+  const filterContext = useFilterProduct();
   const colors = useThemeColor();
   const pathname = usePathname();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
@@ -117,7 +121,13 @@ export default function TopBarDesktop({
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
-          <Pressable onPress={() => router.navigate("/")}>
+          <Pressable
+            onPress={() => {
+              filterContext.reset();
+              searchContext.reset();
+              router.navigate("/");
+            }}
+          >
             <Logo
               width={118}
               height={24}

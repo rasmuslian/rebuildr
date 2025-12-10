@@ -35,6 +35,7 @@ import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { StripeService } from './stripe.service';
+import { MapPin } from 'src/entities/map-pin.entity';
 
 @Injectable()
 export class UserService {
@@ -142,6 +143,14 @@ export class UserService {
         type: 'Point',
         coordinates: [location.lat, location.lng],
       };
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      user.mapPin = new MapPin({
+        address: approximateLocation.address,
+        location: {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        },
+      });
     }
     if (input.city) {
       user.city = input.city;
@@ -325,6 +334,15 @@ export class UserService {
         type: 'Point',
         coordinates: [location.lat, location.lng],
       };
+
+      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      organization.mapPin = new MapPin({
+        address: approximateLocation.address,
+        location: {
+          type: 'Point',
+          coordinates: [approximateLocation.lat, approximateLocation.lng],
+        },
+      });
     }
     if (input.city) {
       organization.city = input.city;
@@ -487,6 +505,7 @@ export class UserService {
         await this.fileService.deleteFiles(product.images);
         product.address = null;
         product.addressLocation = null;
+        product.mapPin = null;
         product.deletedAt = new Date();
         product.status = ProductStatus.DELETED;
         await this.productRepository.save(product);
@@ -501,6 +520,7 @@ export class UserService {
     userToDelete.description = null;
     userToDelete.address = null;
     userToDelete.addressLocation = null;
+    userToDelete.mapPin = null;
     userToDelete.postCode = null;
     userToDelete.city = null;
     userToDelete.phoneNumber = null;
@@ -547,7 +567,7 @@ export class UserService {
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
     const { id, address, ...rest } = input;
 
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id }, relations: { mapPin: true } });
     if (!user) throw NotFoundException('User not found');
 
     try {
@@ -558,6 +578,22 @@ export class UserService {
           type: 'Point',
           coordinates: [location.lat, location.lng],
         };
+        const approximateLocation = await this.geocodingService.locationToApproximation(location);
+        if(user.mapPin) {
+          user.mapPin.address = approximateLocation.address;
+          user.mapPin.location = {
+            type: 'Point',
+            coordinates: [approximateLocation.lat, approximateLocation.lng],
+          };
+        } else {
+          user.mapPin = new MapPin({
+            address: approximateLocation.address,
+            location: {
+              type: 'Point',
+              coordinates: [approximateLocation.lat, approximateLocation.lng],
+            },
+          });
+        }
       }
 
       Object.assign<User, Partial<User>>(user, {

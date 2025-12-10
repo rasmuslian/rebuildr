@@ -2,68 +2,66 @@ import { isLoggedInVar } from "@/apollo/config";
 import {
   CreateSearchResultMutation,
   CreateSearchResultMutationVariables,
-  DoSearchQuery,
-  DoSearchQueryVariables,
   SearchQuery,
   SearchQueryVariables,
 } from "@/gql/graphql";
-import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Icon } from "@icons/icon";
-import { TextInput } from "react-native";
+import { TextInput, TextInputSubmitEditingEvent } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useState } from "react";
 import { router } from "expo-router";
 import { textStyles } from "@components/typography/typeface";
 import { Header } from "@components/navigation/headers/header";
 import { SearchEmptyState } from "@components/search/search-empty-state";
 import { SearchWithResults } from "@components/search/search-with-results";
-import {
-  CREATE_SEARCH_RESULT,
-  DO_SEARCH,
-  SEARCH,
-} from "@components/search/queries";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { CREATE_SEARCH_RESULT, SEARCH } from "@components/search/queries";
+import { useSearchContext } from "@context/search-context";
+import { useDebounce } from "@hooks/use-debounce";
 
 export default function Search() {
-  const [searchString, setSearchString] = useState("");
+  const { searchState, setSearchState, search } = useSearchContext();
+  const filterContext = useFilterProduct();
   const colors = useThemeColor();
+
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
       isLoggedIn: isLoggedInVar(),
       searchResult: { page: 0, pageSize: 10 },
     },
   });
-  const [search, { data: searchData }] = useLazyQuery<
-    DoSearchQuery,
-    DoSearchQueryVariables
-  >(DO_SEARCH);
 
   const [createSearchResult] = useMutation<
     CreateSearchResultMutation,
     CreateSearchResultMutationVariables
   >(CREATE_SEARCH_RESULT);
 
-  const onChangeSearch = (s: string) => {
-    if (s) {
+  const debouncedSearch = useDebounce((text: string) => {
+    if (text.length > 0) {
       search({
         variables: {
-          searchResultsInput: { searchString: s },
-          usersInput: { name: s },
+          searchResultsInput: { searchString: text },
+          usersInput: { name: text },
         },
       });
     }
+  }, 200);
 
-    setSearchString(s);
+  const handleChange = (text: string) => {
+    setSearchState({ searchString: text });
+    debouncedSearch(text);
   };
 
-  const onSearch = () => {
-    if (searchString) {
-      createSearchResult({ variables: { input: { searchString } } });
+  const onSubmit = (event: TextInputSubmitEditingEvent) => {
+    const { text } = event.nativeEvent;
+
+    if (text) {
+      createSearchResult({ variables: { input: { searchString: text } } });
     }
-    router.navigate({
-      pathname: "/search/products",
-      params: { searchString },
-    });
+
+    filterContext.resetAndSetSearchString(text);
+    router.navigate("/search/products");
   };
 
   return (
@@ -71,8 +69,13 @@ export default function Search() {
       headerComponent={
         <Header
           ctas={
-            searchString
-              ? [{ icon: "X", onPress: () => setSearchString("") }]
+            searchState.searchString
+              ? [
+                  {
+                    icon: "X",
+                    onPress: () => setSearchState({ searchString: undefined }),
+                  },
+                ]
               : undefined
           }
           showBackButton={false}
@@ -92,9 +95,9 @@ export default function Search() {
                 }}
                 placeholder="Vad letar du efter?"
                 placeholderTextColor={colors.text.secondary}
-                value={searchString}
-                onChangeText={(s) => onChangeSearch(s)}
-                onSubmitEditing={onSearch}
+                value={searchState.searchString ?? ""}
+                onChangeText={handleChange}
+                onSubmitEditing={onSubmit}
                 autoFocus
               />
             </>
@@ -103,8 +106,11 @@ export default function Search() {
       }
       style={{ gap: 16 }}
     >
-      {searchString ? (
-        <SearchWithResults data={searchData} searchString={searchString} />
+      {searchState.searchString ? (
+        <SearchWithResults
+          data={searchState.searchData}
+          searchString={searchState.searchString}
+        />
       ) : (
         <SearchEmptyState data={data} />
       )}

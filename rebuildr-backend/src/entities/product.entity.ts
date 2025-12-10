@@ -3,10 +3,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -21,6 +23,7 @@ import { Message } from './message.entity';
 import { Project } from './project.entity';
 import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
+import { MapPin } from './map-pin.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -300,4 +303,15 @@ export class Product {
 
   @OneToMany(() => ReportProduct, (rp) => rp.product)
   reportProducts: ReportProduct[];
+
+  @Column({ nullable: true })
+  mapPinId?: string;
+
+  @OneToOne(() => MapPin, mapPin => mapPin.product, {
+    nullable: true,
+    cascade: true,
+    orphanedRowAction: 'delete'
+  })
+  @JoinColumn()
+  mapPin?: MapPin;
 }

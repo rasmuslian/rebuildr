@@ -65,7 +65,7 @@ export function RootCategoriesHorizontal() {
                 categories: [...c.children],
                 selectedCategoryId: c.id,
               });
-              router.navigate("/(app)/(tabs)/search/products");
+              router.navigate("/search/products");
             }}
           >
             <Avatar

@@ -15,6 +15,7 @@ import {
 import { User } from './user.entity';
 import { Product } from './product.entity';
 import { File } from './file.entity';
+import { MapPin } from './map-pin.entity';
 
 @Entity()
 @ObjectType()
@@ -73,4 +74,11 @@ export class Project {
   @ManyToMany(() => User, (user) => user.likedProjects)
   @JoinTable()
   likedBy: User[];
+
+  @Column({ nullable: true })
+  mapPinId?: string;
+
+  @OneToOne(() => MapPin, mapPin => mapPin.project, { nullable: true, cascade: true })
+  @JoinColumn()
+  mapPin?: MapPin;
 }

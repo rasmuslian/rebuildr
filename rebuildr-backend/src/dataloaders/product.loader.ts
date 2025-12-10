@@ -10,6 +10,7 @@ import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
+import { MapPin } from 'src/entities/map-pin.entity';
 
 export interface IProductLoaders {
   getProduct: DataLoader<string, Product>;
@@ -23,6 +24,7 @@ export interface IProductLoaders {
   shippingPricesLoader: DataLoader<string, ShippingPrice>;
   getProductPurchases: DataLoader<string, Purchase[]>;
   getReportProducts: DataLoader<string, ReportProduct[]>;
+  mapPinLoader: DataLoader<string, MapPin>;
 }
 
 @Injectable()
@@ -87,6 +89,21 @@ export class ProductLoader {
     });
   }
 
+  private mapPinLoader() {
+    return new DataLoader(async (keys: readonly string[]) => {
+      const products = await this.dataSource.getRepository(Product).find({
+        where: {
+          id: In(keys),
+        },
+        relations: { mapPin: true, project: { mapPin: true } },
+      });
+      return keys.map((key) => {
+        const product = products.find((p) => p.id === key);
+        return product?.project?.mapPin || product?.mapPin || null;
+      });
+    });
+  }
+
   createLoaders(): IProductLoaders {
     return {
       getProduct: this.getProduct(),
@@ -120,6 +137,7 @@ export class ProductLoader {
       getReportProducts: this.dataloaderService.targetByParentIdLoader<
         ReportProduct[]
       >('reportProducts', Product),
+      mapPinLoader: this.mapPinLoader(),
     };
   }
 }

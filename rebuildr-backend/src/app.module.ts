@@ -101,6 +101,12 @@ import { StripeService } from './services/stripe.service';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { MessageLoader } from './dataloaders/message.loader';
+import { MapPinService } from './services/map-pin.service';
+import { MapPin } from './entities/map-pin.entity';
+import { MapPinLoader } from './dataloaders/map-pin.loader';
+import { MapPinResolver } from './resolvers/map-pin.resolver';
+import { ProductSubscriber } from './subscribers/product.subscriber';
+import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
 
 export interface RequestType {
@@ -154,6 +160,7 @@ export interface RequestType {
       Article,
       FooterSection,
       ArticleFooterSection,
+      MapPin,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -167,6 +174,7 @@ export interface RequestType {
         ReviewLoader,
         PurchaseLoader,
         MessageLoader,
+        MapPinLoader,
         ConfigService,
       ],
       useFactory: (
@@ -178,6 +186,7 @@ export interface RequestType {
         reviewLoaderService: ReviewLoader,
         purchaseLoaderService: PurchaseLoader,
         messageLoaderService: MessageLoader,
+        mapPinLoaderService: MapPinLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -194,6 +203,7 @@ export interface RequestType {
             reviewLoaders: reviewLoaderService.createLoaders(),
             purchaseLoaders: purchaseLoaderService.createLoaders(),
             messageLoaders: messageLoaderService.createLoaders(),
+            mapPinLoaders: mapPinLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -273,6 +283,10 @@ export interface RequestType {
     ArticleFooerSectionService,
     ArticleFooterSectionResolver,
     StripeService,
+    MapPinService,
+    MapPinResolver,
+    ProductSubscriber,
+    ProjectSubscriber,
     StripeResolver,
   ],
 })

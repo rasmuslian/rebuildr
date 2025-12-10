@@ -151,7 +151,7 @@ export function SimilarProducts({ productId }: Props) {
           categories,
         });
 
-        router.navigate("/(app)/(tabs)/search/products");
+        router.navigate("/search/products");
       }}
       products={adGridProducts}
       pagination={{

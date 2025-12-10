@@ -6,6 +6,7 @@ import { Project } from 'src/entities/project.entity';
 import { File } from 'src/entities/file.entity';
 import { DataSource, In } from 'typeorm';
 import { User } from 'src/entities/user.entity';
+import { MapPin } from 'src/entities/map-pin.entity';
 
 export interface IProjectLoaders {
   productsLoader: DataLoader<
@@ -15,6 +16,7 @@ export interface IProjectLoaders {
   projectPictureLoader: DataLoader<string, File>;
   likedByUserLoader: DataLoader<{ projectId: string; userId: string }, boolean>;
   userLoader: DataLoader<string, User>;
+  mapPinLoader: DataLoader<string, MapPin>;
 }
 
 @Injectable()
@@ -62,11 +64,11 @@ export class ProjectLoader {
       if (searchString && searchString.length > 0) {
         query
           .addCommonTableExpression(
-            `SELECT 
+            `SELECT
             p.id,
             ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
           FROM product p
-          WHERE p."textSearch" @@ plainto_tsquery(:searchString) 
+          WHERE p."textSearch" @@ plainto_tsquery(:searchString)
             OR similarity(p.title, :searchString) > 0
           `,
             'ranked_products',
@@ -84,6 +86,22 @@ export class ProjectLoader {
     });
   }
 
+    private mapPinLoader() {
+      return new DataLoader(async (keys: readonly string[]) => {
+        const projects = await this.dataSource.getRepository(Project).find({
+          where: {
+            id: In(keys),
+          },
+          relations: { mapPin: true },
+        });
+        return keys.map((key) => {
+          const project = projects.find((p) => p.id === key);
+          return project?.mapPin || null;
+        });
+      });
+    }
+
+
   createLoaders(): IProjectLoaders {
     return {
       productsLoader: this.productsLoader(),
@@ -96,6 +114,7 @@ export class ProjectLoader {
         'user',
         Project,
       ),
+      mapPinLoader: this.mapPinLoader(),
     };
   }
 }
