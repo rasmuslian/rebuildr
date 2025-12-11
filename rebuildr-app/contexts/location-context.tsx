@@ -8,8 +8,8 @@ import {
   PermissionStatus,
   getCurrentPositionAsync,
   requestForegroundPermissionsAsync,
-  getForegroundPermissionsAsync,
   LocationObjectCoords,
+  LocationAccuracy,
 } from "expo-location";
 import { View } from "react-native";
 import { useReducerState } from "@hooks/useReducerState";
@@ -43,26 +43,20 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
     if (status !== PermissionStatus.GRANTED) {
       setState({ open: false });
     } else {
-      const { coords } = await getCurrentPositionAsync();
+      const { coords } = await getCurrentPositionAsync({
+        accuracy: LocationAccuracy.High,
+      });
       setState({ userCoords: coords, open: false });
     }
   };
 
-  const getUserCoords = async () => {
-    const { status } = await getForegroundPermissionsAsync();
-    if (status !== PermissionStatus.GRANTED) {
-      setState({ open: true });
-    } else {
-      const { coords } = await getCurrentPositionAsync();
-      setState({ userCoords: coords });
-    }
-  };
-
   useEffect(() => {
-    if (isIos) {
-      getUserCoords();
-    } else {
+    if (!isIos) {
       askForUserCoords();
+    } else {
+      setTimeout(() => {
+        setState({ open: true });
+      }, 2000);
     }
   }, [isIos]);
 
@@ -70,7 +64,7 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
     <Context.Provider value={{ userCoords: state.userCoords }}>
       {children}
 
-      <BottomSheet name="plats" open={state.open} title="platsåtkomst">
+      <BottomSheet name="plats" open={state.open} title="Platsåtkomst">
         <View style={{ maxWidth: 400, gap: 16 }}>
           <Body size="medium">
             Vi behöver din plats för att visa relevanta objekt nära dig.
