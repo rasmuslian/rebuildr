@@ -120,12 +120,12 @@ const RootLayout = () => {
               setVisible: setShowLoginModal,
             }}
           >
-            <SellProductProdiver>
-              <EditProductProdiver>
-                <GestureHandlerRootView>
-                  <PortalProvider>
-                    <BottomSheetModalProvider>
-                      <LocationProvider>
+            <LocationProvider>
+              <SellProductProdiver>
+                <EditProductProdiver>
+                  <GestureHandlerRootView>
+                    <PortalProvider>
+                      <BottomSheetModalProvider>
                         <ScreenDimensionsProvider>
                           <BuyModalProvider>
                             <SearchProvider>
@@ -142,12 +142,12 @@ const RootLayout = () => {
                             </SearchProvider>
                           </BuyModalProvider>
                         </ScreenDimensionsProvider>
-                      </LocationProvider>
-                    </BottomSheetModalProvider>
-                  </PortalProvider>
-                </GestureHandlerRootView>
-              </EditProductProdiver>
-            </SellProductProdiver>
+                      </BottomSheetModalProvider>
+                    </PortalProvider>
+                  </GestureHandlerRootView>
+                </EditProductProdiver>
+              </SellProductProdiver>
+            </LocationProvider>
           </LoginModalContext.Provider>
         )}
       </ApolloProvider>
