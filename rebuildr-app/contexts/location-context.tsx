@@ -8,6 +8,7 @@ import {
   PermissionStatus,
   getCurrentPositionAsync,
   requestForegroundPermissionsAsync,
+  getForegroundPermissionsAsync,
   LocationObjectCoords,
 } from "expo-location";
 import { View } from "react-native";
@@ -47,13 +48,21 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  useEffect(() => {
-    if (!isIos) {
-      askForUserCoords();
+  const getUserCoords = async () => {
+    const { status } = await getForegroundPermissionsAsync();
+    if (status !== PermissionStatus.GRANTED) {
+      setState({ open: true });
     } else {
-      setTimeout(() => {
-        setState({ open: true });
-      }, 2000);
+      const { coords } = await getCurrentPositionAsync();
+      setState({ userCoords: coords });
+    }
+  };
+
+  useEffect(() => {
+    if (isIos) {
+      getUserCoords();
+    } else {
+      askForUserCoords();
     }
   }, [isIos]);
 
