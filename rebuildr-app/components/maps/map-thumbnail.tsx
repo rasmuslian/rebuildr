@@ -1,6 +1,6 @@
 import { ReactElement, useMemo } from "react";
 import { StyleProp, ViewStyle, View } from "react-native";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { borderRadius } from "@constants/sizes";
 import { defaultCenter } from "@constants/map";
