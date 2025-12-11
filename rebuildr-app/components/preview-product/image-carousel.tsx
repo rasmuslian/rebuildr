@@ -12,6 +12,9 @@ import { Product, ProductStatusEnum } from "@/gql/graphql";
 import { primitives } from "@constants/colors";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
 import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
+import { Popup } from "@components/popup/popup";
+import { AllImagesPopupContent } from "./all-images-popup-content";
+import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   images: { id?: string; url: string }[];
@@ -34,6 +37,7 @@ export const ImageCarousel = ({
 
   const flatListRef = useRef<FlatList>(null);
   const { width: screenWidth } = useWindowDimensions();
+  const { isDesktop } = useScreenType();
 
   const imageWidth = width ? width : screenWidth - 32;
   const imageHeight = imageWidth / ratio;
@@ -157,11 +161,21 @@ export const ImageCarousel = ({
           </View>
         )}
 
-        <AllImagesBottomSheet
-          images={images}
-          show={showImagesSheet}
-          onDismiss={() => setShowImagesSheet(false)}
-        />
+        {isDesktop ? (
+          <Popup
+            open={showImagesSheet}
+            onClose={() => setShowImagesSheet(false)}
+            type="full"
+          >
+            <AllImagesPopupContent images={images} />
+          </Popup>
+        ) : (
+          <AllImagesBottomSheet
+            images={images}
+            show={showImagesSheet}
+            onDismiss={() => setShowImagesSheet(false)}
+          />
+        )}
       </View>
     </Pressable>
   );
