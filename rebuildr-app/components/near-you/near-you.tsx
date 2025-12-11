@@ -46,7 +46,7 @@ export const NearYou = () => {
     },
   );
 
-  if (!location) return null;
+  if (!userCoords) return null;
 
   if (!data) {
     return <LoadingSpinner />;
