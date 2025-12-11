@@ -6,10 +6,8 @@ import React, {
 } from "react";
 import {
   PermissionStatus,
-  getCurrentPositionAsync,
   requestForegroundPermissionsAsync,
   LocationObjectCoords,
-  LocationAccuracy,
 } from "expo-location";
 import { View } from "react-native";
 import { useReducerState } from "@hooks/useReducerState";
@@ -43,10 +41,20 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
     if (status !== PermissionStatus.GRANTED) {
       setState({ open: false });
     } else {
-      const { coords } = await getCurrentPositionAsync({
-        accuracy: LocationAccuracy.High,
-      });
-      setState({ userCoords: coords, open: false });
+      // const { coords } = await getCurrentPositionAsync({
+      //   accuracy: LocationAccuracy.High,
+      // });
+      // setState({ userCoords: coords, open: false });
+      if (!navigator.geolocation) {
+        console.log("Geolocation is not supported by your browser");
+      } else {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setState({ userCoords: pos.coords, open: false });
+          },
+          (e) => setState({ open: false }),
+        );
+      }
     }
   };
 
