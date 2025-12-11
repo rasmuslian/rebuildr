@@ -39,8 +39,13 @@ const CONVERSATION_MARK_AS_DELIVERED = gql`
 type Props = {
   data: ConversationProductQuery;
   onShowReview: () => void;
+  onShowQRCode: () => void;
 };
-export const ChatActionButtons = ({ data, onShowReview }: Props) => {
+export const ChatActionButtons = ({
+  data,
+  onShowReview,
+  onShowQRCode,
+}: Props) => {
   const purchase = data.latestPurchase;
   const sellerIsMe = data.me.id === data.product.seller.id;
   const { isDesktop } = useScreenType();
@@ -127,10 +132,7 @@ export const ChatActionButtons = ({ data, onShowReview }: Props) => {
           <Button
             label="Visa QR-kod"
             onPress={() => {
-              router.navigate({
-                pathname: "/account/sales/shipping-code",
-                params: { purchaseId: purchase.id },
-              });
+              onShowQRCode();
             }}
           />
         );
