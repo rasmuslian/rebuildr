@@ -349,6 +349,7 @@ export class PurchaseService {
         fee,
         buyer,
         input.paymentMethod,
+        product.title,
       );
       clientSecret = paymentResponse.clientSecret;
       purchase.paymentIntentId = paymentResponse.id;
