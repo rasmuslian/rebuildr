@@ -8,21 +8,23 @@ import {
   PermissionStatus,
   getCurrentPositionAsync,
   requestForegroundPermissionsAsync,
-  getBackgroundPermissionsAsync,
+  getForegroundPermissionsAsync,
   LocationObjectCoords,
 } from "expo-location";
-import { Modal, View } from "react-native";
+import { View } from "react-native";
 import { useReducerState } from "@hooks/useReducerState";
 import { Button } from "@components/buttons/button";
-import { Body, Title } from "@components/typography/text";
+import { Body } from "@components/typography/text";
+import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import { isIOSDevice } from "@/utils/deviceInfo";
 
 type StateType = {
-  modalVisible: boolean;
+  open: boolean;
   userCoords?: LocationObjectCoords;
 };
 
 const initialState: StateType = {
-  modalVisible: false,
+  open: false,
   userCoords: undefined,
 };
 
@@ -34,18 +36,19 @@ const Context = createContext<ContextType | null>(null);
 
 export const LocationProvider = ({ children }: PropsWithChildren) => {
   const [state, setState] = useReducerState<StateType>(initialState);
+  const isIos = isIOSDevice();
 
   const askForUserCoords = async () => {
     const { status } = await requestForegroundPermissionsAsync();
     if (status !== PermissionStatus.GRANTED) return;
     const { coords } = await getCurrentPositionAsync();
-    setState({ userCoords: coords, modalVisible: false });
+    setState({ userCoords: coords, open: false });
   };
 
   const getUserCoords = async () => {
-    const { status } = await getBackgroundPermissionsAsync();
+    const { status } = await getForegroundPermissionsAsync();
     if (status !== PermissionStatus.GRANTED) {
-      setState({ modalVisible: true });
+      setState({ open: true });
     } else {
       const { coords } = await getCurrentPositionAsync();
       setState({ userCoords: coords });
@@ -53,42 +56,26 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
   };
 
   useEffect(() => {
-    getUserCoords();
-  }, []);
+    if (isIos) {
+      getUserCoords();
+    } else {
+      askForUserCoords();
+    }
+  }, [isIos]);
 
   return (
     <Context.Provider value={{ userCoords: state.userCoords }}>
       {children}
 
-      <Modal visible={state.modalVisible} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 16,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              padding: 16,
-              borderRadius: 12,
-              maxWidth: 350,
-              gap: 16,
-            }}
-          >
-            <Title size="medium">Tillåt platsåtkomst</Title>
+      <BottomSheet name="plats" open={state.open} title="platsåtkomst">
+        <View style={{ maxWidth: 400, gap: 16 }}>
+          <Body size="medium">
+            Vi behöver din plats för att visa relevanta objekt nära dig.
+          </Body>
 
-            <Body size="medium">
-              Vi behöver din plats för att visa relevanta objekt nära dig.
-            </Body>
-
-            <Button type="filled" label="Tillåt" onPress={askForUserCoords} />
-          </View>
+          <Button type="filled" label="Tillåt" onPress={askForUserCoords} />
         </View>
-      </Modal>
+      </BottomSheet>
     </Context.Provider>
   );
 };
