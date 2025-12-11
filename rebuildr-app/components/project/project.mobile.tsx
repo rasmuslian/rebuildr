@@ -251,7 +251,7 @@ export const ProjectMobile = () => {
       <BottomSheet
         open={showLocation}
         onDismiss={() => setShowLocation(false)}
-        title="Plats för avhämtning"
+        title={project?.title}
         name="projectLocation"
         screenHeight
       >
