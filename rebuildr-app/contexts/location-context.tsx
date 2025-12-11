@@ -40,9 +40,12 @@ export const LocationProvider = ({ children }: PropsWithChildren) => {
 
   const askForUserCoords = async () => {
     const { status } = await requestForegroundPermissionsAsync();
-    if (status !== PermissionStatus.GRANTED) return;
-    const { coords } = await getCurrentPositionAsync();
-    setState({ userCoords: coords, open: false });
+    if (status !== PermissionStatus.GRANTED) {
+      setState({ open: false });
+    } else {
+      const { coords } = await getCurrentPositionAsync();
+      setState({ userCoords: coords, open: false });
+    }
   };
 
   const getUserCoords = async () => {
