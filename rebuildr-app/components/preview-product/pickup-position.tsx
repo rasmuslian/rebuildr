@@ -1,14 +1,13 @@
 import { Body, Headline, Label } from "@components/typography/text";
 import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
-import { Map } from "@components/maps/map";
 import { useState } from "react";
 import { PickupPositionBottomSheet } from "./pickup-position-bottom-sheet";
 import { useScreenType } from "@hooks/useScreenType";
 import { PickupPositionPopupContent } from "./pickup-position-popup-content";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import { Popup } from "@components/popup/popup";
 import { formatMetersToKm } from "@/utils/distanceHandling";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 type Props = {
   address: string;
@@ -31,12 +30,10 @@ export const PickupPosition = ({
           Plats för avhämtning
         </Headline>
         <Pressable onPress={() => setShowMap(true)}>
-          <Map
-            lat={location.lat}
-            lng={location.lng}
-            interactive={false}
-            radius={mapDefaultApproximateRadiusLarge}
-            zoom={10}
+          <MapThumbnail
+            coords={[location.lat, location.lng]}
+            markerType="product"
+            style={{ height: 185 }}
           />
         </Pressable>
         <Body size="medium" style={{ marginTop: 16, marginBottom: 12 }}>
@@ -62,7 +59,11 @@ export const PickupPosition = ({
         />
       ) : (
         <Popup open={showMap} onClose={() => setShowMap(false)} type="full">
-          <PickupPositionPopupContent address={address} location={location} />
+          <PickupPositionPopupContent
+            address={address}
+            location={location}
+            markerType="product"
+          />
         </Popup>
       )}
     </>

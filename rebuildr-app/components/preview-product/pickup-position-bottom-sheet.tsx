@@ -1,7 +1,5 @@
-import { View } from "react-native";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { Map } from "@components/maps/map";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 type Props = {
   open: boolean;
@@ -22,15 +20,11 @@ export const PickupPositionBottomSheet = ({
       title="Plats för avhämtning"
       screenHeight
     >
-      <View>
-        <Map
-          lat={location.lat}
-          lng={location.lng}
-          interactive={false}
-          radius={mapDefaultApproximateRadiusLarge}
-          height={700}
-        />
-      </View>
+      <MapThumbnail
+        coords={[location.lat, location.lng]}
+        markerType="product"
+        style={{ height: 700 }}
+      />
     </BottomSheet>
   );
 };

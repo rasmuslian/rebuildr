@@ -1,6 +1,5 @@
 import { Body, Headline } from "@components/typography/text";
 import { View } from "react-native";
-import { Map } from "@components/maps/map";
 import {
   SinglePickupOptionQuery,
   SinglePickupOptionQueryVariables,
@@ -9,7 +8,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Summary } from "./summary";
 import { useSubmitSummary } from "@hooks/buy/use-submit-summary";
-import { mapDefaultApproximateRadius } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 const SINGLE_PICKUP_OPTION = gql`
   query SinglePickupOption(
@@ -69,11 +68,10 @@ export const SinglePickup = ({ productId }: Props) => {
         </Body>
       </View>
       <View style={{ gap: 16 }}>
-        <Map
-          radius={mapDefaultApproximateRadius}
-          interactive={false}
-          lat={data.getPickupOption.lat}
-          lng={data.getPickupOption.lng}
+        <MapThumbnail
+          coords={[data.getPickupOption.lat, data.getPickupOption.lng]}
+          style={{ height: 185 }}
+          markerType="product"
         />
         <View style={{ gap: 12 }}>
           <Body size="medium">{data.getPickupOption.address}</Body>

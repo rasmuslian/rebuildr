@@ -1,17 +1,33 @@
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useMemo } from "react";
 import { StyleProp, ViewStyle, View } from "react-native";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { borderRadius } from "@constants/sizes";
 import { defaultCenter } from "@constants/map";
+import { createMarkerIcon } from "./create-marker-icon";
 
 type Props = {
-  style?: StyleProp<ViewStyle>;
-  cta?: ReactElement;
   coords?: LatLngExpression;
+  cta?: ReactElement;
+  markerType?: "product" | "project";
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function MapThumbnail({ style, cta, coords }: Props) {
+export default function MapThumbnail({
+  coords = defaultCenter,
+  cta,
+  markerType,
+  style,
+}: Props) {
+  const iconSource =
+    markerType === "project"
+      ? "/icons/project-marker-dark.svg"
+      : "/icons/product-marker-dark.svg";
+
+  const markerIcon = useMemo(() => {
+    return createMarkerIcon({ iconSource });
+  }, [markerType]);
+
   return (
     <View
       style={[
@@ -20,16 +36,14 @@ export default function MapThumbnail({ style, cta, coords }: Props) {
       ]}
     >
       <MapContainer
-        center={defaultCenter}
-        zoom={5}
+        center={coords}
+        zoom={13}
         style={{ height: "100%", width: "100%" }}
         zoomControl={false}
         attributionControl={false}
         dragging={false}
         scrollWheelZoom={false}
       >
-        <Controller coords={coords} />
-
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -48,21 +62,9 @@ export default function MapThumbnail({ style, cta, coords }: Props) {
             {cta}
           </View>
         )}
+
+        {markerType && <Marker position={coords} icon={markerIcon}></Marker>}
       </MapContainer>
     </View>
   );
 }
-
-type ControllerProps = {
-  coords?: LatLngExpression;
-};
-
-const Controller = ({ coords }: ControllerProps) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (coords) map.setView(coords, 13);
-  }, [coords]);
-
-  return null;
-};

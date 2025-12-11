@@ -4,9 +4,8 @@ import {
 } from "@/gql/graphql";
 import { gql, useSuspenseQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Map } from "@components/maps/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 import { Body, Label, Title } from "@components/typography/text";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import { View } from "react-native";
 
 const PREVIEW_PROJECT_QUERY = gql`
@@ -70,15 +69,17 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
       )}
       <View style={{ gap: 4 }}>
         <Label size="medium">Adress</Label>
-        <Body size="medium">{project.approximatePlace.address}</Body>
+        <Body size="medium">{project.approximatePlace?.address}</Body>
       </View>
       <View style={{ gap: 12 }}>
-        <Map
-          lat={project.approximatePlace.lat}
-          lng={project.approximatePlace.lng}
-          radius={mapDefaultApproximateRadiusLarge}
-          interactive={false}
-          zoom={10}
+        <MapThumbnail
+          coords={
+            project.approximatePlace
+              ? [project.approximatePlace.lat, project.approximatePlace.lng]
+              : undefined
+          }
+          markerType="project"
+          style={{ height: 185 }}
         />
         <Body size="small" color="secondary">
           Köparen ser inte projektets exakta adress ({project.address}), bara
