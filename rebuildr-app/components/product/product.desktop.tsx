@@ -352,6 +352,7 @@ export const ProductDesktop = ({
           <PickupPositionPopupContent
             address={approximatePlace.address}
             location={location}
+            markerType="product"
           />
         )}
       </Popup>

@@ -21,9 +21,7 @@ import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
 import { useDebounceCallback } from "usehooks-ts";
-import { Map } from "@components/maps/map";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import MapThumbnail from "@components/maps/map-thumbnail";
 
 export const ProjectMobile = () => {
@@ -129,18 +127,20 @@ export const ProjectMobile = () => {
 
           <Display size="small">{project?.title}</Display>
 
-          <MapThumbnail
-            coords={location ? [location.lat, location.lng] : undefined}
-            cta={
-              <Button
-                label="Visa på karta"
-                type="text"
-                icon="map"
-                style={{ backgroundColor: "white" }}
-                onPress={() => setShowLocation(true)}
-              />
-            }
-          />
+          <Pressable onPress={() => setShowLocation(true)}>
+            <MapThumbnail
+              coords={location ? [location.lat, location.lng] : undefined}
+              cta={
+                <Button
+                  label="Visa på karta"
+                  type="text"
+                  icon="map"
+                  style={{ backgroundColor: "white" }}
+                  onPress={() => setShowLocation(true)}
+                />
+              }
+            />
+          </Pressable>
 
           <View style={{ gap: contactExpanded ? 16 : 8 }}>
             <Body
@@ -256,15 +256,11 @@ export const ProjectMobile = () => {
         screenHeight
       >
         <View>
-          {location && (
-            <Map
-              lat={location.lat}
-              lng={location.lng}
-              interactive={false}
-              radius={mapDefaultApproximateRadiusLarge}
-              height={700}
-            />
-          )}
+          <MapThumbnail
+            coords={location ? [location.lat, location.lng] : undefined}
+            markerType="project"
+            style={{ height: 700 }}
+          />
         </View>
       </BottomSheet>
     </ScreenLayout>

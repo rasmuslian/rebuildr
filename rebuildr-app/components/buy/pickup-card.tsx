@@ -1,9 +1,8 @@
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import { View } from "react-native";
-import { Map } from "@components/maps/map";
 import { Body, Title } from "@components/typography/text";
 import { BuyProductTransportationOptionsQuery } from "@/gql/graphql";
-import { mapDefaultApproximateRadius } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 type Props = {
   methodSelected?: boolean;
@@ -34,11 +33,10 @@ export const PickupCard = ({
             inom 7 dagar.
           </Body>
         </View>
-        <Map
-          radius={mapDefaultApproximateRadius}
-          interactive={false}
-          lat={pickupOption.lat}
-          lng={pickupOption.lng}
+        <MapThumbnail
+          coords={[pickupOption.lat, pickupOption.lng]}
+          markerType="product"
+          style={{ height: 185 }}
         />
         <View style={{ gap: 12 }}>
           <Body size="medium">{pickupOption.address}</Body>

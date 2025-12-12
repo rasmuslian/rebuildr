@@ -18,12 +18,11 @@ import { useLikeProject } from "@hooks/useLikeProject";
 import { ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
-import { Map } from "@components/maps/map";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { PickupPositionPopupContent } from "@components/preview-product/pickup-position-popup-content";
 import { useState } from "react";
 import { Popup } from "@components/popup/popup";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 export const ProjectDesktop = () => {
   const { onToggleProductHeart } = useLikeProduct();
@@ -143,17 +142,13 @@ export const ProjectDesktop = () => {
               </View>
             </View>
             <View style={{ flex: 1 }}>
-              {location && (
-                <Pressable onPress={handleShowMapPopup}>
-                  <Map
-                    lat={location.lat}
-                    lng={location.lng}
-                    interactive={false}
-                    height={400}
-                    radius={mapDefaultApproximateRadiusLarge}
-                  />
-                </Pressable>
-              )}
+              <Pressable onPress={handleShowMapPopup}>
+                <MapThumbnail
+                  coords={location ? [location.lat, location.lng] : undefined}
+                  style={{ height: 400 }}
+                  markerType="project"
+                />
+              </Pressable>
             </View>
           </View>
           <Divider />
@@ -215,6 +210,7 @@ export const ProjectDesktop = () => {
           <PickupPositionPopupContent
             address={location.address}
             location={location}
+            markerType="project"
           />
         </Popup>
       )}

@@ -1,14 +1,18 @@
 import { View } from "react-native";
-import { Map } from "@components/maps/map";
 import { Body, Headline } from "@components/typography/text";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 type Props = {
   address: string;
   location: { lat: number; lng: number };
+  markerType: "product" | "project";
 };
 
-export const PickupPositionPopupContent = ({ address, location }: Props) => {
+export const PickupPositionPopupContent = ({
+  address,
+  location,
+  markerType,
+}: Props) => {
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
       <View style={{ padding: 24, width: "70%" }}>
@@ -21,12 +25,10 @@ export const PickupPositionPopupContent = ({ address, location }: Props) => {
         <Body size="small" color="secondary" style={{ marginBottom: 24 }}>
           Ungefärligt område. Adress visas först när ett köp har genomförts.
         </Body>
-        <Map
-          lat={location.lat}
-          lng={location.lng}
-          interactive={false}
-          radius={mapDefaultApproximateRadiusLarge}
-          height={700}
+        <MapThumbnail
+          coords={[location.lat, location.lng]}
+          markerType={markerType}
+          style={{ height: 700 }}
         />
       </View>
     </View>

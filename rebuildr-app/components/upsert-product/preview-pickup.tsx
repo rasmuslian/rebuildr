@@ -5,12 +5,11 @@ import {
 import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Map } from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { View } from "react-native";
 import { useEffect } from "react";
 import { ProductFields } from "./types";
-import { mapDefaultApproximateRadiusLarge } from "@constants/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_PICKUP = gql`
   query ProductBottomSheetPreviewPickup($input: GetProjectInput!) {
@@ -84,12 +83,10 @@ export const PreviewPickup = ({
           ett köp har genomförts.
         </Body>
       </View>
-      <Map
-        lat={location[0]}
-        lng={location[1]}
-        interactive={false}
-        radius={mapDefaultApproximateRadiusLarge}
-        zoom={10}
+      <MapThumbnail
+        coords={[location[0], location[1]]}
+        style={{ height: 185 }}
+        markerType="product"
       />
       <View style={{ gap: 12 }}>
         <Button
