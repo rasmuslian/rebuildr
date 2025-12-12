@@ -14,7 +14,7 @@ import { Body, Display } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect } from "expo-router";
 import { Dispatch, useCallback } from "react";
-import { TextInput, View, useWindowDimensions } from "react-native";
+import { Pressable, TextInput, View, useWindowDimensions } from "react-native";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { Header } from "@components/navigation/headers/header";
@@ -408,21 +408,25 @@ const MobileLayout = ({
           </View>
         </View>
 
-        <MapThumbnail
-          coords={
-            userCoords ? [userCoords.latitude, userCoords.longitude] : undefined
-          }
-          style={{ marginBottom: 16 }}
-          cta={
-            <Button
-              label="Visa på karta"
-              type="text"
-              icon="map"
-              style={{ backgroundColor: "white" }}
-              onPress={() => router.navigate("/map")}
-            />
-          }
-        />
+        <Pressable onPress={() => router.navigate("/map")}>
+          <MapThumbnail
+            coords={
+              userCoords
+                ? [userCoords.latitude, userCoords.longitude]
+                : undefined
+            }
+            style={{ marginBottom: 16 }}
+            cta={
+              <Button
+                label="Visa på karta"
+                type="text"
+                icon="map"
+                style={{ backgroundColor: "white" }}
+                onPress={() => router.navigate("/map")}
+              />
+            }
+          />
+        </Pressable>
 
         <AdGridSection
           products={

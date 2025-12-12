@@ -127,18 +127,20 @@ export const ProjectMobile = () => {
 
           <Display size="small">{project?.title}</Display>
 
-          <MapThumbnail
-            coords={location ? [location.lat, location.lng] : undefined}
-            cta={
-              <Button
-                label="Visa på karta"
-                type="text"
-                icon="map"
-                style={{ backgroundColor: "white" }}
-                onPress={() => setShowLocation(true)}
-              />
-            }
-          />
+          <Pressable onPress={() => setShowLocation(true)}>
+            <MapThumbnail
+              coords={location ? [location.lat, location.lng] : undefined}
+              cta={
+                <Button
+                  label="Visa på karta"
+                  type="text"
+                  icon="map"
+                  style={{ backgroundColor: "white" }}
+                  onPress={() => setShowLocation(true)}
+                />
+              }
+            />
+          </Pressable>
 
           <View style={{ gap: contactExpanded ? 16 : 8 }}>
             <Body
