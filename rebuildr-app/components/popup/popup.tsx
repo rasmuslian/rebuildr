@@ -62,7 +62,7 @@ export const Popup = ({ open, onClose, type, children }: Props) => {
             width: isFull ? "100%" : 620,
             height: isFull ? "100%" : "auto",
             backgroundColor: primitives.neutrals100,
-            borderRadius: !isFull ? 12 : 0,
+            borderRadius: !isFull ? 28 : 0,
           }}
         >
           {children}

@@ -91,7 +91,9 @@ export const HandleDraftBottomSheet = ({
       <Popup open={show} onClose={onDismiss}>
         <View
           style={{
-            padding: 24,
+            paddingTop: 16,
+            paddingBottom: 24,
+            paddingHorizontal: 24,
             justifyContent: "center",
           }}
         >

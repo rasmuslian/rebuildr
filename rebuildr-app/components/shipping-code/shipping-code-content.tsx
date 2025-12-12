@@ -37,7 +37,7 @@ export const ShippingCodeContent = ({ purchaseId }: Props) => {
   const qrCodeContent = data?.purchase.qrCodeContent;
 
   return (
-    <View style={[{ gap: 24 }, isDesktop && { padding: 24 }]}>
+    <View style={[{ gap: 24 }, isDesktop && { padding: 72 }]}>
       {data && qrCodeContent ? (
         <View
           style={{
