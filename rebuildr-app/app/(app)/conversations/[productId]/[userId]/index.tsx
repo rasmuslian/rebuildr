@@ -3,7 +3,7 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
 import { useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@apollo/client";
 import {
   ConversationProductQuery,
@@ -104,6 +104,15 @@ export default function ConversationProduct() {
           <ChatActionButtons
             data={data}
             onShowReview={() => setShowReviewSheet(true)}
+            onShowQRCode={() => {
+              if (!data.latestPurchase) {
+                return;
+              }
+              router.navigate({
+                pathname: "/account/sales/shipping-code",
+                params: { purchaseId: data.latestPurchase?.id },
+              });
+            }}
           />
           <MessageInput
             receiverId={otherUserId}

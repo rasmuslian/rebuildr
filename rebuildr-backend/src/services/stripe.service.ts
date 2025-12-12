@@ -279,6 +279,7 @@ export class StripeService {
     fee: number,
     buyer: User,
     paymentMethod: SupportedPaymentMethod,
+    description: string,
   ) {
     const paymentMethods: string[] = [];
     switch (paymentMethod) {
@@ -308,6 +309,7 @@ export class StripeService {
       transfer_data: {
         destination: sellerAccountId,
       },
+      description,
       receipt_email: buyer.email,
     });
 
@@ -327,13 +329,12 @@ export class StripeService {
 
   async refundPayment(paymentIntentId: string) {
     try {
-
-    return await this.stripe.refunds.create({
-      payment_intent: paymentIntentId,
-    });
-    } catch(e) {
-      this.logger.error("refundPayment: error", {e})
-      throw new Error()
+      return await this.stripe.refunds.create({
+        payment_intent: paymentIntentId,
+      });
+    } catch (e) {
+      this.logger.error('refundPayment: error', { e });
+      throw new Error();
     }
   }
 

@@ -33,6 +33,8 @@ import { useLocalSearchParams } from "expo-router";
 import { parseConversations } from "@/utils/conversations/parse-conversations";
 import { CONVERSATION_PRODUCT } from "./queries";
 import { useChatHeaderNavigation } from "@hooks/use-chat-header-navigation";
+import { Popup } from "@components/popup/popup";
+import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
 
 type Props = {
   data: GetConversationsQuery;
@@ -223,6 +225,7 @@ const Chat = ({
   showReviewSheet,
   setShowReviewSheet,
 }: ChatProps) => {
+  const [showQRCode, setShowQRCode] = useState(false);
   const { height: windowHeight } = useWindowDimensions();
 
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
@@ -319,6 +322,7 @@ const Chat = ({
           <ChatActionButtons
             data={data}
             onShowReview={() => setShowReviewSheet(true)}
+            onShowQRCode={() => setShowQRCode(true)}
           />
           <View style={{ flex: 1 }}>
             <MessageInput
@@ -329,6 +333,11 @@ const Chat = ({
           </View>
         </View>
       </View>
+      <Popup open={showQRCode} onClose={() => setShowQRCode(false)}>
+        {data.latestPurchase && (
+          <ShippingCodeContent purchaseId={data.latestPurchase.id} />
+        )}
+      </Popup>
     </View>
   );
 };

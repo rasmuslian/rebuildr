@@ -57,6 +57,7 @@ type PurchaseProgressProps = {
   onAbortPurchase: () => void;
   onOpenReview: () => void;
   onReport: () => void;
+  onShowQRCode: () => void;
 };
 
 export const PurchaseProgress = ({
@@ -64,6 +65,7 @@ export const PurchaseProgress = ({
   onAbortPurchase,
   onOpenReview,
   onReport,
+  onShowQRCode,
 }: PurchaseProgressProps) => {
   const purchase = purchaseData.purchase;
   const me = purchaseData.me;
@@ -489,12 +491,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     type: "button",
                     buttonProps: {
                       label: "Visa QR-kod",
-                      onPress: () => {
-                        router.navigate({
-                          pathname: "/account/sales/shipping-code",
-                          params: { purchaseId: purchase.id },
-                        });
-                      },
+                      onPress: onShowQRCode,
                     },
                   },
                   {

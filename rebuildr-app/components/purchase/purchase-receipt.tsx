@@ -20,6 +20,9 @@ import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bo
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { CreateReview } from "@components/review/create-review";
+import { router } from "expo-router";
+import { Popup } from "@components/popup/popup";
+import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -109,6 +112,7 @@ export const PurchaseReceipt = ({
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReviewSheet, setShowReviewSheet] = useState(false);
   const [showReportSheet, setShowReportSheet] = useState(false);
+  const [showQRCodePopup, setShowQRCodePopup] = useState(false);
   const { data, refetch } = useQuery<
     PurchaseReceiptQuery,
     PurchaseReceiptQueryVariables
@@ -164,6 +168,16 @@ export const PurchaseReceipt = ({
             setShowReviewSheet(true);
           }}
           onReport={() => setShowReportSheet(true)}
+          onShowQRCode={() => {
+            if (isDesktop) {
+              setShowQRCodePopup(true);
+            } else {
+              router.navigate({
+                pathname: "/account/sales/shipping-code",
+                params: { purchaseId: data.purchase.id },
+              });
+            }
+          }}
         />
       </View>
       <Divider />
@@ -270,6 +284,11 @@ export const PurchaseReceipt = ({
         onDismiss={() => setShowReportSheet(false)}
         onCreateReportComplete={() => refetch()}
       />
+      {isDesktop && (
+        <Popup onClose={() => setShowQRCodePopup(false)} open={showQRCodePopup}>
+          <ShippingCodeContent purchaseId={data.purchase.id} />
+        </Popup>
+      )}
     </View>
   );
 };
