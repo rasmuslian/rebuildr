@@ -86,22 +86,6 @@ export class ProjectLoader {
     });
   }
 
-    private mapPinLoader() {
-      return new DataLoader(async (keys: readonly string[]) => {
-        const projects = await this.dataSource.getRepository(Project).find({
-          where: {
-            id: In(keys),
-          },
-          relations: { mapPin: true },
-        });
-        return keys.map((key) => {
-          const project = projects.find((p) => p.id === key);
-          return project?.mapPin || null;
-        });
-      });
-    }
-
-
   createLoaders(): IProjectLoaders {
     return {
       productsLoader: this.productsLoader(),
@@ -114,7 +98,10 @@ export class ProjectLoader {
         'user',
         Project,
       ),
-      mapPinLoader: this.mapPinLoader(),
+      mapPinLoader: this.dataloaderService.targetByParentIdLoader<MapPin>(
+        'mapPin',
+        Project,
+      ),
     };
   }
 }

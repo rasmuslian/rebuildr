@@ -75,10 +75,10 @@ export class Project {
   @JoinTable()
   likedBy: User[];
 
-  @Column({ nullable: true })
-  mapPinId?: string;
+  @Column()
+  mapPinId: string;
 
-  @OneToOne(() => MapPin, mapPin => mapPin.project, { nullable: true, cascade: true })
+  @OneToOne(() => MapPin, (mapPin) => mapPin.project, { cascade: true })
   @JoinColumn()
-  mapPin?: MapPin;
+  mapPin: MapPin;
 }

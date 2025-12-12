@@ -238,16 +238,12 @@ export class ProjectResolver {
     };
   }
 
-  @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
+  @ResolveField(() => ApproximatePlaceResponse)
   async approximatePlace(
     @Parent() project: Project,
     @Context('projectLoaders') projectLoaders: IProjectLoaders,
   ) {
-
     const mapPin = await projectLoaders.mapPinLoader.load(project.id);
-    if (!mapPin) {
-      return null;
-    }
     return {
       address: mapPin.address,
       lat: mapPin.location.coordinates[0],
