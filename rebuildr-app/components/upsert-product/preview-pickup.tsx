@@ -79,9 +79,10 @@ export const PreviewPickup = ({
           </Body>
         </View>
         <Body size="small" color="secondary">
-          Köparen ser inte projektets exakta adress ({address}), bara ett
-          ungefärligt område på kartan enligt nedan. Din adress visas först när
-          ett köp har genomförts.
+          Köparen ser inte annonsens exakta adress (
+          <Label size="small">{address}</Label>), bara ett ungefärligt område på
+          kartan enligt nedan. Din adress visas först när ett köp har
+          genomförts.
         </Body>
       </View>
       <Map
