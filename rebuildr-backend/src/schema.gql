@@ -134,7 +134,7 @@ type Project {
   address: String!
   likedByMe: Boolean
   location: LocationResponse!
-  approximatePlace: ApproximatePlaceResponse
+  approximatePlace: ApproximatePlaceResponse!
   products(searchString: String): [Product!]!
   projectPicture: File
   user: User!

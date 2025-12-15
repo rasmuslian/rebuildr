@@ -82,9 +82,10 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
           style={{ height: 185 }}
         />
         <Body size="small" color="secondary">
-          Köparen ser inte projektets exakta adress ({project.address}), bara
-          ett ungefärligt område på kartan enligt ovan. Den fullständiga
-          adressen visas först när ett köp har genomförts.
+          Köparen ser inte projektets exakta adress (
+          <Label size="small">{project.address}</Label>), bara ett ungefärligt
+          område på kartan enligt ovan. Den fullständiga adressen visas först
+          när ett köp har genomförts.
         </Body>
       </View>
       <Button label="Redigera projekt" onPress={() => onEdit()} type="tonal" />
