@@ -14,6 +14,7 @@ import {
   TrendingNowProductsQueryVariables,
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
+import { permanentSection } from "@constants/permanent-sections";
 
 const TRENDING_NOW_QUERY = gql`
   query TrendingNowProducts(
@@ -60,7 +61,7 @@ const TRENDING_NOW_QUERY = gql`
 export const TrendingNow = () => {
   const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
-  const { setCategories } = useFilterProduct();
+  const { setSourceSection } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
@@ -91,7 +92,7 @@ export const TrendingNow = () => {
       .filter((p) => !!p.category)
       .map((p) => p.category as Category);
 
-    setCategories({ categories });
+    setSourceSection({ section: "forTheSeason", data: categories });
     router.navigate("/search/products");
   };
 
@@ -99,7 +100,7 @@ export const TrendingNow = () => {
     <View style={{ paddingVertical: 16 }}>
       {isLoggedIn && !isDesktop ? (
         <HoriztalListSection
-          title="Trendar nu"
+          title={permanentSection.trendingNow.title}
           data={products}
           onPress={onPress}
           renderItem={({ item }) => {

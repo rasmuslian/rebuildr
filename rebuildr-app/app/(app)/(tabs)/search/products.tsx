@@ -34,6 +34,7 @@ import { borderRadius } from "@constants/sizes";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
 import { SearchBar } from "@components/search/search-bar";
+import { permanentSection } from "@constants/permanent-sections";
 
 type StateType = {
   showFilter: boolean;
@@ -52,6 +53,7 @@ export default function Products() {
   const [state, setState] = useReducerState<StateType>(initialState);
   const { isDesktop } = useScreenType();
   const { isLoggedIn } = useUser();
+  const { userCoords } = useLocationContext();
   const { filter } = useFilterProduct();
 
   const { data, loading, refetch, fetchMore } = useQuery<
@@ -67,6 +69,10 @@ export default function Products() {
         conditions: filter.conditions,
         minPrice: filter.price[0],
         maxPrice: filter.price[1],
+        location: userCoords && {
+          lat: userCoords.latitude,
+          lng: userCoords.longitude,
+        },
       },
       limit: PAGE_SIZE,
       offset: 0,
@@ -197,6 +203,18 @@ const DesktopLayout = ({
 
             {!!filter.selectedCategoryId && (
               <SubCategoriesList id={filter.selectedCategoryId} />
+            )}
+
+            {!!filter.sourceSection && (
+              <View
+                style={{
+                  marginBottom: 24,
+                }}
+              >
+                <Display size="small">
+                  {permanentSection[filter.sourceSection].title}
+                </Display>
+              </View>
             )}
 
             <View
@@ -344,6 +362,18 @@ const MobileLayout = ({
 
         {!!filter.selectedCategoryId && (
           <SubCategoriesList id={filter.selectedCategoryId} />
+        )}
+
+        {!!filter.sourceSection && (
+          <View
+            style={{
+              marginBottom: 24,
+            }}
+          >
+            <Display size="small">
+              {permanentSection[filter.sourceSection].title}
+            </Display>
+          </View>
         )}
 
         <View

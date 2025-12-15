@@ -14,9 +14,10 @@ import {
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useLocationContext } from "@context/location-context";
+import { permanentSection } from "@constants/permanent-sections";
 
 export const NearYou = () => {
-  const { setSorting } = useFilterProduct();
+  const { setSourceSection } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
   const { userCoords } = useLocationContext();
@@ -55,9 +56,12 @@ export const NearYou = () => {
   return (
     <AdRowSection
       data={data}
-      title="Varor nära dig"
+      title={permanentSection.nearYou.title}
       onPress={() => {
-        setSorting(OrderProductsEnum.Distance, true);
+        setSourceSection({
+          section: "nearYou",
+          data: OrderProductsEnum.Distance,
+        });
         router.navigate("/search/products");
       }}
     />

@@ -1,4 +1,5 @@
 import { OrderProductsEnum, ProductConditionEnum } from "@/gql/graphql";
+import { PermanentSectionType } from "@constants/permanent-sections";
 
 export enum FilterProductCameFromEnum {
   categories,
@@ -9,15 +10,19 @@ export const maximumPrice = 10000;
 //undefined means include all
 //empty list means includ none
 export type Filter = {
+  //Basic filters
   sorting: OrderProductsEnum;
   rootCategoryIds?: string[];
   categoryIds?: string[];
   brandIds?: string[];
   conditions?: ProductConditionEnum[];
   price: [number, number]; // lower, higher
-  selectedCategoryId?: string;
-  cameFrom?: FilterProductCameFromEnum;
   searchString?: string;
+  //Preset filters
+  selectedCategoryId?: string;
+  sourceSection?: PermanentSectionType;
+  //Navigation filters
+  cameFrom?: FilterProductCameFromEnum;
 };
 
 export const initialFilterProduct: Filter = {

@@ -1,6 +1,7 @@
 import { productFilterVar } from "@/apollo/config";
 import { Category, OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
+import { PermanentSectionType } from "@constants/permanent-sections";
 import {
   Filter,
   FilterProductCameFromEnum,
@@ -14,15 +15,26 @@ export const useFilterProduct = () => {
     productFilterVar(initialFilterProduct);
   };
 
+  //Presets are selectedCategoryId and sourceSection
+  //Most regular filter adjustments should reset the presets
+  const resetPresets = (): Filter => {
+    return {
+      ...filter,
+      selectedCategoryId: undefined,
+      sourceSection: undefined,
+    };
+  };
+
   const setSorting = (sorting: OrderProductsEnum, reset?: boolean) => {
     if (reset) {
       productFilterVar({ ...initialFilterProduct, sorting });
     } else {
-      productFilterVar({ ...filter, sorting });
+      productFilterVar({ ...resetPresets(), sorting });
     }
   };
 
   const toggleAllRootCategories = () => {
+    const filter = resetPresets();
     //since its undefined it means all categories are already selected
     //make it so none are selected
     if (!filter.rootCategoryIds) {
@@ -30,7 +42,6 @@ export const useFilterProduct = () => {
         ...filter,
         rootCategoryIds: [],
         categoryIds: [],
-        selectedCategoryId: undefined,
       });
       return;
     }
@@ -38,13 +49,13 @@ export const useFilterProduct = () => {
     productFilterVar({
       ...filter,
       rootCategoryIds: undefined,
-      selectedCategoryId: undefined,
     });
   };
 
   const toggleRootCategory = (
     category: Pick<Category, "id"> & { children: Pick<Category, "id">[] },
   ) => {
+    const filter = resetPresets();
     //we go from all selected to one. Reset categoryIds
     if (!filter.rootCategoryIds) {
       //if categoryIds are already selected, deselect those that are not children to this root. leave undefined if it already is undefined
@@ -55,7 +66,6 @@ export const useFilterProduct = () => {
         ...filter,
         rootCategoryIds: [category.id],
         categoryIds: newCategoryIds,
-        selectedCategoryId: undefined,
       });
       return;
     }
@@ -65,7 +75,6 @@ export const useFilterProduct = () => {
     if (!isSelected) {
       productFilterVar({
         ...filter,
-        selectedCategoryId: undefined,
         rootCategoryIds: [...filter.rootCategoryIds, category.id],
       });
     } else {
@@ -75,7 +84,6 @@ export const useFilterProduct = () => {
       );
       productFilterVar({
         ...filter,
-        selectedCategoryId: undefined,
         categoryIds: newCategoryIds,
         rootCategoryIds: filter.rootCategoryIds.filter(
           (categoryId) => categoryId !== category.id,
@@ -85,11 +93,11 @@ export const useFilterProduct = () => {
   };
 
   const toggleAllCategories = () => {
+    const filter = resetPresets();
     if (!filter.categoryIds) {
       productFilterVar({
         ...filter,
         categoryIds: [],
-        selectedCategoryId: undefined,
       });
       return;
     }
@@ -97,16 +105,12 @@ export const useFilterProduct = () => {
     productFilterVar({
       ...filter,
       categoryIds: undefined,
-      selectedCategoryId: undefined,
     });
   };
 
-  const setCategories = (input: {
-    categories: Pick<Category, "id" | "parentId">[];
-    selectedCategoryId?: string;
-    cameFrom?: FilterProductCameFromEnum;
-  }) => {
-    const { categories, selectedCategoryId, cameFrom } = input;
+  const separateRootAndCategories = (
+    categories: Pick<Category, "id" | "parentId">[],
+  ) => {
     const rootCategoryIds = categories.reduce(
       (acc: string[], curr) => [...acc, curr.parentId ?? curr.id],
       [],
@@ -114,6 +118,19 @@ export const useFilterProduct = () => {
     const categoryIds = categories
       .filter((c) => !!c.parentId)
       .map((c) => c.id) as string[];
+
+    return { rootCategoryIds, categoryIds };
+  };
+
+  const setCategories = (input: {
+    categories: Pick<Category, "id" | "parentId">[];
+    selectedCategoryId?: string;
+    cameFrom?: FilterProductCameFromEnum;
+  }) => {
+    const filter = resetPresets();
+    const { categories, selectedCategoryId, cameFrom } = input;
+    const { rootCategoryIds, categoryIds } =
+      separateRootAndCategories(categories);
     productFilterVar({
       ...filter,
       categoryIds,
@@ -127,6 +144,7 @@ export const useFilterProduct = () => {
     value: string,
     filterKey: keyof Pick<Filter, "categoryIds" | "brandIds" | "conditions">,
   ) => {
+    const filter = resetPresets();
     if (!filter[filterKey]) {
       productFilterVar({ ...filter, [filterKey]: [value] });
       return;
@@ -147,6 +165,7 @@ export const useFilterProduct = () => {
   };
 
   const setPrice = (price1: number, price2: number) => {
+    const filter = resetPresets();
     productFilterVar({
       ...filter,
       price: [
@@ -176,18 +195,63 @@ export const useFilterProduct = () => {
     return acc;
   };
 
-  const resetSelectedCategory = () => {
-    productFilterVar({
-      ...filter,
-      selectedCategoryId: undefined,
-    });
-  };
-
   const resetAndSetSearchString = (searchString: string) => {
     productFilterVar({
       ...initialFilterProduct,
       searchString,
     });
+  };
+
+  const setSourceSection = (
+    sectionData:
+      | {
+          section: PermanentSectionType;
+          data: any;
+        }
+      | {
+          section: "forTheSeason";
+          data: Pick<Category, "id" | "parentId">[];
+        }
+      | {
+          section: "nearYou";
+          data: OrderProductsEnum.Distance;
+        }
+      | {
+          section: "newArrivals";
+          data: OrderProductsEnum.Latest;
+        }
+      | {
+          section: "trendingNow";
+          data: Pick<Category, "id" | "parentId">[];
+        },
+  ) => {
+    const filter = resetPresets();
+    switch (sectionData.section) {
+      //Both cases have same logic, allow fallthrough
+      case "nearYou":
+      case "newArrivals":
+        productFilterVar({
+          ...filter,
+          sorting: sectionData.data,
+          sourceSection: sectionData.section,
+        });
+        break;
+      //Both cases have same logic, allow fallthrough
+      case "forTheSeason":
+      case "trendingNow":
+        {
+          const { rootCategoryIds, categoryIds } = separateRootAndCategories(
+            sectionData.data,
+          );
+          productFilterVar({
+            ...filter,
+            categoryIds,
+            rootCategoryIds,
+            sourceSection: sectionData.section,
+          });
+        }
+        break;
+    }
   };
 
   return {
@@ -201,7 +265,7 @@ export const useFilterProduct = () => {
     toggleValue,
     setPrice,
     nrOfAppliedFilters,
-    resetSelectedCategory,
     resetAndSetSearchString,
+    setSourceSection,
   };
 };
