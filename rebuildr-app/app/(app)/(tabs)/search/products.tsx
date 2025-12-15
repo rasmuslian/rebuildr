@@ -14,13 +14,9 @@ import { Body, Display } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router, useFocusEffect } from "expo-router";
 import { Dispatch, useCallback } from "react";
-import { Pressable, TextInput, View, useWindowDimensions } from "react-native";
+import { Pressable, View, useWindowDimensions } from "react-native";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
-import { Header } from "@components/navigation/headers/header";
-import { Icon } from "@icons/icon";
-import { textStyles } from "@components/typography/typeface";
-import { useThemeColor } from "@hooks/useThemeColor";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
@@ -30,7 +26,6 @@ import {
   TransportationOptions,
 } from "@components/search/transportation-options";
 import { SubCategoriesList } from "@components/categories/sub-categories-list/sub-categories-list";
-import { FilterProductCameFromEnum } from "@context/filter-product-context";
 import InteractiveMap from "@components/maps/interactive-map";
 import { SEARCH_PRODUCTS_QUERY } from "@/queries";
 import { useReducerState } from "@hooks/useReducerState";
@@ -38,6 +33,7 @@ import { useUser } from "@hooks/useUser";
 import { borderRadius } from "@constants/sizes";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
+import { SearchBar } from "@components/search/search-bar";
 
 type StateType = {
   showFilter: boolean;
@@ -314,7 +310,6 @@ const MobileLayout = ({
 }: Props) => {
   const { filter, nrOfAppliedFilters } = useFilterProduct();
   const { onToggleProductHeart } = useLikeProduct();
-  const colors = useThemeColor();
   const { userCoords } = useLocationContext();
 
   return (
@@ -323,36 +318,10 @@ const MobileLayout = ({
         loading={loading}
         style={{ marginTop: 24 }}
         headerComponent={
-          <Header
-            showBackButton={
-              filter.cameFrom === FilterProductCameFromEnum.categories
-            }
-            onBack={
-              filter.cameFrom === FilterProductCameFromEnum.categories
-                ? () => router.navigate("/categories")
-                : undefined
-            }
-            middle={
-              <>
-                <Icon
-                  icon="search"
-                  size={18}
-                  style={{ marginRight: 10, height: 40 }}
-                />
-                <TextInput
-                  style={{
-                    outline: "none",
-                    flex: 1,
-                    color: colors.text.primaryDark,
-                    ...textStyles.title["medium"],
-                  }}
-                  placeholder="Vad letar du efter?"
-                  placeholderTextColor={colors.text.secondary}
-                  value={filter.searchString}
-                  onFocus={() => router.navigate("/(app)/(tabs)/search")}
-                />
-              </>
-            }
+          <SearchBar
+            onPressArrow={() => router.navigate("/")}
+            placeholder="Vad letar du efter?"
+            searchOnSubmit
           />
         }
       >

@@ -58,6 +58,9 @@ export const Search = ({
   const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
     : backgroundColor || colors.background.secondary;
+  const xBackgroundColor = searchState.dropdownVisible
+    ? colors.background.neutral
+    : backgroundColor || colors.buttons.iconQuickLink.hovered;
 
   const openDropdown = () => {
     if (isDesktop && inputWrapperRef.current) {
@@ -131,7 +134,7 @@ export const Search = ({
           lineHeight: undefined,
         }}
       />
-      {searchState.dropdownVisible && (
+      {(searchState.dropdownVisible || !!searchState.searchString?.length) && (
         <Pressable
           onPress={() => {
             onChangeText("");
@@ -140,7 +143,14 @@ export const Search = ({
             }
           }}
         >
-          <View style={{ marginLeft: 8 }}>
+          <View
+            style={{
+              marginLeft: 8,
+              borderRadius: borderRadius.medium,
+              backgroundColor: xBackgroundColor,
+              padding: 2,
+            }}
+          >
             <Icon icon="X" size={18} />
           </View>
         </Pressable>
