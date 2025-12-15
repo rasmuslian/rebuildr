@@ -10,6 +10,7 @@ import {
   ForTheSeasonCategoriesQueryVariables,
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
+import { permanentSection } from "@constants/permanent-sections";
 
 const FOR_THE_SEASON_CATEGORIES = gql`
   query ForTheSeasonCategories($input: CategoriesInput!) {
@@ -28,7 +29,7 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 const CATEGORY_WIDTH = 225;
 
 export const ForTheSeason = () => {
-  const { setCategories } = useFilterProduct();
+  const { setSourceSection } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -54,14 +55,12 @@ export const ForTheSeason = () => {
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          setCategories({
-            categories,
-          });
+          setSourceSection({ section: "forTheSeason", data: categories });
           router.navigate("/search/products");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}
       >
-        För säsongen
+        {permanentSection.forTheSeason.title}
       </SectionHeader>
 
       <ScrollView
@@ -80,10 +79,7 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              setCategories({
-                categories: [category],
-                selectedCategoryId: category.id,
-              });
+              setSourceSection({ section: "forTheSeason", data: [category] });
               router.navigate("/search/products");
             }}
             source={category.image ? category.image.url : Placeholder.uri}

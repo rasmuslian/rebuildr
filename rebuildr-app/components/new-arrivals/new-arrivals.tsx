@@ -13,9 +13,10 @@ import {
   AdRowSection,
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { permanentSection } from "@constants/permanent-sections";
 
 export const NewArrivals = () => {
-  const { setSorting } = useFilterProduct();
+  const { setSourceSection } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
@@ -41,9 +42,12 @@ export const NewArrivals = () => {
   return (
     <AdRowSection
       data={data}
-      title="Nyinkomna varor"
+      title={permanentSection.newArrivals.title}
       onPress={() => {
-        setSorting(OrderProductsEnum.Latest, true);
+        setSourceSection({
+          section: "newArrivals",
+          data: OrderProductsEnum.Latest,
+        });
         router.navigate("/search/products");
       }}
     />

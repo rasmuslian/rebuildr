@@ -11,6 +11,7 @@ import {
 } from "@components/categories/root-categories-vertical";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Headline } from "@components/typography/text";
+import { permanentSection } from "@constants/permanent-sections";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import { useForegroundPermissions } from "expo-location";
@@ -41,7 +42,7 @@ export const HamburgerMenu = () => {
     RootCategoriesVerticalCategory | undefined
   >();
   const { isDesktop } = useScreenType();
-  const { setSorting, setCategories } = useFilterProduct();
+  const { setSourceSection } = useFilterProduct();
   const [status] = useForegroundPermissions();
 
   const { data } = useQuery<HamburgerMenuQuery, HamburgerMenuQueryVariables>(
@@ -84,35 +85,47 @@ export const HamburgerMenu = () => {
       {!category && (
         <View style={{ gap: 14 }}>
           <Entry
-            title="Nyinkomna varor"
+            title={permanentSection.newArrivals.title}
             link="/search/products"
-            onPress={() => setSorting(OrderProductsEnum.Latest, true)}
+            onPress={() =>
+              setSourceSection({
+                section: "newArrivals",
+                data: OrderProductsEnum.Latest,
+              })
+            }
           />
           {status?.granted && (
             <Entry
-              title="Varor nära dig"
+              title={permanentSection.nearYou.title}
               link="/search/products"
-              onPress={() => setSorting(OrderProductsEnum.Distance, true)}
+              onPress={() =>
+                setSourceSection({
+                  section: "nearYou",
+                  data: OrderProductsEnum.Distance,
+                })
+              }
             />
           )}
           {seasonalCategories.length > 0 && (
             <Entry
-              title="För säsong"
+              title={permanentSection.forTheSeason.title}
               link="/search/products"
               onPress={() =>
-                setCategories({
-                  categories: seasonalCategories,
+                setSourceSection({
+                  section: "forTheSeason",
+                  data: seasonalCategories,
                 })
               }
             />
           )}
           {trendingCategories.length > 0 && (
             <Entry
-              title="Trendar nu"
+              title={permanentSection.trendingNow.title}
               link="/search/products"
               onPress={() =>
-                setCategories({
-                  categories: trendingCategories,
+                setSourceSection({
+                  section: "trendingNow",
+                  data: trendingCategories,
                 })
               }
             />
