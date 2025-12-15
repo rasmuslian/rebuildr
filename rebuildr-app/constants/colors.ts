@@ -151,6 +151,11 @@ type ButtonsTokens = {
     pressed: string;
     disabled: string;
   };
+  iconQuickLink: {
+    hovered: string;
+    focused: string;
+    pressed: string;
+  };
   imageQuickLinkStroke: {
     enabled: string;
     hovered: string;
@@ -211,6 +216,11 @@ const buttonTokensLight: ButtonsTokens = {
     pressed: primitives.neutrals10,
     disabled: primitives.neutrals10,
   },
+  iconQuickLink: {
+    hovered: primitives.secondary300,
+    focused: primitives.secondary500,
+    pressed: primitives.secondary500,
+  },
   imageQuickLinkStroke: {
     enabled: primitives.neutrals400,
     hovered: primitives.neutrals700,
@@ -270,6 +280,11 @@ const buttonTokensDark: ButtonsTokens = {
     focused: primitives.neutrals50,
     pressed: primitives.neutrals10,
     disabled: primitives.neutrals10,
+  },
+  iconQuickLink: {
+    hovered: primitives.neutrals10,
+    focused: primitives.neutrals50,
+    pressed: primitives.neutrals50,
   },
   imageQuickLinkStroke: {
     enabled: primitives.neutrals50,

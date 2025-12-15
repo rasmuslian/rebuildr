@@ -7,22 +7,18 @@ import {
 } from "@/gql/graphql";
 import { useMutation, useQuery } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Icon } from "@icons/icon";
-import { TextInput, TextInputSubmitEditingEvent } from "react-native";
-import { useThemeColor } from "@hooks/useThemeColor";
+import { TextInputSubmitEditingEvent } from "react-native";
 import { router } from "expo-router";
-import { textStyles } from "@components/typography/typeface";
-import { Header } from "@components/navigation/headers/header";
 import { SearchEmptyState } from "@components/search/search-empty-state";
 import { SearchWithResults } from "@components/search/search-with-results";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { CREATE_SEARCH_RESULT, SEARCH } from "@components/search/queries";
 import { useSearchContext } from "@context/search-context";
+import { SearchBar } from "@components/search/search-bar";
 
 export default function Search() {
   const { searchState, setSearchState, search } = useSearchContext();
   const filterContext = useFilterProduct();
-  const colors = useThemeColor();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
@@ -55,41 +51,12 @@ export default function Search() {
   return (
     <ScreenLayout
       headerComponent={
-        <Header
-          ctas={
-            searchState.searchString
-              ? [
-                  {
-                    icon: "X",
-                    onPress: () => setSearchState({ searchString: undefined }),
-                  },
-                ]
-              : undefined
-          }
-          showBackButton={false}
-          middle={
-            <>
-              <Icon
-                icon="search"
-                size={18}
-                style={{ marginRight: 10, height: 40 }}
-              />
-              <TextInput
-                style={{
-                  outline: "none",
-                  flex: 1,
-                  color: colors.text.primaryDark,
-                  ...textStyles.title["medium"],
-                }}
-                placeholder="Vad letar du efter?"
-                placeholderTextColor={colors.text.secondary}
-                value={searchState.searchString ?? ""}
-                onChangeText={handleChange}
-                onSubmitEditing={onSubmit}
-                autoFocus
-              />
-            </>
-          }
+        <SearchBar
+          placeholder="Vad letar du efter?"
+          onChange={handleChange}
+          onSubmitEditing={onSubmit}
+          searchOnSubmit
+          autoFocus
         />
       }
       style={{ gap: 16 }}
