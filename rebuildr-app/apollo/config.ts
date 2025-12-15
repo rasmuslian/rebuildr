@@ -13,14 +13,14 @@ import { onError } from "@apollo/client/link/error";
 import { initialFilterProduct } from "@context/filter-product-context";
 import * as Sentry from "@sentry/react-native";
 
-const GET_NEW_TOKENS = gql(`
-mutation GetNewTokens($input: GetNewTokensInput!) {
-  getNewTokens(input: $input) {
-    accessToken
-    refreshToken
+const GET_NEW_TOKENS = gql`
+  mutation GetNewTokens($input: GetNewTokensInput!) {
+    getNewTokens(input: $input) {
+      accessToken
+      refreshToken
+    }
   }
-}
-`);
+`;
 
 export const isLoggedInVar = makeVar(false);
 export const showHamburgerMenuVar = makeVar(false);
