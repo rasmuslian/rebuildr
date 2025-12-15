@@ -56,7 +56,7 @@ export function RootCategoriesHorizontal() {
           <TouchableOpacity
             key={c.id}
             style={{
-              width: isDesktop ? 100 : 72,
+              width: isDesktop ? 100 : 80,
               alignItems: "center",
               gap: isDesktop ? 14 : 12,
             }}
@@ -73,7 +73,13 @@ export function RootCategoriesHorizontal() {
               size={isDesktop ? 88 : 60}
               placeholder="CATEGORY"
             />
-            <Label size="medium" style={{ textAlign: "center" }}>
+            <Label
+              size="medium"
+              style={{
+                paddingHorizontal: 2,
+                textAlign: "center",
+              }}
+            >
               {c.name}
             </Label>
           </TouchableOpacity>

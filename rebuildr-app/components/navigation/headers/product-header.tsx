@@ -56,6 +56,7 @@ export const ProductHeader = ({
           <View
             style={{
               alignItems: "flex-start",
+              justifyContent: "center",
               flex: 1,
             }}
           >
