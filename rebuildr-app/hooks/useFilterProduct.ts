@@ -15,6 +15,8 @@ export const useFilterProduct = () => {
   const nrOfAppliedFilters = () => {
     let acc = 0;
     acc += filter.brandIds !== initialFilterProduct.brandIds ? 1 : 0;
+    acc +=
+      filter.rootCategoryIds !== initialFilterProduct.rootCategoryIds ? 1 : 0;
     acc += filter.categoryIds !== initialFilterProduct.categoryIds ? 1 : 0;
     acc += filter.conditions !== initialFilterProduct.conditions ? 1 : 0;
 
