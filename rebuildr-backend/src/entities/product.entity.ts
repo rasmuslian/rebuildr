@@ -70,10 +70,12 @@ export class Product {
     type: 'tsvector',
     nullable: true,
     select: false,
+    insert: false,
+    update: false,
     generatedType: 'STORED',
     asExpression: `setweight(to_tsvector('swedish', coalesce(title, '')), 'A') || setweight(to_tsvector('swedish', coalesce(description, '')), 'B')`,
   })
-  textSearch: string;
+  textSearch?: string;
 
   @Field(() => Date)
   @CreateDateColumn()
@@ -307,10 +309,10 @@ export class Product {
   @Column({ nullable: true })
   mapPinId?: string;
 
-  @OneToOne(() => MapPin, mapPin => mapPin.product, {
+  @OneToOne(() => MapPin, (mapPin) => mapPin.product, {
     nullable: true,
     cascade: true,
-    orphanedRowAction: 'delete'
+    orphanedRowAction: 'delete',
   })
   @JoinColumn()
   mapPin?: MapPin;
