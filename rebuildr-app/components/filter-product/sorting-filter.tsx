@@ -8,7 +8,7 @@ import { OrderProductsEnum } from "@/gql/graphql";
 import { Radio } from "@components/controls/radio";
 
 export const SortingFilter = () => {
-  const { filter, setSorting } = useFilterProduct();
+  const { filter, filterBuilder } = useFilterProduct();
   return (
     <FilterSection
       title="Sortering"
@@ -19,7 +19,9 @@ export const SortingFilter = () => {
         {Object.keys(orderProducts).map((orderKey, i) => (
           <Pressable
             key={i}
-            onPress={() => setSorting(orderKey as OrderProductsEnum)}
+            onPress={() =>
+              filterBuilder.setOrdering(orderKey as OrderProductsEnum).apply()
+            }
           >
             <View
               style={{

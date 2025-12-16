@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function SubCategoriesListDesktop({ category }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   const subCategories = category.children ?? [];
 
@@ -41,10 +41,10 @@ export function SubCategoriesListDesktop({ category }: Props) {
               gap: 14,
             }}
             onPress={() => {
-              setCategories({
-                categories: [c],
-                selectedCategoryId: c.id,
-              });
+              filterBuilder
+                .setCategories([c])
+                .setSelectedCategoryId(c.id)
+                .apply();
               router.navigate("/search/products");
             }}
           >

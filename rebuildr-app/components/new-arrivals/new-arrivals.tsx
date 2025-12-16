@@ -16,7 +16,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { permanentSection } from "@constants/permanent-sections";
 
 export const NewArrivals = () => {
-  const { setSourceSection } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
@@ -44,10 +44,10 @@ export const NewArrivals = () => {
       data={data}
       title={permanentSection.newArrivals.title}
       onPress={() => {
-        setSourceSection({
-          section: "newArrivals",
-          data: OrderProductsEnum.Latest,
-        });
+        filterBuilder
+          .setOrdering(OrderProductsEnum.Latest)
+          .setSourceSection("newArrivals")
+          .apply();
         router.navigate("/search/products");
       }}
     />

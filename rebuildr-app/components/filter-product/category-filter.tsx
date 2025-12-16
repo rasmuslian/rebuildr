@@ -22,7 +22,7 @@ const CATEGORY_FILTER = gql`
 `;
 
 export const CategoryFilter = () => {
-  const { filter, toggleValue, toggleAllCategories } = useFilterProduct();
+  const { filter, filterBuilder } = useFilterProduct();
   const { data } = useQuery<CategoryFilterQuery, CategoryFilterQueryVariables>(
     CATEGORY_FILTER,
     {
@@ -66,7 +66,7 @@ export const CategoryFilter = () => {
         <Pressable
           key="Alla kategorier"
           onPress={() => {
-            toggleAllCategories();
+            filterBuilder.toggleAllCategories().apply();
           }}
         >
           <View
@@ -84,7 +84,7 @@ export const CategoryFilter = () => {
           <Pressable
             key={i}
             onPress={() => {
-              toggleValue(category.id, "categoryIds");
+              filterBuilder.toggleValue(category.id, "categoryIds").apply();
             }}
           >
             <View

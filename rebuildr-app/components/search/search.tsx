@@ -43,7 +43,7 @@ export const Search = ({
   searchOnSubmit = false,
   ...rest
 }: Props) => {
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { searchState, setSearchState, search } = useSearchContext();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -89,7 +89,7 @@ export const Search = ({
       createSearchResult({ variables: { input: { searchString: text } } });
     }
 
-    filterContext.resetAndSetSearchString(text);
+    filterBuilder.reset().setSearchString(text).apply();
     setSearchState({ dropdownVisible: false });
     router.navigate("/search/products");
   };

@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function SubCategoriesListMobile({ category }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 56) / 3;
 
@@ -45,10 +45,10 @@ export function SubCategoriesListMobile({ category }: Props) {
               gap: 8,
             }}
             onPress={() => {
-              setCategories({
-                categories: [c],
-                selectedCategoryId: c.id,
-              });
+              filterBuilder
+                .setCategories([c])
+                .setSelectedCategoryId(c.id)
+                .apply();
               router.navigate("/search/products");
             }}
           >

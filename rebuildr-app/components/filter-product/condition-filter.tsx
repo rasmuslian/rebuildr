@@ -8,7 +8,7 @@ import { Check } from "@components/controls/check";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
 export const ConditionFilter = () => {
-  const { filter, toggleValue } = useFilterProduct();
+  const { filter, filterBuilder } = useFilterProduct();
   const values = () => {
     return Object.values(ProductConditionEnum).map(
       (c) => c,
@@ -30,7 +30,9 @@ export const ConditionFilter = () => {
         {values().map((condition, i) => (
           <Pressable
             key={i}
-            onPress={() => toggleValue(condition, "conditions")}
+            onPress={() =>
+              filterBuilder.toggleValue(condition, "conditions").apply()
+            }
           >
             <View
               style={{

@@ -22,7 +22,7 @@ export const SearchWithResults = ({
   searchString,
   size = "large",
 }: Props) => {
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const searchContext = useSearchContext();
 
   const colors = useThemeColor();
@@ -70,9 +70,10 @@ export const SearchWithResults = ({
             <Pressable
               key={i}
               onPress={() => {
-                filterContext.resetAndSetSearchString(
-                  searchResult.searchString,
-                );
+                filterBuilder
+                  .reset()
+                  .setSearchString(searchResult.searchString)
+                  .apply();
                 searchContext.setSearchState({
                   dropdownVisible: false,
                   searchString: searchResult.searchString,

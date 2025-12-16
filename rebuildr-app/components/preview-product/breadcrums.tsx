@@ -10,16 +10,17 @@ type Props = {
 };
 
 export const Breadcrums = ({ parentCategory, category }: Props) => {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const handlePress = (id?: string, parentId?: string) => {
     const categories = [{ id, parentId }] as Pick<
       Category,
       "id" | "parentId"
     >[];
-    setCategories({
-      categories: id ? categories : [],
-      selectedCategoryId: id || undefined,
-    });
+    const builder = filterBuilder.setCategories(id ? categories : []);
+    if (id) {
+      builder.setSelectedCategoryId(id);
+    }
+    builder.apply();
     router.navigate("/search/products");
   };
 

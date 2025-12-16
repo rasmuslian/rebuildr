@@ -18,7 +18,7 @@ import { SearchBar } from "@components/search/search-bar";
 
 export default function Search() {
   const { searchState, setSearchState, search } = useSearchContext();
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
@@ -44,7 +44,7 @@ export default function Search() {
       createSearchResult({ variables: { input: { searchString: text } } });
     }
 
-    filterContext.resetAndSetSearchString(text);
+    filterBuilder.reset().setSearchString(text).apply();
     router.navigate("/search/products");
   };
 

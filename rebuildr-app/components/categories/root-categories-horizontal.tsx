@@ -15,7 +15,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { Divider } from "@components/dividers/divider";
 
 export function RootCategoriesHorizontal() {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
 
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
@@ -61,10 +61,10 @@ export function RootCategoriesHorizontal() {
               gap: isDesktop ? 14 : 12,
             }}
             onPress={() => {
-              setCategories({
-                categories: [...c.children],
-                selectedCategoryId: c.id,
-              });
+              filterBuilder
+                .setCategories([...c.children])
+                .setSelectedCategoryId(c.id)
+                .apply();
               router.navigate("/search/products");
             }}
           >

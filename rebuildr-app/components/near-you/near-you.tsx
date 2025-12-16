@@ -17,7 +17,7 @@ import { useLocationContext } from "@context/location-context";
 import { permanentSection } from "@constants/permanent-sections";
 
 export const NearYou = () => {
-  const { setSourceSection } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
   const { userCoords } = useLocationContext();
@@ -58,10 +58,10 @@ export const NearYou = () => {
       data={data}
       title={permanentSection.nearYou.title}
       onPress={() => {
-        setSourceSection({
-          section: "nearYou",
-          data: OrderProductsEnum.Distance,
-        });
+        filterBuilder
+          .setOrdering(OrderProductsEnum.Distance)
+          .setSourceSection("nearYou")
+          .apply();
         router.navigate("/search/products");
       }}
     />

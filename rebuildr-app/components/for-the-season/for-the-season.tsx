@@ -29,7 +29,7 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 const CATEGORY_WIDTH = 225;
 
 export const ForTheSeason = () => {
-  const { setSourceSection } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -55,7 +55,10 @@ export const ForTheSeason = () => {
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          setSourceSection({ section: "forTheSeason", data: categories });
+          filterBuilder
+            .setCategories(categories)
+            .setSourceSection("forTheSeason")
+            .apply();
           router.navigate("/search/products");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}
@@ -79,7 +82,10 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              setSourceSection({ section: "forTheSeason", data: [category] });
+              filterBuilder
+                .setCategories([category])
+                .setSelectedCategoryId(category.id)
+                .apply();
               router.navigate("/search/products");
             }}
             source={category.image ? category.image.url : Placeholder.uri}

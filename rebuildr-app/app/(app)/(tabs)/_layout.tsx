@@ -28,7 +28,7 @@ export default function TabLayout() {
   const { setVisible: setSellProductVisible } = useSellProductContext();
   const { isDesktop } = useScreenType();
   const searchContext = useSearchContext();
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
@@ -63,7 +63,7 @@ export default function TabLayout() {
             name: "Hem",
             icon: "home",
             onPress: () => {
-              filterContext.reset();
+              filterBuilder.reset().apply();
               searchContext.reset();
               router.navigate("/");
             },

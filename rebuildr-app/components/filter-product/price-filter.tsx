@@ -12,7 +12,7 @@ import {
 import { Slider } from "@components/slider/slider";
 
 export const PriceFilter = () => {
-  const { filter, setPrice } = useFilterProduct();
+  const { filter, filterBuilder } = useFilterProduct();
 
   const [value1, setValue1] = useState(filter.price[0]);
   const [value2, setValue2] = useState(filter.price[1]);
@@ -79,7 +79,7 @@ export const PriceFilter = () => {
               setValue2(Math.round(v2));
             },
             onRelease: (v1, v2) => {
-              setPrice(Math.round(v1), Math.round(v2));
+              filterBuilder.setPrice(Math.round(v1), Math.round(v2)).apply();
             },
           }}
         />
@@ -98,7 +98,7 @@ export const PriceFilter = () => {
                 type: "price",
                 value: value1 <= value2 ? value1 : value2,
                 onChange: onChangeMinPrice,
-                onBlur: () => setPrice(value1, value2),
+                onBlur: () => filterBuilder.setPrice(value1, value2).apply(),
 
                 heading: "Lägst",
               },
@@ -112,7 +112,7 @@ export const PriceFilter = () => {
                 type: "price",
                 value: value1 > value2 ? value1 : value2,
                 onChange: onChangeMaxPrice,
-                onBlur: () => setPrice(value1, value2),
+                onBlur: () => filterBuilder.setPrice(value1, value2).apply(),
                 heading: "Högst",
               },
             ]}
