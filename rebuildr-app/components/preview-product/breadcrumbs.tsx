@@ -9,7 +9,7 @@ type Props = {
   category?: Pick<Category, "id" | "name"> | null;
 };
 
-export const Breadcrums = ({ parentCategory, category }: Props) => {
+export const Breadcrumbs = ({ parentCategory, category }: Props) => {
   const { filterBuilder } = useFilterProduct();
   const handlePress = (id?: string, parentId?: string) => {
     const categories = [{ id, parentId }] as Pick<

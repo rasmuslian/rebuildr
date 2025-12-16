@@ -18,7 +18,7 @@ import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
 import { SectionHeader } from "@components/sections/section-header";
-import { Breadcrums } from "./breadcrums";
+import { Breadcrumbs } from "./breadcrumbs";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -53,7 +53,7 @@ export const MainContent = ({
 
   return (
     <View style={{ gap: 24 }}>
-      <Breadcrums parentCategory={parentCategory} category={category} />
+      <Breadcrumbs parentCategory={parentCategory} category={category} />
       <View>
         <Title size="large">{product.title}</Title>
         <Body size="large" color="secondary">
