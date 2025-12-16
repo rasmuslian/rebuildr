@@ -64,6 +64,7 @@ export class MapPinService {
           'product.status = :status',
           { status: ProductStatus.PUBLISHED },
         )
+        .leftJoinAndSelect('map_pin', 'mp', 'product."mapPinId" = mp.id')
         .where('project.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
@@ -97,7 +98,7 @@ export class MapPinService {
           updatedProjects.push(project);
           if (project.products && project.products.length > 0) {
             for (const product of project.products) {
-              if (product.mapPinId) {
+              if (!product.mapPin) {
                 product.mapPin = new MapPin({
                   address: approximateLocation.address,
                   location: {
@@ -108,12 +109,23 @@ export class MapPinService {
                     ],
                   },
                 });
-                if (product.mapPinId) {
-                  product.mapPin.id = product.mapPinId;
-                }
-                updatedProducts.push(product);
+              } else {
+                //update existing mapPin
+                product.mapPin.address = approximateLocation.address;
+                product.addressLocation = {
+                  type: 'Point',
+                  coordinates: [
+                    approximateLocation.lat,
+                    approximateLocation.lng,
+                  ],
+                };
               }
+              updatedProducts.push({
+                ...product,
+                textSearch: undefined,
+              });
             }
+            await this.productRepository.save(updatedProducts);
           }
         } catch (error) {
           this.logger.error(
