@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const FilterSlideSheet = ({ open, onClose }: Props) => {
-  const { reset } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   return (
     <SlideInSheet
@@ -26,7 +26,11 @@ export const FilterSlideSheet = ({ open, onClose }: Props) => {
             marginTop: 16,
           }}
         >
-          <Button label="Rensa alla" type="tonal" onPress={() => reset()} />
+          <Button
+            label="Rensa alla"
+            type="tonal"
+            onPress={() => filterBuilder.reset().apply()}
+          />
           <Button label="Visa resultat" onPress={onClose} style={{ flex: 1 }} />
         </View>
       }

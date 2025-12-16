@@ -13,10 +13,10 @@ export default function Map() {
   const { height: screenHeight } = useWindowDimensions();
   const searchBarHeight = 57;
   const mapHeight = screenHeight - searchBarHeight;
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   const onChange = useDebounceCallback((text: string) => {
-    filterContext.resetAndSetSearchString(text);
+    filterBuilder.reset().setSearchString(text).apply();
   }, 500);
 
   return (

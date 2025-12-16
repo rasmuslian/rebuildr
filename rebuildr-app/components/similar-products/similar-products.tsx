@@ -67,7 +67,7 @@ const SIMILAR_PRODUCTS = gql`
 `;
 
 export function SimilarProducts({ productId }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
@@ -147,10 +147,7 @@ export function SimilarProducts({ productId }: Props) {
           .filter((p) => !!p.category)
           .map((p) => p.category as Category);
 
-        setCategories({
-          categories,
-        });
-
+        filterBuilder.setCategories(categories).apply();
         router.navigate("/search/products");
       }}
       products={adGridProducts}

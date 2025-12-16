@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function RootCategoriesVertical({ onNavigate }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
     ROOT_CATEGORIES,
     {
@@ -45,11 +45,11 @@ export function RootCategoriesVertical({ onNavigate }: Props) {
         renderItem={({ item: category }) => (
           <Pressable
             onPress={() => {
-              setCategories({
-                categories: [...category.children],
-                selectedCategoryId: category.id,
-                cameFrom: FilterProductCameFromEnum.categories,
-              });
+              filterBuilder
+                .setCategories([...category.children])
+                .setCameFrom(FilterProductCameFromEnum.categories)
+                .setSelectedCategoryId(category.id)
+                .apply();
               router.navigate("/search/products");
               onNavigate?.();
             }}

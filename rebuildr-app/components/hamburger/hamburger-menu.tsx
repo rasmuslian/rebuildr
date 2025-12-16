@@ -42,7 +42,7 @@ export const HamburgerMenu = () => {
     RootCategoriesVerticalCategory | undefined
   >();
   const { isDesktop } = useScreenType();
-  const { setSourceSection } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const [status] = useForegroundPermissions();
 
   const { data } = useQuery<HamburgerMenuQuery, HamburgerMenuQueryVariables>(
@@ -88,10 +88,10 @@ export const HamburgerMenu = () => {
             title={permanentSection.newArrivals.title}
             link="/search/products"
             onPress={() =>
-              setSourceSection({
-                section: "newArrivals",
-                data: OrderProductsEnum.Latest,
-              })
+              filterBuilder
+                .setOrdering(OrderProductsEnum.Latest)
+                .setSourceSection("newArrivals")
+                .apply()
             }
           />
           {status?.granted && (
@@ -99,10 +99,10 @@ export const HamburgerMenu = () => {
               title={permanentSection.nearYou.title}
               link="/search/products"
               onPress={() =>
-                setSourceSection({
-                  section: "nearYou",
-                  data: OrderProductsEnum.Distance,
-                })
+                filterBuilder
+                  .setOrdering(OrderProductsEnum.Distance)
+                  .setSourceSection("nearYou")
+                  .apply()
               }
             />
           )}
@@ -111,10 +111,10 @@ export const HamburgerMenu = () => {
               title={permanentSection.forTheSeason.title}
               link="/search/products"
               onPress={() =>
-                setSourceSection({
-                  section: "forTheSeason",
-                  data: seasonalCategories,
-                })
+                filterBuilder
+                  .setCategories(seasonalCategories)
+                  .setSourceSection("forTheSeason")
+                  .apply()
               }
             />
           )}
@@ -123,10 +123,10 @@ export const HamburgerMenu = () => {
               title={permanentSection.trendingNow.title}
               link="/search/products"
               onPress={() =>
-                setSourceSection({
-                  section: "trendingNow",
-                  data: trendingCategories,
-                })
+                filterBuilder
+                  .setCategories(trendingCategories)
+                  .setSourceSection("trendingNow")
+                  .apply()
               }
             />
           )}

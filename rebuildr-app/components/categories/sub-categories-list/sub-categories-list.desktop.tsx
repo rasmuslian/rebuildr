@@ -6,21 +6,21 @@ import { Divider } from "@components/dividers/divider";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { Avatar } from "@components/avatar/avatar";
-import { Breadcrums } from "@components/preview-product/breadcrums";
+import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 
 type Props = {
   category: SubCategoriesQuery["category"];
 };
 
 export function SubCategoriesListDesktop({ category }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
 
   const subCategories = category.children ?? [];
 
   return (
     <View style={{ marginBottom: 24, gap: 24 }}>
       <View style={{ gap: 16 }}>
-        <Breadcrums parentCategory={category.parent} category={category} />
+        <Breadcrumbs parentCategory={category.parent} category={category} />
         <Display size="small">{category?.name}</Display>
         <Body size="large">{category?.description}</Body>
       </View>
@@ -41,10 +41,10 @@ export function SubCategoriesListDesktop({ category }: Props) {
               gap: 14,
             }}
             onPress={() => {
-              setCategories({
-                categories: [c],
-                selectedCategoryId: c.id,
-              });
+              filterBuilder
+                .setCategories([c])
+                .setSelectedCategoryId(c.id)
+                .apply();
               router.navigate("/search/products");
             }}
           >

@@ -61,7 +61,7 @@ const TRENDING_NOW_QUERY = gql`
 export const TrendingNow = () => {
   const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
-  const { setSourceSection } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
@@ -92,7 +92,10 @@ export const TrendingNow = () => {
       .filter((p) => !!p.category)
       .map((p) => p.category as Category);
 
-    setSourceSection({ section: "forTheSeason", data: categories });
+    filterBuilder
+      .setCategories(categories)
+      .setSourceSection("trendingNow")
+      .apply();
     router.navigate("/search/products");
   };
 

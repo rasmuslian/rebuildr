@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { View } from "react-native";
 
 export default function Filter() {
-  const { reset } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   return (
     <ScreenLayout
       style={{ gap: 12, marginBottom: 32 }}
@@ -20,7 +20,11 @@ export default function Filter() {
             marginTop: 16,
           }}
         >
-          <Button label="Rensa alla" type="tonal" onPress={() => reset()} />
+          <Button
+            label="Rensa alla"
+            type="tonal"
+            onPress={() => filterBuilder.reset().apply()}
+          />
           <Button
             label="Visa resultat"
             onPress={() =>

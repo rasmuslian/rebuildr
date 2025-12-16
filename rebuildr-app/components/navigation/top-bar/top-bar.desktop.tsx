@@ -40,7 +40,7 @@ export default function TopBarDesktop({
   me,
 }: Props) {
   const searchContext = useSearchContext();
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const colors = useThemeColor();
   const pathname = usePathname();
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
@@ -123,7 +123,7 @@ export default function TopBarDesktop({
         <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
           <Pressable
             onPress={() => {
-              filterContext.reset();
+              filterBuilder.reset().apply();
               searchContext.reset();
               router.navigate("/");
             }}

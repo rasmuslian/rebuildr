@@ -6,14 +6,14 @@ import { Divider } from "@components/dividers/divider";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { Avatar } from "@components/avatar/avatar";
-import { Breadcrums } from "@components/preview-product/breadcrums";
+import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 
 type Props = {
   category: SubCategoriesQuery["category"];
 };
 
 export function SubCategoriesListMobile({ category }: Props) {
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 56) / 3;
 
@@ -22,7 +22,7 @@ export function SubCategoriesListMobile({ category }: Props) {
   return (
     <View style={{ marginBottom: 24, gap: 24 }}>
       <View style={{ gap: 16 }}>
-        <Breadcrums parentCategory={category.parent} category={category} />
+        <Breadcrumbs parentCategory={category.parent} category={category} />
         <Display size="small">{category?.name}</Display>
         <Body size="large">{category?.description}</Body>
       </View>
@@ -45,10 +45,10 @@ export function SubCategoriesListMobile({ category }: Props) {
               gap: 8,
             }}
             onPress={() => {
-              setCategories({
-                categories: [c],
-                selectedCategoryId: c.id,
-              });
+              filterBuilder
+                .setCategories([c])
+                .setSelectedCategoryId(c.id)
+                .apply();
               router.navigate("/search/products");
             }}
           >

@@ -71,7 +71,7 @@ const RECOMMENDED_PRODUCTS = gql`
 export function RecommendedProducts({ title, source }: Props) {
   const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
-  const { setCategories } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
@@ -112,9 +112,7 @@ export function RecommendedProducts({ title, source }: Props) {
             .filter((p) => !!p.category)
             .map((p) => p.category as Category);
 
-          setCategories({
-            categories,
-          });
+          filterBuilder.setCategories(categories).apply();
           router.navigate("/search/products");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}

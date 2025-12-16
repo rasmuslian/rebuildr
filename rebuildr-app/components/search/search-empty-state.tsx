@@ -18,7 +18,7 @@ type Props = {
 };
 
 export const SearchEmptyState = ({ data, size = "large" }: Props) => {
-  const filterContext = useFilterProduct();
+  const { filterBuilder } = useFilterProduct();
   const searchContext = useSearchContext();
 
   const [clearSearchHistory, { client }] =
@@ -47,10 +47,11 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
             <ImageQuickLink
               key={i}
               onPress={() => {
-                filterContext.setCategories({
-                  categories: [category],
-                  selectedCategoryId: category.id,
-                });
+                filterBuilder
+                  .setCategories([category])
+                  .setSelectedCategoryId(category.id)
+                  .setSearchString("")
+                  .apply();
 
                 searchContext.setSearchState({
                   dropdownVisible: false,
@@ -95,9 +96,10 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
                     searchString: searchResult.searchString,
                   });
                   searchContext.search(searchResult.searchString);
-                  filterContext.resetAndSetSearchString(
-                    searchResult.searchString,
-                  );
+                  filterBuilder
+                    .reset()
+                    .setSearchString(searchResult.searchString)
+                    .apply();
                   router.navigate("/search/products");
                 }}
               >

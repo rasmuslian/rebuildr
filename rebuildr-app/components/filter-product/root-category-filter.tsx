@@ -20,8 +20,7 @@ const ROOT_CATEGORY_FILTER = gql`
 `;
 
 export const RootCategoryFilter = () => {
-  const { filter, toggleRootCategory, toggleAllRootCategories } =
-    useFilterProduct();
+  const { filter, filterBuilder } = useFilterProduct();
   const { data } = useQuery<RootCategoryFilterQuery>(ROOT_CATEGORY_FILTER);
 
   const selectedCategories = data?.rootCategories.filter((category) =>
@@ -44,7 +43,7 @@ export const RootCategoryFilter = () => {
         <Pressable
           key="All categories"
           onPress={() => {
-            toggleAllRootCategories();
+            filterBuilder.toggleAllRootCategories().apply();
           }}
         >
           <View
@@ -62,7 +61,7 @@ export const RootCategoryFilter = () => {
           <Pressable
             key={i}
             onPress={() => {
-              toggleRootCategory(category);
+              filterBuilder.toggleRootCategory(category).apply();
             }}
           >
             <View
