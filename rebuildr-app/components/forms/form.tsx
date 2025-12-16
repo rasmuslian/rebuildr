@@ -81,7 +81,10 @@ export const Form = ({ fields, style: _style }: Props) => {
                     <TextInput {...(rest as TextInputProps)} error={!!error} />
                   ) : null}
                   {field.type === "masked" ? (
-                    <MaskedInput {...(rest as MaskedInputProps)} />
+                    <MaskedInput
+                      {...(rest as MaskedInputProps)}
+                      error={!!error}
+                    />
                   ) : null}
                   {field.type === "search" ? (
                     <SearchInput {...(rest as SearchInputProps)} />

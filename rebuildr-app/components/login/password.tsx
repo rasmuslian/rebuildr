@@ -8,14 +8,12 @@ import { Pressable, View } from "react-native";
 
 type Props = {
   onSubmit: (password: string) => void;
-  onBack: () => void;
   onForgotPassword: () => void;
   wrongPassword: boolean;
 };
 
 export default function Password({
   onSubmit,
-  onBack,
   onForgotPassword,
   wrongPassword,
 }: Props) {

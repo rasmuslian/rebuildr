@@ -227,7 +227,6 @@ const LoginModalView = () => {
     state === "password" && (
       <Password
         key="password"
-        onBack={() => setState("email")}
         onSubmit={(password) => {
           onSubmitPassword(password);
         }}
