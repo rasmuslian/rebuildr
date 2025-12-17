@@ -55,11 +55,7 @@ export const ForTheSeason = () => {
     <View style={{ paddingVertical: 16, gap: 16 }}>
       <SectionHeader
         onPress={() => {
-          filterBuilder
-            .setCategories(categories)
-            .setSourceSection("forTheSeason")
-            .apply();
-          router.navigate("/search/products");
+          router.navigate("/search/in-season");
         }}
         buttonTitle={isDesktop ? "Visa alla" : undefined}
       >

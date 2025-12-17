@@ -376,6 +376,26 @@ const MobileLayout = ({
           </View>
         )}
 
+        <Pressable onPress={() => router.navigate("/map")}>
+          <MapThumbnail
+            coords={
+              userCoords
+                ? [userCoords.latitude, userCoords.longitude]
+                : undefined
+            }
+            style={{ marginBottom: 16 }}
+            cta={
+              <Button
+                label="Visa på karta"
+                type="text"
+                icon="map"
+                style={{ backgroundColor: "white" }}
+                onPress={() => router.navigate("/map")}
+              />
+            }
+          />
+        </Pressable>
+
         <View
           style={{
             flexDirection: "row",
@@ -406,26 +426,6 @@ const MobileLayout = ({
             )}
           </View>
         </View>
-
-        <Pressable onPress={() => router.navigate("/map")}>
-          <MapThumbnail
-            coords={
-              userCoords
-                ? [userCoords.latitude, userCoords.longitude]
-                : undefined
-            }
-            style={{ marginBottom: 16 }}
-            cta={
-              <Button
-                label="Visa på karta"
-                type="text"
-                icon="map"
-                style={{ backgroundColor: "white" }}
-                onPress={() => router.navigate("/map")}
-              />
-            }
-          />
-        </Pressable>
 
         <AdGridSection
           products={
