@@ -1,8 +1,12 @@
 import { swedishPhoneNumberRegex } from 'src/constants/regexp';
 
-export function formatCountryCodePhonenumber(phone: string) {
+export function addCountryCode(phone: string) {
   return phone.replace(/^(0|0046)/, '+46');
 }
+
+export const removeCountryCode = (number: string) => {
+  return number.replace(/^(?:\+46|0046)/, '0');
+};
 
 export function isValidPhonenumber(phone?: string) {
   if (!phone) {

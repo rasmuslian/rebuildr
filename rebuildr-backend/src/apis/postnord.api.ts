@@ -16,6 +16,7 @@ import { GraphQLError } from 'graphql';
 import { LinksResponse } from './types/postnord/track-shipment-url';
 import { CustomFetch } from 'src/utility/custom-fetch';
 import { InternalServerException, NotFoundException } from 'src/exceptions';
+import { removeCountryCode } from 'src/utility/phone-number';
 @Injectable()
 export class PostnordAPI {
   private url: string;
@@ -198,8 +199,8 @@ export class PostnordAPI {
                 },
                 contact: {
                   contactName: seller.name,
-                  phoneNo: seller.phoneNumber,
-                  smsNo: seller.phoneNumber,
+                  phoneNo: removeCountryCode(seller.phoneNumber),
+                  smsNo: removeCountryCode(seller.phoneNumber),
                   emailAddress: seller.email,
                 },
               },
@@ -216,8 +217,8 @@ export class PostnordAPI {
                 },
                 contact: {
                   contactName: buyer.name,
-                  phoneNo: buyer.phoneNumber,
-                  smsNo: buyer.phoneNumber,
+                  phoneNo: removeCountryCode(buyer.phoneNumber),
+                  smsNo: removeCountryCode(buyer.phoneNumber),
                   emailAddress: buyer.email,
                 },
               },
