@@ -48,6 +48,8 @@ import { QrCode } from "./qrCode";
 import { Heart2 } from "./heart2";
 import { Heart2Filled } from "./heart2Filled";
 import { Paperclip } from "./paperclip";
+import { Minus } from "./minus";
+import { Navigation } from "./navigation";
 
 export type IconType =
   | "placeholder"
@@ -85,6 +87,8 @@ export type IconType =
   | "addPhoto"
   | "photos"
   | "+"
+  | "-"
+  | "navigation"
   | "trash"
   | "upload"
   | "file"
@@ -223,6 +227,10 @@ export const Icon = ({
       return <Photos {...props} size={size} color={color} />;
     case "+":
       return <Plus {...props} size={size} color={color} />;
+    case "-":
+      return <Minus {...props} size={size} color={color} />;
+    case "navigation":
+      return <Navigation {...props} size={size} color={color} />;
     case "trash":
       return <Trash {...props} size={size} color={color} />;
     case "upload":
