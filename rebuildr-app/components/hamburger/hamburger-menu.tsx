@@ -15,7 +15,7 @@ import { permanentSection } from "@constants/permanent-sections";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import { useForegroundPermissions } from "expo-location";
-import { Href, Link, usePathname } from "expo-router";
+import { Href, Link, router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -109,13 +109,8 @@ export const HamburgerMenu = () => {
           {seasonalCategories.length > 0 && (
             <Entry
               title={permanentSection.forTheSeason.title}
-              link="/search/products"
-              onPress={() =>
-                filterBuilder
-                  .setCategories(seasonalCategories)
-                  .setSourceSection("forTheSeason")
-                  .apply()
-              }
+              link="/search/in-season"
+              onPress={() => router.navigate("/search/in-season")}
             />
           )}
           {trendingCategories.length > 0 && (
