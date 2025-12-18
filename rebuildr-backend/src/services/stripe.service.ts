@@ -10,10 +10,7 @@ import { Logger } from 'winston';
 import { GeocodingService } from './geocoding.service';
 import { Purchase, SupportedPaymentMethod } from 'src/entities/purchase.entity';
 import { idFromObject } from 'src/utility/stripe/utils';
-import {
-  formatCountryCodePhonenumber,
-  isValidPhonenumber,
-} from 'src/utility/phone-number';
+import { addCountryCode, isValidPhonenumber } from 'src/utility/phone-number';
 import * as Sentry from '@sentry/nestjs';
 
 @Injectable()
@@ -87,9 +84,7 @@ export class StripeService {
       last_name: lastName,
       email: user.email,
       //If phone number is not valid for some reason, don't prefill it. Instead let the user enter a valid phone number through Stripe's embedded form
-      phone: validPhoneNumber
-        ? formatCountryCodePhonenumber(user.phoneNumber)
-        : undefined,
+      phone: validPhoneNumber ? addCountryCode(user.phoneNumber) : undefined,
       address: {
         line1: user.address,
         postal_code: user.postCode ?? undefined,
@@ -168,7 +163,7 @@ export class StripeService {
             country: 'SE',
           },
           phone: validPhoneNumber
-            ? formatCountryCodePhonenumber(organizationUser.phoneNumber)
+            ? addCountryCode(organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
         },

@@ -125,9 +125,9 @@ const RootLayout = () => {
                 <EditProductProdiver>
                   <GestureHandlerRootView>
                     <PortalProvider>
-                      <BottomSheetModalProvider>
-                        <ScreenDimensionsProvider>
-                          <BuyModalProvider>
+                      <BuyModalProvider>
+                        <BottomSheetModalProvider>
+                          <ScreenDimensionsProvider>
                             <SearchProvider>
                               <ReRouteHandler>
                                 <Slot />
@@ -140,9 +140,9 @@ const RootLayout = () => {
                                 <PortalHost name="OverlayProvider" />
                               </ReRouteHandler>
                             </SearchProvider>
-                          </BuyModalProvider>
-                        </ScreenDimensionsProvider>
-                      </BottomSheetModalProvider>
+                          </ScreenDimensionsProvider>
+                        </BottomSheetModalProvider>
+                      </BuyModalProvider>
                     </PortalProvider>
                   </GestureHandlerRootView>
                 </EditProductProdiver>

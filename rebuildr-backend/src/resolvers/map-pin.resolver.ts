@@ -36,11 +36,11 @@ export class MapPinGroup {
   @Field(() => MapPinTypeEnum)
   type: MapPinTypeEnum;
 
-  @Field(() => [String], { nullable: true })
-  productIds?: string[];
+  @Field(() => [String])
+  productIds: string[];
 
-  @Field(() => [String], { nullable: true })
-  projectIds?: string[];
+  @Field(() => String, { nullable: true })
+  projectId?: string;
 }
 
 @ObjectType()
@@ -71,21 +71,6 @@ class PointInput {
 }
 
 @InputType()
-class ProductMapPinsRadiusLocationInput {
-  @Field(() => PointInput)
-  point: PointInput;
-
-  @Field()
-  radius: number;
-
-  @Field(() => ProductsInput, { nullable: true })
-  productsInput?: ProductsInput;
-
-  @Field(() => Int, { nullable: true })
-  zoom?: number;
-}
-
-@InputType()
 class ProductMapPinsBoxLocationInput {
   @Field(() => PointInput)
   southWest: PointInput;
@@ -106,23 +91,6 @@ export class MapPinResolver {
     @Inject(forwardRef(() => MapPinService))
     private mapPinService: MapPinService,
   ) {}
-
-  @Query(() => ProductMapPinResponse)
-  @UseGuards(GqlOptionalAuthGuard)
-  async productMapPinsInRadius(
-    @Args('input') input: ProductMapPinsRadiusLocationInput,
-    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
-    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
-  ) {
-    return this.mapPinService.findProductPinsInRadius(
-      input.point,
-      input.radius,
-      input.productsInput,
-      input.zoom,
-      offset,
-      limit,
-    );
-  }
 
   @Query(() => ProductMapPinResponse)
   @UseGuards(GqlOptionalAuthGuard)

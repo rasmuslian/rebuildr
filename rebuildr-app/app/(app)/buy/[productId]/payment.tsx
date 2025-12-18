@@ -269,6 +269,11 @@ export const PaymentContent = ({
     if (!createPurchaseData) {
       return;
     }
+
+    //if stripeModal has been closed through callback 'onSuccess', this function will still be called but
+    //showStripeModal will be false. We will therefore not want to cancel the payment
+    if (!showStripeModal) return;
+
     setShowStripeModal(false);
     cancelPayment({
       variables: {
@@ -453,7 +458,7 @@ export const PaymentContent = ({
             clientSecret={createPurchaseData.purchaseProduct.reference}
             productId={productId}
             purchaseId={createPurchaseData.purchaseProduct.purchase.id}
-            onDismiss={() => onDismissStripe()}
+            onDismiss={onDismissStripe}
           />
         )}
     </ScreenLayout>

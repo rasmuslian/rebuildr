@@ -443,31 +443,57 @@ export class MapPinService {
     }
     const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 
-    const result = await this.mapPinRepository.query(
+    /**
+     * Explain query
+     * 'clustered'
+     *  All filtered products will be assigned a grid based on their location.
+     * A Cluster is then achieved by grouping on grid_id. Also group on project_id to keep
+     * clusters of products without project_id and clusters with different project_ids separated.
+     *
+     * 'jittered'
+     * Separate the clusters a small bit to avoid overlap.
+     */
+    const result: {
+      gridId: string;
+      latitude: number;
+      longitude: number;
+      productIds: string[];
+      projectId: string | null;
+      prices: number[];
+    }[] = await this.mapPinRepository.query(
       `
-      SELECT
-        grid_id as "gridId",
-        ST_Collect(location) as location,
-        ST_X(ST_Centroid(ST_Collect(location))) AS latitude,
-        ST_Y(ST_Centroid(ST_Collect(location))) AS longitude,
-        ARRAY_AGG("productId") AS "productIds",
-        ARRAY_AGG("projectId") AS "projectIds",
-        ARRAY_AGG(price order by price ASC) AS prices
-      FROM (
+      WITH clustered AS (
         SELECT
-          id,
-          location,
           ST_SnapToGrid(
-            location,
-            $${innerParams.length + 1}
-          ) AS grid_id,
-          "product_id" as "productId",
-          "project_id" as "projectId",
-          price
+             location,
+             $${innerParams.length + 1}
+           ) AS grid_id,
+          project_id as "projectId",
+          ST_Collect(location) AS geom,
+          ARRAY_AGG(product_id) AS "productIds",
+          ARRAY_AGG(price ORDER BY price) AS prices
         FROM (${innerSql}) AS filtered
-      ) AS sub
-      GROUP BY grid_id
-      `,
+        GROUP BY grid_id, "projectId"),
+      jittered AS (
+        SELECT
+          grid_id,
+          "projectId",
+          "productIds",
+          prices,
+          ST_Translate(
+            ST_Centroid(geom),
+            ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010,
+            ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010
+          ) AS location
+        FROM clustered)
+      SELECT
+        grid_id,
+        "projectId",
+        ST_X(location) AS latitude,
+        ST_Y(location) AS longitude,
+        "productIds",
+        prices
+      FROM jittered`,
       [...innerParams, this.cellSizeForZoom(zoom)],
     );
 
@@ -478,11 +504,8 @@ export class MapPinService {
           lng: r.longitude,
         },
         productIds: r.productIds,
-        projectIds: r.projectIds.filter(Boolean),
-        type:
-          r.projectIds.filter(Boolean).length > 0
-            ? MapPinTypeEnum.PROJECT
-            : MapPinTypeEnum.PRODUCT,
+        projectIds: r.projectId ? [r.projectId] : [],
+        type: r.projectId ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
         prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,

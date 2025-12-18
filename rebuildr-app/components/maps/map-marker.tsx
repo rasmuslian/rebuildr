@@ -39,7 +39,7 @@ export default function MapMarker({ pin }: Props) {
     priceLabel = formatPrice(minPrice);
   }
 
-  const productIds = pin.productIds ?? [];
+  const productIds = pin.productIds;
 
   const iconSource =
     state.activePin?.location === pin.location

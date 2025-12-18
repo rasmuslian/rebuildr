@@ -31,7 +31,7 @@ export const BuyModalProvider = ({ children }: PropsWithChildren) => {
 export const useBuyModalContext = () => {
   const ctx = use(BuyModalContext);
   if (!ctx) {
-    throw new Error("No popup context");
+    throw new Error("No buy modal context");
   }
 
   return {

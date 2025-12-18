@@ -8,6 +8,7 @@ export const MAP_PINS_QUERY = gql`
         prices
         type
         productIds
+        projectId
         location {
           lat
           lng
