@@ -20,7 +20,6 @@ export const StripeBottomSheet = ({
   onDismiss,
   clientSecret,
 }: Props) => {
-  console.log("rendering stripeBOttomSHEET");
   if (!process.env.EXPO_PUBLIC_STRIPE_PK) {
     console.error("Publishable key not set!");
     return null;

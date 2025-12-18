@@ -55,7 +55,6 @@ export default function TopBarDesktop({
 
   useEffect(() => {
     if (!openAccount && params.account) {
-      console.log("Setting open account to:", params.account);
       setOpenAccount(params.account as AccountState["page"]);
     }
   }, [params.account]);

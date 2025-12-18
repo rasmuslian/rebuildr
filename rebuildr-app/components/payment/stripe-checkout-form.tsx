@@ -56,10 +56,8 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
   });
   const { isDesktop } = useScreenType();
   const { setContent } = useBuyModalContext();
-  console.log("isDesktop inside checkoutform :>> ", isDesktop);
 
   const handleSubmit = async (event: any) => {
-    console.log("handleSubmit called");
     // We don't want to let default form submission happen here,
     // which would refresh the page.
     event.preventDefault();
@@ -94,10 +92,6 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
         data: { productId, purchaseId },
       });
     } else {
-      console.log(
-        "isDesktop inside handleSubmit in CheckoutForm :>> ",
-        isDesktop,
-      );
       if (isDesktop) {
         setContent({
           buyState: "stripe",
