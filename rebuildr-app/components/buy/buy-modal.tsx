@@ -3,10 +3,10 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { SuccessContent } from "@/app/(app)/buy/[productId]/success";
 import { PaymentContent } from "@/app/(app)/buy/[productId]/payment";
 import { StripeContent } from "@/app/(app)/buy/[productId]/stripe";
-import { StripCheckoutForm } from "@components/payment/stripe-bottom-sheet";
 import { Buy } from "@/app/(app)/buy/[productId]";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
+import { StripCheckoutForm } from "@components/payment/stripe-checkout-form";
 
 export const BuyModal = () => {
   const { visible, setVisible, content, setContent } = useBuyModalContext();
