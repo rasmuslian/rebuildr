@@ -158,8 +158,7 @@ export function RecommendedProducts({ title, source }: Props) {
           );
         })}
       </View>
-
-      <Divider />
+      {source === ProductsRecommendationSourceEnum.Likes && <Divider />}
     </View>
   );
 }
