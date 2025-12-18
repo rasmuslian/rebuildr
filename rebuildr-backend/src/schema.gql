@@ -594,8 +594,8 @@ type MapPinGroup {
   location: LocationResponse!
   prices: [Float!]
   type: MapPinTypeEnum!
-  productIds: [String!]
-  projectIds: [String!]
+  productIds: [String!]!
+  projectId: String
 }
 
 enum MapPinTypeEnum {
@@ -656,7 +656,6 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  productMapPinsInRadius(input: ProductMapPinsRadiusLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
 }
 
@@ -838,9 +837,9 @@ input ListArticlesInput {
   pageSize: Int
 }
 
-input ProductMapPinsRadiusLocationInput {
-  point: PointInput!
-  radius: Float!
+input ProductMapPinsBoxLocationInput {
+  southWest: PointInput!
+  northEast: PointInput!
   productsInput: ProductsInput
   zoom: Int
 }
@@ -848,13 +847,6 @@ input ProductMapPinsRadiusLocationInput {
 input PointInput {
   lat: Float!
   lng: Float!
-}
-
-input ProductMapPinsBoxLocationInput {
-  southWest: PointInput!
-  northEast: PointInput!
-  productsInput: ProductsInput
-  zoom: Int
 }
 
 type Mutation {
