@@ -409,8 +409,12 @@ export class StripeService {
     const userIsIndividual = user.type === UserType.PERSONAL;
 
     if (userIsIndividual) {
-      user.name =
-        user.name ?? `${individual.first_name} ${individual.last_name}`;
+      //first_name and last_name may be null. If not set users name if not already set.
+      if (individual.first_name || individual.last_name) {
+        user.name =
+          user.name ??
+          `${individual.first_name ?? ''} ${individual.last_name ?? ''}`;
+      }
     } else {
       user.name = user.name ?? company.name;
     }
