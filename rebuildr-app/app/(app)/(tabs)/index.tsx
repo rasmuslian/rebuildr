@@ -81,6 +81,7 @@ export default function Landing() {
           <NearYou />
           <ForTheSeason />
           <SaleBanner />
+          <TrendingNow />
           <RecommendedProducts
             title="Du kanske också gillar"
             source={ProductsRecommendationSourceEnum.Likes}
@@ -90,8 +91,6 @@ export default function Landing() {
             title="Nytt från din senaste sökning"
             source={ProductsRecommendationSourceEnum.SearchHistory}
           />
-
-          <TrendingNow />
         </View>
 
         <Footer />

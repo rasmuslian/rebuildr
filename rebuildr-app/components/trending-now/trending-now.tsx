@@ -15,6 +15,7 @@ import {
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { permanentSection } from "@constants/permanent-sections";
+import { Divider } from "@components/dividers/divider";
 
 const TRENDING_NOW_QUERY = gql`
   query TrendingNowProducts(
@@ -100,7 +101,7 @@ export const TrendingNow = () => {
   };
 
   return (
-    <View style={{ paddingVertical: 16 }}>
+    <View style={{ gap: 16, paddingTop: 16 }}>
       {isLoggedIn && !isDesktop ? (
         <HoriztalListSection
           title={permanentSection.trendingNow.title}
@@ -179,6 +180,7 @@ export const TrendingNow = () => {
           </View>
         </View>
       )}
+      <Divider />
     </View>
   );
 };
