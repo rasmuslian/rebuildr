@@ -230,7 +230,7 @@ export const Details = ({
             style={{ marginTop: 24 }}
             disabled={nextIsDisabled}
           />
-          {badFields && (
+          {badFields && !!Object.keys(badFields).length && (
             <Body color="error" size="small">
               Ett fel har påträffats i ett eller flera fält
             </Body>
