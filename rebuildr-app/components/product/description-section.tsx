@@ -46,7 +46,7 @@ export const DescriptionSection = ({
             multiline: true,
             placeholder:
               "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
-            style: { minHeight: 172 },
+            style: { height: 172 },
             error: descriptionError,
           },
         ]}

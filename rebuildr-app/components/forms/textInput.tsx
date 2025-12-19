@@ -100,6 +100,11 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
     }
   };
 
+  //Inner height of textInput calculated by taking the height of the container minus vertical paddings
+  const innerHeight = props.style?.height
+    ? (props.style.height as number) - 8 - 16
+    : undefined;
+
   return (
     <Pressable
       onHoverIn={() => setHovered(true)}
@@ -137,6 +142,7 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
           placeholder={focused ? "" : props.placeholder}
           style={[
             {
+              height: innerHeight,
               flex: 1,
               textAlignVertical: "top",
               textAlign: "left",
