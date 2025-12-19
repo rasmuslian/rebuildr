@@ -477,9 +477,18 @@ export const UpsertProductBottomSheet = ({
     setShowHandleDraft(true);
   };
   const onUpdateProduct = (partialProduct: Partial<ProductFields>) => {
-    setProduct({ ...product, ...partialProduct });
+    const newProduct = { ...product, ...partialProduct };
+    onVerifyDetails(newProduct);
+    setProduct(newProduct);
   };
-  const onVerifyDetails = () => {
+  const onNextDetails = () => {
+    const result = onVerifyDetails(product);
+    if (result) {
+      setStep("project");
+    }
+  };
+  const onVerifyDetails = (p?: ProductFields) => {
+    const _product = p ?? product;
     const badFields: FieldErrorsType = { ...fieldErrors };
 
     // reset details fields
@@ -488,32 +497,32 @@ export const UpsertProductBottomSheet = ({
     delete badFields["title"];
     delete badFields["description"];
     delete badFields["primary"];
-    if (!product.images?.length) {
+    if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
-    if (product.price !== undefined && !product.isGiveaway) {
-      if (product.price <= 0) {
-        badFields["price"] = "Priset måste vara högre än 0 kr";
+    if (_product.price !== undefined && !_product.isGiveaway) {
+      if (_product.price < 20) {
+        badFields["price"] = "Priset måste vara högre än 20 kr";
       }
     }
-    if (!product.title) {
-      badFields["title"] = "Tom titel";
+    if (_product.title === "") {
+      badFields["title"] = "Måste har rubrik";
     }
-    if (!product.description) {
+    if (_product.description === "") {
       badFields["description"] = "Måste ha beskrivning";
     }
-    if (product.primaryQuantity && product.primaryQuantity <= 0) {
+    if (_product.primaryQuantity && _product.primaryQuantity <= 0) {
       badFields["primary"] = "Måste ange minst ett";
     }
 
+    setFieldErrors(badFields);
     if (Object.keys(badFields).length) {
       firstStepWithErrors(badFields);
-      setFieldErrors(badFields);
-      return;
+      return false;
     }
 
     //if no errors, proceed
-    setStep("project");
+    return true;
   };
   const onVerifyProject = () => {
     setStep("transportation");
@@ -614,7 +623,7 @@ export const UpsertProductBottomSheet = ({
       <Details
         product={product}
         update={onUpdateProduct}
-        onNext={onVerifyDetails}
+        onNext={onNextDetails}
         nextIsDisabled={progressDetails() < 100}
         badFields={fieldErrors}
       />
