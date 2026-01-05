@@ -51,6 +51,12 @@ export enum MeasurementUnitEnum {
 }
 registerEnumType(MeasurementUnitEnum, { name: 'MeasurementUnitEnum' });
 
+export enum ColorTypeEnum {
+  NCS = 'NCS',
+  FREE_TEXT = 'FREE_TEXT',
+}
+registerEnumType(ColorTypeEnum, { name: 'ColorTypeEnum' });
+
 @Entity()
 @ObjectType()
 export class Product {
@@ -230,6 +236,14 @@ export class Product {
     default: MeasurementUnitEnum.KG,
   })
   weightUnit: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  color?: string;
+
+  @Field(() => ColorTypeEnum)
+  @Column('enum', { enum: ColorTypeEnum, default: ColorTypeEnum.NCS })
+  colorType: ColorTypeEnum;
 
   @Field(() => ProductConditionEnum)
   @Column('enum', {

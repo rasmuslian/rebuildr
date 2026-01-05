@@ -1,4 +1,5 @@
 import {
+  ColorTypeEnum,
   MeasurementUnitEnum,
   ProductConditionEnum,
   ProductStatusEnum,
@@ -44,6 +45,8 @@ export type ProductFields = {
   images?: FileType[];
   documents?: FileType[];
   minimumPrice?: number;
+  color?: string;
+  colorType: ColorTypeEnum;
 
   //project
   noProject?: boolean;

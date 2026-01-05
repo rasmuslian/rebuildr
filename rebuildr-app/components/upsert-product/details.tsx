@@ -16,6 +16,7 @@ import { Button } from "@components/buttons/button";
 import { measurementKeys } from "@constants/measurements";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
+import { ColorSection } from "@components/product/color-section";
 
 type Props = {
   product: ProductFields;
@@ -38,7 +39,7 @@ export const Details = ({
       (measurementKey) => !!product[measurementKey],
     );
     //show details if any measurements are set or any documents are chosen
-    return measurementSet || !!product.documents?.length;
+    return measurementSet || !!product.documents?.length || !!product.color;
   });
 
   const rootCategoryId = product.categoryIds?.[0];
@@ -192,6 +193,17 @@ export const Details = ({
                   }
                 }}
               />
+              <View
+                style={{
+                  zIndex: 1 /**zIndex required to make SelectInput inside ColorSelection render above DocumentSection */,
+                }}
+              >
+                <ColorSection
+                  color={product.color}
+                  type={product.colorType}
+                  onChange={(color, type) => update({ color, colorType: type })}
+                />
+              </View>
               <DocumentSection
                 documents={product.documents ?? []}
                 onUpdateFiles={(files) => update({ documents: files })}

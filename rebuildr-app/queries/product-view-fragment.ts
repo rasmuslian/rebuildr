@@ -29,6 +29,8 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     diameterUnit
     weight
     weightUnit
+    color
+    colorType
     hasOngoingPurchase(includeOwnPurchases: true)
     images {
       id
