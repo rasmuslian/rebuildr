@@ -24,6 +24,8 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     diameterUnit
     weight
     weightUnit
+    color
+    colorType
     status
     images {
       id

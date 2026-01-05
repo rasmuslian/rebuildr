@@ -20,6 +20,7 @@ import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Category } from 'src/entities/category.entity';
 import {
+  ColorTypeEnum,
   MeasurementUnitEnum,
   Product,
   ProductConditionEnum,
@@ -207,6 +208,11 @@ export class UpdateProductInput {
   weight?: number;
   @Field(() => MeasurementUnitEnum, { nullable: true })
   weightUnit?: MeasurementUnitEnum;
+
+  @Field({ nullable: true })
+  color?: string;
+  @Field(() => ColorTypeEnum, { nullable: true })
+  colorType?: ColorTypeEnum;
 
   @Field(() => ProductConditionEnum, { nullable: true })
   condition?: ProductConditionEnum;

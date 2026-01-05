@@ -385,6 +385,14 @@ export class ProductService {
       product.secondaryQuantity = input.secondaryQuantity;
     }
 
+    //Color
+    if (input.color !== undefined) {
+      product.color = input.color || null;
+    }
+    if (input.colorType !== undefined) {
+      product.colorType = input.colorType;
+    }
+
     //Transportations
     if (input.location) {
       product.address = (
@@ -1135,15 +1143,18 @@ export class ProductService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedProductsResponse> {
-    const query = this.productRepository.createQueryBuilder('p').innerJoin(
-      'category',
-      'c',
-      `c.id = p."categoryId" AND c."parentId" IN (
+    const query = this.productRepository
+      .createQueryBuilder('p')
+      .innerJoin(
+        'category',
+        'c',
+        `c.id = p."categoryId" AND c."parentId" IN (
           SELECT pc.id from product p
             INNER JOIN category c ON c.id = p."categoryId"
             INNER join category pc on pc.id = c."parentId"
             WHERE p.id = '${similarToProductId}')`,
-    ).where('p.id != :similarToProductId', { similarToProductId });
+      )
+      .where('p.id != :similarToProductId', { similarToProductId });
     query.addOrderBy('p.createdAt', 'DESC');
 
     const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;

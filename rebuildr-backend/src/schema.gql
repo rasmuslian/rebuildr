@@ -344,6 +344,8 @@ type Product {
   diameterUnit: MeasurementUnitEnum!
   weight: Float
   weightUnit: MeasurementUnitEnum!
+  color: String
+  colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   distanceFromPosition: Float
@@ -378,6 +380,11 @@ enum MeasurementUnitEnum {
   CM
   MM
   KG
+}
+
+enum ColorTypeEnum {
+  NCS
+  FREE_TEXT
 }
 
 enum ProductConditionEnum {
@@ -1111,6 +1118,8 @@ input UpdateProductInput {
   diameterUnit: MeasurementUnitEnum
   weight: Float
   weightUnit: MeasurementUnitEnum
+  color: String
+  colorType: ColorTypeEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
   addImages: [FileInputType!]

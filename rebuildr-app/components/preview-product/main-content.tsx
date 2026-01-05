@@ -19,6 +19,7 @@ import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
 import { SectionHeader } from "@components/sections/section-header";
 import { Breadcrumbs } from "./breadcrumbs";
+import { colorTypes } from "@constants/product-color-types";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -230,6 +231,14 @@ export const MainContent = ({
                 {measurements.weight.options[product.weightUnit]?.name}
               </Body>
             )}
+          </View>
+        )}
+        {product.color && (
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Färg</Label>
+            <Body size="medium">
+              {colorTypes[product.colorType].text}: {product.color}
+            </Body>
           </View>
         )}
         {showSpecificsDocuments && (

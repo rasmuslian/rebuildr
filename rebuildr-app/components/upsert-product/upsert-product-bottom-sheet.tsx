@@ -7,6 +7,7 @@ import {
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
   MeasurementUnitEnum,
+  ColorTypeEnum,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -83,6 +84,8 @@ export const initialProduct: ProductFields = {
   images: undefined,
   documents: undefined,
   minimumPrice: undefined,
+  color: undefined,
+  colorType: ColorTypeEnum.Ncs,
 
   //project
   noProject: undefined,
@@ -214,6 +217,8 @@ export const UpsertProductBottomSheet = ({
         brandId: dbProduct?.brand ? dbProduct?.brand.id : undefined,
         images: images.length ? images : undefined,
         documents: documents.length ? documents : undefined,
+        color: dbProduct?.color ?? undefined,
+        colorType: dbProduct?.colorType ?? undefined,
 
         //project
         project: dbProduct.project
@@ -325,6 +330,8 @@ export const UpsertProductBottomSheet = ({
             product.documents,
             data.product.documents,
           ),
+          color: product.color,
+          colorType: product.colorType,
 
           //project
           projectId: product.project?.id,
@@ -468,6 +475,7 @@ export const UpsertProductBottomSheet = ({
         product.images?.length ||
         !!product.primaryQuantity ||
         !!product.brandId ||
+        !!product.color ||
         measurementKeys.some((key) => product[key] !== undefined);
       if (!saveDraft) {
         onFinish();
