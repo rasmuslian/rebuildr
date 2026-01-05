@@ -11,7 +11,6 @@ import {
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { permanentSection } from "@constants/permanent-sections";
-import { useRef } from "react";
 
 const FOR_THE_SEASON_CATEGORIES = gql`
   query ForTheSeasonCategories($input: CategoriesInput!) {
@@ -33,7 +32,6 @@ export const ForTheSeason = () => {
   const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
-  const layoutRef = useRef<number[]>([]);
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -55,18 +53,13 @@ export const ForTheSeason = () => {
     ? (screenWidth / CATEGORY_WIDTH) * 2
     : categories.length;
 
-  const sumOfCategoriesWidths = layoutRef.current?.reduce(
-    (acc, curr) => acc + curr,
-    0,
-  );
-
   type categoryType = ForTheSeasonCategoriesQuery["categories"][0];
 
   const equallyDividedByWidth = categories.reduce(
     (acc: categoryType[][], curr) => {
       const firstHalf = acc[0].reduce((a, c) => a + c.name.length, 0);
       const secondHalf = acc[1].reduce((a, c) => a + c.name.length, 0);
-      if (firstHalf >= secondHalf) {
+      if (firstHalf > secondHalf) {
         return [[...acc[0]], [...acc[1], curr]];
       }
       return [[...acc[0], curr], [...acc[1]]];
@@ -77,6 +70,22 @@ export const ForTheSeason = () => {
     ...equallyDividedByWidth[0],
     ...equallyDividedByWidth[1],
   ];
+  const rowOneWidth = equallyDividedByWidth[0].reduce(
+    (acc, curr) => acc + curr.name.length,
+    0,
+  );
+  const rowTwoWidth = equallyDividedByWidth[1].reduce(
+    (acc, curr) => acc + curr.name.length,
+    0,
+  );
+  const widestWidth = rowOneWidth > rowTwoWidth ? rowOneWidth : rowTwoWidth;
+  const chipWidthExcludingName = 16 + 16 + 40;
+  const rowWidth =
+    8 * widestWidth +
+    (chipWidthExcludingName + screenTypeGap) *
+      (widestWidth === rowOneWidth
+        ? equallyDividedByWidth[0].length
+        : equallyDividedByWidth[1].length);
 
   return (
     <View style={{ paddingVertical: 16, gap: 16 }}>
@@ -96,19 +105,12 @@ export const ForTheSeason = () => {
           flexDirection: "row",
           paddingHorizontal: 16,
           gap: screenTypeGap,
-          width: isDesktop
-            ? "100%"
-            : (sumOfCategoriesWidths +
-                nrOfCategoriesShown * screenTypeGap * 2) /
-              2,
+          width: isDesktop ? "100%" : rowWidth + 80,
           flexWrap: "wrap",
         }}
       >
         {sortedByWidth.slice(0, nrOfCategoriesShown).map((category, index) => (
           <ImageQuickLink
-            onLayout={({ nativeEvent: { layout } }) => {
-              layoutRef.current[index] = layout.width;
-            }}
             key={index}
             onPress={() => {
               filterBuilder
