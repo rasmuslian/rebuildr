@@ -11,6 +11,7 @@ import {
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { permanentSection } from "@constants/permanent-sections";
+import { useRef } from "react";
 
 const FOR_THE_SEASON_CATEGORIES = gql`
   query ForTheSeasonCategories($input: CategoriesInput!) {
@@ -32,6 +33,7 @@ export const ForTheSeason = () => {
   const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
+  const layoutRef = useRef<number[]>([]);
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -44,12 +46,37 @@ export const ForTheSeason = () => {
     },
   });
 
+  const screenTypeGap = isDesktop ? 12 : 8;
+
   const categories = data?.categories ?? [];
   if (categories.length < 1) return null;
 
   const nrOfCategoriesShown = isDesktop
     ? (screenWidth / CATEGORY_WIDTH) * 2
     : categories.length;
+
+  const sumOfCategoriesWidths = layoutRef.current?.reduce(
+    (acc, curr) => acc + curr,
+    0,
+  );
+
+  type categoryType = ForTheSeasonCategoriesQuery["categories"][0];
+
+  const equallyDividedByWidth = categories.reduce(
+    (acc: categoryType[][], curr) => {
+      const firstHalf = acc[0].reduce((a, c) => a + c.name.length, 0);
+      const secondHalf = acc[1].reduce((a, c) => a + c.name.length, 0);
+      if (firstHalf >= secondHalf) {
+        return [[...acc[0]], [...acc[1], curr]];
+      }
+      return [[...acc[0], curr], [...acc[1]]];
+    },
+    [[], []],
+  );
+  const sortedByWidth = [
+    ...equallyDividedByWidth[0],
+    ...equallyDividedByWidth[1],
+  ];
 
   return (
     <View style={{ paddingVertical: 16, gap: 16 }}>
@@ -61,7 +88,6 @@ export const ForTheSeason = () => {
       >
         {permanentSection.forTheSeason.title}
       </SectionHeader>
-
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -69,13 +95,20 @@ export const ForTheSeason = () => {
         contentContainerStyle={{
           flexDirection: "row",
           paddingHorizontal: 16,
-          gap: isDesktop ? 12 : 8,
-          width: isDesktop ? "100%" : (categories.length / 2) * CATEGORY_WIDTH,
+          gap: screenTypeGap,
+          width: isDesktop
+            ? "100%"
+            : (sumOfCategoriesWidths +
+                nrOfCategoriesShown * screenTypeGap * 2) /
+              2,
           flexWrap: "wrap",
         }}
       >
-        {categories.slice(0, nrOfCategoriesShown).map((category, index) => (
+        {sortedByWidth.slice(0, nrOfCategoriesShown).map((category, index) => (
           <ImageQuickLink
+            onLayout={({ nativeEvent: { layout } }) => {
+              layoutRef.current[index] = layout.width;
+            }}
             key={index}
             onPress={() => {
               filterBuilder
