@@ -14,7 +14,7 @@ import { Body, Label, Title } from "@components/typography/text";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
@@ -22,6 +22,7 @@ import { meterToKilometer } from "@/utils/conversions";
 import { Slider } from "@components/slider/slider";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 import { ProductFields } from "./types";
+import { useScreenType } from "@hooks/useScreenType";
 
 const PRODUCT_BOTTOM_SHEET_DELIVERY = gql`
   query ProductBottomSheetDelivery($input: GetProjectInput!) {
@@ -50,6 +51,8 @@ export const Delivery = ({
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
   const colors = useThemeColor();
+  const { width: screenWidth } = useWindowDimensions();
+  const { isDesktop } = useScreenType();
   const [getProject, { data }] = useLazyQuery<
     ProductBottomSheetDeliveryQuery,
     ProductBottomSheetDeliveryQueryVariables
@@ -201,7 +204,11 @@ export const Delivery = ({
           <View style={{ gap: 12 }}>
             <Label size="medium">Välj max avstånd för hemtransport</Label>
             <View
-              style={{ flexDirection: "row", gap: 16, alignItems: "center" }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Slider
                 type="continuous"
@@ -210,7 +217,7 @@ export const Delivery = ({
                   max: 80000,
                   value: radius,
                   onChange: onSetRadius,
-                  width: 240,
+                  width: isDesktop ? 240 : screenWidth * (3 / 5),
                   onRelease: (r) => onChangeRadius(r),
                 }}
               />

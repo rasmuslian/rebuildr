@@ -5,7 +5,7 @@ import { Body, Label } from "@components/typography/text";
 import { defaultCenter, defaultRadius } from "@constants/map";
 import { useScreenType } from "@hooks/useScreenType";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Map } from "@components/maps/map";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { ProductsInput, SearchProductsQuery } from "@/gql/graphql";
@@ -37,6 +37,7 @@ export const TransportationOptions = ({
   const [shipping, setShipping] = useState(true);
   const [delivery, setDelivery] = useState(true);
   const { isDesktop } = useScreenType();
+  const { width: screenWidth } = useWindowDimensions();
 
   const { location, setMyLocation, setMapLocation } = useLocationAddress({
     location: data?.me?.location ?? {
@@ -138,10 +139,9 @@ export const TransportationOptions = ({
                 style={[
                   {
                     flexDirection: "row",
-                    gap: 16,
                     alignItems: "center",
+                    justifyContent: "space-between",
                   },
-                  isDesktop && { gap: 0, justifyContent: "space-between" },
                 ]}
               >
                 <Slider
@@ -151,7 +151,7 @@ export const TransportationOptions = ({
                     max: 80000,
                     value: pickupDistance,
                     onChange: (v) => setPickupDistance(v),
-                    width: isDesktop ? 290 : 240,
+                    width: isDesktop ? 290 : screenWidth * (3 / 5),
                   }}
                 />
                 <Body size="medium">{meterToKilometer(pickupDistance)} km</Body>
