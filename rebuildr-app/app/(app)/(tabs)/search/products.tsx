@@ -56,6 +56,11 @@ export default function Products() {
   const { userCoords } = useLocationContext();
   const { filter } = useFilterProduct();
 
+  const userLocation = userCoords && {
+    lat: userCoords.latitude,
+    lng: userCoords.longitude,
+  };
+
   const { data, loading, refetch, fetchMore } = useQuery<
     SearchProductsQuery,
     SearchProductsQueryVariables
@@ -69,13 +74,14 @@ export default function Products() {
         conditions: filter.conditions,
         minPrice: filter.price[0],
         maxPrice: filter.price[1],
-        location: userCoords && {
-          lat: userCoords.latitude,
-          lng: userCoords.longitude,
-        },
+        location: userLocation,
       },
       limit: PAGE_SIZE,
       offset: 0,
+      distanceFrom:
+        filter.sourceSection === "nearYou"
+          ? (userLocation ?? undefined)
+          : undefined,
       isLoggedIn,
     },
   });
@@ -262,6 +268,7 @@ const DesktopLayout = ({
                     type: product.seller.type,
                     location: product.approximatePlace?.address,
                   },
+                  distance: product.distanceFromLocation,
                   price: product.price,
                   status: product.status,
                   heart: product.seller.id !== data.me?.id,
@@ -450,6 +457,7 @@ const MobileLayout = ({
                   likedByMe: !!product.likedByMe,
                 });
               },
+              distance: product.distanceFromLocation,
             })) ?? []
           }
           pagination={{
