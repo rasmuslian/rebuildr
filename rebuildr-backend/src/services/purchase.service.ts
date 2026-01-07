@@ -218,13 +218,13 @@ export class PurchaseService {
           paymentIntentId: existingPayment.id,
           status: existingPayment.status,
         });
-      }
-
+      } else {
       return {
         purchase: existingPurchase,
         product: product,
         reference: existingPayment.client_secret,
       };
+      }
     }
 
     //Product is only available if its only purchases are failed ones
@@ -510,7 +510,6 @@ export class PurchaseService {
     if (!purchase) {
       logger.error('MarkAsDelivered: Purchase invalid', {
         purchaseId: purchaseId,
-        buyerId: purchase.buyerId,
         currentUserId,
       });
 
@@ -886,6 +885,73 @@ export class PurchaseService {
   //---------------------------------------------------------------
 
   //------------------ CRON jobs ----------------------------
+  //If a users starts a purchase but does not resolve it by completing it or finishing it then
+  //we should cancel it after 30 minutes
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async handleIncompletePayments() {
+    const logger = this.logger.child({
+      cron: 'handleIncompletePayments',
+      requestId: crypto.randomUUID(),
+    });
+    logger.info('Handling incomplete purchases');
+    const dueTime = dayjs().add(30, 'minute');
+
+    const incompletePurchases = await this.purchaseRepository.find({
+      where: {
+        status: PurchaseStatusEnum.PAYMENT_STARTED,
+        paymentStartedAt: LessThanOrEqual(dueTime.toDate()),
+      },
+    });
+    logger.info('Number of incomplete purchases', {
+      nrOfIncompletePurchases: incompletePurchases.length,
+    });
+
+    await Promise.all(
+      incompletePurchases.map(async (purchase) => {
+        if (purchase.paymentIntentId) {
+          const payment = await this.stripeService.retrievePayment(
+            purchase.paymentIntentId,
+          );
+          switch (payment.status) {
+            case 'processing':
+              return;
+            case 'canceled': {
+              logger.info('Canceled purchase', {
+                pruchaseId: purchase.id,
+              });
+              //Already canceled but not yet failed. This should be an off-case.
+              //Purchase is failed and if its the only active purchase on the product, the product will be re-published
+              purchase.failedAt = new Date();
+              const product = await this.productRepository.findOne({
+                where: { id: purchase.productId, status: ProductStatus.SOLD },
+                relations: { purchases: true },
+              });
+              if (
+                product &&
+                product.purchases.every(
+                  (p) =>
+                    p.status === PurchaseStatusEnum.FINISHED_FAILED ||
+                    p.id === purchase.id,
+                )
+              ) {
+                product.status = ProductStatus.PUBLISHED;
+                await this.productRepository.save(product);
+              }
+              return this.purchaseRepository.save(purchase);
+            }
+            case 'requires_action':
+            case 'requires_capture':
+            case 'requires_confirmation':
+            case 'requires_payment_method':
+              logger.info('Purchase required action', {
+                purchaseId: purchase.id,
+              });
+              return this.stripeService.cancelPayment(purchase.paymentIntentId);
+          }
+        }
+      }),
+    );
+  }
   //Every hour, accept purchases that are waiting approval from
   //the buyer
   @Cron(CronExpression.EVERY_HOUR)
@@ -1220,7 +1286,7 @@ export class PurchaseService {
         purchaseId: purchase.id,
         buyerId: purchase.buyerId,
       });
-      this.shippingService.bookShipping(purchase.id, logger);
+      await this.shippingService.bookShipping(purchase.id, logger);
     }
 
     logger.info('Payment completed', {

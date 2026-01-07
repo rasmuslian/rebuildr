@@ -1148,7 +1148,10 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
     switch (purchase.status) {
       case PurchaseStatusEnum.PaymentAccepted:
       case PurchaseStatusEnum.PaymentStarted:
-        if (purchase.sellerRespondedAt) {
+        if (
+          purchase.sellerRespondedAt &&
+          purchase.status === PurchaseStatusEnum.PaymentAccepted
+        ) {
           return (
             <ProgressIndicator
               steps={[
