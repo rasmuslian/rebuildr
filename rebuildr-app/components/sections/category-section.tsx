@@ -1,17 +1,11 @@
-import {
-  AdRowSectionQuery,
-  AdRowSectionQueryVariables,
-  OrderProductsEnum,
-} from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { AdRowSectionQuery, AdRowSectionQueryVariables } from "@/gql/graphql";
+import { useQuery } from "@apollo/client";
 import {
   AD_ROW_SECTION,
   AdRowSection,
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { permanentSection } from "@constants/permanent-sections";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { useScreenType } from "@hooks/useScreenType";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 
@@ -46,7 +40,7 @@ export const CategorySection = ({ category: { id, name } }: Props) => {
       data={data}
       title={name}
       onPress={() => {
-        filterBuilder.setCategories([{ id }]).apply();
+        filterBuilder.setCategories([{ id }]).setSelectedCategoryId(id).apply();
         router.navigate("/search/products");
       }}
     />
