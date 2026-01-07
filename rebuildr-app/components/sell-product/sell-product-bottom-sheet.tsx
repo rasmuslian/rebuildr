@@ -4,12 +4,9 @@ import { useSellProductContext } from "@context/sell-product-context";
 import { UpsertProductBottomSheet } from "@components/upsert-product/upsert-product-bottom-sheet";
 import { useEffect } from "react";
 
-export const SELL_PRODUCT_BOTTOM_SHEET_QUERY = gql`
+const SELL_PRODUCT_BOTTOM_SHEET_QUERY = gql`
   query SellProductBottomSheetQuery {
     getOrCreateDraftProduct {
-      id
-    }
-    me {
       id
     }
   }
@@ -17,9 +14,11 @@ export const SELL_PRODUCT_BOTTOM_SHEET_QUERY = gql`
 
 export const SellProductBottomSheet = () => {
   const { visible, setVisible } = useSellProductContext();
-  const [getOrCreateDraft, { data }] =
+
+  const [getOrCreateDraft, { data, loading }] =
     useLazyQuery<SellProductBottomSheetQueryQuery>(
       SELL_PRODUCT_BOTTOM_SHEET_QUERY,
+      { fetchPolicy: "network-only" },
     );
 
   useEffect(() => {
@@ -28,7 +27,7 @@ export const SellProductBottomSheet = () => {
     }
   }, [visible]);
 
-  if (!data) {
+  if (!data || loading) {
     return null;
   }
 
@@ -37,7 +36,9 @@ export const SellProductBottomSheet = () => {
       productId={data.getOrCreateDraftProduct.id}
       mode="create"
       visible={visible}
-      onHide={() => setVisible(false)}
+      onHide={() => {
+        setVisible(false);
+      }}
     />
   );
 };

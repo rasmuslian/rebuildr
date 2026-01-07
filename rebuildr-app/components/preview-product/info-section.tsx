@@ -18,7 +18,7 @@ export const InfoSection = ({
   return (
     <View>
       <Body size="medium">
-        Annonsen publiserades: {dayjs(createdAt).format("D MMM, YYYY")}
+        Annonsen publicerades: {dayjs(createdAt).format("D MMM, YYYY")}
       </Body>
       <Body size="medium">
         Senast ändrad: {dayjs(updatedAt).format("D MMM, YYYY")}

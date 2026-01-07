@@ -236,7 +236,7 @@ export const UpsertProductBottomSheet = ({
         approximatePlace: dbProduct.approximatePlace ?? undefined,
         pickupEnabled: dbProduct.pickupEnabled,
         deliveryEnabled: dbProduct.deliveryEnabled,
-        deliveryPrice: dbProduct.deliveryPrice ?? 0,
+        deliveryPrice: dbProduct.deliveryPrice ?? undefined,
         deliveryRadius: dbProduct.deliveryRadius ?? undefined,
         shippingPrices: dbProduct.shippingPrices ?? [],
 
@@ -466,21 +466,75 @@ export const UpsertProductBottomSheet = ({
       return;
     }
     //Check if we should prompt draft saving sheet
-    if (step === "details") {
-      const saveDraft =
-        !!product.title ||
-        product.isGiveaway ||
-        !!product.price ||
-        !!product.description ||
-        product.images?.length ||
-        !!product.primaryQuantity ||
-        !!product.brandId ||
-        !!product.color ||
-        measurementKeys.some((key) => product[key] !== undefined);
-      if (!saveDraft) {
-        onFinish();
-        return;
+    if (!data) {
+      return;
+    }
+    const dbProduct = data.product;
+    const saveDraft = Object.keys(product).some((key) => {
+      if (key === "categoryIds") {
+        return false;
       }
+      if (key === "title") {
+        return product.title === undefined
+          ? false
+          : product.title !== dbProduct.title;
+      }
+      if (key === "price") {
+        return product.price === undefined
+          ? false
+          : product.price !== dbProduct.price;
+      }
+      if (key === "images") {
+        return (product.images ?? []).length !== dbProduct.images.length
+          ? true
+          : !dbProduct.images.every(
+              (i, idx) => i.id === product.images?.[idx].id,
+            );
+      }
+      if (key === "documents") {
+        return (product.documents ?? []).length !== dbProduct.documents.length
+          ? true
+          : !dbProduct.documents.every(
+              (i, idx) => i.id === product.documents?.[idx].id,
+            );
+      }
+      if (key === "location") {
+        if (!!product.location && !!dbProduct.location) {
+          return (
+            product.location.lat !== dbProduct.location.lat ||
+            product.location.lng !== dbProduct.location.lng
+          );
+        }
+        //One has location while the other doesn't
+        return !!product.location || !!dbProduct.location;
+      }
+      if (key === "project") {
+        if (!!product.project && !!dbProduct.project) {
+          return product.project.id !== dbProduct.project.id;
+        }
+        //One has project while the other doesn't
+        return !!product.project || !!dbProduct.project;
+      }
+      if (key === "shippingPrices") {
+        return product.shippingPrices.length !==
+          (dbProduct.shippingPrices ?? []).length
+          ? true
+          : !product.shippingPrices.every(
+              (sp, idx) => sp.id === dbProduct.shippingPrices?.[idx].id,
+            );
+      }
+      if (key in product && key in dbProduct) {
+        const keyEqual =
+          product[key as keyof typeof product] !==
+          (dbProduct[key as keyof typeof dbProduct] ?? undefined);
+        return keyEqual;
+      }
+      return false;
+    });
+
+    if (!saveDraft) {
+      onFinish();
+      return;
     }
     setShowHandleDraft(true);
   };
