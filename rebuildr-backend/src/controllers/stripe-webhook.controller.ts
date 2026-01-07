@@ -97,6 +97,7 @@ export class StripWebhookController {
         await this.purchaseService.paymentStarted(event.data.object, logger);
         break;
       case 'payment_intent.canceled':
+        await this.purchaseService.paymentCanceled(event.data.object, logger);
         break;
       case 'payment_intent.payment_failed':
         await this.purchaseService.paymentFailed(event.data.object, logger);
