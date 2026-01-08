@@ -46,13 +46,6 @@ export class S3Service {
     return signedPutUrl;
   }
 
-  // async uploadMany(keys: string[], publicRead?: boolean): Promise<string[]> {
-  //   const signedPutUrls = await Promise.all(
-  //     keys.map(async (file) => await this.upload(file, publicRead)),
-  //   );
-  //   return signedPutUrls;
-  // }
-
   async deleteFiles(keys: string[]) {
     //Return if array is empty
     if (!keys.length) {
