@@ -220,6 +220,10 @@ export type CmsListUsersResponse = {
   users: Array<User>;
 };
 
+export type CmsTestTemplateInput = {
+  template: Scalars['String']['input'];
+};
+
 export type CmsUpdateArticleInput = {
   body: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -666,6 +670,7 @@ export type Mutation = {
   cmsDeleteProduct: Product;
   cmsHideProduct: Product;
   cmsLogin: LoginResponse;
+  cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
   cmsUpdateCategory: CmsUpdateCategoryResponse;
@@ -782,6 +787,11 @@ export type MutationCmsHideProductArgs = {
 
 export type MutationCmsLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationCmsTestTemplateArgs = {
+  input: CmsTestTemplateInput;
 };
 
 

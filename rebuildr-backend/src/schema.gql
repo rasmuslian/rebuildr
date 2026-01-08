@@ -894,6 +894,7 @@ type Mutation {
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
   cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
   cmsDeleteFile(imageId: String!): File!
+  cmsTestTemplate(input: CmsTestTemplateInput!): Boolean!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
@@ -1177,6 +1178,10 @@ input MarkAsReadInput {
 
 input CmsUploadFileInput {
   images: [FileInputType!]
+}
+
+input CmsTestTemplateInput {
+  template: String!
 }
 
 input PurchaseProductInput {

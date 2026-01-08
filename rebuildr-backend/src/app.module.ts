@@ -109,6 +109,7 @@ import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
 import { S3Service } from './services/s3.service';
+import { MailResolver } from './resolvers/mail.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -249,6 +250,7 @@ export interface RequestType {
     FileService,
     CaslAbilityFactory,
     GqlOptionalAuthGuard,
+    MailResolver,
     MailService,
     MailchimpService,
     RolesGuard,

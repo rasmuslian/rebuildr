@@ -6,12 +6,12 @@ import Mailgun, { Interfaces } from 'mailgun.js';
 import * as fs from 'fs';
 import { InternalServerException } from 'src/exceptions';
 import { User } from 'src/entities/user.entity';
-import { Purchase } from 'src/entities/purchase.entity';
-import { Product } from 'src/entities/product.entity';
-import { ReportPurchase } from 'src/entities/report-purchase.entity';
+import { ReportPurchaseTypeEnum } from 'src/entities/report-purchase.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { S3Service } from './s3.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
@@ -46,6 +46,8 @@ export class MailService {
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private s3Service: S3Service,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {
     const mailgun = new Mailgun(FormData);
 
@@ -120,13 +122,16 @@ export class MailService {
     }
   }
 
-  async sendReportpurchaseEmail(input: {
-    buyer: User;
-    seller: User;
-    product: Product;
-    purchase: Purchase;
-    report: ReportPurchase;
-  }) {
+  async sendReportpurchaseEmail(
+    input: {
+      buyer: User;
+      seller: User;
+      product: { id: string; title: string };
+      purchase: { id: string };
+      report: { message: string; type: ReportPurchaseTypeEnum };
+    },
+    to?: string,
+  ) {
     const context = {
       ...this.baseContext,
       productTitle: input.product.title,
@@ -142,7 +147,7 @@ export class MailService {
     );
     const html = handlebarsTemplate(context);
     const data = {
-      to: 'hej@rebuildr.se',
+      to: to ?? 'hej@rebuildr.se',
       from: this.from,
       subject: 'Rapportering av köp',
       text: 'Rapportering av köp',
@@ -156,7 +161,10 @@ export class MailService {
     }
   }
 
-  async sendSystemMessageEmail(input: { product: Product; receiver: User }) {
+  async sendSystemMessageEmail(input: {
+    product: { title: string };
+    receiver: User;
+  }) {
     const icon = await this.s3Service.getUrl('mail-chat.png');
 
     const context = {
@@ -211,5 +219,52 @@ export class MailService {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
     }
+  }
+
+  async cmsTestTemplate(template: string, userId: string) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) return false;
+
+    if (template === 'verifyEmail') {
+      await this.sendVerifyEmail({ email: user.email, token: '123456' });
+      return true;
+    }
+    if (template === 'resetPassword') {
+      await this.sendResetPasswordEmail({ email: user.email, token: '123456' });
+      return true;
+    }
+    if (template === 'reportPurchase') {
+      await this.sendReportpurchaseEmail(
+        {
+          buyer: user,
+          seller: user,
+          product: { id: '123', title: 'Rapporterad produkt' },
+          purchase: { id: '123' },
+          report: {
+            message:
+              'Testar rapportera produkt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+            type: ReportPurchaseTypeEnum.DAMAGED,
+          },
+        },
+        user.email,
+      );
+      return true;
+    }
+    if (template === 'sendSystemMessageEmail') {
+      await this.sendSystemMessageEmail({
+        product: { title: 'Product title' },
+        receiver: user,
+      });
+      return true;
+    }
+    if (template === 'sendUserMessageEmail') {
+      await this.sendUserMessageEmail({
+        productTitle: 'Product title',
+        receiverEmail: user.email,
+      });
+      return true;
+    }
+
+    return false;
   }
 }
