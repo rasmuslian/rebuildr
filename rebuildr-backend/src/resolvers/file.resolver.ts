@@ -66,7 +66,7 @@ export class FileResolver {
     return this.fileService.cmsUploadFile(input);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => File)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
   async cmsDeleteFile(@Args('imageId') imageId: string) {

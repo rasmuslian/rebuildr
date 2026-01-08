@@ -38,9 +38,7 @@ const ListMedia = ({ onSelectImage }: Props) => {
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (imageId: string) => {
-      const response = await deleteMedia(imageId);
-      if (!response) throw new Error();
-      return response;
+      return await deleteMedia(imageId);
     },
     onSuccess: () => {
       notification.success({

@@ -76,6 +76,7 @@ export type CancelPurchaseInput = {
 
 export type CategoriesInput = {
   seasonalCategories?: InputMaybe<Scalars['Boolean']['input']>;
+  trending?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type Category = {
@@ -310,7 +311,14 @@ export type CmsUploadFileResponse = {
   presignedPutUrls: Array<Scalars['String']['output']>;
 };
 
+export enum ColorTypeEnum {
+  FreeText = 'FREE_TEXT',
+  Ncs = 'NCS'
+}
+
 export type CreateMessageInput = {
+  documents?: InputMaybe<Array<FileInputType>>;
+  images?: InputMaybe<Array<FileInputType>>;
   message: Scalars['String']['input'];
   productId: Scalars['String']['input'];
   receiverId: Scalars['String']['input'];
@@ -563,6 +571,28 @@ export type LogoutInput = {
   refreshToken: Scalars['String']['input'];
 };
 
+export type MapPin = {
+  __typename?: 'MapPin';
+  id: Scalars['ID']['output'];
+  location: LocationResponse;
+  product?: Maybe<Product>;
+};
+
+export type MapPinGroup = {
+  __typename?: 'MapPinGroup';
+  location: LocationResponse;
+  prices?: Maybe<Array<Scalars['Float']['output']>>;
+  productIds: Array<Scalars['String']['output']>;
+  projectId?: Maybe<Scalars['String']['output']>;
+  type: MapPinTypeEnum;
+};
+
+export enum MapPinTypeEnum {
+  Product = 'PRODUCT',
+  Project = 'PROJECT',
+  User = 'USER'
+}
+
 export type MarkAsReadInput = {
   markAsRead: Scalars['Boolean']['input'];
   otherUserId: Scalars['String']['input'];
@@ -599,7 +629,11 @@ export enum MeasurementUnitEnum {
 export type Message = {
   __typename?: 'Message';
   createdAt: Scalars['DateTime']['output'];
+  documentPutUrls?: Maybe<Array<Scalars['String']['output']>>;
+  documents: Array<File>;
   id: Scalars['ID']['output'];
+  imagePutUrls?: Maybe<Array<Scalars['String']['output']>>;
+  images: Array<File>;
   message: Scalars['String']['output'];
   messageType: MessageTypeEnum;
   product: Product;
@@ -627,7 +661,7 @@ export type Mutation = {
   cmsCreateProduct: CmsCreateProductResponse;
   cmsCreateProject: Project;
   cmsDeleteArticle: Scalars['Boolean']['output'];
-  cmsDeleteFile: Scalars['Boolean']['output'];
+  cmsDeleteFile: File;
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsDeleteProduct: Product;
   cmsHideProduct: Product;
@@ -650,6 +684,7 @@ export type Mutation = {
   createReview: Review;
   createSearchResult?: Maybe<SearchResult>;
   deleteAccount: User;
+  deleteConnectedAccount: Scalars['Boolean']['output'];
   deleteDraft: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
@@ -670,6 +705,7 @@ export type Mutation = {
   showProduct: Product;
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
+  syncApproximateLocations: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
@@ -829,6 +865,11 @@ export type MutationCreateSearchResultArgs = {
 };
 
 
+export type MutationDeleteConnectedAccountArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationDeleteDraftArgs = {
   input: RemoveProductInput;
 };
@@ -971,6 +1012,7 @@ export type NewPasswordInput = {
 export type OnboardSellerAccountResponse = {
   __typename?: 'OnboardSellerAccountResponse';
   clientSecret: Scalars['String']['output'];
+  fields: Array<Scalars['String']['output']>;
   user: User;
 };
 
@@ -1007,13 +1049,10 @@ export type PayoutAccount = {
   type: Scalars['String']['output'];
 };
 
-export enum PayoutAccountEnum {
-  Bankgiro = 'BANKGIRO',
-  Plusgiro = 'PLUSGIRO',
-  Rix = 'RIX',
-  Swish = 'SWISH',
-  Trustly = 'TRUSTLY'
-}
+export type PointInput = {
+  lat: Scalars['Float']['input'];
+  lng: Scalars['Float']['input'];
+};
 
 export type PopularCategoriesInput = {
   limit: Scalars['Int']['input'];
@@ -1026,6 +1065,8 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
+  color?: Maybe<Scalars['String']['output']>;
+  colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
   createdAt: Scalars['DateTime']['output'];
   deliveryEnabled: Scalars['Boolean']['output'];
@@ -1034,6 +1075,7 @@ export type Product = {
   description?: Maybe<Scalars['String']['output']>;
   diameter?: Maybe<Scalars['Float']['output']>;
   diameterUnit: MeasurementUnitEnum;
+  distanceFromLocation?: Maybe<Scalars['Float']['output']>;
   distanceFromPosition?: Maybe<Scalars['Float']['output']>;
   documents: Array<File>;
   hasOngoingPurchase: Scalars['Boolean']['output'];
@@ -1074,6 +1116,11 @@ export type Product = {
 };
 
 
+export type ProductDistanceFromLocationArgs = {
+  location?: InputMaybe<LocationInputType>;
+};
+
+
 export type ProductHasOngoingPurchaseArgs = {
   includeOwnPurchases?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -1091,6 +1138,19 @@ export enum ProductConditionEnum {
   Okay = 'OKAY',
   VeryGood = 'VERY_GOOD'
 }
+
+export type ProductMapPinResponse = {
+  __typename?: 'ProductMapPinResponse';
+  pins: Array<MapPinGroup>;
+  total: Scalars['Float']['output'];
+};
+
+export type ProductMapPinsBoxLocationInput = {
+  northEast: PointInput;
+  productsInput?: InputMaybe<ProductsInput>;
+  southWest: PointInput;
+  zoom?: InputMaybe<Scalars['Int']['input']>;
+};
 
 export enum ProductStatusEnum {
   Deleted = 'DELETED',
@@ -1288,6 +1348,7 @@ export type Query = {
   nearbyServicePoints: Array<ServicePointResponse>;
   popularCategories: Array<Category>;
   product: Product;
+  productMapPinsInBoundingBox: ProductMapPinResponse;
   products: ProductsResponse;
   purchase: Purchase;
   rootCategories: Array<Category>;
@@ -1458,6 +1519,13 @@ export type QueryPopularCategoriesArgs = {
 
 export type QueryProductArgs = {
   input: GetProductInput;
+};
+
+
+export type QueryProductMapPinsInBoundingBoxArgs = {
+  input: ProductMapPinsBoxLocationInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1654,6 +1722,8 @@ export type UpdateProductInput = {
   addImages?: InputMaybe<Array<FileInputType>>;
   brandId?: InputMaybe<Scalars['String']['input']>;
   categoryId?: InputMaybe<Scalars['String']['input']>;
+  color?: InputMaybe<Scalars['String']['input']>;
+  colorType?: InputMaybe<ColorTypeEnum>;
   condition?: InputMaybe<ProductConditionEnum>;
   deliveryEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
@@ -1760,7 +1830,6 @@ export type User = {
   reviewed: Array<Review>;
   role: UserRoleEnum;
   sales: Array<Purchase>;
-  selectedPayoutMethod?: Maybe<PayoutAccountEnum>;
   sellerAccountIsCreated: Scalars['Boolean']['output'];
   sellerAccountIsEnabled: Scalars['Boolean']['output'];
   type: UserType;
