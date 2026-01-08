@@ -1,29 +1,35 @@
 <mjml>
   <mj-head>
   </mj-head>
-  <mj-body background-color="#00493E">
-    <mj-section padding-top="100px"></mj-section>
-    <mj-section background-color="#F8F1E3" padding-top="50px" padding-bottom="50px">
+  <mj-body background-color="#F8F1E3" height="1024px">
+    <mj-section padding-top="100px" />
+    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="50px" border-radius="12px">
       <mj-column width="400px">
-        <mj-text align="center" font-size="21px" font-family="Roboto" color="#343434" font-weight="500">
+        <mj-text align="center" font-size="21px" font-family="Poppins" color="#343434" font-weight="500">
           Rapportering av köp
         </mj-text>
-        
-        <mj-text align="left" color="#343434" font-family="Roboto" font-size="16px" line-height="25px">
+
+        <mj-text align="left" color="#343434" font-family="Poppins" font-size="16px" line-height="25px">
           Köparen har rapporterat köpet av varan <b>{{productTitle}}</b> med följande meddelande:
         </mj-text>
 
-        <mj-text align="center" font-size="16px" font-family="Roboto" color="#343434" font-style="italic" line-height="25px">
+        <mj-text align="center" font-size="16px" font-family="Poppins" color="#343434" font-style="italic" line-height="25px">
           {{message}}
         </mj-text>
 
-        <mj-text align="left" color="#343434" font-family="Roboto" font-size="16px" line-height="25px">
-          Typ av rapportering: <b>{{type}}</b><br/>
-          Köparens e-post: <b>{{buyerEmail}}</b><br/>
-          Säljarens e-post: <b>{{sellerEmail}}</b><br/>
-          Produktens id: <b>{{productId}}</b><br/>
-          Köpets id: <b>{{purchaseId}}</b><br/>
+        <mj-text align="left" color="#343434" font-family="Poppins" font-size="16px" line-height="25px">
+          Typ av rapportering: <b>{{type}}</b><br />
+          Köparens e-post: <b>{{buyerEmail}}</b><br />
+          Säljarens e-post: <b>{{sellerEmail}}</b><br />
+          Produktens id: <b>{{productId}}</b><br />
+          Köpets id: <b>{{purchaseId}}</b><br />
         </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding-top="56px" padding-bottom="40px">
+      <mj-column>
+        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
       </mj-column>
     </mj-section>
   </mj-body>

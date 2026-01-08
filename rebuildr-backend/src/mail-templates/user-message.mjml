@@ -1,20 +1,37 @@
 <mjml>
   <mj-head>
   </mj-head>
-  <mj-body background-color="#00493E">
-    <mj-section padding-top="100px"></mj-section>
-    <mj-section background-color="#F8F1E3" padding-top="50px" padding-bottom="50px">
-      <mj-column width="400px">
-        
-        <mj-text align="center" font-size="21px" font-family="Roboto" color="#343434" font-weight="500">
-          Du har olästa meddelanden angående annonsen <b>{{productTitle}}</b>
+  <mj-body background-color="#F8F1E3" height="1024px">
+
+    <mj-section padding-top="100px" />
+
+    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="50px" border-radius="12px">
+      <mj-column width="500px">
+
+        <mj-image src={{icon}} alt="Chat icon" width="132px" padding-bottom="24px" />
+
+
+        <mj-text align="center" font-size="18px" line-height="24px" font-family="Poppins" color="#616161" padding-bottom="24px">
+          Du har fått ett nytt meddelande
         </mj-text>
-        
-        <mj-text align="center" font-size="16px" font-family="Roboto" color="#343434" line-height="25px">
-          Logga in på RebuildR för att läsa
+
+        <mj-text align="center" font-size="22px" font-family="Poppins" color="#1E1E1E" font-weight="500" padding-bottom="40px">
+          <b>{{productTitle}}
         </mj-text>
-        
+
+        <mj-button background-color="#863CFF" border-radius="12px" href={{loginUrl}} padding="8px 23px">
+          <mj-text font-size="16px" line-height="24px" font-family="Poppins">Logga in för att läsa</mj-text>
+        </mj-button>
+
+
       </mj-column>
     </mj-section>
+
+    <mj-section padding-top="56px" padding-bottom="40px">
+      <mj-column>
+        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
+      </mj-column>
+    </mj-section>
+
   </mj-body>
 </mjml>
