@@ -108,6 +108,7 @@ import { MapPinResolver } from './resolvers/map-pin.resolver';
 import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
+import { S3Service } from './services/s3.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -288,6 +289,7 @@ export interface RequestType {
     ProductSubscriber,
     ProjectSubscriber,
     StripeResolver,
+    S3Service,
   ],
 })
 export class AppModule {}

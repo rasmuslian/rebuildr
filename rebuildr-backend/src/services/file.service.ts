@@ -1,16 +1,8 @@
-import {
-  DeleteObjectsCommand,
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException, ForbiddenException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File, FileSourceEnum } from '../entities/file.entity';
-import { ConfigService } from '@nestjs/config';
 import { FileInputType } from 'src/resolvers/product.resolver';
 import {
   CmsListImagesInput,
@@ -18,33 +10,14 @@ import {
   CmsUploadFileInput,
   CmsUploadFileResponse,
 } from 'src/resolvers/file.resolver';
-
-const SIGNED_URL_EXPIRATION = 3600;
+import { S3Service } from './s3.service';
 @Injectable()
 export class FileService {
-  private s3: S3Client;
   constructor(
     @InjectRepository(File)
     private fileRepository: Repository<File>,
-    private configService: ConfigService,
-  ) {
-    try {
-      this.s3 = new S3Client({
-        endpoint: 'https://ams3.digitaloceanspaces.com',
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.SPACES_KEY,
-          secretAccessKey: process.env.SPACES_SECRET,
-        },
-      });
-    } catch {
-      throw InternalServerException();
-    }
-  }
-
-  private spacesBucket = this.configService.get<string>('SPACES_BUCKET');
-  private CDNEndpoint = `https://${this.spacesBucket}.ams3.cdn.digitaloceanspaces.com`;
-  private nonCDNEndpoint = `https://${this.spacesBucket}.ams3.digitaloceanspaces.com`;
+    private s3Service: S3Service,
+  ) {}
 
   async findOne(id: string) {
     return await this.fileRepository.findOneBy({ id });
@@ -68,17 +41,7 @@ export class FileService {
     const fileExtension = file.mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
 
-    const putCommand = new PutObjectCommand({
-      Bucket: this.spacesBucket,
-      Key: key,
-      ACL: publicRead ? 'public-read' : undefined,
-    });
-
-    const signedPutUrl = await getSignedUrl(this.s3, putCommand, {
-      expiresIn: SIGNED_URL_EXPIRATION,
-    });
-
-    return signedPutUrl;
+    return await this.s3Service.upload(key, publicRead);
   }
 
   async uploadFiles(files: File[], publicRead?: boolean): Promise<string[]> {
@@ -94,24 +57,15 @@ export class FileService {
       return;
     }
 
-    const cmd = new DeleteObjectsCommand({
-      Bucket: this.spacesBucket,
-      Delete: {
-        Objects: files.map((file) => ({ Key: file.id })),
-      },
-    });
+    const ids = files.map((file) => file.id);
 
     try {
-      const response = await this.s3.send(cmd);
-      if (response.Errors) {
-        //Errors contains errors encountered when deleting objects
-        throw new Error();
-      }
+      await this.s3Service.deleteFiles(ids);
     } catch {
       throw InternalServerException('Error when deleting files');
     }
 
-    return await this.fileRepository.delete(files.map((f) => f.id));
+    return await this.fileRepository.delete(ids);
   }
 
   async findByProduct(productId: string) {
@@ -123,25 +77,7 @@ export class FileService {
   async getUrl(file: File) {
     const fileExtension = file.mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
-
-    if (file.private) {
-      const getCommand = new GetObjectCommand({
-        Bucket: this.spacesBucket,
-        Key: key,
-      });
-
-      const getUrl = await getSignedUrl(this.s3, getCommand, {
-        expiresIn: 604800,
-      });
-
-      return this.getCDNUrl(getUrl);
-    }
-
-    return `${this.CDNEndpoint}/${key}`;
-  }
-
-  private getCDNUrl(url: string) {
-    return url.replace(this.nonCDNEndpoint, this.CDNEndpoint);
+    return await this.s3Service.getUrl(key, file.private);
   }
 
   async cmsUploadFile(
@@ -191,19 +127,10 @@ export class FileService {
     }
 
     try {
-      const cmd = new DeleteObjectsCommand({
-        Bucket: this.spacesBucket,
-        Delete: {
-          Objects: [{ Key: file.id }],
-        },
-      });
+      await this.deleteFiles([file]);
+      await this.fileRepository.delete([imageId]);
 
-      const response = await this.s3.send(cmd);
-
-      if (response.Errors) throw new Error();
-      const result = await this.fileRepository.delete([imageId]);
-
-      return !!result.affected && result.affected > 0;
+      return file;
     } catch {
       throw InternalServerException('Error when deleting files');
     }
