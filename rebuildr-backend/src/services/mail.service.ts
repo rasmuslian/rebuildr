@@ -11,6 +11,7 @@ import { Product } from 'src/entities/product.entity';
 import { ReportPurchase } from 'src/entities/report-purchase.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { S3Service } from './s3.service';
 
 const verifyEmailTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/verify-email.mjml`,
@@ -40,9 +41,11 @@ export class MailService {
   private mailgun: Interfaces.IMailgunClient;
   private from: string;
   private baseUrl: string;
+  private baseContext = {};
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private s3Service: S3Service,
   ) {
     const mailgun = new Mailgun(FormData);
 
@@ -55,8 +58,20 @@ export class MailService {
     this.from = 'Reuildr <noreply@rebuildr.se>';
   }
 
+  async onModuleInit() {
+    try {
+      const logo = await this.s3Service.getUrl('mail-logo.png');
+      this.baseContext = {
+        logo,
+      };
+    } catch (e) {
+      this.logger.error('MailService setup: Failed getting mail-logo', e);
+    }
+  }
+
   async sendVerifyEmail(input: { email: string; token: string }) {
     const context = {
+      ...this.baseContext,
       token: input.token,
       email: input.email,
     };
@@ -81,6 +96,7 @@ export class MailService {
 
   async sendResetPasswordEmail(input: { email: string; token: string }) {
     const context = {
+      ...this.baseContext,
       token: input.token,
       email: input.email,
       newPasswordUrl: `${this.baseUrl}/new-password?email=${encodeURIComponent(input.email)}&token=${input.token}`,
@@ -112,6 +128,7 @@ export class MailService {
     report: ReportPurchase;
   }) {
     const context = {
+      ...this.baseContext,
       productTitle: input.product.title,
       message: input.report.message,
       type: input.report.type,
@@ -140,7 +157,11 @@ export class MailService {
   }
 
   async sendSystemMessageEmail(input: { product: Product; receiver: User }) {
+    const icon = await this.s3Service.getUrl('mail-chat.png');
+
     const context = {
+      ...this.baseContext,
+      icon,
       productTitle: input.product.title,
     };
     const handlebarsTemplate = handlebars.compile(
@@ -166,8 +187,12 @@ export class MailService {
     productTitle: string;
     receiverEmail: string;
   }) {
+    const icon = await this.s3Service.getUrl('mail-chat.png');
     const context = {
+      ...this.baseContext,
+      icon,
       productTitle: input.productTitle,
+      loginUrl: `${process.env.WEB_BASE_URL}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(userMessageTemplate).html,
