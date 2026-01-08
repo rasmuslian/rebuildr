@@ -6,6 +6,7 @@ export const SEARCH_PRODUCTS_QUERY = gql`
     $limit: Int
     $offset: Int
     $isLoggedIn: Boolean!
+    $distanceFrom: LocationInputType
   ) {
     products(input: $input, limit: $limit, offset: $offset) {
       products {
@@ -16,6 +17,7 @@ export const SEARCH_PRODUCTS_QUERY = gql`
         condition
         primaryQuantity
         primaryUnit
+        distanceFromLocation(location: $distanceFrom)
         likedByMe
         brand {
           id
