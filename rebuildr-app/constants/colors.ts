@@ -532,14 +532,14 @@ type BadgesTokens = {
   small: string;
 };
 const badgesTokensLight: BadgesTokens = {
-  large: primitives.primary200,
+  large: primitives.accent500,
   medium: primitives.accent500,
   small: primitives.accent500,
 };
 const badgesTokensDark: BadgesTokens = {
-  large: primitives.primary700,
+  large: primitives.accent200,
   medium: primitives.accent200,
-  small: primitives.accent500,
+  small: primitives.accent200,
 };
 
 type LogoTokens = {
