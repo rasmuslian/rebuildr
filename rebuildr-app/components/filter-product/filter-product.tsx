@@ -5,12 +5,16 @@ import { ConditionFilter } from "./condition-filter";
 import { PriceFilter } from "./price-filter";
 import { RootCategoryFilter } from "./root-category-filter";
 import { SortingFilter } from "./sorting-filter";
+import { Headline } from "@components/typography/text";
 
 export const FilterProduct = () => {
   return (
     <>
       <SortingFilter />
       <Divider />
+      <Headline size="small" style={{ marginBottom: 16 }}>
+        Filtrering
+      </Headline>
       <RootCategoryFilter />
       <Divider />
       <CategoryFilter />
