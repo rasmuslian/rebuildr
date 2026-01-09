@@ -22,7 +22,7 @@ export const useImageHandler = () => {
       file,
       uri: optimizedImageUri,
       size,
-    } = await optimizeImage(uri);
+    } = await optimizeImage(uri, image.mimeType);
 
     const _image = {
       uri: optimizedImageUri,
