@@ -20,5 +20,5 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "exclude": ["test/*"]
+  "exclude": ["test/*", "./dist/**/*"]
 }
