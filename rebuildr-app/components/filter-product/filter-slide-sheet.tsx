@@ -14,7 +14,7 @@ export const FilterSlideSheet = ({ open, onClose }: Props) => {
 
   return (
     <SlideInSheet
-      title="Filtrera"
+      title="Sortera & Filtrera"
       open={open}
       onClose={onClose}
       style={{ gap: 12 }}

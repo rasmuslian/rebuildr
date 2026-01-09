@@ -11,7 +11,7 @@ export default function Filter() {
   return (
     <ScreenLayout
       style={{ gap: 12, marginBottom: 32 }}
-      headerComponent={<Header title="Filtrera" />}
+      headerComponent={<Header title="Sortera & Filtrera" />}
       footerComponent={
         <View
           style={{
