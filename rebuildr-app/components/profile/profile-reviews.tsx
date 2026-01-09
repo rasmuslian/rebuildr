@@ -4,13 +4,13 @@ import { ProfileQuery } from "@/gql/graphql";
 import { Icon } from "@icons/icon";
 import { Body, Display } from "@components/typography/text";
 import { ReviewsAccordion } from "./reviews-accordion";
-import { numberToString } from "@/utils/number-strings";
 import { borderRadius } from "@constants/sizes";
 import { Divider } from "@components/dividers/divider";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useScreenType } from "@hooks/useScreenType";
 import { AccordionSection } from "@components/sections/accordion-section";
+import { formatRating } from "@/utils/formattings";
 
 type Props = {
   isMyProfile: boolean;
@@ -74,7 +74,7 @@ export default function ProfileReviews({ isMyProfile, profileQuery }: Props) {
       >
         <View style={{ paddingRight: 12 }}>
           <Display size="large" style={{ marginBottom: 14 }}>
-            {numberToString(user.rating ?? 0, 1)}
+            {formatRating(user.rating ?? 0)}
           </Display>
           <View style={{ flexDirection: "row", gap: 3 }}>
             {[...Array(5)].map((_, i) => {
@@ -108,7 +108,7 @@ export default function ProfileReviews({ isMyProfile, profileQuery }: Props) {
         <View style={{ gap: 4, flex: 1 }}>
           {[...Array(5)].map((_, i) => {
             const nrOfThisRating = user.reviewed.reduce(
-              (acc, curr) => (acc + curr.stars === 5 - i ? 1 : 0),
+              (acc, curr) => acc + (curr.stars === 5 - i ? 1 : 0),
               0,
             );
             const fillPercent = user.reviewed.length
