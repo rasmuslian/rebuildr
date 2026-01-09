@@ -1,12 +1,12 @@
 import * as ImageManipulator from "expo-image-manipulator";
 import heic2any from "heic2any";
 export const useOptimizeImage = () => {
-  const optimizeImage = async (_uri: string) => {
+  const optimizeImage = async (_uri: string, _mimeType?: string) => {
     let uri: string = _uri;
 
     //Browsers can't handle heic or heif images which is a format from iphones
     //convert it to jpeg before proceeding
-    if (/(heic|heif)/.test(_uri)) {
+    if (/(heic|heif)/.test(_mimeType ?? "")) {
       const response = await fetch(_uri);
       const blob = await response.blob();
       const jpegBlob = await heic2any({
