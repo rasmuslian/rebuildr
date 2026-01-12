@@ -9,6 +9,7 @@ import {
   GetProjectInput,
   SetLikeProjectInput,
   UpdateProjectInput,
+  DeleteProjectInput,
 } from 'src/resolvers/project.resolver';
 import { DataSource, Point, Repository, ILike } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
@@ -19,6 +20,8 @@ import {
 } from 'src/exceptions';
 import { User } from 'src/entities/user.entity';
 import { MapPin } from 'src/entities/map-pin.entity';
+import { Product } from 'src/entities/product.entity';
+import { FileService } from './file.service';
 
 export class ProjectService {
   constructor(
@@ -28,6 +31,9 @@ export class ProjectService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     private dataSource: DataSource,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    private fileService: FileService,
   ) {}
 
   async findOne(input: GetProjectInput) {
@@ -80,7 +86,8 @@ export class ProjectService {
     project.contactName = input.contactName;
     project.contactPhone = input.contactPhone;
 
-    const { exact: exactAddress, approximate: approximateAddress} = await this.geocodingService.exactAndApproximatePlace(input.location);
+    const { exact: exactAddress, approximate: approximateAddress } =
+      await this.geocodingService.exactAndApproximatePlace(input.location);
     project.address = exactAddress.address;
     project.addressLocation = {
       type: 'Point',
@@ -127,7 +134,8 @@ export class ProjectService {
       project.contactPhone = input.contactPhone;
     }
     if (input.location) {
-    const { exact: exactAddress, approximate: approximateAddress} = await this.geocodingService.exactAndApproximatePlace(input.location);
+      const { exact: exactAddress, approximate: approximateAddress } =
+        await this.geocodingService.exactAndApproximatePlace(input.location);
       project.address = exactAddress.address;
       project.addressLocation = {
         type: 'Point',
@@ -151,6 +159,34 @@ export class ProjectService {
     }
 
     return await this.projectRepository.save(project);
+  }
+
+  async delete(input: DeleteProjectInput, currentUserId: string) {
+    const project = await this.projectRepository.findOne({
+      where: { id: input.id, userId: currentUserId },
+      relations: {
+        products: true,
+        projectPicture: true,
+      },
+    });
+    if (!project) {
+      throw BadUserInputException();
+    }
+
+    if (project.products.length) {
+      await this.productRepository.update(
+        project.products.map((p) => p.id),
+        { project: null, noProject: true },
+      );
+    }
+
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
+
+    await this.projectRepository.remove(project);
+
+    return true;
   }
 
   async setLikeProject(
@@ -225,7 +261,8 @@ export class ProjectService {
     try {
       const { address, ...rest } = input;
       const location = await this.geocodingService.addressToLocation(address);
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const approximateLocation =
+        await this.geocodingService.locationToApproximation(location);
       const mapPin = new MapPin({
         address: approximateLocation.address,
         location: {
@@ -263,7 +300,8 @@ export class ProjectService {
 
     try {
       const location = await this.geocodingService.addressToLocation(address);
-      const approximateLocation = await this.geocodingService.locationToApproximation(location);
+      const approximateLocation =
+        await this.geocodingService.locationToApproximation(location);
 
       const mapPin = project.mapPin || new MapPin();
       mapPin.address = approximateLocation.address;

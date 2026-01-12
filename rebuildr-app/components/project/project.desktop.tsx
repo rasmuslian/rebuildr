@@ -15,7 +15,7 @@ import { Divider } from "@components/dividers/divider";
 import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useLikeProject } from "@hooks/useLikeProject";
-import { ButtonProps } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
 import TopBar from "@components/navigation/top-bar/top-bar";
@@ -23,6 +23,8 @@ import { PickupPositionPopupContent } from "@components/preview-product/pickup-p
 import { useState } from "react";
 import { Popup } from "@components/popup/popup";
 import MapThumbnail from "@components/maps/map-thumbnail";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { EditProject } from "./edit-project";
 
 export const ProjectDesktop = () => {
   const { onToggleProductHeart } = useLikeProduct();
@@ -30,6 +32,7 @@ export const ProjectDesktop = () => {
   const { isLoggedIn } = useUser();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const [showMapPopup, setShowMapPopup] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
@@ -57,11 +60,8 @@ export const ProjectDesktop = () => {
   if (isMyProject) {
     ctsa.push({
       icon: "edit",
-      onPress: () =>
-        router.navigate({
-          pathname: "/(app)/project/edit/[projectId]",
-          params: { projectId, ownerId: project.user.id },
-        }),
+      type: "text",
+      onPress: () => setShowEdit(true),
     });
   }
 
@@ -71,6 +71,7 @@ export const ProjectDesktop = () => {
         icon: project.likedByMe ? "heart2Filled" : "heart2",
         color: project.likedByMe ? "link" : undefined,
       },
+      type: "text",
       onPress: () => {
         onToggleProjectHeart({
           projectId: project.id,
@@ -94,7 +95,18 @@ export const ProjectDesktop = () => {
           <View style={{ flexDirection: "row", gap: 72 }}>
             <View style={{ flex: 1 }}>
               <View style={{ gap: 16 }}>
-                <Display size="small">{project?.title}</Display>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Display size="small">{project?.title}</Display>
+                  {ctsa.map((cta, i) => (
+                    <Button {...cta} key={i} />
+                  ))}
+                </View>
                 <View style={{ flexDirection: "row", gap: 16 }}>
                   <Avatar
                     size={40}
@@ -201,6 +213,26 @@ export const ProjectDesktop = () => {
           </View>
         </View>
       )}
+      <SlideInSheet
+        open={showEdit}
+        title="Redigera projekt"
+        onClose={() => setShowEdit(false)}
+      >
+        <EditProject
+          id={projectId}
+          onEdited={() => router.dismiss(1)}
+          onDeleted={() => {
+            if (!me) {
+              router.navigate("/");
+              return;
+            }
+            router.replace({
+              pathname: "/project-list/[userId]",
+              params: { userId: me.id },
+            });
+          }}
+        />
+      </SlideInSheet>
       {!!location && (
         <Popup
           open={showMapPopup}

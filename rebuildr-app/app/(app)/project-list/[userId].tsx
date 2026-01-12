@@ -13,7 +13,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { View } from "react-native";
 
-const GET_PROJECTS = gql`
+export const GET_PROJECTS = gql`
   query GetProjects($input: GetUserInput!, $isLoggedIn: Boolean!) {
     user(input: $input) {
       id

@@ -132,6 +132,12 @@ export class CmsUpdateProjectInput extends CmsBaseProjectInput {
   id: string;
 }
 
+@InputType()
+export class DeleteProjectInput {
+  @Field()
+  id: string;
+}
+
 @Resolver(() => Project)
 export class ProjectResolver {
   constructor(private projectService: ProjectService) {}
@@ -165,6 +171,15 @@ export class ProjectResolver {
   ): Promise<Project[]> {
     const userId = sellerId ?? user.id;
     return this.projectService.cmsGetUserProjects(userId);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async deleteProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: DeleteProjectInput,
+  ) {
+    return await this.projectService.delete(input, user.id);
   }
 
   @Mutation(() => Project)

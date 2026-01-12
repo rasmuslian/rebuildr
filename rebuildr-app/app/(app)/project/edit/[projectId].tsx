@@ -24,15 +24,27 @@ export default function EditProjectPage() {
           ctas={[
             {
               icon: "X",
-              onPress: () => {
-                router.canGoBack() ? router.back() : router.navigate("/");
-              },
+              onPress: () =>
+                router.canGoBack() ? router.back() : router.navigate("/"),
             },
           ]}
         />
       }
     >
-      <EditProject id={projectId} onEdited={() => router.dismiss(1)} />
+      <EditProject
+        id={projectId}
+        onEdited={() => router.dismiss(1)}
+        onDeleted={() => {
+          if (!me) {
+            router.navigate("/");
+            return;
+          }
+          router.replace({
+            pathname: "/project-list/[userId]",
+            params: { userId: me.id },
+          });
+        }}
+      />
     </ScreenLayout>
   );
 }

@@ -24,6 +24,7 @@ type Props = {
   myPlace?: { location?: { lat: number; lng: number }; address?: string };
   project?: ProjectFormType;
   onSave: (project: ProjectFormType) => void;
+  onDelete?: () => void;
   isLoading?: boolean;
 };
 
@@ -31,6 +32,7 @@ export const ProjectFormFields = ({
   myPlace,
   project,
   onSave,
+  onDelete,
   isLoading: _isLoading,
 }: Props) => {
   const [title, setTitle] = useState(project?.title ?? "");
@@ -206,12 +208,22 @@ export const ProjectFormFields = ({
           ut genom att nypa med två fingrar.
         </Body>
       </View>
-      <Button
-        label="Spara projekt"
-        onPress={onSaveProject}
-        disabled={!canSave}
-        loading={_isLoading}
-      />
+      <View style={{ gap: 8 }}>
+        <Button
+          label="Spara projekt"
+          onPress={onSaveProject}
+          disabled={!canSave}
+          loading={_isLoading}
+        />
+        {onDelete && (
+          <Button
+            label="Radera projekt"
+            onPress={onDelete}
+            loading={_isLoading}
+            type="outlined"
+          />
+        )}
+      </View>
     </View>
   );
 };

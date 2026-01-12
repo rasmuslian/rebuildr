@@ -1,6 +1,6 @@
 import {
-  AbortPurchaseMutation,
-  AbortPurchaseMutationVariables,
+  DeleteProjectMutation,
+  DeleteProjectMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -10,52 +10,53 @@ import { Button } from "@components/buttons/button";
 import { useScreenType } from "@hooks/useScreenType";
 import { Popup } from "@components/popup/popup";
 import { Header } from "@components/navigation/headers/header";
+import { GET_PROJECTS } from "@/app/(app)/project-list/[userId]";
 
-const ABORT_PURCHASE = gql`
-  mutation AbortPurchase($input: AbortPurchaseInput!) {
-    abortPurchase(input: $input) {
-      id
-      status
-      abortedById
-      isRefunded
-    }
+const DELETE_PROJECT = gql`
+  mutation DeleteProject($input: DeleteProjectInput!) {
+    deleteProject(input: $input)
   }
 `;
 
-type AbortPurchaseBottomSheetProps = {
-  purchaseId: string;
+type DeleteProjectBottomSheetProps = {
+  projectId: string;
   show: boolean;
   onDismiss: () => void;
-  onAbortPurchaseCompleted: () => void;
+  onProjectDeleted: () => void;
 };
 
-export const AbortPurchaseBottomSheet = ({
-  purchaseId,
+export const DeleteProjectBottomSheet = ({
+  projectId,
   show,
   onDismiss,
-  onAbortPurchaseCompleted,
-}: AbortPurchaseBottomSheetProps) => {
+  onProjectDeleted,
+}: DeleteProjectBottomSheetProps) => {
   const { isDesktop } = useScreenType();
-  const [abortPurchase, { error, loading }] = useMutation<
-    AbortPurchaseMutation,
-    AbortPurchaseMutationVariables
-  >(ABORT_PURCHASE);
+  const [deleteProject, { loading, error }] = useMutation<
+    DeleteProjectMutation,
+    DeleteProjectMutationVariables
+  >(DELETE_PROJECT);
 
-  const onAbortPurchase = () => {
+  const onDeleteProject = async () => {
     if (loading) {
       return;
     }
-    abortPurchase({
-      variables: { input: { purchaseId } },
-      onCompleted: onAbortPurchaseCompleted,
+    const res = await deleteProject({
+      variables: { input: { id: projectId } },
+      refetchQueries: [GET_PROJECTS],
     });
+    if (res.errors) {
+      return;
+    }
+
+    onProjectDeleted();
   };
 
   const content = (
     <View style={[{ justifyContent: "space-between", flex: 1, gap: 24 }]}>
       <View style={{ gap: 24 }}>
         <Display size="small" style={{ textAlign: "center" }}>
-          Är du säker på att du vill avbryta köpet?
+          Är du säker på att du vill radera projektet?
         </Display>
 
         {error && <Body color="error">Något gick fel</Body>}
@@ -63,8 +64,8 @@ export const AbortPurchaseBottomSheet = ({
 
       <View style={{ gap: 8, paddingTop: 24 }}>
         <Button
-          label="Ja, avbryt köp"
-          onPress={onAbortPurchase}
+          label="Ja, radera projektet"
+          onPress={onDeleteProject}
           loading={loading}
           type="danger"
         />
@@ -88,7 +89,7 @@ export const AbortPurchaseBottomSheet = ({
           }}
         >
           <Header
-            title="Avbryt köp"
+            title="Radera projekt"
             showBackButton={false}
             showDivider
             ctas={[
@@ -106,8 +107,8 @@ export const AbortPurchaseBottomSheet = ({
 
   return (
     <BottomSheet
-      name="Abort purchase"
-      title="Avbryt köp"
+      name="Radera projekt"
+      title="Radera projekt"
       open={show}
       onDismiss={onDismiss}
     >
