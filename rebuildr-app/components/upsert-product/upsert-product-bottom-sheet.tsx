@@ -23,7 +23,6 @@ import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { PayoutHandler } from "../sell-product/payout-handler";
 import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
-import { measurementKeys } from "@constants/measurements";
 import { Button } from "@components/buttons/button";
 import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
@@ -118,6 +117,7 @@ type Props = {
   mode: "create" | "edit";
   visible: boolean;
   onHide: () => void;
+  onPublished: () => void;
 };
 
 export const UpsertProductBottomSheet = ({
@@ -125,6 +125,7 @@ export const UpsertProductBottomSheet = ({
   mode,
   visible,
   onHide,
+  onPublished,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [product, setProduct] = useState<ProductFields>(initialProduct);
@@ -401,9 +402,7 @@ export const UpsertProductBottomSheet = ({
         if (published) {
           onFinish();
         } else {
-          onHide();
-          setShowHandleDraft(false);
-          setProduct(initialProduct);
+          onClose();
         }
       },
       onError: (error) => {
@@ -458,11 +457,11 @@ export const UpsertProductBottomSheet = ({
 
   const onDismissSheet = () => {
     if (mode === "edit") {
-      onFinish();
+      onClose();
       return;
     }
     if (step === "payout") {
-      onHide();
+      onClose();
       return;
     }
     //Check if we should prompt draft saving sheet
@@ -596,15 +595,20 @@ export const UpsertProductBottomSheet = ({
     onSave(true);
   };
   const onProductDeleted = () => {
-    onFinish();
+    onClose();
   };
-  const onFinish = () => {
-    //reset
+  const reset = () => {
     setShowHandleDraft(false);
     setProduct(initialProduct);
     setStep("details");
-
+  };
+  const onClose = () => {
+    reset();
     onHide();
+  };
+  const onFinish = () => {
+    reset();
+    onPublished();
   };
 
   const showFooter = step === "preview";
@@ -636,7 +640,7 @@ export const UpsertProductBottomSheet = ({
               style={{ flex: 1 }}
             />
             <Button
-              label={mode === "create" ? "Publicera" : "Spara"}
+              label={mode === "create" ? "Publicera" : "Publicera"}
               onPress={onVerifyPreview}
               style={{ flex: 1 }}
               loading={updateDraftLoading}

@@ -2,7 +2,7 @@ import { UpsertProductBottomSheet } from "@components/upsert-product/upsert-prod
 import { useEditProductContext } from "@context/edit-product-context";
 
 export const EditProductBottomSheet = () => {
-  const { visible, productId, editProduct } = useEditProductContext();
+  const { visible, productId, exitEditProduct } = useEditProductContext();
 
   if (!productId) {
     return null;
@@ -13,7 +13,12 @@ export const EditProductBottomSheet = () => {
       productId={productId}
       mode="edit"
       visible={visible}
-      onHide={() => editProduct(null)}
+      onHide={() => {
+        exitEditProduct();
+      }}
+      onPublished={() => {
+        exitEditProduct(true);
+      }}
     />
   );
 };

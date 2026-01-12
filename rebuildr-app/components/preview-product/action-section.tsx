@@ -50,7 +50,13 @@ export const ActionSection = ({
           <Button
             label="Redigera"
             onPress={() => {
-              editProduct(productId);
+              editProduct(
+                productId,
+                isMobile
+                  ? () =>
+                      router.canGoBack() ? router.back() : router.navigate("/")
+                  : undefined,
+              );
             }}
             style={{ flex: 1 }}
           />
