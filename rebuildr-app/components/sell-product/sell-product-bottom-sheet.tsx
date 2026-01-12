@@ -39,6 +39,9 @@ export const SellProductBottomSheet = () => {
       onHide={() => {
         setVisible(false);
       }}
+      onPublished={() => {
+        setVisible(false);
+      }}
     />
   );
 };
