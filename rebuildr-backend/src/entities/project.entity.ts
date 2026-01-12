@@ -69,9 +69,9 @@ export class Project {
   projectPictureId?: string;
   @OneToOne(() => File, { nullable: true })
   @JoinColumn()
-  projectPicture: File;
+  projectPicture?: File;
 
-  @ManyToMany(() => User, (user) => user.likedProjects)
+  @ManyToMany(() => User, (user) => user.likedProjects, { cascade: true })
   @JoinTable()
   likedBy: User[];
 

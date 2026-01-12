@@ -6,6 +6,8 @@ import {
 } from "@/gql/graphql";
 import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
 import { ProjectFormFields, ProjectFormType } from "./project-form-fields";
+import { DeleteProjectBottomSheet } from "./delete-project-bottom-sheet";
+import { useState } from "react";
 
 const EDIT_PROJECT_QUERY = gql`
   query EditProjectQuery($input: GetProjectInput!) {
@@ -52,9 +54,11 @@ const UPDATE_PROJECT = gql`
 type Props = {
   id: string;
   onEdited: (id: string) => void;
+  onDeleted?: () => void;
 };
 
-export const EditProject = ({ id, onEdited }: Props) => {
+export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
   const { data } = useSuspenseQuery<
     EditProjectQueryQuery,
     EditProjectQueryQueryVariables
@@ -88,11 +92,27 @@ export const EditProject = ({ id, onEdited }: Props) => {
     });
   };
 
+  const onDeleteProject = async () => {
+    setShowDeleteSheet(true);
+  };
+
   return (
-    <ProjectFormFields
-      project={data.getProject}
-      onSave={(project) => onEditProject(project)}
-      isLoading={updatingProject}
-    />
+    <>
+      <ProjectFormFields
+        project={data.getProject}
+        onSave={(project) => onEditProject(project)}
+        onDelete={onDeleteProject}
+        isLoading={updatingProject}
+      />
+      <DeleteProjectBottomSheet
+        projectId={id}
+        show={showDeleteSheet}
+        onDismiss={() => setShowDeleteSheet(false)}
+        onProjectDeleted={() => {
+          setShowDeleteSheet(false);
+          onDeleted?.();
+        }}
+      />
+    </>
   );
 };
