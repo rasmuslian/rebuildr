@@ -148,14 +148,15 @@ export class UserLoader {
         const userReviews = reviews.filter(
           (review) => review.revieweeId === userId,
         );
-        if (!reviews.length) {
+        if (!userReviews.length) {
           return null;
         }
         const sumRating = userReviews.reduce(
           (acc, curr) => acc + curr.stars,
           0,
         );
-        const avgRating = sumRating / reviews.length;
+
+        const avgRating = sumRating / userReviews.length;
         return Math.round(avgRating * 10) / 10;
       });
 
