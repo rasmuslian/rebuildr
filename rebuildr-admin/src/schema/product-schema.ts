@@ -4,6 +4,7 @@ import {
   MeasurementUnitEnum,
   ProductConditionEnum,
   QuantityUnitEnum,
+  ColorTypeEnum,
 } from "gql/graphql";
 
 export const ProductSchema = z.object({
@@ -20,6 +21,22 @@ export const ProductSchema = z.object({
   description: z
     .string({ message: "Du måste ange beskrivning." })
     .min(3, { message: "Beskrivningen måste vara minst 3 tecken!" }),
+
+  color: z
+    .object({
+      enabled: z.boolean(),
+      value: z.string().optional(),
+      type: z.nativeEnum(ColorTypeEnum),
+    })
+    .superRefine(({ enabled, value }, ctx) => {
+      if (enabled && !value) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["value"],
+          message: "Du måste ange en färg.",
+        });
+      }
+    }),
 
   pricing: z
     .object({

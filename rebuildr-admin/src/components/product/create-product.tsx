@@ -10,7 +10,11 @@ import { App } from "antd";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 import { getFileInputTypes, uploadFiles } from "@utils/file-utils";
-import { CmsCreateProductInput, MeasurementUnitEnum } from "gql/graphql";
+import {
+  CmsCreateProductInput,
+  ColorTypeEnum,
+  MeasurementUnitEnum,
+} from "gql/graphql";
 import { createProduct } from "@/queries/product/create-product";
 import { queryKeys } from "@/lib/query-keys";
 import { omit } from "lodash";
@@ -34,6 +38,11 @@ const CreateProduct = () => {
       documents: [],
       pricing: {
         isGiveaway: false,
+      },
+      color: {
+        enabled: false,
+        type: ColorTypeEnum.FreeText,
+        value: undefined,
       },
       secondaryMeasurement: {
         enabled: false,
@@ -96,6 +105,8 @@ const CreateProduct = () => {
       categoryId: formData.categoryId,
       condition: formData.condition,
       price: formData.pricing.price ?? 0,
+      color: formData.color.value ?? null,
+      colorType: formData.color.type,
       isGiveaway: formData.pricing.isGiveaway,
       images: getFileInputTypes(formData.images),
       documents: getFileInputTypes(formData.documents),

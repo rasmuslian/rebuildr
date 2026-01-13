@@ -15,6 +15,7 @@ import SelectMeasurement from "@components/measurement/select-measurement";
 import SelectProject from "@components/project/select-project";
 import SelectAddress from "@components/address/select-address";
 import SelectShippingPrice from "@components/shipping-price/select-shipping-price";
+import SelectColorType from "@components/color/select-color-type";
 import Section from "@components/section";
 import {
   measurements,
@@ -30,6 +31,7 @@ import {
   UseFormSetValue,
   UseFormClearErrors,
 } from "react-hook-form";
+import { ColorTypeEnum } from "gql/graphql";
 
 type Props = {
   title: string;
@@ -444,6 +446,72 @@ const ProductForm = ({
                     </FormField>
                   )}
                 />
+              </div>
+            )}
+
+            <Controller
+              control={control}
+              name="color.enabled"
+              render={({ field: { value, onChange } }) => (
+                <FormField
+                  error={errors.secondaryMeasurement?.enabled?.message}
+                >
+                  <Checkbox
+                    checked={value}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      onChange(checked);
+
+                      if (!checked) {
+                        setValue("color", {
+                          enabled: false,
+                          value: undefined,
+                          type: ColorTypeEnum.FreeText,
+                        });
+                      }
+                    }}
+                  >
+                    Lägg till färg
+                  </Checkbox>
+                </FormField>
+              )}
+            />
+
+            {watch("color.enabled") && (
+              <div className="flex flex-col gap-2 rounded-md bg-neutral-100 p-4">
+                <label className="text-label-large">Ange färgkod</label>
+                <div className="flex flex-row gap-5">
+                  <Controller
+                    control={control}
+                    name="color.value"
+                    render={({ field }) => {
+                      const placeholder =
+                        watch("color.type") === ColorTypeEnum.Ncs
+                          ? "S 3010-Y30R"
+                          : "Grön";
+
+                      return (
+                        <FormField error={errors.color?.value?.message}>
+                          <Input
+                            {...field}
+                            placeholder={placeholder}
+                            size="middle"
+                          />
+                        </FormField>
+                      );
+                    }}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="color.type"
+                    render={({ field: { value, onChange } }) => (
+                      <FormField error={errors.color?.type?.message}>
+                        <SelectColorType value={value} onChange={onChange} />
+                      </FormField>
+                    )}
+                  />
+                </div>
               </div>
             )}
           </Section>
