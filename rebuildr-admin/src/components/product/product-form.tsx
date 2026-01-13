@@ -15,7 +15,7 @@ import SelectMeasurement from "@components/measurement/select-measurement";
 import SelectProject from "@components/project/select-project";
 import SelectAddress from "@components/address/select-address";
 import SelectShippingPrice from "@components/shipping-price/select-shipping-price";
-import SelectColorType from "@components/color/select-color";
+import SelectColorType from "@components/color/select-color-type";
 import Section from "@components/section";
 import {
   measurements,
