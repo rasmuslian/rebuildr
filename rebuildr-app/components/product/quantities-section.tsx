@@ -28,10 +28,10 @@ type Props = {
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;
   primaryError?: string;
-  onBlurPrimary: (args: { quantity: number; unit: QuantityUnitEnum }) => void;
+  onChangePrimary: (args: { quantity: number; unit: QuantityUnitEnum }) => void;
   secondaryQuantity?: number;
   secondaryUnit?: QuantityUnitEnum;
-  onBlurSecondary: (args: {
+  onChangeSecondary: (args: {
     quantity?: number;
     unit?: QuantityUnitEnum;
   }) => void;
@@ -42,14 +42,15 @@ export const QuantitiesSection = ({
   primaryQuantity: _primaryQuantity,
   primaryUnit: _primaryUnit,
   primaryError,
-  onBlurPrimary,
+  onChangePrimary,
   secondaryQuantity: _secondaryQuantity,
   secondaryUnit: _secondaryUnit,
-  onBlurSecondary,
+  onChangeSecondary,
 }: Props) => {
   const [primaryQuantity, setPrimaryQuantity] = useState(
     _primaryQuantity?.toString() ?? "0",
   );
+
   const [secondaryQuantity, setSecondaryQuantity] = useState(
     _secondaryQuantity?.toString() ?? "0",
   );
@@ -87,30 +88,35 @@ export const QuantitiesSection = ({
     return newQuantity || "0";
   };
 
-  const onBlurQuantity = (type: "primary" | "secondary") => {
-    const quantity =
-      type === "primary"
-        ? parseInt(primaryQuantity, 10)
-        : parseInt(secondaryQuantity, 10);
+  const onChangePrimaryQuantity = (q: string) => {
+    const processed = processQuantity(q);
+    setPrimaryQuantity(processed);
+    const quantity = parseInt(processed, 10);
     if (quantity <= 0) {
       return;
     }
-    if (type === "primary") {
-      return {
-        quantity,
-        unit:
-          primaryUnit ??
-          data?.category.primaryQuantityUnit ??
-          QuantityUnitEnum.Amount,
-      };
+    onChangePrimary({
+      quantity,
+      unit:
+        primaryUnit ??
+        data?.category.primaryQuantityUnit ??
+        QuantityUnitEnum.Amount,
+    });
+  };
+  const onChangeSecondaryQuantity = (q: string) => {
+    const processed = processQuantity(q);
+    setSecondaryQuantity(processed);
+    const quantity = parseInt(processed, 10);
+    if (quantity <= 0) {
+      return;
     }
-    return {
+    onChangeSecondary({
       quantity,
       unit:
         secondaryUnit ??
         data?.category.secondaryQuantityUnit ??
         QuantityUnitEnum.Amount,
-    };
+    });
   };
 
   if (!data) {
@@ -131,14 +137,7 @@ export const QuantitiesSection = ({
         <View style={{ minWidth: 213 }}>
           <TextInput
             value={primaryQuantity}
-            onChange={(t) => setPrimaryQuantity(processQuantity(t))}
-            onBlur={() => {
-              const primaryObject = onBlurQuantity("primary");
-              if (!primaryObject) {
-                return;
-              }
-              onBlurPrimary(primaryObject);
-            }}
+            onChange={(t) => onChangePrimaryQuantity(t)}
             inputType="numeric"
             error={!!primaryError}
           />
@@ -183,7 +182,7 @@ export const QuantitiesSection = ({
           onPress={() => {
             //remove secondary if showSecondary is true, since it will now be removed from product
             if (showSecondary) {
-              onBlurSecondary({});
+              onChangeSecondary({});
               setSecondaryUnit(undefined);
             }
             setSecondaryUnit(
@@ -204,14 +203,7 @@ export const QuantitiesSection = ({
           <View style={{ minWidth: 213 }}>
             <TextInput
               value={secondaryQuantity}
-              onChange={(t) => setSecondaryQuantity(processQuantity(t))}
-              onBlur={() => {
-                const secondaryObject = onBlurQuantity("secondary");
-                if (!secondaryObject) {
-                  return;
-                }
-                onBlurSecondary(secondaryObject);
-              }}
+              onChange={onChangeSecondaryQuantity}
             />
           </View>
           <View style={{ flex: 1 }}>
