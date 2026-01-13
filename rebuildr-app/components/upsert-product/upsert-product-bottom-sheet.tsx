@@ -129,6 +129,8 @@ export const UpsertProductBottomSheet = ({
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [product, setProduct] = useState<ProductFields>(initialProduct);
+  //variable determining when we have fetched data processed it
+  const [initialized, setInitialized] = useState(false);
   const [step, setStep] = useState<
     "details" | "project" | "transportation" | "preview" | "payout"
   >("details");
@@ -244,6 +246,7 @@ export const UpsertProductBottomSheet = ({
         status: dbProduct.status ?? product.status,
       };
       setProduct(stateProduct);
+      setInitialized(true);
     };
     if (data) {
       //check if user has payout account
@@ -652,7 +655,7 @@ export const UpsertProductBottomSheet = ({
     return undefined;
   };
 
-  if (!data) {
+  if (!data || !initialized) {
     return null;
   }
 
