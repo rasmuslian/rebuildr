@@ -104,7 +104,7 @@ export const Details = ({
             primaryQuantity={product.primaryQuantity}
             primaryUnit={product.primaryUnit}
             primaryError={badFields?.["primary"]}
-            onBlurPrimary={({ quantity, unit }) =>
+            onChangePrimary={({ quantity, unit }) =>
               update({
                 primaryQuantity: quantity,
                 primaryUnit: unit,
@@ -112,7 +112,7 @@ export const Details = ({
             }
             secondaryQuantity={product.secondaryQuantity}
             secondaryUnit={product.secondaryUnit}
-            onBlurSecondary={({ quantity, unit }) =>
+            onChangeSecondary={({ quantity, unit }) =>
               update({
                 secondaryQuantity: quantity,
                 secondaryUnit: unit,

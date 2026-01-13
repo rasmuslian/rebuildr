@@ -1,5 +1,6 @@
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
+import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -16,9 +17,20 @@ export const DescriptionSection = ({
   titleError,
   description: _description,
   descriptionError,
-  onChangeTitle,
-  onChangeDescription,
+  onChangeTitle: _onChangeTitle,
+  onChangeDescription: _onChangeDescription,
 }: Props) => {
+  const [title, setTitle] = useState(_title);
+  const [description, setDescription] = useState(_description);
+  const onChangeTitle = (t: string) => {
+    setTitle(t);
+    _onChangeTitle(t);
+  };
+  const onChangeDescription = (d: string) => {
+    setDescription(d);
+    _onChangeDescription(d);
+  };
+
   return (
     <View>
       <Display size="small" style={{ marginBottom: 16 }}>
@@ -33,14 +45,14 @@ export const DescriptionSection = ({
         fields={[
           {
             type: "text",
-            value: _title,
+            value: title,
             onChangeText: onChangeTitle,
             heading: "Annonsrubrik",
             error: titleError,
           },
           {
             type: "text",
-            value: _description,
+            value: description,
             onChangeText: (t) => onChangeDescription(t.slice(0, 5000)),
             heading: "Beskrivning",
             multiline: true,
