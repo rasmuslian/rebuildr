@@ -136,6 +136,8 @@ export type CmsCreateProductInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
+  color?: InputMaybe<Scalars['String']['input']>;
+  colorType?: InputMaybe<ColorTypeEnum>;
   condition: ProductConditionEnum;
   deliveryEnabled: Scalars['Boolean']['input'];
   deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
@@ -257,6 +259,8 @@ export type CmsUpdateProductInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
   categoryId: Scalars['String']['input'];
+  color?: InputMaybe<Scalars['String']['input']>;
+  colorType?: InputMaybe<ColorTypeEnum>;
   condition: ProductConditionEnum;
   deliveryEnabled: Scalars['Boolean']['input'];
   deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
@@ -385,6 +389,10 @@ export type CreateReviewInput = {
 
 export type CreateSearchResultInput = {
   searchString: Scalars['String']['input'];
+};
+
+export type DeleteProjectInput = {
+  id: Scalars['String']['input'];
 };
 
 export type DeliveryOptionResponse = {
@@ -691,6 +699,7 @@ export type Mutation = {
   deleteAccount: User;
   deleteConnectedAccount: Scalars['Boolean']['output'];
   deleteDraft: Scalars['Boolean']['output'];
+  deleteProject: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
   hideProduct: Product;
@@ -882,6 +891,11 @@ export type MutationDeleteConnectedAccountArgs = {
 
 export type MutationDeleteDraftArgs = {
   input: RemoveProductInput;
+};
+
+
+export type MutationDeleteProjectArgs = {
+  input: DeleteProjectInput;
 };
 
 

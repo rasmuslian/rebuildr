@@ -552,6 +552,12 @@ class CmsBaseProductInput extends QuantityInput {
 
   @Field(() => [String], { nullable: true })
   shippingPriceIds?: string[];
+
+  @Field({ nullable: true })
+  color?: string;
+
+  @Field(() => ColorTypeEnum, { nullable: true })
+  colorType?: ColorTypeEnum;
 }
 
 @InputType()

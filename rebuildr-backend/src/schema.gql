@@ -1031,6 +1031,8 @@ input CmsCreateProductInput {
   deliveryPrice: Float
   deliveryRadius: Float
   shippingPriceIds: [String!]
+  color: String
+  colorType: ColorTypeEnum
   images: [FileInputType!]!
   documents: [FileInputType!]!
 }
@@ -1071,6 +1073,8 @@ input CmsUpdateProductInput {
   deliveryPrice: Float
   deliveryRadius: Float
   shippingPriceIds: [String!]
+  color: String
+  colorType: ColorTypeEnum
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]

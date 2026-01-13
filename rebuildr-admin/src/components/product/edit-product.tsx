@@ -51,6 +51,11 @@ const EditProduct = ({ product }: Props) => {
         price: product.price,
         isGiveaway: product.isGiveaway,
       },
+      color: {
+        enabled: !!product.color,
+        type: product.colorType,
+        value: product.color ?? undefined,
+      },
       images: product.images ? getUploadFiles(product.images) : [],
       documents: product.documents ? getUploadFiles(product.documents) : [],
       primaryMeasurement: {
@@ -137,6 +142,8 @@ const EditProduct = ({ product }: Props) => {
       categoryId: formData.categoryId,
       condition: formData.condition,
       price: formData.pricing.price ?? 0,
+      color: formData.color.value ?? null,
+      colorType: formData.color.type,
       isGiveaway: formData.pricing.isGiveaway,
       addImages: getFileInputTypes(formData.images),
       removeImages: getRemovedFileIds(product.images, formData.images),

@@ -30,6 +30,8 @@ const query = `
       heightUnit
       noProject
       sellerId
+      color
+      colorType
       pickupEnabled
       deliveryEnabled
       deliveryPrice
