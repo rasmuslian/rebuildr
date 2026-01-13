@@ -1,6 +1,7 @@
 import {
   Brand,
   Category,
+  ColorTypeEnum,
   ProductStatusEnum,
   ProductViewQuery,
 } from "@/gql/graphql";
@@ -20,6 +21,10 @@ import { ProductFields } from "@components/upsert-product/types";
 import { SectionHeader } from "@components/sections/section-header";
 import { Breadcrumbs } from "./breadcrumbs";
 import { colorTypes } from "@constants/product-color-types";
+import { ncsToRgb } from "@/utils/color/ncsToRgb";
+import { borderRadius, strokeWidth } from "@constants/sizes";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { swedishColorToHex } from "@/utils/color/swedish-colors";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
@@ -42,6 +47,7 @@ export const MainContent = ({
   sellerIsMe,
   actionSection,
 }: Props) => {
+  const colors = useThemeColor();
   const approximatePlace = product.approximatePlace;
 
   const showSpecificsMeasurements =
@@ -51,6 +57,22 @@ export const MainContent = ({
     product.length ||
     product.weight;
   const showSpecificsDocuments = !!product.documents?.length;
+
+  const ncsToRgbStyle = (ncs: string) => {
+    const rgb = ncsToRgb(ncs);
+
+    if (!rgb) {
+      return `rgb(255, 255, 255)`;
+    }
+    return `rgb(${rgb?.r}, ${rgb?.g}, ${rgb?.b})`;
+  };
+  const freeTextColorToHex = (color: string) => {
+    const hex = swedishColorToHex(color);
+    if (!hex) {
+      return "#FFFFFF";
+    }
+    return hex;
+  };
 
   return (
     <View style={{ gap: 24 }}>
@@ -236,9 +258,26 @@ export const MainContent = ({
         {product.color && (
           <View style={{ gap: 4 }}>
             <Label size="medium">Färg</Label>
-            <Body size="medium">
-              {colorTypes[product.colorType].text}: {product.color}
-            </Body>
+            <View
+              style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+            >
+              <View
+                style={{
+                  width: 25,
+                  height: 25,
+                  backgroundColor:
+                    product.colorType === ColorTypeEnum.FreeText
+                      ? freeTextColorToHex(product.color)
+                      : ncsToRgbStyle(product.color),
+                  borderWidth: strokeWidth.regular,
+                  borderColor: colors.dividers.neutral,
+                  borderRadius: borderRadius.xSmall,
+                }}
+              />
+              <Body size="medium">
+                {colorTypes[product.colorType].text}: {product.color}
+              </Body>
+            </View>
           </View>
         )}
         {showSpecificsDocuments && (
