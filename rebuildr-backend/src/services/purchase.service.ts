@@ -22,7 +22,7 @@ import {
   ForbiddenException,
   InternalServerException,
 } from 'src/exceptions';
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -44,6 +44,7 @@ import { StripeService } from './stripe.service';
 import Stripe from 'stripe';
 import { idFromObject } from 'src/utility/stripe/utils';
 
+@Injectable()
 export class PurchaseService {
   constructor(
     @InjectRepository(Purchase)
@@ -219,11 +220,11 @@ export class PurchaseService {
           status: existingPayment.status,
         });
       } else {
-      return {
-        purchase: existingPurchase,
-        product: product,
-        reference: existingPayment.client_secret,
-      };
+        return {
+          purchase: existingPurchase,
+          product: product,
+          reference: existingPayment.client_secret,
+        };
       }
     }
 
@@ -265,13 +266,11 @@ export class PurchaseService {
       input.transportationMethod === TransportationEnum.PICKUP &&
       !product.pickupEnabled
     ) {
-      if (!product.shippingPrices.length) {
-        logger.error({
-          message: 'Seller does not offer pickup',
-          productId: product.id,
-        });
-        throw BadUserInputException('Seller does not offer pickup');
-      }
+      logger.error({
+        message: 'Seller does not offer pickup',
+        productId: product.id,
+      });
+      throw BadUserInputException('Seller does not offer pickup');
     }
     if (input.transportationMethod === TransportationEnum.SHIPPING) {
       if (!product.shippingPrices.length) {
@@ -332,10 +331,12 @@ export class PurchaseService {
 
     const purchase = new Purchase();
     const shippingPrice = selectedShippingPrice?.price ?? 0;
-    const provision = this.calculateProvision(product.price);
-    const escrow = product.price - provision;
-    const fee = provision + shippingPrice;
-    const isFree = escrow + fee === 0;
+
+    const { escrow, fee, isFree } = PurchaseService.calculateSellSummary(
+      product.price,
+      shippingPrice,
+      product.deliveryPrice ?? 0,
+    );
 
     if (!input.paymentMethod && !isFree) {
       throw BadUserInputException('Payment method missing');
@@ -401,8 +402,27 @@ export class PurchaseService {
     };
   }
 
-  calculateProvision(price: number) {
-    return Math.round(price * provisionBase);
+  static calculateSellSummary(
+    productPrice: number,
+    shippingPrice: number,
+    deliveryPrice: number,
+  ) {
+    const provision = Math.round(productPrice * provisionBase);
+    const escrow = productPrice - provision + deliveryPrice;
+    const fee = provision + shippingPrice;
+    const isFree = escrow + fee === 0;
+    return {
+      provision,
+      /**
+       * Amount of total received by seller
+       */
+      escrow,
+      /**
+       * Amount of total going to Rebuildr
+       */
+      fee,
+      isFree,
+    };
   }
 
   //If seller has written a message to buyer, we record it here

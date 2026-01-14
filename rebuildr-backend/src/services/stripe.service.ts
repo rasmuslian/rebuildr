@@ -276,6 +276,11 @@ export class StripeService {
     }
   }
 
+  /**
+   * @param amount Total amount that will be payed by buyer
+   * @param fee Part of amount that is redirected Rebuildr
+   * @param description Meta data which will be visible in Stripe dashboard
+   */
   async createPayment(
     sellerAccountId: string,
     amount: number,
