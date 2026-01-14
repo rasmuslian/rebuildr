@@ -111,14 +111,12 @@ export const MainContent = ({
             {product.deliveryEnabled && (
               <Body size="medium" color="secondary">
                 • Hemtransport{" "}
-                {!sellerIsMe && (
+                {!sellerIsMe && myAddress && (
                   <>
                     <Body size="medium" color="secondary">
                       till{" "}
                     </Body>
-                    <Body size="medium" isLink>
-                      {myAddress}{" "}
-                    </Body>
+                    <Body size="medium">{myAddress} </Body>
                   </>
                 )}
                 från {product.deliveryPrice ?? 0} kr
