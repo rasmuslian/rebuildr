@@ -145,32 +145,32 @@ export const MainContent = ({
           {brand && <ProductChip boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
-              boldText={`${product.thickness} ${measurements.thickness.options[product.thicknessUnit]?.name}`}
+              boldText={`${measurements.thickness.prefix}: ${product.thickness} ${measurements.thickness.options[product.thicknessUnit]?.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
-              boldText={`${product.height} ${measurements.height.options[product.heightUnit]?.name}`}
+              boldText={`${measurements.height.prefix}: ${product.height} ${measurements.height.options[product.heightUnit]?.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
-              boldText={`${product.width} ${measurements.width.options[product.widthUnit]?.name}`}
+              boldText={`${measurements.width.prefix}: ${product.width} ${measurements.width.options[product.widthUnit]?.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
-              boldText={`${product.length} ${measurements.length.options[product.lengthUnit]?.name}`}
+              boldText={`${measurements.length.prefix}: ${product.length} ${measurements.length.options[product.lengthUnit]?.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
-              boldText={`${product.diameter} ${measurements.diameter.options[product.diameterUnit]?.name}`}
+              boldText={`${measurements.diameter.prefix}: ${product.diameter} ${measurements.diameter.options[product.diameterUnit]?.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
-              boldText={`${product.weight} ${measurements.weight.options[product.weightUnit]?.name}`}
+              boldText={`${measurements.weight.prefix}: ${product.weight} ${measurements.weight.options[product.weightUnit]?.name}`}
             />
           )}
         </View>
@@ -209,10 +209,10 @@ export const MainContent = ({
         {showSpecificsMeasurements && (
           <View style={{ gap: 4 }}>
             <Label size="medium">Mått</Label>
-            {!!product.width && (
+            {!!product.thickness && (
               <Body size="medium">
-                Bredd: {product.width}{" "}
-                {measurements.width.options[product.widthUnit]?.name}
+                Tjocklek: {product.thickness}{" "}
+                {measurements.thickness.options[product.thicknessUnit]?.name}
               </Body>
             )}
             {!!product.height && (
@@ -221,10 +221,10 @@ export const MainContent = ({
                 {measurements.height.options[product.heightUnit]?.name}
               </Body>
             )}
-            {!!product.thickness && (
+            {!!product.width && (
               <Body size="medium">
-                Djup: {product.thickness}{" "}
-                {measurements.thickness.options[product.thicknessUnit]?.name}
+                Bredd: {product.width}{" "}
+                {measurements.width.options[product.widthUnit]?.name}
               </Body>
             )}
             {!!product.length && (
