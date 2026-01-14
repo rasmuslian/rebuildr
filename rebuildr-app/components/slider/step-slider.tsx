@@ -1,13 +1,20 @@
-import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
-import React, { useEffect, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
-import { Gesture } from "react-native-gesture-handler";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, ViewStyle } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
+  clamp,
+  runOnJS,
   useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  type SharedValue,
 } from "react-native-reanimated";
-import { SliderThumb } from "./slider-thumb";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { themeColorTokens } from "@constants/colors";
+import { Icon } from "@icons/icon";
+import { borderRadius } from "@constants/sizes";
 
 export type StepSliderProps<T> = {
   values: T[];
@@ -15,122 +22,250 @@ export type StepSliderProps<T> = {
   onChange: (v: T) => void;
   onRelease?: (v: T) => void;
   compareFunction: (v1: T, v2: T) => boolean;
-  width?: number;
 };
-export const StepSlider = <T,>({
-  values,
+
+const TRACK_HEIGHT = 16;
+const THUMB_SIZE = 40;
+const DOT_SIZE = 4;
+
+const clampIndex = (i: number, max: number) => Math.max(0, Math.min(max, i));
+
+function indexOfValue<T>(
+  values: T[],
+  value: T,
+  compare: (v1: T, v2: T) => boolean,
+) {
+  const idx = values.findIndex((v) => compare(v, value));
+  return idx < 0 ? 0 : idx;
+}
+
+export function StepSlider<T>({
+  values = [],
   value,
   onChange,
   onRelease,
   compareFunction,
-  width: _width,
-}: StepSliderProps<T>) => {
-  const { width: screenWidth } = useWindowDimensions();
-  const maxWidth = screenWidth - 48;
-  const width = _width ? Math.min(_width, maxWidth) : maxWidth;
+}: StepSliderProps<T>) {
   const colors = useThemeColor();
+  const count = Math.max(values.length, 2);
+  const [width, setWidth] = useState<number>(0);
 
-  const rightCalibration = 16;
-  const stepCount = values.length;
-  const stepWidth = width / (stepCount - 1);
-  const indexOfValue = values.findIndex((v) => compareFunction(v, value));
-  const translateX = useSharedValue(indexOfValue * stepWidth);
-  const [step, setStep] = useState(indexOfValue);
-  const [absoluteStart, setAbsoluteStart] = useState(0);
+  const currentIndex = useMemo(
+    () => indexOfValue(values, value, compareFunction),
+    [values, value, compareFunction],
+  );
 
-  const gestureHandler = Gesture.Pan()
-    .onBegin((event) => {
-      setAbsoluteStart(event.absoluteX - indexOfValue * stepWidth);
-    })
-    .onChange((event) => {
-      const deltaX = event.absoluteX - absoluteStart;
-      const newValue = Math.min(Math.max(0, deltaX), width);
-      const newIndex = Math.floor(newValue / stepWidth);
-      if (newIndex !== indexOfValue) {
-        setStep(newIndex);
-        onChange(values[newIndex]);
-      }
+  const range = Math.max(0, width - THUMB_SIZE);
+  const stepPx = count <= 1 ? 0 : range / (count - 1);
 
-      translateX.value = newIndex * stepWidth;
-    })
-    .onEnd((event) => {
-      const deltaX = event.absoluteX - absoluteStart;
-      const newValue = Math.min(Math.max(0, deltaX), width);
-      const newIndex = Math.floor(newValue / stepWidth);
-      onRelease?.(values[newIndex]);
-    });
+  const x = useSharedValue(0);
+  const startX = useSharedValue(0);
+  const lastIndex = useSharedValue(currentIndex);
 
-  const animatedThumbStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX:
-          translateX.value -
-          //Calibrate thumb position on the last value of the slider so that its not outside the container
-          (indexOfValue === values.length - 1 ? rightCalibration : 0),
-      },
-    ],
+  const thumbCenterX = useDerivedValue(() => x.value + THUMB_SIZE / 2);
+
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value }],
   }));
-  const animatedProgressBarStyle = useAnimatedStyle(() => ({
-    width: translateX.value,
+
+  const activeTrackStyle = useAnimatedStyle(() => ({
+    width: thumbCenterX.value,
   }));
+
+  const emitChange = (idx: number) => {
+    const next = values[idx];
+    if (next !== undefined) onChange(next);
+  };
+
+  const emitRelease = (idx: number) => {
+    const next = values[idx];
+    if (next !== undefined) onRelease?.(next);
+  };
+
+  const snapToIndex = (idx: number, release: boolean) => {
+    const clampedIdx = clampIndex(idx, count - 1);
+    const target = clamp(clampedIdx * stepPx, 0, range);
+
+    x.value = withSpring(target, { damping: 28, stiffness: 600, mass: 0.6 });
+    lastIndex.value = clampedIdx;
+
+    runOnJS(emitChange)(clampedIdx);
+    if (release) runOnJS(emitRelease)(clampedIdx);
+  };
 
   useEffect(() => {
-    translateX.value = indexOfValue * stepWidth;
-  }, [width]);
+    if (!width) return;
+    const target = clamp(currentIndex * stepPx, 0, range);
+    x.value = withTiming(target, { duration: 160 });
+    lastIndex.value = currentIndex;
+  }, [currentIndex, width, stepPx, range, x, lastIndex]);
+
+  const pan = Gesture.Pan()
+    .onStart(() => {
+      startX.value = x.value;
+    })
+    .onUpdate((event) => {
+      const nextX = clamp(startX.value + event.translationX, 0, range);
+      x.value = nextX;
+
+      const idx = stepPx === 0 ? 0 : Math.round(nextX / stepPx);
+      if (idx !== lastIndex.value) {
+        lastIndex.value = idx;
+        runOnJS(emitChange)(idx);
+      }
+    })
+    .onEnd(() => {
+      const idx = stepPx === 0 ? 0 : Math.round(x.value / stepPx);
+      snapToIndex(idx, true);
+    });
+
+  const tap = Gesture.Tap().onEnd((event) => {
+    const nextX = clamp(event.x - THUMB_SIZE / 2, 0, range);
+    const idx = stepPx === 0 ? 0 : Math.round(nextX / stepPx);
+    snapToIndex(idx, true);
+  });
+
+  const gesture = Gesture.Simultaneous(pan, tap);
+
+  const dotCenters = useMemo(() => {
+    if (!width) return [];
+    return Array.from({ length: count }, (_, i) => i * stepPx + THUMB_SIZE / 2);
+  }, [count, width, stepPx]);
 
   return (
-    <View>
-      {/* Container track */}
-      <View
-        style={{
-          width: width + rightCalibration,
-          position: "relative",
-          justifyContent: "center",
-          paddingRight: 8,
-          height: 16,
-          backgroundColor: colors.buttons.tonal.enabled,
-          borderRadius: borderRadius.small,
-        }}
-      >
-        {/* Progress track */}
-        <Animated.View
-          style={[
-            {
+    <View
+      style={{ height: THUMB_SIZE }}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w !== width) setWidth(w);
+      }}
+    >
+      {width > 0 && (
+        <GestureDetector gesture={gesture}>
+          <Animated.View
+            style={{
               position: "absolute",
-              height: 16,
-              backgroundColor: colors.buttons.filled.enabled,
-              borderTopLeftRadius: borderRadius.small,
-              borderBottomLeftRadius: borderRadius.small,
-            },
-            animatedProgressBarStyle,
-          ]}
-        />
-
-        {/* Step indicators */}
-        {Array.from({ length: stepCount }).map((_, i) => (
-          <View
-            key={i}
-            style={[
-              {
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+            }}
+          >
+            {/* Track */}
+            <View
+              style={{
                 position: "absolute",
-                width: 4,
-                height: 4,
-                borderRadius: 3,
-                backgroundColor:
-                  step > i
-                    ? colors.buttons.tonal.enabled
-                    : colors.buttons.filled.enabled,
-                top: 6,
-              },
-              { left: i * stepWidth + 5 },
-            ]}
-          />
-        ))}
-        <SliderThumb
-          gestureHandler={gestureHandler}
-          positionStyle={animatedThumbStyle}
-        />
-      </View>
+                left: 0,
+                right: 0,
+                top: 0,
+                height: TRACK_HEIGHT,
+                borderRadius: borderRadius.small,
+                backgroundColor: colors.buttons.tonal.enabled,
+              }}
+            />
+
+            {/* Active fill */}
+            <Animated.View
+              style={[
+                {
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  height: TRACK_HEIGHT,
+                  borderRadius: borderRadius.small,
+                  backgroundColor: colors.buttons.filled.enabled,
+                },
+                activeTrackStyle,
+              ]}
+            />
+
+            {/* Step dots */}
+            {dotCenters.map((cx, i) => (
+              <StepDot
+                key={i}
+                cx={cx}
+                cy={TRACK_HEIGHT / 2}
+                size={DOT_SIZE}
+                activeColor={colors.buttons.tonal.enabled}
+                inactiveColor={colors.buttons.filled.enabled}
+                thumbCenterX={thumbCenterX}
+              />
+            ))}
+
+            {/* Thumb */}
+            <Thumb animatedThumbStyle={thumbStyle} />
+          </Animated.View>
+        </GestureDetector>
+      )}
     </View>
   );
-};
+}
+
+function StepDot({
+  cx,
+  cy,
+  size,
+  activeColor,
+  inactiveColor,
+  thumbCenterX,
+}: {
+  cx: number;
+  cy: number;
+  size: number;
+  activeColor: string;
+  inactiveColor: string;
+  thumbCenterX: SharedValue<number>;
+}) {
+  const r = size / 2;
+
+  const dotStyle = useAnimatedStyle(() => {
+    const isActive = cx <= thumbCenterX.value + 0.5;
+    return {
+      backgroundColor: isActive ? activeColor : inactiveColor,
+    };
+  }, [cx, activeColor, inactiveColor]);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          width: size,
+          height: size,
+          borderRadius: r,
+          left: cx - r,
+          top: cy - r,
+        },
+        dotStyle,
+      ]}
+    />
+  );
+}
+
+function Thumb({ animatedThumbStyle }: { animatedThumbStyle: ViewStyle }) {
+  const colors = themeColorTokens.dark;
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          width: THUMB_SIZE,
+          height: THUMB_SIZE,
+          top: (TRACK_HEIGHT - THUMB_SIZE) / 2,
+          backgroundColor: colors.buttons.filled.enabled,
+          borderRadius: borderRadius.medium,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowOpacity: 0.18,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 10 },
+          elevation: 10,
+        },
+        animatedThumbStyle,
+      ]}
+    >
+      <Icon icon="drag" size={18} customColor={colors.text.primaryLight} />
+    </Animated.View>
+  );
+}

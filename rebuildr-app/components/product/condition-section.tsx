@@ -1,12 +1,12 @@
 import { ProductConditionEnum } from "@/gql/graphql";
-import { Slider } from "@components/slider/slider";
+
 import { Body, Display, Label, Title } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { borderRadius } from "@constants/sizes";
-import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
+import { StepSlider } from "@components/slider/step-slider";
 
 type Props = {
   condition: ProductConditionEnum;
@@ -18,10 +18,7 @@ export const ConditionSection = ({
   onSelect,
 }: Props) => {
   const [condition, setCondition] = useState(_condition);
-  const { isDesktop } = useScreenType();
-  const [width, setWidth] = useState<number | undefined>(undefined);
   const colors = useThemeColor();
-  const ref = useRef<View>(null);
 
   const values = () => {
     return Object.values(ProductConditionEnum)
@@ -29,16 +26,8 @@ export const ConditionSection = ({
       .map((c) => c) as ProductConditionEnum[];
   };
 
-  useEffect(() => {
-    if (ref.current && isDesktop) {
-      ref.current.measure((x, y, width, height, pageX, pageY) => {
-        setWidth(width - 16);
-      });
-    }
-  }, [ref, isDesktop]);
-
   return (
-    <View ref={ref}>
+    <View>
       <Display size="small" style={{ marginBottom: 24 }}>
         Ange skick
       </Display>
@@ -66,16 +55,13 @@ export const ConditionSection = ({
             {conditions[condition].description}
           </Body>
         </View>
-        <Slider
-          type="step"
-          parentWidth={width}
-          sliderProps={{
-            values: values(),
-            value: condition,
-            onChange: (v) => setCondition(v),
-            onRelease: (v) => onSelect(v),
-            compareFunction: (v1, v2) => v1 === v2,
-          }}
+
+        <StepSlider
+          values={values()}
+          value={condition}
+          onChange={setCondition}
+          onRelease={onSelect}
+          compareFunction={(v1, v2) => v1 === v2}
         />
       </View>
     </View>
