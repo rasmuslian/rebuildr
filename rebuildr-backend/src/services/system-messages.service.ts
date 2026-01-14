@@ -12,10 +12,10 @@ const transportationWording: {
   };
 } = {
   [TransportationEnum.PICKUP]: {
-    form1: '',
+    form1: 'avhämtning',
   },
   [TransportationEnum.SHIPPING]: {
-    form1: 'avhämtning',
+    form1: 'frakt',
   },
   [TransportationEnum.DELIVERY]: {
     form1: 'hemtransport',
@@ -39,7 +39,7 @@ export class SystemMessagesService {
 
   private async message(input: SystemMessageInput) {
     try {
-    this.messageService.sendSystemMessage(input);
+      this.messageService.sendSystemMessage(input);
     } catch {
       return;
     }
