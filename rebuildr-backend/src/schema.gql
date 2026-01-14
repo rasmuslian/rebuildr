@@ -884,8 +884,6 @@ type Mutation {
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
-  hideProduct(input: HideProductInput!): Product!
-  showProduct(input: ShowProductInput!): Product!
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
@@ -1139,15 +1137,6 @@ input UpdateProductInput {
   deliveryRadius: Float
   pickupEnabled: Boolean
   shippingPriceIds: [String!]
-}
-
-input HideProductInput {
-  id: String!
-  reason: String!
-}
-
-input ShowProductInput {
-  id: String!
 }
 
 input SetLikeProductInput {

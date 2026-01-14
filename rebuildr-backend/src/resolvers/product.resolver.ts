@@ -363,12 +363,6 @@ export class HideProductInput {
 }
 
 @InputType()
-class ShowProductInput {
-  @Field()
-  id: string;
-}
-
-@InputType()
 class SetLikeProductInput {
   @Field()
   id: string;
@@ -780,24 +774,6 @@ export class ProductResolver {
       _user.role,
       childLogger,
     );
-  }
-
-  @Mutation(() => Product)
-  @UseGuards(GqlAuthGuard)
-  async hideProduct(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input') input: HideProductInput,
-  ) {
-    return this.productService.hide(input.id, input.reason, _user.id);
-  }
-
-  @Mutation(() => Product)
-  @UseGuards(GqlAuthGuard)
-  async showProduct(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input') input: ShowProductInput,
-  ) {
-    return this.productService.show(input.id, _user.id);
   }
 
   @Mutation(() => Product)
