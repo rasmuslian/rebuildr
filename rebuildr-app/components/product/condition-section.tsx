@@ -1,11 +1,12 @@
 import { ProductConditionEnum } from "@/gql/graphql";
-import { Slider } from "@components/slider/slider";
+
 import { Body, Display, Label, Title } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
+import { StepSlider } from "@components/slider/step-slider";
 
 type Props = {
   condition: ProductConditionEnum;
@@ -54,15 +55,13 @@ export const ConditionSection = ({
             {conditions[condition].description}
           </Body>
         </View>
-        <Slider
-          type="step"
-          sliderProps={{
-            values: values(),
-            value: condition,
-            onChange: (v) => setCondition(v),
-            onRelease: (v) => onSelect(v),
-            compareFunction: (v1, v2) => v1 === v2,
-          }}
+
+        <StepSlider
+          values={values()}
+          value={condition}
+          onChange={setCondition}
+          onRelease={onSelect}
+          compareFunction={(v1, v2) => v1 === v2}
         />
       </View>
     </View>

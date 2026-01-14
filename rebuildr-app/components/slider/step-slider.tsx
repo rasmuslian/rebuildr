@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, LayoutChangeEvent, ViewStyle } from "react-native";
+import { View, ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   clamp,
@@ -22,7 +22,6 @@ export type StepSliderProps<T> = {
   onChange: (v: T) => void;
   onRelease?: (v: T) => void;
   compareFunction: (v1: T, v2: T) => boolean;
-  width?: number;
 };
 
 const TRACK_HEIGHT = 16;
@@ -34,33 +33,29 @@ const clampIndex = (i: number, max: number) => Math.max(0, Math.min(max, i));
 function indexOfValue<T>(
   values: T[],
   value: T,
-  compare: (a: T, b: T) => boolean,
+  compare: (v1: T, v2: T) => boolean,
 ) {
   const idx = values.findIndex((v) => compare(v, value));
   return idx < 0 ? 0 : idx;
 }
 
 export function StepSlider<T>({
-  values,
+  values = [],
   value,
   onChange,
   onRelease,
   compareFunction,
-  width,
 }: StepSliderProps<T>) {
   const colors = useThemeColor();
-
-  const safeValues = values ?? [];
-  const count = Math.max(safeValues.length, 2);
-
-  const [measuredWidth, setMeasuredWidth] = useState<number>(width ?? 0);
+  const count = Math.max(values.length, 2);
+  const [width, setWidth] = useState<number>(0);
 
   const currentIndex = useMemo(
-    () => indexOfValue(safeValues, value, compareFunction),
-    [safeValues, value, compareFunction],
+    () => indexOfValue(values, value, compareFunction),
+    [values, value, compareFunction],
   );
 
-  const range = Math.max(0, measuredWidth - THUMB_SIZE);
+  const range = Math.max(0, width - THUMB_SIZE);
   const stepPx = count <= 1 ? 0 : range / (count - 1);
 
   const x = useSharedValue(0);
@@ -77,18 +72,13 @@ export function StepSlider<T>({
     width: thumbCenterX.value,
   }));
 
-  const onLayout = (e: LayoutChangeEvent) => {
-    const w = e.nativeEvent.layout.width;
-    if (w !== measuredWidth) setMeasuredWidth(w);
-  };
-
   const emitChange = (idx: number) => {
-    const next = safeValues[idx];
+    const next = values[idx];
     if (next !== undefined) onChange(next);
   };
 
   const emitRelease = (idx: number) => {
-    const next = safeValues[idx];
+    const next = values[idx];
     if (next !== undefined) onRelease?.(next);
   };
 
@@ -96,7 +86,7 @@ export function StepSlider<T>({
     const clampedIdx = clampIndex(idx, count - 1);
     const target = clamp(clampedIdx * stepPx, 0, range);
 
-    x.value = withSpring(target, { damping: 18, stiffness: 220 });
+    x.value = withSpring(target, { damping: 28, stiffness: 600, mass: 0.6 });
     lastIndex.value = clampedIdx;
 
     runOnJS(emitChange)(clampedIdx);
@@ -104,11 +94,11 @@ export function StepSlider<T>({
   };
 
   useEffect(() => {
-    if (!measuredWidth) return;
+    if (!width) return;
     const target = clamp(currentIndex * stepPx, 0, range);
     x.value = withTiming(target, { duration: 160 });
     lastIndex.value = currentIndex;
-  }, [currentIndex, measuredWidth, stepPx, range, x, lastIndex]);
+  }, [currentIndex, width, stepPx, range, x, lastIndex]);
 
   const pan = Gesture.Pan()
     .onStart(() => {
@@ -138,13 +128,19 @@ export function StepSlider<T>({
   const gesture = Gesture.Simultaneous(pan, tap);
 
   const dotCenters = useMemo(() => {
-    if (!measuredWidth) return [];
+    if (!width) return [];
     return Array.from({ length: count }, (_, i) => i * stepPx + THUMB_SIZE / 2);
-  }, [count, measuredWidth, stepPx]);
+  }, [count, width, stepPx]);
 
   return (
-    <View onLayout={onLayout} style={{ height: THUMB_SIZE }}>
-      {measuredWidth > 0 && (
+    <View
+      style={{ height: THUMB_SIZE }}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w !== width) setWidth(w);
+      }}
+    >
+      {width > 0 && (
         <GestureDetector gesture={gesture}>
           <Animated.View
             style={{
