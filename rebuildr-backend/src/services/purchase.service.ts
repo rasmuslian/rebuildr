@@ -1024,7 +1024,10 @@ export class PurchaseService {
             logger.error('Purchase is missing paymentId and is not for free');
             return;
           }
-          await this.stripeService.refundPayment(purchase.paymentIntentId);
+          const refund = await this.stripeService.refundPayment(
+            purchase.paymentIntentId,
+          );
+          purchase.refundId = refund.id;
         }
 
         if (!purchase.failedAt) {
@@ -1045,11 +1048,9 @@ export class PurchaseService {
         if (boughtForFree) {
           purchase.product.status = ProductStatus.PUBLISHED;
           await this.productRepository.save(purchase.product);
+        }
           purchase.failedAt = new Date();
           return await this.purchaseRepository.save(purchase);
-        }
-
-        return purchase;
       }),
     );
   }
@@ -1092,7 +1093,9 @@ export class PurchaseService {
         if (!purchase.paymentIntentId) {
           return;
         }
-        await this.stripeService.refundPayment(purchase.paymentIntentId);
+        const refund = await this.stripeService.refundPayment(
+          purchase.paymentIntentId,
+        );
         if (!purchase.failedAt) {
           this.systemMessagesService.lateShippingDropOffBuyer(
             purchase.buyer,
@@ -1105,8 +1108,9 @@ export class PurchaseService {
             purchase.product,
           );
         }
-
-        return purchase;
+        purchase.refundId = refund.id;
+        purchase.failedAt = new Date();
+        return await this.purchaseRepository.save(purchase);
       }),
     );
   }
@@ -1389,13 +1393,9 @@ export class PurchaseService {
       charge: payload.charge,
       status: payload.status,
     });
-    if (purchase.refundId) {
-      logger.info('Purchase already refunded');
-      return;
-    }
 
-    if (payload.status !== 'success') {
-      logger.info('Refund wrong status', {
+    if (payload.status !== 'succeeded') {
+      logger.info('Refund not succeeded', {
         status: payload.status,
       });
       return;

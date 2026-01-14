@@ -328,7 +328,7 @@ export class StripeService {
         payment_intent: paymentIntentId,
       });
     } catch (e) {
-      this.logger.error('refundPayment: error', { e });
+      this.logger.error('refundPayment: error', { paymentIntentId, e });
       throw new Error();
     }
   }

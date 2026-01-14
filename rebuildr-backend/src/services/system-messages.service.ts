@@ -38,7 +38,11 @@ export class SystemMessagesService {
   ) {}
 
   private async message(input: SystemMessageInput) {
+    try {
     this.messageService.sendSystemMessage(input);
+    } catch {
+      return;
+    }
   }
 
   async purchaseWithHandoffBuyer(

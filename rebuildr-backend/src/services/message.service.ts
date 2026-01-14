@@ -203,7 +203,10 @@ export class MessageService {
       this.userRepository.findOneByOrFail({ id: input.senderId }),
       this.productRepository.findOneByOrFail({ id: input.productId }),
     ]).catch(() => {
-      throw BadUserInputException('Invalid conversation');
+      this.logger.error('Invalid system conversation', {
+        ...input,
+      });
+      throw BadUserInputException('Invalid system conversation');
     });
 
     const newMessage = new Message();
