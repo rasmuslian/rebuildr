@@ -26,8 +26,9 @@ export const Slider = <T,>({ type, sliderProps, parentWidth }: Props<T>) => {
   const width = sliderProps.width
     ? Math.min(sliderProps.width, maxWidth)
     : maxWidth;
+
   if (type === "step") {
-    return <StepSlider {...sliderProps} width={width} />;
+    return <StepSlider {...sliderProps} />;
   }
   if (type === "continuous") {
     return <ContinuousSlider {...sliderProps} width={width} />;

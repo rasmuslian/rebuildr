@@ -3,9 +3,8 @@ import { Slider } from "@components/slider/slider";
 import { Body, Display, Label, Title } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { borderRadius } from "@constants/sizes";
-import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -18,10 +17,7 @@ export const ConditionSection = ({
   onSelect,
 }: Props) => {
   const [condition, setCondition] = useState(_condition);
-  const { isDesktop } = useScreenType();
-  const [width, setWidth] = useState<number | undefined>(undefined);
   const colors = useThemeColor();
-  const ref = useRef<View>(null);
 
   const values = () => {
     return Object.values(ProductConditionEnum)
@@ -29,16 +25,8 @@ export const ConditionSection = ({
       .map((c) => c) as ProductConditionEnum[];
   };
 
-  useEffect(() => {
-    if (ref.current && isDesktop) {
-      ref.current.measure((x, y, width, height, pageX, pageY) => {
-        setWidth(width - 16);
-      });
-    }
-  }, [ref, isDesktop]);
-
   return (
-    <View ref={ref}>
+    <View>
       <Display size="small" style={{ marginBottom: 24 }}>
         Ange skick
       </Display>
@@ -68,7 +56,6 @@ export const ConditionSection = ({
         </View>
         <Slider
           type="step"
-          parentWidth={width}
           sliderProps={{
             values: values(),
             value: condition,
