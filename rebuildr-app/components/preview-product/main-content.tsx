@@ -94,9 +94,7 @@ export const MainContent = ({
             {product.pickupEnabled && (
               <Body size="medium" color="secondary">
                 • Hämta själv:{" "}
-                <Body size="medium" isLink>
-                  {approximatePlace?.address}
-                </Body>
+                <Body size="medium">{approximatePlace?.address}</Body>
               </Body>
             )}
             {!!product.shippingPrices?.length && (
@@ -187,9 +185,7 @@ export const MainContent = ({
       <View style={{ gap: 16 }}>
         <View style={{ gap: 4 }}>
           <Label size="medium">Varumärke</Label>
-          <Body size="medium" isLink>
-            {brand?.name}
-          </Body>
+          <Body size="medium">{brand?.name}</Body>
         </View>
         <View style={{ gap: 4 }}>
           <Label size="medium">Antal och enhet</Label>
@@ -209,9 +205,7 @@ export const MainContent = ({
         <View style={{ gap: 4 }}>
           <Label size="medium">Skick</Label>
           {product.condition && (
-            <Body size="medium" isLink>
-              {conditions[product.condition].name}
-            </Body>
+            <Body size="medium">{conditions[product.condition].name}</Body>
           )}
         </View>
         {showSpecificsMeasurements && (
