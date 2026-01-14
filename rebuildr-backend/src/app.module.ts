@@ -30,7 +30,6 @@ import { FileService } from './services/file.service';
 import { File } from './entities/file.entity';
 import { FileResolver } from './resolvers/file.resolver';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { CaslAbilityFactory } from './casl/casl-ability.factory';
 import { GqlOptionalAuthGuard } from './auth/gql-optional-auth.guard';
 import { MailService } from './services/mail.service';
 import { MailchimpService } from './services/mailchimp.service';
@@ -248,7 +247,6 @@ export interface RequestType {
     GeocodingService,
     FileResolver,
     FileService,
-    CaslAbilityFactory,
     GqlOptionalAuthGuard,
     MailResolver,
     MailService,

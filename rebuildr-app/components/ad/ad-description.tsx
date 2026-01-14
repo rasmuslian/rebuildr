@@ -35,8 +35,8 @@ export const AdDescription = ({
 }: Props) => {
   const quantityUnit = _quantityUnit ?? QuantityUnitEnum.Amount;
   return (
-    <View style={{ gap: 8, flex: 1, justifyContent: "space-between" }}>
-      <View style={{ gap: 2, paddingRight: 12 }}>
+    <View style={{ gap: 3, flex: 1, justifyContent: "space-between" }}>
+      <View style={{ gap: 3, paddingRight: 12 }}>
         <Title size="small" numberOfLines={1}>
           {title}
         </Title>
@@ -47,12 +47,14 @@ export const AdDescription = ({
       </View>
 
       {account && (
-        <View style={{ gap: 4 }}>
+        <View style={{ gap: 3 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
             {typeof account.rating === "number" ? (
               <>
-                <Icon icon="star" size={10} />
-                <Label size="medium">{formatRating(account.rating)}</Label>
+                <Icon icon="star" size={10} color="secondary" />
+                <Body size="small" color="secondary">
+                  {formatRating(account.rating)}
+                </Body>
               </>
             ) : (
               <View style={{ height: 4 }} />

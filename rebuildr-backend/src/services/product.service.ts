@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CaslAbilityFactory } from 'src/casl/casl-ability.factory';
 import { Category } from 'src/entities/category.entity';
 import {
   Product,
@@ -71,7 +70,6 @@ export class ProductService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
-    private caslAbilityFactory: CaslAbilityFactory,
     private messageService: MessageService,
     private purchaseService: PurchaseService,
     @InjectRepository(Purchase)
@@ -774,49 +772,6 @@ export class ProductService {
     }
 
     return product;
-  }
-
-  async hide(id: string, reason: string, userId: string) {
-    const user = await this.userRepository.findOneBy({
-      id: userId,
-    });
-    const product = await this.productRepository.findOneBy({
-      id,
-    });
-    if (!user || !product) {
-      throw BadUserInputException();
-    }
-
-    const ability = this.caslAbilityFactory.createForUser(user);
-    if (!ability.can('update', product, 'hiddenReason')) {
-      throw ForbiddenException();
-    }
-
-    if (product.hiddenReason) {
-      throw BadUserInputException('Product already hidden');
-    }
-    product.hiddenReason = reason;
-    return this.productRepository.save(product);
-  }
-
-  async show(id: string, userId: string) {
-    const user = await this.userRepository.findOneBy({
-      id: userId,
-    });
-    const product = await this.productRepository.findOneBy({
-      id,
-    });
-    if (!user || !product) {
-      throw BadUserInputException();
-    }
-
-    const ability = this.caslAbilityFactory.createForUser(user);
-    if (!ability.can('update', product, 'hiddenReason')) {
-      throw ForbiddenException();
-    }
-
-    product.hiddenReason = null;
-    return await this.productRepository.save(product);
   }
 
   async isLikedBy(productId: string, userId?: string) {

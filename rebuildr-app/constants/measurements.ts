@@ -39,31 +39,38 @@ export type MeasurementType = (typeof measurementKeys)[number];
 export const measurements: {
   [key in (typeof measurementKeys)[number]]: {
     name: string;
+    prefix: string;
     options: OptionsType;
   };
 } = {
   thickness: {
     name: "Tjocklek",
+    prefix: "T",
     options: meterOptions,
   },
   height: {
     name: "Höjd",
+    prefix: "H",
     options: meterOptions,
   },
   width: {
     name: "Bredd",
+    prefix: "B",
     options: meterOptions,
   },
   length: {
     name: "Längd",
+    prefix: "L",
     options: meterOptions,
   },
   diameter: {
     name: "Diameter",
+    prefix: "D",
     options: meterOptions,
   },
   weight: {
     name: "Vikt",
+    prefix: "V",
     options: kgOptions,
   },
 } as const;
