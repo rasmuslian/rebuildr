@@ -965,9 +965,7 @@ export class PurchaseService {
     const duePurchases = await this.purchaseRepository.find({
       where: {
         deliveredAt: LessThanOrEqual(dueTime.toDate()),
-        failedAt: IsNull(),
-        pausedAt: IsNull(),
-        payoutReceivedAt: IsNull(),
+        status: PurchaseStatusEnum.DELIVERED,
       },
       relations: {
         buyer: true,
@@ -976,6 +974,7 @@ export class PurchaseService {
     });
     await Promise.all(
       duePurchases.map((p) => {
+        try {
         return this.acceptPurchase(
           p,
           p.buyer,
@@ -983,6 +982,15 @@ export class PurchaseService {
           p.product,
           logger,
         );
+        } catch {
+          logger.error('autoAcceptingPurchases: error accepting purchase', {
+            purchaseId: p.id,
+            purchaseStatus: p.status,
+            productId: p.product.id,
+            sellerId: p.product.seller.id,
+            buyerId: p.buyer.id,
+          });
+        }
       }),
     );
   }

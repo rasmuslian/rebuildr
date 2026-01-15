@@ -48,7 +48,7 @@ import { QuantityUnitEnum } from 'src/entities/enums';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import * as z from 'zod';
-import { maximumEscrow, minimumEscrow } from 'src/constants/pricing';
+import { maximumEscrow } from 'src/constants/pricing';
 import { File } from '../entities/file.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { ShippingService } from './shipping.service';
@@ -58,6 +58,7 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
+import { minimumProductPrice } from 'src/utility/pricing';
 
 @Injectable()
 export class ProductService {
@@ -252,9 +253,9 @@ export class ProductService {
       });
     }
     if (convertedPrice !== undefined && !input.isGiveAway) {
-      if (convertedPrice < minimumEscrow) {
+      if (convertedPrice < minimumProductPrice()) {
         errors.push({
-          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumEscrow / 100)} kr`,
+          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumProductPrice() / 100)} kr`,
           name: 'price',
         });
       }
@@ -461,11 +462,11 @@ export class ProductService {
         throw BadUserInputException('Product must have at least one image');
       }
 
-      if (!product.isGiveaway && product.price < minimumEscrow) {
+      if (!product.isGiveaway && product.price < minimumProductPrice()) {
         logger.error({
           message: 'Too low price',
           price: product.price,
-          minimumEscrow,
+          minimumProductPrice: minimumProductPrice(),
         });
 
         throw BadUserInputException('Too low price');
