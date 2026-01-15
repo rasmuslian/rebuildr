@@ -182,6 +182,15 @@ export class ProjectResolver {
     return await this.projectService.delete(input, user.id);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeleteProject(
+    @Args('projectId') projectId: string,
+  ): Promise<boolean> {
+    return this.projectService.cmsDeleteProject(projectId);
+  }
+
   @Mutation(() => Project)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
