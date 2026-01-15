@@ -899,6 +899,7 @@ type Mutation {
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   deleteProject(input: DeleteProjectInput!): Boolean!
+  cmsDeleteProject(projectId: String!): Boolean!
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
   cmsUpdateProject(input: CmsUpdateProjectInput!): Project!
   createProject(input: CreateProjectInput!): Project!

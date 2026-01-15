@@ -525,11 +525,6 @@ export type GetUsersInput = {
   pageSize?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type HideProductInput = {
-  id: Scalars['String']['input'];
-  reason: Scalars['String']['input'];
-};
-
 export type LatestPurchaseInput = {
   otherUserId: Scalars['String']['input'];
   productId: Scalars['String']['input'];
@@ -676,6 +671,7 @@ export type Mutation = {
   cmsDeleteFile: File;
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsDeleteProduct: Product;
+  cmsDeleteProject: Project;
   cmsHideProduct: Product;
   cmsLogin: LoginResponse;
   cmsTestTemplate: Scalars['Boolean']['output'];
@@ -702,7 +698,6 @@ export type Mutation = {
   deleteProject: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
-  hideProduct: Product;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   markConversationAsRead: Array<Message>;
@@ -716,7 +711,6 @@ export type Mutation = {
   resetPassword: ResetPasswordResponse;
   setLikeProduct: Product;
   setLikeProject: Project;
-  showProduct: Product;
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
@@ -785,6 +779,11 @@ export type MutationCmsDeleteFooterSectionArgs = {
 
 export type MutationCmsDeleteProductArgs = {
   productId: Scalars['String']['input'];
+};
+
+
+export type MutationCmsDeleteProjectArgs = {
+  projectId: Scalars['String']['input'];
 };
 
 
@@ -909,11 +908,6 @@ export type MutationGetNewTokensArgs = {
 };
 
 
-export type MutationHideProductArgs = {
-  input: HideProductInput;
-};
-
-
 export type MutationLoginArgs = {
   input: LoginInput;
 };
@@ -971,11 +965,6 @@ export type MutationSetLikeProductArgs = {
 
 export type MutationSetLikeProjectArgs = {
   input: SetLikeProjectInput;
-};
-
-
-export type MutationShowProductArgs = {
-  input: ShowProductInput;
 };
 
 
@@ -1720,10 +1709,6 @@ export enum ShippingProviderEnum {
   Dhl = 'DHL',
   Postnord = 'POSTNORD'
 }
-
-export type ShowProductInput = {
-  id: Scalars['String']['input'];
-};
 
 export enum TransportationEnum {
   Delivery = 'DELIVERY',

@@ -2,9 +2,9 @@
 
 import React, { useCallback } from "react";
 import { useState } from "@/hooks/use-state";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { Table, Divider, Button } from "antd";
+import { Table, Divider, Button, App } from "antd";
 import { useRouter } from "next/navigation";
 import { listProjects } from "@/queries/project/list-projects";
 import SearchField from "@components/search-field";
@@ -12,7 +12,8 @@ import { debounce } from "lodash";
 import { ColumnsType } from "antd/es/table";
 import { Project } from "gql/graphql";
 import { routes } from "@/lib/routes";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { deleteProject } from "@/queries/project/delete-project";
 
 type StateType = {
   searchString: string;
@@ -30,10 +31,34 @@ const ProjectTable = () => {
   const [state, setState] = useState(initialState);
   const { searchString, pageSize, page } = state;
   const router = useRouter();
+  const { modal, notification } = App.useApp();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_PROJECTS, page, pageSize, searchString],
     queryFn: () => listProjects({ page: page - 1, pageSize, searchString }),
+  });
+
+  const { mutateAsync: deleteMutation, isPending: isDeleting } = useMutation({
+    mutationFn: async (projectId: string) => {
+      const response = await deleteProject(projectId);
+      if (!response) throw new Error();
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PROJECTS] });
+      notification.success({
+        message: "Projektet har raderats",
+        description:
+          "Projektet har tagits bort och är inte längre synlig för andra användare.",
+      });
+    },
+    onError: () => {
+      notification.error({
+        message: "Raderingen misslyckades",
+        description: "Projektet kunde tyvärr inte raderas. Försök igen senare.",
+      });
+    },
   });
 
   const onSearchStringChange = useCallback(
@@ -42,6 +67,23 @@ const ProjectTable = () => {
     }, 400),
     [],
   );
+
+  const confirmDelete = (title: string, id: string) => {
+    modal.confirm({
+      title: 'Säker på att du vill ta bort "' + title + '"?',
+      content:
+        "Om du raderar projektet tas alla tillhörande bilder och dokument bort permanent. Produkter som ingår i projektet påverkas inte och kommer att finnas kvar.",
+      async onOk() {
+        await deleteMutation(id);
+      },
+      okText: "Radera",
+      okButtonProps: {
+        danger: true,
+        loading: isDeleting,
+      },
+      cancelText: "Avbryt",
+    });
+  };
 
   const columns: ColumnsType<Project> = [
     {
@@ -85,7 +127,7 @@ const ProjectTable = () => {
       key: "action",
       width: "80px",
       fixed: "right",
-      render: (_, { id }) => {
+      render: (_, { id, title }) => {
         return (
           <div className="flex flex-row items-center justify-center gap-4">
             <Button
@@ -93,6 +135,12 @@ const ProjectTable = () => {
               size="middle"
               icon={<EditOutlined />}
               onClick={() => router.push(`${routes.EDIT_PROJECT}/${id}`)}
+            />
+            <Button
+              type="dashed"
+              size="middle"
+              icon={<DeleteOutlined />}
+              onClick={() => confirmDelete(title, id)}
             />
           </div>
         );

@@ -326,6 +326,33 @@ export class ProjectService {
     }
   }
 
+  async cmsDeleteProject(projectId: string): Promise<boolean> {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      relations: { products: true, projectPicture: true },
+    });
+
+    if (!project) throw NotFoundException('Project not found');
+
+    try {
+      if (project.products.length) {
+        await this.productRepository.update(
+          project.products.map((p) => p.id),
+          { project: null, noProject: true },
+        );
+      }
+
+      if (project.projectPicture) {
+        await this.fileService.deleteFiles([project.projectPicture]);
+      }
+
+      await this.projectRepository.remove(project);
+      return true;
+    } catch (error) {
+      throw BadUserInputException(`Failed to delete project: ${error}`);
+    }
+  }
+
   async cmsGetUserProjects(userId: string): Promise<Project[]> {
     const projects = this.projectRepository.find({
       where: {
