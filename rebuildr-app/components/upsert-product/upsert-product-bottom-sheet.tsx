@@ -566,7 +566,8 @@ export const UpsertProductBottomSheet = ({
     }
     if (_product.price !== undefined && !_product.isGiveaway) {
       if (_product.price < 20) {
-        badFields["price"] = "Priset måste vara högre än 20 kr";
+        badFields["price"] =
+          `Priset måste vara högre än ${data?.product.minimumPrice} kr`;
       }
     }
     if (_product.title === "") {

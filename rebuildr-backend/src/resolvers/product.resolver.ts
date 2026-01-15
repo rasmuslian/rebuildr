@@ -48,13 +48,13 @@ import {
 } from './geocoding.resolver';
 import { Project } from 'src/entities/project.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
-import { minimumEscrow } from 'src/constants/pricing';
 import { ServicePointResponse } from './shipping.resolver';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
+import { minimumProductPrice } from 'src/utility/pricing';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -925,7 +925,7 @@ export class ProductResolver {
 
   @ResolveField(() => Int)
   async minimumPrice() {
-    return Math.round(minimumEscrow / 100);
+    return Math.round(minimumProductPrice() / 100);
   }
 
   @ResolveField(() => Boolean)
