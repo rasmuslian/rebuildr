@@ -1,6 +1,7 @@
 import React from "react";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
+import { SectionHeader } from "@components/sections/section-header";
 import { router, useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { useUser } from "@hooks/useUser";
@@ -51,8 +52,8 @@ export default function ProjectsPage() {
         headerComponent={<TopBar theme="light" />}
         loading={loading}
       >
-        <View style={{ gap: 16 }}>
-          <Header title="Projekt" showBackButton={false} showDivider={false} />
+        <View style={{ gap: 24 }}>
+          <SectionHeader>Dina projekt</SectionHeader>
           <ProjectsList projects={projects} />
         </View>
       </ScreenLayout>
@@ -61,7 +62,7 @@ export default function ProjectsPage() {
 
   return (
     <ScreenLayout
-      headerComponent={<Header title="Projekt" />}
+      headerComponent={<Header title="Dina projekt" />}
       loading={loading}
     >
       <ProjectsList projects={projects} />

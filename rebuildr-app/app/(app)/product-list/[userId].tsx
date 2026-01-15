@@ -97,13 +97,13 @@ export default function ProductList() {
   return (
     <ScreenLayout
       headerComponent={
-        isDesktop ? <TopBar theme="light" /> : <Header title="Annonser" />
+        isDesktop ? <TopBar theme="light" /> : <Header title="Dina annonser" />
       }
       loading={loading}
     >
       {numberOfProducts > 0 ? (
         <AdGridSection
-          header="Annonser"
+          header={isDesktop ? "Dina annonser" : undefined}
           products={products.map((product) => ({
             id: product.id,
             status: product.status,
