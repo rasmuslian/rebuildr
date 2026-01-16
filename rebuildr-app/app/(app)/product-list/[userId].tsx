@@ -97,7 +97,11 @@ export default function ProductList() {
   return (
     <ScreenLayout
       headerComponent={
-        isDesktop ? <TopBar theme="light" /> : <Header title="Dina annonser" />
+        isDesktop ? (
+          <TopBar theme="light" />
+        ) : (
+          <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
+        )
       }
       loading={loading}
     >
