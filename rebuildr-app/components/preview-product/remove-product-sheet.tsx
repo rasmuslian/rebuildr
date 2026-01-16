@@ -1,3 +1,4 @@
+import { PRODUCT_LIST } from "@/app/(app)/product-list/[userId]";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { Display } from "@components/typography/text";
@@ -45,6 +46,7 @@ export const RemoveProductSheet = ({
                   if (loadingRemoveProduct) return;
                   removeProduct({
                     variables: { input: { id: productId } },
+                    refetchQueries: [PRODUCT_LIST],
                     onCompleted: () => {
                       onClose();
                       if (router.canGoBack()) {
