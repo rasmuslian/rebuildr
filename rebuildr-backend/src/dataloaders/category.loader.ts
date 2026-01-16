@@ -27,6 +27,7 @@ export class CategoryLoader {
         .createQueryBuilder('c')
         .leftJoinAndSelect('c.children', 'children')
         .where('c.id IN (:...ids)', { ids: keys })
+        .orderBy('children."orderIndex"')
         .getMany();
 
       return keys.map(
