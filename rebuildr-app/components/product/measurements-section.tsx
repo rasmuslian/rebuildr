@@ -41,7 +41,6 @@ export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
   if (!data) {
     return <LoadingSpinner />;
   }
-  const a = data.category.measurements[0];
   return (
     <View style={{ zIndex: 1 }}>
       <Label size="medium" style={{ marginBottom: 20 }}>
