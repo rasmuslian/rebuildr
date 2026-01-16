@@ -24,6 +24,7 @@ import { FileService } from 'src/services/file.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
 import { FileInputType } from './product.resolver';
+import { MeasurementTypeEnum } from 'src/entities/enums';
 
 export enum OrderCategoriesEnum {
   ORDER_INDEX_ASC = 'ASC',
@@ -69,6 +70,9 @@ export class CmsUpdateCategoryInput {
 
   @Field(() => String)
   description: string;
+
+  @Field(() => [MeasurementTypeEnum])
+  measurements: MeasurementTypeEnum[];
 
   @Field(() => FileInputType, { nullable: true })
   image?: FileInputType;

@@ -19,8 +19,7 @@ import SelectColorType from "@components/color/select-color-type";
 import Section from "@components/section";
 import {
   measurements,
-  MeasurementType,
-  measurementKeys,
+  productFieldMeasurementKeys,
 } from "@/constants/measurements";
 import {
   UseFormHandleSubmit,
@@ -31,7 +30,7 @@ import {
   UseFormSetValue,
   UseFormClearErrors,
 } from "react-hook-form";
-import { ColorTypeEnum } from "gql/graphql";
+import { ColorTypeEnum, MeasurementTypeEnum } from "gql/graphql";
 
 type Props = {
   title: string;
@@ -369,10 +368,11 @@ const ProductForm = ({
                       onChange(checked);
 
                       if (!checked) {
-                        const resetMeasurement = measurementKeys.reduce(
-                          (acc, key) => ({ ...acc, [key]: undefined }),
-                          { enabled: false },
-                        );
+                        const resetMeasurement =
+                          productFieldMeasurementKeys.reduce(
+                            (acc, key) => ({ ...acc, [key]: undefined }),
+                            { enabled: false },
+                          );
 
                         setValue("measurement", resetMeasurement);
                       }
@@ -387,18 +387,19 @@ const ProductForm = ({
             {watch("measurement.enabled") && (
               <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
                 {Object.entries(measurements).map(([key, measurement]) => {
-                  const measurementType = key as MeasurementType;
+                  const measurementType = key as MeasurementTypeEnum;
 
                   return (
                     <div className="flex flex-row gap-5" key={measurementType}>
                       <Controller
                         control={control}
-                        name={`measurement.${measurementType}`}
+                        name={`measurement.${measurement.productField}`}
                         render={({ field }) => (
                           <FormField
                             label={measurement.name}
                             error={
-                              errors.measurement?.[measurementType]?.message
+                              errors.measurement?.[measurement.productField]
+                                ?.message
                             }
                           >
                             <InputNumber
@@ -414,7 +415,7 @@ const ProductForm = ({
 
                       <Controller
                         control={control}
-                        name={`measurement.${measurementType}Unit`}
+                        name={`measurement.${measurement.productField}Unit`}
                         render={({ field: { value, onChange } }) => (
                           <FormField label={`${measurement.name} enhet`}>
                             <SelectMeasurement

@@ -1,4 +1,4 @@
-import { MeasurementUnitEnum } from "gql/graphql";
+import { MeasurementTypeEnum, MeasurementUnitEnum } from "gql/graphql";
 
 type UnitOption = { name: string; conversion: number };
 type UnitOptions = Partial<Record<MeasurementUnitEnum, UnitOption>>;
@@ -14,7 +14,7 @@ const kgOptions: UnitOptions = {
   KG: { name: "kg", conversion: 1 },
 };
 
-export const measurementKeys = [
+export const productFieldMeasurementKeys = [
   "thickness",
   "height",
   "width",
@@ -23,16 +23,27 @@ export const measurementKeys = [
   "weight",
 ] as const;
 
-export type MeasurementType = (typeof measurementKeys)[number];
+export type MeasurementType = (typeof productFieldMeasurementKeys)[number];
 
 export const measurements = Object.freeze({
-  thickness: { name: "Tjocklek", options: meterOptions },
-  height: { name: "Höjd", options: meterOptions },
-  width: { name: "Bredd", options: meterOptions },
-  length: { name: "Längd", options: meterOptions },
-  diameter: { name: "Diameter", options: meterOptions },
-  weight: { name: "Vikt", options: kgOptions },
-} satisfies Record<MeasurementType, { name: string; options: UnitOptions }>);
+  THICKNESS: {
+    name: "Tjocklek",
+    options: meterOptions,
+    productField: "thickness",
+  },
+  HEIGHT: { name: "Höjd", options: meterOptions, productField: "height" },
+  WIDTH: { name: "Bredd", options: meterOptions, productField: "width" },
+  LENGTH: { name: "Längd", options: meterOptions, productField: "length" },
+  DIAMETER: {
+    name: "Diameter",
+    options: meterOptions,
+    productField: "diameter",
+  },
+  WEIGHT: { name: "Vikt", options: kgOptions, productField: "weight" },
+} satisfies Record<
+  MeasurementTypeEnum,
+  { name: string; options: UnitOptions; productField: MeasurementType }
+>);
 
 export type MeasurementsObjectType = Partial<
   Record<MeasurementType, { value: number; unit: MeasurementUnitEnum }>

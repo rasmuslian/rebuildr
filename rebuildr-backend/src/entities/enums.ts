@@ -16,3 +16,14 @@ export enum QuantityUnitEnum {
 }
 export const quantityUnitEnumName = 'quantity_unit_enum';
 registerEnumType(QuantityUnitEnum, { name: 'QuantityUnitEnum' });
+
+export enum MeasurementTypeEnum {
+  THICKNESS = 'THICKNESS',
+  HEIGHT = 'HEIGHT',
+  WIDTH = 'WIDTH',
+  LENGTH = 'LENGTH',
+  DIAMETER = 'DIAMETER',
+  WEIGHT = 'WEIGHT',
+}
+export const measurementTypeEnumName = 'measurement_type_enum';
+registerEnumType(MeasurementTypeEnum, { name: 'MeasurementTypeEnum' });

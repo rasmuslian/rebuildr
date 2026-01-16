@@ -1,23 +1,47 @@
-import { MeasurementUnitEnum } from "@/gql/graphql";
+import {
+  MeasurementsSectionQuery,
+  MeasurementsSectionQueryVariables,
+  MeasurementTypeEnum,
+  MeasurementUnitEnum,
+} from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
 import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Label } from "@components/typography/text";
-import {
-  measurements,
-  MeasurementsObjectType,
-  MeasurementType,
-} from "@constants/measurements";
+import { measurements, MeasurementsObjectType } from "@constants/measurements";
 import { View } from "react-native";
 
+const MEASUREMENTS_SECTION = gql`
+  query MeasurementsSection($input: CategoryInput!) {
+    category(input: $input) {
+      id
+      measurements
+    }
+  }
+`;
+
 type Props = {
+  categoryId: string;
   value: MeasurementsObjectType;
   onChange: (
-    input: MeasurementType,
+    input: MeasurementTypeEnum,
     value: number,
     unit: MeasurementUnitEnum,
   ) => void;
 };
-export const MeasurementsSection = ({ value, onChange }: Props) => {
+export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
+  const { data } = useQuery<
+    MeasurementsSectionQuery,
+    MeasurementsSectionQueryVariables
+  >(MEASUREMENTS_SECTION, {
+    variables: { input: { id: categoryId } },
+  });
+
+  if (!data) {
+    return <LoadingSpinner />;
+  }
+  const a = data.category.measurements[0];
   return (
     <View style={{ zIndex: 1 }}>
       <Label size="medium" style={{ marginBottom: 20 }}>
@@ -25,15 +49,13 @@ export const MeasurementsSection = ({ value, onChange }: Props) => {
       </Label>
 
       <View style={{ gap: 16 }}>
-        {Object.keys(measurements).map((measurement, i, arr) => (
+        {data.category.measurements.map((measurement, i, arr) => (
           <View key={i} style={{ zIndex: arr.length - i }}>
             <Measurement
-              onChange={(value, unit) =>
-                onChange(measurement as MeasurementType, value, unit)
-              }
-              type={measurement as MeasurementType}
-              initialValue={value[measurement as MeasurementType]?.value ?? 0}
-              unit={value[measurement as MeasurementType]?.unit}
+              onChange={(value, unit) => onChange(measurement, value, unit)}
+              type={measurement}
+              initialValue={value[measurement]?.value ?? 0}
+              unit={value[measurement]?.unit}
             />
           </View>
         ))}
@@ -43,8 +65,8 @@ export const MeasurementsSection = ({ value, onChange }: Props) => {
 };
 
 type MeasurementProps = {
-  onChange: (measurement: number, unit: MeasurementUnitEnum) => void;
-  type: MeasurementType;
+  onChange: (value: number, unit: MeasurementUnitEnum) => void;
+  type: MeasurementTypeEnum;
   initialValue: number;
   unit?: MeasurementUnitEnum;
 };

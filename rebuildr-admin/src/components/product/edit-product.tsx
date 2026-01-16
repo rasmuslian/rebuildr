@@ -20,7 +20,7 @@ import {
 import { CmsUpdateProductInput } from "gql/graphql";
 import { updateProduct } from "@/queries/product/update-product";
 import { queryKeys } from "@/lib/query-keys";
-import { measurementKeys } from "@/constants/measurements";
+import { productFieldMeasurementKeys } from "@/constants/measurements";
 import { omit } from "lodash";
 
 type Props = {
@@ -69,11 +69,11 @@ const EditProduct = ({ product }: Props) => {
       },
       measurement: {
         enabled:
-          measurementKeys.some((key) => Boolean(product[key])) ||
+          productFieldMeasurementKeys.some((key) => Boolean(product[key])) ||
           product.documents.length > 0,
 
         ...Object.fromEntries(
-          measurementKeys.flatMap((key) => [
+          productFieldMeasurementKeys.flatMap((key) => [
             [key, product[key] ?? undefined],
             [`${key}Unit`, product[`${key}Unit`] ?? undefined],
           ]),

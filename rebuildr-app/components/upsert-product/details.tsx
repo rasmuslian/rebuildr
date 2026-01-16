@@ -13,10 +13,10 @@ import { RootCategorySection } from "@components/product/root-category-section";
 import { Title, Body } from "@components/typography/text";
 import { useState } from "react";
 import { Button } from "@components/buttons/button";
-import { measurementKeys } from "@constants/measurements";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 import { ColorSection } from "@components/product/color-section";
+import { MeasurementTypeEnum } from "@/gql/graphql";
 
 type Props = {
   product: ProductFields;
@@ -35,9 +35,10 @@ export const Details = ({
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [showDetails, setShowDetails] = useState(() => {
-    const measurementSet = measurementKeys.some(
-      (measurementKey) => !!product[measurementKey],
-    );
+    const measurementSet = (
+      ["thickness", "height", "width", "length", "diameter", "weight"] as const
+    ).some((measurementKey) => !!product[measurementKey]);
+
     //show details if any measurements are set or any documents are chosen
     return measurementSet || !!product.documents?.length || !!product.color;
   });
@@ -138,56 +139,57 @@ export const Details = ({
               onPress={() => setShowDetails(!showDetails)}
             />
           </View>
-          {showDetails && (
+          {showDetails && product.categoryIds?.[1] && (
             <>
               <MeasurementsSection
+                categoryId={product.categoryIds[1]}
                 value={{
-                  thickness:
+                  THICKNESS:
                     product.thickness !== undefined
                       ? {
                           value: product.thickness,
                           unit: product.thicknessUnit,
                         }
                       : undefined,
-                  height:
+                  HEIGHT:
                     product.height !== undefined
                       ? { value: product.height, unit: product.heightUnit }
                       : undefined,
-                  width:
+                  WIDTH:
                     product.width !== undefined
                       ? { value: product.width, unit: product.widthUnit }
                       : undefined,
-                  length:
+                  LENGTH:
                     product.length !== undefined
                       ? { value: product.length, unit: product.lengthUnit }
                       : undefined,
-                  diameter:
+                  DIAMETER:
                     product.diameter !== undefined
                       ? { value: product.diameter, unit: product.diameterUnit }
                       : undefined,
-                  weight:
+                  WEIGHT:
                     product.weight !== undefined
                       ? { value: product.weight, unit: product.weightUnit }
                       : undefined,
                 }}
                 onChange={(measurementType, value, unit) => {
                   switch (measurementType) {
-                    case "thickness":
+                    case MeasurementTypeEnum.Thickness:
                       update({ thickness: value, thicknessUnit: unit });
                       break;
-                    case "height":
+                    case MeasurementTypeEnum.Height:
                       update({ height: value, heightUnit: unit });
                       break;
-                    case "width":
+                    case MeasurementTypeEnum.Width:
                       update({ width: value, widthUnit: unit });
                       break;
-                    case "length":
+                    case MeasurementTypeEnum.Length:
                       update({ length: value, lengthUnit: unit });
                       break;
-                    case "diameter":
+                    case MeasurementTypeEnum.Diameter:
                       update({ diameter: value, diameterUnit: unit });
                       break;
-                    case "weight":
+                    case MeasurementTypeEnum.Weight:
                       update({ weight: value, weightUnit: unit });
                       break;
                   }

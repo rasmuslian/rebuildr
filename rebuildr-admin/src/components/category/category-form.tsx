@@ -12,6 +12,8 @@ import {
   Control,
   Controller,
 } from "react-hook-form";
+import { measurements } from "@/constants/measurements";
+import { MeasurementTypeEnum } from "gql/graphql";
 
 type Props = {
   title: string;
@@ -74,6 +76,36 @@ const CategoryForm = ({
             <Checkbox checked={value} onChange={onChange}>
               Utvald
             </Checkbox>
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="measurements"
+        render={({ field: { value, onChange } }) => (
+          <FormField error={errors.measurements?.message} label="Måttenheter">
+            <div className="flex flex-row gap-4">
+              {Object.keys(measurements).map((m, i) => {
+                const isSelected = value.some((v) => v === m);
+                return (
+                  <Checkbox
+                    key={i}
+                    checked={isSelected}
+                    onChange={() => {
+                      if (isSelected) {
+                        const tmp = value.filter((v) => v !== m);
+                        onChange(tmp);
+                      } else {
+                        onChange([...value, m]);
+                      }
+                    }}
+                  >
+                    {measurements[m as MeasurementTypeEnum].name}
+                  </Checkbox>
+                );
+              })}
+            </div>
           </FormField>
         )}
       />

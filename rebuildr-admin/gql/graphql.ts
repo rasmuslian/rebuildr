@@ -91,6 +91,7 @@ export type Category = {
   image?: Maybe<File>;
   inSeason: Scalars['Boolean']['output'];
   inSelection: Scalars['Boolean']['output'];
+  measurements: Array<MeasurementTypeEnum>;
   name: Scalars['String']['output'];
   orderIndex: Scalars['Int']['output'];
   parent?: Maybe<Category>;
@@ -238,6 +239,7 @@ export type CmsUpdateCategoryInput = {
   image?: InputMaybe<FileInputType>;
   inSeason: Scalars['Boolean']['input'];
   inSelection: Scalars['Boolean']['input'];
+  measurements: Array<MeasurementTypeEnum>;
 };
 
 export type CmsUpdateCategoryResponse = {
@@ -625,6 +627,15 @@ export type MeasurementInput = {
   widthUnit?: InputMaybe<MeasurementUnitEnum>;
 };
 
+export enum MeasurementTypeEnum {
+  Diameter = 'DIAMETER',
+  Height = 'HEIGHT',
+  Length = 'LENGTH',
+  Thickness = 'THICKNESS',
+  Weight = 'WEIGHT',
+  Width = 'WIDTH'
+}
+
 export enum MeasurementUnitEnum {
   Cm = 'CM',
   Dm = 'DM',
@@ -671,7 +682,7 @@ export type Mutation = {
   cmsDeleteFile: File;
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsDeleteProduct: Product;
-  cmsDeleteProject: Project;
+  cmsDeleteProject: Scalars['Boolean']['output'];
   cmsHideProduct: Product;
   cmsLogin: LoginResponse;
   cmsTestTemplate: Scalars['Boolean']['output'];

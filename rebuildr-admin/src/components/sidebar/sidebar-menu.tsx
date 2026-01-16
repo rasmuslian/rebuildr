@@ -68,7 +68,7 @@ const SidebarMenu = () => {
       getItem("Visa alla produkter", routes.LIST_PRODUCT),
     ]),
     { type: "divider" },
-    getItem("Projekter", "/project", <ProjectOutlined />, [
+    getItem("Projekt", "/project", <ProjectOutlined />, [
       getItem("Skapa projekt", routes.CREATE_PROJECT),
       getItem("Visa alla projekt", routes.LIST_PROJECT),
     ]),

@@ -1,4 +1,4 @@
-import { MeasurementUnitEnum } from "@/gql/graphql";
+import { MeasurementTypeEnum, MeasurementUnitEnum } from "@/gql/graphql";
 
 export type OptionsType = {
   [key in MeasurementUnitEnum]?: { name: string; conversion: number };
@@ -27,53 +27,45 @@ const kgOptions: OptionsType = {
     conversion: 1,
   },
 };
-export const measurementKeys = [
-  "thickness",
-  "height",
-  "width",
-  "length",
-  "diameter",
-  "weight",
-] as const;
-export type MeasurementType = (typeof measurementKeys)[number];
+
 export const measurements: {
-  [key in (typeof measurementKeys)[number]]: {
+  [key in MeasurementTypeEnum]: {
     name: string;
     prefix: string;
     options: OptionsType;
   };
 } = {
-  thickness: {
+  THICKNESS: {
     name: "Tjocklek",
     prefix: "T",
     options: meterOptions,
   },
-  height: {
+  HEIGHT: {
     name: "Höjd",
     prefix: "H",
     options: meterOptions,
   },
-  width: {
+  WIDTH: {
     name: "Bredd",
     prefix: "B",
     options: meterOptions,
   },
-  length: {
+  LENGTH: {
     name: "Längd",
     prefix: "L",
     options: meterOptions,
   },
-  diameter: {
+  DIAMETER: {
     name: "Diameter",
     prefix: "D",
     options: meterOptions,
   },
-  weight: {
+  WEIGHT: {
     name: "Vikt",
     prefix: "V",
     options: kgOptions,
   },
 } as const;
 export type MeasurementsObjectType = {
-  [key in MeasurementType]?: { value: number; unit: MeasurementUnitEnum };
+  [key in MeasurementTypeEnum]?: { value: number; unit: MeasurementUnitEnum };
 };
