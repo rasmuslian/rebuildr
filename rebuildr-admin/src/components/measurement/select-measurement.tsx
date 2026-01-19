@@ -3,11 +3,11 @@
 import React from "react";
 import { Select, SelectProps } from "antd";
 import EmptyContainer from "@/components/empty-container";
-import { MeasurementUnitEnum } from "gql/graphql";
-import { measurements, MeasurementType } from "@/constants/measurements";
+import { MeasurementTypeEnum, MeasurementUnitEnum } from "gql/graphql";
+import { measurements } from "@/constants/measurements";
 
 type Props = {
-  measurementType: MeasurementType;
+  measurementType: MeasurementTypeEnum;
   value?: MeasurementUnitEnum;
   onChange: (measurementUnit: MeasurementUnitEnum) => void;
 };

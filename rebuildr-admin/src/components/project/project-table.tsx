@@ -150,7 +150,7 @@ const ProjectTable = () => {
 
   return (
     <div className="flex flex-col gap-5">
-      <Divider orientation="left">Alla projekter</Divider>
+      <Divider orientation="left">Alla projekt</Divider>
 
       <SearchField
         placeholder="Sök på namn"

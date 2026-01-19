@@ -11,7 +11,12 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { File } from './file.entity';
-import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
+import {
+  MeasurementTypeEnum,
+  measurementTypeEnumName,
+  QuantityUnitEnum,
+  quantityUnitEnumName,
+} from '../constants/enums';
 import { Brand } from './brand.entity';
 
 enum CategoryIconEnum {
@@ -107,4 +112,14 @@ export class Category {
   @ManyToMany(() => Brand, (brand) => brand.categories)
   @JoinTable()
   brands: Brand[];
+
+  @Field(() => [MeasurementTypeEnum])
+  @Column({
+    type: 'enum',
+    enum: MeasurementTypeEnum,
+    enumName: measurementTypeEnumName,
+    array: true,
+    default: [],
+  })
+  measurements: MeasurementTypeEnum[];
 }

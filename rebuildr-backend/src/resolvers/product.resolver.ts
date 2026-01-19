@@ -37,7 +37,7 @@ import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { IProductLoaders } from 'src/dataloaders/product.loader';
-import { QuantityUnitEnum } from 'src/entities/enums';
+import { QuantityUnitEnum } from 'src/constants/enums';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Brand } from 'src/entities/brand.entity';

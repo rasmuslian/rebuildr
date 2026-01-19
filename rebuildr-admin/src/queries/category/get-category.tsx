@@ -10,6 +10,7 @@ const query = `
       hasChildren
       inSeason
       inSelection
+      measurements
       image {
         id
         name

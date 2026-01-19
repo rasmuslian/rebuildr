@@ -125,6 +125,7 @@ export class CategoryService {
         inSeason: input.inSeason,
         inSelection: input.inSelection,
         description: input.description,
+        measurements: input.measurements,
       });
 
       if (input.image) {

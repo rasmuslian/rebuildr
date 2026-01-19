@@ -38,6 +38,7 @@ const EditCategory = ({ category }: Props) => {
       name: category.name,
       description: category.description,
       image: category.image ? getUploadFiles([category.image]) : [],
+      measurements: category.measurements,
     },
   });
 
@@ -70,6 +71,7 @@ const EditCategory = ({ category }: Props) => {
       inSelection: formData.inSelection,
       image: getFileInputTypes(formData.image)[0],
       description: formData.description,
+      measurements: formData.measurements,
     };
 
     const response = await mutateAsync(updatedCategory);

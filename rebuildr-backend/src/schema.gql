@@ -277,6 +277,7 @@ type Category {
   icon: CategoryIconEnum
   primaryQuantityUnit: QuantityUnitEnum
   secondaryQuantityUnit: QuantityUnitEnum
+  measurements: [MeasurementTypeEnum!]!
   children: [Category!]!
   image: File
   ancestorIds: [String!]!
@@ -316,6 +317,15 @@ enum QuantityUnitEnum {
   PACKAGES
   BOARDS
   KG
+}
+
+enum MeasurementTypeEnum {
+  THICKNESS
+  HEIGHT
+  WIDTH
+  LENGTH
+  DIAMETER
+  WEIGHT
 }
 
 type Product {
@@ -1154,6 +1164,7 @@ input CmsUpdateCategoryInput {
   inSelection: Boolean!
   inSeason: Boolean!
   description: String!
+  measurements: [MeasurementTypeEnum!]!
   image: FileInputType
 }
 
