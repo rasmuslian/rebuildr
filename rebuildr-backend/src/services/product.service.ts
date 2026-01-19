@@ -44,7 +44,7 @@ import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MessageService } from './message.service';
 import { PurchaseService } from './purchase.service';
-import { QuantityUnitEnum } from 'src/entities/enums';
+import { QuantityUnitEnum } from 'src/constants/enums';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import * as z from 'zod';

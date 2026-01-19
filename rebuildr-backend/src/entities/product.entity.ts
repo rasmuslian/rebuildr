@@ -17,7 +17,7 @@ import { Category } from './category.entity';
 import { User } from './user.entity';
 import { File } from './file.entity';
 import { Purchase } from './purchase.entity';
-import { QuantityUnitEnum, quantityUnitEnumName } from './enums';
+import { QuantityUnitEnum, quantityUnitEnumName } from '../constants/enums';
 import { Brand } from './brand.entity';
 import { Message } from './message.entity';
 import { Project } from './project.entity';

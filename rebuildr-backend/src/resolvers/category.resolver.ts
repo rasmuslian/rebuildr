@@ -24,7 +24,7 @@ import { FileService } from 'src/services/file.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
 import { FileInputType } from './product.resolver';
-import { MeasurementTypeEnum } from 'src/entities/enums';
+import { MeasurementTypeEnum } from 'src/constants/enums';
 
 export enum OrderCategoriesEnum {
   ORDER_INDEX_ASC = 'ASC',

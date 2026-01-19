@@ -16,7 +16,7 @@ import {
   measurementTypeEnumName,
   QuantityUnitEnum,
   quantityUnitEnumName,
-} from './enums';
+} from '../constants/enums';
 import { Brand } from './brand.entity';
 
 enum CategoryIconEnum {
