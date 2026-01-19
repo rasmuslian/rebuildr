@@ -48,6 +48,7 @@ export const ConditionSection = ({
             borderRadius: borderRadius.medium,
             padding: 16,
             gap: 4,
+            height: 100,
           }}
         >
           <Label size="medium">{conditions[condition].name}</Label>
