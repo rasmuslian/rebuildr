@@ -63,7 +63,9 @@ export const SlideInSheet = ({
     if (initialRef.current) {
       return;
     }
-    onClose?.();
+    if (open) {
+      onClose?.();
+    }
   }, [pathname]);
 
   useEffect(() => {
