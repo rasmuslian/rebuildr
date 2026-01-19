@@ -1110,7 +1110,8 @@ export class ProductService {
             INNER join category pc on pc.id = c."parentId"
             WHERE p.id = '${similarToProductId}')`,
       )
-      .where('p.id != :similarToProductId', { similarToProductId });
+      .where('p.id != :similarToProductId', { similarToProductId })
+      .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`);
     query.addOrderBy('p.createdAt', 'DESC');
 
     const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
