@@ -45,6 +45,7 @@ export default function ProjectsPage() {
   });
 
   const projects = data?.user.projects ?? [];
+  const title = data?.me?.id === userId ? "Dina projekt" : "Projekt";
 
   if (isDesktop) {
     return (
@@ -53,7 +54,7 @@ export default function ProjectsPage() {
         loading={loading}
       >
         <View style={{ gap: 24 }}>
-          <SectionHeader>Dina projekt</SectionHeader>
+          <SectionHeader>{title}</SectionHeader>
           <ProjectsList projects={projects} />
         </View>
       </ScreenLayout>
@@ -61,10 +62,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <ScreenLayout
-      headerComponent={<Header title="Dina projekt" />}
-      loading={loading}
-    >
+    <ScreenLayout headerComponent={<Header title={title} />} loading={loading}>
       <ProjectsList projects={projects} />
     </ScreenLayout>
   );
