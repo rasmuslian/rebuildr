@@ -145,32 +145,32 @@ export const MainContent = ({
           {brand && <ProductChip boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
-              boldText={`${measurements.THICKNESS.prefix}: ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
+              boldText={`${measurements.THICKNESS.prefix} ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
-              boldText={`${measurements.HEIGHT.prefix}: ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
+              boldText={`${measurements.HEIGHT.prefix} ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
-              boldText={`${measurements.WIDTH.prefix}: ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
+              boldText={`${measurements.WIDTH.prefix} ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
-              boldText={`${measurements.LENGTH.prefix}: ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
+              boldText={`${measurements.LENGTH.prefix} ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
-              boldText={`${measurements.DIAMETER.prefix}: ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
+              boldText={`${measurements.DIAMETER.prefix} ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
-              boldText={`${measurements.WEIGHT.prefix}: ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
+              boldText={`${measurements.WEIGHT.prefix} ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
             />
           )}
         </View>
