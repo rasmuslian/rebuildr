@@ -18,7 +18,7 @@ export const useDocumentHandler = () => {
     const file = new File([blob], document.name);
 
     if (!document.mimeType) {
-      throw new Error("Unsupported or unknows document type");
+      throw new Error("Unsupported or unknown document type");
     }
     if (!document.size) {
       throw new Error("Document has no size");
