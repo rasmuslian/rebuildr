@@ -10,7 +10,7 @@ type Props = {
 export default function RebuildrHead({
   title = "RebuildR",
   image = "/images/og-image.png",
-  description = "RebuildR är en digital marknadsplats för återbrukat byggmaterial.",
+  description = "RebuildR är en digital marknadsplats och en rörelse för återbrukat byggmaterial. Vår utgångspunkt är enkel: bygg nytt av gammalt.",
 }: Props) {
   return (
     <Head>
