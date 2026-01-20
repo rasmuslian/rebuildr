@@ -14,6 +14,7 @@ import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { NearYou } from "@components/near-you/near-you";
 import { useSearchContext } from "@context/search-context";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -44,57 +45,60 @@ export default function Landing() {
   }, [headlineHeight, showSearchBarTopBar, searchState.dropdownVisible]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
-      <Hero scrollY={scrollY} showFor="mobile" />
+    <>
+      <RebuildrHead />
+      <View style={{ flex: 1 }}>
+        <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
+        <Hero scrollY={scrollY} showFor="mobile" />
 
-      <Animated.ScrollView
-        scrollEventThrottle={8}
-        showsHorizontalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
-      >
-        <View
-          onLayout={(event) =>
-            setHeadlineHeight(event.nativeEvent.layout.height)
-          }
+        <Animated.ScrollView
+          scrollEventThrottle={8}
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true },
+          )}
         >
-          <Hero
-            scrollY={scrollY}
-            showFor="desktop"
-            showSearchBar={!showSearchBarTopBar}
-          />
-        </View>
-        <View
-          style={{
-            backgroundColor: colors.background.neutral,
-            flexGrow: 1,
-            paddingHorizontal: isDesktop ? 75 : 16,
-            paddingBottom: 32,
-            paddingTop: isDesktop ? 44 : 16,
-          }}
-        >
-          <RootCategoriesHorizontal />
-          <NewArrivals />
-          <NearYou />
-          <ForTheSeason />
-          <SaleBanner />
-          <TrendingNow />
-          <RecommendedProducts
-            title="Du kanske också gillar"
-            source={ProductsRecommendationSourceEnum.Likes}
-          />
+          <View
+            onLayout={(event) =>
+              setHeadlineHeight(event.nativeEvent.layout.height)
+            }
+          >
+            <Hero
+              scrollY={scrollY}
+              showFor="desktop"
+              showSearchBar={!showSearchBarTopBar}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: colors.background.neutral,
+              flexGrow: 1,
+              paddingHorizontal: isDesktop ? 75 : 16,
+              paddingBottom: 32,
+              paddingTop: isDesktop ? 44 : 16,
+            }}
+          >
+            <RootCategoriesHorizontal />
+            <NewArrivals />
+            <NearYou />
+            <ForTheSeason />
+            <SaleBanner />
+            <TrendingNow />
+            <RecommendedProducts
+              title="Du kanske också gillar"
+              source={ProductsRecommendationSourceEnum.Likes}
+            />
 
-          <RecommendedProducts
-            title="Nytt från din senaste sökning"
-            source={ProductsRecommendationSourceEnum.SearchHistory}
-          />
-        </View>
+            <RecommendedProducts
+              title="Nytt från din senaste sökning"
+              source={ProductsRecommendationSourceEnum.SearchHistory}
+            />
+          </View>
 
-        <Footer />
-      </Animated.ScrollView>
-    </View>
+          <Footer />
+        </Animated.ScrollView>
+      </View>
+    </>
   );
 }
