@@ -12,6 +12,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ProductMobile } from "@components/product/product.mobile";
 import { ProductDesktop } from "@components/product/product.desktop";
 import { useLocationContext } from "@context/location-context";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const PRODUCT_VIEW = gql`
   query ProductView(
@@ -72,27 +73,33 @@ export default function Product() {
 
   const buyButtonDisabled = me?.type === UserType.Business;
 
-  if (isDesktop) {
-    return (
-      <ProductDesktop
-        product={data.product}
-        me={me}
-        approximatePlace={approximatePlace}
-        isMyProduct={isMyProduct}
-        otherProducts={otherProducts}
-        buyButtonDisabled={buyButtonDisabled}
-      />
-    );
-  }
-
   return (
-    <ProductMobile
-      product={data.product}
-      me={me}
-      approximatePlace={approximatePlace}
-      isMyProduct={isMyProduct}
-      otherProducts={otherProducts}
-      buyButtonDisabled={buyButtonDisabled}
-    />
+    <>
+      <RebuildrHead
+        title={product.title}
+        description={product.description ?? undefined}
+        image={product.images[0].url}
+      />
+
+      {isDesktop ? (
+        <ProductDesktop
+          product={product}
+          me={me}
+          approximatePlace={approximatePlace}
+          isMyProduct={isMyProduct}
+          otherProducts={otherProducts}
+          buyButtonDisabled={buyButtonDisabled}
+        />
+      ) : (
+        <ProductMobile
+          product={product}
+          me={me}
+          approximatePlace={approximatePlace}
+          isMyProduct={isMyProduct}
+          otherProducts={otherProducts}
+          buyButtonDisabled={buyButtonDisabled}
+        />
+      )}
+    </>
   );
 }
