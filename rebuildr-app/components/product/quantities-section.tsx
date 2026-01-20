@@ -136,7 +136,8 @@ export const QuantitiesSection = ({
       >
         <View style={{ minWidth: 213 }}>
           <TextInput
-            value={primaryQuantity}
+            placeholder={primaryQuantity}
+            value={primaryQuantity !== "0" ? primaryQuantity : undefined}
             onChange={(t) => onChangePrimaryQuantity(t)}
             inputType="numeric"
             error={!!primaryError}
@@ -202,7 +203,8 @@ export const QuantitiesSection = ({
         >
           <View style={{ minWidth: 213 }}>
             <TextInput
-              value={secondaryQuantity}
+              placeholder={secondaryQuantity}
+              value={secondaryQuantity !== "0" ? secondaryQuantity : undefined}
               onChange={onChangeSecondaryQuantity}
             />
           </View>

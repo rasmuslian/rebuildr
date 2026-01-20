@@ -90,7 +90,12 @@ const Measurement = ({
       <View style={{ minWidth: 213, gap: 4 }}>
         <Label size="medium">{measurements[type].name}</Label>
         <TextInput
-          value={initialValue.toString()}
+          placeholder={initialValue.toString()}
+          value={
+            initialValue.toString() !== "0"
+              ? initialValue.toString()
+              : undefined
+          }
           onChange={(v) => onChange(parseInt(v, 10), unit)}
           inputType="numeric"
         />
