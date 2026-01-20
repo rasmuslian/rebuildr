@@ -48,7 +48,10 @@ import { QuantityUnitEnum } from 'src/constants/enums';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import * as z from 'zod';
-import { maximumEscrow } from 'src/constants/pricing';
+import {
+  maximumProductPrice,
+  minimumProductPrice,
+} from 'src/constants/pricing';
 import { File } from '../entities/file.entity';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { ShippingService } from './shipping.service';
@@ -58,7 +61,6 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
-import { minimumProductPrice } from 'src/utility/pricing';
 
 @Injectable()
 export class ProductService {
@@ -253,15 +255,15 @@ export class ProductService {
       });
     }
     if (convertedPrice !== undefined && !input.isGiveAway) {
-      if (convertedPrice < minimumProductPrice()) {
+      if (convertedPrice < minimumProductPrice) {
         errors.push({
-          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumProductPrice() / 100)} kr`,
+          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumProductPrice / 100)} kr`,
           name: 'price',
         });
       }
-      if (convertedPrice > maximumEscrow) {
+      if (convertedPrice > maximumProductPrice) {
         errors.push({
-          message: `Priset måste vara lägre än ${Math.round(maximumEscrow / 100)} kr`,
+          message: `Priset måste vara lägre än ${Math.round(maximumProductPrice / 100)} kr`,
           name: 'price',
         });
       }
@@ -462,20 +464,20 @@ export class ProductService {
         throw BadUserInputException('Product must have at least one image');
       }
 
-      if (!product.isGiveaway && product.price < minimumProductPrice()) {
+      if (!product.isGiveaway && product.price < minimumProductPrice) {
         logger.error({
           message: 'Too low price',
           price: product.price,
-          minimumProductPrice: minimumProductPrice(),
+          minimumProductPrice: minimumProductPrice,
         });
 
         throw BadUserInputException('Too low price');
       }
-      if (!product.isGiveaway && product.price > maximumEscrow) {
+      if (!product.isGiveaway && product.price > maximumProductPrice) {
         logger.error({
           message: 'Too high price',
           price: product.price,
-          maximumEscrow,
+          maximumProductPrice,
         });
 
         throw BadUserInputException('Too high price');

@@ -54,7 +54,7 @@ import { ReportProduct } from 'src/entities/report-product.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
-import { minimumProductPrice } from 'src/utility/pricing';
+import { minimumProductPrice } from 'src/constants/pricing';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -925,7 +925,7 @@ export class ProductResolver {
 
   @ResolveField(() => Int)
   async minimumPrice() {
-    return Math.round(minimumProductPrice() / 100);
+    return Math.round(minimumProductPrice / 100);
   }
 
   @ResolveField(() => Boolean)
