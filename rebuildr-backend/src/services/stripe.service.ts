@@ -223,6 +223,14 @@ export class StripeService {
       !!requirements.eventually_due.length ||
       !!requirements.past_due.length;
 
+    if (!missingRequirements && requirements.disabled_reason) {
+      this.logger.info('Stripe acccount is disabled with no requirements', {
+        accountId: account.id,
+        accountName:
+          account.individual?.first_name + account.individual?.last_name,
+        requirements,
+      });
+    }
     return (
       !missingRequirements &&
       account.charges_enabled &&
