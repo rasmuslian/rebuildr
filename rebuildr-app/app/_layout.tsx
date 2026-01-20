@@ -36,6 +36,7 @@ import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
 import { shouldShowComingSoon } from "@/utils/coming-soon";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -108,6 +109,9 @@ const RootLayout = () => {
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
         />
       )}
+
+      <RebuildrHead />
+
       <ApolloProvider client={client}>
         {showComingSoon ? (
           <ScreenDimensionsProvider>
