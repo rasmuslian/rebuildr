@@ -26,7 +26,7 @@ export class StripWebhookController {
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     this.stripe = new Stripe(secretKey, {
-      apiVersion: '2025-09-30.clover',
+      apiVersion: '2025-12-15.clover',
     });
   }
   //This endoint will receive events regarding RebuildR's account
