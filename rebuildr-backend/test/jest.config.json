@@ -1,0 +1,12 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "transform": {
+    "^.+.tsx?$": ["ts-jest", {}]
+  },
+  "verbose": true,
+  "modulePaths": ["../"],
+  "preset": "ts-jest",
+  "testMatch": ["**/*.spec.ts"]
+}
