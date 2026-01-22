@@ -119,7 +119,7 @@ export class ProductService {
     product.title = input.title;
     product.category = category;
     product.seller = user;
-    product.price = input.price; //TODO: minimum price?
+    product.price = input.price;
     product.address = input.address;
     product.isGiveaway = input.isGiveaway;
     product.primaryQuantity = input.amount;
@@ -291,10 +291,6 @@ export class ProductService {
         name: 'primary',
       });
     }
-    if (errors.length) {
-      throw BadFieldsInputException(errors);
-    }
-    //------------------------------------------------
 
     if (input.title !== undefined) {
       product.title = input.title;
@@ -319,7 +315,22 @@ export class ProductService {
     if (input.isGiveAway !== undefined) {
       product.isGiveaway = input.isGiveAway;
       product.price = input.isGiveAway ? 0 : product.price;
+      if (
+        input.deliveryPrice &&
+        input.deliveryPrice * 100 < minimumProductPrice
+      ) {
+        errors.push({
+          message: `Minsta tillåtna hemtransportpris är ${Math.round(minimumProductPrice / 100)} kr om annonsen bortskänkes`,
+          name: 'delivery',
+        });
+      }
     }
+
+    if (errors.length) {
+      throw BadFieldsInputException(errors);
+    }
+    //------------------------------------------------
+
     //null means removing the category
     if (!!input.categoryId || input.categoryId === null) {
       const category = await this.categoryRepository.findOne({

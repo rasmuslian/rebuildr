@@ -25,6 +25,7 @@ export const Transportation = ({
   onNext,
   onBack,
   nextIsDisabled,
+  badFields,
   updateProgress,
 }: Props) => {
   const { isDesktop } = useScreenType();
@@ -125,11 +126,13 @@ export const Transportation = ({
             canEdit={!addressEditLock}
             onEditing={() => setAddressEditLock(true)}
             onEditComplete={() => setAddressEditLock(false)}
+            error={badFields?.["delivery"]}
           />
         </Suspense>
       </View>
       <View
-        style={[{
+        style={[
+          {
             paddingTop: 24,
             flexDirection: "row",
             alignItems: "center",

@@ -39,6 +39,7 @@ type Props = {
   canEdit: boolean;
   onEditing: () => void;
   onEditComplete: () => void;
+  error?: string;
 };
 
 export const Delivery = ({
@@ -47,6 +48,7 @@ export const Delivery = ({
   canEdit,
   onEditing,
   onEditComplete,
+  error,
 }: Props) => {
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
@@ -165,6 +167,7 @@ export const Delivery = ({
                   value: price,
                   onChange: (p) => update({ deliveryPrice: p }),
                   heading: "Transportpris",
+                  error,
                 },
               ]}
             />
