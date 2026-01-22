@@ -20,6 +20,7 @@ import { View } from "react-native";
 import { EditProfile } from "@components/profile/edit-profile";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import TopBar from "@components/navigation/top-bar/top-bar";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export default function Profile() {
   const [tab, setTab] = useState<"products" | "reviewed">("products");
@@ -78,6 +79,8 @@ export default function Profile() {
   if (isDesktop) {
     return (
       <>
+        <RebuildrHead title="Profil" />
+
         <ScreenLayout
           style={{ marginTop: 48, gap: 24 }}
           desktopFooter
@@ -163,51 +166,58 @@ export default function Profile() {
   }
 
   return (
-    <ScreenLayout
-      style={{ marginTop: 24, gap: 24 }}
-      headerComponent={<Header ctas={actionButtons} />}
-    >
-      <UserCard
-        userType={user.type}
-        profilePictureUrl={user.profilePicture?.url}
-        username={user.username}
-        numberOfPublishedProducts={user.numberOfPublishedProducts}
-        numberOfSoldProducts={user.numberOfSoldProducts}
-        rating={user.rating}
-      />
+    <>
+      <RebuildrHead title="Profil" />
 
-      <CollapsableText text={user.description ?? ""} nrOfLines={2} />
-      <Divider />
-      <TabRail
-        tabs={[
-          {
-            title: "Annonser",
-            active: tab === "products",
-            onActivate: () => setTab("products"),
-          },
-          {
-            title: "Omdömen",
-            active: tab === "reviewed",
-            onActivate: () => setTab("reviewed"),
-          },
-        ]}
-      />
+      <ScreenLayout
+        style={{ marginTop: 24, gap: 24 }}
+        headerComponent={<Header ctas={actionButtons} />}
+      >
+        <UserCard
+          userType={user.type}
+          profilePictureUrl={user.profilePicture?.url}
+          username={user.username}
+          numberOfPublishedProducts={user.numberOfPublishedProducts}
+          numberOfSoldProducts={user.numberOfSoldProducts}
+          rating={user.rating}
+        />
 
-      {tab === "products" && (
-        <>
-          <ProfileProjects
-            profileQuery={{ data: profileData, loading: profileLoading }}
-          />
-          <ProfileProducts
+        <CollapsableText text={user.description ?? ""} nrOfLines={2} />
+        <Divider />
+        <TabRail
+          tabs={[
+            {
+              title: "Annonser",
+              active: tab === "products",
+              onActivate: () => setTab("products"),
+            },
+            {
+              title: "Omdömen",
+              active: tab === "reviewed",
+              onActivate: () => setTab("reviewed"),
+            },
+          ]}
+        />
+
+        {tab === "products" && (
+          <>
+            <ProfileProjects
+              profileQuery={{ data: profileData, loading: profileLoading }}
+            />
+            <ProfileProducts
+              isMyProfile={isMyProfile}
+              profileQuery={{ data: profileData, loading: profileLoading }}
+            />
+          </>
+        )}
+
+        {tab === "reviewed" && (
+          <ProfileReviews
             isMyProfile={isMyProfile}
-            profileQuery={{ data: profileData, loading: profileLoading }}
+            profileQuery={profileData}
           />
-        </>
-      )}
-
-      {tab === "reviewed" && (
-        <ProfileReviews isMyProfile={isMyProfile} profileQuery={profileData} />
-      )}
-    </ScreenLayout>
+        )}
+      </ScreenLayout>
+    </>
   );
 }

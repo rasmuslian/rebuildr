@@ -3,7 +3,7 @@ import { Toggle } from "@components/controls/toggle";
 import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { Pressable, View } from "react-native";
-import { Map } from "@components/maps/map";
+import Map from "@components/maps/map";
 import { useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Project } from "@/gql/graphql";

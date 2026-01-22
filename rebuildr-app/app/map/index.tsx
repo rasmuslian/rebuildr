@@ -7,6 +7,7 @@ import { useWindowDimensions, View } from "react-native";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { horizontalPadding } from "@constants/sizes";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export default function Map() {
   const colors = useThemeColor();
@@ -20,18 +21,22 @@ export default function Map() {
   }, 500);
 
   return (
-    <View style={{ flexGrow: 1, backgroundColor: colors.background.neutral }}>
-      <SearchBar
-        onPressArrow={() => router.navigate("/search/products")}
-        placeholder="Vad letar du efter?"
-        onChange={onChange}
-        style={{
-          borderBottomWidth: 0,
-          paddingHorizontal: horizontalPadding.mobile,
-        }}
-      />
+    <>
+      <RebuildrHead title="Karta" />
 
-      <InteractiveMap style={{ height: mapHeight }} />
-    </View>
+      <View style={{ flexGrow: 1, backgroundColor: colors.background.neutral }}>
+        <SearchBar
+          onPressArrow={() => router.navigate("/search/products")}
+          placeholder="Vad letar du efter?"
+          onChange={onChange}
+          style={{
+            borderBottomWidth: 0,
+            paddingHorizontal: horizontalPadding.mobile,
+          }}
+        />
+
+        <InteractiveMap style={{ height: mapHeight }} />
+      </View>
+    </>
   );
 }

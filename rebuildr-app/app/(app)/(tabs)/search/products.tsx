@@ -35,6 +35,7 @@ import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
 import { SearchBar } from "@components/search/search-bar";
 import { permanentSection } from "@constants/permanent-sections";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 type StateType = {
   showFilter: boolean;
@@ -133,28 +134,30 @@ export default function Products() {
     }, []),
   );
 
-  if (isDesktop) {
-    return (
-      <DesktopLayout
-        data={data}
-        loading={loading}
-        onShowMore={onShowMore}
-        onApplyTranportationOptions={onApplyTranportationOptions}
-        state={state}
-        setState={setState}
-      />
-    );
-  }
-
   return (
-    <MobileLayout
-      data={data}
-      loading={loading}
-      onShowMore={onShowMore}
-      onApplyTranportationOptions={onApplyTranportationOptions}
-      state={state}
-      setState={setState}
-    />
+    <>
+      <RebuildrHead title="Sök produkter" />
+
+      {isDesktop ? (
+        <DesktopLayout
+          data={data}
+          loading={loading}
+          onShowMore={onShowMore}
+          onApplyTranportationOptions={onApplyTranportationOptions}
+          state={state}
+          setState={setState}
+        />
+      ) : (
+        <MobileLayout
+          data={data}
+          loading={loading}
+          onShowMore={onShowMore}
+          onApplyTranportationOptions={onApplyTranportationOptions}
+          state={state}
+          setState={setState}
+        />
+      )}
+    </>
   );
 }
 

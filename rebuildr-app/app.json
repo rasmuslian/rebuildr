@@ -24,7 +24,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single", //needs to be "single" instead of "static" in order for expo router to work with leaflet
+      "output": "static",
       "favicon": "./assets/favicon.png"
     },
     "experiments": {

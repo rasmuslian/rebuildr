@@ -79,6 +79,7 @@ export default function Product() {
         title={product.title}
         description={product.description ?? undefined}
         image={product.images[0].url}
+        isProductPage={true}
       />
 
       {isDesktop ? (
