@@ -1,3 +1,7 @@
+/**
+ * This file can only be rendered when window is defined.
+ */
+
 import { borderRadius } from "@constants/sizes";
 import {
   MapContainer,
@@ -22,7 +26,7 @@ export interface MapProps extends MapContainerProps {
   radius?: number; //in meters
 }
 
-export default function MapWeb({
+export default function MapClient({
   lat,
   lng,
   height = 185,

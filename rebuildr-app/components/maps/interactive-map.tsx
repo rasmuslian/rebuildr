@@ -13,7 +13,7 @@ export default function InteractiveMap({ style }: Props) {
     if (typeof window === "undefined") return;
 
     (async () => {
-      const mod = await import("./interactive-map-web");
+      const mod = await import("./client/interactive-map-client");
       setMap(() => mod.default);
     })();
   }, []);

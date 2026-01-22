@@ -1,9 +1,13 @@
+/**
+ * This file can only be rendered when window is defined.
+ */
+
 import { ReactElement, useMemo } from "react";
 import { StyleProp, ViewStyle, View } from "react-native";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { defaultCenter } from "@constants/map";
-import { createMarkerIcon } from "./create-marker-icon";
+import { createMarkerIcon } from "@components/maps/create-marker-icon";
 
 import "leaflet/dist/leaflet.css";
 
@@ -14,7 +18,7 @@ export type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-export default function MapThumbnailWeb({
+export default function MapThumbnailClient({
   coords = defaultCenter,
   cta,
   markerType,

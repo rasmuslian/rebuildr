@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View } from "react-native";
-import { MapProps } from "./map-web";
+import { MapProps } from "./client/map-client";
 
 export default function Map(props: MapProps) {
   const [Map, setMap] = useState<React.ComponentType<MapProps> | null>(null);
@@ -9,7 +9,7 @@ export default function Map(props: MapProps) {
     if (typeof window === "undefined") return;
 
     (async () => {
-      const mod = await import("./map-web");
+      const mod = await import("./client/map-client");
       setMap(() => mod.default);
     })();
   }, []);

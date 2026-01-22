@@ -1,3 +1,7 @@
+/**
+ * This file can only be rendered when window is defined.
+ */
+
 import React, { useEffect } from "react";
 import MapMarker from "@components/maps/map-marker";
 import UserLocationMarker from "@components/maps/user-location-marker";
@@ -12,7 +16,7 @@ import { Icon } from "@icons/icon";
 
 import "leaflet/dist/leaflet.css";
 
-export default function InteractiveMapWeb() {
+export default function InteractiveMapClient() {
   const { state } = useMapContext();
 
   return (
