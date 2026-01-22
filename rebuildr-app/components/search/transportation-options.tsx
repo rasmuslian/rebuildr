@@ -6,7 +6,7 @@ import { defaultCenter, defaultRadius } from "@constants/map";
 import { useScreenType } from "@hooks/useScreenType";
 import { useEffect, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
-import { Map } from "@components/maps/map";
+import Map from "@components/maps/map";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { ProductsInput, SearchProductsQuery } from "@/gql/graphql";
 import { formatMetersToKm } from "@/utils/distanceHandling";

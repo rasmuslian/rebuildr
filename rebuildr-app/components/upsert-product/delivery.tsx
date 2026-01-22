@@ -9,7 +9,7 @@ import { Button } from "@components/buttons/button";
 import { Check } from "@components/controls/check";
 import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
-import { Map } from "@components/maps/map";
+import Map from "@components/maps/map";
 import { Body, Label, Title } from "@components/typography/text";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { useThemeColor } from "@hooks/useThemeColor";

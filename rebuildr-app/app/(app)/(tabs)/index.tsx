@@ -46,7 +46,7 @@ export default function Landing() {
 
   return (
     <>
-      <RebuildrHead title="RebuildR - Sveriges marknadsplats för återbrukat byggmaterial" />
+      <RebuildrHead />
 
       <View style={{ flex: 1 }}>
         <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />

@@ -6,12 +6,15 @@ type Props = {
   title?: string;
   image?: string;
   description?: string;
+
+  isProductPage?: boolean;
 };
 
 export default function RebuildrHead({
-  title = "RebuildR",
+  title = "En digital marknadsplats för återbrukat byggmaterial",
   image,
-  description = "RebuildR är en digital marknadsplats och en rörelse för återbrukat byggmaterial. Vår utgångspunkt är enkel: bygg nytt av gammalt.",
+  description = "RebuildR är en digital marknadsplats och en rörelse för återbrukat byggmaterial.",
+  isProductPage = false,
 }: Props) {
   const pathName = usePathname();
   const siteUrl = process.env.EXPO_PUBLIC_SITE_URL;
@@ -19,25 +22,39 @@ export default function RebuildrHead({
 
   const defaultImage = siteUrl + "/images/og-image.png";
 
+  // Structured data for google
+  const googleProductData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: title,
+    image: image,
+    description: description,
+  };
+
   return (
     <Head>
-      <title>{title}</title>
-      <meta charSet="utf-8" />
-      <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-      <meta name="keywords" content="Rebuildr, Byggmaterial" />
+      <title key={url}>{`RebuildR - ${title}`}</title>
+
+      {isProductPage && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(googleProductData),
+          }}
+        />
+      )}
+
       <meta name="description" content={description} />
+      <meta name="keywords" content="Rebuildr, Byggmaterial" />
+
+      <meta property="og:type" content="website" />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:type" content="website" />
       <meta property="og:image" content={image ?? defaultImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:type" content="image/png" />
       <meta property="og:url" content={url} />
-      <meta
-        name="viewport"
-        content="initial-scale=1, width=device-width, height=device-height"
-      />
 
       <link rel="canonical" href={url} />
     </Head>

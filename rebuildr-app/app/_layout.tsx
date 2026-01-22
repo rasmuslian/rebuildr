@@ -26,7 +26,6 @@ import { SellProductBottomSheet } from "@components/sell-product/sell-product-bo
 import { SellProductProdiver } from "@context/sell-product-context";
 import { EditProductBottomSheet } from "@components/edit-product/edit-product-bottom-sheet";
 import { EditProductProdiver } from "@context/edit-product-context";
-import { isIOSDevice } from "@/utils/deviceInfo";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchProvider } from "@context/search-context";
 import * as Sentry from "@sentry/react-native";
@@ -36,7 +35,6 @@ import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
 import { shouldShowComingSoon } from "@/utils/coming-soon";
-import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -91,71 +89,49 @@ const RootLayout = () => {
   const showComingSoon = shouldShowComingSoon();
 
   return (
-    <>
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossOrigin=""
-      />
-      <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossOrigin=""
-      />
-      {isIOSDevice() && (
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
-        />
+    <ApolloProvider client={client}>
+      {showComingSoon ? (
+        <ScreenDimensionsProvider>
+          <Slot />
+        </ScreenDimensionsProvider>
+      ) : (
+        <LoginModalContext.Provider
+          value={{
+            visible: showLoginModal,
+            setVisible: setShowLoginModal,
+          }}
+        >
+          <LocationProvider>
+            <SellProductProdiver>
+              <EditProductProdiver>
+                <GestureHandlerRootView>
+                  <PortalProvider>
+                    <BuyModalProvider>
+                      <BottomSheetModalProvider>
+                        <ScreenDimensionsProvider>
+                          <SearchProvider>
+                            <ReRouteHandler>
+                              <Slot />
+                              <HamburgerMenu />
+                              <LoginModalView />
+                              <SellProductBottomSheet />
+                              <EditProductBottomSheet />
+                              <SearchDropdown />
+                              <BuyModal />
+                              <PortalHost name="OverlayProvider" />
+                            </ReRouteHandler>
+                          </SearchProvider>
+                        </ScreenDimensionsProvider>
+                      </BottomSheetModalProvider>
+                    </BuyModalProvider>
+                  </PortalProvider>
+                </GestureHandlerRootView>
+              </EditProductProdiver>
+            </SellProductProdiver>
+          </LocationProvider>
+        </LoginModalContext.Provider>
       )}
-
-      <RebuildrHead />
-
-      <ApolloProvider client={client}>
-        {showComingSoon ? (
-          <ScreenDimensionsProvider>
-            <Slot />
-          </ScreenDimensionsProvider>
-        ) : (
-          <LoginModalContext.Provider
-            value={{
-              visible: showLoginModal,
-              setVisible: setShowLoginModal,
-            }}
-          >
-            <LocationProvider>
-              <SellProductProdiver>
-                <EditProductProdiver>
-                  <GestureHandlerRootView>
-                    <PortalProvider>
-                      <BuyModalProvider>
-                        <BottomSheetModalProvider>
-                          <ScreenDimensionsProvider>
-                            <SearchProvider>
-                              <ReRouteHandler>
-                                <Slot />
-                                <HamburgerMenu />
-                                <LoginModalView />
-                                <SellProductBottomSheet />
-                                <EditProductBottomSheet />
-                                <SearchDropdown />
-                                <BuyModal />
-                                <PortalHost name="OverlayProvider" />
-                              </ReRouteHandler>
-                            </SearchProvider>
-                          </ScreenDimensionsProvider>
-                        </BottomSheetModalProvider>
-                      </BuyModalProvider>
-                    </PortalProvider>
-                  </GestureHandlerRootView>
-                </EditProductProdiver>
-              </SellProductProdiver>
-            </LocationProvider>
-          </LoginModalContext.Provider>
-        )}
-      </ApolloProvider>
-    </>
+    </ApolloProvider>
   );
 };
 

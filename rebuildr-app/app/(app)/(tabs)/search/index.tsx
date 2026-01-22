@@ -14,6 +14,7 @@ import { useLocationContext } from "@context/location-context";
 import { useRouter } from "expo-router";
 import { Button } from "@components/buttons/button";
 import { Headline } from "@components/typography/text";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export default function Search() {
   const { searchState } = useSearchContext();
@@ -28,39 +29,49 @@ export default function Search() {
   });
 
   return (
-    <ScreenLayout
-      headerComponent={
-        <SearchBar placeholder="Vad letar du efter?" searchOnSubmit autoFocus />
-      }
-      style={{ gap: 16 }}
-    >
-      <Headline size="small">Sök på kartan</Headline>
-      <Pressable onPress={() => router.navigate("/map")}>
-        <MapThumbnail
-          coords={
-            userCoords ? [userCoords.latitude, userCoords.longitude] : undefined
-          }
-          style={{ marginBottom: 16 }}
-          cta={
-            <Button
-              label="Visa på karta"
-              type="text"
-              icon="map"
-              style={{ backgroundColor: "white" }}
-              onPress={() => router.navigate("/map")}
-            />
-          }
-        />
-      </Pressable>
-      <Divider />
-      {searchState.searchString ? (
-        <SearchWithResults
-          data={searchState.searchData}
-          searchString={searchState.searchString}
-        />
-      ) : (
-        <SearchEmptyState data={data} />
-      )}
-    </ScreenLayout>
+    <>
+      <RebuildrHead title="Sök" />
+
+      <ScreenLayout
+        headerComponent={
+          <SearchBar
+            placeholder="Vad letar du efter?"
+            searchOnSubmit
+            autoFocus
+          />
+        }
+        style={{ gap: 16 }}
+      >
+        <Headline size="small">Sök på kartan</Headline>
+        <Pressable onPress={() => router.navigate("/map")}>
+          <MapThumbnail
+            coords={
+              userCoords
+                ? [userCoords.latitude, userCoords.longitude]
+                : undefined
+            }
+            style={{ marginBottom: 16 }}
+            cta={
+              <Button
+                label="Visa på karta"
+                type="text"
+                icon="map"
+                style={{ backgroundColor: "white" }}
+                onPress={() => router.navigate("/map")}
+              />
+            }
+          />
+        </Pressable>
+        <Divider />
+        {searchState.searchString ? (
+          <SearchWithResults
+            data={searchState.searchData}
+            searchString={searchState.searchString}
+          />
+        ) : (
+          <SearchEmptyState data={data} />
+        )}
+      </ScreenLayout>
+    </>
   );
 }
