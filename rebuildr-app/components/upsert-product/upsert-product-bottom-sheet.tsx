@@ -111,6 +111,7 @@ const detailsErrorFields = [
   "description",
   "primary",
 ];
+const transportaionErrorFields = ["delivery"];
 
 type Props = {
   productId: string;
@@ -265,6 +266,13 @@ export const UpsertProductBottomSheet = ({
     );
     if (errorInDetails) {
       setStep("details");
+      return;
+    }
+    const errorInTransportation = Object.keys(errorFields).some((key) =>
+      transportaionErrorFields.some((field) => field === key),
+    );
+    if (errorInTransportation) {
+      setStep("transportation");
     }
   };
 
@@ -543,6 +551,7 @@ export const UpsertProductBottomSheet = ({
   const onUpdateProduct = (partialProduct: Partial<ProductFields>) => {
     const newProduct = { ...product, ...partialProduct };
     onVerifyDetails(newProduct);
+    onVerifyTransportation(newProduct);
     setProduct(newProduct);
   };
   const onNextDetails = () => {
@@ -551,7 +560,14 @@ export const UpsertProductBottomSheet = ({
       setStep("project");
     }
   };
+  const onNextTransportation = () => {
+    const result = onVerifyTransportation(product);
+    if (result) {
+      setStep("preview");
+    }
+  };
   const onVerifyDetails = (p?: ProductFields) => {
+    if (!data) return;
     const _product = p ?? product;
     const badFields: FieldErrorsType = { ...fieldErrors };
 
@@ -565,9 +581,9 @@ export const UpsertProductBottomSheet = ({
       badFields["images"] = "Måste bifoga minst en bild";
     }
     if (_product.price !== undefined && !_product.isGiveaway) {
-      if (_product.price < 20) {
+      if (_product.price < data.product.minimumPrice) {
         badFields["price"] =
-          `Priset måste vara högre än ${data?.product.minimumPrice} kr`;
+          `Priset måste vara högre än ${data.product.minimumPrice} kr`;
       }
     }
     if (_product.title === "") {
@@ -592,8 +608,30 @@ export const UpsertProductBottomSheet = ({
   const onVerifyProject = () => {
     setStep("transportation");
   };
-  const onVerifyTransportation = () => {
-    setStep("preview");
+  const onVerifyTransportation = (p?: ProductFields) => {
+    if (!data) return;
+    const _product = p ?? product;
+    const badFields: FieldErrorsType = { ...fieldErrors };
+
+    delete badFields["delivery"];
+    if (
+      _product.isGiveaway &&
+      _product.deliveryEnabled &&
+      _product.deliveryPrice &&
+      _product.deliveryPrice < data.product.minimumPrice &&
+      _product.deliveryPrice > 0
+    ) {
+      badFields["delivery"] =
+        `Vid bortskänkes måste priset för hemleverans vara minst ${data.product.minimumPrice}kr eller gratis`;
+    }
+    setFieldErrors(badFields);
+    if (Object.keys(badFields).length) {
+      firstStepWithErrors(badFields);
+      return false;
+    }
+
+    //if no errors, proceed
+    return true;
   };
   const onVerifyPreview = () => {
     onSave(true);
@@ -712,10 +750,11 @@ export const UpsertProductBottomSheet = ({
       <Transportation
         product={product}
         update={onUpdateProduct}
-        onNext={onVerifyTransportation}
+        onNext={onNextTransportation}
         nextIsDisabled={!transportationProgress || transportationProgress < 100}
         updateProgress={(progress) => setTransportationProgress(progress)}
         onBack={() => setStep("project")}
+        badFields={fieldErrors}
       />
     ),
     step === "preview" && <Preview product={product} />,
