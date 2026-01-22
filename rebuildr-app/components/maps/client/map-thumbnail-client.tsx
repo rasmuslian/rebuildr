@@ -1,5 +1,5 @@
 /**
- * This file can only be rendered when window is defined.
+ * This file can only be rendered while window is defined.
  */
 
 import { ReactElement, useMemo } from "react";
