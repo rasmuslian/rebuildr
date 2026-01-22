@@ -627,6 +627,7 @@ type ProductMapPinResponse {
 }
 
 type Query {
+  usernameIsValid(username: String!): Boolean!
   me: User!
   userExists(input: UserExistsInput!): User
   user(input: GetUserInput!): User!

@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
+  ILike,
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
@@ -39,6 +40,13 @@ export class AuthService {
     private refreshTokenRepository: Repository<RefreshToken>,
     private mailService: MailService,
   ) {}
+
+  async usernameIsValid(username: string) {
+    const existingUsername = await this.userRepository.findOne({
+      where: { username: ILike(username) },
+    });
+    return !existingUsername;
+  }
 
   async registerUser(input: RegisterUserInput) {
     let user = await this.userRepository.findOneBy({
