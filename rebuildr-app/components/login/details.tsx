@@ -1,9 +1,11 @@
 import {
   DetailsQueryQuery,
+  DetailsValidUsernameQuery,
+  DetailsValidUsernameQueryVariables,
   UpdateDetailsFieldsMutation,
   UpdateDetailsFieldsMutationVariables,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Check } from "@components/controls/check";
 import { Toggle } from "@components/controls/toggle";
@@ -22,6 +24,7 @@ import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { CreatePassword } from "./create-password";
 import { useScreenType } from "@hooks/useScreenType";
+import { useDebounceCallback } from "usehooks-ts";
 
 const DETAILS_QUERY = gql`
   query DetailsQuery {
@@ -38,6 +41,12 @@ const UPDATE_DETAILS_FIELDS = gql`
       id
       username
     }
+  }
+`;
+
+const DETAILS_VALID_USERNAME = gql`
+  query DetailsValidUsername($username: String!) {
+    usernameIsValid(username: $username)
   }
 `;
 
@@ -64,6 +73,12 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
       UpdateDetailsFieldsMutation,
       UpdateDetailsFieldsMutationVariables
     >(UPDATE_DETAILS_FIELDS);
+  const [checkUsername, { data: checkUsernameData }] = useLazyQuery<
+    DetailsValidUsernameQuery,
+    DetailsValidUsernameQueryVariables
+  >(DETAILS_VALID_USERNAME);
+
+  const debouncedCheckUsername = useDebounceCallback(checkUsername, 300);
 
   const canContinue = () => {
     const usernameCorrect = !!username;
@@ -74,6 +89,11 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
       !loading &&
       (!updateDetailsData || dontCreateBusiness || createBusiness)
     );
+  };
+
+  const onChangeUsername = (name: string) => {
+    debouncedCheckUsername({ variables: { username: name } });
+    setUsername(name);
   };
 
   const onProceed = () => {
@@ -267,8 +287,13 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                       description:
                         "Ditt användarnamn är det namn som visas på din publika profil.",
                       value: username,
-                      onChange: (v) => setUsername(v),
+                      onChange: onChangeUsername,
                       disabled: loading,
+                      error:
+                        checkUsernameData &&
+                        checkUsernameData.usernameIsValid === false
+                          ? "Användarnamnet är redan taget"
+                          : undefined,
                     },
                   ]}
                 />

@@ -5,6 +5,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from '@nestjs/graphql';
 import { User } from 'src/entities/user.entity';
@@ -141,6 +142,11 @@ const newPasswordSchema = z.object({
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
+
+  @Query(() => Boolean)
+  async usernameIsValid(@Args('username') username: string) {
+    return await this.authService.usernameIsValid(username);
+  }
 
   @Mutation(() => User)
   @UsePipes(new ZodValidationPipe(registerUserSchema))
