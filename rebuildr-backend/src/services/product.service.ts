@@ -195,26 +195,6 @@ export class ProductService {
     return await this.createDraft(currentUserId);
   }
 
-  //A user must be admin or own the product to edit them
-  // and the product can not have ongoing purchases on them
-  async canEdit(product: Product, userId: string, userRole: UserRoleEnum) {
-    if (userRole !== UserRoleEnum.ADMIN && userId !== product.sellerId) {
-      return false;
-    }
-
-    const purchases = await this.purchaseRepository.find({
-      where: {
-        productId: product.id,
-        status: Not(PurchaseStatusEnum.FINISHED_FAILED),
-      },
-    });
-    if (purchases.length) {
-      return false;
-    }
-
-    return true;
-  }
-
   async updateProduct(
     input: UpdateProductInput,
     currentUserId: string,
@@ -222,18 +202,35 @@ export class ProductService {
     logger: Logger,
   ) {
     const product = await this.productRepository.findOne({
-      where: { id: input.id, purchases: null },
+      where: { id: input.id },
       relations: {
         images: true,
         documents: true,
+        purchases: true,
       },
     });
 
-    const canEdit = await this.canEdit(product, currentUserId, currentUserRole);
+    if (
+      currentUserRole !== UserRoleEnum.ADMIN &&
+      currentUserId !== product.sellerId
+    ) {
+      logger.error('User does not have permission to update product', {
+        currentUserId,
+        currentUserRole,
+        productId: product.id,
+        productSellerId: product.sellerId,
+      });
 
-    if (!canEdit) {
-      logger.error('User does not have permission to update product');
-
+      throw ForbiddenException();
+    }
+    const ongoingPurchase = product.purchases.find(
+      (purchase) => purchase.status !== PurchaseStatusEnum.FINISHED_FAILED,
+    );
+    if (ongoingPurchase) {
+      logger.error('Can not update product due to ongoing purchase', {
+        purchase: ongoingPurchase,
+        productId: product.id,
+      });
       throw ForbiddenException();
     }
 
@@ -337,6 +334,7 @@ export class ProductService {
         where: { id: Equal(input.categoryId) },
       });
       product.categoryId = category.id;
+      product.category = category;
     }
     if (input.noProject !== null) {
       product.noProject = input.noProject;
@@ -442,7 +440,6 @@ export class ProductService {
         .object({
           title: z.string().min(1),
           description: z.string().min(1),
-          categoryId: z.string().min(1),
         })
         .safeParse(product);
       if (!parseResult.success) {
@@ -452,6 +449,22 @@ export class ProductService {
         });
 
         throw BadUserInputException('Invalid update of product');
+      }
+
+      if (!product.category) {
+        logger.error('updateProduct: missing category', {
+          productId: product.id,
+          updateProductInput: input,
+        });
+        throw BadUserInputException('Missing category');
+      }
+      if (!product.category.parentId) {
+        logger.error('updateProduct: category is not child', {
+          productId: product.id,
+          category: product.category,
+          updateProductInput: input,
+        });
+        throw BadUserInputException('Category is not child');
       }
 
       if (!product.condition) {
@@ -496,6 +509,31 @@ export class ProductService {
 
       if (!product.primaryQuantity || !product.primaryUnit) {
         throw BadUserInputException('Product must specify quantity');
+      }
+
+      //Transportation
+      if (
+        !product.pickupEnabled &&
+        !product.shippingPrices.length &&
+        !product.deliveryEnabled
+      ) {
+        logger.error('Product must have a transportation option', {
+          product,
+        });
+        throw BadUserInputException(
+          'Product must have a transportation option',
+        );
+      }
+      if (product.pickupEnabled || product.deliveryEnabled) {
+        if (
+          (!product.address || !product.addressLocation) &&
+          !product.projectId
+        ) {
+          logger.error('Product must have an adress for pickup and delivery', {
+            product,
+          });
+          throw BadUserInputException('Product missing address');
+        }
       }
     }
 
