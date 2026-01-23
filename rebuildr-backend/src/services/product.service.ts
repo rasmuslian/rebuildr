@@ -732,19 +732,19 @@ export class ProductService {
     }
 
     //Prices
-    if (input.minPrice !== undefined) {
-      query.andWhere('p.price / 100 >= :minPrice', {
-        minPrice: input.minPrice,
-      });
-    }
-    if (input.maxPrice !== undefined) {
-      query.andWhere('p.price / 100 <= :maxPrice', {
-        maxPrice: input.maxPrice,
-      });
-    }
-
     if (input.giveaway) {
       query.andWhere('"isGiveaway" = TRUE');
+    } else {
+      if (input.minPrice !== undefined) {
+        query.andWhere('p.price / 100 >= :minPrice', {
+          minPrice: input.minPrice,
+        });
+      }
+      if (input.maxPrice !== undefined) {
+        query.andWhere('p.price / 100 <= :maxPrice', {
+          maxPrice: input.maxPrice,
+        });
+      }
     }
 
     if (input.likedByUserIds) {

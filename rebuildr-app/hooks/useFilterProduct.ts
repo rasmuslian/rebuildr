@@ -24,10 +24,7 @@ export const useFilterProduct = () => {
       acc += 1;
     }
 
-    if (
-      filter.price[0] !== initialFilterProduct.price[0] ||
-      filter.price[1] !== initialFilterProduct.price[1]
-    ) {
+    if (filter.price || filter.giveaway) {
       acc += 1;
     }
 
@@ -218,6 +215,15 @@ class FilterBuilder {
         price1 <= price2 ? price1 : price2,
         price1 <= price2 ? price2 : price1,
       ],
+      giveaway: false,
+    };
+    return this;
+  }
+  setGiveaway(v: boolean) {
+    const filter = this.resetPresets();
+    this.filter = {
+      ...filter,
+      giveaway: v,
     };
     return this;
   }

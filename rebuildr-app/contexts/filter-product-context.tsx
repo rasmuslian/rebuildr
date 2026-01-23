@@ -14,7 +14,8 @@ export type Filter = {
   categoryIds?: string[];
   brandIds?: string[];
   conditions?: ProductConditionEnum[];
-  price: [number, number]; // lower, higher
+  price?: [number, number]; // lower, higher
+  giveaway: boolean;
   searchString?: string;
   //Preset filters
   selectedCategoryId?: string;
@@ -29,7 +30,8 @@ export const initialFilterProduct: Filter = {
   categoryIds: undefined,
   brandIds: undefined,
   conditions: undefined,
-  price: [0, 0],
+  price: undefined,
+  giveaway: false,
   selectedCategoryId: undefined,
   cameFrom: undefined,
   searchString: undefined,

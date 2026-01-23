@@ -8,6 +8,8 @@ import { Slider } from "@components/slider/slider";
 import { gql, useQuery } from "@apollo/client";
 import { PriceFilterQuery } from "@/gql/graphql";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { Body } from "@components/typography/text";
+import { Check } from "@components/controls/check";
 
 const PRICE_FILTER = gql`
   query PriceFilter {
@@ -21,8 +23,8 @@ const PRICE_FILTER = gql`
 export const PriceFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
 
-  const [value1, setValue1] = useState(filter.price[0]);
-  const [value2, setValue2] = useState(filter.price[1]);
+  const [value1, setValue1] = useState(filter.price?.[0] ?? 0);
+  const [value2, setValue2] = useState(filter.price?.[1] ?? 0);
 
   const { data } = useQuery<PriceFilterQuery>(PRICE_FILTER);
 
@@ -84,9 +86,12 @@ export const PriceFilter = () => {
       title="Pris"
       initialOpen={
         value1 !== data.getProductPriceRange.min ||
-        value2 !== data.getProductPriceRange.max
+        value2 !== data.getProductPriceRange.max ||
+        filter.giveaway
       }
-      collapsedText={`${value1} kr - ${value2} kr`}
+      collapsedText={
+        filter.giveaway ? "Bortskänkes" : `${value1} kr - ${value2} kr`
+      }
     >
       <View style={{ gap: 24 }}>
         <Slider
@@ -139,6 +144,13 @@ export const PriceFilter = () => {
                 heading: "Högst",
               },
             ]}
+          />
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Body size="medium">Bortskänkes</Body>
+          <Check
+            selected={filter.giveaway}
+            onPress={() => filterBuilder.setGiveaway(!filter.giveaway).apply()}
           />
         </View>
       </View>
