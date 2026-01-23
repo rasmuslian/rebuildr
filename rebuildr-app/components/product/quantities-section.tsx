@@ -4,7 +4,6 @@ import {
   RecommendedQuantitiesQueryQueryVariables,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Toggle } from "@components/controls/toggle";
 import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -55,10 +54,6 @@ export const QuantitiesSection = ({
     _secondaryQuantity?.toString() ?? "0",
   );
 
-  const [showSecondary, setShowSecondary] = useState(
-    _secondaryQuantity !== undefined,
-  );
-
   const [primaryUnit, setPrimaryaryUnit] = useState<QuantityUnitEnum>(
     _primaryUnit ?? Object.values(QuantityUnitEnum)[0],
   );
@@ -69,7 +64,6 @@ export const QuantitiesSection = ({
   useEffect(() => {
     setPrimaryQuantity(_primaryQuantity?.toString() ?? "0");
     setSecondaryQuantity(_secondaryQuantity?.toString() ?? "0");
-    setShowSecondary(_secondaryQuantity !== undefined);
   }, [_primaryQuantity, _secondaryQuantity]);
 
   const { data } = useQuery<
@@ -78,6 +72,13 @@ export const QuantitiesSection = ({
   >(RECOMMENDED_QUANTITIES_QUERY, {
     variables: { input: { id: categoryId } },
   });
+
+  useEffect(() => {
+    onChangeSecondary({
+      quantity: undefined,
+      unit: undefined,
+    });
+  }, [categoryId]);
 
   const processQuantity = (q: string) => {
     //remove all non digits
@@ -126,9 +127,9 @@ export const QuantitiesSection = ({
   return (
     <View style={{ zIndex: 10 }}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Label size="medium">Antal och enhet</Label>
+        <Label size="medium">Mängd och enhet</Label>
         <Body size="medium">
-          Ange antal eller mängd för produkten i relevanta enheter.
+          Välj den enhet som bäst beskriver hur produkten säljs.
         </Body>
       </View>
       <View
@@ -164,64 +165,40 @@ export const QuantitiesSection = ({
           />
         </View>
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          marginTop: 24,
-          gap: 24,
-          alignItems: "flex-end",
-        }}
-      >
-        <View style={{ gap: 4, flex: 1 }}>
-          <Label size="medium">Lägg till ytterligare enhet</Label>
-          <Body size="medium">
-            Lägg till ytterligare enhet för att beskriva produkten
-          </Body>
-        </View>
-        <Toggle
-          value={showSecondary}
-          onPress={() => {
-            //remove secondary if showSecondary is true, since it will now be removed from product
-            if (showSecondary) {
-              onChangeSecondary({});
-              setSecondaryUnit(undefined);
-            }
-            setSecondaryUnit(
-              _secondaryUnit ??
-                data.category.secondaryQuantityUnit ??
-                (Object.values(QuantityUnitEnum).find(
-                  (unit) => unit !== primaryUnit,
-                ) as QuantityUnitEnum),
-            );
-            setShowSecondary(!showSecondary);
-          }}
-        />
-      </View>
-      {showSecondary && (
-        <View
-          style={{ flexDirection: "row", marginTop: 16, gap: 16, zIndex: 9 }}
-        >
-          <View style={{ minWidth: 213 }}>
-            <TextInput
-              placeholder={secondaryQuantity}
-              value={secondaryQuantity !== "0" ? secondaryQuantity : undefined}
-              onChange={onChangeSecondaryQuantity}
-            />
+      {!!data.category.secondaryQuantityUnit && (
+        <View style={{ marginTop: 24 }}>
+          <View style={{ gap: 4, flex: 1 }}>
+            <Label size="medium">Ytterligare enhet</Label>
           </View>
-          <View style={{ flex: 1 }}>
-            <SelectInput
-              value={
-                secondaryUnit ??
-                data.category.secondaryQuantityUnit ??
-                QuantityUnitEnum.M2
-              }
-              options={Object.values(QuantityUnitEnum).map((option, i) => ({
-                value: option,
-                label: quantities[option].short,
-                disabled: option === primaryUnit,
-              }))}
-              onSelect={(value) => setSecondaryUnit(value as QuantityUnitEnum)}
-            />
+          <View
+            style={{ flexDirection: "row", marginTop: 16, gap: 16, zIndex: 9 }}
+          >
+            <View style={{ minWidth: 213 }}>
+              <TextInput
+                placeholder={secondaryQuantity}
+                value={
+                  secondaryQuantity !== "0" ? secondaryQuantity : undefined
+                }
+                onChange={onChangeSecondaryQuantity}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <SelectInput
+                value={
+                  secondaryUnit ??
+                  data.category.secondaryQuantityUnit ??
+                  QuantityUnitEnum.M2
+                }
+                options={Object.values(QuantityUnitEnum).map((option, i) => ({
+                  value: option,
+                  label: quantities[option].short,
+                  disabled: option === primaryUnit,
+                }))}
+                onSelect={(value) =>
+                  setSecondaryUnit(value as QuantityUnitEnum)
+                }
+              />
+            </View>
           </View>
         </View>
       )}
