@@ -5,8 +5,6 @@ export enum FilterProductCameFromEnum {
   categories,
 }
 
-export const minimumPrice = 0;
-export const maximumPrice = 10000;
 //undefined means include all
 //empty list means includ none
 export type Filter = {
@@ -16,7 +14,8 @@ export type Filter = {
   categoryIds?: string[];
   brandIds?: string[];
   conditions?: ProductConditionEnum[];
-  price: [number, number]; // lower, higher
+  price?: [number, number]; // lower, higher
+  giveaway: boolean;
   searchString?: string;
   //Preset filters
   selectedCategoryId?: string;
@@ -31,7 +30,8 @@ export const initialFilterProduct: Filter = {
   categoryIds: undefined,
   brandIds: undefined,
   conditions: undefined,
-  price: [minimumPrice, maximumPrice],
+  price: undefined,
+  giveaway: false,
   selectedCategoryId: undefined,
   cameFrom: undefined,
   searchString: undefined,

@@ -6,9 +6,11 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Body, Display, Headline } from "@components/typography/text";
+import { Body, Display, Headline, Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
+import { Image } from "expo-image";
+import placeholder from "@assets/images/category-placeholder.jpeg";
 
 const CATEGORY_SECTION = gql`
   query CategorySection($input: CategoryInput!) {
@@ -80,15 +82,26 @@ export const CategorySection = ({
           paddingBottom: 16,
         }}
       >
-        <Headline size="small">Välj en kategori</Headline>
+        <Headline size="small" style={{ marginBottom: 12 }}>
+          Välj en kategori
+        </Headline>
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 16,
           }}
         >
-          <Body size="medium">{selectedData.category.name}</Body>
+          <Image
+            source={{
+              uri: selectedData.category.image?.url ?? placeholder.uri,
+            }}
+            style={{ width: 60, height: 60, borderRadius: 100 }}
+          />
+          <View style={{ flex: 1 }}>
+            <Title size="medium">{selectedData.category.name}</Title>
+          </View>
           <Button label="Ändra" type="tonal" onPress={onChange} />
         </View>
       </View>

@@ -254,7 +254,7 @@ export class ProductService {
     if (convertedPrice !== undefined && !input.isGiveAway) {
       if (convertedPrice < minimumProductPrice) {
         errors.push({
-          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumProductPrice / 100)} kr`,
+          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${this.getProductPriceRange().min} kr`,
           name: 'price',
         });
       }
@@ -317,7 +317,7 @@ export class ProductService {
         input.deliveryPrice * 100 < minimumProductPrice
       ) {
         errors.push({
-          message: `Minsta tillåtna hemtransportpris är ${Math.round(minimumProductPrice / 100)} kr om annonsen bortskänkes`,
+          message: `Minsta tillåtna hemtransportpris är ${this.getProductPriceRange().min} kr om annonsen bortskänkes`,
           name: 'delivery',
         });
       }
@@ -580,6 +580,13 @@ export class ProductService {
     };
   }
 
+  getProductPriceRange() {
+    return {
+      min: Math.round(minimumProductPrice / 100),
+      max: Math.round(maximumProductPrice / 100),
+    };
+  }
+
   async findAll(
     input: ProductsInput,
     _limit?: number,
@@ -725,19 +732,19 @@ export class ProductService {
     }
 
     //Prices
-    if (input.minPrice !== undefined) {
-      query.andWhere('p.price / 100 >= :minPrice', {
-        minPrice: input.minPrice,
-      });
-    }
-    if (input.maxPrice !== undefined) {
-      query.andWhere('p.price / 100 <= :maxPrice', {
-        maxPrice: input.maxPrice,
-      });
-    }
-
     if (input.giveaway) {
       query.andWhere('"isGiveaway" = TRUE');
+    } else {
+      if (input.minPrice !== undefined) {
+        query.andWhere('p.price / 100 >= :minPrice', {
+          minPrice: input.minPrice,
+        });
+      }
+      if (input.maxPrice !== undefined) {
+        query.andWhere('p.price / 100 <= :maxPrice', {
+          maxPrice: input.maxPrice,
+        });
+      }
     }
 
     if (input.likedByUserIds) {

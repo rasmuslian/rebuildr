@@ -532,6 +532,11 @@ type CmsUpdateProductResponse {
   documentPutUrls: [String!]!
 }
 
+type ProductPriceRangeResponse {
+  min: Int!
+  max: Int!
+}
+
 type UpdateUserResponse {
   user: User!
   profilePicturePutUrl: String
@@ -640,6 +645,7 @@ type Query {
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
   getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
   getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
+  getProductPriceRange: ProductPriceRangeResponse!
   cmsGetProduct(productId: String!): Product!
   cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
   category(input: CategoryInput!): Category!

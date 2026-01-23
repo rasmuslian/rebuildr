@@ -1,8 +1,7 @@
 import { Body, Headline, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { PropsWithChildren, useState } from "react";
-import { View } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
+import { Pressable, View } from "react-native";
 
 type Props = {
   title: string;

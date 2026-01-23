@@ -66,8 +66,9 @@ export const MapProvider = ({ children }: PropsWithChildren) => {
                 filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
               brandIds: filter.brandIds,
               conditions: filter.conditions,
-              minPrice: filter.price[0],
-              maxPrice: filter.price[1],
+              minPrice: filter.price?.[0],
+              maxPrice: filter.price?.[1],
+              giveaway: filter.giveaway,
             },
           },
         }
