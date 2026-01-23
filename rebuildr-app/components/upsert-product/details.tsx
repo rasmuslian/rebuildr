@@ -17,6 +17,7 @@ import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 import { ColorSection } from "@components/product/color-section";
 import { MeasurementTypeEnum } from "@/gql/graphql";
+import { AdditionalInfoSection } from "@components/product/additional-info-section";
 
 type Props = {
   product: ProductFields;
@@ -40,7 +41,12 @@ export const Details = ({
     ).some((measurementKey) => !!product[measurementKey]);
 
     //show details if any measurements are set or any documents are chosen
-    return measurementSet || !!product.documents?.length || !!product.color;
+    return (
+      measurementSet ||
+      !!product.documents?.length ||
+      !!product.color ||
+      !!product.additionalInfo
+    );
   });
 
   const rootCategoryId = product.categoryIds?.[0];
@@ -206,6 +212,10 @@ export const Details = ({
                   onChange={(color, type) => update({ color, colorType: type })}
                 />
               </View>
+              <AdditionalInfoSection
+                additionalInfo={product.additionalInfo ?? ""}
+                onChange={(additionalInfo) => update({ additionalInfo })}
+              />
               <DocumentSection
                 documents={product.documents ?? []}
                 onUpdateFiles={(files) => update({ documents: files })}

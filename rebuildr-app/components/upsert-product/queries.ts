@@ -5,6 +5,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     id
     title
     description
+    additionalInfo
     price
     isGiveaway
     condition

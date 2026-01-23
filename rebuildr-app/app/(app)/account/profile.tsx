@@ -103,7 +103,12 @@ export default function Profile() {
                 rating={user.rating}
               />
 
-              <CollapsableText text={user.description ?? ""} nrOfLines={2} />
+              <CollapsableText
+                text={user.description ?? ""}
+                nrOfLines={2}
+                readLess="Läs mindre"
+                readMore="Läs hela beskrivningen"
+              />
             </View>
 
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -182,7 +187,12 @@ export default function Profile() {
           rating={user.rating}
         />
 
-        <CollapsableText text={user.description ?? ""} nrOfLines={2} />
+        <CollapsableText
+          text={user.description ?? ""}
+          nrOfLines={2}
+          readLess="Läs mindre"
+          readMore="Läs hela beskrivningen"
+        />
         <Divider />
         <TabRail
           tabs={[
