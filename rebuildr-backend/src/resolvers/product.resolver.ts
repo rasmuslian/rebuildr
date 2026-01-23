@@ -603,6 +603,15 @@ export class CmsUpdateProductResponse {
   documentPutUrls: string[];
 }
 
+@ObjectType()
+export class ProductPriceRangeResponse {
+  @Field(() => Int)
+  min: number;
+
+  @Field(() => Int)
+  max: number;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -676,6 +685,11 @@ export class ProductResolver {
   @Query(() => DeliveryOptionResponse, { nullable: true })
   async getDeliveryOption(@Args('input') input: GetTransportationOptionsInput) {
     return this.productService.getDeliveryOptions(input);
+  }
+
+  @Query(() => ProductPriceRangeResponse)
+  getProductPriceRange() {
+    return this.productService.getProductPriceRange();
   }
 
   @Query(() => Product)

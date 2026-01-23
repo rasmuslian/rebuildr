@@ -1,15 +1,22 @@
 import { FilterSection } from "./filter-section";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Form } from "@components/forms/form";
 import { Icon } from "@icons/icon";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import {
-  initialFilterProduct,
-  maximumPrice,
-  minimumPrice,
-} from "@context/filter-product-context";
 import { Slider } from "@components/slider/slider";
+import { gql, useQuery } from "@apollo/client";
+import { PriceFilterQuery } from "@/gql/graphql";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+
+const PRICE_FILTER = gql`
+  query PriceFilter {
+    getProductPriceRange {
+      min
+      max
+    }
+  }
+`;
 
 export const PriceFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
@@ -17,8 +24,19 @@ export const PriceFilter = () => {
   const [value1, setValue1] = useState(filter.price[0]);
   const [value2, setValue2] = useState(filter.price[1]);
 
+  const { data } = useQuery<PriceFilterQuery>(PRICE_FILTER);
+
+  useEffect(() => {
+    if (!data) return;
+    if (!value1 || !value2) {
+      setValue1(data.getProductPriceRange.min);
+      setValue2(data.getProductPriceRange.max);
+    }
+  }, [data]);
+
   const onChangeMinPrice = (p: number) => {
-    if (p < minimumPrice) {
+    if (!data) return;
+    if (p < data.getProductPriceRange.min) {
       return;
     }
     const maxValue = value1 > value2 ? value1 : value2;
@@ -37,7 +55,8 @@ export const PriceFilter = () => {
     }
   };
   const onChangeMaxPrice = (p: number) => {
-    if (p > maximumPrice) {
+    if (!data) return;
+    if (p > data.getProductPriceRange.max) {
       return;
     }
     const minValue = value1 <= value2 ? value1 : value2;
@@ -56,23 +75,27 @@ export const PriceFilter = () => {
     }
   };
 
+  if (!data || !value1) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <FilterSection
       title="Pris"
       initialOpen={
-        filter.price[0] !== initialFilterProduct.price[0] ||
-        filter.price[1] !== initialFilterProduct.price[1]
+        value1 !== data.getProductPriceRange.min ||
+        value2 !== data.getProductPriceRange.max
       }
-      collapsedText={`${filter.price[0]} kr - ${filter.price[1]} kr`}
+      collapsedText={`${value1} kr - ${value2} kr`}
     >
       <View style={{ gap: 24 }}>
         <Slider
           type="double"
           sliderProps={{
-            value1: filter.price[0],
-            value2: filter.price[1],
-            min: minimumPrice,
-            max: maximumPrice,
+            value1,
+            value2,
+            min: data.getProductPriceRange.min,
+            max: data.getProductPriceRange.max,
             width: 343,
             onChange: (v1, v2) => {
               setValue1(Math.round(v1));

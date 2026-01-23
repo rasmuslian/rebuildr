@@ -254,7 +254,7 @@ export class ProductService {
     if (convertedPrice !== undefined && !input.isGiveAway) {
       if (convertedPrice < minimumProductPrice) {
         errors.push({
-          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${Math.round(minimumProductPrice / 100)} kr`,
+          message: `Priset måste vara 0 kr (bortskänkes) eller minst ${this.getProductPriceRange().min} kr`,
           name: 'price',
         });
       }
@@ -317,7 +317,7 @@ export class ProductService {
         input.deliveryPrice * 100 < minimumProductPrice
       ) {
         errors.push({
-          message: `Minsta tillåtna hemtransportpris är ${Math.round(minimumProductPrice / 100)} kr om annonsen bortskänkes`,
+          message: `Minsta tillåtna hemtransportpris är ${this.getProductPriceRange().min} kr om annonsen bortskänkes`,
           name: 'delivery',
         });
       }
@@ -577,6 +577,13 @@ export class ProductService {
       product: await this.productRepository.save(product),
       imagePutUrls: this.fileService.uploadFiles(product.images, true),
       documentPutUrls: this.fileService.uploadFiles(product.documents, true),
+    };
+  }
+
+  getProductPriceRange() {
+    return {
+      min: Math.round(minimumProductPrice / 100),
+      max: Math.round(maximumProductPrice / 100),
     };
   }
 
