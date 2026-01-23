@@ -289,11 +289,26 @@ export class ProductService {
       });
     }
 
+    if (
+      input.isGiveAway &&
+      input.deliveryPrice &&
+      input.deliveryPrice * 100 < minimumProductPrice
+    ) {
+      errors.push({
+        message: `Minsta tillåtna hemtransportpris är ${this.getProductPriceRange().min} kr om annonsen bortskänkes`,
+        name: 'delivery',
+      });
+    }
+    //------------------------------------------------
+
     if (input.title !== undefined) {
       product.title = input.title;
     }
     if (input.description !== undefined) {
       product.description = input.description;
+    }
+    if (input.additionalInfo !== undefined) {
+      product.additionalInfo = input.additionalInfo;
     }
     if (convertedPrice !== undefined) {
       product.price = convertedPrice;
@@ -312,21 +327,11 @@ export class ProductService {
     if (input.isGiveAway !== undefined) {
       product.isGiveaway = input.isGiveAway;
       product.price = input.isGiveAway ? 0 : product.price;
-      if (
-        input.deliveryPrice &&
-        input.deliveryPrice * 100 < minimumProductPrice
-      ) {
-        errors.push({
-          message: `Minsta tillåtna hemtransportpris är ${this.getProductPriceRange().min} kr om annonsen bortskänkes`,
-          name: 'delivery',
-        });
-      }
     }
 
     if (errors.length) {
       throw BadFieldsInputException(errors);
     }
-    //------------------------------------------------
 
     //null means removing the category
     if (!!input.categoryId || input.categoryId === null) {

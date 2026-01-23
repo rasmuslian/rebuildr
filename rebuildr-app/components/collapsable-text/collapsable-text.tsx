@@ -6,9 +6,16 @@ import { Pressable } from "react-native-gesture-handler";
 type Props = {
   text: string;
   nrOfLines?: number;
+  readMore: string;
+  readLess: string;
 };
 
-export const CollapsableText = ({ text, nrOfLines = 7 }: Props) => {
+export const CollapsableText = ({
+  text,
+  nrOfLines = 7,
+  readMore,
+  readLess,
+}: Props) => {
   const [showAll, setShowAll] = useState(false);
 
   //just a guess that each line of text will be 50 chars long
@@ -26,7 +33,7 @@ export const CollapsableText = ({ text, nrOfLines = 7 }: Props) => {
       {text.length > breakpoint && (
         <Pressable onPress={() => setShowAll(!showAll)}>
           <Body size="medium" isLink>
-            {showAll ? "Läs mindre" : "Läs hela beskrivningen"}
+            {showAll ? readLess : readMore}
           </Body>
         </Pressable>
       )}

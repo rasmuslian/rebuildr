@@ -10,6 +10,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     likedByMe
     title
     description
+    additionalInfo
     price
     isGiveaway
     condition

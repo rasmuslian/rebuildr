@@ -155,7 +155,10 @@ export class UpdateProductInput {
   location?: LocationInputType;
 
   @Field(() => String, { nullable: true })
-  description: string;
+  description?: string;
+
+  @Field(() => String, { nullable: true })
+  additionalInfo?: string;
 
   @Field(() => String, { nullable: true })
   categoryId?: string | null;

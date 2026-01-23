@@ -72,6 +72,10 @@ export class Product {
   @Column({ nullable: true })
   description?: string;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  additionalInfo?: string;
+
   @Column({
     type: 'tsvector',
     nullable: true,

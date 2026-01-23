@@ -175,7 +175,11 @@ export const MainContent = ({
           )}
         </View>
         {!!product.description && (
-          <CollapsableText text={product.description} />
+          <CollapsableText
+            text={product.description}
+            readLess="Läs mindre"
+            readMore="Läs hela beskrivningen"
+          />
         )}
       </View>
       <Divider />
@@ -270,6 +274,16 @@ export const MainContent = ({
                 {colorTypes[product.colorType].text}: {product.color}
               </Body>
             </View>
+          </View>
+        )}
+        {!!product.additionalInfo && (
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Bra att veta</Label>
+            <CollapsableText
+              text={product.additionalInfo}
+              readLess="Läs mindre"
+              readMore="Läs hela"
+            />
           </View>
         )}
         {showSpecificsDocuments && (

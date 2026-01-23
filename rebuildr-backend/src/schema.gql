@@ -332,6 +332,7 @@ type Product {
   id: ID!
   title: String!
   description: String
+  additionalInfo: String
   createdAt: DateTime!
   updatedAt: DateTime!
   sellerId: String!
@@ -1120,6 +1121,7 @@ input UpdateProductInput {
   title: String
   location: LocationInputType
   description: String
+  additionalInfo: String
   categoryId: String
   brandId: String
   price: Float

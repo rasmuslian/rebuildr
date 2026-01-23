@@ -22,6 +22,7 @@ export type ProductFields = {
   categoryIds?: string[];
   title?: string;
   description?: string;
+  additionalInfo?: string;
   price?: number;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;

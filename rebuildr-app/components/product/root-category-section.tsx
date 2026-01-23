@@ -128,16 +128,8 @@ export const RootCategorySection = ({
                 source={{ uri: c.image?.url ?? placeholder.uri }}
                 style={{ width: 60, height: 60, borderRadius: 100 }}
               />
-              <View style={{ flex: 1, gap: 4 }}>
+              <View style={{ flex: 1 }}>
                 <Title size="medium">{c.name}</Title>
-                <Body
-                  size="medium"
-                  color="secondary"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {c.description}
-                </Body>
               </View>
               <Button label="Välj" onPress={() => onSelect(c.id)} />
             </View>
