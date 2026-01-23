@@ -7,6 +7,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import { StepSlider } from "@components/slider/step-slider";
+import { ExplainConditionsBottomSheet } from "@components/sell-product/explain-conditions-bottom-sheet";
 
 type Props = {
   condition: ProductConditionEnum;
@@ -18,6 +19,7 @@ export const ConditionSection = ({
   onSelect,
 }: Props) => {
   const [condition, setCondition] = useState(_condition);
+  const [showExplanation, setShowExplanation] = useState(false);
   const colors = useThemeColor();
 
   const values = () => {
@@ -36,7 +38,12 @@ export const ConditionSection = ({
         <Body size="medium">
           Att ange rätt skick är viktigt för både dig och köparen. Det skapar
           förtroende och underlättar försäljningen. Läs vår{" "}
-          <Body size="medium" isLink>
+          <Body
+            size="medium"
+            onPress={() => {
+              setShowExplanation(true);
+            }}
+          >
             guide här.
           </Body>
         </Body>
@@ -65,6 +72,10 @@ export const ConditionSection = ({
           compareFunction={(v1, v2) => v1 === v2}
         />
       </View>
+      <ExplainConditionsBottomSheet
+        show={showExplanation}
+        onDismiss={() => setShowExplanation(false)}
+      />
     </View>
   );
 };
