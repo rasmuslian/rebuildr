@@ -98,16 +98,8 @@ export const RootCategorySection = ({
             }}
             style={{ width: 60, height: 60, borderRadius: 100 }}
           />
-          <View style={{ flex: 1, gap: 4 }}>
+          <View style={{ flex: 1 }}>
             <Title size="medium">{selectedData.category.name}</Title>
-            <Body
-              size="medium"
-              color="secondary"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {selectedData.category.description}
-            </Body>
           </View>
           <Button label="Ändra" onPress={onChange} type="tonal" />
         </View>
