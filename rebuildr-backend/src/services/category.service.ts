@@ -149,7 +149,7 @@ export class CategoryService {
   }
 
   async updateCategoriesOrder(input: CmsUpdateCategoriesInput) {
-    return await Promise.all(
+    await Promise.all(
       input.updateInputs.map((updateInput) => {
         return this.categoryRepository.update(
           { id: updateInput.id },
@@ -157,5 +157,6 @@ export class CategoryService {
         );
       }),
     );
+    return true;
   }
 }

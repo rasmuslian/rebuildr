@@ -152,11 +152,8 @@ export class CategoryResolver {
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
-  async cmsUpdateCategoriesOrder(
-    @Args('input') input: CmsUpdateCategoriesInput,
-  ) {
-    await this.categoryService.updateCategoriesOrder(input);
-    return true;
+  cmsUpdateCategoriesOrder(@Args('input') input: CmsUpdateCategoriesInput) {
+    return this.categoryService.updateCategoriesOrder(input);
   }
 
   @ResolveField(() => [Category])
