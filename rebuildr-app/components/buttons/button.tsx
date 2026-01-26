@@ -140,7 +140,9 @@ export const Button = ({
             style={{
               color: disabled ? colors.text.disabled : typeColors[type].text,
               paddingHorizontal: 8,
+              flexShrink: 1,
             }}
+            numberOfLines={1}
           >
             {label}
           </Label>

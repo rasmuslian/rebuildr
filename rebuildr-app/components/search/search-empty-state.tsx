@@ -11,6 +11,9 @@ import { useMutation } from "@apollo/client";
 import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
 import { CLEAR_SEARCH_HISTORY_MUTATION } from "./queries";
 import { useSearchContext } from "@context/search-context";
+import MapThumbnail from "@components/maps/map-thumbnail";
+import { useScreenType } from "@hooks/useScreenType";
+import { useLocationContext } from "@context/location-context";
 
 type Props = {
   data: SearchQuery | undefined;
@@ -20,6 +23,8 @@ type Props = {
 export const SearchEmptyState = ({ data, size = "large" }: Props) => {
   const { filterBuilder } = useFilterProduct();
   const searchContext = useSearchContext();
+  const { isDesktop } = useScreenType();
+  const { userCoords } = useLocationContext();
 
   const [clearSearchHistory, { client }] =
     useMutation<ClearSearchHistoryMutation>(CLEAR_SEARCH_HISTORY_MUTATION, {
@@ -38,9 +43,38 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
     }
   };
 
+  const onPressMap = () => {
+    if (isDesktop) {
+      router.navigate("/search");
+    } else {
+      router.navigate("/map");
+    }
+    searchContext.setSearchState({ dropdownVisible: false });
+  };
+
   return (
     <>
       <View style={[{ gap: 12, paddingBottom: 16 }]}>
+        <Header>Sök på kartan</Header>
+        <Pressable onPress={onPressMap}>
+          <MapThumbnail
+            coords={
+              userCoords
+                ? [userCoords.latitude, userCoords.longitude]
+                : undefined
+            }
+            cta={
+              <Button
+                label="Visa på karta"
+                type="text"
+                icon="map"
+                style={{ backgroundColor: "white" }}
+                onPress={onPressMap}
+              />
+            }
+          />
+        </Pressable>
+
         <Header>Populära kategorier</Header>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {data?.popularCategories.map((category, i) => (
