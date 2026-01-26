@@ -11,7 +11,7 @@ export const updateCategoriesOrder = async (
   input: CmsUpdateCategoriesInput,
 ) => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsUpdateCategoriesOrder: Boolean }>
+    GraphQLResponse<{ cmsUpdateCategoriesOrder: boolean }>
   >("/", {
     query,
     variables: { input },
