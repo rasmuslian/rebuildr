@@ -10,7 +10,7 @@ import {
   RootCategoriesInput,
   CmsUpdateCategoryInput,
   CmsUpdateCategoryResponse,
-  CmsUpdateCategoryOrderInput,
+  CmsUpdateCategoriesInput,
 } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
 import { FileService } from './file.service';
@@ -148,9 +148,9 @@ export class CategoryService {
     }
   }
 
-  async updateCategoriesOrder(input: CmsUpdateCategoryOrderInput[]) {
+  async updateCategoriesOrder(input: CmsUpdateCategoriesInput) {
     return await Promise.all(
-      input.map((updateInput) => {
+      input.updateInputs.map((updateInput) => {
         return this.categoryRepository.update(
           { id: updateInput.id },
           { orderIndex: updateInput.orderIndex },

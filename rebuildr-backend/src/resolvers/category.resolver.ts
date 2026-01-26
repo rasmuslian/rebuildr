@@ -78,12 +78,12 @@ export class CmsUpdateCategoryInput {
   image?: FileInputType;
 }
 @InputType()
-class CmsUpdateCategoriesInput {
+export class CmsUpdateCategoriesInput {
   @Field(() => [CmsUpdateCategoryOrderInput])
   updateInputs: CmsUpdateCategoryOrderInput[];
 }
 @InputType()
-export class CmsUpdateCategoryOrderInput {
+class CmsUpdateCategoryOrderInput {
   @Field()
   id: string;
   @Field()
@@ -155,7 +155,7 @@ export class CategoryResolver {
   async cmsUpdateCategoriesOrder(
     @Args('input') input: CmsUpdateCategoriesInput,
   ) {
-    await this.categoryService.updateCategoriesOrder(input.updateInputs);
+    await this.categoryService.updateCategoriesOrder(input);
     return true;
   }
 
