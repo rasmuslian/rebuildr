@@ -7,14 +7,10 @@ import { SearchWithResults } from "@components/search/search-with-results";
 import { SEARCH } from "@components/search/queries";
 import { useSearchContext } from "@context/search-context";
 import { SearchBar } from "@components/search/search-bar";
-import { useLocationContext } from "@context/location-context";
-import { useRouter } from "expo-router";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export default function Search() {
   const { searchState } = useSearchContext();
-  const { userCoords } = useLocationContext();
-  const router = useRouter();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
