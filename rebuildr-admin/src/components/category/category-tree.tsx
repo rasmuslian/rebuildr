@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Category, CmsUpdateCategoriesInput } from "gql/graphql";
-import { notification, Tree } from "antd";
+import { App, Tree } from "antd";
 import { routes } from "@/lib/routes";
 import { useRouter } from "next/navigation";
 import { usePersistedState } from "@/hooks/use-persisted-state";
@@ -39,6 +39,7 @@ const CategoryTree = ({ categories }: Props) => {
   const [state, setState] = usePersistedState("category-tree", initialState);
   const [isExpandLocked, setIsExpandLocked] = useState(false);
   const router = useRouter();
+  const { notification } = App.useApp();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (input: CmsUpdateCategoriesInput) => {
