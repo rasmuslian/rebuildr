@@ -233,6 +233,10 @@ export type CmsUpdateArticleInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsUpdateCategoriesInput = {
+  updateInputs: Array<CmsUpdateCategoryOrderInput>;
+};
+
 export type CmsUpdateCategoryInput = {
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -240,6 +244,11 @@ export type CmsUpdateCategoryInput = {
   inSeason: Scalars['Boolean']['input'];
   inSelection: Scalars['Boolean']['input'];
   measurements: Array<MeasurementTypeEnum>;
+};
+
+export type CmsUpdateCategoryOrderInput = {
+  id: Scalars['String']['input'];
+  orderIndex: Scalars['Float']['input'];
 };
 
 export type CmsUpdateCategoryResponse = {
@@ -688,6 +697,7 @@ export type Mutation = {
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
+  cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
   cmsUpdateProduct: CmsUpdateProductResponse;
@@ -821,6 +831,11 @@ export type MutationCmsUnhideProductArgs = {
 
 export type MutationCmsUpdateArticleArgs = {
   input: CmsUpdateArticleInput;
+};
+
+
+export type MutationCmsUpdateCategoriesOrderArgs = {
+  input: CmsUpdateCategoriesInput;
 };
 
 
@@ -1084,6 +1099,7 @@ export type PopularCategoriesInput = {
 
 export type Product = {
   __typename?: 'Product';
+  additionalInfo?: Maybe<Scalars['String']['output']>;
   address?: Maybe<Scalars['String']['output']>;
   approximatePlace?: Maybe<ApproximatePlaceResponse>;
   brand?: Maybe<Brand>;
@@ -1174,6 +1190,12 @@ export type ProductMapPinsBoxLocationInput = {
   productsInput?: InputMaybe<ProductsInput>;
   southWest: PointInput;
   zoom?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ProductPriceRangeResponse = {
+  __typename?: 'ProductPriceRangeResponse';
+  max: Scalars['Int']['output'];
+  min: Scalars['Int']['output'];
 };
 
 export enum ProductStatusEnum {
@@ -1353,6 +1375,7 @@ export type Query = {
   getDraftedProduct?: Maybe<Product>;
   getOrCreateDraftProduct: Product;
   getPickupOption?: Maybe<ApproximatePlaceResponse>;
+  getProductPriceRange: ProductPriceRangeResponse;
   getProject: Project;
   getSearchResults: Array<SearchResult>;
   getShippingOptions: Array<ShippingOptionResponse>;
@@ -1378,6 +1401,7 @@ export type Query = {
   rootCategories: Array<Category>;
   user: User;
   userExists?: Maybe<User>;
+  usernameIsValid: Scalars['Boolean']['output'];
 };
 
 
@@ -1579,6 +1603,11 @@ export type QueryUserExistsArgs = {
   input: UserExistsInput;
 };
 
+
+export type QueryUsernameIsValidArgs = {
+  username: Scalars['String']['input'];
+};
+
 export type RecommendedProductsInput = {
   excludeOwnProducts?: InputMaybe<Scalars['Boolean']['input']>;
   recommendationSource: ProductsRecommendationSourceEnum;
@@ -1740,6 +1769,7 @@ export type UpdateOrganizationUserInput = {
 export type UpdateProductInput = {
   addDocuments?: InputMaybe<Array<FileInputType>>;
   addImages?: InputMaybe<Array<FileInputType>>;
+  additionalInfo?: InputMaybe<Scalars['String']['input']>;
   brandId?: InputMaybe<Scalars['String']['input']>;
   categoryId?: InputMaybe<Scalars['String']['input']>;
   color?: InputMaybe<Scalars['String']['input']>;

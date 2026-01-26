@@ -10,6 +10,7 @@ import {
   RootCategoriesInput,
   CmsUpdateCategoryInput,
   CmsUpdateCategoryResponse,
+  CmsUpdateCategoriesInput,
 } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository } from 'typeorm';
 import { FileService } from './file.service';
@@ -145,5 +146,17 @@ export class CategoryService {
     } catch (error) {
       throw BadUserInputException('Failed to update category: ' + error);
     }
+  }
+
+  async updateCategoriesOrder(input: CmsUpdateCategoriesInput) {
+    await Promise.all(
+      input.updateInputs.map((updateInput) => {
+        return this.categoryRepository.update(
+          { id: updateInput.id },
+          { orderIndex: updateInput.orderIndex },
+        );
+      }),
+    );
+    return true;
   }
 }
