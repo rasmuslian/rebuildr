@@ -131,13 +131,14 @@ export const Details = ({
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 4,
             }}
           >
             <View style={{ flex: 1 }}>
               <Title size="medium">Lägg till fler produktdetaljer</Title>
               <Body size="medium">
-                Lägg till specifik produktinfo gällande mått, vikt eller
-                dokumentation.
+                Lägg till specifik info avseende mått, vikt, färg, dokument
+                eller bra för köpare att veta
               </Body>
             </View>
             <Toggle
