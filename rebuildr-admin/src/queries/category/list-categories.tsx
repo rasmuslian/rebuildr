@@ -7,10 +7,12 @@ const query = `
       id
       name
       hasChildren
+      orderIndex
       children {
         id
         name
         hasChildren
+        orderIndex
       }
     }
   }

@@ -906,6 +906,7 @@ type Mutation {
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
+  cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
   cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
@@ -1175,6 +1176,15 @@ input CmsUpdateCategoryInput {
   description: String!
   measurements: [MeasurementTypeEnum!]!
   image: FileInputType
+}
+
+input CmsUpdateCategoriesInput {
+  updateInputs: [CmsUpdateCategoryOrderInput!]!
+}
+
+input CmsUpdateCategoryOrderInput {
+  id: String!
+  orderIndex: Float!
 }
 
 input CreateMessageInput {

@@ -77,6 +77,18 @@ export class CmsUpdateCategoryInput {
   @Field(() => FileInputType, { nullable: true })
   image?: FileInputType;
 }
+@InputType()
+class CmsUpdateCategoriesInput {
+  @Field(() => [CmsUpdateCategoryOrderInput])
+  updateInputs: CmsUpdateCategoryOrderInput[];
+}
+@InputType()
+export class CmsUpdateCategoryOrderInput {
+  @Field()
+  id: string;
+  @Field()
+  orderIndex: number;
+}
 
 @ObjectType()
 export class CmsUpdateCategoryResponse {
@@ -135,6 +147,16 @@ export class CategoryResolver {
     @Args('input') input: CmsUpdateCategoryInput,
   ): Promise<CmsUpdateCategoryResponse> {
     return this.categoryService.updateCategory(input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUpdateCategoriesOrder(
+    @Args('input') input: CmsUpdateCategoriesInput,
+  ) {
+    await this.categoryService.updateCategoriesOrder(input.updateInputs);
+    return true;
   }
 
   @ResolveField(() => [Category])
