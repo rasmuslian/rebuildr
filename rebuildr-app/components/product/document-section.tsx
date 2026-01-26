@@ -8,6 +8,7 @@ import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { FileType } from "../upsert-product/types";
 import { useDocumentHandler } from "@hooks/use-document-handler";
+import { DocumentIcon } from "@icons/document-icon";
 
 type Props = {
   documents: FileType[];
@@ -149,7 +150,17 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
               alignItems: "center",
             }}
           >
-            <Body size="medium">{getDocumentName(document)}</Body>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <DocumentIcon mimeType={document.mimeType} />
+              <Body size="medium">{getDocumentName(document)}</Body>
+            </View>
             <Button
               label="Ta bort"
               onPress={() => removeDocument(i)}
