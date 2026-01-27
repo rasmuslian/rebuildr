@@ -1,5 +1,4 @@
-import { ShippingCodeQuery, ShippingCodeQueryVariables } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { Purchase } from "@/gql/graphql";
 import { Divider } from "@components/dividers/divider";
 import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -10,35 +9,35 @@ import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-
-const SHIPPING_CODE = gql`
-  query ShippingCode($input: GetPurchaseInput!) {
-    purchase(input: $input) {
-      id
-      qrCodeUrl
-      qrCodeContent
-    }
-  }
-`;
+import { Button } from "@components/buttons/button";
+import { shareUrl } from "@/utils/share-url";
 
 type Props = {
-  purchaseId: string;
+  purchase: Pick<Purchase, "qrCodeUrl" | "qrCodeContent">;
+  showUpload?: boolean;
 };
 
-export const ShippingCodeContent = ({ purchaseId }: Props) => {
+export const ShippingCodeContent = ({
+  purchase: { qrCodeUrl, qrCodeContent },
+  showUpload,
+}: Props) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
-  const { data } = useQuery<ShippingCodeQuery, ShippingCodeQueryVariables>(
-    SHIPPING_CODE,
-    {
-      variables: { input: { id: purchaseId } },
-    },
-  );
-  const qrCodeContent = data?.purchase.qrCodeContent;
+
+  const onPressShare = async () => {
+    const url = qrCodeUrl;
+    if (!url) return;
+    shareUrl(url);
+  };
 
   return (
     <View style={[{ gap: 24 }, isDesktop && { padding: 72 }]}>
-      {data && qrCodeContent ? (
+      {showUpload && (
+        <View style={{ position: "absolute", top: 20, right: 20 }}>
+          <Button icon="upload" type="text" onPress={onPressShare} />
+        </View>
+      )}
+      {qrCodeContent ? (
         <View
           style={{
             flex: 1,

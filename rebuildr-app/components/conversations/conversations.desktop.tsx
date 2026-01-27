@@ -335,7 +335,7 @@ const Chat = ({
       </View>
       <Popup open={showQRCode} onClose={() => setShowQRCode(false)}>
         {data.latestPurchase && (
-          <ShippingCodeContent purchaseId={data.latestPurchase.id} />
+          <ShippingCodeContent purchase={data.latestPurchase} showUpload />
         )}
       </Popup>
     </View>
