@@ -148,6 +148,10 @@ export default function Payout({ onNavigation, onBack }: Props) {
                 label="Ändra"
                 type="tonal"
                 onPress={() => {
+                  if (onNavigation) {
+                    onNavigation({ page: "payout-add" });
+                    return;
+                  }
                   router.navigate("/account/settings/payout/add");
                 }}
               />
