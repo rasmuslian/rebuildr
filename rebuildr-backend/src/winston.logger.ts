@@ -17,7 +17,7 @@ const prodLogger = {
       host: 'https://logs-prod-025.grafana.net',
       labels: {
         app: 'rebuildr-backend',
-        environment: process.env.NODE_ENV || 'development',
+        environment: process.env.GRAFANA_ENV || 'production',
         api: 'rest',
       },
       json: true,
