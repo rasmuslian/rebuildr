@@ -25,13 +25,14 @@ import { ncsToRgb } from "@/utils/color/ncsToRgb";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { swedishColorToHex } from "@/utils/color/swedish-colors";
+import { DocumentIcon } from "@icons/document-icon";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
   brand?: Brand | null;
   category?: Pick<Category, "id" | "name"> | null;
   parentCategory?: Pick<Category, "id" | "name"> | null;
-  documents: { url: string; name?: string | null }[];
+  documents: { url: string; name?: string | null; mimeType: string }[];
   myAddress?: string | null;
   sellerIsMe?: boolean;
   actionSection?: React.ReactNode;
@@ -287,14 +288,20 @@ export const MainContent = ({
           </View>
         )}
         {showSpecificsDocuments && (
-          <View style={{ gap: 4 }}>
+          <View style={{ gap: 8 }}>
             <Label size="medium">Dokument</Label>
             <View style={{ gap: 16 }}>
               {documents.map((document, i) => (
                 <Pressable
                   onPress={() => Linking.openURL(document.url)}
                   key={i}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
                 >
+                  <DocumentIcon mimeType={document.mimeType} />
                   <Body size="medium" isLink>
                     {document.name ?? "NO_NAME"}
                   </Body>
