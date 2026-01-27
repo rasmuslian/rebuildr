@@ -62,6 +62,7 @@ export const CONVERSATION_PRODUCT = gql`
       failedAt
       approvedAt
       qrCodeUrl
+      qrCodeContent
       isShipping
       transportationMethod
       sellerRespondedAt

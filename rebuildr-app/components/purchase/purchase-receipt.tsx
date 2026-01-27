@@ -44,6 +44,8 @@ export const PURCHASE_RECEIPT = gql`
       isRefunded
       abortedById
       boughtForFree
+      qrCodeUrl
+      qrCodeContent
       shippingPrice {
         id
         price
@@ -286,7 +288,7 @@ export const PurchaseReceipt = ({
       />
       {isDesktop && (
         <Popup onClose={() => setShowQRCodePopup(false)} open={showQRCodePopup}>
-          <ShippingCodeContent purchaseId={data.purchase.id} />
+          <ShippingCodeContent purchase={data.purchase} showUpload />
         </Popup>
       )}
     </View>
