@@ -135,6 +135,7 @@ export const Preview = ({ product }: Props) => {
           product.documents?.map((d) => ({
             url: d.uri,
             name: d.name,
+            mimeType: d.mimeType,
           })) ?? []
         }
         myAddress={data.me.address}
