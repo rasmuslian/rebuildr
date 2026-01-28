@@ -1,23 +1,31 @@
-import { Brand } from "gql/graphql";
 import apiClient from "@/lib/api-client";
+import { ListBrandsInput, ListBrandsResponse } from "gql/graphql";
 
 const query = `
-  query Brands {
-    brands {
-      id
-      name
-      type
+  query ListBrands($input: ListBrandsInput!) {
+    listBrands(input: $input) {
+      brands {
+        id
+        name
+        slug
+        createdAt
+        updatedAt
+      }
+      total
     }
   }
 `;
 
-export const listBrands = async () => {
-  const response = await apiClient.post<GraphQLResponse<{ brands: Brand[] }>>(
-    "/",
-    {
-      query,
-    },
-  );
+export const listBrands = async (input: ListBrandsInput) => {
+  const response = await apiClient.post<
+    GraphQLResponse<{ listBrands: ListBrandsResponse }>
+  >("/", {
+    query,
+    variables: { input },
+  });
 
-  return response.data.data?.brands;
+  return {
+    brands: response.data.data?.listBrands.brands,
+    total: response.data.data?.listBrands.total,
+  };
 };

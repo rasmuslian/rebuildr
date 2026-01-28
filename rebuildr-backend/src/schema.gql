@@ -258,7 +258,10 @@ type File {
 type Brand {
   id: ID!
   name: String!
+  slug: String!
   type: BrandTypeEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 enum BrandTypeEnum {
@@ -581,6 +584,11 @@ type PurchaseProductResponse {
   reference: String
 }
 
+type ListBrandsResponse {
+  brands: [Brand!]!
+  total: Int!
+}
+
 type CmsListProjectsResponse {
   projects: [Project!]!
   total: Int!
@@ -668,6 +676,7 @@ type Query {
   myPurchases(input: MyPurchasesInput!): [Purchase!]!
   brand(id: String!): Brand!
   brands: [Brand!]!
+  listBrands(input: ListBrandsInput!): ListBrandsResponse!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
   cmsListProjects(input: CmsListProjectsInput!): CmsListProjectsResponse!
@@ -828,6 +837,12 @@ input MyPurchasesInput {
   myRole: String
 }
 
+input ListBrandsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+}
+
 input GetProjectInput {
   id: String!
 }
@@ -917,6 +932,8 @@ type Mutation {
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
+  cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
+  cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
   deleteProject(input: DeleteProjectInput!): Boolean!
   cmsDeleteProject(projectId: String!): Boolean!
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
@@ -1235,6 +1252,15 @@ input CancelPurchaseInput {
 
 input AbortPurchaseInput {
   purchaseId: String!
+}
+
+input CmsCreateBrandInput {
+  name: String!
+}
+
+input CmsUpdateBrandInput {
+  id: String!
+  name: String!
 }
 
 input DeleteProjectInput {

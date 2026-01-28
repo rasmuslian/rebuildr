@@ -60,9 +60,12 @@ export type ArticleOrderInput = {
 
 export type Brand = {
   __typename?: 'Brand';
+  createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
   type: BrandTypeEnum;
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export enum BrandTypeEnum {
@@ -125,6 +128,10 @@ export type CategoryInput = {
 export type CmsCreateArticleInput = {
   body: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsCreateBrandInput = {
+  name: Scalars['String']['input'];
 };
 
 export type CmsCreateFooterSectionInput = {
@@ -231,6 +238,11 @@ export type CmsUpdateArticleInput = {
   body: Scalars['String']['input'];
   id: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsUpdateBrandInput = {
+  id: Scalars['String']['input'];
+  name: Scalars['String']['input'];
 };
 
 export type CmsUpdateCategoriesInput = {
@@ -552,6 +564,18 @@ export type ListArticlesResponse = {
   total: Scalars['Int']['output'];
 };
 
+export type ListBrandsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ListBrandsResponse = {
+  __typename?: 'ListBrandsResponse';
+  brands: Array<Brand>;
+  total: Scalars['Int']['output'];
+};
+
 export type LocationInputType = {
   lat: Scalars['Float']['input'];
   lng: Scalars['Float']['input'];
@@ -684,6 +708,7 @@ export type Mutation = {
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
+  cmsCreateBrand: Brand;
   cmsCreateFooterSection: FooterSection;
   cmsCreateProduct: CmsCreateProductResponse;
   cmsCreateProject: Project;
@@ -697,6 +722,7 @@ export type Mutation = {
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
+  cmsUpdateBrand: Brand;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
@@ -768,6 +794,11 @@ export type MutationCmsCreateArticleArgs = {
 };
 
 
+export type MutationCmsCreateBrandArgs = {
+  input: CmsCreateBrandInput;
+};
+
+
 export type MutationCmsCreateFooterSectionArgs = {
   input: CmsCreateFooterSectionInput;
 };
@@ -831,6 +862,11 @@ export type MutationCmsUnhideProductArgs = {
 
 export type MutationCmsUpdateArticleArgs = {
   input: CmsUpdateArticleInput;
+};
+
+
+export type MutationCmsUpdateBrandArgs = {
+  input: CmsUpdateBrandInput;
 };
 
 
@@ -1385,6 +1421,7 @@ export type Query = {
   getUsers: Array<User>;
   latestPurchase?: Maybe<Purchase>;
   listArticles: ListArticlesResponse;
+  listBrands: ListBrandsResponse;
   listFooterSection: Array<FooterSection>;
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
@@ -1532,6 +1569,11 @@ export type QueryLatestPurchaseArgs = {
 
 export type QueryListArticlesArgs = {
   input: ListArticlesInput;
+};
+
+
+export type QueryListBrandsArgs = {
+  input: ListBrandsInput;
 };
 
 

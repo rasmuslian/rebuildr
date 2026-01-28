@@ -27,16 +27,24 @@ export class Brand extends BaseEntity {
   @Field()
   name: string;
 
+  @Column({ unique: true })
+  @Field()
+  slug: string;
+
   @Column('enum', { enum: BrandTypeEnum, default: BrandTypeEnum.REGULAR })
   @Field(() => BrandTypeEnum)
   type: BrandTypeEnum;
 
   @CreateDateColumn()
+  @Field()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Field()
   updatedAt: Date;
 
-  @ManyToMany(() => Category, (category) => category.brands)
+  @ManyToMany(() => Category, (category) => category.brands, {
+    onDelete: 'CASCADE',
+  })
   categories: Category[];
 }
