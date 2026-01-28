@@ -5,7 +5,7 @@ import EmptyContainer from "@/components/empty-container";
 import { Select, SelectProps } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { listBrands } from "@/queries/brand/list-brands";
+import { getBrands } from "@/queries/brand/get-brands";
 
 type Props = {
   value?: string;
@@ -14,8 +14,8 @@ type Props = {
 
 const SelectBrand = ({ value, onChange }: Props) => {
   const { data: brands = [], isLoading } = useQuery({
-    queryKey: [queryKeys.LIST_BRAND],
-    queryFn: () => listBrands(),
+    queryKey: [queryKeys.ALL_BRAND],
+    queryFn: () => getBrands(),
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,
   });
