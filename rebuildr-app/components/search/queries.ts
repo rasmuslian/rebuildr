@@ -25,22 +25,24 @@ export const SEARCH = gql`
 export const DO_SEARCH = gql`
   query DoSearch(
     $searchResultsInput: GetSimilarSearchResultsInput!
-    $usersInput: GetUsersInput!
+    $usersInput: UsersInput!
   ) {
     getSimilarSearchResults(input: $searchResultsInput) {
       id
       searchString
       count
     }
-    getUsers(input: $usersInput) {
-      id
-      username
-      type
-      numberOfPublishedProducts
-      numberOfSoldProducts
-      profilePicture {
+    users(input: $usersInput) {
+      users {
         id
-        url
+        username
+        type
+        numberOfPublishedProducts
+        numberOfSoldProducts
+        profilePicture {
+          id
+          url
+        }
       }
     }
   }

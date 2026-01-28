@@ -19,9 +19,10 @@ import {
   CmsListUsersResponse,
   CmsUpdateUsersInput,
   CreateOrganizationUserInput,
-  GetUsersInput,
+  OrderUsersEnum,
   UpdateOrganizationUserInput,
   UpdateUserInput,
+  UsersInput,
 } from 'src/resolvers/user.resolver';
 import { FileService } from './file.service';
 import {
@@ -36,6 +37,7 @@ import { Product, ProductStatus } from 'src/entities/product.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { StripeService } from './stripe.service';
 import { MapPin } from 'src/entities/map-pin.entity';
+import { Project } from 'src/entities/project.entity';
 
 @Injectable()
 export class UserService {
@@ -49,6 +51,8 @@ export class UserService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private stripeService: StripeService,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
   ) {}
 
   async findOne(id: string) {
@@ -77,12 +81,41 @@ export class UserService {
     return owner;
   }
 
-  async getUsers(input: GetUsersInput): Promise<User[]> {
-    return await this.userRepository.find({
-      where: { username: ILike(`%${input.name}%`), deletedAt: IsNull() },
-      take: input.pageSize || 10,
-      skip: (input.page || 0) * (input.pageSize || 10),
-    });
+  async getUsers(input: UsersInput, _limit?: number, offset?: number) {
+    const query = this.userRepository.createQueryBuilder('u');
+    query.where('u."deletedAt" IS NULL');
+
+    if (input.name) {
+      query.andWhere('u.username ILike %:name%', { name: input.name });
+    }
+    if (input.hasProject) {
+      query.andWhereExists(
+        this.projectRepository
+          .createQueryBuilder('p')
+          .where('p."userId" = u.id'),
+      );
+    }
+    if (input.type) {
+      query.andWhere(`u.type = '${input.type}'`);
+    }
+    if (input.orderBy) {
+      switch (input.orderBy) {
+        case OrderUsersEnum.ALPHABETICAL:
+          query.orderBy('u.username', 'DESC');
+      }
+    }
+
+    query.addOrderBy('u."createdAt"', 'DESC');
+
+    const limit = _limit ?? 20;
+    query.limit(limit > 40 ? 40 : limit);
+    query.offset((offset ?? 0) * limit);
+
+    const result = await query.getManyAndCount();
+    return {
+      users: result[0],
+      total: result[1],
+    };
   }
 
   async getRegistrationStatus(user: User) {
