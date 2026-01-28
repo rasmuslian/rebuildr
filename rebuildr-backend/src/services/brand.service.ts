@@ -66,7 +66,7 @@ export class BrandService {
       });
 
       return await this.brandRepository.save(brand);
-    } catch (error) {
+    } catch {
       throw BadUserInputException(
         'Det finns redan ett varumärke med det här namnet.',
       );
@@ -95,7 +95,7 @@ export class BrandService {
       });
 
       return this.brandRepository.save(brand);
-    } catch (error) {
+    } catch {
       throw BadUserInputException(
         'Det finns redan ett varumärke med det här namnet.',
       );
