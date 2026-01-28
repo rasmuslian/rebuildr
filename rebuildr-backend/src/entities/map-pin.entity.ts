@@ -1,16 +1,23 @@
-import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { Column, Entity, OneToOne, Point, PrimaryGeneratedColumn } from "typeorm";
-import { Project } from "./project.entity";
-import { User } from "./user.entity";
-import { Product } from "./product.entity";
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import {
+  Column,
+  Entity,
+  OneToOne,
+  Point,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Project } from './project.entity';
+import { User } from './user.entity';
+import { Product } from './product.entity';
 
 export enum MapPinTypeEnum {
-  PRODUCT = "PRODUCT",
-  PROJECT = "PROJECT",
-  USER = "USER",
+  PRODUCT = 'PRODUCT',
+  PROJECT = 'PROJECT',
+  HUB = 'HUB',
+  USER = 'USER',
 }
 
-registerEnumType(MapPinTypeEnum, { name: "MapPinTypeEnum" });
+registerEnumType(MapPinTypeEnum, { name: 'MapPinTypeEnum' });
 
 @Entity()
 @ObjectType()
@@ -19,7 +26,7 @@ export class MapPin {
     Object.assign(this, init);
   }
   @Field(() => ID)
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('geometry', {
@@ -32,12 +39,12 @@ export class MapPin {
   @Column({ nullable: true })
   address?: string;
 
-  @OneToOne(() => Product, product => product.mapPin, { nullable: true })
+  @OneToOne(() => Product, (product) => product.mapPin, { nullable: true })
   product?: Product;
 
-  @OneToOne(() => User, user => user.mapPin, { nullable: true })
+  @OneToOne(() => User, (user) => user.mapPin, { nullable: true })
   user?: User;
 
-  @OneToOne(() => Project, project => project.mapPin, { nullable: true })
+  @OneToOne(() => Project, (project) => project.mapPin, { nullable: true })
   project?: Project;
 }

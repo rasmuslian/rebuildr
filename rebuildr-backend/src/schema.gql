@@ -543,6 +543,11 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type UsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
 type PayoutAccount {
   type: String!
   routingNumber: String
@@ -624,6 +629,7 @@ type MapPinGroup {
 enum MapPinTypeEnum {
   PRODUCT
   PROJECT
+  HUB
   USER
 }
 
@@ -637,7 +643,7 @@ type Query {
   me: User!
   userExists(input: UserExistsInput!): User
   user(input: GetUserInput!): User!
-  getUsers(input: GetUsersInput!): [User!]!
+  users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -692,10 +698,16 @@ input GetUserInput {
   id: String!
 }
 
-input GetUsersInput {
-  name: String!
-  page: Int
-  pageSize: Int
+input UsersInput {
+  name: String
+  hasProject: Boolean
+  type: UserType
+  isPromoted: Boolean
+  orderBy: OrderUsersEnum
+}
+
+enum OrderUsersEnum {
+  ALPHABETICAL
 }
 
 input CmsListUsersInput {
