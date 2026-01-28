@@ -18,6 +18,7 @@ import { useQuery, useApolloClient } from "@apollo/client";
 import { MAP_PRODUCT_QUERY } from "@/queries";
 import { createMarkerIcon } from "./create-marker-icon";
 import { Link } from "expo-router";
+import { getMarkerSvg } from "@/utils/get-marker-svg";
 
 type Props = {
   pin: MapPinsQuery["productMapPinsInBoundingBox"]["pins"][number];
@@ -41,18 +42,16 @@ export default function MapMarker({ pin }: Props) {
 
   const productIds = pin.productIds;
 
-  const iconSource =
-    state.activePin?.location === pin.location
-      ? `/icons/${pin.type.toLowerCase()}-marker-dark.svg`
-      : `/icons/${pin.type.toLowerCase()}-marker-light.svg`;
-
   const icon = useMemo(() => {
     return createMarkerIcon({
-      iconSource,
+      iconSource: getMarkerSvg(
+        pin.type,
+        state.activePin?.location === pin.location,
+      ).uri,
       priceLabel: state.showPrice ? priceLabel : undefined,
       total: productIds.length > 1 ? productIds.length : undefined,
     });
-  }, [iconSource, priceLabel, state.showPrice, productIds]);
+  }, [priceLabel, state.showPrice, productIds]);
 
   return (
     <Marker

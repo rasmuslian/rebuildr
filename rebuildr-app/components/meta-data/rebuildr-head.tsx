@@ -27,8 +27,8 @@ export default function RebuildrHead({
     "@context": "https://schema.org",
     "@type": "Product",
     name: title,
-    image: image,
-    description: description,
+    image,
+    description,
   };
 
   return (
