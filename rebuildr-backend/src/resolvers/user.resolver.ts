@@ -139,6 +139,9 @@ export class UpdateOrganizationUserInput {
 
   @Field({ nullable: true })
   phoneNumber?: string;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 
 @InputType()

@@ -12,7 +12,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from 'src/exceptions';
-import { ILike, IsNull, Repository } from 'typeorm';
+import { ILike, IsNull, Not, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   CmsListUsersInput,
@@ -349,6 +349,7 @@ export class UserService {
     if (input.organizationName) {
       const usernameTaken = await this.userRepository.existsBy({
         username: input.organizationName,
+        id: Not(organization.id),
       });
       if (usernameTaken) {
         throw BadFieldsInputException([
@@ -397,6 +398,22 @@ export class UserService {
         throw BadUserInputException('Invalid post code');
       }
       organization.postCode = input.postCode;
+    }
+
+    if (input.websiteUrl) {
+      try {
+        const url = new URL(input.websiteUrl);
+
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          throw new Error('Website must start with http or https');
+        }
+
+        organization.websiteUrl = input.websiteUrl;
+      } catch {
+        throw BadFieldsInputException([
+          { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
+        ]);
+      }
     }
 
     return await this.userRepository.save(organization);

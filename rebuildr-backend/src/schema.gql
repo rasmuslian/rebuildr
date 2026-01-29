@@ -177,6 +177,7 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  websiteUrl: String
   notifyOnMessage: Boolean!
   notifyOnPurchaseUpdate: Boolean!
   sellerAccountIsCreated: Boolean!
@@ -1038,6 +1039,7 @@ input UpdateOrganizationUserInput {
   postCode: String
   city: String
   phoneNumber: String
+  websiteUrl: String
 }
 
 input CmsCreateProductInput {
