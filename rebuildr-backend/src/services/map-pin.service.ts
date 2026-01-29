@@ -16,6 +16,7 @@ import { ObjectLiteral } from 'typeorm';
 import { BadUserInputException } from 'src/exceptions';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { ProductService } from './product.service';
 
 @Injectable()
 export class MapPinService {
@@ -30,6 +31,7 @@ export class MapPinService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private productService: ProductService,
   ) {}
 
   async createMany(mapPins: MapPin[]): Promise<MapPin[]> {
@@ -340,106 +342,11 @@ export class MapPinService {
     }
 
     if (productsInput) {
-      if (productsInput.sellerId) {
-        productPinsQuery.andWhere('product."sellerId" = :sellerId', {
-          sellerId: productsInput.sellerId,
-        });
-      }
-
-      productPinsQuery.andWhere(`(product."status" = 'PUBLISHED')`);
-
-      if (productsInput.searchString) {
-        productPinsQuery
-          .addCommonTableExpression(
-            `SELECT
-              product.id,
-              ts_rank(product."textSearch", plainto_tsquery(:searchString), 0) + similarity(product.title, :searchString) as resultrank
-            FROM product product
-            WHERE product."textSearch" @@ plainto_tsquery(:searchString)
-              OR similarity(product.title, :searchString) > 0
-            `,
-            'ranked_products',
-          )
-          .setParameter('searchString', productsInput.searchString)
-          .innerJoin('ranked_products', 'rp', 'rp.id = product.id')
-          .andWhere(
-            `(rp.resultrank > 0.25 OR product.title ILIKE '${productsInput.searchString}%' )`,
-          );
-      }
-      if (
-        productsInput.categoryIds ||
-        productsInput.selectionCategories ||
-        productsInput.seasonalCategories
-      ) {
-        productPinsQuery.innerJoin(
-          'category',
-          'c',
-          'product."categoryId" = c.id',
-        );
-
-        if (productsInput.categoryIds?.length) {
-          productPinsQuery.andWhere(
-            '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
-            {
-              categoryIds: productsInput.categoryIds,
-            },
-          );
-        } else if (productsInput.selectionCategories) {
-          productPinsQuery.leftJoin(
-            'category',
-            'parent',
-            'parent.id = c."parentId"',
-          );
-          productPinsQuery.andWhere(
-            '(c."inSelection" OR parent."inSelection")',
-          );
-        } else {
-          productPinsQuery.leftJoin(
-            'category',
-            'parent',
-            'parent.id = c."parentId"',
-          );
-          productPinsQuery.andWhere('(c."inSeason" OR parent."inSeason")');
-        }
-      }
-
-      if (productsInput.brandIds) {
-        if (!productsInput.brandIds.length) {
-          productPinsQuery.andWhere('product."brandId" IS NULL');
-        }
-        if (productsInput.brandIds.length) {
-          productPinsQuery.andWhere('product."brandId" IN (:...brandIds)', {
-            brandIds: productsInput.brandIds,
-          });
-        }
-      }
-
-      if (productsInput.conditions) {
-        if (!productsInput.conditions.length) {
-          productPinsQuery.andWhere('product.condition IS NULL');
-        }
-        if (productsInput.conditions.length) {
-          productPinsQuery.andWhere('product.condition IN (:...conditions)', {
-            conditions: productsInput.conditions,
-          });
-        }
-      }
-
-      //Prices
-      if (productsInput.minPrice !== undefined) {
-        productPinsQuery.andWhere('product.price / 100 >= :minPrice', {
-          minPrice: productsInput.minPrice,
-        });
-      }
-      if (productsInput.maxPrice !== undefined) {
-        productPinsQuery.andWhere('product.price / 100 <= :maxPrice', {
-          maxPrice: productsInput.maxPrice,
-        });
-      }
-
-      if (productsInput.giveaway) {
-        productPinsQuery.andWhere('"isGiveaway" = TRUE');
-      }
+      this.productService.basicFindProductsInputQueryBuilder(
+        productsInput,
+        productPinsQuery,
+        'product',
+      );
     }
     const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 

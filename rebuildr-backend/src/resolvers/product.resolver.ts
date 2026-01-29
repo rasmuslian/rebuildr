@@ -275,6 +275,9 @@ export class ProductsInput {
   sellerId?: string;
 
   @Field({ nullable: true })
+  projectId?: string;
+
+  @Field({ nullable: true })
   searchString?: string;
 
   @Field({ nullable: true })

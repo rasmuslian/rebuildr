@@ -723,6 +723,7 @@ input GetProductInput {
 
 input ProductsInput {
   sellerId: String
+  projectId: String
   searchString: String
   address: String
   location: LocationInputType
