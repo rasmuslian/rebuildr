@@ -13,7 +13,7 @@ export const getMarkerSvg = (type: MapPinTypeEnum, selected: boolean) => {
     case MapPinTypeEnum.Project:
       return selected ? ProjectDark : ProjectLight;
     case MapPinTypeEnum.Hub:
-      return selected ? HubDark : HubLight;
+      return selected ? HubLight : HubDark;
   }
 
   return "";

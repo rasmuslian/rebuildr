@@ -51,7 +51,7 @@ export default function MapMarker({ pin }: Props) {
       priceLabel: state.showPrice ? priceLabel : undefined,
       total: productIds.length > 1 ? productIds.length : undefined,
     });
-  }, [priceLabel, state.showPrice, productIds]);
+  }, [priceLabel, state.showPrice, productIds, state.activePin]);
 
   return (
     <Marker

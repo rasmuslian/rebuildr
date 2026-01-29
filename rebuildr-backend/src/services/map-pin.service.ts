@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserType } from 'src/entities/user.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { LocationResponse } from 'src/resolvers/geocoding.resolver';
 import {
@@ -329,10 +329,12 @@ export class MapPinService {
         "mapPin".location AS location,
         product.id AS product_id,
         product."projectId" AS project_id,
-        product.price AS price`,
+        product.price AS price,
+        seller.type AS seller_type`,
       )
       .where(whereClause, whereParams)
-      .innerJoin('mapPin.product', 'product');
+      .innerJoin('mapPin.product', 'product')
+      .innerJoin('product.seller', 'seller');
 
     if (offset !== undefined) {
       productPinsQuery.offset(offset);
@@ -366,6 +368,7 @@ export class MapPinService {
       longitude: number;
       productIds: string[];
       projectId: string | null;
+      sellerType: UserType;
       prices: number[];
     }[] = await this.mapPinRepository.query(
       `
@@ -376,15 +379,17 @@ export class MapPinService {
              $${innerParams.length + 1}
            ) AS grid_id,
           project_id as "projectId",
+          seller_type as "sellerType",
           ST_Collect(location) AS geom,
           ARRAY_AGG(product_id) AS "productIds",
           ARRAY_AGG(price ORDER BY price) AS prices
         FROM (${innerSql}) AS filtered
-        GROUP BY grid_id, "projectId"),
+        GROUP BY grid_id, "projectId", "sellerType"),
       jittered AS (
         SELECT
           grid_id,
           "projectId",
+          "sellerType",
           "productIds",
           prices,
           ST_Translate(
@@ -396,6 +401,7 @@ export class MapPinService {
       SELECT
         grid_id,
         "projectId",
+        "sellerType",
         ST_X(location) AS latitude,
         ST_Y(location) AS longitude,
         "productIds",
@@ -412,12 +418,23 @@ export class MapPinService {
         },
         productIds: r.productIds,
         projectIds: r.projectId ? [r.projectId] : [],
-        type: r.projectId ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
+        type: this.deriveMapPinType(!!r.projectId, r.sellerType),
         prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,
     };
   }
+
+  private deriveMapPinType = (isProject: boolean, sellerType: UserType) => {
+    if (!isProject) {
+      return MapPinTypeEnum.PRODUCT;
+    }
+    if (sellerType === UserType.PERSONAL) {
+      return MapPinTypeEnum.PROJECT;
+    } else {
+      return MapPinTypeEnum.HUB;
+    }
+  };
 
   private cellSizeForZoom(zoom?: number): number {
     if (zoom === undefined) {
