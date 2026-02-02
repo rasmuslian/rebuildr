@@ -132,6 +132,7 @@ type Project {
   contactEmail: String
   contactPhone: String
   address: String!
+  showDetailsOnMap: Boolean!
   likedByMe: Boolean
   location: LocationResponse!
   approximatePlace: ApproximatePlaceResponse!
