@@ -22,7 +22,6 @@ export const PickupPositionBottomSheet = ({
     >
       <MapThumbnail
         coords={[location.lat, location.lng]}
-        markerType="product"
         style={{ height: 700 }}
       />
     </BottomSheet>

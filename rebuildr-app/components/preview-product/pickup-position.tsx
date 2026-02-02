@@ -8,6 +8,7 @@ import { PickupPositionPopupContent } from "./pickup-position-popup-content";
 import { Popup } from "@components/popup/popup";
 import { formatMetersToKm } from "@/utils/distanceHandling";
 import MapThumbnail from "@components/maps/map-thumbnail";
+import { MapPinTypeEnum } from "@/gql/graphql";
 
 type Props = {
   address: string;
@@ -32,7 +33,6 @@ export const PickupPosition = ({
         <Pressable onPress={() => setShowMap(true)}>
           <MapThumbnail
             coords={[location.lat, location.lng]}
-            markerType="product"
             style={{ height: 185 }}
           />
         </Pressable>
@@ -62,7 +62,7 @@ export const PickupPosition = ({
           <PickupPositionPopupContent
             address={address}
             location={location}
-            markerType="product"
+            markerType={MapPinTypeEnum.Product}
           />
         </Popup>
       )}

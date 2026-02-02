@@ -35,7 +35,6 @@ export const PickupCard = ({
         </View>
         <MapThumbnail
           coords={[pickupOption.lat, pickupOption.lng]}
-          markerType="product"
           style={{ height: 185 }}
         />
         <View style={{ gap: 12 }}>

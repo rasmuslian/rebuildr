@@ -18,7 +18,7 @@ import { useQuery, useApolloClient } from "@apollo/client";
 import { MAP_PRODUCT_QUERY } from "@/queries";
 import { createMarkerIcon } from "./create-marker-icon";
 import { Link } from "expo-router";
-import { getMarkerSvg } from "@/utils/get-marker-svg";
+import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
 import { Image } from "expo-image";
 import { borderRadius } from "@constants/sizes";
 

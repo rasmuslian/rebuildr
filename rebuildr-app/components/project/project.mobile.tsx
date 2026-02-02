@@ -23,6 +23,7 @@ import { GET_PROJECT } from "@/queries";
 import { useDebounceCallback } from "usehooks-ts";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import MapThumbnail from "@components/maps/map-thumbnail";
+import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 
 export const ProjectMobile = () => {
   const { width: screenWidth } = useWindowDimensions();
@@ -130,6 +131,7 @@ export const ProjectMobile = () => {
           <Pressable onPress={() => setShowLocation(true)}>
             <MapThumbnail
               coords={location ? [location.lat, location.lng] : undefined}
+              markerType={MapPinProjectType(me?.type)}
               cta={
                 <Button
                   label="Visa på karta"
@@ -258,7 +260,7 @@ export const ProjectMobile = () => {
         <View>
           <MapThumbnail
             coords={location ? [location.lat, location.lng] : undefined}
-            markerType="project"
+            markerType={MapPinProjectType(me?.type)}
             style={{ height: 700 }}
           />
         </View>

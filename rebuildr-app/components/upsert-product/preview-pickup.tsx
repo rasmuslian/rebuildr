@@ -87,7 +87,6 @@ export const PreviewPickup = ({
       <MapThumbnail
         coords={[location[0], location[1]]}
         style={{ height: 185 }}
-        markerType="product"
       />
       <View style={{ gap: 12 }}>
         <Button

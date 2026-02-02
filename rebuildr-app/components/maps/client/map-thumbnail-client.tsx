@@ -10,26 +10,25 @@ import { defaultCenter } from "@constants/map";
 import { createMarkerIcon } from "@components/maps/create-marker-icon";
 
 import "leaflet/dist/leaflet.css";
+import { MapPinTypeEnum } from "@/gql/graphql";
+import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
 
 export type Props = {
   coords?: LatLngExpression;
   cta?: ReactElement;
-  markerType?: "product" | "project";
+  markerType?: MapPinTypeEnum;
   style?: StyleProp<ViewStyle>;
 };
 
 export default function MapThumbnailClient({
   coords = defaultCenter,
   cta,
-  markerType,
+  markerType = MapPinTypeEnum.Product,
 }: Props) {
-  const iconSource =
-    markerType === "project"
-      ? "/icons/project-marker-dark.svg"
-      : "/icons/product-marker-dark.svg";
-
   const markerIcon = useMemo(() => {
-    return createMarkerIcon({ iconSource });
+    return createMarkerIcon({
+      iconSource: getMarkerSvg(markerType, false).uri,
+    });
   }, [markerType]);
 
   return (
@@ -61,7 +60,7 @@ export default function MapThumbnailClient({
         </View>
       )}
 
-      {markerType && <Marker position={coords} icon={markerIcon}></Marker>}
+      {markerType && <Marker position={coords} icon={markerIcon} />}
     </MapContainer>
   );
 }

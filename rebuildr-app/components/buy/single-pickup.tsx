@@ -71,7 +71,6 @@ export const SinglePickup = ({ productId }: Props) => {
         <MapThumbnail
           coords={[data.getPickupOption.lat, data.getPickupOption.lng]}
           style={{ height: 185 }}
-          markerType="product"
         />
         <View style={{ gap: 12 }}>
           <Body size="medium">{data.getPickupOption.address}</Body>
