@@ -70,6 +70,8 @@ export class UpdateProjectInput {
   contactEmail?: string;
   @Field({ nullable: true })
   contactPhone?: string;
+  @Field({ nullable: true })
+  showDetailsOnMap?: boolean;
 }
 
 @InputType()

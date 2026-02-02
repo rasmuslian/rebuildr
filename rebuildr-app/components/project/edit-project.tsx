@@ -18,6 +18,7 @@ const EDIT_PROJECT_QUERY = gql`
       contactName
       contactEmail
       contactPhone
+      showDetailsOnMap
       address
       location {
         lat
@@ -38,6 +39,7 @@ const UPDATE_PROJECT = gql`
       contactEmail
       contactPhone
       address
+      showDetailsOnMap
       location {
         lat
         lng
@@ -84,6 +86,7 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
           contactName: project.contactName,
           contactEmail: project.contactEmail,
           contactPhone: project.contactPhone,
+          showDetailsOnMap: project.showDetailsOnMap,
         },
       },
       onCompleted: (data) => {
