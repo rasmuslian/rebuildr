@@ -41,17 +41,17 @@ export default function AppLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="product" options={{ headerShown: false }} />
-      <Stack.Screen name="conversations" options={{ headerShown: false }} />
-      <Stack.Screen name="account" options={{ headerShown: false }} />
-      <Stack.Screen name="search" options={{ headerShown: false }} />
-      <Stack.Screen name="buy" options={{ headerShown: false }} />
-      <Stack.Screen name="project-list" options={{ headerShown: false }} />
-      <Stack.Screen name="product-list" options={{ headerShown: false }} />
-      <Stack.Screen name="project" options={{ headerShown: false }} />
-      <Stack.Screen name="article" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="product" />
+      <Stack.Screen name="conversations" />
+      <Stack.Screen name="account" />
+      <Stack.Screen name="search" />
+      <Stack.Screen name="buy" />
+      <Stack.Screen name="project-list" />
+      <Stack.Screen name="product-list" />
+      <Stack.Screen name="project" />
+      <Stack.Screen name="article" />
     </Stack>
   );
 }

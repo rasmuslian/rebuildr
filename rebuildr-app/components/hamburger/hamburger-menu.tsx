@@ -125,8 +125,7 @@ export const HamburgerMenu = () => {
               }
             />
           )}
-          {/** [MISSING LINK] Will link to a static page later on */}
-          <Entry title="Närmaste hubb" link="/" />
+          <Entry title="Företagshubbar" link="/hubs" />
         </View>
       )}
       <View style={{ marginTop: isDesktop ? 48 : 24 }}>
