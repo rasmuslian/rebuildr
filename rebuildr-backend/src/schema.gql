@@ -564,6 +564,11 @@ type CmsListUsersResponse {
   total: Int!
 }
 
+type CmsCreateCategoryResponse {
+  category: Category!
+  imagePutUrl: String
+}
+
 type CmsUpdateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -920,6 +925,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
+  cmsCreateCategory(input: CmsCreateCategoryInput!): CmsCreateCategoryResponse!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
@@ -1186,13 +1192,27 @@ input RemoveProductInput {
   id: String!
 }
 
-input CmsUpdateCategoryInput {
-  id: String!
+input CmsCreateCategoryInput {
   inSelection: Boolean!
   inSeason: Boolean!
+  name: String!
   description: String!
   measurements: [MeasurementTypeEnum!]!
   image: FileInputType
+  parentId: String
+  brandIds: [String!]
+}
+
+input CmsUpdateCategoryInput {
+  inSelection: Boolean!
+  inSeason: Boolean!
+  name: String!
+  description: String!
+  measurements: [MeasurementTypeEnum!]!
+  image: FileInputType
+  parentId: String
+  brandIds: [String!]
+  id: String!
 }
 
 input CmsUpdateCategoriesInput {

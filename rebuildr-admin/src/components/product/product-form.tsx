@@ -199,7 +199,7 @@ const ProductForm = ({
             name="brandId"
             render={({ field: { value, onChange } }) => (
               <FormField
-                label="Märke"
+                label="Varumärke"
                 required={true}
                 error={errors.brandId?.message}
               >
