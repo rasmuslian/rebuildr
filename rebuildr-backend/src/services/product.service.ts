@@ -701,7 +701,6 @@ export class ProductService {
       }
     }
 
-    //Inte heller med i mapPin
     if (input.likedByUserIds) {
       qb.innerJoin(
         'product_liked_by_user',

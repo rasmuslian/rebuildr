@@ -9,6 +9,21 @@ export class AddBrandSlug1769528926550 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "brand" ADD CONSTRAINT "UQ_f4436285f5d5785c7fb0b28b309" UNIQUE ("slug")`);
 
         // Merge duplicate brands
+        await queryRunner.query(`
+          UPDATE product p
+          SET "brandId" = (Select id from brand where name = 'Lip')
+          WHERE p."brandId" = (Select id from brand where name = 'LIP')
+          `)
+        await queryRunner.query(`
+          UPDATE product p
+          SET "brandId" = (Select id from brand where name = 'S:t Eriks')
+          WHERE p."brandId" = (Select id from brand where name = 'S.t Eriks')
+          `)
+        await queryRunner.query(`
+          UPDATE product p
+          SET "brandId" = (Select id from brand where name = 'Elfa')
+          WHERE p."brandId" = (Select id from brand where name = 'ELFA')
+          `)
         await queryRunner.query(`DELETE FROM "brand" WHERE "name" = 'LIP'`);
         await queryRunner.query(`DELETE FROM "brand" WHERE "name" = 'S.t Eriks'`);
         await queryRunner.query(`DELETE FROM "brand" WHERE "name" = 'ELFA'`);
