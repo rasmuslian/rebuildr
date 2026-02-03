@@ -405,13 +405,7 @@ export class UserService {
 
     if (input.websiteUrl) {
       try {
-        const url = new URL(input.websiteUrl);
-
-        if (!['http:', 'https:'].includes(url.protocol)) {
-          throw new Error('Website must start with http or https');
-        }
-
-        organization.websiteUrl = input.websiteUrl;
+        organization.websiteUrl = this.validateWebsite(input.websiteUrl);
       } catch {
         throw BadFieldsInputException([
           { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
@@ -620,7 +614,7 @@ export class UserService {
   }
 
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
-    const { id, address, ...rest } = input;
+    const { id, address, websiteUrl, ...rest } = input;
 
     const user = await this.userRepository.findOne({
       where: { id },
@@ -655,6 +649,16 @@ export class UserService {
         }
       }
 
+      if (websiteUrl) {
+        try {
+          user.websiteUrl = this.validateWebsite(websiteUrl);
+        } catch {
+          throw BadFieldsInputException([
+            { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
+          ]);
+        }
+      }
+
       Object.assign<User, Partial<User>>(user, {
         ...rest,
       });
@@ -662,6 +666,24 @@ export class UserService {
       return this.userRepository.save(user);
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
+    }
+  }
+
+  /**
+   *
+   * Validate website and returns it if valid, throws otherwise
+   */
+  private validateWebsite(website: string) {
+    try {
+      const url = new URL(website);
+
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Website must start with http or https');
+      }
+
+      return website;
+    } catch {
+      throw new Error('Invalid url');
     }
   }
 }

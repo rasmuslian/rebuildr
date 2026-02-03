@@ -173,6 +173,7 @@ export type CmsCreateProjectInput = {
   contactName?: InputMaybe<Scalars['String']['input']>;
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
+  showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -308,6 +309,7 @@ export type CmsUpdateProjectInput = {
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
+  showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -315,10 +317,12 @@ export type CmsUpdateUsersInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  isFeatured?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
   role: UserRoleEnum;
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CmsUploadFileInput = {
@@ -530,12 +534,6 @@ export type GetUserInput = {
   id: Scalars['String']['input'];
 };
 
-export type GetUsersInput = {
-  name: Scalars['String']['input'];
-  page?: InputMaybe<Scalars['Int']['input']>;
-  pageSize?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type LatestPurchaseInput = {
   otherUserId: Scalars['String']['input'];
   productId: Scalars['String']['input'];
@@ -606,6 +604,8 @@ export type MapPinGroup = {
 };
 
 export enum MapPinTypeEnum {
+  Featured = 'FEATURED',
+  Hub = 'HUB',
   Product = 'PRODUCT',
   Project = 'PROJECT',
   User = 'USER'
@@ -1069,6 +1069,10 @@ export enum OrderProductsEnum {
   PriceDesc = 'PRICE_DESC'
 }
 
+export enum OrderUsersEnum {
+  Alphabetical = 'ALPHABETICAL'
+}
+
 export type PaginatedProductsResponse = {
   __typename?: 'PaginatedProductsResponse';
   products: Array<Product>;
@@ -1220,6 +1224,7 @@ export type ProductsInput = {
   minPrice?: InputMaybe<Scalars['Float']['input']>;
   orderBy?: InputMaybe<OrderProductsEnum>;
   pickup?: InputMaybe<Scalars['Boolean']['input']>;
+  projectId?: InputMaybe<Scalars['String']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
   seasonalCategories?: InputMaybe<Scalars['Boolean']['input']>;
   selectionCategories?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1253,6 +1258,7 @@ export type Project = {
   location: LocationResponse;
   products: Array<Product>;
   projectPicture?: Maybe<File>;
+  showDetailsOnMap: Scalars['Boolean']['output'];
   title: Scalars['String']['output'];
   user: User;
 };
@@ -1382,7 +1388,6 @@ export type Query = {
   getShippingPrice: ShippingPrice;
   getSimilarSearchResults: Array<SearchResult>;
   getUnreadConversationsCount: Scalars['Int']['output'];
-  getUsers: Array<User>;
   latestPurchase?: Maybe<Purchase>;
   listArticles: ListArticlesResponse;
   listFooterSection: Array<FooterSection>;
@@ -1402,6 +1407,7 @@ export type Query = {
   user: User;
   userExists?: Maybe<User>;
   usernameIsValid: Scalars['Boolean']['output'];
+  users: UsersResponse;
 };
 
 
@@ -1520,11 +1526,6 @@ export type QueryGetSimilarSearchResultsArgs = {
 };
 
 
-export type QueryGetUsersArgs = {
-  input: GetUsersInput;
-};
-
-
 export type QueryLatestPurchaseArgs = {
   input: LatestPurchaseInput;
 };
@@ -1606,6 +1607,13 @@ export type QueryUserExistsArgs = {
 
 export type QueryUsernameIsValidArgs = {
   username: Scalars['String']['input'];
+};
+
+
+export type QueryUsersArgs = {
+  input: UsersInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type RecommendedProductsInput = {
@@ -1764,6 +1772,7 @@ export type UpdateOrganizationUserInput = {
   organizationName?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateProductInput = {
@@ -1823,6 +1832,7 @@ export type UpdateProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   location?: InputMaybe<LocationInputType>;
+  showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1855,6 +1865,7 @@ export type User = {
   description?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  isFeatured: Scalars['Boolean']['output'];
   likedProducts?: Maybe<ProductsResponse>;
   likedProjects?: Maybe<Array<Project>>;
   location?: Maybe<LocationResponse>;
@@ -1884,6 +1895,7 @@ export type User = {
   sellerAccountIsEnabled: Scalars['Boolean']['output'];
   type: UserType;
   username?: Maybe<Scalars['String']['output']>;
+  websiteUrl?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -1912,6 +1924,20 @@ export enum UserType {
   Business = 'BUSINESS',
   Personal = 'PERSONAL'
 }
+
+export type UsersInput = {
+  hasProject?: InputMaybe<Scalars['Boolean']['input']>;
+  isPromoted?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<OrderUsersEnum>;
+  type?: InputMaybe<UserType>;
+};
+
+export type UsersResponse = {
+  __typename?: 'UsersResponse';
+  total: Scalars['Int']['output'];
+  users: Array<User>;
+};
 
 export type VerifyEmailInput = {
   email: Scalars['String']['input'];

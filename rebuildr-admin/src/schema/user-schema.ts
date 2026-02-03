@@ -3,6 +3,7 @@ import validator from "validator";
 
 export const UserSchema = z.object({
   isAdmin: z.boolean(),
+  isFeatured: z.boolean(),
 
   address: z
     .string()
@@ -36,6 +37,14 @@ export const UserSchema = z.object({
     .optional()
     .refine((val) => !val || validator.isMobilePhone(val, "sv-SE"), {
       message: "Ange ett giltigt svenskt telefonnummer.",
+    }),
+
+  websiteUrl: z
+    .string()
+    .transform((val) => (val.trim() === "" ? undefined : val))
+    .optional()
+    .refine((val) => !val || validator.isURL(val), {
+      message: "Ange en giltig webbadress.",
     }),
 });
 

@@ -1007,6 +1007,8 @@ input CmsUpdateUsersInput {
   city: String
   postCode: String
   phoneNumber: String
+  isFeatured: Boolean
+  websiteUrl: String
 }
 
 input UpdateUserInput {
@@ -1266,6 +1268,7 @@ input CmsCreateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+  showDetailsOnMap: Boolean
 }
 
 input CmsUpdateProjectInput {
@@ -1275,6 +1278,7 @@ input CmsUpdateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+  showDetailsOnMap: Boolean
   id: String!
 }
 

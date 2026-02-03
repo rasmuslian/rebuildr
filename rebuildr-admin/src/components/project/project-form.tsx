@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ProjectSchemaType } from "@/schema/project-schema";
-import { Button, Divider, Input } from "antd";
+import { Button, Checkbox, Divider, Input } from "antd";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
 import SelectAddress from "@components/address/select-address";
@@ -68,6 +68,22 @@ const ProjectForm = ({
             error={errors.address?.message}
           >
             <SelectAddress value={value} onChange={onChange} />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="showDetailsOnMap"
+        render={({ field: { onChange, value } }) => (
+          <FormField>
+            <label className="flex items-center gap-2 text-label-large">
+              <Checkbox
+                checked={value}
+                onChange={(event) => onChange(event.target.checked)}
+              />
+              Visa projektinformation på kartan
+            </label>
           </FormField>
         )}
       />

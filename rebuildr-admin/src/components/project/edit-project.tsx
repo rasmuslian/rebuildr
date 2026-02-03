@@ -33,6 +33,7 @@ const EditProject = ({ project }: Props) => {
       title: project.title,
       description: project.description ?? "",
       address: project.address,
+      showDetailsOnMap: project.showDetailsOnMap,
       contact: {
         name: project.contactName ?? "",
         email: project.contactEmail ?? "",
@@ -51,7 +52,7 @@ const EditProject = ({ project }: Props) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PROJECTS] });
       notification.success({
         message: "Hurra!",
-        description: "Projekten har uppdaterats.",
+        description: "Projektet har uppdaterats.",
       });
       await revalidate(`${routes.EDIT_PROJECT}/${project.id}`);
       router.push(routes.LIST_PROJECT);
@@ -59,7 +60,7 @@ const EditProject = ({ project }: Props) => {
     onError: () => {
       notification.error({
         message: "Tyvärr!",
-        description: "Projekten kunde inte uppdateras.",
+        description: "Projektet kunde inte uppdateras.",
       });
     },
   });
@@ -70,6 +71,7 @@ const EditProject = ({ project }: Props) => {
       title: formData.title,
       description: formData.description,
       address: formData.address,
+      showDetailsOnMap: formData.showDetailsOnMap,
       contactName: formData.contact.name || null,
       contactEmail: formData.contact.email || null,
       contactPhone: formData.contact.phone || null,

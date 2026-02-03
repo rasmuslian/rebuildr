@@ -123,6 +123,9 @@ class CmsBaseProjectInput {
 
   @Field({ nullable: true })
   contactPhone?: string;
+
+  @Field({ nullable: true })
+  showDetailsOnMap?: boolean;
 }
 
 @InputType()

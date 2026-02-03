@@ -255,6 +255,12 @@ export class CmsUpdateUsersInput {
 
   @Field(() => String, { nullable: true })
   phoneNumber?: string;
+
+  @Field({ nullable: true })
+  isFeatured?: boolean;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 @Resolver(() => User)
 export class UserResolver {
