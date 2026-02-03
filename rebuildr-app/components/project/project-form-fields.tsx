@@ -18,6 +18,7 @@ export type ProjectFormType = Pick<
   | "contactPhone"
   | "location"
   | "address"
+  | "showDetailsOnMap"
 >;
 
 type Props = {
@@ -37,6 +38,9 @@ export const ProjectFormFields = ({
 }: Props) => {
   const [title, setTitle] = useState(project?.title ?? "");
   const [description, setDescription] = useState(project?.description ?? "");
+  const [showDetailsOnMap, setShowDetailsOnMap] = useState(
+    project?.showDetailsOnMap ?? false,
+  );
   const [altContact, setAltContact] = useState<{
     name?: string;
     email?: string;
@@ -92,6 +96,7 @@ export const ProjectFormFields = ({
         lng: location[1],
       },
       address,
+      showDetailsOnMap,
     });
   };
 
@@ -118,6 +123,14 @@ export const ProjectFormFields = ({
             placeholder:
               "Beskrivning av projektet, tillgänglighet och annan bra information för en köpare",
             onChange: (t) => setDescription(t),
+          },
+          {
+            type: "toggle",
+            heading: "Förhandsvisning på kartan",
+            description:
+              "En förhandsvisning av projektet kommer att visas på kartan, före annonserna.",
+            value: showDetailsOnMap,
+            onPress: () => setShowDetailsOnMap(!showDetailsOnMap),
           },
         ]}
       />

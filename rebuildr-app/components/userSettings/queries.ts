@@ -12,6 +12,7 @@ const ACCOUNT_SETTINGS_USER_FRAGMENT = gql`
     postCode
     city
     organizationNumber
+    websiteUrl
   }
 `;
 

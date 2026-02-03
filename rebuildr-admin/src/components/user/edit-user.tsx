@@ -29,10 +29,12 @@ const EditUser = ({ user, onSettled }: Props) => {
     defaultValues: {
       address: user.address ?? undefined,
       isAdmin: user.role === UserRoleEnum.Admin,
+      isFeatured: user.isFeatured,
       name: user.name ?? undefined,
       city: user.city ?? undefined,
       postCode: user.postCode ?? undefined,
       phoneNumber: user.phoneNumber ?? undefined,
+      websiteUrl: user.websiteUrl ?? undefined,
     },
   });
 
@@ -69,6 +71,8 @@ const EditUser = ({ user, onSettled }: Props) => {
       name: formData.name ?? null,
       phoneNumber: formData.phoneNumber ?? null,
       postCode: formData.postCode ?? null,
+      isFeatured: formData.isFeatured,
+      websiteUrl: formData.websiteUrl ?? null,
     };
 
     mutate(updatedUser);
@@ -83,6 +87,7 @@ const EditUser = ({ user, onSettled }: Props) => {
       handleSubmit={handleSubmit}
       onSubmit={onSubmit}
       submitLabel="Spara"
+      userType={user.type}
     />
   );
 };

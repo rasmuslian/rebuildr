@@ -69,6 +69,7 @@ export const MapProvider = ({ children }: PropsWithChildren) => {
               minPrice: filter.price?.[0],
               maxPrice: filter.price?.[1],
               giveaway: filter.giveaway,
+              projectId: filter.projectId,
             },
           },
         }

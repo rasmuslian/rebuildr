@@ -15,6 +15,8 @@ const query = `
         type
         city
         postCode
+        isFeatured
+        websiteUrl
       }
       total
     }

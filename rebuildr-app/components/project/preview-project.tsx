@@ -2,6 +2,7 @@ import {
   PreviewProjectQueryQuery,
   PreviewProjectQueryQueryVariables,
 } from "@/gql/graphql";
+import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 import { gql, useSuspenseQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import MapThumbnail from "@components/maps/map-thumbnail";
@@ -27,6 +28,11 @@ const PREVIEW_PROJECT_QUERY = gql`
         lng
         address
       }
+    }
+    me {
+      id
+      type
+      isFeatured
     }
   }
 `;
@@ -78,7 +84,7 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
               ? [project.approximatePlace.lat, project.approximatePlace.lng]
               : undefined
           }
-          markerType="project"
+          markerType={MapPinProjectType(data.me)}
           style={{ height: 185 }}
         />
         <Body size="small" color="secondary">

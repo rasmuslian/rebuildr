@@ -18,6 +18,9 @@ import { useQuery, useApolloClient } from "@apollo/client";
 import { MAP_PRODUCT_QUERY } from "@/queries";
 import { createMarkerIcon } from "./create-marker-icon";
 import { Link } from "expo-router";
+import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
+import { Image } from "expo-image";
+import { borderRadius } from "@constants/sizes";
 
 type Props = {
   pin: MapPinsQuery["productMapPinsInBoundingBox"]["pins"][number];
@@ -41,18 +44,16 @@ export default function MapMarker({ pin }: Props) {
 
   const productIds = pin.productIds;
 
-  const iconSource =
-    state.activePin?.location === pin.location
-      ? `/icons/${pin.type.toLowerCase()}-marker-dark.svg`
-      : `/icons/${pin.type.toLowerCase()}-marker-light.svg`;
-
   const icon = useMemo(() => {
     return createMarkerIcon({
-      iconSource,
+      iconSource: getMarkerSvg(
+        pin.type,
+        state.activePin?.location === pin.location,
+      ).uri,
       priceLabel: state.showPrice ? priceLabel : undefined,
       total: productIds.length > 1 ? productIds.length : undefined,
     });
-  }, [iconSource, priceLabel, state.showPrice, productIds]);
+  }, [priceLabel, state.showPrice, productIds, state.activePin]);
 
   return (
     <Marker
@@ -74,6 +75,7 @@ export default function MapMarker({ pin }: Props) {
 
 const ActiveMarkerPopup = ({ pin }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
   const { onToggleProductHeart } = useLikeProduct();
   const { state } = useMapContext();
 
@@ -91,14 +93,18 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
   const MIN = 0;
   const MAX = numberOfProducts - 1;
 
-  const hasPreviousProduct = currentIndex > MIN;
   const hasNextProduct = currentIndex < MAX;
 
   const productId = productIds.at(currentIndex);
   const nextProductId = productIds.at(currentIndex + 1);
 
-  const showPreviousProduct = () =>
-    setCurrentIndex((prev) => Math.max(MIN, prev - 1));
+  const showPreviousProduct = () => {
+    if (currentIndex === MIN && projectIsShowDetails) {
+      setCurrentIndex(-1);
+    } else {
+      setCurrentIndex((prev) => Math.max(MIN, prev - 1));
+    }
+  };
 
   const showNextProduct = () =>
     setCurrentIndex((prev) => Math.min(MAX, prev + 1));
@@ -127,8 +133,81 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
     }
   }, [nextProductId]);
 
+  useEffect(() => {
+    if (data) {
+      if (
+        project?.description &&
+        project.showDetailsOnMap &&
+        currentIndex === 0 &&
+        !showDetails
+      ) {
+        setShowDetails(true);
+        setCurrentIndex(-1);
+      }
+    }
+  }, [data]);
+
   const product = data?.product;
   const project = product?.project;
+  const projectIsShowDetails = project?.description && project.showDetailsOnMap;
+
+  const hasPreviousProduct = currentIndex > MIN || projectIsShowDetails;
+
+  if (projectIsShowDetails && currentIndex === -1) {
+    return (
+      <View style={{ gap: 10 }}>
+        <Label
+          style={{ textAlign: "center" }}
+          size="small"
+          lineBreakMode="tail"
+          numberOfLines={1}
+        >
+          {project.title}
+        </Label>
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <View style={{ flex: 1, alignItems: "flex-start" }} />
+
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Body size="small" color="secondary">
+              0 av {numberOfProducts}
+            </Body>
+          </View>
+
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            {hasNextProduct && (
+              <Button
+                onPress={() => {
+                  setCurrentIndex(0);
+                }}
+                type="text"
+                icon="chevronRight"
+              />
+            )}
+          </View>
+        </View>
+
+        <Divider />
+
+        <View style={{ gap: 8, marginTop: 6 }}>
+          <Image
+            source={product?.seller.profilePicture?.url}
+            style={{
+              height: 96,
+              width: 128,
+              borderRadius: borderRadius.medium,
+            }}
+          />
+          <Body size="medium">{project.description}</Body>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ gap: 10 }}>

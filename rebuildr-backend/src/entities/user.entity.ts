@@ -166,6 +166,14 @@ export class User {
   @Column({ type: Date, nullable: true })
   organizationApprovedAt?: Date;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  websiteUrl?: string;
+
+  @Field()
+  @Column({ default: false })
+  isFeatured: boolean;
+
   @Field()
   @Column({ type: Boolean, default: true })
   notifyOnMessage: boolean;
@@ -205,7 +213,10 @@ export class User {
   @Column({ nullable: true })
   mapPinId?: string;
 
-  @OneToOne(() => MapPin, mapPin => mapPin.user, { nullable: true, cascade: true })
+  @OneToOne(() => MapPin, (mapPin) => mapPin.user, {
+    nullable: true,
+    cascade: true,
+  })
   @JoinColumn()
   mapPin?: MapPin;
 }

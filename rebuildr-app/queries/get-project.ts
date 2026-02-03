@@ -58,6 +58,8 @@ export const GET_PROJECT = gql`
     }
     me @include(if: $isLoggedIn) {
       id
+      type
+      isFeatured
     }
   }
 `;

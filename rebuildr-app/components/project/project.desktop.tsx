@@ -25,6 +25,7 @@ import { Popup } from "@components/popup/popup";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { EditProject } from "./edit-project";
+import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 
 export const ProjectDesktop = () => {
   const { onToggleProductHeart } = useLikeProduct();
@@ -158,7 +159,7 @@ export const ProjectDesktop = () => {
                 <MapThumbnail
                   coords={location ? [location.lat, location.lng] : undefined}
                   style={{ height: 400 }}
-                  markerType="project"
+                  markerType={MapPinProjectType(me)}
                 />
               </Pressable>
             </View>
@@ -242,7 +243,7 @@ export const ProjectDesktop = () => {
           <PickupPositionPopupContent
             address={location.address}
             location={location}
-            markerType="project"
+            markerType={MapPinProjectType(me)}
           />
         </Popup>
       )}

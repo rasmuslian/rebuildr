@@ -157,6 +157,9 @@ export class ProjectService {
         });
       }
     }
+    if (input.showDetailsOnMap !== undefined) {
+      project.showDetailsOnMap = input.showDetailsOnMap;
+    }
 
     return await this.projectRepository.save(project);
   }

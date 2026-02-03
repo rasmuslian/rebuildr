@@ -39,6 +39,7 @@ import {
   Point,
   Repository,
   ILike,
+  SelectQueryBuilder,
 } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
@@ -592,6 +593,128 @@ export class ProductService {
     };
   }
 
+  basicFindProductsInputQueryBuilder<T>(
+    input: ProductsInput,
+    qb: SelectQueryBuilder<T>,
+    productAlias: string,
+  ) {
+    qb.andWhere(
+      `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
+    );
+
+    if (input.sellerId) {
+      qb.andWhere(`${productAlias}."sellerId" = :sellerId`, {
+        sellerId: input.sellerId,
+      });
+    }
+
+    if (input.projectId) {
+      qb.andWhere(`${productAlias}."projectId" = :projectId`, {
+        projectId: input.projectId,
+      });
+    }
+
+    if (input.searchString) {
+      qb.addCommonTableExpression(
+        `SELECT
+            p.id,
+            ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
+          FROM product p
+          WHERE p."textSearch" @@ plainto_tsquery(:searchString)
+            OR similarity(p.title, :searchString) > 0
+          `,
+        'ranked_products',
+      )
+        .setParameter('searchString', input.searchString)
+        .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
+        .andWhere(
+          `(rp.resultrank > 0.25 OR p.title ILIKE '${input.searchString}%' )`,
+        )
+        .addSelect('rp.resultrank', 'resultrank');
+    }
+
+    //Transportation
+    qb.andWhere(`
+      (${input.pickup === false ? 'FALSE' : `${productAlias}."pickupEnabled" = TRUE`}
+        OR ${input.shipping === false ? 'FALSE' : `EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = ${productAlias}.id)`}
+        OR ${input.delivery === false ? 'FALSE' : `${productAlias}."deliveryEnabled" = TRUE`})`);
+
+    //Include products based on category criterias
+    if (
+      input.categoryIds ||
+      input.selectionCategories ||
+      input.seasonalCategories
+    ) {
+      qb.innerJoin('category', 'c', `${productAlias}."categoryId" = c.id`);
+
+      if (input.categoryIds?.length) {
+        qb.andWhere(
+          '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
+          {
+            categoryIds: input.categoryIds,
+          },
+        );
+      } else if (input.selectionCategories) {
+        qb.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+        qb.andWhere('(c."inSelection" OR parent."inSelection")');
+      } else {
+        qb.leftJoin('category', 'parent', 'parent.id = c."parentId"');
+        qb.andWhere('(c."inSeason" OR parent."inSeason")');
+      }
+    }
+
+    if (input.brandIds) {
+      if (!input.brandIds.length) {
+        qb.andWhere(`${productAlias}."brandId" IS NULL`);
+      }
+      if (input.brandIds.length) {
+        qb.andWhere(`${productAlias}."brandId" IN (:...brandIds)`, {
+          brandIds: input.brandIds,
+        });
+      }
+    }
+
+    if (input.conditions) {
+      if (!input.conditions.length) {
+        qb.andWhere(`${productAlias}.condition IS NULL`);
+      }
+      if (input.conditions.length) {
+        qb.andWhere(`${productAlias}.condition IN (:...conditions)`, {
+          conditions: input.conditions,
+        });
+      }
+    }
+
+    //Prices
+    if (input.giveaway) {
+      qb.andWhere(`${productAlias}."isGiveaway" = TRUE`);
+    } else {
+      if (input.minPrice !== undefined) {
+        qb.andWhere(`${productAlias}.price / 100 >= :minPrice`, {
+          minPrice: input.minPrice,
+        });
+      }
+      if (input.maxPrice !== undefined) {
+        qb.andWhere(`${productAlias}.price / 100 <= :maxPrice`, {
+          maxPrice: input.maxPrice,
+        });
+      }
+    }
+
+    //Inte heller med i mapPin
+    if (input.likedByUserIds) {
+      qb.innerJoin(
+        'product_liked_by_user',
+        'plbu',
+        `plbu.productId = ${productAlias}.id`,
+      );
+      qb.andWhere('plbu.userId IN (:...likedByUserIds)', {
+        likedByUserIds: input.likedByUserIds,
+      });
+    }
+    return qb;
+  }
+
   async findAll(
     input: ProductsInput,
     _limit?: number,
@@ -613,31 +736,7 @@ export class ProductService {
       query.andWhere('"hiddenReason" IS NULL');
     }
 
-    query.andWhere(`(status = 'PUBLISHED' OR status = 'SOLD')`);
-
-    if (input.sellerId) {
-      query.andWhere('"sellerId" = :sellerId', { sellerId: input.sellerId });
-    }
-
-    if (input.searchString) {
-      query
-        .addCommonTableExpression(
-          `SELECT
-            p.id,
-            ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
-          FROM product p
-          WHERE p."textSearch" @@ plainto_tsquery(:searchString)
-            OR similarity(p.title, :searchString) > 0
-          `,
-          'ranked_products',
-        )
-        .setParameter('searchString', input.searchString)
-        .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
-        .andWhere(
-          `(rp.resultrank > 0.25 OR p.title ILIKE '${input.searchString}%' )`,
-        )
-        .addSelect('rp.resultrank', 'resultrank');
-    }
+    this.basicFindProductsInputQueryBuilder(input, query, 'p');
 
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
@@ -682,81 +781,6 @@ export class ProductService {
       );
 
       query.setParameter('origin', origin);
-    }
-
-    //Transportation
-    query.andWhere(`
-      (${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'}
-        OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
-        OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`);
-
-    //Include products based on category criterias
-    if (
-      input.categoryIds ||
-      input.selectionCategories ||
-      input.seasonalCategories
-    ) {
-      query.innerJoin('category', 'c', '"categoryId" = c.id');
-
-      if (input.categoryIds?.length) {
-        query.andWhere(
-          '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
-          {
-            categoryIds: input.categoryIds,
-          },
-        );
-      } else if (input.selectionCategories) {
-        query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
-        query.andWhere('(c."inSelection" OR parent."inSelection")');
-      } else {
-        query.leftJoin('category', 'parent', 'parent.id = c."parentId"');
-        query.andWhere('(c."inSeason" OR parent."inSeason")');
-      }
-    }
-
-    if (input.brandIds) {
-      if (!input.brandIds.length) {
-        query.andWhere('p."brandId" IS NULL');
-      }
-      if (input.brandIds.length) {
-        query.andWhere('p."brandId" IN (:...brandIds)', {
-          brandIds: input.brandIds,
-        });
-      }
-    }
-
-    if (input.conditions) {
-      if (!input.conditions.length) {
-        query.andWhere('p.condition IS NULL');
-      }
-      if (input.conditions.length) {
-        query.andWhere('p.condition IN (:...conditions)', {
-          conditions: input.conditions,
-        });
-      }
-    }
-
-    //Prices
-    if (input.giveaway) {
-      query.andWhere('"isGiveaway" = TRUE');
-    } else {
-      if (input.minPrice !== undefined) {
-        query.andWhere('p.price / 100 >= :minPrice', {
-          minPrice: input.minPrice,
-        });
-      }
-      if (input.maxPrice !== undefined) {
-        query.andWhere('p.price / 100 <= :maxPrice', {
-          maxPrice: input.maxPrice,
-        });
-      }
-    }
-
-    if (input.likedByUserIds) {
-      query.innerJoin('product_liked_by_user', 'plbu', 'plbu.productId = p.id');
-      query.andWhere('plbu.userId IN (:...likedByUserIds)', {
-        likedByUserIds: input.likedByUserIds,
-      });
     }
 
     if (input.excludeOwnProducts && userId) {

@@ -18,6 +18,7 @@ const ORGANIZATION_SETTING_UPDATE = gql`
       id
       username
       organizationNumber
+      websiteUrl
     }
   }
 `;
@@ -28,6 +29,7 @@ type Props = {
 export const OrganizationSetting = ({ user }: Props) => {
   const [name, setName] = useState(user.username ?? "");
   const [edit, setEdit] = useState(!user.organizationNumber || !user.username);
+  const [website, setWebsite] = useState(user.websiteUrl ?? "");
   const [updateOrganization, { data, loading, error }] = useMutation<
     OrganizationSettingUpdateMutation,
     OrganizationSettingUpdateMutationVariables
@@ -41,6 +43,7 @@ export const OrganizationSetting = ({ user }: Props) => {
         input: {
           id: user.id,
           organizationName: name,
+          websiteUrl: website,
         },
       },
     });
@@ -71,6 +74,9 @@ export const OrganizationSetting = ({ user }: Props) => {
           <Body size="medium" color="secondary">
             Företagsnamn: {name}
           </Body>
+          <Body size="medium" color="secondary">
+            Hemsida: {website}
+          </Body>
         </Entry>
       ) : (
         <View style={{ gap: 16 }}>
@@ -99,6 +105,19 @@ export const OrganizationSetting = ({ user }: Props) => {
                     "💡 Observera: Vi verifierar inte företagsnamnet, så se till att du skriver in det exakt som du vill att det ska synas för kunder.",
                   error: fieldErrors?.find((field) => field.name === "username")
                     ? "Företagsnamnet är upptaget"
+                    : undefined,
+                },
+                {
+                  heading: "Hemsida",
+                  description: "Ange ditt företags hemsida",
+                  type: "text",
+                  value: website,
+                  onChange: setWebsite,
+                  placeholder: "https://www.hemsida.se",
+                  error: fieldErrors?.find(
+                    (field) => field.name === "websiteUrl",
+                  )
+                    ? "Ogiltig url"
                     : undefined,
                 },
               ]}

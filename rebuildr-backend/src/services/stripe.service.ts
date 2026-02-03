@@ -432,6 +432,10 @@ export class StripeService {
       user.name = user.name ?? company.name;
     }
 
+    if (account.business_profile.url) {
+      user.websiteUrl = account.business_profile.url;
+    }
+
     if (!user.address) {
       const { address } = userIsIndividual ? individual : company;
       try {

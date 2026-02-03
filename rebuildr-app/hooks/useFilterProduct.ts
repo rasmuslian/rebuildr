@@ -245,4 +245,13 @@ class FilterBuilder {
     };
     return this;
   }
+
+  setProjectId(projectId: string) {
+    const filter = this.resetPresets();
+    this.filter = {
+      ...filter,
+      projectId,
+    };
+    return this;
+  }
 }

@@ -17,6 +17,7 @@ export type Filter = {
   price?: [number, number]; // lower, higher
   giveaway: boolean;
   searchString?: string;
+  projectId?: string;
   //Preset filters
   selectedCategoryId?: string;
   sourceSection?: PermanentSectionType;
@@ -35,4 +36,5 @@ export const initialFilterProduct: Filter = {
   selectedCategoryId: undefined,
   cameFrom: undefined,
   searchString: undefined,
+  projectId: undefined,
 };

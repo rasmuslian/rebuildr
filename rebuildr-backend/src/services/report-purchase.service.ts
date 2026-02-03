@@ -26,6 +26,7 @@ export class ReportPurchaseService {
     @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     private mailService: MailService,
+    @Inject(forwardRef(() => UserService))
     private userService: UserService,
   ) {}
 

@@ -1,17 +1,18 @@
 import { View } from "react-native";
 import { Body, Headline } from "@components/typography/text";
 import MapThumbnail from "@components/maps/map-thumbnail";
+import { MapPinTypeEnum } from "@/gql/graphql";
 
 type Props = {
   address: string;
   location: { lat: number; lng: number };
-  markerType: "product" | "project";
+  markerType: MapPinTypeEnum;
 };
 
 export const PickupPositionPopupContent = ({
   address,
   location,
-  markerType,
+  markerType = MapPinTypeEnum.Product,
 }: Props) => {
   return (
     <View style={{ flex: 1, alignItems: "center" }}>

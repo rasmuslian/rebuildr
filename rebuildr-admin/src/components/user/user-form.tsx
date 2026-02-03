@@ -4,6 +4,7 @@ import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
 import { Checkbox, Button, Input } from "antd";
 import SelectAddress from "@components/address/select-address";
+import { UserType } from "gql/graphql";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -19,6 +20,7 @@ type Props = {
   control: Control<UserSchemaType>;
   submitLabel: string;
   isPending: boolean;
+  userType?: UserType;
 };
 
 const UserForm = ({
@@ -29,7 +31,9 @@ const UserForm = ({
   control,
   submitLabel,
   isPending,
+  userType,
 }: Props) => {
+  const isBusinessUser = userType === UserType.Business;
   return (
     <AdminForm title={title} onSubmit={handleSubmit(onSubmit)}>
       <Controller
@@ -81,6 +85,36 @@ const UserForm = ({
           </FormField>
         )}
       />
+
+      {isBusinessUser && (
+        <Controller
+          control={control}
+          name="websiteUrl"
+          render={({ field }) => (
+            <FormField label="Webbplats" error={errors.websiteUrl?.message}>
+              <Input {...field} placeholder="https://" />
+            </FormField>
+          )}
+        />
+      )}
+
+      {isBusinessUser && (
+        <Controller
+          control={control}
+          name="isFeatured"
+          render={({ field: { value, onChange } }) => (
+            <FormField error={errors.isFeatured?.message}>
+              <label className="flex items-center gap-2 text-label-large">
+                <Checkbox
+                  checked={value}
+                  onChange={(event) => onChange(event.target.checked)}
+                />
+                RebuildR Hub
+              </label>
+            </FormField>
+          )}
+        />
+      )}
 
       <Controller
         control={control}

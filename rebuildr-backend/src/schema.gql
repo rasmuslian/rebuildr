@@ -132,6 +132,7 @@ type Project {
   contactEmail: String
   contactPhone: String
   address: String!
+  showDetailsOnMap: Boolean!
   likedByMe: Boolean
   location: LocationResponse!
   approximatePlace: ApproximatePlaceResponse!
@@ -177,6 +178,8 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  websiteUrl: String
+  isFeatured: Boolean!
   notifyOnMessage: Boolean!
   notifyOnPurchaseUpdate: Boolean!
   sellerAccountIsCreated: Boolean!
@@ -546,6 +549,11 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type UsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
 type PayoutAccount {
   type: String!
   routingNumber: String
@@ -637,7 +645,9 @@ type MapPinGroup {
 enum MapPinTypeEnum {
   PRODUCT
   PROJECT
+  HUB
   USER
+  FEATURED
 }
 
 type ProductMapPinResponse {
@@ -650,7 +660,7 @@ type Query {
   me: User!
   userExists(input: UserExistsInput!): User
   user(input: GetUserInput!): User!
-  getUsers(input: GetUsersInput!): [User!]!
+  users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -706,10 +716,16 @@ input GetUserInput {
   id: String!
 }
 
-input GetUsersInput {
-  name: String!
-  page: Int
-  pageSize: Int
+input UsersInput {
+  name: String
+  hasProject: Boolean
+  type: UserType
+  isPromoted: Boolean
+  orderBy: OrderUsersEnum
+}
+
+enum OrderUsersEnum {
+  ALPHABETICAL
 }
 
 input CmsListUsersInput {
@@ -724,6 +740,7 @@ input GetProductInput {
 
 input ProductsInput {
   sellerId: String
+  projectId: String
   searchString: String
   address: String
   location: LocationInputType
@@ -1013,6 +1030,8 @@ input CmsUpdateUsersInput {
   city: String
   postCode: String
   phoneNumber: String
+  isFeatured: Boolean
+  websiteUrl: String
 }
 
 input UpdateUserInput {
@@ -1049,6 +1068,7 @@ input UpdateOrganizationUserInput {
   postCode: String
   city: String
   phoneNumber: String
+  websiteUrl: String
 }
 
 input CmsCreateProductInput {
@@ -1294,6 +1314,7 @@ input CmsCreateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+  showDetailsOnMap: Boolean
 }
 
 input CmsUpdateProjectInput {
@@ -1303,6 +1324,7 @@ input CmsUpdateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+  showDetailsOnMap: Boolean
   id: String!
 }
 
@@ -1323,6 +1345,7 @@ input UpdateProjectInput {
   contactName: String
   contactEmail: String
   contactPhone: String
+  showDetailsOnMap: Boolean
 }
 
 input SetLikeProjectInput {

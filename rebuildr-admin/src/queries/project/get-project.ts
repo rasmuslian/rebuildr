@@ -11,6 +11,7 @@ const query = `
       contactName
       description
       address
+      showDetailsOnMap
     }
   }
 `;

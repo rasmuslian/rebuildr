@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -23,6 +23,7 @@ import {
   RegistrationStatusEnum,
   User,
   UserRoleEnum,
+  UserType,
 } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { UserService } from 'src/services/user.service';
@@ -46,6 +47,11 @@ export enum ProductsRecommendationSourceEnum {
 registerEnumType(ProductsRecommendationSourceEnum, {
   name: 'ProductsRecommendationSourceEnum',
 });
+
+export enum OrderUsersEnum {
+  ALPHABETICAL = 'ALPHABETICAL',
+}
+registerEnumType(OrderUsersEnum, { name: 'OrderUsersEnum' });
 
 @InputType()
 export class UpdateUserInput {
@@ -133,6 +139,9 @@ export class UpdateOrganizationUserInput {
 
   @Field({ nullable: true })
   phoneNumber?: string;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 
 @InputType()
@@ -142,15 +151,30 @@ export class GetUserInput {
 }
 
 @InputType()
-export class GetUsersInput {
-  @Field(() => String)
-  name: string;
+export class UsersInput {
+  @Field(() => String, { nullable: true })
+  name?: string;
 
-  @Field(() => Int, { nullable: true })
-  page?: number | null;
+  @Field(() => Boolean, { nullable: true })
+  hasProject?: boolean;
 
-  @Field(() => Int, { nullable: true })
-  pageSize?: number | null;
+  @Field(() => UserType, { nullable: true })
+  type?: UserType;
+
+  @Field(() => Boolean, { nullable: true })
+  isPromoted?: boolean;
+
+  @Field(() => OrderUsersEnum, { nullable: true })
+  orderBy?: OrderUsersEnum;
+}
+
+@ObjectType()
+export class UsersResponse {
+  @Field(() => [User])
+  users: User[];
+
+  @Field(() => Int)
+  total: number;
 }
 
 @ObjectType()
@@ -231,10 +255,17 @@ export class CmsUpdateUsersInput {
 
   @Field(() => String, { nullable: true })
   phoneNumber?: string;
+
+  @Field({ nullable: true })
+  isFeatured?: boolean;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 @Resolver(() => User)
 export class UserResolver {
   constructor(
+    @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private productService: ProductService,
     private projectService: ProjectService,
@@ -257,10 +288,14 @@ export class UserResolver {
     return await this.userService.findOne(input.id);
   }
 
-  @Query(() => [User])
+  @Query(() => UsersResponse)
   @UseGuards(GqlOptionalAuthGuard)
-  async getUsers(@Args('input') input: GetUsersInput): Promise<User[]> {
-    return this.userService.getUsers(input);
+  async users(
+    @Args('input') input: UsersInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
+    return this.userService.getUsers(input, limit, offset);
   }
 
   @Query(() => CmsListUsersResponse)

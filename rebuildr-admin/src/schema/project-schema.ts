@@ -23,6 +23,8 @@ export const ProjectSchema = z.object({
     })
     .min(1, { message: "Du måste ange adress." }),
 
+  showDetailsOnMap: z.boolean(),
+
   contact: z.object({
     name: z.union([
       z.literal("").optional(),

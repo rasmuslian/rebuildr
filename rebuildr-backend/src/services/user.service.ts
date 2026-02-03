@@ -12,16 +12,17 @@ import {
   ForbiddenException,
   NotFoundException,
 } from 'src/exceptions';
-import { ILike, IsNull, Repository } from 'typeorm';
+import { ILike, IsNull, Not, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   CmsListUsersInput,
   CmsListUsersResponse,
   CmsUpdateUsersInput,
   CreateOrganizationUserInput,
-  GetUsersInput,
+  OrderUsersEnum,
   UpdateOrganizationUserInput,
   UpdateUserInput,
+  UsersInput,
 } from 'src/resolvers/user.resolver';
 import { FileService } from './file.service';
 import {
@@ -36,6 +37,7 @@ import { Product, ProductStatus } from 'src/entities/product.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { StripeService } from './stripe.service';
 import { MapPin } from 'src/entities/map-pin.entity';
+import { Project } from 'src/entities/project.entity';
 
 @Injectable()
 export class UserService {
@@ -49,6 +51,8 @@ export class UserService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private stripeService: StripeService,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
   ) {}
 
   async findOne(id: string) {
@@ -77,12 +81,44 @@ export class UserService {
     return owner;
   }
 
-  async getUsers(input: GetUsersInput): Promise<User[]> {
-    return await this.userRepository.find({
-      where: { username: ILike(`%${input.name}%`), deletedAt: IsNull() },
-      take: input.pageSize || 10,
-      skip: (input.page || 0) * (input.pageSize || 10),
-    });
+  async getUsers(input: UsersInput, _limit?: number, offset?: number) {
+    const query = this.userRepository.createQueryBuilder('u');
+    query.where('u."deletedAt" IS NULL');
+
+    if (input.name) {
+      query.andWhere('u.username ILike %:name%', { name: input.name });
+    }
+    if (input.hasProject) {
+      query.andWhereExists(
+        this.projectRepository
+          .createQueryBuilder('p')
+          .where('p."userId" = u.id'),
+      );
+    }
+    if (input.type) {
+      query.andWhere(`u.type = '${input.type}'`);
+    }
+
+    query.orderBy('u."isFeatured"', 'DESC');
+
+    if (input.orderBy) {
+      switch (input.orderBy) {
+        case OrderUsersEnum.ALPHABETICAL:
+          query.addOrderBy('u.username', 'ASC');
+      }
+    }
+
+    query.addOrderBy('u."createdAt"', 'DESC');
+
+    const limit = _limit ?? 20;
+    query.limit(limit > 40 ? 40 : limit);
+    query.offset((offset ?? 0) * limit);
+
+    const result = await query.getManyAndCount();
+    return {
+      users: result[0],
+      total: result[1],
+    };
   }
 
   async getRegistrationStatus(user: User) {
@@ -316,6 +352,7 @@ export class UserService {
     if (input.organizationName) {
       const usernameTaken = await this.userRepository.existsBy({
         username: input.organizationName,
+        id: Not(organization.id),
       });
       if (usernameTaken) {
         throw BadFieldsInputException([
@@ -364,6 +401,16 @@ export class UserService {
         throw BadUserInputException('Invalid post code');
       }
       organization.postCode = input.postCode;
+    }
+
+    if (input.websiteUrl) {
+      try {
+        organization.websiteUrl = this.validateWebsite(input.websiteUrl);
+      } catch {
+        throw BadFieldsInputException([
+          { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
+        ]);
+      }
     }
 
     return await this.userRepository.save(organization);
@@ -567,7 +614,7 @@ export class UserService {
   }
 
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
-    const { id, address, ...rest } = input;
+    const { id, address, websiteUrl, ...rest } = input;
 
     const user = await this.userRepository.findOne({
       where: { id },
@@ -602,6 +649,16 @@ export class UserService {
         }
       }
 
+      if (websiteUrl) {
+        try {
+          user.websiteUrl = this.validateWebsite(websiteUrl);
+        } catch {
+          throw BadFieldsInputException([
+            { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
+          ]);
+        }
+      }
+
       Object.assign<User, Partial<User>>(user, {
         ...rest,
       });
@@ -609,6 +666,24 @@ export class UserService {
       return this.userRepository.save(user);
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
+    }
+  }
+
+  /**
+   *
+   * Validate website and returns it if valid, throws otherwise
+   */
+  private validateWebsite(website: string) {
+    try {
+      const url = new URL(website);
+
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Website must start with http or https');
+      }
+
+      return website;
+    } catch {
+      throw new Error('Invalid url');
     }
   }
 }

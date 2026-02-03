@@ -24,6 +24,9 @@ const CreateProject = () => {
     formState: { errors },
   } = useForm<ProjectSchemaType>({
     resolver: zodResolver(ProjectSchema),
+    defaultValues: {
+      showDetailsOnMap: false,
+    },
   });
 
   const { mutateAsync, isPending } = useMutation({
@@ -54,6 +57,7 @@ const CreateProject = () => {
       title: formData.title,
       description: formData.description,
       address: formData.address,
+      showDetailsOnMap: formData.showDetailsOnMap,
       contactName: formData.contact.name || null,
       contactEmail: formData.contact.email || null,
       contactPhone: formData.contact.phone || null,

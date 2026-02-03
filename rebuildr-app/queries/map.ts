@@ -29,6 +29,13 @@ export const MAP_PRODUCT_QUERY = gql`
       price
       likedByMe
       sellerId
+      seller {
+        id
+        profilePicture {
+          id
+          url
+        }
+      }
       primaryImage {
         id
         url
@@ -36,6 +43,8 @@ export const MAP_PRODUCT_QUERY = gql`
       project {
         id
         title
+        description
+        showDetailsOnMap
       }
     }
   }

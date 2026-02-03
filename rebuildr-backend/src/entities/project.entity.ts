@@ -81,4 +81,8 @@ export class Project {
   @OneToOne(() => MapPin, (mapPin) => mapPin.project, { cascade: true })
   @JoinColumn()
   mapPin: MapPin;
+
+  @Field()
+  @Column({ default: false })
+  showDetailsOnMap: boolean;
 }

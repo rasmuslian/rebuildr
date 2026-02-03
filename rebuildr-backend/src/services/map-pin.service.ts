@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserType } from 'src/entities/user.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { LocationResponse } from 'src/resolvers/geocoding.resolver';
 import {
@@ -16,6 +16,7 @@ import { ObjectLiteral } from 'typeorm';
 import { BadUserInputException } from 'src/exceptions';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { ProductService } from './product.service';
 
 @Injectable()
 export class MapPinService {
@@ -30,6 +31,7 @@ export class MapPinService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private productService: ProductService,
   ) {}
 
   async createMany(mapPins: MapPin[]): Promise<MapPin[]> {
@@ -327,10 +329,13 @@ export class MapPinService {
         "mapPin".location AS location,
         product.id AS product_id,
         product."projectId" AS project_id,
-        product.price AS price`,
+        product.price AS price,
+        seller.type AS seller_type,
+        seller."isFeatured" AS seller_is_featured`,
       )
       .where(whereClause, whereParams)
-      .innerJoin('mapPin.product', 'product');
+      .innerJoin('mapPin.product', 'product')
+      .innerJoin('product.seller', 'seller');
 
     if (offset !== undefined) {
       productPinsQuery.offset(offset);
@@ -340,106 +345,11 @@ export class MapPinService {
     }
 
     if (productsInput) {
-      if (productsInput.sellerId) {
-        productPinsQuery.andWhere('product."sellerId" = :sellerId', {
-          sellerId: productsInput.sellerId,
-        });
-      }
-
-      productPinsQuery.andWhere(`(product."status" = 'PUBLISHED')`);
-
-      if (productsInput.searchString) {
-        productPinsQuery
-          .addCommonTableExpression(
-            `SELECT
-              product.id,
-              ts_rank(product."textSearch", plainto_tsquery(:searchString), 0) + similarity(product.title, :searchString) as resultrank
-            FROM product product
-            WHERE product."textSearch" @@ plainto_tsquery(:searchString)
-              OR similarity(product.title, :searchString) > 0
-            `,
-            'ranked_products',
-          )
-          .setParameter('searchString', productsInput.searchString)
-          .innerJoin('ranked_products', 'rp', 'rp.id = product.id')
-          .andWhere(
-            `(rp.resultrank > 0.25 OR product.title ILIKE '${productsInput.searchString}%' )`,
-          );
-      }
-      if (
-        productsInput.categoryIds ||
-        productsInput.selectionCategories ||
-        productsInput.seasonalCategories
-      ) {
-        productPinsQuery.innerJoin(
-          'category',
-          'c',
-          'product."categoryId" = c.id',
-        );
-
-        if (productsInput.categoryIds?.length) {
-          productPinsQuery.andWhere(
-            '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
-            {
-              categoryIds: productsInput.categoryIds,
-            },
-          );
-        } else if (productsInput.selectionCategories) {
-          productPinsQuery.leftJoin(
-            'category',
-            'parent',
-            'parent.id = c."parentId"',
-          );
-          productPinsQuery.andWhere(
-            '(c."inSelection" OR parent."inSelection")',
-          );
-        } else {
-          productPinsQuery.leftJoin(
-            'category',
-            'parent',
-            'parent.id = c."parentId"',
-          );
-          productPinsQuery.andWhere('(c."inSeason" OR parent."inSeason")');
-        }
-      }
-
-      if (productsInput.brandIds) {
-        if (!productsInput.brandIds.length) {
-          productPinsQuery.andWhere('product."brandId" IS NULL');
-        }
-        if (productsInput.brandIds.length) {
-          productPinsQuery.andWhere('product."brandId" IN (:...brandIds)', {
-            brandIds: productsInput.brandIds,
-          });
-        }
-      }
-
-      if (productsInput.conditions) {
-        if (!productsInput.conditions.length) {
-          productPinsQuery.andWhere('product.condition IS NULL');
-        }
-        if (productsInput.conditions.length) {
-          productPinsQuery.andWhere('product.condition IN (:...conditions)', {
-            conditions: productsInput.conditions,
-          });
-        }
-      }
-
-      //Prices
-      if (productsInput.minPrice !== undefined) {
-        productPinsQuery.andWhere('product.price / 100 >= :minPrice', {
-          minPrice: productsInput.minPrice,
-        });
-      }
-      if (productsInput.maxPrice !== undefined) {
-        productPinsQuery.andWhere('product.price / 100 <= :maxPrice', {
-          maxPrice: productsInput.maxPrice,
-        });
-      }
-
-      if (productsInput.giveaway) {
-        productPinsQuery.andWhere('"isGiveaway" = TRUE');
-      }
+      this.productService.basicFindProductsInputQueryBuilder(
+        productsInput,
+        productPinsQuery,
+        'product',
+      );
     }
     const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
 
@@ -459,6 +369,8 @@ export class MapPinService {
       longitude: number;
       productIds: string[];
       projectId: string | null;
+      sellerType: UserType;
+      sellerIsFeatured: boolean;
       prices: number[];
     }[] = await this.mapPinRepository.query(
       `
@@ -469,15 +381,19 @@ export class MapPinService {
              $${innerParams.length + 1}
            ) AS grid_id,
           project_id as "projectId",
+          seller_type as "sellerType",
+          seller_is_featured as "sellerIsFeatured",
           ST_Collect(location) AS geom,
           ARRAY_AGG(product_id) AS "productIds",
           ARRAY_AGG(price ORDER BY price) AS prices
         FROM (${innerSql}) AS filtered
-        GROUP BY grid_id, "projectId"),
+        GROUP BY grid_id, "projectId", "sellerType", "sellerIsFeatured"),
       jittered AS (
         SELECT
           grid_id,
           "projectId",
+          "sellerType",
+          "sellerIsFeatured",
           "productIds",
           prices,
           ST_Translate(
@@ -489,6 +405,8 @@ export class MapPinService {
       SELECT
         grid_id,
         "projectId",
+        "sellerType",
+        "sellerIsFeatured",
         ST_X(location) AS latitude,
         ST_Y(location) AS longitude,
         "productIds",
@@ -505,12 +423,34 @@ export class MapPinService {
         },
         productIds: r.productIds,
         projectIds: r.projectId ? [r.projectId] : [],
-        type: r.projectId ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
+        type: this.deriveMapPinType(
+          !!r.projectId,
+          r.sellerType,
+          r.sellerIsFeatured,
+        ),
         prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,
     };
   }
+
+  private deriveMapPinType = (
+    isProject: boolean,
+    sellerType: UserType,
+    sellerIsFeatured: boolean,
+  ) => {
+    if (!isProject) {
+      return MapPinTypeEnum.PRODUCT;
+    }
+    if (sellerType === UserType.PERSONAL) {
+      return MapPinTypeEnum.PROJECT;
+    }
+    //Is Business
+    if (sellerIsFeatured) {
+      return MapPinTypeEnum.FEATURED;
+    }
+    return MapPinTypeEnum.HUB;
+  };
 
   private cellSizeForZoom(zoom?: number): number {
     if (zoom === undefined) {
