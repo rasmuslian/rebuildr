@@ -21,8 +21,9 @@ import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Popup } from "@components/popup/popup";
-import { useState } from "react";
+import React, { useState } from "react";
 import MapThumbnail from "@components/maps/map-thumbnail";
+import { Divider } from "@components/dividers/divider";
 
 const HUBS = gql`
   query Hubs($input: UsersInput!) {
@@ -77,62 +78,65 @@ export default function Hubs() {
         kopplade till produkter för återbruk
       </Body>
       {data?.users.users.map((u, i) => (
-        <AccordionSection
-          title={u.username ?? ""}
-          key={i}
-          initialOpen={i === 0}
-        >
-          <Image
-            source={u.profilePicture?.url ?? PlaceHolder}
-            style={{
-              width: 236,
-              height: 80,
-              marginVertical: 36,
-              alignSelf: "center",
-            }}
-            contentFit="contain"
-          />
-          <Body size="medium">{u.description}</Body>
-          {u.websiteUrl && (
-            <View
+        <React.Fragment key={i}>
+          <AccordionSection
+            title={u.username ?? ""}
+            key={i}
+            initialOpen={i === 0}
+          >
+            <Image
+              source={u.profilePicture?.url ?? PlaceHolder}
               style={{
-                flexDirection: "row",
-                gap: 8,
-                alignItems: "center",
-                paddingHorizontal: 8,
-                paddingVertical: 10,
+                width: 236,
+                height: 80,
+                marginVertical: 36,
+                alignSelf: "center",
               }}
-            >
-              <Icon icon="arrowRight" size={18} />
-              <Link href={u.websiteUrl as Href} target="_blank">
-                <Label size="large">Länk till hemsida</Label>
-              </Link>
-            </View>
-          )}
-          {u.projects.map((p, i) => (
-            <Pressable
-              onPress={() => {
-                if (isDesktop) {
-                  setShowProject(p);
-                } else {
-                  filterBuilder.reset().setProjectId(p.id).apply();
-                  router.navigate("/map");
-                }
-              }}
-              key={i}
-            >
+              contentFit="contain"
+            />
+            <Body size="medium">{u.description}</Body>
+            {u.websiteUrl && (
               <View
-                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  alignItems: "center",
+                  paddingHorizontal: 8,
+                  paddingVertical: 10,
+                }}
               >
-                <Image
-                  source={u.isFeatured ? FeaturedHubIcon.uri : HubIcon.uri}
-                  style={{ height: 32, width: 32 }}
-                />
-                <Label size="large">Visa {p.title} på kartan</Label>
+                <Icon icon="arrowRight" size={18} />
+                <Link href={u.websiteUrl as Href} target="_blank">
+                  <Label size="large">Länk till hemsida</Label>
+                </Link>
               </View>
-            </Pressable>
-          ))}
-        </AccordionSection>
+            )}
+            {u.projects.map((p, i) => (
+              <Pressable
+                onPress={() => {
+                  if (isDesktop) {
+                    setShowProject(p);
+                  } else {
+                    filterBuilder.reset().setProjectId(p.id).apply();
+                    router.navigate("/map");
+                  }
+                }}
+                key={i}
+              >
+                <View
+                  style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+                >
+                  <Image
+                    source={u.isFeatured ? FeaturedHubIcon.uri : HubIcon.uri}
+                    style={{ height: 32, width: 32 }}
+                  />
+                  <Label size="large">Visa {p.title} på kartan</Label>
+                </View>
+              </Pressable>
+            ))}
+          </AccordionSection>
+          {i < data.users.users.length - 1 && <Divider />}
+        </React.Fragment>
       ))}
     </View>
   );
