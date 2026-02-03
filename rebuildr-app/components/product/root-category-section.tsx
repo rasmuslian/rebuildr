@@ -1,4 +1,5 @@
 import {
+  OrderCategoriesEnum,
   RootCategorySectionQuery,
   RootCategorySelectedCategoryQuery,
   RootCategorySelectedCategoryQueryVariables,
@@ -7,7 +8,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { View } from "react-native";
 import placeholder from "@assets/images/category-placeholder.jpeg";
-import { Body, Display, Headline, Title } from "@components/typography/text";
+import { Display, Headline, Title } from "@components/typography/text";
 import { Button } from "@components/buttons/button";
 import { Image } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -55,6 +56,11 @@ export const RootCategorySection = ({
   const colors = useThemeColor();
   const { data } = useQuery<RootCategorySectionQuery>(ROOT_CATEGORY_SECTION, {
     skip: !!selectedId,
+    variables: {
+      input: {
+        orderBy: OrderCategoriesEnum.OrderIndexAsc,
+      },
+    },
   });
   const { data: selectedData } = useQuery<
     RootCategorySelectedCategoryQuery,
