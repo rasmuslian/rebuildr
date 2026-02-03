@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryTree } from 'src/entities/category-tree.entity';
 import { Category } from 'src/entities/category.entity';
+import { Brand } from 'src/entities/brand.entity';
 import { Event, EventType } from 'src/entities/event.entity';
 import { NotFoundException, BadUserInputException } from 'src/exceptions';
 import {
@@ -11,8 +12,10 @@ import {
   CmsUpdateCategoryInput,
   CmsUpdateCategoryResponse,
   CmsUpdateCategoriesInput,
+  CmsCreateCategoryInput,
+  CmsCreateCategoryResponse,
 } from 'src/resolvers/category.resolver';
-import { Equal, IsNull, Repository } from 'typeorm';
+import { Equal, IsNull, Repository, In } from 'typeorm';
 import { FileService } from './file.service';
 
 @Injectable()
@@ -21,6 +24,8 @@ export class CategoryService {
     private fileService: FileService,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Brand)
+    private brandRepository: Repository<Brand>,
     @InjectRepository(CategoryTree)
     private categoryTreeRepository: Repository<CategoryTree>,
   ) {}
@@ -122,11 +127,22 @@ export class CategoryService {
     }
 
     try {
-      Object.assign(category, {
+      const parentCategory = input.parentId
+        ? await this.categoryRepository.findOneBy({ id: input.parentId })
+        : null;
+
+      const brands = input.brandIds
+        ? await this.brandRepository.findBy({ id: In(input.brandIds) })
+        : null;
+
+      Object.assign<Category, Partial<Category>>(category, {
         inSeason: input.inSeason,
         inSelection: input.inSelection,
+        name: input.name,
         description: input.description,
         measurements: input.measurements,
+        parent: parentCategory,
+        brands: brands,
       });
 
       if (input.image) {
@@ -145,6 +161,45 @@ export class CategoryService {
       return { category, imagePutUrl };
     } catch (error) {
       throw BadUserInputException('Failed to update category: ' + error);
+    }
+  }
+
+  async createCategory(
+    input: CmsCreateCategoryInput,
+  ): Promise<CmsCreateCategoryResponse> {
+    const category = new Category();
+
+    try {
+      const parentCategory = input.parentId
+        ? await this.categoryRepository.findOneBy({ id: input.parentId })
+        : null;
+
+      const brands = input.brandIds
+        ? await this.brandRepository.findBy({ id: In(input.brandIds) })
+        : null;
+
+      Object.assign<Category, Partial<Category>>(category, {
+        inSeason: input.inSeason,
+        inSelection: input.inSelection,
+        name: input.name,
+        description: input.description,
+        measurements: input.measurements,
+        parent: parentCategory,
+        brands: brands,
+      });
+
+      if (input.image) {
+        category.image = await this.fileService.createFile(input.image);
+      }
+
+      await this.categoryRepository.save(category);
+      const imagePutUrl = category.image
+        ? await this.fileService.uploadFile(category.image, true)
+        : null;
+
+      return { category, imagePutUrl };
+    } catch (error) {
+      throw BadUserInputException('Failed to create category: ' + error);
     }
   }
 

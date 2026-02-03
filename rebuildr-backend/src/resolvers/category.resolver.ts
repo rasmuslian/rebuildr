@@ -20,7 +20,6 @@ import { Category } from 'src/entities/category.entity';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
-import { FileService } from 'src/services/file.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
 import { FileInputType } from './product.resolver';
@@ -58,15 +57,15 @@ class PopularCategoriesInput {
 }
 
 @InputType()
-export class CmsUpdateCategoryInput {
-  @Field(() => String)
-  id: string;
-
+class CmsBaseCategoryInput {
   @Field(() => Boolean)
   inSelection: boolean;
 
   @Field(() => Boolean)
   inSeason: boolean;
+
+  @Field(() => String)
+  name: string;
 
   @Field(() => String)
   description: string;
@@ -76,6 +75,39 @@ export class CmsUpdateCategoryInput {
 
   @Field(() => FileInputType, { nullable: true })
   image?: FileInputType;
+
+  @Field(() => String, { nullable: true })
+  parentId?: string;
+
+  @Field(() => [String], { nullable: true })
+  brandIds?: string[];
+}
+
+@InputType()
+export class CmsUpdateCategoryInput extends CmsBaseCategoryInput {
+  @Field(() => String)
+  id: string;
+}
+
+@InputType()
+export class CmsCreateCategoryInput extends CmsBaseCategoryInput {}
+
+@ObjectType()
+export class CmsCreateCategoryResponse {
+  @Field(() => Category)
+  category: Category;
+
+  @Field(() => String, { nullable: true })
+  imagePutUrl?: string;
+}
+
+@ObjectType()
+export class CmsUpdateCategoryResponse {
+  @Field(() => Category)
+  category: Category;
+
+  @Field(() => String, { nullable: true })
+  imagePutUrl: string;
 }
 @InputType()
 export class CmsUpdateCategoriesInput {
@@ -90,15 +122,6 @@ class CmsUpdateCategoryOrderInput {
   orderIndex: number;
 }
 
-@ObjectType()
-export class CmsUpdateCategoryResponse {
-  @Field(() => Category)
-  category: Category;
-
-  @Field(() => String, { nullable: true })
-  imagePutUrl: string;
-}
-
 @InputType()
 export class GetCategoriesInput {
   @Field(() => [String], { nullable: true })
@@ -106,10 +129,7 @@ export class GetCategoriesInput {
 }
 @Resolver(() => Category)
 export class CategoryResolver {
-  constructor(
-    private categoryService: CategoryService,
-    private fileService: FileService,
-  ) {}
+  constructor(private categoryService: CategoryService) {}
 
   @Query(() => Category)
   category(@Args('input') input: CategoryInput) {
@@ -138,6 +158,15 @@ export class CategoryResolver {
     @Args('input', { nullable: true }) input?: PopularCategoriesInput,
   ) {
     return this.categoryService.findPopular(input?.limit);
+  }
+
+  @Mutation(() => CmsCreateCategoryResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsCreateCategory(
+    @Args('input') input: CmsCreateCategoryInput,
+  ): Promise<CmsCreateCategoryResponse> {
+    return this.categoryService.createCategory(input);
   }
 
   @Mutation(() => CmsUpdateCategoryResponse)

@@ -1,28 +1,20 @@
 "use client";
 
-import { Category, CmsUpdateCategoryInput } from "gql/graphql";
+import { CmsCreateCategoryInput } from "gql/graphql";
 import React from "react";
 import CategoryForm from "./category-form";
 import { useForm } from "react-hook-form";
 import { CategorySchema, CategorySchemaType } from "@/schema/category-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { updateCategory } from "@/queries/category/update-category";
+import { createCategory } from "@/queries/category/create-category";
 import { routes } from "@/lib/routes";
-import { revalidate } from "@/actions/revalidate";
 import { useRouter } from "next/navigation";
-import {
-  getFileInputTypes,
-  getUploadFiles,
-  uploadFiles,
-} from "@utils/file-utils";
+import { getFileInputTypes, uploadFiles } from "@utils/file-utils";
 import { App } from "antd";
+import { revalidate } from "@/actions/revalidate";
 
-type Props = {
-  category: Category;
-};
-
-const EditCategory = ({ category }: Props) => {
+const CreateCategory = () => {
   const { notification } = App.useApp();
   const router = useRouter();
 
@@ -33,47 +25,44 @@ const EditCategory = ({ category }: Props) => {
   } = useForm<CategorySchemaType>({
     resolver: zodResolver(CategorySchema),
     defaultValues: {
-      inSeason: category.inSeason,
-      inSelection: category.inSelection,
-      name: category.name,
-      description: category.description,
-      image: category.image ? getUploadFiles([category.image]) : [],
-      measurements: category.measurements,
-      parentId: category.parentId ?? undefined,
-      brandIds: category.brands.map((brand) => brand.id),
+      inSeason: false,
+      inSelection: false,
+      measurements: [],
+      image: [],
+      parentId: undefined,
+      brandIds: [],
     },
   });
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (input: CmsUpdateCategoryInput) => {
-      const response = await updateCategory(input);
+    mutationFn: async (input: CmsCreateCategoryInput) => {
+      const response = await createCategory(input);
       if (!response) throw new Error();
       return response;
     },
     onSuccess: async () => {
       notification.success({
         message: "Hurra!",
-        description: "Kategorin har uppdaterats.",
+        description: "Kategorin har skapats.",
       });
-      await revalidate(`${routes.EDIT_CATEGORY}/${category.id}`);
+      await revalidate(`${routes.LIST_CATEGORY}`);
       router.push(routes.LIST_CATEGORY);
     },
     onError: () => {
       notification.error({
         message: "Tyvärr!",
-        description: "Kategorin kunde inte uppdateras.",
+        description: "Kategorin kunde inte skapas.",
       });
     },
   });
 
   const onSubmit = async (formData: CategorySchemaType) => {
-    const updatedCategory: CmsUpdateCategoryInput = {
-      id: category.id,
+    const newCategory: CmsCreateCategoryInput = {
       ...formData,
       image: getFileInputTypes(formData.image)[0],
     };
 
-    const response = await mutateAsync(updatedCategory);
+    const response = await mutateAsync(newCategory);
 
     if (response.imagePutUrl) {
       await uploadFiles([response.imagePutUrl], formData.image);
@@ -82,15 +71,15 @@ const EditCategory = ({ category }: Props) => {
 
   return (
     <CategoryForm
-      title="Redigera Kategori"
+      title="Skapa Kategori"
       control={control}
       errors={errors}
       isPending={isPending}
       handleSubmit={handleSubmit}
       onSubmit={onSubmit}
-      submitLabel="Spara"
+      submitLabel="Skapa"
     />
   );
 };
 
-export default EditCategory;
+export default CreateCategory;

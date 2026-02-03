@@ -134,6 +134,23 @@ export type CmsCreateBrandInput = {
   name: Scalars['String']['input'];
 };
 
+export type CmsCreateCategoryInput = {
+  brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  description: Scalars['String']['input'];
+  image?: InputMaybe<FileInputType>;
+  inSeason: Scalars['Boolean']['input'];
+  inSelection: Scalars['Boolean']['input'];
+  measurements: Array<MeasurementTypeEnum>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsCreateCategoryResponse = {
+  __typename?: 'CmsCreateCategoryResponse';
+  category: Category;
+  imagePutUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type CmsCreateFooterSectionInput = {
   articles: Array<ArticleOrderInput>;
   orderIndex: Scalars['Float']['input'];
@@ -250,12 +267,15 @@ export type CmsUpdateCategoriesInput = {
 };
 
 export type CmsUpdateCategoryInput = {
+  brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
   image?: InputMaybe<FileInputType>;
   inSeason: Scalars['Boolean']['input'];
   inSelection: Scalars['Boolean']['input'];
   measurements: Array<MeasurementTypeEnum>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CmsUpdateCategoryOrderInput = {
@@ -709,6 +729,7 @@ export type Mutation = {
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
   cmsCreateBrand: Brand;
+  cmsCreateCategory: CmsCreateCategoryResponse;
   cmsCreateFooterSection: FooterSection;
   cmsCreateProduct: CmsCreateProductResponse;
   cmsCreateProject: Project;
@@ -796,6 +817,11 @@ export type MutationCmsCreateArticleArgs = {
 
 export type MutationCmsCreateBrandArgs = {
   input: CmsCreateBrandInput;
+};
+
+
+export type MutationCmsCreateCategoryArgs = {
+  input: CmsCreateCategoryInput;
 };
 
 

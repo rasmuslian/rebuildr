@@ -14,6 +14,8 @@ import {
 } from "react-hook-form";
 import { measurements } from "@/constants/measurements";
 import { MeasurementTypeEnum } from "gql/graphql";
+import SelectRootCategory from "@components/category/select-root-category";
+import SelectBrands from "@components/brand/select-brands";
 
 type Props = {
   title: string;
@@ -40,8 +42,8 @@ const CategoryForm = ({
         control={control}
         name="name"
         render={({ field }) => (
-          <FormField label="Namn" error={errors.name?.message}>
-            <Input {...field} placeholder="Namn ..." disabled />
+          <FormField label="Namn" error={errors.name?.message} required>
+            <Input {...field} placeholder="Namn ..." />
           </FormField>
         )}
       />
@@ -114,8 +116,32 @@ const CategoryForm = ({
         control={control}
         name="description"
         render={({ field }) => (
-          <FormField label="Beskrivning" error={errors.description?.message}>
+          <FormField
+            label="Beskrivning"
+            error={errors.description?.message}
+            required
+          >
             <Input.TextArea {...field} rows={4} placeholder="Beskrivning ..." />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="parentId"
+        render={({ field: { value, onChange } }) => (
+          <FormField label="Huvudkategori" error={errors.parentId?.message}>
+            <SelectRootCategory value={value} onChange={onChange} />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="brandIds"
+        render={({ field: { value, onChange } }) => (
+          <FormField label="Varumärken" error={errors.parentId?.message}>
+            <SelectBrands value={value} onChange={onChange} />
           </FormField>
         )}
       />

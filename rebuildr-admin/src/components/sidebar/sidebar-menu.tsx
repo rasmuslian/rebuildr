@@ -77,7 +77,10 @@ const SidebarMenu = () => {
     ]),
 
     { type: "divider" },
-    getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),
+    getItem("Kategorier", "/category", <InboxOutlined />, [
+      getItem("Skapa kategori", routes.CREATE_CATEGORY),
+      getItem("Visa alla kategorier", routes.LIST_CATEGORY),
+    ]),
 
     { type: "divider" },
     getItem("Varumärken", "/brand", <TagOutlined />, [
