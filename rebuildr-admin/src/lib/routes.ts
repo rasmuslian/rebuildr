@@ -15,10 +15,15 @@ export enum routes {
   CREATE_PROJECT = "/admin/project/create",
   EDIT_PROJECT = "/admin/project/edit",
 
+  LIST_BRAND = "/admin/brand",
+  CREATE_BRAND = "/admin/brand/create",
+  EDIT_BRAND = "/admin/brand/edit",
+
   MEDIA_BANK = "/admin/media",
 
   LIST_CATEGORY = "/admin/category",
   EDIT_CATEGORY = "/admin/category/edit",
+  CREATE_CATEGORY = "/admin/category/create",
 
   LIST_USER = "/admin/user",
 

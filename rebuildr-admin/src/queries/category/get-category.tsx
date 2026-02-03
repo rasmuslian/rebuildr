@@ -11,10 +11,15 @@ const query = `
       inSeason
       inSelection
       measurements
+      parentId
       image {
         id
         name
         url
+      }
+      brands {
+        id
+        name
       }
     }
   }

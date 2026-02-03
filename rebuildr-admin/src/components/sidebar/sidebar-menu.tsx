@@ -19,6 +19,7 @@ import {
   ProjectOutlined,
   LoadingOutlined,
   UserOutlined,
+  TagOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -62,31 +63,48 @@ const SidebarMenu = () => {
   const items: MenuItem[] = [
     { type: "divider" },
     getItem("Översikt", "/admin", <HomeOutlined />),
+
     { type: "divider" },
     getItem("Produkter", "/product", <ProductOutlined />, [
       getItem("Skapa product", routes.CREATE_PRODUCT),
       getItem("Visa alla produkter", routes.LIST_PRODUCT),
     ]),
+
     { type: "divider" },
     getItem("Projekt", "/project", <ProjectOutlined />, [
       getItem("Skapa projekt", routes.CREATE_PROJECT),
       getItem("Visa alla projekt", routes.LIST_PROJECT),
     ]),
+
     { type: "divider" },
-    getItem("Kategorier", routes.LIST_CATEGORY, <InboxOutlined />),
+    getItem("Kategorier", "/category", <InboxOutlined />, [
+      getItem("Skapa kategori", routes.CREATE_CATEGORY),
+      getItem("Visa alla kategorier", routes.LIST_CATEGORY),
+    ]),
+
+    { type: "divider" },
+    getItem("Varumärken", "/brand", <TagOutlined />, [
+      getItem("Skapa varumärke", routes.CREATE_BRAND),
+      getItem("Visa alla varumärken", routes.LIST_BRAND),
+    ]),
+
     { type: "divider" },
     getItem("Användare", routes.LIST_USER, <UserOutlined />),
+
     { type: "divider" },
     getItem("Bildbank", routes.MEDIA_BANK, <FileImageOutlined />),
+
     { type: "divider" },
     getItem("Artiklar", "/article", <FolderOpenOutlined />, [
       getItem("Skapa artikel", routes.CREATE_ARTICLE),
       getItem("Visa alla artiklar", routes.LIST_ARTICLE),
     ]),
+
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [
       getItem("Sidfot", routes.FOOTER_SETTING),
     ]),
+
     { type: "divider" },
     {
       label: "Logga ut",

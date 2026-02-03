@@ -8,11 +8,11 @@ import { queryKeys } from "@/lib/query-keys";
 import { getBrands } from "@/queries/brand/get-brands";
 
 type Props = {
-  value?: string;
-  onChange: (brandId: string) => void;
+  value?: string[];
+  onChange: (brandIds: string[]) => void;
 };
 
-const SelectBrand = ({ value, onChange }: Props) => {
+const SelectBrands = ({ value = [], onChange }: Props) => {
   const { data: brands = [], isLoading } = useQuery({
     queryKey: [queryKeys.ALL_BRAND],
     queryFn: () => getBrands(),
@@ -31,16 +31,17 @@ const SelectBrand = ({ value, onChange }: Props) => {
 
   return (
     <Select
+      mode="multiple"
       showSearch
       loading={isLoading}
       optionFilterProp="label"
-      placeholder="Välj varumärke ..."
-      value={isLoading ? undefined : value}
+      placeholder="Välj varumärken ..."
+      value={isLoading ? [] : value}
       options={options}
       onChange={onChange}
       notFoundContent={
         <EmptyContainer
-          description={"Kunde inte hitta"}
+          description="Kunde inte hitta"
           size="small"
           spinner={isLoading}
         />
@@ -49,4 +50,4 @@ const SelectBrand = ({ value, onChange }: Props) => {
   );
 };
 
-export default SelectBrand;
+export default SelectBrands;

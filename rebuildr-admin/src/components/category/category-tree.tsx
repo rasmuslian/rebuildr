@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Category, CmsUpdateCategoriesInput } from "gql/graphql";
-import { App, Tree } from "antd";
+import { App, Tree, Divider } from "antd";
 import { routes } from "@/lib/routes";
 import { useRouter } from "next/navigation";
 import { usePersistedState } from "@/hooks/use-persisted-state";
@@ -165,22 +165,26 @@ const CategoryTree = ({ categories }: Props) => {
   };
 
   return (
-    <Tree
-      draggable
-      onDragStart={() => {
-        setIsExpandLocked(true);
-      }}
-      onDrop={onDrop}
-      expandedKeys={state.expandedKeys}
-      onExpand={(expandedKeys) => {
-        if (isExpandLocked) return;
-        setState({ expandedKeys });
-      }}
-      showLine
-      onSelect={onSelect}
-      treeData={convertCategoryToTreeData(categories)}
-      style={{ padding: 16 }}
-    />
+    <div className="flex flex-col gap-5">
+      <Divider orientation="left">Alla kategorier</Divider>
+
+      <Tree
+        draggable
+        onDragStart={() => {
+          setIsExpandLocked(true);
+        }}
+        onDrop={onDrop}
+        expandedKeys={state.expandedKeys}
+        onExpand={(expandedKeys) => {
+          if (isExpandLocked) return;
+          setState({ expandedKeys });
+        }}
+        showLine
+        onSelect={onSelect}
+        treeData={convertCategoryToTreeData(categories)}
+        style={{ padding: 16 }}
+      />
+    </div>
   );
 };
 

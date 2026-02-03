@@ -5,28 +5,28 @@ import EmptyContainer from "@/components/empty-container";
 import { Select, SelectProps } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { getBrands } from "@/queries/brand/get-brands";
+import { getRootCategories } from "@/queries/category/get-root-categories";
+import { OrderCategoriesEnum } from "gql/graphql";
 
 type Props = {
   value?: string;
-  onChange: (brandId: string) => void;
+  onChange: (categoryId?: string) => void;
 };
 
-const SelectBrand = ({ value, onChange }: Props) => {
-  const { data: brands = [], isLoading } = useQuery({
-    queryKey: [queryKeys.ALL_BRAND],
-    queryFn: () => getBrands(),
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 10,
+const SelectRootCategory = ({ value, onChange }: Props) => {
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: [queryKeys.LIST_ROOT_CATEGORIES],
+    queryFn: () =>
+      getRootCategories({ orderBy: OrderCategoriesEnum.OrderIndexAsc }),
   });
 
   const options: SelectProps["options"] = useMemo(
     () =>
-      brands.map((brand) => ({
-        label: brand.name,
-        value: brand.id,
+      categories.map((category) => ({
+        label: category.name,
+        value: category.id,
       })),
-    [brands],
+    [categories],
   );
 
   return (
@@ -34,7 +34,7 @@ const SelectBrand = ({ value, onChange }: Props) => {
       showSearch
       loading={isLoading}
       optionFilterProp="label"
-      placeholder="Välj varumärke ..."
+      placeholder="Välj huvudkategori ..."
       value={isLoading ? undefined : value}
       options={options}
       onChange={onChange}
@@ -49,4 +49,4 @@ const SelectBrand = ({ value, onChange }: Props) => {
   );
 };
 
-export default SelectBrand;
+export default SelectRootCategory;

@@ -261,7 +261,10 @@ type File {
 type Brand {
   id: ID!
   name: String!
+  slug: String!
   type: BrandTypeEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 enum BrandTypeEnum {
@@ -569,6 +572,11 @@ type CmsListUsersResponse {
   total: Int!
 }
 
+type CmsCreateCategoryResponse {
+  category: Category!
+  imagePutUrl: String
+}
+
 type CmsUpdateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -587,6 +595,11 @@ type PurchaseProductResponse {
   product: Product!
   purchase: Purchase!
   reference: String
+}
+
+type ListBrandsResponse {
+  brands: [Brand!]!
+  total: Int!
 }
 
 type CmsListProjectsResponse {
@@ -678,6 +691,7 @@ type Query {
   myPurchases(input: MyPurchasesInput!): [Purchase!]!
   brand(id: String!): Brand!
   brands: [Brand!]!
+  listBrands(input: ListBrandsInput!): ListBrandsResponse!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
   cmsListProjects(input: CmsListProjectsInput!): CmsListProjectsResponse!
@@ -845,6 +859,12 @@ input MyPurchasesInput {
   myRole: String
 }
 
+input ListBrandsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+}
+
 input GetProjectInput {
   id: String!
 }
@@ -922,6 +942,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
+  cmsCreateCategory(input: CmsCreateCategoryInput!): CmsCreateCategoryResponse!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
@@ -934,6 +955,8 @@ type Mutation {
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
+  cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
+  cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
   deleteProject(input: DeleteProjectInput!): Boolean!
   cmsDeleteProject(projectId: String!): Boolean!
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
@@ -1189,13 +1212,27 @@ input RemoveProductInput {
   id: String!
 }
 
-input CmsUpdateCategoryInput {
-  id: String!
+input CmsCreateCategoryInput {
   inSelection: Boolean!
   inSeason: Boolean!
+  name: String!
   description: String!
   measurements: [MeasurementTypeEnum!]!
   image: FileInputType
+  parentId: String
+  brandIds: [String!]
+}
+
+input CmsUpdateCategoryInput {
+  inSelection: Boolean!
+  inSeason: Boolean!
+  name: String!
+  description: String!
+  measurements: [MeasurementTypeEnum!]!
+  image: FileInputType
+  parentId: String
+  brandIds: [String!]
+  id: String!
 }
 
 input CmsUpdateCategoriesInput {
@@ -1255,6 +1292,15 @@ input CancelPurchaseInput {
 
 input AbortPurchaseInput {
   purchaseId: String!
+}
+
+input CmsCreateBrandInput {
+  name: String!
+}
+
+input CmsUpdateBrandInput {
+  id: String!
+  name: String!
 }
 
 input DeleteProjectInput {
