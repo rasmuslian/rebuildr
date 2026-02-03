@@ -159,7 +159,7 @@ export const ProjectDesktop = () => {
                 <MapThumbnail
                   coords={location ? [location.lat, location.lng] : undefined}
                   style={{ height: 400 }}
-                  markerType={MapPinProjectType(me?.type)}
+                  markerType={MapPinProjectType(me)}
                 />
               </Pressable>
             </View>
@@ -243,7 +243,7 @@ export const ProjectDesktop = () => {
           <PickupPositionPopupContent
             address={location.address}
             location={location}
-            markerType={MapPinProjectType(me?.type)}
+            markerType={MapPinProjectType(me)}
           />
         </Popup>
       )}

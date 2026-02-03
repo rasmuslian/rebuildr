@@ -131,7 +131,7 @@ export const ProjectMobile = () => {
           <Pressable onPress={() => setShowLocation(true)}>
             <MapThumbnail
               coords={location ? [location.lat, location.lng] : undefined}
-              markerType={MapPinProjectType(me?.type)}
+              markerType={MapPinProjectType(me)}
               cta={
                 <Button
                   label="Visa på karta"
@@ -260,7 +260,7 @@ export const ProjectMobile = () => {
         <View>
           <MapThumbnail
             coords={location ? [location.lat, location.lng] : undefined}
-            markerType={MapPinProjectType(me?.type)}
+            markerType={MapPinProjectType(me)}
             style={{ height: 700 }}
           />
         </View>

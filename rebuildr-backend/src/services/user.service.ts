@@ -98,10 +98,13 @@ export class UserService {
     if (input.type) {
       query.andWhere(`u.type = '${input.type}'`);
     }
+
+    query.orderBy('u."isFeatured"', 'DESC');
+
     if (input.orderBy) {
       switch (input.orderBy) {
         case OrderUsersEnum.ALPHABETICAL:
-          query.orderBy('u.username', 'DESC');
+          query.addOrderBy('u.username', 'ASC');
       }
     }
 

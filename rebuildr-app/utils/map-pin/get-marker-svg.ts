@@ -5,6 +5,8 @@ import ProjectDark from "@assets/svgs/project-marker-dark.svg";
 import ProjectLight from "@assets/svgs/project-marker-light.svg";
 import HubDark from "@assets/svgs/hub-marker-dark.svg";
 import HubLight from "@assets/svgs/hub-marker-light.svg";
+import FeaturedDark from "@assets/svgs/featured-marker-dark.svg";
+import FeaturedLight from "@assets/svgs/featured-marker-light.svg";
 
 export const getMarkerSvg = (type: MapPinTypeEnum, selected: boolean) => {
   switch (type) {
@@ -14,6 +16,8 @@ export const getMarkerSvg = (type: MapPinTypeEnum, selected: boolean) => {
       return selected ? ProjectDark : ProjectLight;
     case MapPinTypeEnum.Hub:
       return selected ? HubLight : HubDark;
+    case MapPinTypeEnum.Featured:
+      return selected ? FeaturedDark : FeaturedLight;
   }
 
   return "";

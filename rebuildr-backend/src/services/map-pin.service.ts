@@ -330,7 +330,8 @@ export class MapPinService {
         product.id AS product_id,
         product."projectId" AS project_id,
         product.price AS price,
-        seller.type AS seller_type`,
+        seller.type AS seller_type,
+        seller."isFeatured" AS seller_is_featured`,
       )
       .where(whereClause, whereParams)
       .innerJoin('mapPin.product', 'product')
@@ -369,6 +370,7 @@ export class MapPinService {
       productIds: string[];
       projectId: string | null;
       sellerType: UserType;
+      sellerIsFeatured: boolean;
       prices: number[];
     }[] = await this.mapPinRepository.query(
       `
@@ -380,16 +382,18 @@ export class MapPinService {
            ) AS grid_id,
           project_id as "projectId",
           seller_type as "sellerType",
+          seller_is_featured as "sellerIsFeatured",
           ST_Collect(location) AS geom,
           ARRAY_AGG(product_id) AS "productIds",
           ARRAY_AGG(price ORDER BY price) AS prices
         FROM (${innerSql}) AS filtered
-        GROUP BY grid_id, "projectId", "sellerType"),
+        GROUP BY grid_id, "projectId", "sellerType", "sellerIsFeatured"),
       jittered AS (
         SELECT
           grid_id,
           "projectId",
           "sellerType",
+          "sellerIsFeatured",
           "productIds",
           prices,
           ST_Translate(
@@ -402,6 +406,7 @@ export class MapPinService {
         grid_id,
         "projectId",
         "sellerType",
+        "sellerIsFeatured",
         ST_X(location) AS latitude,
         ST_Y(location) AS longitude,
         "productIds",
@@ -418,22 +423,33 @@ export class MapPinService {
         },
         productIds: r.productIds,
         projectIds: r.projectId ? [r.projectId] : [],
-        type: this.deriveMapPinType(!!r.projectId, r.sellerType),
+        type: this.deriveMapPinType(
+          !!r.projectId,
+          r.sellerType,
+          r.sellerIsFeatured,
+        ),
         prices: r.prices.map((p: number) => p / 100),
       })),
       total: result.length,
     };
   }
 
-  private deriveMapPinType = (isProject: boolean, sellerType: UserType) => {
+  private deriveMapPinType = (
+    isProject: boolean,
+    sellerType: UserType,
+    sellerIsFeatured: boolean,
+  ) => {
     if (!isProject) {
       return MapPinTypeEnum.PRODUCT;
     }
     if (sellerType === UserType.PERSONAL) {
       return MapPinTypeEnum.PROJECT;
-    } else {
-      return MapPinTypeEnum.HUB;
     }
+    //Is Business
+    if (sellerIsFeatured) {
+      return MapPinTypeEnum.FEATURED;
+    }
+    return MapPinTypeEnum.HUB;
   };
 
   private cellSizeForZoom(zoom?: number): number {

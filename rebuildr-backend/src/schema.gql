@@ -179,6 +179,7 @@ type User {
   organizationNumber: String
   organizationApprovedAt: DateTime
   websiteUrl: String
+  isFeatured: Boolean!
   notifyOnMessage: Boolean!
   notifyOnPurchaseUpdate: Boolean!
   sellerAccountIsCreated: Boolean!
@@ -633,6 +634,7 @@ enum MapPinTypeEnum {
   PROJECT
   HUB
   USER
+  FEATURED
 }
 
 type ProductMapPinResponse {

@@ -15,6 +15,7 @@ export enum MapPinTypeEnum {
   PROJECT = 'PROJECT',
   HUB = 'HUB',
   USER = 'USER',
+  FEATURED = 'FEATURED',
 }
 
 registerEnumType(MapPinTypeEnum, { name: 'MapPinTypeEnum' });

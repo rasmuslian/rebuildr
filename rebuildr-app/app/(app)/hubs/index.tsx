@@ -7,6 +7,7 @@ import PlaceHolder from "@assets/images/placeholder-profile-business.png";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 import HubIcon from "@assets/svgs/hub-icon.svg";
+import FeaturedHubIcon from "@assets/svgs/hub-featured-icon.svg";
 import { Icon } from "@icons/icon";
 import { gql, useQuery } from "@apollo/client";
 import {
@@ -31,6 +32,7 @@ const HUBS = gql`
         username
         description
         websiteUrl
+        isFeatured
         profilePicture {
           id
           url
@@ -75,7 +77,11 @@ export default function Hubs() {
         kopplade till produkter för återbruk
       </Body>
       {data?.users.users.map((u, i) => (
-        <AccordionSection title={u.username ?? ""} key={i}>
+        <AccordionSection
+          title={u.username ?? ""}
+          key={i}
+          initialOpen={i === 0}
+        >
           <Image
             source={u.profilePicture?.url ?? PlaceHolder}
             style={{
@@ -118,7 +124,10 @@ export default function Hubs() {
               <View
                 style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
               >
-                <Image source={HubIcon.uri} style={{ height: 32, width: 32 }} />
+                <Image
+                  source={u.isFeatured ? FeaturedHubIcon.uri : HubIcon.uri}
+                  style={{ height: 32, width: 32 }}
+                />
                 <Label size="large">Visa {p.title} på kartan</Label>
               </View>
             </Pressable>

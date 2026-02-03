@@ -171,6 +171,10 @@ export class User {
   websiteUrl?: string;
 
   @Field()
+  @Column({ default: false })
+  isFeatured: boolean;
+
+  @Field()
   @Column({ type: Boolean, default: true })
   notifyOnMessage: boolean;
   @Column({ type: Date, nullable: true })

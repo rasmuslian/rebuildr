@@ -32,6 +32,7 @@ const PREVIEW_PROJECT_QUERY = gql`
     me {
       id
       type
+      isFeatured
     }
   }
 `;
@@ -83,7 +84,7 @@ export const PreviewProject = ({ id, onEdit }: Props) => {
               ? [project.approximatePlace.lat, project.approximatePlace.lng]
               : undefined
           }
-          markerType={MapPinProjectType(data.me.type)}
+          markerType={MapPinProjectType(data.me)}
           style={{ height: 185 }}
         />
         <Body size="small" color="secondary">
