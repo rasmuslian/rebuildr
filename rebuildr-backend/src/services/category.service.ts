@@ -40,6 +40,7 @@ export class CategoryService {
         inSeason: input.seasonalCategories,
         inSelection: input.trending,
       },
+      order: { orderIndex: 'ASC' },
     });
   }
 
@@ -48,7 +49,7 @@ export class CategoryService {
       where: {
         parentId: IsNull(),
       },
-      order: { orderIndex: input?.orderBy ?? 'DESC' },
+      order: { orderIndex: input?.orderBy ?? 'ASC' },
     });
   }
 
