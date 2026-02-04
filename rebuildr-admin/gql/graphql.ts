@@ -157,6 +157,19 @@ export type CmsCreateFooterSectionInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsCreatePartnerInput = {
+  description: Scalars['String']['input'];
+  logo: FileInputType;
+  name: Scalars['String']['input'];
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsCreatePartnerResponse = {
+  __typename?: 'CmsCreatePartnerResponse';
+  imagePutUrl?: Maybe<Scalars['String']['output']>;
+  partner: Partner;
+};
+
 export type CmsCreateProductInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   brandId: Scalars['String']['input'];
@@ -731,6 +744,7 @@ export type Mutation = {
   cmsCreateBrand: Brand;
   cmsCreateCategory: CmsCreateCategoryResponse;
   cmsCreateFooterSection: FooterSection;
+  cmsCreatePartner: CmsCreatePartnerResponse;
   cmsCreateProduct: CmsCreateProductResponse;
   cmsCreateProject: Project;
   cmsDeleteArticle: Scalars['Boolean']['output'];
@@ -827,6 +841,11 @@ export type MutationCmsCreateCategoryArgs = {
 
 export type MutationCmsCreateFooterSectionArgs = {
   input: CmsCreateFooterSectionInput;
+};
+
+
+export type MutationCmsCreatePartnerArgs = {
+  input: CmsCreatePartnerInput;
 };
 
 
@@ -1139,6 +1158,16 @@ export type PaginatedProductsResponse = {
   __typename?: 'PaginatedProductsResponse';
   products: Array<Product>;
   total: Scalars['Int']['output'];
+};
+
+export type Partner = {
+  __typename?: 'Partner';
+  createdAt: Scalars['DateTime']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  logo: File;
+  name: Scalars['String']['output'];
+  websiteUrl: Scalars['String']['output'];
 };
 
 export enum PaymentMethod {
@@ -1461,6 +1490,7 @@ export type Query = {
   myPurchase?: Maybe<Purchase>;
   myPurchases: Array<Purchase>;
   nearbyServicePoints: Array<ServicePointResponse>;
+  partners: Array<Partner>;
   popularCategories: Array<Category>;
   product: Product;
   productMapPinsInBoundingBox: ProductMapPinResponse;

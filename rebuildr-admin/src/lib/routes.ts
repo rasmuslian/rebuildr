@@ -19,6 +19,9 @@ export enum routes {
   CREATE_BRAND = "/admin/brand/create",
   EDIT_BRAND = "/admin/brand/edit",
 
+  LIST_PARTNER = "/admin/partner",
+  CREATE_PARTNER = "/admin/partner/create",
+
   MEDIA_BANK = "/admin/media",
 
   LIST_CATEGORY = "/admin/category",

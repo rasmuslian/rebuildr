@@ -10,6 +10,7 @@ export enum queryKeys {
   LIST_ROOT_CATEGORIES = "list-root-categories",
   ALL_BRAND = "all-brand",
   LIST_BRAND = "list-brand",
+  LIST_PARTNER = "list-partner",
   LIST_SHIPPING_PRICE = "list-shipping-price",
   SEARCH_ADDRESS = "search-address",
   LIST_USER_PROJECTS = "list-user-projects",
