@@ -993,6 +993,8 @@ type Mutation {
   syncApproximateLocations: Boolean!
   deleteConnectedAccount(id: String!): Boolean!
   cmsCreatePartner(input: CmsCreatePartnerInput!): CmsCreatePartnerResponse!
+  cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
+  cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
 }
 
 input RegisterUserInput {
@@ -1425,4 +1427,16 @@ input CmsCreatePartnerInput {
   description: String!
   logo: FileInputType!
   websiteUrl: String
+}
+
+input CmsUpdatePartnerInput {
+  id: String!
+  name: String
+  description: String
+  logo: FileInputType
+  websiteUrl: String
+}
+
+input CmsDeletePartnerInput {
+  id: String!
 }

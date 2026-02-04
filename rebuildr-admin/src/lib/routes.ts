@@ -21,6 +21,7 @@ export enum routes {
 
   LIST_PARTNER = "/admin/partner",
   CREATE_PARTNER = "/admin/partner/create",
+  EDIT_PARTNER = "/admin/partner/edit",
 
   MEDIA_BANK = "/admin/media",
 

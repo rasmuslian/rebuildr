@@ -36,6 +36,29 @@ export class CmsCreatePartnerInput {
   websiteUrl?: string;
 }
 
+@InputType()
+export class CmsUpdatePartnerInput {
+  @Field()
+  id: string;
+
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => FileInputType, { nullable: true })
+  logo?: FileInputType;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
+}
+@InputType()
+export class CmsDeletePartnerInput {
+  @Field()
+  id: string;
+}
+
 @ObjectType()
 export class CmsCreatePartnerResponse {
   @Field(() => Partner)
@@ -59,6 +82,20 @@ export class PartnerResolver {
   @Roles([UserRoleEnum.ADMIN])
   async cmsCreatePartner(@Args('input') input: CmsCreatePartnerInput) {
     return this.partnerService.createPartner(input);
+  }
+
+  @Mutation(() => CmsCreatePartnerResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsUpdatePartner(@Args('input') input: CmsUpdatePartnerInput) {
+    return this.partnerService.updatePartner(input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeletePartner(@Args('input') input: CmsDeletePartnerInput) {
+    return this.partnerService.deletePartner(input);
   }
 
   @ResolveField(() => File)

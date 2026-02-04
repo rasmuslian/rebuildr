@@ -214,6 +214,10 @@ export type CmsCreateProjectInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsDeletePartnerInput = {
+  id: Scalars['String']['input'];
+};
+
 export type CmsListImagesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -308,6 +312,14 @@ export type CmsUpdateFooterSectionInput = {
   id: Scalars['String']['input'];
   orderIndex: Scalars['Float']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsUpdatePartnerInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  logo?: InputMaybe<FileInputType>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CmsUpdateProductInput = {
@@ -750,6 +762,7 @@ export type Mutation = {
   cmsDeleteArticle: Scalars['Boolean']['output'];
   cmsDeleteFile: File;
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
+  cmsDeletePartner: Scalars['Boolean']['output'];
   cmsDeleteProduct: Product;
   cmsDeleteProject: Scalars['Boolean']['output'];
   cmsHideProduct: Product;
@@ -761,6 +774,7 @@ export type Mutation = {
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
+  cmsUpdatePartner: CmsCreatePartnerResponse;
   cmsUpdateProduct: CmsUpdateProductResponse;
   cmsUpdateProject: Project;
   cmsUpdateUser: User;
@@ -874,6 +888,11 @@ export type MutationCmsDeleteFooterSectionArgs = {
 };
 
 
+export type MutationCmsDeletePartnerArgs = {
+  input: CmsDeletePartnerInput;
+};
+
+
 export type MutationCmsDeleteProductArgs = {
   productId: Scalars['String']['input'];
 };
@@ -927,6 +946,11 @@ export type MutationCmsUpdateCategoryArgs = {
 
 export type MutationCmsUpdateFooterSectionArgs = {
   input: CmsUpdateFooterSectionInput;
+};
+
+
+export type MutationCmsUpdatePartnerArgs = {
+  input: CmsUpdatePartnerInput;
 };
 
 
@@ -1167,7 +1191,7 @@ export type Partner = {
   id: Scalars['ID']['output'];
   logo: File;
   name: Scalars['String']['output'];
-  websiteUrl: Scalars['String']['output'];
+  websiteUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export enum PaymentMethod {
