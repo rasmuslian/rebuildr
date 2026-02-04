@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException, ForbiddenException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { File, FileSourceEnum } from '../entities/file.entity';
-import { FileInputType } from 'src/resolvers/product.resolver';
+import { FileInputType } from 'src/resolvers/file.resolver';
 import {
   CmsListImagesInput,
   CmsListImagesResponse,

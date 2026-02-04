@@ -23,7 +23,6 @@ import {
   CmsUpdateProductInput,
   CmsUpdateProductResponse,
   CreateProductResponse,
-  FileInputType,
   GetTransportationOptionsInput,
   OrderProductsEnum,
   PaginatedProductsResponse,
@@ -62,6 +61,7 @@ import {
 } from 'src/resolvers/user.resolver';
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
+import { FileInputType } from 'src/resolvers/file.resolver';
 
 @Injectable()
 export class ProductService {

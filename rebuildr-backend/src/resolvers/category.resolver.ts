@@ -22,7 +22,7 @@ import { File } from 'src/entities/file.entity';
 import { CategoryService } from 'src/services/category.service';
 import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
-import { FileInputType } from './product.resolver';
+import { FileInputType } from './file.resolver';
 import { MeasurementTypeEnum } from 'src/constants/enums';
 
 export enum OrderCategoriesEnum {

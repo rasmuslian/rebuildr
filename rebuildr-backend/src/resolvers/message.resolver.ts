@@ -22,7 +22,7 @@ import { Message } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
-import { FileInputType } from './product.resolver';
+import { FileInputType } from './file.resolver';
 import { IMessageLoaders } from 'src/dataloaders/message.loader';
 import { File } from 'src/entities/file.entity';
 

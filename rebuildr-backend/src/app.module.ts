@@ -109,6 +109,10 @@ import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
 import { S3Service } from './services/s3.service';
 import { MailResolver } from './resolvers/mail.resolver';
+import { Partner } from './entities/partner.entity';
+import { PartnerLoader } from './dataloaders/partner.loader';
+import { PartnerService } from './services/partner.service';
+import { PartnerResolver } from './resolvers/partner.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -162,6 +166,7 @@ export interface RequestType {
       FooterSection,
       ArticleFooterSection,
       MapPin,
+      Partner,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -176,6 +181,7 @@ export interface RequestType {
         PurchaseLoader,
         MessageLoader,
         MapPinLoader,
+        PartnerLoader,
         ConfigService,
       ],
       useFactory: (
@@ -188,6 +194,7 @@ export interface RequestType {
         purchaseLoaderService: PurchaseLoader,
         messageLoaderService: MessageLoader,
         mapPinLoaderService: MapPinLoader,
+        partnerLoaderService: PartnerLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -205,6 +212,7 @@ export interface RequestType {
             purchaseLoaders: purchaseLoaderService.createLoaders(),
             messageLoaders: messageLoaderService.createLoaders(),
             mapPinLoaders: mapPinLoaderService.createLoaders(),
+            partnerLoaders: partnerLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -290,6 +298,8 @@ export interface RequestType {
     ProjectSubscriber,
     StripeResolver,
     S3Service,
+    PartnerService,
+    PartnerResolver,
   ],
 })
 export class AppModule {}

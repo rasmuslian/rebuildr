@@ -55,6 +55,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { minimumProductPrice } from 'src/constants/pricing';
+import { FileInputType } from './file.resolver';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -66,14 +67,6 @@ export enum OrderProductsEnum {
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
-@InputType()
-export class FileInputType {
-  @Field(() => String)
-  mimeType: string;
-
-  @Field(() => String, { nullable: true })
-  name?: string;
-}
 @InputType()
 export class CreateProductInput {
   @Field()

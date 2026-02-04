@@ -12,13 +12,20 @@ import {
 } from '@nestjs/graphql';
 import { FileService } from 'src/services/file.service';
 import { File } from 'src/entities/file.entity';
-import { FileInputType } from './product.resolver';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { Roles } from 'src/decorators/roles.decorator';
 
+@InputType()
+export class FileInputType {
+  @Field(() => String)
+  mimeType: string;
+
+  @Field(() => String, { nullable: true })
+  name?: string;
+}
 @InputType()
 export class CmsListImagesInput {
   @Field(() => Int, { nullable: true })
