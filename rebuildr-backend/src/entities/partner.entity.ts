@@ -30,7 +30,7 @@ export class Partner {
   @Column()
   description: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   websiteUrl?: string;
 

@@ -429,7 +429,7 @@ type Partner {
   createdAt: DateTime!
   name: String!
   description: String!
-  websiteUrl: String!
+  websiteUrl: String
   logo: File!
 }
 
