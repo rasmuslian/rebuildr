@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
+import { User } from './user.entity';
 
 enum BrandTypeEnum {
   OTHER = 'OTHER',
@@ -47,4 +49,9 @@ export class Brand extends BaseEntity {
     onDelete: 'CASCADE',
   })
   categories: Category[];
+
+  @Column({ nullable: true })
+  createdById?: string;
+  @ManyToOne(() => User, { nullable: true })
+  createdBy?: User;
 }

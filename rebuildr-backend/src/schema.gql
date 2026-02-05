@@ -976,6 +976,7 @@ type Mutation {
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
+  createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
   cmsDeleteBrand(input: CmsBrandIdInput!): Boolean!
@@ -1318,6 +1319,11 @@ input CancelPurchaseInput {
 
 input AbortPurchaseInput {
   purchaseId: String!
+}
+
+input CreateBrandByUserInput {
+  name: String!
+  categoryId: String
 }
 
 input CmsCreateBrandInput {

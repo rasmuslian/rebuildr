@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from 'src/entities/brand.entity';
 import { BadFieldsInputException, BadUserInputException } from 'src/exceptions';
@@ -8,17 +8,21 @@ import {
   ListBrandsResponse,
   CmsCreateBrandInput,
   CmsUpdateBrandInput,
-  CreateBrandInput,
+  CreateBrandByUserInput,
 } from 'src/resolvers/brand.resolver';
 import slugify from 'slugify';
 import { NotFoundException } from 'src/exceptions';
 import { Product } from 'src/entities/product.entity';
+import { Category } from 'src/entities/category.entity';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class BrandService {
   constructor(
     @InjectRepository(Brand) private brandRepository: Repository<Brand>,
     @InjectRepository(Product) private productRepository: Repository<Product>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async getBrand(id: string) {
@@ -52,6 +56,66 @@ export class BrandService {
 
     return { brands, total };
   }
+
+  async createBrandByUser(
+    input: CreateBrandByUserInput,
+    currentUserId: string,
+  ): Promise<Brand> {
+    const slug = slugify(input.name, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+
+    let brand = new Brand();
+    const brandWithSameSlug = await this.brandRepository.findOne({
+      where: { slug },
+    });
+    if (brandWithSameSlug) {
+      this.logger.error('Brand with same slug already exists', {
+        newBrandName: input.name,
+        slug,
+        brandWithSameSlug,
+        currentUserId,
+      });
+      throw BadFieldsInputException([
+        {
+          message: 'Det finns redan ett varumärke med det här namnet.',
+          name: 'brand',
+          type: 'BAD_VALUE',
+        },
+      ]);
+    }
+
+    Object.assign<Brand, Partial<Brand>>(brand, {
+      name: input.name,
+      slug: slug,
+      createdById: currentUserId,
+    });
+    brand = await this.brandRepository.save(brand);
+
+    if (input.categoryId) {
+      try {
+        await this.brandRepository
+          .createQueryBuilder()
+          .relation(Category, 'c')
+          .of(brand)
+          .add(input.categoryId);
+      } catch (e) {
+        this.logger.error(
+          'createBrandByUser: Could not connect brand and category',
+          {
+            brand,
+            categoryId: input.categoryId,
+            currentUserId,
+            e,
+          },
+        );
+      }
+    }
+    return brand;
+  }
+
   async canDeleteBrand(id: string) {
     const brands = await this.brandRepository
       .createQueryBuilder('b')

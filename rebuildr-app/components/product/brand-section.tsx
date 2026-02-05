@@ -2,8 +2,10 @@ import {
   BrandSectionQuery,
   BrandSectionQueryVariables,
   BrandTypeEnum,
+  CreateBrandByUserMutation,
+  CreateBrandByUserMutationVariables,
 } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { SearchInput } from "@components/forms/searchInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -25,6 +27,16 @@ const BRAND_SECTION_QUERY = gql`
         id
         name
       }
+    }
+  }
+`;
+
+const CREATE_BRAND_BY_USER = gql`
+  mutation CreateBrandByUser($input: CreateBrandByUserInput!) {
+    createBrandByUser(input: $input) {
+      id
+      name
+      type
     }
   }
 `;
@@ -51,6 +63,14 @@ export const BrandSection = ({
       variables: { input: { id: categoryId } },
     },
   );
+
+  const [createBrandByUser, { loading: isCreatingBrand, error: createError }] =
+    useMutation<CreateBrandByUserMutation, CreateBrandByUserMutationVariables>(
+      CREATE_BRAND_BY_USER,
+      {
+        refetchQueries: ["BrandSection"],
+      },
+    );
 
   const otherBrands = data?.brands.filter(
     (brand) => brand.type === BrandTypeEnum.Other,
@@ -82,6 +102,24 @@ export const BrandSection = ({
         />
       </View>
     );
+  };
+
+  const handleCreateBrand = async () => {
+    if (!searchString.trim()) return;
+    const response = await createBrandByUser({
+      variables: {
+        input: {
+          name: searchString.trim(),
+          categoryId,
+        },
+      },
+    });
+    const createdBrand = response.data?.createBrandByUser;
+
+    if (createdBrand) {
+      setSearchString("");
+      onSelect(createdBrand.id);
+    }
   };
 
   if (brandId) {
@@ -153,32 +191,31 @@ export const BrandSection = ({
                 </View>
 
                 <View style={{ gap: 2, marginBottom: 24 }}>
-                  <Headline size="small">
-                    Saknar varumärket? Välj "Okänt"
-                  </Headline>
+                  <Headline size="small">Lägg till varumärke:</Headline>
+                  <Display size="small">{searchString}</Display>
                   <Body size="medium" color="secondary">
-                    Om varumärket du söker inte finns i listan så väljer du
-                    "Okänt". Vi jobbar löpande med att uppdatera listan med nya
-                    varumärken.
+                    Om varumärket saknas i vår lista kan du lägga till det
+                    manuellt. Se till att stava rätt så att andra lätt kan hitta
+                    det.
                   </Body>
                 </View>
                 <View style={{ gap: 8 }}>
                   <Button
-                    label={`Ja, använd "Okänt"`}
-                    onPress={() => {
-                      setSearchString("");
-                      onSelect(
-                        data?.brands.find(
-                          (brand) => brand.type === BrandTypeEnum.Other,
-                        )?.id ?? null,
-                      );
-                    }}
+                    label="Ja, lägg till varumärke"
+                    onPress={handleCreateBrand}
+                    loading={isCreatingBrand}
                   />
                   <Button
-                    label="Visa alla varumärken igen"
+                    label="Avbryt och gå tillbaka"
                     type="tonal"
                     onPress={() => setSearchString("")}
+                    disabled={isCreatingBrand}
                   />
+                  {createError && (
+                    <Body size="small" color="error">
+                      Kunde inte lägga till varumärket.
+                    </Body>
+                  )}
                 </View>
               </View>
             )}

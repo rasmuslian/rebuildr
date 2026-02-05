@@ -7,6 +7,8 @@ import {
   Int,
   Field,
   Mutation,
+  ResolveField,
+  Parent,
 } from '@nestjs/graphql';
 import { Brand } from 'src/entities/brand.entity';
 import { BrandService } from 'src/services/brand.service';
@@ -40,10 +42,19 @@ export class ListBrandsResponse {
 }
 
 @InputType()
-export class CmsCreateBrandInput {
+export class CreateBrandInput {
   @Field(() => String)
   name: string;
 }
+
+@InputType()
+export class CreateBrandByUserInput extends CreateBrandInput {
+  @Field({ nullable: true })
+  categoryId?: string;
+}
+
+@InputType()
+export class CmsCreateBrandInput extends CreateBrandInput {}
 
 @InputType()
 export class CmsUpdateBrandInput {
@@ -96,6 +107,15 @@ export class BrandResolver {
     @Args('input') input: ListBrandsInput,
   ): Promise<ListBrandsResponse> {
     return this.brandService.listBrands(input);
+  }
+
+  @Mutation(() => Brand)
+  @UseGuards(GqlAuthGuard)
+  async createBrandByUser(
+    @Args('input') input: CreateBrandByUserInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return this.brandService.createBrandByUser(input, user.id);
   }
 
   @Mutation(() => Brand)
