@@ -235,7 +235,7 @@ const BrandTable = () => {
         {selectedBrand && (
           <div className="flex flex-col gap-4">
             <p>
-              Varumärket "{selectedBrand.name}" är kopplat till befintliga
+              Varumärket &quot;{selectedBrand.name}&quot; är kopplat till befintliga
               annonser.
             </p>
             {!canDeleteWithoutReassign && (
