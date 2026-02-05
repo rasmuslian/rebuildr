@@ -14,4 +14,5 @@ export enum queryKeys {
   LIST_SHIPPING_PRICE = "list-shipping-price",
   SEARCH_ADDRESS = "search-address",
   LIST_USER_PROJECTS = "list-user-projects",
+  CAN_DELETE_BRAND = "can-delete-brand",
 }

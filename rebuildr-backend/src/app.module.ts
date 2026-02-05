@@ -113,6 +113,7 @@ import { Partner } from './entities/partner.entity';
 import { PartnerLoader } from './dataloaders/partner.loader';
 import { PartnerService } from './services/partner.service';
 import { PartnerResolver } from './resolvers/partner.resolver';
+import { BrandLoader } from './dataloaders/brand.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -182,6 +183,7 @@ export interface RequestType {
         MessageLoader,
         MapPinLoader,
         PartnerLoader,
+        BrandLoader,
         ConfigService,
       ],
       useFactory: (
@@ -195,6 +197,7 @@ export interface RequestType {
         messageLoaderService: MessageLoader,
         mapPinLoaderService: MapPinLoader,
         partnerLoaderService: PartnerLoader,
+        brandLoaderService: BrandLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -213,6 +216,7 @@ export interface RequestType {
             messageLoaders: messageLoaderService.createLoaders(),
             mapPinLoaders: mapPinLoaderService.createLoaders(),
             partnerLoaders: partnerLoaderService.createLoaders(),
+            brandLoaders: brandLoaderService.createLoaders(),
             req,
             res,
           }),
