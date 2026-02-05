@@ -1,11 +1,13 @@
 import {
   BrandSectionQuery,
   BrandSectionQueryVariables,
+  BrandSectionSearchBrandQuery,
+  BrandSectionSearchBrandQueryVariables,
   BrandTypeEnum,
   CreateBrandByUserMutation,
   CreateBrandByUserMutationVariables,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { SearchInput } from "@components/forms/searchInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -13,6 +15,7 @@ import { Body, Display, Headline } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
+import { useDebounceCallback } from "usehooks-ts";
 
 const BRAND_SECTION_QUERY = gql`
   query BrandSection($input: CategoryInput!) {
@@ -27,6 +30,16 @@ const BRAND_SECTION_QUERY = gql`
         id
         name
       }
+    }
+  }
+`;
+
+const BRAND_SECTION_SEARCH_BRAND = gql`
+  query BrandSectionSearchBrand($input: BrandsInput!) {
+    brands(input: $input) {
+      id
+      name
+      type
     }
   }
 `;
@@ -72,14 +85,22 @@ export const BrandSection = ({
       },
     );
 
+  const [
+    searchBrands,
+    { data: searchBrandsData, loading: searchBrandsLoading },
+  ] = useLazyQuery<
+    BrandSectionSearchBrandQuery,
+    BrandSectionSearchBrandQueryVariables
+  >(BRAND_SECTION_SEARCH_BRAND);
+
+  const debouncedSearchBrands = useDebounceCallback(searchBrands, 500);
+
+  const onChangeSearchString = (searchString: string) => {
+    debouncedSearchBrands({ variables: { input: { name: searchString } } });
+    setSearchString(searchString);
+  };
   const otherBrands = data?.brands.filter(
     (brand) => brand.type === BrandTypeEnum.Other,
-  );
-
-  const searchedBrands = data?.brands.filter(
-    (brand) =>
-      brand.name.toLowerCase().startsWith(searchString.toLowerCase()) &&
-      brand.type !== BrandTypeEnum.Other,
   );
 
   const renderBrandRow = (name: string, id: string) => {
@@ -151,77 +172,70 @@ export const BrandSection = ({
       <Display size="small" style={{ marginBottom: 24 }}>
         Välj ett varumärke
       </Display>
-      {isLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          <SearchInput
-            value={searchString}
-            onChange={(t) => setSearchString(t)}
-            placeholder="Hitta varumärke"
-          />
-          <View style={{ gap: 16, marginTop: 16 }}>
-            {!searchString ? (
-              <>
-                {otherBrands?.map((brand) =>
-                  renderBrandRow(brand.name, brand.id),
-                )}
-                <View
-                  style={{
-                    borderBottomWidth: 1,
-                    borderColor: colors.dividers.neutral,
-                  }}
-                />
-                {data?.category.brands.map((brand) =>
-                  renderBrandRow(brand.name, brand.id),
-                )}
-              </>
-            ) : searchedBrands?.length ? (
-              searchedBrands.map((brand) =>
-                renderBrandRow(brand.name, brand.id),
-              )
-            ) : (
-              <View>
-                <View style={{ gap: 2, marginBottom: 48 }}>
-                  <Headline size="small">0 träffar</Headline>
-                  <Body size="medium" color="secondary">
-                    Ojdå, vi kunde inte hitta några varumärken som matchar '
-                    {searchString}'
-                  </Body>
-                </View>
-
-                <View style={{ gap: 2, marginBottom: 24 }}>
-                  <Headline size="small">Lägg till varumärke:</Headline>
-                  <Display size="small">{searchString}</Display>
-                  <Body size="medium" color="secondary">
-                    Om varumärket saknas i vår lista kan du lägga till det
-                    manuellt. Se till att stava rätt så att andra lätt kan hitta
-                    det.
-                  </Body>
-                </View>
-                <View style={{ gap: 8 }}>
-                  <Button
-                    label="Ja, lägg till varumärke"
-                    onPress={handleCreateBrand}
-                    loading={isCreatingBrand}
-                  />
-                  <Button
-                    label="Avbryt och gå tillbaka"
-                    type="tonal"
-                    onPress={() => setSearchString("")}
-                    disabled={isCreatingBrand}
-                  />
-                  {createError && (
-                    <Body size="small" color="error">
-                      Kunde inte lägga till varumärket.
-                    </Body>
-                  )}
-                </View>
-              </View>
+      <SearchInput
+        value={searchString}
+        onChange={onChangeSearchString}
+        placeholder="Hitta varumärke"
+      />
+      <View style={{ gap: 16, marginTop: 16 }}>
+        {isLoading || searchBrandsLoading ? (
+          <LoadingSpinner />
+        ) : !searchString ? (
+          <>
+            {otherBrands?.map((brand) => renderBrandRow(brand.name, brand.id))}
+            <View
+              style={{
+                borderBottomWidth: 1,
+                borderColor: colors.dividers.neutral,
+              }}
+            />
+            {data?.category.brands.map((brand) =>
+              renderBrandRow(brand.name, brand.id),
             )}
+          </>
+        ) : searchBrandsData?.brands.length ? (
+          searchBrandsData.brands.map((brand) =>
+            renderBrandRow(brand.name, brand.id),
+          )
+        ) : (
+          <View>
+            <View style={{ gap: 2, marginBottom: 48 }}>
+              <Headline size="small">0 träffar</Headline>
+              <Body size="medium" color="secondary">
+                Ojdå, vi kunde inte hitta några varumärken som matchar '
+                {searchString}'
+              </Body>
+            </View>
+
+            <View style={{ gap: 2, marginBottom: 24 }}>
+              <Headline size="small">Lägg till varumärke:</Headline>
+              <Display size="small">{searchString}</Display>
+              <Body size="medium" color="secondary">
+                Om varumärket saknas i vår lista kan du lägga till det manuellt.
+                Se till att stava rätt så att andra lätt kan hitta det.
+              </Body>
+            </View>
+            <View style={{ gap: 8 }}>
+              <Button
+                label="Ja, lägg till varumärke"
+                onPress={handleCreateBrand}
+                loading={isCreatingBrand}
+              />
+              <Button
+                label="Avbryt och gå tillbaka"
+                type="tonal"
+                onPress={() => setSearchString("")}
+                disabled={isCreatingBrand}
+              />
+              {createError && (
+                <Body size="small" color="error">
+                  Kunde inte lägga till varumärket.
+                </Body>
+              )}
+            </View>
           </View>
-        </>
-      )}
+        )}
+      </View>
     </View>
   );
 };

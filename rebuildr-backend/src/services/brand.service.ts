@@ -2,13 +2,14 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from 'src/entities/brand.entity';
 import { BadFieldsInputException, BadUserInputException } from 'src/exceptions';
-import { ILike, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Like, Repository } from 'typeorm';
 import {
   ListBrandsInput,
   ListBrandsResponse,
   CmsCreateBrandInput,
   CmsUpdateBrandInput,
   CreateBrandByUserInput,
+  BrandsInput,
 } from 'src/resolvers/brand.resolver';
 import slugify from 'slugify';
 import { NotFoundException } from 'src/exceptions';
@@ -33,8 +34,13 @@ export class BrandService {
     return brand;
   }
 
-  async brands() {
-    return await this.brandRepository.find({ order: { name: 'ASC' } });
+  async brands(input?: BrandsInput) {
+    let where: FindOptionsWhere<Brand>;
+    if (input?.name) {
+      const slug = this.createSlugFromName(input.name);
+      where = { ...where, slug: Like(`%${slug}%`) };
+    }
+    return await this.brandRepository.find({ order: { name: 'ASC' }, where });
   }
 
   async listBrands(input: ListBrandsInput): Promise<ListBrandsResponse> {
@@ -61,11 +67,7 @@ export class BrandService {
     input: CreateBrandByUserInput,
     currentUserId: string,
   ): Promise<Brand> {
-    const slug = slugify(input.name, {
-      lower: true,
-      strict: true,
-      trim: true,
-    });
+    const slug = this.createSlugFromName(input.name);
 
     let brand = new Brand();
     const brandWithSameSlug = await this.brandRepository.findOne({
@@ -130,11 +132,7 @@ export class BrandService {
   }
 
   async cmsCreateBrand(input: CmsCreateBrandInput): Promise<Brand> {
-    const slug = slugify(input.name, {
-      lower: true,
-      strict: true,
-      trim: true,
-    });
+    const slug = this.createSlugFromName(input.name);
 
     try {
       const brand = new Brand();
@@ -162,11 +160,7 @@ export class BrandService {
     }
 
     try {
-      const slug = slugify(input.name, {
-        lower: true,
-        strict: true,
-        trim: true,
-      });
+      const slug = this.createSlugFromName(input.name);
 
       Object.assign<Brand, Partial<Brand>>(brand, {
         name: input.name,
@@ -205,5 +199,13 @@ export class BrandService {
       fromBrand,
       toBrand,
     };
+  }
+
+  private createSlugFromName(name: string) {
+    return slugify(name, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
   }
 }

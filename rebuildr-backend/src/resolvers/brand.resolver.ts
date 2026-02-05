@@ -21,6 +21,11 @@ import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { AuthedUserType } from 'src/auth/constants';
 
 @InputType()
+export class BrandsInput {
+  @Field({ nullable: true })
+  name?: string;
+}
+@InputType()
 export class ListBrandsInput {
   @Field(() => Int, { nullable: true })
   page?: number;
@@ -98,8 +103,8 @@ export class BrandResolver {
   }
 
   @Query(() => [Brand])
-  async brands() {
-    return this.brandService.brands();
+  async brands(@Args('input', { nullable: true }) input?: BrandsInput) {
+    return this.brandService.brands(input);
   }
 
   @Query(() => ListBrandsResponse)

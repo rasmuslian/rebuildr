@@ -710,7 +710,7 @@ type Query {
   myPurchase(input: MyPurchaseInput!): Purchase
   myPurchases(input: MyPurchasesInput!): [Purchase!]!
   brand(id: String!): Brand!
-  brands: [Brand!]!
+  brands(input: BrandsInput): [Brand!]!
   listBrands(input: ListBrandsInput!): ListBrandsResponse!
   getProject(input: GetProjectInput!): Project!
   myProjects: [Project!]!
@@ -878,6 +878,10 @@ input MyPurchaseInput {
 
 input MyPurchasesInput {
   myRole: String
+}
+
+input BrandsInput {
+  name: String
 }
 
 input ListBrandsInput {
