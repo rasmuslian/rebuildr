@@ -62,6 +62,7 @@ export type Brand = {
   __typename?: 'Brand';
   canDelete: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
@@ -73,6 +74,10 @@ export enum BrandTypeEnum {
   Other = 'OTHER',
   Regular = 'REGULAR'
 }
+
+export type BrandsInput = {
+  name?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type CancelPurchaseInput = {
   purchaseId: Scalars['String']['input'];
@@ -235,7 +240,6 @@ export type CmsListImagesResponse = {
 };
 
 export type CmsListProductsInput = {
-  brandId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
@@ -413,7 +417,8 @@ export enum ColorTypeEnum {
   Ncs = 'NCS'
 }
 
-export type CreateBrandInput = {
+export type CreateBrandByUserInput = {
+  categoryId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
 };
 
@@ -802,7 +807,7 @@ export type Mutation = {
   cmsUpdateProject: Project;
   cmsUpdateUser: User;
   cmsUploadFiles: CmsUploadFileResponse;
-  createBrand: Brand;
+  createBrandByUser: Brand;
   createDraftProduct: Product;
   createMessage: Message;
   createOrganizationUser: User;
@@ -1008,8 +1013,8 @@ export type MutationCmsUploadFilesArgs = {
 };
 
 
-export type MutationCreateBrandArgs = {
-  input: CreateBrandInput;
+export type MutationCreateBrandByUserArgs = {
+  input: CreateBrandByUserInput;
 };
 
 
@@ -1579,6 +1584,11 @@ export type QueryArticleArgs = {
 
 export type QueryBrandArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryBrandsArgs = {
+  input?: InputMaybe<BrandsInput>;
 };
 
 

@@ -9,6 +9,7 @@ import {
   Mutation,
   ResolveField,
   Parent,
+  Context,
 } from '@nestjs/graphql';
 import { Brand } from 'src/entities/brand.entity';
 import { BrandService } from 'src/services/brand.service';
@@ -16,9 +17,10 @@ import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/decorators/roles.decorator';
-import { UserRoleEnum } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { AuthedUserType } from 'src/auth/constants';
+import { IBrandLoaders } from 'src/dataloaders/brand.loader';
 
 @InputType()
 export class BrandsInput {
@@ -108,6 +110,7 @@ export class BrandResolver {
   }
 
   @Query(() => ListBrandsResponse)
+  @UseGuards(GqlAuthGuard)
   async listBrands(
     @Args('input') input: ListBrandsInput,
   ): Promise<ListBrandsResponse> {
@@ -161,5 +164,16 @@ export class BrandResolver {
   @ResolveField(() => Boolean)
   async canDelete(@Parent() brand: Brand) {
     return this.brandService.canDeleteBrand(brand.id);
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async createdBy(
+    @Parent() brand: Brand,
+    @Context('brandLoaders') brandLoaders: IBrandLoaders,
+  ) {
+    if (!brand.createdById) {
+      return null;
+    }
+    return await brandLoaders.createdByLoader.load(brand.id);
   }
 }

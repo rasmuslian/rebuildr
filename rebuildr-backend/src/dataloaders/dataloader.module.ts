@@ -10,6 +10,7 @@ import { PurchaseLoader } from './purchase.loader';
 import { MessageLoader } from './message.loader';
 import { MapPinLoader } from './map-pin.loader';
 import { PartnerLoader } from './partner.loader';
+import { BrandLoader } from './brand.loader';
 
 @Module({
   providers: [
@@ -24,6 +25,7 @@ import { PartnerLoader } from './partner.loader';
     MessageLoader,
     MapPinLoader,
     PartnerLoader,
+    BrandLoader,
   ],
   exports: [
     DataloaderService,
@@ -37,6 +39,7 @@ import { PartnerLoader } from './partner.loader';
     MessageLoader,
     MapPinLoader,
     PartnerLoader,
+    BrandLoader,
   ],
 })
 export class DataloaderModule {}

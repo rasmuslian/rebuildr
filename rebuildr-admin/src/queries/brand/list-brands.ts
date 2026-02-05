@@ -8,6 +8,10 @@ const query = `
         id
         name
         slug
+        createdBy {
+          id
+          email
+        }
         createdAt
         updatedAt
       }

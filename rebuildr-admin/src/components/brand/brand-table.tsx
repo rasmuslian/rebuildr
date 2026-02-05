@@ -142,6 +142,14 @@ const BrandTable = () => {
       ellipsis: true,
     },
     {
+      title: "Skapad av",
+      dataIndex: "createdBy",
+      key: "createdBy",
+      width: "260px",
+      ellipsis: true,
+      render: (_, { createdBy }) => <span>{createdBy?.email ?? "-"}</span>,
+    },
+    {
       title: "Skapad",
       dataIndex: "createdAt",
       key: "createdAt",
