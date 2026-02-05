@@ -265,6 +265,7 @@ type Brand {
   type: BrandTypeEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
+  canDelete: Boolean!
 }
 
 enum BrandTypeEnum {
@@ -609,6 +610,11 @@ type PurchaseProductResponse {
 type ListBrandsResponse {
   brands: [Brand!]!
   total: Int!
+}
+
+type CmsReassignBrandResponse {
+  fromBrand: Brand!
+  toBrand: Brand!
 }
 
 type CmsListProjectsResponse {
@@ -972,6 +978,8 @@ type Mutation {
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
+  cmsDeleteBrand(input: CmsBrandIdInput!): Boolean!
+  cmsReassignBrand(input: CmsReassignBrandInput!): CmsReassignBrandResponse!
   deleteProject(input: DeleteProjectInput!): Boolean!
   cmsDeleteProject(projectId: String!): Boolean!
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
@@ -1319,6 +1327,15 @@ input CmsCreateBrandInput {
 input CmsUpdateBrandInput {
   id: String!
   name: String!
+}
+
+input CmsBrandIdInput {
+  id: String!
+}
+
+input CmsReassignBrandInput {
+  fromBrandId: String!
+  toBrandId: String!
 }
 
 input DeleteProjectInput {

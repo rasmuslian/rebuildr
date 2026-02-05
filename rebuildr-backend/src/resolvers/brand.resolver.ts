@@ -15,6 +15,8 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { AuthedUserType } from 'src/auth/constants';
 
 @InputType()
 export class ListBrandsInput {
@@ -52,7 +54,30 @@ export class CmsUpdateBrandInput {
   name: string;
 }
 
-@Resolver()
+@InputType()
+export class CmsBrandIdInput {
+  @Field()
+  id: string;
+}
+
+@InputType()
+export class CmsReassignBrandInput {
+  @Field()
+  fromBrandId: string;
+
+  @Field()
+  toBrandId: string;
+}
+@ObjectType()
+export class CmsReassignBrandResponse {
+  @Field(() => Brand)
+  fromBrand: Brand;
+
+  @Field(() => Brand)
+  toBrand: Brand;
+}
+
+@Resolver(() => Brand)
 export class BrandResolver {
   constructor(private brandService: BrandService) {}
 
@@ -89,5 +114,27 @@ export class BrandResolver {
     @Args('input') input: CmsUpdateBrandInput,
   ): Promise<Brand> {
     return this.brandService.cmsUpdateBrand(input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsDeleteBrand(@Args('input') input: CmsBrandIdInput) {
+    return await this.brandService.cmsDeleteBrand(input.id);
+  }
+
+  @Mutation(() => CmsReassignBrandResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsReassignBrand(@Args('input') input: CmsReassignBrandInput) {
+    return await this.brandService.cmsReassignBrand(
+      input.fromBrandId,
+      input.toBrandId,
+    );
+  }
+
+  @ResolveField(() => Boolean)
+  async canDelete(@Parent() brand: Brand) {
+    return this.brandService.canDeleteBrand(brand.id);
   }
 }

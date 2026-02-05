@@ -60,6 +60,7 @@ export type ArticleOrderInput = {
 
 export type Brand = {
   __typename?: 'Brand';
+  canDelete: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -122,6 +123,10 @@ export enum CategoryIconEnum {
 }
 
 export type CategoryInput = {
+  id: Scalars['String']['input'];
+};
+
+export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
 };
 
@@ -230,6 +235,7 @@ export type CmsListImagesResponse = {
 };
 
 export type CmsListProductsInput = {
+  brandId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
@@ -263,6 +269,17 @@ export type CmsListUsersResponse = {
   __typename?: 'CmsListUsersResponse';
   total: Scalars['Int']['output'];
   users: Array<User>;
+};
+
+export type CmsReassignBrandInput = {
+  fromBrandId: Scalars['String']['input'];
+  toBrandId: Scalars['String']['input'];
+};
+
+export type CmsReassignBrandResponse = {
+  __typename?: 'CmsReassignBrandResponse';
+  fromBrand: Brand;
+  toBrand: Brand;
 };
 
 export type CmsTestTemplateInput = {
@@ -395,6 +412,10 @@ export enum ColorTypeEnum {
   FreeText = 'FREE_TEXT',
   Ncs = 'NCS'
 }
+
+export type CreateBrandInput = {
+  name: Scalars['String']['input'];
+};
 
 export type CreateMessageInput = {
   documents?: InputMaybe<Array<FileInputType>>;
@@ -760,6 +781,7 @@ export type Mutation = {
   cmsCreateProduct: CmsCreateProductResponse;
   cmsCreateProject: Project;
   cmsDeleteArticle: Scalars['Boolean']['output'];
+  cmsDeleteBrand: Scalars['Boolean']['output'];
   cmsDeleteFile: File;
   cmsDeleteFooterSection: Scalars['Boolean']['output'];
   cmsDeletePartner: Scalars['Boolean']['output'];
@@ -767,6 +789,7 @@ export type Mutation = {
   cmsDeleteProject: Scalars['Boolean']['output'];
   cmsHideProduct: Product;
   cmsLogin: LoginResponse;
+  cmsReassignBrand: CmsReassignBrandResponse;
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
@@ -779,6 +802,7 @@ export type Mutation = {
   cmsUpdateProject: Project;
   cmsUpdateUser: User;
   cmsUploadFiles: CmsUploadFileResponse;
+  createBrand: Brand;
   createDraftProduct: Product;
   createMessage: Message;
   createOrganizationUser: User;
@@ -878,6 +902,11 @@ export type MutationCmsDeleteArticleArgs = {
 };
 
 
+export type MutationCmsDeleteBrandArgs = {
+  input: CmsBrandIdInput;
+};
+
+
 export type MutationCmsDeleteFileArgs = {
   imageId: Scalars['String']['input'];
 };
@@ -911,6 +940,11 @@ export type MutationCmsHideProductArgs = {
 
 export type MutationCmsLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationCmsReassignBrandArgs = {
+  input: CmsReassignBrandInput;
 };
 
 
@@ -971,6 +1005,11 @@ export type MutationCmsUpdateUserArgs = {
 
 export type MutationCmsUploadFilesArgs = {
   input: CmsUploadFileInput;
+};
+
+
+export type MutationCreateBrandArgs = {
+  input: CreateBrandInput;
 };
 
 

@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from 'src/entities/brand.entity';
-import { BadUserInputException } from 'src/exceptions';
+import { BadFieldsInputException, BadUserInputException } from 'src/exceptions';
 import { ILike, Repository } from 'typeorm';
 import {
   ListBrandsInput,
   ListBrandsResponse,
   CmsCreateBrandInput,
   CmsUpdateBrandInput,
+  CreateBrandInput,
 } from 'src/resolvers/brand.resolver';
 import slugify from 'slugify';
 import { NotFoundException } from 'src/exceptions';
+import { Product } from 'src/entities/product.entity';
 
 @Injectable()
 export class BrandService {
   constructor(
     @InjectRepository(Brand) private brandRepository: Repository<Brand>,
+    @InjectRepository(Product) private productRepository: Repository<Product>,
   ) {}
 
   async getBrand(id: string) {
@@ -48,6 +51,18 @@ export class BrandService {
     });
 
     return { brands, total };
+  }
+  async canDeleteBrand(id: string) {
+    const brands = await this.brandRepository
+      .createQueryBuilder('b')
+      .innerJoin('product', 'p', 'p."brandId" = b.id', { id })
+      .where('b.id = :id', { id })
+      .getMany();
+    if (brands.length) {
+      //there exists at least one product connected to this brand
+      return false;
+    }
+    return true;
   }
 
   async cmsCreateBrand(input: CmsCreateBrandInput): Promise<Brand> {
@@ -100,5 +115,31 @@ export class BrandService {
         'Det finns redan ett varumärke med det här namnet.',
       );
     }
+  }
+
+  async cmsDeleteBrand(id: string) {
+    try {
+      await this.brandRepository.delete(id);
+      return true;
+    } catch {
+      throw BadUserInputException('Failed deleting brand');
+    }
+  }
+
+  async cmsReassignBrand(fromId: string, toId: string) {
+    const fromBrand = await this.brandRepository.findOneBy({ id: fromId });
+    const toBrand = await this.brandRepository.findOneBy({ id: toId });
+
+    if (!fromBrand || !toBrand) {
+      throw BadUserInputException('Brands not found');
+    }
+
+    //Update necessary entities
+    await this.productRepository.update({ brandId: fromId }, { brandId: toId });
+
+    return {
+      fromBrand,
+      toBrand,
+    };
   }
 }
