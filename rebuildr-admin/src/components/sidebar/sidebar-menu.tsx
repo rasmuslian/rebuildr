@@ -20,6 +20,7 @@ import {
   LoadingOutlined,
   UserOutlined,
   TagOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -86,6 +87,12 @@ const SidebarMenu = () => {
     getItem("Varumärken", "/brand", <TagOutlined />, [
       getItem("Skapa varumärke", routes.CREATE_BRAND),
       getItem("Visa alla varumärken", routes.LIST_BRAND),
+    ]),
+
+    { type: "divider" },
+    getItem("Partners", "/partner", <TeamOutlined />, [
+      getItem("Skapa partner", routes.CREATE_PARTNER),
+      getItem("Visa alla partners", routes.LIST_PARTNER),
     ]),
 
     { type: "divider" },

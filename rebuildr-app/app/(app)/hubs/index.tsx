@@ -74,8 +74,9 @@ export default function Hubs() {
     <View style={{ gap: 24 }}>
       <Display size="small">Hubbar</Display>
       <Body size="medium">
-        Här samlas både RebuildRs egna hubbar och företagsdrivna hubbar – alla
-        kopplade till produkter för återbruk
+        RebuildR samlar organisationer som aktivt vill öka cirkulariteten. Genom
+        RebuildRs plattform och nätverk omsätter våra partners cirkularitet i
+        praktiken
       </Body>
       {data?.users.users.map((u, i) => (
         <React.Fragment key={i}>

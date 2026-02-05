@@ -33,12 +33,13 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { ForbiddenException } from 'src/exceptions';
 import { Review } from 'src/entities/review.entity';
-import { FileInputType, ProductsResponse } from './product.resolver';
+import { ProductsResponse } from './product.resolver';
 import { ProductService } from 'src/services/product.service';
 import { ProjectService } from 'src/services/project.service';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { MailchimpService } from 'src/services/mailchimp.service';
+import { FileInputType } from './file.resolver';
 
 export enum ProductsRecommendationSourceEnum {
   LIKES = 'LIKES',

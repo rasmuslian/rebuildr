@@ -38,6 +38,7 @@ import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { StripeService } from './stripe.service';
 import { MapPin } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
+import { validateWebsite } from 'src/utility/website';
 
 @Injectable()
 export class UserService {
@@ -405,7 +406,7 @@ export class UserService {
 
     if (input.websiteUrl) {
       try {
-        organization.websiteUrl = this.validateWebsite(input.websiteUrl);
+        organization.websiteUrl = validateWebsite(input.websiteUrl);
       } catch {
         throw BadFieldsInputException([
           { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
@@ -651,7 +652,7 @@ export class UserService {
 
       if (websiteUrl) {
         try {
-          user.websiteUrl = this.validateWebsite(websiteUrl);
+          user.websiteUrl = validateWebsite(websiteUrl);
         } catch {
           throw BadFieldsInputException([
             { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
@@ -666,24 +667,6 @@ export class UserService {
       return this.userRepository.save(user);
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
-    }
-  }
-
-  /**
-   *
-   * Validate website and returns it if valid, throws otherwise
-   */
-  private validateWebsite(website: string) {
-    try {
-      const url = new URL(website);
-
-      if (!['http:', 'https:'].includes(url.protocol)) {
-        throw new Error('Website must start with http or https');
-      }
-
-      return website;
-    } catch {
-      throw new Error('Invalid url');
     }
   }
 }

@@ -16,7 +16,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { UserService } from './user.service';
-import { FileInputType } from 'src/resolvers/product.resolver';
+import { FileInputType } from 'src/resolvers/file.resolver';
 import { FileService } from './file.service';
 
 export interface SystemMessageInput {
