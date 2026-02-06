@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { ArticleFooterSection } from './article-footer-section.entity';
+import { FooterSectionEntry } from './footer-section-entry.entity';
 
 @Entity()
 @ObjectType()
@@ -33,6 +33,6 @@ export class Article extends BaseEntity {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 
-  @OneToMany(() => ArticleFooterSection, (afs) => afs.article)
-  articleFooterSections: ArticleFooterSection[];
+  @OneToMany(() => FooterSectionEntry, (entry) => entry.article)
+  footerSections: FooterSectionEntry[];
 }

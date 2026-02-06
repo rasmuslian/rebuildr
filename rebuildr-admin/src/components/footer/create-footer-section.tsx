@@ -28,7 +28,7 @@ const CreateFooterSection = () => {
   } = useForm<FooterSectionSchemaType>({
     resolver: zodResolver(FooterSectionSchema),
     defaultValues: {
-      articles: [],
+      entries: [],
       orderIndex: 1,
     },
   });
@@ -61,9 +61,12 @@ const CreateFooterSection = () => {
     const newFooterSection: CmsCreateFooterSectionInput = {
       title: formData.title,
       orderIndex: formData.orderIndex,
-      articles: formData.articles.map((article, index) => ({
-        articleId: article.id,
+      entries: formData.entries.map((entry, index) => ({
+        articleId: entry.article?.id ?? null,
+        label: entry.label ?? null,
+        url: entry.url ?? null,
         orderIndex: index,
+        type: entry.type,
       })),
     };
 

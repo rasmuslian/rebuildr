@@ -11,6 +11,8 @@ import {
   Control,
   Controller,
 } from "react-hook-form";
+import { FooterSectionEntryType } from "gql/graphql";
+import { useState } from "react";
 
 type Props = {
   title: string;
@@ -31,6 +33,9 @@ const FooterSectionForm = ({
   submitLabel,
   isPending,
 }: Props) => {
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+
   return (
     <AdminForm>
       <Divider orientation="left">{title}</Divider>
@@ -70,22 +75,86 @@ const FooterSectionForm = ({
 
       <Controller
         control={control}
-        name="articles"
+        name="entries"
         render={({ field: { onChange, value } }) => {
+          const articleEntries = value.filter(
+            (entry) => entry.type === FooterSectionEntryType.Article,
+          );
+          const linkEntries = value.filter(
+            (entry) => entry.type === FooterSectionEntryType.Link,
+          );
+
+          const selectedArticles = articleEntries
+            .map((entry) => entry.article)
+            .filter(Boolean) as NonNullable<FooterSectionSchemaType["entries"][number]["article"]>[];
+
+          const handleSetArticles = (articles: typeof selectedArticles) => {
+            const existingLinks = linkEntries.map((entry) => ({
+              ...entry,
+            }));
+            const newArticleEntries = articles.map((article, index) => ({
+              type: FooterSectionEntryType.Article,
+              orderIndex: index,
+              article,
+            }));
+            const orderedLinks = existingLinks.map((entry, index) => ({
+              ...entry,
+              orderIndex: newArticleEntries.length + index,
+            }));
+            onChange([...newArticleEntries, ...orderedLinks]);
+          };
+
+          const handleAddLink = () => {
+            if (!linkLabel.trim() || !linkUrl.trim()) return;
+            const newEntry = {
+              tempId: `link-${Date.now()}`,
+              type: FooterSectionEntryType.Link,
+              orderIndex: value.length,
+              label: linkLabel.trim(),
+              url: linkUrl.trim(),
+            };
+            onChange([...value, newEntry]);
+            setLinkLabel("");
+            setLinkUrl("");
+          };
+
           return (
             <div className="grid grid-cols-[auto_320px] gap-5">
               <FormField
                 label="Välj artiklar"
                 required={true}
-                error={errors.articles?.message}
+                error={errors.entries?.message}
               >
-                <SelectAricleTable articles={value} setArticles={onChange} />
+                <SelectAricleTable
+                  articles={selectedArticles}
+                  setArticles={handleSetArticles}
+                />
+                <div className="mt-4 flex flex-col gap-3 rounded border border-neutral-200 p-3">
+                  <p className="text-label-large">Lägg till länk</p>
+                  <Input
+                    placeholder="Titel"
+                    value={linkLabel}
+                    onChange={(event) => setLinkLabel(event.target.value)}
+                  />
+                  <Input
+                    placeholder="https://"
+                    value={linkUrl}
+                    onChange={(event) => setLinkUrl(event.target.value)}
+                  />
+                  <Button
+                    type="default"
+                    onClick={handleAddLink}
+                    disabled={!linkLabel.trim() || !linkUrl.trim()}
+                  >
+                    Lägg till länk
+                  </Button>
+                </div>
               </FormField>
 
               <DragAndDropArticles
-                articles={value}
-                setArticles={onChange}
-                title="Valda artiklar"
+                entries={value}
+                setEntries={onChange}
+                title="Valda poster"
               />
             </div>
           );

@@ -73,7 +73,7 @@ export class ProjectSubscriber implements EntitySubscriberInterface<Project> {
           .map(async (p) => {
             p.mapPin.address = projectMapPin.address;
             p.mapPin.location = projectMapPin.location;
-            event.manager.save(p.mapPin);
+            return event.manager.save(p.mapPin);
           }),
       );
     }

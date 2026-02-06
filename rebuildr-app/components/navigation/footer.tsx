@@ -5,7 +5,7 @@ import { Icon } from "@icons/icon";
 import { Logo } from "@components/logo/logo";
 import { primitives } from "@constants/colors";
 import { gql, useQuery } from "@apollo/client";
-import { Link } from "expo-router";
+import { Href, Link } from "expo-router";
 import {
   ListFooterSectionQuery,
   ListFooterSectionQueryVariables,
@@ -19,10 +19,14 @@ const LIST_FOOTER_SECTION = gql`
       id
       title
       orderIndex
-      articleFooterSections {
+      entries {
+        id
         articleId
         footerSectionId
         orderIndex
+        type
+        url
+        label
         article {
           id
           title
@@ -59,7 +63,7 @@ export default function Footer() {
         keyExtractor={(item) => item.title}
         numColumns={isDesktop ? 5 : 2}
         columnWrapperStyle={{ justifyContent: "space-between" }}
-        renderItem={({ index, item: { articleFooterSections, title } }) => {
+        renderItem={({ index, item: { entries, title } }) => {
           const itemsInLastRow = footerSections.length % 2 || 2;
           const isLastSection = index >= footerSections.length - itemsInLastRow;
 
@@ -78,20 +82,25 @@ export default function Footer() {
                 {title}
               </Title>
 
-              {articleFooterSections.map(({ article }, position, array) => {
+              {entries.map((entry, position, array) => {
                 const isLastRow = position === array.length - 1;
 
-                return (
-                  <Link
-                    key={article.id}
-                    style={{ marginBottom: isLastRow ? 0 : 16 }}
-                    href={{
+                const article = entry.article;
+                const title = article ? article.title : entry.label;
+                const href: Href = article
+                  ? {
                       pathname: "/(app)/article/[articleId]",
                       params: { articleId: article.id, title: article.title },
-                    }}
+                    }
+                  : (entry.url as Href);
+                return (
+                  <Link
+                    key={entry.id}
+                    style={{ marginBottom: isLastRow ? 0 : 16 }}
+                    href={href}
                   >
                     <Label size="medium" color="primaryLight">
-                      {article.title}
+                      {title}
                     </Label>
                   </Link>
                 );

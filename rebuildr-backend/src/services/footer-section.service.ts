@@ -7,14 +7,14 @@ import {
   CmsUpdateFooterSectionInput,
 } from 'src/resolvers/footer-section.resolver';
 import { BadUserInputException, NotFoundException } from 'src/exceptions';
-import { ArticleFooerSectionService } from 'src/services/article-footer-section.service';
+import { FooterSectionEntryService } from 'src/services/footer-section-entry.service';
 
 @Injectable()
 export class FooterSectionService {
   constructor(
     @InjectRepository(FooterSection)
     private footerSectionRepository: Repository<FooterSection>,
-    private articleFooerSectionService: ArticleFooerSectionService,
+    private footerSectionEntryService: FooterSectionEntryService,
   ) {}
 
   async findOne(id: string) {
@@ -33,9 +33,9 @@ export class FooterSectionService {
       });
 
       await this.footerSectionRepository.save(footerSection);
-      await this.articleFooerSectionService.syncArticles(
+      await this.footerSectionEntryService.syncEntries(
         footerSection.id,
-        input.articles,
+        input.entries,
       );
       return footerSection;
     } catch (error) {
@@ -54,9 +54,9 @@ export class FooterSectionService {
 
     try {
       await this.footerSectionRepository.save(footerSection);
-      await this.articleFooerSectionService.syncArticles(
+      await this.footerSectionEntryService.syncEntries(
         input.id,
-        input.articles,
+        input.entries,
       );
 
       return footerSection;

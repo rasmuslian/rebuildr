@@ -26,7 +26,13 @@ const getDefaultValues = (
 ): FooterSectionSchemaType => ({
   title: footerSection.title,
   orderIndex: footerSection.orderIndex,
-  articles: footerSection.articleFooterSections.map((fs) => fs.article),
+  entries: footerSection.entries.map((entry, index) => ({
+    type: entry.type,
+    orderIndex: entry.orderIndex ?? index,
+    article: entry.article ?? undefined,
+    label: entry.label ?? undefined,
+    url: entry.url ?? undefined,
+  })),
 });
 
 const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
@@ -72,9 +78,12 @@ const EditFooterSection = ({ open, onCancel, footerSection }: Props) => {
       id: footerSection.id,
       title: formData.title,
       orderIndex: formData.orderIndex,
-      articles: formData.articles.map((article, index) => ({
-        articleId: article.id,
+      entries: formData.entries.map((entry, index) => ({
+        articleId: entry.article?.id ?? null,
+        label: entry.label ?? null,
+        url: entry.url ?? null,
         orderIndex: index,
+        type: entry.type,
       })),
     };
 
