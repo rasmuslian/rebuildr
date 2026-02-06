@@ -14,7 +14,7 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { FileType, ProductFields } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
 import { ProgressHeader } from "@components/product/progress-header";
-import { Project } from "./project";
+import { NEW_PROJECT_ID, Project } from "./project";
 import { Transportation } from "./transportation";
 import { Preview } from "./preview";
 import { View } from "react-native";
@@ -349,7 +349,11 @@ export const UpsertProductBottomSheet = ({
           colorType: product.colorType,
 
           //project
-          projectId: product.project?.id,
+          projectId: product.project
+            ? product.project.id === NEW_PROJECT_ID
+              ? undefined
+              : product.project.id
+            : undefined,
           noProject: product.noProject,
 
           //transportation
@@ -522,6 +526,7 @@ export const UpsertProductBottomSheet = ({
         return !!product.location || !!dbProduct.location;
       }
       if (key === "project") {
+        if (product.project?.id === NEW_PROJECT_ID) return false;
         if (!!product.project && !!dbProduct.project) {
           return product.project.id !== dbProduct.project.id;
         }
@@ -537,10 +542,10 @@ export const UpsertProductBottomSheet = ({
             );
       }
       if (key in product && key in dbProduct) {
-        const keyEqual =
+        const keyDiffers =
           product[key as keyof typeof product] !==
           (dbProduct[key as keyof typeof dbProduct] ?? undefined);
-        return keyEqual;
+        return keyDiffers;
       }
       return false;
     });
