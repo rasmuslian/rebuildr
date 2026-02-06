@@ -11,21 +11,33 @@ import {
 } from '@nestjs/graphql';
 import { FooterSection } from 'src/entities/footer-section.entity';
 import { FooterSectionService } from 'src/services/footer-section.service';
-import { ArticleFooterSection } from 'src/entities/article-footer-section.entity';
+import {
+  FooterSectionEntry,
+  FooterSectionEntryType,
+} from 'src/entities/footer-section-entry.entity';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
-import { ArticleFooerSectionService } from 'src/services/article-footer-section.service';
+import { FooterSectionEntryService } from 'src/services/footer-section-entry.service';
 
 @InputType()
-export class ArticleOrderInput {
-  @Field()
-  articleId: string;
+export class FooterEntryInput {
+  @Field(() => FooterSectionEntryType)
+  type: FooterSectionEntryType;
 
   @Field(() => Int)
   orderIndex: number;
+
+  @Field({ nullable: true })
+  articleId?: string;
+
+  @Field({ nullable: true })
+  label?: string;
+
+  @Field({ nullable: true })
+  url?: string;
 }
 
 @InputType()
@@ -36,8 +48,8 @@ export class CmsCreateFooterSectionInput {
   @Field()
   orderIndex: number;
 
-  @Field(() => [ArticleOrderInput])
-  articles: ArticleOrderInput[];
+  @Field(() => [FooterEntryInput])
+  entries: FooterEntryInput[];
 }
 
 @InputType()
@@ -51,15 +63,15 @@ export class CmsUpdateFooterSectionInput {
   @Field()
   orderIndex: number;
 
-  @Field(() => [ArticleOrderInput])
-  articles: ArticleOrderInput[];
+  @Field(() => [FooterEntryInput])
+  entries: FooterEntryInput[];
 }
 
 @Resolver(() => FooterSection)
 export class FooterSectionResolver {
   constructor(
     private footerSectionService: FooterSectionService,
-    private articleFooerSectionService: ArticleFooerSectionService,
+    private footerSectionEntryService: FooterSectionEntryService,
   ) {}
 
   @Query(() => FooterSection)
@@ -99,10 +111,10 @@ export class FooterSectionResolver {
     return await this.footerSectionService.listFooterSections();
   }
 
-  @ResolveField(() => [ArticleFooterSection])
-  async articleFooterSections(
+  @ResolveField(() => [FooterSectionEntry])
+  async entries(
     @Root() _footerSection: FooterSection,
-  ): Promise<ArticleFooterSection[]> {
-    return await this.articleFooerSectionService.findMany(_footerSection.id);
+  ): Promise<FooterSectionEntry[]> {
+    return await this.footerSectionEntryService.findMany(_footerSection.id);
   }
 }

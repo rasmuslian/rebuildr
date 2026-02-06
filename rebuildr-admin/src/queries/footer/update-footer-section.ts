@@ -7,10 +7,14 @@ const query = `
       id
       title
       orderIndex
-      articleFooterSections {
+      entries {
+        id
         articleId
         footerSectionId
         orderIndex
+        url
+        label
+        type
         article {
           id
           title

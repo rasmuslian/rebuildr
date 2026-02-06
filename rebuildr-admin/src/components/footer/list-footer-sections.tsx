@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { listFooterSections } from "@/queries/footer/list-footer-section";
 import { Divider } from "antd";
 import EmptyContainer from "@components/empty-container";
-import FooerSectionItem from "./footer-section-item";
+import FooterSectionItem from "./footer-section-item";
 
 const ListFooterSections = () => {
   const { data, isLoading } = useQuery({
@@ -25,7 +25,7 @@ const ListFooterSections = () => {
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {footerSections.map((footerSection) => (
-            <FooerSectionItem
+            <FooterSectionItem
               key={footerSection.id}
               footerSection={footerSection}
             />

@@ -45,19 +45,6 @@ export type Article = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
-export type ArticleFooterSection = {
-  __typename?: 'ArticleFooterSection';
-  article: Article;
-  articleId: Scalars['ID']['output'];
-  footerSectionId: Scalars['ID']['output'];
-  orderIndex: Scalars['Float']['output'];
-};
-
-export type ArticleOrderInput = {
-  articleId: Scalars['String']['input'];
-  orderIndex: Scalars['Int']['input'];
-};
-
 export type Brand = {
   __typename?: 'Brand';
   canDelete: Scalars['Boolean']['output'];
@@ -162,7 +149,7 @@ export type CmsCreateCategoryResponse = {
 };
 
 export type CmsCreateFooterSectionInput = {
-  articles: Array<ArticleOrderInput>;
+  entries: Array<FooterEntryInput>;
   orderIndex: Scalars['Float']['input'];
   title: Scalars['String']['input'];
 };
@@ -329,7 +316,7 @@ export type CmsUpdateCategoryResponse = {
 };
 
 export type CmsUpdateFooterSectionInput = {
-  articles: Array<ArticleOrderInput>;
+  entries: Array<FooterEntryInput>;
   id: Scalars['String']['input'];
   orderIndex: Scalars['Float']['input'];
   title: Scalars['String']['input'];
@@ -533,13 +520,38 @@ export type FinalizeUserInput = {
   username: Scalars['String']['input'];
 };
 
+export type FooterEntryInput = {
+  articleId?: InputMaybe<Scalars['String']['input']>;
+  label?: InputMaybe<Scalars['String']['input']>;
+  orderIndex: Scalars['Int']['input'];
+  type: FooterSectionEntryType;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type FooterSection = {
   __typename?: 'FooterSection';
-  articleFooterSections: Array<ArticleFooterSection>;
+  entries: Array<FooterSectionEntry>;
   id: Scalars['ID']['output'];
   orderIndex: Scalars['Float']['output'];
   title: Scalars['String']['output'];
 };
+
+export type FooterSectionEntry = {
+  __typename?: 'FooterSectionEntry';
+  article?: Maybe<Article>;
+  articleId?: Maybe<Scalars['String']['output']>;
+  footerSectionId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  label?: Maybe<Scalars['String']['output']>;
+  orderIndex: Scalars['Float']['output'];
+  type: FooterSectionEntryType;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export enum FooterSectionEntryType {
+  Article = 'ARTICLE',
+  Link = 'LINK'
+}
 
 export type GetAddressInput = {
   latitude: Scalars['Float']['input'];

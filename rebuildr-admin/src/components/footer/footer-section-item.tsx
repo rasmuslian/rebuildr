@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FooterSection } from "gql/graphql";
+import { FooterSection, FooterSectionEntryType } from "gql/graphql";
 import Section from "@components/section";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, App, List } from "antd";
@@ -14,11 +14,11 @@ type Props = {
   footerSection: FooterSection;
 };
 
-const FooerSectionItem = ({ footerSection }: Props) => {
+const FooterSectionItem = ({ footerSection }: Props) => {
   const [editMode, setEditMode] = useState(false);
   const { notification, modal } = App.useApp();
   const queryClient = useQueryClient();
-  const { id, orderIndex, title, articleFooterSections } = footerSection;
+  const { id, orderIndex, title, entries } = footerSection;
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (footerSectionId: string) => {
@@ -87,8 +87,17 @@ const FooerSectionItem = ({ footerSection }: Props) => {
         <List
           bordered
           size="small"
-          dataSource={articleFooterSections}
-          renderItem={(item) => <List.Item>{item.article.title}</List.Item>}
+          dataSource={entries}
+          renderItem={(item) => (
+            <List.Item>
+              {item.type === FooterSectionEntryType.Article
+                ? item.article?.title
+                : item.label}
+              {item.type === FooterSectionEntryType.Link && item.url
+                ? ` (${item.url})`
+                : ""}
+            </List.Item>
+          )}
         />
       </Section>
 
@@ -101,4 +110,4 @@ const FooerSectionItem = ({ footerSection }: Props) => {
   );
 };
 
-export default FooerSectionItem;
+export default FooterSectionItem;

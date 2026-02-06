@@ -627,14 +627,23 @@ type FooterSection {
   id: ID!
   title: String!
   orderIndex: Float!
-  articleFooterSections: [ArticleFooterSection!]!
+  entries: [FooterSectionEntry!]!
 }
 
-type ArticleFooterSection {
-  articleId: ID!
-  footerSectionId: ID!
+type FooterSectionEntry {
+  id: ID!
+  type: FooterSectionEntryType!
+  label: String
+  url: String
   orderIndex: Float!
-  article: Article!
+  articleId: String
+  footerSectionId: String!
+  article: Article
+}
+
+enum FooterSectionEntryType {
+  ARTICLE
+  LINK
 }
 
 type Article {
@@ -1435,19 +1444,22 @@ input CmsUpdateArticleInput {
 input CmsCreateFooterSectionInput {
   title: String!
   orderIndex: Float!
-  articles: [ArticleOrderInput!]!
+  entries: [FooterEntryInput!]!
 }
 
-input ArticleOrderInput {
-  articleId: String!
+input FooterEntryInput {
+  type: FooterSectionEntryType!
   orderIndex: Int!
+  articleId: String
+  label: String
+  url: String
 }
 
 input CmsUpdateFooterSectionInput {
   id: String!
   title: String!
   orderIndex: Float!
-  articles: [ArticleOrderInput!]!
+  entries: [FooterEntryInput!]!
 }
 
 input CmsCreatePartnerInput {

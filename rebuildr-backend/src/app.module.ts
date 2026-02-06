@@ -92,9 +92,9 @@ import { ArticleService } from './services/article.service';
 import { FooterSection } from './entities/footer-section.entity';
 import { FooterSectionResolver } from './resolvers/footer-section.resolver';
 import { FooterSectionService } from './services/footer-section.service';
-import { ArticleFooterSection } from './entities/article-footer-section.entity';
-import { ArticleFooerSectionService } from './services/article-footer-section.service';
-import { ArticleFooterSectionResolver } from './resolvers/article-footer-section.resolver';
+import { FooterSectionEntry } from './entities/footer-section-entry.entity';
+import { FooterSectionEntryService } from './services/footer-section-entry.service';
+import { FooterSectionEntryResolver } from './resolvers/footer-section-entry.resolver';
 import { StripWebhookController } from './controllers/stripe-webhook.controller';
 import { StripeService } from './services/stripe.service';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
@@ -165,7 +165,7 @@ export interface RequestType {
       ReportProduct,
       Article,
       FooterSection,
-      ArticleFooterSection,
+      FooterSectionEntry,
       MapPin,
       Partner,
     ]),
@@ -293,8 +293,8 @@ export interface RequestType {
     ArticleService,
     FooterSectionResolver,
     FooterSectionService,
-    ArticleFooerSectionService,
-    ArticleFooterSectionResolver,
+    FooterSectionEntryService,
+    FooterSectionEntryResolver,
     StripeService,
     MapPinService,
     MapPinResolver,
