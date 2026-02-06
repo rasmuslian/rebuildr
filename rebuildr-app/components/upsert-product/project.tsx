@@ -49,6 +49,8 @@ const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
   }
 `;
 
+export const NEW_PROJECT_ID = "NEW_PROJECT_ID";
+
 type Props = {
   product: ProductFields;
   update: (product: Partial<ProductFields>) => void;
@@ -76,7 +78,7 @@ export const Project = ({
       return 100;
     }
 
-    if (isEditing || product.project?.id === newProjectOption) {
+    if (isEditing || product.project?.id === NEW_PROJECT_ID) {
       return 50;
     }
 
@@ -91,7 +93,6 @@ export const Project = ({
     updateProgress(p);
   }, [isEditing, product.project?.id, connectProject, skipProject]);
 
-  const newProjectOption = "1";
   const colors = useThemeColor();
 
   const { data, refetch } = useQuery<ProductBottomSheetProjectMyProjectsQuery>(
@@ -103,8 +104,14 @@ export const Project = ({
   >(PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT);
 
   const onSelectProjectId = async (id: string) => {
-    if (id === newProjectOption) {
-      update({ project: { id } });
+    if (id === NEW_PROJECT_ID) {
+      update({
+        noProject: false,
+        project: { id },
+        address: undefined,
+        location: undefined,
+        approximatePlace: undefined,
+      });
       return;
     }
     const { data } = await getProject({
@@ -143,9 +150,9 @@ export const Project = ({
 
   const projectOptions = [
     {
-      value: newProjectOption,
+      value: NEW_PROJECT_ID,
       label: "Nytt projekt",
-      disabled: product.project?.id === newProjectOption,
+      disabled: product.project?.id === NEW_PROJECT_ID,
     },
     ...(data?.myProjects
       ? data.myProjects.map((p) => ({
@@ -267,14 +274,14 @@ export const Project = ({
                   },
                 ]}
               />
-              {product.project?.id === newProjectOption && (
+              {product.project?.id === NEW_PROJECT_ID && (
                 <>
                   <Divider />
                   <CreateProject onCreate={onProjectCreated} />
                 </>
               )}
               {!!product.project?.id &&
-                product.project.id !== newProjectOption && (
+                product.project.id !== NEW_PROJECT_ID && (
                   <>
                     <Divider />
                     <Suspense fallback={<LoadingSpinner />}>
