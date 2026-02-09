@@ -117,18 +117,19 @@ export const ProjectFormFields = ({
           {
             type: "text",
             multiline: true,
-            style: { minHeight: 130 },
+            style: { minHeight: 80 },
             heading: "Kort beskrivning av projektet",
             value: description,
             placeholder:
               "Beskrivning av projektet, tillgänglighet och annan bra information för en köpare",
-            onChange: (t) => setDescription(t),
+            onChangeText: (t) => setDescription(t.slice(0, 120)),
+            helperText: `${description.length} av 120 tecken`,
           },
           {
             type: "toggle",
-            heading: "Förhandsvisning på kartan",
+            heading: "Försättsblad på kartan",
             description:
-              "En förhandsvisning av projektet kommer att visas på kartan, före annonserna.",
+              "Lägg till en försättssida innan annonserna i projektet. Visas på kartan.",
             value: showDetailsOnMap,
             onPress: () => setShowDetailsOnMap(!showDetailsOnMap),
           },

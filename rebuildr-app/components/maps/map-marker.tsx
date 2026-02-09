@@ -203,7 +203,7 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
               borderRadius: borderRadius.medium,
             }}
           />
-          <Body size="medium">{project.description}</Body>
+          <Body size="small">{project.description}</Body>
         </View>
       </View>
     );
