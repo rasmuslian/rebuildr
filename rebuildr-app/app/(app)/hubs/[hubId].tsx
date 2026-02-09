@@ -10,6 +10,7 @@ const HUB = gql`
   query Hub($input: GetProjectInput!) {
     getProject(input: $input) {
       id
+      title
       approximatePlace {
         lat
         lng
@@ -30,7 +31,9 @@ export default function Hub() {
   }
 
   return (
-    <ScreenLayout headerComponent={<Header title="Hub" />}>
+    <ScreenLayout
+      headerComponent={<Header title={data.getProject.title ?? "Hub"} />}
+    >
       <InteractiveMap
         initialCenter={data?.getProject.approximatePlace}
         productsInput={{ projectId: hubId }}
