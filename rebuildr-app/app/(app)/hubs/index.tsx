@@ -110,6 +110,10 @@ export default function Hubs() {
                 </Link>
               </View>
             )}
+            <Label size="medium">
+              Nedan listas organisationens hubbar, klicka vidare för att visa
+              dem på kartan
+            </Label>
             {u.projects.map((p, i) => (
               <Pressable
                 onPress={() => {
@@ -131,7 +135,7 @@ export default function Hubs() {
                     source={u.isFeatured ? FeaturedHubIcon.uri : HubIcon.uri}
                     style={{ height: 32, width: 32 }}
                   />
-                  <Label size="large">Visa {p.title} på kartan</Label>
+                  <Label size="large">{p.title}</Label>
                 </View>
               </Pressable>
             ))}
