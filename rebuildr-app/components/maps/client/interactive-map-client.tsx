@@ -35,14 +35,11 @@ export default function InteractiveMapClient() {
       <NavigationController />
       <PriceController />
       <ActivePinController />
-
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-
-      <UserLocationMarker position={state.center} />
-
+      <UserLocationMarker position={state.userLocation} />
       {state.pins.map((pin) => {
         const key = `${pin.location.lat},${pin.location.lng}`;
         return <MapMarker key={key} pin={pin} />;

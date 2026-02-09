@@ -31,10 +31,25 @@ export const useFilterProduct = () => {
     return acc;
   };
 
+  const toProductsQueryInput = () => {
+    return {
+      searchString: filter.searchString,
+      orderBy: filter.sorting,
+      categoryIds: filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
+      brandIds: filter.brandIds,
+      conditions: filter.conditions,
+      minPrice: filter.price?.[0],
+      maxPrice: filter.price?.[1],
+      giveaway: filter.giveaway,
+      projectId: filter.projectId,
+    };
+  };
+
   return {
     filter,
     filterBuilder,
     nrOfAppliedFilters,
+    toProductsQueryInput,
   };
 };
 

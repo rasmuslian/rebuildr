@@ -626,9 +626,9 @@ export class ProductService {
         'ranked_products',
       )
         .setParameter('searchString', input.searchString)
-        .innerJoin('ranked_products', 'rp', 'rp.id = p.id')
+        .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
         .andWhere(
-          `(rp.resultrank > 0.25 OR p.title ILIKE '${input.searchString}%' )`,
+          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE '${input.searchString}%' )`,
         )
         .addSelect('rp.resultrank', 'resultrank');
     }
