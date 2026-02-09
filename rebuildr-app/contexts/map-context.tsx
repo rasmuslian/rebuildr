@@ -5,13 +5,17 @@ import React, {
   Dispatch,
   useEffect,
 } from "react";
-import { PointInput, MapPinsQuery, MapPinsQueryVariables } from "@/gql/graphql";
+import {
+  PointInput,
+  MapPinsQuery,
+  MapPinsQueryVariables,
+  ProductsInput,
+} from "@/gql/graphql";
 import { useReducerState } from "@hooks/useReducerState";
 import { useQuery } from "@apollo/client";
 import { MAP_PINS_QUERY } from "@/queries";
 import { LatLngExpression } from "leaflet";
 import { useLocationContext } from "@context/location-context";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { defaultCenter } from "@constants/map";
 
 type Bounds = {
@@ -22,6 +26,7 @@ type Bounds = {
 type StateType = {
   showPrice: boolean;
   center: LatLngExpression;
+  userLocation: LatLngExpression;
   zoom: number;
   bounds?: Bounds;
   pins: MapPinsQuery["productMapPinsInBoundingBox"]["pins"];
@@ -34,6 +39,7 @@ type StateType = {
 const initialState: StateType = {
   showPrice: false,
   center: defaultCenter,
+  userLocation: defaultCenter,
   zoom: 5,
   bounds: undefined,
   pins: [],
@@ -47,10 +53,18 @@ type ContextType = {
 
 const Context = createContext<ContextType | null>(null);
 
-export const MapProvider = ({ children }: PropsWithChildren) => {
+type Props = {
+  initialCenter?: LatLngExpression;
+  productsInput?: ProductsInput;
+} & PropsWithChildren;
+
+export const MapProvider = ({
+  children,
+  initialCenter,
+  productsInput,
+}: Props) => {
   const [state, setState] = useReducerState<StateType>(initialState);
   const { userCoords } = useLocationContext();
-  const { filter } = useFilterProduct();
 
   useQuery<MapPinsQuery, MapPinsQueryVariables>(MAP_PINS_QUERY, {
     variables: state.bounds
@@ -59,18 +73,7 @@ export const MapProvider = ({ children }: PropsWithChildren) => {
             northEast: state.bounds.northEast,
             southWest: state.bounds.southWest,
             zoom: state.zoom,
-            productsInput: {
-              searchString: filter.searchString,
-              orderBy: filter.sorting,
-              categoryIds:
-                filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
-              brandIds: filter.brandIds,
-              conditions: filter.conditions,
-              minPrice: filter.price?.[0],
-              maxPrice: filter.price?.[1],
-              giveaway: filter.giveaway,
-              projectId: filter.projectId,
-            },
+            productsInput,
           },
         }
       : undefined,
@@ -82,8 +85,21 @@ export const MapProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (userCoords)
-      setState({ center: [userCoords.latitude, userCoords.longitude] });
+      setState({
+        userLocation: [userCoords.latitude, userCoords.longitude],
+        center:
+          state.center === defaultCenter
+            ? [userCoords.latitude, userCoords.longitude]
+            : state.center,
+      });
   }, [userCoords]);
+
+  useEffect(() => {
+    if (!initialCenter) return;
+    if (state.center === defaultCenter) {
+      setState({ center: initialCenter });
+    }
+  }, [initialCenter]);
 
   return (
     <Context.Provider

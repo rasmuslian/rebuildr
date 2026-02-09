@@ -180,7 +180,8 @@ const DesktopLayout = ({
   state,
   setState,
 }: Props) => {
-  const { filter, nrOfAppliedFilters } = useFilterProduct();
+  const { filter, nrOfAppliedFilters, toProductsQueryInput } =
+    useFilterProduct();
   const { onToggleProductHeart } = useLikeProduct();
   const { height: screenHeight } = useWindowDimensions();
   const MAP_HEIGHT = screenHeight - 72 - 48;
@@ -302,6 +303,7 @@ const DesktopLayout = ({
               height: MAP_HEIGHT,
               borderRadius: borderRadius.medium,
             }}
+            productsInput={toProductsQueryInput()}
           />
         </View>
       </ScreenLayout>

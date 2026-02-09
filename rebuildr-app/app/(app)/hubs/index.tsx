@@ -17,7 +17,6 @@ import {
   OrderUsersEnum,
   UserType,
 } from "@/gql/graphql";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Popup } from "@components/popup/popup";
@@ -57,7 +56,6 @@ export default function Hubs() {
   const [showProject, setShowProject] =
     useState<HubsQuery["users"]["users"][0]["projects"][0]>();
 
-  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
 
   const { data } = useQuery<HubsQuery, HubsQueryVariables>(HUBS, {
@@ -118,8 +116,10 @@ export default function Hubs() {
                   if (isDesktop) {
                     setShowProject(p);
                   } else {
-                    filterBuilder.reset().setProjectId(p.id).apply();
-                    router.navigate("/map");
+                    router.navigate({
+                      pathname: "/hubs/[hubId]",
+                      params: { hubId: p.id },
+                    });
                   }
                 }}
                 key={i}

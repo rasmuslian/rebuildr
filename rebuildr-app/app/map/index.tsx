@@ -14,7 +14,7 @@ export default function Map() {
   const { height: screenHeight } = useWindowDimensions();
   const searchBarHeight = 57;
   const mapHeight = screenHeight - searchBarHeight;
-  const { filterBuilder } = useFilterProduct();
+  const { filterBuilder, toProductsQueryInput } = useFilterProduct();
 
   const onChange = useDebounceCallback((text: string) => {
     filterBuilder.reset().setSearchString(text).apply();
@@ -35,7 +35,10 @@ export default function Map() {
           }}
         />
 
-        <InteractiveMap style={{ height: mapHeight }} />
+        <InteractiveMap
+          style={{ height: mapHeight }}
+          productsInput={toProductsQueryInput()}
+        />
       </View>
     </>
   );
