@@ -9,10 +9,10 @@ type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
 type Props = {
   aspect?: number;
+  aspectSlider?: boolean;
   files: UploadFile[];
   setFiles: (fileList: UploadFile[]) => void;
   allowedFileNumber?: number;
-  allowCrop?: boolean;
 };
 
 const getBase64 = (file: FileType): Promise<string> => {
@@ -26,10 +26,10 @@ const getBase64 = (file: FileType): Promise<string> => {
 
 const UploadMedia = ({
   aspect = 1,
+  aspectSlider = false,
   files = [],
   setFiles,
   allowedFileNumber = 1,
-  allowCrop = true,
 }: Props) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -47,33 +47,26 @@ const UploadMedia = ({
     setFiles(files);
   };
 
-  const uploadComponent = (
-    <Upload
-      accept=".jpeg, .jpg, .webp, .png"
-      listType="picture-card"
-      fileList={files}
-      onPreview={handlePreview}
-      onChange={handleChange}
-    >
-      {canSelectMore && <PlusOutlined />}
-    </Upload>
-  );
-
   return (
     <Fragment>
-      {allowCrop ? (
-        <ImgCrop
-          key={aspect}
-          aspect={aspect}
-          modalTitle="Beskär bild"
-          modalWidth={800}
-          showGrid
+      <ImgCrop
+        key={aspect}
+        aspect={aspect}
+        aspectSlider={aspectSlider}
+        modalTitle="Beskär bild"
+        modalWidth={800}
+        showGrid
+      >
+        <Upload
+          accept=".jpeg, .jpg, .webp, .png"
+          listType="picture-card"
+          fileList={files}
+          onPreview={handlePreview}
+          onChange={handleChange}
         >
-          {uploadComponent}
-        </ImgCrop>
-      ) : (
-        uploadComponent
-      )}
+          {canSelectMore && <PlusOutlined />}
+        </Upload>
+      </ImgCrop>
 
       {previewImage && (
         <Image
