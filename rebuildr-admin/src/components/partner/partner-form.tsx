@@ -49,7 +49,7 @@ const PartnerForm = ({
         name="logo"
         render={({ field: { value, onChange } }) => (
           <FormField label="Bild" error={errors.logo?.message} required>
-            <UploadMedia files={value} setFiles={onChange} aspect={4 / 3} />
+            <UploadMedia files={value} setFiles={onChange} allowCrop={false} />
           </FormField>
         )}
       />
