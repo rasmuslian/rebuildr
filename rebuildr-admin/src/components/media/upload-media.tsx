@@ -53,6 +53,7 @@ const UploadMedia = ({
         key={aspect}
         aspect={aspect}
         aspectSlider={aspectSlider}
+        maxAspect={10}
         modalTitle="Beskär bild"
         modalWidth={800}
         showGrid
