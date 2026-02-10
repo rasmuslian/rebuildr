@@ -155,7 +155,7 @@ export const TrendingNow = () => {
                     id={product.id}
                     imageUri={product.primaryImage?.url}
                     liked={!!product.likedByMe}
-                    heart={product.seller.id != data.me?.id}
+                    heart={product.seller.id !== data.me?.id}
                     quantity={product.primaryQuantity}
                     quantityUnit={product.primaryUnit}
                     condition={product.condition}

@@ -11,7 +11,7 @@ import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { SearchInput } from "@components/forms/searchInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Body, Display, Headline, Label } from "@components/typography/text";
+import { Body, Display, Headline } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
@@ -207,16 +207,14 @@ export const BrandSection = ({
               </Body>
             </View>
 
-            <View style={{ gap: 2, marginBottom: 24 }}>
-              <Headline size="small">Lägg till varumärke:</Headline>
+            <View style={{ gap: 4, marginBottom: 24 }}>
+              <Headline size="small" style={{ marginBottom: 6 }}>
+                Lägg till nytt varumärke:
+              </Headline>
               <Display size="small">{searchString}</Display>
               <Body size="medium" color="secondary">
-                Om varumärket saknas i vår lista kan du lägga till det manuellt.
-                <Label size="large">
-                  {" "}
-                  OBS! Var väldigt noggrann med att varumärket är rättstavat när
-                  du lägger till ett nytt varumärke.
-                </Label>
+                Om varumärket saknas kan du lägga till det manuellt. Använd
+                officiellt namn och korrekt stavning.
               </Body>
             </View>
             <View style={{ gap: 8 }}>
