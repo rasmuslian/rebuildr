@@ -29,7 +29,9 @@ export const RootCategoryFilter = () => {
 
   return (
     <FilterSection
-      initialOpen={!filter.selectedCategoryId && !!filter.rootCategoryIds}
+      initialOpen={
+        !filter.selectedCategoryId && !!filter.rootCategoryIds?.length
+      }
       title="Kategori"
       collapsedText={
         selectedCategories?.length

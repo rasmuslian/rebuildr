@@ -55,7 +55,7 @@ export default function Products() {
   const { isDesktop } = useScreenType();
   const { isLoggedIn } = useUser();
   const { userCoords } = useLocationContext();
-  const { filter } = useFilterProduct();
+  const { filter, toProductsQueryInput } = useFilterProduct();
 
   const userLocation = userCoords && {
     lat: userCoords.latitude,
@@ -68,14 +68,7 @@ export default function Products() {
   >(SEARCH_PRODUCTS_QUERY, {
     variables: {
       input: {
-        searchString: filter.searchString,
-        orderBy: filter.sorting,
-        categoryIds: filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
-        brandIds: filter.brandIds,
-        conditions: filter.conditions,
-        minPrice: filter.price?.[0],
-        maxPrice: filter.price?.[1],
-        giveaway: filter.giveaway,
+        ...toProductsQueryInput(),
         location: userLocation,
       },
       limit: PAGE_SIZE,
