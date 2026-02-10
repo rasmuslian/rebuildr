@@ -8,6 +8,7 @@ import { PostnordMock } from './mocks/postnord.mock';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   Purchase,
+  PurchaseStatusEnum,
   SupportedPaymentMethod,
   TransportationEnum,
 } from 'src/entities/purchase.entity';
@@ -22,6 +23,11 @@ import {
   ShippingPrice,
   ShippingProviderEnum,
 } from 'src/entities/shipping-price.entity';
+import {
+  BadUserInputException,
+  ForbiddenException,
+  InternalServerException,
+} from 'src/exceptions';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -111,6 +117,134 @@ describe('Purchase e2e', () => {
 
     // Reset all mocks before each test
     jest.clearAllMocks();
+  });
+
+  describe('cancelPurchase', () => {
+    it('cancels purchase, resets product status, and marks failedAt', async () => {
+      const productFixture: Partial<Product> = {
+        id: 'product-1',
+        status: ProductStatus.SOLD,
+      };
+
+      const purchaseFixture: Partial<Purchase> = {
+        id: 'purchase-1',
+        buyerId: 'buyer-1',
+        status: PurchaseStatusEnum.CLAIMED,
+        paymentIntentId: 'pi_123',
+        failedAt: null,
+        product: productFixture as Product,
+      };
+
+      mockRepositoryPurchase.findOne.mockResolvedValue(
+        purchaseFixture as Purchase,
+      );
+      mockRepositoryProduct.save.mockResolvedValue(productFixture as Product);
+      mockRepositoryPurchase.save.mockImplementation(
+        (purchase: Purchase) => purchase,
+      );
+
+      const stripeSpy = jest
+        .spyOn(stripeService, 'cancelPayment')
+        .mockResolvedValue(undefined);
+
+      const response = await purchaseService.cancelPurchase(
+        'purchase-1',
+        'buyer-1',
+      );
+
+      expect(stripeSpy).toHaveBeenCalledWith('pi_123');
+      expect(mockRepositoryProduct.save).toHaveBeenCalledWith({
+        ...productFixture,
+        status: ProductStatus.PUBLISHED,
+      });
+      expect(mockRepositoryPurchase.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          failedAt: expect.any(Date),
+        }),
+      );
+      expect(response.failedAt).toBeTruthy();
+    });
+
+    it('returns purchase when already failed', async () => {
+      const purchaseFixture: Partial<Purchase> = {
+        id: 'purchase-2',
+        buyerId: 'buyer-1',
+        status: PurchaseStatusEnum.CLAIMED,
+        paymentIntentId: 'pi_123',
+        failedAt: new Date(),
+        product: { id: 'product-2', status: ProductStatus.SOLD } as Product,
+      };
+
+      mockRepositoryPurchase.findOne.mockResolvedValue(
+        purchaseFixture as Purchase,
+      );
+
+      const stripeSpy = jest.spyOn(stripeService, 'cancelPayment');
+
+      const response = await purchaseService.cancelPurchase(
+        'purchase-2',
+        'buyer-1',
+      );
+
+      expect(stripeSpy).not.toHaveBeenCalled();
+      expect(response).toEqual(purchaseFixture);
+    });
+
+    it('throws ForbiddenException when buyer does not match', async () => {
+      const purchaseFixture: Partial<Purchase> = {
+        id: 'purchase-3',
+        buyerId: 'buyer-1',
+        status: PurchaseStatusEnum.CLAIMED,
+        paymentIntentId: 'pi_123',
+        product: { id: 'product-3', status: ProductStatus.SOLD } as Product,
+      };
+
+      mockRepositoryPurchase.findOne.mockResolvedValue(
+        purchaseFixture as Purchase,
+      );
+
+      await expect(
+        purchaseService.cancelPurchase('purchase-3', 'buyer-2'),
+      ).rejects.toMatchObject(ForbiddenException());
+    });
+
+    it('throws BadUserInputException when status is invalid', async () => {
+      const purchaseFixture: Partial<Purchase> = {
+        id: 'purchase-4',
+        buyerId: 'buyer-1',
+        status: PurchaseStatusEnum.PAYMENT_ACCEPTED,
+        paymentIntentId: 'pi_123',
+        product: { id: 'product-4', status: ProductStatus.SOLD } as Product,
+      };
+
+      mockRepositoryPurchase.findOne.mockResolvedValue(
+        purchaseFixture as Purchase,
+      );
+
+      await expect(
+        purchaseService.cancelPurchase('purchase-4', 'buyer-1'),
+      ).rejects.toMatchObject(BadUserInputException());
+    });
+
+    it('throws InternalServerException when paymentIntentId is missing', async () => {
+      const purchaseFixture: Partial<Purchase> = {
+        id: 'purchase-5',
+        buyerId: 'buyer-1',
+        status: PurchaseStatusEnum.CLAIMED,
+        paymentIntentId: null,
+        product: { id: 'product-5', status: ProductStatus.SOLD } as Product,
+      };
+
+      mockRepositoryPurchase.findOne.mockResolvedValue(
+        purchaseFixture as Purchase,
+      );
+
+      await expect(
+        purchaseService.cancelPurchase('purchase-5', 'buyer-1'),
+      ).rejects.toMatchObject(
+        InternalServerException('Missing paymentIntentId'),
+      );
+    });
   });
 
   it('test purchase PICKUP', async () => {
