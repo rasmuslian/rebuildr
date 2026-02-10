@@ -77,23 +77,32 @@ export default function Hubs() {
         praktiken
       </Body>
       {data?.users.users.map((u, i) => (
-        <React.Fragment key={i}>
+        <View key={i} style={{ gap: 24 }}>
           <AccordionSection
             title={u.username ?? ""}
             key={i}
             initialOpen={i === 0}
           >
-            <Image
-              source={u.profilePicture?.url ?? PlaceHolder}
+            <View
               style={{
-                width: 236,
-                height: 80,
-                marginVertical: 36,
+                height: 152,
+                width: "100%",
+                maxWidth: 236,
+                justifyContent: "center",
+                alignItems: "center",
                 alignSelf: "center",
               }}
-              contentFit="contain"
-            />
-            <Body size="medium">{u.description}</Body>
+            >
+              <Image
+                source={u.profilePicture?.url ?? PlaceHolder}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                }}
+                contentFit="contain"
+              />
+            </View>
+            {u.description && <Body size="medium">{u.description}</Body>}
             {u.websiteUrl && (
               <View
                 style={{
@@ -114,7 +123,7 @@ export default function Hubs() {
               Nedan listas organisationens hubbar, klicka vidare för att visa
               dem på kartan
             </Label>
-            {u.projects.map((p, i) => (
+            {u.projects.map((p, j) => (
               <Pressable
                 onPress={() => {
                   if (isDesktop) {
@@ -126,7 +135,7 @@ export default function Hubs() {
                     });
                   }
                 }}
-                key={i}
+                key={j}
               >
                 <View
                   style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
@@ -141,7 +150,7 @@ export default function Hubs() {
             ))}
           </AccordionSection>
           {i < data.users.users.length - 1 && <Divider />}
-        </React.Fragment>
+        </View>
       ))}
     </View>
   );
