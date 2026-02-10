@@ -18,6 +18,11 @@ const SEARCH_IN_SEASON = gql`
     categories(input: $input) {
       id
       name
+      parentId
+      children {
+        id
+        parentId
+      }
     }
   }
 `;
@@ -61,7 +66,7 @@ export default function InSeason() {
       </View>
       <View style={{ gap: 16 }}>
         {data?.categories.map((c, i) => (
-          <CategorySection category={c} />
+          <CategorySection category={c} key={i} />
         ))}
       </View>
     </ScreenLayout>

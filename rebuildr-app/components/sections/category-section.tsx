@@ -1,4 +1,8 @@
-import { AdRowSectionQuery, AdRowSectionQueryVariables } from "@/gql/graphql";
+import {
+  AdRowSectionQuery,
+  AdRowSectionQueryVariables,
+  SearchInSeasonQuery,
+} from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
 import {
   AD_ROW_SECTION,
@@ -10,19 +14,21 @@ import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 
 type Props = {
-  category: { id: string; name: string };
+  category: SearchInSeasonQuery["categories"][0];
 };
 
-export const CategorySection = ({ category: { id, name } }: Props) => {
+export const CategorySection = ({ category }: Props) => {
   const { isLoggedIn } = useUser();
   const { filterBuilder } = useFilterProduct();
+
+  const flattenCategories = [category, ...category.children];
 
   const { data } = useQuery<AdRowSectionQuery, AdRowSectionQueryVariables>(
     AD_ROW_SECTION,
     {
       variables: {
         input: {
-          categoryIds: [id],
+          categoryIds: flattenCategories.map((c) => c.id),
         },
         limit: 10,
         offset: 0,
@@ -38,9 +44,12 @@ export const CategorySection = ({ category: { id, name } }: Props) => {
   return (
     <AdRowSection
       data={data}
-      title={name}
+      title={category.name}
       onPress={() => {
-        filterBuilder.setCategories([{ id }]).setSelectedCategoryId(id).apply();
+        filterBuilder
+          .setCategories(flattenCategories)
+          .setSelectedCategoryId(category.id)
+          .apply();
         router.navigate("/search/products");
       }}
     />
