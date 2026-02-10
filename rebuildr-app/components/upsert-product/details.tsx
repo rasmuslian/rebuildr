@@ -148,60 +148,65 @@ export const Details = ({
           </View>
           {showDetails && product.categoryIds?.[1] && (
             <>
-              <MeasurementsSection
-                categoryId={product.categoryIds[1]}
-                value={{
-                  THICKNESS:
-                    product.thickness !== undefined
-                      ? {
-                          value: product.thickness,
-                          unit: product.thicknessUnit,
-                        }
-                      : undefined,
-                  HEIGHT:
-                    product.height !== undefined
-                      ? { value: product.height, unit: product.heightUnit }
-                      : undefined,
-                  WIDTH:
-                    product.width !== undefined
-                      ? { value: product.width, unit: product.widthUnit }
-                      : undefined,
-                  LENGTH:
-                    product.length !== undefined
-                      ? { value: product.length, unit: product.lengthUnit }
-                      : undefined,
-                  DIAMETER:
-                    product.diameter !== undefined
-                      ? { value: product.diameter, unit: product.diameterUnit }
-                      : undefined,
-                  WEIGHT:
-                    product.weight !== undefined
-                      ? { value: product.weight, unit: product.weightUnit }
-                      : undefined,
-                }}
-                onChange={(measurementType, value, unit) => {
-                  switch (measurementType) {
-                    case MeasurementTypeEnum.Thickness:
-                      update({ thickness: value, thicknessUnit: unit });
-                      break;
-                    case MeasurementTypeEnum.Height:
-                      update({ height: value, heightUnit: unit });
-                      break;
-                    case MeasurementTypeEnum.Width:
-                      update({ width: value, widthUnit: unit });
-                      break;
-                    case MeasurementTypeEnum.Length:
-                      update({ length: value, lengthUnit: unit });
-                      break;
-                    case MeasurementTypeEnum.Diameter:
-                      update({ diameter: value, diameterUnit: unit });
-                      break;
-                    case MeasurementTypeEnum.Weight:
-                      update({ weight: value, weightUnit: unit });
-                      break;
-                  }
-                }}
-              />
+              <View style={{ zIndex: 2 }}>
+                <MeasurementsSection
+                  categoryId={product.categoryIds[1]}
+                  value={{
+                    THICKNESS:
+                      product.thickness !== undefined
+                        ? {
+                            value: product.thickness,
+                            unit: product.thicknessUnit,
+                          }
+                        : undefined,
+                    HEIGHT:
+                      product.height !== undefined
+                        ? { value: product.height, unit: product.heightUnit }
+                        : undefined,
+                    WIDTH:
+                      product.width !== undefined
+                        ? { value: product.width, unit: product.widthUnit }
+                        : undefined,
+                    LENGTH:
+                      product.length !== undefined
+                        ? { value: product.length, unit: product.lengthUnit }
+                        : undefined,
+                    DIAMETER:
+                      product.diameter !== undefined
+                        ? {
+                            value: product.diameter,
+                            unit: product.diameterUnit,
+                          }
+                        : undefined,
+                    WEIGHT:
+                      product.weight !== undefined
+                        ? { value: product.weight, unit: product.weightUnit }
+                        : undefined,
+                  }}
+                  onChange={(measurementType, value, unit) => {
+                    switch (measurementType) {
+                      case MeasurementTypeEnum.Thickness:
+                        update({ thickness: value, thicknessUnit: unit });
+                        break;
+                      case MeasurementTypeEnum.Height:
+                        update({ height: value, heightUnit: unit });
+                        break;
+                      case MeasurementTypeEnum.Width:
+                        update({ width: value, widthUnit: unit });
+                        break;
+                      case MeasurementTypeEnum.Length:
+                        update({ length: value, lengthUnit: unit });
+                        break;
+                      case MeasurementTypeEnum.Diameter:
+                        update({ diameter: value, diameterUnit: unit });
+                        break;
+                      case MeasurementTypeEnum.Weight:
+                        update({ weight: value, weightUnit: unit });
+                        break;
+                    }
+                  }}
+                />
+              </View>
               <View
                 style={{
                   zIndex: 1 /**zIndex required to make SelectInput inside ColorSelection render above DocumentSection */,
