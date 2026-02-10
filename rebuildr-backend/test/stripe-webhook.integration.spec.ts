@@ -20,7 +20,7 @@ import { User, UserType } from 'src/entities/user.entity';
 import { Review } from 'src/entities/review.entity';
 import { TransportationEnum } from 'src/entities/purchase.entity';
 
-describe('Stripe webhook integration', () => {
+describe('Stripe webhook', () => {
   let app: INestApplication;
   let moduleRef: TestingModule;
   let purchaseService: PurchaseService;
@@ -137,7 +137,7 @@ describe('Stripe webhook integration', () => {
     jest.clearAllMocks();
   });
 
-  it('routes payment_intent.created to purchaseService.paymentStarted', async () => {
+  it('payment_intent.created', async () => {
     const payload = { id: 'pi_123' };
     constructEventSpy.mockReturnValue({
       id: 'evt_platform',
@@ -170,7 +170,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payment_intent.succeeded to purchaseService.paymentCompleted', async () => {
+  it('payment_intent.succeeded', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_platform_success',
       type: 'payment_intent.succeeded',
@@ -216,7 +216,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payment_intent.canceled to purchaseService.paymentCanceled', async () => {
+  it('payment_intent.canceled', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_platform_canceled',
       type: 'payment_intent.canceled',
@@ -259,7 +259,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payment_intent.payment_failed to purchaseService.paymentFailed', async () => {
+  it('payment_intent.payment_failed', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_platform_failed',
       type: 'payment_intent.payment_failed',
@@ -298,7 +298,7 @@ describe('Stripe webhook integration', () => {
     expect(purchaseRepository.remove).toHaveBeenCalledWith(purchaseFixture);
   });
 
-  it('routes refund.created to purchaseService.paymentRefunded', async () => {
+  it('refund.created', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_platform_refund',
       type: 'refund.created',
@@ -345,7 +345,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payout.created to purchaseService.payoutStarted', async () => {
+  it('payout.created', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_connected_payout',
       type: 'payout.created',
@@ -370,7 +370,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes account.updated to stripeService.onAccountUpdated', async () => {
+  it('account.updated', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_connected_account',
       type: 'account.updated',
@@ -437,7 +437,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payout.failed to purchaseService.payoutFailed', async () => {
+  it('payout.failed', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_connected_payout_failed',
       type: 'payout.failed',
@@ -462,7 +462,7 @@ describe('Stripe webhook integration', () => {
     );
   });
 
-  it('routes payout.paid to purchaseService.payoutComplete', async () => {
+  it('payout.paid', async () => {
     constructEventSpy.mockReturnValue({
       id: 'evt_connected_payout_paid',
       type: 'payout.paid',
