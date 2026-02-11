@@ -149,7 +149,7 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
 
   const product = data?.product;
   const project = product?.project;
-  const projectIsShowDetails = project?.description && project.showDetailsOnMap;
+  const projectIsShowDetails = project?.shortText && project.showDetailsOnMap;
 
   const hasPreviousProduct = currentIndex > MIN || projectIsShowDetails;
 
@@ -175,7 +175,7 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
 
           <View style={{ flex: 1, alignItems: "center" }}>
             <Body size="small" color="secondary">
-              0 av {numberOfProducts}
+              Försättsblad
             </Body>
           </View>
 
@@ -194,7 +194,7 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
 
         <Divider />
 
-        <View style={{ gap: 8, marginTop: 6 }}>
+        <View style={{ gap: 8, marginTop: 6, minHeight: 200 }}>
           <Image
             source={product?.seller.profilePicture?.url}
             style={{
@@ -204,7 +204,7 @@ const ActiveMarkerPopup = ({ pin }: Props) => {
             }}
             contentFit="contain"
           />
-          <Body size="small">{project.description}</Body>
+          <Body size="small">{project.shortText}</Body>
         </View>
       </View>
     );

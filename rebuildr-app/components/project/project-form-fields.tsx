@@ -13,6 +13,7 @@ export type ProjectFormType = Pick<
   Project,
   | "title"
   | "description"
+  | "shortText"
   | "contactName"
   | "contactEmail"
   | "contactPhone"
@@ -41,6 +42,9 @@ export const ProjectFormFields = ({
   const [showDetailsOnMap, setShowDetailsOnMap] = useState(
     project?.showDetailsOnMap ?? false,
   );
+  const [shortText, setShortText] = useState(project?.shortText ?? "");
+  const [shortTextError, setShortTextError] = useState("");
+
   const [altContact, setAltContact] = useState<{
     name?: string;
     email?: string;
@@ -85,9 +89,14 @@ export const ProjectFormFields = ({
   };
 
   const onSaveProject = () => {
+    if (!shortText.length && showDetailsOnMap) {
+      setShortTextError("Får inte vara tom");
+      return;
+    }
     onSave({
       title,
       description,
+      shortText,
       contactName: altContact?.name ?? null,
       contactEmail: altContact?.email ?? null,
       contactPhone: altContact?.phone ?? null,
@@ -102,6 +111,7 @@ export const ProjectFormFields = ({
 
   const isLoading = loading || _isLoading;
   const canSave = !!title && !!address && !isLoading;
+  const isError = !!shortTextError;
 
   return (
     <View style={{ gap: 24 }}>
@@ -117,13 +127,13 @@ export const ProjectFormFields = ({
           {
             type: "text",
             multiline: true,
-            style: { minHeight: 80 },
-            heading: "Kort beskrivning av projektet",
+            style: { minHeight: 130 },
+            heading: "Beskrivning av projektet",
             value: description,
             placeholder:
               "Beskrivning av projektet, tillgänglighet och annan bra information för en köpare",
-            onChangeText: (t) => setDescription(t.slice(0, 120)),
-            helperText: `${description.length} av 120 tecken`,
+            onChangeText: (t) => setDescription(t.slice(0, 5000)),
+            helperText: `${description.length} av 5000 tecken`,
           },
           {
             type: "toggle",
@@ -135,6 +145,27 @@ export const ProjectFormFields = ({
           },
         ]}
       />
+      {showDetailsOnMap && (
+        <Form
+          fields={[
+            {
+              type: "text",
+              multiline: true,
+              style: { minHeight: 80 },
+              heading: "Projektbeskrivning (visas på Försättssidan)",
+              value: shortText,
+              placeholder:
+                "Någon mening om projektet som kommer visas på Försättssidan på kartan",
+              onChangeText: (t) => {
+                setShortTextError("");
+                setShortText(t.slice(0, 120));
+              },
+              helperText: `${shortText.length} av 120 tecken`,
+              error: shortTextError || undefined,
+            },
+          ]}
+        />
+      )}
       <View style={{ flexDirection: "row", gap: 16, alignItems: "center" }}>
         <View style={{ gap: 4, flex: 1 }}>
           <Title size="medium">Lägg till alternativ kontakt</Title>
@@ -223,6 +254,11 @@ export const ProjectFormFields = ({
         </Body>
       </View>
       <View style={{ gap: 8 }}>
+        {isError && (
+          <Body size="small" color="error">
+            Något gick fel
+          </Body>
+        )}
         <Button
           label="Spara projekt"
           onPress={onSaveProject}

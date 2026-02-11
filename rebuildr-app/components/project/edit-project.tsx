@@ -15,6 +15,7 @@ const EDIT_PROJECT_QUERY = gql`
       id
       title
       description
+      shortText
       contactName
       contactEmail
       contactPhone
@@ -34,7 +35,7 @@ const UPDATE_PROJECT = gql`
       id
       title
       description
-      description
+      shortText
       contactName
       contactEmail
       contactPhone
@@ -79,6 +80,7 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
           id,
           title: project.title,
           description: project.description,
+          shortText: project.shortText,
           location: {
             lat: project.location.lat,
             lng: project.location.lng,

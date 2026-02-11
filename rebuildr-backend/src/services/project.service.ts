@@ -82,6 +82,7 @@ export class ProjectService {
 
     project.title = input.title;
     project.description = input.description;
+    project.shortText = input.shortText;
     project.contactEmail = input.contactEmail;
     project.contactName = input.contactName;
     project.contactPhone = input.contactPhone;
@@ -123,6 +124,9 @@ export class ProjectService {
     }
     if (input.description !== undefined) {
       project.description = input.description;
+    }
+    if (input.shortText !== undefined) {
+      project.shortText = input.shortText;
     }
     if (input.contactName !== undefined) {
       project.contactName = input.contactName;

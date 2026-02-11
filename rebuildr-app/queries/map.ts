@@ -44,6 +44,7 @@ export const MAP_PRODUCT_QUERY = gql`
         id
         title
         description
+        shortText
         showDetailsOnMap
       }
     }

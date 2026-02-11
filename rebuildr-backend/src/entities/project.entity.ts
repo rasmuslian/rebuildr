@@ -37,6 +37,10 @@ export class Project {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  shortText?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   contactName?: string;
 
   @Field({ nullable: true })
