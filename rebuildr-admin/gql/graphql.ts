@@ -207,6 +207,7 @@ export type CmsCreateProjectInput = {
   contactName?: InputMaybe<Scalars['String']['input']>;
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
+  shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
@@ -374,6 +375,7 @@ export type CmsUpdateProjectInput = {
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
   id: Scalars['String']['input'];
+  shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
@@ -451,6 +453,7 @@ export type CreateProjectInput = {
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   location: LocationInputType;
+  shortText?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -1429,6 +1432,7 @@ export type Project = {
   location: LocationResponse;
   products: Array<Product>;
   projectPicture?: Maybe<File>;
+  shortText?: Maybe<Scalars['String']['output']>;
   showDetailsOnMap: Scalars['Boolean']['output'];
   title: Scalars['String']['output'];
   user: User;
@@ -2015,6 +2019,7 @@ export type UpdateProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   location?: InputMaybe<LocationInputType>;
+  shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };

@@ -116,6 +116,9 @@ class CmsBaseProjectInput {
   @Field(() => String)
   description: string;
 
+  @Field(() => String, { nullable: true })
+  shortText?: string;
+
   @Field(() => String)
   address: string;
 

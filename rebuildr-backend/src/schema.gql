@@ -1366,6 +1366,7 @@ input DeleteProjectInput {
 input CmsCreateProjectInput {
   title: String!
   description: String!
+  shortText: String
   address: String!
   contactName: String
   contactEmail: String
@@ -1376,6 +1377,7 @@ input CmsCreateProjectInput {
 input CmsUpdateProjectInput {
   title: String!
   description: String!
+  shortText: String
   address: String!
   contactName: String
   contactEmail: String

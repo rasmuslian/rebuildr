@@ -26,6 +26,7 @@ const CreateProject = () => {
     resolver: zodResolver(ProjectSchema),
     defaultValues: {
       showDetailsOnMap: false,
+      shortText: "",
     },
   });
 
@@ -58,6 +59,7 @@ const CreateProject = () => {
       description: formData.description,
       address: formData.address,
       showDetailsOnMap: formData.showDetailsOnMap,
+      shortText: formData.shortText || null,
       contactName: formData.contact.name || null,
       contactEmail: formData.contact.email || null,
       contactPhone: formData.contact.phone || null,
