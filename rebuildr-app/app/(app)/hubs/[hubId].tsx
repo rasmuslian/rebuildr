@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import InteractiveMap from "@components/maps/interactive-map";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { borderRadius } from "@constants/sizes";
 import { useLocalSearchParams } from "expo-router";
 
 const HUB = gql`
@@ -37,6 +38,7 @@ export default function Hub() {
       <InteractiveMap
         initialCenter={data?.getProject.approximatePlace}
         productsInput={{ projectId: hubId }}
+        style={{ height: "100%", borderRadius: borderRadius.small }}
       />
     </ScreenLayout>
   );
