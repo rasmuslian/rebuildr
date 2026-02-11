@@ -11,6 +11,7 @@ import {
   FieldErrors,
   Control,
   Controller,
+  useWatch,
 } from "react-hook-form";
 
 type Props = {
@@ -32,6 +33,8 @@ const ProjectForm = ({
   submitLabel,
   isPending,
 }: Props) => {
+  const showDetailsOnMap = useWatch({ control, name: "showDetailsOnMap" });
+
   return (
     <AdminForm title={title} type="raised" onSubmit={handleSubmit(onSubmit)}>
       <Controller
@@ -82,11 +85,31 @@ const ProjectForm = ({
                 checked={value}
                 onChange={(event) => onChange(event.target.checked)}
               />
-              Visa projektinformation på kartan
+              Visa förssättssida på kartan
             </label>
           </FormField>
         )}
       />
+
+      {showDetailsOnMap && (
+        <Controller
+          control={control}
+          name="shortText"
+          render={({ field }) => (
+            <FormField
+              label="Försättssida text"
+              error={errors.shortText?.message}
+            >
+              <Input.TextArea
+                {...field}
+                rows={3}
+                maxLength={120}
+                placeholder="Max 120 tecken"
+              />
+            </FormField>
+          )}
+        />
+      )}
 
       <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
         <Divider orientation="left" size="small">

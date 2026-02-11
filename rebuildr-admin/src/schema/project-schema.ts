@@ -1,7 +1,8 @@
 import { z } from "zod";
 import validator from "validator";
 
-export const ProjectSchema = z.object({
+export const ProjectSchema = z
+  .object({
   title: z
     .string({
       required_error: "Du måste ange rubrik.",
@@ -25,6 +26,13 @@ export const ProjectSchema = z.object({
 
   showDetailsOnMap: z.boolean(),
 
+  shortText: z
+    .string({
+      invalid_type_error: "Kort text måste vara en text.",
+    })
+    .max(120, { message: "Kort text får vara max 120 tecken." })
+    .optional(),
+
   contact: z.object({
     name: z.union([
       z.literal("").optional(),
@@ -43,6 +51,15 @@ export const ProjectSchema = z.object({
       }),
     ]),
   }),
-});
+  })
+  .superRefine((data, ctx) => {
+    if (data.showDetailsOnMap && !data.shortText?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Kort text krävs när projektinformation visas på kartan.",
+        path: ["shortText"],
+      });
+    }
+  });
 
 export type ProjectSchemaType = z.infer<typeof ProjectSchema>;

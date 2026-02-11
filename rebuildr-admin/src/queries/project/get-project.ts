@@ -10,6 +10,7 @@ const query = `
       contactPhone
       contactName
       description
+      shortText
       address
       showDetailsOnMap
     }

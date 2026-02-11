@@ -32,6 +32,7 @@ const EditProject = ({ project }: Props) => {
     defaultValues: {
       title: project.title,
       description: project.description ?? "",
+      shortText: project.shortText ?? "",
       address: project.address,
       showDetailsOnMap: project.showDetailsOnMap,
       contact: {
@@ -72,6 +73,7 @@ const EditProject = ({ project }: Props) => {
       description: formData.description,
       address: formData.address,
       showDetailsOnMap: formData.showDetailsOnMap,
+      shortText: formData.shortText || null,
       contactName: formData.contact.name || null,
       contactEmail: formData.contact.email || null,
       contactPhone: formData.contact.phone || null,

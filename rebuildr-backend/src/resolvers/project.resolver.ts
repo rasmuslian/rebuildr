@@ -44,6 +44,8 @@ export class CreateProjectInput {
   title: string;
   @Field({ nullable: true })
   description?: string;
+  @Field({ nullable: true })
+  shortText?: string;
   @Field(() => LocationInputType)
   location: LocationInputType;
   @Field({ nullable: true })
@@ -62,6 +64,8 @@ export class UpdateProjectInput {
   title?: string;
   @Field({ nullable: true })
   description?: string;
+  @Field({ nullable: true })
+  shortText?: string;
   @Field(() => LocationInputType, { nullable: true })
   location?: LocationInputType;
   @Field({ nullable: true })
@@ -111,6 +115,9 @@ class CmsBaseProjectInput {
 
   @Field(() => String)
   description: string;
+
+  @Field(() => String, { nullable: true })
+  shortText?: string;
 
   @Field(() => String)
   address: string;

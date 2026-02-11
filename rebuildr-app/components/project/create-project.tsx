@@ -27,7 +27,7 @@ const CREATE_PROJECT_MUTATION = gql`
       id
       title
       description
-      description
+      shortText
       contactName
       contactEmail
       contactPhone
@@ -57,6 +57,7 @@ export const CreateProject = ({ onCreate }: Props) => {
         input: {
           title: project.title,
           description: project.description,
+          shortText: project.shortText,
           location: {
             lat: project.location.lat,
             lng: project.location.lng,
