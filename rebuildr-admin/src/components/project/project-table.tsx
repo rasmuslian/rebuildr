@@ -93,7 +93,7 @@ const ProjectTable = () => {
       width: "250px",
     },
     {
-      title: "Kontakt uppgifter",
+      title: "Kontaktuppgifter",
       key: "contact",
       children: [
         {
