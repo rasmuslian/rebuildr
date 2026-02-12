@@ -36,12 +36,18 @@ export default function Partners() {
     <View style={{ gap: 24 }}>
       <Display size="small">Partnersida</Display>
       <Body size="medium">
-        Här samlas både RebuildRs egna hubbar och företagsdrivna hubbar – alla
-        kopplade till produkter för återbruk
+        Här presenteras RebuildRs partner – verksamheter som valt att arbeta
+        aktivt med återbruk. Det gemensamma är viljan att omsätta cirkulära mål
+        i faktisk handling och att bidra till ett mer resurseffektiva
+        materialflöden.
+      </Body>
+
+      <Body size="medium" link="/">
+        Läs mer om vårt partnerprogram här.{" "}
       </Body>
       {data?.partners.map((p, i) => (
         <React.Fragment key={i}>
-          <AccordionSection title={p.name} key={i} initialOpen={i === 0}>
+          <AccordionSection title={p.name} initialOpen={i === 0}>
             <Image
               source={p.logo.url}
               style={{
