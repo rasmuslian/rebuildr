@@ -29,7 +29,7 @@ import { DocumentIcon } from "@icons/document-icon";
 
 type Props = {
   product: ProductViewQuery["product"] | ProductFields;
-  brand?: Brand | null;
+  brand?: Pick<Brand, "name"> | null;
   category?: Pick<Category, "id" | "name"> | null;
   parentCategory?: Pick<Category, "id" | "name"> | null;
   documents: { url: string; name?: string | null; mimeType: string }[];

@@ -24,6 +24,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
+import InteractiveMap from "@components/maps/interactive-map";
 
 export const ProjectMobile = () => {
   const { width: screenWidth } = useWindowDimensions();
@@ -257,13 +258,16 @@ export const ProjectMobile = () => {
         name="projectLocation"
         screenHeight
       >
-        <View>
-          <MapThumbnail
-            coords={location ? [location.lat, location.lng] : undefined}
-            markerType={MapPinProjectType(me)}
+        {project && (
+          <InteractiveMap
+            productsInput={{ projectId }}
+            initialCenter={{
+              lat: project.approximatePlace.lat,
+              lng: project.approximatePlace.lng,
+            }}
             style={{ height: 700 }}
           />
-        </View>
+        )}
       </BottomSheet>
     </ScreenLayout>
   );

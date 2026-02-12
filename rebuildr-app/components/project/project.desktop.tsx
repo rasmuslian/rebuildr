@@ -7,7 +7,13 @@ import {
   UserType,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
-import { Display, Label, Body, Title } from "@components/typography/text";
+import {
+  Display,
+  Label,
+  Body,
+  Title,
+  Headline,
+} from "@components/typography/text";
 import { View, Pressable } from "react-native";
 import { Avatar } from "@components/avatar/avatar";
 import { CompanyBadge } from "@components/badges/company-badge";
@@ -19,13 +25,13 @@ import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { GET_PROJECT } from "@/queries";
 import TopBar from "@components/navigation/top-bar/top-bar";
-import { PickupPositionPopupContent } from "@components/preview-product/pickup-position-popup-content";
 import { useState } from "react";
 import { Popup } from "@components/popup/popup";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { EditProject } from "./edit-project";
 import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
+import InteractiveMap from "@components/maps/interactive-map";
 
 export const ProjectDesktop = () => {
   const { onToggleProductHeart } = useLikeProduct();
@@ -240,11 +246,31 @@ export const ProjectDesktop = () => {
           onClose={() => setShowMapPopup(false)}
           type="full"
         >
-          <PickupPositionPopupContent
-            address={location.address}
-            location={location}
-            markerType={MapPinProjectType(me)}
-          />
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <View style={{ padding: 24, width: "70%" }}>
+              <Headline size="small" style={{ marginBottom: 16 }}>
+                Plats för {project.title}
+              </Headline>
+              <Body
+                size="medium"
+                color="primaryDark"
+                style={{ marginBottom: 16 }}
+              >
+                {location.address}
+              </Body>
+              <Body size="small" color="secondary" style={{ marginBottom: 24 }}>
+                Ungefärligt område.
+              </Body>
+              <InteractiveMap
+                productsInput={{ projectId }}
+                initialCenter={{
+                  lat: project.approximatePlace.lat,
+                  lng: project.approximatePlace.lng,
+                }}
+                style={{ height: 700 }}
+              />
+            </View>
+          </View>
         </Popup>
       )}
     </ScreenLayout>

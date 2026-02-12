@@ -1,5 +1,6 @@
 import {
   ApproximatePlaceResponse,
+  MapPinTypeEnum,
   Maybe,
   ProductConditionEnum,
   ProductStatusEnum,
@@ -352,7 +353,7 @@ export const ProductDesktop = ({
           <PickupPositionPopupContent
             address={approximatePlace.address}
             location={location}
-            markerType="product"
+            markerType={MapPinTypeEnum.Product}
           />
         )}
       </Popup>
