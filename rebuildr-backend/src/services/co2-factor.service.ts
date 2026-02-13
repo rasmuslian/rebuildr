@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -8,6 +8,7 @@ import { CO2Factor } from 'src/entities/co2-factor.entity';
 import { Repository } from 'typeorm';
 import { Logger } from 'winston';
 
+@Injectable()
 export class CO2FactorService {
   constructor(
     @InjectRepository(CO2Factor)
@@ -15,6 +16,12 @@ export class CO2FactorService {
     private boverketApi: BoverketAPI,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
+
+  async getCO2Factors() {
+    return await this.co2FactorRepository.find({
+      order: { resourceId: 'ASC' },
+    });
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncCO2Data() {

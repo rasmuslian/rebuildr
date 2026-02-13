@@ -7,9 +7,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
-import { Field, ID } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @Entity()
+@ObjectType()
 export class CO2Factor {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')

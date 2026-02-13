@@ -275,6 +275,13 @@ enum BrandTypeEnum {
   REGULAR
 }
 
+type CO2Factor {
+  id: ID!
+  coefficient: Float!
+  productName: String!
+  categoryName: String!
+}
+
 type Category {
   id: ID!
   name: String!
@@ -293,6 +300,7 @@ type Category {
   hasChildren: Boolean!
   brands: [Brand!]!
   parent: Category
+  co2Factor: CO2Factor
 }
 
 enum CategoryIconEnum {
@@ -738,6 +746,7 @@ type Query {
   listFooterSection: [FooterSection!]!
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   partners: [Partner!]!
+  co2Factors: [CO2Factor!]!
 }
 
 input UserExistsInput {
@@ -1255,26 +1264,28 @@ input RemoveProductInput {
 }
 
 input CmsCreateCategoryInput {
+  image: FileInputType
+  parentId: String
+  brandIds: [String!]
+  co2FactorId: String
   inSelection: Boolean!
   inSeason: Boolean!
   name: String!
   description: String!
   measurements: [MeasurementTypeEnum!]!
-  image: FileInputType
-  parentId: String
-  brandIds: [String!]
 }
 
 input CmsUpdateCategoryInput {
-  inSelection: Boolean!
-  inSeason: Boolean!
-  name: String!
-  description: String!
-  measurements: [MeasurementTypeEnum!]!
   image: FileInputType
   parentId: String
   brandIds: [String!]
+  co2FactorId: String
   id: String!
+  inSelection: Boolean
+  inSeason: Boolean
+  name: String
+  description: String
+  measurements: [MeasurementTypeEnum!]
 }
 
 input CmsUpdateCategoriesInput {

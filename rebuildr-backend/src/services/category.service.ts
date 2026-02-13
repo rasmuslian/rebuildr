@@ -128,22 +128,23 @@ export class CategoryService {
     }
 
     try {
-      const parentCategory = input.parentId
-        ? await this.categoryRepository.findOneBy({ id: input.parentId })
-        : null;
-
       const brands = input.brandIds
         ? await this.brandRepository.findBy({ id: In(input.brandIds) })
         : null;
 
       Object.assign<Category, Partial<Category>>(category, {
-        inSeason: input.inSeason,
-        inSelection: input.inSelection,
-        name: input.name,
-        description: input.description,
-        measurements: input.measurements,
-        parent: parentCategory,
-        brands: brands,
+        inSeason:
+          input.inSeason !== undefined ? input.inSeason : category.inSeason,
+        inSelection:
+          input.inSelection !== undefined
+            ? input.inSelection
+            : category.inSelection,
+        name: input.name ?? category.name,
+        description: input.description ?? category.description,
+        measurements: input.measurements ?? category.measurements,
+        parentId: input.parentId ?? category.parentId,
+        brands: brands ?? category.brands,
+        co2FactorId: input.co2FactorId ?? category.co2FactorId,
       });
 
       if (input.image) {

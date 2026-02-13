@@ -124,6 +124,8 @@ export class Category {
   })
   measurements: MeasurementTypeEnum[];
 
+  @Column({ nullable: true })
+  co2FactorId?: string;
   @ManyToOne(() => CO2Factor, (co2) => co2.id, { nullable: true })
   co2Factor?: CO2Factor;
 }

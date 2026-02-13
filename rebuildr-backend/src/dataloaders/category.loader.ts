@@ -5,12 +5,14 @@ import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import { DataloaderService } from './dataloader.service';
 import { Brand } from 'src/entities/brand.entity';
+import { CO2Factor } from 'src/entities/co2-factor.entity';
 
 export interface ICategoryLoaders {
   childrenLoader: DataLoader<string, Category[]>;
   imageLoader: DataLoader<string, File>;
   brandsLoader: DataLoader<string, Brand[]>;
   parentLoader: DataLoader<string, Category>;
+  co2FactorLoader: DataLoader<string, CO2Factor | null>;
 }
 
 @Injectable()
@@ -72,6 +74,11 @@ export class CategoryLoader {
         'parent',
         Category,
       ),
+      co2FactorLoader:
+        this.dataloaderService.targetByParentIdLoader<CO2Factor | null>(
+          'co2Factor',
+          Category,
+        ),
     };
   }
 }
