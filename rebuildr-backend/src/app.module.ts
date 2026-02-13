@@ -114,6 +114,9 @@ import { PartnerLoader } from './dataloaders/partner.loader';
 import { PartnerService } from './services/partner.service';
 import { PartnerResolver } from './resolvers/partner.resolver';
 import { BrandLoader } from './dataloaders/brand.loader';
+import { CO2Factor } from './entities/co2-factor.entity';
+import { CO2FactorService } from './services/co2-factor.service';
+import { BoverketAPI } from './apis/boverket.api';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -168,6 +171,7 @@ export interface RequestType {
       FooterSectionEntry,
       MapPin,
       Partner,
+      CO2Factor,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -304,6 +308,8 @@ export interface RequestType {
     S3Service,
     PartnerService,
     PartnerResolver,
+    CO2FactorService,
+    BoverketAPI,
   ],
 })
 export class AppModule {}
