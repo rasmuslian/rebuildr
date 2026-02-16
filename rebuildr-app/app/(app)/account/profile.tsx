@@ -21,9 +21,10 @@ import { EditProfile } from "@components/profile/edit-profile";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
+import { CO2Summary } from "@components/profile/co2-summary";
 
 export default function Profile() {
-  const [tab, setTab] = useState<"products" | "reviewed">("products");
+  const [tab, setTab] = useState<"products" | "reviewed" | "co2">("products");
   const [editMode, setEditMode] = useState(false);
 
   const { isDesktop } = useScreenType();
@@ -131,6 +132,11 @@ export default function Profile() {
                 active: tab === "reviewed",
                 onActivate: () => setTab("reviewed"),
               },
+              {
+                title: "CO2 besparing",
+                active: tab === "co2",
+                onActivate: () => setTab("co2"),
+              },
             ]}
           />
           {tab === "products" && (
@@ -150,6 +156,10 @@ export default function Profile() {
               isMyProfile={isMyProfile}
               profileQuery={profileData}
             />
+          )}
+
+          {tab === "co2" && (
+            <CO2Summary totalCO2Savings={profileData.user.totalCO2Savings} />
           )}
         </ScreenLayout>
 
@@ -206,6 +216,11 @@ export default function Profile() {
               active: tab === "reviewed",
               onActivate: () => setTab("reviewed"),
             },
+            {
+              title: "CO2 besparing",
+              active: tab === "co2",
+              onActivate: () => setTab("co2"),
+            },
           ]}
         />
 
@@ -226,6 +241,10 @@ export default function Profile() {
             isMyProfile={isMyProfile}
             profileQuery={profileData}
           />
+        )}
+
+        {tab === "co2" && (
+          <CO2Summary totalCO2Savings={profileData.user.totalCO2Savings} />
         )}
       </ScreenLayout>
     </>

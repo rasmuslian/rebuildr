@@ -525,4 +525,12 @@ export class UserResolver {
     const owners = await userLoaders.getOrganizationOwners.load(user.id);
     return owners?.[0];
   }
+
+  @ResolveField(() => Number)
+  async totalCO2Savings(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.totalCO2Savings.load(user.id);
+  }
 }

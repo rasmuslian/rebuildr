@@ -29,6 +29,7 @@ export interface IUserLoaders {
   reviewedLoader: DataLoader<string, Review[]>;
   getOrganizations: DataLoader<string, User[]>;
   getOrganizationOwners: DataLoader<string, User[]>;
+  totalCO2Savings: DataLoader<string, number>;
 }
 
 @Injectable()
@@ -260,6 +261,30 @@ export class UserLoader {
     });
   }
 
+  private totalCO2Savings() {
+    return new DataLoader(async (userIds) => {
+      const users: { userId: string; totalCO2Saving: number }[] =
+        await this.dataSource
+          .getRepository(User)
+          .createQueryBuilder('u')
+          .groupBy('u.id')
+          .leftJoin(
+            Product,
+            'p',
+            `p."sellerId" = u.id AND p.status = '${ProductStatus.SOLD}'`,
+          )
+          .select('u.id as "userId", SUM(p."co2Saving") as "totalCO2Saving"')
+          .where('u.id IN (:...userIds)', { userIds })
+          .getRawMany();
+
+      const savings = userIds.map(
+        (userId) =>
+          users.find((user) => user.userId === userId)?.totalCO2Saving ?? 0,
+      );
+      return savings;
+    });
+  }
+
   createLoaders(): IUserLoaders {
     return {
       getUserLoader: this.getUserLoader(),
@@ -285,6 +310,7 @@ export class UserLoader {
       reviewedLoader: this.reviewedLoader(),
       getOrganizations: this.getOrganizations(),
       getOrganizationOwners: this.getOrganizationOwners(),
+      totalCO2Savings: this.totalCO2Savings(),
     };
   }
 }

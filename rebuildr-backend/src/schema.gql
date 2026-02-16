@@ -202,6 +202,7 @@ type User {
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   organizationAccount: User
   organizationOwner: User
+  totalCO2Savings: Float!
 }
 
 enum UserRoleEnum {
