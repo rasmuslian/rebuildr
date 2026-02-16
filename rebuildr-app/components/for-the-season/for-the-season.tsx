@@ -1,5 +1,4 @@
 import { gql, useQuery } from "@apollo/client";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { View, ScrollView, useWindowDimensions } from "react-native";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
@@ -29,7 +28,6 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 const CATEGORY_WIDTH = 225;
 
 export const ForTheSeason = () => {
-  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -113,8 +111,6 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              filterBuilder.setCategories([category]).apply();
-
               router.navigate({
                 pathname: "/search/products/[categoryId]",
                 params: {

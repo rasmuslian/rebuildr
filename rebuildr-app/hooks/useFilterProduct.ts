@@ -2,11 +2,7 @@ import { productFilterVar } from "@/apollo/config";
 import { Category, OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
 import { PermanentSectionType } from "@constants/permanent-sections";
-import {
-  Filter,
-  FilterProductCameFromEnum,
-  initialFilterProduct,
-} from "@context/filter-product-context";
+import { Filter, initialFilterProduct } from "@context/filter-product-context";
 
 export const useFilterProduct = () => {
   const filter = useReactiveVar(productFilterVar);
@@ -178,14 +174,6 @@ class FilterBuilder {
       rootCategoryIds,
     };
 
-    return this;
-  }
-
-  setCameFrom(cameFrom: FilterProductCameFromEnum) {
-    this.filter = {
-      ...this.filter,
-      cameFrom,
-    };
     return this;
   }
 

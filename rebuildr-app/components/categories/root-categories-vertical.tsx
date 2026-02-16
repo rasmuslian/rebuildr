@@ -12,7 +12,6 @@ import { ROOT_CATEGORIES } from "@/queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
-import { FilterProductCameFromEnum } from "@context/filter-product-context";
 
 export type RootCategoriesVerticalCategory =
   RootCategoriesQuery["rootCategories"][number];
@@ -45,9 +44,6 @@ export function RootCategoriesVertical({ onNavigate }: Props) {
         renderItem={({ item: category }) => (
           <Pressable
             onPress={() => {
-              filterBuilder
-                .setCameFrom(FilterProductCameFromEnum.categories)
-                .apply();
               router.navigate({
                 pathname: "/search/products/[categoryId]",
                 params: {
