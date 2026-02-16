@@ -7,7 +7,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import { StepSlider } from "@components/slider/step-slider";
-import { ExplainConditionsBottomSheet } from "@components/sell-product/explain-conditions-bottom-sheet";
+import { ExplainConditionsBottomSheet } from "@components/explanation-information-sheets/explain-conditions-bottom-sheet";
 
 type Props = {
   condition: ProductConditionEnum;

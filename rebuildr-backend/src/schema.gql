@@ -381,6 +381,7 @@ type Product {
   deliveryEnabled: Boolean!
   deliveryRadius: Float
   noProject: Boolean
+  co2Saving: Float
   category: Category
   seller: User!
   primaryImage: File
