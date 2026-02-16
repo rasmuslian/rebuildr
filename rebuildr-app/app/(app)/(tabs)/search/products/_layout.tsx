@@ -1,9 +1,8 @@
 import React from "react";
-import { Slot } from "expo-router";
+import { Slot, router } from "expo-router";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { useScreenType } from "@hooks/useScreenType";
 import { SearchBar } from "@components/search/search-bar";
-import { router } from "expo-router";
 import TopBar from "@components/navigation/top-bar/top-bar";
 
 export default function ProductsLayout() {

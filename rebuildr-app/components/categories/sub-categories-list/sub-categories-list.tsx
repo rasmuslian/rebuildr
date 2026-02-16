@@ -1,11 +1,10 @@
 import { useQuery } from "@apollo/client";
-import React from "react";
+import React, { useEffect } from "react";
 import { SubCategoriesQuery, SubCategoriesQueryVariables } from "@/gql/graphql";
 import { SUB_CATEGORIES } from "@/queries";
 import { useScreenType } from "@hooks/useScreenType";
 import { SubCategoriesListDesktop } from "./sub-categories-list.desktop";
 import { SubCategoriesListMobile } from "./sub-categories-list.mobile";
-import { useEffect } from "react";
 import { usePathname } from "expo-router";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
