@@ -94,6 +94,7 @@ export const TrendingNow = () => {
       .map((p) => p.category as Category);
 
     filterBuilder
+      .reset()
       .setCategories(categories)
       .setSourceSection("trendingNow")
       .apply();

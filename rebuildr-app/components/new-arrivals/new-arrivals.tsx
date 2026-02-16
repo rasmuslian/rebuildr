@@ -45,6 +45,7 @@ export const NewArrivals = () => {
       title={permanentSection.newArrivals.title}
       onPress={() => {
         filterBuilder
+          .reset()
           .setOrdering(OrderProductsEnum.Latest)
           .setSourceSection("newArrivals")
           .apply();

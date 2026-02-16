@@ -1,10 +1,6 @@
 import { OrderProductsEnum, ProductConditionEnum } from "@/gql/graphql";
 import { PermanentSectionType } from "@constants/permanent-sections";
 
-export enum FilterProductCameFromEnum {
-  categories,
-}
-
 //undefined means include all
 //empty list means includ none
 export type Filter = {
@@ -19,10 +15,7 @@ export type Filter = {
   searchString?: string;
   projectId?: string;
   //Preset filters
-  selectedCategoryId?: string;
   sourceSection?: PermanentSectionType;
-  //Navigation filters
-  cameFrom?: FilterProductCameFromEnum;
 };
 
 export const initialFilterProduct: Filter = {
@@ -33,8 +26,6 @@ export const initialFilterProduct: Filter = {
   conditions: undefined,
   price: undefined,
   giveaway: false,
-  selectedCategoryId: undefined,
-  cameFrom: undefined,
   searchString: undefined,
   projectId: undefined,
 };
