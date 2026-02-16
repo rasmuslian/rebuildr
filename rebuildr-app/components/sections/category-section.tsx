@@ -9,7 +9,6 @@ import {
   AdRowSection,
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 
@@ -19,7 +18,6 @@ type Props = {
 
 export const CategorySection = ({ category }: Props) => {
   const { isLoggedIn } = useUser();
-  const { filterBuilder } = useFilterProduct();
 
   const flattenCategories = [category, ...category.children];
 
@@ -46,8 +44,6 @@ export const CategorySection = ({ category }: Props) => {
       data={data}
       title={category.name}
       onPress={() => {
-        filterBuilder.setCategories(flattenCategories).apply();
-
         router.navigate({
           pathname: "/search/products/[categoryId]",
           params: {
