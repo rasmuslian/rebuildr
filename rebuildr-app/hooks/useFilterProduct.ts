@@ -169,17 +169,6 @@ class FilterBuilder {
 
   setCategories(categories: Pick<Category, "id" | "parentId">[]) {
     const filter = this.resetPresets();
-
-    if (categories.length === 0) {
-      this.filter = {
-        ...filter,
-        categoryIds: undefined,
-        rootCategoryIds: undefined,
-      };
-
-      return this;
-    }
-
     const { rootCategoryIds, categoryIds } =
       this.separateRootAndCategories(categories);
 

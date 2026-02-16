@@ -59,9 +59,9 @@ export const NearYou = () => {
       title={permanentSection.nearYou.title}
       onPress={() => {
         filterBuilder
+          .reset()
           .setOrdering(OrderProductsEnum.Distance)
           .setSourceSection("nearYou")
-          .setCategories([])
           .apply();
         router.navigate("/search/products");
       }}

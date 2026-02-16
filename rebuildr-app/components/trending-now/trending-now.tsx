@@ -94,9 +94,9 @@ export const TrendingNow = () => {
       .map((p) => p.category as Category);
 
     filterBuilder
+      .reset()
       .setCategories(categories)
       .setSourceSection("trendingNow")
-      .setCategories([])
       .apply();
     router.navigate("/search/products");
   };
