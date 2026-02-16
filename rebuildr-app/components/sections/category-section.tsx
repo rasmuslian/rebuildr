@@ -46,11 +46,14 @@ export const CategorySection = ({ category }: Props) => {
       data={data}
       title={category.name}
       onPress={() => {
-        filterBuilder
-          .setCategories(flattenCategories)
-          .setSelectedCategoryId(category.id)
-          .apply();
-        router.navigate("/search/products");
+        filterBuilder.setCategories(flattenCategories).apply();
+
+        router.navigate({
+          pathname: "/search/products/[categoryId]",
+          params: {
+            categoryId: category.id,
+          },
+        });
       }}
     />
   );

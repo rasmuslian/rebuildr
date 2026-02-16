@@ -96,6 +96,7 @@ export const TrendingNow = () => {
     filterBuilder
       .setCategories(categories)
       .setSourceSection("trendingNow")
+      .setCategories([])
       .apply();
     router.navigate("/search/products");
   };

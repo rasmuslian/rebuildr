@@ -19,7 +19,6 @@ export type Filter = {
   searchString?: string;
   projectId?: string;
   //Preset filters
-  selectedCategoryId?: string;
   sourceSection?: PermanentSectionType;
   //Navigation filters
   cameFrom?: FilterProductCameFromEnum;
@@ -33,7 +32,6 @@ export const initialFilterProduct: Filter = {
   conditions: undefined,
   price: undefined,
   giveaway: false,
-  selectedCategoryId: undefined,
   cameFrom: undefined,
   searchString: undefined,
   projectId: undefined,

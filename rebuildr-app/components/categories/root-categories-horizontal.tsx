@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { View, ScrollView, TouchableOpacity } from "react-native";
 import { useQuery } from "@apollo/client";
 import { Headline, Label } from "@components/typography/text";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { ROOT_CATEGORIES } from "@/queries";
 import { Avatar } from "@components/avatar/avatar";
 import {
@@ -15,7 +14,6 @@ import { useScreenType } from "@hooks/useScreenType";
 import { Divider } from "@components/dividers/divider";
 
 export function RootCategoriesHorizontal() {
-  const { filterBuilder } = useFilterProduct();
   const { isDesktop } = useScreenType();
 
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
@@ -61,11 +59,12 @@ export function RootCategoriesHorizontal() {
               gap: isDesktop ? 14 : 12,
             }}
             onPress={() => {
-              filterBuilder
-                .setCategories([...c.children])
-                .setSelectedCategoryId(c.id)
-                .apply();
-              router.navigate("/search/products");
+              router.navigate({
+                pathname: "/search/products/[categoryId]",
+                params: {
+                  categoryId: c.id,
+                },
+              });
             }}
           >
             <Avatar

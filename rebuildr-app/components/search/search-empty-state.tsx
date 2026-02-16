@@ -83,7 +83,6 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
               onPress={() => {
                 filterBuilder
                   .setCategories([category])
-                  .setSelectedCategoryId(category.id)
                   .setSearchString("")
                   .apply();
 
@@ -91,7 +90,13 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
                   dropdownVisible: false,
                   searchString: undefined,
                 });
-                router.navigate("/search/products");
+
+                router.navigate({
+                  pathname: "/search/products/[categoryId]",
+                  params: {
+                    categoryId: category.id,
+                  },
+                });
               }}
               source={
                 category.image ? category.image.url : PlaceholderCategory.uri

@@ -113,11 +113,14 @@ export const ForTheSeason = () => {
           <ImageQuickLink
             key={index}
             onPress={() => {
-              filterBuilder
-                .setCategories([category])
-                .setSelectedCategoryId(category.id)
-                .apply();
-              router.navigate("/search/products");
+              filterBuilder.setCategories([category]).apply();
+
+              router.navigate({
+                pathname: "/search/products/[categoryId]",
+                params: {
+                  categoryId: category.id,
+                },
+              });
             }}
             source={category.image ? category.image.url : Placeholder.uri}
             label={category.name}

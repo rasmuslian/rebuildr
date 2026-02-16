@@ -63,7 +63,6 @@ class FilterBuilder {
   private resetPresets() {
     this.filter = {
       ...this.filter,
-      selectedCategoryId: undefined,
       sourceSection: undefined,
     };
     return this.filter;
@@ -170,22 +169,26 @@ class FilterBuilder {
 
   setCategories(categories: Pick<Category, "id" | "parentId">[]) {
     const filter = this.resetPresets();
+
+    if (categories.length === 0) {
+      this.filter = {
+        ...filter,
+        categoryIds: undefined,
+        rootCategoryIds: undefined,
+      };
+
+      return this;
+    }
+
     const { rootCategoryIds, categoryIds } =
       this.separateRootAndCategories(categories);
+
     this.filter = {
       ...filter,
       categoryIds,
       rootCategoryIds,
     };
-    return this;
-  }
 
-  setSelectedCategoryId(id: string) {
-    const filter = this.resetPresets();
-    this.filter = {
-      ...filter,
-      selectedCategoryId: id,
-    };
     return this;
   }
 

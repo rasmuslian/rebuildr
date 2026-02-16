@@ -61,6 +61,7 @@ export const NearYou = () => {
         filterBuilder
           .setOrdering(OrderProductsEnum.Distance)
           .setSourceSection("nearYou")
+          .setCategories([])
           .apply();
         router.navigate("/search/products");
       }}

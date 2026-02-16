@@ -46,6 +46,7 @@ export const NewArrivals = () => {
       onPress={() => {
         filterBuilder
           .setOrdering(OrderProductsEnum.Latest)
+          .setCategories([])
           .setSourceSection("newArrivals")
           .apply();
         router.navigate("/search/products");

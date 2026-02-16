@@ -3,7 +3,6 @@ import React from "react";
 import { SubCategoriesQuery } from "@/gql/graphql";
 import { Display, Body, Label } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { Avatar } from "@components/avatar/avatar";
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
@@ -13,7 +12,6 @@ type Props = {
 };
 
 export function SubCategoriesListMobile({ category }: Props) {
-  const { filterBuilder } = useFilterProduct();
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 56) / 3;
 
@@ -45,11 +43,13 @@ export function SubCategoriesListMobile({ category }: Props) {
               gap: 8,
             }}
             onPress={() => {
-              filterBuilder
-                .setCategories([c])
-                .setSelectedCategoryId(c.id)
-                .apply();
-              router.navigate("/search/products");
+              router.navigate({
+                pathname: "/search/products/[categoryId]/[subCategoryId]",
+                params: {
+                  categoryId: category.id,
+                  subCategoryId: c.id,
+                },
+              });
             }}
           >
             <Avatar imageUrl={c.image?.url} size={80} placeholder="CATEGORY" />

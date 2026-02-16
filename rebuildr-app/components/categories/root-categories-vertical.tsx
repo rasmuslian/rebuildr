@@ -46,11 +46,15 @@ export function RootCategoriesVertical({ onNavigate }: Props) {
           <Pressable
             onPress={() => {
               filterBuilder
-                .setCategories([...category.children])
                 .setCameFrom(FilterProductCameFromEnum.categories)
-                .setSelectedCategoryId(category.id)
                 .apply();
-              router.navigate("/search/products");
+              router.navigate({
+                pathname: "/search/products/[categoryId]",
+                params: {
+                  categoryId: category.id,
+                },
+              });
+
               onNavigate?.();
             }}
           >

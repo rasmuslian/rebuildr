@@ -27,7 +27,7 @@ const SEARCH_IN_SEASON = gql`
   }
 `;
 
-export default function InSeason() {
+export default function InSeasonPage() {
   const { isDesktop } = useScreenType();
   const { data, loading } = useQuery<
     SearchInSeasonQuery,
