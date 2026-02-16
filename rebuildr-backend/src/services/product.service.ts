@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import {
@@ -62,6 +62,8 @@ import {
 import { SearchResultService } from './search-result.service';
 import { ProjectService } from './project.service';
 import { FileInputType } from 'src/resolvers/file.resolver';
+import { CO2FactorService } from './co2-factor.service';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class ProductService {
@@ -84,6 +86,8 @@ export class ProductService {
     private searchResultService: SearchResultService,
     private dataSource: DataSource,
     private projectService: ProjectService,
+    private co2Service: CO2FactorService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async create(input: {
@@ -342,6 +346,8 @@ export class ProductService {
       product.categoryId = category.id;
       product.category = category;
     }
+
+    //Project
     if (input.noProject !== null) {
       product.noProject = input.noProject;
     }
@@ -388,6 +394,7 @@ export class ProductService {
     if (input.weightUnit !== undefined) {
       product.weightUnit = input.weightUnit;
     }
+
     //Quantities
     if (input.primaryUnit && input.primaryQuantity) {
       product.primaryUnit = input.primaryUnit;
@@ -407,6 +414,26 @@ export class ProductService {
     }
     if (input.colorType !== undefined) {
       product.colorType = input.colorType;
+    }
+
+    //CO2
+    if (
+      (input.weight || input.categoryId) &&
+      product.weight &&
+      product.categoryId
+    ) {
+      try {
+        const co2Factor = await this.co2Service.getCO2Factor({
+          categoryId: product.categoryId,
+        });
+
+        product.co2Saving = product.weight * co2Factor.coefficient;
+      } catch {
+        this.logger.error('co2 factor not found', {
+          categoryId: product.categoryId,
+          productId: product.id,
+        });
+      }
     }
 
     //Transportations

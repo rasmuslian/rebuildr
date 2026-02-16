@@ -5,6 +5,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { BoverketAPI } from 'src/apis/boverket.api';
 import { DataModuleCode } from 'src/apis/types/boverket/all-resources';
 import { CO2Factor } from 'src/entities/co2-factor.entity';
+import { NotFoundException } from 'src/exceptions';
 import { Repository } from 'typeorm';
 import { Logger } from 'winston';
 
@@ -21,6 +22,16 @@ export class CO2FactorService {
     return await this.co2FactorRepository.find({
       order: { resourceId: 'ASC' },
     });
+  }
+
+  async getCO2Factor(input: { categoryId: string }) {
+    const co2Factor = await this.co2FactorRepository.findOne({
+      where: { categories: { id: input.categoryId } },
+    });
+    if (!co2Factor) {
+      throw NotFoundException();
+    }
+    return co2Factor;
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
