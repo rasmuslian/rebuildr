@@ -60,6 +60,6 @@ export const formatOrgNumber = (number: string) => {
 };
 
 export const parseFloatComma = (number: string) => {
-  const commatToDot = number.replace(/,/g, ".");
-  return parseFloat(commatToDot);
+  const commaToDot = number.replace(/,/g, ".");
+  return parseFloat(commaToDot);
 };
