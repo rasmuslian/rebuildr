@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Query, Resolver } from '@nestjs/graphql';
+import { Mutation, Query, Resolver } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -16,5 +16,17 @@ export class CO2FactorResolver {
   @Roles([UserRoleEnum.ADMIN])
   async co2Factors() {
     return this.co2FactorService.getCO2Factors();
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async updateCO2Factors() {
+    try {
+      await this.co2FactorService.syncCO2Data();
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

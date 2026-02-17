@@ -865,6 +865,7 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
+  updateCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
@@ -1294,6 +1295,7 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
+  co2Saving?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -2093,6 +2095,7 @@ export type User = {
   sales: Array<Purchase>;
   sellerAccountIsCreated: Scalars['Boolean']['output'];
   sellerAccountIsEnabled: Scalars['Boolean']['output'];
+  totalCO2Savings: Scalars['Float']['output'];
   type: UserType;
   username?: Maybe<Scalars['String']['output']>;
   websiteUrl?: Maybe<Scalars['String']['output']>;

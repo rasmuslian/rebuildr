@@ -1030,6 +1030,7 @@ type Mutation {
   cmsCreatePartner(input: CmsCreatePartnerInput!): CmsCreatePartnerResponse!
   cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
+  updateCO2Factors: Boolean!
 }
 
 input RegisterUserInput {
