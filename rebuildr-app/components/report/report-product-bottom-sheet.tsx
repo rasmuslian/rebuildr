@@ -79,11 +79,7 @@ export const ReportProductBottomSheet = ({
   });
   const [
     createReport,
-    {
-      data: createReportData,
-      loading: createReportLoading,
-      reset: resetReportData,
-    },
+    { data: createReportData, loading: createReportLoading },
   ] = useMutation<
     CreateReportProductMutation,
     CreateReportProductMutationVariables

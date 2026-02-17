@@ -18,6 +18,7 @@ import {
   quantityUnitEnumName,
 } from '../constants/enums';
 import { Brand } from './brand.entity';
+import { CO2Factor } from './co2-factor.entity';
 
 enum CategoryIconEnum {
   MATERIAL = 'MATERIAL',
@@ -122,4 +123,9 @@ export class Category {
     default: [],
   })
   measurements: MeasurementTypeEnum[];
+
+  @Column({ nullable: true })
+  co2FactorId?: string;
+  @ManyToOne(() => CO2Factor, (co2) => co2.id, { nullable: true })
+  co2Factor?: CO2Factor;
 }

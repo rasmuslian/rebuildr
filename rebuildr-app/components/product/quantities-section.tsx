@@ -80,6 +80,25 @@ export const QuantitiesSection = ({
     });
   }, [categoryId]);
 
+  const onChangeUnit = (
+    unit: QuantityUnitEnum,
+    field: "primary" | "secondary",
+  ) => {
+    if (field === "primary") {
+      onChangePrimary({
+        quantity: parseInt(primaryQuantity, 10),
+        unit,
+      });
+      setPrimaryaryUnit(unit);
+    }
+    if (field === "secondary") {
+      onChangeSecondary({
+        quantity: parseInt(secondaryQuantity, 10),
+        unit,
+      });
+      setSecondaryUnit(unit);
+    }
+  };
   const processQuantity = (q: string) => {
     //remove all non digits
     const newQuantity = q.replace(/\D/g, "");
@@ -161,7 +180,9 @@ export const QuantitiesSection = ({
               label: quantities[option].short,
               disabled: option === secondaryUnit,
             }))}
-            onSelect={(value) => setPrimaryaryUnit(value as QuantityUnitEnum)}
+            onSelect={(value) =>
+              onChangeUnit(value as QuantityUnitEnum, "primary")
+            }
           />
         </View>
       </View>
@@ -195,7 +216,7 @@ export const QuantitiesSection = ({
                   disabled: option === primaryUnit,
                 }))}
                 onSelect={(value) =>
-                  setSecondaryUnit(value as QuantityUnitEnum)
+                  onChangeUnit(value as QuantityUnitEnum, "secondary")
                 }
               />
             </View>

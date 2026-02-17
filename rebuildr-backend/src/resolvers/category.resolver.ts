@@ -24,6 +24,7 @@ import { ICategoryLoaders } from 'src/dataloaders/category.loader';
 import { Brand } from 'src/entities/brand.entity';
 import { FileInputType } from './file.resolver';
 import { MeasurementTypeEnum } from 'src/constants/enums';
+import { CO2Factor } from 'src/entities/co2-factor.entity';
 
 export enum OrderCategoriesEnum {
   ORDER_INDEX_ASC = 'ASC',
@@ -58,6 +59,42 @@ class PopularCategoriesInput {
 
 @InputType()
 class CmsBaseCategoryInput {
+  @Field(() => FileInputType, { nullable: true })
+  image?: FileInputType;
+
+  @Field(() => String, { nullable: true })
+  parentId?: string;
+
+  @Field(() => [String], { nullable: true })
+  brandIds?: string[];
+
+  @Field({ nullable: true })
+  co2FactorId?: string;
+}
+
+@InputType()
+export class CmsUpdateCategoryInput extends CmsBaseCategoryInput {
+  @Field(() => String)
+  id: string;
+
+  @Field(() => Boolean, { nullable: true })
+  inSelection?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  inSeason?: boolean;
+
+  @Field(() => String, { nullable: true })
+  name?: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
+
+  @Field(() => [MeasurementTypeEnum], { nullable: true })
+  measurements: MeasurementTypeEnum[];
+}
+
+@InputType()
+export class CmsCreateCategoryInput extends CmsBaseCategoryInput {
   @Field(() => Boolean)
   inSelection: boolean;
 
@@ -72,25 +109,7 @@ class CmsBaseCategoryInput {
 
   @Field(() => [MeasurementTypeEnum])
   measurements: MeasurementTypeEnum[];
-
-  @Field(() => FileInputType, { nullable: true })
-  image?: FileInputType;
-
-  @Field(() => String, { nullable: true })
-  parentId?: string;
-
-  @Field(() => [String], { nullable: true })
-  brandIds?: string[];
 }
-
-@InputType()
-export class CmsUpdateCategoryInput extends CmsBaseCategoryInput {
-  @Field(() => String)
-  id: string;
-}
-
-@InputType()
-export class CmsCreateCategoryInput extends CmsBaseCategoryInput {}
 
 @ObjectType()
 export class CmsCreateCategoryResponse {
@@ -228,5 +247,16 @@ export class CategoryResolver {
       return null;
     }
     return await categoryLoaders.parentLoader.load(_category.id);
+  }
+
+  @ResolveField(() => CO2Factor, { nullable: true })
+  async co2Factor(
+    @Root() _category: Category,
+    @Context('categoryLoaders') categoryLoaders: ICategoryLoaders,
+  ) {
+    if (!_category.co2FactorId) {
+      return null;
+    }
+    return await categoryLoaders.co2FactorLoader.load(_category.id);
   }
 }

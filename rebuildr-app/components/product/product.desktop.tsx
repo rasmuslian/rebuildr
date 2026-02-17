@@ -19,6 +19,7 @@ import { Popup } from "@components/popup/popup";
 import { ActionSection } from "@components/preview-product/action-section";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
+import { CO2Savings } from "@components/preview-product/CO2-savings";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { InfoSection } from "@components/preview-product/info-section";
 import { MainContent } from "@components/preview-product/main-content";
@@ -269,6 +270,8 @@ export const ProductDesktop = ({
                   <Divider />
                 </>
               )}
+              <CO2Savings co2Saving={product.co2Saving} />
+              <Divider />
               <InfoSection
                 createdAt={product.createdAt}
                 updatedAt={product.updatedAt}

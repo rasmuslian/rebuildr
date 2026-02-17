@@ -34,6 +34,7 @@ import { UserSection } from "@components/preview-product/user-section";
 import { InfoSection } from "@components/preview-product/info-section";
 import { ActionSection } from "@components/preview-product/action-section";
 import { RemoveProductSheet } from "@components/preview-product/remove-product-sheet";
+import { CO2Savings } from "@components/preview-product/CO2-savings";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -169,6 +170,8 @@ export const ProductMobile = ({
               />
             </>
           )}
+        <Divider />
+        <CO2Savings co2Saving={product.co2Saving} />
         <Divider />
         <InfoSection
           createdAt={product.createdAt}

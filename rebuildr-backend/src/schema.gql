@@ -202,6 +202,7 @@ type User {
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   organizationAccount: User
   organizationOwner: User
+  totalCO2Savings: Float!
 }
 
 enum UserRoleEnum {
@@ -275,6 +276,13 @@ enum BrandTypeEnum {
   REGULAR
 }
 
+type CO2Factor {
+  id: ID!
+  coefficient: Float!
+  productName: String!
+  categoryName: String!
+}
+
 type Category {
   id: ID!
   name: String!
@@ -293,6 +301,7 @@ type Category {
   hasChildren: Boolean!
   brands: [Brand!]!
   parent: Category
+  co2Factor: CO2Factor
 }
 
 enum CategoryIconEnum {
@@ -373,6 +382,7 @@ type Product {
   deliveryEnabled: Boolean!
   deliveryRadius: Float
   noProject: Boolean
+  co2Saving: Float
   category: Category
   seller: User!
   primaryImage: File
@@ -738,6 +748,7 @@ type Query {
   listFooterSection: [FooterSection!]!
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   partners: [Partner!]!
+  co2Factors: [CO2Factor!]!
 }
 
 input UserExistsInput {
@@ -1019,6 +1030,7 @@ type Mutation {
   cmsCreatePartner(input: CmsCreatePartnerInput!): CmsCreatePartnerResponse!
   cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
+  updateCO2Factors: Boolean!
 }
 
 input RegisterUserInput {
@@ -1255,26 +1267,28 @@ input RemoveProductInput {
 }
 
 input CmsCreateCategoryInput {
+  image: FileInputType
+  parentId: String
+  brandIds: [String!]
+  co2FactorId: String
   inSelection: Boolean!
   inSeason: Boolean!
   name: String!
   description: String!
   measurements: [MeasurementTypeEnum!]!
-  image: FileInputType
-  parentId: String
-  brandIds: [String!]
 }
 
 input CmsUpdateCategoryInput {
-  inSelection: Boolean!
-  inSeason: Boolean!
-  name: String!
-  description: String!
-  measurements: [MeasurementTypeEnum!]!
   image: FileInputType
   parentId: String
   brandIds: [String!]
+  co2FactorId: String
   id: String!
+  inSelection: Boolean
+  inSeason: Boolean
+  name: String
+  description: String
+  measurements: [MeasurementTypeEnum!]
 }
 
 input CmsUpdateCategoriesInput {

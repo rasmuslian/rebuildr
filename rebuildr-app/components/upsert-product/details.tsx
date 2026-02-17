@@ -16,8 +16,9 @@ import { Button } from "@components/buttons/button";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 import { ColorSection } from "@components/product/color-section";
-import { MeasurementTypeEnum } from "@/gql/graphql";
+import { MeasurementTypeEnum, MeasurementUnitEnum } from "@/gql/graphql";
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
+import { CO2Section } from "@components/product/co2-section";
 
 type Props = {
   product: ProductFields;
@@ -126,6 +127,12 @@ export const Details = ({
               })
             }
           />
+          <CO2Section
+            product={product}
+            onChange={(w) =>
+              update({ weight: w, widthUnit: MeasurementUnitEnum.Kg })
+            }
+          />
           <View
             style={{
               flexDirection: "row",
@@ -137,8 +144,8 @@ export const Details = ({
             <View style={{ flex: 1 }}>
               <Title size="medium">Lägg till fler produktdetaljer</Title>
               <Body size="medium">
-                Lägg till specifik info avseende mått, vikt, färg, dokument
-                eller bra för köpare att veta
+                Lägg till specifik info avseende mått, färg, dokument eller bra
+                för köpare att veta
               </Body>
             </View>
             <Toggle

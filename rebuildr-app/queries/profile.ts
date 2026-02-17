@@ -57,6 +57,7 @@ export const PROFILE = gql`
           }
         }
       }
+      totalCO2Savings
     }
     me @include(if: $isLoggedIn) {
       id

@@ -93,6 +93,7 @@ const CategoryForm = ({
                 return (
                   <Checkbox
                     key={i}
+                    disabled={m === MeasurementTypeEnum.Weight}
                     checked={isSelected}
                     onChange={() => {
                       if (isSelected) {

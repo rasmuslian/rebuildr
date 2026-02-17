@@ -66,6 +66,14 @@ export type BrandsInput = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type Co2Factor = {
+  __typename?: 'CO2Factor';
+  categoryName: Scalars['String']['output'];
+  coefficient: Scalars['Float']['output'];
+  id: Scalars['ID']['output'];
+  productName: Scalars['String']['output'];
+};
+
 export type CancelPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
@@ -80,6 +88,7 @@ export type Category = {
   ancestorIds: Array<Scalars['String']['output']>;
   brands: Array<Brand>;
   children: Array<Category>;
+  co2Factor?: Maybe<Co2Factor>;
   description: Scalars['String']['output'];
   hasChildren: Scalars['Boolean']['output'];
   icon?: Maybe<CategoryIconEnum>;
@@ -133,6 +142,7 @@ export type CmsCreateBrandInput = {
 
 export type CmsCreateCategoryInput = {
   brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  co2FactorId?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
   image?: InputMaybe<FileInputType>;
   inSeason: Scalars['Boolean']['input'];
@@ -295,13 +305,14 @@ export type CmsUpdateCategoriesInput = {
 
 export type CmsUpdateCategoryInput = {
   brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
-  description: Scalars['String']['input'];
+  co2FactorId?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   image?: InputMaybe<FileInputType>;
-  inSeason: Scalars['Boolean']['input'];
-  inSelection: Scalars['Boolean']['input'];
-  measurements: Array<MeasurementTypeEnum>;
-  name: Scalars['String']['input'];
+  inSeason?: InputMaybe<Scalars['Boolean']['input']>;
+  inSelection?: InputMaybe<Scalars['Boolean']['input']>;
+  measurements?: InputMaybe<Array<MeasurementTypeEnum>>;
+  name?: InputMaybe<Scalars['String']['input']>;
   parentId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -854,6 +865,7 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
+  updateCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
@@ -1283,6 +1295,7 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
+  co2Saving?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -1546,6 +1559,7 @@ export type Query = {
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
+  co2Factors: Array<Co2Factor>;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
@@ -2081,6 +2095,7 @@ export type User = {
   sales: Array<Purchase>;
   sellerAccountIsCreated: Scalars['Boolean']['output'];
   sellerAccountIsEnabled: Scalars['Boolean']['output'];
+  totalCO2Savings: Scalars['Float']['output'];
   type: UserType;
   username?: Maybe<Scalars['String']['output']>;
   websiteUrl?: Maybe<Scalars['String']['output']>;

@@ -334,4 +334,8 @@ export class Product {
   })
   @JoinColumn()
   mapPin?: MapPin;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'float' })
+  co2Saving?: number;
 }
