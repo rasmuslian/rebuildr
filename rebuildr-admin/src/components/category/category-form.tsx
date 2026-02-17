@@ -5,7 +5,7 @@ import { Button, Input, Checkbox } from "antd";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
 import { CategorySchemaType } from "@/schema/category-schema";
-import UploadMedia from "@components/media/upload-media";
+import UploadImage from "@components/file/upload-image";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -53,7 +53,7 @@ const CategoryForm = ({
         name="image"
         render={({ field: { value, onChange } }) => (
           <FormField label="Bild" error={errors.image?.message}>
-            <UploadMedia files={value} setFiles={onChange} />
+            <UploadImage files={value} setFiles={onChange} />
           </FormField>
         )}
       />

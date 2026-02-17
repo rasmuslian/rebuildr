@@ -1,14 +1,17 @@
+"use client";
+
 import React from "react";
-import { Pagination, Image, Button, App } from "antd";
+import { Pagination, Image, Button, App, Divider } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useState } from "@/hooks/use-state";
-import { listMedia } from "@/queries/media/list-media";
+import { listFiles } from "@/queries/file/list-files";
 import EmptyContainer from "@components/empty-container";
 import { isEmpty } from "lodash";
 import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { deleteMedia } from "@/queries/media/delete-media";
+import { deleteFile } from "@/queries/file/delete-file";
+import { FileType } from "gql/graphql";
 
 type StateType = {
   pageSize: number;
@@ -17,14 +20,14 @@ type StateType = {
 
 const initialState: StateType = {
   pageSize: 16,
-  page: 0,
+  page: 1,
 };
 
 type Props = {
   onSelectImage?: (source: string) => void;
 };
 
-const ListMedia = ({ onSelectImage }: Props) => {
+const ImageLibrary = ({ onSelectImage }: Props) => {
   const [state, setState] = useState(initialState);
   const { pageSize, page } = state;
   const { notification } = App.useApp();
@@ -33,12 +36,13 @@ const ListMedia = ({ onSelectImage }: Props) => {
 
   const { data, isLoading } = useQuery({
     queryKey: [queryKeys.LIST_IMAGES, page, pageSize],
-    queryFn: () => listMedia({ page, pageSize }),
+    queryFn: () =>
+      listFiles({ page: page - 1, pageSize, fileType: FileType.Image }),
   });
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (imageId: string) => {
-      return await deleteMedia(imageId);
+    mutationFn: async (id: string) => {
+      return await deleteFile(id);
     },
     onSuccess: () => {
       notification.success({
@@ -78,6 +82,8 @@ const ListMedia = ({ onSelectImage }: Props) => {
 
   return (
     <div className="flex flex-col gap-5 pb-5">
+      <Divider orientation="left">Bildbibliotek</Divider>
+
       {isEmpty(files) ? (
         <EmptyContainer
           spinner={isLoading}
@@ -91,7 +97,7 @@ const ListMedia = ({ onSelectImage }: Props) => {
               src={file.url}
               width={"100%"}
               height={200}
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: "cover", cursor: "pointer" }}
               alt={file.name ?? ""}
               onClick={() => {
                 if (onSelectImage) {
@@ -136,7 +142,7 @@ const ListMedia = ({ onSelectImage }: Props) => {
         current={page}
         pageSize={pageSize}
         total={total}
-        onChange={(page) => setState({ page: page })}
+        onChange={(page) => setState({ page })}
         pageSizeOptions={[16, 24, 32, 40]}
         onShowSizeChange={(_, size) => setState({ pageSize: size })}
         style={{ display: "flex", justifyContent: "flex-end" }}
@@ -145,4 +151,4 @@ const ListMedia = ({ onSelectImage }: Props) => {
   );
 };
 
-export default ListMedia;
+export default ImageLibrary;

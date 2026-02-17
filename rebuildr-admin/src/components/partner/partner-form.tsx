@@ -4,7 +4,7 @@ import React from "react";
 import { Button, Input } from "antd";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
-import UploadMedia from "@components/media/upload-media";
+import UploadImage from "@components/file/upload-image";
 import { PartnerSchemaType } from "@/schema/partner-schema";
 import {
   Control,
@@ -49,7 +49,7 @@ const PartnerForm = ({
         name="logo"
         render={({ field: { value, onChange } }) => (
           <FormField label="Bild" error={errors.logo?.message} required>
-            <UploadMedia files={value} setFiles={onChange} aspectSlider />
+            <UploadImage files={value} setFiles={onChange} aspectSlider />
           </FormField>
         )}
       />

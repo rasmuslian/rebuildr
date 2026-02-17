@@ -24,7 +24,7 @@ const getBase64 = (file: FileType): Promise<string> => {
   });
 };
 
-const UploadMedia = ({
+const UploadImage = ({
   aspect = 1,
   aspectSlider = false,
   files = [],
@@ -85,4 +85,4 @@ const UploadMedia = ({
   );
 };
 
-export default UploadMedia;
+export default UploadImage;

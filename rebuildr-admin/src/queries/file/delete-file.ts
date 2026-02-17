@@ -1,19 +1,19 @@
 import apiClient from "@/lib/api-client";
 
 const query = `
-  mutation CmsDeleteFile($imageId: String!) {
-    cmsDeleteFile(imageId: $imageId) {
+  mutation Mutation($id: String!) {
+    cmsDeleteFile(id: $id) {
       id
     }
   }
 `;
 
-export const deleteMedia = async (imageId: string) => {
+export const deleteFile = async (id: string) => {
   const response = await apiClient.post<
     GraphQLResponse<{ cmsDeleteFile: { id: string } }>
   >("/", {
     query,
-    variables: { imageId },
+    variables: { id },
   });
   if (response.data.errors) {
     throw new Error();

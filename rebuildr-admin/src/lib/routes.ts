@@ -23,7 +23,8 @@ export enum routes {
   CREATE_PARTNER = "/admin/partner/create",
   EDIT_PARTNER = "/admin/partner/edit",
 
-  MEDIA_BANK = "/admin/media",
+  Image_Library = "/admin/image-library",
+  Document_Library = "/admin/document-library",
 
   LIST_CATEGORY = "/admin/category",
   EDIT_CATEGORY = "/admin/category/edit",

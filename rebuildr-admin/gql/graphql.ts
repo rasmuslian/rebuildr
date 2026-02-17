@@ -158,6 +158,15 @@ export type CmsCreateCategoryResponse = {
   imagePutUrl?: Maybe<Scalars['String']['output']>;
 };
 
+export type CmsCreateFilesInput = {
+  files?: InputMaybe<Array<FileInputType>>;
+};
+
+export type CmsCreateFilesResponse = {
+  __typename?: 'CmsCreateFilesResponse';
+  presignedPutUrls: Array<Scalars['String']['output']>;
+};
+
 export type CmsCreateFooterSectionInput = {
   entries: Array<FooterEntryInput>;
   orderIndex: Scalars['Float']['input'];
@@ -226,13 +235,15 @@ export type CmsDeletePartnerInput = {
   id: Scalars['String']['input'];
 };
 
-export type CmsListImagesInput = {
+export type CmsListFilesInput = {
+  fileType: FileType;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CmsListImagesResponse = {
-  __typename?: 'CmsListImagesResponse';
+export type CmsListFilesResponse = {
+  __typename?: 'CmsListFilesResponse';
   files: Array<File>;
   total: Scalars['Int']['output'];
 };
@@ -403,15 +414,6 @@ export type CmsUpdateUsersInput = {
   websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CmsUploadFileInput = {
-  images?: InputMaybe<Array<FileInputType>>;
-};
-
-export type CmsUploadFileResponse = {
-  __typename?: 'CmsUploadFileResponse';
-  presignedPutUrls: Array<Scalars['String']['output']>;
-};
-
 export enum ColorTypeEnum {
   FreeText = 'FREE_TEXT',
   Ncs = 'NCS'
@@ -528,6 +530,11 @@ export type FileInputType = {
   mimeType: Scalars['String']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
 };
+
+export enum FileType {
+  Document = 'DOCUMENT',
+  Image = 'IMAGE'
+}
 
 export type FinalizeUserInput = {
   password: Scalars['String']['input'];
@@ -807,6 +814,7 @@ export type Mutation = {
   cmsCreateArticle: Article;
   cmsCreateBrand: Brand;
   cmsCreateCategory: CmsCreateCategoryResponse;
+  cmsCreateFiles: CmsCreateFilesResponse;
   cmsCreateFooterSection: FooterSection;
   cmsCreatePartner: CmsCreatePartnerResponse;
   cmsCreateProduct: CmsCreateProductResponse;
@@ -832,7 +840,6 @@ export type Mutation = {
   cmsUpdateProduct: CmsUpdateProductResponse;
   cmsUpdateProject: Project;
   cmsUpdateUser: User;
-  cmsUploadFiles: CmsUploadFileResponse;
   createBrandByUser: Brand;
   createDraftProduct: Product;
   createMessage: Message;
@@ -909,6 +916,11 @@ export type MutationCmsCreateCategoryArgs = {
 };
 
 
+export type MutationCmsCreateFilesArgs = {
+  input: CmsCreateFilesInput;
+};
+
+
 export type MutationCmsCreateFooterSectionArgs = {
   input: CmsCreateFooterSectionInput;
 };
@@ -940,7 +952,7 @@ export type MutationCmsDeleteBrandArgs = {
 
 
 export type MutationCmsDeleteFileArgs = {
-  imageId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 
@@ -1032,11 +1044,6 @@ export type MutationCmsUpdateProjectArgs = {
 
 export type MutationCmsUpdateUserArgs = {
   input: CmsUpdateUsersInput;
-};
-
-
-export type MutationCmsUploadFilesArgs = {
-  input: CmsUploadFileInput;
 };
 
 
@@ -1555,7 +1562,7 @@ export type Query = {
   category: Category;
   cmsGetProduct: Product;
   cmsGetUserProjects: Array<Project>;
-  cmsListImages: CmsListImagesResponse;
+  cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
@@ -1642,8 +1649,8 @@ export type QueryCmsGetUserProjectsArgs = {
 };
 
 
-export type QueryCmsListImagesArgs = {
-  input: CmsListImagesInput;
+export type QueryCmsListFilesArgs = {
+  input: CmsListFilesInput;
 };
 
 

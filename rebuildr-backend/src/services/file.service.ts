@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException, ForbiddenException } from 'src/exceptions';
-import { Repository } from 'typeorm';
-import { File, FileSourceEnum } from '../entities/file.entity';
+import { Repository, In, ILike } from 'typeorm';
+import { File, FileSourceEnum } from 'src/entities/file.entity';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import {
-  CmsListImagesInput,
-  CmsListImagesResponse,
-  CmsUploadFileInput,
-  CmsUploadFileResponse,
+  CmsListFilesInput,
+  CmsListFilesResponse,
+  CmsCreateFilesInput,
+  CmsCreateFilesResponse,
 } from 'src/resolvers/file.resolver';
 import { S3Service } from './s3.service';
+import { FileType } from 'src/constants/enums';
 @Injectable()
 export class FileService {
   constructor(
@@ -80,11 +81,11 @@ export class FileService {
     return await this.s3Service.getUrl(key, file.private);
   }
 
-  async cmsUploadFile(
-    input: CmsUploadFileInput,
-  ): Promise<CmsUploadFileResponse> {
+  async cmsCreateFiles(
+    input: CmsCreateFilesInput,
+  ): Promise<CmsCreateFilesResponse> {
     const images = await Promise.all(
-      input.images?.map(async (image) => {
+      input.files?.map(async (image) => {
         const file = new File();
         file.mimeType = image.mimeType;
         file.name = image.name;
@@ -98,17 +99,28 @@ export class FileService {
     };
   }
 
-  async cmsListImages(
-    input: CmsListImagesInput,
-  ): Promise<CmsListImagesResponse> {
-    const pageSize = Number(input.pageSize) || 10;
-    const page = Number(input.page) || 0;
+  async cmsListFiles(input: CmsListFilesInput): Promise<CmsListFilesResponse> {
+    const { pageSize = 10, page = 0, searchString = '', fileType } = input;
     const skip = Math.max(0, pageSize * page);
+
+    const imageMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+    ];
+    const documentMimeTypes = ['application/pdf', 'text/plain'];
 
     const [files, total] = await this.fileRepository.findAndCount({
       where: {
         source: FileSourceEnum.ADMIN,
+        mimeType:
+          fileType === FileType.IMAGE
+            ? In(imageMimeTypes)
+            : In(documentMimeTypes),
+        name: ILike(`%${searchString}%`),
       },
+
       take: pageSize,
       skip,
       order: {
@@ -119,8 +131,8 @@ export class FileService {
     return { files, total };
   }
 
-  async cmsDeleteFile(imageId: string) {
-    const file = await this.findOne(imageId);
+  async cmsDeleteFile(id: string) {
+    const file = await this.findOne(id);
 
     if (file.source !== FileSourceEnum.ADMIN) {
       throw ForbiddenException();
@@ -128,7 +140,7 @@ export class FileService {
 
     try {
       await this.deleteFiles([file]);
-      await this.fileRepository.delete([imageId]);
+      await this.fileRepository.delete([id]);
 
       return file;
     } catch {
