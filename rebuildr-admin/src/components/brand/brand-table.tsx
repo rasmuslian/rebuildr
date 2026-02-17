@@ -5,7 +5,7 @@ import { App, Button, Divider, Modal, Table } from "antd";
 import { useState as useSharedState } from "@/hooks/use-state";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { Brand, CmsUpdateProductInput, Product } from "gql/graphql";
+import { Brand } from "gql/graphql";
 import { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
@@ -168,7 +168,7 @@ const BrandTable = () => {
     {
       title: "Administrera",
       key: "action",
-      width: "80px",
+      width: "120px",
       render: (_, brand) => (
         <div className="flex flex-row items-center justify-center gap-4">
           <Button
@@ -235,8 +235,8 @@ const BrandTable = () => {
         {selectedBrand && (
           <div className="flex flex-col gap-4">
             <p>
-              Varumärket &quot;{selectedBrand.name}&quot; är kopplat till befintliga
-              annonser.
+              Varumärket &quot;{selectedBrand.name}&quot; är kopplat till
+              befintliga annonser.
             </p>
             {!canDeleteWithoutReassign && (
               <div className="flex flex-col gap-2">

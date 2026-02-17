@@ -21,6 +21,7 @@ import {
   UserOutlined,
   TagOutlined,
   TeamOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -100,7 +101,10 @@ const SidebarMenu = () => {
     getItem("Användare", routes.LIST_USER, <UserOutlined />),
 
     { type: "divider" },
-    getItem("Bildbank", routes.MEDIA_BANK, <FileImageOutlined />),
+    getItem("Bildbibliotek", routes.Image_Library, <FileImageOutlined />),
+
+    { type: "divider" },
+    getItem("Dokumentbibliotek", routes.Document_Library, <FilePdfOutlined />),
 
     { type: "divider" },
     getItem("Artiklar", "/article", <FolderOpenOutlined />, [

@@ -5,8 +5,8 @@ import { Button, Input, InputNumber, Checkbox } from "antd";
 import { ProductSchemaType } from "@/schema/product-schema";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
-import UploadMedia from "@components/media/upload-media";
-import UploadDocument from "@components/media/upload-doccument";
+import UploadImage from "@/components/file/upload-image";
+import UploadDocument from "@/components/file/upload-document";
 import SelectCategory from "@components/category/select-category";
 import SelectBrand from "@components/brand/select-brand";
 import SelectCondition from "@components/condition/select-condition";
@@ -87,7 +87,7 @@ const ProductForm = ({
                 required={true}
                 error={errors.images?.message}
               >
-                <UploadMedia
+                <UploadImage
                   files={value}
                   setFiles={onChange}
                   allowedFileNumber={10}

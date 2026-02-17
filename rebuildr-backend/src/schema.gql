@@ -495,12 +495,12 @@ type ExactAndApproximatePlaceResponse {
   approximate: ApproximatePlaceResponse!
 }
 
-type CmsListImagesResponse {
+type CmsListFilesResponse {
   files: [File!]!
   total: Int!
 }
 
-type CmsUploadFileResponse {
+type CmsCreateFilesResponse {
   presignedPutUrls: [String!]!
 }
 
@@ -721,7 +721,7 @@ type Query {
   getConversation(input: GetConversationInput!): [Message!]!
   getConversations(input: GetConversationsInput!): [Message!]!
   getUnreadConversationsCount: Int!
-  cmsListImages(input: CmsListImagesInput!): CmsListImagesResponse!
+  cmsListFiles(input: CmsListFilesInput!): CmsListFilesResponse!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
@@ -867,9 +867,16 @@ enum GetConversationsType {
   BUYING_AND_SELLING
 }
 
-input CmsListImagesInput {
+input CmsListFilesInput {
   page: Int
   pageSize: Int
+  fileType: FileType!
+  searchString: String
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
 }
 
 input GetAddressInput {
@@ -994,8 +1001,8 @@ type Mutation {
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): [Message!]!
-  cmsUploadFiles(input: CmsUploadFileInput!): CmsUploadFileResponse!
-  cmsDeleteFile(imageId: String!): File!
+  cmsCreateFiles(input: CmsCreateFilesInput!): CmsCreateFilesResponse!
+  cmsDeleteFile(id: String!): File!
   cmsTestTemplate(input: CmsTestTemplateInput!): Boolean!
   purchaseProduct(input: PurchaseProductInput!): PurchaseProductResponse!
   acceptPurchase(input: AcceptPurchaseInput!): Purchase!
@@ -1314,8 +1321,8 @@ input MarkAsReadInput {
   markAsRead: Boolean!
 }
 
-input CmsUploadFileInput {
-  images: [FileInputType!]
+input CmsCreateFilesInput {
+  files: [FileInputType!]
 }
 
 input CmsTestTemplateInput {

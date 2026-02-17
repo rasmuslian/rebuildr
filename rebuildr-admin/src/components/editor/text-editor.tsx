@@ -2,8 +2,8 @@ import React, { useRef } from "react";
 import { Editor as TinyEditor } from "@tinymce/tinymce-react";
 import { Editor } from "tinymce";
 import { contentStyle } from "./content-style";
-import { Modal, Divider } from "antd";
-import ListMedia from "@components/media/list-media";
+import { Modal } from "antd";
+import ImageLibrary from "@components/file/image-library";
 import CTAModal from "@components/editor/cta-modal";
 import { CTASchemaType } from "@/schema/cta-schema";
 import { useState } from "@/hooks/use-state";
@@ -28,7 +28,7 @@ type StateType = {
   ctaData: CTASchemaType;
   linkGroupNode?: HTMLElement;
   linkGroupData: LinkGroupSchemaType;
-  isImageModalOpen: boolean;
+  isImageLibraryOpen: boolean;
   isCTAModalOpen: boolean;
   isLinkGroupModalOpen: boolean;
 };
@@ -53,7 +53,7 @@ const initialState: StateType = {
       },
     ],
   },
-  isImageModalOpen: false,
+  isImageLibraryOpen: false,
   isCTAModalOpen: false,
   isLinkGroupModalOpen: false,
 };
@@ -72,7 +72,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
     if (!editorRef.current) return;
     editorRef.current.execCommand("InsertImage", false, imageSource);
     editorRef.current.execCommand("InsertNewBlockAfter");
-    setState({ isImageModalOpen: false });
+    setState({ isImageLibraryOpen: false });
   };
 
   const insertDivider = () => {
@@ -158,7 +158,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
     editor.ui.registry.addButton("imageBankButton", {
       icon: "image",
       text: "Image library",
-      onAction: () => setState({ isImageModalOpen: true }),
+      onAction: () => setState({ isImageLibraryOpen: true }),
     });
 
     editor.ui.registry.addButton("ctaButton", {
@@ -277,13 +277,12 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
       />
 
       <Modal
-        open={state.isImageModalOpen}
-        onCancel={() => setState({ isImageModalOpen: false })}
+        open={state.isImageLibraryOpen}
+        onCancel={() => setState({ isImageLibraryOpen: false })}
         footer={false}
         width={980}
       >
-        <Divider orientation="left">Välj en bild</Divider>
-        <ListMedia onSelectImage={insertImage} />
+        <ImageLibrary onSelectImage={insertImage} />
       </Modal>
 
       <CTAModal

@@ -27,3 +27,9 @@ export enum MeasurementTypeEnum {
 }
 export const measurementTypeEnumName = 'measurement_type_enum';
 registerEnumType(MeasurementTypeEnum, { name: 'MeasurementTypeEnum' });
+
+export enum FileType {
+  IMAGE = 'IMAGE',
+  DOCUMENT = 'DOCUMENT',
+}
+registerEnumType(FileType, { name: 'FileType' });

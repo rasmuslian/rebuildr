@@ -1,8 +1,11 @@
 "use client";
 
 import React from "react";
-import UploadMedia from "@/components/media/upload-media";
-import { MediaSchema, MediaSchemaType } from "@/schema/media-schema";
+import UploadImage from "@/components/file/upload-image";
+import {
+  ImageLibrarySchema,
+  ImageLibrarySchemaType,
+} from "@/schema/image-library-schema";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormField from "@/components/form-field";
@@ -10,13 +13,13 @@ import AdminForm from "@/components/admin-form";
 import { Button, Divider, App } from "antd";
 import Section from "@/components/section";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { CmsUploadFileInput } from "gql/graphql";
-import { createMedia } from "@/queries/media/create-media";
+import { CmsCreateFilesInput } from "gql/graphql";
+import { createFiles } from "@/queries/file/create-file";
 import { queryKeys } from "@/lib/query-keys";
 import { getFileInputTypes, uploadFiles } from "@/utils/file-utils";
-import ListMedia from "@/components/media/list-media";
+import ImageLibrary from "@/components/file/image-library";
 
-const MediaPage = () => {
+const ImageLibraryPage = () => {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -26,16 +29,16 @@ const MediaPage = () => {
     watch,
     reset,
     formState: { errors },
-  } = useForm<MediaSchemaType>({
-    resolver: zodResolver(MediaSchema),
+  } = useForm<ImageLibrarySchemaType>({
+    resolver: zodResolver(ImageLibrarySchema),
     defaultValues: {
       images: [],
     },
   });
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (uploadFileInput: CmsUploadFileInput) => {
-      const response = await createMedia(uploadFileInput);
+    mutationFn: async (input: CmsCreateFilesInput) => {
+      const response = await createFiles(input);
       if (!response) throw new Error();
       return response;
     },
@@ -54,12 +57,12 @@ const MediaPage = () => {
     },
   });
 
-  const onSubmit = async (formData: MediaSchemaType) => {
-    const uploadFileInput: CmsUploadFileInput = {
-      images: getFileInputTypes(formData.images),
+  const onSubmit = async (formData: ImageLibrarySchemaType) => {
+    const input: CmsCreateFilesInput = {
+      files: getFileInputTypes(formData.images),
     };
 
-    const { presignedPutUrls } = await mutateAsync(uploadFileInput);
+    const { presignedPutUrls } = await mutateAsync(input);
     if (presignedPutUrls) {
       const isOk = await uploadFiles(presignedPutUrls, formData.images);
 
@@ -80,7 +83,7 @@ const MediaPage = () => {
             name="images"
             render={({ field: { value, onChange } }) => (
               <FormField label="Bilder" error={errors.images?.message}>
-                <UploadMedia
+                <UploadImage
                   files={value}
                   setFiles={onChange}
                   allowedFileNumber={5}
@@ -102,11 +105,10 @@ const MediaPage = () => {
       </AdminForm>
 
       <Section>
-        <Divider orientation="left">Alla uppladade bilder</Divider>
-        <ListMedia />
+        <ImageLibrary />
       </Section>
     </div>
   );
 };
 
-export default MediaPage;
+export default ImageLibraryPage;

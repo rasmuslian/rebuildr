@@ -17,6 +17,7 @@ import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { FileType } from 'src/constants/enums';
 
 @InputType()
 export class FileInputType {
@@ -27,16 +28,22 @@ export class FileInputType {
   name?: string;
 }
 @InputType()
-export class CmsListImagesInput {
+export class CmsListFilesInput {
   @Field(() => Int, { nullable: true })
   page?: number;
 
   @Field(() => Int, { nullable: true })
   pageSize?: number;
+
+  @Field(() => FileType)
+  fileType: FileType;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
 }
 
 @ObjectType()
-export class CmsListImagesResponse {
+export class CmsListFilesResponse {
   @Field(() => [File])
   files: File[];
 
@@ -45,12 +52,12 @@ export class CmsListImagesResponse {
 }
 
 @InputType()
-export class CmsUploadFileInput {
+export class CmsCreateFilesInput {
   @Field(() => [FileInputType], { nullable: true })
-  images?: FileInputType[];
+  files?: FileInputType[];
 }
 @ObjectType()
-export class CmsUploadFileResponse {
+export class CmsCreateFilesResponse {
   @Field(() => [String])
   presignedPutUrls: string[];
 }
@@ -64,28 +71,28 @@ export class FileResolver {
     return this.fileService.getUrl(file);
   }
 
-  @Mutation(() => CmsUploadFileResponse)
+  @Mutation(() => CmsCreateFilesResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
-  async cmsUploadFiles(
-    @Args('input') input: CmsUploadFileInput,
-  ): Promise<CmsUploadFileResponse> {
-    return this.fileService.cmsUploadFile(input);
+  async cmsCreateFiles(
+    @Args('input') input: CmsCreateFilesInput,
+  ): Promise<CmsCreateFilesResponse> {
+    return this.fileService.cmsCreateFiles(input);
   }
 
   @Mutation(() => File)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
-  async cmsDeleteFile(@Args('imageId') imageId: string) {
-    return this.fileService.cmsDeleteFile(imageId);
+  async cmsDeleteFile(@Args('id') id: string) {
+    return this.fileService.cmsDeleteFile(id);
   }
 
-  @Query(() => CmsListImagesResponse)
+  @Query(() => CmsListFilesResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
-  async cmsListImages(
-    @Args('input') input: CmsListImagesInput,
-  ): Promise<CmsListImagesResponse> {
-    return await this.fileService.cmsListImages(input);
+  async cmsListFiles(
+    @Args('input') input: CmsListFilesInput,
+  ): Promise<CmsListFilesResponse> {
+    return await this.fileService.cmsListFiles(input);
   }
 }
