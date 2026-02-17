@@ -5,6 +5,8 @@ import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { View } from "react-native";
 import {
+  PreviewProductUpsertQuery,
+  PreviewProductUpsertQueryVariables,
   ProductBottomSheetPreviewBrandQuery,
   ProductBottomSheetPreviewBrandQueryVariables,
   ProductBottomSheetPreviewCategoryQuery,
@@ -20,6 +22,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 import { Popup } from "@components/popup/popup";
+import { CO2Savings } from "@components/preview-product/CO2-savings";
 
 const PRODUCT_BOTTOM_SHEET_PREVIEW_CATEGORY = gql`
   query ProductBottomSheetPreviewCategory($input: CategoryInput!) {
@@ -52,11 +55,21 @@ const PRODUCT_BOTTOM_SHEET_PREVIEW = gql`
   }
 `;
 
+const PREVIEW_PRODUCT_UPSERT = gql`
+  query PreviewProductUpsert($input: GetProductInput!) {
+    product(input: $input) {
+      id
+      co2Saving
+    }
+  }
+`;
+
 type Props = {
   product: ProductFields;
+  dbProductId: string;
 };
 
-export const Preview = ({ product }: Props) => {
+export const Preview = ({ product, dbProductId }: Props) => {
   const ref = useRef<View>(null);
   const { isDesktop } = useScreenType();
   const [width, setWidth] = useState<number | undefined>(undefined);
@@ -86,6 +99,14 @@ export const Preview = ({ product }: Props) => {
     skip: !product.categoryIds?.[1],
   });
 
+  const { data: productData } = useQuery<
+    PreviewProductUpsertQuery,
+    PreviewProductUpsertQueryVariables
+  >(PREVIEW_PRODUCT_UPSERT, {
+    variables: {
+      input: { id: dbProductId },
+    },
+  });
   const { data: brandData } = useQuery<
     ProductBottomSheetPreviewBrandQuery,
     ProductBottomSheetPreviewBrandQueryVariables
@@ -148,6 +169,7 @@ export const Preview = ({ product }: Props) => {
         parentWidth={width}
         onAllImagesPress={handleShowAllImagesPopup}
       />
+      <CO2Savings co2Saving={productData?.product.co2Saving} />
       {product.approximatePlace && product.pickupEnabled && (
         <PickupPosition
           address={product.approximatePlace.address}

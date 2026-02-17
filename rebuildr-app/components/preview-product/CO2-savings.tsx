@@ -28,7 +28,7 @@ export const CO2Savings = ({ co2Saving }: Props) => {
         }}
       >
         <Image source={{ uri: co2Svg.uri }} style={{ height: 36, width: 52 }} />
-        <Headline size="large">X kg CO2 sparat</Headline>
+        <Headline size="large">{co2Saving ?? "X"} kg CO2 sparat</Headline>
         {!co2Saving && (
           <Label size="medium" color="error">
             Säljaren behöver ange vikt för att CO2 besparing skall visas
