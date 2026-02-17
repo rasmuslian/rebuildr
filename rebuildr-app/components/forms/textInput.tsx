@@ -15,7 +15,7 @@ export type Props = {
   error?: boolean;
   disabled?: boolean;
   hideText?: boolean;
-  inputType?: "default" | "numeric";
+  inputType?: "default" | "numeric" | "decimal";
   trailing?: { icon: IconType; onPress: () => void }[];
   onChange?: (t: string) => void;
   onBlur?: (t: string) => void;
@@ -28,6 +28,40 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
   const colors = useThemeColor();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+
+  const sanitizeDecimalInput = (value: string) => {
+    const normalized = value.replace(/\./g, ",");
+    let result = "";
+    let hasComma = false;
+
+    for (const char of normalized) {
+      if (char >= "0" && char <= "9") {
+        result += char;
+        continue;
+      }
+      if (char === "," && !hasComma) {
+        result += char;
+        hasComma = true;
+      }
+    }
+
+    if (result.startsWith(",")) {
+      result = `0${result}`;
+    }
+
+    if (result.includes(",")) {
+      const [integerPart, fractionalPart] = result.split(",");
+      const trimmedInteger = integerPart.replace(/^0+(?=\d)/, "");
+      result = `${trimmedInteger || "0"},${fractionalPart ?? ""}`;
+    } else {
+      result = result.replace(/^0+(?=\d)/, "");
+      if (!result) {
+        result = "0";
+      }
+    }
+
+    return result;
+  };
 
   const saved = !focused && !!props.value;
 
@@ -84,6 +118,8 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
       }
 
       onChange(numericString);
+    } else if (props.inputType === "decimal") {
+      onChange(sanitizeDecimalInput(t));
     } else {
       onChange(t);
     }
@@ -95,6 +131,12 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
     if (props.inputType === "numeric") {
       const priceNumber = text.replace(/\D/g, "");
       onBlur?.(priceNumber);
+    } else if (props.inputType === "decimal") {
+      let decimalValue = sanitizeDecimalInput(text);
+      if (decimalValue.endsWith(",")) {
+        decimalValue = decimalValue.slice(0, -1);
+      }
+      onBlur?.(decimalValue);
     } else {
       onBlur?.(text);
     }

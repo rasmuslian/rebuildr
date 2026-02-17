@@ -33,6 +33,17 @@ export const formatRating = (rating?: number) => {
   }).format(rating);
 };
 
+export const formatMeasurement = (measurement?: number) => {
+  if (measurement === undefined) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 5,
+    minimumFractionDigits: 1,
+  }).format(measurement);
+};
+
 export const formatSwedishNumber = (number: string) => {
   return number.replace(/^(?:\+46|0046)/, "0");
 };
@@ -46,4 +57,9 @@ export const formatOrgNumber = (number: string) => {
   const first = numberArray.slice(0, 6);
   const second = numberArray.slice(6, 10);
   return [...first, "-", ...second].join("");
+};
+
+export const parseFloatComma = (number: string) => {
+  const commaToDot = number.replace(/,/g, ".");
+  return parseFloat(commaToDot);
 };
