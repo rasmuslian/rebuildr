@@ -28,6 +28,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     color
     colorType
     status
+    co2Saving
     images {
       id
       mimeType

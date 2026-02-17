@@ -278,8 +278,8 @@ export const UpsertProductBottomSheet = ({
     }
   };
 
-  const onSave = (published: boolean) => {
-    if (!data) {
+  const update = async (status?: ProductStatusEnum) => {
+    if (!data || updateDraftLoading) {
       return;
     }
     const addFiles = (newFiles?: FileType[], currentFiles?: GqlFile[]) => {
@@ -308,7 +308,7 @@ export const UpsertProductBottomSheet = ({
         .map((image) => image.id as string);
     };
 
-    updateProduct({
+    const { data: updateData, errors } = await updateProduct({
       variables: {
         input: {
           id: data.product.id,
@@ -366,15 +366,34 @@ export const UpsertProductBottomSheet = ({
           deliveryPrice: product.deliveryPrice,
           deliveryEnabled: product.deliveryEnabled,
 
-          status: published ? ProductStatusEnum.Published : undefined,
+          status,
         },
       },
-      onCompleted: async (data) => {
-        let mediaPromises: Promise<void>[] = [];
-        if (data.updateProduct.imagePutUrls) {
-          mediaPromises = [
-            ...mediaPromises,
-            ...data.updateProduct.imagePutUrls.map(async (putUrl, index) => {
+    });
+
+    if (errors) {
+      const apolloErrors = error ? apolloBadFieldsError(error) : [];
+      const badFields: FieldErrorsType =
+        apolloErrors?.reduce(
+          (acc: FieldErrorsType, curr) => ({
+            ...acc,
+            [curr.name]: curr.message,
+          }),
+          {},
+        ) ?? {};
+
+      firstStepWithErrors(badFields);
+      setFieldErrors(badFields);
+      setShowHandleDraft(false);
+      return false;
+    }
+    if (updateData) {
+      let mediaPromises: Promise<void>[] = [];
+      if (updateData.updateProduct.imagePutUrls) {
+        mediaPromises = [
+          ...mediaPromises,
+          ...updateData.updateProduct.imagePutUrls.map(
+            async (putUrl, index) => {
               const image = product.images?.[index];
               if (image) {
                 await fetch(putUrl, {
@@ -386,13 +405,15 @@ export const UpsertProductBottomSheet = ({
                   body: image.file,
                 });
               }
-            }),
-          ];
-        }
-        if (data.updateProduct.documentPutUrls) {
-          mediaPromises = [
-            ...mediaPromises,
-            ...data.updateProduct.documentPutUrls.map(async (putUrl, index) => {
+            },
+          ),
+        ];
+      }
+      if (updateData.updateProduct.documentPutUrls) {
+        mediaPromises = [
+          ...mediaPromises,
+          ...updateData.updateProduct.documentPutUrls.map(
+            async (putUrl, index) => {
               const doc = product.documents?.[index];
               if (doc) {
                 await fetch(putUrl, {
@@ -404,41 +425,37 @@ export const UpsertProductBottomSheet = ({
                   body: doc.file,
                 });
               }
-            }),
-          ];
+            },
+          ),
+        ];
+      }
+      if (mediaPromises.length) {
+        try {
+          setUploadingMedia(true);
+          await Promise.all(mediaPromises);
+        } catch (e) {
+          Sentry.captureException(e);
+        } finally {
+          setUploadingMedia(false);
         }
-        if (mediaPromises.length) {
-          try {
-            setUploadingMedia(true);
-            await Promise.all(mediaPromises);
-          } catch (e) {
-            Sentry.captureException(e);
-          } finally {
-            setUploadingMedia(false);
-          }
-        }
-        if (published) {
-          onFinish();
-        } else {
-          onClose();
-        }
-      },
-      onError: (error) => {
-        const apolloErrors = error ? apolloBadFieldsError(error) : [];
-        const badFields: FieldErrorsType =
-          apolloErrors?.reduce(
-            (acc: FieldErrorsType, curr) => ({
-              ...acc,
-              [curr.name]: curr.message,
-            }),
-            {},
-          ) ?? {};
+      }
+      return true;
+    }
 
-        firstStepWithErrors(badFields);
-        setFieldErrors(badFields);
-        setShowHandleDraft(false);
-      },
-    });
+    return false;
+  };
+
+  const onSave = async (published: boolean) => {
+    const result = await update(
+      published ? ProductStatusEnum.Published : undefined,
+    );
+    if (result) {
+      if (published) {
+        onFinish();
+      } else {
+        onClose();
+      }
+    }
   };
 
   const progressDetails = () => {
@@ -570,9 +587,11 @@ export const UpsertProductBottomSheet = ({
   };
   const onNextTransportation = () => {
     const result = onVerifyTransportation(product);
-    if (result) {
-      setStep("preview");
-    }
+    update().then(() => {
+      if (result) {
+        setStep("preview");
+      }
+    });
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;
@@ -765,7 +784,9 @@ export const UpsertProductBottomSheet = ({
         badFields={fieldErrors}
       />
     ),
-    step === "preview" && <Preview product={product} />,
+    step === "preview" && (
+      <Preview product={product} dbProductId={data.product.id} />
+    ),
     step === "payout" && (
       <PayoutHandler onFinish={() => setStep("details")} onAbort={onFinish} />
     ),
