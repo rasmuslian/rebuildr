@@ -173,7 +173,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
 
     await productService.updateProduct(
       input,
@@ -207,7 +209,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValueOnce(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValueOnce(draftFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -254,7 +258,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(productFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -275,7 +281,9 @@ describe('Product', () => {
       ...productFixture,
       purchases: [purchaseFixtureFinished as Purchase],
     };
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(productFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -315,7 +323,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(productFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -365,7 +375,9 @@ describe('Product', () => {
       getRepositoryToken(Category),
     );
     jest.spyOn(categoryRepo, 'findOne').mockResolvedValue(categoryFixturRoot);
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(productFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -401,7 +413,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
 
     await productService.updateProduct(
       input,
@@ -439,7 +453,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
 
     await productService.updateProduct(
       input,
@@ -474,7 +490,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
 
     await productService.updateProduct(
       input,
@@ -505,7 +523,9 @@ describe('Product', () => {
     const productRepo = module.get<Repository<Product>>(
       getRepositoryToken(Product),
     );
-    jest.spyOn(productRepo, 'findOne').mockResolvedValue(draftFixture);
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
 
     await expect(
       productService.updateProduct(
@@ -530,11 +550,12 @@ const getFixtures = () => {
     connectedAccountId: '1',
   };
 
-  const draftFixture: Product = {
+  const draftFixture: Partial<Product> = {
     id: 'product',
     title: 'product',
     createdAt: now,
     updatedAt: now,
+    publishedAt: now,
     sellerId: sellerFixure.id,
     seller: sellerFixure as User,
     price: 0,

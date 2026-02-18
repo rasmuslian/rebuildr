@@ -193,6 +193,7 @@ export class PostnordAPI {
                   name: seller.name ?? '',
                 },
                 address: {
+                  streets: [seller.address],
                   postalCode: seller.postCode,
                   city: seller.city,
                   countryCode: 'SE',
@@ -211,6 +212,7 @@ export class PostnordAPI {
                   name: buyer.name,
                 },
                 address: {
+                  streets: [buyer.address],
                   postalCode: buyer.postCode,
                   city: buyer.city,
                   countryCode: 'SE',
