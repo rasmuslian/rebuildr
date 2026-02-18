@@ -818,16 +818,16 @@ export class ProductService {
         if (input.searchString && input.searchString.length > 0) {
           query
             .addOrderBy('resultrank', 'DESC')
-            .addOrderBy('p.createdAt', 'DESC');
+            .addOrderBy('p.publishedAt', 'DESC');
         } else {
-          query.addOrderBy('p.createdAt', 'DESC');
+          query.addOrderBy('p.publishedAt', 'DESC');
         }
         break;
       case OrderProductsEnum.OLDEST:
-        query.addOrderBy('p.createdAt', 'ASC');
+        query.addOrderBy('p.publishedAt', 'ASC');
         break;
       case OrderProductsEnum.LATEST:
-        query.addOrderBy('p.createdAt', 'DESC');
+        query.addOrderBy('p.publishedAt', 'DESC');
         break;
       case OrderProductsEnum.PRICE_ASC:
         query.addOrderBy('p.price', 'ASC');
@@ -846,7 +846,7 @@ export class ProductService {
         }
         break;
       default:
-        query.addOrderBy('p.createdAt', 'DESC');
+        query.addOrderBy('p.publishedAt', 'DESC');
     }
 
     //limit defaults to 20 and may not exceed 40
@@ -1162,6 +1162,7 @@ export class ProductService {
           return [];
         }
 
+        query.andWhere(`(p.status = 'PUBLISHED' OR p.status = 'SOLD')`);
         query.andWhere(
           '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
           { categoryIds },
@@ -1181,7 +1182,7 @@ export class ProductService {
           { userId },
         );
 
-        query.addOrderBy('p.createdAt', 'DESC');
+        query.addOrderBy('p.publishedAt', 'DESC');
 
         const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
         query.limit(safeLimit);
@@ -1225,7 +1226,7 @@ export class ProductService {
       )
       .where('p.id != :similarToProductId', { similarToProductId })
       .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`);
-    query.addOrderBy('p.createdAt', 'DESC');
+    query.addOrderBy('p.publishedAt', 'DESC');
 
     const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
     query.limit(safeLimit);

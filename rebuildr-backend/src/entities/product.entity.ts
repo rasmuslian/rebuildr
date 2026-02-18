@@ -1,5 +1,8 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -338,4 +341,32 @@ export class Product {
   @Field({ nullable: true })
   @Column({ nullable: true, type: 'float' })
   co2Saving?: number;
+
+  @Column({ nullable: true })
+  publishedAt?: Date;
+
+  //--------------Life cycle logic----------------
+  private _previousStatus?: ProductStatus;
+
+  @AfterLoad()
+  onLoad() {
+    this._previousStatus = this.status;
+  }
+
+  @BeforeInsert()
+  onInsert() {
+    if (this.status === ProductStatus.PUBLISHED) {
+      this.publishedAt = new Date();
+    }
+  }
+
+  @BeforeUpdate()
+  onPublish() {
+    if (
+      this.status === ProductStatus.PUBLISHED &&
+      this._previousStatus !== ProductStatus.PUBLISHED
+    ) {
+      this.publishedAt = new Date();
+    }
+  }
 }
