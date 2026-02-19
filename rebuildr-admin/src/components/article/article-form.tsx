@@ -2,7 +2,7 @@
 
 import React from "react";
 import TextEditor from "@/components/editor/text-editor";
-import ArticlePreview from "@/components/article/article-preview";
+import HtmlPreview from "@components/article/html-preview";
 import { Button, Input } from "antd";
 import AdminForm from "@components/admin-form";
 import { ArticleSchemaType } from "@/schema/article-schema";
@@ -59,7 +59,11 @@ const ArticleForm = ({
             name="body"
             render={({ field: { value, onChange } }) => (
               <FormField label="Artikel" error={errors.body?.message}>
-                <TextEditor value={value} setValue={onChange} />
+                <TextEditor
+                  value={value}
+                  setValue={onChange}
+                  placeholder="Börja skriva din artikel ..."
+                />
               </FormField>
             )}
           />
@@ -69,7 +73,7 @@ const ArticleForm = ({
           </Button>
         </div>
 
-        <ArticlePreview html={watch("body") ?? ""} />
+        <HtmlPreview html={watch("body") ?? ""} />
       </div>
     </AdminForm>
   );

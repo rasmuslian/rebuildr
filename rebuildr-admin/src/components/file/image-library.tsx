@@ -1,12 +1,11 @@
 "use client";
 
 import React from "react";
-import { Pagination, Image, Button, App, Divider } from "antd";
+import { Pagination, Image, Button, App, Divider, Empty } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useState } from "@/hooks/use-state";
 import { listFiles } from "@/queries/file/list-files";
-import EmptyContainer from "@components/empty-container";
 import { isEmpty } from "lodash";
 import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -85,10 +84,7 @@ const ImageLibrary = ({ onSelectImage }: Props) => {
       <Divider orientation="left">Bildbibliotek</Divider>
 
       {isEmpty(files) ? (
-        <EmptyContainer
-          spinner={isLoading}
-          description="Inga bilder hittades"
-        />
+        <Empty description="Inget att visa här 👀" />
       ) : (
         <div className="grid grid-cols-4 gap-2">
           {files.map((file) => (

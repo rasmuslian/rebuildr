@@ -7,6 +7,10 @@ export const contentStyle = `
     max-width: 100%;
     border-radius: 12px;
   }
+  a {
+    color: ${colors.accent_500};
+    hover: pointer;
+  }
   .accordion {
     padding: 10px;
     margin: 20px 0px;

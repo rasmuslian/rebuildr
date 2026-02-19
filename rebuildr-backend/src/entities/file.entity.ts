@@ -12,11 +12,7 @@ import { Product } from './product.entity';
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { Message } from './message.entity';
-
-export enum FileSourceEnum {
-  APP = 'APP',
-  ADMIN = 'ADMIN',
-}
+import { FileSourceEnum } from '../constants/enums';
 
 @Entity()
 @ObjectType()

@@ -4,7 +4,7 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
 import { gql, useQuery } from "@apollo/client";
 import { GetArticleQuery, GetArticleQueryVariables } from "@/gql/graphql";
-import ParsedArticle from "@components/article/parsed-article";
+import ParseHtml from "@components/article/parse-html";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { View } from "react-native";
@@ -42,7 +42,7 @@ export default function ArticlePage() {
         headerComponent={<TopBar theme="light" />}
       >
         <View style={{ width: 720, alignSelf: "center" }}>
-          <ParsedArticle html={data?.article.body} />
+          <ParseHtml html={data?.article.body} />
         </View>
       </ScreenLayout>
     );
@@ -53,7 +53,7 @@ export default function ArticlePage() {
       loading={loading}
       headerComponent={<Header showBackButton title={title} />}
     >
-      <ParsedArticle html={data?.article.body} />
+      <ParseHtml html={data?.article.body} />
     </ScreenLayout>
   );
 }

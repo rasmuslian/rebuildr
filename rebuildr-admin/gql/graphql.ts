@@ -678,6 +678,17 @@ export type ListBrandsResponse = {
   total: Scalars['Int']['output'];
 };
 
+export type ListPageContentInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ListPageContentResponse = {
+  __typename?: 'ListPageContentResponse';
+  pages: Array<PageContent>;
+  total: Scalars['Int']['output'];
+};
+
 export type LocationInputType = {
   lat: Scalars['Float']['input'];
   lng: Scalars['Float']['input'];
@@ -874,6 +885,7 @@ export type Mutation = {
   syncApproximateLocations: Scalars['Boolean']['output'];
   updateCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
+  updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
   updateProject: Project;
   updateUser: UpdateUserResponse;
@@ -1192,6 +1204,11 @@ export type MutationUpdateOrganizationUserArgs = {
 };
 
 
+export type MutationUpdatePageContentArgs = {
+  input: UpdatePageContentInput;
+};
+
+
 export type MutationUpdateProductArgs = {
   input: UpdateProductInput;
 };
@@ -1254,6 +1271,20 @@ export enum OrderProductsEnum {
 
 export enum OrderUsersEnum {
   Alphabetical = 'ALPHABETICAL'
+}
+
+export type PageContent = {
+  __typename?: 'PageContent';
+  createdAt: Scalars['DateTime']['output'];
+  heroHtml: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  page: PageEnum;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export enum PageEnum {
+  Contract = 'CONTRACT',
+  Partner = 'PARTNER'
 }
 
 export type PaginatedProductsResponse = {
@@ -1588,6 +1619,7 @@ export type Query = {
   listArticles: ListArticlesResponse;
   listBrands: ListBrandsResponse;
   listFooterSection: Array<FooterSection>;
+  listPageContents: ListPageContentResponse;
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
   me: User;
@@ -1595,6 +1627,8 @@ export type Query = {
   myPurchase?: Maybe<Purchase>;
   myPurchases: Array<Purchase>;
   nearbyServicePoints: Array<ServicePointResponse>;
+  pageContentById: PageContent;
+  pageContentByPage: PageContent;
   partners: Array<Partner>;
   popularCategories: Array<Category>;
   product: Product;
@@ -1744,6 +1778,11 @@ export type QueryListBrandsArgs = {
 };
 
 
+export type QueryListPageContentsArgs = {
+  input: ListPageContentInput;
+};
+
+
 export type QueryLocationSearchArgs = {
   input: LocationSearchInput;
 };
@@ -1766,6 +1805,16 @@ export type QueryMyPurchasesArgs = {
 
 export type QueryNearbyServicePointsArgs = {
   input: NearbyServicePointsInput;
+};
+
+
+export type QueryPageContentByIdArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryPageContentByPageArgs = {
+  page: Scalars['String']['input'];
 };
 
 
@@ -1981,6 +2030,11 @@ export type UpdateOrganizationUserInput = {
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
   websiteUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePageContentInput = {
+  heroHtml: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type UpdateProductInput = {

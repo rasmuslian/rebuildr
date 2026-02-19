@@ -137,6 +137,7 @@ export class CmsUpdateCategoriesInput {
 class CmsUpdateCategoryOrderInput {
   @Field()
   id: string;
+
   @Field()
   orderIndex: number;
 }

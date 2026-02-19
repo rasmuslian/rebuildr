@@ -18,4 +18,5 @@ export enum queryKeys {
   CAN_DELETE_BRAND = "can-delete-brand",
   CATEGORIES_CO2_FACTOR = "categories-co2-factor",
   LIST_CO2_FACTORS = "list-co2-factors",
+  LIST_PAGE_CONTENTS = "list-page-contents",
 }
