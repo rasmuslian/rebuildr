@@ -12,8 +12,7 @@ import CTABlock from "@components/article/cta-block";
 import Accordion from "@components/article/accordion";
 import LinkGroup from "@components/article/link-group";
 import { Divider } from "@components/dividers/divider";
-import { View } from "react-native";
-import { Linking, Pressable } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 
 type Props = {
   html?: string;
