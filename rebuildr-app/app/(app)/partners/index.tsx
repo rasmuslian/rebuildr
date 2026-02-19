@@ -51,9 +51,7 @@ export default function Partners() {
 
   const content = (
     <>
-      <View>
-        <ParseHtml html={data?.pageContentByPage.heroHtml} />
-      </View>
+      <ParseHtml html={data?.pageContentByPage.heroHtml} />
 
       <View style={{ gap: 24 }}>
         {data?.partners.map((p, i) => (
