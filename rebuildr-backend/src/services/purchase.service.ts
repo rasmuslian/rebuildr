@@ -567,6 +567,8 @@ export class PurchaseService {
         true,
       );
       purchase.approvedAt = new Date();
+      purchase.payoutStartedAt = new Date();
+      purchase.payoutReceivedAt = new Date();
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
@@ -995,13 +997,13 @@ export class PurchaseService {
     await Promise.all(
       duePurchases.map((p) => {
         try {
-        return this.acceptPurchase(
-          p,
-          p.buyer,
-          p.product.seller,
-          p.product,
-          logger,
-        );
+          return this.acceptPurchase(
+            p,
+            p.buyer,
+            p.product.seller,
+            p.product,
+            logger,
+          );
         } catch {
           logger.error('autoAcceptingPurchases: error accepting purchase', {
             purchaseId: p.id,
@@ -1077,8 +1079,8 @@ export class PurchaseService {
           purchase.product.status = ProductStatus.PUBLISHED;
           await this.productRepository.save(purchase.product);
         }
-          purchase.failedAt = new Date();
-          return await this.purchaseRepository.save(purchase);
+        purchase.failedAt = new Date();
+        return await this.purchaseRepository.save(purchase);
       }),
     );
   }
