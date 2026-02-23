@@ -4,6 +4,7 @@ import { Editor } from "tinymce";
 import { contentStyle } from "./content-style";
 import { Modal } from "antd";
 import ImageLibrary from "@components/file/image-library";
+import DocumentLibrary from "@components/file/document-library";
 import CTAModal from "@components/editor/cta-modal";
 import { CTASchemaType } from "@/schema/cta-schema";
 import { useState } from "@/hooks/use-state";
@@ -14,6 +15,7 @@ type Props = {
   value?: string;
   setValue: (param: string) => void;
   height?: number;
+  placeholder: string;
 };
 
 const createAccordionHTML = () => `
@@ -29,6 +31,7 @@ type StateType = {
   linkGroupNode?: HTMLElement;
   linkGroupData: LinkGroupSchemaType;
   isImageLibraryOpen: boolean;
+  isDocumentLibraryOpen: boolean;
   isCTAModalOpen: boolean;
   isLinkGroupModalOpen: boolean;
 };
@@ -54,11 +57,12 @@ const initialState: StateType = {
     ],
   },
   isImageLibraryOpen: false,
+  isDocumentLibraryOpen: false,
   isCTAModalOpen: false,
   isLinkGroupModalOpen: false,
 };
 
-const TextEditor = ({ value, setValue, height = 900 }: Props) => {
+const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
   const [state, setState] = useState(initialState);
   const editorRef = useRef<Editor | undefined>(undefined);
 
@@ -73,6 +77,12 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
     editorRef.current.execCommand("InsertImage", false, imageSource);
     editorRef.current.execCommand("InsertNewBlockAfter");
     setState({ isImageLibraryOpen: false });
+  };
+
+  const insertDocument = (url: string) => {
+    if (!editorRef.current) return;
+    editorRef.current.execCommand("CreateLink", false, url);
+    setState({ isDocumentLibraryOpen: false });
   };
 
   const insertDivider = () => {
@@ -155,14 +165,20 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
   const setupEditor = (editor: Editor) => {
     editorRef.current = editor;
 
-    editor.ui.registry.addButton("imageBankButton", {
+    editor.ui.registry.addButton("imageLibraryButton", {
       icon: "image",
-      text: "Image library",
+      text: "Image Library",
       onAction: () => setState({ isImageLibraryOpen: true }),
     });
 
-    editor.ui.registry.addButton("ctaButton", {
+    editor.ui.registry.addButton("documentLibraryButton", {
       icon: "new-document",
+      text: "Document Library",
+      onAction: () => setState({ isDocumentLibraryOpen: true }),
+    });
+
+    editor.ui.registry.addButton("ctaButton", {
+      icon: "addTag",
       text: "CTA",
       onAction: () => setState({ isCTAModalOpen: true }),
     });
@@ -241,7 +257,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
         value={value}
         onEditorChange={(content) => setValue(content)}
         init={{
-          placeholder: "Börja skriva din artikel ...",
+          placeholder,
           valid_styles: "none",
           block_formats: "Headline=h1;Subheadline=h2;Body=p;",
           themes: "modern",
@@ -258,7 +274,7 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
             "autoresize",
           ],
           toolbar:
-            "undo redo | blocks | bold italic | link unlink | imageBankButton accordionButton linkGroupButton ctaButton dividerButton",
+            "undo redo | blocks | bold italic | link unlink | imageLibraryButton documentLibraryButton accordionButton linkGroupButton ctaButton dividerButton",
           formats: {
             h1: { block: "h1", classes: "display-small" },
             h2: { block: "h2", classes: "headline-small" },
@@ -283,6 +299,15 @@ const TextEditor = ({ value, setValue, height = 900 }: Props) => {
         width={980}
       >
         <ImageLibrary onSelectImage={insertImage} />
+      </Modal>
+
+      <Modal
+        open={state.isDocumentLibraryOpen}
+        onCancel={() => setState({ isDocumentLibraryOpen: false })}
+        footer={false}
+        width={980}
+      >
+        <DocumentLibrary onSelectLink={insertDocument} />
       </Modal>
 
       <CTAModal

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternalServerException, ForbiddenException } from 'src/exceptions';
 import { Repository, In, ILike } from 'typeorm';
-import { File, FileSourceEnum } from 'src/entities/file.entity';
+import { File } from 'src/entities/file.entity';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import {
   CmsListFilesInput,
@@ -11,7 +11,7 @@ import {
   CmsCreateFilesResponse,
 } from 'src/resolvers/file.resolver';
 import { S3Service } from './s3.service';
-import { FileType } from 'src/constants/enums';
+import { FileType, FileSourceEnum } from 'src/constants/enums';
 @Injectable()
 export class FileService {
   constructor(

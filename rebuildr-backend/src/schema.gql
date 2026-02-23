@@ -696,6 +696,24 @@ type CmsCreatePartnerResponse {
   imagePutUrl: String
 }
 
+type PageContent {
+  id: ID!
+  page: PageEnum!
+  heroHtml: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum PageEnum {
+  PARTNER
+  CONTRACT
+}
+
+type ListPageContentResponse {
+  pages: [PageContent!]!
+  total: Int!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -749,6 +767,9 @@ type Query {
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   partners: [Partner!]!
   co2Factors: [CO2Factor!]!
+  pageContentById(id: String!): PageContent!
+  pageContentByPage(page: String!): PageContent!
+  listPageContents(input: ListPageContentInput!): ListPageContentResponse!
 }
 
 input UserExistsInput {
@@ -965,6 +986,11 @@ input PointInput {
   lng: Float!
 }
 
+input ListPageContentInput {
+  page: Int
+  pageSize: Int
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -1038,6 +1064,7 @@ type Mutation {
   cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
   updateCO2Factors: Boolean!
+  updatePageContent(input: UpdatePageContentInput!): PageContent!
 }
 
 input RegisterUserInput {
@@ -1505,4 +1532,9 @@ input CmsUpdatePartnerInput {
 
 input CmsDeletePartnerInput {
   id: String!
+}
+
+input UpdatePageContentInput {
+  id: String!
+  heroHtml: String!
 }

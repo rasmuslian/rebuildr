@@ -33,3 +33,15 @@ export enum FileType {
   DOCUMENT = 'DOCUMENT',
 }
 registerEnumType(FileType, { name: 'FileType' });
+
+export enum FileSourceEnum {
+  APP = 'APP',
+  ADMIN = 'ADMIN',
+}
+registerEnumType(FileSourceEnum, { name: 'FileSourceEnum' });
+
+export enum PageEnum {
+  PARTNER = 'PARTNER',
+  CONTRACT = 'CONTRACT',
+}
+registerEnumType(PageEnum, { name: 'PageEnum' });

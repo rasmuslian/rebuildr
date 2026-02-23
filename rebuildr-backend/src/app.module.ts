@@ -118,6 +118,9 @@ import { CO2Factor } from './entities/co2-factor.entity';
 import { CO2FactorService } from './services/co2-factor.service';
 import { BoverketAPI } from './apis/boverket.api';
 import { CO2FactorResolver } from './resolvers/co2-factor.resolver';
+import { PageContent } from './entities/page-content.entity';
+import { PageContentService } from './services/page-content.service';
+import { PageContentResolver } from './resolvers/page-content.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -173,6 +176,7 @@ export interface RequestType {
       MapPin,
       Partner,
       CO2Factor,
+      PageContent,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -312,6 +316,8 @@ export interface RequestType {
     CO2FactorService,
     CO2FactorResolver,
     BoverketAPI,
+    PageContentService,
+    PageContentResolver,
   ],
 })
 export class AppModule {}

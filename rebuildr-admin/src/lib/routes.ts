@@ -35,4 +35,7 @@ export enum routes {
 
   FOOTER_SETTING = "/admin/setting/footer",
   DEVELOPER_SETTING = "/admin/setting/developer",
+
+  LIST_PAGE_CONTENT = "/admin/setting/page-content",
+  EDIT_PAGE_CONTENT = "/admin/setting/page-content/edit",
 }

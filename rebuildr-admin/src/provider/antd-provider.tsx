@@ -2,7 +2,7 @@
 
 import React, { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider, App } from "antd";
+import { ConfigProvider, App, Empty } from "antd";
 import { colors } from "tailwind.config";
 
 const AntdProvider = ({ children }: PropsWithChildren) => {
@@ -14,6 +14,7 @@ const AntdProvider = ({ children }: PropsWithChildren) => {
           width: "fit-content",
         },
       }}
+      renderEmpty={() => <Empty description="Inget att visa här 👀" />}
       theme={{
         token: {
           colorPrimary: colors.accent_500,

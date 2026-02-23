@@ -18,7 +18,7 @@ export class ArticleService {
 
   async findOne(id: string) {
     const article = await this.articleRepository.findOneBy({ id });
-    if (!article) throw BadUserInputException();
+    if (!article) throw NotFoundException();
     return article;
   }
 
@@ -49,8 +49,7 @@ export class ArticleService {
   }
 
   async listArticles(input: ListArticlesInput): Promise<ListArticlesResponse> {
-    const pageSize = Number(input.pageSize) || 10;
-    const page = Number(input.page) || 0;
+    const { pageSize = 10, page = 0 } = input;
     const skip = Math.max(0, pageSize * page);
 
     const [articles, total] = await this.articleRepository.findAndCount({

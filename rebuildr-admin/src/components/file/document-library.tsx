@@ -6,7 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useState } from "@/hooks/use-state";
 import { listFiles } from "@/queries/file/list-files";
-import { DeleteOutlined, CopyOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  CopyOutlined,
+  SelectOutlined,
+} from "@ant-design/icons";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { File, FileType } from "gql/graphql";
 import { ColumnsType } from "antd/es/table";
@@ -26,7 +30,11 @@ const initialState: StateType = {
   page: 1,
 };
 
-const DocumentLibrary = () => {
+type Props = {
+  onSelectLink?: (url: string) => void;
+};
+
+const DocumentLibrary = ({ onSelectLink }: Props) => {
   const [state, setState] = useState(initialState);
   const { pageSize, page, searchString } = state;
   const { notification, modal, message } = App.useApp();
@@ -113,10 +121,23 @@ const DocumentLibrary = () => {
       },
     },
     {
-      title: "Administrera",
+      title: onSelectLink ? "Välj länken" : "Administrera",
       key: "action",
       width: "120px",
       render: (_, { id, name, url }) => {
+        if (onSelectLink) {
+          return (
+            <div className="flex flex-row items-center justify-center gap-4">
+              <Button
+                type="dashed"
+                size="middle"
+                icon={<SelectOutlined />}
+                onClick={() => onSelectLink(url)}
+              />
+            </div>
+          );
+        }
+
         return (
           <div className="flex flex-row items-center justify-center gap-4">
             <Button
@@ -125,14 +146,13 @@ const DocumentLibrary = () => {
               icon={<DeleteOutlined />}
               onClick={() => confirmDelete(name ?? "dokumentet", id)}
             />
-            <Tooltip title="Kopiera länken">
-              <Button
-                type="dashed"
-                size="middle"
-                icon={<CopyOutlined />}
-                onClick={() => copyLink(url)}
-              />
-            </Tooltip>
+
+            <Button
+              type="dashed"
+              size="middle"
+              icon={<CopyOutlined />}
+              onClick={() => copyLink(url)}
+            />
           </div>
         );
       },

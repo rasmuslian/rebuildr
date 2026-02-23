@@ -1,29 +1,27 @@
-import React from "react";
-import { Divider } from "antd";
+import { Display, Body, Headline } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
 import parse, {
   HTMLReactParserOptions,
   domToReact,
   Element,
   DOMNode,
 } from "html-react-parser";
-import { isEmpty } from "lodash";
-import EmptyContainer from "@components/empty-container";
+import { Image } from "expo-image";
 
+import CTABlock from "@components/article/cta-block";
 import Accordion from "@components/article/accordion";
 import LinkGroup from "@components/article/link-group";
-import CTABlock from "@components/article/cta-block";
-import Image from "next/image";
-import { colors } from "tailwind.config";
+import { Divider } from "@components/dividers/divider";
+import { Linking, Pressable, View } from "react-native";
 
 type Props = {
-  html: string;
+  html?: string;
 };
 
-const NotParsed = () => (
-  <p className="text-semantic_error_500">Not parsed ...</p>
-);
+const NotParsed = () => <Body size="small" />;
 
-const parseHtml = (html: string) => {
+export default function ParseHtml({ html }: Props) {
+  if (!html) return null;
   const cleanedHtml = html.replace(/\n/g, "");
 
   const options: HTMLReactParserOptions = {
@@ -32,49 +30,62 @@ const parseHtml = (html: string) => {
         switch (domNode.name) {
           case "h1": {
             return (
-              <h1 className="mb-6 text-display-small">
+              <Display size="small" style={{ marginBottom: 24 }}>
                 {domToReact(domNode.children as DOMNode[])}
-              </h1>
+              </Display>
             );
           }
           case "h2": {
             return (
-              <h2 className="mb-3 text-headline-small">
+              <Headline size="small" style={{ marginBottom: 12 }}>
                 {domToReact(domNode.children as DOMNode[])}
-              </h2>
+              </Headline>
             );
           }
           case "p": {
             return (
-              <p className="mb-6 text-body-medium">
+              <Body size="medium" style={{ marginBottom: 24 }}>
                 {domToReact(domNode.children as DOMNode[], options)}
-              </p>
+              </Body>
+            );
+          }
+          case "a": {
+            return (
+              <Pressable onPress={() => Linking.openURL(domNode.attribs.href)}>
+                <Body size="medium" isLink>
+                  {domToReact(domNode.children as DOMNode[], options)}
+                </Body>
+              </Pressable>
             );
           }
           case "img": {
             return (
               <Image
-                alt=""
-                src={domNode.attribs.src}
-                width={400}
-                height={400}
+                cachePolicy="memory-disk"
+                source={domNode.attribs.src}
                 style={{
                   aspectRatio: 1,
-                  borderRadius: 12,
+                  borderRadius: borderRadius.medium,
+                  width: "100%",
                 }}
               />
             );
           }
           case "summary": {
             return (
-              <h2 className="mr-4 text-headline-small">
+              <Headline
+                style={{ marginRight: 16 }}
+                size="small"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {domToReact(domNode.children as DOMNode[])}
-              </h2>
+              </Headline>
             );
           }
           case "details": {
             return (
-              <Accordion>
+              <Accordion isOpen={domNode.attribs.open === "open"}>
                 {domToReact(domNode.children as DOMNode[], options)}
               </Accordion>
             );
@@ -87,14 +98,9 @@ const parseHtml = (html: string) => {
             }
             if (domNode.attribs?.class?.includes("divider")) {
               return (
-                <Divider
-                  style={{
-                    marginTop: 0,
-                    marginBottom: 24,
-                    backgroundColor: colors.neutrals_300,
-                    height: 1,
-                  }}
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Divider />
+                </View>
               );
             }
             return <NotParsed />;
@@ -118,19 +124,4 @@ const parseHtml = (html: string) => {
   };
 
   return parse(cleanedHtml, options);
-};
-
-const ArticlePreview = ({ html }: Props) => {
-  return (
-    <div className="flex flex-1 flex-col rounded bg-white p-4 shadow-md">
-      <Divider>Förhandsvisning</Divider>
-      {isEmpty(html) ? (
-        <EmptyContainer description="Tom artikel" />
-      ) : (
-        parseHtml(html)
-      )}
-    </div>
-  );
-};
-
-export default ArticlePreview;
+}
