@@ -2,6 +2,7 @@ import { Category } from "@/gql/graphql";
 import { Body } from "@components/typography/text";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 
 type Props = {
   parentCategory?: Pick<Category, "id" | "name"> | null;
@@ -9,10 +10,13 @@ type Props = {
 };
 
 export const Breadcrumbs = ({ parentCategory, category }: Props) => {
+  const { filterBuilder } = useFilterProduct();
+
   return (
     <View style={{ flexDirection: "row", gap: 4 }}>
       <Pressable
         onPress={() => {
+          filterBuilder.reset().apply();
           router.navigate("/search/products");
         }}
       >

@@ -1,7 +1,6 @@
 import { productFilterVar } from "@/apollo/config";
 import { Category, OrderProductsEnum } from "@/gql/graphql";
 import { useReactiveVar } from "@apollo/client";
-import { PermanentSectionType } from "@constants/permanent-sections";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
 
 export const useFilterProduct = () => {
@@ -54,15 +53,6 @@ class FilterBuilder {
   constructor(filter?: Filter) {
     this.filter = filter ?? initialFilterProduct;
   }
-  //Presets are selectedCategoryId and sourceSection
-  //Most regular filter adjustments should reset the presets
-  private resetPresets() {
-    this.filter = {
-      ...this.filter,
-      sourceSection: undefined,
-    };
-    return this.filter;
-  }
 
   private separateRootAndCategories = (
     categories: Pick<Category, "id" | "parentId">[],
@@ -71,6 +61,7 @@ class FilterBuilder {
       (acc: string[], curr) => [...acc, curr.parentId ?? curr.id],
       [],
     );
+
     const categoryIds = categories
       .filter((c) => !!c.parentId)
       .map((c) => c.id) as string[];
@@ -88,18 +79,17 @@ class FilterBuilder {
   }
 
   setOrdering(sorting: OrderProductsEnum) {
-    this.filter = { ...this.resetPresets(), sorting };
+    this.filter = { ...this.filter, sorting };
     return this;
   }
 
   toggleAllRootCategories() {
-    const filter = this.resetPresets();
     //since its undefined it means all categories are already selected
     //make it so none are selected
-    if (!filter.rootCategoryIds) {
-      this.filter = { ...filter, rootCategoryIds: [], categoryIds: [] };
+    if (!this.filter.rootCategoryIds) {
+      this.filter = { ...this.filter, rootCategoryIds: [], categoryIds: [] };
     } else {
-      this.filter = { ...filter, rootCategoryIds: undefined };
+      this.filter = { ...this.filter, rootCategoryIds: undefined };
     }
 
     return this;
@@ -108,38 +98,37 @@ class FilterBuilder {
   toggleRootCategory(
     category: Pick<Category, "id"> & { children: Pick<Category, "id">[] },
   ) {
-    const filter = this.resetPresets();
     //we go from all selected to one. Reset categoryIds
-    if (!filter.rootCategoryIds) {
+    if (!this.filter.rootCategoryIds) {
       //if categoryIds are already selected, deselect those that are not children to this root. leave undefined if it already is undefined
-      const newCategoryIds = filter.categoryIds?.filter((id) =>
+      const newCategoryIds = this.filter.categoryIds?.filter((id) =>
         category.children.some((child) => child.id === id),
       );
       this.filter = {
-        ...filter,
+        ...this.filter,
         rootCategoryIds: [category.id],
         categoryIds: newCategoryIds,
       };
       return this;
     }
-    const isSelected = filter.rootCategoryIds.some(
+    const isSelected = this.filter.rootCategoryIds.some(
       (categoryId) => categoryId === category.id,
     );
     if (!isSelected) {
       this.filter = {
-        ...filter,
-        rootCategoryIds: [...filter.rootCategoryIds, category.id],
+        ...this.filter,
+        rootCategoryIds: [...this.filter.rootCategoryIds, category.id],
       };
       return this;
     } else {
       //Also remove all child categories of this root
-      const newCategoryIds = filter.categoryIds?.filter(
+      const newCategoryIds = this.filter.categoryIds?.filter(
         (id) => !category.children.some((c) => c.id === id),
       );
       this.filter = {
-        ...filter,
+        ...this.filter,
         categoryIds: newCategoryIds,
-        rootCategoryIds: filter.rootCategoryIds.filter(
+        rootCategoryIds: this.filter.rootCategoryIds.filter(
           (categoryId) => categoryId !== category.id,
         ),
       };
@@ -148,15 +137,14 @@ class FilterBuilder {
   }
 
   toggleAllCategories() {
-    const filter = this.resetPresets();
-    if (!filter.categoryIds) {
+    if (!this.filter.categoryIds) {
       this.filter = {
-        ...filter,
+        ...this.filter,
         categoryIds: [],
       };
     } else {
       this.filter = {
-        ...filter,
+        ...this.filter,
         categoryIds: undefined,
       };
     }
@@ -164,12 +152,11 @@ class FilterBuilder {
   }
 
   setCategories(categories: Pick<Category, "id" | "parentId">[]) {
-    const filter = this.resetPresets();
     const { rootCategoryIds, categoryIds } =
       this.separateRootAndCategories(categories);
 
     this.filter = {
-      ...filter,
+      ...this.filter,
       categoryIds,
       rootCategoryIds,
     };
@@ -181,31 +168,29 @@ class FilterBuilder {
     value: string,
     filterKey: keyof Pick<Filter, "categoryIds" | "brandIds" | "conditions">,
   ) {
-    const filter = this.resetPresets();
-    if (!filter[filterKey]) {
-      this.filter = { ...filter, [filterKey]: [value] };
+    if (!this.filter[filterKey]) {
+      this.filter = { ...this.filter, [filterKey]: [value] };
       return this;
     }
 
-    const selected = filter[filterKey].find((v) => v === value);
+    const selected = this.filter[filterKey].find((v) => v === value);
     if (!selected) {
       this.filter = {
-        ...filter,
-        [filterKey]: [...filter[filterKey], value],
+        ...this.filter,
+        [filterKey]: [...this.filter[filterKey], value],
       };
     } else {
       this.filter = {
-        ...filter,
-        [filterKey]: filter[filterKey].filter((v) => v !== value),
+        ...this.filter,
+        [filterKey]: this.filter[filterKey].filter((v) => v !== value),
       };
     }
     return this;
   }
 
   setPrice(price1: number, price2: number) {
-    const filter = this.resetPresets();
     this.filter = {
-      ...filter,
+      ...this.filter,
       price: [
         price1 <= price2 ? price1 : price2,
         price1 <= price2 ? price2 : price1,
@@ -215,36 +200,24 @@ class FilterBuilder {
     return this;
   }
   setGiveaway(v: boolean) {
-    const filter = this.resetPresets();
     this.filter = {
-      ...filter,
+      ...this.filter,
       giveaway: v,
     };
     return this;
   }
 
   setSearchString(searchString: string) {
-    const filter = this.resetPresets();
     this.filter = {
-      ...filter,
+      ...this.filter,
       searchString,
     };
     return this;
   }
 
-  setSourceSection(section: PermanentSectionType) {
-    const filter = this.resetPresets();
-    this.filter = {
-      ...filter,
-      sourceSection: section,
-    };
-    return this;
-  }
-
   setProjectId(projectId: string) {
-    const filter = this.resetPresets();
     this.filter = {
-      ...filter,
+      ...this.filter,
       projectId,
     };
     return this;

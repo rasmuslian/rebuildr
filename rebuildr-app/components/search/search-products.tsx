@@ -17,6 +17,7 @@ import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { FilterSlideSheet } from "@components/filter-product/filter-slide-sheet";
+import { FilterBottomSheet } from "@components/filter-product/filter-bottom-sheet";
 import {
   TransportationFilterOptions,
   TransportationOptions,
@@ -28,7 +29,6 @@ import { useUser } from "@hooks/useUser";
 import { borderRadius } from "@constants/sizes";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
-import { permanentSection } from "@constants/permanent-sections";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 type StateType = {
@@ -43,7 +43,12 @@ const initialState: StateType = {
   showTransportSheet: false,
 };
 
-export default function SearchProducts() {
+type Props = {
+  title?: string;
+  showDistance?: boolean;
+};
+
+export default function SearchProducts({ title, showDistance = false }: Props) {
   const PAGE_SIZE = 10;
   const [state, setState] = useReducerState<StateType>(initialState);
   const { isDesktop } = useScreenType();
@@ -54,7 +59,6 @@ export default function SearchProducts() {
 
   const { onToggleProductHeart } = useLikeProduct();
   const { height: screenHeight } = useWindowDimensions();
-  const MAP_HEIGHT = screenHeight - 72 - 48;
 
   const userLocation = userCoords && {
     lat: userCoords.latitude,
@@ -72,10 +76,7 @@ export default function SearchProducts() {
       },
       limit: PAGE_SIZE,
       offset: 0,
-      distanceFrom:
-        filter.sourceSection === "nearYou"
-          ? (userLocation ?? undefined)
-          : undefined,
+      distanceFrom: showDistance ? userLocation : undefined,
       isLoggedIn,
     },
   });
@@ -108,14 +109,7 @@ export default function SearchProducts() {
   ) => {
     await refetch({
       input: {
-        searchString: filter.searchString,
-        orderBy: filter.sorting,
-        categoryIds: filter.categoryIds,
-        brandIds: filter.brandIds,
-        conditions: filter.conditions,
-        minPrice: filter.price?.[0],
-        maxPrice: filter.price?.[1],
-        giveaway: filter.giveaway,
+        ...toProductsQueryInput,
         ...options,
       },
     });
@@ -124,7 +118,7 @@ export default function SearchProducts() {
 
   useEffect(() => {
     refetch();
-  }, [filter.categoryIds]);
+  }, [filter]);
 
   return (
     <>
@@ -151,15 +145,9 @@ export default function SearchProducts() {
                 </View>
               )}
 
-              {!!filter.sourceSection && (
-                <View
-                  style={{
-                    marginBottom: 24,
-                  }}
-                >
-                  <Display size="small">
-                    {permanentSection[filter.sourceSection].title}
-                  </Display>
+              {title && (
+                <View style={{ marginBottom: 24 }}>
+                  <Display size="small">{title}</Display>
                 </View>
               )}
 
@@ -234,7 +222,7 @@ export default function SearchProducts() {
                 position: "sticky",
                 top: SCREEN_TOP_MARGIN,
                 flex: 1,
-                height: MAP_HEIGHT,
+                height: screenHeight - 72 - 48,
                 borderRadius: borderRadius.medium,
               }}
               productsInput={toProductsQueryInput()}
@@ -281,15 +269,9 @@ export default function SearchProducts() {
             </View>
           )}
 
-          {!!filter.sourceSection && (
-            <View
-              style={{
-                marginBottom: 24,
-              }}
-            >
-              <Display size="small">
-                {permanentSection[filter.sourceSection].title}
-              </Display>
+          {title && (
+            <View style={{ marginBottom: 24 }}>
+              <Display size="small">{title}</Display>
             </View>
           )}
 
@@ -334,7 +316,7 @@ export default function SearchProducts() {
               <Button
                 icon="filterList2"
                 type="tonal"
-                onPress={() => router.navigate("/search/filter")}
+                onPress={() => setState({ showFilter: true })}
               />
               {!!nrOfAppliedFilters() && (
                 <View style={{ position: "absolute", right: 1, top: 1 }}>
@@ -375,6 +357,11 @@ export default function SearchProducts() {
               total: data?.products.total ?? 0,
               loading,
             }}
+          />
+
+          <FilterBottomSheet
+            open={state.showFilter}
+            onClose={() => setState({ showFilter: false })}
           />
 
           <BottomSheet
