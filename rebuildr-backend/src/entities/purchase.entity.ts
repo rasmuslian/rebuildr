@@ -29,7 +29,7 @@ export enum PurchaseStatusEnum {
   APPROVED = 'APPROVED', //(OPTIONAL) Buyer has accepted the product
   PAYOUT_STARTED = 'PAYOUT_STARTED', //Stripe has started payout to seller
   FINISHED_FAILED = 'FINISHED_FAILED', //Purchase was for any reason canceled
-  FINISHED_SUCCESS = 'FINISHED_SUCCESS', //Seller has received the money and the Purchase is complete
+  FINISHED_SUCCESS = 'FINISHED_SUCCESS', //Purchase is complete
   PAUSED = 'PAUSED', //Buyer has pauset the purchase
   PAYOUT_FAILED = 'PAYOUT_FAILED', //Payout to seller failed
 }
