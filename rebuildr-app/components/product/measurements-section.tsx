@@ -4,14 +4,12 @@ import {
   MeasurementTypeEnum,
   MeasurementUnitEnum,
 } from "@/gql/graphql";
-import { formatMeasurement, parseFloatComma } from "@/utils/formattings";
 import { gql, useQuery } from "@apollo/client";
 import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Label } from "@components/typography/text";
 import { measurements, MeasurementsObjectType } from "@constants/measurements";
-import { useState } from "react";
 import { View } from "react-native";
 
 const MEASUREMENTS_SECTION = gql`
@@ -53,9 +51,7 @@ export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
         {data.category.measurements.map((measurement, i, arr) => (
           <View key={i} style={{ zIndex: arr.length - i }}>
             <Measurement
-              onChange={(value, unit) => {
-                onChange(measurement, value, unit);
-              }}
+              onChange={(value, unit) => onChange(measurement, value, unit)}
               type={measurement}
               initialValue={value[measurement]?.value ?? 0}
               unit={value[measurement]?.unit}
@@ -74,19 +70,11 @@ type MeasurementProps = {
   unit?: MeasurementUnitEnum;
 };
 const Measurement = ({
-  onChange: _onChange,
+  onChange,
   type,
   initialValue,
   unit: _unit,
 }: MeasurementProps) => {
-  const [value, setValue] = useState(
-    initialValue ? formatMeasurement(initialValue) : undefined,
-  );
-
-  const onChange = (v: string | undefined, unit: MeasurementUnitEnum) => {
-    setValue(v);
-    _onChange(parseFloatComma(v ?? "0"), unit);
-  };
   const options = measurements[type].options;
   const unit = _unit ? _unit : (Object.keys(options)[0] as MeasurementUnitEnum);
 
@@ -103,9 +91,13 @@ const Measurement = ({
         <Label size="medium">{measurements[type].name}</Label>
         <TextInput
           placeholder={initialValue.toString()}
-          value={value}
-          onChange={(v) => onChange(v, unit)}
-          inputType="decimal"
+          value={
+            initialValue.toString() !== "0"
+              ? initialValue.toString()
+              : undefined
+          }
+          onChange={(v) => onChange(parseInt(v, 10), unit)}
+          inputType="numeric"
         />
       </View>
       <View style={{ flex: 1 }}>
@@ -116,7 +108,7 @@ const Measurement = ({
             value: o as MeasurementUnitEnum,
           }))}
           onSelect={(unit) => {
-            onChange(value, unit);
+            onChange(initialValue, unit);
           }}
         />
       </View>

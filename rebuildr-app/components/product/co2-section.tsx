@@ -1,5 +1,4 @@
 import { QuantityUnitEnum } from "@/gql/graphql";
-import { formatMeasurement, parseFloatComma } from "@/utils/formattings";
 import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
@@ -19,38 +18,39 @@ export const CO2Section = ({ product, onChange }: Props) => {
       product.primaryUnit === QuantityUnitEnum.Kg &&
       product.primaryQuantity !== undefined
     ) {
-      return formatMeasurement(product.primaryQuantity);
+      return product.primaryQuantity;
     }
     if (
       product.secondaryUnit === QuantityUnitEnum.Kg &&
       product.secondaryQuantity !== undefined
     ) {
-      return formatMeasurement(product.secondaryQuantity);
+      return product.secondaryQuantity;
     }
     if (product.weight) {
-      return formatMeasurement(product.weight);
+      return product.weight;
     }
-    return undefined;
+    return 0;
   };
   const [weight, setWeight] = useState(() => deriveWeight());
 
   useEffect(() => {
     const derivedWeight = deriveWeight();
     setWeight(derivedWeight);
-    onChange(parseFloatComma(derivedWeight ?? "0"));
+    onChange(derivedWeight);
   }, [
     product.primaryQuantity,
     product.primaryUnit,
     product.secondaryQuantity,
     product.secondaryUnit,
+    product.weight,
   ]);
 
   const colors = useThemeColor();
 
   const onChangeWeight = (v: string) => {
-    setWeight(v);
-    const toFloat = parseFloatComma(v);
-    onChange(toFloat);
+    const toInt = parseInt(v, 10);
+    onChange(toInt);
+    setWeight(toInt);
   };
 
   return (
@@ -74,8 +74,8 @@ export const CO2Section = ({ product, onChange }: Props) => {
           {
             type: "text",
             heading: "Vikt (kg)",
-            inputType: "decimal",
-            value: weight,
+            inputType: "numeric",
+            value: weight.toString(),
             onChange: (v) => onChangeWeight(v),
             style: { backgroundColor: colors.background.neutral },
             disabled:

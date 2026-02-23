@@ -137,7 +137,7 @@ export class Product {
   isGiveaway: boolean;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   primaryQuantity?: number;
   @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
@@ -149,7 +149,7 @@ export class Product {
   primaryUnit?: QuantityUnitEnum;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   secondaryQuantity?: number;
   @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
@@ -163,7 +163,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   height?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
@@ -177,7 +177,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   width?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
@@ -191,7 +191,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   length?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
@@ -205,7 +205,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   thickness?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
@@ -219,7 +219,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   diameter?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
@@ -233,7 +233,7 @@ export class Product {
   @Field({
     nullable: true,
   })
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true })
   weight?: number;
   @Field(() => MeasurementUnitEnum)
   @Column({
