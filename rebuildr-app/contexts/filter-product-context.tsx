@@ -1,10 +1,8 @@
 import { OrderProductsEnum, ProductConditionEnum } from "@/gql/graphql";
-import { PermanentSectionType } from "@constants/permanent-sections";
 
 //undefined means include all
 //empty list means includ none
 export type Filter = {
-  //Basic filters
   sorting: OrderProductsEnum;
   rootCategoryIds?: string[];
   categoryIds?: string[];
@@ -14,8 +12,6 @@ export type Filter = {
   giveaway: boolean;
   searchString?: string;
   projectId?: string;
-  //Preset filters
-  sourceSection?: PermanentSectionType;
 };
 
 export const initialFilterProduct: Filter = {

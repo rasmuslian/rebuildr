@@ -44,12 +44,8 @@ export const NewArrivals = () => {
       data={data}
       title={permanentSection.newArrivals.title}
       onPress={() => {
-        filterBuilder
-          .reset()
-          .setOrdering(OrderProductsEnum.Latest)
-          .setSourceSection("newArrivals")
-          .apply();
-        router.navigate("/search/products");
+        filterBuilder.reset().setOrdering(OrderProductsEnum.Latest).apply();
+        router.navigate({ pathname: "/search/products/new-arrivals" });
       }}
     />
   );

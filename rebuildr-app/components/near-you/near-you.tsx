@@ -58,12 +58,8 @@ export const NearYou = () => {
       data={data}
       title={permanentSection.nearYou.title}
       onPress={() => {
-        filterBuilder
-          .reset()
-          .setOrdering(OrderProductsEnum.Distance)
-          .setSourceSection("nearYou")
-          .apply();
-        router.navigate("/search/products");
+        filterBuilder.reset().setOrdering(OrderProductsEnum.Distance).apply();
+        router.navigate({ pathname: "/search/products/near-you" });
       }}
     />
   );

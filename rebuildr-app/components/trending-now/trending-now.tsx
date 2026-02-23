@@ -93,12 +93,8 @@ export const TrendingNow = () => {
       .filter((p) => !!p.category)
       .map((p) => p.category as Category);
 
-    filterBuilder
-      .reset()
-      .setCategories(categories)
-      .setSourceSection("trendingNow")
-      .apply();
-    router.navigate("/search/products");
+    filterBuilder.reset().setCategories(categories).apply();
+    router.navigate({ pathname: "/search/products/trending-now" });
   };
 
   return (

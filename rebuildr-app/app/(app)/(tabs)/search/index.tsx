@@ -1,4 +1,3 @@
-import { isLoggedInVar } from "@/apollo/config";
 import { SearchQuery, SearchQueryVariables } from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
@@ -8,14 +7,16 @@ import { SEARCH } from "@components/search/queries";
 import { useSearchContext } from "@context/search-context";
 import { SearchBar } from "@components/search/search-bar";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
+import { useUser } from "@hooks/useUser";
 
 export default function Search() {
   const { searchState } = useSearchContext();
+  const { isLoggedIn } = useUser();
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
-      isLoggedIn: isLoggedInVar(),
       searchResult: { page: 0, pageSize: 10 },
+      isLoggedIn,
     },
   });
 

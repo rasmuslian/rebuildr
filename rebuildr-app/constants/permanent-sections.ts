@@ -12,5 +12,3 @@ export const permanentSection = {
     title: "För säsong",
   },
 };
-
-export type PermanentSectionType = keyof typeof permanentSection;

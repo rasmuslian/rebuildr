@@ -1,6 +1,12 @@
-import { View, TouchableOpacity, useWindowDimensions } from "react-native";
 import React from "react";
 import { SubCategoriesQuery } from "@/gql/graphql";
+import { useScreenType } from "@hooks/useScreenType";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { Display, Body, Label } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { router } from "expo-router";
@@ -11,11 +17,62 @@ type Props = {
   category: SubCategoriesQuery["category"];
 };
 
-export function SubCategoriesListMobile({ category }: Props) {
+export function SubCategoriesList({ category }: Props) {
+  const subCategories = category.children ?? [];
+  const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
   const width = (screenWidth - 56) / 3;
 
-  const subCategories = category.children ?? [];
+  if (isDesktop) {
+    return (
+      <View style={{ marginBottom: 24, gap: 24 }}>
+        <View style={{ gap: 16 }}>
+          <Breadcrumbs parentCategory={category.parent} category={category} />
+          <Display size="small">{category?.name}</Display>
+          <Body size="large">{category?.description}</Body>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            gap: 16,
+          }}
+        >
+          {subCategories.map((c) => (
+            <TouchableOpacity
+              key={c.id}
+              style={{
+                width: 100,
+                alignItems: "center",
+                gap: 14,
+              }}
+              onPress={() => {
+                router.navigate({
+                  pathname: "/search/products/[categoryId]/[subCategoryId]",
+                  params: {
+                    categoryId: category.id,
+                    subCategoryId: c.id,
+                  },
+                });
+              }}
+            >
+              <Avatar
+                imageUrl={c.image?.url}
+                size={88}
+                placeholder="CATEGORY"
+              />
+              <Label size="medium" style={{ textAlign: "center" }}>
+                {c.name}
+              </Label>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <Divider />
+      </View>
+    );
+  }
 
   return (
     <View style={{ marginBottom: 24, gap: 24 }}>
