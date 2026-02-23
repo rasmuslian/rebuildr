@@ -3,7 +3,6 @@ import {
   RecommendedQuantitiesQueryQuery,
   RecommendedQuantitiesQueryQueryVariables,
 } from "@/gql/graphql";
-import { formatMeasurement, parseFloatComma } from "@/utils/formattings";
 import { gql, useQuery } from "@apollo/client";
 import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
@@ -48,11 +47,11 @@ export const QuantitiesSection = ({
   onChangeSecondary,
 }: Props) => {
   const [primaryQuantity, setPrimaryQuantity] = useState(
-    _primaryQuantity ? formatMeasurement(_primaryQuantity) : "0",
+    _primaryQuantity?.toString() ?? "0",
   );
 
   const [secondaryQuantity, setSecondaryQuantity] = useState(
-    _secondaryQuantity ? formatMeasurement(_secondaryQuantity) : "0",
+    _secondaryQuantity?.toString() ?? "0",
   );
 
   const [primaryUnit, setPrimaryaryUnit] = useState<QuantityUnitEnum>(
@@ -63,12 +62,8 @@ export const QuantitiesSection = ({
   >(_secondaryUnit);
 
   useEffect(() => {
-    setPrimaryQuantity(
-      _primaryQuantity ? formatMeasurement(_primaryQuantity) : "0",
-    );
-    setSecondaryQuantity(
-      _secondaryQuantity ? formatMeasurement(_secondaryQuantity) : "0",
-    );
+    setPrimaryQuantity(_primaryQuantity?.toString() ?? "0");
+    setSecondaryQuantity(_secondaryQuantity?.toString() ?? "0");
   }, [_primaryQuantity, _secondaryQuantity]);
 
   const { data } = useQuery<
@@ -91,23 +86,32 @@ export const QuantitiesSection = ({
   ) => {
     if (field === "primary") {
       onChangePrimary({
-        quantity: parseFloatComma(primaryQuantity),
+        quantity: parseInt(primaryQuantity, 10),
         unit,
       });
       setPrimaryaryUnit(unit);
     }
     if (field === "secondary") {
       onChangeSecondary({
-        quantity: parseFloatComma(secondaryQuantity),
+        quantity: parseInt(secondaryQuantity, 10),
         unit,
       });
       setSecondaryUnit(unit);
     }
   };
+  const processQuantity = (q: string) => {
+    //remove all non digits
+    const newQuantity = q.replace(/\D/g, "");
+    if (newQuantity.startsWith("0") && newQuantity.length > 1) {
+      return newQuantity.slice(1);
+    }
+    return newQuantity || "0";
+  };
 
   const onChangePrimaryQuantity = (q: string) => {
-    const quantity = parseFloatComma(q);
-    setPrimaryQuantity(q);
+    const processed = processQuantity(q);
+    setPrimaryQuantity(processed);
+    const quantity = parseInt(processed, 10);
     if (quantity <= 0) {
       return;
     }
@@ -120,8 +124,9 @@ export const QuantitiesSection = ({
     });
   };
   const onChangeSecondaryQuantity = (q: string) => {
-    setSecondaryQuantity(q);
-    const quantity = parseFloatComma(q);
+    const processed = processQuantity(q);
+    setSecondaryQuantity(processed);
+    const quantity = parseInt(processed, 10);
     if (quantity <= 0) {
       return;
     }
@@ -154,7 +159,7 @@ export const QuantitiesSection = ({
             placeholder={primaryQuantity}
             value={primaryQuantity !== "0" ? primaryQuantity : undefined}
             onChange={(t) => onChangePrimaryQuantity(t)}
-            inputType="decimal"
+            inputType="numeric"
             error={!!primaryError}
           />
           {primaryError && (
@@ -195,7 +200,6 @@ export const QuantitiesSection = ({
                 value={
                   secondaryQuantity !== "0" ? secondaryQuantity : undefined
                 }
-                inputType="decimal"
                 onChange={onChangeSecondaryQuantity}
               />
             </View>
