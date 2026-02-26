@@ -78,7 +78,7 @@ export default function Product() {
       <RebuildrHead
         title={product.title}
         description={product.description ?? undefined}
-        image={product.images[0].url}
+        image={product.images[0]?.url}
         isProductPage
       />
 
