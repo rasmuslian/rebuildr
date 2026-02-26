@@ -29,9 +29,13 @@ export const getProductBadgeProps = (
     case PurchaseStatusEnum.FinishedSuccess:
     case PurchaseStatusEnum.PayoutStarted:
     case PurchaseStatusEnum.PayoutFailed:
-    case PurchaseStatusEnum.FinishedFailed:
       return {
         text: "Köp slutfört",
+      };
+    case PurchaseStatusEnum.FinishedFailed:
+      return {
+        text: "Köp avbrutet",
+        error: true,
       };
     case PurchaseStatusEnum.ShipmentDroppedOff:
     case PurchaseStatusEnum.ShippingStarted:
