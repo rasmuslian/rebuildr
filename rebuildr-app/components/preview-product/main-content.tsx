@@ -52,11 +52,13 @@ export const MainContent = ({
   const approximatePlace = product.approximatePlace;
 
   const showSpecificsMeasurements =
-    product.width ||
-    product.height ||
-    product.thickness ||
-    product.length ||
-    product.weight;
+    Boolean(product.width) ||
+    Boolean(product.height) ||
+    Boolean(product.thickness) ||
+    Boolean(product.diameter) ||
+    Boolean(product.length) ||
+    Boolean(product.weight);
+
   const showSpecificsDocuments = !!product.documents?.length;
 
   const ncsToRgbStyle = (ncs: string) => {
@@ -208,7 +210,7 @@ export const MainContent = ({
         <View style={{ gap: 4 }}>
           <Label size="medium">Skick</Label>
           {product.condition && (
-            <Body size="medium">{conditions[product.condition].name}</Body>
+            <Body size="medium">{conditions[product.condition].name} </Body>
           )}
         </View>
         {showSpecificsMeasurements && (
