@@ -130,6 +130,7 @@ export const Conversation = ({
       {data.latestPurchase && (
         <AbortPurchaseBottomSheet
           purchaseId={data.latestPurchase.id}
+          purchaseStatus={data.latestPurchase.status}
           show={showAbortSheet}
           onDismiss={() => setShowAbortSheet(false)}
           onAbortPurchaseCompleted={() => refetch()}

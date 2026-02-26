@@ -268,6 +268,7 @@ export const PurchaseReceipt = ({
       </View>
       <AbortPurchaseBottomSheet
         purchaseId={data.purchase.id}
+        purchaseStatus={data.purchase.status}
         show={showAbortSheet}
         onDismiss={() => setShowAbortSheet(false)}
         onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
