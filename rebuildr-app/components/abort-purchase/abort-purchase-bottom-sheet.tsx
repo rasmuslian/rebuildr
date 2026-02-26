@@ -1,6 +1,7 @@
 import {
   AbortPurchaseMutation,
   AbortPurchaseMutationVariables,
+  PurchaseStatusEnum,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -24,6 +25,7 @@ const ABORT_PURCHASE = gql`
 
 type AbortPurchaseBottomSheetProps = {
   purchaseId: string;
+  purchaseStatus: PurchaseStatusEnum;
   show: boolean;
   onDismiss: () => void;
   onAbortPurchaseCompleted: () => void;
@@ -31,6 +33,7 @@ type AbortPurchaseBottomSheetProps = {
 
 export const AbortPurchaseBottomSheet = ({
   purchaseId,
+  purchaseStatus,
   show,
   onDismiss,
   onAbortPurchaseCompleted,
@@ -51,30 +54,57 @@ export const AbortPurchaseBottomSheet = ({
     });
   };
 
+  const canAbortPurchase = () => {
+    switch (purchaseStatus) {
+      case PurchaseStatusEnum.PaymentAccepted:
+      case PurchaseStatusEnum.ShipmentBooked:
+        return true;
+
+      default:
+        return false;
+    }
+  };
+
   const content = (
     <View style={[{ justifyContent: "space-between", flex: 1, gap: 24 }]}>
-      <View style={{ gap: 24 }}>
-        <Display size="small" style={{ textAlign: "center" }}>
-          Är du säker på att du vill avbryta köpet?
-        </Display>
+      {canAbortPurchase() ? (
+        <>
+          <View style={{ gap: 24 }}>
+            <Display size="small" style={{ textAlign: "center" }}>
+              Är du säker på att du vill avbryta köpet?
+            </Display>
 
-        {error && <Body color="error">Något gick fel</Body>}
-      </View>
+            {error && <Body color="error">Något gick fel</Body>}
+          </View>
 
-      <View style={{ gap: 8, paddingTop: 24 }}>
-        <Button
-          label="Ja, avbryt köp"
-          onPress={onAbortPurchase}
-          loading={loading}
-          type="danger"
-        />
-        <Button
-          label="Nej"
-          onPress={onDismiss}
-          disabled={loading}
-          type="outlined"
-        />
-      </View>
+          <View style={{ gap: 8, paddingTop: 24 }}>
+            <Button
+              label="Ja, avbryt köp"
+              onPress={onAbortPurchase}
+              loading={loading}
+              type="danger"
+            />
+            <Button
+              label="Nej"
+              onPress={onDismiss}
+              disabled={loading}
+              type="outlined"
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <Display size="small" style={{ textAlign: "center" }}>
+            Köpet kan inte avbrytas
+          </Display>
+
+          <Body>
+            Säljaren har redan skickat varan. När leveransen är påbörjad går det
+            inte att avbryta köpet.{" "}
+          </Body>
+          <Button label="Ok" onPress={onDismiss} type="filled" />
+        </>
+      )}
     </View>
   );
 
