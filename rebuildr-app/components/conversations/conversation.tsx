@@ -1,5 +1,5 @@
 import { ConversationProductQuery } from "@/gql/graphql";
-import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
+import { AbortPurchase } from "@components/purchase/abort-purchase";
 import { ChatBlock } from "@components/conversations/chat-block";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
 import { CreateReview } from "@components/review/create-review";
@@ -128,7 +128,7 @@ export const Conversation = ({
         );
       })}
       {data.latestPurchase && (
-        <AbortPurchaseBottomSheet
+        <AbortPurchase
           purchaseId={data.latestPurchase.id}
           purchaseStatus={data.latestPurchase.status}
           show={showAbortSheet}

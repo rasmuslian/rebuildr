@@ -15,7 +15,7 @@ import dayjs from "dayjs";
 import { View } from "react-native";
 import { PurchaseProgress } from "./purchase-progress";
 import { useState } from "react";
-import { AbortPurchaseBottomSheet } from "@components/abort-purchase/abort-purchase-bottom-sheet";
+import { AbortPurchase } from "@components/purchase/abort-purchase";
 import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
@@ -266,7 +266,7 @@ export const PurchaseReceipt = ({
           .
         </Body>
       </View>
-      <AbortPurchaseBottomSheet
+      <AbortPurchase
         purchaseId={data.purchase.id}
         purchaseStatus={data.purchase.status}
         show={showAbortSheet}

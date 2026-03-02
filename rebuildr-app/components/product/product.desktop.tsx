@@ -26,7 +26,7 @@ import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { PickupPositionPopupContent } from "@components/preview-product/pickup-position-popup-content";
 import { ProjectSection } from "@components/preview-product/project-section";
-import { RemoveProductSheet } from "@components/preview-product/remove-product-sheet";
+import RemoveProduct from "@components/preview-product/remove-product";
 import { UserSection } from "@components/preview-product/user-section";
 import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
 import {
@@ -322,13 +322,12 @@ export const ProductDesktop = ({
           onDismiss={() => setShowReportSheet(false)}
         />
       )}
-      <RemoveProductSheet
-        open={showRemoveProductsSheet}
-        onClose={() => setShowRemoveProductsSheet(false)}
+      <RemoveProduct
+        show={showRemoveProductsSheet}
+        onDismiss={() => setShowRemoveProductsSheet(false)}
         canDelete={product.canDelete}
         productId={product.id}
       />
-
       <CreateProductLabelModal
         show={showCreateProductLabel}
         onDismiss={() => setShowCreateProductLabel(false)}
