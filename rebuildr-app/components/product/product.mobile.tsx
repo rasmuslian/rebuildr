@@ -33,7 +33,7 @@ import { ProjectSection } from "@components/preview-product/project-section";
 import { UserSection } from "@components/preview-product/user-section";
 import { InfoSection } from "@components/preview-product/info-section";
 import { ActionSection } from "@components/preview-product/action-section";
-import { RemoveProductSheet } from "@components/preview-product/remove-product-sheet";
+import RemoveProduct from "@components/preview-product/remove-product";
 import { CO2Savings } from "@components/preview-product/CO2-savings";
 
 type Props = {
@@ -229,9 +229,9 @@ export const ProductMobile = ({
         )}
         <SimilarProducts productId={productId} />
       </ScreenLayout>
-      <RemoveProductSheet
-        open={showRemoveProductsSheet}
-        onClose={() => setShowRemoveProductsSheet(false)}
+      <RemoveProduct
+        show={showRemoveProductsSheet}
+        onDismiss={() => setShowRemoveProductsSheet(false)}
         canDelete={product.canDelete}
         productId={productId}
       />

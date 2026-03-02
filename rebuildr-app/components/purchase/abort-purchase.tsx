@@ -23,7 +23,7 @@ const ABORT_PURCHASE = gql`
   }
 `;
 
-type AbortPurchaseBottomSheetProps = {
+type Props = {
   purchaseId: string;
   purchaseStatus: PurchaseStatusEnum;
   show: boolean;
@@ -31,13 +31,13 @@ type AbortPurchaseBottomSheetProps = {
   onAbortPurchaseCompleted: () => void;
 };
 
-export const AbortPurchaseBottomSheet = ({
+export const AbortPurchase = ({
   purchaseId,
   purchaseStatus,
   show,
   onDismiss,
   onAbortPurchaseCompleted,
-}: AbortPurchaseBottomSheetProps) => {
+}: Props) => {
   const { isDesktop } = useScreenType();
   const [abortPurchase, { error, loading }] = useMutation<
     AbortPurchaseMutation,
