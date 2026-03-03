@@ -28,7 +28,7 @@ import { PickupPositionPopupContent } from "@components/preview-product/pickup-p
 import { ProjectSection } from "@components/preview-product/project-section";
 import RemoveProduct from "@components/preview-product/remove-product";
 import { UserSection } from "@components/preview-product/user-section";
-import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
+import { ReportProduct } from "@components/report/report-product";
 import {
   SCREEN_TOP_MARGIN,
   ScreenLayout,
@@ -316,7 +316,7 @@ export const ProductDesktop = ({
         </View>
       </ScreenLayout>
       {!isMyProduct && (
-        <ReportProductBottomSheet
+        <ReportProduct
           productId={product.id}
           show={showReportSheet}
           onDismiss={() => setShowReportSheet(false)}

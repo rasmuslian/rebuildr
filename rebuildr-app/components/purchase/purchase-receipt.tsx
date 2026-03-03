@@ -16,7 +16,7 @@ import { View } from "react-native";
 import { PurchaseProgress } from "./purchase-progress";
 import { useState } from "react";
 import { AbortPurchase } from "@components/purchase/abort-purchase";
-import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
+import { ReportPurchase } from "@components/report/report-purchase";
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { CreateReview } from "@components/review/create-review";
@@ -281,7 +281,7 @@ export const PurchaseReceipt = ({
           refetch();
         }}
       />
-      <ReportPurchaseBottomSheet
+      <ReportPurchase
         purchaseId={data.purchase.id}
         show={showReportSheet}
         onDismiss={() => setShowReportSheet(false)}
