@@ -1,7 +1,7 @@
 import { ConversationProductQuery } from "@/gql/graphql";
 import { AbortPurchase } from "@components/purchase/abort-purchase";
 import { ChatBlock } from "@components/conversations/chat-block";
-import { ReportPurchaseBottomSheet } from "@components/report/report-purchase-bottom-sheet";
+import { ReportPurchase } from "@components/report/report-purchase";
 import { CreateReview } from "@components/review/create-review";
 import { Body } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -147,7 +147,7 @@ export const Conversation = ({
         />
       )}
       {data.latestPurchase && (
-        <ReportPurchaseBottomSheet
+        <ReportPurchase
           purchaseId={data.latestPurchase.id}
           show={showReportSheet}
           onDismiss={() => setShowReportSheet(false)}

@@ -25,7 +25,7 @@ import { CreateProductLabelModal } from "@components/modals/create-product-label
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
 
-import { ReportProductBottomSheet } from "@components/report/report-product-bottom-sheet";
+import { ReportProduct } from "@components/report/report-product";
 import { LoginModalContext } from "@context/loginModalContext";
 import { SimilarProducts } from "@components/similar-products/similar-products";
 import { printProductLabel } from "@/utils/products/print-product-label";
@@ -236,7 +236,7 @@ export const ProductMobile = ({
         productId={productId}
       />
       {!isMyProduct && (
-        <ReportProductBottomSheet
+        <ReportProduct
           productId={productId}
           show={showReportSheet}
           onDismiss={() => setShowReportSheet(false)}

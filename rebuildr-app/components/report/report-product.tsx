@@ -56,17 +56,13 @@ const CREATE_REPORT_PRODUCT = gql`
   }
 `;
 
-type ReportProductBottomSheetProps = {
+type Props = {
   productId: string;
   show: boolean;
   onDismiss: () => void;
 };
 
-export const ReportProductBottomSheet = ({
-  productId,
-  show,
-  onDismiss,
-}: ReportProductBottomSheetProps) => {
+export const ReportProduct = ({ productId, show, onDismiss }: Props) => {
   const [type, setType] = useState<ReportProductTypeEnum>();
   const [message, setMessage] = useState("");
   const { isDesktop } = useScreenType();

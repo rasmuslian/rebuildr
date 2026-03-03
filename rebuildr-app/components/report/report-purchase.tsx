@@ -21,6 +21,8 @@ import { TextInput } from "@components/forms/textInput";
 import { InstructionSteps } from "@components/instruction-steps/instruction-steps";
 import BuyersProtectionImage from "@assets/svgs/buyers-protection.svg";
 import { Header } from "@components/navigation/headers/header";
+import { useScreenType } from "@hooks/useScreenType";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
 const REPORT_PURCHASE = gql`
   query ReportPurchase($input: GetPurchaseInput!) {
@@ -59,21 +61,22 @@ const CREATE_REPORT_PURCHASE = gql`
   }
 `;
 
-type ReportPurchaseBottomSheetProps = {
+type Props = {
   purchaseId: string;
   show: boolean;
   onDismiss: () => void;
   onCreateReportComplete: () => void;
 };
 
-export const ReportPurchaseBottomSheet = ({
+export const ReportPurchase = ({
   purchaseId,
   show,
   onDismiss,
   onCreateReportComplete,
-}: ReportPurchaseBottomSheetProps) => {
+}: Props) => {
   const [type, setType] = useState<ReportPurchaseTypeEnum>();
   const [message, setMessage] = useState("");
+  const { isDesktop } = useScreenType();
 
   const { data } = useQuery<ReportPurchaseQuery, ReportPurchaseQueryVariables>(
     REPORT_PURCHASE,
@@ -127,64 +130,8 @@ export const ReportPurchaseBottomSheet = ({
     !!createReportData ||
     data.purchase.status !== PurchaseStatusEnum.Delivered;
 
-  return (
-    <BottomSheet
-      name="Create Report Purchase"
-      open={show}
-      header={
-        <View style={{ gap: 16 }}>
-          {data.purchase.status === PurchaseStatusEnum.Delivered ? (
-            <ProgressHeader
-              title="Rapportera problem med köp"
-              progress={progress()}
-              onBack={() => onDismiss()}
-            />
-          ) : (
-            <Header
-              title="Rapportera problem med köp"
-              showBackButton={false}
-              ctas={[
-                {
-                  icon: "X",
-                  onPress: () => onDismiss(),
-                },
-              ]}
-            />
-          )}
-          {showProductHeader && (
-            <ProductHeader
-              id={data.purchase.product.id}
-              title={data.purchase.product.title}
-              price={data.purchase.product.price}
-              condition={data.purchase.product.condition}
-              quantity={data.purchase.product.primaryQuantity}
-              quantityUnit={data.purchase.product.primaryUnit}
-              status={data.purchase.product.status}
-              imageUrl={data.purchase.product.primaryImage?.url}
-            />
-          )}
-        </View>
-      }
-      footer={
-        showCloseButton ? (
-          <Button label="Stäng" style={{ marginTop: 12 }} onPress={onDismiss} />
-        ) : type ? (
-          <Button
-            label="Rapportera problem med köp"
-            onPress={onCreateReport}
-            loading={createReportLoading}
-            style={{ marginTop: 12 }}
-          />
-        ) : undefined
-      }
-      screenHeight={
-        !!createReportData ||
-        !!data.purchase.reportPurchase ||
-        data.purchase.status !== PurchaseStatusEnum.Delivered
-      }
-      onDismiss={onDismiss}
-      scrollable
-    >
+  const content = (
+    <>
       {createReportData ? (
         <EndScreen title="Vi har tagit emot din rapport" />
       ) : data.purchase.reportPurchase ? (
@@ -258,6 +205,84 @@ export const ReportPurchaseBottomSheet = ({
           </View>
         </View>
       )}
+    </>
+  );
+
+  const header = (
+    <View style={{ gap: 16 }}>
+      {data.purchase.status === PurchaseStatusEnum.Delivered ? (
+        <ProgressHeader
+          title="Rapportera problem med köp"
+          progress={progress()}
+          onBack={() => onDismiss()}
+        />
+      ) : (
+        <Header
+          title="Rapportera problem med köp"
+          showBackButton={false}
+          ctas={[
+            {
+              icon: "X",
+              onPress: () => onDismiss(),
+            },
+          ]}
+        />
+      )}
+      {showProductHeader && (
+        <ProductHeader
+          id={data.purchase.product.id}
+          title={data.purchase.product.title}
+          price={data.purchase.product.price}
+          condition={data.purchase.product.condition}
+          quantity={data.purchase.product.primaryQuantity}
+          quantityUnit={data.purchase.product.primaryUnit}
+          status={data.purchase.product.status}
+          imageUrl={data.purchase.product.primaryImage?.url}
+        />
+      )}
+    </View>
+  );
+
+  const footer = showCloseButton ? (
+    <Button label="Stäng" style={{ marginTop: 12 }} onPress={onDismiss} />
+  ) : type ? (
+    <Button
+      label="Rapportera problem med köp"
+      onPress={onCreateReport}
+      loading={createReportLoading}
+      style={{ marginTop: 12 }}
+    />
+  ) : undefined;
+
+  if (isDesktop) {
+    return (
+      <SlideInSheet open={show}>
+        <>
+          {header}
+          <View style={{ flex: 1 }}>{content}</View>
+          {!!footer && (
+            <View style={{ marginTop: 24, marginBottom: 32 }}>{footer}</View>
+          )}
+        </>
+      </SlideInSheet>
+    );
+  }
+
+  return (
+    <BottomSheet
+      name="Create Report Purchase"
+      open={show}
+      header={header}
+      footer={footer}
+      screenHeight={
+        !!createReportData ||
+        !!data.purchase.reportPurchase ||
+        data.purchase.status !== PurchaseStatusEnum.Delivered
+      }
+      onDismiss={onDismiss}
+      scrollable
+    >
+      {content}
     </BottomSheet>
   );
 };
