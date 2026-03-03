@@ -32,6 +32,7 @@ export enum routes {
   CATEGORY_CO2 = "/admin/category/co2",
 
   LIST_USER = "/admin/user",
+  LIST_PURCHASE = "/admin/purchase",
 
   FOOTER_SETTING = "/admin/setting/footer",
   DEVELOPER_SETTING = "/admin/setting/developer",

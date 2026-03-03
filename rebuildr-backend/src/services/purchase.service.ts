@@ -9,6 +9,7 @@ import { User, UserType } from 'src/entities/user.entity';
 import {
   Equal,
   FindOptionsWhere,
+  ILike,
   In,
   IsNull,
   LessThanOrEqual,
@@ -28,6 +29,8 @@ import dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {
+  CmsListPurchasesInput,
+  CmsListPurchasesResponse,
   LatestPurchaseInput,
   MyPurchaseInput,
   MyPurchasesInput,
@@ -1491,5 +1494,64 @@ export class PurchaseService {
     });
   }
 
-  //------------------------------------------------------------
+  async cmsListPurchses(
+    input: CmsListPurchasesInput,
+  ): Promise<CmsListPurchasesResponse> {
+    const { pageSize = 10, page = 0, searchString = '', status } = input;
+    const skip = Math.max(0, pageSize * page);
+
+    const [purchases, total] = await this.purchaseRepository.findAndCount({
+      where: [
+        {
+          status,
+          product: {
+            title: ILike(`%${searchString}%`),
+          },
+        },
+        {
+          status,
+          product: {
+            seller: {
+              username: ILike(`%${searchString}%`),
+            },
+          },
+        },
+        {
+          status,
+          product: {
+            seller: {
+              email: ILike(`%${searchString}%`),
+            },
+          },
+        },
+        {
+          status,
+          buyer: {
+            username: ILike(`%${searchString}%`),
+          },
+        },
+        {
+          status,
+          buyer: {
+            email: ILike(`%${searchString}%`),
+          },
+        },
+        {
+          status,
+          shippingId: ILike(`%${searchString}%`),
+        },
+      ],
+      take: pageSize,
+      skip,
+      order: { createdAt: 'DESC' },
+      relations: {
+        product: {
+          seller: true,
+        },
+        buyer: true,
+      },
+    });
+
+    return { purchases, total };
+  }
 }

@@ -272,6 +272,19 @@ export type CmsListProjectsResponse = {
   total: Scalars['Int']['output'];
 };
 
+export type CmsListPurchasesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<PurchaseStatusEnum>;
+};
+
+export type CmsListPurchasesResponse = {
+  __typename?: 'CmsListPurchasesResponse';
+  purchases: Array<Purchase>;
+  total: Scalars['Int']['output'];
+};
+
 export type CmsListUsersInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -838,6 +851,7 @@ export type Mutation = {
   cmsDeleteProduct: Product;
   cmsDeleteProject: Scalars['Boolean']['output'];
   cmsHideProduct: Product;
+  cmsListPurchases: CmsListPurchasesResponse;
   cmsLogin: LoginResponse;
   cmsReassignBrand: CmsReassignBrandResponse;
   cmsTestTemplate: Scalars['Boolean']['output'];
@@ -991,6 +1005,11 @@ export type MutationCmsDeleteProjectArgs = {
 export type MutationCmsHideProductArgs = {
   hiddenReason: Scalars['String']['input'];
   productId: Scalars['String']['input'];
+};
+
+
+export type MutationCmsListPurchasesArgs = {
+  input: CmsListPurchasesInput;
 };
 
 
