@@ -619,6 +619,11 @@ type PurchaseProductResponse {
   reference: String
 }
 
+type CmsListPurchasesResponse {
+  purchases: [Purchase!]!
+  total: Int!
+}
+
 type ListBrandsResponse {
   brands: [Brand!]!
   total: Int!
@@ -1035,6 +1040,7 @@ type Mutation {
   markPurchaseAsDelivered(input: MarkPurchaseAsDeliveredInput!): Purchase!
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
+  cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
@@ -1382,6 +1388,13 @@ input CancelPurchaseInput {
 
 input AbortPurchaseInput {
   purchaseId: String!
+}
+
+input CmsListPurchasesInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+  status: PurchaseStatusEnum
 }
 
 input CreateBrandByUserInput {

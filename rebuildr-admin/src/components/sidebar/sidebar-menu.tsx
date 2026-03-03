@@ -22,6 +22,7 @@ import {
   TagOutlined,
   TeamOutlined,
   FilePdfOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -96,6 +97,9 @@ const SidebarMenu = () => {
       getItem("Skapa partner", routes.CREATE_PARTNER),
       getItem("Visa alla partners", routes.LIST_PARTNER),
     ]),
+
+    { type: "divider" },
+    getItem("Ordrar", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
 
     { type: "divider" },
     getItem("Användare", routes.LIST_USER, <UserOutlined />),

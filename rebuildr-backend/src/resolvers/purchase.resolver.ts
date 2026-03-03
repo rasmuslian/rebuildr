@@ -4,6 +4,7 @@ import {
   Context,
   Field,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Parent,
@@ -31,8 +32,11 @@ import { PurchaseService } from 'src/services/purchase.service';
 import { Logger } from 'winston';
 import { LocationInputType } from './geocoding.resolver';
 import { IPurchaseLoaders } from 'src/dataloaders/purchase.loader';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { ReportPurchase } from 'src/entities/report-purchase.entity';
+import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @InputType()
 class GetPurchaseInput {
@@ -122,6 +126,30 @@ class CancelPurchaseInput {
 class AbortPurchaseInput {
   @Field()
   purchaseId: string;
+}
+
+@InputType()
+export class CmsListPurchasesInput {
+  @Field(() => Int, { nullable: true })
+  page?: number;
+
+  @Field(() => Int, { nullable: true })
+  pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
+
+  @Field(() => PurchaseStatusEnum, { nullable: true })
+  status?: PurchaseStatusEnum;
+}
+
+@ObjectType()
+export class CmsListPurchasesResponse {
+  @Field(() => [Purchase])
+  purchases: Purchase[];
+
+  @Field(() => Int)
+  total: number;
 }
 
 @Resolver(() => Purchase)
@@ -233,6 +261,15 @@ export class PurchaseResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.purchaseService.abortPurchase(input.purchaseId, user.id);
+  }
+
+  @Mutation(() => CmsListPurchasesResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsListPurchases(
+    @Args('input') input: CmsListPurchasesInput,
+  ): Promise<CmsListPurchasesResponse> {
+    return this.purchaseService.cmsListPurchses(input);
   }
 
   @ResolveField(() => Boolean)
