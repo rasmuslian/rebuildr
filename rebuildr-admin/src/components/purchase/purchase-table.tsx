@@ -12,6 +12,7 @@ import { Table, Tag, Divider, Select } from "antd";
 import { formatPrice } from "@/utils/price-utils";
 import { formatDate } from "@/utils/date-utils";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { colors } from "tailwind.config";
 
 type StateType = {
   searchString: string;
@@ -53,11 +54,11 @@ const PurchaseTable = () => {
     let color = "";
     switch (group) {
       case "a":
-        color = "#FFF8E6";
+        color = colors.neutrals_200;
         break;
 
       case "b":
-        color = "#F5F8FF";
+        color = colors.neutrals_100;
         break;
 
       default:
