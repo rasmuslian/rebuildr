@@ -1,37 +1,102 @@
 <mjml>
-  <mj-head>
-  </mj-head>
-  <mj-body background-color="#F8F1E3" height="1024px">
+  <mj-head> </mj-head>
 
-    <mj-section padding-top="100px" />
+  <mj-body background-color="rgba(249, 249, 249, 1)">
+    <mj-section padding-top="32px" />
 
-    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="50px" border-radius="12px">
-      <mj-column width="500px">
+    <mj-section padding="0" full-width="full-width">
+      <mj-column
+        padding="0"
+        background-color="rgba(255, 255, 255, 1)"
+        vertical-align="top"
+      >
+        <mj-image
+          src="https://rebuildr.ams3.cdn.digitaloceanspaces.com/mail-hero.png"
+          alt="RebuildR header"
+          padding="0"
+          fluid-on-mobile="true"
+        />
+      </mj-column>
+    </mj-section>
 
-        <mj-image src={{icon}} alt="Chat icon" width="132px" padding-bottom="24px" />
-
-
-        <mj-text align="center" font-size="18px" line-height="24px" font-family="Poppins" color="#616161" padding-bottom="24px">
-          Du har fått ett meddelande från RebuildR
+    <mj-section
+      background-color="rgba(255, 255, 255, 1)"
+      padding="28px 24px 48px 24px"
+    >
+      <mj-column width="436px">
+        <mj-text
+          align="center"
+          font-size="18px"
+          line-height="24px"
+          font-family="Poppins"
+          color="rgba(97, 97, 97, 1)"
+          padding-bottom="24px"
+        >
+          Du har fått ett nytt meddelande
         </mj-text>
 
-        <mj-text align="center" font-size="22px" font-family="Poppins" color="#1E1E1E" font-weight="500" padding-bottom="40px">
-          <b>{{productTitle}}
+        <mj-text
+          align="center"
+          font-size="22px"
+          font-family="Poppins"
+          color="rgba(30, 30, 30, 1)"
+          font-weight="500"
+          padding-bottom="48px"
+        >
+          {{productTitle}}
         </mj-text>
 
-        <mj-button background-color="#863CFF" border-radius="12px" href={{loginUrl}} padding="8px 23px">
-          <mj-text font-size="16px" line-height="24px" font-family="Poppins">Logga in för att läsa</mj-text>
+        <mj-button
+          href="{{loginUrl}}"
+          background-color="rgba(255, 255, 255, 0.05)"
+          color="rgba(30, 30, 30, 1)"
+          font-size="16px"
+          border-radius="8px"
+          border="1px solid rgba(174, 174, 174, 1)"
+          padding="8px 8px"
+        >
+          Logga in för att läsa
         </mj-button>
-
-
       </mj-column>
     </mj-section>
 
-    <mj-section padding-top="56px" padding-bottom="40px">
+    <mj-section
+      background-color="rgba(255, 255, 255, 1)"
+      padding="48px 24px"
+      border-top="1px solid rgba(199, 199, 199, 1)"
+      border-radius="0px 0px 12px 12px"
+    >
       <mj-column>
-        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
+        <mj-text
+          font-family="Poppins"
+          align="center"
+          font-size="16px"
+          font-weight="500"
+          line-height="24px"
+          color="rgba(97, 97, 97, 1)"
+        >
+          Om du har några frågor, kontakta oss på
+          <br />
+          <a
+            href="mailto:info@rebuildr.org"
+            style="color: rgba(134, 60, 255, 1); text-decoration: none"
+          >
+            info@rebuildr.org
+          </a>
+        </mj-text>
       </mj-column>
     </mj-section>
 
+    <mj-section padding="32px 24px">
+      <mj-column>
+        <mj-image
+          src="https://rebuildr.ams3.cdn.digitaloceanspaces.com/mail-logo.png"
+          alt="RebuildR logo"
+          width="120px"
+        />
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding-bottom="300px" />
   </mj-body>
 </mjml>
