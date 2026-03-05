@@ -165,12 +165,10 @@ export class MailService {
     product: { title: string };
     receiver: User;
   }) {
-    const icon = await this.s3Service.getUrl('mail-chat.png');
-
     const context = {
       ...this.baseContext,
-      icon,
       productTitle: input.product.title,
+      loginUrl: `${process.env.WEB_BASE_URL}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(systemMessageTemplate).html,
@@ -195,10 +193,8 @@ export class MailService {
     productTitle: string;
     receiverEmail: string;
   }) {
-    const icon = await this.s3Service.getUrl('mail-chat.png');
     const context = {
       ...this.baseContext,
-      icon,
       productTitle: input.productTitle,
       loginUrl: `${process.env.WEB_BASE_URL}`,
     };
