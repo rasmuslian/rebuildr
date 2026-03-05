@@ -1,10 +1,10 @@
 <mjml>
   <mj-head> </mj-head>
 
-  <mj-body background-color="rgba(249, 249, 249, 1)">
+  <mj-body background-color="rgba(249, 249, 249, 1)" width="632px">
     <mj-section padding-top="32px" />
 
-    <mj-section padding="0" full-width="full-width">
+    <mj-section padding="0px 16px">
       <mj-column
         padding="0"
         background-color="rgba(255, 255, 255, 1)"
@@ -19,11 +19,11 @@
       </mj-column>
     </mj-section>
 
-    <mj-section
-      background-color="rgba(255, 255, 255, 1)"
-      padding="28px 24px 48px 24px"
-    >
-      <mj-column width="436px">
+    <mj-section padding="0px 16px">
+      <mj-column
+        background-color="rgba(255, 255, 255, 1)"
+        padding="28px 16px 48px 16px"
+      >
         <mj-text
           align="center"
           font-size="18px"
@@ -60,13 +60,13 @@
       </mj-column>
     </mj-section>
 
-    <mj-section
-      background-color="rgba(255, 255, 255, 1)"
-      padding="48px 24px"
-      border-top="1px solid rgba(199, 199, 199, 1)"
-      border-radius="0px 0px 12px 12px"
-    >
-      <mj-column>
+    <mj-section padding="0px 16px">
+      <mj-column
+        border-radius="0px 0px 12px 12px"
+        border-top="1px solid rgba(199, 199, 199, 1)"
+        background-color="rgba(255, 255, 255, 1)"
+        padding="48px 16px"
+      >
         <mj-text
           font-family="Poppins"
           align="center"
@@ -87,8 +87,8 @@
       </mj-column>
     </mj-section>
 
-    <mj-section padding="32px 24px">
-      <mj-column>
+    <mj-section padding="0px 16px">
+      <mj-column padding="32px 16px">
         <mj-image
           src="https://rebuildr.ams3.cdn.digitaloceanspaces.com/mail-logo.png"
           alt="RebuildR logo"
