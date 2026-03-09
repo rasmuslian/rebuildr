@@ -57,7 +57,7 @@ export class MailService {
       url: 'https://api.eu.mailgun.net',
     });
     this.baseUrl = process.env.WEB_BASE_URL;
-    this.from = 'ReuildR <noreply@rebuildr.se>';
+    this.from = 'RebuildR <noreply@rebuildr.se>';
   }
 
   async onModuleInit() {
