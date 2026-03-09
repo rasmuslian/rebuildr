@@ -22,9 +22,8 @@ import { LoginModalContext } from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
-import { SellProductBottomSheet } from "@components/sell-product/sell-product-bottom-sheet";
+
 import { SellProductProdiver } from "@context/sell-product-context";
-import { EditProductBottomSheet } from "@components/edit-product/edit-product-bottom-sheet";
 import { EditProductProdiver } from "@context/edit-product-context";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchProvider } from "@context/search-context";
@@ -35,6 +34,8 @@ import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
 import { shouldShowComingSoon } from "@/utils/coming-soon";
+import { EditProduct } from "@components/product/edit-product";
+import { SellProduct } from "@components/sell-product/sell-product";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -114,8 +115,8 @@ const RootLayout = () => {
                               <Slot />
                               <HamburgerMenu />
                               <LoginModalView />
-                              <SellProductBottomSheet />
-                              <EditProductBottomSheet />
+                              <SellProduct />
+                              <EditProduct />
                               <SearchDropdown />
                               <BuyModal />
                               <PortalHost name="OverlayProvider" />

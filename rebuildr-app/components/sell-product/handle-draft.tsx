@@ -1,4 +1,8 @@
-import { SellProductBottomSheetQueryQuery } from "@/gql/graphql";
+import {
+  SellProductDeleteMutation,
+  SellProductDeleteMutationVariables,
+  SellProductQueryQuery,
+} from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
@@ -9,8 +13,8 @@ import { ProductFields } from "@components/upsert-product/types";
 import { useScreenType } from "@hooks/useScreenType";
 import { View } from "react-native";
 
-const SELL_PRODUCT_BOTTOM_SHEET_DELETE = gql`
-  mutation SellProductBottomSheetDelete($input: RemoveProductInput!) {
+const SELL_PRODUCT_DELETE = gql`
+  mutation SellProductDelete($input: RemoveProductInput!) {
     deleteDraft(input: $input)
   }
 `;
@@ -18,14 +22,14 @@ const SELL_PRODUCT_BOTTOM_SHEET_DELETE = gql`
 type Props = {
   show: boolean;
   onDismiss: () => void;
-  dbDraft: SellProductBottomSheetQueryQuery["getOrCreateDraftProduct"];
+  dbDraft: SellProductQueryQuery["getOrCreateDraftProduct"];
   product: ProductFields;
   onSaveDraft: () => void;
   saveLoading: boolean;
   onProductDeleted: () => void;
 };
 
-export const HandleDraftBottomSheet = ({
+export const HandleDraft = ({
   show,
   onDismiss,
   dbDraft,
@@ -34,9 +38,10 @@ export const HandleDraftBottomSheet = ({
   onProductDeleted,
 }: Props) => {
   const { isDesktop } = useScreenType();
-  const [deleteDraft, { loading }] = useMutation(
-    SELL_PRODUCT_BOTTOM_SHEET_DELETE,
-  );
+  const [deleteDraft, { loading }] = useMutation<
+    SellProductDeleteMutation,
+    SellProductDeleteMutationVariables
+  >(SELL_PRODUCT_DELETE);
 
   const onDeleteDraft = () => {
     if (loading) {

@@ -2,8 +2,8 @@ import {
   ProductConditionEnum,
   File as GqlFile,
   ProductStatusEnum,
-  UpsertProductBottomSheetQuery,
-  UpsertProductBottomSheetQueryVariables,
+  UpsertProductQuery,
+  UpsertProductQueryVariables,
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
   MeasurementUnitEnum,
@@ -18,7 +18,7 @@ import { NEW_PROJECT_ID, Project } from "./project";
 import { Transportation } from "./transportation";
 import { Preview } from "./preview";
 import { View } from "react-native";
-import { HandleDraftBottomSheet } from "../sell-product/handle-draft-bottom-sheet";
+import { HandleDraft } from "@components/sell-product/handle-draft";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { PayoutHandler } from "../sell-product/payout-handler";
 import { Details } from "./details";
@@ -29,8 +29,8 @@ import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 
-export const UPSERT_PRODUCT_BOTTOM_SHEET = gql`
-  query UpsertProductBottomSheet($input: GetProductInput!) {
+export const UPSERT_PRODUCT = gql`
+  query UpsertProduct($input: GetProductInput!) {
     product(input: $input) {
       ...UpsertProductProductFragment
     }
@@ -122,7 +122,7 @@ type Props = {
   onPublished: () => void;
 };
 
-export const UpsertProductBottomSheet = ({
+export const UpsertProduct = ({
   productId,
   mode,
   visible,
@@ -148,10 +148,10 @@ export const UpsertProductBottomSheet = ({
     number | undefined
   >(undefined);
 
-  const { data } = useQuery<
-    UpsertProductBottomSheetQuery,
-    UpsertProductBottomSheetQueryVariables
-  >(UPSERT_PRODUCT_BOTTOM_SHEET, { variables: { input: { id: productId } } });
+  const { data } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
+    UPSERT_PRODUCT,
+    { variables: { input: { id: productId } } },
+  );
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -159,7 +159,7 @@ export const UpsertProductBottomSheet = ({
 
   useEffect(() => {
     const productToState = async (
-      dbProduct: NonNullable<UpsertProductBottomSheetQuery["product"]>,
+      dbProduct: NonNullable<UpsertProductQuery["product"]>,
     ) => {
       const convertDbFiles = async (files: GqlFile[]) => {
         return await Promise.all(
@@ -433,6 +433,11 @@ export const UpsertProductBottomSheet = ({
         try {
           setUploadingMedia(true);
           await Promise.all(mediaPromises);
+          setProduct({
+            ...product,
+            images: product.images?.filter((image) => image.file),
+            documents: product.documents?.filter((document) => document.file),
+          });
         } catch (e) {
           Sentry.captureException(e);
         } finally {
@@ -802,7 +807,7 @@ export const UpsertProductBottomSheet = ({
             <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
           )}
         </SlideInSheet>
-        <HandleDraftBottomSheet
+        <HandleDraft
           show={showHandleDraft}
           onDismiss={() => setShowHandleDraft(false)}
           dbDraft={data.product}
@@ -828,7 +833,7 @@ export const UpsertProductBottomSheet = ({
       isStickyFooter
     >
       <View style={{ marginBottom: 32 }}>{viewChildren}</View>
-      <HandleDraftBottomSheet
+      <HandleDraft
         show={showHandleDraft}
         onDismiss={() => setShowHandleDraft(false)}
         dbDraft={data.product}
