@@ -1,25 +1,24 @@
-import { SellProductBottomSheetQueryQuery } from "@/gql/graphql";
+import { SellProductQueryQuery } from "@/gql/graphql";
 import { gql, useLazyQuery } from "@apollo/client";
 import { useSellProductContext } from "@context/sell-product-context";
-import { UpsertProductBottomSheet } from "@components/upsert-product/upsert-product-bottom-sheet";
+import { UpsertProduct } from "@components/upsert-product/upsert-product";
 import { useEffect } from "react";
 
-const SELL_PRODUCT_BOTTOM_SHEET_QUERY = gql`
-  query SellProductBottomSheetQuery {
+const SELL_PRODUCT_QUERY = gql`
+  query SellProductQuery {
     getOrCreateDraftProduct {
       id
     }
   }
 `;
 
-export const SellProductBottomSheet = () => {
+export const SellProduct = () => {
   const { visible, setVisible } = useSellProductContext();
 
   const [getOrCreateDraft, { data, loading }] =
-    useLazyQuery<SellProductBottomSheetQueryQuery>(
-      SELL_PRODUCT_BOTTOM_SHEET_QUERY,
-      { fetchPolicy: "network-only" },
-    );
+    useLazyQuery<SellProductQueryQuery>(SELL_PRODUCT_QUERY, {
+      fetchPolicy: "network-only",
+    });
 
   useEffect(() => {
     if (visible) {
@@ -32,7 +31,7 @@ export const SellProductBottomSheet = () => {
   }
 
   return (
-    <UpsertProductBottomSheet
+    <UpsertProduct
       productId={data.getOrCreateDraftProduct.id}
       mode="create"
       visible={visible}
