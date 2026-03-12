@@ -269,7 +269,7 @@ export class PurchaseResolver {
   async cmsListPurchases(
     @Args('input') input: CmsListPurchasesInput,
   ): Promise<CmsListPurchasesResponse> {
-    return this.purchaseService.cmsListPurchses(input);
+    return this.purchaseService.cmsListPurchases(input);
   }
 
   @ResolveField(() => Boolean)
