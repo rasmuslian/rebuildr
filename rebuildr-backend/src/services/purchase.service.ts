@@ -499,7 +499,7 @@ export class PurchaseService {
       findOption = sellerOption;
     }
     return await this.purchaseRepository.find({
-      where: findOption,
+      where: { paymentAcceptedAt: Not(IsNull()), ...findOption },
       order: { updatedAt: 'DESC' },
     });
   }
