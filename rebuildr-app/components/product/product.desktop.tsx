@@ -90,26 +90,17 @@ export const ProductDesktop = ({
   otherProducts,
 }: Props) => {
   const [state, setState] = usePersistedState("product-state", initialState);
-  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const { height: screenHeight } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
   const { setVisible } = useContext(LoginModalContext);
   const { isLoggedIn } = useUser();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
-  const rightColumnRef = useRef<View>(null);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showMapPopup, setShowMapPopup] = useState(false);
-
-  useEffect(() => {
-    if (rightColumnRef.current) {
-      rightColumnRef.current.measure((x, y, width) => {
-        setRightColumnWidth(width);
-      });
-    }
-  }, [rightColumnRef, screenWidth]);
 
   const pickupEnabled =
     approximatePlace &&
@@ -217,7 +208,13 @@ export const ProductDesktop = ({
                 )}
               </View>
             </View>
-            <View style={{ flex: 1, gap: 24 }} ref={rightColumnRef}>
+            <View
+              style={{ flex: 1, gap: 24 }}
+              onLayout={(e) => {
+                const w = e.nativeEvent.layout.width;
+                setRightColumnWidth(w);
+              }}
+            >
               <MainContent
                 product={product}
                 brand={product.brand}

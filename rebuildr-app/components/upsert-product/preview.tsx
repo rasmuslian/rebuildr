@@ -17,7 +17,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ProductFields } from "./types";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
@@ -70,7 +70,6 @@ type Props = {
 };
 
 export const Preview = ({ product, dbProductId }: Props) => {
-  const ref = useRef<View>(null);
   const { isDesktop } = useScreenType();
   const [width, setWidth] = useState<number | undefined>(undefined);
   const [showAllImagesPopup, setShowAllImagesPopup] = useState(false);
@@ -122,20 +121,18 @@ export const Preview = ({ product, dbProductId }: Props) => {
     setShowAllImagesPopup(true);
   };
 
-  useEffect(() => {
-    if (ref.current && isDesktop) {
-      ref.current.measure((x, y, width, height, pageX, pageY) => {
-        setWidth(width - 16);
-      });
-    }
-  }, [ref, isDesktop]);
-
   if (!data || !categoryData || !brandData) {
     return <LoadingSpinner />;
   }
 
   return (
-    <View ref={ref} style={{ gap: 24, marginTop: 24 }}>
+    <View
+      style={{ gap: 24, marginTop: 24 }}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        setWidth(w - 16);
+      }}
+    >
       {isDesktop ? (
         <ImageGallery
           images={product.images?.map((i) => ({ url: i.uri })) ?? []}

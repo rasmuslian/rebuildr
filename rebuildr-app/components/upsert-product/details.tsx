@@ -38,7 +38,7 @@ export const Details = ({
   const { isDesktop } = useScreenType();
   const [showDetails, setShowDetails] = useState(() => {
     const measurementSet = (
-      ["thickness", "height", "width", "length", "diameter", "weight"] as const
+      ["thickness", "height", "width", "length", "diameter"] as const
     ).some((measurementKey) => !!product[measurementKey]);
 
     //show details if any measurements are set or any documents are chosen
