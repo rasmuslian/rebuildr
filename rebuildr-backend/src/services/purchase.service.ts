@@ -1434,30 +1434,36 @@ export class PurchaseService {
       return;
     }
 
+    purchase.failedAt = new Date();
+    purchase.refundId = payload.id;
     //This purchase has an active report. Resolve it and unpause the purchase
     if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
       logger.info('Resolving report as refunded', {
         reportId: purchase.reportPurchase.id,
         purchaseId: purchase.id,
       });
-      await this.reportPurchaseService.resolveRepport(
-        ReportPurchaseResolutionEnum.REFUND,
-        purchase.reportPurchase.id,
-        logger,
-      );
-      purchase.pausedAt = null;
+      try {
+        await this.reportPurchaseService.resolveReport(
+          ReportPurchaseResolutionEnum.REFUND,
+          purchase.reportPurchase.id,
+          logger,
+        );
+        purchase.pausedAt = null;
+      } catch {
+        /* empty */
+      }
     }
+    await this.purchaseRepository.save(purchase);
+
     await this.productRepository.update(
       { id: purchase.productId },
       { status: ProductStatus.PUBLISHED },
     );
-    purchase.failedAt = new Date();
-    purchase.refundId = payload.id;
-    await this.purchaseRepository.save(purchase);
 
     logger.info('Payment refunded', {
       paymentIntentId,
       purchaseId: purchase.id,
+      productId: purchase.productId,
     });
   }
   async payoutStarted(payload: Stripe.Payout, logger: Logger) {
