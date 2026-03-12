@@ -1494,7 +1494,10 @@ export class PurchaseService {
     });
   }
 
-  async cmsListPurchses(
+  //------------------------------------------------------------
+
+  //---------------------- CMS FUNCTIONS -----------------------
+  async cmsListPurchases(
     input: CmsListPurchasesInput,
   ): Promise<CmsListPurchasesResponse> {
     const { pageSize = 10, page = 0, searchString = '', status } = input;
@@ -1554,4 +1557,6 @@ export class PurchaseService {
 
     return { purchases, total };
   }
+
+  //------------------------------------------------------------
 }
