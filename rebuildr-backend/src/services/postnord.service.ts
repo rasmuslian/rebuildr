@@ -141,6 +141,7 @@ export class PostnordService {
             eventTime,
           });
           if (!purchase.shipmentDeliveredAt) {
+            purchase.shipmentDeliveredAt = new Date(eventTime);
             //only send message if the purchase is not already picked up by the recipient
             if (!purchase.deliveredAt) {
               this.systemMessagesService.shipmentArrived(
@@ -151,8 +152,6 @@ export class PostnordService {
                 ShippingProviderEnum.POSTNORD,
               );
             }
-
-            purchase.shipmentDeliveredAt = new Date(eventTime);
           }
         }
 
