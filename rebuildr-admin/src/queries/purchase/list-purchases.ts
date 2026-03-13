@@ -14,6 +14,13 @@ const query = `
         deliveredAt
         payoutReceivedAt
         status
+        reportPurchase {
+          id
+          createdAt
+          message
+          resolution
+          type
+        }
         product {
           id
           title

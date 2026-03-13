@@ -151,9 +151,11 @@ export class ReportPurchaseService {
         );
         break;
       case ReportPurchaseResolutionEnum.OTHER:
-        report.resolution = ReportPurchaseResolutionEnum.PROCEED;
+        report.resolution = ReportPurchaseResolutionEnum.OTHER;
         break;
     }
+
+    await this.purchaseService.reportPurchaseResolved(report.purchase);
 
     return await this.reportPurchaseRepository.save(report);
   }

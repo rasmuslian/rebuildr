@@ -1057,6 +1057,7 @@ type Mutation {
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
+  cmsResolveReportPurchase(input: CmsResolveReportPurchaseInput!): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
@@ -1488,6 +1489,11 @@ input CreateReportPurchaseInput {
   purchaseId: String!
   type: ReportPurchaseTypeEnum!
   message: String!
+}
+
+input CmsResolveReportPurchaseInput {
+  reportPurchaseId: String!
+  resolution: ReportPurchaseResolutionEnum!
 }
 
 input CreateReportProductInput {

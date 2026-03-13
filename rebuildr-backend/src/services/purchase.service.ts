@@ -1225,6 +1225,10 @@ export class PurchaseService {
 
     logger.info('Automatic payout completed');
   }
+  async reportPurchaseResolved(purchase: Purchase) {
+    purchase.pausedAt = null;
+    return this.purchaseRepository.save(purchase);
+  }
 
   //---------------------------------------------------------------
 
@@ -1436,6 +1440,8 @@ export class PurchaseService {
 
     purchase.failedAt = new Date();
     purchase.refundId = payload.id;
+    await this.purchaseRepository.save(purchase);
+
     //This purchase has an active report. Resolve it and unpause the purchase
     if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
       logger.info('Resolving report as refunded', {
@@ -1448,12 +1454,10 @@ export class PurchaseService {
           purchase.reportPurchase.id,
           logger,
         );
-        purchase.pausedAt = null;
       } catch {
         /* empty */
       }
     }
-    await this.purchaseRepository.save(purchase);
 
     await this.productRepository.update(
       { id: purchase.productId },
