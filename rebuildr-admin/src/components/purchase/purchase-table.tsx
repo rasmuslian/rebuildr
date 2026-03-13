@@ -1,18 +1,26 @@
 "use client";
 
 import React from "react";
-import { debounce } from "lodash";
-import SearchField from "@/components/search-field";
-import { queryKeys } from "@/lib/query-keys";
-import { useQuery } from "@tanstack/react-query";
-import { listPurchases } from "@/queries/purchase/list-purchases";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { App, Button, Table, Tag, Divider, Select, Space } from "antd";
 import { ColumnsType } from "antd/es/table";
-import { Purchase, PurchaseStatusEnum } from "gql/graphql";
-import { Table, Tag, Divider, Select } from "antd";
+import { debounce } from "lodash";
+import {
+  Purchase,
+  PurchaseStatusEnum,
+  ReportPurchaseResolutionEnum,
+  ReportPurchaseTypeEnum,
+} from "gql/graphql";
+
+import SearchField from "@/components/search-field";
 import { formatPrice } from "@/utils/price-utils";
 import { formatDate } from "@/utils/date-utils";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { colors } from "tailwind.config";
+import { queryKeys } from "@/lib/query-keys";
+import { listPurchases } from "@/queries/purchase/list-purchases";
+import { refundPurchase } from "@/queries/purchase/refund-purchase";
+import { resolveReportPurchase } from "@/queries/purchase/resolve-report-purchase";
 
 type StateType = {
   searchString: string;
@@ -31,6 +39,8 @@ const initialState: StateType = {
 const PurchaseTable = () => {
   const [state, setState] = usePersistedState("list-purchases", initialState);
   const { searchString, pageSize, page, status } = state;
+  const { notification } = App.useApp();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isFetched } = useQuery({
     queryKey: [queryKeys.LIST_PURCHASES, page, pageSize, searchString, status],
@@ -49,6 +59,83 @@ const PurchaseTable = () => {
     },
     400,
   );
+
+  const { mutateAsync: resolveMutation, isPending: isResolving } = useMutation({
+    mutationFn: async (input: {
+      reportPurchaseId: string;
+      resolution: ReportPurchaseResolutionEnum;
+    }) => {
+      const response = await resolveReportPurchase(input);
+      if (!response) throw new Error();
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PURCHASES] });
+      notification.success({
+        message: "Ärendet har markerats som löst",
+        description: "Rapporten är nu uppdaterad.",
+      });
+    },
+    onError: () => {
+      notification.error({
+        message: "Kunde inte uppdatera ärendet",
+        description: "Försök igen senare eller kontrollera uppgifterna.",
+      });
+    },
+  });
+
+  const { mutateAsync: refundMutation, isPending: isRefunding } = useMutation({
+    mutationFn: async (purchaseId: string) => {
+      const response = await refundPurchase({ purchaseId });
+      if (!response) throw new Error();
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PURCHASES] });
+      notification.success({
+        message: "Återbetalning genomförd",
+        description: "Köparen kommer att återfå sina pengar.",
+      });
+    },
+    onError: () => {
+      notification.error({
+        message: "Återbetalning misslyckades",
+        description: "Försök igen senare eller kontrollera uppgifterna.",
+      });
+    },
+  });
+
+  const resolveReportLabel = (
+    resolution?: ReportPurchaseResolutionEnum | null,
+  ) => {
+    switch (resolution) {
+      case ReportPurchaseResolutionEnum.Refund:
+        return "Återbetalas";
+      case ReportPurchaseResolutionEnum.Proceed:
+        return "Går vidare";
+      case ReportPurchaseResolutionEnum.Other:
+        return "Annat";
+      default:
+        return "Rapport ej hanterad";
+    }
+  };
+
+  const reportTypeLabel = (type?: ReportPurchaseTypeEnum) => {
+    switch (type) {
+      case ReportPurchaseTypeEnum.NotAsDescribed:
+        return "Stämmer ej med annons";
+      case ReportPurchaseTypeEnum.Damaged:
+        return "Skadad";
+      case ReportPurchaseTypeEnum.WrongProduct:
+        return "Fel produkt";
+      case ReportPurchaseTypeEnum.ProductMissing:
+        return "Saknad produkt";
+      case ReportPurchaseTypeEnum.Other:
+        return "Övrigt";
+      default:
+        return "Okänd";
+    }
+  };
 
   const withGroupColor = (group: "a" | "b") => {
     let color = "";
@@ -229,6 +316,87 @@ const PurchaseTable = () => {
           ),
         },
       ],
+    },
+    {
+      title: "Rapport",
+      key: "reportPurchase",
+      width: "320px",
+      render: (_, { id: purchaseId, reportPurchase, isRefunded }) => {
+        if (!reportPurchase) return <span>-</span>;
+
+        const isResolved = !!reportPurchase.resolution;
+        const pendingRefund =
+          reportPurchase.resolution === ReportPurchaseResolutionEnum.Refund &&
+          !isRefunded;
+        return (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {reportTypeLabel(reportPurchase.type)}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {formatDate(reportPurchase.createdAt)}
+              </span>
+              <span className="text-xs text-neutral-600">
+                {reportPurchase.message}
+              </span>
+            </div>
+            <Tag color={isResolved ? "green" : "orange"}>
+              {resolveReportLabel(reportPurchase.resolution)}
+            </Tag>
+            {!isResolved && (
+              <Space size={6} wrap>
+                <Button
+                  size="small"
+                  loading={isResolving}
+                  onClick={() =>
+                    resolveMutation({
+                      reportPurchaseId: reportPurchase.id,
+                      resolution: ReportPurchaseResolutionEnum.Refund,
+                    })
+                  }
+                >
+                  Återbetala
+                </Button>
+                <Button
+                  size="small"
+                  loading={isResolving}
+                  onClick={() =>
+                    resolveMutation({
+                      reportPurchaseId: reportPurchase.id,
+                      resolution: ReportPurchaseResolutionEnum.Proceed,
+                    })
+                  }
+                >
+                  Gå vidare
+                </Button>
+                <Button
+                  size="small"
+                  loading={isResolving}
+                  onClick={() =>
+                    resolveMutation({
+                      reportPurchaseId: reportPurchase.id,
+                      resolution: ReportPurchaseResolutionEnum.Other,
+                    })
+                  }
+                >
+                  Annat
+                </Button>
+              </Space>
+            )}
+            {pendingRefund && (
+              <Button
+                size="small"
+                danger
+                loading={isRefunding}
+                onClick={() => refundMutation(purchaseId)}
+              >
+                Genomför återbetalning
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: () => (

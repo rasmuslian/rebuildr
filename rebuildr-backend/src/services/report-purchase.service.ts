@@ -5,7 +5,11 @@ import {
   ReportPurchase,
   ReportPurchaseResolutionEnum,
 } from 'src/entities/report-purchase.entity';
-import { BadUserInputException, ForbiddenException } from 'src/exceptions';
+import {
+  BadUserInputException,
+  ForbiddenException,
+  NotFoundException,
+} from 'src/exceptions';
 import { CreateReportPurchaseInput } from 'src/resolvers/report-purchase.resolver';
 import { Repository } from 'typeorm';
 import { SystemMessagesService } from './system-messages.service';
@@ -94,7 +98,7 @@ export class ReportPurchaseService {
     return await this.reportPurchaseRepository.save(report);
   }
 
-  async resolveRepport(
+  async resolveReport(
     resolution: ReportPurchaseResolutionEnum,
     reportPurchaseId: string,
     logger: Logger,
@@ -107,6 +111,13 @@ export class ReportPurchaseService {
       reportId: reportPurchaseId,
       resolution,
     });
+    if (!report) {
+      logger.error('resolveReport: report not found', {
+        reportId: reportPurchaseId,
+      });
+      throw NotFoundException();
+    }
+    report.resolvedAt = new Date();
     switch (resolution) {
       case ReportPurchaseResolutionEnum.REFUND:
         report.resolution = ReportPurchaseResolutionEnum.REFUND;
@@ -140,9 +151,11 @@ export class ReportPurchaseService {
         );
         break;
       case ReportPurchaseResolutionEnum.OTHER:
-        report.resolution = ReportPurchaseResolutionEnum.PROCEED;
+        report.resolution = ReportPurchaseResolutionEnum.OTHER;
         break;
     }
+
+    await this.purchaseService.reportPurchaseResolved(report.purchase);
 
     return await this.reportPurchaseRepository.save(report);
   }

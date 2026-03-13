@@ -50,6 +50,9 @@ export class ReportPurchase {
   @Column({ type: 'enum', enum: ReportPurchaseResolutionEnum, nullable: true })
   resolution?: ReportPurchaseResolutionEnum;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  resolvedAt?: Date;
+
   @Column()
   purchaseId: string;
   @OneToOne(() => Purchase, (p) => p.reportPurchase, { onDelete: 'CASCADE' })

@@ -1225,6 +1225,10 @@ export class PurchaseService {
 
     logger.info('Automatic payout completed');
   }
+  async reportPurchaseResolved(purchase: Purchase) {
+    purchase.pausedAt = null;
+    return this.purchaseRepository.save(purchase);
+  }
 
   //---------------------------------------------------------------
 
@@ -1434,30 +1438,36 @@ export class PurchaseService {
       return;
     }
 
+    purchase.failedAt = new Date();
+    purchase.refundId = payload.id;
+    await this.purchaseRepository.save(purchase);
+
     //This purchase has an active report. Resolve it and unpause the purchase
     if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
       logger.info('Resolving report as refunded', {
         reportId: purchase.reportPurchase.id,
         purchaseId: purchase.id,
       });
-      await this.reportPurchaseService.resolveRepport(
-        ReportPurchaseResolutionEnum.REFUND,
-        purchase.reportPurchase.id,
-        logger,
-      );
-      purchase.pausedAt = null;
+      try {
+        await this.reportPurchaseService.resolveReport(
+          ReportPurchaseResolutionEnum.REFUND,
+          purchase.reportPurchase.id,
+          logger,
+        );
+      } catch {
+        /* empty */
+      }
     }
+
     await this.productRepository.update(
       { id: purchase.productId },
       { status: ProductStatus.PUBLISHED },
     );
-    purchase.failedAt = new Date();
-    purchase.refundId = payload.id;
-    await this.purchaseRepository.save(purchase);
 
     logger.info('Payment refunded', {
       paymentIntentId,
       purchaseId: purchase.id,
+      productId: purchase.productId,
     });
   }
   async payoutStarted(payload: Stripe.Payout, logger: Logger) {
@@ -1556,6 +1566,44 @@ export class PurchaseService {
     });
 
     return { purchases, total };
+  }
+
+  async cmsRefundPurchase(purchaseId: string, logger: Logger): Promise<Purchase> {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id: purchaseId },
+      relations: { reportPurchase: true },
+    });
+
+    if (!purchase) {
+      throw BadUserInputException('Purchase not found');
+    }
+
+    logger.info('Admin refunding purchase', {
+      purchaseId: purchase.id,
+      paymentIntentId: purchase.paymentIntentId,
+      status: purchase.status,
+    });
+
+    if (!purchase.paymentIntentId) {
+      throw BadUserInputException('Cannot refund a free purchase');
+    }
+
+    if (purchase.refundId) {
+      throw BadUserInputException('Purchase is already refunded');
+    }
+
+    const refund = await this.stripeService.refundPayment(
+      purchase.paymentIntentId,
+    );
+    purchase.refundId = refund.id;
+    purchase.failedAt = new Date();
+
+    logger.info('Admin refund successful', {
+      purchaseId: purchase.id,
+      refundId: refund.id,
+    });
+
+    return this.purchaseRepository.save(purchase);
   }
 
   //------------------------------------------------------------

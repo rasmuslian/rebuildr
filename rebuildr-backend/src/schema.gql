@@ -1041,6 +1041,7 @@ type Mutation {
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
+  cmsRefundPurchase(input: CmsRefundPurchaseInput!): Purchase!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
@@ -1057,6 +1058,7 @@ type Mutation {
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
+  cmsResolveReportPurchase(input: CmsResolveReportPurchaseInput!): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
@@ -1397,6 +1399,10 @@ input CmsListPurchasesInput {
   status: PurchaseStatusEnum
 }
 
+input CmsRefundPurchaseInput {
+  purchaseId: String!
+}
+
 input CreateBrandByUserInput {
   name: String!
   categoryId: String
@@ -1488,6 +1494,11 @@ input CreateReportPurchaseInput {
   purchaseId: String!
   type: ReportPurchaseTypeEnum!
   message: String!
+}
+
+input CmsResolveReportPurchaseInput {
+  reportPurchaseId: String!
+  resolution: ReportPurchaseResolutionEnum!
 }
 
 input CreateReportProductInput {

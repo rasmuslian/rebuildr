@@ -308,6 +308,15 @@ export type CmsReassignBrandResponse = {
   toBrand: Brand;
 };
 
+export type CmsRefundPurchaseInput = {
+  purchaseId: Scalars['String']['input'];
+};
+
+export type CmsResolveReportPurchaseInput = {
+  reportPurchaseId: Scalars['String']['input'];
+  resolution: ReportPurchaseResolutionEnum;
+};
+
 export type CmsTestTemplateInput = {
   template: Scalars['String']['input'];
 };
@@ -854,6 +863,8 @@ export type Mutation = {
   cmsListPurchases: CmsListPurchasesResponse;
   cmsLogin: LoginResponse;
   cmsReassignBrand: CmsReassignBrandResponse;
+  cmsRefundPurchase: Purchase;
+  cmsResolveReportPurchase: ReportPurchase;
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
@@ -1020,6 +1031,16 @@ export type MutationCmsLoginArgs = {
 
 export type MutationCmsReassignBrandArgs = {
   input: CmsReassignBrandInput;
+};
+
+
+export type MutationCmsRefundPurchaseArgs = {
+  input: CmsRefundPurchaseInput;
+};
+
+
+export type MutationCmsResolveReportPurchaseArgs = {
+  input: CmsResolveReportPurchaseInput;
 };
 
 
