@@ -1041,6 +1041,7 @@ type Mutation {
   cancelPurchase(input: CancelPurchaseInput!): Purchase!
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
+  cmsRefundPurchase(input: CmsRefundPurchaseInput!): Purchase!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
@@ -1396,6 +1397,10 @@ input CmsListPurchasesInput {
   pageSize: Int
   searchString: String
   status: PurchaseStatusEnum
+}
+
+input CmsRefundPurchaseInput {
+  purchaseId: String!
 }
 
 input CreateBrandByUserInput {

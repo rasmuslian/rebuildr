@@ -129,6 +129,12 @@ class AbortPurchaseInput {
 }
 
 @InputType()
+export class CmsRefundPurchaseInput {
+  @Field()
+  purchaseId: string;
+}
+
+@InputType()
 export class CmsListPurchasesInput {
   @Field(() => Int, { nullable: true })
   page?: number;
@@ -270,6 +276,20 @@ export class PurchaseResolver {
     @Args('input') input: CmsListPurchasesInput,
   ): Promise<CmsListPurchasesResponse> {
     return this.purchaseService.cmsListPurchases(input);
+  }
+
+  @Mutation(() => Purchase)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsRefundPurchase(
+    @Args('input') input: CmsRefundPurchaseInput,
+    @RequestId() requestId: string,
+  ): Promise<Purchase> {
+    const childLogger = this.logger.child({
+      requestId,
+      purchaseId: input.purchaseId,
+    });
+    return this.purchaseService.cmsRefundPurchase(input.purchaseId, childLogger);
   }
 
   @ResolveField(() => Boolean)

@@ -7,7 +7,7 @@ This guide provides essential information for agentic coding agents operating in
 Monorepo with three applications:
 - **rebuildr-backend** - NestJS GraphQL API
 - **rebuildr-app** - Expo React Native (web/iOS/Android)
-- **rebuildr-admin** - Next.js 14 admin dashboard
+- **rebuildr-admin** - Next.js 14 admin dashboard (runs on port 3002)
 
 ## Build, Lint & Test Commands
 
@@ -15,286 +15,251 @@ Monorepo with three applications:
 ```bash
 cd rebuildr-backend
 
-# Build
-npm run build
+npm run build           # Compile TypeScript
+npm run lint            # ESLint
+npm run format          # Prettier (src + test)
+npm run type-check      # tsc --noEmit
 
-# Lint
-npm run lint
+npm test                          # Unit tests (uses test/jest.config.json, rootDir: .)
+npm run test:watch                # Watch mode
+npm run test:cov                  # Coverage (uses package.json jest block, rootDir: src)
+npm run test:e2e                  # E2E tests (test/jest-e2e.json)
+npm run test:all                  # Unit + E2E
 
-# Format
-npm run format
-
-# Type check
-npm run type-check
-
-# Run tests
-npm test                    # Run unit tests
-npm run test:watch         # Run tests in watch mode
-npm run test:cov           # Run tests with coverage
-npm run test:e2e           # Run E2E tests
-npm run test:all           # Run unit + E2E tests
-
-# Single test file
+# Run a single test file
 npm test -- src/path/to/file.spec.ts
 
-# Watch single test
-npm run test:watch -- src/path/to/file.spec.ts
+# Watch a single test file
+npm run test:watch -- --testPathPattern=src/path/to/file.spec.ts
 ```
 
 ### App (rebuildr-app)
 ```bash
 cd rebuildr-app
 
-# Lint
-npm run lint
-
-# Start dev server
-npm start
-
-# Format (via Prettier)
-npx prettier --write "src/**/*.{ts,tsx,js,jsx}"
-
-# Generate GraphQL types
-npm run codegen
+npm run lint            # ESLint
+npm start               # Expo dev server
+npm run codegen         # Generate GraphQL types from ../rebuildr-backend/src/schema.gql
 ```
 
 ### Admin (rebuildr-admin)
 ```bash
 cd rebuildr-admin
 
-# Build
-npm run build
+npm run build           # Next.js production build
+npm run lint            # Next.js ESLint
+npm run dev             # Dev server on port 3002
+npm run codegen         # Generate GraphQL types (requires backend running at localhost:3000)
+```
 
-# Lint
-npm run lint
+## Authentication & Environment
 
-# Dev server
-npm run dev
-
-# Format (via Prettier with Tailwind plugin)
-npx prettier --write "**/*.{ts,tsx,js,jsx}"
-
-# Generate GraphQL types
-npm run codegen
+All apps use **1Password CLI** (`op run`) to load env vars:
+```bash
+op run --env-file=".env.local.1p" -- npm run start:dev   # backend
+op run --env-file=".env.local.1p" -- expo start --web    # app
+op run --env-file=".env.local.1p" -- next dev            # admin
 ```
 
 ## Code Style Guidelines
 
 ### Formatting (Prettier)
 
-**Backend & App:**
-- Single quotes: `true`
-- Trailing commas: `all`
-- Line width: default (80)
-
-**Admin:**
-- Single quotes: `false` (use double quotes)
-- Trailing commas: `all`
-- Tab width: 2 spaces
-- Tailwind CSS class sorting enabled
+| App | Quotes | Trailing commas | Notes |
+|-----|--------|-----------------|-------|
+| **backend** | Single | `all` | |
+| **app** | Double | `all` | |
+| **admin** | Double | `all` (Prettier 3 default) | Tailwind class sorting via `prettier-plugin-tailwindcss` |
 
 ### Imports
 
-1. **Group and order imports:**
-   - Third-party packages first (alphabetically)
-   - Internal imports after blank line (alphabetically)
-   - Use absolute paths with `src/` prefix when available
+Group and order: **third-party first (alphabetical), then internal (alphabetical), separated by a blank line.**
 
-2. **Backend example:**
-   ```typescript
-   import { Injectable } from '@nestjs/common';
-   import { DataSource } from 'typeorm';
+**Backend** — use absolute `src/` paths for internal imports:
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-   import { MyService } from 'src/services/my.service';
-   import { MyEntity } from 'src/entities/my.entity';
-   ```
+import { User } from 'src/entities/user.entity';
+import { BadUserInputException } from 'src/exceptions';
+import { FileService } from 'src/services/file.service';
+```
 
-3. **Frontend example (Next.js/Expo):**
-   ```typescript
-   import React from 'react';
-   import { View } from 'react-native';
+**App** — use path aliases (defined in `tsconfig.json`):
+```typescript
+import { useQuery } from "@apollo/client";
+import React, { useEffect } from "react";
 
-   import MyComponent from '@/components/MyComponent';
-   ```
+import { isLoggedInVar } from "@/apollo/config";
+import MyComponent from "@components/MyComponent";
+import { useUser } from "@hooks/useUser";
+```
+
+**Admin** — use `@/` alias for `src/`:
+```typescript
+import axios from "axios";
+import { PropsWithChildren } from "react";
+
+import { refreshToken } from "@/actions/auth";
+import AntdProvider from "@/provider/antd-provider";
+import { fetchSession } from "@lib/session";
+```
+
+### Path Aliases
+
+**App** (`rebuildr-app/tsconfig.json`):
+- `@/*` → `./*`
+- `@components/*` → `components/*`
+- `@hooks/*` → `hooks/*`
+- `@context/*` → `contexts/*`
+- `@icons/*` → `components/icons/*`
+- `@pictograms/*` → `components/pictograms/*`
+- `@text/*` → `components/typography/*`
+- `@assets/*` → `assets/*`
+- `@constants/*` → `constants/*`
+
+**Admin** (`rebuildr-admin/tsconfig.json`):
+- `@/*` → `./src/*`
+- `@lib/*` → `./src/lib/*`
+- `@utils/*` → `./src/utils/*`
+- `@components/*` → `./src/components/*`
+- `@actions/*` → `./src/actions/*`
+- `@gql/*` → `./src/gql/*`
 
 ### TypeScript Settings
 
-**Backend:**
-- `strict: true` mode enabled
-- `skipLibCheck: true` (for compatibility)
-- `strictNullChecks: false` (relaxed null checking)
-- Target: ES2021
+**Backend** (`strict: true` with selective overrides):
+- `strictNullChecks: false` — null checks are relaxed
+- `noImplicitAny: false` — implicit any is allowed
+- `target: ES2021`, `module: commonjs`
 
-**Admin:**
-- TypeScript 5.7.3
-- Next.js type checking enabled
+**Admin**: `strict: true`, `target: ES2017`, `moduleResolution: bundler`
 
-**App:**
-- TypeScript 5.9.2
-- Expo type checking
+**App**: `strict: true`, extends `expo/tsconfig.base`
 
 ### Naming Conventions
 
-1. **Files:**
-   - Services: `*.service.ts`
-   - Modules: `*.module.ts`
-   - Controllers: `*.controller.ts`
-   - Entities: `*.entity.ts`
-   - Dtos: `*.dto.ts`
-   - Interfaces: `*.interface.ts`
-   - Tests: `*.spec.ts`
-
-2. **Classes/Interfaces:**
-   - PascalCase: `UserService`, `CreateUserDto`, `IUserRepository`
-
-3. **Variables/Functions:**
-   - camelCase: `getUser()`, `userId`, `isActive`
-
-4. **Constants:**
-   - UPPER_SNAKE_CASE: `MAX_RETRIES`, `DEFAULT_TIMEOUT`
-
-5. **Private members:**
-   - Prefix with underscore: `_internalState`, `_helper()`
+| Thing | Convention | Example |
+|---|---|---|
+| Files (backend) | `*.service.ts`, `*.module.ts`, `*.controller.ts`, `*.entity.ts`, `*.dto.ts`, `*.spec.ts` | `user.service.ts` |
+| Classes/Interfaces | PascalCase | `UserService`, `CreateUserDto` |
+| Variables/functions | camelCase | `getUser()`, `userId` |
+| Constants | UPPER_SNAKE_CASE | `MAX_RETRIES` |
+| Private class members | Underscore prefix | `_helper()` |
 
 ### Error Handling
 
-**Backend (GraphQL):**
-
-Use provided exception functions in `src/exceptions.ts`:
+**Backend** — always use the factory functions from `src/exceptions.ts`, never throw raw errors:
 ```typescript
 import {
-  BadUserInputException,
   BadFieldsInputException,
-  NotFoundException,
+  BadUserInputException,
   ForbiddenException,
   InternalServerException,
+  NotFoundException,
 } from 'src/exceptions';
 
-// Single field validation error
 throw BadUserInputException('Email is invalid');
-
-// Multiple field validation errors
 throw BadFieldsInputException([
   { name: 'email', message: 'Invalid email', type: 'BAD_VALUE' },
   { name: 'username', message: 'Already taken', type: 'VALUE_TAKEN' },
 ]);
-
-// Resource not found
 throw NotFoundException('User not found');
-
-// Forbidden action
 throw ForbiddenException('You cannot access this resource');
 ```
 
-**Frontend:**
-- Use try-catch for async operations
-- Leverage Apollo Client error handling for GraphQL
-- Display user-friendly error messages
+**Frontend** — try-catch for async ops; use Apollo Client error handling for GraphQL mutations/queries.
 
-### Type Safety
+### Backend Patterns
 
-1. **Use strict types:**
-   - Avoid `any` type (eslint rule enforces this)
-   - Use `unknown` if type is truly unknown
-   - Define interfaces/types for all data shapes
+**Entity** — TypeORM and GraphQL decorators on the same class:
+```typescript
+@Entity()
+@ObjectType()
+export class User {
+  @Field(() => ID)
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-2. **Backend DTOs (Data Transfer Objects):**
-   ```typescript
-   export class CreateUserDto {
-     email: string;
-     username: string;
-     password: string;
-   }
-   ```
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, unique: true })
+  username?: string;
+}
+```
 
-3. **Frontend hooks/queries:**
-   ```typescript
-   interface User {
-     id: string;
-     email: string;
-     username: string;
-   }
-   ```
+**Resolver** — `@InputType` and `@ObjectType` classes are co-located in the same resolver file, not in separate DTO files:
+```typescript
+@InputType()
+export class RegisterUserInput {
+  @Field(() => String)
+  email: string;
+}
+
+@Resolver()
+export class AuthResolver {
+  constructor(private readonly authService: AuthService) {}
+
+  @Mutation(() => User)
+  @UsePipes(new ZodValidationPipe(registerUserSchema))
+  async registerUser(@Args('input') input: RegisterUserInput) {
+    return await this.authService.registerUser(input);
+  }
+}
+```
+
+**Validation** — Zod schemas applied via `ZodValidationPipe` on resolvers, or inline `.parse()` / `.safeParse()` inside services.
+
+### Frontend Patterns
+
+**App (Expo)** — hooks use Apollo Client with generated typed query/mutation hooks:
+```typescript
+export const useUser = () => {
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
+  const { data, loading } = useQuery<GetMeQuery, GetMeQueryVariables>(GET_ME, {
+    skip: !isLoggedIn,
+  });
+  return { isLoggedIn, me: data?.me, loading };
+};
+```
+
+**Admin (Next.js)** — UI stack: Ant Design 5 + Tailwind CSS + TanStack Query + React Hook Form + Zod. Data fetching uses plain async query functions (not hooks) via an Axios client with JWT refresh interceptors (`src/lib/api-client.ts`).
 
 ### Linting Rules
 
-**Backend ESLint:**
-- Recommended TypeScript ESLint rules (strict & stylistic)
-- Exception: `@typescript-eslint/no-extraneous-class` disabled
+**Backend** — ESLint flat config (`eslint.config.mjs`), typescript-eslint recommended + strict + stylistic. Only `@typescript-eslint/no-extraneous-class` is disabled (required for NestJS modules/controllers).
 
-**App ESLint:**
-- Expo preset (universe/native)
-- Exceptions:
-  - `react-hooks/exhaustive-deps`: disabled
-  - `import/order`: disabled (manual ordering preferred)
+**App** — `eslint-config-universe/native` (Expo preset). Disabled: `react-hooks/exhaustive-deps`, `import/order`.
 
-**Admin ESLint:**
-- Next.js core Web Vitals and TypeScript preset
-- Exceptions:
-  - `react-hooks/exhaustive-deps`: disabled
-  - `@typescript-eslint/no-unused-vars`: disabled
-- Ignored patterns: `src/components/ui/*`, `./gql/*`
-
-## Authentication & Environment
-
-- Use **1Password CLI** (`op run`) to load environment variables
-- Backend dev: `op run --env-file=".env.local.1p" -- npm run start:dev`
-- App web: `op run --env-file=".env.local.1p" -- expo start --web`
-- Admin dev: `op run --env-file=".env.local.1p" -- next dev`
+**Admin** — `next/core-web-vitals` + `next/typescript`. Disabled: `react-hooks/exhaustive-deps`, `@typescript-eslint/no-unused-vars`. Ignored: `src/components/ui/*`, `./gql/*`.
 
 ## Testing Standards
 
-1. **Backend:**
-   - Jest configuration in `test/jest.config.json`
-   - Test files: `src/**/*.spec.ts`
-   - Use `@nestjs/testing` for module testing
-   - Use `supertest` for HTTP endpoint testing
-
-2. **E2E Tests:**
-   - Configuration: `test/jest-e2e.json`
-   - Run with: `npm run test:e2e`
-
-3. **Coverage:**
-   - Run: `npm run test:cov`
-   - Output: `coverage/` directory
+- Test files: `src/**/*.spec.ts` (unit), `test/*.e2e-spec.ts` (E2E)
+- Use `@nestjs/testing` `Test.createTestingModule()` for unit tests
+- Mock repositories as plain objects with `jest.fn()` methods
+- Shared mocks live in `test/mocks/` (e.g. `StripeMock`, `PostnordMock`, `S3Mock`)
+- Use `describe` / `it` blocks with `beforeEach` / `afterEach`
+- Define test fixtures in a `getFixtures()` helper at the bottom of the spec file
 
 ## Database & Migrations
 
-- ORM: TypeORM
-- Database: PostgreSQL with PostGIS
-- Config: `src/ormconfig-migrations.ts`
+- ORM: TypeORM | Database: PostgreSQL with PostGIS | Config: `src/ormconfig-migrations.ts`
 
 ```bash
 cd rebuildr-backend
 
-# Run migrations
-npm run migration:run
-
-# Show pending migrations
-npm run migration:show
-
-# Revert last migration
-npm run migration:revert
-
-# Generate migration from entities
-npm run migration:generate -- -n MigrationName
-
-# Create empty migration
-npm run migration:create -- -n MigrationName
+npm run migration:run                              # Apply pending migrations
+npm run migration:show                             # List pending migrations
+npm run migration:revert                           # Revert last migration
+npm run migration:generate -- -n MigrationName    # Generate from entity changes
+npm run migration:create -- -n MigrationName      # Create empty migration
 ```
 
 ## Code Quality Checklist
 
-Before committing:
-- [ ] Run formatter: `npm run format`
-- [ ] Run linter: `npm run lint`
-- [ ] Run type-check: `npm run type-check` (backend)
-- [ ] Run tests: `npm test`
-- [ ] Verify no ESLint warnings or errors
-
-## Additional Resources
-
-- Backend Framework: [NestJS Docs](https://docs.nestjs.com)
-- Frontend: [Next.js Docs](https://nextjs.org/docs), [Expo Docs](https://docs.expo.dev)
-- API: [GraphQL](https://graphql.org/), [Apollo Client](https://www.apollographql.com/docs/react/)
-- Database: [TypeORM Docs](https://typeorm.io/), [PostgreSQL Docs](https://www.postgresql.org/docs/)
+Before committing (run from the relevant app directory):
+- [ ] `npm run format` — auto-format
+- [ ] `npm run lint` — no warnings or errors
+- [ ] `npm run type-check` — backend only
+- [ ] `npm test` — all tests pass

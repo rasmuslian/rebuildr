@@ -1568,5 +1568,43 @@ export class PurchaseService {
     return { purchases, total };
   }
 
+  async cmsRefundPurchase(purchaseId: string, logger: Logger): Promise<Purchase> {
+    const purchase = await this.purchaseRepository.findOne({
+      where: { id: purchaseId },
+      relations: { reportPurchase: true },
+    });
+
+    if (!purchase) {
+      throw BadUserInputException('Purchase not found');
+    }
+
+    logger.info('Admin refunding purchase', {
+      purchaseId: purchase.id,
+      paymentIntentId: purchase.paymentIntentId,
+      status: purchase.status,
+    });
+
+    if (!purchase.paymentIntentId) {
+      throw BadUserInputException('Cannot refund a free purchase');
+    }
+
+    if (purchase.refundId) {
+      throw BadUserInputException('Purchase is already refunded');
+    }
+
+    const refund = await this.stripeService.refundPayment(
+      purchase.paymentIntentId,
+    );
+    purchase.refundId = refund.id;
+    purchase.failedAt = new Date();
+
+    logger.info('Admin refund successful', {
+      purchaseId: purchase.id,
+      refundId: refund.id,
+    });
+
+    return this.purchaseRepository.save(purchase);
+  }
+
   //------------------------------------------------------------
 }

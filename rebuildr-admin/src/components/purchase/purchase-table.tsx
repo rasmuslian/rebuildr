@@ -19,6 +19,7 @@ import { usePersistedState } from "@/hooks/use-persisted-state";
 import { colors } from "tailwind.config";
 import { queryKeys } from "@/lib/query-keys";
 import { listPurchases } from "@/queries/purchase/list-purchases";
+import { refundPurchase } from "@/queries/purchase/refund-purchase";
 import { resolveReportPurchase } from "@/queries/purchase/resolve-report-purchase";
 
 type StateType = {
@@ -78,6 +79,27 @@ const PurchaseTable = () => {
     onError: () => {
       notification.error({
         message: "Kunde inte uppdatera ärendet",
+        description: "Försök igen senare eller kontrollera uppgifterna.",
+      });
+    },
+  });
+
+  const { mutateAsync: refundMutation, isPending: isRefunding } = useMutation({
+    mutationFn: async (purchaseId: string) => {
+      const response = await refundPurchase({ purchaseId });
+      if (!response) throw new Error();
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.LIST_PURCHASES] });
+      notification.success({
+        message: "Återbetalning genomförd",
+        description: "Köparen kommer att återfå sina pengar.",
+      });
+    },
+    onError: () => {
+      notification.error({
+        message: "Återbetalning misslyckades",
         description: "Försök igen senare eller kontrollera uppgifterna.",
       });
     },
@@ -299,10 +321,13 @@ const PurchaseTable = () => {
       title: "Rapport",
       key: "reportPurchase",
       width: "320px",
-      render: (_, { reportPurchase }) => {
+      render: (_, { id: purchaseId, reportPurchase, isRefunded }) => {
         if (!reportPurchase) return <span>-</span>;
 
         const isResolved = !!reportPurchase.resolution;
+        const pendingRefund =
+          reportPurchase.resolution === ReportPurchaseResolutionEnum.Refund &&
+          !isRefunded;
         return (
           <div className="flex flex-col gap-2">
             <div className="flex flex-col">
@@ -358,6 +383,16 @@ const PurchaseTable = () => {
                   Annat
                 </Button>
               </Space>
+            )}
+            {pendingRefund && (
+              <Button
+                size="small"
+                danger
+                loading={isRefunding}
+                onClick={() => refundMutation(purchaseId)}
+              >
+                Genomför återbetalning
+              </Button>
             )}
           </div>
         );

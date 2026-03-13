@@ -14,6 +14,7 @@ const query = `
         deliveredAt
         payoutReceivedAt
         status
+        isRefunded
         reportPurchase {
           id
           createdAt
