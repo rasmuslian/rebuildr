@@ -528,7 +528,7 @@ export const UpsertProduct = ({
 
   const onAnalyzeImage = async () => {
     if (!data) return;
-    // If no images are saved in the backend yet, save them first then refetch
+    // If no images are saved in the backend yet, save them first
     if (!data.product.images.length) {
       const saved = await update();
       if (!saved) return;
