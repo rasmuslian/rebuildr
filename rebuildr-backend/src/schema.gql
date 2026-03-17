@@ -1027,6 +1027,7 @@ type Mutation {
   setLikeProduct(input: SetLikeProductInput!): Product!
   removeProduct(input: RemoveProductInput!): Product!
   deleteDraft(input: RemoveProductInput!): Boolean!
+  analyzeProductImage(input: AnalyzeProductImageInput!): Product!
   cmsCreateCategory(input: CmsCreateCategoryInput!): CmsCreateCategoryResponse!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
@@ -1306,6 +1307,11 @@ input SetLikeProductInput {
 
 input RemoveProductInput {
   id: String!
+}
+
+input AnalyzeProductImageInput {
+  productId: String!
+  imageIndex: Float!
 }
 
 input CmsCreateCategoryInput {

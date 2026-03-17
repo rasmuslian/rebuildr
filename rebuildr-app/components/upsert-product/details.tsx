@@ -26,6 +26,8 @@ type Props = {
   onNext: () => void;
   nextIsDisabled: boolean;
   badFields?: { [key: string]: string };
+  onAnalyzeImage: () => Promise<void>;
+  imageAnalyzeLoading: boolean;
 };
 
 export const Details = ({
@@ -34,6 +36,8 @@ export const Details = ({
   onNext,
   nextIsDisabled,
   badFields,
+  onAnalyzeImage,
+  imageAnalyzeLoading,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [showDetails, setShowDetails] = useState(() => {
@@ -91,6 +95,8 @@ export const Details = ({
             onUpdateImages={(images) => {
               update({ ...product, images });
             }}
+            onAnalyzeImage={onAnalyzeImage}
+            imageAnalyzeLoading={imageAnalyzeLoading}
           />
           <PriceSection
             price={product.price}

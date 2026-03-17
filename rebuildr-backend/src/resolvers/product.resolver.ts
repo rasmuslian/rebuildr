@@ -56,6 +56,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { minimumProductPrice } from 'src/constants/pricing';
 import { FileInputType } from './file.resolver';
+import { AIService } from 'src/services/ai.service';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -66,6 +67,14 @@ export enum OrderProductsEnum {
   PRICE_DESC = 'PRICE_DESC',
 }
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
+
+@InputType()
+export class AnalyzeProductImageInput {
+  @Field()
+  productId: string;
+  @Field()
+  imageIndex: number;
+}
 
 @InputType()
 export class CreateProductInput {
@@ -618,6 +627,7 @@ export class ProductResolver {
     private productService: ProductService,
     private categoryService: CategoryService,
     private eventService: EventService,
+    private aiService: AIService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -814,6 +824,12 @@ export class ProductResolver {
     @Args('input') input: RemoveProductInput,
   ) {
     return this.productService.deleteDraft(input.id, user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlThrottlerGuard)
+  async analyzeProductImage(@Args('input') input: AnalyzeProductImageInput) {
+    return await this.aiService.analyzeProductImage(input);
   }
 
   @ResolveField(() => Category, { nullable: true })
