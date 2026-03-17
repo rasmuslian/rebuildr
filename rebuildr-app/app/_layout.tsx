@@ -23,7 +23,7 @@ import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
 
-import { SellProductProdiver } from "@context/sell-product-context";
+import { SellProductProvider } from "@context/sell-product-context";
 import { EditProductProdiver } from "@context/edit-product-context";
 import { SearchDropdown } from "@components/search/search-dropdown";
 import { SearchProvider } from "@context/search-context";
@@ -103,7 +103,7 @@ const RootLayout = () => {
           }}
         >
           <LocationProvider>
-            <SellProductProdiver>
+            <SellProductProvider>
               <EditProductProdiver>
                 <GestureHandlerRootView>
                   <PortalProvider>
@@ -128,7 +128,7 @@ const RootLayout = () => {
                   </PortalProvider>
                 </GestureHandlerRootView>
               </EditProductProdiver>
-            </SellProductProdiver>
+            </SellProductProvider>
           </LocationProvider>
         </LoginModalContext.Provider>
       )}
