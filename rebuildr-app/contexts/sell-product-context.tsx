@@ -5,7 +5,7 @@ export const SellProductContext = createContext<{
   setVisible: (v: boolean) => void;
 } | null>(null);
 
-export const SellProductProdiver = ({ children }: PropsWithChildren) => {
+export const SellProductProvider = ({ children }: PropsWithChildren) => {
   const [visible, setVisible] = useState(false);
   return (
     <SellProductContext value={{ visible, setVisible: (v) => setVisible(v) }}>
