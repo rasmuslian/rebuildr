@@ -1,6 +1,6 @@
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -30,6 +30,13 @@ export const DescriptionSection = ({
     setDescription(d);
     _onChangeDescription(d);
   };
+
+  useEffect(() => {
+    setTitle(_title);
+  }, [_title]);
+  useEffect(() => {
+    setDescription(_description);
+  }, [_description]);
 
   return (
     <View>

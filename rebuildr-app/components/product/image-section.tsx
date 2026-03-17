@@ -10,14 +10,23 @@ import { primitives } from "@constants/colors";
 import { FileType } from "../upsert-product/types";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useImageHandler } from "@hooks/use-image-handler";
+import { Button } from "@components/buttons/button";
 
 type Props = {
   images: FileType[];
   imageError?: string;
   onUpdateImages: (updatedImages: FileType[]) => void;
+  onAnalyzeImage: () => Promise<void>;
+  imageAnalyzeLoading: boolean;
 };
 
-export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
+export const ImageSection = ({
+  images,
+  imageError,
+  onUpdateImages,
+  onAnalyzeImage,
+  imageAnalyzeLoading,
+}: Props) => {
   const colors = useThemeColor();
   const { pickImage } = useImageHandler();
 
@@ -133,6 +142,19 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
       <Body size="small" style={{ marginTop: 12 }} color="secondary">
         Bilder: {images.length} av 10
       </Body>
+      <View style={{ marginTop: 12, gap: 6 }}>
+        <Button
+          label="Fyll automatiskt på produktinformation"
+          onPress={onAnalyzeImage}
+          loading={imageAnalyzeLoading}
+          disabled={!images?.length}
+        />
+        {imageAnalyzeLoading && (
+          <Body size="small">
+            Analyserar bild för att fylla på produktinformation...
+          </Body>
+        )}
+      </View>
     </View>
   );
 };

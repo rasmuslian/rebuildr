@@ -121,6 +121,7 @@ import { CO2FactorResolver } from './resolvers/co2-factor.resolver';
 import { PageContent } from './entities/page-content.entity';
 import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
+import { AIService } from './services/ai.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -318,6 +319,7 @@ export interface RequestType {
     BoverketAPI,
     PageContentService,
     PageContentResolver,
+    AIService,
   ],
 })
 export class AppModule {}

@@ -33,6 +33,7 @@
     "@aws-sdk/client-s3": "^3.608.0",
     "@aws-sdk/credential-providers": "^3.606.0",
     "@aws-sdk/s3-request-presigner": "^3.608.0",
+    "@google/genai": "^1.45.0",
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@nestjs/apollo": "^12.1.0",

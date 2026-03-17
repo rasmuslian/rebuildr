@@ -8,6 +8,8 @@ import {
   UpsertProductUpdateProductMutationVariables,
   MeasurementUnitEnum,
   ColorTypeEnum,
+  AnalyzeProductImageMutation,
+  AnalyzeProductImageMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -21,13 +23,39 @@ import { View } from "react-native";
 import { HandleDraft } from "@components/sell-product/handle-draft";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { PayoutHandler } from "../sell-product/payout-handler";
-import { Details } from "./details";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { Button } from "@components/buttons/button";
 import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { Details } from "./details";
+
+export const ANALYZE_PRODUCT_IMAGE = gql`
+  mutation AnalyzeProductImage($input: AnalyzeProductImageInput!) {
+    analyzeProductImage(input: $input) {
+      id
+      title
+      description
+      primaryQuantity
+      primaryUnit
+      height
+      heightUnit
+      width
+      widthUnit
+      length
+      lengthUnit
+      thickness
+      thicknessUnit
+      diameter
+      diameterUnit
+      weight
+      color
+      colorType
+      condition
+    }
+  }
+`;
 
 export const UPSERT_PRODUCT = gql`
   query UpsertProduct($input: GetProductInput!) {
@@ -156,6 +184,54 @@ export const UpsertProduct = ({
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT);
+  const [analyzeImage, { loading: imageAnalyzeLoading }] = useMutation<
+    AnalyzeProductImageMutation,
+    AnalyzeProductImageMutationVariables
+  >(ANALYZE_PRODUCT_IMAGE, {
+    onCompleted: (d) => {
+      const {
+        title,
+        description,
+        primaryQuantity,
+        primaryUnit,
+        height,
+        heightUnit,
+        width,
+        widthUnit,
+        length,
+        lengthUnit,
+        thickness,
+        thicknessUnit,
+        diameter,
+        diameterUnit,
+        weight,
+        color,
+        colorType,
+        condition,
+      } = d.analyzeProductImage;
+      setProduct({
+        ...product,
+        title: title || undefined,
+        description: description ?? undefined,
+        primaryQuantity: primaryQuantity ?? undefined,
+        primaryUnit: primaryUnit ?? undefined,
+        height: height ?? undefined,
+        heightUnit,
+        width: width ?? undefined,
+        widthUnit,
+        length: length ?? undefined,
+        lengthUnit,
+        thickness: thickness ?? undefined,
+        thicknessUnit,
+        diameter: diameter ?? undefined,
+        diameterUnit,
+        weight: weight ?? undefined,
+        color: color ?? undefined,
+        colorType,
+        condition: condition ?? undefined,
+      });
+    },
+  });
 
   useEffect(() => {
     const productToState = async (
@@ -448,6 +524,17 @@ export const UpsertProduct = ({
     }
 
     return false;
+  };
+
+  const onAnalyzeImage = async () => {
+    if (!data) return;
+    // If no images are saved in the backend yet, save them first
+    if (!data.product.images.length) {
+      const saved = await update();
+      if (!saved) return;
+    }
+
+    await analyzeImage({ variables: { input: { productId, imageIndex: 0 } } });
   };
 
   const onSave = async (published: boolean) => {
@@ -758,51 +845,64 @@ export const UpsertProduct = ({
     />
   );
 
-  const viewChildren = [
-    step === "details" && (
-      <Details
-        product={product}
-        update={onUpdateProduct}
-        onNext={onNextDetails}
-        nextIsDisabled={progressDetails() < 100}
-        badFields={fieldErrors}
-      />
-    ),
-    step === "project" && (
-      <Project
-        product={product}
-        update={onUpdateProduct}
-        onNext={onVerifyProject}
-        nextIsDisabled={!projectProgress || projectProgress < 100}
-        updateProgress={(progress) => setProjectProgress(progress)}
-        onBack={() => setStep("details")}
-      />
-    ),
-    step === "transportation" && (
-      <Transportation
-        product={product}
-        update={onUpdateProduct}
-        onNext={onNextTransportation}
-        nextIsDisabled={!transportationProgress || transportationProgress < 100}
-        updateProgress={(progress) => setTransportationProgress(progress)}
-        onBack={() => setStep("project")}
-        badFields={fieldErrors}
-      />
-    ),
-    step === "preview" && (
-      <Preview product={product} dbProductId={data.product.id} />
-    ),
-    step === "payout" && (
-      <PayoutHandler onFinish={() => setStep("details")} onAbort={onFinish} />
-    ),
-  ];
+  const viewChildren = () => {
+    switch (step) {
+      case "details":
+        return (
+          <Details
+            product={product}
+            update={onUpdateProduct}
+            onNext={onNextDetails}
+            nextIsDisabled={progressDetails() < 100}
+            badFields={fieldErrors}
+            onAnalyzeImage={onAnalyzeImage}
+            imageAnalyzeLoading={imageAnalyzeLoading}
+          />
+        );
+      case "project":
+        return (
+          <Project
+            product={product}
+            update={onUpdateProduct}
+            onNext={onVerifyProject}
+            nextIsDisabled={!projectProgress || projectProgress < 100}
+            updateProgress={(progress) => setProjectProgress(progress)}
+            onBack={() => setStep("details")}
+          />
+        );
+      case "transportation":
+        return (
+          <Transportation
+            product={product}
+            update={onUpdateProduct}
+            onNext={onNextTransportation}
+            nextIsDisabled={
+              !transportationProgress || transportationProgress < 100
+            }
+            updateProgress={(progress) => setTransportationProgress(progress)}
+            onBack={() => setStep("project")}
+            badFields={fieldErrors}
+          />
+        );
+      case "preview":
+        return <Preview product={product} dbProductId={data.product.id} />;
+      case "payout":
+        return (
+          <PayoutHandler
+            onFinish={() => setStep("details")}
+            onAbort={onFinish}
+          />
+        );
+    }
+    return null;
+  };
 
   if (isDesktop) {
     return (
       <>
         <SlideInSheet open={visible} bottomMargin={0} onClose={onDismissSheet}>
           <View>{header}</View>
-          <View>{viewChildren}</View>
+          <View>{viewChildren()}</View>
           {showFooter && (
             <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
           )}
@@ -832,7 +932,7 @@ export const UpsertProduct = ({
       footer={renderFooter()}
       isStickyFooter
     >
-      <View style={{ marginBottom: 32 }}>{viewChildren}</View>
+      <View style={{ marginBottom: 32 }}>{viewChildren()}</View>
       <HandleDraft
         show={showHandleDraft}
         onDismiss={() => setShowHandleDraft(false)}
