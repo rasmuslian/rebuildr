@@ -19,7 +19,7 @@ import { ProgressHeader } from "@components/product/progress-header";
 import { NEW_PROJECT_ID, Project } from "./project";
 import { Transportation } from "./transportation";
 import { Preview } from "./preview";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { HandleDraft } from "@components/sell-product/handle-draft";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { PayoutHandler } from "../sell-product/payout-handler";
@@ -231,7 +231,6 @@ export const UpsertProduct = ({
         condition: condition ?? undefined,
       });
     },
-    onError: (e) => Alert.alert("AI error", e.message),
   });
 
   useEffect(() => {
