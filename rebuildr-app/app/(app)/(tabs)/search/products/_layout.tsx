@@ -1,5 +1,5 @@
 import React from "react";
-import { Slot, router } from "expo-router";
+import { Slot, router, useSegments } from "expo-router";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { useScreenType } from "@hooks/useScreenType";
 import { SearchBar } from "@components/search/search-bar";
@@ -7,6 +7,8 @@ import TopBar from "@components/navigation/top-bar/top-bar";
 
 export default function ProductsLayout() {
   const { isDesktop } = useScreenType();
+  const segments = useSegments();
+  const isInSubCategory = segments.some((s) => s === "[subCategoryId]");
 
   if (isDesktop) {
     return (
@@ -26,7 +28,12 @@ export default function ProductsLayout() {
       headerComponent={
         <SearchBar
           onPressArrow={() => {
-            router.canGoBack() ? router.back() : router.navigate("/");
+            if (router.canGoBack() && isInSubCategory) {
+              router.back();
+            } else {
+              router.dismissAll(); // clears the whole stack
+              router.replace("/");
+            }
           }}
           placeholder="Vad letar du efter?"
           searchOnSubmit
