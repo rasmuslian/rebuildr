@@ -31,8 +31,8 @@ export default function ProductsLayout() {
             if (router.canGoBack() && isInSubCategory) {
               router.back();
             } else {
-              router.dismissAll(); // clears the whole stack
-              router.replace("/");
+              router.dismissAll();
+              router.back();
             }
           }}
           placeholder="Vad letar du efter?"
