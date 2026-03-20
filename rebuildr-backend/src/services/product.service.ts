@@ -417,23 +417,9 @@ export class ProductService {
     }
 
     //CO2
-    if (
-      (input.weight || input.categoryId) &&
-      product.weight &&
-      product.categoryId
-    ) {
-      try {
-        const co2Factor = await this.co2Service.getCO2Factor({
-          categoryId: product.categoryId,
-        });
-
-        product.co2Saving = product.weight * co2Factor.coefficient;
-      } catch {
-        this.logger.error('co2 factor not found', {
-          categoryId: product.categoryId,
-          productId: product.id,
-        });
-      }
+    if (input.weight || input.categoryId) {
+      const co2 = await this.getProductCO2(product);
+      product.co2Saving = co2 ?? product.co2Saving;
     }
 
     //Transportations
@@ -611,6 +597,24 @@ export class ProductService {
       imagePutUrls: this.fileService.uploadFiles(product.images, true),
       documentPutUrls: this.fileService.uploadFiles(product.documents, true),
     };
+  }
+
+  async getProductCO2(product: Product) {
+    if (product.weight && product.categoryId) {
+      try {
+        const co2Factor = await this.co2Service.getCO2Factor({
+          categoryId: product.categoryId,
+        });
+
+        return product.weight * co2Factor.coefficient;
+      } catch {
+        this.logger.error('co2 factor not found', {
+          categoryId: product.categoryId,
+          productId: product.id,
+        });
+      }
+    }
+    return null;
   }
 
   getProductPriceRange() {

@@ -123,7 +123,7 @@ export class BrandResolver {
     @Args('input') input: CreateBrandByUserInput,
     @CurrentUser() user: AuthedUserType,
   ) {
-    return this.brandService.createBrandByUser(input, user.id);
+    return this.brandService.createBrand(input, user.id);
   }
 
   @Mutation(() => Brand)

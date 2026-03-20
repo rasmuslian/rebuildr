@@ -142,18 +142,18 @@ export const ImageSection = ({
       <Body size="small" style={{ marginTop: 12 }} color="secondary">
         Bilder: {images.length} av 10
       </Body>
-      <View style={{ marginTop: 12, gap: 6 }}>
+      <View style={{ marginTop: 12, gap: 12 }}>
         <Button
-          label="Fyll automatiskt på produktinformation"
+          label="Annonsförslag med AI"
           onPress={onAnalyzeImage}
           loading={imageAnalyzeLoading}
           disabled={!images?.length}
+          icon="magic"
+          iconPosition="left"
         />
-        {imageAnalyzeLoading && (
-          <Body size="small">
-            Analyserar bild för att fylla på produktinformation...
-          </Body>
-        )}
+        <Body size="small" color="secondary">
+          AI-genererat annonsförslag. Granska innan publicering.
+        </Body>
       </View>
     </View>
   );

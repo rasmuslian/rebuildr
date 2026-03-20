@@ -14,7 +14,6 @@ import {
 import slugify from 'slugify';
 import { NotFoundException } from 'src/exceptions';
 import { Product } from 'src/entities/product.entity';
-import { Category } from 'src/entities/category.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
@@ -63,9 +62,19 @@ export class BrandService {
     return { brands, total };
   }
 
-  async createBrandByUser(
+  async findBrandByName(name: string) {
+    const slug = this.createSlugFromName(name);
+
+    return await this.brandRepository.findOne({
+      where: { slug },
+    });
+  }
+  /**
+   * @param currentUserId If this is left empty then this function is called by the system
+   */
+  async createBrand(
     input: CreateBrandByUserInput,
-    currentUserId: string,
+    currentUserId?: string,
   ): Promise<Brand> {
     const slug = this.createSlugFromName(input.name);
 
@@ -100,19 +109,19 @@ export class BrandService {
       try {
         await this.brandRepository
           .createQueryBuilder()
-          .relation(Category, 'c')
-          .of(brand)
-          .add(input.categoryId);
+          .relation(Brand, 'categories')
+          .of(brand.id)
+          .add(input.categoryId)
+          .catch((e) => {
+            throw new Error(e);
+          });
       } catch (e) {
-        this.logger.error(
-          'createBrandByUser: Could not connect brand and category',
-          {
-            brand,
-            categoryId: input.categoryId,
-            currentUserId,
-            e,
-          },
-        );
+        this.logger.error('createBrand: Could not connect brand and category', {
+          brand,
+          categoryId: input.categoryId,
+          currentUserId,
+          e,
+        });
       }
     }
     return brand;

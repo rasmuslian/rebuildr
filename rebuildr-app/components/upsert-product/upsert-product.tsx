@@ -39,6 +39,8 @@ export const ANALYZE_PRODUCT_IMAGE = gql`
       description
       primaryQuantity
       primaryUnit
+      secondaryQuantity
+      secondaryUnit
       height
       heightUnit
       width
@@ -53,6 +55,10 @@ export const ANALYZE_PRODUCT_IMAGE = gql`
       color
       colorType
       condition
+      brand {
+        id
+        type
+      }
     }
   }
 `;
@@ -176,10 +182,10 @@ export const UpsertProduct = ({
     number | undefined
   >(undefined);
 
-  const { data } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
-    UPSERT_PRODUCT,
-    { variables: { input: { id: productId } } },
-  );
+  const { data, refetch } = useQuery<
+    UpsertProductQuery,
+    UpsertProductQueryVariables
+  >(UPSERT_PRODUCT, { variables: { input: { id: productId } } });
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -188,48 +194,8 @@ export const UpsertProduct = ({
     AnalyzeProductImageMutation,
     AnalyzeProductImageMutationVariables
   >(ANALYZE_PRODUCT_IMAGE, {
-    onCompleted: (d) => {
-      const {
-        title,
-        description,
-        primaryQuantity,
-        primaryUnit,
-        height,
-        heightUnit,
-        width,
-        widthUnit,
-        length,
-        lengthUnit,
-        thickness,
-        thicknessUnit,
-        diameter,
-        diameterUnit,
-        weight,
-        color,
-        colorType,
-        condition,
-      } = d.analyzeProductImage;
-      setProduct({
-        ...product,
-        title: title || undefined,
-        description: description ?? undefined,
-        primaryQuantity: primaryQuantity ?? undefined,
-        primaryUnit: primaryUnit ?? undefined,
-        height: height ?? undefined,
-        heightUnit,
-        width: width ?? undefined,
-        widthUnit,
-        length: length ?? undefined,
-        lengthUnit,
-        thickness: thickness ?? undefined,
-        thicknessUnit,
-        diameter: diameter ?? undefined,
-        diameterUnit,
-        weight: weight ?? undefined,
-        color: color ?? undefined,
-        colorType,
-        condition: condition ?? undefined,
-      });
+    onCompleted: () => {
+      refetch();
     },
   });
 

@@ -136,7 +136,7 @@ export const Details = ({
           <CO2Section
             product={product}
             onChange={(w) => {
-              update({ weight: w, widthUnit: MeasurementUnitEnum.Kg });
+              update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
           <View
