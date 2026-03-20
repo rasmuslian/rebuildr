@@ -12,6 +12,8 @@ import { Purchase, SupportedPaymentMethod } from 'src/entities/purchase.entity';
 import { idFromObject } from 'src/utility/stripe/utils';
 import { addCountryCode, isValidPhonenumber } from 'src/utility/phone-number';
 import * as Sentry from '@sentry/nestjs';
+import { SCBAPI } from 'src/apis/scb.api';
+import { IFetchBusinessResponse } from 'src/apis/types/scb/types';
 
 @Injectable()
 export class StripeService {
@@ -24,6 +26,7 @@ export class StripeService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    private scbAPI: SCBAPI,
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (!secretKey) {
@@ -144,8 +147,32 @@ export class StripeService {
       },
     });
     if (!owner) {
-      this.logger.error('Oganization does not have an owner');
+      this.logger.error('Organization does not have an owner');
       throw InternalServerException();
+    }
+
+    if (!organizationUser.organizationNumber) {
+      this.logger.error('Organization does not have an organization number', {
+        organizationUser,
+      });
+      throw InternalServerException();
+    }
+
+    //Prefill data
+    let scbData: IFetchBusinessResponse[number];
+    try {
+      const businessData = await this.scbAPI.fetchBusiness(
+        organizationUser.organizationNumber,
+      );
+      scbData = businessData[0];
+    } catch (e) {
+      this.logger.error(
+        'createConnectedAccountOrganization: Could not find business data',
+        {
+          e,
+          orgainzationUserId: organizationUser.id,
+        },
+      );
     }
 
     const validPhoneNumber = isValidPhonenumber(organizationUser.phoneNumber);
@@ -155,20 +182,20 @@ export class StripeService {
         business_type: 'company',
         company: {
           structure: 'private_corporation',
-          name: organizationUser.username,
+          name: scbData.Företagsnamn ?? organizationUser.username,
           address: {
-            line1: organizationUser.address,
-            postal_code: organizationUser.postCode,
-            city: organizationUser.city,
+            line1: scbData.PostAdress ?? organizationUser.address,
+            postal_code: scbData.PostNr ?? organizationUser.postCode,
+            city: scbData.PostOrt ?? organizationUser.city,
             country: 'SE',
           },
           phone: validPhoneNumber
-            ? addCountryCode(organizationUser.phoneNumber)
+            ? addCountryCode(scbData.Telefon ?? organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
         },
         business_profile: {
-          name: organizationUser.username,
+          name: scbData.Företagsnamn ?? organizationUser.username,
         },
         email: owner.email,
         controller: {
