@@ -50,6 +50,7 @@ import { Heart2Filled } from "./heart2Filled";
 import { Paperclip } from "./paperclip";
 import { Minus } from "./minus";
 import { Navigation } from "./navigation";
+import { Magic } from "./magic";
 
 export type IconType =
   | "placeholder"
@@ -99,7 +100,8 @@ export type IconType =
   | "categories"
   | "qrCode"
   | "star"
-  | "paperclip";
+  | "paperclip"
+  | "magic";
 
 export interface IconProps extends SvgProps {
   size: number;
@@ -259,6 +261,8 @@ export const Icon = ({
       return <Star {...props} size={size} color={color} />;
     case "paperclip":
       return <Paperclip {...props} size={size} color={color} />;
+    case "magic":
+      return <Magic {...props} size={size} color={color} />;
     default:
       break;
   }
