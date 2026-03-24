@@ -190,7 +190,10 @@ export const UpsertProduct = ({
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT);
-  const [analyzeImages, { loading: imageAnalyzeLoading }] = useMutation<
+  const [
+    analyzeImages,
+    { loading: imageAnalyzeLoading, error: imageAnalyzeError },
+  ] = useMutation<
     AnalyzeProductImagesMutation,
     AnalyzeProductImagesMutationVariables
   >(ANALYZE_PRODUCT_IMAGE, {
@@ -823,6 +826,7 @@ export const UpsertProduct = ({
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
             imageAnalyzeLoading={imageAnalyzeLoading}
+            imageAnalyzeError={!!imageAnalyzeError}
           />
         );
       case "project":

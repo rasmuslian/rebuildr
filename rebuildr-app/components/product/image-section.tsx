@@ -18,6 +18,7 @@ type Props = {
   onUpdateImages: (updatedImages: FileType[]) => void;
   onAnalyzeImages: () => Promise<void>;
   imageAnalyzeLoading: boolean;
+  imageAnalyzeError?: boolean;
 };
 
 export const ImageSection = ({
@@ -26,6 +27,7 @@ export const ImageSection = ({
   onUpdateImages,
   onAnalyzeImages,
   imageAnalyzeLoading,
+  imageAnalyzeError,
 }: Props) => {
   const colors = useThemeColor();
   const { pickImage } = useImageHandler();
@@ -151,6 +153,11 @@ export const ImageSection = ({
           icon="magic"
           iconPosition="left"
         />
+        {imageAnalyzeError && (
+          <Body size="small" color="error">
+            Något gick fel vid AI-genereringen
+          </Body>
+        )}
         <Body size="small" color="secondary">
           AI-genererat annonsförslag. Granska innan publicering.
         </Body>
