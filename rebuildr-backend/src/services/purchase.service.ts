@@ -354,6 +354,10 @@ export class PurchaseService {
         buyer,
         input.paymentMethod,
         product.title,
+        {
+          productId: product?.id,
+          sellerId: product?.seller?.id,
+        },
       );
       clientSecret = paymentResponse.clientSecret;
       purchase.paymentIntentId = paymentResponse.id;
@@ -1568,7 +1572,10 @@ export class PurchaseService {
     return { purchases, total };
   }
 
-  async cmsRefundPurchase(purchaseId: string, logger: Logger): Promise<Purchase> {
+  async cmsRefundPurchase(
+    purchaseId: string,
+    logger: Logger,
+  ): Promise<Purchase> {
     const purchase = await this.purchaseRepository.findOne({
       where: { id: purchaseId },
       relations: { reportPurchase: true },

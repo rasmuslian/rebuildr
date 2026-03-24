@@ -4,12 +4,15 @@ import {
   PurchaseStatusEnum,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
+import { Button } from "@components/buttons/button";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Title } from "@components/typography/text";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 
 const POLL_STRIPE = gql`
   query PollStripe($input: GetPurchaseInput!) {
@@ -35,6 +38,9 @@ export const StripeContent = ({
   purchaseId: string;
   productId: string;
 }) => {
+  const [pollStripeResolution, setPollStripeResolution] = useState<
+    "failed" | "none"
+  >("none");
   const { isDesktop } = useScreenType();
   const { setVisible, setContent } = useBuyModalContext();
   const handleClose = () => {
@@ -44,28 +50,48 @@ export const StripeContent = ({
     }, 500);
   };
 
-  useQuery<PollStripeQuery, PollStripeQueryVariables>(POLL_STRIPE, {
-    variables: { input: { id: purchaseId } },
-    pollInterval: 1000,
-    notifyOnNetworkStatusChange: true,
-    onCompleted: (data) => {
-      if (data.purchase.status === PurchaseStatusEnum.PaymentAccepted) {
-        if (isDesktop) {
-          setContent({
-            buyState: "success",
-            productId,
-            purchaseId,
-          });
-          setVisible(true);
-        } else {
-          router.replace({
-            pathname: "/buy/[productId]/success",
-            params: { productId, purchaseId },
-          });
+  const { data, error } = useQuery<PollStripeQuery, PollStripeQueryVariables>(
+    POLL_STRIPE,
+    {
+      variables: { input: { id: purchaseId } },
+      pollInterval: 1000,
+      notifyOnNetworkStatusChange: true,
+      skip: pollStripeResolution !== "none",
+      onCompleted: (data) => {
+        if (
+          data.purchase.status === PurchaseStatusEnum.PaymentAccepted ||
+          data.purchase.status === PurchaseStatusEnum.ShipmentBooked
+        ) {
+          if (isDesktop) {
+            setContent({
+              buyState: "success",
+              productId,
+              purchaseId,
+            });
+            setVisible(true);
+          } else {
+            router.replace({
+              pathname: "/buy/[productId]/success",
+              params: { productId, purchaseId },
+            });
+          }
         }
-      }
+      },
     },
-  });
+  );
+
+  useEffect(() => {
+    if (!data) return;
+
+    if (data.purchase.status === PurchaseStatusEnum.FinishedFailed) {
+      setPollStripeResolution("failed");
+    }
+  }, [data]);
+  useEffect(() => {
+    if (!error) return;
+
+    setPollStripeResolution("failed");
+  }, [error]);
 
   return (
     <ScreenLayout
@@ -77,7 +103,25 @@ export const StripeContent = ({
         />
       }
     >
-      <Title>Bearbetar betalning...</Title>
+      {pollStripeResolution === "failed" ? (
+        <View style={{ gap: 12 }}>
+          <Title>Betalningen misslyckades, vänligen försök igen.</Title>
+          <Button
+            label="Tillbaka"
+            icon="arrowLeft"
+            onPress={() => {
+              setVisible(false);
+              setContent(null);
+              router.navigate({
+                pathname: "/product/[productId]",
+                params: { productId },
+              });
+            }}
+          />
+        </View>
+      ) : (
+        <Title>Bearbetar betalning...</Title>
+      )}
     </ScreenLayout>
   );
 };

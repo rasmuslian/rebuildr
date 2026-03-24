@@ -13,6 +13,21 @@ import { createURL } from "expo-linking";
 import { useState } from "react";
 import { View } from "react-native";
 import * as Sentry from "@sentry/react-native";
+import { gql, useMutation } from "@apollo/client";
+import { router } from "expo-router";
+import {
+  CheckoutFormCancelMutation,
+  CheckoutFormCancelMutationVariables,
+} from "@/gql/graphql";
+
+const CHECKOUT_FORM_CANCEL = gql`
+  mutation CheckoutFormCancel($input: CancelPurchaseInput!) {
+    cancelPurchase(input: $input) {
+      id
+      status
+    }
+  }
+`;
 
 type StripCheckoutFormProps = {
   productId: string;
@@ -35,7 +50,10 @@ export const StripCheckoutForm = ({
     <>
       <View style={{ gap: 24 }}>
         <Title>Bearbetar köp...</Title>
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
+        <Elements
+          stripe={stripePromise}
+          options={{ clientSecret, locale: "sv" }}
+        >
           <CheckoutForm productId={productId} purchaseId={purchaseId} />
         </Elements>
       </View>
@@ -55,7 +73,11 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
     queryParams: { purchaseId },
   });
   const { isDesktop } = useScreenType();
-  const { setContent } = useBuyModalContext();
+  const { setContent, setVisible } = useBuyModalContext();
+  const [cancelPurchase] = useMutation<
+    CheckoutFormCancelMutation,
+    CheckoutFormCancelMutationVariables
+  >(CHECKOUT_FORM_CANCEL);
 
   const handleSubmit = async (event: any) => {
     // We don't want to let default form submission happen here,
@@ -73,6 +95,9 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
         stripe.confirmPayment({
           elements, //`Elements` instance that was used to create the Payment Element
           redirect: "if_required",
+          confirmParams: {
+            return_url: window.location.href,
+          },
         })
       : stripe.confirmPayment({
           elements,
@@ -92,12 +117,41 @@ const CheckoutForm = ({ productId, purchaseId }: CheckoutFormProps) => {
         data: { productId, purchaseId },
       });
     } else {
-      if (isDesktop) {
-        setContent({
-          buyState: "stripe",
-          productId,
-          purchaseId,
-        });
+      switch (result.paymentIntent.status) {
+        case "canceled":
+        case "requires_action":
+          //If user exits the swish modal, this will be the result
+          cancelPurchase({
+            variables: { input: { purchaseId } },
+            onCompleted: () => {
+              if (isDesktop) {
+                setContent(null);
+                setVisible(false);
+                router.navigate({
+                  pathname: "/product/[productId]",
+                  params: { productId },
+                });
+              } else {
+                router.navigate({
+                  pathname: "/buy/[productId]",
+                  params: { productId },
+                });
+              }
+            },
+          });
+          break;
+        case "requires_capture":
+        case "requires_payment_method": //status = requires_payment_method after 3 min if swish times out.
+        case "succeeded":
+        case "processing":
+        case "requires_confirmation":
+          if (isDesktop) {
+            setContent({
+              buyState: "stripe",
+              productId,
+              purchaseId,
+            });
+          }
       }
       // Your customer will be redirected to your `return_url`. For some payment
       // methods like iDEAL, your customer will be redirected to an intermediate
