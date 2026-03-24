@@ -8,8 +8,8 @@ import {
   UpsertProductUpdateProductMutationVariables,
   MeasurementUnitEnum,
   ColorTypeEnum,
-  AnalyzeProductImageMutation,
-  AnalyzeProductImageMutationVariables,
+  AnalyzeProductImagesMutation,
+  AnalyzeProductImagesMutationVariables,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -32,8 +32,8 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 
 export const ANALYZE_PRODUCT_IMAGE = gql`
-  mutation AnalyzeProductImage($input: AnalyzeProductImageInput!) {
-    analyzeProductImage(input: $input) {
+  mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
+    analyzeProductImages(input: $input) {
       id
       title
       description
@@ -190,9 +190,9 @@ export const UpsertProduct = ({
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT);
-  const [analyzeImage, { loading: imageAnalyzeLoading }] = useMutation<
-    AnalyzeProductImageMutation,
-    AnalyzeProductImageMutationVariables
+  const [analyzeImages, { loading: imageAnalyzeLoading }] = useMutation<
+    AnalyzeProductImagesMutation,
+    AnalyzeProductImagesMutationVariables
   >(ANALYZE_PRODUCT_IMAGE, {
     onCompleted: () => {
       refetch();
@@ -492,7 +492,7 @@ export const UpsertProduct = ({
     return false;
   };
 
-  const onAnalyzeImage = async () => {
+  const onAnalyzeImages = async () => {
     if (!data) return;
     // If no images are saved in the backend yet, save them first
     if (!data.product.images.length) {
@@ -500,7 +500,7 @@ export const UpsertProduct = ({
       if (!saved) return;
     }
 
-    await analyzeImage({ variables: { input: { productId, imageIndex: 0 } } });
+    await analyzeImages({ variables: { input: { productId } } });
   };
 
   const onSave = async (published: boolean) => {
@@ -821,7 +821,7 @@ export const UpsertProduct = ({
             onNext={onNextDetails}
             nextIsDisabled={progressDetails() < 100}
             badFields={fieldErrors}
-            onAnalyzeImage={onAnalyzeImage}
+            onAnalyzeImages={onAnalyzeImages}
             imageAnalyzeLoading={imageAnalyzeLoading}
           />
         );

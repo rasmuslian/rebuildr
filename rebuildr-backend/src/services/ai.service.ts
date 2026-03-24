@@ -8,7 +8,7 @@ import {
   ProductConditionEnum,
 } from 'src/entities/product.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
-import { AnalyzeProductImageInput } from 'src/resolvers/product.resolver';
+import { AnalyzeProductImagesInput } from 'src/resolvers/product.resolver';
 import { Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { QuantityUnitEnum } from 'src/constants/enums';
@@ -30,7 +30,9 @@ export class AIService {
     this.gemini = new GoogleGenAI({});
   }
 
-  async analyzeProductImage(input: AnalyzeProductImageInput): Promise<Product> {
+  async analyzeProductImages(
+    input: AnalyzeProductImagesInput,
+  ): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id: input.productId },
       relations: { images: true },
@@ -112,7 +114,7 @@ export class AIService {
               ${ProductConditionEnum.BAD} range. A product must genuinely look unused to qualify for ${ProductConditionEnum.VERY_GOOD} or
               above. Heavy rust, flaking paint, deep scratches or severe patina = ${ProductConditionEnum.BAD}.
               Do not over-rate condition.",
-              "primaryQuantification": "Primary quantification. Determine which of the following quantity units (${quantities}) best applies to the product/products on the image and what quantity of that unit are visible. Format the value as QUANTITY,QUANTITY ENUM.
+              "primaryQuantification": "Primary quantification. Determine which of the following quantity units (${quantities}) best applies to the product/products on the image and what quantity (expressed as integer) of that unit are visible. Format the value as QUANTITY,QUANTITY ENUM.
               Always count the actual items. 
               For pipes/rods/beams: use ${QuantityUnitEnum.AMOUNT} for individual piece count.",
               "secondaryQuantification": "Secondary quantification — use when the product naturally has two
@@ -127,7 +129,7 @@ export class AIService {
               pieces (e.g. 24,M2 secondary 96,ST); weight + volume → bulk materials like sand, gravel
               (e.g. 4,SACKAR secondary 200,KG); litres + tins → paint (e.g. 10,LITER secondary
               2,BURKAR). If neither dimension adds meaningful information beyond the primary, return
-              null. Format: NUMBER,UNIT",
+              null. QUANTITY must be expressed as an integer. Format: QUANTITY,QUANTITY ENUM",
               "dimensions": "Object containing any of the keys (height, width, length, thickness and diameter). 
               Populate with only the relevant fields for this product type.
               The values should be presented as "value,unit" where value is an integer.
@@ -173,13 +175,13 @@ export class AIService {
         if (!(primaryUnit in QuantityUnitEnum)) {
           throw new Error('Enum not found');
         }
-        product.primaryQuantity = primaryQuantity;
+        product.primaryQuantity = Math.round(primaryQuantity);
         product.primaryUnit = primaryUnit.trim();
       }
       if (secondaryQuantification) {
         const [secondaryQuantity, secondaryUnit] =
           secondaryQuantification.split(',');
-        product.secondaryQuantity = secondaryQuantity;
+        product.secondaryQuantity = Math.round(secondaryQuantity);
         product.secondaryUnit = secondaryUnit.trim();
       }
 
