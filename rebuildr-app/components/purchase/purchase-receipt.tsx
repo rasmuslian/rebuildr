@@ -21,6 +21,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { CreateReview } from "@components/review/create-review";
 import { router } from "expo-router";
+import { trackEvent } from "@/utils/analytics";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
 
@@ -239,12 +240,17 @@ export const PurchaseReceipt = ({
           {buyerIsMe ? (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.product.seller.id,
-                },
+              onPress={() => {
+                trackEvent("contact_seller", {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate({
+                  pathname: "/conversations/[productId]/[userId]",
+                  params: {
+                    productId: data.purchase.product.id,
+                    userId: data.purchase.product.seller.id,
+                  },
+                });
               }}
             >
               kontakta säljaren
@@ -252,12 +258,17 @@ export const PurchaseReceipt = ({
           ) : (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.buyer.id,
-                },
+              onPress={() => {
+                trackEvent("contact_buyer", {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate({
+                  pathname: "/conversations/[productId]/[userId]",
+                  params: {
+                    productId: data.purchase.product.id,
+                    userId: data.purchase.buyer.id,
+                  },
+                });
               }}
             >
               kontakta köparen

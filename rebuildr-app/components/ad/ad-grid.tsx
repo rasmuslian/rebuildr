@@ -12,6 +12,7 @@ import { useUser } from "@hooks/useUser";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
 import { Label } from "@components/typography/text";
 import { meterToKilometer } from "@/utils/conversions";
+import { trackEvent } from "@/utils/analytics";
 
 type Props = {
   id: string;
@@ -35,6 +36,8 @@ export const AdGrid = ({
   liked,
   status,
   distance,
+  title,
+  price,
   ...adDescriptionProps
 }: Props) => {
   const { isLoggedIn } = useUser();
@@ -52,6 +55,7 @@ export const AdGrid = ({
     <Pressable
       style={[{ gap: 8, opacity: disabled ? 0.5 : 1, width: "100%" }]}
       onPress={() => {
+        trackEvent("select_item", { item_id: id, item_name: title, price });
         router.navigate({
           pathname: "/product/[productId]",
           params: { productId: id },
@@ -107,7 +111,7 @@ export const AdGrid = ({
           />
         </Pressable>
       )}
-      <AdDescription {...adDescriptionProps} />
+      <AdDescription title={title} price={price} {...adDescriptionProps} />
     </Pressable>
   );
 };

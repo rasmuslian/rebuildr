@@ -15,6 +15,7 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { FileType, ProductFields } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { ProgressHeader } from "@components/product/progress-header";
 import { NEW_PROJECT_ID, Project } from "./project";
 import { Transportation } from "./transportation";
@@ -500,6 +501,7 @@ export const UpsertProduct = ({
     );
     if (result) {
       if (published) {
+        trackEvent("publish_product", { mode });
         onFinish();
       } else {
         onClose();

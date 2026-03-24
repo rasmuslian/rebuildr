@@ -13,6 +13,7 @@ import ForgotPassword from "@components/login/forgotPassword";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
+import { trackEvent } from "@/utils/analytics";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
 import {
@@ -168,6 +169,7 @@ const LoginModalView = () => {
           registerUser({
             variables: { input: { email } },
             onCompleted: () => {
+              trackEvent("sign_up", { method: "email" });
               setState("verify");
               sheetRef.current?.snapToIndex(fullScreenIndex);
             },
