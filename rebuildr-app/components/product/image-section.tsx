@@ -16,7 +16,7 @@ type Props = {
   images: FileType[];
   imageError?: string;
   onUpdateImages: (updatedImages: FileType[]) => void;
-  onAnalyzeImage: () => Promise<void>;
+  onAnalyzeImages: () => Promise<void>;
   imageAnalyzeLoading: boolean;
 };
 
@@ -24,7 +24,7 @@ export const ImageSection = ({
   images,
   imageError,
   onUpdateImages,
-  onAnalyzeImage,
+  onAnalyzeImages,
   imageAnalyzeLoading,
 }: Props) => {
   const colors = useThemeColor();
@@ -145,7 +145,7 @@ export const ImageSection = ({
       <View style={{ marginTop: 12, gap: 12 }}>
         <Button
           label="Annonsförslag med AI"
-          onPress={onAnalyzeImage}
+          onPress={onAnalyzeImages}
           loading={imageAnalyzeLoading}
           disabled={!images?.length}
           icon="magic"

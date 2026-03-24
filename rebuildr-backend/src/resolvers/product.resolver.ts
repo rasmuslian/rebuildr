@@ -69,11 +69,9 @@ export enum OrderProductsEnum {
 registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 
 @InputType()
-export class AnalyzeProductImageInput {
+export class AnalyzeProductImagesInput {
   @Field()
   productId: string;
-  @Field()
-  imageIndex: number;
 }
 
 @InputType()
@@ -828,8 +826,8 @@ export class ProductResolver {
 
   @Mutation(() => Product)
   @UseGuards(GqlThrottlerGuard)
-  async analyzeProductImage(@Args('input') input: AnalyzeProductImageInput) {
-    return await this.aiService.analyzeProductImage(input);
+  async analyzeProductImages(@Args('input') input: AnalyzeProductImagesInput) {
+    return await this.aiService.analyzeProductImages(input);
   }
 
   @ResolveField(() => Category, { nullable: true })
