@@ -315,6 +315,7 @@ export class StripeService {
     buyer: User,
     paymentMethod: SupportedPaymentMethod,
     description: string,
+    metadata: Stripe.Metadata,
   ) {
     const paymentMethods: string[] = [];
     switch (paymentMethod) {
@@ -345,6 +346,7 @@ export class StripeService {
         destination: sellerAccountId,
       },
       description,
+      metadata,
       receipt_email: buyer.email,
     });
 

@@ -1,13 +1,23 @@
 import { ProductStatusEnum } from "@/gql/graphql";
+import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useEditProductContext } from "@context/edit-product-context";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useScreenType } from "@hooks/useScreenType";
 import { useUser } from "@hooks/useUser";
-import { router } from "expo-router";
-import { useContext } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useContext, useEffect } from "react";
 import { View } from "react-native";
+
+const ACTION_SECTION_REDIRECT = gql`
+  query ActionSectionRedirect($input: MyPurchaseInput!) {
+    myPurchase(input: $input) {
+      id
+      status
+    }
+  }
+`;
 
 type Props = {
   productId: string;
@@ -30,8 +40,39 @@ export const ActionSection = ({
   const { setVisible } = useContext(LoginModalContext);
   const { editProduct } = useEditProductContext();
   const { isMobile } = useScreenType();
-  const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
-    useBuyModalContext();
+  const {
+    setVisible: setBuyModalVisible,
+    setContent: setBuyModalContent,
+    content,
+  } = useBuyModalContext();
+  const params = useLocalSearchParams();
+  const [getMyLatestPurchase, { data: redirectData }] = useLazyQuery(
+    ACTION_SECTION_REDIRECT,
+  );
+
+  /**
+   * The following two useffects will handle redirects back to the productscreen.
+   * In the case of redirect the buyContent state might be null but we have to populate it again.
+   * To determine if we come from a redirect we first check the redirect is in params.
+   * Then we find the latest purchase on this product and set the correct buyContent state
+   */
+  useEffect(() => {
+    if (params.redirect_status?.length && !redirectData) {
+      getMyLatestPurchase({
+        variables: { input: { productId: params.productId } },
+      });
+    }
+  }, [params.redirect_status]);
+  useEffect(() => {
+    if (!redirectData || !!content) return;
+    setBuyModalContent({
+      buyState: "stripe",
+      productId,
+      purchaseId: redirectData.myPurchase.id,
+    });
+    setBuyModalVisible(true);
+  }, [redirectData]);
+
   return (
     <View style={{ gap: 8, paddingTop: isMobile ? 24 : 0 }}>
       {isMyProduct ? (

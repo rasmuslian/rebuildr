@@ -7,7 +7,7 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display } from "@components/typography/text";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useScreenType } from "@hooks/useScreenType";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
 const PURCHASE_SUCCESS = gql`
@@ -30,6 +30,7 @@ export default function Success() {
 
 export const SuccessContent = ({ purchaseId }: { purchaseId: string }) => {
   const { isDesktop } = useScreenType();
+  const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible, setContent } = useBuyModalContext();
   const { data } = useQuery<PurchaseSuccessQuery>(PURCHASE_SUCCESS, {
     variables: { input: { id: purchaseId } },
@@ -38,6 +39,10 @@ export const SuccessContent = ({ purchaseId }: { purchaseId: string }) => {
     setVisible(false);
     setTimeout(() => {
       setContent(null);
+      router.navigate({
+        pathname: "/product/[productId]",
+        params: { productId },
+      });
     }, 500);
   };
 

@@ -26,6 +26,7 @@ import { Image } from "expo-image";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
 import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
 import AmExPaymentOption from "@assets/images/american-express-payment-option.png";
+import SwishPaymentOption from "@assets/images/swish-payment-option.png";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
 import {
@@ -133,7 +134,8 @@ export const PaymentContent = ({
   useEffect(() => {
     if (
       isDesktop &&
-      paymentMethod === PaymentMethod.Card &&
+      (paymentMethod === PaymentMethod.Card ||
+        paymentMethod === PaymentMethod.Swish) &&
       !!createPurchaseData?.purchaseProduct.reference
     ) {
       if (showStripeModal) {
@@ -237,22 +239,16 @@ export const PaymentContent = ({
       partialInput as BuyProductCreatePurchaseMutationVariables["input"];
 
     //Hide Swish until Stripe supports it
-    // if (paymentMethod === PaymentMethod.Swish) {
-    //   createPurchase({
-    //     variables: {
-    //       input: {
-    //         ...createPurchaseInput,
-    //         swishType:
-    //           Platform.OS === "web"
-    //             ? PaymentTypeEnum.Web
-    //             : PaymentTypeEnum.Mobile,
-    //       },
-    //     },
-    //     onCompleted: () => {
-    //       setShowSwishSheet(true);
-    //     },
-    //   });
-    // }
+    if (paymentMethod === PaymentMethod.Swish) {
+      createPurchase({
+        variables: {
+          input: createPurchaseInput,
+        },
+        onCompleted: (d) => {
+          setShowStripeModal(true);
+        },
+      });
+    }
     if (paymentMethod === PaymentMethod.Card) {
       createPurchase({
         variables: {
@@ -339,8 +335,6 @@ export const PaymentContent = ({
         </View>
       </View>
       <View style={{ gap: 8 }}>
-        {/*
-        //Hide Swish until Stripe supports it
         <PaymentCard
           title="Betala med Swish"
           onToggle={() => onSelectPaymentMethod(PaymentMethod.Swish)}
@@ -351,7 +345,7 @@ export const PaymentContent = ({
               style={{ width: 60, height: 18 }}
             />,
           ]}
-        /> */}
+        />
         <PaymentCard
           title="Betala med kort"
           onToggle={() => onSelectPaymentMethod(PaymentMethod.Card)}
@@ -451,7 +445,8 @@ export const PaymentContent = ({
         />
       </View>
       {isMobile &&
-        paymentMethod === PaymentMethod.Card &&
+        (paymentMethod === PaymentMethod.Card ||
+          paymentMethod === PaymentMethod.Swish) &&
         !!createPurchaseData?.purchaseProduct.reference && (
           <StripeBottomSheet
             show={showStripeModal}

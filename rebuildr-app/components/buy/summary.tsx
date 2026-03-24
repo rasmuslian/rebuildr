@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import VisaPaymentOption from "@assets/images/visa-payment-option.png";
 import MastercardPaymentOption from "@assets/images/mastercard-payment-option.png";
 import AmExPaymentOption from "@assets/images/american-express-payment-option.png";
+import SwishPaymentOption from "@assets/images/swish-payment-option.png";
 
 type Props = {
   text: string;
@@ -45,12 +46,10 @@ export const Summary = ({
             alignSelf: "center",
           }}
         >
-          {/* 
-          //Hide Swish until Stripe supports it
           <Image
             source={SwishPaymentOption.uri}
             style={{ width: 60, height: 18 }}
-          /> */}
+          />
           <Image
             source={VisaPaymentOption.uri}
             style={{ width: 40, height: 16 }}
