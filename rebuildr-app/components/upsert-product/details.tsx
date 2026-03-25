@@ -24,7 +24,6 @@ type Props = {
   product: ProductFields;
   update: (product: Partial<ProductFields>) => void;
   onNext: () => void;
-  nextIsDisabled: boolean;
   badFields?: { [key: string]: string };
   onAnalyzeImages: () => Promise<void>;
   imageAnalyzeLoading: boolean;
@@ -35,7 +34,6 @@ export const Details = ({
   product,
   update,
   onNext,
-  nextIsDisabled,
   badFields,
   onAnalyzeImages,
   imageAnalyzeLoading,
@@ -270,16 +268,17 @@ export const Details = ({
             },
           ]}
         >
-          <Button
-            label="Fortsätt"
-            onPress={onNext}
-            style={{ marginTop: 24 }}
-            disabled={nextIsDisabled}
-          />
+          <Button label="Fortsätt" onPress={onNext} style={{ marginTop: 24 }} />
           {badFields && !!Object.keys(badFields).length && (
-            <Body color="error" size="small">
-              Ett fel har påträffats i ett eller flera fält
-            </Body>
+            <View style={{ gap: 4 }}>
+              {Object.keys(badFields).map((bf, i) => {
+                return (
+                  <Body key={i} color="error" size="small">
+                    {badFields[bf]}
+                  </Body>
+                );
+              })}
+            </View>
           )}
         </View>
       )}

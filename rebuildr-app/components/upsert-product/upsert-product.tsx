@@ -668,20 +668,25 @@ export const UpsertProduct = ({
     if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
-    if (_product.price !== undefined && !_product.isGiveaway) {
-      if (_product.price < data.product.minimumPrice) {
+    if (!_product.isGiveaway) {
+      if (_product.price === undefined) {
+        badFields["price"] = `Ange Pris eller Bortskänkes`;
+      } else if (_product.price < data.product.minimumPrice) {
         badFields["price"] =
           `Priset måste vara högre än ${data.product.minimumPrice} kr`;
       }
     }
-    if (_product.title === "") {
-      badFields["title"] = "Måste har rubrik";
+    if (!_product.title) {
+      badFields["title"] = "Saknar Annonsrubrik";
     }
-    if (_product.description === "") {
-      badFields["description"] = "Måste ha beskrivning";
+    if (!_product.description) {
+      badFields["description"] = "Saknar Beskrivning";
     }
-    if (_product.primaryQuantity && _product.primaryQuantity <= 0) {
-      badFields["primary"] = "Måste ange minst ett";
+    if (
+      _product.primaryQuantity !== undefined &&
+      _product.primaryQuantity <= 0
+    ) {
+      badFields["primary"] = "Mängd och enhet måste vara minst 1";
     }
 
     setFieldErrors(badFields);
@@ -822,7 +827,6 @@ export const UpsertProduct = ({
             product={product}
             update={onUpdateProduct}
             onNext={onNextDetails}
-            nextIsDisabled={progressDetails() < 100}
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
             imageAnalyzeLoading={imageAnalyzeLoading}
