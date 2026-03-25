@@ -8,16 +8,7 @@ type Props = {
 
 export const printProductLabel = async ({ productId }: Props) => {
   if (Platform.OS === "web") {
-    const printWindow = window.open(`/product-label/${productId}`, "_blank");
-    if (!printWindow) return;
-
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.onafterprint = () => printWindow.close();
-        printWindow.print();
-      }, 500);
-    };
+    window.open(`/product-label/${productId}`, "_blank");
   } else {
     const response = await fetch(`/product-label/${productId}`);
     const html = await response.text();

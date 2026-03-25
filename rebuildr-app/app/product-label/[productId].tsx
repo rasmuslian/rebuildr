@@ -1,5 +1,5 @@
 import { View, Platform } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import QRCode from "react-native-qrcode-svg";
 import { Logo } from "@components/logo/logo";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -84,6 +84,15 @@ export default function PrintproductLabel() {
   );
 
   const product = data?.product;
+
+  useEffect(() => {
+    if (!product || Platform.OS !== "web") return;
+    if (!window.opener) return;
+
+    window.onafterprint = () => window.close();
+    window.print();
+  }, [product]);
+
   if (!product) return;
 
   const quantity = product.primaryQuantity ?? 0;
@@ -93,37 +102,37 @@ export default function PrintproductLabel() {
 
   if (product.thickness) {
     measurementsList.push(
-      `${measurements.thickness.name} ${product.thickness} ${measurements.thickness.options[product.thicknessUnit]?.name}`,
+      `${measurements.THICKNESS.name} ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`,
     );
   }
 
   if (product.width) {
     measurementsList.push(
-      `${measurements.width.name} ${product.width} ${measurements.width.options[product.widthUnit]?.name}`,
+      `${measurements.WIDTH.name} ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`,
     );
   }
 
   if (product.length) {
     measurementsList.push(
-      `${measurements.length.name} ${product.length} ${measurements.length.options[product.lengthUnit]?.name}`,
+      `${measurements.LENGTH.name} ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`,
     );
   }
 
   if (product.height) {
     measurementsList.push(
-      `${measurements.height.name} ${product.height} ${measurements.height.options[product.heightUnit]?.name}`,
+      `${measurements.HEIGHT.name} ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`,
     );
   }
 
   if (product.diameter) {
     measurementsList.push(
-      `${measurements.diameter.name} ${product.diameter} ${measurements.diameter.options[product.diameterUnit]?.name}`,
+      `${measurements.DIAMETER.name} ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`,
     );
   }
 
   if (product.weight) {
     measurementsList.push(
-      `${measurements.weight.name} ${product.weight} ${measurements.weight.options[product.weightUnit]?.name}`,
+      `${measurements.WEIGHT.name} ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`,
     );
   }
 
