@@ -112,9 +112,6 @@ export const QuantitiesSection = ({
     const processed = processQuantity(q);
     setPrimaryQuantity(processed);
     const quantity = parseInt(processed, 10);
-    if (quantity <= 0) {
-      return;
-    }
     onChangePrimary({
       quantity,
       unit:

@@ -90,7 +90,10 @@ export const Form = ({ fields, style: _style }: Props) => {
                     <SearchInput {...(rest as SearchInputProps)} />
                   ) : null}
                   {field.type === "price" ? (
-                    <PriceInput {...(rest as PriceInputProps)} />
+                    <PriceInput
+                      {...(rest as PriceInputProps)}
+                      error={!!error}
+                    />
                   ) : null}
                   {field.type === "select" ? (
                     <SelectInput {...(rest as SelectInputProps<string>)} />
