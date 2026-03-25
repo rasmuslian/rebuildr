@@ -95,7 +95,7 @@ export const CreateProductLabelContent = ({
 
       <View style={{ gap: 8 }}>
         <Button
-          label="Skapa etikett for utskrift"
+          label="Skapa etikett för utskrift"
           onPress={onPressPrintProductLabel}
         />
         <Button
