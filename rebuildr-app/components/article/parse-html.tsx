@@ -1,4 +1,4 @@
-import { Display, Body, Headline } from "@components/typography/text";
+import { Display, Body, Headline, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import parse, {
   HTMLReactParserOptions,
@@ -13,6 +13,7 @@ import Accordion from "@components/article/accordion";
 import LinkGroup from "@components/article/link-group";
 import { Divider } from "@components/dividers/divider";
 import { Linking, Pressable, View } from "react-native";
+import { Icon } from "@icons/icon";
 
 type Props = {
   html?: string;
@@ -42,11 +43,55 @@ export default function ParseHtml({ html }: Props) {
               </Headline>
             );
           }
+          case "h3": {
+            return (
+              <Headline size="small" style={{ marginBottom: 12 }}>
+                {domToReact(domNode.children as DOMNode[])}
+              </Headline>
+            );
+          }
+          case "h4": {
+            return (
+              <Headline size="small" style={{ marginBottom: 12 }}>
+                {domToReact(domNode.children as DOMNode[])}
+              </Headline>
+            );
+          }
           case "p": {
             return (
               <Body size="medium" style={{ marginBottom: 24 }}>
                 {domToReact(domNode.children as DOMNode[], options)}
               </Body>
+            );
+          }
+          case "strong": {
+            return (
+              <Label>
+                {domToReact(domNode.children as DOMNode[], options)}
+              </Label>
+            );
+          }
+          case "li": {
+            const isOrdered = (domNode.parent as Element)?.name === "ol";
+            const index = isOrdered
+              ? (domNode.parent as Element).children
+                  .filter((c) => c instanceof Element && c.name === "li")
+                  .indexOf(domNode)
+              : -1;
+
+            return (
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {isOrdered ? (
+                  <Body size="medium">{`${index + 1}.`}</Body>
+                ) : (
+                  <Icon icon="bullet" size={14} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Body size="medium" style={{ marginBottom: 16 }}>
+                    {domToReact(domNode.children as DOMNode[], options)}
+                  </Body>
+                </View>
+              </View>
             );
           }
           case "a": {
@@ -112,8 +157,20 @@ export default function ParseHtml({ html }: Props) {
                   {domToReact(domNode.children as DOMNode[])}
                 </LinkGroup>
               );
+            } else {
+              return (
+                <View>
+                  {domToReact(domNode.children as DOMNode[], options)}
+                </View>
+              );
             }
-            return <NotParsed />;
+          }
+          case "ol": {
+            return (
+              <View style={{ marginBottom: 24 }}>
+                {domToReact(domNode.children as DOMNode[], options)}
+              </View>
+            );
           }
           default: {
             return <NotParsed />;

@@ -165,40 +165,49 @@ const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
   const setupEditor = (editor: Editor) => {
     editorRef.current = editor;
 
-    editor.ui.registry.addButton("imageLibraryButton", {
-      icon: "image",
-      text: "Image Library",
-      onAction: () => setState({ isImageLibraryOpen: true }),
-    });
-
-    editor.ui.registry.addButton("documentLibraryButton", {
-      icon: "new-document",
-      text: "Document Library",
-      onAction: () => setState({ isDocumentLibraryOpen: true }),
-    });
-
-    editor.ui.registry.addButton("ctaButton", {
-      icon: "addTag",
-      text: "CTA",
-      onAction: () => setState({ isCTAModalOpen: true }),
-    });
-
-    editor.ui.registry.addButton("accordionButton", {
-      icon: "accordion",
-      text: "Accordion",
-      onAction: () => editor.insertContent(createAccordionHTML()),
-    });
-
-    editor.ui.registry.addButton("dividerButton", {
-      icon: "horizontal-rule",
-      text: "Divider",
-      onAction: () => insertDivider(),
-    });
-
-    editor.ui.registry.addButton("linkGroupButton", {
-      icon: "link",
-      text: "Link grupp",
-      onAction: () => setState({ isLinkGroupModalOpen: true }),
+    editor.ui.registry.addMenuButton("insertButton", {
+      icon: "plus",
+      text: "Infoga",
+      fetch: (callback) => {
+        callback([
+          {
+            type: "menuitem",
+            icon: "image",
+            text: "Image Library",
+            onAction: () => setState({ isImageLibraryOpen: true }),
+          },
+          {
+            type: "menuitem",
+            icon: "new-document",
+            text: "Document Library",
+            onAction: () => setState({ isDocumentLibraryOpen: true }),
+          },
+          {
+            type: "menuitem",
+            icon: "accordion",
+            text: "Accordion",
+            onAction: () => editor.insertContent(createAccordionHTML()),
+          },
+          {
+            type: "menuitem",
+            icon: "link",
+            text: "Link grupp",
+            onAction: () => setState({ isLinkGroupModalOpen: true }),
+          },
+          {
+            type: "menuitem",
+            icon: "addTag",
+            text: "CTA",
+            onAction: () => setState({ isCTAModalOpen: true }),
+          },
+          {
+            type: "menuitem",
+            icon: "horizontal-rule",
+            text: "Divider",
+            onAction: () => insertDivider(),
+          },
+        ]);
+      },
     });
 
     editor.on("click", (e: MouseEvent) => {
@@ -272,12 +281,13 @@ const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
             "wordcount",
             "charmap",
             "autoresize",
+            "lists",
           ],
           toolbar:
-            "undo redo | blocks | bold italic | link unlink | imageLibraryButton documentLibraryButton accordionButton linkGroupButton ctaButton dividerButton",
+            "undo redo | blocks | bold | numlist bullist | link unlink | insertButton",
           formats: {
-            h1: { block: "h1", classes: "display-small" },
-            h2: { block: "h2", classes: "headline-small" },
+            h1: { block: "h1" },
+            h2: { block: "h2" },
           },
           forced_root_block: "p",
           toolbar_sticky: true,

@@ -44,11 +44,39 @@ const parseHtml = (html: string) => {
               </h2>
             );
           }
+          case "h3": {
+            return (
+              <h3 className="mb-3 text-headline-small">
+                {domToReact(domNode.children as DOMNode[])}
+              </h3>
+            );
+          }
+          case "h4": {
+            return (
+              <h4 className="mb-3 text-headline-small">
+                {domToReact(domNode.children as DOMNode[])}
+              </h4>
+            );
+          }
           case "p": {
             return (
               <p className="mb-6 text-body-medium">
                 {domToReact(domNode.children as DOMNode[], options)}
               </p>
+            );
+          }
+          case "strong": {
+            return (
+              <strong className="font-bold">
+                {domToReact(domNode.children as DOMNode[], options)}
+              </strong>
+            );
+          }
+          case "li": {
+            return (
+              <li className="mb-2">
+                {domToReact(domNode.children as DOMNode[], options)}
+              </li>
             );
           }
           case "a": {
@@ -117,9 +145,20 @@ const parseHtml = (html: string) => {
                   {domToReact(domNode.children as DOMNode[])}
                 </LinkGroup>
               );
+            } else {
+              return (
+                <ul className="mb-6 list-disc pl-6">
+                  {domToReact(domNode.children as DOMNode[], options)}
+                </ul>
+              );
             }
-            return <NotParsed />;
           }
+          case "ol":
+            return (
+              <ol className="mb-6 list-decimal pl-6">
+                {domToReact(domNode.children as DOMNode[], options)}
+              </ol>
+            );
           default: {
             return <NotParsed />;
           }
