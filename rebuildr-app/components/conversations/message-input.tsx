@@ -8,7 +8,6 @@ import SendVector from "@assets/svgs/send-vector.svg";
 import { Image } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
   receiverId: string;
@@ -27,7 +26,6 @@ export const MessageInput = ({
   const { pickDocument } = useDocumentHandler();
   const { pickImage } = useImageHandler();
   const colors = useThemeColor();
-  const { isDesktop } = useScreenType();
 
   const onPickImage = async () => {
     const image = await pickImage();
@@ -97,29 +95,24 @@ export const MessageInput = ({
           ]}
         />
       </View>
-      {!isDesktop && (
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 25,
-            backgroundColor: colors.badges.large,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Pressable onPress={() => onSendMessage({ message })}>
-            {createMessageLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <Image
-                source={SendVector.uri}
-                style={{ width: 19, height: 16 }}
-              />
-            )}
-          </Pressable>
-        </View>
-      )}
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 25,
+          backgroundColor: colors.badges.large,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Pressable onPress={() => onSendMessage({ message })}>
+          {createMessageLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Image source={SendVector.uri} style={{ width: 19, height: 16 }} />
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 };

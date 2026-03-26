@@ -5,6 +5,7 @@ This guide provides essential information for agentic coding agents operating in
 ## Repository Structure
 
 Monorepo with three applications:
+
 - **rebuildr-backend** - NestJS GraphQL API
 - **rebuildr-app** - Expo React Native (web/iOS/Android)
 - **rebuildr-admin** - Next.js 14 admin dashboard (runs on port 3002)
@@ -12,6 +13,7 @@ Monorepo with three applications:
 ## Build, Lint & Test Commands
 
 ### Backend (rebuildr-backend)
+
 ```bash
 cd rebuildr-backend
 
@@ -34,6 +36,7 @@ npm run test:watch -- --testPathPattern=src/path/to/file.spec.ts
 ```
 
 ### App (rebuildr-app)
+
 ```bash
 cd rebuildr-app
 
@@ -43,6 +46,7 @@ npm run codegen         # Generate GraphQL types from ../rebuildr-backend/src/sc
 ```
 
 ### Admin (rebuildr-admin)
+
 ```bash
 cd rebuildr-admin
 
@@ -55,6 +59,7 @@ npm run codegen         # Generate GraphQL types (requires backend running at lo
 ## Authentication & Environment
 
 All apps use **1Password CLI** (`op run`) to load env vars:
+
 ```bash
 op run --env-file=".env.local.1p" -- npm run start:dev   # backend
 op run --env-file=".env.local.1p" -- expo start --web    # app
@@ -65,28 +70,30 @@ op run --env-file=".env.local.1p" -- next dev            # admin
 
 ### Formatting (Prettier)
 
-| App | Quotes | Trailing commas | Notes |
-|-----|--------|-----------------|-------|
-| **backend** | Single | `all` | |
-| **app** | Double | `all` | |
-| **admin** | Double | `all` (Prettier 3 default) | Tailwind class sorting via `prettier-plugin-tailwindcss` |
+| App         | Quotes | Trailing commas            | Notes                                                    |
+| ----------- | ------ | -------------------------- | -------------------------------------------------------- |
+| **backend** | Single | `all`                      |                                                          |
+| **app**     | Double | `all`                      |                                                          |
+| **admin**   | Double | `all` (Prettier 3 default) | Tailwind class sorting via `prettier-plugin-tailwindcss` |
 
 ### Imports
 
 Group and order: **third-party first (alphabetical), then internal (alphabetical), separated by a blank line.**
 
 **Backend** — use absolute `src/` paths for internal imports:
-```typescript
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
-import { User } from 'src/entities/user.entity';
-import { BadUserInputException } from 'src/exceptions';
-import { FileService } from 'src/services/file.service';
+```typescript
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+
+import { User } from "src/entities/user.entity";
+import { BadUserInputException } from "src/exceptions";
+import { FileService } from "src/services/file.service";
 ```
 
 **App** — use path aliases (defined in `tsconfig.json`):
+
 ```typescript
 import { useQuery } from "@apollo/client";
 import React, { useEffect } from "react";
@@ -97,6 +104,7 @@ import { useUser } from "@hooks/useUser";
 ```
 
 **Admin** — use `@/` alias for `src/`:
+
 ```typescript
 import axios from "axios";
 import { PropsWithChildren } from "react";
@@ -109,6 +117,7 @@ import { fetchSession } from "@lib/session";
 ### Path Aliases
 
 **App** (`rebuildr-app/tsconfig.json`):
+
 - `@/*` → `./*`
 - `@components/*` → `components/*`
 - `@hooks/*` → `hooks/*`
@@ -120,6 +129,7 @@ import { fetchSession } from "@lib/session";
 - `@constants/*` → `constants/*`
 
 **Admin** (`rebuildr-admin/tsconfig.json`):
+
 - `@/*` → `./src/*`
 - `@lib/*` → `./src/lib/*`
 - `@utils/*` → `./src/utils/*`
@@ -130,6 +140,7 @@ import { fetchSession } from "@lib/session";
 ### TypeScript Settings
 
 **Backend** (`strict: true` with selective overrides):
+
 - `strictNullChecks: false` — null checks are relaxed
 - `noImplicitAny: false` — implicit any is allowed
 - `target: ES2021`, `module: commonjs`
@@ -140,17 +151,18 @@ import { fetchSession } from "@lib/session";
 
 ### Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| Files (backend) | `*.service.ts`, `*.module.ts`, `*.controller.ts`, `*.entity.ts`, `*.dto.ts`, `*.spec.ts` | `user.service.ts` |
-| Classes/Interfaces | PascalCase | `UserService`, `CreateUserDto` |
-| Variables/functions | camelCase | `getUser()`, `userId` |
-| Constants | UPPER_SNAKE_CASE | `MAX_RETRIES` |
-| Private class members | Underscore prefix | `_helper()` |
+| Thing                 | Convention                                                                               | Example                        |
+| --------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| Files (backend)       | `*.service.ts`, `*.module.ts`, `*.controller.ts`, `*.entity.ts`, `*.dto.ts`, `*.spec.ts` | `user.service.ts`              |
+| Classes/Interfaces    | PascalCase                                                                               | `UserService`, `CreateUserDto` |
+| Variables/functions   | camelCase                                                                                | `getUser()`, `userId`          |
+| Constants             | UPPER_SNAKE_CASE                                                                         | `MAX_RETRIES`                  |
+| Private class members | Underscore prefix                                                                        | `_helper()`                    |
 
 ### Error Handling
 
 **Backend** — always use the factory functions from `src/exceptions.ts`, never throw raw errors:
+
 ```typescript
 import {
   BadFieldsInputException,
@@ -158,15 +170,15 @@ import {
   ForbiddenException,
   InternalServerException,
   NotFoundException,
-} from 'src/exceptions';
+} from "src/exceptions";
 
-throw BadUserInputException('Email is invalid');
+throw BadUserInputException("Email is invalid");
 throw BadFieldsInputException([
-  { name: 'email', message: 'Invalid email', type: 'BAD_VALUE' },
-  { name: 'username', message: 'Already taken', type: 'VALUE_TAKEN' },
+  { name: "email", message: "Invalid email", type: "BAD_VALUE" },
+  { name: "username", message: "Already taken", type: "VALUE_TAKEN" },
 ]);
-throw NotFoundException('User not found');
-throw ForbiddenException('You cannot access this resource');
+throw NotFoundException("User not found");
+throw ForbiddenException("You cannot access this resource");
 ```
 
 **Frontend** — try-catch for async ops; use Apollo Client error handling for GraphQL mutations/queries.
@@ -174,12 +186,13 @@ throw ForbiddenException('You cannot access this resource');
 ### Backend Patterns
 
 **Entity** — TypeORM and GraphQL decorators on the same class:
+
 ```typescript
 @Entity()
 @ObjectType()
 export class User {
   @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Field(() => String, { nullable: true })
@@ -189,6 +202,7 @@ export class User {
 ```
 
 **Resolver** — `@InputType` and `@ObjectType` classes are co-located in the same resolver file, not in separate DTO files:
+
 ```typescript
 @InputType()
 export class RegisterUserInput {
@@ -202,7 +216,7 @@ export class AuthResolver {
 
   @Mutation(() => User)
   @UsePipes(new ZodValidationPipe(registerUserSchema))
-  async registerUser(@Args('input') input: RegisterUserInput) {
+  async registerUser(@Args("input") input: RegisterUserInput) {
     return await this.authService.registerUser(input);
   }
 }
@@ -213,6 +227,7 @@ export class AuthResolver {
 ### Frontend Patterns
 
 **App (Expo)** — hooks use Apollo Client with generated typed query/mutation hooks:
+
 ```typescript
 export const useUser = () => {
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -259,7 +274,10 @@ npm run migration:create -- -n MigrationName      # Create empty migration
 ## Code Quality Checklist
 
 Before committing (run from the relevant app directory):
+
 - [ ] `npm run format` — auto-format
 - [ ] `npm run lint` — no warnings or errors
 - [ ] `npm run type-check` — backend only
 - [ ] `npm test` — all tests pass
+
+Never add Co-Authored-By trailers to commits.
