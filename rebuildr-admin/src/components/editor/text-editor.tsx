@@ -272,12 +272,13 @@ const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
             "wordcount",
             "charmap",
             "autoresize",
+            "lists",
           ],
           toolbar:
-            "undo redo | blocks | bold italic | link unlink | imageLibraryButton documentLibraryButton accordionButton linkGroupButton ctaButton dividerButton",
+            "undo redo | blocks | bold italic | numlist bullist | link unlink | imageLibraryButton documentLibraryButton accordionButton linkGroupButton ctaButton dividerButton",
           formats: {
-            h1: { block: "h1", classes: "display-small" },
-            h2: { block: "h2", classes: "headline-small" },
+            h1: { block: "h1" },
+            h2: { block: "h2" },
           },
           forced_root_block: "p",
           toolbar_sticky: true,

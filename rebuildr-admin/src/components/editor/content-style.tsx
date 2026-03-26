@@ -11,6 +11,16 @@ export const contentStyle = `
     color: ${colors.accent_500};
     hover: pointer;
   }
+  h1 {
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 600;
+  }
+  h2, h3, h4{
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+  }
   .accordion {
     padding: 10px;
     margin: 20px 0px;
@@ -40,16 +50,6 @@ export const contentStyle = `
   }
   .link-group button {
     display: none;
-  }
-  .display-small {
-    font-size: 30px;
-    line-height: 36px;
-    font-weight: 600;
-  }
-  .headline-small {
-    font-size: 20px;
-    line-height: 28px;
-    font-weight: 500;
   }
   .cta-block {
     background-color: ${colors.secondary_200};
