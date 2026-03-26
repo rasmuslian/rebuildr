@@ -225,17 +225,7 @@ export const UpsertProduct = ({
           }),
         );
       };
-      const dbImages = await convertDbFiles(dbProduct.images);
-      const images = dbImages.reduce(
-        (images, image) => {
-          if (images.some((i) => i.id === image.id)) {
-            return images;
-          }
-          return [...images, image];
-        },
-        [...(product?.images ?? [])],
-      );
-
+      const images = await convertDbFiles(dbProduct.images);
       const documents = await convertDbFiles(dbProduct.documents);
 
       const stateProduct: ProductFields = {
