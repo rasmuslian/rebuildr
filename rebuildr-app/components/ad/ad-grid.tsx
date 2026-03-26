@@ -43,8 +43,10 @@ export const AdGrid = ({
   const overlayText = _overlayText
     ? _overlayText
     : status === ProductStatusEnum.Sold
-      ? "Tagits bort"
-      : undefined;
+      ? "Såld"
+      : status === ProductStatusEnum.Deleted
+        ? "Borttagen"
+        : undefined;
 
   return (
     <Pressable
