@@ -3,7 +3,7 @@ import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { Label } from "@components/typography/text";
 import { colorTypes, ColorTypesType } from "@constants/product-color-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
@@ -15,6 +15,12 @@ type Props = {
 export const ColorSection = ({ color: _color, type, onChange }: Props) => {
   const [color, setColor] = useState(_color ?? "");
   const selectedColor = color ?? "";
+
+  useEffect(() => {
+    if (_color) {
+      setColor(_color);
+    }
+  }, [_color]);
 
   const onChangeColor = (c: string) => {
     setColor(c);
