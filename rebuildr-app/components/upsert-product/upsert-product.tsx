@@ -225,17 +225,7 @@ export const UpsertProduct = ({
           }),
         );
       };
-      const dbImages = await convertDbFiles(dbProduct.images);
-      const images = dbImages.reduce(
-        (images, image) => {
-          if (images.some((i) => i.id === image.id)) {
-            return images;
-          }
-          return [...images, image];
-        },
-        [...(product?.images ?? [])],
-      );
-
+      const images = await convertDbFiles(dbProduct.images);
       const documents = await convertDbFiles(dbProduct.documents);
 
       const stateProduct: ProductFields = {
@@ -497,11 +487,9 @@ export const UpsertProduct = ({
 
   const onAnalyzeImages = async () => {
     if (!data) return;
-    // If no images are saved in the backend yet, save them first
-    if (!data.product.images.length) {
-      const saved = await update();
-      if (!saved) return;
-    }
+    //save first so that all images are available on the backend
+    const saved = await update();
+    if (!saved) return;
 
     await analyzeImages({ variables: { input: { productId } } });
   };

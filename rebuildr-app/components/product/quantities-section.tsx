@@ -63,8 +63,10 @@ export const QuantitiesSection = ({
 
   useEffect(() => {
     setPrimaryQuantity(_primaryQuantity?.toString() ?? "0");
+    setPrimaryaryUnit(_primaryUnit ?? Object.values(QuantityUnitEnum)[0]);
     setSecondaryQuantity(_secondaryQuantity?.toString() ?? "0");
-  }, [_primaryQuantity, _secondaryQuantity]);
+    setSecondaryUnit(_secondaryUnit);
+  }, [_primaryQuantity, _primaryUnit, _secondaryQuantity, _secondaryUnit]);
 
   const { data } = useQuery<
     RecommendedQuantitiesQueryQuery,

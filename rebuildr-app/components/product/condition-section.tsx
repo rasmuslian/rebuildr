@@ -4,7 +4,7 @@ import { Body, Display, Label, Title } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { StepSlider } from "@components/slider/step-slider";
 import { ExplainConditionsBottomSheet } from "@components/explanation-information-sheets/explain-conditions-bottom-sheet";
@@ -21,6 +21,10 @@ export const ConditionSection = ({
   const [condition, setCondition] = useState(_condition);
   const [showExplanation, setShowExplanation] = useState(false);
   const colors = useThemeColor();
+
+  useEffect(() => {
+    setCondition(_condition);
+  }, [_condition]);
 
   const values = () => {
     return Object.values(ProductConditionEnum)
