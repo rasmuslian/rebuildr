@@ -43,7 +43,7 @@ export const AdGrid = ({
   const overlayText = _overlayText
     ? _overlayText
     : status === ProductStatusEnum.Sold
-      ? "Såld"
+      ? "Tagits bort"
       : undefined;
 
   return (

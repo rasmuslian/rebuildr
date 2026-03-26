@@ -70,7 +70,7 @@ export default function Hubs() {
 
   const content = (
     <View style={{ gap: 24 }}>
-      <Display size="small">Hubbar</Display>
+      <Display size="small">Företagshubbar</Display>
       <Body size="medium">
         RebuildR samlar organisationer som aktivt vill öka cirkulariteten. Genom
         RebuildRs plattform och nätverk omsätter våra partners cirkularitet i
