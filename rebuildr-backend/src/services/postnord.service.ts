@@ -171,7 +171,13 @@ export class PostnordService {
 
           if (!purchase.shipmentDroppedOffAt) {
             //to seller
-            this.systemMessagesService.shipmentDroppedOff(
+            this.systemMessagesService.shipmentDroppedOffSeller(
+              purchase.buyer,
+              purchase.product.seller,
+              purchase.product,
+            );
+            //to buyer
+            this.systemMessagesService.shipmentDroppedOffBuyer(
               purchase.buyer,
               purchase.product.seller,
               purchase.product,

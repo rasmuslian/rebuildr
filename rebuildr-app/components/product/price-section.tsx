@@ -40,7 +40,7 @@ export const PriceSection = ({
             type: "price",
             value: price,
             placeholder: "kr",
-            heading: "Pris",
+            heading: "Pris*",
             description:
               priceHigherThan > 0
                 ? `Du kan antingen ange ett pris över ${priceHigherThan} kr, eller markera att varan bortskänkes (0 kr).`
