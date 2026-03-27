@@ -70,11 +70,11 @@ export default function Hubs() {
 
   const content = (
     <View style={{ gap: 24 }}>
-      <Display size="small">Företagshubbar</Display>
+      <Display size="small">Företagsförsäljning</Display>
       <Body size="medium">
-        RebuildR samlar organisationer som aktivt vill öka cirkulariteten. Genom
-        RebuildRs plattform och nätverk omsätter våra partners cirkularitet i
-        praktiken
+        RebuildR gör det möjligt för företag och organisationer att sälja
+        återbrukat material direkt till privatpersoner. Vi skapar en praktisk
+        väg från överskott till försäljning.
       </Body>
       {data?.users.users.map((u, i) => (
         <View key={i} style={{ gap: 24 }}>
@@ -119,10 +119,7 @@ export default function Hubs() {
                 </Link>
               </View>
             )}
-            <Label size="medium">
-              Nedan listas organisationens hubbar, klicka vidare för att visa
-              dem på kartan
-            </Label>
+            <Label size="medium">Försäljningsplats, klicka för mer info:</Label>
             {u.projects.map((p, j) => (
               <Pressable
                 onPress={() => {
