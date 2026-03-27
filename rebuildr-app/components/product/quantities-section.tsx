@@ -145,7 +145,7 @@ export const QuantitiesSection = ({
   return (
     <View style={{ zIndex: 10 }}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Label size="medium">Mängd och enhet</Label>
+        <Label size="medium">Mängd och enhet*</Label>
         <Body size="medium">
           Välj den enhet som bäst beskriver hur produkten säljs.
         </Body>

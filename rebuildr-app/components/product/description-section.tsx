@@ -54,14 +54,14 @@ export const DescriptionSection = ({
             type: "text",
             value: title,
             onChangeText: onChangeTitle,
-            heading: "Annonsrubrik",
+            heading: "Annonsrubrik*",
             error: titleError,
           },
           {
             type: "text",
             value: description,
             onChangeText: (t) => onChangeDescription(t.slice(0, 5000)),
-            heading: "Beskrivning",
+            heading: "Beskrivning*",
             multiline: true,
             placeholder:
               "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
