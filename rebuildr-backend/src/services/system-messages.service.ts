@@ -256,7 +256,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     });
   }
 
-  async shipmentDroppedOff(buyer: User, seller: User, product: Product) {
+  async shipmentDroppedOffSeller(buyer: User, seller: User, product: Product) {
     const message = `# Paketet är inlämnat och på väg till köparen!
 
 
@@ -265,6 +265,15 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
       productId: product.id,
       senderId: buyer.id,
       receiverId: seller.id,
+      message,
+    });
+  }
+  async shipmentDroppedOffBuyer(buyer: User, seller: User, product: Product) {
+    const message = `# Nu har paketet lämnats in och är på väg till dig.`;
+    await this.message({
+      productId: product.id,
+      senderId: seller.id,
+      receiverId: buyer.id,
       message,
     });
   }
