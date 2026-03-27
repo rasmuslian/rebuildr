@@ -6,7 +6,6 @@ import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
 import { View, useWindowDimensions } from "react-native";
 import { useUser } from "@hooks/useUser";
-import { SectionHeader } from "@components/sections/section-header";
 import {
   Category,
   OrderProductsEnum,
@@ -16,6 +15,7 @@ import {
 import { useScreenType } from "@hooks/useScreenType";
 import { permanentSection } from "@constants/permanent-sections";
 import { Divider } from "@components/dividers/divider";
+import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 
 const TRENDING_NOW_QUERY = gql`
   query TrendingNowProducts(
@@ -84,9 +84,6 @@ export const TrendingNow = () => {
 
   if (!data || data.products.products.length < 1) return null;
   const products = data.products.products;
-  const width = isDesktop
-    ? (screenWidth - 75 * 2) / 6 - 16
-    : (screenWidth - 48) / 2 - 16;
 
   const onPress = () => {
     const categories = products
@@ -129,52 +126,35 @@ export const TrendingNow = () => {
           visibleItems={3}
         />
       ) : (
-        <View style={{ gap: 16, paddingTop: 16 }}>
-          <SectionHeader
-            onPress={onPress}
-            buttonTitle={isDesktop ? "Visa alla" : undefined}
-          >
-            Trendar nu
-          </SectionHeader>
-
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 16,
-              flexWrap: "wrap",
-              paddingBottom: 16,
-            }}
-          >
-            {products.map((product) => {
-              return (
-                <View style={{ width }} key={product.id}>
-                  <AdGrid
-                    id={product.id}
-                    imageUri={product.primaryImage?.url}
-                    liked={!!product.likedByMe}
-                    heart={product.seller.id !== data.me?.id}
-                    quantity={product.primaryQuantity}
-                    quantityUnit={product.primaryUnit}
-                    condition={product.condition}
-                    account={{
-                      rating: product.seller.rating,
-                      type: product.seller.type,
-                      location: product.approximatePlace?.address,
-                    }}
-                    title={product.title}
-                    price={product.price}
-                    status={product.status}
-                    onHeartPress={() => {
-                      onToggleProductHeart({
-                        productId: product.id,
-                        likedByMe: !!product.likedByMe,
-                      });
-                    }}
-                  />
-                </View>
-              );
-            })}
-          </View>
+        <View style={{ paddingTop: 16 }}>
+          <AdGridSection
+            header="Trendar nu"
+            onHeaderPress={onPress}
+            products={
+              data?.products.products.map((product) => ({
+                id: product.id,
+                imageUri: product.primaryImage?.url,
+                title: product.title,
+                quantity: product.primaryQuantity,
+                condition: product.condition,
+                account: {
+                  rating: product.seller.rating,
+                  type: product.seller.type,
+                  location: product.approximatePlace?.address,
+                },
+                price: product.price,
+                status: product.status,
+                heart: product.seller.id !== data.me?.id,
+                liked: !!product.likedByMe,
+                onHeartPress: () => {
+                  onToggleProductHeart({
+                    productId: product.id,
+                    likedByMe: !!product.likedByMe,
+                  });
+                },
+              })) ?? []
+            }
+          />
         </View>
       )}
       <Divider />
