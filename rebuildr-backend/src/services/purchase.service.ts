@@ -745,6 +745,7 @@ export class PurchaseService {
       }
       const refund = await this.stripeService.refundPayment(
         purchase.paymentIntentId,
+        currentUserId,
       );
       purchase.refundId = refund.id;
     }
@@ -1444,6 +1445,14 @@ export class PurchaseService {
 
     purchase.failedAt = new Date();
     purchase.refundId = payload.id;
+    if (payload.metadata.refundedBy) {
+      const refundUser = await this.userRepository.findOneBy({
+        id: payload.metadata.refundedBy,
+      });
+      if (refundUser) {
+        purchase.abortedById = refundUser.id;
+      }
+    }
     await this.purchaseRepository.save(purchase);
 
     //This purchase has an active report. Resolve it and unpause the purchase

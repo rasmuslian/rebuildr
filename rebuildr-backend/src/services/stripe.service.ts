@@ -364,10 +364,11 @@ export class StripeService {
     return await this.stripe.paymentIntents.cancel(paymentIntentId);
   }
 
-  async refundPayment(paymentIntentId: string) {
+  async refundPayment(paymentIntentId: string, refundUserId?: string) {
     try {
       return await this.stripe.refunds.create({
         payment_intent: paymentIntentId,
+        metadata: refundUserId ? { refundedBy: refundUserId } : undefined,
       });
     } catch (e) {
       this.logger.error('refundPayment: error', { paymentIntentId, e });

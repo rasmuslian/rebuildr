@@ -136,6 +136,8 @@ export class Purchase {
     type: 'enum',
     enum: PurchaseStatusEnum,
     generatedType: 'STORED',
+    insert: false,
+    update: false,
     asExpression: `
       CASE
         WHEN "failedAt" IS NOT NULL THEN '${PurchaseStatusEnum.FINISHED_FAILED}'::purchase_status_enum
