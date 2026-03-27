@@ -86,22 +86,22 @@ export const HamburgerMenu = () => {
         <View style={{ gap: 14 }}>
           <Entry
             title={permanentSection.newArrivals.title}
-            link="/search/products"
+            link="/search/products/new-arrivals"
             onPress={() =>
               filterBuilder
+                .reset()
                 .setOrdering(OrderProductsEnum.Latest)
-                .setSourceSection("newArrivals")
                 .apply()
             }
           />
           {status?.granted && (
             <Entry
               title={permanentSection.nearYou.title}
-              link="/search/products"
+              link="/search/products/near-you"
               onPress={() =>
                 filterBuilder
+                  .reset()
                   .setOrdering(OrderProductsEnum.Distance)
-                  .setSourceSection("nearYou")
                   .apply()
               }
             />
@@ -116,12 +116,9 @@ export const HamburgerMenu = () => {
           {trendingCategories.length > 0 && (
             <Entry
               title={permanentSection.trendingNow.title}
-              link="/search/products"
+              link="/search/products/near-you"
               onPress={() =>
-                filterBuilder
-                  .setCategories(trendingCategories)
-                  .setSourceSection("trendingNow")
-                  .apply()
+                filterBuilder.reset().setCategories(trendingCategories).apply()
               }
             />
           )}
