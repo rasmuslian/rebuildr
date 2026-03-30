@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "op run --env-file=\".env.local.1p\" -- expo start --web",
     "lint": "eslint . ",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "build:web": "op run --env-file=\".env.local.1p\" -- expo export -p web && npx workbox-cli generateSW workbox-config.js"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",

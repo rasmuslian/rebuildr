@@ -11,6 +11,31 @@ export default function Root({ children }: PropsWithChildren) {
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
         />
+        {/* Bootstrap the service worker. */}
+        <script dangerouslySetInnerHTML={{ __html: sw }} />
+
+        {/* PWA manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ffffff" />
+
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="RebuildR" />
+        <link rel="apple-touch-icon" href="/images/pwa-icon-192.png" />
+
+        {/* Service worker registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
 
         <ScrollViewStyleReset />
       </head>
@@ -19,3 +44,15 @@ export default function Root({ children }: PropsWithChildren) {
     </html>
   );
 }
+
+const sw = `
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(error => {
+            console.error('Service Worker registration failed:', error);
+        });
+    });
+}
+`;
