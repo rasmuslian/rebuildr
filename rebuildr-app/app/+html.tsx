@@ -12,6 +12,29 @@ export default function Root({ children }: PropsWithChildren) {
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
         />
 
+        {/* PWA manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ffffff" />
+
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="RebuildR" />
+        <link rel="apple-touch-icon" href="/images/pwa-icon-192.png" />
+
+        {/* Service worker registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
+
         <ScrollViewStyleReset />
       </head>
 
