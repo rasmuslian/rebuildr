@@ -31,11 +31,8 @@ export const initializeApollo = async () => {
   let client: ApolloClient<any>;
 
   const httpLink = createHttpLink({
-    uri: "https://noncoagulative-erich-supplely.ngrok-free.dev" + "/graphql",
+    uri: process.env.EXPO_PUBLIC_API_URL + "/graphql",
   });
-  // const httpLink = createHttpLink({
-  //   uri: process.env.EXPO_PUBLIC_API_URL + "/graphql",
-  // });
 
   const authLink = setContext(async (_, { headers }) => {
     const token = await AsyncStorage.getItem("access_token");
