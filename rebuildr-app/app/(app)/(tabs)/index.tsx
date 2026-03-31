@@ -15,6 +15,8 @@ import { useScreenType } from "@hooks/useScreenType";
 import { NearYou } from "@components/near-you/near-you";
 import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
+import { usePwaInstall } from "@hooks/usePwaInstall";
+import { Button } from "@components/buttons/button";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -23,6 +25,7 @@ export default function Landing() {
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
   const { searchState, setSearchState } = useSearchContext();
   const [headlineHeight, setHeadlineHeight] = useState(0);
+  const { canInstall, install } = usePwaInstall();
 
   useEffect(() => {
     if (headlineHeight === 0) return;
@@ -80,6 +83,14 @@ export default function Landing() {
               paddingTop: isDesktop ? 44 : 16,
             }}
           >
+            {!canInstall && (
+              <Button
+                label="Installera appen"
+                onPress={install}
+                type="outlined"
+                style={{ marginBottom: 16 }}
+              />
+            )}
             <RootCategoriesHorizontal />
             <NewArrivals />
             <NearYou />
