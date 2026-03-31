@@ -83,7 +83,7 @@ export default function Landing() {
               paddingTop: isDesktop ? 44 : 16,
             }}
           >
-            {canInstall && (
+            {canInstall && !isDesktop && (
               <Button
                 label="Installera appen"
                 onPress={install}

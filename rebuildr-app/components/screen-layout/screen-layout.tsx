@@ -25,8 +25,6 @@ interface PageProps extends PropsWithChildren {
   loading?: boolean;
   onContentSizeChange?: "scrollToBottom" | "nothing";
   contentHorizontalPadding?: number;
-  onRefresh?: () => void;
-  refreshing?: boolean;
 }
 
 export const SCREEN_TOP_MARGIN = 24;
@@ -47,8 +45,6 @@ export const ScreenLayout = ({
   loading,
   onContentSizeChange = "nothing",
   contentHorizontalPadding,
-  onRefresh,
-  refreshing = false,
 }: PageProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -93,14 +89,6 @@ export const ScreenLayout = ({
         }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={
-          <RefreshControl
-            onRefresh={() => {
-              onRefresh?.();
-            }}
-            refreshing={refreshing}
-          />
-        }
       >
         <View
           style={[
