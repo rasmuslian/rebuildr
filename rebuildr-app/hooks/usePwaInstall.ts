@@ -18,17 +18,10 @@ export function usePwaInstall() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    console.log("inside useeffect");
     if (Platform.OS !== "web" || typeof window === "undefined") return;
-
-    console.log(
-      'window.matchMedia("(display-mode: standalone)") :>> ',
-      window.matchMedia("(display-mode: standalone)"),
-    );
 
     // Already running as installed PWA
     if (window.matchMedia("(display-mode: standalone)").matches) {
-      console.log("already in standalone");
       setIsInstalled(true);
       return;
     }
@@ -44,7 +37,6 @@ export function usePwaInstall() {
     };
 
     const handleAppInstalled = () => {
-      console.log("handleAppInstalled :>> ");
       setIsInstalled(true);
       setPromptEvent(null);
     };
@@ -62,11 +54,9 @@ export function usePwaInstall() {
   }, []);
 
   const install = async () => {
-    console.log("install");
     if (!promptEvent) return;
     await promptEvent.prompt();
     const { outcome } = await promptEvent.userChoice;
-    console.log("outcome :>> ", outcome);
     if (outcome === "accepted") {
       setIsInstalled(true);
       setPromptEvent(null);
