@@ -51,7 +51,7 @@ export default function ProductList() {
 
   const { isDesktop } = useScreenType();
 
-  const { data, loading, fetchMore } = useQuery<
+  const { data, loading, fetchMore, refetch } = useQuery<
     ProductListQuery,
     ProductListQueryVariables
   >(PRODUCT_LIST, {
@@ -60,6 +60,7 @@ export default function ProductList() {
       limit: PRODUCTS_PER_PAGE,
       offset: 0,
     },
+    fetchPolicy: "network-only",
   });
 
   const onShowMore = async () => {
@@ -103,7 +104,9 @@ export default function ProductList() {
           <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
         )
       }
-      loading={loading}
+      // loading={loading}
+      onRefresh={refetch}
+      refreshing={loading}
     >
       {numberOfProducts > 0 ? (
         <AdGridSection
