@@ -23,6 +23,7 @@ type DeleteProjectBottomSheetProps = {
   show: boolean;
   onDismiss: () => void;
   onProjectDeleted: () => void;
+  onDeleteLoading?: (isLoading: boolean) => void;
 };
 
 export const DeleteProjectBottomSheet = ({
@@ -30,6 +31,7 @@ export const DeleteProjectBottomSheet = ({
   show,
   onDismiss,
   onProjectDeleted,
+  onDeleteLoading,
 }: DeleteProjectBottomSheetProps) => {
   const { isDesktop } = useScreenType();
   const [deleteProject, { loading, error }] = useMutation<
@@ -41,10 +43,12 @@ export const DeleteProjectBottomSheet = ({
     if (loading) {
       return;
     }
+    onDeleteLoading?.(true);
     const res = await deleteProject({
       variables: { input: { id: projectId } },
       refetchQueries: [GET_PROJECTS],
     });
+    onDeleteLoading?.(false);
     if (res.errors) {
       return;
     }

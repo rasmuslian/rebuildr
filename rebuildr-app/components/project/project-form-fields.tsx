@@ -270,7 +270,7 @@ export const ProjectFormFields = ({
             label="Radera projekt"
             onPress={onDelete}
             loading={_isLoading}
-            type="outlined"
+            type="tonal"
           />
         )}
       </View>

@@ -25,6 +25,7 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 import InteractiveMap from "@components/maps/interactive-map";
+import { DeleteProjectButton } from "./delete-project-button";
 
 export const ProjectMobile = () => {
   const { width: screenWidth } = useWindowDimensions();
@@ -61,9 +62,9 @@ export const ProjectMobile = () => {
   const location = project?.approximatePlace;
   const showContactTitle = !!contactName || !!contactEmail || !!contactPhone;
 
-  const ctsa: ButtonProps[] = [];
+  const ctas: ButtonProps[] = [];
   if (isMyProject) {
-    ctsa.push({
+    ctas.push({
       icon: "edit",
       onPress: () =>
         router.navigate({
@@ -74,7 +75,7 @@ export const ProjectMobile = () => {
   }
 
   if (isLoggedIn && !isMyProject && project) {
-    ctsa.push({
+    ctas.push({
       icon: {
         icon: project.likedByMe ? "heart2Filled" : "heart2",
         color: project.likedByMe ? "link" : undefined,
@@ -99,10 +100,51 @@ export const ProjectMobile = () => {
           onPressArrow={() =>
             router.canGoBack() ? router.back() : router.navigate("/")
           }
-          ctas={ctsa}
+          ctas={ctas}
           placeholder="Vad letar du efter?"
           onChange={onSearch}
         />
+      }
+      footerBorder
+      footerComponent={
+        isMyProject ? (
+          <View
+            style={{
+              paddingTop: 24,
+              gap: 6,
+            }}
+          >
+            <View
+              style={{
+                gap: 8,
+                flexDirection: "row",
+              }}
+            >
+              <DeleteProjectButton
+                style={{ flex: 1 }}
+                projectId={projectId}
+                onProjectDeleted={() =>
+                  router.canGoBack()
+                    ? router.back()
+                    : router.navigate({
+                        pathname: "/project-list/[userId]",
+                        params: { userId: project.user.id },
+                      })
+                }
+              />
+              <Button
+                label="Redigera"
+                onPress={() =>
+                  router.navigate({
+                    pathname: "/(app)/project/edit/[projectId]",
+                    params: { projectId, ownerId: project.user.id },
+                  })
+                }
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        ) : undefined
       }
     >
       {loading ? (
