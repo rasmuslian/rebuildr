@@ -89,13 +89,6 @@ export default function AccountContent({ onNavigation }: Props) {
             });
           }}
         />
-        <Button
-          label="Redigera din profil"
-          type="tonal"
-          onPress={() => {
-            setEditMode(true);
-          }}
-        />
       </View>
       <View style={{ gap: 16 }}>
         <Divider />
