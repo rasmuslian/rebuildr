@@ -330,7 +330,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
             />
           );
         case PurchaseStatusEnum.FinishedFailed:
-          if (purchase.abortedById !== purchase.buyer.id) {
+          if (!purchase.abortedById) {
             return (
               <ProgressIndicator
                 steps={[
@@ -351,6 +351,43 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         textParts: [
                           {
                             children: "Säljaren lämnade inte in paketet i tid.",
+                          },
+                          { children: "\n" },
+                          {
+                            children:
+                              "Köpet är nu avbrutet och dina pengar har återbetalats.",
+                          },
+                        ],
+                      },
+                    ]}
+                  />,
+                ]}
+                isProblem
+                current={2}
+              />
+            );
+          }
+          if (purchase.abortedById === purchase.product.seller.id) {
+            return (
+              <ProgressIndicator
+                steps={[
+                  payedInitialEntry(purchase, me),
+                  <ProgressEntry
+                    title="Köpet är avbrutet"
+                    elements={[
+                      {
+                        type: "body",
+                        textParts: [
+                          {
+                            children: dateToString(purchase.failedAt),
+                          },
+                        ],
+                      },
+                      {
+                        type: "body",
+                        textParts: [
+                          {
+                            children: "Säljaren har valt att avbryta köpet.",
                           },
                           { children: "\n" },
                           {
@@ -656,7 +693,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
           />
         );
       case PurchaseStatusEnum.FinishedFailed:
-        if (purchase.abortedById !== purchase.buyer.id) {
+        if (!purchase.abortedById) {
           return (
             <ProgressIndicator
               steps={[
@@ -684,6 +721,60 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                         {
                           children:
                             "Köpet är nu avbrutet och köparens pengar har återbetalats.",
+                        },
+                      ],
+                    },
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children:
+                            "Annonsen är nu aktiv och tillgänglig för nya köpare.",
+                        },
+                      ],
+                    },
+                    {
+                      type: "button",
+                      buttonProps: {
+                        label: "Gå till annonsen",
+                        onPress: () => {
+                          router.navigate({
+                            pathname: "/product/[productId]",
+                            params: { productId: purchase.product.id },
+                          });
+                        },
+                      },
+                    },
+                  ]}
+                />,
+              ]}
+              isProblem
+              current={2}
+            />
+          );
+        }
+        if (purchase.abortedById === purchase.product.seller.id) {
+          return (
+            <ProgressIndicator
+              steps={[
+                soldInitialEntry(purchase),
+                <ProgressEntry
+                  title="Köpet är avbrutet"
+                  elements={[
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children: dateToString(purchase.failedAt),
+                        },
+                      ],
+                    },
+                    {
+                      type: "body",
+                      textParts: [
+                        {
+                          children:
+                            "Du har valt att avbryta köpet och köparens pengar har återbetalats.",
                         },
                       ],
                     },
