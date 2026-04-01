@@ -10,25 +10,14 @@ import { primitives } from "@constants/colors";
 import { FileType } from "../upsert-product/types";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useImageHandler } from "@hooks/use-image-handler";
-import { Button } from "@components/buttons/button";
 
 type Props = {
   images: FileType[];
   imageError?: string;
   onUpdateImages: (updatedImages: FileType[]) => void;
-  onAnalyzeImages: () => Promise<void>;
-  imageAnalyzeLoading: boolean;
-  imageAnalyzeError?: boolean;
 };
 
-export const ImageSection = ({
-  images,
-  imageError,
-  onUpdateImages,
-  onAnalyzeImages,
-  imageAnalyzeLoading,
-  imageAnalyzeError,
-}: Props) => {
+export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
   const colors = useThemeColor();
   const { pickImage } = useImageHandler();
 
@@ -144,24 +133,6 @@ export const ImageSection = ({
       <Body size="small" style={{ marginTop: 12 }} color="secondary">
         Bilder: {images.length} av 10
       </Body>
-      <View style={{ marginTop: 12, gap: 12 }}>
-        <Button
-          label="Annonsförslag med AI"
-          onPress={onAnalyzeImages}
-          loading={imageAnalyzeLoading}
-          disabled={!images?.length}
-          icon="magic"
-          iconPosition="left"
-        />
-        {imageAnalyzeError && (
-          <Body size="small" color="error">
-            Något gick fel vid AI-genereringen
-          </Body>
-        )}
-        <Body size="small" color="secondary">
-          AI-genererat annonsförslag. Granska innan publicering.
-        </Body>
-      </View>
     </View>
   );
 };

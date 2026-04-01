@@ -95,9 +95,6 @@ export const Details = ({
             onUpdateImages={(images) => {
               update({ ...product, images });
             }}
-            onAnalyzeImages={onAnalyzeImages}
-            imageAnalyzeLoading={imageAnalyzeLoading}
-            imageAnalyzeError={imageAnalyzeError}
           />
           <PriceSection
             price={product.price}
@@ -107,12 +104,14 @@ export const Details = ({
             onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
           />
           <DescriptionSection
-            title={product.title ?? ""}
+            product={product}
             titleError={badFields?.["title"]}
-            description={product.description ?? ""}
             descriptionError={badFields?.["description"]}
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
+            onAnalyzeImages={onAnalyzeImages}
+            imageAnalyzeLoading={imageAnalyzeLoading}
+            imageAnalyzeError={imageAnalyzeError}
           />
           <QuantitiesSection
             categoryId={categoryId}

@@ -1,27 +1,33 @@
+import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
+import { ProductFields } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
-  title: string;
+  product: ProductFields;
   titleError?: string;
-  description: string;
   descriptionError?: string;
   onChangeTitle: (t: string) => void;
   onChangeDescription: (d: string) => void;
+  onAnalyzeImages: () => Promise<void>;
+  imageAnalyzeLoading: boolean;
+  imageAnalyzeError?: boolean;
 };
 
 export const DescriptionSection = ({
-  title: _title,
+  product,
   titleError,
-  description: _description,
   descriptionError,
   onChangeTitle: _onChangeTitle,
   onChangeDescription: _onChangeDescription,
+  onAnalyzeImages,
+  imageAnalyzeLoading,
+  imageAnalyzeError,
 }: Props) => {
-  const [title, setTitle] = useState(_title);
-  const [description, setDescription] = useState(_description);
+  const [title, setTitle] = useState(product.title ?? "");
+  const [description, setDescription] = useState(product.description ?? "");
   const onChangeTitle = (t: string) => {
     setTitle(t);
     _onChangeTitle(t);
@@ -32,21 +38,36 @@ export const DescriptionSection = ({
   };
 
   useEffect(() => {
-    setTitle(_title);
-  }, [_title]);
+    setTitle(product.title ?? "");
+  }, [product.title]);
   useEffect(() => {
-    setDescription(_description);
-  }, [_description]);
+    setDescription(product.description ?? "");
+  }, [product.description]);
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 16 }}>
+      <Display size="small" style={{ marginBottom: 24 }}>
         Beskriv din produkt
       </Display>
-      <Body size="large" style={{ marginBottom: 24 }}>
-        Behöver du hjälp att skriva en säljande annons?{" "}
-        <Body isLink>Läs vår guide här.</Body>
-      </Body>
+      <View style={{ gap: 12, marginBottom: 24 }}>
+        <Button
+          label="Annonsförslag med AI"
+          onPress={onAnalyzeImages}
+          loading={imageAnalyzeLoading}
+          disabled={!product.images?.length}
+          icon="magic"
+          iconPosition="left"
+        />
+        {imageAnalyzeError && (
+          <Body size="small" color="error">
+            Något gick fel vid AI-genereringen
+          </Body>
+        )}
+        <Body size="small" color="secondary">
+          AI hjälper till med beskrivningen – ta gärna en snabb titt innan
+          publicering
+        </Body>
+      </View>
       <Form
         style={{ gap: 24 }}
         fields={[
@@ -71,7 +92,7 @@ export const DescriptionSection = ({
         ]}
       />
       <Body size="small" color="secondary" style={{ marginTop: 12 }}>
-        {_description.length} av 5000 tecken
+        {product.description?.length ?? 0} av 5000 tecken
       </Body>
     </View>
   );
