@@ -218,12 +218,12 @@ export const ImageUploadCard = ({
                   width: 32,
                   height: 32,
                   padding: 8,
-                  backgroundColor: primitives.primary100,
+                  backgroundColor: "#00000066",
                   opacity: 0.6,
                 }}
               />
               <Pressable onPress={onImageRemoved}>
-                <Icon icon="X" size={18} />
+                <Icon icon="X" size={18} color="primaryLight" />
               </Pressable>
             </View>
           )}
