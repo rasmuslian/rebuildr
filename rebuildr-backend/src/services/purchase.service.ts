@@ -991,7 +991,7 @@ export class PurchaseService {
       requestId: crypto.randomUUID(),
     });
     logger.info('Auto accepting purchases');
-    const dueTime = dayjs().add(1, 'day');
+    const dueTime = dayjs().subtract(2, 'day');
     const duePurchases = await this.purchaseRepository.find({
       where: {
         deliveredAt: LessThanOrEqual(dueTime.toDate()),
