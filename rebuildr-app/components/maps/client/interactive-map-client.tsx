@@ -42,7 +42,7 @@ export default function InteractiveMapClient() {
       <UserLocationMarker position={state.userLocation} />
       {state.mapPinGroups.map((mapPinGroup) => {
         const key = `${mapPinGroup.location.lat},${mapPinGroup.location.lng}`;
-        return <MapMarker key={key} pin={mapPinGroup} />;
+        return <MapMarker key={key} mapPinGroup={mapPinGroup} />;
       })}
     </MapContainer>
   );

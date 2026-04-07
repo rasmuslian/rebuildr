@@ -21,11 +21,11 @@ import { Link } from "expo-router";
 import { AdGrid } from "@components/ad/ad-grid";
 
 type Props = {
-  pin: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"][number];
+  mapPinGroup: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"][number];
 };
 
-export const ActiveMarkerPopup = ({ pin }: Props) => {
-  const [showProject, setShowProject] = useState(!!pin.projectId);
+export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
+  const [showProject, setShowProject] = useState(!!mapPinGroup.projectId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const { onToggleProductHeart } = useLikeProduct();
@@ -34,7 +34,7 @@ export const ActiveMarkerPopup = ({ pin }: Props) => {
   const client = useApolloClient();
   const { me } = useUser();
 
-  const productIds = pin.productIds ?? [];
+  const productIds = mapPinGroup.productIds ?? [];
   const numberOfProducts = productIds.length;
   const hasMultipleProducts = numberOfProducts > 1;
 
@@ -78,8 +78,10 @@ export const ActiveMarkerPopup = ({ pin }: Props) => {
     ActiveProjectPopupQuery,
     ActiveProjectPopupQueryVariables
   >(ACTIVE_PROJECT_POPUP, {
-    variables: pin.projectId ? { input: { id: pin.projectId } } : undefined,
-    skip: !pin.projectId,
+    variables: mapPinGroup.projectId
+      ? { input: { id: mapPinGroup.projectId } }
+      : undefined,
+    skip: !mapPinGroup.projectId,
   });
 
   useEffect(() => {
@@ -169,7 +171,7 @@ export const ActiveMarkerPopup = ({ pin }: Props) => {
     );
   }
 
-  if (!pin.productIds.length) {
+  if (!mapPinGroup.productIds.length) {
     return (
       <View style={{ gap: 10 }}>
         {project && (
