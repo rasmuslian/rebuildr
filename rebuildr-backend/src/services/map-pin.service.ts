@@ -340,16 +340,21 @@ export class MapPinService {
       innerProductParams.length +
       1;
 
-    /**
-     * Explain query
-     * 'clustered'
-     *  All filtered products will be assigned a grid based on their location.
-     * A Cluster is then achieved by grouping on grid_id. Also group on project_id to keep
-     * clusters of products without project_id and clusters with different project_ids separated.
-     *
-     * 'jittered'
-     * Separate the clusters a small bit to avoid overlap.
-     */
+    // Groups map pins into clusters based on zoom level and returns one representative
+    // location per cluster. The query has two parts united by UNION:
+    //
+    // 1. Project part – starts from map pins joined to projects, then optionally to
+    //    products belonging to those projects. This ensures projects without any
+    //    products still appear on the map.
+    // 2. Product part – starts from map pins joined directly to products that are
+    //    NOT attached to a project (standalone listings).
+    //
+    // Both parts use ST_SnapToGrid to snap each pin's location to a grid cell whose
+    // size is determined by the current zoom level, which is what creates the
+    // clustering effect. Within each cell, ST_Collect + ST_Centroid computes the
+    // geometric center of all pins. A small deterministic jitter (derived from the
+    // project ID hash) is then applied via ST_Translate so that overlapping cluster
+    // pins do not stack on top of each other on the map.
     const result: {
       gridId: string;
       latitude: number;
