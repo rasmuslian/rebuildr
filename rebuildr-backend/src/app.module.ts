@@ -102,7 +102,6 @@ import { APP_FILTER } from '@nestjs/core';
 import { MessageLoader } from './dataloaders/message.loader';
 import { MapPinService } from './services/map-pin.service';
 import { MapPin } from './entities/map-pin.entity';
-import { MapPinLoader } from './dataloaders/map-pin.loader';
 import { MapPinResolver } from './resolvers/map-pin.resolver';
 import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
@@ -192,7 +191,6 @@ export interface RequestType {
         ReviewLoader,
         PurchaseLoader,
         MessageLoader,
-        MapPinLoader,
         PartnerLoader,
         BrandLoader,
         ConfigService,
@@ -206,7 +204,6 @@ export interface RequestType {
         reviewLoaderService: ReviewLoader,
         purchaseLoaderService: PurchaseLoader,
         messageLoaderService: MessageLoader,
-        mapPinLoaderService: MapPinLoader,
         partnerLoaderService: PartnerLoader,
         brandLoaderService: BrandLoader,
         configService: ConfigService<EnvironmentVariables>,
@@ -225,7 +222,6 @@ export interface RequestType {
             reviewLoaders: reviewLoaderService.createLoaders(),
             purchaseLoaders: purchaseLoaderService.createLoaders(),
             messageLoaders: messageLoaderService.createLoaders(),
-            mapPinLoaders: mapPinLoaderService.createLoaders(),
             partnerLoaders: partnerLoaderService.createLoaders(),
             brandLoaders: brandLoaderService.createLoaders(),
             req,

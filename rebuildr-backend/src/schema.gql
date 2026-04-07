@@ -118,12 +118,6 @@ enum TransportationEnum {
   DELIVERY
 }
 
-type MapPin {
-  id: ID!
-  product: Product
-  location: LocationResponse!
-}
-
 type Project {
   id: ID!
   title: String!
@@ -691,11 +685,6 @@ enum MapPinTypeEnum {
   FEATURED
 }
 
-type ProductMapPinResponse {
-  pins: [MapPinGroup!]!
-  total: Float!
-}
-
 type MapPinGroupsResponse {
   mapPinGroups: [MapPinGroup!]!
   total: Float!
@@ -774,7 +763,6 @@ type Query {
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
   mapPinGroups(input: MapPinGroupsInput!, offset: Int, limit: Int): MapPinGroupsResponse!
   partners: [Partner!]!
   co2Factors: [CO2Factor!]!
@@ -985,24 +973,17 @@ input ListArticlesInput {
   pageSize: Int
 }
 
-input ProductMapPinsBoxLocationInput {
-  southWest: PointInput!
-  northEast: PointInput!
-  productsInput: ProductsInput
-  zoom: Int
-}
-
-input PointInput {
-  lat: Float!
-  lng: Float!
-}
-
 input MapPinGroupsInput {
   southWest: PointInput!
   northEast: PointInput!
   productsInput: ProductsInput
   projectsInput: ProjectsInput
   zoom: Int
+}
+
+input PointInput {
+  lat: Float!
+  lng: Float!
 }
 
 input ProjectsInput {
