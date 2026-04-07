@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { StyleProp, View, ViewStyle } from "react-native";
 import { MapProvider } from "@context/map-context";
-import { ProductsInput } from "@/gql/graphql";
+import { ProductsInput, ProjectsInput } from "@/gql/graphql";
 
 type Props = {
   style?: StyleProp<ViewStyle>;
   initialCenter?: { lat: number; lng: number };
   productsInput?: ProductsInput;
+  projectsInput?: ProjectsInput;
 };
 
 export default function InteractiveMap({
   style,
   initialCenter,
   productsInput,
+  projectsInput,
 }: Props) {
   const [Map, setMap] = useState<React.ComponentType<Props> | null>(null);
 
@@ -31,6 +33,7 @@ export default function InteractiveMap({
         <MapProvider
           initialCenter={initialCenter}
           productsInput={productsInput}
+          projectsInput={projectsInput}
         >
           <Map />
         </MapProvider>

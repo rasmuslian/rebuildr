@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
 
-export const MAP_PINS_QUERY = gql`
-  query MapPins($input: ProductMapPinsBoxLocationInput!) {
-    productMapPinsInBoundingBox(input: $input) {
+export const MAP_PIN_GROUPS = gql`
+  query MapPinGroups($input: MapPinGroupsInput!) {
+    mapPinGroups(input: $input) {
       total
-      pins {
+      mapPinGroups {
         prices
         type
         productIds
@@ -18,8 +18,8 @@ export const MAP_PINS_QUERY = gql`
   }
 `;
 
-export const MAP_PRODUCT_QUERY = gql`
-  query MapProduct($input: GetProductInput!) {
+export const ACTIVE_PRODUCT_POPUP = gql`
+  query ActiveProductPopup($input: GetProductInput!) {
     product(input: $input) {
       id
       title
@@ -43,9 +43,24 @@ export const MAP_PRODUCT_QUERY = gql`
       project {
         id
         title
-        description
-        shortText
-        showDetailsOnMap
+      }
+    }
+  }
+`;
+export const ACTIVE_PROJECT_POPUP = gql`
+  query ActiveProjectPopup($input: GetProjectInput!) {
+    getProject(input: $input) {
+      id
+      title
+      description
+      shortText
+      showDetailsOnMap
+      user {
+        id
+        profilePicture {
+          id
+          url
+        }
       }
     }
   }

@@ -40,9 +40,9 @@ export default function InteractiveMapClient() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <UserLocationMarker position={state.userLocation} />
-      {state.pins.map((pin) => {
-        const key = `${pin.location.lat},${pin.location.lng}`;
-        return <MapMarker key={key} pin={pin} />;
+      {state.mapPinGroups.map((mapPinGroup) => {
+        const key = `${mapPinGroup.location.lat},${mapPinGroup.location.lng}`;
+        return <MapMarker key={key} mapPinGroup={mapPinGroup} />;
       })}
     </MapContainer>
   );

@@ -29,6 +29,10 @@ export type AddressToLocationInput = {
   address: Scalars['String']['input'];
 };
 
+export type AnalyzeProductImagesInput = {
+  productId: Scalars['String']['input'];
+};
+
 export type ApproximatePlaceResponse = {
   __typename?: 'ApproximatePlaceResponse';
   address: Scalars['String']['output'];
@@ -748,13 +752,6 @@ export type LogoutInput = {
   refreshToken: Scalars['String']['input'];
 };
 
-export type MapPin = {
-  __typename?: 'MapPin';
-  id: Scalars['ID']['output'];
-  location: LocationResponse;
-  product?: Maybe<Product>;
-};
-
 export type MapPinGroup = {
   __typename?: 'MapPinGroup';
   location: LocationResponse;
@@ -762,6 +759,20 @@ export type MapPinGroup = {
   productIds: Array<Scalars['String']['output']>;
   projectId?: Maybe<Scalars['String']['output']>;
   type: MapPinTypeEnum;
+};
+
+export type MapPinGroupsInput = {
+  northEast: PointInput;
+  productsInput?: InputMaybe<ProductsInput>;
+  projectsInput?: InputMaybe<ProjectsInput>;
+  southWest: PointInput;
+  zoom?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type MapPinGroupsResponse = {
+  __typename?: 'MapPinGroupsResponse';
+  mapPinGroups: Array<MapPinGroup>;
+  total: Scalars['Float']['output'];
 };
 
 export enum MapPinTypeEnum {
@@ -842,6 +853,7 @@ export type Mutation = {
   abortPurchase: Purchase;
   acceptPurchase: Purchase;
   addPayoutAccount: User;
+  analyzeProductImages: Product;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
@@ -930,6 +942,11 @@ export type MutationAcceptPurchaseArgs = {
 
 export type MutationAddPayoutAccountArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type MutationAnalyzeProductImagesArgs = {
+  input: AnalyzeProductImagesInput;
 };
 
 
@@ -1448,19 +1465,6 @@ export enum ProductConditionEnum {
   VeryGood = 'VERY_GOOD'
 }
 
-export type ProductMapPinResponse = {
-  __typename?: 'ProductMapPinResponse';
-  pins: Array<MapPinGroup>;
-  total: Scalars['Float']['output'];
-};
-
-export type ProductMapPinsBoxLocationInput = {
-  northEast: PointInput;
-  productsInput?: InputMaybe<ProductsInput>;
-  southWest: PointInput;
-  zoom?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type ProductPriceRangeResponse = {
   __typename?: 'ProductPriceRangeResponse';
   max: Scalars['Int']['output'];
@@ -1532,6 +1536,10 @@ export type Project = {
 
 export type ProjectProductsArgs = {
   searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ProjectsInput = {
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type Purchase = {
@@ -1662,6 +1670,7 @@ export type Query = {
   listPageContents: ListPageContentResponse;
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
+  mapPinGroups: MapPinGroupsResponse;
   me: User;
   myProjects: Array<Project>;
   myPurchase?: Maybe<Purchase>;
@@ -1672,7 +1681,6 @@ export type Query = {
   partners: Array<Partner>;
   popularCategories: Array<Category>;
   product: Product;
-  productMapPinsInBoundingBox: ProductMapPinResponse;
   products: ProductsResponse;
   purchase: Purchase;
   rootCategories: Array<Category>;
@@ -1833,6 +1841,13 @@ export type QueryLocationToAddressArgs = {
 };
 
 
+export type QueryMapPinGroupsArgs = {
+  input: MapPinGroupsInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryMyPurchaseArgs = {
   input: MyPurchaseInput;
 };
@@ -1865,13 +1880,6 @@ export type QueryPopularCategoriesArgs = {
 
 export type QueryProductArgs = {
   input: GetProductInput;
-};
-
-
-export type QueryProductMapPinsInBoundingBoxArgs = {
-  input: ProductMapPinsBoxLocationInput;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 

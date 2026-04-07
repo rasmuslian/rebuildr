@@ -7,13 +7,14 @@ import React, {
 } from "react";
 import {
   PointInput,
-  MapPinsQuery,
-  MapPinsQueryVariables,
   ProductsInput,
+  MapPinGroupsQuery,
+  MapPinGroupsQueryVariables,
+  ProjectsInput,
 } from "@/gql/graphql";
 import { useReducerState } from "@hooks/useReducerState";
 import { useQuery } from "@apollo/client";
-import { MAP_PINS_QUERY } from "@/queries";
+import { MAP_PIN_GROUPS } from "@/queries";
 import { LatLngExpression } from "leaflet";
 import { useLocationContext } from "@context/location-context";
 import { defaultCenter } from "@constants/map";
@@ -29,7 +30,7 @@ type StateType = {
   userLocation: LatLngExpression;
   zoom: number;
   bounds?: Bounds;
-  pins: MapPinsQuery["productMapPinsInBoundingBox"]["pins"];
+  mapPinGroups: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"];
   activePin?: {
     location: LatLngExpression;
     popup: React.ReactNode;
@@ -42,7 +43,7 @@ const initialState: StateType = {
   userLocation: defaultCenter,
   zoom: 5,
   bounds: undefined,
-  pins: [],
+  mapPinGroups: [],
   activePin: undefined,
 };
 
@@ -56,17 +57,19 @@ const Context = createContext<ContextType | null>(null);
 type Props = {
   initialCenter?: LatLngExpression;
   productsInput?: ProductsInput;
+  projectsInput?: ProjectsInput;
 } & PropsWithChildren;
 
 export const MapProvider = ({
   children,
   initialCenter,
   productsInput,
+  projectsInput,
 }: Props) => {
   const [state, setState] = useReducerState<StateType>(initialState);
   const { userCoords } = useLocationContext();
 
-  useQuery<MapPinsQuery, MapPinsQueryVariables>(MAP_PINS_QUERY, {
+  useQuery<MapPinGroupsQuery, MapPinGroupsQueryVariables>(MAP_PIN_GROUPS, {
     variables: state.bounds
       ? {
           input: {
@@ -74,12 +77,13 @@ export const MapProvider = ({
             southWest: state.bounds.southWest,
             zoom: state.zoom,
             productsInput,
+            projectsInput,
           },
         }
       : undefined,
     skip: !state.bounds,
     onCompleted: (data) => {
-      setState({ pins: data.productMapPinsInBoundingBox.pins });
+      setState({ mapPinGroups: data.mapPinGroups.mapPinGroups });
     },
   });
 

@@ -5,10 +5,7 @@ import { Project } from 'src/entities/project.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { LocationResponse } from 'src/resolvers/geocoding.resolver';
-import {
-  MapPinResponse,
-  ProductMapPinResponse,
-} from 'src/resolvers/map-pin.resolver';
+import { MapPinGroupsResponse } from 'src/resolvers/map-pin.resolver';
 import { Repository } from 'typeorm/repository/Repository';
 import { GeocodingService } from './geocoding.service';
 import { ProductsInput } from 'src/resolvers/product.resolver';
@@ -17,6 +14,7 @@ import { BadUserInputException } from 'src/exceptions';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ProductService } from './product.service';
+import { ProjectsInput } from 'src/resolvers/project.resolver';
 
 @Injectable()
 export class MapPinService {
@@ -244,61 +242,16 @@ export class MapPinService {
     }
   }
 
-  async findMapPinsInBoundingBox(
-    southWest: LocationResponse,
-    northEast: LocationResponse,
-  ): Promise<MapPinResponse> {
-    const result = await this.mapPinRepository
-      .createQueryBuilder('mapPin')
-      .where(
-        `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
-        {
-          swLng: southWest.lng,
-          swLat: southWest.lat,
-          neLng: northEast.lng,
-          neLat: northEast.lat,
-        },
-      )
-      .getManyAndCount();
-    const [mapPins, total] = result;
-    return {
-      mapPins,
-      total,
-    };
-  }
-
-  async findProductPinsInRadius(
-    point: LocationResponse,
-    radius: number,
-    productsInput?: ProductsInput,
-    zoom?: number,
-    offset?: number,
-    limit?: number,
-  ): Promise<ProductMapPinResponse> {
-    const result = await this.getFilteredMapPinsForProducts(
-      `mapPin.location && ST_Buffer(ST_SetSRID(ST_MakePoint(:lat, :lng), 4326)::geography, :radius)`,
-      {
-        lat: point.lat,
-        lng: point.lng,
-        radius,
-      },
-      productsInput,
-      zoom,
-      offset,
-      limit,
-    );
-    return result;
-  }
-
-  async findProductPinsInBoundingBox(
+  async findMapPinGroupsByBoundingBox(
     southWest: LocationResponse,
     northEast: LocationResponse,
     productsInput?: ProductsInput,
+    projectsInput?: ProjectsInput,
     zoom?: number,
     offset?: number,
     limit?: number,
-  ): Promise<ProductMapPinResponse> {
-    const result = await this.getFilteredMapPinsForProducts(
+  ): Promise<MapPinGroupsResponse> {
+    const result = await this.getMapPinGroups(
       `mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
       {
         swLng: southWest.lng,
@@ -307,6 +260,7 @@ export class MapPinService {
         neLat: northEast.lat,
       },
       productsInput,
+      projectsInput,
       zoom,
       offset,
       limit,
@@ -314,55 +268,93 @@ export class MapPinService {
     return result;
   }
 
-  private async getFilteredMapPinsForProducts(
+  async getMapPinGroups(
     whereClause: string,
     whereParams: ObjectLiteral,
     productsInput?: ProductsInput,
+    projectsInput?: ProjectsInput,
     zoom?: number,
     offset?: number,
     limit?: number,
-  ): Promise<ProductMapPinResponse> {
-    const productPinsQuery = this.mapPinRepository
-      .createQueryBuilder('mapPin')
-      .select(
-        `"mapPin".id AS id,
-        "mapPin".location AS location,
-        product.id AS product_id,
-        product."projectId" AS project_id,
-        product.price AS price,
-        seller.type AS seller_type,
-        seller."isFeatured" AS seller_is_featured`,
-      )
-      .where(whereClause, whereParams)
-      .innerJoin('mapPin.product', 'product')
-      .innerJoin('product.seller', 'seller');
-
+  ): Promise<MapPinGroupsResponse> {
+    const productPart = this.productRepository.createQueryBuilder('product');
     if (offset !== undefined) {
-      productPinsQuery.offset(offset);
+      productPart.offset(offset);
     }
     if (limit !== undefined) {
-      productPinsQuery.limit(limit);
+      productPart.limit(limit);
     }
-
     if (productsInput) {
       this.productService.basicFindProductsInputQueryBuilder(
         productsInput,
-        productPinsQuery,
+        productPart,
         'product',
       );
     }
-    const [innerSql, innerParams] = productPinsQuery.getQueryAndParameters();
+    const [innerProductSql, innerProductParams] =
+      productPart.getQueryAndParameters();
 
-    /**
-     * Explain query
-     * 'clustered'
-     *  All filtered products will be assigned a grid based on their location.
-     * A Cluster is then achieved by grouping on grid_id. Also group on project_id to keep
-     * clusters of products without project_id and clusters with different project_ids separated.
-     *
-     * 'jittered'
-     * Separate the clusters a small bit to avoid overlap.
-     */
+    const projectsPart = this.projectRepository.createQueryBuilder('project');
+    if (offset !== undefined) {
+      projectsPart.offset(offset);
+    }
+    if (limit !== undefined) {
+      projectsPart.limit(limit);
+    }
+    if (projectsInput) {
+      if (projectsInput.ids) {
+        projectsPart.andWhere('project.id IN (:...projectIds)', {
+          projectIds: projectsInput.ids,
+        });
+      }
+    }
+    const [innerProjectSql, innerProjectParams] =
+      projectsPart.getQueryAndParameters();
+
+    const mapPinsPart = this.mapPinRepository
+      .createQueryBuilder('mapPin')
+      .select(
+        `"mapPin".id AS id,
+        "mapPin".location AS location`,
+      )
+      .where(whereClause, whereParams);
+    const [innerMapPinSql, innerMapPinParams] =
+      mapPinsPart.getQueryAndParameters();
+
+    const offsetSql = (sql: string, offset: number) =>
+      sql.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + offset}`);
+
+    const offsetProjectSql = innerProjectSql;
+    const offsetMapPinSql = offsetSql(
+      innerMapPinSql,
+      innerProjectParams.length,
+    );
+    const offsetProductSql = offsetSql(
+      innerProductSql,
+      innerProjectParams.length + innerMapPinParams.length,
+    );
+
+    const zoomParamNumber =
+      innerProjectParams.length +
+      innerMapPinParams.length +
+      innerProductParams.length +
+      1;
+
+    // Groups map pins into clusters based on zoom level and returns one representative
+    // location per cluster. The query has two parts united by UNION:
+    //
+    // 1. Project part – starts from map pins joined to projects, then optionally to
+    //    products belonging to those projects. This ensures projects without any
+    //    products still appear on the map.
+    // 2. Product part – starts from map pins joined directly to products that are
+    //    NOT attached to a project (standalone listings).
+    //
+    // Both parts use ST_SnapToGrid to snap each pin's location to a grid cell whose
+    // size is determined by the current zoom level, which is what creates the
+    // clustering effect. Within each cell, ST_Collect + ST_Centroid computes the
+    // geometric center of all pins. A small deterministic jitter (derived from the
+    // project ID hash) is then applied via ST_Translate so that overlapping cluster
+    // pins do not stack on top of each other on the map.
     const result: {
       gridId: string;
       latitude: number;
@@ -374,55 +366,87 @@ export class MapPinService {
       prices: number[];
     }[] = await this.mapPinRepository.query(
       `
-      WITH clustered AS (
-        SELECT
-          ST_SnapToGrid(
-             location,
-             $${innerParams.length + 1}
-           ) AS grid_id,
-          project_id as "projectId",
-          seller_type as "sellerType",
-          seller_is_featured as "sellerIsFeatured",
-          ST_Collect(location) AS geom,
-          ARRAY_AGG(product_id) AS "productIds",
-          ARRAY_AGG(price ORDER BY price) AS prices
-        FROM (${innerSql}) AS filtered
-        GROUP BY grid_id, "projectId", "sellerType", "sellerIsFeatured"),
-      jittered AS (
+      WITH 
+        collections AS (
+          --Project part
+          SELECT 
+            ST_SnapToGrid(
+              location,
+              $${zoomParamNumber}) AS grid_id,
+            ST_Collect(location) AS geom,  
+            pj.project_id as "projectId", 
+            ARRAY_AGG(p.product_id) FILTER (WHERE p.product_id IS NOT NULL) AS "productIds",
+            ARRAY_AGG(p.product_price ORDER BY p.product_price) AS prices,
+            u."type" as "sellerType",
+            u."isFeatured" as "sellerIsFeatured"
+          FROM (${offsetMapPinSql}) mp
+          INNER JOIN (${offsetProjectSql}) pj ON pj."project_mapPinId" = mp.id
+          INNER JOIN "user" u ON pj."project_userId" = u.id
+          LEFT JOIN (${offsetProductSql}) p ON p."product_projectId" = pj.project_id
+          GROUP BY pj.project_id, grid_id, u.id
+
+          UNION
+
+          --Product part
+          SELECT 
+            ST_SnapToGrid(
+              location,
+              $${zoomParamNumber}) AS grid_id,
+            ST_Collect(location) AS geom,
+            null as "projectId",
+            ARRAY_AGG(p.product_id) AS "productIds",
+            ARRAY_AGG(p.product_price ORDER BY p.product_price) AS prices,
+            null as "sellerType",
+            null as "sellerIsFeatured"
+          FROM (${offsetMapPinSql}) mp
+          INNER JOIN (${offsetProductSql}) p ON p."product_mapPinId" = mp.id
+          INNER JOIN "user" u ON u.id = p."product_sellerId"
+          WHERE 
+            p."product_projectId" IS NULL
+          GROUP BY grid_id, u."isFeatured"),
+
+        jittered AS (
+          SELECT
+            grid_id,
+            "projectId",
+            "productIds",
+            ST_Translate(
+              ST_Centroid(geom),
+              ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010,
+              ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010
+            ) AS location,
+            prices,
+            "sellerIsFeatured",
+            "sellerType"
+          FROM collections)
+
         SELECT
           grid_id,
           "projectId",
-          "sellerType",
-          "sellerIsFeatured",
+          ST_X(location) AS latitude,
+          ST_Y(location) AS longitude,
           "productIds",
           prices,
-          ST_Translate(
-            ST_Centroid(geom),
-            ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010,
-            ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010
-          ) AS location
-        FROM clustered)
-      SELECT
-        grid_id,
-        "projectId",
-        "sellerType",
-        "sellerIsFeatured",
-        ST_X(location) AS latitude,
-        ST_Y(location) AS longitude,
-        "productIds",
-        prices
-      FROM jittered`,
-      [...innerParams, this.cellSizeForZoom(zoom)],
+          "sellerIsFeatured",
+          "sellerType"
+        FROM jittered
+    `,
+      [
+        ...innerProjectParams,
+        ...innerMapPinParams,
+        ...innerProductParams,
+        this.cellSizeForZoom(zoom),
+      ],
     );
 
     return {
-      pins: result.map((r) => ({
+      mapPinGroups: result.map((r) => ({
         location: {
           lat: r.latitude,
           lng: r.longitude,
         },
-        productIds: r.productIds,
-        projectIds: r.projectId ? [r.projectId] : [],
+        productIds: r.productIds ? r.productIds : [],
+        projectId: r.projectId,
         type: this.deriveMapPinType(
           !!r.projectId,
           r.sellerType,
