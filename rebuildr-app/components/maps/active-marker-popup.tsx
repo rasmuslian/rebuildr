@@ -24,13 +24,79 @@ type Props = {
   mapPinGroup: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"][number];
 };
 
+type Project = ActiveProjectPopupQuery["getProject"];
+
+const projectShowsShortText = (project?: Project) => {
+  if (!project) return false;
+  return project.description && project.showDetailsOnMap;
+};
+
+type NavigationRowProps = {
+  currentIndex: number;
+  total: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  label?: string;
+};
+
+const NavigationRow = ({
+  currentIndex,
+  total,
+  onPrevious,
+  onNext,
+  label,
+}: NavigationRowProps) => (
+  <View style={{ flexDirection: "row", alignItems: "center" }}>
+    <View style={{ flex: 1, alignItems: "flex-start" }}>
+      {onPrevious && (
+        <Button onPress={onPrevious} type="text" icon="chevronLeft" />
+      )}
+    </View>
+    <View style={{ flex: 1, alignItems: "center" }}>
+      <Body size="small" color="secondary">
+        {label ?? `${currentIndex + 1} av ${total}`}
+      </Body>
+    </View>
+    <View style={{ flex: 1, alignItems: "flex-end" }}>
+      {onNext && <Button onPress={onNext} type="text" icon="chevronRight" />}
+    </View>
+  </View>
+);
+
+type ProjectHeaderProps = {
+  project: Pick<Project, "id" | "title">;
+};
+
+const ProjectHeader = ({ project }: ProjectHeaderProps) => (
+  <>
+    <Label
+      style={{ textAlign: "center" }}
+      size="small"
+      lineBreakMode="tail"
+      numberOfLines={1}
+    >
+      {project.title}
+    </Label>
+    <Link
+      style={{ textAlign: "center" }}
+      href={{
+        pathname: "/project/[projectId]",
+        params: { projectId: project.id },
+      }}
+    >
+      <Body size="small" isLink>
+        Projektvy
+      </Body>
+    </Link>
+  </>
+);
+
 export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   const [showProject, setShowProject] = useState(!!mapPinGroup.projectId);
-
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const { onToggleProductHeart } = useLikeProduct();
   const { state } = useMapContext();
-
   const client = useApolloClient();
   const { me } = useUser();
 
@@ -38,34 +104,15 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   const numberOfProducts = productIds.length;
   const hasMultipleProducts = numberOfProducts > 1;
 
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [state.activePin]);
-
   const MAX = numberOfProducts - 1;
-
   const hasNextProduct = currentIndex < MAX;
 
   const productId = productIds.at(currentIndex);
   const nextProductId = productIds.at(currentIndex + 1);
 
-  const showPreviousProduct = () => {
-    if (currentIndex === 0 && projectShowsShortText(projectData?.getProject)) {
-      setShowProject(true);
-    } else if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const showNextProduct = () =>
-    setCurrentIndex((prev) => Math.min(MAX, prev + 1));
-
-  const projectShowsShortText = (
-    project?: ActiveProjectPopupQuery["getProject"],
-  ) => {
-    if (!project) return false;
-    return project.description && project.showDetailsOnMap;
-  };
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [state.activePin]);
 
   const { data } = useQuery<
     ActiveProductPopupQuery,
@@ -74,6 +121,7 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
     variables: productId ? { input: { id: productId } } : undefined,
     skip: !productId,
   });
+
   const { data: projectData } = useQuery<
     ActiveProjectPopupQuery,
     ActiveProjectPopupQueryVariables
@@ -104,17 +152,23 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   }, [nextProductId]);
 
   useEffect(() => {
-    if (projectData) {
-      if (projectShowsShortText(projectData.getProject)) {
-        setShowProject(true);
-      } else {
-        setShowProject(false);
-      }
-    }
+    if (!projectData) return;
+    setShowProject(!!projectShowsShortText(projectData.getProject));
   }, [projectData]);
 
   const product = data?.product;
   const project = projectData?.getProject;
+
+  const showPreviousProduct = () => {
+    if (currentIndex === 0 && projectShowsShortText(project)) {
+      setShowProject(true);
+    } else if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const showNextProduct = () =>
+    setCurrentIndex((prev) => Math.min(MAX, prev + 1));
 
   if (showProject && project) {
     return (
@@ -128,30 +182,12 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
           {project.title}
         </Label>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: 1, alignItems: "flex-start" }} />
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Body size="small" color="secondary">
-              Försättsblad
-            </Body>
-          </View>
-
-          <View style={{ flex: 1, alignItems: "flex-end" }}>
-            <Button
-              onPress={() => {
-                setShowProject(false);
-              }}
-              type="text"
-              icon="chevronRight"
-            />
-          </View>
-        </View>
+        <NavigationRow
+          currentIndex={0}
+          total={numberOfProducts}
+          label="Försättsblad"
+          onNext={() => setShowProject(false)}
+        />
 
         <Divider />
 
@@ -174,55 +210,15 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   if (!mapPinGroup.productIds.length) {
     return (
       <View style={{ gap: 10 }}>
-        {project && (
-          <Label
-            style={{ textAlign: "center" }}
-            size="small"
-            lineBreakMode="tail"
-            numberOfLines={1}
-          >
-            {project.title}
-          </Label>
-        )}
-        {project && (
-          <Link
-            style={{ textAlign: "center" }}
-            href={{
-              pathname: "/project/[projectId]",
-              params: { projectId: project.id },
-            }}
-          >
-            <Body size="small" isLink>
-              Projektvy
-            </Body>
-          </Link>
-        )}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: 1, alignItems: "flex-start" }}>
-            {project && (
-              <Button
-                onPress={() => {
-                  setShowProject(true);
-                }}
-                type="text"
-                icon="chevronLeft"
-              />
-            )}
-          </View>
+        {project && <ProjectHeader project={project} />}
 
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Body size="small" color="secondary">
-              {0} av {0}
-            </Body>
-          </View>
+        <NavigationRow
+          currentIndex={0}
+          total={0}
+          label="0 av 0"
+          onPrevious={project ? () => setShowProject(true) : undefined}
+        />
 
-          <View style={{ flex: 1, alignItems: "flex-end" }} />
-        </View>
         <Divider />
 
         <View style={{ gap: 8, marginTop: 6, minHeight: 200 }}>
@@ -247,90 +243,39 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   }
 
   if (product) {
-    const previousExist =
-      currentIndex > 0 ||
-      (projectData && projectShowsShortText(projectData.getProject));
+    const previousExist = currentIndex > 0 || !!projectShowsShortText(project);
+
     return (
       <View style={{ gap: 10 }}>
-        {product.project && (
-          <Label
-            style={{ textAlign: "center" }}
-            size="small"
-            lineBreakMode="tail"
-            numberOfLines={1}
-          >
-            {product.project.title}
-          </Label>
-        )}
-
-        {product.project && (
-          <Link
-            style={{ textAlign: "center" }}
-            href={{
-              pathname: "/project/[projectId]",
-              params: { projectId: product.project.id },
-            }}
-          >
-            <Body size="small" isLink>
-              Projektvy
-            </Body>
-          </Link>
-        )}
+        {product.project && <ProjectHeader project={product.project} />}
 
         {hasMultipleProducts && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <View style={{ flex: 1, alignItems: "flex-start" }}>
-              {previousExist && (
-                <Button
-                  onPress={showPreviousProduct}
-                  type="text"
-                  icon="chevronLeft"
-                />
-              )}
-            </View>
-
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Body size="small" color="secondary">
-                {currentIndex + 1} av {numberOfProducts}
-              </Body>
-            </View>
-
-            <View style={{ flex: 1, alignItems: "flex-end" }}>
-              {hasNextProduct && (
-                <Button
-                  onPress={showNextProduct}
-                  type="text"
-                  icon="chevronRight"
-                />
-              )}
-            </View>
-          </View>
+          <>
+            <NavigationRow
+              currentIndex={currentIndex}
+              total={numberOfProducts}
+              onPrevious={previousExist ? showPreviousProduct : undefined}
+              onNext={hasNextProduct ? showNextProduct : undefined}
+            />
+            <Divider />
+          </>
         )}
 
-        {hasMultipleProducts && <Divider />}
-
-        {product && (
-          <AdGrid
-            id={product.id}
-            price={product.price}
-            condition={product.condition}
-            imageUri={product.primaryImage?.url}
-            title={product.title}
-            heart={product.sellerId !== me?.id}
-            liked={!!product.likedByMe}
-            onHeartPress={() => {
-              onToggleProductHeart({
-                productId: product.id,
-                likedByMe: !!product.likedByMe,
-              });
-            }}
-          />
-        )}
+        <AdGrid
+          id={product.id}
+          price={product.price}
+          condition={product.condition}
+          imageUri={product.primaryImage?.url}
+          title={product.title}
+          heart={product.sellerId !== me?.id}
+          liked={!!product.likedByMe}
+          onHeartPress={() => {
+            onToggleProductHeart({
+              productId: product.id,
+              likedByMe: !!product.likedByMe,
+            });
+          }}
+        />
       </View>
     );
   }
