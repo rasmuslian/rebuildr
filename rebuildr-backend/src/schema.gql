@@ -696,6 +696,11 @@ type ProductMapPinResponse {
   total: Float!
 }
 
+type MapPinGroupsResponse {
+  mapPinGroups: [MapPinGroup!]!
+  total: Float!
+}
+
 type CmsCreatePartnerResponse {
   partner: Partner!
   imagePutUrl: String
@@ -770,6 +775,7 @@ type Query {
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
   productMapPinsInBoundingBox(input: ProductMapPinsBoxLocationInput!, offset: Int, limit: Int): ProductMapPinResponse!
+  mapPinGroups(input: MapPinGroupsInput!, offset: Int, limit: Int): MapPinGroupsResponse!
   partners: [Partner!]!
   co2Factors: [CO2Factor!]!
   pageContentById(id: String!): PageContent!
@@ -989,6 +995,18 @@ input ProductMapPinsBoxLocationInput {
 input PointInput {
   lat: Float!
   lng: Float!
+}
+
+input MapPinGroupsInput {
+  southWest: PointInput!
+  northEast: PointInput!
+  productsInput: ProductsInput
+  projectsInput: ProjectsInput
+  zoom: Int
+}
+
+input ProjectsInput {
+  ids: [String!]
 }
 
 input ListPageContentInput {

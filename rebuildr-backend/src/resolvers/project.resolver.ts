@@ -39,6 +39,12 @@ export class GetProjectInput {
 }
 
 @InputType()
+export class ProjectsInput {
+  @Field(() => [String], { nullable: true })
+  ids?: string[];
+}
+
+@InputType()
 export class CreateProjectInput {
   @Field()
   title: string;

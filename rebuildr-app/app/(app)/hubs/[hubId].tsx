@@ -38,6 +38,7 @@ export default function Hub() {
       <InteractiveMap
         initialCenter={data?.getProject.approximatePlace}
         productsInput={{ projectId: hubId }}
+        projectsInput={{ ids: [hubId] }}
         style={{ height: "100%", borderRadius: borderRadius.small }}
       />
     </ScreenLayout>

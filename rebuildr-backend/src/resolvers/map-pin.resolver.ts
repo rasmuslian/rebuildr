@@ -24,6 +24,7 @@ import { ProductsInput } from './product.resolver';
 import { Product } from 'src/entities/product.entity';
 import { IMapPinLoaders } from 'src/dataloaders/map-pin.loader';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
+import { ProjectsInput } from './project.resolver';
 
 @ObjectType()
 export class MapPinGroup {
@@ -47,6 +48,14 @@ export class MapPinGroup {
 export class ProductMapPinResponse {
   @Field(() => [MapPinGroup])
   pins: MapPinGroup[];
+
+  @Field(() => Number)
+  total: number;
+}
+@ObjectType()
+export class MapPinGroupsResponse {
+  @Field(() => [MapPinGroup])
+  mapPinGroups: MapPinGroup[];
 
   @Field(() => Number)
   total: number;
@@ -84,6 +93,23 @@ class ProductMapPinsBoxLocationInput {
   @Field(() => Int, { nullable: true })
   zoom?: number;
 }
+@InputType()
+class MapPinGroupsInput {
+  @Field(() => PointInput)
+  southWest: PointInput;
+
+  @Field(() => PointInput)
+  northEast: PointInput;
+
+  @Field(() => ProductsInput, { nullable: true })
+  productsInput?: ProductsInput;
+
+  @Field(() => ProjectsInput, { nullable: true })
+  projectsInput?: ProjectsInput;
+
+  @Field(() => Int, { nullable: true })
+  zoom?: number;
+}
 
 @Resolver(() => MapPin)
 export class MapPinResolver {
@@ -103,6 +129,23 @@ export class MapPinResolver {
       input.southWest,
       input.northEast,
       input.productsInput,
+      input.zoom,
+      offset,
+      limit,
+    );
+  }
+  @Query(() => MapPinGroupsResponse)
+  @UseGuards(GqlOptionalAuthGuard)
+  async mapPinGroups(
+    @Args('input') input: MapPinGroupsInput,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
+    return this.mapPinService.findMapPinGroupsByBoundingBox(
+      input.southWest,
+      input.northEast,
+      input.productsInput,
+      input.projectsInput,
       input.zoom,
       offset,
       limit,
