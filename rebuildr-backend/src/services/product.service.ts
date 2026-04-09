@@ -759,9 +759,11 @@ export class ProductService {
       if (!user) {
         throw BadUserInputException('Invalid user');
       }
-      if (user.role !== UserRoleEnum.ADMIN) {
-        query.andWhere('"hiddenReason" IS NULL');
-      }
+
+      //Comment out the admin check to hide the products for admin users as well. The CMS will use another function to fetch products
+      // if (user.role !== UserRoleEnum.ADMIN) {
+      query.andWhere('"hiddenReason" IS NULL');
+      // }
     } else {
       query.andWhere('"hiddenReason" IS NULL');
     }
@@ -1166,6 +1168,7 @@ export class ProductService {
           return [];
         }
 
+        query.andWhere(`p."hiddenReason" IS NULL`);
         query.andWhere(`(p.status = 'PUBLISHED' OR p.status = 'SOLD')`);
         query.andWhere(
           '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
@@ -1229,7 +1232,8 @@ export class ProductService {
             WHERE p.id = '${similarToProductId}')`,
       )
       .where('p.id != :similarToProductId', { similarToProductId })
-      .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`);
+      .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`)
+      .andWhere('p."hiddenReason" IS NULL');
     query.addOrderBy('p.publishedAt', 'DESC');
 
     const safeLimit = limit && limit > 0 ? Math.min(limit, 40) : 10;
