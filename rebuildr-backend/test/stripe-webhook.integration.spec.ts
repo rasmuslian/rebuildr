@@ -19,6 +19,8 @@ import { ProductStatus } from 'src/entities/product.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { Review } from 'src/entities/review.entity';
 import { TransportationEnum } from 'src/entities/purchase.entity';
+import { SCBAPI } from 'src/apis/scb.api';
+import { SCBAPIMock } from './mocks/scb-api.mock';
 
 describe('Stripe webhook', () => {
   let app: INestApplication;
@@ -87,6 +89,10 @@ describe('Stripe webhook', () => {
           useValue: { addressToLocation: jest.fn() },
         },
         StripeService,
+        {
+          provide: SCBAPI,
+          useClass: SCBAPIMock,
+        },
         {
           provide: ConfigService,
           useValue: {
