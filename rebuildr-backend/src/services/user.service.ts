@@ -87,7 +87,7 @@ export class UserService {
     query.where('u."deletedAt" IS NULL');
 
     if (input.name) {
-      query.andWhere('u.username ILike %:name%', { name: input.name });
+      query.andWhere(`u.username ILike '%${input.name}%'`);
     }
     if (input.hasProject) {
       query.andWhereExists(

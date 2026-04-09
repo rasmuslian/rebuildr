@@ -104,7 +104,7 @@ export const SearchWithResults = ({
       </View>
       <View style={{ paddingVertical: 0 }}>
         <Header>Säljare</Header>
-        {!data?.getUsers?.length && (
+        {!data?.users.users.length && (
           <View>
             <Body size="medium">
               Hoppsan! Det verkar inte finnas någon säljare som heter '
@@ -113,7 +113,7 @@ export const SearchWithResults = ({
           </View>
         )}
         <View style={{ marginTop: 12, gap: 16 }}>
-          {data?.getUsers.map((user, i) => (
+          {data?.users.users.map((user, i) => (
             <Pressable
               key={i}
               onPress={() => {

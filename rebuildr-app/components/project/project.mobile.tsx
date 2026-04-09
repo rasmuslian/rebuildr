@@ -63,17 +63,6 @@ export const ProjectMobile = () => {
   const showContactTitle = !!contactName || !!contactEmail || !!contactPhone;
 
   const ctas: ButtonProps[] = [];
-  if (isMyProject) {
-    ctas.push({
-      icon: "edit",
-      onPress: () =>
-        router.navigate({
-          pathname: "/(app)/project/edit/[projectId]",
-          params: { projectId, ownerId: project.user.id },
-        }),
-    });
-  }
-
   if (isLoggedIn && !isMyProject && project) {
     ctas.push({
       icon: {
@@ -303,6 +292,7 @@ export const ProjectMobile = () => {
         {project && (
           <InteractiveMap
             productsInput={{ projectId }}
+            projectsInput={{ ids: [projectId] }}
             initialCenter={{
               lat: project.approximatePlace.lat,
               lng: project.approximatePlace.lng,
