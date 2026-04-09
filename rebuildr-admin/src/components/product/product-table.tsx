@@ -330,7 +330,6 @@ const ProductTable = () => {
                   confirmHide(title, id);
                 }
               }}
-              disabled={!isPublished}
             />
           </div>
         );
