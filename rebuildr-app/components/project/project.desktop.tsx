@@ -263,6 +263,7 @@ export const ProjectDesktop = () => {
               </Body>
               <InteractiveMap
                 productsInput={{ projectId }}
+                projectsInput={{ ids: [projectId] }}
                 initialCenter={{
                   lat: project.approximatePlace.lat,
                   lng: project.approximatePlace.lng,
