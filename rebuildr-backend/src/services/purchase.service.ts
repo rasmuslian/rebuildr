@@ -1445,7 +1445,7 @@ export class PurchaseService {
 
     purchase.failedAt = new Date();
     purchase.refundId = payload.id;
-    if (payload.metadata.refundedBy) {
+    if (payload.metadata?.refundedBy) {
       const refundUser = await this.userRepository.findOneBy({
         id: payload.metadata.refundedBy,
       });

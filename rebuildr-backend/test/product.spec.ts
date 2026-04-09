@@ -30,6 +30,8 @@ import { GeocodingService } from 'src/services/geocoding.service';
 import { FileService } from 'src/services/file.service';
 import { S3Service } from 'src/services/s3.service';
 import { S3Mock } from './mocks/s3.mock';
+import { SCBAPI } from 'src/apis/scb.api';
+import { SCBAPIMock } from './mocks/scb-api.mock';
 
 const moduleMocker = new ModuleMocker(global);
 const now = new Date();
@@ -114,6 +116,10 @@ describe('Product', () => {
         {
           provide: S3Service,
           useClass: S3Mock,
+        },
+        {
+          provide: SCBAPI,
+          useClass: SCBAPIMock,
         },
       ],
     })
