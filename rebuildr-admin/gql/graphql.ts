@@ -52,12 +52,13 @@ export type Article = {
 export type Banner = {
   __typename?: 'Banner';
   action?: Maybe<BannerActionEnum>;
-  active: Scalars['Boolean']['output'];
   backgroundImage?: Maybe<File>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   label: Scalars['String']['output'];
   presetBackground: BannerPresetBackground;
+  showFrom: Scalars['DateTime']['output'];
+  showTo?: Maybe<Scalars['DateTime']['output']>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   url?: Maybe<Scalars['String']['output']>;
@@ -166,10 +167,11 @@ export type CmsCreateArticleInput = {
 
 export type CmsCreateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
-  active: Scalars['Boolean']['input'];
   backgroundImage?: InputMaybe<FileInputType>;
   label: Scalars['String']['input'];
   presetBackground?: InputMaybe<BannerPresetBackground>;
+  showFrom: Scalars['DateTime']['input'];
+  showTo?: InputMaybe<Scalars['DateTime']['input']>;
   title: Scalars['String']['input'];
   url?: InputMaybe<Scalars['String']['input']>;
 };
@@ -373,11 +375,12 @@ export type CmsUpdateArticleInput = {
 
 export type CmsUpdateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
-  active: Scalars['Boolean']['input'];
   backgroundImage?: InputMaybe<FileInputType>;
   id: Scalars['String']['input'];
   label: Scalars['String']['input'];
   presetBackground?: InputMaybe<BannerPresetBackground>;
+  showFrom: Scalars['DateTime']['input'];
+  showTo?: InputMaybe<Scalars['DateTime']['input']>;
   title: Scalars['String']['input'];
   url?: InputMaybe<Scalars['String']['input']>;
 };

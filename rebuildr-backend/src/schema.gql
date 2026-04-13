@@ -450,7 +450,8 @@ type Banner {
   action: BannerActionEnum
   presetBackground: BannerPresetBackground!
   backgroundImage: File
-  active: Boolean!
+  showFrom: DateTime!
+  showTo: DateTime
 }
 
 enum BannerActionEnum {
@@ -1607,7 +1608,8 @@ input CmsCreateBannerInput {
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
   backgroundImage: FileInputType
-  active: Boolean!
+  showFrom: DateTime!
+  showTo: DateTime
 }
 
 input CmsUpdateBannerInput {
@@ -1618,5 +1620,6 @@ input CmsUpdateBannerInput {
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
   backgroundImage: FileInputType
-  active: Boolean!
+  showFrom: DateTime!
+  showTo: DateTime
 }

@@ -14,7 +14,8 @@ const query = `
         id
         url
       }
-      active
+      showFrom
+      showTo
       createdAt
     }
   }

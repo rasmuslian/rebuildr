@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 import { BannerSchema, BannerSchemaType } from "@/schema/banner-schema";
@@ -32,7 +33,8 @@ const CreateBanner = () => {
       backgroundImage: [],
       destinationType: "none",
       url: "",
-      active: true,
+      showFrom: dayjs(),
+      showTo: undefined,
     },
   });
 
@@ -71,7 +73,8 @@ const CreateBanner = () => {
       formData.destinationType === "action"
         ? (formData.action as CmsCreateBannerInput["action"])
         : undefined,
-    active: formData.active,
+    showFrom: formData.showFrom.toDate(),
+    showTo: formData.showTo ? formData.showTo.toDate() : undefined,
   });
 
   const onSubmit = async (formData: BannerSchemaType) => {

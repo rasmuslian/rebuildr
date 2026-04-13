@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Checkbox, Input, Radio, Select } from "antd";
+import { Button, DatePicker, Input, Radio, Select } from "antd";
 import { Controller, useWatch } from "react-hook-form";
 import type {
   Control,
@@ -139,15 +139,24 @@ const BannerForm = ({
 
       <Controller
         control={control}
-        name="active"
-        render={({ field: { value, onChange } }) => (
-          <FormField>
-            <Checkbox
-              checked={value}
-              onChange={(e) => onChange(e.target.checked)}
-            >
-              Aktiv
-            </Checkbox>
+        name="showFrom"
+        render={({ field }) => (
+          <FormField label="Visa från" error={errors.showFrom?.message as string} required>
+            <DatePicker {...field} style={{ width: "100%" }} />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="showTo"
+        render={({ field }) => (
+          <FormField
+            label="Visa till"
+            error={errors.showTo?.message as string}
+            description="Lämna tomt för att visa tills vidare"
+          >
+            <DatePicker {...field} value={field.value ?? null} style={{ width: "100%" }} />
           </FormField>
         )}
       />

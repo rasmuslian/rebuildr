@@ -68,13 +68,26 @@ const BannerTable = () => {
       },
     },
     {
-      title: "Aktiv",
-      dataIndex: "active",
-      key: "active",
-      width: "80px",
-      render: (_, { active }) => (
-        <Tag color={active ? "green" : "red"}>{active ? "Ja" : "Nej"}</Tag>
-      ),
+      title: "Visningsperiod",
+      key: "showPeriod",
+      width: "200px",
+      render: (_, { showFrom, showTo }) => {
+        const now = new Date();
+        const from = new Date(showFrom);
+        const to = showTo ? new Date(showTo) : null;
+        const isActive = from <= now && (!to || to >= now);
+        return (
+          <div className="flex flex-col gap-1">
+            <Tag color={isActive ? "green" : "default"}>
+              {isActive ? "Aktiv" : "Inaktiv"}
+            </Tag>
+            <span className="text-xs text-neutral-500">
+              {formatDate(showFrom)} –{" "}
+              {showTo ? formatDate(showTo) : "Tills vidare"}
+            </span>
+          </div>
+        );
+      },
     },
     {
       title: "Skapad",

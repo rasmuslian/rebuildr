@@ -17,14 +17,14 @@ export class BannerService {
   ) {}
 
   async getBanners() {
-    const banners = await this.bannerRepository
+    const now = new Date();
+    return this.bannerRepository
       .createQueryBuilder('banner')
-      .where({ active: true })
+      .where('banner.showFrom <= :now', { now })
+      .andWhere('(banner.showTo IS NULL OR banner.showTo >= :now)', { now })
       .orderBy('RANDOM()')
       .limit(3)
       .getMany();
-
-    return banners;
   }
 
   async findAll(): Promise<Banner[]> {
@@ -52,7 +52,8 @@ export class BannerService {
         url: input.url,
         action: input.action,
         presetBackground: input.presetBackground,
-        active: input.active,
+        showFrom: input.showFrom,
+        showTo: input.showTo,
       });
 
       if (input.backgroundImage) {
@@ -83,7 +84,8 @@ export class BannerService {
         url: input.url,
         action: input.action,
         presetBackground: input.presetBackground,
-        active: input.active,
+        showFrom: input.showFrom,
+        showTo: input.showTo,
       });
 
       if (input.backgroundImage) {

@@ -45,8 +45,11 @@ export class CmsCreateBannerInput {
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;
 
-  @Field()
-  active: boolean;
+  @Field(() => Date)
+  showFrom: Date;
+
+  @Field(() => Date, { nullable: true })
+  showTo?: Date;
 }
 
 @InputType()
@@ -72,8 +75,11 @@ export class CmsUpdateBannerInput {
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;
 
-  @Field()
-  active: boolean;
+  @Field(() => Date)
+  showFrom: Date;
+
+  @Field(() => Date, { nullable: true })
+  showTo?: Date;
 }
 
 @ObjectType()

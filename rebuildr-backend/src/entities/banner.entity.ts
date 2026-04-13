@@ -65,7 +65,11 @@ export class Banner {
   @JoinColumn()
   backgroundImage?: File;
 
-  @Field()
-  @Column({ default: true })
-  active: boolean;
+  @Field(() => Date)
+  @Column()
+  showFrom: Date;
+
+  @Field(() => Date, { nullable: true })
+  @Column({ nullable: true })
+  showTo?: Date;
 }

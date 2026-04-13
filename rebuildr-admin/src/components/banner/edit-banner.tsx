@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { Banner, CmsUpdateBannerInput } from "gql/graphql";
 import { BannerSchema, BannerSchemaType } from "@/schema/banner-schema";
@@ -51,7 +52,8 @@ const EditBanner = ({ banner }: Props) => {
       destinationType: getDestinationType(banner),
       url: banner.url ?? "",
       action: (banner.action as BannerSchemaType["action"]) ?? undefined,
-      active: banner.active,
+      showFrom: dayjs(banner.showFrom),
+      showTo: banner.showTo ? dayjs(banner.showTo) : undefined,
     },
   });
 
@@ -93,7 +95,8 @@ const EditBanner = ({ banner }: Props) => {
         formData.destinationType === "action"
           ? (formData.action as CmsUpdateBannerInput["action"])
           : undefined,
-      active: formData.active,
+      showFrom: formData.showFrom.toDate(),
+      showTo: formData.showTo ? formData.showTo.toDate() : undefined,
       ...(backgroundImageInput ? { backgroundImage: backgroundImageInput } : {}),
     };
 

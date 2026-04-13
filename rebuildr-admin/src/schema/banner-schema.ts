@@ -1,4 +1,6 @@
 import type { UploadFile } from "antd";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { z } from "zod";
 
 export const BannerSchema = z
@@ -10,7 +12,13 @@ export const BannerSchema = z
     destinationType: z.enum(["none", "url", "action"]),
     url: z.string().optional(),
     action: z.enum(["SELL"]).optional(),
-    active: z.boolean(),
+    showFrom: z.custom<Dayjs>((val) => dayjs.isDayjs(val) && val.isValid(), {
+      message: "Välj ett startdatum",
+    }),
+    showTo: z
+      .custom<Dayjs | null>((val) => val == null || (dayjs.isDayjs(val) && val.isValid()))
+      .nullable()
+      .optional(),
   })
   .refine(
     (data) =>
