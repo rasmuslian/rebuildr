@@ -6,7 +6,6 @@ import { View, Animated } from "react-native";
 import { TrendingNow } from "@components/trending-now/trending-now";
 import { NewArrivals } from "@components/new-arrivals/new-arrivals";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
-import { SaleBanner } from "@components/sale-banner/sale-banner";
 import { RootCategoriesHorizontal } from "@components/categories/root-categories-horizontal";
 import { RecommendedProducts } from "@components/recommended-products/recommended-products";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -97,7 +96,6 @@ export default function Landing() {
             <NearYou />
             <ForTheSeason />
             <Banners />
-            <SaleBanner />
             <TrendingNow />
             <RecommendedProducts
               title="Du kanske också gillar"
