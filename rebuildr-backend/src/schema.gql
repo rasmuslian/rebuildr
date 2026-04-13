@@ -440,6 +440,30 @@ type Partner {
   logo: File!
 }
 
+type Banner {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  label: String!
+  title: String!
+  url: String
+  action: BannerActionEnum
+  presetBackground: BannerPresetBackground!
+  backgroundImage: File
+  showFrom: DateTime!
+  showTo: DateTime
+}
+
+enum BannerActionEnum {
+  SELL
+}
+
+enum BannerPresetBackground {
+  REBUILDR
+  WOOD
+  METALLIC
+}
+
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -713,6 +737,11 @@ type ListPageContentResponse {
   total: Int!
 }
 
+type CmsCreateBannerResponse {
+  banner: Banner!
+  imagePutUrl: String
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -769,6 +798,9 @@ type Query {
   pageContentById(id: String!): PageContent!
   pageContentByPage(page: String!): PageContent!
   listPageContents(input: ListPageContentInput!): ListPageContentResponse!
+  banners: [Banner!]!
+  cmsListBanners: [Banner!]!
+  cmsBannerById(id: String!): Banner!
 }
 
 input UserExistsInput {
@@ -1073,6 +1105,8 @@ type Mutation {
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
   updateCO2Factors: Boolean!
   updatePageContent(input: UpdatePageContentInput!): PageContent!
+  cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
+  cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
 }
 
 input RegisterUserInput {
@@ -1565,4 +1599,27 @@ input CmsDeletePartnerInput {
 input UpdatePageContentInput {
   id: String!
   heroHtml: String!
+}
+
+input CmsCreateBannerInput {
+  label: String!
+  title: String!
+  url: String
+  action: BannerActionEnum
+  presetBackground: BannerPresetBackground
+  backgroundImage: FileInputType
+  showFrom: DateTime!
+  showTo: DateTime
+}
+
+input CmsUpdateBannerInput {
+  id: String!
+  label: String!
+  title: String!
+  url: String
+  action: BannerActionEnum
+  presetBackground: BannerPresetBackground
+  backgroundImage: FileInputType
+  showFrom: DateTime!
+  showTo: DateTime
 }

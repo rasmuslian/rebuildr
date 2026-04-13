@@ -49,6 +49,31 @@ export type Article = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type Banner = {
+  __typename?: 'Banner';
+  action?: Maybe<BannerActionEnum>;
+  backgroundImage?: Maybe<File>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  label: Scalars['String']['output'];
+  presetBackground: BannerPresetBackground;
+  showFrom: Scalars['DateTime']['output'];
+  showTo?: Maybe<Scalars['DateTime']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export enum BannerActionEnum {
+  Sell = 'SELL'
+}
+
+export enum BannerPresetBackground {
+  Metallic = 'METALLIC',
+  Rebuildr = 'REBUILDR',
+  Wood = 'WOOD'
+}
+
 export type Brand = {
   __typename?: 'Brand';
   canDelete: Scalars['Boolean']['output'];
@@ -138,6 +163,23 @@ export type CmsBrandIdInput = {
 export type CmsCreateArticleInput = {
   body: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsCreateBannerInput = {
+  action?: InputMaybe<BannerActionEnum>;
+  backgroundImage?: InputMaybe<FileInputType>;
+  label: Scalars['String']['input'];
+  presetBackground?: InputMaybe<BannerPresetBackground>;
+  showFrom: Scalars['DateTime']['input'];
+  showTo?: InputMaybe<Scalars['DateTime']['input']>;
+  title: Scalars['String']['input'];
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsCreateBannerResponse = {
+  __typename?: 'CmsCreateBannerResponse';
+  banner: Banner;
+  imagePutUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type CmsCreateBrandInput = {
@@ -329,6 +371,18 @@ export type CmsUpdateArticleInput = {
   body: Scalars['String']['input'];
   id: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsUpdateBannerInput = {
+  action?: InputMaybe<BannerActionEnum>;
+  backgroundImage?: InputMaybe<FileInputType>;
+  id: Scalars['String']['input'];
+  label: Scalars['String']['input'];
+  presetBackground?: InputMaybe<BannerPresetBackground>;
+  showFrom: Scalars['DateTime']['input'];
+  showTo?: InputMaybe<Scalars['DateTime']['input']>;
+  title: Scalars['String']['input'];
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CmsUpdateBrandInput = {
@@ -857,6 +911,7 @@ export type Mutation = {
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
+  cmsCreateBanner: CmsCreateBannerResponse;
   cmsCreateBrand: Brand;
   cmsCreateCategory: CmsCreateCategoryResponse;
   cmsCreateFiles: CmsCreateFilesResponse;
@@ -880,6 +935,7 @@ export type Mutation = {
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
   cmsUpdateArticle: Article;
+  cmsUpdateBanner: CmsCreateBannerResponse;
   cmsUpdateBrand: Brand;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
@@ -957,6 +1013,11 @@ export type MutationCancelPurchaseArgs = {
 
 export type MutationCmsCreateArticleArgs = {
   input: CmsCreateArticleInput;
+};
+
+
+export type MutationCmsCreateBannerArgs = {
+  input: CmsCreateBannerInput;
 };
 
 
@@ -1073,6 +1134,11 @@ export type MutationCmsUnhideProductArgs = {
 
 export type MutationCmsUpdateArticleArgs = {
   input: CmsUpdateArticleInput;
+};
+
+
+export type MutationCmsUpdateBannerArgs = {
+  input: CmsUpdateBannerInput;
 };
 
 
@@ -1635,12 +1701,15 @@ export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
   article: Article;
+  banners: Array<Banner>;
   brand: Brand;
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
+  cmsBannerById: Banner;
   cmsGetProduct: Product;
   cmsGetUserProjects: Array<Project>;
+  cmsListBanners: Array<Banner>;
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
@@ -1718,6 +1787,11 @@ export type QueryCategoriesArgs = {
 
 export type QueryCategoryArgs = {
   input: CategoryInput;
+};
+
+
+export type QueryCmsBannerByIdArgs = {
+  id: Scalars['String']['input'];
 };
 
 

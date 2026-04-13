@@ -122,6 +122,10 @@ import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
 import { AIService } from './services/ai.service';
 import { SCBAPI } from './apis/scb.api';
+import { Banner } from './entities/banner.entity';
+import { BannerService } from './services/banner.service';
+import { BannerResolver } from './resolvers/banner.resolver';
+import { BannerLoader } from './dataloaders/banner.loader';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -178,6 +182,7 @@ export interface RequestType {
       Partner,
       CO2Factor,
       PageContent,
+      Banner,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -193,6 +198,7 @@ export interface RequestType {
         MessageLoader,
         PartnerLoader,
         BrandLoader,
+        BannerLoader,
         ConfigService,
       ],
       useFactory: (
@@ -206,6 +212,7 @@ export interface RequestType {
         messageLoaderService: MessageLoader,
         partnerLoaderService: PartnerLoader,
         brandLoaderService: BrandLoader,
+        bannerLoaderService: BannerLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -224,6 +231,7 @@ export interface RequestType {
             messageLoaders: messageLoaderService.createLoaders(),
             partnerLoaders: partnerLoaderService.createLoaders(),
             brandLoaders: brandLoaderService.createLoaders(),
+            bannerLoaders: bannerLoaderService.createLoaders(),
             req,
             res,
           }),
@@ -318,6 +326,8 @@ export interface RequestType {
     PageContentService,
     PageContentResolver,
     AIService,
+    BannerService,
+    BannerResolver,
   ],
 })
 export class AppModule {}
