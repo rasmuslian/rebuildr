@@ -17,6 +17,7 @@ import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { usePwaInstall } from "@hooks/usePwaInstall";
 import { Button } from "@components/buttons/button";
+import { Banners } from "@components/banners/banners";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -95,6 +96,7 @@ export default function Landing() {
             <NewArrivals />
             <NearYou />
             <ForTheSeason />
+            <Banners />
             <SaleBanner />
             <TrendingNow />
             <RecommendedProducts
