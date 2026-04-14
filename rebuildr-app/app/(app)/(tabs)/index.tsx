@@ -51,7 +51,7 @@ export default function Landing() {
     <>
       <RebuildrHead />
 
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: colors.logo.vector }}>
         <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
         <Hero scrollY={scrollY} showFor="mobile" />
 
