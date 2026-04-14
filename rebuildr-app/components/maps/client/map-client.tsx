@@ -10,6 +10,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import mapPin from "@assets/images/map-pin.png";
