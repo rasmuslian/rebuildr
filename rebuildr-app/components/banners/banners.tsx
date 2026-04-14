@@ -152,7 +152,9 @@ const Banner = ({ banner }: BannerProps) => {
             >
               {banner.title}
             </BannerTitle>
-            <Icon icon="chevronRight" customColor={colors.logo.background} />
+            {(banner.url || banner.action) && (
+              <Icon icon="chevronRight" customColor={colors.logo.background} />
+            )}
           </View>
         </View>
       </View>
