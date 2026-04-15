@@ -134,46 +134,57 @@ export const MainContent = ({
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {product.primaryQuantity && product.primaryUnit && (
             <ProductChip
+              text="Antal"
               boldText={`${product.primaryQuantity} ${quantities[product.primaryUnit].short}`}
             />
           )}
           {product.secondaryQuantity && product.secondaryUnit && (
             <ProductChip
+              text="Antal"
               boldText={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].short}`}
             />
           )}
           {product.condition && (
-            <ProductChip boldText={conditions[product.condition].name} />
+            <ProductChip
+              text="Skick"
+              boldText={conditions[product.condition].name}
+            />
           )}
           {brand && <ProductChip boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
-              boldText={`${measurements.THICKNESS.prefix} ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
+              text={measurements.THICKNESS.name}
+              boldText={`${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
             />
           )}
           {!!product.height && (
             <ProductChip
-              boldText={`${measurements.HEIGHT.prefix} ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
+              text={measurements.HEIGHT.name}
+              boldText={`${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
             />
           )}
           {!!product.width && (
             <ProductChip
-              boldText={`${measurements.WIDTH.prefix} ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
+              text={measurements.WIDTH.name}
+              boldText={`${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
             />
           )}
           {!!product.length && (
             <ProductChip
-              boldText={`${measurements.LENGTH.prefix} ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
+              text={measurements.LENGTH.name}
+              boldText={`${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
             />
           )}
           {!!product.diameter && (
             <ProductChip
-              boldText={`${measurements.DIAMETER.prefix} ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
+              text={measurements.DIAMETER.name}
+              boldText={`${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
             />
           )}
           {!!product.weight && (
             <ProductChip
-              boldText={`${measurements.WEIGHT.prefix} ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
+              text={measurements.WEIGHT.name}
+              boldText={`${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
             />
           )}
         </View>
@@ -318,17 +329,24 @@ export const MainContent = ({
 };
 
 type ProductChipProps = {
+  text?: string;
   boldText?: string;
 };
 
-const ProductChip = ({ boldText }: ProductChipProps) => {
+const ProductChip = ({ text, boldText }: ProductChipProps) => {
   return (
     <FilterChip
       label={
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          {text && <Body size="medium">{text}:</Body>}
           {boldText && <Label size="large">{boldText}</Label>}
         </View>
       }
+      style={{
+        backgroundColor: "#F6F6F6",
+        height: 0,
+        paddingVertical: 15,
+      }}
     />
   );
 };
