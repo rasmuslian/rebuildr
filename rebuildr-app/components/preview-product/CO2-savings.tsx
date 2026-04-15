@@ -6,7 +6,7 @@ import { View } from "react-native";
 import co2Svg from "@assets/svgs/co2.svg";
 import { Image } from "expo-image";
 import { ExplainCO2CalculationSheet } from "@components/explanation-information-sheets/explain-co2-calculation-bottom-sheet";
-import { formatMeasurement } from "@/utils/formattings";
+import { formatCO2 } from "@/utils/formattings";
 
 type Props = {
   co2Saving?: number | null;
@@ -30,7 +30,7 @@ export const CO2Savings = ({ co2Saving }: Props) => {
       >
         <Image source={{ uri: co2Svg.uri }} style={{ height: 36, width: 52 }} />
         <Headline size="large">
-          {co2Saving ? formatMeasurement(co2Saving) : "X"} kg CO2 sparat
+          {co2Saving ? formatCO2(co2Saving) : "X"} kg CO2 sparat
         </Headline>
         {!co2Saving && (
           <Label size="medium" color="error">
