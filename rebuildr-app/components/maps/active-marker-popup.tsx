@@ -269,6 +269,7 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
           title={product.title}
           heart={product.sellerId !== me?.id}
           liked={!!product.likedByMe}
+          account={product.seller}
           onHeartPress={() => {
             onToggleProductHeart({
               productId: product.id,
