@@ -31,6 +31,7 @@ export const ACTIVE_PRODUCT_POPUP = gql`
       sellerId
       seller {
         id
+        rating
         profilePicture {
           id
           url
