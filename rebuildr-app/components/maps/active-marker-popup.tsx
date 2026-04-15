@@ -194,11 +194,8 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
         <View style={{ gap: 8, marginTop: 6, minHeight: 200 }}>
           <Image
             source={project.user.profilePicture?.url}
-            style={{
-              height: 96,
-              width: 128,
-              borderRadius: borderRadius.medium,
-            }}
+            cachePolicy="memory-disk"
+            style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
             contentFit="contain"
           />
           <Body size="small">{project.shortText}</Body>
@@ -225,11 +222,8 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
           {project && (
             <Image
               source={project.user.profilePicture?.url}
-              style={{
-                height: 96,
-                width: 128,
-                borderRadius: borderRadius.medium,
-              }}
+              cachePolicy="memory-disk"
+              style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
               contentFit="contain"
             />
           )}
