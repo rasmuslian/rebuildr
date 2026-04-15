@@ -57,16 +57,25 @@ export default function Partners() {
         {data?.partners.map((p, i) => (
           <React.Fragment key={i}>
             <AccordionSection title={p.name} initialOpen={i === 0}>
-              <Image
-                source={p.logo.url}
+              <View
                 style={{
-                  width: 236,
-                  height: 80,
-                  marginVertical: 36,
+                  height: 152,
+                  width: "100%",
+                  maxWidth: 236,
+                  justifyContent: "center",
+                  alignItems: "center",
                   alignSelf: "center",
                 }}
-                contentFit="contain"
-              />
+              >
+                <Image
+                  source={p.logo.url}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                  }}
+                  contentFit="contain"
+                />
+              </View>
               <Body size="medium">{p.description}</Body>
               {p.websiteUrl && (
                 <View
