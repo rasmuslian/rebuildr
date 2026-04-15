@@ -116,7 +116,7 @@ export const HamburgerMenu = () => {
           {trendingCategories.length > 0 && (
             <Entry
               title={permanentSection.trendingNow.title}
-              link="/search/products/near-you"
+              link="/search/products/trending-now"
               onPress={() =>
                 filterBuilder.reset().setCategories(trendingCategories).apply()
               }

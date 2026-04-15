@@ -88,14 +88,15 @@ export const MapProvider = ({
   });
 
   useEffect(() => {
-    if (userCoords)
+    if (userCoords) {
       setState({
         userLocation: [userCoords.latitude, userCoords.longitude],
         center:
           state.center === defaultCenter
-            ? [userCoords.latitude, userCoords.longitude]
+            ? [userCoords.latitude - 0.008, userCoords.longitude]
             : state.center,
       });
+    }
   }, [userCoords]);
 
   useEffect(() => {
