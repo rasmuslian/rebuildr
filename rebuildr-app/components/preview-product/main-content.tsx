@@ -150,7 +150,7 @@ export const MainContent = ({
               boldText={conditions[product.condition].name}
             />
           )}
-          {brand && <ProductChip boldText={brand.name} />}
+          {brand && <ProductChip text="Varumärke" boldText={brand.name} />}
           {!!product.thickness && (
             <ProductChip
               text={measurements.THICKNESS.name}
