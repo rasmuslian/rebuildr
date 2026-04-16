@@ -599,11 +599,15 @@ export class UserService {
     const { pageSize = 10, page = 0, searchString = '' } = input;
     const skip = Math.max(0, pageSize * page);
 
-    let commonFilter: FindOptionsWhere<User> = {
+    let verifiedFilter: FindOptionsWhere<User> = {
       emailVerifiedAt: Not(IsNull()),
     };
+    let businessFilter: FindOptionsWhere<User> = {
+      type: UserType.BUSINESS,
+    };
     if (input.canSell) {
-      commonFilter = { ...commonFilter, connectedAccountId: Not(IsNull()) };
+      verifiedFilter = { ...verifiedFilter, connectedAccountId: Not(IsNull()) };
+      businessFilter = { ...businessFilter, connectedAccountId: Not(IsNull()) };
     }
 
     const [users, total] = await this.userRepository.findAndCount({
@@ -611,17 +615,32 @@ export class UserService {
         {
           name: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
-          ...commonFilter,
+          ...verifiedFilter,
         },
         {
           username: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
-          ...commonFilter,
+          ...verifiedFilter,
         },
         {
           email: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
-          ...commonFilter,
+          ...verifiedFilter,
+        },
+        {
+          name: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
+        },
+        {
+          username: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
+        },
+        {
+          email: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
         },
       ],
       take: pageSize,
