@@ -312,7 +312,7 @@ const ActivePinController = () => {
         position: "absolute",
         right: 16,
         bottom: 16,
-        width: 149,
+        width: 163,
         backgroundColor: "white",
         paddingHorizontal: 8,
         paddingVertical: 10,
