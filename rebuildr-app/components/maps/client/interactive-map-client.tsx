@@ -2,7 +2,7 @@
  * This file can only be rendered while window is defined.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MapMarker from "@components/maps/map-marker";
 import UserLocationMarker from "@components/maps/user-location-marker";
 import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
@@ -10,11 +10,15 @@ import { useDebounceCallback } from "usehooks-ts";
 import { useMapContext } from "@context/map-context";
 import { View, Pressable } from "react-native";
 import { Check } from "@components/controls/check";
-import { Label } from "@components/typography/text";
+import { Label, Body } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { Icon } from "@icons/icon";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
+import { Image } from "expo-image";
 
 import "leaflet/dist/leaflet.css";
+import { MapPinTypeEnum } from "@/gql/graphql";
 
 export default function InteractiveMapClient() {
   const { state } = useMapContext();
@@ -33,7 +37,7 @@ export default function InteractiveMapClient() {
       <EventController />
       <ZoomController />
       <NavigationController />
-      <PriceController />
+      <MapInformationController />
       <ActivePinController />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -76,7 +80,7 @@ const EventController = () => {
 
       if (
         target.closest("#active-pin-controller") ||
-        target.closest("#price-controller") ||
+        target.closest("#map-information-controller") ||
         target.closest("#zoom-controller") ||
         target.closest("#navigation-controller")
       ) {
@@ -149,41 +153,149 @@ const ZoomController = () => {
   );
 };
 
-const PriceController = () => {
+type MapIconInfoProps = {
+  type: MapPinTypeEnum;
+  title: string;
+  description: string;
+};
+
+const MapIconInfo = ({ type, title, description }: MapIconInfoProps) => (
+  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+    <Image
+      source={getMarkerSvg(type, false)}
+      style={{ width: 30, height: 30 }}
+    />
+
+    <View style={{ gap: 5, width: 190 }}>
+      <Label size="medium">{title}</Label>
+      <Body size="small" color="secondary">
+        {description}
+      </Body>
+    </View>
+  </View>
+);
+
+const MapInformationController = () => {
   const { state, setState } = useMapContext();
+  const [isOpen, setIsOpen] = useState(false);
+  const colors = useThemeColor();
 
   return (
     <View
-      nativeID="price-controller"
+      nativeID="map-information-controller"
       style={{
         position: "absolute",
         left: 16,
         top: 16,
-        width: 107,
-        backgroundColor: "white",
-        paddingHorizontal: 8,
-        paddingVertical: 10,
-        borderRadius: 12,
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
         zIndex: 1000,
-        opacity: 0.8,
+        gap: 10,
       }}
     >
       <View
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
+          alignSelf: "flex-start",
+          backgroundColor: "white",
+          borderRadius: 12,
+          shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 10,
+          opacity: 0.8,
         }}
       >
-        <Check
-          selected={state.showPrice}
-          onPress={() => setState({ showPrice: !state.showPrice })}
-        />
-        <Label size="small">{state.showPrice ? "Göm pris" : "Visa pris"}</Label>
+        <Pressable
+          onPress={() => setIsOpen(!isOpen)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+          }}
+        >
+          <Label size="small">Kartinfo</Label>
+          <Icon icon={isOpen ? "chevronUp" : "chevronDown"} size={14} />
+        </Pressable>
       </View>
+
+      {isOpen && (
+        <View
+          style={{
+            width: 263,
+            backgroundColor: "white",
+            borderRadius: 12,
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 10,
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              gap: 16,
+            }}
+          >
+            <Label size="medium" color="secondary">
+              Kartikon visar
+            </Label>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                width: 107,
+                backgroundColor: colors.buttons.outlinedFill.focused,
+                padding: 8,
+                borderRadius: 12,
+              }}
+            >
+              <Check
+                selected={state.showPrice}
+                onPress={() => setState({ showPrice: !state.showPrice })}
+              />
+              <Label size="small">
+                {state.showPrice ? "Göm pris" : "Visa pris"}
+              </Label>
+            </View>
+          </View>
+
+          <Divider />
+
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              gap: 16,
+            }}
+          >
+            <Label size="medium" color="secondary">
+              Förklaring kartikon
+            </Label>
+
+            <MapIconInfo
+              type={MapPinTypeEnum.Product}
+              title="Annons"
+              description="Enskild vara till försäljning"
+            />
+            <MapIconInfo
+              type={MapPinTypeEnum.Project}
+              title="Project"
+              description="Projektförsäljning av varor"
+            />
+            <MapIconInfo
+              type={MapPinTypeEnum.Hub}
+              title="Företagsförsäljning"
+              description="Försäljning från företag"
+            />
+            <MapIconInfo
+              type={MapPinTypeEnum.Featured}
+              title="RebuildR Hub"
+              description="Inlämning och försäljning från lager"
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 };
