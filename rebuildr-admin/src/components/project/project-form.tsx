@@ -24,8 +24,6 @@ type Props = {
   control: Control<ProjectSchemaType>;
   submitLabel: string;
   isPending: boolean;
-  sellerInitialLabel?: string;
-  sellerInitialPicture?: string;
 };
 
 const ProjectForm = ({
@@ -36,8 +34,6 @@ const ProjectForm = ({
   control,
   submitLabel,
   isPending,
-  sellerInitialLabel,
-  sellerInitialPicture,
 }: Props) => {
   const showDetailsOnMap = useWatch({ control, name: "showDetailsOnMap" });
 
@@ -61,91 +57,16 @@ const ProjectForm = ({
 
       <div className="grid grid-cols-[auto_480px] items-start gap-4">
         <Section>
-        <div className="flex flex-col gap-4">
-          <Controller
-            control={control}
-            name="title"
-            render={({ field }) => (
-              <FormField label="Namn" required={true} error={errors.title?.message}>
-                <Input {...field} placeholder="Namn" />
-              </FormField>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="description"
-            render={({ field }) => (
-              <FormField
-                label="Beskrivning"
-                required={true}
-                error={errors.description?.message}
-              >
-                <Input.TextArea {...field} rows={4} placeholder="Beskrivning ..." />
-              </FormField>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name={"address"}
-            render={({ field: { value, onChange } }) => (
-              <FormField
-                label="Adress"
-                required={true}
-                error={errors.address?.message}
-              >
-                <SelectAddress value={value} onChange={onChange} />
-              </FormField>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="showDetailsOnMap"
-            render={({ field: { onChange, value } }) => (
-              <FormField>
-                <label className="flex items-center gap-2 text-label-large">
-                  <Checkbox
-                    checked={value}
-                    onChange={(event) => onChange(event.target.checked)}
-                  />
-                  Visa förssättssida på kartan
-                </label>
-              </FormField>
-            )}
-          />
-
-          {showDetailsOnMap && (
+          <div className="flex flex-col gap-4">
             <Controller
               control={control}
-              name="shortText"
+              name="title"
               render={({ field }) => (
                 <FormField
-                  label="Försättssida text"
-                  error={errors.shortText?.message}
+                  label="Namn"
+                  required={true}
+                  error={errors.title?.message}
                 >
-                  <Input.TextArea
-                    {...field}
-                    rows={3}
-                    maxLength={120}
-                    placeholder="Max 120 tecken"
-                  />
-                </FormField>
-              )}
-            />
-          )}
-
-          <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
-            <Divider orientation="left" size="small">
-              Kontaktuppgifter
-            </Divider>
-
-            <Controller
-              control={control}
-              name="contact.name"
-              render={({ field }) => (
-                <FormField label="Namn" error={errors.contact?.name?.message}>
                   <Input {...field} placeholder="Namn" />
                 </FormField>
               )}
@@ -153,28 +74,114 @@ const ProjectForm = ({
 
             <Controller
               control={control}
-              name="contact.email"
+              name="description"
               render={({ field }) => (
-                <FormField label="E-post" error={errors.contact?.email?.message}>
-                  <Input {...field} placeholder="E-post" />
+                <FormField
+                  label="Beskrivning"
+                  required={true}
+                  error={errors.description?.message}
+                >
+                  <Input.TextArea
+                    {...field}
+                    rows={4}
+                    placeholder="Beskrivning ..."
+                  />
                 </FormField>
               )}
             />
 
             <Controller
               control={control}
-              name="contact.phone"
-              render={({ field }) => (
+              name={"address"}
+              render={({ field: { value, onChange } }) => (
                 <FormField
-                  label="Telefonnummer"
-                  error={errors.contact?.phone?.message}
+                  label="Adress"
+                  required={true}
+                  error={errors.address?.message}
                 >
-                  <Input {...field} placeholder="Telefonnummer" />
+                  <SelectAddress value={value} onChange={onChange} />
                 </FormField>
               )}
             />
+
+            <Controller
+              control={control}
+              name="showDetailsOnMap"
+              render={({ field: { onChange, value } }) => (
+                <FormField>
+                  <label className="flex items-center gap-2 text-label-large">
+                    <Checkbox
+                      checked={value}
+                      onChange={(event) => onChange(event.target.checked)}
+                    />
+                    Visa förssättssida på kartan
+                  </label>
+                </FormField>
+              )}
+            />
+
+            {showDetailsOnMap && (
+              <Controller
+                control={control}
+                name="shortText"
+                render={({ field }) => (
+                  <FormField
+                    label="Försättssida text"
+                    error={errors.shortText?.message}
+                  >
+                    <Input.TextArea
+                      {...field}
+                      rows={3}
+                      maxLength={120}
+                      placeholder="Max 120 tecken"
+                    />
+                  </FormField>
+                )}
+              />
+            )}
+
+            <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
+              <Divider orientation="left" size="small">
+                Kontaktuppgifter
+              </Divider>
+
+              <Controller
+                control={control}
+                name="contact.name"
+                render={({ field }) => (
+                  <FormField label="Namn" error={errors.contact?.name?.message}>
+                    <Input {...field} placeholder="Namn" />
+                  </FormField>
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="contact.email"
+                render={({ field }) => (
+                  <FormField
+                    label="E-post"
+                    error={errors.contact?.email?.message}
+                  >
+                    <Input {...field} placeholder="E-post" />
+                  </FormField>
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="contact.phone"
+                render={({ field }) => (
+                  <FormField
+                    label="Telefonnummer"
+                    error={errors.contact?.phone?.message}
+                  >
+                    <Input {...field} placeholder="Telefonnummer" />
+                  </FormField>
+                )}
+              />
+            </div>
           </div>
-        </div>
         </Section>
 
         <Section>
@@ -187,12 +194,7 @@ const ProjectForm = ({
                 required={true}
                 error={errors.userId?.message}
               >
-                <SelectUser
-                  value={value}
-                  initialLabel={sellerInitialLabel}
-                  initialPicture={sellerInitialPicture}
-                  onChange={onChange}
-                />
+                <SelectUser value={value} onChange={onChange} />
               </FormField>
             )}
           />

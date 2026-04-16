@@ -15,18 +15,10 @@ const PAGE_SIZE = 10;
 type Props = {
   label?: string;
   value?: string;
-  initialLabel?: string;
-  initialPicture?: string;
   onChange: (userId: string) => void;
 };
 
-const SelectUser = ({
-  label,
-  value,
-  initialLabel,
-  initialPicture,
-  onChange,
-}: Props) => {
+const SelectUser = ({ label, value, onChange }: Props) => {
   const [searchString, setSearchString] = useState("");
   const [selectedLabel, setSelectedLabel] = useState<string | undefined>();
 
@@ -91,7 +83,6 @@ const SelectUser = ({
     (selectedUser?.email
       ? `${selectedUser.name} (${selectedUser.email})`
       : selectedUser?.name) ??
-    initialLabel ??
     value;
 
   return (

@@ -91,8 +91,6 @@ const CreateProject = () => {
       isPending={isPending}
       onSubmit={onSubmit}
       submitLabel="Publicera"
-      sellerInitialLabel={profile?.email ?? profile?.username ?? undefined}
-      sellerInitialPicture={profile?.profilePicture?.url ?? undefined}
     />
   );
 };

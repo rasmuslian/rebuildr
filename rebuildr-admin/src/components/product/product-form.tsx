@@ -44,8 +44,6 @@ type Props = {
   clearErrors: UseFormClearErrors<ProductSchemaType>;
   submitLabel: string;
   isPending: boolean;
-  sellerInitialLabel?: string;
-  sellerInitialPicture?: string;
 };
 
 const ProductForm = ({
@@ -59,8 +57,6 @@ const ProductForm = ({
   clearErrors,
   submitLabel,
   isPending,
-  sellerInitialLabel,
-  sellerInitialPicture,
 }: Props) => {
   return (
     <AdminForm onSubmit={handleSubmit(onSubmit)}>
@@ -264,8 +260,6 @@ const ProductForm = ({
                 >
                   <SelectUser
                     value={value}
-                    initialLabel={sellerInitialLabel}
-                    initialPicture={sellerInitialPicture}
                     onChange={(userId) => {
                       onChange(userId);
                       setValue("project.projectId", undefined);

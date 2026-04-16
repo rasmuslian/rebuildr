@@ -162,8 +162,6 @@ const CreateProduct = () => {
       watch={watch}
       setValue={setValue}
       clearErrors={clearErrors}
-      sellerInitialLabel={profile?.email ?? profile?.username ?? undefined}
-      sellerInitialPicture={profile?.profilePicture?.url ?? undefined}
     />
   );
 };
