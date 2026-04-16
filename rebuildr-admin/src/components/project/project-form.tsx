@@ -6,6 +6,8 @@ import { Button, Checkbox, Divider, Input } from "antd";
 import AdminForm from "@components/admin-form";
 import FormField from "@components/form-field";
 import SelectAddress from "@components/address/select-address";
+import SelectUser from "@components/user/select-user";
+import Section from "@components/section";
 import {
   UseFormHandleSubmit,
   FieldErrors,
@@ -36,123 +38,168 @@ const ProjectForm = ({
   const showDetailsOnMap = useWatch({ control, name: "showDetailsOnMap" });
 
   return (
-    <AdminForm title={title} type="raised" onSubmit={handleSubmit(onSubmit)}>
-      <Controller
-        control={control}
-        name="title"
-        render={({ field }) => (
-          <FormField label="Namn" required={true} error={errors.title?.message}>
-            <Input {...field} placeholder="Namn" />
-          </FormField>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="description"
-        render={({ field }) => (
-          <FormField
-            label="Beskrivning"
-            required={true}
-            error={errors.description?.message}
+    <AdminForm onSubmit={handleSubmit(onSubmit)}>
+      <Section>
+        <div className="flex flex-row justify-between gap-4">
+          <p className="flex flex-col justify-center text-title-medium">
+            {title}
+          </p>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={isPending}
+            style={{ width: 180 }}
           >
-            <Input.TextArea {...field} rows={4} placeholder="Beskrivning ..." />
-          </FormField>
-        )}
-      />
+            {submitLabel}
+          </Button>
+        </div>
+      </Section>
 
-      <Controller
-        control={control}
-        name={"address"}
-        render={({ field: { value, onChange } }) => (
-          <FormField
-            label="Adress"
-            required={true}
-            error={errors.address?.message}
-          >
-            <SelectAddress value={value} onChange={onChange} />
-          </FormField>
-        )}
-      />
+      <div className="grid grid-cols-[auto_480px] items-start gap-4">
+        <Section>
+          <div className="flex flex-col gap-4">
+            <Controller
+              control={control}
+              name="title"
+              render={({ field }) => (
+                <FormField
+                  label="Namn"
+                  required={true}
+                  error={errors.title?.message}
+                >
+                  <Input {...field} placeholder="Namn" />
+                </FormField>
+              )}
+            />
 
-      <Controller
-        control={control}
-        name="showDetailsOnMap"
-        render={({ field: { onChange, value } }) => (
-          <FormField>
-            <label className="flex items-center gap-2 text-label-large">
-              <Checkbox
-                checked={value}
-                onChange={(event) => onChange(event.target.checked)}
+            <Controller
+              control={control}
+              name="description"
+              render={({ field }) => (
+                <FormField
+                  label="Beskrivning"
+                  required={true}
+                  error={errors.description?.message}
+                >
+                  <Input.TextArea
+                    {...field}
+                    rows={4}
+                    placeholder="Beskrivning ..."
+                  />
+                </FormField>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name={"address"}
+              render={({ field: { value, onChange } }) => (
+                <FormField
+                  label="Adress"
+                  required={true}
+                  error={errors.address?.message}
+                >
+                  <SelectAddress value={value} onChange={onChange} />
+                </FormField>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="showDetailsOnMap"
+              render={({ field: { onChange, value } }) => (
+                <FormField>
+                  <label className="flex items-center gap-2 text-label-large">
+                    <Checkbox
+                      checked={value}
+                      onChange={(event) => onChange(event.target.checked)}
+                    />
+                    Visa förssättssida på kartan
+                  </label>
+                </FormField>
+              )}
+            />
+
+            {showDetailsOnMap && (
+              <Controller
+                control={control}
+                name="shortText"
+                render={({ field }) => (
+                  <FormField
+                    label="Försättssida text"
+                    error={errors.shortText?.message}
+                  >
+                    <Input.TextArea
+                      {...field}
+                      rows={3}
+                      maxLength={120}
+                      placeholder="Max 120 tecken"
+                    />
+                  </FormField>
+                )}
               />
-              Visa förssättssida på kartan
-            </label>
-          </FormField>
-        )}
-      />
+            )}
 
-      {showDetailsOnMap && (
-        <Controller
-          control={control}
-          name="shortText"
-          render={({ field }) => (
-            <FormField
-              label="Försättssida text"
-              error={errors.shortText?.message}
-            >
-              <Input.TextArea
-                {...field}
-                rows={3}
-                maxLength={120}
-                placeholder="Max 120 tecken"
+            <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
+              <Divider orientation="left" size="small">
+                Kontaktuppgifter
+              </Divider>
+
+              <Controller
+                control={control}
+                name="contact.name"
+                render={({ field }) => (
+                  <FormField label="Namn" error={errors.contact?.name?.message}>
+                    <Input {...field} placeholder="Namn" />
+                  </FormField>
+                )}
               />
-            </FormField>
-          )}
-        />
-      )}
 
-      <div className="flex flex-col gap-4 rounded-md bg-neutral-100 p-4">
-        <Divider orientation="left" size="small">
-          Kontaktuppgifter
-        </Divider>
+              <Controller
+                control={control}
+                name="contact.email"
+                render={({ field }) => (
+                  <FormField
+                    label="E-post"
+                    error={errors.contact?.email?.message}
+                  >
+                    <Input {...field} placeholder="E-post" />
+                  </FormField>
+                )}
+              />
 
-        <Controller
-          control={control}
-          name="contact.name"
-          render={({ field }) => (
-            <FormField label="Namn" error={errors.contact?.name?.message}>
-              <Input {...field} placeholder="Namn" />
-            </FormField>
-          )}
-        />
+              <Controller
+                control={control}
+                name="contact.phone"
+                render={({ field }) => (
+                  <FormField
+                    label="Telefonnummer"
+                    error={errors.contact?.phone?.message}
+                  >
+                    <Input {...field} placeholder="Telefonnummer" />
+                  </FormField>
+                )}
+              />
+            </div>
+          </div>
+        </Section>
 
-        <Controller
-          control={control}
-          name="contact.email"
-          render={({ field }) => (
-            <FormField label="E-post" error={errors.contact?.email?.message}>
-              <Input {...field} placeholder="E-post" />
-            </FormField>
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="contact.phone"
-          render={({ field }) => (
-            <FormField
-              label="Telefonnummer"
-              error={errors.contact?.phone?.message}
-            >
-              <Input {...field} placeholder="Telefonnummer" />
-            </FormField>
-          )}
-        />
+        <Section>
+          <Controller
+            control={control}
+            name="userId"
+            render={({ field: { value, onChange } }) => (
+              <FormField
+                label="Ägare"
+                required={true}
+                error={errors.userId?.message}
+              >
+                <SelectUser value={value} onChange={onChange} />
+              </FormField>
+            )}
+          />
+        </Section>
       </div>
-
-      <Button type="primary" htmlType="submit" loading={isPending}>
-        {submitLabel}
-      </Button>
     </AdminForm>
   );
 };

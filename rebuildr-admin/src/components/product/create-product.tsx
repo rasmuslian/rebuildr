@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import ProductForm from "@components/product/product-form";
 import { ProductSchemaType, ProductSchema } from "@/schema/product-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { App } from "antd";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
@@ -16,6 +16,7 @@ import {
   MeasurementUnitEnum,
 } from "gql/graphql";
 import { createProduct } from "@/queries/product/create-product";
+import { getProfile } from "@/queries/profile/get-profile";
 import { queryKeys } from "@/lib/query-keys";
 import { omit } from "lodash";
 
@@ -23,6 +24,11 @@ const CreateProduct = () => {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const { data: profile } = useQuery({
+    queryKey: [queryKeys.GET_PROFILE],
+    queryFn: getProfile,
+  });
 
   const {
     control,
@@ -72,6 +78,12 @@ const CreateProduct = () => {
       },
     },
   });
+
+  useEffect(() => {
+    if (profile?.id) {
+      setValue("sellerId", profile.id);
+    }
+  }, [profile?.id]);
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (input: CmsCreateProductInput) => {
@@ -126,6 +138,7 @@ const CreateProduct = () => {
         shipping.enabled && shipping.shippingPriceId
           ? [shipping.shippingPriceId]
           : [],
+      sellerId: formData.sellerId,
     };
 
     const response = await mutateAsync(newProduct);

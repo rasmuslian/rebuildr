@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   RegistrationStatusEnum,
@@ -10,9 +10,10 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
+  InternalServerException,
   NotFoundException,
 } from 'src/exceptions';
-import { ILike, IsNull, Not, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, IsNull, Not, Repository } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   CmsListUsersInput,
@@ -39,7 +40,8 @@ import { StripeService } from './stripe.service';
 import { MapPin } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
 import { validateWebsite } from 'src/utility/website';
-
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 @Injectable()
 export class UserService {
   constructor(
@@ -54,6 +56,7 @@ export class UserService {
     private stripeService: StripeService,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async findOne(id: string) {
@@ -506,7 +509,15 @@ export class UserService {
       return false;
     }
 
-    return await this.stripeService.accountIsEnabled(user.connectedAccountId);
+    try {
+      return await this.stripeService.accountIsEnabled(user.connectedAccountId);
+    } catch (e) {
+      if (process.env.NODE_ENV === 'development') {
+        return !!user.connectedAccountId;
+      }
+      this.logger.error('sellerAccountIsCreated: error: ', e);
+      throw InternalServerException('Error in sellerAccountIsEnabled');
+    }
   }
 
   /**
@@ -588,19 +599,48 @@ export class UserService {
     const { pageSize = 10, page = 0, searchString = '' } = input;
     const skip = Math.max(0, pageSize * page);
 
+    let verifiedFilter: FindOptionsWhere<User> = {
+      emailVerifiedAt: Not(IsNull()),
+    };
+    let businessFilter: FindOptionsWhere<User> = {
+      type: UserType.BUSINESS,
+    };
+    if (input.canSell) {
+      verifiedFilter = { ...verifiedFilter, connectedAccountId: Not(IsNull()) };
+      businessFilter = { ...businessFilter, connectedAccountId: Not(IsNull()) };
+    }
+
     const [users, total] = await this.userRepository.findAndCount({
       where: [
         {
           name: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
+          ...verifiedFilter,
         },
         {
           username: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
+          ...verifiedFilter,
         },
         {
           email: ILike(`%${searchString}%`),
           deletedAt: IsNull(),
+          ...verifiedFilter,
+        },
+        {
+          name: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
+        },
+        {
+          username: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
+        },
+        {
+          email: ILike(`%${searchString}%`),
+          deletedAt: IsNull(),
+          ...businessFilter,
         },
       ],
       take: pageSize,
@@ -612,6 +652,15 @@ export class UserService {
       users,
       total,
     };
+  }
+
+  async cmsGetUser(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { profilePicture: true },
+    });
+    if (!user) throw NotFoundException('User not found');
+    return user;
   }
 
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {

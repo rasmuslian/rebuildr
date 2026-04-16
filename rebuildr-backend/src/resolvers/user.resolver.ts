@@ -224,6 +224,9 @@ export class CmsListUsersInput {
 
   @Field(() => String, { nullable: true })
   searchString?: string;
+
+  @Field({ nullable: true })
+  canSell?: boolean;
 }
 
 @ObjectType()
@@ -297,6 +300,13 @@ export class UserResolver {
     @Args('limit', { nullable: true, type: () => Int }) limit?: number,
   ) {
     return this.userService.getUsers(input, limit, offset);
+  }
+
+  @Query(() => User)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsGetUser(@Args('id') id: string): Promise<User> {
+    return this.userService.cmsGetUser(id);
   }
 
   @Query(() => CmsListUsersResponse)

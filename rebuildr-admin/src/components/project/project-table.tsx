@@ -93,6 +93,14 @@ const ProjectTable = () => {
       width: "250px",
     },
     {
+      title: "Ägare",
+      key: "user",
+      width: "220px",
+      render: (_, { user }) => (
+        <span>{user?.name}{user?.email ? ` (${user.email})` : ""}</span>
+      ),
+    },
+    {
       title: "Kontaktuppgifter",
       key: "contact",
       children: [

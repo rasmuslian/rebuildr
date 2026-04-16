@@ -13,6 +13,7 @@ import SelectCondition from "@components/condition/select-condition";
 import SelectQuantityUnit from "@components/quantity-unit/select-quantity-unit";
 import SelectMeasurement from "@components/measurement/select-measurement";
 import SelectProject from "@components/project/select-project";
+import SelectUser from "@components/user/select-user";
 import SelectAddress from "@components/address/select-address";
 import SelectShippingPrice from "@components/shipping-price/select-shipping-price";
 import SelectColorType from "@components/color/select-color-type";
@@ -247,6 +248,29 @@ const ProductForm = ({
         </Section>
 
         <div className="flex flex-col gap-5">
+          <Section>
+            <Controller
+              control={control}
+              name="sellerId"
+              render={({ field: { value, onChange } }) => (
+                <FormField
+                  label="Ägare"
+                  required={true}
+                  error={errors.sellerId?.message}
+                >
+                  <SelectUser
+                    value={value}
+                    onChange={(userId) => {
+                      onChange(userId);
+                      setValue("project.projectId", undefined);
+                      clearErrors("project.projectId");
+                    }}
+                  />
+                </FormField>
+              )}
+            />
+          </Section>
+
           <Section>
             <div className="flex flex-col rounded-md bg-neutral-100 p-4">
               <div className="flex flex-row gap-5">

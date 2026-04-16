@@ -11,6 +11,11 @@ const query = `
         contactEmail
         contactPhone
         address
+        user {
+          id
+          name
+          email
+        }
       }
       total
     }
