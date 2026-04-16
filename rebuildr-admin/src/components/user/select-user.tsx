@@ -33,7 +33,6 @@ const SelectUser = ({ label, value, onChange }: Props) => {
     queryKey: [queryKeys.LIST_USERS, searchString],
     initialPageParam: 1,
     queryFn: ({ pageParam }) => {
-      console.log("pageParam :>> ", pageParam);
       return listUsers({
         searchString,
         pageSize: PAGE_SIZE,
@@ -41,8 +40,6 @@ const SelectUser = ({ label, value, onChange }: Props) => {
       });
     },
     getNextPageParam: (lastPage, allPages) => {
-      console.log("lastPage :>> ", lastPage);
-      console.log("allPages :>> ", allPages);
       const fetched = allPages.reduce(
         (acc, page) => acc + (page.users?.length ?? 0),
         0,
