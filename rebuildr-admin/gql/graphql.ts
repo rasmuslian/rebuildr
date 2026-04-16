@@ -255,6 +255,7 @@ export type CmsCreateProductInput = {
   projectId?: InputMaybe<Scalars['String']['input']>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
+  sellerId?: InputMaybe<Scalars['String']['input']>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
   title: Scalars['String']['input'];
 };
@@ -332,6 +333,7 @@ export type CmsListPurchasesResponse = {
 };
 
 export type CmsListUsersInput = {
+  canSell?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
@@ -1708,6 +1710,7 @@ export type Query = {
   category: Category;
   cmsBannerById: Banner;
   cmsGetProduct: Product;
+  cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
   cmsListBanners: Array<Banner>;
   cmsListFiles: CmsListFilesResponse;
@@ -1797,6 +1800,11 @@ export type QueryCmsBannerByIdArgs = {
 
 export type QueryCmsGetProductArgs = {
   productId: Scalars['String']['input'];
+};
+
+
+export type QueryCmsGetUserArgs = {
+  id: Scalars['String']['input'];
 };
 
 

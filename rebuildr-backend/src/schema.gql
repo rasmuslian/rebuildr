@@ -748,6 +748,7 @@ type Query {
   userExists(input: UserExistsInput!): User
   user(input: GetUserInput!): User!
   users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
+  cmsGetUser(id: String!): User!
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
@@ -827,6 +828,7 @@ input CmsListUsersInput {
   page: Int
   pageSize: Int
   searchString: String
+  canSell: Boolean
 }
 
 input GetProductInput {
@@ -1226,6 +1228,7 @@ input CmsCreateProductInput {
   colorType: ColorTypeEnum
   images: [FileInputType!]!
   documents: [FileInputType!]!
+  sellerId: String
 }
 
 input MeasurementInput {
