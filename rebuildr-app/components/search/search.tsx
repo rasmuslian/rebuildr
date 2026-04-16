@@ -125,7 +125,7 @@ export const Search = ({
         value={searchState.searchString ?? ""}
         editable={!disabled && visible}
         style={{
-          outlineStyle: undefined,
+          outlineStyle: "none",
           outlineWidth: 0,
           overflow: "visible",
           flexGrow: 1,
