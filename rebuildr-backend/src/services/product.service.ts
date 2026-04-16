@@ -358,6 +358,9 @@ export class ProductService {
     if (!!input.projectId || input.projectId === null) {
       product.noProject = !input.projectId;
       product.projectId = input.projectId;
+      if (!input.projectId) {
+        product.project = null;
+      }
     }
 
     //Measurements
@@ -434,8 +437,6 @@ export class ProductService {
         type: 'Point',
         coordinates: [input.location.lat, input.location.lng],
       };
-      //Remove connection to project when new address is added to product
-      product.project = null;
     }
     if (input.pickupEnabled !== undefined && input.pickupEnabled !== null) {
       product.pickupEnabled = input.pickupEnabled;
@@ -595,8 +596,10 @@ export class ProductService {
     );
     product.documents = updatedDocuments;
 
+    const savedProduct = await this.productRepository.save(product);
+
     return {
-      product: await this.productRepository.save(product),
+      product: savedProduct,
       imagePutUrls: this.fileService.uploadFiles(product.images, true),
       documentPutUrls: this.fileService.uploadFiles(product.documents, true),
     };
