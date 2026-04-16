@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import ProjectForm from "@components/project/project-form";
 import { useForm } from "react-hook-form";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { ProjectSchema, ProjectSchemaType } from "@/schema/project-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CmsCreateProjectInput } from "gql/graphql";
 import { createProject } from "@/queries/project/create-project";
+import { getProfile } from "@/queries/profile/get-profile";
 import { queryKeys } from "@/lib/query-keys";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
@@ -18,9 +19,15 @@ const CreateProject = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  const { data: profile } = useQuery({
+    queryKey: [queryKeys.GET_PROFILE],
+    queryFn: getProfile,
+  });
+
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<ProjectSchemaType>({
     resolver: zodResolver(ProjectSchema),
@@ -29,6 +36,12 @@ const CreateProject = () => {
       shortText: "",
     },
   });
+
+  useEffect(() => {
+    if (profile?.id) {
+      setValue("userId", profile.id);
+    }
+  }, [profile?.id]);
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (input: CmsCreateProjectInput) => {
@@ -63,6 +76,7 @@ const CreateProject = () => {
       contactName: formData.contact.name || null,
       contactEmail: formData.contact.email || null,
       contactPhone: formData.contact.phone || null,
+      userId: formData.userId,
     };
 
     mutateAsync(newProject);
@@ -77,6 +91,8 @@ const CreateProject = () => {
       isPending={isPending}
       onSubmit={onSubmit}
       submitLabel="Publicera"
+      sellerInitialLabel={profile?.email ?? profile?.username ?? undefined}
+      sellerInitialPicture={profile?.profilePicture?.url ?? undefined}
     />
   );
 };

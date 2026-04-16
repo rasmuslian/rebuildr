@@ -276,6 +276,7 @@ export type CmsCreateProjectInput = {
   shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
+  userId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CmsDeletePartnerInput = {

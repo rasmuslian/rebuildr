@@ -1480,6 +1480,7 @@ input CmsCreateProjectInput {
   contactEmail: String
   contactPhone: String
   showDetailsOnMap: Boolean
+  userId: String
 }
 
 input CmsUpdateProjectInput {

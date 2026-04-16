@@ -142,7 +142,10 @@ class CmsBaseProjectInput {
 }
 
 @InputType()
-export class CmsCreateProjectInput extends CmsBaseProjectInput {}
+export class CmsCreateProjectInput extends CmsBaseProjectInput {
+  @Field(() => String, { nullable: true })
+  userId?: string;
+}
 
 @InputType()
 export class CmsUpdateProjectInput extends CmsBaseProjectInput {
@@ -216,7 +219,7 @@ export class ProjectResolver {
     @Args('input') input: CmsCreateProjectInput,
     @CurrentUser() _user: AuthedUserType,
   ): Promise<Project> {
-    return this.projectService.cmsCreateProject(input, _user.id);
+    return this.projectService.cmsCreateProject(input, input.userId ?? _user.id);
   }
 
   @Mutation(() => Project)
