@@ -32,6 +32,7 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Header } from "@components/navigation/headers/header";
 import { View } from "react-native";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -169,7 +170,7 @@ const LoginModalView = () => {
           registerUser({
             variables: { input: { email } },
             onCompleted: () => {
-              trackEvent("sign_up", { method: "email" });
+              trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
               setState("verify");
               sheetRef.current?.snapToIndex(fullScreenIndex);
             },

@@ -24,6 +24,7 @@ import { router } from "expo-router";
 import { trackEvent } from "@/utils/analytics";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -241,7 +242,7 @@ export const PurchaseReceipt = ({
             <Body
               size="medium"
               onPress={() => {
-                trackEvent("contact_seller", {
+                trackEvent(GTMTagEnum.CONTACT_SELLER, {
                   item_id: data.purchase.product.id,
                 });
                 router.navigate({
@@ -259,7 +260,7 @@ export const PurchaseReceipt = ({
             <Body
               size="medium"
               onPress={() => {
-                trackEvent("contact_buyer", {
+                trackEvent(GTMTagEnum.CONTACT_BUYER, {
                   item_id: data.purchase.product.id,
                 });
                 router.navigate({

@@ -10,6 +10,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect } from "react";
 import { View } from "react-native";
 import { trackEvent } from "@/utils/analytics";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const ACTION_SECTION_REDIRECT = gql`
   query ActionSectionRedirect($input: MyPurchaseInput!) {
@@ -109,7 +110,7 @@ export const ActionSection = ({
             <Button
               label="Köp nu"
               onPress={() => {
-                trackEvent("begin_checkout", { item_id: productId });
+                trackEvent(GTMTagEnum.BEGIN_CHECKOUT, { item_id: productId });
                 if (!isLoggedIn) {
                   setVisible(true);
                   return;
@@ -131,7 +132,7 @@ export const ActionSection = ({
             label="Kontakta säljaren"
             type="tonal"
             onPress={() => {
-              trackEvent("contact_seller", { item_id: productId });
+              trackEvent(GTMTagEnum.CONTACT_SELLER, { item_id: productId });
               if (!isLoggedIn) {
                 setVisible(true);
               } else {

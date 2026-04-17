@@ -32,6 +32,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 export const ANALYZE_PRODUCT_IMAGE = gql`
   mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
@@ -502,7 +503,7 @@ export const UpsertProduct = ({
     );
     if (result) {
       if (published) {
-        trackEvent("publish_product", { mode });
+        trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         onFinish();
       } else {
         onClose();
