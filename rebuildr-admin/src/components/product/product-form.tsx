@@ -289,6 +289,9 @@ const ProductForm = ({
                         style={{ width: "100%" }}
                         type="number"
                         size="middle"
+                        precision={0}
+                        step={1}
+                        min={1}
                       />
                     </FormField>
                   )}
@@ -356,6 +359,9 @@ const ProductForm = ({
                           style={{ width: "100%" }}
                           type="number"
                           size="middle"
+                          precision={0}
+                          step={1}
+                          min={1}
                         />
                       </FormField>
                     )}
@@ -432,6 +438,9 @@ const ProductForm = ({
                               style={{ width: "100%" }}
                               size="middle"
                               type="number"
+                              precision={0}
+                              step={1}
+                              min={1}
                             />
                           </FormField>
                         )}
