@@ -44,6 +44,13 @@ export const formatMeasurement = (measurement?: number) => {
   }).format(measurement);
 };
 
+export const formatCO2 = (co2: number) => {
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  }).format(co2);
+};
+
 export const formatSwedishNumber = (number: string) => {
   return number.replace(/^(?:\+46|0046)/, "0");
 };

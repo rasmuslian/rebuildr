@@ -33,6 +33,8 @@ export const ProjectSchema = z
     .max(120, { message: "Kort text får vara max 120 tecken." })
     .optional(),
 
+  userId: z.string({ message: "Du måste ange ägare." }),
+
   contact: z.object({
     name: z.union([
       z.literal("").optional(),

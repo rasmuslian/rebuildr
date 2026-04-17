@@ -31,6 +31,7 @@ import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
+import { GET_PROJECT } from "@/queries";
 
 export const ANALYZE_PRODUCT_IMAGE = gql`
   mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
@@ -190,7 +191,7 @@ export const UpsertProduct = ({
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
-  >(UPSERT_PRODUCT_UPDATE_PRODUCT);
+  >(UPSERT_PRODUCT_UPDATE_PRODUCT, { refetchQueries: [GET_PROJECT] });
   const [
     analyzeImages,
     { loading: imageAnalyzeLoading, error: imageAnalyzeError },
@@ -389,7 +390,7 @@ export const UpsertProduct = ({
             ? product.project.id === NEW_PROJECT_ID
               ? undefined
               : product.project.id
-            : undefined,
+            : null,
           noProject: product.noProject,
 
           //transportation

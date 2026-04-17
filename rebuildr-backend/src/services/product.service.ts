@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import {
@@ -64,6 +64,7 @@ import { ProjectService } from './project.service';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import { CO2FactorService } from './co2-factor.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { UserService } from './user.service';
 
 @Injectable()
 export class ProductService {
@@ -87,6 +88,8 @@ export class ProductService {
     private dataSource: DataSource,
     private projectService: ProjectService,
     private co2Service: CO2FactorService,
+    @Inject(forwardRef(() => UserService))
+    private userService: UserService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -355,6 +358,9 @@ export class ProductService {
     if (!!input.projectId || input.projectId === null) {
       product.noProject = !input.projectId;
       product.projectId = input.projectId;
+      if (!input.projectId) {
+        product.project = null;
+      }
     }
 
     //Measurements
@@ -431,8 +437,6 @@ export class ProductService {
         type: 'Point',
         coordinates: [input.location.lat, input.location.lng],
       };
-      //Remove connection to project when new address is added to product
-      product.project = null;
     }
     if (input.pickupEnabled !== undefined && input.pickupEnabled !== null) {
       product.pickupEnabled = input.pickupEnabled;
@@ -592,8 +596,10 @@ export class ProductService {
     );
     product.documents = updatedDocuments;
 
+    const savedProduct = await this.productRepository.save(product);
+
     return {
-      product: await this.productRepository.save(product),
+      product: savedProduct,
       imagePutUrls: this.fileService.uploadFiles(product.images, true),
       documentPutUrls: this.fileService.uploadFiles(product.documents, true),
     };
@@ -1314,6 +1320,19 @@ export class ProductService {
         shippingPriceIds,
         ...rest
       } = input;
+
+      const seller = await this.userRepository.findOne({
+        where: { id: sellerId },
+      });
+      if (!seller) {
+        throw BadUserInputException('Seller not found');
+      }
+
+      const sellerAccountEnabled =
+        await this.userService.sellerAccountIsEnabled(seller);
+      if (!sellerAccountEnabled) {
+        throw BadUserInputException('Seller has not completed onboarding');
+      }
 
       const location = await this.geocodingService.addressToLocation(
         input.address,

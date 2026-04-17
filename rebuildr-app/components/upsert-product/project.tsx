@@ -142,6 +142,7 @@ export const Project = ({
   const onSelectNotConnect = () => {
     update({
       noProject: true,
+      project: undefined,
     });
     setConnectProject(false);
     setSkipProject(!skipProject);

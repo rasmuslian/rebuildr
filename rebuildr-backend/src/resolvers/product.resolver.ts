@@ -567,6 +567,9 @@ export class CmsCreateProductInput extends CmsBaseProductInput {
 
   @Field(() => [FileInputType])
   documents: FileInputType[];
+
+  @Field(() => String, { nullable: true })
+  sellerId?: string;
 }
 
 @ObjectType()
@@ -720,7 +723,7 @@ export class ProductResolver {
     @Args('input') input: CmsCreateProductInput,
     @CurrentUser() user: AuthedUserType,
   ): Promise<CmsCreateProductResponse> {
-    return this.productService.cmsCreateProduct(input, user.id);
+    return this.productService.cmsCreateProduct(input, input.sellerId ?? user.id);
   }
 
   @Mutation(() => CmsUpdateProductResponse)

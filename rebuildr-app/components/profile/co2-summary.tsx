@@ -1,3 +1,4 @@
+import { formatCO2 } from "@/utils/formattings";
 import { Divider } from "@components/dividers/divider";
 import { ExplainCO2CalculationSheet } from "@components/explanation-information-sheets/explain-co2-calculation-bottom-sheet";
 import { Body, Display, Title } from "@components/typography/text";
@@ -32,9 +33,7 @@ export const CO2Summary = ({ totalCO2Savings }: Props) => {
         },
       ]}
     >
-      <Display size="large">
-        {Math.round(totalCO2Savings * 100) / 100} kg CO2
-      </Display>
+      <Display size="large">{formatCO2(totalCO2Savings)} kg CO2</Display>
       <Title size="medium">
         Total CO2 besparing från dina försäljningar på RebuildR
       </Title>

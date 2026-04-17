@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
 import { View, Animated } from "react-native";
+import Head from "expo-router/head";
 import { TrendingNow } from "@components/trending-now/trending-now";
 import { NewArrivals } from "@components/new-arrivals/new-arrivals";
 import { ForTheSeason } from "@components/for-the-season/for-the-season";
@@ -17,6 +18,7 @@ import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { usePwaInstall } from "@hooks/usePwaInstall";
 import { Button } from "@components/buttons/button";
 import { Banners } from "@components/banners/banners";
+import { useFocusEffect } from "expo-router";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -26,6 +28,16 @@ export default function Landing() {
   const { searchState, setSearchState } = useSearchContext();
   const [headlineHeight, setHeadlineHeight] = useState(0);
   const { canInstall, install } = usePwaInstall();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (typeof document === "undefined") return;
+      document.body.style.backgroundColor = colors.logo.vector;
+      return () => {
+        document.body.style.backgroundColor = "";
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (headlineHeight === 0) return;
@@ -50,8 +62,11 @@ export default function Landing() {
   return (
     <>
       <RebuildrHead />
+      <Head>
+        <meta name="theme-color" content={colors.logo.vector} />
+      </Head>
 
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: colors.logo.vector }}>
         <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
         <Hero scrollY={scrollY} showFor="mobile" />
 

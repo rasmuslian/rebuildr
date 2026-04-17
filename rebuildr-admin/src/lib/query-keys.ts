@@ -21,4 +21,5 @@ export enum queryKeys {
   LIST_CO2_FACTORS = "list-co2-factors",
   LIST_PAGE_CONTENTS = "list-page-contents",
   LIST_BANNERS = "list-banners",
+  GET_USER = "get-user",
 }

@@ -16,6 +16,10 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { BrandService } from './brand.service';
 
+const IMAGE_FETCH_TIMEOUT_MS = 10_000;
+const GEMINI_TIMEOUT_MS = 60_000;
+const GEMINI_RETRY_DELAY_MS = 1_500;
+
 @Injectable()
 export class AIService {
   private gemini: GoogleGenAI;
@@ -41,34 +45,53 @@ export class AIService {
       throw BadUserInputException();
     }
     const images = product.images;
-    if (!images) {
+    if (!images || images.length === 0) {
       throw BadUserInputException();
     }
 
     const quantities = Object.keys(QuantityUnitEnum);
 
-    const imageParts: Part[] = await Promise.all(
-      product.images.map(async (image) => {
-        const imageUrl = await this.fileService.getUrl(image);
-        const imageResponse = await fetch(imageUrl);
-        const arrayBuffer = await imageResponse.arrayBuffer();
-        const imageBase64 = Buffer.from(arrayBuffer).toString('base64');
-        return {
-          inlineData: {
-            data: imageBase64,
-            mimeType: 'image/jpeg',
-          },
-          mediaResolution: {
-            level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
-          },
-        };
-      }),
-    );
+    // Fetch images from S3 and convert to base64
+    let imageParts: Part[];
+    try {
+      imageParts = await Promise.all(
+        product.images.map(async (image) => {
+          const imageUrl = await this.fileService.getUrl(image);
+          const imageResponse = await fetch(imageUrl, {
+            signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS),
+          });
+          if (!imageResponse.ok) {
+            throw new Error(
+              `S3 returned ${imageResponse.status} for image ${image.id}`,
+            );
+          }
+          const arrayBuffer = await imageResponse.arrayBuffer();
+          const imageBase64 = Buffer.from(arrayBuffer).toString('base64');
+          return {
+            inlineData: {
+              data: imageBase64,
+              mimeType: image.mimeType || 'image/jpeg',
+            },
+            mediaResolution: {
+              level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+            },
+          };
+        }),
+      );
+    } catch (e) {
+      this.logger.error('Failed to fetch product images from S3', {
+        error: e instanceof Error ? e.message : e,
+        productId: product.id,
+        imageCount: product.images.length,
+      });
+      throw InternalServerException('Failed to fetch product images');
+    }
 
-    const response = await this.gemini.models.generateContent({
+    // Call Gemini API with retry for transient failures
+    const geminiRequest = {
       model: 'gemini-3-flash-preview',
       config: {
-        responseMimeType: 'application/json',
+        responseMimeType: 'application/json' as const,
       },
       contents: [
         {
@@ -115,7 +138,7 @@ export class AIService {
               above. Heavy rust, flaking paint, deep scratches or severe patina = ${ProductConditionEnum.BAD}.
               Do not over-rate condition.",
               "primaryQuantification": "Primary quantification. Determine which of the following quantity units (${quantities}) best applies to the product/products on the image and what quantity (expressed as integer) of that unit are visible. Format the value as QUANTITY,QUANTITY ENUM.
-              Always count the actual items. 
+              Always count the actual items.
               For pipes/rods/beams: use ${QuantityUnitEnum.AMOUNT} for individual piece count.",
               "secondaryQuantification": "Secondary quantification — use when the product naturally has two
               complementary measures that both add value for the buyer. Best matching unit from (${quantities}).
@@ -130,12 +153,12 @@ export class AIService {
               (e.g. 4,SACKAR secondary 200,KG); litres + tins → paint (e.g. 10,LITER secondary
               2,BURKAR). If neither dimension adds meaningful information beyond the primary, return
               null. QUANTITY must be expressed as an integer. Format: QUANTITY,QUANTITY ENUM",
-              "dimensions": "Object containing any of the keys (height, width, length, thickness and diameter). 
+              "dimensions": "Object containing any of the keys (height, width, length, thickness and diameter).
               Populate with only the relevant fields for this product type.
               The values should be presented as "value,unit" where value is an integer.
               Unit is always ${MeasurementUnitEnum.MM} except if the product is a door or a window in which case use ${MeasurementUnitEnum.DM}.
               Only use keys that make sense.
-              Example: 
+              Example:
               {
                 height: "1,${MeasurementUnitEnum.MM}",
                 width: "2,${MeasurementUnitEnum.MM}"
@@ -150,90 +173,202 @@ export class AIService {
           ],
         },
       ],
-    });
+    };
 
-    const result = response.text;
+    let result: string | undefined;
     try {
-      const parsed = JSON.parse(result);
-      const {
-        title,
-        description,
-        additionalInfo,
-        primaryQuantification,
-        secondaryQuantification,
-        dimensions,
-        weight,
-        color,
-        condition,
-        brand,
-      } = parsed;
-      product.title = title;
-      product.description = description;
-      product.additionalInfo = additionalInfo;
-      if (primaryQuantification) {
-        const [primaryQuantity, primaryUnit] = primaryQuantification.split(',');
-        if (!(primaryUnit in QuantityUnitEnum)) {
-          throw new Error('Enum not found');
-        }
-        product.primaryQuantity = Math.round(primaryQuantity);
-        product.primaryUnit = primaryUnit.trim();
-      }
-      if (secondaryQuantification) {
-        const [secondaryQuantity, secondaryUnit] =
-          secondaryQuantification.split(',');
-        product.secondaryQuantity = Math.round(secondaryQuantity);
-        product.secondaryUnit = secondaryUnit.trim();
-      }
+      const response = await this.callGeminiWithRetry(geminiRequest);
+      result = response.text;
+    } catch (e) {
+      this.logger.error('Gemini API call failed', {
+        error: e instanceof Error ? e.message : e,
+        productId: product.id,
+        imageCount: product.images.length,
+      });
+      throw InternalServerException('AI service is temporarily unavailable');
+    }
 
-      const separateValueAndUnit = (dimension: string) => {
-        return dimension.split(',');
-      };
+    if (!result) {
+      this.logger.error('Gemini returned empty response', {
+        productId: product.id,
+        imageCount: product.images.length,
+      });
+      throw InternalServerException('AI returned an empty response');
+    }
 
-      //Set measurements
-      if (dimensions) {
-        Object.keys(dimensions).map((key) => {
-          if (!(key in product)) {
-            return;
-          }
+    // Parse JSON response
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(result);
+    } catch (e) {
+      this.logger.error('Failed to parse Gemini JSON response', {
+        error: e instanceof Error ? e.message : e,
+        productId: product.id,
+        rawResponse: result.substring(0, 500),
+      });
+      throw InternalServerException('AI returned an invalid response');
+    }
 
-          const [value, unit] = separateValueAndUnit(dimensions[key]);
-          product[key] = parseInt(value);
-          product[key + 'Unit'] = unit.trim();
+    const {
+      title,
+      description,
+      additionalInfo,
+      primaryQuantification,
+      secondaryQuantification,
+      dimensions,
+      weight,
+      color,
+      condition,
+      brand,
+    } = parsed;
+
+    // Assign text fields
+    product.title = title as string;
+    product.description = description as string;
+    product.additionalInfo = additionalInfo as string;
+
+    // Parse primary quantification
+    if (
+      primaryQuantification &&
+      typeof primaryQuantification === 'string' &&
+      primaryQuantification.includes(',')
+    ) {
+      const [primaryQuantity, primaryUnit] = primaryQuantification.split(',');
+      if (primaryUnit?.trim() in QuantityUnitEnum) {
+        product.primaryQuantity = Math.round(Number(primaryQuantity));
+        product.primaryUnit = primaryUnit.trim() as QuantityUnitEnum;
+      } else {
+        this.logger.warn('Invalid primaryUnit from Gemini, skipping', {
+          productId: product.id,
+          primaryQuantification,
         });
       }
+    }
 
-      product.weight = weight;
-      product.weightUnit = MeasurementUnitEnum.KG;
+    // Parse secondary quantification
+    if (
+      secondaryQuantification &&
+      typeof secondaryQuantification === 'string' &&
+      secondaryQuantification.includes(',')
+    ) {
+      const [secondaryQuantity, secondaryUnit] =
+        secondaryQuantification.split(',');
+      if (secondaryUnit?.trim() in QuantityUnitEnum) {
+        product.secondaryQuantity = Math.round(Number(secondaryQuantity));
+        product.secondaryUnit = secondaryUnit.trim() as QuantityUnitEnum;
+      } else {
+        this.logger.warn('Invalid secondaryUnit from Gemini, skipping', {
+          productId: product.id,
+          secondaryQuantification,
+        });
+      }
+    }
 
-      product.color = color;
-      product.colorType = ColorTypeEnum.FREE_TEXT;
-      product.condition = condition;
+    // Set measurements
+    if (dimensions && typeof dimensions === 'object') {
+      const validKeys = ['height', 'width', 'length', 'thickness', 'diameter'];
+      for (const key of Object.keys(dimensions as Record<string, unknown>)) {
+        if (!validKeys.includes(key)) continue;
+        const dimValue = (dimensions as Record<string, unknown>)[key];
+        if (typeof dimValue !== 'string' || !dimValue.includes(',')) {
+          this.logger.warn('Invalid dimension value from Gemini, skipping', {
+            productId: product.id,
+            key,
+            value: dimValue,
+          });
+          continue;
+        }
+        const [value, unit] = dimValue.split(',');
+        product[key] = parseInt(value);
+        product[key + 'Unit'] = unit.trim();
+      }
+    }
 
-      //Brand
+    product.weight = weight as number;
+    product.weightUnit = MeasurementUnitEnum.KG;
+
+    product.color = color as string;
+    product.colorType = ColorTypeEnum.FREE_TEXT;
+
+    // Validate condition enum
+    const validConditions = Object.values(ProductConditionEnum);
+    if (
+      condition &&
+      validConditions.includes(condition as ProductConditionEnum)
+    ) {
+      product.condition = condition as ProductConditionEnum;
+    } else if (condition) {
+      this.logger.warn('Invalid condition from Gemini, skipping', {
+        productId: product.id,
+        condition,
+      });
+    }
+
+    // Brand
+    if (brand && typeof brand === 'string') {
       try {
-        if (brand) {
-          const dbBrand = await this.brandService.findBrandByName(brand);
-          if (dbBrand) {
-            product.brand = dbBrand;
-          } else {
-            product.brand = await this.brandService.createBrand({
-              name: brand,
-              categoryId: product.categoryId,
-            });
-          }
+        const dbBrand = await this.brandService.findBrandByName(brand);
+        if (dbBrand) {
+          product.brand = dbBrand;
+        } else {
+          product.brand = await this.brandService.createBrand({
+            name: brand,
+            categoryId: product.categoryId,
+          });
         }
       } catch (e) {
-        throw new Error('Could not attach brand to product: ' + e);
+        this.logger.error('Failed to attach brand to product', {
+          error: e instanceof Error ? e.message : e,
+          productId: product.id,
+          brand,
+        });
       }
+    }
 
+    // Save product
+    try {
       return await this.productRepository.save(product);
     } catch (e) {
-      this.logger.error('analyzeProductImage failed', {
-        e,
-        input,
+      this.logger.error('Failed to save product after AI analysis', {
+        error: e instanceof Error ? e.message : e,
         productId: product.id,
       });
-      throw InternalServerException('Error parsing the image');
+      throw InternalServerException('Failed to save product');
     }
+  }
+
+  private async callGeminiWithRetry(
+    request: Parameters<GoogleGenAI['models']['generateContent']>[0],
+    retries = 1,
+  ) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await this.gemini.models.generateContent({
+          ...request,
+          config: {
+            ...request.config,
+            httpOptions: { timeout: GEMINI_TIMEOUT_MS },
+          },
+        });
+      } catch (e) {
+        const isLastAttempt = attempt === retries;
+        const isRetryable =
+          e instanceof Error &&
+          /5\d\d|timeout|ECONNRESET|ETIMEDOUT|rate/i.test(e.message);
+
+        if (isLastAttempt || !isRetryable) {
+          throw e;
+        }
+
+        this.logger.warn('Gemini API call failed, retrying', {
+          attempt: attempt + 1,
+          error: e instanceof Error ? e.message : e,
+        });
+        await new Promise((resolve) =>
+          setTimeout(resolve, GEMINI_RETRY_DELAY_MS),
+        );
+      }
+    }
+    throw new Error('Gemini retry loop exited unexpectedly');
   }
 }

@@ -14,13 +14,14 @@ export default function Root({ children }: PropsWithChildren) {
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
-
         {/* iOS PWA */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
         <meta name="apple-mobile-web-app-title" content="RebuildR" />
         <link rel="apple-touch-icon" href="/images/pwa-icon-192.png" />
-
         {/* Capture beforeinstallprompt early, before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: pwaBootstrap }} />
 
