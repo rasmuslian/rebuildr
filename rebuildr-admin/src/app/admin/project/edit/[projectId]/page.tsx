@@ -14,7 +14,7 @@ const EditProjectPage = async ({ params }: Props) => {
   if (!project) notFound();
 
   return (
-    <div className="flex max-w-screen-lg flex-col gap-5">
+    <div className="flex max-w-screen-2xl flex-col gap-5">
       <EditProject project={project} />
     </div>
   );
