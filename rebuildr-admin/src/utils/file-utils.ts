@@ -20,6 +20,7 @@ export const getUploadFiles = (files: File[]) => {
       uid: file.id,
       name: file.name || now,
       url: file.url,
+      status: "done",
     } as UploadFile;
   });
 };
@@ -27,12 +28,12 @@ export const getUploadFiles = (files: File[]) => {
 export const getFileInputTypes = (fileList: UploadFile[]) => {
   const addImages: FileInputType[] = [];
 
-  fileList.map((file) => {
-    const mimeType = file.type;
-    const name = file.name;
-
-    if (mimeType) {
-      addImages.push({ mimeType, name });
+  fileList.forEach((file) => {
+    if (file.originFileObj) {
+      addImages.push({
+        mimeType: file.originFileObj.type,
+        name: file.name,
+      });
     }
   });
 
