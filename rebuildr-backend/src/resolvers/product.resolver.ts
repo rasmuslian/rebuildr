@@ -57,6 +57,8 @@ import { UserRoleEnum } from 'src/entities/user.entity';
 import { minimumProductPrice } from 'src/constants/pricing';
 import { FileInputType } from './file.resolver';
 import { AIService } from 'src/services/ai.service';
+import { ShippingPriceService } from 'src/services/shipping-price.service';
+import { BadUserInputException } from 'src/exceptions';
 
 export enum OrderProductsEnum {
   DISTANCE = 'DISTANCE',
@@ -635,6 +637,7 @@ export class ProductResolver {
     private categoryService: CategoryService,
     private eventService: EventService,
     private aiService: AIService,
+    private shippingPriceService: ShippingPriceService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -942,8 +945,24 @@ export class ProductResolver {
   async shippingPrices(
     @Root() _product: Product,
     @Context('productLoaders') productLoaders: IProductLoaders,
+    @Args('quantity', { nullable: true, type: () => Int }) quantity?: number,
   ) {
-    return productLoaders.shippingPricesLoader.load(_product.id);
+    const prices = await productLoaders.shippingPricesLoader.load(_product.id);
+    if (quantity && prices?.length) {
+      const weightForQuantity = prices[0].maxWeight * quantity;
+      const matchingPrice =
+        await this.shippingPriceService.shippingPriceMatchingWeight(
+          weightForQuantity,
+        );
+      if (!matchingPrice) {
+        this.logger.error(
+          'Product.shippingPrices: Product with quantity exceeds max weight',
+        );
+        throw BadUserInputException('Product exceeds max weight');
+      }
+      return [matchingPrice];
+    }
+    return prices;
   }
 
   @ResolveField(() => Float, { nullable: true })

@@ -79,6 +79,7 @@ type Purchase {
   qrCodeUrl: String
   qrCodeContent: String
   sellerRespondedAt: DateTime
+  purchasedQuantity: Float
   isShipping: Boolean!
   reviews: [Review!]!
   buyer: User!
@@ -348,6 +349,7 @@ type Product {
   createdAt: DateTime!
   updatedAt: DateTime!
   sellerId: String!
+  soldByQuantity: Boolean!
   address: String
   hiddenReason: String
   isGiveaway: Boolean!
@@ -388,7 +390,7 @@ type Product {
   project: Project
   location: LocationResponse
   approximatePlace: ApproximatePlaceResponse
-  shippingPrices: [ShippingPrice!]
+  shippingPrices(quantity: Int): [ShippingPrice!]
   deliveryPrice: Float
   canDelete: Boolean!
   minimumPrice: Int!
@@ -871,6 +873,7 @@ input GetTransportationOptionsInput {
   productId: String!
   postCode: String
   address: String
+  quantity: Float
 }
 
 input CmsListProductsInput {
@@ -1334,6 +1337,7 @@ input UpdateProductInput {
   deliveryRadius: Float
   pickupEnabled: Boolean
   shippingPriceIds: [String!]
+  soldByQuantity: Boolean
 }
 
 input SetLikeProductInput {
@@ -1386,6 +1390,7 @@ input CmsUpdateCategoryOrderInput {
 input CreateMessageInput {
   receiverId: String!
   productId: String!
+  purchaseId: String
   message: String!
   images: [FileInputType!]
   documents: [FileInputType!]
@@ -1415,6 +1420,7 @@ input PurchaseProductInput {
   transportationMethod: TransportationEnum!
   successUrl: String
   failureUrl: String
+  purchasedQuantity: Int
 }
 
 input AcceptPurchaseInput {

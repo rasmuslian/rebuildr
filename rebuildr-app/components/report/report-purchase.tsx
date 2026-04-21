@@ -34,6 +34,7 @@ const REPORT_PURCHASE = gql`
         id
         title
         price
+        soldByQuantity
         status
         condition
         primaryQuantity
@@ -233,6 +234,7 @@ export const ReportPurchase = ({
           id={data.purchase.product.id}
           title={data.purchase.product.title}
           price={data.purchase.product.price}
+          soldByQuantity={data.purchase.product.soldByQuantity}
           condition={data.purchase.product.condition}
           quantity={data.purchase.product.primaryQuantity}
           quantityUnit={data.purchase.product.primaryUnit}

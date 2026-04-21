@@ -52,7 +52,7 @@ export const PriceSection = ({
       <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
         <TextInput
           inputType="numeric"
-          value={price?.toString()}
+          value={price !== undefined ? price.toString() : ""}
           placeholder={soldByQuantity ? "Ange styckepris" : "Ange totalpris"}
           onChange={(priceString) => {
             const priceInt = parseInt(priceString, 10);

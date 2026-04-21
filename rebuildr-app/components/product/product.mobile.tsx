@@ -1,6 +1,7 @@
 import {
   ApproximatePlaceResponse,
   Maybe,
+  Product,
   ProductConditionEnum,
   ProductStatusEnum,
   ProductViewQuery,
@@ -33,6 +34,7 @@ import { ProjectSection } from "@components/preview-product/project-section";
 import { UserSection } from "@components/preview-product/user-section";
 import { InfoSection } from "@components/preview-product/info-section";
 import { ActionSection } from "@components/preview-product/action-section";
+import { PurchaseQuantitySection } from "@components/preview-product/purchase-quantity-section";
 import RemoveProduct from "@components/preview-product/remove-product";
 import { CO2Savings } from "@components/preview-product/CO2-savings";
 
@@ -58,6 +60,7 @@ type Props = {
     primaryUnit?: QuantityUnitEnum | null;
     condition: ProductConditionEnum;
     price: number;
+    soldByQuantity: Product["soldByQuantity"];
     primaryImage?: {
       __typename?: "File";
       id: string;
@@ -85,6 +88,9 @@ export const ProductMobile = ({
 }: Props) => {
   const [state, setState] = usePersistedState("product-state", initialState);
   const [showReportSheet, setShowReportSheet] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState<number | undefined>(
+    product.soldByQuantity ? 1 : undefined,
+  );
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
@@ -132,6 +138,7 @@ export const ProductMobile = ({
         footerComponent={
           <ActionSection
             productId={productId}
+            quantity={selectedQuantity}
             status={product.status}
             sellerId={product.seller.id}
             isMyProduct={isMyProduct}
@@ -152,6 +159,20 @@ export const ProductMobile = ({
           parentCategory={product.category?.parent}
           myAddress={me?.address}
           sellerIsMe={me && me.id === product.seller.id}
+          actionSection={
+            product.soldByQuantity &&
+            !!product.primaryQuantity &&
+            selectedQuantity &&
+            product.primaryUnit ? (
+              <PurchaseQuantitySection
+                pricePerUnit={product.price}
+                selectedQuantity={selectedQuantity}
+                totalQuantity={product.primaryQuantity}
+                primaryUnit={product.primaryUnit}
+                onQuantityChange={setSelectedQuantity}
+              />
+            ) : undefined
+          }
         />
         <Divider />
         <AllImages images={product.images} />
@@ -215,6 +236,7 @@ export const ProductMobile = ({
                 condition={item.condition}
                 title={item.title}
                 price={item.price}
+                soldByQuantity={item.soldByQuantity}
                 status={item.status}
                 onHeartPress={() => {
                   onToggleProductHeart({

@@ -65,6 +65,7 @@ import { FileInputType } from 'src/resolvers/file.resolver';
 import { CO2FactorService } from './co2-factor.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { UserService } from './user.service';
+import { ShippingPriceService } from './shipping-price.service';
 
 @Injectable()
 export class ProductService {
@@ -90,6 +91,7 @@ export class ProductService {
     private co2Service: CO2FactorService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+    private shippingPriceService: ShippingPriceService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -1090,13 +1092,22 @@ export class ProductService {
     }
 
     return await Promise.all(
-      product.shippingPrices.map(async (shippingPrice) => {
+      product.shippingPrices.map(async (_shippingPrice) => {
         const servicePoints =
           await this.shippingService.findNearbyServicePoints(
             input.postCode,
-            shippingPrice.provider,
+            _shippingPrice.provider,
             4,
           );
+        let shippingPrice = _shippingPrice;
+        if (input.quantity) {
+          const shippingWeightForQuantity =
+            _shippingPrice.maxWeight * (input.quantity ?? 1);
+          shippingPrice =
+            await this.shippingPriceService.shippingPriceMatchingWeight(
+              shippingWeightForQuantity,
+            );
+        }
         return {
           shippingPrice,
           servicePoints,

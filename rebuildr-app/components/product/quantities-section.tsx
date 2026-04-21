@@ -181,7 +181,7 @@ export const QuantitiesSection = ({
             }
             options={Object.values(QuantityUnitEnum).map((option) => ({
               value: option,
-              label: quantities[option].short,
+              label: quantities[option].plural,
               disabled: option === secondaryUnit,
             }))}
             onSelect={(value) =>
@@ -216,7 +216,7 @@ export const QuantitiesSection = ({
                 }
                 options={Object.values(QuantityUnitEnum).map((option, i) => ({
                   value: option,
-                  label: quantities[option].short,
+                  label: quantities[option].plural,
                   disabled: option === primaryUnit,
                 }))}
                 onSelect={(value) =>

@@ -115,6 +115,7 @@ export default function ProductList() {
             imageUri: product.primaryImage?.url,
             title: product.title,
             quantity: product.primaryQuantity,
+            quantityUnit: product.primaryUnit,
             condition: product.condition,
             account: {
               rating: product.seller.rating,

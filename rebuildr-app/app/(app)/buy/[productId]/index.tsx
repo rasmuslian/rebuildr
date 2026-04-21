@@ -41,6 +41,7 @@ const BUY_PRODUCT_INITIAL = gql`
       primaryUnit
       condition
       price
+      soldByQuantity
       primaryImage {
         id
         url
@@ -99,22 +100,23 @@ const BUY_PRODUCT_TRANPORTATION_OPTIONS = gql`
 `;
 
 export default function BuyProductInitial() {
-  return <Buy />;
+  const { productId, quantity: paramQuantity } = useGlobalSearchParams<{
+    productId: string;
+    quantity?: string;
+  }>();
+  const quantity = paramQuantity ? parseInt(paramQuantity, 10) : undefined;
+  return <Buy productId={productId} quantity={quantity} />;
 }
 
 type Props = {
-  productId?: string;
+  productId: string;
+  quantity?: number;
 };
 
-export const Buy = ({ productId: _productId }: Props) => {
+export const Buy = ({ productId, quantity }: Props) => {
   const [progress, setProgress] = useState(progressValues.initial);
   const { isDesktop } = useScreenType();
   const { setVisible, setContent } = useBuyModalContext();
-
-  const { productId: paramProductId } = useGlobalSearchParams<{
-    productId: string;
-  }>();
-  const productId = _productId ?? paramProductId;
 
   const { data } = useQuery<
     BuyProductInitialQuery,
@@ -184,12 +186,14 @@ export const Buy = ({ productId: _productId }: Props) => {
             quantity={data.product.primaryQuantity}
             quantityUnit={data.product.primaryUnit}
             price={data.product.price}
+            soldByQuantity={data.product.soldByQuantity}
           />
           <Divider />
         </View>
         {!singleTransportationOption && (
           <MultipleOptions
             initialData={data}
+            quantity={quantity}
             updateProgress={(progress) => setProgress(progress)}
           />
         )}
@@ -197,6 +201,7 @@ export const Buy = ({ productId: _productId }: Props) => {
           <SingleOptions
             transportationMethod={singleTransportationOption}
             initialData={data}
+            quantity={quantity}
           />
         )}
       </ScreenLayout>
@@ -205,17 +210,19 @@ export const Buy = ({ productId: _productId }: Props) => {
 };
 type MultipleOptionsProps = {
   initialData: BuyProductInitialQuery;
+  quantity?: number;
   updateProgress: (progress: number) => void;
 };
 const MultipleOptions = ({
   initialData,
+  quantity,
   updateProgress,
 }: MultipleOptionsProps) => {
   const [postCode, setPostCode] = useState("");
   const [transportationMethod, setTransportationMethod] =
     useState<TransportationString>();
 
-  const { submitPickup, submitDelivery } = useSubmitSummary();
+  const { submitPickup, submitDelivery } = useSubmitSummary({ quantity });
 
   //shipping
   const [showShippingDetails, setShowShippingDetails] = useState(false);
@@ -241,6 +248,7 @@ const MultipleOptions = ({
         input: {
           productId,
           postCode,
+          quantity,
         },
       },
       onCompleted: (data) => {
@@ -253,7 +261,7 @@ const MultipleOptions = ({
   const shippingOption = transportationData?.getShippingOptions[0];
   const showTransportationOptions =
     transportationData && !transportationLoading && !showShippingDetails;
-  let totalPrice = initialData.product.price;
+  let totalPrice = initialData.product.price * (quantity ?? 1);
   if (transportationMethod === "shipping") {
     totalPrice +=
       transportationData?.getShippingOptions[0].shippingPrice.price ?? 0;
@@ -265,6 +273,7 @@ const MultipleOptions = ({
     return (
       <ShippingDetails
         initialData={initialData}
+        quantity={quantity}
         shippingPrice={shippingOption.shippingPrice.price}
         shippingProvider={shippingOption.shippingPrice.provider}
         servicePointId={servicePointId}
@@ -377,6 +386,7 @@ const MultipleOptions = ({
             {transportationData.getDeliveryOption && (
               <DeliveryCard
                 price={transportationData.getDeliveryOption.deliveryPrice}
+                quantity={quantity}
                 productId={productId}
                 methodSelected={transportationMethod === "delivery"}
                 toggleMethod={() => onSelectTransportationMethod("delivery")}
@@ -402,7 +412,7 @@ const MultipleOptions = ({
       )}
       {transportationMethod === "shipping" && (
         <Summary
-          text={`Du betalar (ink. frakt ${initialData.product.shippingPrices?.[0].price} kr):`}
+          text={`Du betalar (ink. frakt ${shippingOption?.shippingPrice.price} kr):`}
           price={totalPrice}
           mainButton={{
             label: "Fortsätt",
@@ -433,10 +443,12 @@ const MultipleOptions = ({
 type SingleOptionProps = {
   transportationMethod: "pickup" | "shipping" | "delivery";
   initialData: BuyProductInitialQuery;
+  quantity?: number;
 };
 const SingleOptions = ({
   transportationMethod,
   initialData,
+  quantity,
 }: SingleOptionProps) => {
   const [showShippingDetails, setShowShippingDetails] = useState(false);
   const [servicePointId, setServicePointId] = useState<string>();
@@ -446,6 +458,7 @@ const SingleOptions = ({
     return (
       <ShippingDetails
         initialData={initialData}
+        quantity={quantity}
         shippingPrice={shippingPrice.price}
         shippingProvider={shippingPrice.provider}
         servicePointId={servicePointId}
@@ -461,12 +474,16 @@ const SingleOptions = ({
         </Display>
         <View>
           {transportationMethod === "pickup" && (
-            <SinglePickup productId={initialData.product.id} />
+            <SinglePickup
+              productId={initialData.product.id}
+              quantity={quantity}
+            />
           )}
           {transportationMethod === "shipping" && shippingPrice && (
             <SingleShipping
               shippingProvider={shippingPrice.provider}
               shippingPrice={shippingPrice.price}
+              quantity={quantity}
               productId={initialData.product.id}
               productPrice={initialData.product.price}
               onContinue={() => {
@@ -479,6 +496,7 @@ const SingleOptions = ({
             <SingleDelivery
               productPrice={initialData.product.price ?? 0}
               productId={initialData.product.id}
+              quantity={quantity}
             />
           )}
         </View>

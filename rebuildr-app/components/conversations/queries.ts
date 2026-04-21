@@ -42,6 +42,7 @@ export const CONVERSATION_PRODUCT = gql`
       id
       title
       price
+      soldByQuantity
       status
       seller {
         id

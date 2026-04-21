@@ -28,6 +28,7 @@ export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
+      purchasedQuantity
       status
       createdAt
       paymentAcceptedAt
@@ -186,7 +187,8 @@ export const PurchaseReceipt = ({
       <View style={{ gap: 16 }}>
         <Headline size="small">Kvitto</Headline>
         <ReceiptCard
-          price={data.purchase.product.price}
+          productPrice={data.purchase.product.price}
+          purchasedQuantity={data.purchase.purchasedQuantity}
           paymentMethod={data.purchase.paymentMethod}
           payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
           shippingPrice={data.purchase.shippingPrice}

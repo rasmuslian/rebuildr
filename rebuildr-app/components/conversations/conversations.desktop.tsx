@@ -297,6 +297,7 @@ const Chat = ({
           id={data.product.id}
           title={data.product.title}
           price={data.product.price}
+          soldByQuantity={data.product.soldByQuantity}
           statusBadgeProps={statusBadgeProps}
           status={data.product.status}
           imageUrl={data.product.primaryImage?.url}

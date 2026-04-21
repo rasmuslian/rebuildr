@@ -72,6 +72,9 @@ export class PurchaseProductInput {
 
   @Field({ nullable: true })
   failureUrl: string;
+
+  @Field(() => Int, { nullable: true })
+  purchasedQuantity?: number;
 }
 
 @ObjectType()

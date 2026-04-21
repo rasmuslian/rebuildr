@@ -10,8 +10,14 @@ import { StripCheckoutForm } from "@components/payment/stripe-checkout-form";
 
 export const BuyModal = () => {
   const { visible, setVisible, content, setContent } = useBuyModalContext();
-  const { buyState, productId, purchaseId, delivery, stripeClientSecret } =
-    content || {};
+  const {
+    buyState,
+    productId,
+    purchaseId,
+    quantity,
+    transportation,
+    stripeClientSecret,
+  } = content || {};
 
   const handleClose = () => {
     setVisible(false);
@@ -23,14 +29,14 @@ export const BuyModal = () => {
   let contentChildren = null;
   switch (buyState) {
     case "summary":
-      contentChildren = <Buy productId={productId} />;
+      contentChildren = <Buy productId={productId!} quantity={quantity} />;
       break;
     case "success":
       contentChildren = <SuccessContent purchaseId={purchaseId!} />;
       break;
     case "payment":
       contentChildren = (
-        <PaymentContent productId={productId!} {...delivery!} />
+        <PaymentContent productId={productId!} {...transportation!} />
       );
       break;
     case "stripe":
