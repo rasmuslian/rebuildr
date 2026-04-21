@@ -255,6 +255,9 @@ export class UpdateProductInput {
 
   @Field(() => [String], { nullable: true })
   shippingPriceIds?: string[];
+
+  @Field({ nullable: true })
+  soldByQuantity?: boolean;
 }
 
 @ObjectType()
@@ -393,6 +396,9 @@ export class GetTransportationOptionsInput {
 
   @Field({ nullable: true })
   address?: string;
+
+  @Field({ nullable: true })
+  quantity?: number;
 }
 
 @ObjectType()

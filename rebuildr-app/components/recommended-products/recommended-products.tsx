@@ -38,6 +38,7 @@ const RECOMMENDED_PRODUCTS = gql`
         title
         status
         price
+        soldByQuantity
         condition
         primaryQuantity
         primaryUnit
@@ -146,6 +147,7 @@ export function RecommendedProducts({ title, source }: Props) {
                 }}
                 title={product.title}
                 price={product.price}
+                soldByQuantity={product.soldByQuantity}
                 status={product.status}
                 onHeartPress={() => {
                   onToggleProductHeart({

@@ -27,6 +27,7 @@ export const ACTIVE_PRODUCT_POPUP = gql`
       primaryQuantity
       primaryUnit
       price
+      soldByQuantity
       likedByMe
       sellerId
       seller {

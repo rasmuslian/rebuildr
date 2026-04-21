@@ -34,6 +34,7 @@ const TRENDING_NOW_QUERY = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         primaryImage {
           id
           url
@@ -113,6 +114,7 @@ export const TrendingNow = () => {
                 condition={item.condition}
                 title={item.title}
                 price={item.price}
+                soldByQuantity={item.soldByQuantity}
                 status={item.status}
                 onHeartPress={() => {
                   onToggleProductHeart({
@@ -143,6 +145,7 @@ export const TrendingNow = () => {
                   location: product.approximatePlace?.address,
                 },
                 price: product.price,
+                soldByQuantity: product.soldByQuantity,
                 status: product.status,
                 heart: product.seller.id !== data.me?.id,
                 liked: !!product.likedByMe,

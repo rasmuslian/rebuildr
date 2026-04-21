@@ -507,6 +507,79 @@ describe('Product', () => {
       loggerMock as Logger,
     );
   });
+  it('publish product with soldByQuantity', async () => {
+    const { categoryFixture, draftFixture, sellerFixure } = getFixtures();
+
+    const input: UpdateProductInput = {
+      id: 'product',
+      description: 'description',
+      price: 200,
+      primaryUnit: QuantityUnitEnum.AMOUNT,
+      primaryQuantity: 5,
+      brandId: 'brand',
+      condition: ProductConditionEnum.OKAY,
+      addImages: [{ mimeType: 'image/jpeg' }],
+      categoryId: categoryFixture.id,
+      noProject: true,
+      location: { lat: 10, lng: 10 },
+      pickupEnabled: true,
+      soldByQuantity: true,
+      status: ProductStatus.PUBLISHED,
+    };
+
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
+
+    await expect(
+      productService.updateProduct(
+        input,
+        sellerFixure.id,
+        sellerFixure.role,
+        loggerMock as Logger,
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it('publish product with soldByQuantity but no primaryQuantity', async () => {
+    const { categoryFixture, draftFixture, sellerFixure } = getFixtures();
+
+    const input: UpdateProductInput = {
+      id: 'product',
+      description: 'description',
+      price: 200,
+      primaryUnit: QuantityUnitEnum.AMOUNT,
+      brandId: 'brand',
+      condition: ProductConditionEnum.OKAY,
+      addImages: [{ mimeType: 'image/jpeg' }],
+      categoryId: categoryFixture.id,
+      noProject: true,
+      location: { lat: 10, lng: 10 },
+      pickupEnabled: true,
+      soldByQuantity: true,
+      status: ProductStatus.PUBLISHED,
+    };
+
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(draftFixture as Product);
+
+    await expect(
+      productService.updateProduct(
+        input,
+        sellerFixure.id,
+        sellerFixure.role,
+        loggerMock as Logger,
+      ),
+    ).rejects.toBeDefined();
+  });
+
   it('publish product no transportation', async () => {
     const { categoryFixture, draftFixture, sellerFixure } = getFixtures();
 

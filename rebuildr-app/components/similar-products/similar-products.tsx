@@ -31,6 +31,7 @@ const SIMILAR_PRODUCTS = gql`
           title
           status
           price
+          soldByQuantity
           condition
           primaryQuantity
           primaryUnit

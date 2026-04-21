@@ -307,6 +307,10 @@ export class ProductService {
         name: 'delivery',
       });
     }
+
+    if (errors.length) {
+      throw BadFieldsInputException(errors);
+    }
     //------------------------------------------------
 
     if (input.title !== undefined) {
@@ -335,10 +339,6 @@ export class ProductService {
     if (input.isGiveAway !== undefined) {
       product.isGiveaway = input.isGiveAway;
       product.price = input.isGiveAway ? 0 : product.price;
-    }
-
-    if (errors.length) {
-      throw BadFieldsInputException(errors);
     }
 
     //null means removing the category
@@ -455,6 +455,10 @@ export class ProductService {
         where: { id: In(input.shippingPriceIds) },
       });
       product.shippingPrices = shippingPrices;
+    }
+
+    if (input.soldByQuantity !== undefined) {
+      product.soldByQuantity = input.soldByQuantity;
     }
 
     //By this point we can validate the product, but only if it is to be published

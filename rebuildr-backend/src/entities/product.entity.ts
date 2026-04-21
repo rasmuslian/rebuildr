@@ -117,6 +117,10 @@ export class Product {
   @Column()
   price: number;
 
+  @Field(() => Boolean)
+  @Column({ default: false })
+  soldByQuantity: boolean;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   address?: string;

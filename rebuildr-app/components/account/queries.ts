@@ -25,6 +25,7 @@ export const MY_FAVORITES = gql`
             address
           }
           price
+          soldByQuantity
         }
       }
       likedProjects {

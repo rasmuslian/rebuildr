@@ -77,14 +77,17 @@ export const MainContent = ({
     return hex;
   };
 
+  const primaryUnitShort = product.primaryUnit
+    ? quantities[product.primaryUnit].short
+    : "";
+
   return (
     <View style={{ gap: 24 }}>
       <Breadcrumbs parentCategory={parentCategory} category={category} />
       <View>
         <Title size="large">{product.title}</Title>
         <Body size="large" color="secondary">
-          {product.primaryQuantity}{" "}
-          {product.primaryUnit ? quantities[product.primaryUnit].short : ""} •{" "}
+          {product.primaryQuantity} {primaryUnitShort} •{" "}
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
       </View>
@@ -92,6 +95,7 @@ export const MainContent = ({
         <View>
           <Headline size="large" style={{ marginBottom: 8 }}>
             {formatPrice(product.price)}
+            {product.soldByQuantity ? `/${primaryUnitShort}` : ""}
           </Headline>
           <View style={{ gap: 2 }}>
             {product.pickupEnabled && (
@@ -128,7 +132,6 @@ export const MainContent = ({
           </View>
         </View>
       )}
-      {actionSection}
       <Divider />
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
@@ -196,6 +199,8 @@ export const MainContent = ({
           />
         )}
       </View>
+      {actionSection}
+
       <Divider />
       <SectionHeader>Specifikation</SectionHeader>
       <View style={{ gap: 16 }}>

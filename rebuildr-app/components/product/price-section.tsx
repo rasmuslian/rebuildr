@@ -1,6 +1,7 @@
 import { Check } from "@components/controls/check";
-import { Form } from "@components/forms/form";
-import { Body, Display } from "@components/typography/text";
+import { Toggle } from "@components/controls/toggle";
+import { TextInput } from "@components/forms/textInput";
+import { Body, Display, Label } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
 
@@ -10,6 +11,8 @@ type Props = {
   priceError?: string;
   isGiveaway: boolean;
   onUpdate: (isGiveaway: boolean, price?: number) => void;
+  soldByQuantity: boolean;
+  onUpdateSoldByQuantity: (value: boolean) => void;
 };
 
 export const PriceSection = ({
@@ -18,6 +21,8 @@ export const PriceSection = ({
   priceError,
   isGiveaway,
   onUpdate,
+  soldByQuantity,
+  onUpdateSoldByQuantity,
 }: Props) => {
   const colors = useThemeColor();
 
@@ -34,25 +39,68 @@ export const PriceSection = ({
       <Display size="small" style={{ marginBottom: 24 }}>
         Pris
       </Display>
-      <Form
-        fields={[
-          {
-            type: "price",
-            value: price,
-            placeholder: "kr",
-            heading: "Pris*",
-            description:
-              priceHigherThan > 0
-                ? `Du kan antingen ange ett pris över ${priceHigherThan} kr, eller markera att varan bortskänkes (0 kr).`
-                : undefined,
-            onChange: (p) => {
-              const newPrice = Math.max(0, p);
-              onUpdate(newPrice <= 0, newPrice);
-            },
-            error: priceError,
-          },
-        ]}
-      />
+      <Label size="medium" style={{ marginBottom: 4 }}>
+        {soldByQuantity ? "Pris per enhet" : "Pris för allt"}*
+      </Label>
+      {priceHigherThan > 0 ? (
+        <View style={{ paddingBottom: 12 }}>
+          <Body size="small" color="secondary">
+            {`Du kan antingen ange ett pris över ${priceHigherThan} kr, eller markera att varan bortskänkes (0 kr).`}
+          </Body>
+        </View>
+      ) : null}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <TextInput
+          inputType="numeric"
+          value={price?.toString()}
+          placeholder={soldByQuantity ? "Ange styckepris" : "Ange totalpris"}
+          onChange={(priceString) => {
+            const priceInt = parseInt(priceString, 10);
+            const newPrice = Math.max(0, priceInt);
+            onUpdate(newPrice <= 0, newPrice);
+          }}
+          error={!!priceError}
+          style={
+            soldByQuantity
+              ? {
+                  backgroundColor: colors.buttons.tonal.enabled,
+                  borderColor: colors.text.link,
+                }
+              : undefined
+          }
+        />
+        <Label size="medium">{soldByQuantity ? "Kr/Enhet" : "kr"}</Label>
+      </View>
+      {!!priceError && (
+        <Body color="error" size="small" style={{ marginTop: 12 }}>
+          {priceError}
+        </Body>
+      )}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 8,
+          backgroundColor: soldByQuantity
+            ? colors.buttons.tonal.enabled
+            : colors.buttons.tonal.disabled,
+          borderRadius: 8,
+          padding: 12,
+          marginTop: 16,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Label size="medium">Tillåt delköp</Label>
+          <Body size="medium" color="secondary">
+            Säljes även styckvis. Annonsen ligger kvar tills allt är sålt
+          </Body>
+        </View>
+        <Toggle
+          value={soldByQuantity}
+          onPress={() => onUpdateSoldByQuantity(!soldByQuantity)}
+        />
+      </View>
       <View
         style={{
           flexDirection: "row",

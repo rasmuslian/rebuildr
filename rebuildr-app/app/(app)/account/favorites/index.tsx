@@ -144,6 +144,7 @@ export default function Favorites() {
                 location: product.approximatePlace?.address,
               },
               price: product.price,
+              soldByQuantity: product.soldByQuantity,
               heart: product.seller.id !== data.me.id,
               liked: !!product.likedByMe,
               onHeartPress: () => {

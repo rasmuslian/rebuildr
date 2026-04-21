@@ -90,6 +90,7 @@ export default function ProfileProducts({ isMyProfile, profileQuery }: Props) {
               location: product.approximatePlace?.address,
             },
             price: product.price,
+            soldByQuantity: product.soldByQuantity,
             heart: me?.id !== user.id,
             liked: !!product.likedByMe,
             onHeartPress: () => {

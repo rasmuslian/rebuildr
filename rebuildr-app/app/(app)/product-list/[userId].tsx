@@ -18,6 +18,7 @@ export const PRODUCT_LIST = gql`
         status
         title
         price
+        soldByQuantity
         condition
         primaryQuantity
         primaryUnit
@@ -121,6 +122,7 @@ export default function ProductList() {
               location: product.approximatePlace?.address,
             },
             price: product.price,
+            soldByQuantity: product.soldByQuantity,
             heart: data?.me?.id !== userId,
             liked: !!product.likedByMe,
             onHeartPress: () => {

@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { SectionHeader } from "@components/sections/section-header";
 import {
   AdRowSectionQuery,
+  Product,
   ProductConditionEnum,
   ProductStatusEnum,
   QuantityUnitEnum,
@@ -18,6 +19,7 @@ type Props = {
     primaryUnit?: QuantityUnitEnum | null;
     condition: ProductConditionEnum;
     price: number;
+    soldByQuantity: Product["soldByQuantity"];
     distanceFromLocation?: number | null;
     primaryImage?: {
       __typename?: "File";
@@ -78,6 +80,7 @@ export const AdRowSectionDesktop = ({
                 condition={item.condition}
                 title={item.title}
                 price={item.price}
+                soldByQuantity={item.soldByQuantity}
                 status={item.status}
                 distance={item.distanceFromLocation}
                 onHeartPress={() => {

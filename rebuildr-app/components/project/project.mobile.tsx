@@ -267,6 +267,7 @@ export const ProjectMobile = () => {
                     }}
                     title={product.title}
                     price={product.price}
+                    soldByQuantity={product.soldByQuantity}
                     status={product.status}
                     onHeartPress={() => {
                       onToggleProductHeart({
