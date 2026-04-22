@@ -102,7 +102,12 @@ export default function AccountContent({ onNavigation }: Props) {
         />
         <LinkEntry
           label="Dina annonser"
-          body={(me.products.length ?? 0) + " annonser"}
+          body={
+            me.numberOfPublishedProducts +
+            " annonser • " +
+            me.numberOfSoldProducts +
+            " sålda"
+          }
           link={{
             pathname: "/product-list/[userId]",
             params: { userId: me.id },
