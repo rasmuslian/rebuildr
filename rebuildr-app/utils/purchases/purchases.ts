@@ -1,7 +1,9 @@
+import { Purchase, ReportPurchaseResolutionEnum } from "@/gql/graphql";
+
 type PurchaseType = {
-  reportPurchase?: { resolution?: unknown } | null;
-  approvedAt?: unknown;
-  failedAt?: unknown;
+  reportPurchase?: { resolution?: ReportPurchaseResolutionEnum | null } | null;
+  approvedAt?: Purchase["approvedAt"] | null;
+  failedAt?: Purchase["failedAt"] | null;
 };
 
 export const isPurchaseDone = (purchase: PurchaseType) => {
