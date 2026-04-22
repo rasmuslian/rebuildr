@@ -10,7 +10,7 @@ import Map from "@components/maps/map";
 import { useLocationAddress } from "@hooks/useLocationAddress";
 import { ProductsInput, SearchProductsQuery } from "@/gql/graphql";
 import { formatMetersToKm } from "@/utils/distanceHandling";
-import { meterToKilometer } from "@/utils/conversions";
+import { formatDistance } from "@/utils/formattings";
 import { Check } from "@components/controls/check";
 
 export type TransportationFilterOptions = Pick<
@@ -154,7 +154,7 @@ export const TransportationOptions = ({
                     width: isDesktop ? 290 : screenWidth * (3 / 5),
                   }}
                 />
-                <Body size="medium">{meterToKilometer(pickupDistance)} km</Body>
+                <Body size="medium">{formatDistance(pickupDistance)} km</Body>
               </View>
             </View>
             <View style={{ gap: 12 }}>
