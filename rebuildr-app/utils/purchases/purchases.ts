@@ -1,8 +1,10 @@
-import { AccountPurchasesQuery } from "@/gql/graphql";
+type PurchaseType = {
+  reportPurchase?: { resolution?: unknown } | null;
+  approvedAt?: unknown;
+  failedAt?: unknown;
+};
 
-type PurchasesType = AccountPurchasesQuery["myPurchases"][number];
-
-export const isPurchaseDone = (purchase: PurchasesType) => {
+export const isPurchaseDone = (purchase: PurchaseType) => {
   const resolvedReport = !!purchase.reportPurchase?.resolution;
   return resolvedReport || !!purchase.approvedAt || !!purchase.failedAt;
 };

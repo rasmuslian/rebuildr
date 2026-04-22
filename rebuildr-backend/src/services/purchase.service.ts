@@ -1393,10 +1393,9 @@ export class PurchaseService {
       });
       return;
     }
-    purchase.failedAt = new Date();
     purchase.product.status = ProductStatus.PUBLISHED;
     await this.productRepository.save(purchase.product);
-    await this.purchaseRepository.save(purchase);
+    await this.purchaseRepository.remove(purchase);
   }
 
   async paymentRefunded(

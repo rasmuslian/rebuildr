@@ -9,6 +9,7 @@ import { router, useFocusEffect } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
+import { isPurchaseDone } from "@/utils/purchases/purchases";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -33,6 +34,11 @@ export const MY_ACCOUNT = gql`
       }
       purchases {
         id
+        reportPurchase {
+          resolution
+        }
+        approvedAt
+        failedAt
       }
       profilePicture {
         id
@@ -67,6 +73,9 @@ export default function AccountContent({ onNavigation }: Props) {
   if (editMode) {
     return <EditProfile onEditCompleted={() => setEditMode(false)} />;
   }
+
+  const donePurchases = me.purchases.filter(isPurchaseDone);
+  const ongoingPurchases = me.purchases.filter((p) => !isPurchaseDone(p));
 
   return (
     <View style={{ gap: 24 }}>
@@ -120,7 +129,12 @@ export default function AccountContent({ onNavigation }: Props) {
         />
         <LinkEntry
           label="Dina köp"
-          body={me.purchases.length + " annonser"}
+          body={
+            ongoingPurchases.length +
+            " pågående • " +
+            donePurchases.length +
+            " avslutade"
+          }
           link="/account/purchases"
         />
         <LinkEntry
