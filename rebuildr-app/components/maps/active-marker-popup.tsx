@@ -8,17 +8,18 @@ import {
 import { ACTIVE_PROJECT_POPUP, ACTIVE_PRODUCT_POPUP } from "@/queries";
 import { useApolloClient, useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
-import { Body, Label } from "@components/typography/text";
+import { Body } from "@components/typography/text";
 import { useMapContext } from "@context/map-context";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useUser } from "@hooks/useUser";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { Button } from "@components/buttons/button";
 import { borderRadius } from "@constants/sizes";
 import { Link } from "expo-router";
 import { AdGrid } from "@components/ad/ad-grid";
+import { Icon } from "@icons/icon";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 type Props = {
   mapPinGroup: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"][number];
@@ -45,50 +46,75 @@ const NavigationRow = ({
   onPrevious,
   onNext,
   label,
-}: NavigationRowProps) => (
-  <View style={{ flexDirection: "row", alignItems: "center" }}>
-    <View style={{ flex: 1, alignItems: "flex-start" }}>
-      {onPrevious && (
-        <Button onPress={onPrevious} type="text" icon="chevronLeft" />
-      )}
+}: NavigationRowProps) => {
+  const colors = useThemeColor();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flex: 1, alignItems: "flex-start" }}>
+        {onPrevious && (
+          <Pressable
+            onPress={onPrevious}
+            style={{
+              width: 28,
+              height: 28,
+              backgroundColor: colors.buttons.tonal.enabled,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: borderRadius.xSmall,
+            }}
+          >
+            <Icon icon="chevronLeft" />
+          </Pressable>
+        )}
+      </View>
+      <View style={{ flex: 1, alignItems: "center" }}>
+        <Body size="small" color="secondary">
+          {label ?? `${currentIndex + 1} av ${total}`}
+        </Body>
+      </View>
+      <View style={{ flex: 1, alignItems: "flex-end" }}>
+        {onNext && (
+          <Pressable
+            onPress={onNext}
+            style={{
+              width: 28,
+              height: 28,
+              backgroundColor: colors.buttons.tonal.enabled,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: borderRadius.xSmall,
+            }}
+          >
+            <Icon icon="chevronRight" />
+          </Pressable>
+        )}
+      </View>
     </View>
-    <View style={{ flex: 1, alignItems: "center" }}>
-      <Body size="small" color="secondary">
-        {label ?? `${currentIndex + 1} av ${total}`}
-      </Body>
-    </View>
-    <View style={{ flex: 1, alignItems: "flex-end" }}>
-      {onNext && <Button onPress={onNext} type="text" icon="chevronRight" />}
-    </View>
-  </View>
-);
+  );
+};
 
 type ProjectHeaderProps = {
   project: Pick<Project, "id" | "title">;
 };
 
 const ProjectHeader = ({ project }: ProjectHeaderProps) => (
-  <>
-    <Label
+  <Link
+    asChild
+    href={{
+      pathname: "/project/[projectId]",
+      params: { projectId: project.id },
+    }}
+  >
+    <Body
       style={{ textAlign: "center" }}
       size="small"
       lineBreakMode="tail"
       numberOfLines={1}
+      isLink
     >
       {project.title}
-    </Label>
-    <Link
-      style={{ textAlign: "center" }}
-      href={{
-        pathname: "/project/[projectId]",
-        params: { projectId: project.id },
-      }}
-    >
-      <Body size="small" isLink>
-        Projektvy
-      </Body>
-    </Link>
-  </>
+    </Body>
+  </Link>
 );
 
 export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
@@ -173,14 +199,7 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
   if (showProject && project) {
     return (
       <View style={{ gap: 10 }}>
-        <Label
-          style={{ textAlign: "center" }}
-          size="small"
-          lineBreakMode="tail"
-          numberOfLines={1}
-        >
-          {project.title}
-        </Label>
+        <ProjectHeader project={project} />
 
         <NavigationRow
           currentIndex={0}
