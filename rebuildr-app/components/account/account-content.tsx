@@ -9,6 +9,7 @@ import { router, useFocusEffect } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
+import { isPurchaseDone } from "@/utils/purchases/purchases";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -33,6 +34,11 @@ export const MY_ACCOUNT = gql`
       }
       purchases {
         id
+        reportPurchase {
+          resolution
+        }
+        approvedAt
+        failedAt
       }
       profilePicture {
         id
@@ -68,6 +74,9 @@ export default function AccountContent({ onNavigation }: Props) {
     return <EditProfile onEditCompleted={() => setEditMode(false)} />;
   }
 
+  const donePurchases = me.purchases.filter(isPurchaseDone);
+  const ongoingPurchases = me.purchases.filter((p) => !isPurchaseDone(p));
+
   return (
     <View style={{ gap: 24 }}>
       <UserCard
@@ -102,7 +111,12 @@ export default function AccountContent({ onNavigation }: Props) {
         />
         <LinkEntry
           label="Dina annonser"
-          body={(me.products.length ?? 0) + " annonser"}
+          body={
+            me.numberOfPublishedProducts +
+            " annonser • " +
+            me.numberOfSoldProducts +
+            " sålda"
+          }
           link={{
             pathname: "/product-list/[userId]",
             params: { userId: me.id },
@@ -115,7 +129,12 @@ export default function AccountContent({ onNavigation }: Props) {
         />
         <LinkEntry
           label="Dina köp"
-          body={me.purchases.length + " annonser"}
+          body={
+            ongoingPurchases.length +
+            " pågående • " +
+            donePurchases.length +
+            " avslutade"
+          }
           link="/account/purchases"
         />
         <LinkEntry

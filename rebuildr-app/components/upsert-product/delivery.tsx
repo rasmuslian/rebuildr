@@ -18,7 +18,7 @@ import { useWindowDimensions, View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { defaultRadius } from "@constants/map";
 import { ToggleCard } from "@components/toggle-card/toggle-card";
-import { meterToKilometer } from "@/utils/conversions";
+import { formatDistance } from "@/utils/formattings";
 import { Slider } from "@components/slider/slider";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 import { ProductFields } from "./types";
@@ -224,7 +224,7 @@ export const Delivery = ({
                   onRelease: (r) => onChangeRadius(r),
                 }}
               />
-              <Body size="medium">{meterToKilometer(radius)} km</Body>
+              <Body size="medium">{formatDistance(radius)} km</Body>
             </View>
           </View>
           <View style={{ gap: 12 }}>

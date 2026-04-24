@@ -70,3 +70,9 @@ export const parseFloatComma = (number: string) => {
   const commaToDot = number.replace(/,/g, ".");
   return parseFloat(commaToDot);
 };
+
+export const formatDistance = (distance: number) => {
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 0,
+  }).format(distance / 1000);
+};
