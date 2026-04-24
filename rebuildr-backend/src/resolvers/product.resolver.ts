@@ -732,7 +732,10 @@ export class ProductResolver {
     @Args('input') input: CmsCreateProductInput,
     @CurrentUser() user: AuthedUserType,
   ): Promise<CmsCreateProductResponse> {
-    return this.productService.cmsCreateProduct(input, input.sellerId ?? user.id);
+    return this.productService.cmsCreateProduct(
+      input,
+      input.sellerId ?? user.id,
+    );
   }
 
   @Mutation(() => CmsUpdateProductResponse)

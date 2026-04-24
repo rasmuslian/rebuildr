@@ -17,6 +17,7 @@ const GET_CONVERSATIONS = gql`
       readAt
       createdAt
       messageType
+      purchaseId
       sender {
         id
         username
@@ -43,6 +44,7 @@ const GET_CONVERSATIONS = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         primaryImage {
           id
           url

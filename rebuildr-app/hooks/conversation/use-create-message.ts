@@ -38,6 +38,7 @@ const CREATE_MESSAGE = gql`
 type OnCreateMessageProps = {
   receiverId: string;
   productId: string;
+  purchaseId?: string;
   message: string;
   images?: { mimeType: string; file: File }[];
   documents?: { mimeType: string; file: File; name: string }[];
@@ -53,6 +54,7 @@ export const useCreateMessage = () => {
   const onCreateMessage = ({
     receiverId,
     productId,
+    purchaseId,
     message,
     images,
     documents,
@@ -67,6 +69,7 @@ export const useCreateMessage = () => {
         input: {
           receiverId,
           productId,
+          purchaseId,
           message,
           images: images
             ? images.map((i) => ({ mimeType: i.mimeType }))

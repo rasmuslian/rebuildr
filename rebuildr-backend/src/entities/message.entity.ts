@@ -11,6 +11,7 @@ import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
 import { File } from './file.entity';
+import { Purchase } from './purchase.entity';
 
 export enum MessageTypeEnum {
   USER = 'USER',
@@ -57,6 +58,13 @@ export class Message {
 
   @ManyToOne(() => Product, (product) => product.id)
   product: Product;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  purchaseId?: string;
+
+  @ManyToOne(() => Purchase, (purchase) => purchase.id, { nullable: true })
+  purchase?: Purchase;
 
   @Column({ type: 'timestamptz', nullable: true })
   @Field(() => Date, { nullable: true })

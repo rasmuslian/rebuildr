@@ -32,6 +32,8 @@ class CreateMessageInput {
   receiverId: string;
   @Field()
   productId: string;
+  @Field({ nullable: true })
+  purchaseId: string;
   @Field()
   message: string;
   @Field(() => [FileInputType], { nullable: true })
@@ -41,12 +43,15 @@ class CreateMessageInput {
 }
 
 @InputType()
-class GetConversationInput {
+export class GetConversationInput {
   @Field()
   otherUserId: string;
 
   @Field()
   productId: string;
+
+  @Field({ nullable: true })
+  purchaseId: string;
 }
 
 export enum GetConversationsType {
@@ -75,6 +80,9 @@ export class MarkAsReadInput {
   @Field()
   productId: string;
 
+  @Field({ nullable: true })
+  purchaseId?: string;
+
   @Field()
   markAsRead: boolean;
 }
@@ -92,11 +100,7 @@ export class MessageResolver {
     @Args('input') input: GetConversationInput,
     @CurrentUser() user: AuthedUserType,
   ) {
-    return this.messageService.getConversation(
-      input.productId,
-      input.otherUserId,
-      user.id,
-    );
+    return this.messageService.getConversation(input, user.id);
   }
 
   @Query(() => [Message])
@@ -127,6 +131,7 @@ export class MessageResolver {
       senderId: _user.id,
       receiverId: input.receiverId,
       productId: input.productId,
+      purchaseId: input.purchaseId,
       message: input.message,
       images: input.images,
       documents: input.documents,
@@ -139,11 +144,7 @@ export class MessageResolver {
     @Args('input') input: MarkAsReadInput,
     @CurrentUser() user: AuthedUserType,
   ) {
-    return this.messageService.markAsRead(
-      input.productId,
-      input.otherUserId,
-      user.id,
-    );
+    return this.messageService.markAsRead(input, user.id);
   }
 
   @ResolveField(() => Product)

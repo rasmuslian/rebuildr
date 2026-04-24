@@ -1,11 +1,10 @@
 import { Body, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Badge } from "@components/badges/badge";
 import { Avatar } from "@components/avatar/avatar";
 import { UserType } from "@/gql/graphql";
-import { Pressable } from "react-native-gesture-handler";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 
@@ -22,6 +21,7 @@ type Props = {
     createdAt: Date;
     readAt?: Date;
     productId: string;
+    purchaseId?: string | null;
   };
   myId: string;
   active?: boolean;
@@ -49,6 +49,15 @@ export const MessageRow = ({
         productId: message.productId,
         userId: otherUser.id,
         key: 0,
+      });
+    } else if (message.purchaseId) {
+      router.navigate({
+        pathname: "/conversations/[productId]/[userId]/[purchaseId]",
+        params: {
+          productId: message.productId,
+          purchaseId: message.purchaseId,
+          userId: otherUser.id,
+        },
       });
     } else {
       router.navigate({

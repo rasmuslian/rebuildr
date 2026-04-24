@@ -12,12 +12,14 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 type Props = {
   receiverId: string;
   productId: string;
+  purchaseId?: string | null;
   onMessageSent?: () => void;
 };
 
 export const MessageInput = ({
   receiverId,
   productId,
+  purchaseId,
   onMessageSent,
 }: Props) => {
   const [message, setMessage] = useState("");
@@ -64,6 +66,7 @@ export const MessageInput = ({
     onCreateMessage({
       receiverId,
       productId,
+      purchaseId,
       ...input,
       onCompleted: () => {
         setMessage("");

@@ -8,6 +8,10 @@ export default function ConversationsLayout() {
         name="[productId]/[userId]/index"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="[productId]/[userId]/[purchaseId]/index"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

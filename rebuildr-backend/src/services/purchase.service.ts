@@ -476,12 +476,11 @@ export class PurchaseService {
   }
 
   //If seller has written a message to buyer, we record it here
-  async handleSellerResponse(productId: string, receiverId: string) {
+  async handleSellerResponse(purchaseId: string) {
     const purchase = await this.purchaseRepository.findOne({
       where: [
         {
-          productId: productId,
-          buyerId: receiverId,
+          id: purchaseId,
           status: Not(PurchaseStatusEnum.FINISHED_FAILED),
         },
       ],
@@ -592,11 +591,13 @@ export class PurchaseService {
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
       );
       this.systemMessagesService.handoffConfirmedSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
       );
     }
     purchase.deliveredAt = new Date();
@@ -608,12 +609,14 @@ export class PurchaseService {
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
         true,
       );
       this.systemMessagesService.purchaseSuccessSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
         true,
       );
       purchase.approvedAt = new Date();
@@ -798,12 +801,14 @@ export class PurchaseService {
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedByBuyerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
       } else {
@@ -811,12 +816,14 @@ export class PurchaseService {
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedBySellerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
       }
@@ -880,11 +887,13 @@ export class PurchaseService {
         buyer,
         seller,
         product,
+        purchase,
       );
       await this.systemMessagesService.purchaseSuccessSeller(
         buyer,
         seller,
         product,
+        purchase,
         nrOfCompletedSales > 0,
       );
     }
@@ -1122,12 +1131,14 @@ export class PurchaseService {
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
             boughtForFree,
           );
           this.systemMessagesService.purchaseAbortedBySellerSeller(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
             boughtForFree,
           );
         }
@@ -1191,11 +1202,13 @@ export class PurchaseService {
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
           );
           this.systemMessagesService.lateShippingDropOffSeller(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
           );
         }
         purchase.refundId = refund.id;

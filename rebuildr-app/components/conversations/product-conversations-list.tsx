@@ -42,6 +42,7 @@ export const ProductConversationsList = ({
               createdAt: conversation.createdAt,
               readAt: conversation.readAt,
               productId: product.id,
+              purchaseId: conversation.purchaseId,
             }}
             myId={data.me.id}
             active={showAsActive}

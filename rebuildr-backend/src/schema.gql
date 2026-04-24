@@ -232,6 +232,7 @@ type Message {
   message: String!
   senderId: ID!
   receiverId: ID!
+  purchaseId: String
   readAt: DateTime
   messageType: MessageTypeEnum!
   imagePutUrls: [String!]
@@ -911,6 +912,7 @@ input PopularCategoriesInput {
 input GetConversationInput {
   otherUserId: String!
   productId: String!
+  purchaseId: String
 }
 
 input GetConversationsInput {
@@ -1399,6 +1401,7 @@ input CreateMessageInput {
 input MarkAsReadInput {
   otherUserId: String!
   productId: String!
+  purchaseId: String
   markAsRead: Boolean!
 }
 

@@ -4,10 +4,12 @@ import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
-import { BadUserInputException } from 'src/exceptions';
+import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import {
+  GetConversationInput,
   GetConversationsInput,
   GetConversationsType,
+  MarkAsReadInput,
 } from 'src/resolvers/message.resolver';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { PurchaseService } from './purchase.service';
@@ -21,6 +23,7 @@ import { FileService } from './file.service';
 
 export interface SystemMessageInput {
   productId: string;
+  purchaseId: string;
   senderId: string;
   receiverId: string;
   message: string;
@@ -45,20 +48,19 @@ export class MessageService {
     private fileService: FileService,
   ) {}
 
-  async getConversation(
-    productId: string,
-    otherUserId: string,
-    currentUserId: string,
-  ) {
+  async getConversation(input: GetConversationInput, currentUserId) {
+    const { productId, purchaseId, otherUserId } = input;
     const result = await this.messageRepository.find({
       where: [
         {
           product: { id: productId },
+          purchase: { id: purchaseId },
           receiver: { id: currentUserId },
           sender: { id: otherUserId },
         },
         {
           product: { id: productId },
+          purchase: { id: purchaseId },
           sender: { id: currentUserId },
           receiver: { id: otherUserId },
           messageType: MessageTypeEnum.USER,
@@ -89,17 +91,16 @@ export class MessageService {
     const conversations = await this.dataSource
       .createQueryBuilder()
       .select(
-        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_readAt" as "readAt", m."message_messageType" as "messageType"',
+        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_purchaseId" as "purchaseId", m."message_readAt" as "readAt", m."message_messageType" as "messageType"',
       )
       .from((qb) => {
         qb.select('message')
           .addSelect(
             `row_number() over(
               partition by message."productId",
-              CASE 
-                WHEN message."senderId" = '${currentUserId}' THEN message."receiverId" 
-                ELSE message."senderId" 
-              END
+              message."purchaseId",
+              LEAST(message."senderId", message."receiverId"),
+          		GREATEST(message."senderId", message."receiverId")
               order by message."createdAt" desc
               )`,
             'rank',
@@ -152,6 +153,7 @@ export class MessageService {
     senderId: string;
     receiverId: string;
     productId: string;
+    purchaseId?: string;
     message: string;
     images?: FileInputType[];
     documents?: FileInputType[];
@@ -160,94 +162,89 @@ export class MessageService {
       throw BadUserInputException('Cannot send message on own product');
     }
     const message = new Message();
+    try {
+      message.message = input.message;
+      message.receiverId = input.receiverId;
+      message.senderId = input.senderId;
+      message.productId = input.productId;
+      message.purchaseId = input.purchaseId;
 
-    const [receiver, sender, product] = await Promise.all([
-      this.userRepository.findOneByOrFail({ id: input.receiverId }),
-      this.userRepository.findOneByOrFail({ id: input.senderId }),
-      this.productRepository.findOneByOrFail({ id: input.productId }),
-      this.purchaseRepository.findOne({
-        where: { productId: input.productId },
-      }),
-    ]).catch(() => {
+      if (input.purchaseId) {
+        await this.purchaseService.handleSellerResponse(input.purchaseId);
+      }
+
+      const images = input.images;
+      if (images) {
+        const files = await this.fileService.createFiles(images, true);
+        message.images = files;
+        message.imagePutUrls = await this.fileService.uploadFiles(files);
+      }
+      const documents = input.documents;
+      if (documents) {
+        const files = await this.fileService.createFiles(documents, true);
+        message.documents = files;
+        message.documentPutUrls = await this.fileService.uploadFiles(files);
+      }
+
+      return await this.messageRepository.save(message);
+    } catch (e) {
+      this.logger.error('Invalid conversation', {
+        ...input,
+        e,
+      });
       throw BadUserInputException('Invalid conversation');
-    });
-
-    this.purchaseService.handleSellerResponse(
-      input.productId,
-      input.receiverId,
-    );
-
-    message.receiver = receiver;
-    message.sender = sender;
-    message.product = product;
-    message.message = input.message;
-
-    const images = input.images;
-    if (images) {
-      const files = await this.fileService.createFiles(images, true);
-      message.images = files;
-      message.imagePutUrls = await this.fileService.uploadFiles(files);
     }
-    const documents = input.documents;
-    if (documents) {
-      const files = await this.fileService.createFiles(documents, true);
-      message.documents = files;
-      message.documentPutUrls = await this.fileService.uploadFiles(files);
-    }
-
-    return await this.messageRepository.save(message);
   }
 
   async sendSystemMessage(input: SystemMessageInput) {
-    const [receiver, sender, product] = await Promise.all([
-      this.userRepository.findOneByOrFail({ id: input.receiverId }),
-      this.userRepository.findOneByOrFail({ id: input.senderId }),
-      this.productRepository.findOneByOrFail({ id: input.productId }),
-    ]).catch(() => {
+    try {
+      const newMessage = new Message();
+      newMessage.message = input.message;
+      newMessage.receiverId = input.receiverId;
+      newMessage.senderId = input.senderId;
+      newMessage.productId = input.productId;
+      newMessage.purchaseId = input.purchaseId;
+      newMessage.messageType = MessageTypeEnum.SYSTEM;
+      newMessage.readAt = null;
+
+      const _newMessage = await this.messageRepository.save(newMessage);
+      //If the receiver is an organization, the email is sent to the owner instead
+      const receiver = await this.userRepository.findOneBy({
+        id: input.receiverId,
+      });
+      let mailReceiver = receiver;
+      if (receiver.type === UserType.BUSINESS) {
+        const owner = await this.userService.findOrganizationOwner(receiver);
+        mailReceiver = owner;
+      }
+
+      //Send mail if user allows it
+      const product = await this.productRepository.findOneBy({
+        id: input.productId,
+      });
+      if (mailReceiver.notifyOnPurchaseUpdate) {
+        this.mailService.sendSystemMessageEmail({
+          product,
+          receiver: mailReceiver,
+        });
+      }
+
+      return _newMessage;
+    } catch (e) {
       this.logger.error('Invalid system conversation', {
         ...input,
+        e,
       });
-      throw BadUserInputException('Invalid system conversation');
-    });
-
-    const newMessage = new Message();
-
-    newMessage.message = input.message;
-    newMessage.receiver = receiver;
-    newMessage.sender = sender;
-    newMessage.product = product;
-    newMessage.messageType = MessageTypeEnum.SYSTEM;
-    newMessage.readAt = null;
-
-    const _newMessage = await this.messageRepository.save(newMessage);
-
-    //If the receiver is an organization, the email is sent to the owner instead
-    let mailReceiver = receiver;
-    if (receiver.type === UserType.BUSINESS) {
-      const owner = await this.userService.findOrganizationOwner(receiver);
-      mailReceiver = owner;
+      throw InternalServerException('Invalid system conversation');
     }
-
-    //Send mail if user allows it
-    if (mailReceiver.notifyOnPurchaseUpdate) {
-      this.mailService.sendSystemMessageEmail({
-        product,
-        receiver: mailReceiver,
-      });
-    }
-
-    return _newMessage;
   }
 
-  async markAsRead(
-    productId: string,
-    otherUserId: string,
-    currentUserId: string,
-  ) {
+  async markAsRead(input: MarkAsReadInput, currentUserId: string) {
     const unreadMessages = await this.messageRepository.find({
       where: {
-        product: { id: productId },
-        senderId: otherUserId,
+        productId: input.productId,
+        purchaseId: input.purchaseId,
+        senderId: input.otherUserId,
         receiverId: currentUserId,
         readAt: IsNull(),
       },

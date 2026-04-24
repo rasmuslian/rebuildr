@@ -21,6 +21,7 @@ export const CONVERSATIONS = gql`
       message
       readAt
       createdAt
+      purchaseId
       sender {
         id
         username
@@ -47,6 +48,7 @@ export const CONVERSATIONS = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         primaryImage {
           id
           url
@@ -60,12 +62,21 @@ export const CONVERSATIONS = gql`
 `;
 
 export default function ConversationsProduct() {
-  const { productId } = useLocalSearchParams<{ productId: string }>();
+  const { productId, role } = useLocalSearchParams<{
+    productId: string;
+    role: "seller" | "buyer";
+  }>();
   const { data } = useQuery<ConversationsQuery, ConversationsQueryVariables>(
     CONVERSATIONS,
     {
       variables: {
-        input: { productId, type: GetConversationsType.Selling },
+        input: {
+          productId,
+          type:
+            role === "seller"
+              ? GetConversationsType.Selling
+              : GetConversationsType.Buying,
+        },
       },
     },
   );
@@ -74,7 +85,7 @@ export default function ConversationsProduct() {
     return <LoadingSpinner />;
   }
 
-  const product = data.getConversations[0].product;
+  const product = data.getConversations[0]?.product;
 
   return (
     <ScreenLayout
@@ -90,6 +101,7 @@ export default function ConversationsProduct() {
               title={product.title}
               condition={product.condition}
               price={product.price}
+              soldByQuantity={product.soldByQuantity}
               quantity={product.primaryQuantity}
               quantityUnit={product.primaryUnit}
               imageUrl={product.primaryImage?.url}

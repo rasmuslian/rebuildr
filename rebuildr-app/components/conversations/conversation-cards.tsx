@@ -26,10 +26,12 @@ export const ConversationCards = ({
     productId,
     userId,
     key,
+    myRole,
   }: {
     productId: string;
     userId?: string;
     key: number;
+    myRole: "seller" | "buyer";
   }) => {
     if (onSelectConversation) {
       onSelectConversation({ productId, userId, key });
@@ -44,7 +46,7 @@ export const ConversationCards = ({
     } else {
       router.navigate({
         pathname: "/conversations/[productId]",
-        params: { productId },
+        params: { productId, role: myRole },
       });
     }
   };
@@ -62,6 +64,7 @@ export const ConversationCards = ({
           : firstConversation.sender.id === myId
             ? firstConversation.receiver.id
             : firstConversation.sender.id;
+        const myRole = product.seller.id === myId ? "seller" : "buyer";
 
         return (
           <ProductMessageCard
@@ -79,6 +82,7 @@ export const ConversationCards = ({
               quantityUnit: product.primaryUnit ?? undefined,
               condition: product.condition,
               price: product.price,
+              soldByQuantity: product.soldByQuantity,
               imageUrl: product.primaryImage?.url,
             }}
             messages={sortedByLatest.map((conversation) => ({
@@ -94,6 +98,7 @@ export const ConversationCards = ({
                 productId: conversationGroup.productId,
                 userId,
                 key: i,
+                myRole,
               })
             }
           />

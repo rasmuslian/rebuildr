@@ -16,6 +16,7 @@ const MARK_CONVERSATION_AS_READ = gql`
 type UseMarkConversationAsReadProps = {
   otherUserId: string;
   productId: string;
+  purchaseId?: string;
   refetchQueries?: DocumentNode[];
 };
 
@@ -28,6 +29,7 @@ export const useMarkConversationAsRead = () => {
   const onMarkConversationAsRead = ({
     otherUserId,
     productId,
+    purchaseId,
     refetchQueries,
   }: UseMarkConversationAsReadProps) => {
     markConversationAsRead({
@@ -35,6 +37,7 @@ export const useMarkConversationAsRead = () => {
         input: {
           otherUserId,
           productId,
+          purchaseId,
           markAsRead: true,
         },
       },
