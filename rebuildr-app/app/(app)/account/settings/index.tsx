@@ -21,7 +21,7 @@ import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 const SETTINGS_USER_FRAGMENT = gql`
   fragment SettingsUserFragment on User {
@@ -220,7 +220,9 @@ const UserRow = ({ user, selected, onPress }: UserRowProps) => {
   const isBusiness = user.type === UserType.Business;
 
   return (
-    <View
+    <Pressable
+      disabled={selected || !onPress}
+      onPress={() => onPress?.(user.id)}
       style={{
         flexDirection: "row",
         justifyContent: "space-between",
@@ -255,7 +257,9 @@ const UserRow = ({ user, selected, onPress }: UserRowProps) => {
           </View>
         </View>
       </View>
-      <Radio selected={selected} onPress={() => onPress?.(user.id)} />
-    </View>
+      <View pointerEvents="none">
+        <Radio selected={selected} />
+      </View>
+    </Pressable>
   );
 };
