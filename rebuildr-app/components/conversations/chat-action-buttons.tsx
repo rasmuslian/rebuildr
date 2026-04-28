@@ -115,6 +115,9 @@ export const ChatActionButtons = ({
     if (hasReviewed) {
       return null;
     }
+    if (purchase.failedAt) {
+      return null;
+    }
 
     //Product is approved, buyer and seller is prompted to leave a review
     if (purchase.approvedAt) {
