@@ -13,6 +13,7 @@ import { Logger } from 'winston';
 import { UserService } from './user.service';
 import { FileService } from './file.service';
 import { Conversation } from 'src/entities/conversation.entity';
+import { PurchaseService } from './purchase.service';
 
 export interface SystemMessageInput {
   productId: string;
@@ -32,6 +33,8 @@ export class MessageService {
     private productRepository: Repository<Product>,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    @Inject(forwardRef(() => PurchaseService))
+    private purchaseService: PurchaseService,
     private mailService: MailService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @Inject(forwardRef(() => UserService))
@@ -105,6 +108,10 @@ export class MessageService {
       console.log('newConversation :>> ', newConversation);
 
       conversation = await this.conversationRepository.save(newConversation);
+    }
+
+    if (conversation.purchaseId) {
+      await this.purchaseService.handleSellerResponse(conversation.purchaseId);
     }
 
     message.conversation = conversation;
