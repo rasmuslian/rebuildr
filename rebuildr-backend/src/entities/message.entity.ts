@@ -7,11 +7,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
 import { File } from './file.entity';
-import { Purchase } from './purchase.entity';
 import { Conversation } from './conversation.entity';
 
 export enum MessageTypeEnum {
@@ -55,13 +53,6 @@ export class Message {
 
   @ManyToOne(() => User, (user) => user.id, { nullable: true })
   receiver?: User;
-
-  @ManyToOne(() => Purchase, (purchase) => purchase.id, { nullable: true })
-  purchase?: Purchase;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  @Field(() => Date, { nullable: true })
-  readAt?: Date | null;
 
   @Field(() => MessageTypeEnum)
   @Column('enum', { enum: MessageTypeEnum, default: MessageTypeEnum.USER })
