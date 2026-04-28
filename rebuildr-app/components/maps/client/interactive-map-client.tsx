@@ -280,7 +280,7 @@ const MapInformationController = () => {
             />
             <MapIconInfo
               type={MapPinTypeEnum.Project}
-              title="Project"
+              title="Projekt"
               description="Projektförsäljning av varor"
             />
             <MapIconInfo
