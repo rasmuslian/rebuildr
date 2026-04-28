@@ -22,11 +22,11 @@ import { File } from './file.entity';
 import { Purchase } from './purchase.entity';
 import { QuantityUnitEnum, quantityUnitEnumName } from '../constants/enums';
 import { Brand } from './brand.entity';
-import { Message } from './message.entity';
 import { Project } from './project.entity';
 import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
+import { Conversation } from './conversation.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -306,8 +306,8 @@ export class Product {
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
 
-  @OneToMany(() => Message, (message) => message.product)
-  messages: Message[];
+  @OneToMany(() => Conversation, (conversation) => conversation.product)
+  conversations: Conversation[];
 
   @Field({ nullable: true })
   @Column({

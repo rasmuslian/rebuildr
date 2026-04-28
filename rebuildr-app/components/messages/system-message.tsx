@@ -1,7 +1,30 @@
-import { Body } from "@components/typography/text";
-import dayjs from "dayjs";
 import { StyleSheet, View } from "react-native";
 import Markdown, { RenderRules } from "react-native-markdown-display";
+import { Body } from "@components/typography/text";
+import dayjs from "dayjs";
+
+export const parseSystemMessagePreview = (text: string): string =>
+  text
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^# /, "")
+        .replace(/_([^_]+)_/g, "$1")
+        .replace(
+          /\[([^\]]*)\]\(<date::([^:>]+)::([^>]+)>\)/g,
+          (_, __, format, date) =>
+            dayjs(decodeURI(date)).format(decodeURI(format)),
+        )
+        .replace(
+          /\[([^\]]*)\]\(date::([^:)]+)::([^)]+)\)/g,
+          (_, __, format, date) =>
+            dayjs(decodeURI(date)).format(decodeURI(format)),
+        )
+        .replace(/\[([^\]]*)\]\(<[^>]+>\)/g, "$1")
+        .replace(/\[([^\]]*)\]\([^)]+\)/g, "$1"),
+    )
+    .join(" ")
+    .trim();
 
 type Props = {
   text: string;

@@ -8,18 +8,17 @@ import SendVector from "@assets/svgs/send-vector.svg";
 import { Image } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { CreateMessageMutation } from "@/gql/graphql";
 
 type Props = {
-  receiverId: string;
+  conversationId?: string;
   productId: string;
-  purchaseId?: string | null;
-  onMessageSent?: () => void;
+  onMessageSent?: (data: CreateMessageMutation) => void;
 };
 
 export const MessageInput = ({
-  receiverId,
+  conversationId,
   productId,
-  purchaseId,
   onMessageSent,
 }: Props) => {
   const [message, setMessage] = useState("");
@@ -64,13 +63,12 @@ export const MessageInput = ({
     }
 
     onCreateMessage({
-      receiverId,
+      conversationId,
       productId,
-      purchaseId,
       ...input,
-      onCompleted: () => {
+      onCompleted: (data) => {
         setMessage("");
-        onMessageSent?.();
+        onMessageSent?.(data);
       },
     });
   };

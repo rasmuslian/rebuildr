@@ -11,6 +11,7 @@ import { MessageLoader } from './message.loader';
 import { PartnerLoader } from './partner.loader';
 import { BrandLoader } from './brand.loader';
 import { BannerLoader } from './banner.loader';
+import { ConversationLoader } from './conversation.loader';
 
 @Module({
   providers: [
@@ -26,6 +27,7 @@ import { BannerLoader } from './banner.loader';
     PartnerLoader,
     BrandLoader,
     BannerLoader,
+    ConversationLoader,
   ],
   exports: [
     DataloaderService,
@@ -40,6 +42,7 @@ import { BannerLoader } from './banner.loader';
     PartnerLoader,
     BrandLoader,
     BannerLoader,
+    ConversationLoader,
   ],
 })
 export class DataloaderModule {}

@@ -9,6 +9,7 @@ const CREATE_MESSAGE = gql`
   mutation CreateMessage($input: CreateMessageInput!) {
     createMessage(input: $input) {
       id
+      conversationId
       message
       messageType
       createdAt
@@ -23,26 +24,17 @@ const CREATE_MESSAGE = gql`
           url
         }
       }
-      receiver {
-        id
-        username
-        profilePicture {
-          id
-          url
-        }
-      }
     }
   }
 `;
 
 type OnCreateMessageProps = {
-  receiverId: string;
+  conversationId?: string;
   productId: string;
-  purchaseId?: string;
   message: string;
   images?: { mimeType: string; file: File }[];
   documents?: { mimeType: string; file: File; name: string }[];
-  onCompleted?: () => void;
+  onCompleted?: (data: CreateMessageMutation) => void;
 };
 
 export const useCreateMessage = () => {
@@ -52,9 +44,8 @@ export const useCreateMessage = () => {
   >(CREATE_MESSAGE);
 
   const onCreateMessage = ({
-    receiverId,
+    conversationId,
     productId,
-    purchaseId,
     message,
     images,
     documents,
@@ -67,9 +58,7 @@ export const useCreateMessage = () => {
     createMessage({
       variables: {
         input: {
-          receiverId,
-          productId,
-          purchaseId,
+          ...(conversationId ? { conversationId } : { productId }),
           message,
           images: images
             ? images.map((i) => ({ mimeType: i.mimeType }))
@@ -124,7 +113,7 @@ export const useCreateMessage = () => {
             Sentry.captureException(e);
           }
         }
-        onCompleted?.();
+        onCompleted?.(data);
       },
     });
   };

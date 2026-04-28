@@ -1,20 +1,17 @@
 import { ComponentProps } from "react";
 import { AdList } from "@components/ad/ad-list";
 import dayjs from "dayjs";
-import { GetConversationsQuery, MessageTypeEnum } from "@/gql/graphql";
+import { MessageTypeEnum } from "@/gql/graphql";
 import { ProductCard } from "@components/cards/product-card";
+import { ConversationsPerProductType } from "@/utils/conversations/parse-conversations";
+
+type Conversation =
+  ConversationsPerProductType[number]["conversations"][number];
 
 type Props = {
   adList: ComponentProps<typeof AdList>;
   myId: string;
-  messages: {
-    sender: GetConversationsQuery["getConversations"][0]["sender"];
-    receiver: GetConversationsQuery["getConversations"][0]["receiver"];
-    messageType: MessageTypeEnum;
-    message: string;
-    createdAt: Date;
-    readAt?: Date;
-  }[];
+  conversations: ConversationsPerProductType[number]["conversations"];
   onPress: () => void;
   selected?: boolean;
 };
@@ -22,55 +19,58 @@ type Props = {
 export const ProductMessageCard = ({
   adList,
   myId,
-  messages,
+  conversations,
   onPress,
   selected,
 }: Props) => {
-  const nrOfUnread = messages.reduce(
-    (acc, curr) => acc + (curr.sender.id !== myId && !curr.readAt ? 1 : 0),
-    0,
-  );
-
-  const getOtherUser = (message: (typeof messages)[0]) =>
-    message.receiver.id === myId ? message.sender : message.receiver;
-
-  const singleSenderMessage = (message: (typeof messages)[0]) => {
-    if (message.messageType === MessageTypeEnum.System) {
-      return `${message.sender.username}`;
-    }
-    return `${message.sender.username}: ${message.message}`;
+  const isUnread = (c: Conversation) => {
+    if (!c.lastMessage?.createdAt || c.lastMessage.sender?.id === myId)
+      return false;
+    const lastAt = new Date(c.lastMessage.createdAt);
+    const readAt = c.buyerId === myId ? c.buyerReadAt : c.sellerReadAt;
+    return !readAt || lastAt > new Date(readAt);
   };
+
+  const nrOfUnread = conversations.filter(isUnread).length;
+
+  const getOtherUser = (c: Conversation) =>
+    c.buyerId !== myId ? c.buyer : c.product.seller;
+
+  const lastMessagePreview = (c: Conversation) => {
+    if (!c.lastMessage) return "";
+    if (c.lastMessage.messageType === MessageTypeEnum.System)
+      return "Systemmeddelande";
+    return `${c.lastMessage.sender?.username ?? ""}: ${c.lastMessage.message}`;
+  };
+
+  const latestConvo = conversations
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.lastMessage?.createdAt ?? b.createdAt).getTime() -
+        new Date(a.lastMessage?.createdAt ?? a.createdAt).getTime(),
+    )[0];
 
   return (
     <ProductCard
       onPress={onPress}
       active={selected !== undefined ? selected : nrOfUnread > 0}
       adListProps={adList}
-      avatars={[
-        {
-          placeholder: getOtherUser(messages[0]).type,
-          imageUrl: getOtherUser(messages[0]).profilePicture?.url,
-        },
-        ...(messages[1]
-          ? [
-              {
-                placeholder: getOtherUser(messages[1]).type,
-                imageUrl: getOtherUser(messages[1]).profilePicture?.url,
-              },
-            ]
-          : []),
-      ]}
+      avatars={conversations.slice(0, 2).map((c) => ({
+        placeholder: getOtherUser(c)?.type,
+        imageUrl: getOtherUser(c)?.profilePicture?.url,
+      }))}
       primaryText={
-        messages.length === 1
-          ? singleSenderMessage(messages[0])
-          : `${messages[0].sender.username} och ${messages.length - 1} ${messages.length > 2 ? "andra" : "annan"}`
+        conversations.length === 1
+          ? lastMessagePreview(conversations[0])
+          : `${getOtherUser(conversations[0])?.username} och ${conversations.length - 1} ${conversations.length > 2 ? "andra" : "annan"}`
       }
-      secondaryText={dayjs(messages[0].createdAt).fromNow()}
+      secondaryText={dayjs(
+        latestConvo?.lastMessage?.createdAt ?? latestConvo?.createdAt,
+      ).fromNow()}
       badgeProps={
         nrOfUnread
-          ? {
-              text: `${nrOfUnread} ${nrOfUnread > 1 ? "olästa" : "oläst"}`,
-            }
+          ? { text: `${nrOfUnread} ${nrOfUnread > 1 ? "olästa" : "oläst"}` }
           : undefined
       }
     />

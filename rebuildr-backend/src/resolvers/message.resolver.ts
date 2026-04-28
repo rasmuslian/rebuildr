@@ -4,22 +4,16 @@ import {
   Context,
   Field,
   InputType,
-  Int,
   Mutation,
   Parent,
-  Query,
-  registerEnumType,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
-import { IProductLoaders } from 'src/dataloaders/product.loader';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Message } from 'src/entities/message.entity';
-import { Product } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
 import { FileInputType } from './file.resolver';
@@ -27,64 +21,22 @@ import { IMessageLoaders } from 'src/dataloaders/message.loader';
 import { File } from 'src/entities/file.entity';
 
 @InputType()
-class CreateMessageInput {
-  @Field()
-  receiverId: string;
-  @Field()
-  productId: string;
+export class CreateMessageInput {
+  //This message is targeted towards an existing conversation
   @Field({ nullable: true })
-  purchaseId: string;
+  conversationId?: string;
+
+  //This is the first message, outside any existing conversations
+  @Field({ nullable: true })
+  productId?: string;
+
+  //Message content
   @Field()
   message: string;
   @Field(() => [FileInputType], { nullable: true })
   images?: FileInputType[];
   @Field(() => [FileInputType], { nullable: true })
   documents?: FileInputType[];
-}
-
-@InputType()
-export class GetConversationInput {
-  @Field()
-  otherUserId: string;
-
-  @Field()
-  productId: string;
-
-  @Field({ nullable: true })
-  purchaseId: string;
-}
-
-export enum GetConversationsType {
-  SELLING = 'SELLING',
-  BUYING = 'BUYING',
-  BUYING_AND_SELLING = 'BUYING_AND_SELLING',
-}
-registerEnumType(GetConversationsType, {
-  name: 'GetConversationsType',
-});
-
-@InputType()
-export class GetConversationsInput {
-  @Field(() => GetConversationsType)
-  type: GetConversationsType;
-
-  @Field({ nullable: true })
-  productId?: string;
-}
-
-@InputType()
-export class MarkAsReadInput {
-  @Field()
-  otherUserId: string;
-
-  @Field()
-  productId: string;
-
-  @Field({ nullable: true })
-  purchaseId?: string;
-
-  @Field()
-  markAsRead: boolean;
 }
 
 @Resolver(() => Message)
@@ -94,80 +46,34 @@ export class MessageResolver {
     private messageService: MessageService,
   ) {}
 
-  @Query(() => [Message])
-  @UseGuards(GqlAuthGuard)
-  async getConversation(
-    @Args('input') input: GetConversationInput,
-    @CurrentUser() user: AuthedUserType,
-  ) {
-    return this.messageService.getConversation(input, user.id);
-  }
-
-  @Query(() => [Message])
-  @UseGuards(GqlAuthGuard)
-  async getConversations(
-    @Args('input') input: GetConversationsInput,
-    @CurrentUser() user: AuthedUserType,
-  ) {
-    return await this.messageService.getConversations(input, user.id);
-  }
-
-  @Query(() => Int)
-  @UseGuards(GqlOptionalAuthGuard)
-  async getUnreadConversationsCount(@CurrentUser() user?: User) {
-    if (!user) {
-      return 0;
-    }
-    return await this.messageService.getUnreadConversationsCount(user.id);
-  }
-
   @Mutation(() => Message)
   @UseGuards(GqlAuthGuard)
   async createMessage(
     @CurrentUser() _user: AuthedUserType,
     @Args('input') input: CreateMessageInput,
   ) {
-    return this.messageService.create({
-      senderId: _user.id,
-      receiverId: input.receiverId,
-      productId: input.productId,
-      purchaseId: input.purchaseId,
-      message: input.message,
-      images: input.images,
-      documents: input.documents,
-    });
+    return this.messageService.create(input, _user.id);
   }
 
-  @Mutation(() => [Message])
-  @UseGuards(GqlAuthGuard)
-  async markConversationAsRead(
-    @Args('input') input: MarkAsReadInput,
-    @CurrentUser() user: AuthedUserType,
-  ) {
-    return this.messageService.markAsRead(input, user.id);
-  }
-
-  @ResolveField(() => Product)
-  async product(
-    @Parent() message: Message,
-    @Context('productLoaders') productLoaders: IProductLoaders,
-  ) {
-    return await productLoaders.getProduct.load(message.productId);
-  }
-
-  @ResolveField(() => User)
+  @ResolveField(() => User, { nullable: true })
   async sender(
     @Parent() message: Message,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
+    if (!message.senderId) {
+      return null;
+    }
     return await userLoaders.getUserLoader.load(message.senderId);
   }
 
-  @ResolveField(() => User)
+  @ResolveField(() => User, { nullable: true })
   async receiver(
     @Parent() message: Message,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
+    if (!message.receiverId) {
+      return null;
+    }
     return await userLoaders.getUserLoader.load(message.receiverId);
   }
 

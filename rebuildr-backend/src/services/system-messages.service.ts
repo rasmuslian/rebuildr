@@ -69,7 +69,7 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -94,7 +94,7 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -124,7 +124,7 @@ _Ångrat dig? Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](AB
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -155,7 +155,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta ${this.tradeWording(isFr
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -180,7 +180,7 @@ _Stämmer inte varan med annonsen? [Rapportera problem med köp](REPORT)_`;
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -203,7 +203,7 @@ _Stämmer inte varan med annonsen? [Rapportera problem med köp](REPORT)_`;
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -224,7 +224,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -245,7 +245,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -269,7 +269,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -288,7 +288,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -303,7 +303,7 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -325,7 +325,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -345,7 +345,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -374,7 +374,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -404,7 +404,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -426,7 +426,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse även om �
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -445,7 +445,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -472,7 +472,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -498,7 +498,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -521,7 +521,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -544,7 +544,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -567,7 +567,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -589,7 +589,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -609,7 +609,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: seller.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -629,7 +629,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
-      senderId: buyer.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });

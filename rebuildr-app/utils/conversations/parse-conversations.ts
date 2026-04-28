@@ -8,27 +8,29 @@ export const parseConversations = (
   data: GetConversationsQuery,
   tab: "sell" | "buy",
 ) => {
-  const totalUnread = data.getConversations.reduce(
-    (acc, curr) =>
-      acc + (curr.sender.id !== data.me.id && !curr.readAt ? 1 : 0),
-    0,
-  );
   const buyConversations = data.getConversations.filter(
-    (convo) => convo.product.seller.id !== data.me.id,
+    (convo) => convo.buyerId === data.me.id,
   );
-  const nrUnreadBuy = buyConversations.reduce(
-    (acc, curr) =>
-      acc + (curr.sender.id !== data.me.id && !curr.readAt ? 1 : 0),
-    0,
-  );
+  const nrUnreadBuy = buyConversations.filter(
+    (c) =>
+      c.lastMessage?.sender?.id !== data.me.id &&
+      c.lastMessage?.createdAt &&
+      (!c.buyerReadAt ||
+        new Date(c.lastMessage.createdAt) > new Date(c.buyerReadAt)),
+  ).length;
+
   const sellConversations = data.getConversations.filter(
-    (convo) => convo.product.seller.id === data.me.id,
+    (convo) => convo.product.sellerId === data.me.id,
   );
-  const nrUnreadSell = sellConversations.reduce(
-    (acc, curr) =>
-      acc + (curr.sender.id !== data.me.id && !curr.readAt ? 1 : 0),
-    0,
-  );
+  const nrUnreadSell = sellConversations.filter(
+    (c) =>
+      c.lastMessage?.sender?.id !== data.me.id &&
+      c.lastMessage?.createdAt &&
+      (!c.sellerReadAt ||
+        new Date(c.lastMessage.createdAt) > new Date(c.sellerReadAt)),
+  ).length;
+  const totalUnread = nrUnreadBuy + nrUnreadSell;
+
   const conversations = tab === "buy" ? buyConversations : sellConversations;
   const conversationsPerProduct = conversations.reduce(
     (acc: ConversationsPerProductType, curr) => {
@@ -47,15 +49,24 @@ export const parseConversations = (
     },
     [],
   );
+  const isUnread = (
+    convo: GetConversationsQuery["getConversations"][number],
+  ) => {
+    if (
+      !convo.lastMessage?.createdAt ||
+      convo.lastMessage.sender?.id === data.me.id
+    )
+      return false;
+    const lastAt = new Date(convo.lastMessage.createdAt);
+    const readAt = tab === "buy" ? convo.buyerReadAt : convo.sellerReadAt;
+    return !readAt || lastAt > new Date(readAt);
+  };
+
   const unread = conversationsPerProduct.filter((group) =>
-    group.conversations.some((convo) => {
-      return convo.sender.id !== data.me.id && !convo.readAt;
-    }),
+    group.conversations.some(isUnread),
   );
   const read = conversationsPerProduct.filter((group) =>
-    group.conversations.every(
-      (convo) => convo.sender.id === data.me.id || !!convo.readAt,
-    ),
+    group.conversations.every((convo) => !isUnread(convo)),
   );
 
   return {

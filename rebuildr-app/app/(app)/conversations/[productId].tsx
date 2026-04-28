@@ -1,28 +1,33 @@
 import {
-  ConversationsQuery,
-  ConversationsQueryVariables,
+  GetConversationsQuery,
+  GetConversationsQueryVariables,
   GetConversationsType,
+  ProductConversationsQuery,
+  ProductConversationsQueryVariables,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
 import { View } from "react-native";
 import { Divider } from "@components/dividers/divider";
 import { Button } from "@components/buttons/button";
 import { AdList } from "@components/ad/ad-list";
 import { ProductConversationsList } from "@components/conversations/product-conversations-list";
+import { useScreenType } from "@hooks/useScreenType";
+import { ConversationsDesktop } from "@components/conversations/conversations.desktop";
+import { GET_CONVERSATIONS } from "@/app/(app)/(tabs)/conversations";
 
-export const CONVERSATIONS = gql`
-  query conversations($input: GetConversationsInput!) {
+export const PRODUCT_CONVERSATIONS = gql`
+  query productConversations($input: GetConversationsInput!) {
     getConversations(input: $input) {
       id
-      message
-      readAt
-      createdAt
       purchaseId
-      sender {
+      buyerReadAt
+      sellerReadAt
+      buyer {
         id
         username
         type
@@ -31,13 +36,29 @@ export const CONVERSATIONS = gql`
           url
         }
       }
-      receiver {
+      lastMessage {
         id
-        username
-        type
-        profilePicture {
+        message
+        createdAt
+        conversationId
+        messageType
+        sender {
           id
-          url
+          username
+          type
+          profilePicture {
+            id
+            url
+          }
+        }
+        receiver {
+          id
+          username
+          type
+          profilePicture {
+            id
+            url
+          }
         }
       }
       product {
@@ -53,6 +74,15 @@ export const CONVERSATIONS = gql`
           id
           url
         }
+        seller {
+          id
+          username
+          type
+          profilePicture {
+            id
+            url
+          }
+        }
       }
     }
     me {
@@ -66,22 +96,59 @@ export default function ConversationsProduct() {
     productId: string;
     role: "seller" | "buyer";
   }>();
-  const { data } = useQuery<ConversationsQuery, ConversationsQueryVariables>(
-    CONVERSATIONS,
-    {
-      variables: {
-        input: {
-          productId,
-          type:
-            role === "seller"
-              ? GetConversationsType.Selling
-              : GetConversationsType.Buying,
-        },
+  const { isDesktop } = useScreenType();
+
+  const { data: desktopData, refetch: desktopRefetch } = useQuery<
+    GetConversationsQuery,
+    GetConversationsQueryVariables
+  >(GET_CONVERSATIONS, {
+    variables: { input: { type: GetConversationsType.BuyingAndSelling } },
+    skip: !isDesktop,
+  });
+
+  const { data } = useQuery<
+    ProductConversationsQuery,
+    ProductConversationsQueryVariables
+  >(PRODUCT_CONVERSATIONS, {
+    variables: {
+      input: {
+        productId,
+        type:
+          role === "seller"
+            ? GetConversationsType.Selling
+            : GetConversationsType.Buying,
       },
     },
-  );
+    fetchPolicy: "network-only",
+  });
 
-  if (!data) {
+  useEffect(() => {
+    if (!data || isDesktop) return;
+    if (data.getConversations.length === 0) {
+      router.replace({
+        pathname: "/conversation/new/[productId]",
+        params: { productId },
+      });
+    } else if (data.getConversations.length === 1) {
+      router.replace({
+        pathname: "/conversation/[conversationId]",
+        params: { conversationId: data.getConversations[0].id },
+      });
+    }
+  }, [data, isDesktop]);
+
+  if (isDesktop) {
+    if (!desktopData) return <LoadingSpinner />;
+    return (
+      <ConversationsDesktop
+        data={desktopData}
+        myId={desktopData.me.id}
+        refetch={desktopRefetch}
+      />
+    );
+  }
+
+  if (!data || data.getConversations.length <= 1) {
     return <LoadingSpinner />;
   }
 

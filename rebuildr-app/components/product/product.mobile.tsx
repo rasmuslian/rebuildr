@@ -140,7 +140,6 @@ export const ProductMobile = ({
             productId={productId}
             quantity={selectedQuantity}
             status={product.status}
-            sellerId={product.seller.id}
             isMyProduct={isMyProduct}
             buyButtonDisabled={buyButtonDisabled}
             onRemovePress={() => {

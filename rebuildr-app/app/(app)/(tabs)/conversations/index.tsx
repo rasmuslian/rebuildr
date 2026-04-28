@@ -9,16 +9,15 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ConversationsMobile } from "@components/conversations/conversations.mobile";
 import { ConversationsDesktop } from "@components/conversations/conversations.desktop";
 
-const GET_CONVERSATIONS = gql`
+export const GET_CONVERSATIONS = gql`
   query getConversations($input: GetConversationsInput!) {
     getConversations(input: $input) {
       id
-      message
-      readAt
       createdAt
-      messageType
-      purchaseId
-      sender {
+      buyerId
+      buyerReadAt
+      sellerReadAt
+      buyer {
         id
         username
         type
@@ -27,13 +26,13 @@ const GET_CONVERSATIONS = gql`
           url
         }
       }
-      receiver {
-        id
-        username
-        type
-        profilePicture {
+      lastMessage {
+        createdAt
+        messageType
+        message
+        sender {
           id
-          url
+          username
         }
       }
       product {
@@ -49,9 +48,11 @@ const GET_CONVERSATIONS = gql`
           id
           url
         }
+        sellerId
         seller {
           id
           username
+          type
           profilePicture {
             id
             url
@@ -68,7 +69,7 @@ const GET_CONVERSATIONS = gql`
 export default function Conversations() {
   const { isDesktop } = useScreenType();
 
-  const { data } = useQuery<
+  const { data, refetch } = useQuery<
     GetConversationsQuery,
     GetConversationsQueryVariables
   >(GET_CONVERSATIONS, {
@@ -84,7 +85,9 @@ export default function Conversations() {
   }
 
   if (isDesktop) {
-    return <ConversationsDesktop data={data} myId={data.me.id} />;
+    return (
+      <ConversationsDesktop data={data} myId={data.me.id} refetch={refetch} />
+    );
   }
 
   return <ConversationsMobile data={data} myId={data.me.id} />;

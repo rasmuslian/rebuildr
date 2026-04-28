@@ -91,6 +91,9 @@ export const PURCHASE_RECEIPT = gql`
         id
         resolution
       }
+      conversation {
+        id
+      }
     }
     me {
       id
@@ -241,26 +244,42 @@ export const PurchaseReceipt = ({
           {buyerIsMe ? (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.product.seller.id,
-                },
-              }}
+              link={
+                data.purchase.conversation
+                  ? {
+                      pathname: "/conversation/[conversationId]", ///Gå till konversationId
+                      params: {
+                        conversationId: data.purchase.conversation?.id,
+                      },
+                    }
+                  : {
+                      pathname: "/conversations/[productId]",
+                      params: {
+                        productId: data.purchase.product.id,
+                      },
+                    }
+              }
             >
               kontakta säljaren
             </Body>
           ) : (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.buyer.id,
-                },
-              }}
+              link={
+                data.purchase.conversation
+                  ? {
+                      pathname: "/conversation/[conversationId]", ///Gå till konversationId
+                      params: {
+                        conversationId: data.purchase.conversation?.id,
+                      },
+                    }
+                  : {
+                      pathname: "/conversations/[productId]",
+                      params: {
+                        productId: data.purchase.product.id,
+                      },
+                    }
+              }
             >
               kontakta köparen
             </Body>

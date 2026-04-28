@@ -247,7 +247,6 @@ export const ProductDesktop = ({
                       productId={product.id}
                       quantity={selectedQuantity}
                       status={product.status}
-                      sellerId={product.seller.id}
                       isMyProduct={isMyProduct}
                       buyButtonDisabled={buyButtonDisabled}
                       onRemovePress={() => {

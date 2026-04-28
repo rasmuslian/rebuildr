@@ -23,7 +23,6 @@ type Props = {
   productId: string;
   quantity?: number;
   status: ProductStatusEnum;
-  sellerId: string;
   isMyProduct: boolean;
   buyButtonDisabled: boolean;
   onRemovePress: () => void;
@@ -33,7 +32,6 @@ export const ActionSection = ({
   productId,
   quantity,
   status,
-  sellerId,
   isMyProduct,
   buyButtonDisabled,
   onRemovePress,
@@ -139,8 +137,8 @@ export const ActionSection = ({
                 setVisible(true);
               } else {
                 router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: { productId, userId: sellerId },
+                  pathname: "/conversations/[productId]",
+                  params: { productId },
                 });
               }
             }}

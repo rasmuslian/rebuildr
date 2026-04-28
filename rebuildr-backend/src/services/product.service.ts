@@ -42,7 +42,6 @@ import {
 } from 'typeorm';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
-import { MessageService } from './message.service';
 import { PurchaseService } from './purchase.service';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
@@ -66,6 +65,7 @@ import { CO2FactorService } from './co2-factor.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { UserService } from './user.service';
 import { ShippingPriceService } from './shipping-price.service';
+import { ConversationService } from './conversation.service';
 
 @Injectable()
 export class ProductService {
@@ -78,7 +78,7 @@ export class ProductService {
     private userRepository: Repository<User>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
-    private messageService: MessageService,
+    private conversationService: ConversationService,
     private purchaseService: PurchaseService,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
@@ -644,6 +644,7 @@ export class ProductService {
     qb.andWhere(
       `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
+    qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
     if (input.sellerId) {
       qb.andWhere(`${productAlias}."sellerId" = :sellerId`, {
@@ -771,13 +772,6 @@ export class ProductService {
       if (!user) {
         throw BadUserInputException('Invalid user');
       }
-
-      //Comment out the admin check to hide the products for admin users as well. The CMS will use another function to fetch products
-      // if (user.role !== UserRoleEnum.ADMIN) {
-      query.andWhere('"hiddenReason" IS NULL');
-      // }
-    } else {
-      query.andWhere('"hiddenReason" IS NULL');
     }
 
     this.basicFindProductsInputQueryBuilder(input, query, 'p');
@@ -887,17 +881,16 @@ export class ProductService {
   async findOne(id: string, currentUserId: string) {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: { messages: true },
+      relations: { conversations: true },
     });
     if (!product) {
       throw BadUserInputException();
     }
     if (product.status === ProductStatus.DELETED) {
-      const currentUserHasConnection = product.messages.some(
-        (message) =>
-          message.receiverId === currentUserId ||
-          message.senderId === currentUserId,
-      );
+      const currentUserHasConnection =
+        product.conversations.some((c) => c.buyerId === currentUserId) ||
+        product.sellerId === currentUserId;
+
       if (!currentUserHasConnection) {
         throw BadUserInputException();
       }
@@ -1064,7 +1057,7 @@ export class ProductService {
       where: { id },
       relations: {
         images: true,
-        messages: true,
+        conversations: true,
         purchases: true,
         documents: true,
       },
@@ -1077,7 +1070,7 @@ export class ProductService {
       ...product.images,
       ...product.documents,
     ]);
-    await this.messageService.deleteMany(product.messages);
+    await this.conversationService.deleteMany(product.conversations);
     await this.purchaseService.deleteMany(product.purchases);
     return await this.productRepository.remove(product);
   }

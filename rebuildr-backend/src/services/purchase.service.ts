@@ -371,7 +371,6 @@ export class PurchaseService {
     });
 
     const totalAmountToPay = escrow + fee;
-    console.log('totalAmountToPay :>> ', totalAmountToPay);
     if (totalAmountToPay > maximumProductPrice) {
       throw BadUserInputException(
         'Total transaction value exceeds upper limit',
@@ -414,14 +413,14 @@ export class PurchaseService {
     if (isFree) {
       purchase.paymentAcceptedAt = new Date();
       purchase.paymentStartedAt = new Date();
-      this.systemMessagesService.purchaseWithHandoffBuyer(
+      await this.systemMessagesService.purchaseWithHandoffBuyer(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         purchase,
         true,
       );
-      this.systemMessagesService.purchaseWithHandoffSeller(
+      await this.systemMessagesService.purchaseWithHandoffSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
@@ -1355,13 +1354,13 @@ export class PurchaseService {
 
       //System messages
       if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
-        this.systemMessagesService.purchaseWithShippingBuyer(
+        await this.systemMessagesService.purchaseWithShippingBuyer(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
         );
-        this.systemMessagesService.purchaseWithShippingSeller(
+        await this.systemMessagesService.purchaseWithShippingSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
@@ -1369,13 +1368,13 @@ export class PurchaseService {
           purchase.shippingPrice?.provider,
         );
       } else {
-        this.systemMessagesService.purchaseWithHandoffBuyer(
+        await this.systemMessagesService.purchaseWithHandoffBuyer(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
         );
-        this.systemMessagesService.purchaseWithHandoffSeller(
+        await this.systemMessagesService.purchaseWithHandoffSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,

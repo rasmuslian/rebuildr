@@ -12,6 +12,7 @@ import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
 import { File } from './file.entity';
 import { Purchase } from './purchase.entity';
+import { Conversation } from './conversation.entity';
 
 export enum MessageTypeEnum {
   USER = 'USER',
@@ -37,31 +38,23 @@ export class Message {
   message: string;
 
   @Expose({ name: 'senderId' })
-  @Field(() => ID)
-  @Column()
-  senderId: string;
-
-  @ManyToOne(() => User, (user) => user.id)
-  sender: User;
-
-  @Expose({ name: 'receiverId' })
-  @Field(() => ID)
-  @Column()
-  receiverId: string;
-
-  @ManyToOne(() => User, (user) => user.id)
-  receiver: User;
-
-  @Expose({ name: 'productId' })
-  @Column()
-  productId: string;
-
-  @ManyToOne(() => Product, (product) => product.id)
-  product: Product;
-
-  @Field({ nullable: true })
+  @Field(() => ID, { nullable: true })
   @Column({ nullable: true })
-  purchaseId?: string;
+  senderId?: string;
+
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  sender?: User;
+
+  //Undefined receive means all can read it.
+  // Otherwise only the receiver will read it
+  //System messages will target a receiver for example
+  @Expose({ name: 'receiverId' })
+  @Field(() => ID, { nullable: true })
+  @Column({ nullable: true })
+  receiverId?: string;
+
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  receiver?: User;
 
   @ManyToOne(() => Purchase, (purchase) => purchase.id, { nullable: true })
   purchase?: Purchase;
@@ -85,4 +78,10 @@ export class Message {
 
   @OneToMany(() => File, (file) => file.messageDocument)
   documents: File[];
+
+  @Field()
+  @Column()
+  conversationId: string;
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  conversation: Conversation;
 }
