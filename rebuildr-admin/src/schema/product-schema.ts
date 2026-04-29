@@ -144,6 +144,8 @@ export const ProductSchema = z.object({
     weightUnit: z.nativeEnum(MeasurementUnitEnum).optional(),
   }),
 
+  soldByQuantity: z.boolean(),
+
   sellerId: z.string({ message: "Du måste ange ägare." }),
 
   project: z

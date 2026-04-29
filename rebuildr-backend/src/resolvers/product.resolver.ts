@@ -566,6 +566,9 @@ class CmsBaseProductInput extends QuantityInput {
 
   @Field(() => ColorTypeEnum, { nullable: true })
   colorType?: ColorTypeEnum;
+
+  @Field({ nullable: true })
+  soldByQuantity?: boolean;
 }
 
 @InputType()
