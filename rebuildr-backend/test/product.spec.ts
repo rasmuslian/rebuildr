@@ -654,7 +654,7 @@ const getFixtures = () => {
     pickupEnabled: false,
     deliveryEnabled: false,
     purchases: [],
-    messages: [],
+    conversations: [],
     shippingPrices: [],
     reportProducts: [],
   };
