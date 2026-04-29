@@ -247,7 +247,7 @@ export const PurchaseReceipt = ({
               link={
                 data.purchase.conversation
                   ? {
-                      pathname: "/conversation/[conversationId]", ///Gå till konversationId
+                      pathname: "/conversation/[conversationId]",
                       params: {
                         conversationId: data.purchase.conversation?.id,
                       },
@@ -268,7 +268,7 @@ export const PurchaseReceipt = ({
               link={
                 data.purchase.conversation
                   ? {
-                      pathname: "/conversation/[conversationId]", ///Gå till konversationId
+                      pathname: "/conversation/[conversationId]",
                       params: {
                         conversationId: data.purchase.conversation?.id,
                       },

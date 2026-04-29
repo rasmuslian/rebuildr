@@ -92,9 +92,8 @@ export const PRODUCT_CONVERSATIONS = gql`
 `;
 
 export default function ConversationsProduct() {
-  const { productId, role } = useLocalSearchParams<{
+  const { productId } = useLocalSearchParams<{
     productId: string;
-    role: "seller" | "buyer";
   }>();
   const { isDesktop } = useScreenType();
 

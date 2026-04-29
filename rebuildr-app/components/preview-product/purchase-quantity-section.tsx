@@ -48,7 +48,6 @@ export const PurchaseQuantitySection = ({
         backgroundColor: colors.buttons.tonal.enabled,
         borderRadius: borderRadius.medium,
         padding: 16,
-        // gap: 16,
       }}
     >
       <Headline size="small" style={{ marginBottom: 8 }}>
