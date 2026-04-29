@@ -37,10 +37,10 @@ export const PriceSection = ({
       }}
     >
       <Display size="small" style={{ marginBottom: 24 }}>
-        Pris
+        Pris*
       </Display>
       <Label size="medium" style={{ marginBottom: 4 }}>
-        {soldByQuantity ? "Pris per enhet" : "Pris för allt"}*
+        {soldByQuantity ? "Pris per enhet" : "Pris för allt"}
       </Label>
       {priceHigherThan > 0 ? (
         <View style={{ paddingBottom: 12 }}>
