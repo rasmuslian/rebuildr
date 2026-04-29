@@ -57,6 +57,7 @@ describe('Purchase e2e', () => {
     findOne: jest.fn(),
     find: jest.fn(),
     save: jest.fn(),
+    update: jest.fn(),
   };
 
   const loggerMock: Partial<Logger> = {

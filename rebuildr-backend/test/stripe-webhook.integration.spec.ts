@@ -21,6 +21,8 @@ import { Review } from 'src/entities/review.entity';
 import { TransportationEnum } from 'src/entities/purchase.entity';
 import { SCBAPI } from 'src/apis/scb.api';
 import { SCBAPIMock } from './mocks/scb-api.mock';
+import { ShippingPriceService } from 'src/services/shipping-price.service';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 describe('Stripe webhook', () => {
   let app: INestApplication;
@@ -73,11 +75,11 @@ describe('Stripe webhook', () => {
         {
           provide: SystemMessagesService,
           useValue: {
-            createSystemMessage: jest.fn(),
-            purchaseWithShippingBuyer: jest.fn(),
-            purchaseWithShippingSeller: jest.fn(),
-            purchaseWithHandoffBuyer: jest.fn(),
-            purchaseWithHandoffSeller: jest.fn(),
+            createSystemMessage: jest.fn().mockResolvedValue(undefined),
+            purchaseWithShippingBuyer: jest.fn().mockResolvedValue(undefined),
+            purchaseWithShippingSeller: jest.fn().mockResolvedValue(undefined),
+            purchaseWithHandoffBuyer: jest.fn().mockResolvedValue(undefined),
+            purchaseWithHandoffSeller: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -87,6 +89,14 @@ describe('Stripe webhook', () => {
         {
           provide: GeocodingService,
           useValue: { addressToLocation: jest.fn() },
+        },
+        {
+          provide: ShippingPriceService,
+          useValue: { shippingPriceMatchingWeight: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(ShippingPrice),
+          useValue: { find: jest.fn() },
         },
         StripeService,
         {
@@ -194,7 +204,7 @@ describe('Stripe webhook', () => {
     };
 
     purchaseRepository.findOne.mockResolvedValue(purchaseFixture);
-    purchaseRepository.save.mockImplementation((purchase) => purchase);
+    purchaseRepository.update.mockResolvedValue({ affected: 1 });
 
     await request(app.getHttpServer())
       .post('/stripe-webhook/platform-account')
@@ -210,11 +220,9 @@ describe('Stripe webhook', () => {
         shippingPrice: true,
       },
     });
-    expect(purchaseRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'purchase-2',
-        paymentAcceptedAt: expect.any(Date),
-      }),
+    expect(purchaseRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentIntentId: 'pi_456' }),
+      expect.objectContaining({ paymentAcceptedAt: expect.any(Date) }),
     );
     expect(shippingService.bookShipping).toHaveBeenCalledWith(
       'purchase-2',
@@ -257,7 +265,7 @@ describe('Stripe webhook', () => {
       id: 'product-3',
       status: ProductStatus.PUBLISHED,
     });
-    expect(purchaseRepository.save).toHaveBeenCalledWith(
+    expect(purchaseRepository.remove).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'purchase-3',
         failedAt: expect.any(Date),
@@ -297,9 +305,8 @@ describe('Stripe webhook', () => {
         shippingPrice: true,
       },
     });
-    expect(productRepository.update).toHaveBeenCalledWith(
-      { id: 'product-4' },
-      { status: ProductStatus.PUBLISHED },
+    expect(productRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ status: ProductStatus.PUBLISHED }),
     );
     expect(purchaseRepository.remove).toHaveBeenCalledWith(purchaseFixture);
   });
@@ -323,10 +330,11 @@ describe('Stripe webhook', () => {
       productId: 'product-5',
       paymentIntentId: 'pi_222',
       reportPurchase: null,
+      product: { id: 'product-5', status: ProductStatus.SOLD },
     };
 
     purchaseRepository.findOne.mockResolvedValue(purchaseFixture);
-    purchaseRepository.save.mockImplementation((purchase) => purchase);
+    purchaseRepository.update.mockResolvedValue({ affected: 1 });
 
     await request(app.getHttpServer())
       .post('/stripe-webhook/platform-account')
@@ -336,18 +344,15 @@ describe('Stripe webhook', () => {
 
     expect(purchaseRepository.findOne).toHaveBeenCalledWith({
       where: { paymentIntentId: 'pi_222' },
-      relations: { reportPurchase: true },
+      relations: { reportPurchase: true, product: true },
     });
-    expect(productRepository.update).toHaveBeenCalledWith(
-      { id: 'product-5' },
-      { status: ProductStatus.PUBLISHED },
-    );
-    expect(purchaseRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'purchase-5',
-        failedAt: expect.any(Date),
-        refundId: 're_123',
-      }),
+    expect(productRepository.save).toHaveBeenCalledWith({
+      id: 'product-5',
+      status: ProductStatus.PUBLISHED,
+    });
+    expect(purchaseRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'purchase-5' }),
+      expect.objectContaining({ failedAt: expect.any(Date), refundId: 're_123' }),
     );
   });
 
