@@ -134,10 +134,13 @@ export const Conversation = ({
       {purchase && (
         <AbortPurchase
           purchaseId={purchase.id}
-          purchaseStatus={purchase.status}
+          canAbort={purchase.canAbort}
           show={showAbortSheet}
           onDismiss={() => setShowAbortSheet(false)}
-          onAbortPurchaseCompleted={() => refetch()}
+          onAbortPurchaseCompleted={() => {
+            setShowAbortSheet(false);
+            refetch();
+          }}
         />
       )}
       {purchase && (

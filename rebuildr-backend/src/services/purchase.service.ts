@@ -29,6 +29,8 @@ import dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {
+  CanAbortDeniedReasonEnum,
+  CanAbortResponse,
   CmsListPurchasesInput,
   CmsListPurchasesResponse,
   LatestPurchaseInput,
@@ -740,6 +742,28 @@ export class PurchaseService {
     purchase.failedAt = new Date();
     return await this.purchaseRepository.save(purchase);
   }
+
+  canAbortPurchase(purchase: Purchase): CanAbortResponse {
+    if (
+      purchase.transportationMethod === TransportationEnum.SHIPPING &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
+      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.SHIPPING,
+      };
+    }
+    if (
+      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
+        purchase.transportationMethod === TransportationEnum.PICKUP) &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.HANDOFF,
+      };
+    }
+    return null;
+  }
   /**
    * Aborts a purchase. This can only be done when a payment has been accepted but has not yet proceeded further.
    * Will refund the money back to the buyer.
@@ -766,25 +790,8 @@ export class PurchaseService {
       throw ForbiddenException();
     }
 
-    if (
-      purchase.transportationMethod === TransportationEnum.SHIPPING &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
-      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
-    ) {
-      this.logger.error('Aborting purchase error', {
-        purchaseId: purchase.id,
-        paymentIntentId: purchase.paymentIntentId,
-        userId: currentUserId,
-        status: purchase.status,
-        transportationMethod: purchase.transportationMethod,
-      });
-      throw BadUserInputException();
-    }
-    if (
-      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
-        purchase.transportationMethod === TransportationEnum.PICKUP) &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
-    ) {
+    const canAbort = this.canAbortPurchase(purchase);
+    if (canAbort) {
       this.logger.error('Aborting purchase error', {
         purchaseId: purchase.id,
         paymentIntentId: purchase.paymentIntentId,

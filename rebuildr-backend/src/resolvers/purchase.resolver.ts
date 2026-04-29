@@ -1,4 +1,4 @@
-import { Inject, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -9,6 +9,7 @@ import {
   ObjectType,
   Parent,
   Query,
+  registerEnumType,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
@@ -163,9 +164,23 @@ export class CmsListPurchasesResponse {
   total: number;
 }
 
+export enum CanAbortDeniedReasonEnum {
+  SHIPPING = 'SHIPPING',
+  HANDOFF = 'HANDOFF',
+}
+registerEnumType(CanAbortDeniedReasonEnum, {
+  name: 'CanAbortDeniedReasonEnum',
+});
+@ObjectType()
+export class CanAbortResponse {
+  @Field(() => CanAbortDeniedReasonEnum)
+  deniedReason: CanAbortDeniedReasonEnum;
+}
+
 @Resolver(() => Purchase)
 export class PurchaseResolver {
   constructor(
+    @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private conversationService: ConversationService,
@@ -295,7 +310,10 @@ export class PurchaseResolver {
       requestId,
       purchaseId: input.purchaseId,
     });
-    return this.purchaseService.cmsRefundPurchase(input.purchaseId, childLogger);
+    return this.purchaseService.cmsRefundPurchase(
+      input.purchaseId,
+      childLogger,
+    );
   }
 
   @ResolveField(() => Boolean)
@@ -358,5 +376,10 @@ export class PurchaseResolver {
   @ResolveField(() => Conversation, { nullable: true })
   async conversation(@Parent() purchase: Purchase) {
     return this.conversationService.getConversationByPurchaseId(purchase.id);
+  }
+
+  @ResolveField(() => CanAbortResponse, { nullable: true })
+  async canAbort(@Parent() purchase: Purchase) {
+    return this.purchaseService.canAbortPurchase(purchase);
   }
 }

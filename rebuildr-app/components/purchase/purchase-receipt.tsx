@@ -47,6 +47,9 @@ export const PURCHASE_RECEIPT = gql`
       boughtForFree
       qrCodeUrl
       qrCodeContent
+      canAbort {
+        deniedReason
+      }
       shippingPrice {
         id
         price
@@ -289,10 +292,13 @@ export const PurchaseReceipt = ({
       </View>
       <AbortPurchase
         purchaseId={data.purchase.id}
-        purchaseStatus={data.purchase.status}
+        canAbort={data.purchase.canAbort}
         show={showAbortSheet}
         onDismiss={() => setShowAbortSheet(false)}
-        onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
+        onAbortPurchaseCompleted={() => {
+          setShowAbortSheet(false);
+          refetch();
+        }}
       />
       <CreateReview
         purchaseId={data.purchase.id}
