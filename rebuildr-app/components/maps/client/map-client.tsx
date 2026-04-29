@@ -51,6 +51,7 @@ export default function MapClient({
       }}
       scrollWheelZoom={zoomDisabled ? false : interactive}
       dragging={interactive}
+      attributionControl={false}
       zoomControl={false}
     >
       <TileLayer

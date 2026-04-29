@@ -138,7 +138,7 @@ export class PurchaseService {
         product,
         input,
         buyerId: currentUserId,
-    });
+      });
       throw BadUserInputException(
         'Unexpected input, product does not allow partial purchase',
       );
@@ -415,27 +415,27 @@ export class PurchaseService {
       purchase.paymentStartedAt = new Date();
       this.systemMessagesService
         .purchaseWithHandoffBuyer(
-        purchase.buyer,
-        purchase.product.seller,
-        purchase.product,
-        purchase,
-        true,
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+          true,
         )
         .then(() =>
           this.systemMessagesService.purchaseWithHandoffSeller(
-        purchase.buyer,
-        purchase.product.seller,
-        purchase.product,
-        purchase,
-        true,
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
+            true,
           ),
-      );
+        );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
     product.primaryQuantity = product.primaryQuantity - input.purchasedQuantity;
     if (!product.primaryQuantity) {
-    product.status = ProductStatus.SOLD;
+      product.status = ProductStatus.SOLD;
     }
     product.purchases = [...product.purchases, savedPurchase];
     const savedProduct = await this.productRepository.save(product);
@@ -1375,42 +1375,42 @@ export class PurchaseService {
       if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
         this.systemMessagesService
           .purchaseWithShippingBuyer(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
           )
           .then(() =>
             this.systemMessagesService.purchaseWithShippingSeller(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
-          purchase.shippingPrice?.provider,
+              purchase.buyer,
+              purchase.product.seller,
+              purchase.product,
+              purchase,
+              purchase.shippingPrice?.provider,
             ),
           )
           .catch((err) =>
             logger.error('purchaseWithShipping system messages failed', err),
-        );
+          );
       } else {
         this.systemMessagesService
           .purchaseWithHandoffBuyer(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
           )
           .then(() =>
             this.systemMessagesService.purchaseWithHandoffSeller(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
+              purchase.buyer,
+              purchase.product.seller,
+              purchase.product,
+              purchase,
             ),
           )
           .catch((err) =>
             logger.error('purchaseWithShipping system messages failed', err),
-        );
+          );
       }
     }
 
