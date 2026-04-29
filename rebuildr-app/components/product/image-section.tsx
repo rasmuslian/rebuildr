@@ -19,7 +19,7 @@ type Props = {
 
 export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
   const colors = useThemeColor();
-  const { pickImage } = useImageHandler();
+  const { pickImage, pickImages } = useImageHandler();
 
   const onPickImage = async (index: number) => {
     const image = await pickImage();
@@ -31,6 +31,20 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
       index,
       name: image.name,
     };
+
+    onUpdateImages(_selectedImages);
+  };
+
+  const onPickMultipleImages = async (startIndex: number) => {
+    const picked = await pickImages();
+    if (!picked?.length) return;
+
+    const _selectedImages = [...images];
+    const slotsAvailable = 10 - images.length;
+    picked.slice(0, slotsAvailable).forEach((image, i) => {
+      const idx = startIndex + i;
+      _selectedImages[idx] = { ...image, index: idx };
+    });
 
     onUpdateImages(_selectedImages);
   };
@@ -74,17 +88,24 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
         >
           {Array.from({
             length: images.length < 10 ? images.length + 1 : 10,
-          }).map((_, _index) => (
-            <ImageUploadCard
-              key={_index}
-              onImagePicked={() => onPickImage(_index)}
-              onImageRemoved={() => onImageRemoved(_index)}
-              imageUri={images?.find(({ index }) => index === _index)?.uri}
-            />
-          ))}
+          }).map((_, _index) => {
+            const existingImage = images?.find(({ index }) => index === _index);
+            return (
+              <ImageUploadCard
+                key={_index}
+                onImagePicked={
+                  existingImage
+                    ? () => onPickImage(_index)
+                    : () => onPickMultipleImages(_index)
+                }
+                onImageRemoved={() => onImageRemoved(_index)}
+                imageUri={existingImage?.uri}
+              />
+            );
+          })}
         </ScrollView>
       ) : (
-        <Pressable onPress={() => onPickImage(0)}>
+        <Pressable onPress={() => onPickMultipleImages(0)}>
           <View
             style={{
               borderRadius: borderRadius.medium,
