@@ -938,7 +938,7 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                           {
                             children: purchase.boughtForFree
                               ? "avbryta affären"
-                              : "avbrytat köpet",
+                              : "avbryta köpet",
                             onPress: onAbortPurchase,
                           },
                           { children: "." },

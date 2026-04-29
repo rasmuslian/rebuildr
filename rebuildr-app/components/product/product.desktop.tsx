@@ -234,6 +234,7 @@ export const ProductDesktop = ({
                     {product.soldByQuantity &&
                       !!product.primaryQuantity &&
                       selectedQuantity &&
+                      !isMyProduct &&
                       product.primaryUnit && (
                         <PurchaseQuantitySection
                           pricePerUnit={product.price}

@@ -90,6 +90,7 @@ type Purchase {
   boughtForFree: Boolean!
   reportPurchase: ReportPurchase
   conversation: Conversation
+  canAbort: CanAbortResponse
 }
 
 enum PurchaseStatusEnum {
@@ -530,6 +531,26 @@ type ExactAndApproximatePlaceResponse {
   approximate: ApproximatePlaceResponse!
 }
 
+type PurchaseProductResponse {
+  product: Product!
+  purchase: Purchase!
+  reference: String
+}
+
+type CmsListPurchasesResponse {
+  purchases: [Purchase!]!
+  total: Int!
+}
+
+type CanAbortResponse {
+  deniedReason: CanAbortDeniedReasonEnum!
+}
+
+enum CanAbortDeniedReasonEnum {
+  SHIPPING
+  HANDOFF
+}
+
 type ServicePointResponse {
   id: String!
   name: String!
@@ -646,17 +667,6 @@ type CmsCreateCategoryResponse {
 type CmsUpdateCategoryResponse {
   category: Category!
   imagePutUrl: String
-}
-
-type PurchaseProductResponse {
-  product: Product!
-  purchase: Purchase!
-  reference: String
-}
-
-type CmsListPurchasesResponse {
-  purchases: [Purchase!]!
-  total: Int!
 }
 
 type ListBrandsResponse {

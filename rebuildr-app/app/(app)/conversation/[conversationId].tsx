@@ -53,6 +53,9 @@ export const CONVERSATION = gql`
         isShipping
         transportationMethod
         sellerRespondedAt
+        canAbort {
+          deniedReason
+        }
         reviews {
           id
           reviewerId

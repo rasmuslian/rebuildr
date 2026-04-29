@@ -29,6 +29,8 @@ import dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {
+  CanAbortDeniedReasonEnum,
+  CanAbortResponse,
   CmsListPurchasesInput,
   CmsListPurchasesResponse,
   LatestPurchaseInput,
@@ -156,9 +158,9 @@ export class PurchaseService {
       );
     }
 
-    const isAvailable = product.primaryQuantity
+    const isAvailable = product.soldByQuantity
       ? (input.purchasedQuantity ?? 1) <= product.primaryQuantity
-      : false;
+      : product.status === ProductStatus.PUBLISHED;
 
     const existingPurchase = product.purchases.find(
       (p) =>
@@ -381,24 +383,6 @@ export class PurchaseService {
       throw BadUserInputException('Payment method missing');
     }
 
-    let clientSecret = undefined;
-    if (!isFree) {
-      const paymentResponse = await this.stripeService.createPayment(
-        product.seller.connectedAccountId,
-        totalAmountToPay,
-        fee,
-        buyer,
-        input.paymentMethod,
-        product.title,
-        {
-          productId: product?.id,
-          sellerId: product?.seller?.id,
-        },
-      );
-      clientSecret = paymentResponse.clientSecret;
-      purchase.paymentIntentId = paymentResponse.id;
-    }
-
     purchase.purchasedQuantity = input.purchasedQuantity;
     purchase.toServicePointId = input.servicePointId;
     purchase.deliverToAddress = input.deliverToAddress;
@@ -433,12 +417,41 @@ export class PurchaseService {
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
-    product.primaryQuantity = product.primaryQuantity - input.purchasedQuantity;
+    if (product.soldByQuantity) {
+      product.primaryQuantity =
+        product.primaryQuantity - input.purchasedQuantity;
     if (!product.primaryQuantity) {
+        product.status = ProductStatus.SOLD;
+      }
+    } else {
       product.status = ProductStatus.SOLD;
     }
     product.purchases = [...product.purchases, savedPurchase];
     const savedProduct = await this.productRepository.save(product);
+
+    let clientSecret = undefined;
+    if (!isFree) {
+      const paymentResponse = await this.stripeService.createPayment(
+        product.seller.connectedAccountId,
+        totalAmountToPay,
+        fee,
+        buyer,
+        input.paymentMethod,
+        product.title,
+        {
+          productId: product?.id,
+          sellerId: product?.seller?.id,
+        },
+      );
+      clientSecret = paymentResponse.clientSecret;
+      savedPurchase.paymentIntentId = paymentResponse.id;
+      await this.purchaseRepository.update(
+        {
+          id: savedPurchase.id,
+        },
+        { paymentIntentId: savedPurchase.paymentIntentId },
+      );
+    }
 
     logger.info({
       message: 'Purchase created',
@@ -729,6 +742,28 @@ export class PurchaseService {
     purchase.failedAt = new Date();
     return await this.purchaseRepository.save(purchase);
   }
+
+  canAbortPurchase(purchase: Purchase): CanAbortResponse {
+    if (
+      purchase.transportationMethod === TransportationEnum.SHIPPING &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
+      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.SHIPPING,
+      };
+    }
+    if (
+      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
+        purchase.transportationMethod === TransportationEnum.PICKUP) &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.HANDOFF,
+      };
+    }
+    return null;
+  }
   /**
    * Aborts a purchase. This can only be done when a payment has been accepted but has not yet proceeded further.
    * Will refund the money back to the buyer.
@@ -755,25 +790,8 @@ export class PurchaseService {
       throw ForbiddenException();
     }
 
-    if (
-      purchase.transportationMethod === TransportationEnum.SHIPPING &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
-      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
-    ) {
-      this.logger.error('Aborting purchase error', {
-        purchaseId: purchase.id,
-        paymentIntentId: purchase.paymentIntentId,
-        userId: currentUserId,
-        status: purchase.status,
-        transportationMethod: purchase.transportationMethod,
-      });
-      throw BadUserInputException();
-    }
-    if (
-      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
-        purchase.transportationMethod === TransportationEnum.PICKUP) &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
-    ) {
+    const canAbort = this.canAbortPurchase(purchase);
+    if (canAbort) {
       this.logger.error('Aborting purchase error', {
         purchaseId: purchase.id,
         paymentIntentId: purchase.paymentIntentId,
@@ -848,9 +866,13 @@ export class PurchaseService {
       productId: product.id,
       purchaseId: purchase.id,
     });
+    if (product.soldByQuantity) {
     product.primaryQuantity =
-      product.primaryQuantity + purchase.purchasedQuantity;
+        (product.primaryQuantity ?? 0) + purchase.purchasedQuantity;
     if (product.primaryQuantity) {
+        product.status = ProductStatus.PUBLISHED;
+      }
+    } else {
       product.status = ProductStatus.PUBLISHED;
     }
     return product;
