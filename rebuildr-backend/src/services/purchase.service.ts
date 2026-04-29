@@ -156,9 +156,9 @@ export class PurchaseService {
       );
     }
 
-    const isAvailable = product.primaryQuantity
+    const isAvailable = product.soldByQuantity
       ? (input.purchasedQuantity ?? 1) <= product.primaryQuantity
-      : false;
+      : product.status === ProductStatus.PUBLISHED;
 
     const existingPurchase = product.purchases.find(
       (p) =>
@@ -381,24 +381,6 @@ export class PurchaseService {
       throw BadUserInputException('Payment method missing');
     }
 
-    let clientSecret = undefined;
-    if (!isFree) {
-      const paymentResponse = await this.stripeService.createPayment(
-        product.seller.connectedAccountId,
-        totalAmountToPay,
-        fee,
-        buyer,
-        input.paymentMethod,
-        product.title,
-        {
-          productId: product?.id,
-          sellerId: product?.seller?.id,
-        },
-      );
-      clientSecret = paymentResponse.clientSecret;
-      purchase.paymentIntentId = paymentResponse.id;
-    }
-
     purchase.purchasedQuantity = input.purchasedQuantity;
     purchase.toServicePointId = input.servicePointId;
     purchase.deliverToAddress = input.deliverToAddress;
@@ -433,12 +415,41 @@ export class PurchaseService {
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
 
-    product.primaryQuantity = product.primaryQuantity - input.purchasedQuantity;
+    if (product.soldByQuantity) {
+      product.primaryQuantity =
+        product.primaryQuantity - input.purchasedQuantity;
     if (!product.primaryQuantity) {
+        product.status = ProductStatus.SOLD;
+      }
+    } else {
       product.status = ProductStatus.SOLD;
     }
     product.purchases = [...product.purchases, savedPurchase];
     const savedProduct = await this.productRepository.save(product);
+
+    let clientSecret = undefined;
+    if (!isFree) {
+      const paymentResponse = await this.stripeService.createPayment(
+        product.seller.connectedAccountId,
+        totalAmountToPay,
+        fee,
+        buyer,
+        input.paymentMethod,
+        product.title,
+        {
+          productId: product?.id,
+          sellerId: product?.seller?.id,
+        },
+      );
+      clientSecret = paymentResponse.clientSecret;
+      savedPurchase.paymentIntentId = paymentResponse.id;
+      await this.purchaseRepository.update(
+        {
+          id: savedPurchase.id,
+        },
+        { paymentIntentId: savedPurchase.paymentIntentId },
+      );
+    }
 
     logger.info({
       message: 'Purchase created',
@@ -848,9 +859,13 @@ export class PurchaseService {
       productId: product.id,
       purchaseId: purchase.id,
     });
+    if (product.soldByQuantity) {
     product.primaryQuantity =
-      product.primaryQuantity + purchase.purchasedQuantity;
+        (product.primaryQuantity ?? 0) + purchase.purchasedQuantity;
     if (product.primaryQuantity) {
+        product.status = ProductStatus.PUBLISHED;
+      }
+    } else {
       product.status = ProductStatus.PUBLISHED;
     }
     return product;
