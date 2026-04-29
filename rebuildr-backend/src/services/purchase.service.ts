@@ -841,6 +841,13 @@ export class PurchaseService {
 
   //----------------- UTIL functions -----------------------------
   returnPurchaseQuantity(product: Product, purchase: Purchase) {
+    this.logger.info({
+      message: 'returning quantity to product',
+      currentQuantity: product.primaryQuantity,
+      returningQuantity: purchase.purchasedQuantity,
+      productId: product.id,
+      purchaseId: purchase.id,
+    });
     product.primaryQuantity =
       product.primaryQuantity + purchase.purchasedQuantity;
     if (product.primaryQuantity) {
@@ -1523,19 +1530,39 @@ export class PurchaseService {
       return;
     }
 
-    purchase.failedAt = new Date();
-    purchase.refundId = payload.id;
+    if (purchase.failedAt) {
+      logger.info('paymentRefunded: Purchase already refunded', {
+        purchaseId: purchase.id,
+        refundId: payload.id,
+      });
+      return;
+    }
+
+    const updateResult = await this.purchaseRepository.update(
+      { id: purchase.id, failedAt: IsNull() },
+      { failedAt: new Date(), refundId: payload.id },
+    );
+    if (updateResult.affected === 0) {
+      logger.info('paymentRefunded: Lost race, purchase already handled', {
+        purchaseId: purchase.id,
+        refundId: payload.id,
+      });
+      return;
+    }
+
     if (payload.metadata?.refundedBy) {
       const refundUser = await this.userRepository.findOneBy({
         id: payload.metadata.refundedBy,
       });
       if (refundUser) {
-        purchase.abortedById = refundUser.id;
+        await this.purchaseRepository.update(
+          { id: purchase.id },
+          { abortedById: refundUser.id },
+        );
       }
     }
     const product = this.returnPurchaseQuantity(purchase.product, purchase);
     await this.productRepository.save(product);
-    await this.purchaseRepository.save(purchase);
 
     //This purchase has an active report. Resolve it and unpause the purchase
     if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
