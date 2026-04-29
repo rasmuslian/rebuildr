@@ -113,10 +113,7 @@ export default function ConversationsProduct() {
     variables: {
       input: {
         productId,
-        type:
-          role === "seller"
-            ? GetConversationsType.Selling
-            : GetConversationsType.Buying,
+        type: GetConversationsType.BuyingAndSelling,
       },
     },
     fetchPolicy: "network-only",

@@ -42,7 +42,7 @@ export class Conversation {
   @Column()
   productId: string;
 
-  @ManyToOne(() => Product, (product) => product.id)
+  @ManyToOne(() => Product, (product) => product.conversations)
   product: Product;
 
   @Field({ nullable: true })

@@ -1458,7 +1458,7 @@ export class PurchaseService {
     const product = this.returnPurchaseQuantity(purchase.product, purchase);
     purchase.failedAt = new Date();
     await this.productRepository.save(product);
-    await this.purchaseRepository.save(purchase);
+    await this.purchaseRepository.remove(purchase);
   }
 
   async paymentRefunded(

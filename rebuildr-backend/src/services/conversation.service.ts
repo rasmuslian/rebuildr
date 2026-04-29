@@ -122,23 +122,26 @@ export class ConversationService {
   async getUnreadConversationsCount(currentUserId: string) {
     const result = await this.dataSource.query(
       `
-      SELECT COUNT(*) FROM conversation c
-      WHERE
-        (c."buyerId" = $1 AND EXISTS (
-          SELECT 1 FROM message m
-          WHERE m."conversationId" = c.id
-          AND m."senderId" != $1
-          AND (c."buyerReadAt" IS NULL OR m."createdAt" > c."buyerReadAt")
-        ))
-        OR
-        (EXISTS (SELECT 1 FROM product p WHERE p.id = c."productId" AND p."sellerId" = $1) AND EXISTS (
-          SELECT 1 FROM message m
-          WHERE m."conversationId" = c.id
-          AND m."senderId" != $1
-          AND (c."sellerReadAt" IS NULL OR m."createdAt" > c."sellerReadAt")
-        ))
-      `,
-      [currentUserId],
+      SELECT COUNT(*) FROM (
+      SELECT
+	c.id,
+	CASE
+		WHEN p."sellerId" = '${currentUserId}' THEN c."sellerReadAt" IS NULL
+		OR MAX(m."createdAt") > c."sellerReadAt"
+		ELSE c."buyerReadAt" IS NULL
+		OR MAX(m."createdAt") > c."buyerReadAt"
+	END "unread"
+FROM
+	message m
+	INNER JOIN conversation c ON m."conversationId" = c.id
+	INNER JOIN product p ON c."productId" = p.id
+WHERE
+	
+		c."buyerId" = '${currentUserId}'
+		OR p."sellerId" = '${currentUserId}'
+GROUP BY
+	c.id,
+	p.id) WHERE "unread" = TRUE`,
     );
     return parseInt(result[0].count, 10);
   }
