@@ -413,19 +413,22 @@ export class PurchaseService {
     if (isFree) {
       purchase.paymentAcceptedAt = new Date();
       purchase.paymentStartedAt = new Date();
-      await this.systemMessagesService.purchaseWithHandoffBuyer(
+      this.systemMessagesService
+        .purchaseWithHandoffBuyer(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         purchase,
         true,
-      );
-      await this.systemMessagesService.purchaseWithHandoffSeller(
+        )
+        .then(() =>
+          this.systemMessagesService.purchaseWithHandoffSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
         purchase,
         true,
+          ),
       );
     }
     const savedPurchase = await this.purchaseRepository.save(purchase);
@@ -1349,45 +1352,60 @@ export class PurchaseService {
       );
     }
 
-    if (!purchase.paymentAcceptedAt) {
-      purchase.paymentAcceptedAt = new Date();
+    const chargeId = idFromObject(payload.latest_charge);
+    const paymentAcceptedAt = new Date();
+    const updateResult = await this.purchaseRepository.update(
+      { paymentIntentId: payload.id, paymentAcceptedAt: IsNull() },
+      {
+        paymentAcceptedAt,
+        ...(chargeId ? { chargeId } : {}),
+      },
+    );
 
+    if (updateResult.affected > 0) {
+      purchase.paymentAcceptedAt = paymentAcceptedAt;
       //System messages
       if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
-        await this.systemMessagesService.purchaseWithShippingBuyer(
+        this.systemMessagesService
+          .purchaseWithShippingBuyer(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
-        );
-        await this.systemMessagesService.purchaseWithShippingSeller(
+          )
+          .then(() =>
+            this.systemMessagesService.purchaseWithShippingSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
           purchase.shippingPrice?.provider,
+            ),
+          )
+          .catch((err) =>
+            logger.error('purchaseWithShipping system messages failed', err),
         );
       } else {
-        await this.systemMessagesService.purchaseWithHandoffBuyer(
+        this.systemMessagesService
+          .purchaseWithHandoffBuyer(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
-        );
-        await this.systemMessagesService.purchaseWithHandoffSeller(
+          )
+          .then(() =>
+            this.systemMessagesService.purchaseWithHandoffSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
           purchase,
+            ),
+          )
+          .catch((err) =>
+            logger.error('purchaseWithShipping system messages failed', err),
         );
       }
     }
-    const chargeId = idFromObject(payload.latest_charge);
-    if (!purchase.chargeId) {
-      purchase.chargeId = chargeId;
-    }
-
-    await this.purchaseRepository.save(purchase);
 
     if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
       logger.info({
