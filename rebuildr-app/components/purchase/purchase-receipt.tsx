@@ -21,8 +21,10 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { CreateReview } from "@components/review/create-review";
 import { router } from "expo-router";
+import { trackEvent } from "@/utils/analytics";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -247,42 +249,52 @@ export const PurchaseReceipt = ({
           {buyerIsMe ? (
             <Body
               size="medium"
-              link={
-                data.purchase.conversation
-                  ? {
-                      pathname: "/conversation/[conversationId]",
-                      params: {
-                        conversationId: data.purchase.conversation?.id,
+              onPress={() => {
+                trackEvent(GTMTagEnum.CONTACT_SELLER, {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
                       },
-                    }
-                  : {
-                      pathname: "/conversations/[productId]",
-                      params: {
-                        productId: data.purchase.product.id,
-                      },
-                    }
-              }
+                );
+              }}
             >
               kontakta säljaren
             </Body>
           ) : (
             <Body
               size="medium"
-              link={
-                data.purchase.conversation
-                  ? {
-                      pathname: "/conversation/[conversationId]",
-                      params: {
-                        conversationId: data.purchase.conversation?.id,
+              onPress={() => {
+                trackEvent(GTMTagEnum.CONTACT_BUYER, {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
                       },
-                    }
-                  : {
-                      pathname: "/conversations/[productId]",
-                      params: {
-                        productId: data.purchase.product.id,
-                      },
-                    }
-              }
+                );
+              }}
             >
               kontakta köparen
             </Body>
