@@ -309,6 +309,7 @@ export class PurchaseService {
       }
 
       if (shippingPriceByProvider) {
+        if (product.soldByQuantity && input.purchasedQuantity) {
         const shippingWeightForQuantity =
           shippingPriceByProvider.maxWeight * input.purchasedQuantity;
         const shippingPriceMatchingWeight =
@@ -326,6 +327,9 @@ export class PurchaseService {
           );
         }
         shippingPrice = shippingPriceMatchingWeight;
+        } else {
+          shippingPrice = shippingPriceByProvider;
+        }
       }
     }
     if (input.transportationMethod === TransportationEnum.DELIVERY) {

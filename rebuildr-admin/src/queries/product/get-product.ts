@@ -28,6 +28,7 @@ const query = `
       widthUnit
       height
       heightUnit
+      soldByQuantity
       noProject
       sellerId
       color

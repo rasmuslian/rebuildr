@@ -1253,6 +1253,7 @@ input CmsCreateProductInput {
   shippingPriceIds: [String!]
   color: String
   colorType: ColorTypeEnum
+  soldByQuantity: Boolean
   images: [FileInputType!]!
   documents: [FileInputType!]!
   sellerId: String
@@ -1296,6 +1297,7 @@ input CmsUpdateProductInput {
   shippingPriceIds: [String!]
   color: String
   colorType: ColorTypeEnum
+  soldByQuantity: Boolean
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]
