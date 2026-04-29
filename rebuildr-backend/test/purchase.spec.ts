@@ -253,6 +253,337 @@ describe('Purchase e2e', () => {
     });
   });
 
+  it('test purchase PICKUP with soldByQuantity', async () => {
+    const now = new Date();
+    const unitPrice = 10_00;
+    const primaryQuantity = 5;
+    const purchasedQuantity = 3;
+
+    const buyerFixture: Partial<User> = {
+      id: 'buyer',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      customerId: '1',
+    };
+    const sellerFixure: Partial<User> = {
+      id: 'seller',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      connectedAccountId: '1',
+    };
+
+    const productFixture: Partial<Product> = {
+      id: 'product',
+      title: 'product',
+      createdAt: now,
+      updatedAt: now,
+      sellerId: 'seller',
+      seller: sellerFixure as User,
+      price: unitPrice,
+      isGiveaway: false,
+      status: ProductStatus.PUBLISHED,
+      soldByQuantity: true,
+      primaryQuantity,
+      images: [],
+      documents: [],
+      pickupEnabled: true,
+      deliveryEnabled: false,
+      purchases: [],
+      shippingPrices: [],
+    };
+
+    const userRepo = module.get<Repository<User>>(getRepositoryToken(User));
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(buyerFixture as User);
+    mockRepositoryPurchase.save.mockImplementation((p: Purchase) => {
+      return { ...p, id: 'purchaseId' };
+    });
+
+    const stripeSpy = jest.spyOn(stripeService, 'createPayment');
+
+    const response = await purchaseService.createPurchase(
+      {
+        productId: 'product',
+        paymentMethod: SupportedPaymentMethod.CARD,
+        transportationMethod: TransportationEnum.PICKUP,
+        purchasedQuantity,
+        successUrl: '',
+        failureUrl: '',
+      },
+      'userId',
+      loggerMock as Logger,
+    );
+
+    expect(response.purchase).toMatchObject({
+      transportationMethod: TransportationEnum.PICKUP,
+      paymentMethod: SupportedPaymentMethod.CARD,
+      buyer: buyerFixture,
+      product: productFixture,
+      purchasedQuantity,
+    });
+
+    const { escrow, fee } = PurchaseService.calculateSellSummary({
+      productPrice: unitPrice * purchasedQuantity,
+      shippingPrice: 0,
+      deliveryPrice: 0,
+    });
+    expect(stripeSpy).toHaveBeenCalledWith(
+      sellerFixure.connectedAccountId,
+      escrow + fee,
+      fee,
+      buyerFixture,
+      SupportedPaymentMethod.CARD,
+      'product',
+      { productId: 'product', sellerId: 'seller' },
+    );
+
+    // Product should have primaryQuantity decremented but not be SOLD
+    expect(productRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        primaryQuantity: primaryQuantity - purchasedQuantity,
+        status: ProductStatus.PUBLISHED,
+      }),
+    );
+  });
+
+  it('test purchase PICKUP with soldByQuantity - all units bought marks product SOLD', async () => {
+    const now = new Date();
+    const unitPrice = 10_00;
+    const primaryQuantity = 5;
+    const purchasedQuantity = 5;
+
+    const buyerFixture: Partial<User> = {
+      id: 'buyer',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      customerId: '1',
+    };
+    const sellerFixure: Partial<User> = {
+      id: 'seller',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      connectedAccountId: '1',
+    };
+
+    const productFixture: Partial<Product> = {
+      id: 'product',
+      title: 'product',
+      createdAt: now,
+      updatedAt: now,
+      sellerId: 'seller',
+      seller: sellerFixure as User,
+      price: unitPrice,
+      isGiveaway: false,
+      status: ProductStatus.PUBLISHED,
+      soldByQuantity: true,
+      primaryQuantity,
+      images: [],
+      documents: [],
+      pickupEnabled: true,
+      deliveryEnabled: false,
+      purchases: [],
+      shippingPrices: [],
+    };
+
+    const userRepo = module.get<Repository<User>>(getRepositoryToken(User));
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(buyerFixture as User);
+    mockRepositoryPurchase.save.mockImplementation((p: Purchase) => {
+      return { ...p, id: 'purchaseId' };
+    });
+
+    await purchaseService.createPurchase(
+      {
+        productId: 'product',
+        paymentMethod: SupportedPaymentMethod.CARD,
+        transportationMethod: TransportationEnum.PICKUP,
+        purchasedQuantity,
+        successUrl: '',
+        failureUrl: '',
+      },
+      'userId',
+      loggerMock as Logger,
+    );
+
+    expect(productRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        primaryQuantity: 0,
+        status: ProductStatus.SOLD,
+      }),
+    );
+  });
+
+  it('test purchase PICKUP with soldByQuantity - purchasedQuantity exceeds primaryQuantity throws error', async () => {
+    const now = new Date();
+    const unitPrice = 10_00;
+    const primaryQuantity = 5;
+    const purchasedQuantity = 6;
+
+    const buyerFixture: Partial<User> = {
+      id: 'buyer',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      customerId: '1',
+    };
+    const sellerFixure: Partial<User> = {
+      id: 'seller',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      connectedAccountId: '1',
+    };
+
+    const productFixture: Partial<Product> = {
+      id: 'product',
+      title: 'product',
+      createdAt: now,
+      updatedAt: now,
+      sellerId: 'seller',
+      seller: sellerFixure as User,
+      price: unitPrice,
+      isGiveaway: false,
+      status: ProductStatus.PUBLISHED,
+      soldByQuantity: true,
+      primaryQuantity,
+      images: [],
+      documents: [],
+      pickupEnabled: true,
+      deliveryEnabled: false,
+      purchases: [],
+      shippingPrices: [],
+    };
+
+    const userRepo = module.get<Repository<User>>(getRepositoryToken(User));
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(buyerFixture as User);
+
+    await expect(
+      purchaseService.createPurchase(
+        {
+          productId: 'product',
+          paymentMethod: SupportedPaymentMethod.CARD,
+          transportationMethod: TransportationEnum.PICKUP,
+          purchasedQuantity,
+          successUrl: '',
+          failureUrl: '',
+        },
+        'userId',
+        loggerMock as Logger,
+      ),
+    ).rejects.toBeDefined();
+  });
+
+  it('test purchase PICKUP with purchasedQuantity but soldByQuantity is false throws error', async () => {
+    const now = new Date();
+
+    const buyerFixture: Partial<User> = {
+      id: 'buyer',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      customerId: '1',
+    };
+    const sellerFixure: Partial<User> = {
+      id: 'seller',
+      products: [],
+      type: UserType.PERSONAL,
+      role: UserRoleEnum.USER,
+      purchases: [],
+      organizations: [],
+      organizationUsers: [],
+      connectedAccountId: '1',
+    };
+
+    const productFixture: Partial<Product> = {
+      id: 'product',
+      title: 'product',
+      createdAt: now,
+      updatedAt: now,
+      sellerId: 'seller',
+      seller: sellerFixure as User,
+      price: 40_00,
+      isGiveaway: false,
+      status: ProductStatus.PUBLISHED,
+      soldByQuantity: false,
+      primaryQuantity: 1,
+      images: [],
+      documents: [],
+      pickupEnabled: true,
+      deliveryEnabled: false,
+      purchases: [],
+      shippingPrices: [],
+    };
+
+    const userRepo = module.get<Repository<User>>(getRepositoryToken(User));
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+
+    jest
+      .spyOn(productRepo, 'findOne')
+      .mockResolvedValue(productFixture as Product);
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(buyerFixture as User);
+
+    await expect(
+      purchaseService.createPurchase(
+        {
+          productId: 'product',
+          paymentMethod: SupportedPaymentMethod.CARD,
+          transportationMethod: TransportationEnum.PICKUP,
+          purchasedQuantity: 1,
+          successUrl: '',
+          failureUrl: '',
+        },
+        'userId',
+        loggerMock as Logger,
+      ),
+    ).rejects.toBeDefined();
+  });
+
   it('test purchase PICKUP', async () => {
     const now = new Date();
     const productPrice = 40_00;
@@ -330,11 +661,11 @@ describe('Purchase e2e', () => {
       product: productFixture,
     });
 
-    const { escrow, fee } = PurchaseService.calculateSellSummary(
-      productPrice,
-      0,
-      0,
-    );
+    const { escrow, fee } = PurchaseService.calculateSellSummary({
+      productPrice: productPrice,
+      shippingPrice: 0,
+      deliveryPrice: 0,
+    });
     expect(stripeSpy).toHaveBeenCalledWith(
       sellerFixure.connectedAccountId,
       escrow + fee,
@@ -435,11 +766,11 @@ describe('Purchase e2e', () => {
       deliverToLocation: { type: 'Point', coordinates: [10, 10] },
     });
 
-    const { escrow, fee } = PurchaseService.calculateSellSummary(
-      productPrice,
-      0,
-      productFixture.deliveryPrice,
-    );
+    const { escrow, fee } = PurchaseService.calculateSellSummary({
+      productPrice: productPrice,
+      shippingPrice: 0,
+      deliveryPrice: productFixture.deliveryPrice,
+    });
     expect(stripeSpy).toHaveBeenCalledWith(
       sellerFixure.connectedAccountId,
       escrow + fee,
@@ -544,11 +875,11 @@ describe('Purchase e2e', () => {
       shippingPrice: shippingPrices[0],
     });
 
-    const { escrow, fee } = PurchaseService.calculateSellSummary(
-      productPrice,
-      shippingPrices[0].price,
-      0,
-    );
+    const { escrow, fee } = PurchaseService.calculateSellSummary({
+      productPrice: productPrice,
+      shippingPrice: shippingPrices[0].price,
+      deliveryPrice: 0,
+    });
     expect(stripeSpy).toHaveBeenCalledWith(
       sellerFixure.connectedAccountId,
       escrow + fee,

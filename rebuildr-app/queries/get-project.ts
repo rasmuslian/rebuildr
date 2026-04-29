@@ -43,6 +43,7 @@ export const GET_PROJECT = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         primaryImage {
           id
           url

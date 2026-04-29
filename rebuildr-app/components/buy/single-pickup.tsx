@@ -29,9 +29,10 @@ const SINGLE_PICKUP_OPTION = gql`
 
 type Props = {
   productId: string;
+  quantity?: number;
 };
-export const SinglePickup = ({ productId }: Props) => {
-  const { submitPickup } = useSubmitSummary();
+export const SinglePickup = ({ productId, quantity }: Props) => {
+  const { submitPickup } = useSubmitSummary({ quantity });
   const { data } = useQuery<
     SinglePickupOptionQuery,
     SinglePickupOptionQueryVariables
@@ -42,6 +43,7 @@ export const SinglePickup = ({ productId }: Props) => {
       },
       optionInput: {
         productId,
+        quantity,
       },
     },
   });
@@ -55,8 +57,10 @@ export const SinglePickup = ({ productId }: Props) => {
   }
 
   const onPurchase = () => {
-    submitPickup(productId, data.product.price);
+    submitPickup(productId, totalPrice);
   };
+
+  const totalPrice = data.product.price * (quantity ?? 1);
 
   return (
     <View style={{ gap: 24 }}>
@@ -81,9 +85,9 @@ export const SinglePickup = ({ productId }: Props) => {
       </View>
       <Summary
         text="Du betalar:"
-        price={data.product.price}
+        price={totalPrice}
         mainButton={{
-          label: data.product.price ? "Fortsätt till Betalning" : "Fortsätt",
+          label: totalPrice ? "Fortsätt till Betalning" : "Fortsätt",
           onPress: () => {
             onPurchase();
           },

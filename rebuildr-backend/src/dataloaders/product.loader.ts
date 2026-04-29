@@ -22,7 +22,7 @@ export interface IProductLoaders {
   documentsLoader: DataLoader<string, File[]>;
   brandLoader: DataLoader<string, Brand>;
   projectLoader: DataLoader<string, Project>;
-  shippingPricesLoader: DataLoader<string, ShippingPrice>;
+  shippingPricesLoader: DataLoader<string, ShippingPrice[]>;
   getProductPurchases: DataLoader<string, Purchase[]>;
   getReportProducts: DataLoader<string, ReportProduct[]>;
   mapPinLoader: DataLoader<string, MapPin>;
@@ -179,11 +179,9 @@ export class ProductLoader {
         'project',
         Product,
       ),
-      shippingPricesLoader:
-        this.dataloaderService.targetByParentIdLoader<ShippingPrice>(
-          'shippingPrices',
-          Product,
-        ),
+      shippingPricesLoader: this.dataloaderService.targetByParentIdLoader<
+        ShippingPrice[]
+      >('shippingPrices', Product),
       getProductPurchases: this.dataloaderService.targetByParentIdLoader<
         Purchase[]
       >('purchases', Product),

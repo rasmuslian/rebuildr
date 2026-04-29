@@ -31,6 +31,7 @@ const ACCOUNT_PURCHASES = gql`
           url
         }
         price
+        soldByQuantity
         seller {
           id
           username

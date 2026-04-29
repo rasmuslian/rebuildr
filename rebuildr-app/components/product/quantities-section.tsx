@@ -146,9 +146,14 @@ export const QuantitiesSection = ({
     <View style={{ zIndex: 10 }}>
       <View style={{ gap: 4, flex: 1 }}>
         <Label size="medium">Mängd och enhet*</Label>
-        <Body size="medium">
-          Välj den enhet som bäst beskriver hur produkten säljs.
-        </Body>
+        <View>
+          <Body size="medium">
+            Välj den enhet som beskriver hur produkten säljs.
+          </Body>
+          <Body size="medium">
+            Vald enhet används även för saldo vid Delköp.
+          </Body>
+        </View>
       </View>
       <View
         style={{ flexDirection: "row", gap: 16, zIndex: 10, marginTop: 16 }}
@@ -176,7 +181,7 @@ export const QuantitiesSection = ({
             }
             options={Object.values(QuantityUnitEnum).map((option) => ({
               value: option,
-              label: quantities[option].short,
+              label: quantities[option].plural,
               disabled: option === secondaryUnit,
             }))}
             onSelect={(value) =>
@@ -211,7 +216,7 @@ export const QuantitiesSection = ({
                 }
                 options={Object.values(QuantityUnitEnum).map((option, i) => ({
                   value: option,
-                  label: quantities[option].short,
+                  label: quantities[option].plural,
                   disabled: option === primaryUnit,
                 }))}
                 onSelect={(value) =>

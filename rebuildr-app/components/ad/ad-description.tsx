@@ -23,6 +23,7 @@ type Props = {
     location?: string | null;
   };
   price?: number;
+  soldByQuantity?: boolean;
 };
 
 export const AdDescription = ({
@@ -32,6 +33,7 @@ export const AdDescription = ({
   condition,
   account,
   price,
+  soldByQuantity,
 }: Props) => {
   const quantityUnit = _quantityUnit ?? QuantityUnitEnum.Amount;
   return (
@@ -41,7 +43,7 @@ export const AdDescription = ({
           {title}
         </Title>
         <Body color="secondary" size="small" numberOfLines={1}>
-          {quantity} {quantities[quantityUnit].short} •{" "}
+          {quantity} {quantities[quantityUnit].plural} •{" "}
           {conditions[condition].name}
         </Body>
       </View>
@@ -66,7 +68,10 @@ export const AdDescription = ({
           </Body>
         </View>
       )}
-      <Label size="large">{formatPrice(price)}</Label>
+      <Label size="large">
+        {formatPrice(price)}
+        {soldByQuantity ? `/${quantities[quantityUnit].singular}` : ""}
+      </Label>
     </View>
   );
 };

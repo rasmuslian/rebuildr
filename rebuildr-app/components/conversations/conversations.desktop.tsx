@@ -8,22 +8,25 @@ import { ConversationEmptyState } from "@components/conversations/conversation-e
 import { ConversationsList } from "@components/conversations/conversations-list";
 import { useEffect, useRef, useState } from "react";
 import { Conversation } from "@components/conversations/conversation";
-import { useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import {
-  ConversationProductQuery,
-  ConversationProductQueryVariables,
-  ConversationsQuery,
-  ConversationsQueryVariables,
+  ConversationQuery,
+  ConversationQueryVariables,
+  CreateMessageMutation,
   GetConversationsQuery,
   GetConversationsType,
+  InitialChatQuery,
+  InitialChatQueryVariables,
+  Product,
+  ProductConversationsQuery,
+  ProductConversationsQueryVariables,
+  Purchase,
+  User,
 } from "@/gql/graphql";
 import { Header } from "@components/navigation/headers/header";
-import { ProductHeader } from "@components/navigation/headers/product-header";
-import { getProductBadgeProps } from "@/utils/getProductBadgeProps";
 import { ChatActionButtons } from "@components/conversations/chat-action-buttons";
 import { useMarkConversationAsRead } from "@hooks/conversation/use-mark-conversation-as-read";
 import { TAB_LAYOUT } from "../../app/(app)/(tabs)/_layout";
-import { CONVERSATIONS } from "../../app/(app)/conversations/[productId]";
 import { ProductConversationsList } from "@components/conversations/product-conversations-list";
 import { AdList } from "@components/ad/ad-list";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -31,31 +34,61 @@ import dayjs from "dayjs";
 import { MessageInput } from "./message-input";
 import { useLocalSearchParams } from "expo-router";
 import { parseConversations } from "@/utils/conversations/parse-conversations";
-import { CONVERSATION_PRODUCT } from "./queries";
-import { useChatHeaderNavigation } from "@hooks/use-chat-header-navigation";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
+import { CONVERSATION } from "@/app/(app)/conversation/[conversationId]";
+import { PRODUCT_CONVERSATIONS } from "@/app/(app)/conversations/[productId]";
+import { GET_CONVERSATIONS } from "@/app/(app)/(tabs)/conversations";
+import { ChatHeader } from "./chat-header";
+
+const INITIAL_CHAT = gql`
+  query initialChat($input: GetProductInput!) {
+    product(input: $input) {
+      id
+      title
+      price
+      soldByQuantity
+      status
+      primaryImage {
+        id
+        url
+      }
+      seller {
+        id
+        username
+      }
+    }
+    me {
+      id
+      type
+    }
+  }
+`;
 
 type Props = {
   data: GetConversationsQuery;
   myId: string;
+  refetch: () => void;
 };
 
-export const ConversationsDesktop = ({ data, myId }: Props) => {
+export const ConversationsDesktop = ({ data, myId, refetch }: Props) => {
   const colors = useThemeColor();
   const { height: windowHeight } = useWindowDimensions();
   const [showReviewSheet, setShowReviewSheet] = useState(false);
-  const [selectedConversation, setSelectedConversation] = useState<
+  const [selectedConversationGroup, setSelectedConversationGroup] = useState<
     | {
         productId: string;
-        userId?: string;
         key: number;
       }
     | undefined
   >(undefined);
-  const { productId, userId: otherUserId } = useLocalSearchParams<{
-    productId: string;
-    userId: string;
+  const [selectedConversation, setSelectedConversation] = useState<
+    { conversationId: string } | undefined
+  >(undefined);
+  const {
+    productId, //If this exists we have navigated here through a product
+  } = useLocalSearchParams<{
+    productId?: string;
   }>();
   const isNavigationSelect = useRef(false);
   const { all: buyConversations } = parseConversations(data, "buy");
@@ -66,24 +99,44 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
     hasOnlyBuyConversations ? "buy" : "sell",
   );
 
-  const { totalUnread, nrUnreadBuy, nrUnreadSell, unread, read } =
+  const { totalUnread, nrUnreadBuy, nrUnreadSell, unread, read, all } =
     parseConversations(data, tab);
 
   const renderRightColumn = () => {
-    if (selectedConversation?.userId) {
+    if (selectedConversation) {
+      const conversation = data.getConversations.find(
+        (cg) => cg.id === selectedConversation.conversationId,
+      );
+      if (!conversation) return null;
       return (
         <Chat
-          productId={selectedConversation.productId}
-          userId={selectedConversation.userId}
+          conversationId={selectedConversation.conversationId}
+          productId={conversation.product.id}
           showReviewSheet={showReviewSheet}
           setShowReviewSheet={setShowReviewSheet}
         />
       );
     }
-    if (selectedConversation?.productId) {
+    if (selectedConversationGroup) {
+      const groupExists = data.getConversations.find(
+        (c) => c.product.id === selectedConversationGroup.productId,
+      );
+      if (!groupExists) {
+        return (
+          <InitialChat
+            productId={selectedConversationGroup.productId}
+            onChatInitiated={(data) => {
+              setSelectedConversation({
+                conversationId: data.createMessage.conversationId,
+              });
+              refetch();
+            }}
+          />
+        );
+      }
       return (
         <SelectedProductConversations
-          productId={selectedConversation.productId}
+          productId={selectedConversationGroup.productId}
           setSelectedConversation={setSelectedConversation}
         />
       );
@@ -91,52 +144,62 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
     return <ConversationEmptyState />;
   };
 
+  const onSelectConversationGroup = (productId: string) => {
+    const selectedGroup = all.find((group) => group.productId === productId);
+    //If there is a selected conversation, unselect it
+    if (selectedConversation) {
+      setSelectedConversation(undefined);
+    }
+    setSelectedConversationGroup({
+      productId,
+      key: 0,
+    });
+    if (!selectedGroup) {
+      return;
+    }
+    //If there is only one conversation in the group, select the conversation immidiately
+    if (selectedGroup.conversations.length === 1) {
+      setSelectedConversation({
+        conversationId: selectedGroup.conversations[0].id,
+      });
+    }
+  };
+
   useEffect(() => {
-    if (isNavigationSelect.current === false) {
-      let conversation;
+    if (isNavigationSelect.current === false && !productId) {
+      let conversationGroup;
       if (unread.length > 0) {
-        conversation = unread[0];
+        conversationGroup = unread[0];
       } else if (read.length > 0) {
-        conversation = read[0];
+        conversationGroup = read[0];
       } else {
-        setSelectedConversation(undefined);
+        setSelectedConversationGroup(undefined);
         return;
       }
-      const sortedByLatest = conversation.conversations.sort(
+      const sortedByLatest = conversationGroup.conversations.sort(
         (a: any, b: any) => (dayjs(a.createdAt).isBefore(b.createdAt) ? 1 : -1),
       );
-      const isMoreThanOneUser = sortedByLatest.length > 1;
-      const firstConversation = sortedByLatest[0];
-      const userId = isMoreThanOneUser
-        ? undefined
-        : firstConversation.sender.id === myId
-          ? firstConversation.receiver.id
-          : firstConversation.sender.id;
-      setSelectedConversation({
-        productId: conversation.productId,
-        userId,
-        key: 0,
-      });
+
+      onSelectConversationGroup(sortedByLatest[0].product.id);
     }
     isNavigationSelect.current = false;
   }, [tab]);
 
   useEffect(() => {
-    if (!productId && !otherUserId) {
+    if (!productId) {
       return;
     }
-    setSelectedConversation({
-      productId: productId!,
-      userId: otherUserId,
-      key: 0,
-    });
+    //We came here through a product and therefore productId is set in the navigation params
+
+    onSelectConversationGroup(productId);
+
     isNavigationSelect.current = true;
     if (sellConversations.find((convo) => convo.productId === productId)) {
       setTab("sell");
     } else {
       setTab("buy");
     }
-  }, [productId, otherUserId]);
+  }, [productId]);
 
   return (
     <ScreenLayout
@@ -189,10 +252,10 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
               unread={unread}
               read={read}
               myId={myId}
-              selectedConversation={selectedConversation}
-              onSelectConversation={({ productId, userId, key }) =>
-                setSelectedConversation({ productId, userId, key })
-              }
+              selectedConversationGroup={selectedConversationGroup}
+              onSelectConversationGroup={({ productId, key }) => {
+                onSelectConversationGroup(productId);
+              }}
             />
           </ScrollView>
         </View>
@@ -213,15 +276,14 @@ export const ConversationsDesktop = ({ data, myId }: Props) => {
 };
 
 type ChatProps = {
+  conversationId: string;
   productId: string;
-  userId: string;
   showReviewSheet: boolean;
   setShowReviewSheet: (show: boolean) => void;
 };
 
 const Chat = ({
-  productId,
-  userId,
+  conversationId,
   showReviewSheet,
   setShowReviewSheet,
 }: ChatProps) => {
@@ -231,56 +293,30 @@ const Chat = ({
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
 
   const { data, refetch, loading } = useQuery<
-    ConversationProductQuery,
-    ConversationProductQueryVariables
-  >(CONVERSATION_PRODUCT, {
+    ConversationQuery,
+    ConversationQueryVariables
+  >(CONVERSATION, {
     variables: {
       input: {
-        productId,
-        otherUserId: userId!,
-      },
-      getProductInput: { id: productId },
-      latestPurchaseInput: {
-        otherUserId: userId!,
-        productId,
+        id: conversationId,
       },
     },
-    onCompleted(data) {
-      const sellerId = data.product.seller.id;
-      const buyerId = sellerId === userId! ? data.me.id : userId!;
+    onCompleted() {
       onMarkConversationAsRead({
-        otherUserId: data.me.id === sellerId ? buyerId : sellerId,
-        productId: data.product.id,
-        refetchQueries: [TAB_LAYOUT],
+        conversationId,
+        refetchQueries: [TAB_LAYOUT, GET_CONVERSATIONS],
       });
     },
   });
 
-  const sellerIsMe = data?.me.id === data?.product.seller.id;
-
-  const { action: headerAction, disabled: headerActionDisabled } =
-    useChatHeaderNavigation({
-      productId,
-      productStatus: data?.product?.status,
-      role: sellerIsMe ? "seller" : "buyer",
-      purchase: data?.latestPurchase,
-    });
+  const sellerIsMe = data?.me.id === data?.getConversation.product.seller.id;
 
   if (!data || loading) {
     return <LoadingSpinner />;
   }
 
-  const otherUser = data.getConversation[0]
-    ? data.getConversation[0].sender.id === data.me.id
-      ? data.getConversation[0].receiver
-      : data.getConversation[0].sender
-    : data.product.seller;
-
-  const statusBadgeProps = getProductBadgeProps(
-    data.product.status,
-    sellerIsMe ? "seller" : "buyer",
-    data.latestPurchase,
-  );
+  const product = data.getConversation.product;
+  const otherUser = sellerIsMe ? data.getConversation.buyer : product.seller;
 
   return (
     <View
@@ -291,19 +327,12 @@ const Chat = ({
         paddingBottom: 16,
       }}
     >
-      <View style={{ gap: 16 }}>
-        <Header title={otherUser?.username} showBackButton={false} />
-        <ProductHeader
-          id={data.product.id}
-          title={data.product.title}
-          price={data.product.price}
-          statusBadgeProps={statusBadgeProps}
-          status={data.product.status}
-          imageUrl={data.product.primaryImage?.url}
-          disabled={headerActionDisabled}
-          onPress={headerAction}
-        />
-      </View>
+      <ChatHeader
+        otherUser={otherUser as User}
+        sellerIsMe={sellerIsMe}
+        product={data.getConversation.product as Product}
+        purchase={data.getConversation.purchase as Purchase | undefined | null}
+      />
       <ScrollView
         style={{ height: windowHeight / 2 }}
         contentContainerStyle={{ flexGrow: 1, paddingVertical: 24, gap: 8 }}
@@ -320,35 +349,103 @@ const Chat = ({
         <Divider />
         <View style={{ flexDirection: "row", gap: 16 }}>
           <ChatActionButtons
-            data={data}
+            product={data.getConversation.product as Product}
+            purchase={
+              data.getConversation.purchase as Purchase | undefined | null
+            }
+            me={data.me as User}
             onShowReview={() => setShowReviewSheet(true)}
             onShowQRCode={() => setShowQRCode(true)}
           />
           <View style={{ flex: 1 }}>
             <MessageInput
-              receiverId={otherUser.id}
-              productId={data.product.id}
-              onMessageSent={refetch}
+              conversationId={conversationId}
+              productId={product.id}
+              onMessageSent={() => refetch()}
             />
           </View>
         </View>
       </View>
       <Popup open={showQRCode} onClose={() => setShowQRCode(false)}>
-        {data.latestPurchase && (
-          <ShippingCodeContent purchase={data.latestPurchase} showUpload />
+        {data.getConversation.purchase && (
+          <ShippingCodeContent
+            purchase={data.getConversation.purchase}
+            showUpload
+          />
         )}
       </Popup>
     </View>
   );
 };
 
+type InitialChatProps = {
+  productId: string;
+  onChatInitiated: (data: CreateMessageMutation) => void;
+};
+
+const InitialChat = ({ productId, onChatInitiated }: InitialChatProps) => {
+  const { height: windowHeight } = useWindowDimensions();
+
+  const { data } = useQuery<InitialChatQuery, InitialChatQueryVariables>(
+    INITIAL_CHAT,
+    {
+      variables: {
+        input: {
+          id: productId,
+        },
+      },
+    },
+  );
+
+  if (!data) {
+    return <LoadingSpinner />;
+  }
+
+  const otherUser = data.product.seller;
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        width: "100%",
+        paddingLeft: 48,
+        paddingBottom: 16,
+      }}
+    >
+      <ChatHeader
+        otherUser={otherUser as User}
+        sellerIsMe={false}
+        product={data.product as Product}
+      />
+      <View
+        style={{
+          height: windowHeight / 2,
+          flexGrow: 1,
+          paddingVertical: 24,
+        }}
+      />
+      <View style={{ gap: 16 }}>
+        <Divider />
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <ChatActionButtons
+            product={data.product as Product}
+            me={data.me as User}
+          />
+          <View style={{ flex: 1 }}>
+            <MessageInput
+              productId={data.product.id}
+              onMessageSent={onChatInitiated}
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 type ProductConversationsProps = {
   productId: string;
-  setSelectedConversation: (conversation: {
-    productId: string;
-    userId?: string;
-    key: number;
-  }) => void;
+  setSelectedConversation: (conversation: { conversationId: string }) => void;
 };
 
 const SelectedProductConversations = ({
@@ -357,9 +454,9 @@ const SelectedProductConversations = ({
 }: ProductConversationsProps) => {
   const { height: windowHeight } = useWindowDimensions();
   const { data, loading } = useQuery<
-    ConversationsQuery,
-    ConversationsQueryVariables
-  >(CONVERSATIONS, {
+    ProductConversationsQuery,
+    ProductConversationsQueryVariables
+  >(PRODUCT_CONVERSATIONS, {
     variables: {
       input: { productId, type: GetConversationsType.BuyingAndSelling },
     },
@@ -399,7 +496,6 @@ const SelectedProductConversations = ({
       >
         <ProductConversationsList
           data={data}
-          showAsActive
           onConversationSelect={setSelectedConversation}
         />
       </ScrollView>

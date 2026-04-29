@@ -2,6 +2,7 @@ import {
   ApproximatePlaceResponse,
   MapPinTypeEnum,
   Maybe,
+  Product,
   ProductConditionEnum,
   ProductStatusEnum,
   ProductViewQuery,
@@ -17,6 +18,7 @@ import { CreateProductLabelModal } from "@components/modals/create-product-label
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Popup } from "@components/popup/popup";
 import { ActionSection } from "@components/preview-product/action-section";
+import { PurchaseQuantitySection } from "@components/preview-product/purchase-quantity-section";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 import { CO2Savings } from "@components/preview-product/CO2-savings";
@@ -39,7 +41,7 @@ import { usePersistedState } from "@hooks/use-persisted-state";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 
 type Props = {
@@ -63,6 +65,7 @@ type Props = {
     primaryUnit?: QuantityUnitEnum | null;
     condition: ProductConditionEnum;
     price: number;
+    soldByQuantity: Product["soldByQuantity"];
     primaryImage?: {
       id: string;
       url: string;
@@ -96,6 +99,9 @@ export const ProductDesktop = ({
   const { isLoggedIn } = useUser();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState<number | undefined>(
+    product.soldByQuantity ? 1 : undefined,
+  );
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
@@ -225,10 +231,22 @@ export const ProductDesktop = ({
                 sellerIsMe={me && me.id === product.seller.id}
                 actionSection={
                   <>
+                    {product.soldByQuantity &&
+                      !!product.primaryQuantity &&
+                      selectedQuantity &&
+                      product.primaryUnit && (
+                        <PurchaseQuantitySection
+                          pricePerUnit={product.price}
+                          selectedQuantity={selectedQuantity}
+                          totalQuantity={product.primaryQuantity}
+                          primaryUnit={product.primaryUnit}
+                          onQuantityChange={setSelectedQuantity}
+                        />
+                      )}
                     <ActionSection
                       productId={product.id}
+                      quantity={selectedQuantity}
                       status={product.status}
-                      sellerId={product.seller.id}
                       isMyProduct={isMyProduct}
                       buyButtonDisabled={buyButtonDisabled}
                       onRemovePress={() => {

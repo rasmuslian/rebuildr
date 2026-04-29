@@ -14,6 +14,7 @@ export const SEARCH_PRODUCTS_QUERY = gql`
         title
         status
         price
+        soldByQuantity
         condition
         primaryQuantity
         primaryUnit

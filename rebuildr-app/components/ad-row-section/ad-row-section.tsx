@@ -23,6 +23,7 @@ export const AD_ROW_SECTION = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         distanceFromLocation(location: $distanceFrom)
         primaryImage {
           id

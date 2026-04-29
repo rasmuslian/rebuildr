@@ -28,6 +28,7 @@ const BUY_PRODUCT_DELIVERY_OPTION = gql`
 
 type Props = {
   price: number;
+  quantity?: number;
   productId: string;
   methodSelected?: boolean;
   toggleMethod: () => void;
@@ -41,6 +42,7 @@ type Props = {
 
 export const DeliveryCard = ({
   price,
+  quantity,
   toggleMethod,
   methodSelected,
   productId,
@@ -73,7 +75,7 @@ export const DeliveryCard = ({
     }
 
     getDeliveryOption({
-      variables: { input: { productId, address } },
+      variables: { input: { productId, address, quantity } },
     });
   };
 

@@ -84,7 +84,7 @@ export const MainContent = ({
         <Title size="large">{product.title}</Title>
         <Body size="large" color="secondary">
           {product.primaryQuantity}{" "}
-          {product.primaryUnit ? quantities[product.primaryUnit].short : ""} •{" "}
+          {product.primaryUnit ? quantities[product.primaryUnit].plural : ""} •{" "}
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
       </View>
@@ -92,6 +92,13 @@ export const MainContent = ({
         <View>
           <Headline size="large" style={{ marginBottom: 8 }}>
             {formatPrice(product.price)}
+            {product.soldByQuantity
+              ? `/${
+                  product.primaryUnit
+                    ? quantities[product.primaryUnit].singular
+                    : ""
+                }`
+              : ""}
           </Headline>
           <View style={{ gap: 2 }}>
             {product.pickupEnabled && (
@@ -128,20 +135,19 @@ export const MainContent = ({
           </View>
         </View>
       )}
-      {actionSection}
       <Divider />
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-          {product.primaryQuantity && product.primaryUnit && (
+          {!!product.primaryQuantity && product.primaryUnit && (
             <ProductChip
               text="Antal"
-              boldText={`${product.primaryQuantity} ${quantities[product.primaryUnit].short}`}
+              boldText={`${product.primaryQuantity} ${quantities[product.primaryUnit].plural}`}
             />
           )}
-          {product.secondaryQuantity && product.secondaryUnit && (
+          {!!product.secondaryQuantity && product.secondaryUnit && (
             <ProductChip
               text="Antal"
-              boldText={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].short}`}
+              boldText={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].plural}`}
             />
           )}
           {product.condition && (
@@ -196,6 +202,8 @@ export const MainContent = ({
           />
         )}
       </View>
+      {actionSection}
+
       <Divider />
       <SectionHeader>Specifikation</SectionHeader>
       <View style={{ gap: 16 }}>
@@ -207,13 +215,13 @@ export const MainContent = ({
           <Label size="medium">Antal och enhet</Label>
           <Body size="medium">
             {product.primaryQuantity}{" "}
-            {product.primaryUnit ? quantities[product.primaryUnit].short : ""}
+            {product.primaryUnit ? quantities[product.primaryUnit].plural : ""}
           </Body>
           {product.secondaryQuantity && (
             <Body size="medium">
               {product.secondaryQuantity}{" "}
               {product.secondaryUnit
-                ? quantities[product.secondaryUnit].short
+                ? quantities[product.secondaryUnit].plural
                 : ""}
             </Body>
           )}

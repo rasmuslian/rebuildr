@@ -1,4 +1,4 @@
-import { PaymentDeliveryProps } from "@/app/(app)/buy/[productId]/payment";
+import { PaymentTransportationProps } from "@/app/(app)/buy/[productId]/payment";
 import {
   SummaryCreateFreePurchaseMutation,
   SummaryCreateFreePurchaseMutationVariables,
@@ -20,7 +20,7 @@ const SUMMARY_CREATE_FREE_PURCHASE = gql`
   }
 `;
 
-export const useSubmitSummary = () => {
+export const useSubmitSummary = ({ quantity }: { quantity?: number }) => {
   const [purchaseProduct] = useMutation<
     SummaryCreateFreePurchaseMutation,
     SummaryCreateFreePurchaseMutationVariables
@@ -69,10 +69,14 @@ export const useSubmitSummary = () => {
 
   const navigateToPayment = (
     productId: string,
-    paymentProps: PaymentDeliveryProps,
+    paymentProps: PaymentTransportationProps,
   ) => {
     if (isDesktop) {
-      setContent({ buyState: "payment", productId, delivery: paymentProps });
+      setContent({
+        buyState: "payment",
+        productId,
+        transportation: paymentProps,
+      });
     } else {
       router.navigate({
         pathname: "/buy/[productId]/payment",
@@ -89,12 +93,16 @@ export const useSubmitSummary = () => {
       return handleFree(productId, TransportationEnum.Pickup);
     }
 
-    navigateToPayment(productId, { transportationMethod: "pickup" });
+    navigateToPayment(productId, {
+      transportationMethod: "pickup",
+      quantity: quantity ? quantity.toString() : undefined,
+    });
   };
   const submitShipping = (productId: string, servicePointId: string) => {
     navigateToPayment(productId, {
       transportationMethod: "shipping",
       servicePointId,
+      quantity: quantity ? quantity.toString() : undefined,
     });
   };
   const submitDelivery = (
@@ -115,6 +123,7 @@ export const useSubmitSummary = () => {
       transportationMethod: "delivery",
       deliverToLocation: `${lat},${lng}`,
       deliverToAddress: address,
+      quantity: quantity ? quantity.toString() : undefined,
     });
   };
 

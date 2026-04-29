@@ -996,11 +996,11 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                       buttonProps: {
                         label: "Chatta med säljaren",
                         onPress: () => {
+                          if (!purchase.conversation) return;
                           router.navigate({
-                            pathname: "/conversations/[productId]/[userId]",
+                            pathname: "/conversation/[conversationId]",
                             params: {
-                              productId: purchase.product.id,
-                              userId: purchase.product.seller.id,
+                              conversationId: purchase.conversation.id,
                             },
                           });
                         },
@@ -1353,12 +1353,10 @@ Du får en kod från ${purchase.shippingPrice ? shippingProviderStrings[purchase
                     buttonProps: {
                       label: "Chatta med köparen",
                       onPress: () => {
+                        if (!purchase.conversation) return;
                         router.navigate({
-                          pathname: "/conversations/[productId]/[userId]",
-                          params: {
-                            productId: purchase.product.id,
-                            userId: purchase.buyer.id,
-                          },
+                          pathname: "/conversation/[conversationId]",
+                          params: { conversationId: purchase.conversation.id },
                         });
                       },
                     },

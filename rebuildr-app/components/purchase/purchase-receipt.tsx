@@ -28,6 +28,7 @@ export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
+      purchasedQuantity
       status
       createdAt
       paymentAcceptedAt
@@ -89,6 +90,9 @@ export const PURCHASE_RECEIPT = gql`
       reportPurchase {
         id
         resolution
+      }
+      conversation {
+        id
       }
     }
     me {
@@ -186,7 +190,8 @@ export const PurchaseReceipt = ({
       <View style={{ gap: 16 }}>
         <Headline size="small">Kvitto</Headline>
         <ReceiptCard
-          price={data.purchase.product.price}
+          productPrice={data.purchase.product.price}
+          purchasedQuantity={data.purchase.purchasedQuantity}
           paymentMethod={data.purchase.paymentMethod}
           payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
           shippingPrice={data.purchase.shippingPrice}
@@ -239,26 +244,42 @@ export const PurchaseReceipt = ({
           {buyerIsMe ? (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.product.seller.id,
-                },
-              }}
+              link={
+                data.purchase.conversation
+                  ? {
+                      pathname: "/conversation/[conversationId]",
+                      params: {
+                        conversationId: data.purchase.conversation?.id,
+                      },
+                    }
+                  : {
+                      pathname: "/conversations/[productId]",
+                      params: {
+                        productId: data.purchase.product.id,
+                      },
+                    }
+              }
             >
               kontakta säljaren
             </Body>
           ) : (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.buyer.id,
-                },
-              }}
+              link={
+                data.purchase.conversation
+                  ? {
+                      pathname: "/conversation/[conversationId]",
+                      params: {
+                        conversationId: data.purchase.conversation?.id,
+                      },
+                    }
+                  : {
+                      pathname: "/conversations/[productId]",
+                      params: {
+                        productId: data.purchase.product.id,
+                      },
+                    }
+              }
             >
               kontakta köparen
             </Body>
