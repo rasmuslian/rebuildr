@@ -116,6 +116,7 @@ export const initialProduct: ProductFields = {
   weight: undefined,
   weightUnit: MeasurementUnitEnum.Kg,
   isGiveaway: undefined,
+  soldByQuantity: undefined,
   condition: ProductConditionEnum.Good,
   brandId: undefined,
   images: undefined,
@@ -257,6 +258,7 @@ export const UpsertProduct = ({
         weight: dbProduct?.weight ?? undefined,
         weightUnit: dbProduct?.weightUnit ?? undefined,
         isGiveaway: dbProduct?.isGiveaway,
+        soldByQuantity: dbProduct?.soldByQuantity ?? undefined,
         condition: dbProduct?.condition,
         brandId: dbProduct?.brand ? dbProduct?.brand.id : undefined,
         images: images.length ? images : undefined,
@@ -371,6 +373,7 @@ export const UpsertProduct = ({
           weight: product.weight,
           weightUnit: product.weightUnit,
           isGiveAway: product.isGiveaway,
+          soldByQuantity: product.soldByQuantity,
           categoryId: product.categoryIds
             ? (product.categoryIds.at(-1) ?? null)
             : undefined,

@@ -23,8 +23,8 @@ const ACTION_SECTION_REDIRECT = gql`
 
 type Props = {
   productId: string;
+  quantity?: number;
   status: ProductStatusEnum;
-  sellerId: string;
   isMyProduct: boolean;
   buyButtonDisabled: boolean;
   onRemovePress: () => void;
@@ -32,8 +32,8 @@ type Props = {
 
 export const ActionSection = ({
   productId,
+  quantity,
   status,
-  sellerId,
   isMyProduct,
   buyButtonDisabled,
   onRemovePress,
@@ -118,10 +118,14 @@ export const ActionSection = ({
                 if (isMobile) {
                   router.navigate({
                     pathname: "/buy/[productId]",
-                    params: { productId },
+                    params: { productId, quantity },
                   });
                 } else {
-                  setBuyModalContent({ buyState: "summary", productId });
+                  setBuyModalContent({
+                    buyState: "summary",
+                    productId,
+                    quantity,
+                  });
                   setBuyModalVisible(true);
                 }
               }}
@@ -137,8 +141,8 @@ export const ActionSection = ({
                 setVisible(true);
               } else {
                 router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: { productId, userId: sellerId },
+                  pathname: "/conversations/[productId]",
+                  params: { productId },
                 });
               }
             }}

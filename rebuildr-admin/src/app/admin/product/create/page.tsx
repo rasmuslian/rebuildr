@@ -2,7 +2,11 @@ import React from "react";
 import CreateProduct from "@/components/product/create-product";
 
 const CreateProductPage = () => {
-  return <CreateProduct />;
+  return (
+    <div className="flex max-w-screen-2xl flex-col gap-5">
+      <CreateProduct />
+    </div>
+  );
 };
 
 export default CreateProductPage;

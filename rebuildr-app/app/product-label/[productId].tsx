@@ -169,7 +169,7 @@ export default function PrintproductLabel() {
         <View style={{ gap: 4 }}>
           <Title size="large">{product.title}</Title>
           <Body color="secondary" size="small" numberOfLines={1}>
-            {quantity} {quantities[quantityUnit].short} •{" "}
+            {quantity} {quantities[quantityUnit].plural} •{" "}
             {conditions[product.condition].name}
           </Body>
         </View>

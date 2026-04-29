@@ -1,34 +1,31 @@
-import { ConversationsQuery } from "@/gql/graphql";
-import { MessageRow } from "@components/messages/message-row";
+import { ProductConversationsQuery } from "@/gql/graphql";
+import { ConversationRow } from "@components/messages/conversation-row";
 
 type Props = {
-  data?: ConversationsQuery;
-  showAsActive?: boolean;
+  data?: ProductConversationsQuery;
   onConversationSelect?: (conversation: {
-    productId: string;
-    userId?: string;
+    conversationId: string;
     key: number;
   }) => void;
 };
 
 export const ProductConversationsList = ({
   data,
-  showAsActive,
   onConversationSelect,
 }: Props) => {
   if (!data) {
     return null;
   }
-  const product = data.getConversations[0].product;
   return (
     <>
       {data.getConversations.map((conversation, i) => {
+        if (!conversation.lastMessage) return null;
         const otherUser =
-          data.me.id === conversation.sender.id
-            ? conversation.receiver
-            : conversation.sender;
+          data.me.id === conversation.buyer.id
+            ? conversation.product.seller
+            : conversation.buyer;
         return (
-          <MessageRow
+          <ConversationRow
             key={i}
             otherUser={{
               id: otherUser.id,
@@ -36,16 +33,9 @@ export const ProductConversationsList = ({
               username: otherUser.username,
               url: otherUser.profilePicture?.url,
             }}
-            message={{
-              message: conversation.message,
-              sender: { id: conversation.sender.id },
-              createdAt: conversation.createdAt,
-              readAt: conversation.readAt,
-              productId: product.id,
-            }}
+            conversation={conversation}
             myId={data.me.id}
-            active={showAsActive}
-            onMessagePress={onConversationSelect}
+            onConversationsPress={onConversationSelect}
           />
         );
       })}

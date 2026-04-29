@@ -68,7 +68,8 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -92,7 +93,8 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
 # Du behöver svara senast [](<date::D MMMM kl. HH:mm::${dayjs(purchase.paymentAcceptedAt).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`;
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -121,7 +123,8 @@ _Ångrat dig? Du kan fortfarande [avbryta ${this.tradeWording(isFree).form1}](AB
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -151,13 +154,19 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta ${this.tradeWording(isFr
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
   }
 
-  async handoffConfirmedBuyer(buyer: User, seller: User, product: Product) {
+  async handoffConfirmedBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Överlämningen är bekräftad!
     
 
@@ -170,13 +179,19 @@ _Stämmer inte varan med annonsen? [Rapportera problem med köp](REPORT)_`;
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async handoffConfirmedSeller(buyer: User, seller: User, product: Product) {
+  async handoffConfirmedSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Överlämningen är nu bekräftad, snart får du betalt!
     
 
@@ -187,7 +202,8 @@ _Stämmer inte varan med annonsen? [Rapportera problem med köp](REPORT)_`;
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -207,7 +223,8 @@ _Stämmer inte varan med annonsen? [Rapportera problem med köp](REPORT)_`;
 _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](ABORT)._`;
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -227,7 +244,8 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
 _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](ABORT)._`;
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -250,35 +268,53 @@ _Ångrat dig? Inga problem! Du kan fortfarande [avbryta innan paketet skickas](A
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async shipmentDroppedOffSeller(buyer: User, seller: User, product: Product) {
+  async shipmentDroppedOffSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Paketet är inlämnat och på väg till köparen!
 
 
 # Vi hör av oss så snart köparen har hämtat ut paketet.`;
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
   }
-  async shipmentDroppedOffBuyer(buyer: User, seller: User, product: Product) {
+  async shipmentDroppedOffBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Nu har paketet lämnats in och är på väg till dig.`;
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async shipmentDeliveredBuyer(buyer: User, seller: User, product: Product) {
+  async shipmentDeliveredBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Du har hämtat upp ditt paket.
 
 
@@ -288,13 +324,19 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async shipmentDeliveredSeller(buyer: User, seller: User, product: Product) {
+  async shipmentDeliveredSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Köparen har hämtat ut paketet.
 
     
@@ -302,7 +344,8 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -312,6 +355,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
   ) {
     const message = isFree
@@ -329,7 +373,8 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -339,6 +384,7 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
     firstSale = false,
   ) {
@@ -357,13 +403,19 @@ _Stämmer inte varan överens med annonsen? [Rapportera problem med köp](REPORT
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
   }
 
-  async purchaseReportedBuyer(buyer: User, seller: User, product: Product) {
+  async purchaseReportedBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Du har meddelat att något inte stämmer med varan.
     
     
@@ -373,20 +425,27 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse även om �
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async purchaseReportedSeller(buyer: User, seller: User, product: Product) {
+  async purchaseReportedSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Köparen har meddelat att något inte stämmer med varan. Utbetalningen är därför pausad under tiden ärendet pågår.
     
 _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om ärendet fortfarande pågår._`;
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -396,6 +455,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     decision: string,
   ) {
     const message = `# Kundsupport har nu avslutat ärendet.
@@ -411,7 +471,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -420,6 +481,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     decision: string,
   ) {
     const message = `# Kundsupport har nu avslutat ärendet.
@@ -435,7 +497,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -445,6 +508,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
   ) {
     const message = isFree
@@ -456,7 +520,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -466,6 +531,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
   ) {
     const message = isFree
@@ -477,7 +543,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
@@ -487,6 +554,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
   ) {
     const message = isFree
@@ -498,7 +566,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
@@ -507,6 +576,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     buyer: User,
     seller: User,
     product: Product,
+    purchase: Purchase,
     isFree = false,
   ) {
     const message = isFree
@@ -518,13 +588,19 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });
   }
 
-  async lateShippingDropOffBuyer(buyer: User, seller: User, product: Product) {
+  async lateShippingDropOffBuyer(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Säljaren lämnade inte in paketet i tid.
     
     
@@ -532,13 +608,19 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: seller.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: buyer.id,
       message,
     });
   }
 
-  async lateShippingDropOffSeller(buyer: User, seller: User, product: Product) {
+  async lateShippingDropOffSeller(
+    buyer: User,
+    seller: User,
+    product: Product,
+    purchase: Purchase,
+  ) {
     const message = `# Du lämnade inte in paketet i tid.
     
     
@@ -546,7 +628,8 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
 
     await this.message({
       productId: product.id,
-      senderId: buyer.id,
+      purchaseId: purchase.id,
+      buyerId: buyer.id,
       receiverId: seller.id,
       message,
     });

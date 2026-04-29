@@ -30,6 +30,7 @@ export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
+      purchasedQuantity
       status
       createdAt
       paymentAcceptedAt
@@ -48,6 +49,9 @@ export const PURCHASE_RECEIPT = gql`
       boughtForFree
       qrCodeUrl
       qrCodeContent
+      canAbort {
+        deniedReason
+      }
       shippingPrice {
         id
         price
@@ -91,6 +95,9 @@ export const PURCHASE_RECEIPT = gql`
       reportPurchase {
         id
         resolution
+      }
+      conversation {
+        id
       }
     }
     me {
@@ -188,7 +195,8 @@ export const PurchaseReceipt = ({
       <View style={{ gap: 16 }}>
         <Headline size="small">Kvitto</Headline>
         <ReceiptCard
-          price={data.purchase.product.price}
+          productPrice={data.purchase.product.price}
+          purchasedQuantity={data.purchase.purchasedQuantity}
           paymentMethod={data.purchase.paymentMethod}
           payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
           shippingPrice={data.purchase.shippingPrice}
@@ -245,13 +253,21 @@ export const PurchaseReceipt = ({
                 trackEvent(GTMTagEnum.CONTACT_SELLER, {
                   item_id: data.purchase.product.id,
                 });
-                router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: {
-                    productId: data.purchase.product.id,
-                    userId: data.purchase.product.seller.id,
-                  },
-                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
+                      },
+                );
               }}
             >
               kontakta säljaren
@@ -263,13 +279,21 @@ export const PurchaseReceipt = ({
                 trackEvent(GTMTagEnum.CONTACT_BUYER, {
                   item_id: data.purchase.product.id,
                 });
-                router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: {
-                    productId: data.purchase.product.id,
-                    userId: data.purchase.buyer.id,
-                  },
-                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
+                      },
+                );
               }}
             >
               kontakta köparen
@@ -280,10 +304,13 @@ export const PurchaseReceipt = ({
       </View>
       <AbortPurchase
         purchaseId={data.purchase.id}
-        purchaseStatus={data.purchase.status}
+        canAbort={data.purchase.canAbort}
         show={showAbortSheet}
         onDismiss={() => setShowAbortSheet(false)}
-        onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
+        onAbortPurchaseCompleted={() => {
+          setShowAbortSheet(false);
+          refetch();
+        }}
       />
       <CreateReview
         purchaseId={data.purchase.id}

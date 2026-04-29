@@ -43,6 +43,7 @@ type Props = {
   shippingPrice: number;
   productId: string;
   productPrice: number;
+  quantity?: number;
   onContinue: () => void;
   selectServicePoint: (id: string) => void;
 };
@@ -51,6 +52,7 @@ export const SingleShipping = ({
   shippingPrice,
   productId,
   productPrice,
+  quantity,
   onContinue,
   selectServicePoint,
 }: Props) => {
@@ -73,6 +75,7 @@ export const SingleShipping = ({
         input: {
           productId,
           postCode,
+          quantity,
         },
       },
       onCompleted: (data) => {

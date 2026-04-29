@@ -256,6 +256,15 @@ const PurchaseTable = () => {
             <span>{formatPrice(price)}</span>
           ),
         },
+        {
+          title: "Antal",
+          key: "purchasedQuantity",
+          width: "100px",
+          ...withGroupColor("a"),
+          render: (_, { purchasedQuantity }) => (
+            <span>{purchasedQuantity ?? "-"}</span>
+          ),
+        },
       ],
     },
     {
@@ -484,7 +493,7 @@ const PurchaseTable = () => {
   return (
     <div className="flex w-full min-w-[800px] flex-col gap-5">
       <Divider orientation="start">
-        <h3>Alla ordrar</h3>
+        <h3>Alla köp</h3>
       </Divider>
 
       <SearchField

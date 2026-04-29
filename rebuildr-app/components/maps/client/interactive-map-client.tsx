@@ -162,7 +162,7 @@ type MapIconInfoProps = {
 const MapIconInfo = ({ type, title, description }: MapIconInfoProps) => (
   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
     <Image
-      source={getMarkerSvg(type, false)}
+      source={getMarkerSvg(type, false).uri}
       style={{ width: 30, height: 30 }}
     />
 
@@ -280,7 +280,7 @@ const MapInformationController = () => {
             />
             <MapIconInfo
               type={MapPinTypeEnum.Project}
-              title="Project"
+              title="Projekt"
               description="Projektförsäljning av varor"
             />
             <MapIconInfo

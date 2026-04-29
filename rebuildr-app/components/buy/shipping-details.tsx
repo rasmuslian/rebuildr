@@ -32,6 +32,7 @@ const SHIPPING_DETAILS_UPDATE_USER = gql`
 
 type Props = {
   initialData: BuyProductInitialQuery;
+  quantity?: number;
   shippingPrice: number;
   shippingProvider: ShippingProviderEnum;
   servicePointId: string;
@@ -40,12 +41,13 @@ type Props = {
 
 export const ShippingDetails = ({
   initialData,
+  quantity,
   shippingPrice,
   shippingProvider,
   servicePointId,
   onBack,
 }: Props) => {
-  const { submitShipping } = useSubmitSummary();
+  const { submitShipping } = useSubmitSummary({ quantity });
   const [name, setName] = useState<string>(initialData.me.name ?? "");
   const [phoneNumber, setPhoneNumber] = useState<string>(
     initialData.me.phoneNumber ?? "",
@@ -85,6 +87,8 @@ export const ShippingDetails = ({
   const fieldErrors = error ? apolloBadFieldsError(error) : undefined;
 
   const canSave = !!name && !!phoneNumber && !!address && !!postCode && !!city;
+
+  const quantityPrice = initialData.product.price * (quantity ?? 1);
 
   return (
     <View style={{ gap: 24 }}>
@@ -140,8 +144,8 @@ export const ShippingDetails = ({
         ]}
       />
       <Summary
-        text={`Du betalar (ink. frakt ${shippingPrice}`}
-        price={initialData.product.price + shippingPrice}
+        text={`Du betalar (ink. frakt ${shippingPrice}):`}
+        price={quantityPrice + shippingPrice}
         mainButton={{
           label: "Fortsätt till Betalning",
           onPress: () => {

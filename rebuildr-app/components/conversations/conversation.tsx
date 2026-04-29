@@ -1,4 +1,3 @@
-import { ConversationProductQuery } from "@/gql/graphql";
 import { AbortPurchase } from "@components/purchase/abort-purchase";
 import { ChatBlock } from "@components/conversations/chat-block";
 import { ReportPurchase } from "@components/report/report-purchase";
@@ -8,9 +7,10 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import dayjs from "dayjs";
+import { ConversationQuery } from "@/gql/graphql";
 
 type Props = {
-  data: ConversationProductQuery;
+  data: ConversationQuery;
   refetch: () => void;
   showReviewSheet: boolean;
   setShowReviewSheet: (show: boolean) => void;
@@ -26,16 +26,18 @@ export const Conversation = ({
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReportSheet, setShowReportSheet] = useState(false);
 
-  const conversationByDate = data.getConversation
-    .slice()
-    .reverse()
-    .reduce(
-      (acc: { [key in string]: (typeof data.getConversation)[0][] }, curr) => {
-        const key = dayjs(curr.createdAt).format("DD MMM YYYY");
-        return { ...(acc ?? {}), [key]: [...(acc[key] ?? []), curr] };
+  const conversationByDate = data.getConversation.messages.slice().reduce(
+    (
+      acc: {
+        [key in string]: (typeof data.getConversation)["messages"][0][];
       },
-      {},
-    );
+      curr,
+    ) => {
+      const key = dayjs(curr.createdAt).format("DD MMM YYYY");
+      return { ...(acc ?? {}), [key]: [...(acc[key] ?? []), curr] };
+    },
+    {},
+  );
 
   const groupByUserAndTime = (messages: (typeof conversationByDate)[0]) => {
     return messages.reduce(
@@ -45,7 +47,7 @@ export const Conversation = ({
         if (!prevMessage) {
           return [...acc, [curr]];
         }
-        if (prevMessage.sender.id !== curr.sender.id) {
+        if (prevMessage.sender?.id !== curr.sender?.id) {
           return [...acc, [curr]];
         }
         if (prevMessage.messageType !== curr.messageType) {
@@ -69,6 +71,8 @@ export const Conversation = ({
       [],
     );
   };
+
+  const purchase = data.getConversation.purchase;
   return (
     <>
       {Object.entries(conversationByDate).map((entry) => {
@@ -106,7 +110,7 @@ export const Conversation = ({
             <View style={{ gap: 2 }}>
               {groupByUserAndTime(messages).map((group) => {
                 const sender = group[0]?.sender;
-                const senderIsMe = sender.id === data.me.id;
+                const senderIsMe = sender?.id === data.me.id;
                 return group.map((message, i, arr) => (
                   <ChatBlock
                     key={i}
@@ -127,18 +131,21 @@ export const Conversation = ({
           </View>
         );
       })}
-      {data.latestPurchase && (
+      {purchase && (
         <AbortPurchase
-          purchaseId={data.latestPurchase.id}
-          purchaseStatus={data.latestPurchase.status}
+          purchaseId={purchase.id}
+          canAbort={purchase.canAbort}
           show={showAbortSheet}
           onDismiss={() => setShowAbortSheet(false)}
-          onAbortPurchaseCompleted={() => refetch()}
+          onAbortPurchaseCompleted={() => {
+            setShowAbortSheet(false);
+            refetch();
+          }}
         />
       )}
-      {data.latestPurchase && (
+      {purchase && (
         <CreateReview
-          purchaseId={data.latestPurchase.id}
+          purchaseId={purchase.id}
           show={showReviewSheet}
           onDismiss={() => setShowReviewSheet(false)}
           onCreateReviewCompleted={() => {
@@ -146,9 +153,9 @@ export const Conversation = ({
           }}
         />
       )}
-      {data.latestPurchase && (
+      {purchase && (
         <ReportPurchase
-          purchaseId={data.latestPurchase.id}
+          purchaseId={purchase.id}
           show={showReportSheet}
           onDismiss={() => setShowReportSheet(false)}
           onCreateReportComplete={() => refetch()}
