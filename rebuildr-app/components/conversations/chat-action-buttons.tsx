@@ -153,6 +153,7 @@ export const ChatActionButtons = ({
         return (
           <Button
             label="Markera som överlämnad"
+            loading={markAsDeliveredLoading}
             onPress={() => {
               if (!purchase || markAsDeliveredLoading) {
                 return;
@@ -173,6 +174,7 @@ export const ChatActionButtons = ({
         return (
           <Button
             label="Godkänn vara"
+            loading={acceptPurchaseLoading}
             onPress={() => {
               if (!purchase || acceptPurchaseLoading) {
                 return;

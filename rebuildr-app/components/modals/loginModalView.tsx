@@ -233,6 +233,7 @@ const LoginModalView = () => {
         onSubmit={(password) => {
           onSubmitPassword(password);
         }}
+        loading={loading}
         onForgotPassword={onForgotPassword}
         wrongPassword={wrongPassword}
       />

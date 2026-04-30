@@ -16,7 +16,8 @@ export const LoadingSpinner = ({ style }: Props) => {
         source={require("../../assets/images/loader-rebuildr.lottie")}
         autoPlay
         loop
-        style={{ width: 100, height: 100 }}
+        webStyle={{ width: 50 }}
+        style={{ width: 50, height: 50 }}
       />
     </View>
   );

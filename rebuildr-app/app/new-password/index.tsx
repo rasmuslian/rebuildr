@@ -66,7 +66,11 @@ export default function NewPassword() {
             },
           ]}
         />
-        <Button label="Skicka" onPress={onRequestNewPassword} />
+        <Button
+          label="Skicka"
+          onPress={onRequestNewPassword}
+          loading={loading}
+        />
         {error && (
           <Body>
             Något gick fel, verifieringsmailet kan ha blivit ogiltigt. Försök
