@@ -13,6 +13,8 @@ import { useScreenType } from "@hooks/useScreenType";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { trackEvent } from "@/utils/analytics";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const POLL_STRIPE = gql`
   query PollStripe($input: GetPurchaseInput!) {
@@ -62,6 +64,10 @@ export const StripeContent = ({
           data.purchase.status === PurchaseStatusEnum.PaymentAccepted ||
           data.purchase.status === PurchaseStatusEnum.ShipmentBooked
         ) {
+          trackEvent(GTMTagEnum.PURCHASE, {
+            transaction_id: purchaseId,
+            item_id: productId,
+          });
           if (isDesktop) {
             setContent({
               buyState: "success",

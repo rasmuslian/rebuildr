@@ -1,18 +1,12 @@
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { ComponentProps } from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  PressableProps,
-  StyleProp,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Pressable, PressableProps, StyleProp, ViewStyle } from "react-native";
 import { Icon, IconType } from "@icons/icon";
 import { Label } from "@text/text";
 import { TextTokens } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 
 export type ButtonProps = {
   type?: "filled" | "danger" | "tonal" | "text" | "outlined" | "outlinedStroke";
@@ -105,13 +99,7 @@ export const Button = ({
 
   const Content = () => {
     if (loading) {
-      return (
-        <View
-          style={{ justifyContent: "center", alignItems: "center", flex: 1 }}
-        >
-          <ActivityIndicator />
-        </View>
-      );
+      return <LoadingSpinner />;
     }
 
     const renderIcon = () => {

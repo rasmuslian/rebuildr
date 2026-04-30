@@ -15,6 +15,7 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { FileType, ProductFields } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { ProgressHeader } from "@components/product/progress-header";
 import { NEW_PROJECT_ID, Project } from "./project";
 import { Transportation } from "./transportation";
@@ -31,6 +32,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 export const ANALYZE_PRODUCT_IMAGE = gql`
   mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
@@ -504,6 +506,7 @@ export const UpsertProduct = ({
     );
     if (result) {
       if (published) {
+        trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         onFinish();
       } else {
         onClose();

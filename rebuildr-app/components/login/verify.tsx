@@ -60,7 +60,7 @@ export const Verify = ({ email, onSuccess }: Props) => {
   });
   const styles = Style(colors, isDesktop);
 
-  const [verifyEmail, { error, reset }] = useMutation<
+  const [verifyEmail, { error, reset, loading }] = useMutation<
     VerifyEmailMutation,
     VerifyEmailMutationVariables
   >(VERIFY_EMAIL, {
@@ -148,7 +148,11 @@ export const Verify = ({ email, onSuccess }: Props) => {
           </Body>
         </Body>
       </View>
-      <Button label="Fortsätt" onPress={() => verifyEmail()} />
+      <Button
+        label="Fortsätt"
+        onPress={() => verifyEmail()}
+        loading={loading}
+      />
     </View>
   );
 };

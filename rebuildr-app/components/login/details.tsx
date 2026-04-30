@@ -337,6 +337,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
           <View style={{ flex: 1, justifyContent: "flex-end" }}>
             <Button
               label="Fortsätt"
+              loading={loading}
               onPress={() => {
                 onProceed();
               }}
@@ -349,6 +350,7 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
       {!isDesktop && (
         <Button
           label="Fortsätt"
+          loading={loading}
           onPress={() => {
             onProceed();
           }}
