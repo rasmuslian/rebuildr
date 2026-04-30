@@ -19,6 +19,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { PRODUCT_CONVERSATIONS } from "../conversations/[productId]";
 import { ChatHeader } from "@components/conversations/chat-header";
+import { useScreenType } from "@hooks/useScreenType";
 
 export const CONVERSATION = gql`
   query Conversation($input: GetConversationInput!) {
@@ -102,6 +103,7 @@ export const CONVERSATION = gql`
 
 export default function ConversationProduct() {
   const [showReviewSheet, setShowReviewSheet] = useState(false);
+  const { isDesktop } = useScreenType();
 
   const { conversationId } = useLocalSearchParams<{
     conversationId: string;
@@ -134,6 +136,13 @@ export default function ConversationProduct() {
   const otherUser = sellerIsMe
     ? data.getConversation.buyer
     : data.getConversation.product.seller;
+
+  if (isDesktop && data) {
+    router.replace({
+      pathname: "/conversations/[productId]",
+      params: { productId: data.getConversation.product.id },
+    });
+  }
 
   return (
     <ScreenLayout
