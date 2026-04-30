@@ -10,12 +10,14 @@ type Props = {
   onSubmit: (password: string) => void;
   onForgotPassword: () => void;
   wrongPassword: boolean;
+  loading?: boolean;
 };
 
 export default function Password({
   onSubmit,
   onForgotPassword,
   wrongPassword,
+  loading,
 }: Props) {
   const [password, setPassword] = useState("");
   const colors = useThemeColor();
@@ -51,6 +53,7 @@ export default function Password({
         </Body>
       </Pressable>
       <Button
+        loading={loading}
         style={{ marginTop: isDesktop ? 48 : 24 }}
         label="Logga in"
         onPress={() => onSubmit(password)}
