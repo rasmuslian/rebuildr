@@ -10,14 +10,12 @@ import { AccountState } from "@components/account/account-wrapper.desktop";
 import { LinkEntry } from "@components/account/link-entry";
 import { Avatar } from "@components/avatar/avatar";
 import { Badge } from "@components/badges/badge";
-import { Button } from "@components/buttons/button";
 import { Radio } from "@components/controls/radio";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Headline, Label } from "@components/typography/text";
-import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
@@ -68,13 +66,11 @@ const SWITCH_ACCOUNT_MUTATION = gql`
 
 type Props = {
   onBack?: () => void;
-  onClose?: () => void;
   onNavigation?: (state: AccountState) => void;
 };
 
-export default function Settings({ onBack, onClose, onNavigation }: Props) {
+export default function Settings({ onBack, onNavigation }: Props) {
   const [isSwitching, setIsSwitching] = useState(false);
-  const { logout, loading: logoutLoading } = useLogout();
   const { isDesktop } = useScreenType();
 
   const { data, loading, refetch } = useQuery<SettingsQuery>(SETTINGS);
@@ -87,11 +83,6 @@ export default function Settings({ onBack, onClose, onNavigation }: Props) {
   const onSwitchAccount = (accountId: string) => {
     setIsSwitching(true);
     switchAccount({ variables: { id: accountId } });
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    onClose?.();
   };
 
   useEffect(() => {
@@ -120,14 +111,6 @@ export default function Settings({ onBack, onClose, onNavigation }: Props) {
       style={{ gap: 24 }}
       contentHorizontalPadding={isDesktop ? 0 : undefined}
       headerComponent={<Header title="Kontoinställningar" onBack={onBack} />}
-      footerComponent={
-        <Button
-          label="Logga ut"
-          onPress={handleLogout}
-          type="outlined"
-          loading={logoutLoading}
-        />
-      }
       loading={loading}
     >
       {(loading || isSwitching) && (
