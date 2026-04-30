@@ -32,10 +32,15 @@ const BUY_PRODUCT_DELIVERY_OPTION = gql`
 type Props = {
   productPrice: number;
   productId: string;
+  quantity?: number;
 };
 
-export const SingleDelivery = ({ productPrice, productId }: Props) => {
-  const { submitDelivery } = useSubmitSummary();
+export const SingleDelivery = ({
+  productPrice,
+  productId,
+  quantity,
+}: Props) => {
+  const { submitDelivery } = useSubmitSummary({ quantity });
   const colors = useThemeColor();
   const [address, setAddress] = useState("");
   const [deliveryOption, setDeliveryOption] =
@@ -57,7 +62,7 @@ export const SingleDelivery = ({ productPrice, productId }: Props) => {
     }
 
     getDeliveryOption({
-      variables: { input: { productId, address } },
+      variables: { input: { productId, address, quantity } },
     });
   };
 
@@ -78,7 +83,8 @@ export const SingleDelivery = ({ productPrice, productId }: Props) => {
     !!deliveryOption && deliveryOption.isWithinRadius;
   const deliveryOutsideRadius =
     !!deliveryOption && !deliveryOption.isWithinRadius;
-  const totalPrice = productPrice + (deliveryOption?.deliveryPrice ?? 0);
+  const totalPrice =
+    productPrice * (quantity ?? 1) + (deliveryOption?.deliveryPrice ?? 0);
 
   return (
     <View>

@@ -35,6 +35,7 @@ export const SellCard = ({ purchase, onPress, selected }: Props) => {
         quantity: product.primaryQuantity,
         quantityUnit: product.primaryUnit,
         price: product.price,
+        soldByQuantity: product.soldByQuantity,
         imageUrl: product.primaryImage?.url,
         status: product.status,
       }}

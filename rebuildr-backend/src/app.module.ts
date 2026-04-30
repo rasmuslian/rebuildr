@@ -126,6 +126,10 @@ import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
 import { BannerLoader } from './dataloaders/banner.loader';
+import { Conversation } from './entities/conversation.entity';
+import { ConversationLoader } from './dataloaders/conversation.loader';
+import { ConversationResolver } from './resolvers/conversation.resolver';
+import { ConversationService } from './services/conversation.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -164,6 +168,7 @@ export interface RequestType {
       Category,
       CategoryTree,
       Message,
+      Conversation,
       File,
       RefreshToken,
       Event,
@@ -196,6 +201,7 @@ export interface RequestType {
         ReviewLoader,
         PurchaseLoader,
         MessageLoader,
+        ConversationLoader,
         PartnerLoader,
         BrandLoader,
         BannerLoader,
@@ -210,6 +216,7 @@ export interface RequestType {
         reviewLoaderService: ReviewLoader,
         purchaseLoaderService: PurchaseLoader,
         messageLoaderService: MessageLoader,
+        conversationLoaderService: ConversationLoader,
         partnerLoaderService: PartnerLoader,
         brandLoaderService: BrandLoader,
         bannerLoaderService: BannerLoader,
@@ -229,6 +236,7 @@ export interface RequestType {
             reviewLoaders: reviewLoaderService.createLoaders(),
             purchaseLoaders: purchaseLoaderService.createLoaders(),
             messageLoaders: messageLoaderService.createLoaders(),
+            conversationLoaders: conversationLoaderService.createLoaders(),
             partnerLoaders: partnerLoaderService.createLoaders(),
             brandLoaders: brandLoaderService.createLoaders(),
             bannerLoaders: bannerLoaderService.createLoaders(),
@@ -271,6 +279,8 @@ export interface RequestType {
     CategoryService,
     MessageResolver,
     MessageService,
+    ConversationResolver,
+    ConversationService,
     GeocodingService,
     FileResolver,
     FileService,

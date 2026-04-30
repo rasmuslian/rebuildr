@@ -277,6 +277,7 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
         <AdGrid
           id={product.id}
           price={product.price}
+          soldByQuantity={product.soldByQuantity}
           condition={product.condition}
           imageUri={product.primaryImage?.url}
           title={product.title}

@@ -45,6 +45,7 @@ const CreateProduct = () => {
       pricing: {
         isGiveaway: false,
       },
+      soldByQuantity: false,
       color: {
         enabled: false,
         type: ColorTypeEnum.FreeText,
@@ -138,6 +139,7 @@ const CreateProduct = () => {
         shipping.enabled && shipping.shippingPriceId
           ? [shipping.shippingPriceId]
           : [],
+      soldByQuantity: formData.soldByQuantity,
       sellerId: formData.sellerId,
     };
 

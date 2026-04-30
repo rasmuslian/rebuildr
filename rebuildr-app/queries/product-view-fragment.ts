@@ -12,6 +12,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     description
     additionalInfo
     price
+    soldByQuantity
     isGiveaway
     condition
     primaryQuantity
@@ -134,6 +135,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
         primaryUnit
         condition
         price
+        soldByQuantity
         primaryImage {
           id
           url

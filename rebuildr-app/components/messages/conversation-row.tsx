@@ -1,13 +1,18 @@
 import { Body, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Badge } from "@components/badges/badge";
 import { Avatar } from "@components/avatar/avatar";
-import { UserType } from "@/gql/graphql";
-import { Pressable } from "react-native-gesture-handler";
+import {
+  Conversation,
+  MessageTypeEnum,
+  ProductConversationsQuery,
+  UserType,
+} from "@/gql/graphql";
 import dayjs from "dayjs";
 import { router } from "expo-router";
+import { parseSystemMessagePreview } from "./system-message";
 
 type Props = {
   otherUser: {
@@ -16,46 +21,44 @@ type Props = {
     username?: string | null;
     url?: string;
   };
-  message: {
-    sender: { id: string };
-    message: string;
-    createdAt: Date;
-    readAt?: Date;
-    productId: string;
-  };
+  conversation: NonNullable<
+    ProductConversationsQuery["getConversations"][number]
+  >;
   myId: string;
-  active?: boolean;
-  onMessagePress?: (message: {
-    productId: string;
-    userId?: string;
+  onConversationsPress?: (conversation: {
+    conversationId: string;
     key: number;
   }) => void;
 };
 
-export const MessageRow = ({
+export const ConversationRow = ({
   otherUser,
-  message,
+  conversation,
   myId,
-  active,
-  onMessagePress,
+  onConversationsPress,
 }: Props) => {
   const colors = useThemeColor();
 
-  const sendeIsMe = myId === message.sender.id;
+  const isUnread = (c: Conversation) => {
+    if (!c.lastMessage || c.lastMessage.sender?.id === myId) return false;
+    const lastAt = new Date(c.lastMessage.createdAt);
+    const readAt = c.buyer.id === myId ? c.buyerReadAt : c.sellerReadAt;
+    if (c.buyerReadAt) {
+    }
+    return lastAt > new Date(readAt);
+  };
 
   const handlePress = () => {
-    if (onMessagePress) {
-      onMessagePress({
-        productId: message.productId,
-        userId: otherUser.id,
+    if (onConversationsPress) {
+      onConversationsPress({
+        conversationId: conversation.id,
         key: 0,
       });
     } else {
       router.navigate({
-        pathname: "/conversations/[productId]/[userId]",
+        pathname: "/conversation/[conversationId]",
         params: {
-          productId: message.productId,
-          userId: otherUser.id,
+          conversationId: conversation.id,
         },
       });
     }
@@ -79,7 +82,7 @@ export const MessageRow = ({
             flex: 1,
             borderRadius: borderRadius.medium,
           },
-          message.readAt || sendeIsMe || active
+          !isUnread(conversation as Conversation)
             ? {
                 backgroundColor: colors.buttons.tonal.enabled,
                 paddingHorizontal: 17,
@@ -104,13 +107,19 @@ export const MessageRow = ({
           <View style={{ flex: 1 }}>
             <Label size="large">{otherUser.username}</Label>
             <Body size="small" numberOfLines={1}>
-              {message.message}
+              {conversation.lastMessage?.messageType === MessageTypeEnum.System
+                ? parseSystemMessagePreview(conversation.lastMessage.message)
+                : conversation.lastMessage?.message}
             </Body>
           </View>
-          {message.readAt || sendeIsMe ? <View /> : <Badge text="Oläst" />}
+          {isUnread(conversation as Conversation) ? (
+            <Badge text="Oläst" />
+          ) : (
+            <View />
+          )}
         </View>
         <Body size="small" color="secondary" style={{ marginTop: 4 }}>
-          {dayjs(message.createdAt).fromNow()}
+          {dayjs(conversation.lastMessage?.createdAt)?.fromNow()}
         </Body>
       </View>
     </Pressable>

@@ -1,40 +1,54 @@
 import { QuantityUnitEnum } from "@/gql/graphql";
 
-export const quantities: { [key in QuantityUnitEnum]: { short: string } } = {
+export const quantities: {
+  [key in QuantityUnitEnum]: { plural: string; singular: string };
+} = {
   [QuantityUnitEnum.Amount]: {
-    short: "st",
+    singular: "st",
+    plural: "st",
   },
   [QuantityUnitEnum.Bags]: {
-    short: "säckar",
+    singular: "säck",
+    plural: "säckar",
   },
   [QuantityUnitEnum.Rolls]: {
-    short: "rullar",
+    singular: "rulle",
+    plural: "rullar",
   },
   [QuantityUnitEnum.M]: {
-    short: "m",
+    singular: "m",
+    plural: "m",
   },
   [QuantityUnitEnum.M2]: {
-    short: "m2",
+    singular: "m2",
+    plural: "m2",
   },
   [QuantityUnitEnum.M3]: {
-    short: "m3",
+    singular: "m3",
+    plural: "m3",
   },
   [QuantityUnitEnum.Liters]: {
-    short: "liter",
+    singular: "liter",
+    plural: "liter",
   },
   [QuantityUnitEnum.Cans]: {
-    short: "burkar",
+    singular: "burk",
+    plural: "burkar",
   },
   [QuantityUnitEnum.Plates]: {
-    short: "plattor",
+    singular: "platta",
+    plural: "plattor",
   },
   [QuantityUnitEnum.Packages]: {
-    short: "fpk",
+    singular: "fpk",
+    plural: "fpk",
   },
   [QuantityUnitEnum.Boards]: {
-    short: "skivor",
+    singular: "skiva",
+    plural: "skivor",
   },
   [QuantityUnitEnum.Kg]: {
-    short: "kg",
+    singular: "kg",
+    plural: "kg",
   },
 };

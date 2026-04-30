@@ -218,6 +218,10 @@ export class Purchase {
   })
   shippingPrice?: ShippingPrice;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  purchasedQuantity?: number;
+
   @OneToOne(() => ReportPurchase, (rp) => rp.purchase, { nullable: true })
   reportPurchase?: ReportPurchase;
 }

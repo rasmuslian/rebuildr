@@ -39,6 +39,7 @@ export const AdRowSectionMobile = ({
               condition={item.condition}
               title={item.title}
               price={item.price}
+              soldByQuantity={item.soldByQuantity}
               status={item.status}
               distance={item.distanceFromLocation}
               onHeartPress={() => {

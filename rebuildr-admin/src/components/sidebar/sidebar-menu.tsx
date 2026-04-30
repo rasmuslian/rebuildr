@@ -105,7 +105,7 @@ const SidebarMenu = () => {
     ]),
 
     { type: "divider" },
-    getItem("Ordrar", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
+    getItem("Köp", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
 
     { type: "divider" },
     getItem("Användare", routes.LIST_USER, <UserOutlined />),

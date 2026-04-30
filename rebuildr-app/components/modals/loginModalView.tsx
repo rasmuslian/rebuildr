@@ -13,6 +13,7 @@ import ForgotPassword from "@components/login/forgotPassword";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
+import { trackEvent } from "@/utils/analytics";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
 import {
@@ -31,6 +32,7 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Header } from "@components/navigation/headers/header";
 import { View } from "react-native";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -168,6 +170,7 @@ const LoginModalView = () => {
           registerUser({
             variables: { input: { email } },
             onCompleted: () => {
+              trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
               setState("verify");
               sheetRef.current?.snapToIndex(fullScreenIndex);
             },

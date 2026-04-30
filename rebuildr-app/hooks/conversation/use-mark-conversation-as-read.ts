@@ -8,14 +8,12 @@ const MARK_CONVERSATION_AS_READ = gql`
   mutation MarkConversationAsRead($input: MarkAsReadInput!) {
     markConversationAsRead(input: $input) {
       id
-      readAt
     }
   }
 `;
 
 type UseMarkConversationAsReadProps = {
-  otherUserId: string;
-  productId: string;
+  conversationId: string;
   refetchQueries?: DocumentNode[];
 };
 
@@ -26,16 +24,13 @@ export const useMarkConversationAsRead = () => {
   >(MARK_CONVERSATION_AS_READ);
 
   const onMarkConversationAsRead = ({
-    otherUserId,
-    productId,
+    conversationId,
     refetchQueries,
   }: UseMarkConversationAsReadProps) => {
     markConversationAsRead({
       variables: {
         input: {
-          otherUserId,
-          productId,
-          markAsRead: true,
+          conversationId,
         },
       },
       refetchQueries,

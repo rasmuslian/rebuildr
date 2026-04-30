@@ -172,10 +172,13 @@ export const Shipping = ({
     >
       <View style={{ gap: 24 }}>
         <View>
-          <Title size="medium">Välj vikt på paketet</Title>
+          <Title size="medium">
+            {product.soldByQuantity ? "Välj vikt per styck" : "Välj vikt"}
+          </Title>
           <Body size="medium" style={{ marginTop: 4, marginBottom: 16 }}>
-            Får din vara plats i en flyttkartong går den att skicka. Men du kan
-            också skicka långsmala paket, t.ex. lorem ipsum eller dolor.
+            {product.soldByQuantity
+              ? "Ange vikten för ett styck av produkten så beräknas det totala fraktpriset."
+              : "Får din vara plats i en flyttkartong går den att skicka. Men du kan också skicka långsmala paket."}
           </Body>
           <Body size="medium" isLink>
             Se vår storleksguide

@@ -41,6 +41,7 @@ export type ProductFields = {
   weight?: number;
   weightUnit: MeasurementUnitEnum;
   isGiveaway?: boolean;
+  soldByQuantity?: boolean;
   condition: ProductConditionEnum;
   brandId?: string | null;
   images?: FileType[];

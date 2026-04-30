@@ -9,6 +9,8 @@ import { useUser } from "@hooks/useUser";
 import { router, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect } from "react";
 import { View } from "react-native";
+import { trackEvent } from "@/utils/analytics";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const ACTION_SECTION_REDIRECT = gql`
   query ActionSectionRedirect($input: MyPurchaseInput!) {
@@ -21,8 +23,8 @@ const ACTION_SECTION_REDIRECT = gql`
 
 type Props = {
   productId: string;
+  quantity?: number;
   status: ProductStatusEnum;
-  sellerId: string;
   isMyProduct: boolean;
   buyButtonDisabled: boolean;
   onRemovePress: () => void;
@@ -30,8 +32,8 @@ type Props = {
 
 export const ActionSection = ({
   productId,
+  quantity,
   status,
-  sellerId,
   isMyProduct,
   buyButtonDisabled,
   onRemovePress,
@@ -108,6 +110,7 @@ export const ActionSection = ({
             <Button
               label="Köp nu"
               onPress={() => {
+                trackEvent(GTMTagEnum.BEGIN_CHECKOUT, { item_id: productId });
                 if (!isLoggedIn) {
                   setVisible(true);
                   return;
@@ -115,10 +118,14 @@ export const ActionSection = ({
                 if (isMobile) {
                   router.navigate({
                     pathname: "/buy/[productId]",
-                    params: { productId },
+                    params: { productId, quantity },
                   });
                 } else {
-                  setBuyModalContent({ buyState: "summary", productId });
+                  setBuyModalContent({
+                    buyState: "summary",
+                    productId,
+                    quantity,
+                  });
                   setBuyModalVisible(true);
                 }
               }}
@@ -129,12 +136,13 @@ export const ActionSection = ({
             label="Kontakta säljaren"
             type="tonal"
             onPress={() => {
+              trackEvent(GTMTagEnum.CONTACT_SELLER, { item_id: productId });
               if (!isLoggedIn) {
                 setVisible(true);
               } else {
                 router.navigate({
-                  pathname: "/conversations/[productId]/[userId]",
-                  params: { productId, userId: sellerId },
+                  pathname: "/conversations/[productId]",
+                  params: { productId },
                 });
               }
             }}

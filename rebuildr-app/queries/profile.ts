@@ -73,6 +73,7 @@ export const PROFILE_PRODUCTS = gql`
         status
         title
         price
+        soldByQuantity
         condition
         primaryQuantity
         primaryUnit

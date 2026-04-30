@@ -8,6 +8,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     additionalInfo
     price
     isGiveaway
+    soldByQuantity
     condition
     primaryQuantity
     primaryUnit

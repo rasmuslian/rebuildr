@@ -13,11 +13,13 @@ import { ComponentProps } from "react";
 import DeletedProduct from "@assets/images/deleted-product.png";
 import { quantities } from "@constants/quantities";
 import { conditions } from "@constants/conditions";
+import { formatPrice } from "@/utils/formattings";
 
 type Props = {
   id: string;
   title: string;
   price: number;
+  soldByQuantity?: boolean;
   condition?: ProductConditionEnum;
   quantity?: number | null;
   quantityUnit?: QuantityUnitEnum | null;
@@ -32,6 +34,7 @@ export const ProductHeader = ({
   id,
   title,
   price,
+  soldByQuantity,
   condition,
   quantity,
   quantityUnit: _quantityUnit,
@@ -65,12 +68,13 @@ export const ProductHeader = ({
             </Title>
             {condition && quantity && (
               <Body color="secondary" size="small" numberOfLines={1}>
-                {quantity} {quantities[quantityUnit].short} •{" "}
+                {quantity} {quantities[quantityUnit].plural} •{" "}
                 {conditions[condition].name}
               </Body>
             )}
             <Label size="large" style={{ marginTop: 2 }}>
-              {price} kr
+              {formatPrice(price)}
+              {soldByQuantity ? `/${quantities[quantityUnit].singular}` : ""}
             </Label>
             {statusBadgeProps && (
               <View style={{ marginTop: 8, flex: 1 }}>

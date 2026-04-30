@@ -103,6 +103,16 @@ export type Co2Factor = {
   productName: Scalars['String']['output'];
 };
 
+export enum CanAbortDeniedReasonEnum {
+  Handoff = 'HANDOFF',
+  Shipping = 'SHIPPING'
+}
+
+export type CanAbortResponse = {
+  __typename?: 'CanAbortResponse';
+  deniedReason: CanAbortDeniedReasonEnum;
+};
+
 export type CancelPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
@@ -257,6 +267,7 @@ export type CmsCreateProductInput = {
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   sellerId?: InputMaybe<Scalars['String']['input']>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -463,6 +474,7 @@ export type CmsUpdateProductInput = {
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -502,17 +514,33 @@ export enum ColorTypeEnum {
   Ncs = 'NCS'
 }
 
+export type Conversation = {
+  __typename?: 'Conversation';
+  buyer: User;
+  buyerId: Scalars['ID']['output'];
+  buyerReadAt?: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  lastMessage?: Maybe<Message>;
+  messages: Array<Message>;
+  product: Product;
+  productId: Scalars['String']['output'];
+  purchase?: Maybe<Purchase>;
+  purchaseId?: Maybe<Scalars['String']['output']>;
+  sellerReadAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
 export type CreateBrandByUserInput = {
   categoryId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
 };
 
 export type CreateMessageInput = {
+  conversationId?: InputMaybe<Scalars['String']['input']>;
   documents?: InputMaybe<Array<FileInputType>>;
   images?: InputMaybe<Array<FileInputType>>;
   message: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
-  receiverId: Scalars['String']['input'];
+  productId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateOrganizationUserInput = {
@@ -672,8 +700,7 @@ export type GetCategoriesInput = {
 };
 
 export type GetConversationInput = {
-  otherUserId: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type GetConversationsInput = {
@@ -727,6 +754,7 @@ export type GetTransportationOptionsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
   productId: Scalars['String']['input'];
+  quantity?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type GetUserInput = {
@@ -841,9 +869,7 @@ export enum MapPinTypeEnum {
 }
 
 export type MarkAsReadInput = {
-  markAsRead: Scalars['Boolean']['input'];
-  otherUserId: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
+  conversationId: Scalars['String']['input'];
 };
 
 export type MarkPurchaseAsDeliveredInput = {
@@ -884,6 +910,7 @@ export enum MeasurementUnitEnum {
 
 export type Message = {
   __typename?: 'Message';
+  conversationId: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   documentPutUrls?: Maybe<Array<Scalars['String']['output']>>;
   documents: Array<File>;
@@ -892,12 +919,10 @@ export type Message = {
   images: Array<File>;
   message: Scalars['String']['output'];
   messageType: MessageTypeEnum;
-  product: Product;
-  readAt?: Maybe<Scalars['DateTime']['output']>;
-  receiver: User;
-  receiverId: Scalars['ID']['output'];
-  sender: User;
-  senderId: Scalars['ID']['output'];
+  receiver?: Maybe<User>;
+  receiverId?: Maybe<Scalars['ID']['output']>;
+  sender?: Maybe<User>;
+  senderId?: Maybe<Scalars['ID']['output']>;
 };
 
 export enum MessageTypeEnum {
@@ -965,7 +990,7 @@ export type Mutation = {
   getNewTokens: GetNewTokensResponse;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
-  markConversationAsRead: Array<Message>;
+  markConversationAsRead: Conversation;
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
   onboardSellerAccount: OnboardSellerAccountResponse;
@@ -1499,6 +1524,7 @@ export type Product = {
   sellerId: Scalars['String']['output'];
   shippingPrices?: Maybe<Array<ShippingPrice>>;
   similarProducts: PaginatedProductsResponse;
+  soldByQuantity: Scalars['Boolean']['output'];
   status: ProductStatusEnum;
   thickness?: Maybe<Scalars['Float']['output']>;
   thicknessUnit: MeasurementUnitEnum;
@@ -1518,6 +1544,11 @@ export type ProductDistanceFromLocationArgs = {
 
 export type ProductHasOngoingPurchaseArgs = {
   includeOwnPurchases?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type ProductShippingPricesArgs = {
+  quantity?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1618,6 +1649,8 @@ export type Purchase = {
   boughtForFree: Scalars['Boolean']['output'];
   buyer: User;
   buyerId: Scalars['String']['output'];
+  canAbort?: Maybe<CanAbortResponse>;
+  conversation?: Maybe<Conversation>;
   createdAt: Scalars['DateTime']['output'];
   deliveredAt?: Maybe<Scalars['DateTime']['output']>;
   failedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1633,6 +1666,7 @@ export type Purchase = {
   payoutReceivedAt?: Maybe<Scalars['DateTime']['output']>;
   payoutStartedAt?: Maybe<Scalars['DateTime']['output']>;
   product: Product;
+  purchasedQuantity?: Maybe<Scalars['Float']['output']>;
   qrCodeContent?: Maybe<Scalars['String']['output']>;
   qrCodeUrl?: Maybe<Scalars['String']['output']>;
   reportPurchase?: Maybe<ReportPurchase>;
@@ -1655,6 +1689,7 @@ export type PurchaseProductInput = {
   failureUrl?: InputMaybe<Scalars['String']['input']>;
   paymentMethod?: InputMaybe<PaymentMethod>;
   productId: Scalars['String']['input'];
+  purchasedQuantity?: InputMaybe<Scalars['Int']['input']>;
   servicePointId?: InputMaybe<Scalars['String']['input']>;
   shippingProvider?: InputMaybe<ShippingProviderEnum>;
   successUrl?: InputMaybe<Scalars['String']['input']>;
@@ -1723,8 +1758,8 @@ export type Query = {
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
-  getConversation: Array<Message>;
-  getConversations: Array<Message>;
+  getConversation: Conversation;
+  getConversations: Array<Conversation>;
   getDeliveryOption?: Maybe<DeliveryOptionResponse>;
   getDraftedProduct?: Maybe<Product>;
   getOrCreateDraftProduct: Product;
@@ -2201,6 +2236,7 @@ export type UpdateProductInput = {
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   status?: InputMaybe<ProductStatusEnum>;
   thickness?: InputMaybe<Scalars['Float']['input']>;
   thicknessUnit?: InputMaybe<MeasurementUnitEnum>;

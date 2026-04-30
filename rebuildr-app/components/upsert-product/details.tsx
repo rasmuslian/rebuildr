@@ -102,6 +102,10 @@ export const Details = ({
             priceError={badFields?.["price"]}
             isGiveaway={!!product.isGiveaway}
             onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
+            soldByQuantity={!!product.soldByQuantity}
+            onUpdateSoldByQuantity={(soldByQuantity) =>
+              update({ soldByQuantity, price: undefined })
+            }
           />
           <DescriptionSection
             product={product}

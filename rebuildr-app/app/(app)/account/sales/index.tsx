@@ -36,6 +36,7 @@ const ACCOUNT_SALES = gql`
           url
         }
         price
+        soldByQuantity
       }
       reportPurchase {
         id

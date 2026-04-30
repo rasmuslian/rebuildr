@@ -28,6 +28,7 @@ const REPORT_PRODUCT = gql`
       id
       title
       price
+      soldByQuantity
       status
       condition
       primaryQuantity
@@ -224,6 +225,7 @@ export const ReportProduct = ({ productId, show, onDismiss }: Props) => {
           id={data.product.id}
           title={data.product.title}
           price={data.product.price}
+          soldByQuantity={data.product.soldByQuantity}
           condition={data.product.condition}
           quantity={data.product.primaryQuantity}
           quantityUnit={data.product.primaryUnit}
