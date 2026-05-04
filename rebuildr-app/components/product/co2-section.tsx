@@ -2,6 +2,7 @@ import { QuantityUnitEnum } from "@/gql/graphql";
 import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
+import { quantities } from "@constants/quantities";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
@@ -14,22 +15,21 @@ type Props = {
 
 export const CO2Section = ({ product, onChange }: Props) => {
   const deriveWeight = () => {
-    if (
-      product.primaryUnit === QuantityUnitEnum.Kg &&
-      product.primaryQuantity !== undefined
-    ) {
-      return product.primaryQuantity;
+    if (product.soldByQuantity && product.primaryUnit === QuantityUnitEnum.Kg) {
+      return 1;
     }
-    if (
-      product.secondaryUnit === QuantityUnitEnum.Kg &&
-      product.secondaryQuantity !== undefined
-    ) {
-      return product.secondaryQuantity;
+    if (!product.soldByQuantity) {
+      if (
+        product.primaryUnit === QuantityUnitEnum.Kg &&
+        product.primaryQuantity !== undefined
+      ) {
+        return product.primaryQuantity;
+      }
     }
     if (product.weight) {
       return product.weight;
     }
-    return 0;
+    return product.soldByQuantity ? 1 : 0;
   };
   const [weight, setWeight] = useState(() => deriveWeight());
 
@@ -40,9 +40,8 @@ export const CO2Section = ({ product, onChange }: Props) => {
   }, [
     product.primaryQuantity,
     product.primaryUnit,
-    product.secondaryQuantity,
-    product.secondaryUnit,
     product.weight,
+    product.soldByQuantity,
   ]);
 
   const colors = useThemeColor();
@@ -52,6 +51,10 @@ export const CO2Section = ({ product, onChange }: Props) => {
     onChange(toInt);
     setWeight(toInt);
   };
+
+  const unit = product.primaryUnit
+    ? quantities[product.primaryUnit].singular
+    : "enhet";
 
   return (
     <View
@@ -66,21 +69,22 @@ export const CO2Section = ({ product, onChange }: Props) => {
       <View style={{ gap: 4 }}>
         <Title size="medium">Lägg till vikt för CO2 värde</Title>
         <Body size="medium" color="secondary">
-          Uppskatta vikten för att erhålla CO2 besparing.
+          Uppskatta vikten så vi kan beräkna klimatbesparingen. Vid delköp
+          räknas besparingen automatiskt om till såld mängd.
         </Body>
       </View>
       <Form
         fields={[
           {
             type: "text",
-            heading: "Vikt (kg)",
+            heading: product.soldByQuantity
+              ? `Vikt per ${unit} (kg / ${unit})`
+              : "Total vikt (kg)",
             inputType: "numeric",
             value: weight.toString(),
             onChange: (v) => onChangeWeight(v),
             style: { backgroundColor: colors.background.neutral },
-            disabled:
-              product.primaryUnit === QuantityUnitEnum.Kg ||
-              product.secondaryUnit === QuantityUnitEnum.Kg,
+            disabled: product.primaryUnit === QuantityUnitEnum.Kg,
           },
         ]}
       />
