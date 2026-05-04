@@ -18,8 +18,6 @@ import { ProjectsInput } from 'src/resolvers/project.resolver';
 
 @Injectable()
 export class MapPinService {
-  private static readonly JITTER_RADIUS_METERS = 100;
-
   constructor(
     @InjectRepository(MapPin)
     private mapPinRepository: Repository<MapPin>,
@@ -279,6 +277,9 @@ export class MapPinService {
     offset?: number,
     limit?: number,
   ): Promise<MapPinGroupsResponse> {
+    const JITTER_RADIUS_METERS = 100;
+    const METERS_PER_DEGREE_LATITUDE = 111320.0;
+
     const productPart = this.productRepository.createQueryBuilder('product');
     if (offset !== undefined) {
       productPart.offset(offset);
@@ -434,9 +435,9 @@ export class MapPinService {
             "productIds",
             ST_Translate(
               ST_Centroid(geom),
-              (${MapPinService.JITTER_RADIUS_METERS}.0 * sqrt(u1) * sin(2 * pi() * u2)) / 111320.0,
-              (${MapPinService.JITTER_RADIUS_METERS}.0 * sqrt(u1) * cos(2 * pi() * u2))
-                / (111320.0 * GREATEST(cos(radians(ST_X(ST_Centroid(geom)))), 0.01))
+              (${JITTER_RADIUS_METERS}.0 * sqrt(u1) * sin(2 * pi() * u2)) / ${METERS_PER_DEGREE_LATITUDE},
+              (${JITTER_RADIUS_METERS}.0 * sqrt(u1) * cos(2 * pi() * u2))
+                / (${METERS_PER_DEGREE_LATITUDE} * GREATEST(cos(radians(ST_X(ST_Centroid(geom)))), 0.01))
             ) AS location,
             prices,
             "sellerIsFeatured",
