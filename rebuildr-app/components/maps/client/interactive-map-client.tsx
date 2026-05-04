@@ -93,6 +93,10 @@ const EventController = () => {
   });
 
   useEffect(() => {
+    map.invalidateSize();
+  }, []);
+
+  useEffect(() => {
     map.whenReady(() => {
       map.setView(state.center, 13);
     });
