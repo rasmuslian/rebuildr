@@ -2,6 +2,7 @@ import { QuantityUnitEnum } from "@/gql/graphql";
 import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
+import { quantities } from "@constants/quantities";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
@@ -51,6 +52,10 @@ export const CO2Section = ({ product, onChange }: Props) => {
     setWeight(toInt);
   };
 
+  const unit = product.primaryUnit
+    ? quantities[product.primaryUnit].singular
+    : "enhet";
+
   return (
     <View
       style={{
@@ -62,15 +67,10 @@ export const CO2Section = ({ product, onChange }: Props) => {
       }}
     >
       <View style={{ gap: 4 }}>
-        <Title size="medium">
-          {product.soldByQuantity
-            ? "Lägg till vikt per enhet för CO2 värde"
-            : "Lägg till vikt för CO2 värde"}
-        </Title>
+        <Title size="medium">Lägg till vikt för CO2 värde</Title>
         <Body size="medium" color="secondary">
-          {product.soldByQuantity
-            ? "Uppskatta vikten per enhet för att erhålla CO2 besparing."
-            : "Uppskatta vikten för att erhålla CO2 besparing."}
+          Uppskatta vikten så vi kan beräkna klimatbesparingen. Vid delköp
+          räknas besparingen automatiskt om till såld mängd.
         </Body>
       </View>
       <Form
@@ -78,8 +78,8 @@ export const CO2Section = ({ product, onChange }: Props) => {
           {
             type: "text",
             heading: product.soldByQuantity
-              ? "Vikt per enhet (kg)"
-              : "Vikt (kg)",
+              ? `Vikt per ${unit} (kg / ${unit})`
+              : "Total vikt (kg)",
             inputType: "numeric",
             value: weight.toString(),
             onChange: (v) => onChangeWeight(v),
