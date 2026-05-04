@@ -34,7 +34,36 @@ export const useImageHandler = () => {
     return _image;
   };
 
+  const pickImages = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsMultipleSelection: true,
+    });
+
+    if (result?.canceled || !result?.assets?.length) return;
+
+    return Promise.all(
+      result.assets.map(async (image) => {
+        const {
+          mimeType,
+          file,
+          uri: optimizedImageUri,
+          size,
+        } = await optimizeImage(image.uri, image.mimeType);
+
+        return {
+          uri: optimizedImageUri,
+          mimeType,
+          file,
+          size,
+          name: image.fileName,
+        };
+      }),
+    );
+  };
+
   return {
     pickImage,
+    pickImages,
   };
 };
