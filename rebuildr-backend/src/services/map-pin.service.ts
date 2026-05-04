@@ -277,6 +277,9 @@ export class MapPinService {
     offset?: number,
     limit?: number,
   ): Promise<MapPinGroupsResponse> {
+    const JITTER_RADIUS_METERS = 100;
+    const METERS_PER_DEGREE_LATITUDE = 111320.0;
+
     const productPart = this.productRepository.createQueryBuilder('product');
     if (offset !== undefined) {
       productPart.offset(offset);
@@ -352,9 +355,14 @@ export class MapPinService {
     // Both parts use ST_SnapToGrid to snap each pin's location to a grid cell whose
     // size is determined by the current zoom level, which is what creates the
     // clustering effect. Within each cell, ST_Collect + ST_Centroid computes the
-    // geometric center of all pins. A small deterministic jitter (derived from the
-    // project ID hash) is then applied via ST_Translate so that overlapping cluster
-    // pins do not stack on top of each other on the map.
+    // geometric center of all pins. Each cluster carries a `jitter_seed` (project id
+    // for project clusters, min product id for standalone product clusters); the
+    // `randomized` CTE turns that into two independent uniforms via two different
+    // hashtext calls, and `jittered` applies a uniform-disk offset of radius
+    // JITTER_RADIUS_METERS so that overlapping cluster pins from the same postal
+    // code do not stack on top of each other. The longitude delta is corrected by
+    // cos(latitude) so the radius is preserved away from the equator. Note: this
+    // codebase stores Points as [lat, lng] (non-GeoJSON), so ST_X returns latitude.
     const result: {
       gridId: string;
       latitude: number;
@@ -366,19 +374,20 @@ export class MapPinService {
       prices: number[];
     }[] = await this.mapPinRepository.query(
       `
-      WITH 
+      WITH
         collections AS (
           --Project part
-          SELECT 
+          SELECT
             ST_SnapToGrid(
               location,
               $${zoomParamNumber}) AS grid_id,
-            ST_Collect(location) AS geom,  
-            pj.project_id as "projectId", 
+            ST_Collect(location) AS geom,
+            pj.project_id as "projectId",
             ARRAY_AGG(p.product_id) FILTER (WHERE p.product_id IS NOT NULL) AS "productIds",
             ARRAY_AGG(p.product_price ORDER BY p.product_price) AS prices,
             u."type" as "sellerType",
-            u."isFeatured" as "sellerIsFeatured"
+            u."isFeatured" as "sellerIsFeatured",
+            pj.project_id::text AS jitter_seed
           FROM (${offsetMapPinSql}) mp
           INNER JOIN (${offsetProjectSql}) pj ON pj."project_mapPinId" = mp.id
           INNER JOIN "user" u ON pj."project_userId" = u.id
@@ -388,7 +397,7 @@ export class MapPinService {
           UNION
 
           --Product part
-          SELECT 
+          SELECT
             ST_SnapToGrid(
               location,
               $${zoomParamNumber}) AS grid_id,
@@ -397,13 +406,27 @@ export class MapPinService {
             ARRAY_AGG(p.product_id) AS "productIds",
             ARRAY_AGG(p.product_price ORDER BY p.product_price) AS prices,
             null as "sellerType",
-            null as "sellerIsFeatured"
+            null as "sellerIsFeatured",
+            MIN(p.product_id::text) AS jitter_seed
           FROM (${offsetMapPinSql}) mp
           INNER JOIN (${offsetProductSql}) p ON p."product_mapPinId" = mp.id
           INNER JOIN "user" u ON u.id = p."product_sellerId"
-          WHERE 
+          WHERE
             p."product_projectId" IS NULL
           GROUP BY grid_id, u."isFeatured"),
+
+        randomized AS (
+          SELECT
+            grid_id,
+            "projectId",
+            "productIds",
+            geom,
+            prices,
+            "sellerIsFeatured",
+            "sellerType",
+            ((hashtext(jitter_seed || ':r') % 1000000 + 1000000) % 1000000) / 1000000.0 AS u1,
+            ((hashtext(jitter_seed || ':a') % 1000000 + 1000000) % 1000000) / 1000000.0 AS u2
+          FROM collections),
 
         jittered AS (
           SELECT
@@ -412,13 +435,14 @@ export class MapPinService {
             "productIds",
             ST_Translate(
               ST_Centroid(geom),
-              ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010,
-              ((hashtext(COALESCE("projectId"::text, 'null')) % 10) - 5) * 0.00010
+              (${JITTER_RADIUS_METERS}.0 * sqrt(u1) * sin(2 * pi() * u2)) / ${METERS_PER_DEGREE_LATITUDE},
+              (${JITTER_RADIUS_METERS}.0 * sqrt(u1) * cos(2 * pi() * u2))
+                / (${METERS_PER_DEGREE_LATITUDE} * GREATEST(cos(radians(ST_X(ST_Centroid(geom)))), 0.01))
             ) AS location,
             prices,
             "sellerIsFeatured",
             "sellerType"
-          FROM collections)
+          FROM randomized)
 
         SELECT
           grid_id,

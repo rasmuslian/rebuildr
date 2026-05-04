@@ -31,7 +31,7 @@ export default function InteractiveMapClient() {
       zoomControl={false}
       attributionControl={false}
       doubleClickZoom={false}
-      maxZoom={16}
+      maxZoom={17}
       minZoom={5}
     >
       <EventController />
