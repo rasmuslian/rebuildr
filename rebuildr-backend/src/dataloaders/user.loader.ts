@@ -267,13 +267,38 @@ export class UserLoader {
         await this.dataSource
           .getRepository(User)
           .createQueryBuilder('u')
-          .groupBy('u.id')
           .leftJoin(
-            Product,
-            'p',
-            `p."sellerId" = u.id AND p.status = '${ProductStatus.SOLD}'`,
+            (qb) =>
+              qb
+                .select('p."sellerId", SUM(p."co2Saving") as "co2"')
+                .from(Product, 'p')
+                .where(
+                  `p."soldByQuantity" = false AND p.status = '${ProductStatus.SOLD}'`,
+                )
+                .groupBy('p."sellerId"'),
+            'non_qty',
+            'non_qty."sellerId" = u.id',
           )
-          .select('u.id as "userId", SUM(p."co2Saving") as "totalCO2Saving"')
+          .leftJoin(
+            (qb) =>
+              qb
+                .select(
+                  'p2."sellerId", SUM(pur."purchasedQuantity" * p2."co2Saving") as "co2"',
+                )
+                .from(Purchase, 'pur')
+                .innerJoin(
+                  Product,
+                  'p2',
+                  `p2.id = pur."productId" AND p2."soldByQuantity" = true`,
+                )
+                .where('pur."failedAt" IS NULL')
+                .groupBy('p2."sellerId"'),
+            'qty',
+            'qty."sellerId" = u.id',
+          )
+          .select(
+            'u.id as "userId", COALESCE(non_qty."co2", 0) + COALESCE(qty."co2", 0) as "totalCO2Saving"',
+          )
           .where('u.id IN (:...userIds)', { userIds })
           .getRawMany();
 
