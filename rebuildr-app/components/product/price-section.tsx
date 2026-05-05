@@ -37,10 +37,10 @@ export const PriceSection = ({
       }}
     >
       <Display size="small" style={{ marginBottom: 24 }}>
-        Pris*
+        Pris
       </Display>
       <Label size="medium" style={{ marginBottom: 4 }}>
-        {soldByQuantity ? "Pris per enhet" : "Pris för allt"}
+        {soldByQuantity ? "Pris per enhet" : "Pris*"}
       </Label>
       {priceHigherThan > 0 ? (
         <View style={{ paddingBottom: 12 }}>
@@ -93,7 +93,8 @@ export const PriceSection = ({
         <View style={{ flex: 1 }}>
           <Label size="medium">Tillåt delköp</Label>
           <Body size="medium" color="secondary">
-            Säljes även styckvis. Annonsen ligger kvar tills allt är sålt
+            Köpare kan köpa hela mängden eller delar av den. Annonsen ligger
+            kvar tills allt är sålt
           </Body>
         </View>
         <Toggle
