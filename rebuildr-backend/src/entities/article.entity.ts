@@ -22,6 +22,10 @@ export class Article extends BaseEntity {
   title: string;
 
   @Field()
+  @Column({ unique: true })
+  slug: string;
+
+  @Field()
   @Column()
   body: string;
 

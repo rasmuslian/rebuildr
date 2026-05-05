@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import slugify from 'slugify';
 import { Article } from 'src/entities/article.entity';
 import {
   CmsCreateArticleInput,
@@ -22,9 +23,30 @@ export class ArticleService {
     return article;
   }
 
+  async findOneBySlug(slug: string) {
+    const article = await this.articleRepository.findOneBy({ slug });
+    if (!article) throw NotFoundException();
+    return article;
+  }
+
+  private async generateUniqueSlug(
+    title: string,
+    excludeId?: string,
+  ): Promise<string> {
+    const base = slugify(title, { lower: true, strict: true, locale: 'sv' });
+    let slug = base;
+    let counter = 1;
+    while (true) {
+      const existing = await this.articleRepository.findOneBy({ slug });
+      if (!existing || existing.id === excludeId) return slug;
+      slug = `${base}-${counter++}`;
+    }
+  }
+
   async createArticle(input: CmsCreateArticleInput): Promise<Article> {
     try {
-      const article = this.articleRepository.create(input);
+      const slug = await this.generateUniqueSlug(input.title);
+      const article = this.articleRepository.create({ ...input, slug });
       return await this.articleRepository.save(article);
     } catch (error) {
       throw BadUserInputException('Failed to create article' + error);
@@ -36,7 +58,8 @@ export class ArticleService {
     if (!article) throw NotFoundException('Article not found');
 
     try {
-      Object.assign(article, input);
+      const slug = await this.generateUniqueSlug(input.title, input.id);
+      Object.assign(article, { ...input, slug });
       return await this.articleRepository.save(article);
     } catch (error) {
       throw BadUserInputException('Failed to update article: ' + error);

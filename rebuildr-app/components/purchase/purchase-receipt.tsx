@@ -242,7 +242,10 @@ export const PurchaseReceipt = ({
         <Headline size="small">Har du några frågor?</Headline>
         <Body size="medium">
           Om något känns oklart kan du kika i våra{" "}
-          <Body size="medium" isLink>
+          <Body
+            size="medium"
+            link={{ pathname: "/article/[slug]", params: { slug: "faq" } }}
+          >
             vanliga frågor
           </Body>{" "}
           eller{" "}

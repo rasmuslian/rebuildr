@@ -180,7 +180,13 @@ export const Shipping = ({
               ? "Ange vikten för ett styck av produkten så beräknas det totala fraktpriset."
               : "Får din vara plats i en flyttkartong går den att skicka. Men du kan också skicka långsmala paket."}
           </Body>
-          <Body size="medium" isLink>
+          <Body
+            size="medium"
+            link={{
+              pathname: "/article/[slug]",
+              params: { slug: "frakt-leveranser" },
+            }}
+          >
             Se vår storleksguide
           </Body>
         </View>

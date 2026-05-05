@@ -115,7 +115,10 @@ export const CategorySection = ({
       </Display>
       <Body size="large">
         Osäker på vilken kategori du ska välja? Läs mer i vår{" "}
-        <Body isLink size="large">
+        <Body
+          size="large"
+          link={{ pathname: "/article/[slug]", params: { slug: "kategorier" } }}
+        >
           Hjälpguide för kategorival.
         </Body>
       </Body>
