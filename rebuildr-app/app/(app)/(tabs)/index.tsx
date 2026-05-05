@@ -15,8 +15,6 @@ import { useScreenType } from "@hooks/useScreenType";
 import { NearYou } from "@components/near-you/near-you";
 import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
-import { usePwaInstall } from "@hooks/usePwaInstall";
-import { Button } from "@components/buttons/button";
 import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
 
@@ -27,7 +25,6 @@ export default function Landing() {
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
   const { searchState, setSearchState } = useSearchContext();
   const [headlineHeight, setHeadlineHeight] = useState(0);
-  const { canInstall, install } = usePwaInstall();
 
   useFocusEffect(
     useCallback(() => {
@@ -98,14 +95,6 @@ export default function Landing() {
               paddingTop: isDesktop ? 44 : 16,
             }}
           >
-            {canInstall && !isDesktop && (
-              <Button
-                label="Installera appen"
-                onPress={install}
-                type="outlined"
-                style={{ marginBottom: 16 }}
-              />
-            )}
             <RootCategoriesHorizontal />
             <NewArrivals />
             <NearYou />
