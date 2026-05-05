@@ -710,6 +710,7 @@ enum FooterSectionEntryType {
 type Article {
   id: ID!
   title: String!
+  slug: String!
   body: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -817,6 +818,7 @@ type Query {
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
+  articleBySlug(slug: String!): Article!
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
