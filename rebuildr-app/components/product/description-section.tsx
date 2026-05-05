@@ -77,6 +77,7 @@ export const DescriptionSection = ({
             onChangeText: onChangeTitle,
             heading: "Annonsrubrik*",
             error: titleError,
+            placeholder: "Ange annonsrubrik",
           },
           {
             type: "text",

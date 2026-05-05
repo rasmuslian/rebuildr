@@ -29,7 +29,7 @@ export const CO2Section = ({ product, onChange }: Props) => {
     if (product.weight) {
       return product.weight;
     }
-    return product.soldByQuantity ? 1 : 0;
+    return 0;
   };
   const [weight, setWeight] = useState(() => deriveWeight());
 
@@ -81,7 +81,8 @@ export const CO2Section = ({ product, onChange }: Props) => {
               ? `Vikt per ${unit} (kg / ${unit})`
               : "Total vikt (kg)",
             inputType: "numeric",
-            value: weight.toString(),
+            placeholder: weight.toString(),
+            value: weight !== 0 ? weight.toString() : "",
             onChange: (v) => onChangeWeight(v),
             style: { backgroundColor: colors.background.neutral },
             disabled: product.primaryUnit === QuantityUnitEnum.Kg,

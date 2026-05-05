@@ -148,10 +148,7 @@ export const QuantitiesSection = ({
         <Label size="medium">Mängd och enhet*</Label>
         <View>
           <Body size="medium">
-            Välj den enhet som beskriver hur produkten säljs.
-          </Body>
-          <Body size="medium">
-            Vald enhet används även för saldo vid Delköp.
+            Hur säljer du varan? Välj enhet och hur många/mycket du har
           </Body>
         </View>
       </View>
