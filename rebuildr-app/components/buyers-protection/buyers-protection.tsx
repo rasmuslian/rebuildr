@@ -25,7 +25,10 @@ export const BuyersProtection = () => {
           style={{ width: 60, height: 60 }}
         />
       </View>
-      <Body size="small" isLink>
+      <Body
+        size="small"
+        link={{ pathname: "/article/[slug]", params: { slug: "sakerhet" } }}
+      >
         Läs hur vårt köparskydd fungerar.
       </Body>
     </View>

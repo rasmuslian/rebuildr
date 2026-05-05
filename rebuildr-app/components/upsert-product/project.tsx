@@ -188,7 +188,13 @@ export const Project = ({
       <Body size="large">
         Slipp fylla i plats, kontaktuppgifter och annan information varje gång
         du lägger upp en ny annons. Läs mer i vår{" "}
-        <Body isLink size="large">
+        <Body
+          size="large"
+          link={{
+            pathname: "/article/[slug]",
+            params: { slug: "guide-for-projekt" },
+          }}
+        >
           guide för projekt.
         </Body>
       </Body>

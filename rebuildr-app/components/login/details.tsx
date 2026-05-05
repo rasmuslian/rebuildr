@@ -313,13 +313,25 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
                 <Body size="medium">
                   Genom att skapa ett konto hos RebuildR godkänner jag{" "}
                   <Pressable onPress={() => {}}>
-                    <Body size="medium" isLink>
+                    <Body
+                      size="medium"
+                      link={{
+                        pathname: "/article/[slug]",
+                        params: { slug: "anvandaravtal" },
+                      }}
+                    >
                       villkoren
                     </Body>
                   </Pressable>{" "}
                   och{" "}
                   <Pressable>
-                    <Body size="medium" isLink>
+                    <Body
+                      size="medium"
+                      link={{
+                        pathname: "/article/[slug]",
+                        params: { slug: "integritetspolicy" },
+                      }}
+                    >
                       integritetspolicyn
                     </Body>
                   </Pressable>

@@ -382,7 +382,13 @@ export const PaymentContent = ({
             <Title size="medium">Köpvillkor</Title>
             <Body size="medium">
               Genom att fortsätta godkänner du RebuildRs{" "}
-              <Body isLink size="medium">
+              <Body
+                size="medium"
+                link={{
+                  pathname: "/article/[slug]",
+                  params: { slug: "anvandaravtal" },
+                }}
+              >
                 köpvillkor
               </Body>
               .
