@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Image, Platform, Pressable, View } from "react-native";
+import { Image, Linking, Platform, Pressable, View } from "react-native";
 import { primitives } from "@constants/colors";
 import { Body, Label, Title } from "@components/typography/text";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -10,6 +10,11 @@ const DISMISSED_KEY = "pwa-install-prompt-dismissed";
 const OPEN_DELAY_MS = 2000;
 
 type MobilePlatform = "ios" | "android";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
 
 function detectPlatform(): MobilePlatform | null {
   if (typeof navigator === "undefined") return null;
@@ -40,6 +45,8 @@ function isInStandaloneMode(): boolean {
 export function PwaInstallPrompt() {
   const [platform, setPlatform] = useState<MobilePlatform | null>(null);
   const [open, setOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -57,11 +64,29 @@ export function PwaInstallPrompt() {
     return () => clearTimeout(id);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
   const handleDismiss = () => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(DISMISSED_KEY, "1");
     }
     setOpen(false);
+  };
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    if (outcome === "accepted") handleDismiss();
   };
 
   if (!platform) return null;
@@ -74,8 +99,16 @@ export function PwaInstallPrompt() {
       header={<Header onClose={handleDismiss} />}
     >
       <View style={{ gap: 10, paddingTop: 4, paddingBottom: 8 }}>
-        {platform === "android" ? <AndroidSteps /> : <IosSteps />}
+        {platform === "android" ? (
+          <AndroidSteps
+            deferredPrompt={deferredPrompt}
+            onInstall={handleInstall}
+          />
+        ) : (
+          <IosSteps />
+        )}
         <SuccessRow />
+        {platform === "ios" && <IosFooter />}
       </View>
     </BottomSheet>
   );
@@ -199,13 +232,37 @@ function TrailingIcon({ icon }: { icon: IconType }) {
   return <Icon icon={icon} size={20} customColor={primitives.accent600} />;
 }
 
-function AndroidSteps() {
+function AndroidSteps({
+  deferredPrompt,
+  onInstall,
+}: {
+  deferredPrompt: BeforeInstallPromptEvent | null;
+  onInstall: () => void;
+}) {
   return (
     <>
-      <StepRow number={1} trailing={<TrailingIcon icon="download" />}>
-        <StepText>Tryck “Installera appen” i bannern</StepText>
-      </StepRow>
-      <OrSeparator />
+      {deferredPrompt && (
+        <>
+          <Pressable
+            onPress={onInstall}
+            style={{
+              backgroundColor: primitives.accent600,
+              borderRadius: borderRadius.medium,
+              height: 40,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Icon icon="download" size={16} customColor="white" />
+            <Label size="large" style={{ color: "white" }}>
+              Installera appen
+            </Label>
+          </Pressable>
+          <OrSeparator />
+        </>
+      )}
       <StepRow number={1} trailing={<TrailingIcon icon="kebab" />}>
         <View
           style={{
@@ -217,11 +274,11 @@ function AndroidSteps() {
         >
           <StepText>Tryck</StepText>
           <Icon icon="kebab" size={14} customColor={primitives.neutrals900} />
-          <StepText>uppe till höger i Chrome</StepText>
+          <StepText>uppe till höger i webbläsaren</StepText>
         </View>
       </StepRow>
       <StepRow number={2} trailing={<TrailingIcon icon="download" />}>
-        <StepText>“Installera appen”</StepText>
+        <StepText>"Installera appen"</StepText>
       </StepRow>
     </>
   );
@@ -231,24 +288,13 @@ function IosSteps() {
   return (
     <>
       <StepRow number={1} trailing={<TrailingIcon icon="upload" />}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 6,
-          }}
-        >
-          <StepText>Tryck dela-ikonen</StepText>
-          <Icon icon="arrowUp" size={14} customColor={primitives.neutrals900} />
-          <StepText>nere i Safari</StepText>
-        </View>
+        <StepText>Tryck dela-ikonen längst ner</StepText>
       </StepRow>
       <StepRow number={2} trailing={<TrailingIcon icon="+" />}>
-        <StepText>“lägg till på hemskärmen”</StepText>
+        <StepText>"lägg till på hemskärmen"</StepText>
       </StepRow>
       <StepRow number={3} trailing={<TrailingIcon icon="check" />}>
-        <StepText>Tryck “Lägg till” uppe till höger</StepText>
+        <StepText>Tryck "Lägg till" uppe till höger</StepText>
       </StepRow>
     </>
   );
@@ -285,14 +331,6 @@ function OrSeparator() {
   );
 }
 
-function BoldInline({ children }: { children: React.ReactNode }) {
-  return (
-    <Body size="medium" style={{ fontWeight: "700" }}>
-      {children}
-    </Body>
-  );
-}
-
 function SuccessRow() {
   return (
     <View
@@ -322,6 +360,35 @@ function SuccessRow() {
       <Body size="medium" style={{ color: primitives.primary600 }}>
         Klart! RebuildR finns bland dina appar.
       </Body>
+    </View>
+  );
+}
+
+function IosFooter() {
+  return (
+    <View style={{ alignItems: "center", gap: 2, paddingTop: 4 }}>
+      <Body size="small" color="secondary">
+        Använder du en annan webbläsare?
+      </Body>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Body size="small" color="secondary">
+          {"Öppna "}
+        </Body>
+        <Pressable onPress={() => Linking.openURL("https://rebuildr.se")}>
+          <Body
+            size="small"
+            style={{
+              color: primitives.accent600,
+              textDecorationLine: "underline",
+            }}
+          >
+            rebuildr.se
+          </Body>
+        </Pressable>
+        <Body size="small" color="secondary">
+          {" i Safari först"}
+        </Body>
+      </View>
     </View>
   );
 }
