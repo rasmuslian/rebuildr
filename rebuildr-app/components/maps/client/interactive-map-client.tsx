@@ -93,7 +93,9 @@ const EventController = () => {
   });
 
   useEffect(() => {
-    map.invalidateSize();
+    map.whenReady(() => {
+      map.invalidateSize();
+    });
   }, []);
 
   useEffect(() => {
