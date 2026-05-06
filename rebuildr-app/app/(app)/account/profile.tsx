@@ -217,7 +217,7 @@ export default function Profile() {
               onActivate: () => setTab("reviewed"),
             },
             {
-              title: "CO2 besparing",
+              title: "CO₂ besparing",
               active: tab === "co2",
               onActivate: () => setTab("co2"),
             },
