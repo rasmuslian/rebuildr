@@ -21,7 +21,7 @@ export const ExplainCO2CalculationSheet = ({ show, onDismiss }: Props) => {
       ]}
     >
       <View style={{ gap: 24 }}>
-        <Display size="small">Hur vi räknar CO2</Display>
+        <Display size="small">Hur vi räknar CO₂</Display>
         <Body size="medium">
           När du väljer en återbrukad vara undviker du den klimatpåverkan som
           annars hade uppstått vid tillverkning av en ny motsvarande produkt. Vi
@@ -98,7 +98,7 @@ export const ExplainCO2CalculationSheet = ({ show, onDismiss }: Props) => {
           }}
         >
           <Header
-            title="Hur vi räknar CO2"
+            title="Hur vi räknar CO₂"
             showBackButton={false}
             showDivider
             ctas={[
@@ -118,7 +118,7 @@ export const ExplainCO2CalculationSheet = ({ show, onDismiss }: Props) => {
     <BottomSheet
       open={show}
       name="co2 explanation"
-      title="Hur vi räknar CO2"
+      title="Hur vi räknar CO₂"
       onDismiss={onDismiss}
       scrollable
     >

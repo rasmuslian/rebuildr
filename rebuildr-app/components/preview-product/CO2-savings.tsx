@@ -17,7 +17,7 @@ export const CO2Savings = ({ co2Saving }: Props) => {
   const colors = useThemeColor();
   return (
     <View style={{ gap: 16 }}>
-      <Headline size="small">CO2 besparing</Headline>
+      <Headline size="small">CO₂ besparing</Headline>
 
       <View
         style={{
@@ -30,11 +30,11 @@ export const CO2Savings = ({ co2Saving }: Props) => {
       >
         <Image source={{ uri: co2Svg.uri }} style={{ height: 36, width: 52 }} />
         <Headline size="large">
-          {co2Saving ? formatCO2(co2Saving) : "X"} kg CO2 sparat
+          {co2Saving ? formatCO2(co2Saving) : "X"} kg CO₂ sparat
         </Headline>
         {!co2Saving && (
           <Label size="medium" color="error">
-            Säljaren behöver ange vikt för att CO2 besparing skall visas
+            Säljaren behöver ange vikt för att CO₂ besparing skall visas
           </Label>
         )}
         <Body size="small">

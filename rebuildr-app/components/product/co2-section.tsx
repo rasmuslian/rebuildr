@@ -67,7 +67,7 @@ export const CO2Section = ({ product, onChange }: Props) => {
       }}
     >
       <View style={{ gap: 4 }}>
-        <Title size="medium">Lägg till vikt för CO2 värde</Title>
+        <Title size="medium">Lägg till vikt för CO₂ värde</Title>
         <Body size="medium" color="secondary">
           Uppskatta vikten så vi kan beräkna klimatbesparingen. Vid delköp
           räknas besparingen automatiskt om till såld mängd.
