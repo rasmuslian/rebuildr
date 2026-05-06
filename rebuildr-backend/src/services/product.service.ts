@@ -20,6 +20,9 @@ import {
   CmsCreateProductResponse,
   CmsListProductsInput,
   CmsListProductsResponse,
+  CmsProductStatisticsGroupByEnum,
+  CmsProductStatisticsInput,
+  CmsProductStatisticsResponse,
   CmsUpdateProductInput,
   CmsUpdateProductResponse,
   CreateProductResponse,
@@ -1310,6 +1313,30 @@ export class ProductService {
     return {
       products,
       total,
+    };
+  }
+
+  async cmsProductStatistics(
+    input: CmsProductStatisticsInput,
+  ): Promise<CmsProductStatisticsResponse> {
+    const groupByEnum =
+      input.groupBy ?? CmsProductStatisticsGroupByEnum.MONTH;
+    const groupBy = groupByEnum.toLowerCase();
+    const rows: { date: string; count: string }[] =
+      await this.productRepository
+        .createQueryBuilder('p')
+        .select(`DATE_TRUNC('${groupBy}', p."createdAt")`, 'date')
+        .addSelect('COUNT(*)', 'count')
+        .where('p.status != :status', { status: ProductStatus.DRAFT })
+        .groupBy(`DATE_TRUNC('${groupBy}', p."createdAt")`)
+        .orderBy('date', 'ASC')
+        .getRawMany();
+
+    return {
+      data: rows.map((row) => ({
+        date: new Date(row.date).toISOString().split('T')[0],
+        count: parseInt(row.count, 10),
+      })),
     };
   }
 

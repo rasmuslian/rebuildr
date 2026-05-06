@@ -632,6 +632,36 @@ export class ProductPriceRangeResponse {
   max: number;
 }
 
+export enum CmsProductStatisticsGroupByEnum {
+  DAY = 'DAY',
+  WEEK = 'WEEK',
+  MONTH = 'MONTH',
+}
+registerEnumType(CmsProductStatisticsGroupByEnum, {
+  name: 'CmsProductStatisticsGroupByEnum',
+});
+
+@InputType()
+export class CmsProductStatisticsInput {
+  @Field(() => CmsProductStatisticsGroupByEnum, { nullable: true })
+  groupBy?: CmsProductStatisticsGroupByEnum;
+}
+
+@ObjectType()
+export class CmsProductStatisticsDataPoint {
+  @Field()
+  date: string;
+
+  @Field(() => Int)
+  count: number;
+}
+
+@ObjectType()
+export class CmsProductStatisticsResponse {
+  @Field(() => [CmsProductStatisticsDataPoint])
+  data: CmsProductStatisticsDataPoint[];
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -726,6 +756,15 @@ export class ProductResolver {
     @Args('input') input: CmsListProductsInput,
   ): Promise<CmsListProductsResponse> {
     return this.productService.cmsListProducts(input);
+  }
+
+  @Query(() => CmsProductStatisticsResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsProductStatistics(
+    @Args('input', { nullable: true }) input?: CmsProductStatisticsInput,
+  ): Promise<CmsProductStatisticsResponse> {
+    return this.productService.cmsProductStatistics(input ?? {});
   }
 
   @Mutation(() => CmsCreateProductResponse)
