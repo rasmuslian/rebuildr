@@ -59,6 +59,9 @@ export const GET_CONVERSATIONS = gql`
           }
         }
       }
+      purchase {
+        purchasedQuantity
+      }
     }
     me {
       id

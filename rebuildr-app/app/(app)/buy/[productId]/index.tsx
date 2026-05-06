@@ -183,7 +183,7 @@ export const Buy = ({ productId, quantity }: Props) => {
             condition={data.product.condition}
             imageUrl={data.product.primaryImage?.url}
             imageSize="small"
-            quantity={data.product.primaryQuantity}
+            quantity={quantity ?? data.product.primaryQuantity}
             quantityUnit={data.product.primaryUnit}
             price={data.product.price}
             soldByQuantity={data.product.soldByQuantity}
