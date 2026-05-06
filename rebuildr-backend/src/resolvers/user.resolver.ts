@@ -13,7 +13,7 @@ import {
   Resolver,
   registerEnumType,
 } from '@nestjs/graphql';
-import { AuthedUserType } from 'src/auth/constants';
+import { AuthedUserType, authThrottleConfig } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
@@ -294,7 +294,7 @@ export class UserResolver {
 
   @Query(() => UserExistsResponse)
   @UseGuards(GqlThrottlerGuard)
-  @Throttle({ auth: { limit: 10, ttl: 60000 } })
+  @Throttle({ auth: authThrottleConfig })
   async userExists(@Args('input') input: UserExistsInput) {
     return this.userService.userExists(input.email);
   }
