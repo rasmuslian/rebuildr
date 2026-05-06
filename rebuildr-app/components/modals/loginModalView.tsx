@@ -57,6 +57,7 @@ const RESET_PASSWORD = gql`
 const USER_EXISTS = gql`
   query UserExists($input: UserExistsInput!) {
     userExists(input: $input) {
+      exists
       registrationStatus
     }
   }
@@ -163,7 +164,7 @@ const LoginModalView = () => {
       variables: { input: { email } },
       onCompleted: (data) => {
         if (
-          !data.userExists ||
+          !data.userExists.exists ||
           data.userExists.registrationStatus === RegisterStatusEnum.Email ||
           data.userExists.registrationStatus === RegisterStatusEnum.Details
         ) {

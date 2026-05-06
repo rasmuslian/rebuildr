@@ -636,6 +636,11 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type UserExistsResponse {
+  exists: Boolean!
+  registrationStatus: RegisterStatusEnum
+}
+
 type UsersResponse {
   users: [User!]!
   total: Int!
@@ -773,7 +778,7 @@ type CmsCreateBannerResponse {
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
-  userExists(input: UserExistsInput!): User
+  userExists(input: UserExistsInput!): UserExistsResponse!
   user(input: GetUserInput!): User!
   users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
   cmsGetUser(id: String!): User!

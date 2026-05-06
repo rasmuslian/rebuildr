@@ -26,6 +26,7 @@ import {
   UserType,
 } from 'src/entities/user.entity';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
+import { Throttle } from '@nestjs/throttler';
 import { UserService } from 'src/services/user.service';
 import { File } from 'src/entities/file.entity';
 import { LocationResponse } from './geocoding.resolver';
@@ -108,6 +109,15 @@ export class UpdateUserResponse {
 class UserExistsInput {
   @Field()
   email: string;
+}
+
+@ObjectType()
+class UserExistsResponse {
+  @Field(() => Boolean)
+  exists: boolean;
+
+  @Field(() => RegistrationStatusEnum, { nullable: true })
+  registrationStatus?: RegistrationStatusEnum;
 }
 
 @InputType()
@@ -282,9 +292,11 @@ export class UserResolver {
     return await this.userService.findOne(_user.id);
   }
 
-  @Query(() => User, { nullable: true })
+  @Query(() => UserExistsResponse)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: { limit: 10, ttl: 60000 } })
   async userExists(@Args('input') input: UserExistsInput) {
-    return await this.userService.findOneByEmail(input.email);
+    return this.userService.userExists(input.email);
   }
 
   @Query(() => User)

@@ -257,6 +257,11 @@ export interface RequestType {
         ttl: 1000,
         limit: 2,
       },
+      {
+        name: 'auth',
+        ttl: 60000,
+        limit: 10,
+      },
     ]),
     CacheModule.register(),
     ScheduleModule.forRoot(),
