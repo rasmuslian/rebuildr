@@ -64,8 +64,7 @@ export const DescriptionSection = ({
           </Body>
         )}
         <Body size="small" color="secondary">
-          AI hjälper till med beskrivningen – ta gärna en snabb titt innan
-          publicering
+          Förslag genereras av AI – granska före publicering
         </Body>
       </View>
       <Form
