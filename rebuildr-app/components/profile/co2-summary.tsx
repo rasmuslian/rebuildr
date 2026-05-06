@@ -33,9 +33,9 @@ export const CO2Summary = ({ totalCO2Savings }: Props) => {
         },
       ]}
     >
-      <Display size="large">{formatCO2(totalCO2Savings)} kg CO2</Display>
+      <Display size="large">{formatCO2(totalCO2Savings)} kg CO₂</Display>
       <Title size="medium">
-        Total CO2 besparing från dina försäljningar på RebuildR
+        Total CO₂ besparing från dina försäljningar på RebuildR
       </Title>
       <Divider />
       <Body size="small">
