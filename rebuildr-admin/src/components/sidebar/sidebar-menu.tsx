@@ -24,6 +24,7 @@ import {
   FilePdfOutlined,
   ShoppingCartOutlined,
   PictureOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -121,6 +122,9 @@ const SidebarMenu = () => {
       getItem("Skapa artikel", routes.CREATE_ARTICLE),
       getItem("Visa alla artiklar", routes.LIST_ARTICLE),
     ]),
+
+    { type: "divider" },
+    getItem("Statistik", routes.STATISTICS, <BarChartOutlined />),
 
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [

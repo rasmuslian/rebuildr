@@ -45,6 +45,7 @@ export type Article = {
   body: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  slug: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -98,9 +99,10 @@ export type BrandsInput = {
 export type Co2Factor = {
   __typename?: 'CO2Factor';
   categoryName: Scalars['String']['output'];
-  coefficient: Scalars['Float']['output'];
+  depositCoefficient: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   productName: Scalars['String']['output'];
+  productionCoefficient: Scalars['Float']['output'];
 };
 
 export enum CanAbortDeniedReasonEnum {
@@ -357,6 +359,42 @@ export type CmsListUsersResponse = {
   users: Array<User>;
 };
 
+export type CmsProductStatisticsDataPoint = {
+  __typename?: 'CmsProductStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export enum CmsProductStatisticsGroupByEnum {
+  Day = 'DAY',
+  Month = 'MONTH',
+  Week = 'WEEK'
+}
+
+export type CmsProductStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsProductStatisticsResponse = {
+  __typename?: 'CmsProductStatisticsResponse';
+  data: Array<CmsProductStatisticsDataPoint>;
+};
+
+export type CmsPurchaseStatisticsDataPoint = {
+  __typename?: 'CmsPurchaseStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsPurchaseStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsPurchaseStatisticsResponse = {
+  __typename?: 'CmsPurchaseStatisticsResponse';
+  data: Array<CmsPurchaseStatisticsDataPoint>;
+};
+
 export type CmsReassignBrandInput = {
   fromBrandId: Scalars['String']['input'];
   toBrandId: Scalars['String']['input'];
@@ -507,6 +545,21 @@ export type CmsUpdateUsersInput = {
   postCode?: InputMaybe<Scalars['String']['input']>;
   role: UserRoleEnum;
   websiteUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsUserStatisticsDataPoint = {
+  __typename?: 'CmsUserStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsUserStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsUserStatisticsResponse = {
+  __typename?: 'CmsUserStatisticsResponse';
+  data: Array<CmsUserStatisticsDataPoint>;
 };
 
 export enum ColorTypeEnum {
@@ -1484,7 +1537,8 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
-  co2Saving?: Maybe<Scalars['Float']['output']>;
+  co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
+  co2SavingSeller?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -1739,6 +1793,7 @@ export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
   article: Article;
+  articleBySlug: Article;
   banners: Array<Banner>;
   brand: Brand;
   brands: Array<Brand>;
@@ -1753,6 +1808,9 @@ export type Query = {
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
+  cmsProductStatistics: CmsProductStatisticsResponse;
+  cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
+  cmsUserStatistics: CmsUserStatisticsResponse;
   co2Factors: Array<Co2Factor>;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
@@ -1806,6 +1864,11 @@ export type QueryAddressToLocationArgs = {
 
 export type QueryArticleArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryArticleBySlugArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -1866,6 +1929,21 @@ export type QueryCmsListProjectsArgs = {
 
 export type QueryCmsListUsersArgs = {
   input: CmsListUsersInput;
+};
+
+
+export type QueryCmsProductStatisticsArgs = {
+  input?: InputMaybe<CmsProductStatisticsInput>;
+};
+
+
+export type QueryCmsPurchaseStatisticsArgs = {
+  input?: InputMaybe<CmsPurchaseStatisticsInput>;
+};
+
+
+export type QueryCmsUserStatisticsArgs = {
+  input?: InputMaybe<CmsUserStatisticsInput>;
 };
 
 

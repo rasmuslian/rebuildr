@@ -770,6 +770,33 @@ type CmsCreateBannerResponse {
   imagePutUrl: String
 }
 
+type CmsProductStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsProductStatisticsResponse {
+  data: [CmsProductStatisticsDataPoint!]!
+}
+
+type CmsUserStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsUserStatisticsResponse {
+  data: [CmsUserStatisticsDataPoint!]!
+}
+
+type CmsPurchaseStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsPurchaseStatisticsResponse {
+  data: [CmsPurchaseStatisticsDataPoint!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -831,6 +858,9 @@ type Query {
   banners: [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
+  cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
+  cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
+  cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
 }
 
 input UserExistsInput {
@@ -1056,6 +1086,24 @@ input ProjectsInput {
 input ListPageContentInput {
   page: Int
   pageSize: Int
+}
+
+input CmsProductStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+enum CmsProductStatisticsGroupByEnum {
+  DAY
+  WEEK
+  MONTH
+}
+
+input CmsUserStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPurchaseStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
 }
 
 type Mutation {
