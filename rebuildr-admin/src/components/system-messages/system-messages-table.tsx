@@ -20,6 +20,7 @@ import {
   TransportationEnum,
 } from "gql/graphql";
 import { previewSystemMessage } from "@/queries/system-messages/preview-system-message";
+import { SystemMessagePreview } from "./system-message-preview";
 
 type FormValues = {
   step: SystemMessageStepEnum;
@@ -225,6 +226,14 @@ const SystemMessagesTable = () => {
             </pre>
           </Typography.Paragraph>
         )}
+      </Card>
+
+      <Card title="Visuell förhandsgranskning">
+        {isLoading ? (
+          <Spin />
+        ) : preview ? (
+          <SystemMessagePreview text={preview} />
+        ) : null}
       </Card>
     </div>
   );

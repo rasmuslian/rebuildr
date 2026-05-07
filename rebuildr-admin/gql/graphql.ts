@@ -346,36 +346,6 @@ export type CmsListPurchasesResponse = {
   total: Scalars['Int']['output'];
 };
 
-export enum SystemMessageStepEnum {
-  PurchaseInitiated = 'PURCHASE_INITIATED',
-  SellerResponded = 'SELLER_RESPONDED',
-  HandoffConfirmed = 'HANDOFF_CONFIRMED',
-  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
-  ShipmentArrived = 'SHIPMENT_ARRIVED',
-  ShipmentDelivered = 'SHIPMENT_DELIVERED',
-  PurchaseSuccess = 'PURCHASE_SUCCESS',
-  PurchaseReported = 'PURCHASE_REPORTED',
-  SupportConcluded = 'SUPPORT_CONCLUDED',
-  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
-  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
-  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
-}
-
-export enum SystemMessageRoleEnum {
-  Buyer = 'BUYER',
-  Seller = 'SELLER',
-}
-
-export type CmsPreviewSystemMessageInput = {
-  decision?: InputMaybe<Scalars['String']['input']>;
-  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
-  isFree?: InputMaybe<Scalars['Boolean']['input']>;
-  provider?: InputMaybe<ShippingProviderEnum>;
-  role: SystemMessageRoleEnum;
-  step: SystemMessageStepEnum;
-  transportation?: InputMaybe<TransportationEnum>;
-};
-
 export type CmsListSystemMessagesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -399,6 +369,16 @@ export type CmsListUsersResponse = {
   __typename?: 'CmsListUsersResponse';
   total: Scalars['Int']['output'];
   users: Array<User>;
+};
+
+export type CmsPreviewSystemMessageInput = {
+  decision?: InputMaybe<Scalars['String']['input']>;
+  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
+  isFree?: InputMaybe<Scalars['Boolean']['input']>;
+  provider?: InputMaybe<ShippingProviderEnum>;
+  role: SystemMessageRoleEnum;
+  step: SystemMessageStepEnum;
+  transportation?: InputMaybe<TransportationEnum>;
 };
 
 export type CmsProductStatisticsDataPoint = {
@@ -1849,7 +1829,9 @@ export type Query = {
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
+  cmsListSystemMessages: CmsListSystemMessagesResponse;
   cmsListUsers: CmsListUsersResponse;
+  cmsPreviewSystemMessage: Scalars['String']['output'];
   cmsProductStatistics: CmsProductStatisticsResponse;
   cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
   cmsUserStatistics: CmsUserStatisticsResponse;
@@ -1969,8 +1951,18 @@ export type QueryCmsListProjectsArgs = {
 };
 
 
+export type QueryCmsListSystemMessagesArgs = {
+  input: CmsListSystemMessagesInput;
+};
+
+
 export type QueryCmsListUsersArgs = {
   input: CmsListUsersInput;
+};
+
+
+export type QueryCmsPreviewSystemMessageArgs = {
+  input: CmsPreviewSystemMessageInput;
 };
 
 
@@ -2299,6 +2291,26 @@ export type ShippingPrice = {
 export enum ShippingProviderEnum {
   Dhl = 'DHL',
   Postnord = 'POSTNORD'
+}
+
+export enum SystemMessageRoleEnum {
+  Buyer = 'BUYER',
+  Seller = 'SELLER'
+}
+
+export enum SystemMessageStepEnum {
+  HandoffConfirmed = 'HANDOFF_CONFIRMED',
+  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
+  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
+  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
+  PurchaseInitiated = 'PURCHASE_INITIATED',
+  PurchaseReported = 'PURCHASE_REPORTED',
+  PurchaseSuccess = 'PURCHASE_SUCCESS',
+  SellerResponded = 'SELLER_RESPONDED',
+  ShipmentArrived = 'SHIPMENT_ARRIVED',
+  ShipmentDelivered = 'SHIPMENT_DELIVERED',
+  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
+  SupportConcluded = 'SUPPORT_CONCLUDED'
 }
 
 export enum TransportationEnum {
