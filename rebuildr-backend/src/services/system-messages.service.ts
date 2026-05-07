@@ -217,7 +217,8 @@ _Stämmer inte varan med annonsen? ${this.formatLink('Rapportera problem med kö
 
 
 # Påminn nu köparen om att "Godkänna varan" i meddelandefältet.
-Glömmer ni detta sker det automatiskt efter 48h.
+
+# Glömmer ni detta sker det automatiskt efter 48h.
 
 
 # Efter att köparen godkänt - betalar vi ut pengarna till dig.`;
