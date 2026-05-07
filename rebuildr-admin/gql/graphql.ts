@@ -99,10 +99,9 @@ export type BrandsInput = {
 export type Co2Factor = {
   __typename?: 'CO2Factor';
   categoryName: Scalars['String']['output'];
-  depositCoefficient: Scalars['Float']['output'];
+  coefficient: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   productName: Scalars['String']['output'];
-  productionCoefficient: Scalars['Float']['output'];
 };
 
 export enum CanAbortDeniedReasonEnum {
@@ -167,6 +166,13 @@ export enum CategoryIconEnum {
 export type CategoryInput = {
   id: Scalars['String']['input'];
 };
+
+export enum ChatActionEnum {
+  Abort = 'ABORT',
+  Aboutpayout = 'ABOUTPAYOUT',
+  Aboutreview = 'ABOUTREVIEW',
+  Report = 'REPORT'
+}
 
 export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
@@ -357,6 +363,16 @@ export type CmsListUsersResponse = {
   __typename?: 'CmsListUsersResponse';
   total: Scalars['Int']['output'];
   users: Array<User>;
+};
+
+export type CmsPreviewSystemMessageInput = {
+  decision?: InputMaybe<Scalars['String']['input']>;
+  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
+  isFree?: InputMaybe<Scalars['Boolean']['input']>;
+  provider?: InputMaybe<ShippingProviderEnum>;
+  role: SystemMessageRoleEnum;
+  step: SystemMessageStepEnum;
+  transportation?: InputMaybe<TransportationEnum>;
 };
 
 export type CmsProductStatisticsDataPoint = {
@@ -1537,8 +1553,7 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
-  co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
-  co2SavingSeller?: Maybe<Scalars['Float']['output']>;
+  co2Saving?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -1804,10 +1819,12 @@ export type Query = {
   cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
   cmsListBanners: Array<Banner>;
+  cmsListChatActions: Array<ChatActionEnum>;
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
+  cmsPreviewSystemMessage: Scalars['String']['output'];
   cmsProductStatistics: CmsProductStatisticsResponse;
   cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
   cmsUserStatistics: CmsUserStatisticsResponse;
@@ -1929,6 +1946,11 @@ export type QueryCmsListProjectsArgs = {
 
 export type QueryCmsListUsersArgs = {
   input: CmsListUsersInput;
+};
+
+
+export type QueryCmsPreviewSystemMessageArgs = {
+  input: CmsPreviewSystemMessageInput;
 };
 
 
@@ -2257,6 +2279,26 @@ export type ShippingPrice = {
 export enum ShippingProviderEnum {
   Dhl = 'DHL',
   Postnord = 'POSTNORD'
+}
+
+export enum SystemMessageRoleEnum {
+  Buyer = 'BUYER',
+  Seller = 'SELLER'
+}
+
+export enum SystemMessageStepEnum {
+  HandoffConfirmed = 'HANDOFF_CONFIRMED',
+  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
+  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
+  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
+  PurchaseInitiated = 'PURCHASE_INITIATED',
+  PurchaseReported = 'PURCHASE_REPORTED',
+  PurchaseSuccess = 'PURCHASE_SUCCESS',
+  SellerResponded = 'SELLER_RESPONDED',
+  ShipmentArrived = 'SHIPMENT_ARRIVED',
+  ShipmentDelivered = 'SHIPMENT_DELIVERED',
+  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
+  SupportConcluded = 'SUPPORT_CONCLUDED'
 }
 
 export enum TransportationEnum {

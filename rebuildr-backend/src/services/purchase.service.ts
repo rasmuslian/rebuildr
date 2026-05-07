@@ -310,23 +310,23 @@ export class PurchaseService {
 
       if (shippingPriceByProvider) {
         if (product.soldByQuantity && input.purchasedQuantity) {
-        const shippingWeightForQuantity =
-          shippingPriceByProvider.maxWeight * input.purchasedQuantity;
-        const shippingPriceMatchingWeight =
-          await this.shippingPriceService.shippingPriceMatchingWeight(
-            shippingWeightForQuantity,
-          );
-        if (!shippingPriceMatchingWeight) {
-          logger.error({
-            message: 'Product with selected quantity is too heavy!',
-            input,
-            currentUserId,
-          });
-          throw BadUserInputException(
-            'Product with quantity exceeds max weight',
-          );
-        }
-        shippingPrice = shippingPriceMatchingWeight;
+          const shippingWeightForQuantity =
+            shippingPriceByProvider.maxWeight * input.purchasedQuantity;
+          const shippingPriceMatchingWeight =
+            await this.shippingPriceService.shippingPriceMatchingWeight(
+              shippingWeightForQuantity,
+            );
+          if (!shippingPriceMatchingWeight) {
+            logger.error({
+              message: 'Product with selected quantity is too heavy!',
+              input,
+              currentUserId,
+            });
+            throw BadUserInputException(
+              'Product with quantity exceeds max weight',
+            );
+          }
+          shippingPrice = shippingPriceMatchingWeight;
         } else {
           shippingPrice = shippingPriceByProvider;
         }
@@ -424,7 +424,7 @@ export class PurchaseService {
     if (product.soldByQuantity) {
       product.primaryQuantity =
         product.primaryQuantity - input.purchasedQuantity;
-    if (!product.primaryQuantity) {
+      if (!product.primaryQuantity) {
         product.status = ProductStatus.SOLD;
       }
     } else {
@@ -626,7 +626,6 @@ export class PurchaseService {
     if (!purchase.approvedAt && boughtForFree) {
       this.systemMessagesService.purchaseSuccessBuyer(
         purchase.buyer,
-        purchase.product.seller,
         purchase.product,
         purchase,
         true,
@@ -871,9 +870,9 @@ export class PurchaseService {
       purchaseId: purchase.id,
     });
     if (product.soldByQuantity) {
-    product.primaryQuantity =
+      product.primaryQuantity =
         (product.primaryQuantity ?? 0) + purchase.purchasedQuantity;
-    if (product.primaryQuantity) {
+      if (product.primaryQuantity) {
         product.status = ProductStatus.PUBLISHED;
       }
     } else {
@@ -920,7 +919,6 @@ export class PurchaseService {
       });
       await this.systemMessagesService.purchaseSuccessBuyer(
         buyer,
-        seller,
         product,
         purchase,
       );

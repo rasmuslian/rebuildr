@@ -6,19 +6,57 @@ import {
   InputType,
   Mutation,
   Parent,
+  Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Message } from 'src/entities/message.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
+import {
+  ChatActionEnum,
+  CmsPreviewSystemMessageOptions,
+  SystemMessageRoleEnum,
+  SystemMessageStepEnum,
+  SystemMessagesService,
+} from 'src/services/system-messages.service';
+import { TransportationEnum } from 'src/entities/purchase.entity';
+import { ShippingProviderEnum } from 'src/entities/shipping-price.entity';
 import { FileInputType } from './file.resolver';
 import { IMessageLoaders } from 'src/dataloaders/message.loader';
 import { File } from 'src/entities/file.entity';
+
+@InputType()
+export class CmsPreviewSystemMessageInput
+  implements CmsPreviewSystemMessageOptions
+{
+  @Field(() => SystemMessageStepEnum)
+  step: SystemMessageStepEnum;
+
+  @Field(() => SystemMessageRoleEnum)
+  role: SystemMessageRoleEnum;
+
+  @Field(() => TransportationEnum, { nullable: true })
+  transportation?: TransportationEnum;
+
+  @Field({ nullable: true })
+  isFree?: boolean;
+
+  @Field({ nullable: true })
+  firstSale?: boolean;
+
+  @Field(() => ShippingProviderEnum, { nullable: true })
+  provider?: ShippingProviderEnum;
+
+  @Field({ nullable: true })
+  decision?: string;
+}
 
 @InputType()
 export class CreateMessageInput {
@@ -44,7 +82,24 @@ export class MessageResolver {
   constructor(
     @Inject(forwardRef(() => MessageService))
     private messageService: MessageService,
+    private systemMessagesService: SystemMessagesService,
   ) {}
+
+  @Query(() => String)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsPreviewSystemMessage(
+    @Args('input') input: CmsPreviewSystemMessageInput,
+  ): Promise<string> {
+    return this.systemMessagesService.cmsPreviewSystemMessage(input);
+  }
+
+  @Query(() => [ChatActionEnum])
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsListChatActions(): ChatActionEnum[] {
+    return Object.values(ChatActionEnum);
+  }
 
   @Mutation(() => Message)
   @UseGuards(GqlAuthGuard)

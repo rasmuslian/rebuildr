@@ -22,6 +22,7 @@ import {
   TagOutlined,
   TeamOutlined,
   FilePdfOutlined,
+  MessageOutlined,
   ShoppingCartOutlined,
   PictureOutlined,
   BarChartOutlined,
@@ -107,6 +108,13 @@ const SidebarMenu = () => {
 
     { type: "divider" },
     getItem("Köp", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
+
+    { type: "divider" },
+    getItem(
+      "Systemmeddelanden",
+      routes.LIST_SYSTEM_MESSAGES,
+      <MessageOutlined />,
+    ),
 
     { type: "divider" },
     getItem("Användare", routes.LIST_USER, <UserOutlined />),

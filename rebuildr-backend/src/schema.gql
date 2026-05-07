@@ -820,6 +820,8 @@ type Query {
   getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories(input: RootCategoriesInput): [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
+  cmsPreviewSystemMessage(input: CmsPreviewSystemMessageInput!): String!
+  cmsListChatActions: [ChatActionEnum!]!
   getConversation(input: GetConversationInput!): Conversation!
   getConversations(input: GetConversationsInput!): [Conversation!]!
   getUnreadConversationsCount: Int!
@@ -963,6 +965,43 @@ enum OrderCategoriesEnum {
 
 input PopularCategoriesInput {
   limit: Int!
+}
+
+input CmsPreviewSystemMessageInput {
+  step: SystemMessageStepEnum!
+  role: SystemMessageRoleEnum!
+  transportation: TransportationEnum
+  isFree: Boolean
+  firstSale: Boolean
+  provider: ShippingProviderEnum
+  decision: String
+}
+
+enum SystemMessageStepEnum {
+  PURCHASE_INITIATED
+  SELLER_RESPONDED
+  HANDOFF_CONFIRMED
+  SHIPMENT_DROPPED_OFF
+  SHIPMENT_ARRIVED
+  SHIPMENT_DELIVERED
+  PURCHASE_SUCCESS
+  PURCHASE_REPORTED
+  SUPPORT_CONCLUDED
+  PURCHASE_ABORTED_BY_BUYER
+  PURCHASE_ABORTED_BY_SELLER
+  LATE_SHIPPING_DROP_OFF
+}
+
+enum SystemMessageRoleEnum {
+  BUYER
+  SELLER
+}
+
+enum ChatActionEnum {
+  ABORT
+  REPORT
+  ABOUTREVIEW
+  ABOUTPAYOUT
 }
 
 input GetConversationInput {
