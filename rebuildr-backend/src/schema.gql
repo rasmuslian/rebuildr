@@ -669,11 +669,6 @@ type CmsUpdateCategoryResponse {
   imagePutUrl: String
 }
 
-type CmsListSystemMessagesResponse {
-  messages: [Message!]!
-  total: Int!
-}
-
 type ListBrandsResponse {
   brands: [Brand!]!
   total: Int!
@@ -827,7 +822,6 @@ type Query {
   popularCategories(input: PopularCategoriesInput): [Category!]!
   cmsPreviewSystemMessage(input: CmsPreviewSystemMessageInput!): String!
   cmsListChatActions: [ChatActionEnum!]!
-  cmsListSystemMessages(input: CmsListSystemMessagesInput!): CmsListSystemMessagesResponse!
   getConversation(input: GetConversationInput!): Conversation!
   getConversations(input: GetConversationsInput!): [Conversation!]!
   getUnreadConversationsCount: Int!
@@ -1008,12 +1002,6 @@ enum ChatActionEnum {
   REPORT
   ABOUTREVIEW
   ABOUTPAYOUT
-}
-
-input CmsListSystemMessagesInput {
-  page: Int
-  pageSize: Int
-  searchString: String
 }
 
 input GetConversationInput {

@@ -99,10 +99,9 @@ export type BrandsInput = {
 export type Co2Factor = {
   __typename?: 'CO2Factor';
   categoryName: Scalars['String']['output'];
-  depositCoefficient: Scalars['Float']['output'];
+  coefficient: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   productName: Scalars['String']['output'];
-  productionCoefficient: Scalars['Float']['output'];
 };
 
 export enum CanAbortDeniedReasonEnum {
@@ -167,6 +166,13 @@ export enum CategoryIconEnum {
 export type CategoryInput = {
   id: Scalars['String']['input'];
 };
+
+export enum ChatActionEnum {
+  Abort = 'ABORT',
+  Aboutpayout = 'ABOUTPAYOUT',
+  Aboutreview = 'ABOUTREVIEW',
+  Report = 'REPORT'
+}
 
 export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
@@ -343,18 +349,6 @@ export type CmsListPurchasesInput = {
 export type CmsListPurchasesResponse = {
   __typename?: 'CmsListPurchasesResponse';
   purchases: Array<Purchase>;
-  total: Scalars['Int']['output'];
-};
-
-export type CmsListSystemMessagesInput = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  pageSize?: InputMaybe<Scalars['Int']['input']>;
-  searchString?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type CmsListSystemMessagesResponse = {
-  __typename?: 'CmsListSystemMessagesResponse';
-  messages: Array<Message>;
   total: Scalars['Int']['output'];
 };
 
@@ -1559,8 +1553,7 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
-  co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
-  co2SavingSeller?: Maybe<Scalars['Float']['output']>;
+  co2Saving?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -1826,10 +1819,10 @@ export type Query = {
   cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
   cmsListBanners: Array<Banner>;
+  cmsListChatActions: Array<ChatActionEnum>;
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
-  cmsListSystemMessages: CmsListSystemMessagesResponse;
   cmsListUsers: CmsListUsersResponse;
   cmsPreviewSystemMessage: Scalars['String']['output'];
   cmsProductStatistics: CmsProductStatisticsResponse;
@@ -1948,11 +1941,6 @@ export type QueryCmsListProductsArgs = {
 
 export type QueryCmsListProjectsArgs = {
   input: CmsListProjectsInput;
-};
-
-
-export type QueryCmsListSystemMessagesArgs = {
-  input: CmsListSystemMessagesInput;
 };
 
 

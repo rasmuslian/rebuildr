@@ -4,9 +4,7 @@ import {
   Context,
   Field,
   InputType,
-  Int,
   Mutation,
-  ObjectType,
   Parent,
   Query,
   ResolveField,
@@ -61,27 +59,6 @@ export class CmsPreviewSystemMessageInput
 }
 
 @InputType()
-export class CmsListSystemMessagesInput {
-  @Field(() => Int, { nullable: true })
-  page?: number;
-
-  @Field(() => Int, { nullable: true })
-  pageSize?: number;
-
-  @Field(() => String, { nullable: true })
-  searchString?: string;
-}
-
-@ObjectType()
-export class CmsListSystemMessagesResponse {
-  @Field(() => [Message])
-  messages: Message[];
-
-  @Field(() => Int)
-  total: number;
-}
-
-@InputType()
 export class CreateMessageInput {
   //This message is targeted towards an existing conversation
   @Field({ nullable: true })
@@ -122,15 +99,6 @@ export class MessageResolver {
   @Roles([UserRoleEnum.ADMIN])
   cmsListChatActions(): ChatActionEnum[] {
     return Object.values(ChatActionEnum);
-  }
-
-  @Query(() => CmsListSystemMessagesResponse)
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles([UserRoleEnum.ADMIN])
-  async cmsListSystemMessages(
-    @Args('input') input: CmsListSystemMessagesInput,
-  ): Promise<CmsListSystemMessagesResponse> {
-    return this.messageService.cmsListSystemMessages(input);
   }
 
   @Mutation(() => Message)
