@@ -22,6 +22,7 @@ import { Message } from 'src/entities/message.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { MessageService } from 'src/services/message.service';
 import {
+  ChatActionEnum,
   CmsPreviewSystemMessageOptions,
   SystemMessageRoleEnum,
   SystemMessageStepEnum,
@@ -114,6 +115,13 @@ export class MessageResolver {
     @Args('input') input: CmsPreviewSystemMessageInput,
   ): Promise<string> {
     return this.systemMessagesService.cmsPreviewSystemMessage(input);
+  }
+
+  @Query(() => [ChatActionEnum])
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsListChatActions(): ChatActionEnum[] {
+    return Object.values(ChatActionEnum);
   }
 
   @Query(() => CmsListSystemMessagesResponse)

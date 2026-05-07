@@ -826,6 +826,7 @@ type Query {
   rootCategories(input: RootCategoriesInput): [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
   cmsPreviewSystemMessage(input: CmsPreviewSystemMessageInput!): String!
+  cmsListChatActions: [ChatActionEnum!]!
   cmsListSystemMessages(input: CmsListSystemMessagesInput!): CmsListSystemMessagesResponse!
   getConversation(input: GetConversationInput!): Conversation!
   getConversations(input: GetConversationsInput!): [Conversation!]!
@@ -1000,6 +1001,13 @@ enum SystemMessageStepEnum {
 enum SystemMessageRoleEnum {
   BUYER
   SELLER
+}
+
+enum ChatActionEnum {
+  ABORT
+  REPORT
+  ABOUTREVIEW
+  ABOUTPAYOUT
 }
 
 input CmsListSystemMessagesInput {
