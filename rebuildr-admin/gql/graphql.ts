@@ -346,6 +346,48 @@ export type CmsListPurchasesResponse = {
   total: Scalars['Int']['output'];
 };
 
+export enum SystemMessageStepEnum {
+  PurchaseInitiated = 'PURCHASE_INITIATED',
+  SellerResponded = 'SELLER_RESPONDED',
+  HandoffConfirmed = 'HANDOFF_CONFIRMED',
+  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
+  ShipmentArrived = 'SHIPMENT_ARRIVED',
+  ShipmentDelivered = 'SHIPMENT_DELIVERED',
+  PurchaseSuccess = 'PURCHASE_SUCCESS',
+  PurchaseReported = 'PURCHASE_REPORTED',
+  SupportConcluded = 'SUPPORT_CONCLUDED',
+  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
+  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
+  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
+}
+
+export enum SystemMessageRoleEnum {
+  Buyer = 'BUYER',
+  Seller = 'SELLER',
+}
+
+export type CmsPreviewSystemMessageInput = {
+  decision?: InputMaybe<Scalars['String']['input']>;
+  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
+  isFree?: InputMaybe<Scalars['Boolean']['input']>;
+  provider?: InputMaybe<ShippingProviderEnum>;
+  role: SystemMessageRoleEnum;
+  step: SystemMessageStepEnum;
+  transportation?: InputMaybe<TransportationEnum>;
+};
+
+export type CmsListSystemMessagesInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsListSystemMessagesResponse = {
+  __typename?: 'CmsListSystemMessagesResponse';
+  messages: Array<Message>;
+  total: Scalars['Int']['output'];
+};
+
 export type CmsListUsersInput = {
   canSell?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;

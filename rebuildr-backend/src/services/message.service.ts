@@ -5,8 +5,12 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
-import { CreateMessageInput } from 'src/resolvers/message.resolver';
-import { IsNull, Repository } from 'typeorm';
+import {
+  CmsListSystemMessagesInput,
+  CmsListSystemMessagesResponse,
+  CreateMessageInput,
+} from 'src/resolvers/message.resolver';
+import { ILike, IsNull, Repository } from 'typeorm';
 import { MailService } from './mail.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -202,6 +206,36 @@ export class MessageService {
     //---------------------------------------------
 
     return await this.messageRepository.save(message);
+  }
+
+  async cmsListSystemMessages(
+    input: CmsListSystemMessagesInput,
+  ): Promise<CmsListSystemMessagesResponse> {
+    const { page = 0, pageSize = 10, searchString = '' } = input;
+    const skip = Math.max(0, pageSize * page);
+
+    const [messages, total] = await this.messageRepository.findAndCount({
+      where: [
+        {
+          messageType: MessageTypeEnum.SYSTEM,
+          receiver: { username: ILike(`%${searchString}%`) },
+        },
+        {
+          messageType: MessageTypeEnum.SYSTEM,
+          receiver: { email: ILike(`%${searchString}%`) },
+        },
+        {
+          messageType: MessageTypeEnum.SYSTEM,
+          message: ILike(`%${searchString}%`),
+        },
+      ],
+      relations: { receiver: true, conversation: true },
+      order: { createdAt: 'DESC' },
+      take: pageSize,
+      skip,
+    });
+
+    return { messages, total };
   }
 
   async deleteMany(messages: Message[]) {

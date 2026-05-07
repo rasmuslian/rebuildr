@@ -45,4 +45,6 @@ export enum routes {
   EDIT_BANNER = "/admin/banner/edit",
 
   STATISTICS = "/admin/statistics",
+
+  LIST_SYSTEM_MESSAGES = "/admin/system-messages",
 }
