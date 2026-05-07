@@ -115,126 +115,130 @@ const SystemMessagesTable = () => {
     setValues((prev) => ({ ...prev, ...patch }));
 
   return (
-    <div className="flex w-full flex-col gap-6" style={{ maxWidth: 900 }}>
+    <div className="flex w-full flex-col gap-6">
       <Divider orientation="start">
         <h3>Systemmeddelanden – förhandsgranska</h3>
       </Divider>
 
-      <Card>
-        <Form layout="vertical">
-          <Form.Item label="Händelse">
-            <Select
-              value={values.step}
-              onChange={(step) => set({ step })}
-              options={Object.values(SystemMessageStepEnum).map((s) => ({
-                value: s,
-                label: STEP_LABELS[s],
-              }))}
-            />
-          </Form.Item>
+      <div className="flex w-full gap-6 items-start">
+        <div className="flex flex-col gap-6" style={{ flex: 1 }}>
+          <Card>
+            <Form layout="vertical">
+              <Form.Item label="Händelse">
+                <Select
+                  value={values.step}
+                  onChange={(step) => set({ step })}
+                  options={Object.values(SystemMessageStepEnum).map((s) => ({
+                    value: s,
+                    label: STEP_LABELS[s],
+                  }))}
+                />
+              </Form.Item>
 
-          {showRole && (
-            <Form.Item label="Mottagare">
-              <Radio.Group
-                value={values.role}
-                onChange={(e) => set({ role: e.target.value })}
-              >
-                <Radio.Button value={SystemMessageRoleEnum.Buyer}>
-                  Köpare
-                </Radio.Button>
-                <Radio.Button value={SystemMessageRoleEnum.Seller}>
-                  Säljare
-                </Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-          )}
+              {showRole && (
+                <Form.Item label="Mottagare">
+                  <Radio.Group
+                    value={values.role}
+                    onChange={(e) => set({ role: e.target.value })}
+                  >
+                    <Radio.Button value={SystemMessageRoleEnum.Buyer}>
+                      Köpare
+                    </Radio.Button>
+                    <Radio.Button value={SystemMessageRoleEnum.Seller}>
+                      Säljare
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+              )}
 
-          {showTransport && (
-            <Form.Item label="Transportmetod">
-              <Radio.Group
-                value={values.transportation}
-                onChange={(e) => set({ transportation: e.target.value })}
-              >
-                <Radio.Button value={TransportationEnum.Pickup}>
-                  Avhämtning
-                </Radio.Button>
-                <Radio.Button value={TransportationEnum.Shipping}>
-                  Frakt
-                </Radio.Button>
-                <Radio.Button value={TransportationEnum.Delivery}>
-                  Hemtransport
-                </Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-          )}
+              {showTransport && (
+                <Form.Item label="Transportmetod">
+                  <Radio.Group
+                    value={values.transportation}
+                    onChange={(e) => set({ transportation: e.target.value })}
+                  >
+                    <Radio.Button value={TransportationEnum.Pickup}>
+                      Avhämtning
+                    </Radio.Button>
+                    <Radio.Button value={TransportationEnum.Shipping}>
+                      Frakt
+                    </Radio.Button>
+                    <Radio.Button value={TransportationEnum.Delivery}>
+                      Hemtransport
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+              )}
 
-          {showProvider && (
-            <Form.Item label="Fraktleverantör">
-              <Radio.Group
-                value={values.provider}
-                onChange={(e) => set({ provider: e.target.value })}
-              >
-                <Radio.Button value={ShippingProviderEnum.Dhl}>DHL</Radio.Button>
-                <Radio.Button value={ShippingProviderEnum.Postnord}>
-                  PostNord
-                </Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-          )}
+              {showProvider && (
+                <Form.Item label="Fraktleverantör">
+                  <Radio.Group
+                    value={values.provider}
+                    onChange={(e) => set({ provider: e.target.value })}
+                  >
+                    <Radio.Button value={ShippingProviderEnum.Dhl}>DHL</Radio.Button>
+                    <Radio.Button value={ShippingProviderEnum.Postnord}>
+                      PostNord
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+              )}
 
-          {showFree && (
-            <Form.Item>
-              <Checkbox
-                checked={values.isFree}
-                onChange={(e) => set({ isFree: e.target.checked })}
-              >
-                Gratis köp (0 kr)
-              </Checkbox>
-            </Form.Item>
-          )}
+              {showFree && (
+                <Form.Item>
+                  <Checkbox
+                    checked={values.isFree}
+                    onChange={(e) => set({ isFree: e.target.checked })}
+                  >
+                    Gratis köp (0 kr)
+                  </Checkbox>
+                </Form.Item>
+              )}
 
-          {showFirstSale && (
-            <Form.Item>
-              <Checkbox
-                checked={values.firstSale}
-                onChange={(e) => set({ firstSale: e.target.checked })}
-              >
-                Första försäljning
-              </Checkbox>
-            </Form.Item>
-          )}
+              {showFirstSale && (
+                <Form.Item>
+                  <Checkbox
+                    checked={values.firstSale}
+                    onChange={(e) => set({ firstSale: e.target.checked })}
+                  >
+                    Första försäljning
+                  </Checkbox>
+                </Form.Item>
+              )}
 
-          {showDecision && (
-            <Form.Item label="Beslut">
-              <Input
-                placeholder="Skriv beslutets text..."
-                value={values.decision}
-                onChange={(e) => set({ decision: e.target.value })}
-              />
-            </Form.Item>
-          )}
-        </Form>
-      </Card>
+              {showDecision && (
+                <Form.Item label="Beslut">
+                  <Input
+                    placeholder="Skriv beslutets text..."
+                    value={values.decision}
+                    onChange={(e) => set({ decision: e.target.value })}
+                  />
+                </Form.Item>
+              )}
+            </Form>
+          </Card>
 
-      <Card title="Förhandsgranskning">
-        {isLoading ? (
-          <Spin />
-        ) : (
-          <Typography.Paragraph>
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-              {preview}
-            </pre>
-          </Typography.Paragraph>
-        )}
-      </Card>
+          <Card title="Förhandsgranskning">
+            {isLoading ? (
+              <Spin />
+            ) : (
+              <Typography.Paragraph>
+                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                  {preview}
+                </pre>
+              </Typography.Paragraph>
+            )}
+          </Card>
+        </div>
 
-      <Card title="Visuell förhandsgranskning">
-        {isLoading ? (
-          <Spin />
-        ) : preview ? (
-          <SystemMessagePreview text={preview} />
-        ) : null}
-      </Card>
+        <Card title="Visuell förhandsgranskning" style={{ width: 320, flexShrink: 0 }}>
+          {isLoading ? (
+            <Spin />
+          ) : preview ? (
+            <SystemMessagePreview text={preview} />
+          ) : null}
+        </Card>
+      </div>
     </div>
   );
 };

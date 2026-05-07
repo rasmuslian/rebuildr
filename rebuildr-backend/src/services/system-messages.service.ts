@@ -67,6 +67,7 @@ export enum ChatActionEnum {
   ABORT = 'ABORT',
   REPORT = 'REPORT',
   ABOUTREVIEW = 'ABOUTREVIEW',
+  ABOUTPAYOUT = 'ABOUTPAYOUT',
 }
 registerEnumType(ChatActionEnum, { name: 'ChatActionEnum' });
 
@@ -318,6 +319,8 @@ _${this.formatLink('Om omdömen på Rebuildr', ChatActionEnum.ABOUTREVIEW)}_`;
 
 
 # ${firstSale ? 'Eftersom det här är din första försäljning kan det ta upp till 7 vardagar innan pengarna finns på plats. Därefter tar det normalt 1-3 bankdagar.' : 'Pengarna beräknas nå dig inom 1-3 bankdagar.'}
+
+_${this.formatLink('Om utbetalningar', ChatActionEnum.ABOUTPAYOUT)}_
 
 
 # Nu kvarstår bara att lämna omdöme på köparen.

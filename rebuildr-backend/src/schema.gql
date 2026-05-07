@@ -972,6 +972,42 @@ input PopularCategoriesInput {
   limit: Int!
 }
 
+input CmsPreviewSystemMessageInput {
+  step: SystemMessageStepEnum!
+  role: SystemMessageRoleEnum!
+  transportation: TransportationEnum
+  isFree: Boolean
+  firstSale: Boolean
+  provider: ShippingProviderEnum
+  decision: String
+}
+
+enum SystemMessageStepEnum {
+  PURCHASE_INITIATED
+  SELLER_RESPONDED
+  HANDOFF_CONFIRMED
+  SHIPMENT_DROPPED_OFF
+  SHIPMENT_ARRIVED
+  SHIPMENT_DELIVERED
+  PURCHASE_SUCCESS
+  PURCHASE_REPORTED
+  SUPPORT_CONCLUDED
+  PURCHASE_ABORTED_BY_BUYER
+  PURCHASE_ABORTED_BY_SELLER
+  LATE_SHIPPING_DROP_OFF
+}
+
+enum SystemMessageRoleEnum {
+  BUYER
+  SELLER
+}
+
+input CmsListSystemMessagesInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+}
+
 input GetConversationInput {
   id: String!
 }

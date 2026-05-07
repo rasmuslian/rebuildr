@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const ACTION_HREFS = new Set(["ABORT", "REPORT", "ABOUT_REVIEW"]);
+const ACTION_HREFS = new Set(["ABORT", "REPORT", "ABOUTREVIEW", "ABOUTPAYOUT"]);
 
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
