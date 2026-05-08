@@ -1,5 +1,4 @@
-import { Pressable, View } from "react-native";
-import { Image } from "expo-image";
+import { Pressable, View, Image } from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { Icon } from "@icons/icon";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
