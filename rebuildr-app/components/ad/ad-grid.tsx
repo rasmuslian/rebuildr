@@ -78,7 +78,6 @@ export const AdGrid = ({
               ? DeletedProduct.uri
               : (imageUri ?? PlaceholderProduct.uri)
           }
-          cachePolicy="memory-disk"
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}

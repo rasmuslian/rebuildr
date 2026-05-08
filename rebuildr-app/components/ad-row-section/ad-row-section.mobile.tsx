@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { AdGrid } from "@components/ad/ad-grid";
-import { Image } from "expo-image";
 import { View } from "react-native";
 import { AdRowSectionQuery } from "@/gql/graphql";
 
@@ -21,12 +19,6 @@ export const AdRowSectionMobile = ({
   title,
   onToggleProductHeart,
 }: Props) => {
-  useEffect(() => {
-    data?.products.products.forEach((p) => {
-      if (p.primaryImage?.url) Image.prefetch(p.primaryImage.url);
-    });
-  }, [data]);
-
   if (!data || data.products.products.length < 1) return null;
 
   return (
