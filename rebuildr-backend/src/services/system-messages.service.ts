@@ -68,6 +68,7 @@ export enum ChatActionEnum {
   REPORT = 'REPORT',
   ABOUTREVIEW = 'ABOUTREVIEW',
   ABOUTPAYOUT = 'ABOUTPAYOUT',
+  ABOUTABORT = 'ABOUTABORT',
 }
 registerEnumType(ChatActionEnum, { name: 'ChatActionEnum' });
 

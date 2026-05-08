@@ -1002,6 +1002,7 @@ enum ChatActionEnum {
   REPORT
   ABOUTREVIEW
   ABOUTPAYOUT
+  ABOUTABORT
 }
 
 input GetConversationInput {
