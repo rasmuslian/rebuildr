@@ -1,5 +1,4 @@
-import { Pressable, View } from "react-native";
-import { Image } from "expo-image";
+import { Pressable, View, Image } from "react-native";
 import { borderRadius } from "@constants/sizes";
 import { Icon } from "@icons/icon";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
@@ -75,7 +74,6 @@ export const AdGrid = ({
               ? DeletedProduct.uri
               : (imageUri ?? PlaceholderProduct.uri)
           }
-          cachePolicy="memory-disk"
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}

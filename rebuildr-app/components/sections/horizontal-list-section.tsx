@@ -7,6 +7,7 @@ type Props<T> = {
   data: T[];
   renderItem: ({ item }: { item: T }) => React.ReactNode;
   visibleItems: 2 | 3;
+  keyExtractor?: (item: T) => string;
 };
 
 export const HoriztalListSection = <T,>({
@@ -15,6 +16,7 @@ export const HoriztalListSection = <T,>({
   data,
   renderItem,
   visibleItems = 2,
+  keyExtractor,
 }: Props<T>) => {
   const { width: screenWidth } = useWindowDimensions();
 
@@ -32,6 +34,7 @@ export const HoriztalListSection = <T,>({
       <FlatList
         showsHorizontalScrollIndicator={false}
         data={data}
+        keyExtractor={keyExtractor}
         contentContainerStyle={{ gap: 16, marginHorizontal: 16 }}
         horizontal
         style={{ marginHorizontal: -16 }}
