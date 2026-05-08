@@ -27,6 +27,7 @@ export const AdRowSectionMobile = ({
         title={title}
         data={data?.products.products ?? []}
         onPress={() => onPress()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           return (
             <AdGrid
