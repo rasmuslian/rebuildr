@@ -69,9 +69,6 @@ export const AdGrid = ({
     >
       <View>
         <Image
-          onError={() => {
-            console.log(`Error loading image, ${imageUri}`);
-          }}
           source={
             status === ProductStatusEnum.Deleted
               ? DeletedProduct.uri
