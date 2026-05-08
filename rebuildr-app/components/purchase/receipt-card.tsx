@@ -4,7 +4,6 @@ import {
   TransportationEnum,
   UserType,
 } from "@/gql/graphql";
-import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
 import { Body, Label } from "@components/typography/text";
 import { paymentMethodStrings } from "@constants/paymentMethods";
@@ -48,7 +47,8 @@ export const ReceiptCard = ({ userType, role, payedAt, ...rest }: Props) => {
 };
 
 type BuyerReceiptCardProps = {
-  price: number;
+  productPrice: number;
+  purchasedQuantity?: number | null;
   shippingPrice?: ShippingPrice | null;
   deliveryPrice?: number | null;
   paymentMethod?: PaymentMethod | null;
@@ -56,13 +56,15 @@ type BuyerReceiptCardProps = {
 };
 
 const BuyerReceiptCard = ({
-  price,
+  productPrice,
+  purchasedQuantity,
   shippingPrice,
   deliveryPrice,
   paymentMethod,
   transportationMethod,
 }: BuyerReceiptCardProps) => {
-  let totalPrice = price;
+  const quantityPrice = productPrice * (purchasedQuantity ?? 1);
+  let totalPrice = quantityPrice;
   if (transportationMethod === TransportationEnum.Delivery) {
     totalPrice += deliveryPrice ?? 0;
   }
@@ -71,7 +73,7 @@ const BuyerReceiptCard = ({
   }
   return (
     <>
-      <Row left="Pris för vara" right={`${price} kr`} />
+      <Row left="Pris för vara" right={`${quantityPrice} kr`} />
       {shippingPrice &&
         transportationMethod === TransportationEnum.Shipping && (
           <Row
@@ -94,7 +96,8 @@ const BuyerReceiptCard = ({
   );
 };
 type SellerReceiptCardProps = {
-  price: number;
+  productPrice: number;
+  purchasedQuantity?: number | null;
   shippingPrice?: ShippingPrice | null;
   deliveryPrice?: number | null;
   paymentMethod?: PaymentMethod | null;
@@ -103,18 +106,20 @@ type SellerReceiptCardProps = {
 };
 
 const SellerReceiptCard = ({
-  price,
+  productPrice,
+  purchasedQuantity,
   shippingPrice,
   deliveryPrice,
   paymentMethod,
   transportationMethod,
   boughtForFree,
 }: SellerReceiptCardProps) => {
-  const provision = Math.round(price * 0.1);
-  const earnings = price - provision;
+  const quantityPrice = productPrice * (purchasedQuantity ?? 1);
+  const provision = Math.round(quantityPrice * 0.1);
+  const earnings = quantityPrice - provision;
   return (
     <>
-      <Row left="Ditt försäljningspris" right={`${price} kr`} />
+      <Row left="Ditt försäljningspris" right={`${quantityPrice} kr`} />
       {!boughtForFree && (
         <Row left="Provision till RebuildR (10%)" right={`-${provision} kr`} />
       )}
@@ -140,7 +145,8 @@ const SellerReceiptCard = ({
   );
 };
 type BusinessReceiptCardProps = {
-  price: number;
+  productPrice: number;
+  purchasedQuantity?: number | null;
   shippingPrice?: ShippingPrice | null;
   deliveryPrice?: number | null;
   paymentMethod?: PaymentMethod | null;
@@ -148,18 +154,23 @@ type BusinessReceiptCardProps = {
 };
 
 const BusinessReceiptCard = ({
-  price,
+  productPrice,
+  purchasedQuantity,
   shippingPrice,
   deliveryPrice,
   paymentMethod,
   transportationMethod,
 }: SellerReceiptCardProps) => {
-  const provision = Math.round(price * 0.1);
-  const earnings = price - provision;
-  const vat = Math.round(price * 0.25);
+  const quantityPrice = productPrice * (purchasedQuantity ?? 1);
+  const provision = Math.round(quantityPrice * 0.1);
+  const earnings = quantityPrice - provision;
+  const vat = Math.round(quantityPrice * 0.25);
   return (
     <>
-      <Row left="Ditt försäljningspris (inkl. moms)" right={`${price} kr`} />
+      <Row
+        left="Ditt försäljningspris (inkl. moms)"
+        right={`${quantityPrice} kr`}
+      />
       <Row left="Varav moms (25%)" right={`${vat} kr`} />
       <Row left="Provision till RebuildR (10%)" right={`-${provision} kr`} />
       <Divider />

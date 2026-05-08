@@ -30,6 +30,9 @@ import { Photos } from "./photos";
 import { Plus } from "./plus";
 import { Trash } from "./trash";
 import { Upload } from "./upload";
+import { Download } from "./download";
+import { Kebab } from "./kebab";
+import { ArrowUp } from "./arrowUp";
 import { AddFile } from "./addFile";
 import { User } from "./user";
 import { Message } from "./message";
@@ -92,6 +95,9 @@ export type IconType =
   | "navigation"
   | "trash"
   | "upload"
+  | "download"
+  | "kebab"
+  | "arrowUp"
   | "file"
   | "addFile"
   | "user"
@@ -237,6 +243,12 @@ export const Icon = ({
       return <Trash {...props} size={size} color={color} />;
     case "upload":
       return <Upload {...props} size={size} color={color} />;
+    case "download":
+      return <Download {...props} size={size} color={color} />;
+    case "kebab":
+      return <Kebab {...props} size={size} color={color} />;
+    case "arrowUp":
+      return <ArrowUp {...props} size={size} color={color} />;
     case "file":
       return <File {...props} size={size} color={color} />;
     case "addFile":

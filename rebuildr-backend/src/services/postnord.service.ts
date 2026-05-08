@@ -175,12 +175,14 @@ export class PostnordService {
               purchase.buyer,
               purchase.product.seller,
               purchase.product,
+              purchase,
             );
             //to buyer
             this.systemMessagesService.shipmentDroppedOffBuyer(
               purchase.buyer,
               purchase.product.seller,
               purchase.product,
+              purchase,
             );
           }
           purchase.shipmentDroppedOffAt = new Date(eventTime);
@@ -201,8 +203,8 @@ export class PostnordService {
           //to buyer
           this.systemMessagesService.shipmentDeliveredBuyer(
             purchase.buyer,
-            purchase.product.seller,
             purchase.product,
+            purchase,
           );
 
           //to seller
@@ -210,6 +212,7 @@ export class PostnordService {
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
           );
         }
         await this.purchaseRepository.save({

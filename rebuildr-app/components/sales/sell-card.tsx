@@ -32,9 +32,10 @@ export const SellCard = ({ purchase, onPress, selected }: Props) => {
       adListProps={{
         title: product.title,
         condition: product.condition,
-        quantity: product.primaryQuantity,
+        quantity: purchase.purchasedQuantity ?? product.primaryQuantity,
         quantityUnit: product.primaryUnit,
         price: product.price,
+        soldByQuantity: product.soldByQuantity,
         imageUrl: product.primaryImage?.url,
         status: product.status,
       }}

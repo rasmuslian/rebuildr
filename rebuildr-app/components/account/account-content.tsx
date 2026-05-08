@@ -10,6 +10,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
 import { isPurchaseDone } from "@/utils/purchases/purchases";
+import { useLogout } from "@hooks/useLogout";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -55,12 +56,19 @@ type AccountState = {
 
 type Props = {
   onNavigation?: (state: AccountState) => void;
+  onClose?: () => void;
 };
 
-export default function AccountContent({ onNavigation }: Props) {
+export default function AccountContent({ onNavigation, onClose }: Props) {
   const [editMode, setEditMode] = useState(false);
   const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+  const { logout, loading: logoutLoading } = useLogout();
   const me = data?.me;
+
+  const handleLogout = async () => {
+    await logout();
+    onClose?.();
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -151,6 +159,12 @@ export default function AccountContent({ onNavigation }: Props) {
           }
         />
       </View>
+      <Button
+        label="Logga ut"
+        onPress={handleLogout}
+        type="outlined"
+        loading={logoutLoading}
+      />
     </View>
   );
 }

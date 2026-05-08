@@ -492,30 +492,21 @@ export class StripeService {
   }
   async linkChargeToPurchase(charge: Stripe.Charge, logger: Logger) {
     const paymentIntentId = idFromObject(charge.payment_intent);
-    const purchase = await this.purchaseRepository.findOne({
-      where: { paymentIntentId },
-    });
-    if (!purchase) {
-      logger.error('linkChargeToPurchase: Could not find purchase', {
-        charge,
-      });
+    const result = await this.purchaseRepository.update(
+      { paymentIntentId, chargeId: null },
+      { chargeId: charge.id },
+    );
+    if (result.affected === 0) {
+      logger.info(
+        'linkChargeToPurchase: No purchase found or charge already linked',
+        { paymentIntentId, chargeId: charge.id },
+      );
       return;
-    }
-    if (purchase.chargeId) {
-      logger.info('LinkChargeToPurchase: Charge already linked', {
-        paymentIntentId,
-        purchaseId: purchase.id,
-        chargeId: charge.id,
-      });
-      return purchase;
     }
     logger.info('Link Charge to Purchase', {
       paymentIntentId,
-      purchaseId: purchase.id,
       chargeId: charge.id,
     });
-    purchase.chargeId = charge.id;
-    return await this.purchaseRepository.save(purchase);
   }
 
   async linkTransferToPurchase(transfer: Stripe.Transfer, logger: Logger) {
@@ -543,26 +534,21 @@ export class StripeService {
     }
     const chargeId = idFromObject(transfer.source_transaction);
 
-    const purchase = await this.purchaseRepository.findOne({
-      where: {
-        chargeId,
-      },
-    });
-    if (!purchase) {
+    const destinationPaymentId = idFromObject(transfer.destination_payment);
+    const result = await this.purchaseRepository.update(
+      { chargeId },
+      { transferId: transfer.id, destinationPaymentId },
+    );
+    if (result.affected === 0) {
       this.logger.error('linkTransferToPurchase: Could not find purchase', {
         transfer: transfer,
       });
       throw new Error('linkTransferToPurchase: Could not find purchase');
     }
     logger.info('Link Transfer to Purchase', {
-      paymentIntentId: purchase.paymentIntentId,
       chargeId,
-      purchaseId: purchase.id,
       transferId: transfer.id,
     });
-    purchase.transferId = transfer.id;
-    purchase.destinationPaymentId = idFromObject(transfer.destination_payment);
-    return await this.purchaseRepository.save(purchase);
   }
 
   //This function is used to delete a connected account. Will only work on accounts whose balance is 0.

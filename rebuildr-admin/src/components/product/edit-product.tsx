@@ -79,6 +79,7 @@ const EditProduct = ({ product }: Props) => {
           ]),
         ),
       },
+      soldByQuantity: product.soldByQuantity ?? false,
       sellerId: product.sellerId,
       project: {
         hasProject: !product.noProject,
@@ -169,6 +170,7 @@ const EditProduct = ({ product }: Props) => {
         shipping.enabled && shipping.shippingPriceId
           ? [shipping.shippingPriceId]
           : [],
+      soldByQuantity: formData.soldByQuantity,
     };
 
     const response = await mutateAsync(updatedProduct);

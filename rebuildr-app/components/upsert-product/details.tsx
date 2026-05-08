@@ -16,7 +16,11 @@ import { Button } from "@components/buttons/button";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 import { ColorSection } from "@components/product/color-section";
-import { MeasurementTypeEnum, MeasurementUnitEnum } from "@/gql/graphql";
+import {
+  MeasurementTypeEnum,
+  MeasurementUnitEnum,
+  QuantityUnitEnum,
+} from "@/gql/graphql";
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
 
@@ -102,6 +106,10 @@ export const Details = ({
             priceError={badFields?.["price"]}
             isGiveaway={!!product.isGiveaway}
             onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
+            soldByQuantity={!!product.soldByQuantity}
+            onUpdateSoldByQuantity={(soldByQuantity) =>
+              update({ soldByQuantity, price: undefined })
+            }
           />
           <DescriptionSection
             product={product}
@@ -118,12 +126,21 @@ export const Details = ({
             primaryQuantity={product.primaryQuantity}
             primaryUnit={product.primaryUnit}
             primaryError={badFields?.["primary"]}
-            onChangePrimary={({ quantity, unit }) =>
-              update({
+            onChangePrimary={({ quantity, unit }) => {
+              let updateArguments: Partial<ProductFields> = {
                 primaryQuantity: quantity,
                 primaryUnit: unit,
-              })
-            }
+              };
+              //If we are going from kg to something else
+              if (
+                product.primaryUnit === QuantityUnitEnum.Kg &&
+                unit !== QuantityUnitEnum.Kg
+              ) {
+                //reset weight. This is because weight is controlled by primaryQuantity if primaryUnit is kg
+                updateArguments = { ...updateArguments, weight: 0 };
+              }
+              update(updateArguments);
+            }}
             secondaryQuantity={product.secondaryQuantity}
             secondaryUnit={product.secondaryUnit}
             onChangeSecondary={({ quantity, unit }) =>

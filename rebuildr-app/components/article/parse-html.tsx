@@ -80,14 +80,20 @@ export default function ParseHtml({ html }: Props) {
               : -1;
 
             return (
-              <View style={{ flexDirection: "row", gap: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  marginBottom: 8,
+                }}
+              >
                 {isOrdered ? (
                   <Body size="medium">{`${index + 1}.`}</Body>
                 ) : (
-                  <Icon icon="bullet" size={14} />
+                  <Icon icon="bullet" size={14} style={{ marginTop: 4 }} />
                 )}
                 <View style={{ flex: 1 }}>
-                  <Body size="medium" style={{ marginBottom: 16 }}>
+                  <Body size="medium">
                     {domToReact(domNode.children as DOMNode[], options)}
                   </Body>
                 </View>

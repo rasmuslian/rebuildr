@@ -5,23 +5,20 @@ import { Product } from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
-import {
-  GetConversationsInput,
-  GetConversationsType,
-} from 'src/resolvers/message.resolver';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
-import { PurchaseService } from './purchase.service';
+import { CreateMessageInput } from 'src/resolvers/message.resolver';
+import { IsNull, Repository } from 'typeorm';
 import { MailService } from './mail.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { UserService } from './user.service';
-import { FileInputType } from 'src/resolvers/file.resolver';
 import { FileService } from './file.service';
+import { Conversation } from 'src/entities/conversation.entity';
+import { PurchaseService } from './purchase.service';
 
 export interface SystemMessageInput {
   productId: string;
-  senderId: string;
+  purchaseId: string;
+  buyerId: string;
   receiverId: string;
   message: string;
 }
@@ -34,154 +31,26 @@ export class MessageService {
     private userRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    private dataSource: DataSource,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     private mailService: MailService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private fileService: FileService,
+    @InjectRepository(Conversation)
+    private conversationRepository: Repository<Conversation>,
   ) {}
 
-  async getConversation(
-    productId: string,
-    otherUserId: string,
-    currentUserId: string,
-  ) {
-    const result = await this.messageRepository.find({
-      where: [
-        {
-          product: { id: productId },
-          receiver: { id: currentUserId },
-          sender: { id: otherUserId },
-        },
-        {
-          product: { id: productId },
-          sender: { id: currentUserId },
-          receiver: { id: otherUserId },
-          messageType: MessageTypeEnum.USER,
-        },
-      ],
-      order: {
-        createdAt: 'DESC',
-      },
-    });
-
-    return result;
-  }
-
-  /**
-   * Get all conversations for a user
-   *
-   * A conversation is defined by its last message,
-   * so we only return the last message of each conversation here.
-   *
-   * readAt is from the receiver's perspective, so it is from the last message sent to the receiver.
-   *
-   * selling: boolean - true if the user is the seller, false if the user is the buyer
-   */
-  async getConversations(
-    input: GetConversationsInput,
-    currentUserId: string,
-  ): Promise<Message[]> {
-    const conversations = await this.dataSource
-      .createQueryBuilder()
-      .select(
-        'm.message_id as id, m.message_message as message, m."message_createdAt" as "createdAt", m."message_senderId" as "senderId", m."message_receiverId" as "receiverId", m."message_productId" as "productId", m."message_readAt" as "readAt", m."message_messageType" as "messageType"',
-      )
-      .from((qb) => {
-        qb.select('message')
-          .addSelect(
-            `row_number() over(
-              partition by message."productId",
-              CASE 
-                WHEN message."senderId" = '${currentUserId}' THEN message."receiverId" 
-                ELSE message."senderId" 
-              END
-              order by message."createdAt" desc
-              )`,
-            'rank',
-          )
-          .from(Message, 'message');
-
-        if (input.type === GetConversationsType.SELLING) {
-          qb.innerJoin(
-            'message.product',
-            'product',
-            'product.sellerId = :userId',
-            {
-              userId: currentUserId,
-            },
-          );
-        }
-
-        if (input.type === GetConversationsType.BUYING) {
-          qb.innerJoin(
-            'message.product',
-            'product',
-            'product.sellerId != :userId',
-            {
-              userId: currentUserId,
-            },
-          );
-        }
-
-        qb.where(
-          `(message."receiverId" = :userId OR (message."senderId" = :userId AND message."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum))`,
-          {
-            userId: currentUserId,
-          },
-        );
-
-        if (input.productId) {
-          qb.andWhere(`message."productId" = '${input.productId}'`);
-        }
-
-        return qb;
-      }, 'm')
-      .where('m.rank = 1')
-      .orderBy('m."message_createdAt"', 'DESC')
-      .getRawMany();
-
-    return conversations;
-  }
-
-  async create(input: {
-    senderId: string;
-    receiverId: string;
-    productId: string;
-    message: string;
-    images?: FileInputType[];
-    documents?: FileInputType[];
-  }) {
-    if (input.receiverId === input.senderId) {
-      throw BadUserInputException('Cannot send message on own product');
-    }
+  //if conversationId is present, we add this message to it.
+  //otherwise we create a new conversation and add this message to it
+  async create(input: CreateMessageInput, senderId: string) {
+    //create the message
     const message = new Message();
-
-    const [receiver, sender, product] = await Promise.all([
-      this.userRepository.findOneByOrFail({ id: input.receiverId }),
-      this.userRepository.findOneByOrFail({ id: input.senderId }),
-      this.productRepository.findOneByOrFail({ id: input.productId }),
-      this.purchaseRepository.findOne({
-        where: { productId: input.productId },
-      }),
-    ]).catch(() => {
-      throw BadUserInputException('Invalid conversation');
-    });
-
-    this.purchaseService.handleSellerResponse(
-      input.productId,
-      input.receiverId,
-    );
-
-    message.receiver = receiver;
-    message.sender = sender;
-    message.product = product;
+    message.senderId = senderId;
     message.message = input.message;
-
     const images = input.images;
     if (images) {
       const files = await this.fileService.createFiles(images, true);
@@ -195,78 +64,144 @@ export class MessageService {
       message.documentPutUrls = await this.fileService.uploadFiles(files);
     }
 
+    let conversation: Conversation;
+    if (input.conversationId) {
+      conversation = await this.conversationRepository.findOne({
+        where: [
+          {
+            id: input.conversationId,
+            buyerId: senderId,
+          },
+          {
+            id: input.conversationId,
+            product: { sellerId: senderId },
+          },
+        ],
+      });
+      if (!conversation) {
+        this.logger.error({
+          message: 'create: Given conversation not found',
+          input,
+        });
+        throw BadUserInputException('Invalid conversation');
+      }
+    } else {
+      //Initiate new conversation. This is done by the BUYER meaning senderId = buyer.id
+      const product = await this.productRepository.findOne({
+        where: { id: input.productId },
+      });
+      console.log('product :>> ', product);
+      if (!product || senderId === product.sellerId) {
+        this.logger.error({
+          message:
+            'create: trying to initiate a conversation where the sender is both the buyer and the seller',
+          input,
+        });
+        throw BadUserInputException('Invalid conversation');
+      }
+
+      const newConversation = new Conversation();
+      //It will be the buyer who initiates the conversation
+      newConversation.buyerId = senderId;
+      newConversation.productId = input.productId;
+      newConversation.buyerReadAt = new Date();
+      console.log('newConversation :>> ', newConversation);
+
+      conversation = await this.conversationRepository.save(newConversation);
+    }
+
+    if (conversation.purchaseId) {
+      await this.purchaseService.handleSellerResponse(conversation.purchaseId);
+    }
+
+    message.conversation = conversation;
     return await this.messageRepository.save(message);
   }
 
   async sendSystemMessage(input: SystemMessageInput) {
-    const [receiver, sender, product] = await Promise.all([
-      this.userRepository.findOneByOrFail({ id: input.receiverId }),
-      this.userRepository.findOneByOrFail({ id: input.senderId }),
-      this.productRepository.findOneByOrFail({ id: input.productId }),
-    ]).catch(() => {
-      this.logger.error('Invalid system conversation', {
-        ...input,
-      });
-      throw BadUserInputException('Invalid system conversation');
+    //create new message
+    const message = new Message();
+    message.message = input.message;
+    //setting receiverId means only the receiver can read this message
+    message.receiverId = input.receiverId;
+    message.messageType = MessageTypeEnum.SYSTEM;
+
+    let conversation = await this.conversationRepository.findOne({
+      where: { purchaseId: input.purchaseId },
     });
 
-    const newMessage = new Message();
-
-    newMessage.message = input.message;
-    newMessage.receiver = receiver;
-    newMessage.sender = sender;
-    newMessage.product = product;
-    newMessage.messageType = MessageTypeEnum.SYSTEM;
-    newMessage.readAt = null;
-
-    const _newMessage = await this.messageRepository.save(newMessage);
-
-    //If the receiver is an organization, the email is sent to the owner instead
-    let mailReceiver = receiver;
-    if (receiver.type === UserType.BUSINESS) {
-      const owner = await this.userService.findOrganizationOwner(receiver);
-      mailReceiver = owner;
-    }
-
-    //Send mail if user allows it
-    if (mailReceiver.notifyOnPurchaseUpdate) {
-      this.mailService.sendSystemMessageEmail({
-        product,
-        receiver: mailReceiver,
+    if (!conversation) {
+      //Find the latest conversation on productId with buyerId which does not yet have a purchase
+      //There could potentially be more than one but we take the latest conversation
+      //and connect it to the purchaseId. This convo and its earlies messages are now part of this
+      //purchase
+      const latestConversation = await this.conversationRepository.findOne({
+        where: [
+          {
+            purchaseId: IsNull(),
+            buyerId: input.buyerId,
+            productId: input.productId,
+          },
+        ],
+        order: { createdAt: 'DESC' },
       });
+      if (latestConversation) {
+        latestConversation.purchaseId = input.purchaseId;
+        conversation =
+          await this.conversationRepository.save(latestConversation);
+      } else {
+        const newConversation = new Conversation();
+        //It will be the buyer who initiates the conversation
+        newConversation.buyerId = input.buyerId;
+        newConversation.productId = input.productId;
+        newConversation.purchaseId = input.purchaseId;
+        conversation = await this.conversationRepository.save(newConversation);
+      }
     }
 
-    return _newMessage;
-  }
+    message.conversationId = conversation.id;
 
-  async markAsRead(
-    productId: string,
-    otherUserId: string,
-    currentUserId: string,
-  ) {
-    const unreadMessages = await this.messageRepository.find({
-      where: {
-        product: { id: productId },
-        senderId: otherUserId,
-        receiverId: currentUserId,
-        readAt: IsNull(),
-      },
-    });
-    unreadMessages.forEach((message) => (message.readAt = new Date()));
-    return await this.messageRepository.save(unreadMessages);
-  }
+    try {
+      //--------------- eMail Part --------------------------
+      //If the receiver is an organization, the email is sent to the owner instead
+      const receiver = await this.userRepository.findOneBy({
+        id: input.receiverId,
+      });
+      if (!receiver) {
+        this.logger.error({
+          message: 'sendSystemMessage: receiver not found',
+          input,
+        });
+        throw new Error('Receiver not found');
+      }
+      let mailReceiver = receiver;
+      if (receiver.type === UserType.BUSINESS) {
+        const owner = await this.userService.findOrganizationOwner(receiver);
+        if (!owner) {
+          this.logger.error({
+            message: 'sendSystemMessage: receiver.owner not found',
+            input,
+          });
+          throw new Error('Receiver not found');
+        }
+        mailReceiver = owner;
+      }
+      //Send mail if user allows it
+      const product = await this.productRepository.findOneBy({
+        id: input.productId,
+      });
+      if (mailReceiver.notifyOnPurchaseUpdate) {
+        this.mailService.sendSystemMessageEmail({
+          product,
+          receiver: mailReceiver,
+        });
+      }
+    } catch {
+      /**empty */
+    }
+    //---------------------------------------------
 
-  async getUnreadConversationsCount(currentUserId: string) {
-    const conversations = await this.getConversations(
-      { type: GetConversationsType.BUYING_AND_SELLING },
-      currentUserId,
-    );
-    const totalUnread = conversations.reduce(
-      (acc, curr) =>
-        acc + (curr.senderId !== currentUserId && !curr.readAt ? 1 : 0),
-      0,
-    );
-    return totalUnread;
+    return await this.messageRepository.save(message);
   }
 
   async deleteMany(messages: Message[]) {
@@ -281,76 +216,5 @@ export class MessageService {
       },
     });
     return await this.messageRepository.remove(message);
-  }
-
-  @Cron(
-    process.env.NODE_ENV === 'production'
-      ? CronExpression.EVERY_HOUR
-      : CronExpression.EVERY_MINUTE,
-  )
-  async notifyOnUserMessages() {
-    const logger = this.logger.child({
-      cron: 'notifyOnUserMessages',
-      requestId: crypto.randomUUID(),
-    });
-    logger.info('Notifying users on missed messages');
-
-    const receivers = await this.dataSource.query<
-      {
-        receiverId: string;
-        receiverEmail: string;
-        userType: UserType;
-        productTitle: string;
-      }[]
-    >(`
-        WITH relevantIds AS (
-          SELECT m."receiverId", m."productId"
-          FROM message m
-          INNER JOIN "user" receiver ON m."receiverId" = receiver.id AND receiver."notifyOnMessage" = TRUE
-          WHERE
-            "readAt" IS NULL
-            AND (receiver."notifiedOnMessageAt" < m."createdAt" OR receiver."notifiedOnMessageAt" IS NULL)
-            AND m."messageType" = '${MessageTypeEnum.USER}'::message_messagetype_enum
-          GROUP by "receiverId", "senderId", "productId")
-        SELECT u.id as "receiverId", u.email as "receiverEmail", u.type as "userType", p.title as "productTitle" from relevantIds ri
-        INNER JOIN "user" u ON ri."receiverId" = u.id
-        INNER JOIN product p ON ri."productId" = p.id
-        `);
-
-    //send mail to all
-    Promise.all(
-      receivers.map(async (receiver) => {
-        let receiverEmail = receiver.receiverEmail;
-        logger.info('Notifying user of message on product', {
-          productTitle: receiver.productTitle,
-          userId: receiver.receiverId,
-          userEmail: receiver.receiverEmail,
-          userType: receiver.userType,
-        });
-        if (receiver.userType === UserType.BUSINESS) {
-          const owner = await this.userRepository.findOne({
-            where: {
-              organizations: {
-                id: receiver.receiverId,
-              },
-            },
-          });
-          receiverEmail = owner.email;
-        }
-        this.mailService.sendUserMessageEmail({
-          productTitle: receiver.productTitle,
-          receiverEmail,
-        });
-      }),
-    );
-
-    const receiverIds = receivers.map((receiver) => receiver.receiverId);
-
-    //update all receivers
-    this.userRepository.update(
-      { id: In(receiverIds) },
-      { notifiedOnMessageAt: new Date() },
-    );
-    return;
   }
 }

@@ -1,4 +1,5 @@
-import { View, ActivityIndicator, ViewStyle } from "react-native";
+import { View, ViewStyle } from "react-native";
+import LottieView from "lottie-react-native";
 
 type Props = {
   style?: ViewStyle;
@@ -11,7 +12,13 @@ export const LoadingSpinner = ({ style }: Props) => {
         style,
       ]}
     >
-      <ActivityIndicator />
+      <LottieView
+        source={require("../../assets/images/loader-rebuildr.lottie")}
+        autoPlay
+        loop
+        webStyle={{ width: 50 }}
+        style={{ width: 50, height: 50 }}
+      />
     </View>
   );
 };

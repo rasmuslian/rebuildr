@@ -1,4 +1,4 @@
-import { Inject, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -9,6 +9,7 @@ import {
   ObjectType,
   Parent,
   Query,
+  registerEnumType,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
@@ -29,11 +30,13 @@ import {
   ShippingProviderEnum,
 } from 'src/entities/shipping-price.entity';
 import { PurchaseService } from 'src/services/purchase.service';
+import { ConversationService } from 'src/services/conversation.service';
 import { Logger } from 'winston';
 import { LocationInputType } from './geocoding.resolver';
 import { IPurchaseLoaders } from 'src/dataloaders/purchase.loader';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { ReportPurchase } from 'src/entities/report-purchase.entity';
+import { Conversation } from 'src/entities/conversation.entity';
 import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -72,6 +75,9 @@ export class PurchaseProductInput {
 
   @Field({ nullable: true })
   failureUrl: string;
+
+  @Field(() => Int, { nullable: true })
+  purchasedQuantity?: number;
 }
 
 @ObjectType()
@@ -158,11 +164,26 @@ export class CmsListPurchasesResponse {
   total: number;
 }
 
+export enum CanAbortDeniedReasonEnum {
+  SHIPPING = 'SHIPPING',
+  HANDOFF = 'HANDOFF',
+}
+registerEnumType(CanAbortDeniedReasonEnum, {
+  name: 'CanAbortDeniedReasonEnum',
+});
+@ObjectType()
+export class CanAbortResponse {
+  @Field(() => CanAbortDeniedReasonEnum)
+  deniedReason: CanAbortDeniedReasonEnum;
+}
+
 @Resolver(() => Purchase)
 export class PurchaseResolver {
   constructor(
+    @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private conversationService: ConversationService,
   ) {}
 
   @Query(() => Purchase)
@@ -289,7 +310,10 @@ export class PurchaseResolver {
       requestId,
       purchaseId: input.purchaseId,
     });
-    return this.purchaseService.cmsRefundPurchase(input.purchaseId, childLogger);
+    return this.purchaseService.cmsRefundPurchase(
+      input.purchaseId,
+      childLogger,
+    );
   }
 
   @ResolveField(() => Boolean)
@@ -347,5 +371,15 @@ export class PurchaseResolver {
     @Context('purchaseLoaders') purchaseLoaders: IPurchaseLoaders,
   ) {
     return await purchaseLoaders.getReportPurchase.load(purchase.id);
+  }
+
+  @ResolveField(() => Conversation, { nullable: true })
+  async conversation(@Parent() purchase: Purchase) {
+    return this.conversationService.getConversationByPurchaseId(purchase.id);
+  }
+
+  @ResolveField(() => CanAbortResponse, { nullable: true })
+  async canAbort(@Parent() purchase: Purchase) {
+    return this.purchaseService.canAbortPurchase(purchase);
   }
 }

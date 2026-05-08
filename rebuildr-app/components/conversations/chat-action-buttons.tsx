@@ -8,13 +8,15 @@ import {
   ConversationAcceptPurchaseMutationVariables,
   ConversationMarkAsDeliveredMutation,
   ConversationMarkAsDeliveredMutationVariables,
-  ConversationProductQuery,
+  Product,
   ProductStatusEnum,
+  Purchase,
+  User,
   UserType,
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
-import { CONVERSATION_PRODUCT } from "./queries";
+import { CONVERSATION } from "@/app/(app)/conversation/[conversationId]";
 
 const CONVERSATION_ACCEPT_PURCHASE = gql`
   mutation ConversationAcceptPurchase($input: AcceptPurchaseInput!) {
@@ -37,17 +39,20 @@ const CONVERSATION_MARK_AS_DELIVERED = gql`
 `;
 
 type Props = {
-  data: ConversationProductQuery;
-  onShowReview: () => void;
-  onShowQRCode: () => void;
+  product: Product;
+  purchase?: Purchase | null;
+  me: User;
+  onShowReview?: () => void;
+  onShowQRCode?: () => void;
 };
 export const ChatActionButtons = ({
-  data,
+  product,
+  purchase,
+  me,
   onShowReview,
   onShowQRCode,
 }: Props) => {
-  const purchase = data.latestPurchase;
-  const sellerIsMe = data.me.id === data.product.seller.id;
+  const sellerIsMe = me.id === product.seller.id;
   const { isDesktop } = useScreenType();
   const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
     useBuyModalContext();
@@ -55,14 +60,14 @@ export const ChatActionButtons = ({
   const [acceptPurchase, { loading: acceptPurchaseLoading }] = useMutation<
     ConversationAcceptPurchaseMutation,
     ConversationAcceptPurchaseMutationVariables
-  >(CONVERSATION_ACCEPT_PURCHASE, { refetchQueries: [CONVERSATION_PRODUCT] });
+  >(CONVERSATION_ACCEPT_PURCHASE, { refetchQueries: [CONVERSATION] });
   const [markAsDelivered, { loading: markAsDeliveredLoading }] = useMutation<
     ConversationMarkAsDeliveredMutation,
     ConversationMarkAsDeliveredMutationVariables
-  >(CONVERSATION_MARK_AS_DELIVERED, { refetchQueries: [CONVERSATION_PRODUCT] });
+  >(CONVERSATION_MARK_AS_DELIVERED, { refetchQueries: [CONVERSATION] });
 
   let firstButton: ReactNode = null;
-  if (!purchase && data.product.status === ProductStatusEnum.Published) {
+  if (!purchase && product.status === ProductStatusEnum.Published) {
     firstButton = !sellerIsMe ? (
       <Button
         label="Köp"
@@ -70,17 +75,17 @@ export const ChatActionButtons = ({
           if (isDesktop) {
             setBuyModalContent({
               buyState: "summary",
-              productId: data.product.id,
+              productId: product.id,
             });
             setBuyModalVisible(true);
           } else {
             router.navigate({
               pathname: "/buy/[productId]",
-              params: { productId: data.product.id },
+              params: { productId: product.id },
             });
           }
         }}
-        disabled={data.me.type === UserType.Business}
+        disabled={me.type === UserType.Business}
       />
     ) : null;
   }
@@ -104,12 +109,13 @@ export const ChatActionButtons = ({
     if (!purchase) {
       return null;
     }
-    const hasReviewed = purchase.reviews.some(
-      (r) => r.reviewerId === data.me.id,
-    );
+    const hasReviewed = purchase.reviews.some((r) => r.reviewerId === me.id);
 
     //If user has reviewed, there is no more action they can take, return null
     if (hasReviewed) {
+      return null;
+    }
+    if (purchase.failedAt) {
       return null;
     }
 
@@ -119,7 +125,7 @@ export const ChatActionButtons = ({
         <Button
           label="Lämna ett omdöme"
           onPress={() => {
-            onShowReview();
+            onShowReview?.();
           }}
         />
       );
@@ -132,7 +138,7 @@ export const ChatActionButtons = ({
           <Button
             label="Visa QR-kod"
             onPress={() => {
-              onShowQRCode();
+              onShowQRCode?.();
             }}
           />
         );
@@ -147,6 +153,7 @@ export const ChatActionButtons = ({
         return (
           <Button
             label="Markera som överlämnad"
+            loading={markAsDeliveredLoading}
             onPress={() => {
               if (!purchase || markAsDeliveredLoading) {
                 return;
@@ -167,6 +174,7 @@ export const ChatActionButtons = ({
         return (
           <Button
             label="Godkänn vara"
+            loading={acceptPurchaseLoading}
             onPress={() => {
               if (!purchase || acceptPurchaseLoading) {
                 return;

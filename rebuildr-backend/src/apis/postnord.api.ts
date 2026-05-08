@@ -255,7 +255,7 @@ export class PostnordAPI {
           ],
           service: {
             basicServiceCode: '19', //PostNord MyPack Collect
-            additionalServiceCode: ['C2'], //Print Label
+            additionalServiceCode: ['C2'], //Print Label, valid for 60 days
           },
         },
       ],

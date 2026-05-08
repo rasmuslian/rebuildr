@@ -3,8 +3,8 @@ import { AccordionSection } from "@components/sections/accordion-section";
 import { TabRail } from "@components/tabs/tab-rail";
 import { Body, Display, Headline } from "@components/typography/text";
 import { View } from "react-native";
-import { ConversationCards } from "./conversation-cards";
 import { ConversationsPerProductType } from "@/utils/conversations/parse-conversations";
+import { ConversationGroupCards } from "./conversation-group-cards";
 
 type Props = {
   totalUnread: number;
@@ -15,10 +15,9 @@ type Props = {
   unread: ConversationsPerProductType;
   read: ConversationsPerProductType;
   myId: string;
-  selectedConversation?: { productId: string; userId?: string; key: number };
-  onSelectConversation?: (args: {
+  selectedConversationGroup?: { productId: string; key: number };
+  onSelectConversationGroup?: (args: {
     productId: string;
-    userId?: string;
     key: number;
   }) => void;
 };
@@ -32,8 +31,8 @@ export const ConversationsList = ({
   unread,
   read,
   myId,
-  selectedConversation,
-  onSelectConversation,
+  selectedConversationGroup,
+  onSelectConversationGroup,
 }: Props) => {
   return (
     <>
@@ -76,11 +75,11 @@ export const ConversationsList = ({
         </Headline>
         {unread.length ? (
           <View style={{ marginTop: 24, gap: 16 }}>
-            <ConversationCards
-              conversationsGroup={unread}
+            <ConversationGroupCards
+              conversationsGroups={unread}
               myId={myId}
-              selectedConversation={selectedConversation}
-              onSelectConversation={onSelectConversation}
+              selectedProductId={selectedConversationGroup?.productId ?? ""}
+              onSelect={onSelectConversationGroup}
             />
           </View>
         ) : (
@@ -100,11 +99,11 @@ export const ConversationsList = ({
           }
         >
           <View style={{ gap: 16 }}>
-            <ConversationCards
-              conversationsGroup={read}
+            <ConversationGroupCards
+              conversationsGroups={read}
               myId={myId}
-              selectedConversation={selectedConversation}
-              onSelectConversation={onSelectConversation}
+              selectedProductId={selectedConversationGroup?.productId ?? ""}
+              onSelect={onSelectConversationGroup}
             />
           </View>
         </AccordionSection>

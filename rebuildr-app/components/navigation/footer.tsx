@@ -30,6 +30,7 @@ const LIST_FOOTER_SECTION = gql`
         article {
           id
           title
+          slug
         }
       }
     }
@@ -89,8 +90,8 @@ export default function Footer() {
                 const title = article ? article.title : entry.label;
                 const href: Href = article
                   ? {
-                      pathname: "/(app)/article/[articleId]",
-                      params: { articleId: article.id, title: article.title },
+                      pathname: "/(app)/article/[slug]",
+                      params: { slug: article.slug },
                     }
                   : (entry.url as Href);
                 return (

@@ -9,6 +9,7 @@ const ACCOUNT_SALES = gql`
   query AccountSales($input: MyPurchasesInput!) {
     myPurchases(input: $input) {
       id
+      purchasedQuantity
       status
       paymentAcceptedAt
       sellerRespondedAt
@@ -36,6 +37,7 @@ const ACCOUNT_SALES = gql`
           url
         }
         price
+        soldByQuantity
       }
       reportPurchase {
         id

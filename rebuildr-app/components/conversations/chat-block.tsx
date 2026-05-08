@@ -4,7 +4,7 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Pressable, View } from "react-native";
 import dayjs from "dayjs";
-import { ConversationProductQuery, MessageTypeEnum } from "@/gql/graphql";
+import { ConversationQuery, MessageTypeEnum } from "@/gql/graphql";
 import { SystemMessage } from "@components/messages/system-message";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
@@ -12,10 +12,10 @@ import { useEffect, useRef, useState } from "react";
 
 type Props = {
   message: string;
-  sender?: ConversationProductQuery["getConversation"][0]["sender"];
+  sender?: ConversationQuery["getConversation"]["messages"][number]["sender"];
   type: MessageTypeEnum;
-  images?: ConversationProductQuery["getConversation"][0]["images"];
-  documents?: ConversationProductQuery["getConversation"][0]["documents"];
+  images?: ConversationQuery["getConversation"]["messages"][number]["images"];
+  documents?: ConversationQuery["getConversation"]["messages"][number]["documents"];
   createdAt: Date;
   alwaysShowTime?: boolean;
   senderIsMe: boolean;
@@ -178,7 +178,7 @@ const TextMessage = ({
 };
 
 type ImageMessageProps = {
-  images: ConversationProductQuery["getConversation"][0]["images"];
+  images: ConversationQuery["getConversation"]["messages"][number]["images"];
 };
 
 const ImageMessage = ({ images }: ImageMessageProps) => {
@@ -200,7 +200,7 @@ const ImageMessage = ({ images }: ImageMessageProps) => {
 };
 
 type DocumentMessageProps = {
-  documents: ConversationProductQuery["getConversation"][0]["documents"];
+  documents: ConversationQuery["getConversation"]["messages"][number]["documents"];
   senderIsMe: boolean;
 };
 

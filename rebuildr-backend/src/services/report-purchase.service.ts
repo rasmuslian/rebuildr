@@ -71,11 +71,13 @@ export class ReportPurchaseService {
       purchase.buyer,
       purchase.product.seller,
       purchase.product,
+      purchase,
     );
     this.systemMessagesService.purchaseReportedSeller(
       purchase.buyer,
       purchase.product.seller,
       purchase.product,
+      purchase,
     );
 
     purchase.pausedAt = new Date();
@@ -125,12 +127,14 @@ export class ReportPurchaseService {
           report.purchase.buyer,
           report.purchase.product.seller,
           report.purchase.product,
+          report.purchase,
           'Pengarna återbetalas till dig',
         );
         this.systemMessagesService.supportErrandConcludedSeller(
           report.purchase.buyer,
           report.purchase.product.seller,
           report.purchase.product,
+          report.purchase,
           'Pengarna återbetalas till köparen',
         );
         await this.reportPurchaseRepository.save(report);
@@ -141,12 +145,14 @@ export class ReportPurchaseService {
           report.purchase.buyer,
           report.purchase.product.seller,
           report.purchase.product,
+          report.purchase,
           'Utbetalningen går vidare till säljaren',
         );
         this.systemMessagesService.supportErrandConcludedSeller(
           report.purchase.buyer,
           report.purchase.product.seller,
           report.purchase.product,
+          report.purchase,
           'Utbetalningen går vidare till dig',
         );
         break;

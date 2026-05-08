@@ -29,6 +29,8 @@ import dayjs from 'dayjs';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {
+  CanAbortDeniedReasonEnum,
+  CanAbortResponse,
   CmsListPurchasesInput,
   CmsListPurchasesResponse,
   LatestPurchaseInput,
@@ -38,7 +40,7 @@ import {
 } from 'src/resolvers/purchase.resolver';
 import { Review } from 'src/entities/review.entity';
 import { ProductService } from './product.service';
-import { provisionBase } from 'src/constants/pricing';
+import { maximumProductPrice, provisionBase } from 'src/constants/pricing';
 import { ShippingService } from './shipping.service';
 import { SystemMessagesService } from './system-messages.service';
 import { ReportPurchaseResolutionEnum } from 'src/entities/report-purchase.entity';
@@ -46,6 +48,8 @@ import { ReportPurchaseService } from './report-purchase.service';
 import { StripeService } from './stripe.service';
 import Stripe from 'stripe';
 import { idFromObject } from 'src/utility/stripe/utils';
+import { ShippingPriceService } from './shipping-price.service';
+import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
 @Injectable()
 export class PurchaseService {
@@ -65,6 +69,7 @@ export class PurchaseService {
     private systemMessagesService: SystemMessagesService,
     private reportPurchaseService: ReportPurchaseService,
     private stripeService: StripeService,
+    private shippingPriceService: ShippingPriceService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -102,17 +107,6 @@ export class PurchaseService {
       where: {
         id: input.productId,
         status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
-        purchases: [
-          { status: PurchaseStatusEnum.FINISHED_FAILED },
-          { status: IsNull() },
-          {
-            status: Or(
-              Equal(PurchaseStatusEnum.CLAIMED),
-              Equal(PurchaseStatusEnum.PAYMENT_STARTED),
-            ),
-            buyerId: currentUserId,
-          },
-        ],
       },
       relations: {
         seller: true,
@@ -139,27 +133,48 @@ export class PurchaseService {
       throw BadUserInputException('Product not found');
     }
 
-    const allProductPurchases = await this.purchaseRepository.find({
-      where: { productId: input.productId },
-    });
+    //Validate input
+    if (input.purchasedQuantity && !product.soldByQuantity) {
+      logger.error({
+        message: 'Unexpected input, product does not allow partial purchase',
+        product,
+        input,
+        buyerId: currentUserId,
+      });
+      throw BadUserInputException(
+        'Unexpected input, product does not allow partial purchase',
+      );
+    }
+    if (!input.purchasedQuantity && product.soldByQuantity) {
+      logger.error({
+        message:
+          'Unexpected input, product sells partially but no quantity was given',
+        product,
+        input,
+        buyerId: currentUserId,
+      });
+      throw BadUserInputException(
+        'Unexpected input, product sells partially but no quantity was given',
+      );
+    }
 
-    const isAlreadyPurchased = allProductPurchases?.some(
-      ({ status }) => status !== PurchaseStatusEnum.FINISHED_FAILED,
-    );
+    const isAvailable = product.soldByQuantity
+      ? (input.purchasedQuantity ?? 1) <= product.primaryQuantity
+      : product.status === ProductStatus.PUBLISHED;
 
-    const existingPurchase = product?.purchases.find(
+    const existingPurchase = product.purchases.find(
       (p) =>
         (p.status === PurchaseStatusEnum.CLAIMED ||
           p.status === PurchaseStatusEnum.PAYMENT_STARTED) &&
         p.buyerId === currentUserId,
     );
 
-    //if the product has a purchase that is not failed and is not in CLAIMED status by the same user that attempts to buy it, we should throw to prevent double purchases
-    if (isAlreadyPurchased && !existingPurchase) {
+    if (!isAvailable && !existingPurchase) {
       logger.error({
         message: 'Product already purchased',
         productId: product?.id,
         buyerId: currentUserId,
+        input,
       });
       throw BadUserInputException('Product already purchased');
     }
@@ -204,6 +219,16 @@ export class PurchaseService {
         shippingProvider: existingPurchase.shippingPrice?.provider,
       });
 
+      if (input.purchasedQuantity !== existingPurchase.purchasedQuantity) {
+        logger.error({
+          message: 'Existing purchase has different purchaseQuantity',
+          existingPurchase,
+          input,
+          currentUserId,
+        });
+        throw BadUserInputException('Product already purchased');
+      }
+
       const existingPayment = await this.stripeService.retrievePayment(
         existingPurchase.paymentIntentId,
       );
@@ -216,7 +241,7 @@ export class PurchaseService {
         });
       }
 
-      if (existingPayment.status !== 'requires_payment_method') {
+      if (existingPayment?.status !== 'requires_payment_method') {
         logger.error({
           message: 'Payment is not in init state',
           paymentIntentId: existingPayment.id,
@@ -231,23 +256,6 @@ export class PurchaseService {
       }
     }
 
-    //Product is only available if its only purchases are failed ones
-    const available = !product.purchases?.find(
-      (p) => p.status !== PurchaseStatusEnum.FINISHED_FAILED,
-    );
-
-    if (!available) {
-      logger.error({
-        message: 'Product not available for purchase',
-        productId: product.id,
-      });
-      throw InternalServerException('Product not available for purchase');
-    }
-
-    const selectedShippingPrice = product.shippingPrices.find(
-      (shippingPrice) => shippingPrice.provider === input.shippingProvider,
-    );
-
     const deliverToPoint: Point | undefined = input.deliverToLocation
       ? {
           type: 'Point',
@@ -258,13 +266,10 @@ export class PurchaseService {
         }
       : undefined;
 
-    logger.info({
-      message: 'Selected shipping price',
-      id: selectedShippingPrice?.id,
-      price: selectedShippingPrice?.price,
-    });
+    //-------------------- Handle Transportation Input ------------------------------
+    let shippingPrice: ShippingPrice;
+    let deliveryPrice = 0;
 
-    //-------------------- Verify Transportation Input ------------------------------
     if (
       input.transportationMethod === TransportationEnum.PICKUP &&
       !product.pickupEnabled
@@ -276,6 +281,10 @@ export class PurchaseService {
       throw BadUserInputException('Seller does not offer pickup');
     }
     if (input.transportationMethod === TransportationEnum.SHIPPING) {
+      const shippingPriceByProvider = product.shippingPrices.find(
+        (shippingPrice) => shippingPrice.provider === input.shippingProvider,
+      );
+
       if (!product.shippingPrices.length) {
         logger.error({
           message: 'Seller does not offer shipping',
@@ -283,7 +292,7 @@ export class PurchaseService {
         });
         throw BadUserInputException('Seller does not offer shipping');
       }
-      if (!selectedShippingPrice) {
+      if (!shippingPriceByProvider) {
         logger.error({
           message: 'Could not find shipping price',
           productId: product.id,
@@ -298,8 +307,33 @@ export class PurchaseService {
         });
         throw BadUserInputException('Must choose a shipping service point');
       }
+
+      if (shippingPriceByProvider) {
+        if (product.soldByQuantity && input.purchasedQuantity) {
+          const shippingWeightForQuantity =
+            shippingPriceByProvider.maxWeight * input.purchasedQuantity;
+          const shippingPriceMatchingWeight =
+            await this.shippingPriceService.shippingPriceMatchingWeight(
+              shippingWeightForQuantity,
+            );
+          if (!shippingPriceMatchingWeight) {
+            logger.error({
+              message: 'Product with selected quantity is too heavy!',
+              input,
+              currentUserId,
+            });
+            throw BadUserInputException(
+              'Product with quantity exceeds max weight',
+            );
+          }
+          shippingPrice = shippingPriceMatchingWeight;
+        } else {
+          shippingPrice = shippingPriceByProvider;
+        }
+      }
     }
     if (input.transportationMethod === TransportationEnum.DELIVERY) {
+      deliveryPrice = product.deliveryPrice ?? 0;
       if (!product.deliveryEnabled) {
         logger.error({
           message: 'Seller does not offer delivery',
@@ -333,23 +367,77 @@ export class PurchaseService {
     //-----------------------------------------------------------------
 
     const purchase = new Purchase();
-    const shippingPrice = selectedShippingPrice?.price ?? 0;
 
-    const { escrow, fee, isFree } = PurchaseService.calculateSellSummary(
-      product.price,
-      shippingPrice,
-      product.deliveryPrice ?? 0,
-    );
+    const totalProductPrice = product.price * (input.purchasedQuantity ?? 1);
+
+    const { escrow, fee, isFree } = PurchaseService.calculateSellSummary({
+      productPrice: totalProductPrice,
+      shippingPrice: shippingPrice?.price ?? 0,
+      deliveryPrice,
+    });
+
+    const totalAmountToPay = escrow + fee;
+    if (totalAmountToPay > maximumProductPrice) {
+      throw BadUserInputException(
+        'Total transaction value exceeds upper limit',
+      );
+    }
 
     if (!input.paymentMethod && !isFree) {
       throw BadUserInputException('Payment method missing');
     }
 
+    purchase.purchasedQuantity = input.purchasedQuantity;
+    purchase.toServicePointId = input.servicePointId;
+    purchase.deliverToAddress = input.deliverToAddress;
+    purchase.deliverToLocation = deliverToPoint;
+
+    purchase.buyer = buyer;
+    purchase.product = product;
+    purchase.shippingPrice = shippingPrice;
+    purchase.transportationMethod = input.transportationMethod;
+    purchase.paymentMethod = input.paymentMethod;
+
+    if (isFree) {
+      purchase.paymentAcceptedAt = new Date();
+      purchase.paymentStartedAt = new Date();
+      this.systemMessagesService
+        .purchaseWithHandoffBuyer(
+          purchase.buyer,
+          purchase.product.seller,
+          purchase.product,
+          purchase,
+          true,
+        )
+        .then(() =>
+          this.systemMessagesService.purchaseWithHandoffSeller(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
+            true,
+          ),
+        );
+    }
+    const savedPurchase = await this.purchaseRepository.save(purchase);
+
+    if (product.soldByQuantity) {
+      product.primaryQuantity =
+        product.primaryQuantity - input.purchasedQuantity;
+      if (!product.primaryQuantity) {
+        product.status = ProductStatus.SOLD;
+      }
+    } else {
+      product.status = ProductStatus.SOLD;
+    }
+    product.purchases = [...product.purchases, savedPurchase];
+    const savedProduct = await this.productRepository.save(product);
+
     let clientSecret = undefined;
     if (!isFree) {
       const paymentResponse = await this.stripeService.createPayment(
         product.seller.connectedAccountId,
-        escrow + fee,
+        totalAmountToPay,
         fee,
         buyer,
         input.paymentMethod,
@@ -360,41 +448,14 @@ export class PurchaseService {
         },
       );
       clientSecret = paymentResponse.clientSecret;
-      purchase.paymentIntentId = paymentResponse.id;
-    }
-
-    purchase.toServicePointId = input.servicePointId;
-    purchase.deliverToAddress = input.deliverToAddress;
-    purchase.deliverToLocation = deliverToPoint;
-
-    purchase.buyer = buyer;
-    purchase.product = product;
-    purchase.shippingPrice = selectedShippingPrice;
-    purchase.transportationMethod = input.transportationMethod;
-    purchase.paymentMethod = input.paymentMethod;
-
-    if (isFree) {
-      purchase.paymentAcceptedAt = new Date();
-      purchase.paymentStartedAt = new Date();
-      this.systemMessagesService.purchaseWithHandoffBuyer(
-        purchase.buyer,
-        purchase.product.seller,
-        purchase.product,
-        purchase,
-        true,
-      );
-      this.systemMessagesService.purchaseWithHandoffSeller(
-        purchase.buyer,
-        purchase.product.seller,
-        purchase.product,
-        purchase,
-        true,
+      savedPurchase.paymentIntentId = paymentResponse.id;
+      await this.purchaseRepository.update(
+        {
+          id: savedPurchase.id,
+        },
+        { paymentIntentId: savedPurchase.paymentIntentId },
       );
     }
-    const savedPurchase = await this.purchaseRepository.save(purchase);
-    product.status = ProductStatus.SOLD;
-    product.purchases = [...product.purchases, savedPurchase];
-    const savedProduct = await this.productRepository.save(product);
 
     logger.info({
       message: 'Purchase created',
@@ -409,11 +470,12 @@ export class PurchaseService {
     };
   }
 
-  static calculateSellSummary(
-    productPrice: number,
-    shippingPrice: number,
-    deliveryPrice: number,
-  ) {
+  static calculateSellSummary(input: {
+    productPrice: number;
+    shippingPrice: number;
+    deliveryPrice: number;
+  }) {
+    const { productPrice, shippingPrice, deliveryPrice } = input;
     const provision = Math.round(productPrice * provisionBase);
     const escrow = productPrice - provision + deliveryPrice;
     const fee = provision + shippingPrice;
@@ -433,12 +495,11 @@ export class PurchaseService {
   }
 
   //If seller has written a message to buyer, we record it here
-  async handleSellerResponse(productId: string, receiverId: string) {
+  async handleSellerResponse(purchaseId: string) {
     const purchase = await this.purchaseRepository.findOne({
       where: [
         {
-          productId: productId,
-          buyerId: receiverId,
+          id: purchaseId,
           status: Not(PurchaseStatusEnum.FINISHED_FAILED),
         },
       ],
@@ -549,11 +610,13 @@ export class PurchaseService {
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
       );
       this.systemMessagesService.handoffConfirmedSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
       );
     }
     purchase.deliveredAt = new Date();
@@ -563,14 +626,15 @@ export class PurchaseService {
     if (!purchase.approvedAt && boughtForFree) {
       this.systemMessagesService.purchaseSuccessBuyer(
         purchase.buyer,
-        purchase.product.seller,
         purchase.product,
+        purchase,
         true,
       );
       this.systemMessagesService.purchaseSuccessSeller(
         purchase.buyer,
         purchase.product.seller,
         purchase.product,
+        purchase,
         true,
       );
       purchase.approvedAt = new Date();
@@ -645,9 +709,9 @@ export class PurchaseService {
    * @param id Id of purchase
    * @param currentUserId User id of buyer
    */
-  async cancelPurchase(id: string, currentUserId: string) {
+  async cancelPurchase(purchaseId: string, currentUserId: string) {
     const purchase = await this.purchaseRepository.findOne({
-      where: { id },
+      where: { id: purchaseId },
       relations: { product: true },
     });
     if (
@@ -675,11 +739,33 @@ export class PurchaseService {
     }
     await this.stripeService.cancelPayment(purchase.paymentIntentId);
 
-    purchase.product.status = ProductStatus.PUBLISHED;
-    await this.productRepository.save(purchase.product);
+    const product = this.returnPurchaseQuantity(purchase.product, purchase);
+    await this.productRepository.save(product);
 
     purchase.failedAt = new Date();
     return await this.purchaseRepository.save(purchase);
+  }
+
+  canAbortPurchase(purchase: Purchase): CanAbortResponse {
+    if (
+      purchase.transportationMethod === TransportationEnum.SHIPPING &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
+      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.SHIPPING,
+      };
+    }
+    if (
+      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
+        purchase.transportationMethod === TransportationEnum.PICKUP) &&
+      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
+    ) {
+      return {
+        deniedReason: CanAbortDeniedReasonEnum.HANDOFF,
+      };
+    }
+    return null;
   }
   /**
    * Aborts a purchase. This can only be done when a payment has been accepted but has not yet proceeded further.
@@ -687,9 +773,9 @@ export class PurchaseService {
    * @param id Id of purchase
    * @param currentUserId User id of buyer or seller
    */
-  async abortPurchase(id: string, currentUserId: string) {
+  async abortPurchase(purchaseId: string, currentUserId: string) {
     const purchase = await this.purchaseRepository.findOne({
-      where: { id },
+      where: { id: purchaseId },
       relations: { product: { seller: true }, buyer: true },
     });
     if (!purchase) {
@@ -707,25 +793,8 @@ export class PurchaseService {
       throw ForbiddenException();
     }
 
-    if (
-      purchase.transportationMethod === TransportationEnum.SHIPPING &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED &&
-      purchase.status !== PurchaseStatusEnum.SHIPMENT_BOOKED
-    ) {
-      this.logger.error('Aborting purchase error', {
-        purchaseId: purchase.id,
-        paymentIntentId: purchase.paymentIntentId,
-        userId: currentUserId,
-        status: purchase.status,
-        transportationMethod: purchase.transportationMethod,
-      });
-      throw BadUserInputException();
-    }
-    if (
-      (purchase.transportationMethod === TransportationEnum.DELIVERY ||
-        purchase.transportationMethod === TransportationEnum.PICKUP) &&
-      purchase.status !== PurchaseStatusEnum.PAYMENT_ACCEPTED
-    ) {
+    const canAbort = this.canAbortPurchase(purchase);
+    if (canAbort) {
       this.logger.error('Aborting purchase error', {
         purchaseId: purchase.id,
         paymentIntentId: purchase.paymentIntentId,
@@ -755,12 +824,14 @@ export class PurchaseService {
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedByBuyerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
       } else {
@@ -768,23 +839,48 @@ export class PurchaseService {
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
         this.systemMessagesService.purchaseAbortedBySellerSeller(
           purchase.buyer,
           purchase.product.seller,
           purchase.product,
+          purchase,
           boughtForFree,
         );
       }
     }
-    purchase.product.status = ProductStatus.PUBLISHED;
-    await this.productRepository.save(purchase.product);
+
+    const product = this.returnPurchaseQuantity(purchase.product, purchase);
+    await this.productRepository.save(product);
 
     purchase.failedAt = new Date();
     purchase.abortedById = currentUserId;
     return await this.purchaseRepository.save(purchase);
   }
+
+  //----------------- UTIL functions -----------------------------
+  returnPurchaseQuantity(product: Product, purchase: Purchase) {
+    this.logger.info({
+      message: 'returning quantity to product',
+      currentQuantity: product.primaryQuantity,
+      returningQuantity: purchase.purchasedQuantity,
+      productId: product.id,
+      purchaseId: purchase.id,
+    });
+    if (product.soldByQuantity) {
+      product.primaryQuantity =
+        (product.primaryQuantity ?? 0) + purchase.purchasedQuantity;
+      if (product.primaryQuantity) {
+        product.status = ProductStatus.PUBLISHED;
+      }
+    } else {
+      product.status = ProductStatus.PUBLISHED;
+    }
+    return product;
+  }
+  //--------------------------------------------------------------
 
   //----------------- ACCEPT PURCHASE functions ------------------
   //Product of purchase is accepted. Payment is confirmed and payout is started
@@ -823,13 +919,14 @@ export class PurchaseService {
       });
       await this.systemMessagesService.purchaseSuccessBuyer(
         buyer,
-        seller,
         product,
+        purchase,
       );
       await this.systemMessagesService.purchaseSuccessSeller(
         buyer,
         seller,
         product,
+        purchase,
         nrOfCompletedSales > 0,
       );
     }
@@ -952,18 +1049,12 @@ export class PurchaseService {
               //Already canceled but not yet failed. This should be an off-case.
               //Purchase is failed and if its the only active purchase on the product, the product will be re-published
               purchase.failedAt = new Date();
-              const product = await this.productRepository.findOne({
-                where: { id: purchase.productId, status: ProductStatus.SOLD },
+              let product = await this.productRepository.findOne({
+                where: { id: purchase.productId },
                 relations: { purchases: true },
               });
-              if (
-                product &&
-                product.purchases.every(
-                  (p) =>
-                    p.status === PurchaseStatusEnum.FINISHED_FAILED ||
-                    p.id === purchase.id,
-                )
-              ) {
+              if (product) {
+                product = this.returnPurchaseQuantity(product, purchase);
                 product.status = ProductStatus.PUBLISHED;
                 await this.productRepository.save(product);
               }
@@ -1073,19 +1164,24 @@ export class PurchaseService {
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
             boughtForFree,
           );
           this.systemMessagesService.purchaseAbortedBySellerSeller(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
             boughtForFree,
           );
         }
 
         if (boughtForFree) {
-          purchase.product.status = ProductStatus.PUBLISHED;
-          await this.productRepository.save(purchase.product);
+          const product = this.returnPurchaseQuantity(
+            purchase.product,
+            purchase,
+          );
+          await this.productRepository.save(product);
         }
         purchase.failedAt = new Date();
         return await this.purchaseRepository.save(purchase);
@@ -1139,11 +1235,13 @@ export class PurchaseService {
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
           );
           this.systemMessagesService.lateShippingDropOffSeller(
             purchase.buyer,
             purchase.product.seller,
             purchase.product,
+            purchase,
           );
         }
         purchase.refundId = refund.id;
@@ -1285,45 +1383,60 @@ export class PurchaseService {
       );
     }
 
-    if (!purchase.paymentAcceptedAt) {
-      purchase.paymentAcceptedAt = new Date();
+    const chargeId = idFromObject(payload.latest_charge);
+    const paymentAcceptedAt = new Date();
+    const updateResult = await this.purchaseRepository.update(
+      { paymentIntentId: payload.id, paymentAcceptedAt: IsNull() },
+      {
+        paymentAcceptedAt,
+        ...(chargeId ? { chargeId } : {}),
+      },
+    );
 
+    if (updateResult.affected > 0) {
+      purchase.paymentAcceptedAt = paymentAcceptedAt;
       //System messages
       if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
-        this.systemMessagesService.purchaseWithShippingBuyer(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
-        );
-        this.systemMessagesService.purchaseWithShippingSeller(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
-          purchase.shippingPrice?.provider,
-        );
+        this.systemMessagesService
+          .purchaseWithShippingBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
+          )
+          .then(() =>
+            this.systemMessagesService.purchaseWithShippingSeller(
+              purchase.buyer,
+              purchase.product.seller,
+              purchase.product,
+              purchase,
+              purchase.shippingPrice?.provider,
+            ),
+          )
+          .catch((err) =>
+            logger.error('purchaseWithShipping system messages failed', err),
+          );
       } else {
-        this.systemMessagesService.purchaseWithHandoffBuyer(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
-        );
-        this.systemMessagesService.purchaseWithHandoffSeller(
-          purchase.buyer,
-          purchase.product.seller,
-          purchase.product,
-          purchase,
-        );
+        this.systemMessagesService
+          .purchaseWithHandoffBuyer(
+            purchase.buyer,
+            purchase.product.seller,
+            purchase.product,
+            purchase,
+          )
+          .then(() =>
+            this.systemMessagesService.purchaseWithHandoffSeller(
+              purchase.buyer,
+              purchase.product.seller,
+              purchase.product,
+              purchase,
+            ),
+          )
+          .catch((err) =>
+            logger.error('purchaseWithShipping system messages failed', err),
+          );
       }
     }
-    const chargeId = idFromObject(payload.latest_charge);
-    if (!purchase.chargeId) {
-      purchase.chargeId = chargeId;
-    }
-
-    await this.purchaseRepository.save(purchase);
 
     if (purchase.transportationMethod === TransportationEnum.SHIPPING) {
       logger.info({
@@ -1361,10 +1474,8 @@ export class PurchaseService {
         'PaymentFailed: No purchase found with paymentIntentId: ' + payload.id,
       );
     }
-    await this.productRepository.update(
-      { id: purchase.productId },
-      { status: ProductStatus.PUBLISHED },
-    );
+    const product = this.returnPurchaseQuantity(purchase.product, purchase);
+    await this.productRepository.save(product);
     await this.purchaseRepository.remove(purchase);
   }
   async paymentCanceled(payload: Stripe.PaymentIntent, logger: Logger) {
@@ -1393,8 +1504,9 @@ export class PurchaseService {
       });
       return;
     }
-    purchase.product.status = ProductStatus.PUBLISHED;
-    await this.productRepository.save(purchase.product);
+    const product = this.returnPurchaseQuantity(purchase.product, purchase);
+    purchase.failedAt = new Date();
+    await this.productRepository.save(product);
     await this.purchaseRepository.remove(purchase);
   }
 
@@ -1421,7 +1533,7 @@ export class PurchaseService {
       where: paymentIntentId
         ? { paymentIntentId }
         : { destinationPaymentId: chargeId },
-      relations: { reportPurchase: true },
+      relations: { reportPurchase: true, product: true },
     });
     if (!purchase) {
       logger.error('Purchase not found');
@@ -1442,17 +1554,39 @@ export class PurchaseService {
       return;
     }
 
-    purchase.failedAt = new Date();
-    purchase.refundId = payload.id;
+    if (purchase.failedAt) {
+      logger.info('paymentRefunded: Purchase already refunded', {
+        purchaseId: purchase.id,
+        refundId: payload.id,
+      });
+      return;
+    }
+
+    const updateResult = await this.purchaseRepository.update(
+      { id: purchase.id, failedAt: IsNull() },
+      { failedAt: new Date(), refundId: payload.id },
+    );
+    if (updateResult.affected === 0) {
+      logger.info('paymentRefunded: Lost race, purchase already handled', {
+        purchaseId: purchase.id,
+        refundId: payload.id,
+      });
+      return;
+    }
+
     if (payload.metadata?.refundedBy) {
       const refundUser = await this.userRepository.findOneBy({
         id: payload.metadata.refundedBy,
       });
       if (refundUser) {
-        purchase.abortedById = refundUser.id;
+        await this.purchaseRepository.update(
+          { id: purchase.id },
+          { abortedById: refundUser.id },
+        );
       }
     }
-    await this.purchaseRepository.save(purchase);
+    const product = this.returnPurchaseQuantity(purchase.product, purchase);
+    await this.productRepository.save(product);
 
     //This purchase has an active report. Resolve it and unpause the purchase
     if (purchase.reportPurchase && !purchase.reportPurchase.resolution) {
@@ -1470,11 +1604,6 @@ export class PurchaseService {
         /* empty */
       }
     }
-
-    await this.productRepository.update(
-      { id: purchase.productId },
-      { status: ProductStatus.PUBLISHED },
-    );
 
     logger.info('Payment refunded', {
       paymentIntentId,

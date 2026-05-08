@@ -21,13 +21,16 @@ import { useScreenType } from "@hooks/useScreenType";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { CreateReview } from "@components/review/create-review";
 import { router } from "expo-router";
+import { trackEvent } from "@/utils/analytics";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
+import { GTMTagEnum } from "@constants/google-tag-manager";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
+      purchasedQuantity
       status
       createdAt
       paymentAcceptedAt
@@ -46,6 +49,9 @@ export const PURCHASE_RECEIPT = gql`
       boughtForFree
       qrCodeUrl
       qrCodeContent
+      canAbort {
+        deniedReason
+      }
       shippingPrice {
         id
         price
@@ -89,6 +95,9 @@ export const PURCHASE_RECEIPT = gql`
       reportPurchase {
         id
         resolution
+      }
+      conversation {
+        id
       }
     }
     me {
@@ -186,7 +195,8 @@ export const PurchaseReceipt = ({
       <View style={{ gap: 16 }}>
         <Headline size="small">Kvitto</Headline>
         <ReceiptCard
-          price={data.purchase.product.price}
+          productPrice={data.purchase.product.price}
+          purchasedQuantity={data.purchase.purchasedQuantity}
           paymentMethod={data.purchase.paymentMethod}
           payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
           shippingPrice={data.purchase.shippingPrice}
@@ -232,19 +242,35 @@ export const PurchaseReceipt = ({
         <Headline size="small">Har du några frågor?</Headline>
         <Body size="medium">
           Om något känns oklart kan du kika i våra{" "}
-          <Body size="medium" isLink>
+          <Body
+            size="medium"
+            link={{ pathname: "/article/[slug]", params: { slug: "faq" } }}
+          >
             vanliga frågor
           </Body>{" "}
           eller{" "}
           {buyerIsMe ? (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.product.seller.id,
-                },
+              onPress={() => {
+                trackEvent(GTMTagEnum.CONTACT_SELLER, {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
+                      },
+                );
               }}
             >
               kontakta säljaren
@@ -252,12 +278,25 @@ export const PurchaseReceipt = ({
           ) : (
             <Body
               size="medium"
-              link={{
-                pathname: "/conversations/[productId]/[userId]",
-                params: {
-                  productId: data.purchase.product.id,
-                  userId: data.purchase.buyer.id,
-                },
+              onPress={() => {
+                trackEvent(GTMTagEnum.CONTACT_BUYER, {
+                  item_id: data.purchase.product.id,
+                });
+                router.navigate(
+                  data.purchase.conversation
+                    ? {
+                        pathname: "/conversation/[conversationId]",
+                        params: {
+                          conversationId: data.purchase.conversation?.id,
+                        },
+                      }
+                    : {
+                        pathname: "/conversations/[productId]",
+                        params: {
+                          productId: data.purchase.product.id,
+                        },
+                      },
+                );
               }}
             >
               kontakta köparen
@@ -268,10 +307,13 @@ export const PurchaseReceipt = ({
       </View>
       <AbortPurchase
         purchaseId={data.purchase.id}
-        purchaseStatus={data.purchase.status}
+        canAbort={data.purchase.canAbort}
         show={showAbortSheet}
         onDismiss={() => setShowAbortSheet(false)}
-        onAbortPurchaseCompleted={() => setShowAbortSheet(false)}
+        onAbortPurchaseCompleted={() => {
+          setShowAbortSheet(false);
+          refetch();
+        }}
       />
       <CreateReview
         purchaseId={data.purchase.id}

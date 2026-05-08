@@ -5,13 +5,7 @@ import { horizontalPadding } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { PropsWithChildren, useRef } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleProp,
-  View,
-  ViewStyle,
-} from "react-native";
+import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
 
 interface PageProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;

@@ -63,6 +63,11 @@ export class ArticleResolver {
     return await this.articleService.findOne(id);
   }
 
+  @Query(() => Article)
+  async articleBySlug(@Args('slug') slug: string) {
+    return await this.articleService.findOneBySlug(slug);
+  }
+
   @Query(() => ListArticlesResponse)
   async listArticles(
     @Args('input') input: ListArticlesInput,

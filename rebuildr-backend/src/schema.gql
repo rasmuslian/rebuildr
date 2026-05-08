@@ -79,6 +79,7 @@ type Purchase {
   qrCodeUrl: String
   qrCodeContent: String
   sellerRespondedAt: DateTime
+  purchasedQuantity: Float
   isShipping: Boolean!
   reviews: [Review!]!
   buyer: User!
@@ -88,6 +89,8 @@ type Purchase {
   isRefunded: Boolean!
   boughtForFree: Boolean!
   reportPurchase: ReportPurchase
+  conversation: Conversation
+  canAbort: CanAbortResponse
 }
 
 enum PurchaseStatusEnum {
@@ -225,19 +228,33 @@ enum ProductsRecommendationSourceEnum {
   SEARCH_HISTORY
 }
 
+type Conversation {
+  id: ID!
+  createdAt: DateTime!
+  buyerId: ID!
+  sellerReadAt: DateTime
+  buyerReadAt: DateTime
+  productId: String!
+  purchaseId: String
+  product: Product!
+  buyer: User!
+  purchase: Purchase
+  messages: [Message!]!
+  lastMessage: Message
+}
+
 type Message {
   id: ID!
   createdAt: DateTime!
   message: String!
-  senderId: ID!
-  receiverId: ID!
-  readAt: DateTime
+  senderId: ID
+  receiverId: ID
   messageType: MessageTypeEnum!
   imagePutUrls: [String!]
   documentPutUrls: [String!]
-  product: Product!
-  sender: User!
-  receiver: User!
+  conversationId: String!
+  sender: User
+  receiver: User
   images: [File!]!
   documents: [File!]!
 }
@@ -348,6 +365,7 @@ type Product {
   createdAt: DateTime!
   updatedAt: DateTime!
   sellerId: String!
+  soldByQuantity: Boolean!
   address: String
   hiddenReason: String
   isGiveaway: Boolean!
@@ -388,7 +406,7 @@ type Product {
   project: Project
   location: LocationResponse
   approximatePlace: ApproximatePlaceResponse
-  shippingPrices: [ShippingPrice!]
+  shippingPrices(quantity: Int): [ShippingPrice!]
   deliveryPrice: Float
   canDelete: Boolean!
   minimumPrice: Int!
@@ -513,13 +531,24 @@ type ExactAndApproximatePlaceResponse {
   approximate: ApproximatePlaceResponse!
 }
 
-type CmsListFilesResponse {
-  files: [File!]!
+type PurchaseProductResponse {
+  product: Product!
+  purchase: Purchase!
+  reference: String
+}
+
+type CmsListPurchasesResponse {
+  purchases: [Purchase!]!
   total: Int!
 }
 
-type CmsCreateFilesResponse {
-  presignedPutUrls: [String!]!
+type CanAbortResponse {
+  deniedReason: CanAbortDeniedReasonEnum!
+}
+
+enum CanAbortDeniedReasonEnum {
+  SHIPPING
+  HANDOFF
 }
 
 type ServicePointResponse {
@@ -530,6 +559,15 @@ type ServicePointResponse {
   streetNumber: String!
   postalCode: String!
   city: String!
+}
+
+type CmsListFilesResponse {
+  files: [File!]!
+  total: Int!
+}
+
+type CmsCreateFilesResponse {
+  presignedPutUrls: [String!]!
 }
 
 type CreateProductResponse {
@@ -631,17 +669,6 @@ type CmsUpdateCategoryResponse {
   imagePutUrl: String
 }
 
-type PurchaseProductResponse {
-  product: Product!
-  purchase: Purchase!
-  reference: String
-}
-
-type CmsListPurchasesResponse {
-  purchases: [Purchase!]!
-  total: Int!
-}
-
 type ListBrandsResponse {
   brands: [Brand!]!
   total: Int!
@@ -683,6 +710,7 @@ enum FooterSectionEntryType {
 type Article {
   id: ID!
   title: String!
+  slug: String!
   body: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -742,6 +770,33 @@ type CmsCreateBannerResponse {
   imagePutUrl: String
 }
 
+type CmsProductStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsProductStatisticsResponse {
+  data: [CmsProductStatisticsDataPoint!]!
+}
+
+type CmsUserStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsUserStatisticsResponse {
+  data: [CmsUserStatisticsDataPoint!]!
+}
+
+type CmsPurchaseStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsPurchaseStatisticsResponse {
+  data: [CmsPurchaseStatisticsDataPoint!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -765,8 +820,10 @@ type Query {
   getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories(input: RootCategoriesInput): [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
-  getConversation(input: GetConversationInput!): [Message!]!
-  getConversations(input: GetConversationsInput!): [Message!]!
+  cmsPreviewSystemMessage(input: CmsPreviewSystemMessageInput!): String!
+  cmsListChatActions: [ChatActionEnum!]!
+  getConversation(input: GetConversationInput!): Conversation!
+  getConversations(input: GetConversationsInput!): [Conversation!]!
   getUnreadConversationsCount: Int!
   cmsListFiles(input: CmsListFilesInput!): CmsListFilesResponse!
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
@@ -790,6 +847,7 @@ type Query {
   getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
+  articleBySlug(slug: String!): Article!
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
@@ -802,6 +860,9 @@ type Query {
   banners: [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
+  cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
+  cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
+  cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
 }
 
 input UserExistsInput {
@@ -871,6 +932,7 @@ input GetTransportationOptionsInput {
   productId: String!
   postCode: String
   address: String
+  quantity: Float
 }
 
 input CmsListProductsInput {
@@ -905,9 +967,45 @@ input PopularCategoriesInput {
   limit: Int!
 }
 
+input CmsPreviewSystemMessageInput {
+  step: SystemMessageStepEnum!
+  role: SystemMessageRoleEnum!
+  transportation: TransportationEnum
+  isFree: Boolean
+  firstSale: Boolean
+  provider: ShippingProviderEnum
+  decision: String
+}
+
+enum SystemMessageStepEnum {
+  PURCHASE_INITIATED
+  SELLER_RESPONDED
+  HANDOFF_CONFIRMED
+  SHIPMENT_DROPPED_OFF
+  SHIPMENT_ARRIVED
+  SHIPMENT_DELIVERED
+  PURCHASE_SUCCESS
+  PURCHASE_REPORTED
+  SUPPORT_CONCLUDED
+  PURCHASE_ABORTED_BY_BUYER
+  PURCHASE_ABORTED_BY_SELLER
+  LATE_SHIPPING_DROP_OFF
+}
+
+enum SystemMessageRoleEnum {
+  BUYER
+  SELLER
+}
+
+enum ChatActionEnum {
+  ABORT
+  REPORT
+  ABOUTREVIEW
+  ABOUTPAYOUT
+}
+
 input GetConversationInput {
-  otherUserId: String!
-  productId: String!
+  id: String!
 }
 
 input GetConversationsInput {
@@ -1029,6 +1127,24 @@ input ListPageContentInput {
   pageSize: Int
 }
 
+input CmsProductStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+enum CmsProductStatisticsGroupByEnum {
+  DAY
+  WEEK
+  MONTH
+}
+
+input CmsUserStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPurchaseStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -1065,7 +1181,7 @@ type Mutation {
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
-  markConversationAsRead(input: MarkAsReadInput!): [Message!]!
+  markConversationAsRead(input: MarkAsReadInput!): Conversation!
   cmsCreateFiles(input: CmsCreateFilesInput!): CmsCreateFilesResponse!
   cmsDeleteFile(id: String!): File!
   cmsTestTemplate(input: CmsTestTemplateInput!): Boolean!
@@ -1226,6 +1342,7 @@ input CmsCreateProductInput {
   shippingPriceIds: [String!]
   color: String
   colorType: ColorTypeEnum
+  soldByQuantity: Boolean
   images: [FileInputType!]!
   documents: [FileInputType!]!
   sellerId: String
@@ -1269,6 +1386,7 @@ input CmsUpdateProductInput {
   shippingPriceIds: [String!]
   color: String
   colorType: ColorTypeEnum
+  soldByQuantity: Boolean
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]
@@ -1334,6 +1452,7 @@ input UpdateProductInput {
   deliveryRadius: Float
   pickupEnabled: Boolean
   shippingPriceIds: [String!]
+  soldByQuantity: Boolean
 }
 
 input SetLikeProductInput {
@@ -1384,17 +1503,15 @@ input CmsUpdateCategoryOrderInput {
 }
 
 input CreateMessageInput {
-  receiverId: String!
-  productId: String!
+  conversationId: String
+  productId: String
   message: String!
   images: [FileInputType!]
   documents: [FileInputType!]
 }
 
 input MarkAsReadInput {
-  otherUserId: String!
-  productId: String!
-  markAsRead: Boolean!
+  conversationId: String!
 }
 
 input CmsCreateFilesInput {
@@ -1415,6 +1532,7 @@ input PurchaseProductInput {
   transportationMethod: TransportationEnum!
   successUrl: String
   failureUrl: String
+  purchasedQuantity: Int
 }
 
 input AcceptPurchaseInput {

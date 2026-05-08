@@ -31,12 +31,13 @@ import * as Sentry from "@sentry/react-native";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
-import { IosInstallPrompt } from "@components/pwa/ios-install-prompt";
+import { PwaInstallPrompt } from "@components/pwa/pwa-install-prompt";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
 import { shouldShowComingSoon } from "@/utils/coming-soon";
 import { EditProduct } from "@components/product/edit-product";
 import { SellProduct } from "@components/sell-product/sell-product";
+import { CookieConsent } from "@components/cookies/cookie-consent";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -114,13 +115,14 @@ const RootLayout = () => {
                           <SearchProvider>
                             <ReRouteHandler>
                               <Slot />
+                              <CookieConsent />
                               <HamburgerMenu />
                               <LoginModalView />
                               <SellProduct />
                               <EditProduct />
                               <SearchDropdown />
                               <BuyModal />
-                              <IosInstallPrompt />
+                              <PwaInstallPrompt />
                               <PortalHost name="OverlayProvider" />
                             </ReRouteHandler>
                           </SearchProvider>

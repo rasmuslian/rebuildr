@@ -45,6 +45,7 @@ export type Article = {
   body: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  slug: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -103,6 +104,16 @@ export type Co2Factor = {
   productName: Scalars['String']['output'];
 };
 
+export enum CanAbortDeniedReasonEnum {
+  Handoff = 'HANDOFF',
+  Shipping = 'SHIPPING'
+}
+
+export type CanAbortResponse = {
+  __typename?: 'CanAbortResponse';
+  deniedReason: CanAbortDeniedReasonEnum;
+};
+
 export type CancelPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
@@ -155,6 +166,13 @@ export enum CategoryIconEnum {
 export type CategoryInput = {
   id: Scalars['String']['input'];
 };
+
+export enum ChatActionEnum {
+  Abort = 'ABORT',
+  Aboutpayout = 'ABOUTPAYOUT',
+  Aboutreview = 'ABOUTREVIEW',
+  Report = 'REPORT'
+}
 
 export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
@@ -257,6 +275,7 @@ export type CmsCreateProductInput = {
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   sellerId?: InputMaybe<Scalars['String']['input']>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -344,6 +363,52 @@ export type CmsListUsersResponse = {
   __typename?: 'CmsListUsersResponse';
   total: Scalars['Int']['output'];
   users: Array<User>;
+};
+
+export type CmsPreviewSystemMessageInput = {
+  decision?: InputMaybe<Scalars['String']['input']>;
+  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
+  isFree?: InputMaybe<Scalars['Boolean']['input']>;
+  provider?: InputMaybe<ShippingProviderEnum>;
+  role: SystemMessageRoleEnum;
+  step: SystemMessageStepEnum;
+  transportation?: InputMaybe<TransportationEnum>;
+};
+
+export type CmsProductStatisticsDataPoint = {
+  __typename?: 'CmsProductStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export enum CmsProductStatisticsGroupByEnum {
+  Day = 'DAY',
+  Month = 'MONTH',
+  Week = 'WEEK'
+}
+
+export type CmsProductStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsProductStatisticsResponse = {
+  __typename?: 'CmsProductStatisticsResponse';
+  data: Array<CmsProductStatisticsDataPoint>;
+};
+
+export type CmsPurchaseStatisticsDataPoint = {
+  __typename?: 'CmsPurchaseStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsPurchaseStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsPurchaseStatisticsResponse = {
+  __typename?: 'CmsPurchaseStatisticsResponse';
+  data: Array<CmsPurchaseStatisticsDataPoint>;
 };
 
 export type CmsReassignBrandInput = {
@@ -463,6 +528,7 @@ export type CmsUpdateProductInput = {
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -497,10 +563,41 @@ export type CmsUpdateUsersInput = {
   websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CmsUserStatisticsDataPoint = {
+  __typename?: 'CmsUserStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsUserStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsUserStatisticsResponse = {
+  __typename?: 'CmsUserStatisticsResponse';
+  data: Array<CmsUserStatisticsDataPoint>;
+};
+
 export enum ColorTypeEnum {
   FreeText = 'FREE_TEXT',
   Ncs = 'NCS'
 }
+
+export type Conversation = {
+  __typename?: 'Conversation';
+  buyer: User;
+  buyerId: Scalars['ID']['output'];
+  buyerReadAt?: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  lastMessage?: Maybe<Message>;
+  messages: Array<Message>;
+  product: Product;
+  productId: Scalars['String']['output'];
+  purchase?: Maybe<Purchase>;
+  purchaseId?: Maybe<Scalars['String']['output']>;
+  sellerReadAt?: Maybe<Scalars['DateTime']['output']>;
+};
 
 export type CreateBrandByUserInput = {
   categoryId?: InputMaybe<Scalars['String']['input']>;
@@ -508,11 +605,11 @@ export type CreateBrandByUserInput = {
 };
 
 export type CreateMessageInput = {
+  conversationId?: InputMaybe<Scalars['String']['input']>;
   documents?: InputMaybe<Array<FileInputType>>;
   images?: InputMaybe<Array<FileInputType>>;
   message: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
-  receiverId: Scalars['String']['input'];
+  productId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateOrganizationUserInput = {
@@ -672,8 +769,7 @@ export type GetCategoriesInput = {
 };
 
 export type GetConversationInput = {
-  otherUserId: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type GetConversationsInput = {
@@ -727,6 +823,7 @@ export type GetTransportationOptionsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
   productId: Scalars['String']['input'];
+  quantity?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type GetUserInput = {
@@ -841,9 +938,7 @@ export enum MapPinTypeEnum {
 }
 
 export type MarkAsReadInput = {
-  markAsRead: Scalars['Boolean']['input'];
-  otherUserId: Scalars['String']['input'];
-  productId: Scalars['String']['input'];
+  conversationId: Scalars['String']['input'];
 };
 
 export type MarkPurchaseAsDeliveredInput = {
@@ -884,6 +979,7 @@ export enum MeasurementUnitEnum {
 
 export type Message = {
   __typename?: 'Message';
+  conversationId: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   documentPutUrls?: Maybe<Array<Scalars['String']['output']>>;
   documents: Array<File>;
@@ -892,12 +988,10 @@ export type Message = {
   images: Array<File>;
   message: Scalars['String']['output'];
   messageType: MessageTypeEnum;
-  product: Product;
-  readAt?: Maybe<Scalars['DateTime']['output']>;
-  receiver: User;
-  receiverId: Scalars['ID']['output'];
-  sender: User;
-  senderId: Scalars['ID']['output'];
+  receiver?: Maybe<User>;
+  receiverId?: Maybe<Scalars['ID']['output']>;
+  sender?: Maybe<User>;
+  senderId?: Maybe<Scalars['ID']['output']>;
 };
 
 export enum MessageTypeEnum {
@@ -965,7 +1059,7 @@ export type Mutation = {
   getNewTokens: GetNewTokensResponse;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
-  markConversationAsRead: Array<Message>;
+  markConversationAsRead: Conversation;
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
   onboardSellerAccount: OnboardSellerAccountResponse;
@@ -1499,6 +1593,7 @@ export type Product = {
   sellerId: Scalars['String']['output'];
   shippingPrices?: Maybe<Array<ShippingPrice>>;
   similarProducts: PaginatedProductsResponse;
+  soldByQuantity: Scalars['Boolean']['output'];
   status: ProductStatusEnum;
   thickness?: Maybe<Scalars['Float']['output']>;
   thicknessUnit: MeasurementUnitEnum;
@@ -1518,6 +1613,11 @@ export type ProductDistanceFromLocationArgs = {
 
 export type ProductHasOngoingPurchaseArgs = {
   includeOwnPurchases?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type ProductShippingPricesArgs = {
+  quantity?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1618,6 +1718,8 @@ export type Purchase = {
   boughtForFree: Scalars['Boolean']['output'];
   buyer: User;
   buyerId: Scalars['String']['output'];
+  canAbort?: Maybe<CanAbortResponse>;
+  conversation?: Maybe<Conversation>;
   createdAt: Scalars['DateTime']['output'];
   deliveredAt?: Maybe<Scalars['DateTime']['output']>;
   failedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1633,6 +1735,7 @@ export type Purchase = {
   payoutReceivedAt?: Maybe<Scalars['DateTime']['output']>;
   payoutStartedAt?: Maybe<Scalars['DateTime']['output']>;
   product: Product;
+  purchasedQuantity?: Maybe<Scalars['Float']['output']>;
   qrCodeContent?: Maybe<Scalars['String']['output']>;
   qrCodeUrl?: Maybe<Scalars['String']['output']>;
   reportPurchase?: Maybe<ReportPurchase>;
@@ -1655,6 +1758,7 @@ export type PurchaseProductInput = {
   failureUrl?: InputMaybe<Scalars['String']['input']>;
   paymentMethod?: InputMaybe<PaymentMethod>;
   productId: Scalars['String']['input'];
+  purchasedQuantity?: InputMaybe<Scalars['Int']['input']>;
   servicePointId?: InputMaybe<Scalars['String']['input']>;
   shippingProvider?: InputMaybe<ShippingProviderEnum>;
   successUrl?: InputMaybe<Scalars['String']['input']>;
@@ -1704,6 +1808,7 @@ export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
   article: Article;
+  articleBySlug: Article;
   banners: Array<Banner>;
   brand: Brand;
   brands: Array<Brand>;
@@ -1714,17 +1819,22 @@ export type Query = {
   cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
   cmsListBanners: Array<Banner>;
+  cmsListChatActions: Array<ChatActionEnum>;
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
+  cmsPreviewSystemMessage: Scalars['String']['output'];
+  cmsProductStatistics: CmsProductStatisticsResponse;
+  cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
+  cmsUserStatistics: CmsUserStatisticsResponse;
   co2Factors: Array<Co2Factor>;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
   getAllShippingPrices: Array<ShippingPrice>;
   getCategories: Array<Category>;
-  getConversation: Array<Message>;
-  getConversations: Array<Message>;
+  getConversation: Conversation;
+  getConversations: Array<Conversation>;
   getDeliveryOption?: Maybe<DeliveryOptionResponse>;
   getDraftedProduct?: Maybe<Product>;
   getOrCreateDraftProduct: Product;
@@ -1771,6 +1881,11 @@ export type QueryAddressToLocationArgs = {
 
 export type QueryArticleArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryArticleBySlugArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -1831,6 +1946,26 @@ export type QueryCmsListProjectsArgs = {
 
 export type QueryCmsListUsersArgs = {
   input: CmsListUsersInput;
+};
+
+
+export type QueryCmsPreviewSystemMessageArgs = {
+  input: CmsPreviewSystemMessageInput;
+};
+
+
+export type QueryCmsProductStatisticsArgs = {
+  input?: InputMaybe<CmsProductStatisticsInput>;
+};
+
+
+export type QueryCmsPurchaseStatisticsArgs = {
+  input?: InputMaybe<CmsPurchaseStatisticsInput>;
+};
+
+
+export type QueryCmsUserStatisticsArgs = {
+  input?: InputMaybe<CmsUserStatisticsInput>;
 };
 
 
@@ -2146,6 +2281,26 @@ export enum ShippingProviderEnum {
   Postnord = 'POSTNORD'
 }
 
+export enum SystemMessageRoleEnum {
+  Buyer = 'BUYER',
+  Seller = 'SELLER'
+}
+
+export enum SystemMessageStepEnum {
+  HandoffConfirmed = 'HANDOFF_CONFIRMED',
+  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
+  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
+  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
+  PurchaseInitiated = 'PURCHASE_INITIATED',
+  PurchaseReported = 'PURCHASE_REPORTED',
+  PurchaseSuccess = 'PURCHASE_SUCCESS',
+  SellerResponded = 'SELLER_RESPONDED',
+  ShipmentArrived = 'SHIPMENT_ARRIVED',
+  ShipmentDelivered = 'SHIPMENT_DELIVERED',
+  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
+  SupportConcluded = 'SUPPORT_CONCLUDED'
+}
+
 export enum TransportationEnum {
   Delivery = 'DELIVERY',
   Pickup = 'PICKUP',
@@ -2201,6 +2356,7 @@ export type UpdateProductInput = {
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  soldByQuantity?: InputMaybe<Scalars['Boolean']['input']>;
   status?: InputMaybe<ProductStatusEnum>;
   thickness?: InputMaybe<Scalars['Float']['input']>;
   thicknessUnit?: InputMaybe<MeasurementUnitEnum>;

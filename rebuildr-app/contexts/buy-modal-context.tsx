@@ -1,11 +1,12 @@
-import { PaymentDeliveryProps } from "@/app/(app)/buy/[productId]/payment";
+import { PaymentTransportationProps } from "@/app/(app)/buy/[productId]/payment";
 import { createContext, PropsWithChildren, use, useState } from "react";
 
 type BuyModalContent = {
   buyState: "summary" | "payment" | "success" | "stripe" | "stripeForm";
   productId?: string;
+  quantity?: number;
   purchaseId?: string;
-  delivery?: PaymentDeliveryProps;
+  transportation?: PaymentTransportationProps;
   stripeClientSecret?: string;
 };
 

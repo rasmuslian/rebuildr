@@ -183,6 +183,21 @@ const ProductForm = ({
 
           <Controller
             control={control}
+            name="soldByQuantity"
+            render={({ field: { value, onChange } }) => (
+              <FormField error={errors.soldByQuantity?.message}>
+                <Checkbox
+                  checked={value}
+                  onChange={(e) => onChange(e.target.checked)}
+                >
+                  Säljs per styck
+                </Checkbox>
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={control}
             name="categoryId"
             render={({ field: { value, onChange } }) => (
               <FormField

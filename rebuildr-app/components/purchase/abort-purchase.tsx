@@ -1,7 +1,8 @@
 import {
   AbortPurchaseMutation,
   AbortPurchaseMutationVariables,
-  PurchaseStatusEnum,
+  CanAbortDeniedReasonEnum,
+  Purchase,
 } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -25,7 +26,7 @@ const ABORT_PURCHASE = gql`
 
 type Props = {
   purchaseId: string;
-  purchaseStatus: PurchaseStatusEnum;
+  canAbort?: Purchase["canAbort"];
   show: boolean;
   onDismiss: () => void;
   onAbortPurchaseCompleted: () => void;
@@ -33,7 +34,7 @@ type Props = {
 
 export const AbortPurchase = ({
   purchaseId,
-  purchaseStatus,
+  canAbort,
   show,
   onDismiss,
   onAbortPurchaseCompleted,
@@ -54,20 +55,18 @@ export const AbortPurchase = ({
     });
   };
 
-  const canAbortPurchase = () => {
-    switch (purchaseStatus) {
-      case PurchaseStatusEnum.PaymentAccepted:
-      case PurchaseStatusEnum.ShipmentBooked:
-        return true;
-
-      default:
-        return false;
+  const deniedReasonToText = (reason: CanAbortDeniedReasonEnum) => {
+    switch (reason) {
+      case CanAbortDeniedReasonEnum.Handoff:
+        return "Du kan inte längre avbryta köpet då det har passerat för långt.";
+      case CanAbortDeniedReasonEnum.Shipping:
+        return "Säljaren har redan skickat varan. När leveransen är påbörjad går det inte att avbryta köpet.";
     }
   };
 
   const content = (
     <View style={[{ justifyContent: "space-between", flex: 1, gap: 24 }]}>
-      {canAbortPurchase() ? (
+      {!canAbort ? (
         <>
           <View style={{ gap: 24 }}>
             <Display size="small" style={{ textAlign: "center" }}>
@@ -98,10 +97,7 @@ export const AbortPurchase = ({
             Köpet kan inte avbrytas
           </Display>
 
-          <Body>
-            Säljaren har redan skickat varan. När leveransen är påbörjad går det
-            inte att avbryta köpet.{" "}
-          </Body>
+          <Body>{deniedReasonToText(canAbort.deniedReason)}</Body>
           <Button label="Ok" onPress={onDismiss} type="filled" />
         </>
       )}

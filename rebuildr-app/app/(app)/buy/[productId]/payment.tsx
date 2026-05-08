@@ -40,7 +40,7 @@ import { useBuyModalContext } from "@context/buy-modal-context";
 import { progressValues } from "@components/buy/constants";
 
 const BUY_PRODUCT_PAYMENT = gql`
-  query BuyProductPayment($input: GetProductInput!) {
+  query BuyProductPayment($input: GetProductInput!, $quantity: Int) {
     product(input: $input) {
       id
       title
@@ -48,6 +48,7 @@ const BUY_PRODUCT_PAYMENT = gql`
       primaryUnit
       condition
       price
+      soldByQuantity
       primaryImage {
         id
         url
@@ -55,7 +56,7 @@ const BUY_PRODUCT_PAYMENT = gql`
       pickupEnabled
       deliveryEnabled
       deliveryPrice
-      shippingPrices {
+      shippingPrices(quantity: $quantity) {
         id
         price
       }
@@ -91,6 +92,7 @@ const PAYMENT_CANCEL_PURCHASE = gql`
 export default function Payment() {
   const localSearchParams = useLocalSearchParams<{
     productId: string;
+    quantity: string;
     transportationMethod: TransportationString;
     servicePointId?: string;
     deliverToLocation?: string;
@@ -99,19 +101,21 @@ export default function Payment() {
   return <PaymentContent {...localSearchParams} />;
 }
 
-export type PaymentDeliveryProps = {
+export type PaymentTransportationProps = {
   transportationMethod: TransportationString;
   servicePointId?: string;
   deliverToLocation?: string;
   deliverToAddress?: string;
+  quantity?: string;
 };
 
 type PaymentContentProps = {
   productId: string;
-} & PaymentDeliveryProps;
+} & PaymentTransportationProps;
 
 export const PaymentContent = ({
   productId,
+  quantity: quantityString,
   transportationMethod,
   servicePointId,
   deliverToLocation,
@@ -123,6 +127,8 @@ export const PaymentContent = ({
   const colors = useThemeColor();
   const { isDesktop, isMobile } = useScreenType();
   const { setVisible, setContent } = useBuyModalContext();
+
+  const quantity = quantityString ? parseInt(quantityString, 10) : undefined;
 
   const handleClose = () => {
     setVisible(false);
@@ -149,7 +155,7 @@ export const PaymentContent = ({
         setContent({
           buyState: "payment",
           productId,
-          delivery: {
+          transportation: {
             transportationMethod,
             servicePointId,
             deliverToLocation,
@@ -164,7 +170,7 @@ export const PaymentContent = ({
     BuyProductPaymentQuery,
     BuyProductPaymentQueryVariables
   >(BUY_PRODUCT_PAYMENT, {
-    variables: { input: { id: productId } },
+    variables: { input: { id: productId }, quantity },
   });
   const [
     createPurchase,
@@ -209,6 +215,7 @@ export const PaymentContent = ({
       BuyProductCreatePurchaseMutationVariables["input"]
     > = {
       productId,
+      purchasedQuantity: quantity,
       paymentMethod,
       transportationMethod: transportationMethodEnum,
     };
@@ -238,27 +245,12 @@ export const PaymentContent = ({
     const createPurchaseInput =
       partialInput as BuyProductCreatePurchaseMutationVariables["input"];
 
-    //Hide Swish until Stripe supports it
-    if (paymentMethod === PaymentMethod.Swish) {
-      createPurchase({
-        variables: {
-          input: createPurchaseInput,
-        },
-        onCompleted: (d) => {
-          setShowStripeModal(true);
-        },
-      });
-    }
-    if (paymentMethod === PaymentMethod.Card) {
-      createPurchase({
-        variables: {
-          input: createPurchaseInput,
-        },
-        onCompleted: async () => {
-          setShowStripeModal(true);
-        },
-      });
-    }
+    createPurchase({
+      variables: {
+        input: createPurchaseInput,
+      },
+      onCompleted: () => setShowStripeModal(true),
+    });
   };
 
   const onDismissStripe = () => {
@@ -289,7 +281,7 @@ export const PaymentContent = ({
     return <LoadingSpinner />;
   }
 
-  let totalPrice = data.product.price;
+  let totalPrice = data.product.price * (quantity ?? 1);
   if (transportationMethod === "shipping") {
     totalPrice += data.product.shippingPrices?.[0].price ?? 0;
   }
@@ -316,9 +308,10 @@ export const PaymentContent = ({
           condition={data.product.condition}
           imageUrl={data.product.primaryImage?.url}
           imageSize="small"
-          quantity={data.product.primaryQuantity}
+          quantity={quantity ?? data.product.primaryQuantity}
           quantityUnit={data.product.primaryUnit}
           price={data.product.price}
+          soldByQuantity={data.product.soldByQuantity}
         />
         <Divider />
       </View>
@@ -389,7 +382,13 @@ export const PaymentContent = ({
             <Title size="medium">Köpvillkor</Title>
             <Body size="medium">
               Genom att fortsätta godkänner du RebuildRs{" "}
-              <Body isLink size="medium">
+              <Body
+                size="medium"
+                link={{
+                  pathname: "/article/[slug]",
+                  params: { slug: "anvandaravtal" },
+                }}
+              >
                 köpvillkor
               </Body>
               .

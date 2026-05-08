@@ -46,14 +46,13 @@ export const AccountWrapperDesktop = ({
           <View style={{ marginHorizontal: -48, paddingBottom: 24 }}>
             <SlideInHeader title="Konto" onClose={onClose} />
           </View>
-          <AccountContent onNavigation={setState} />
+          <AccountContent onNavigation={setState} onClose={onClose} />
         </>
       );
     case "settings":
       return (
         <Settings
           onBack={() => setState({ page: "index", params: {} })}
-          onClose={onClose}
           onNavigation={setState}
         />
       );

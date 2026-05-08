@@ -7,10 +7,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Product } from './product.entity';
 import { User } from './user.entity';
 import { Expose, Type } from 'class-transformer';
 import { File } from './file.entity';
+import { Conversation } from './conversation.entity';
 
 export enum MessageTypeEnum {
   USER = 'USER',
@@ -36,31 +36,23 @@ export class Message {
   message: string;
 
   @Expose({ name: 'senderId' })
-  @Field(() => ID)
-  @Column()
-  senderId: string;
+  @Field(() => ID, { nullable: true })
+  @Column({ nullable: true })
+  senderId?: string;
 
-  @ManyToOne(() => User, (user) => user.id)
-  sender: User;
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  sender?: User;
 
+  //Undefined receive means all can read it.
+  // Otherwise only the receiver will read it
+  //System messages will target a receiver for example
   @Expose({ name: 'receiverId' })
-  @Field(() => ID)
-  @Column()
-  receiverId: string;
+  @Field(() => ID, { nullable: true })
+  @Column({ nullable: true })
+  receiverId?: string;
 
-  @ManyToOne(() => User, (user) => user.id)
-  receiver: User;
-
-  @Expose({ name: 'productId' })
-  @Column()
-  productId: string;
-
-  @ManyToOne(() => Product, (product) => product.id)
-  product: Product;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  @Field(() => Date, { nullable: true })
-  readAt?: Date | null;
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  receiver?: User;
 
   @Field(() => MessageTypeEnum)
   @Column('enum', { enum: MessageTypeEnum, default: MessageTypeEnum.USER })
@@ -77,4 +69,10 @@ export class Message {
 
   @OneToMany(() => File, (file) => file.messageDocument)
   documents: File[];
+
+  @Field()
+  @Column()
+  conversationId: string;
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  conversation: Conversation;
 }
