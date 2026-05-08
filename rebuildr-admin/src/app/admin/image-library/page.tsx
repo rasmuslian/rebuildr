@@ -87,6 +87,7 @@ const ImageLibraryPage = () => {
                   files={value}
                   setFiles={onChange}
                   allowedFileNumber={5}
+                  aspectSlider
                 />
               </FormField>
             )}
