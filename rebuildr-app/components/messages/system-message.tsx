@@ -3,6 +3,13 @@ import Markdown, { RenderRules } from "react-native-markdown-display";
 import { Body } from "@components/typography/text";
 import dayjs from "dayjs";
 import { ChatActionEnum } from "@/gql/graphql";
+export type ChatActionProps = {
+  onAbortPurchase: () => void;
+  onReport: () => void;
+  onAboutReview: () => void;
+  onAboutPayout: () => void;
+  onAboutAbort: () => void;
+};
 
 export const parseSystemMessagePreview = (text: string): string =>
   text
@@ -29,9 +36,7 @@ export const parseSystemMessagePreview = (text: string): string =>
 
 type Props = {
   text: string;
-  onAbortPurchase: () => void;
-  onReport: () => void;
-};
+} & ChatActionProps;
 
 export const SystemMessage = ({ text, onAbortPurchase, onReport }: Props) => {
   const getCallback = (chatAction: ChatActionEnum) => {
