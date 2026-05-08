@@ -221,7 +221,7 @@ export const BottomSheet = ({
             ]}
           >
             {renderHeader()}
-            {children}
+            <View style={[containerStyle]}>{children}</View>
           </Animated.View>
         </BottomSheetView>
       )}

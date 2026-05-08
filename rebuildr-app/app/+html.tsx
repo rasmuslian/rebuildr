@@ -25,6 +25,9 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Capture beforeinstallprompt early, before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: pwaBootstrap }} />
 
+        {/* Consent Mode defaults - must be before GTM */}
+        <script dangerouslySetInnerHTML={{ __html: consentDefaults }} />
+
         {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{
@@ -46,13 +49,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
-          ></iframe>
+          />
         </noscript>
         {children}
       </body>
     </html>
   );
 }
+
+const consentDefaults = `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  analytics_storage: 'denied',
+  wait_for_update: 500
+});
+`;
 
 const pwaBootstrap = `
 window.addEventListener('beforeinstallprompt', function(e) {
