@@ -26,12 +26,14 @@ const deleteGACookies = () => {
 };
 
 export const useCookies = () => {
+  const [isReady, setIsReady] = useState(false);
   const [consentStatus, setConsentStatus] = useState<ConsentStatus>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((value) => {
       if (value === "true") setConsentStatus("granted");
       else if (value === "false") setConsentStatus("denied");
+      setIsReady(true);
     });
   }, []);
 
@@ -49,6 +51,7 @@ export const useCookies = () => {
   };
 
   return {
+    isReady,
     consentStatus,
     hasAnswered: consentStatus !== null,
     acceptCookies,

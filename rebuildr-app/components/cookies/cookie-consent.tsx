@@ -10,7 +10,7 @@ import { Popup } from "@components/popup/popup";
 import { Header } from "@components/navigation/headers/header";
 
 export const CookieConsent = () => {
-  const { hasAnswered, acceptCookies, declineCookies } = useCookies();
+  const { isReady, hasAnswered, acceptCookies, declineCookies } = useCookies();
   const [show, setShow] = useState(false);
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [declineLoading, setDeclineLoading] = useState(false);
@@ -18,8 +18,9 @@ export const CookieConsent = () => {
   const { isDesktop } = useScreenType();
 
   useEffect(() => {
+    if (!isReady) return;
     setShow(!hasAnswered);
-  }, [hasAnswered]);
+  }, [hasAnswered, isReady]);
 
   const onAcceptAll = () => {
     if (isLoading) return;
@@ -46,6 +47,10 @@ export const CookieConsent = () => {
   };
 
   const isLoading = acceptLoading || declineLoading;
+
+  if (!isReady) {
+    return null;
+  }
 
   const content = (
     <View>
@@ -85,6 +90,7 @@ export const CookieConsent = () => {
         <View
           style={{
             padding: 24,
+            paddingTop: 16,
             justifyContent: "center",
           }}
         >

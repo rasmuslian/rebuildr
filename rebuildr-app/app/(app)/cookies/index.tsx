@@ -11,6 +11,8 @@ import { borderRadius } from "@constants/sizes";
 import { Button } from "@components/buttons/button";
 import { router } from "expo-router";
 import { useCookies } from "@hooks/use-cookies";
+import { useScreenType } from "@hooks/useScreenType";
+import TopBar from "@components/navigation/top-bar/top-bar";
 
 export default function Cookies() {
   const [analytical, setAnalytical] = useState(true);
@@ -18,6 +20,7 @@ export default function Cookies() {
   const [acceptAllLoading, setAcceptAllLoading] = useState(false);
   const colors = useThemeColor();
   const { consentStatus, acceptCookies, declineCookies } = useCookies();
+  const { isDesktop } = useScreenType();
 
   useEffect(() => {
     if (!consentStatus) {
@@ -72,27 +75,8 @@ export default function Cookies() {
     });
   };
 
-  const isLoading = saveLoading || acceptAllLoading;
-
-  return (
-    <ScreenLayout
-      headerComponent={<Header title="Vi använder cookies" />}
-      footerComponent={
-        <View style={{ gap: 12 }}>
-          <Button
-            label="Spara mina inställningar"
-            onPress={onSave}
-            loading={saveLoading}
-          />
-          <Button
-            label="Acceptera alla"
-            onPress={acceptAll}
-            type="outlined"
-            loading={acceptAllLoading}
-          />
-        </View>
-      }
-    >
+  const content = (
+    <>
       <Title size="large" style={{ marginBottom: 10 }}>
         Dina cookieinställningar
       </Title>
@@ -150,6 +134,44 @@ export default function Cookies() {
           </Body>
         </View>
       </View>
+    </>
+  );
+
+  const footer = (
+    <View style={{ gap: 12 }}>
+      <Button
+        label="Spara mina inställningar"
+        onPress={onSave}
+        loading={saveLoading}
+      />
+      <Button
+        label="Acceptera alla"
+        onPress={acceptAll}
+        type="outlined"
+        loading={acceptAllLoading}
+      />
+    </View>
+  );
+
+  const isLoading = saveLoading || acceptAllLoading;
+
+  if (isDesktop) {
+    return (
+      <ScreenLayout headerComponent={<TopBar theme="light" />}>
+        <View style={{ width: 720, alignSelf: "center" }}>
+          {content}
+          <View style={{ marginTop: 32 }}>{footer}</View>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
+  return (
+    <ScreenLayout
+      headerComponent={<Header title="Vi använder cookies" />}
+      footerComponent={footer}
+    >
+      {content}
     </ScreenLayout>
   );
 }
