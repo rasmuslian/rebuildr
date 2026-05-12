@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import { InternalServerException } from 'src/exceptions';
 import { User } from 'src/entities/user.entity';
 import { ReportPurchaseTypeEnum } from 'src/entities/report-purchase.entity';
+import { ReportProductTypeEnum } from 'src/entities/report-product.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { S3Service } from './s3.service';
@@ -23,6 +24,10 @@ const resetPasswordTemplate = fs.readFileSync(
 );
 const reportPurchaseTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/report-purchase.mjml`,
+  'utf8',
+);
+const reportProductTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/report-product.mjml`,
   'utf8',
 );
 const systemMessageTemplate = fs.readFileSync(
@@ -147,10 +152,44 @@ export class MailService {
     );
     const html = handlebarsTemplate(context);
     const data = {
-      to: to ?? 'hej@rebuildr.se',
+      to: to ?? 'support@rebuildr.org',
       from: this.from,
       subject: 'Rapportering av köp',
       text: 'Rapportering av köp',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendReportProductEmail(input: {
+    reporter: User;
+    seller: User;
+    product: { id: string; title: string };
+    report: { message: string; type: ReportProductTypeEnum };
+  }) {
+    const context = {
+      ...this.baseContext,
+      productTitle: input.product.title,
+      message: input.report.message,
+      type: input.report.type,
+      reporterEmail: input.reporter.email,
+      sellerEmail: input.seller.email,
+      productId: input.product.id,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(reportProductTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: 'support@rebuildr.org',
+      from: this.from,
+      subject: 'Rapportering av produkt',
+      text: 'Rapportering av produkt',
       html,
     };
     try {
@@ -227,6 +266,19 @@ export class MailService {
     }
     if (template === 'resetPassword') {
       await this.sendResetPasswordEmail({ email: user.email, token: '123456' });
+      return true;
+    }
+    if (template === 'reportProduct') {
+      await this.sendReportProductEmail({
+        reporter: user,
+        seller: user,
+        product: { id: '123', title: 'Rapporterad produkt' },
+        report: {
+          message:
+            'Testar rapportera produkt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+          type: ReportProductTypeEnum.OTHER,
+        },
+      });
       return true;
     }
     if (template === 'reportPurchase') {
