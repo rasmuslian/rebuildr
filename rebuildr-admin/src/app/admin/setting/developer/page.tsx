@@ -128,6 +128,13 @@ const DeveloperSetting = () => {
           </Button>
           <Button
             style={{ width: 300 }}
+            onClick={() => sendEmailTemplate({ template: "reportProduct" })}
+            disabled={isSendingEmailTemplate}
+          >
+            Rapportera produkt
+          </Button>
+          <Button
+            style={{ width: 300 }}
             onClick={() =>
               sendEmailTemplate({ template: "sendSystemMessageEmail" })
             }

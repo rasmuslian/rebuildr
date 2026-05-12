@@ -6,6 +6,7 @@ import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
 import { CreateReportProductInput } from 'src/resolvers/report-product.resolver';
 import { Repository } from 'typeorm';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class ReportProductService {
@@ -16,6 +17,7 @@ export class ReportProductService {
     private userRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private mailService: MailService,
   ) {}
 
   async createReportProduct(
@@ -27,6 +29,7 @@ export class ReportProductService {
     });
     const product = await this.productRepository.findOne({
       where: { id: input.productId },
+      relations: { seller: true },
     });
     if (!reporter || !product) {
       throw BadUserInputException();
@@ -50,6 +53,15 @@ export class ReportProductService {
     report.reporter = reporter;
     report.product = product;
 
-    return await this.reportProductRepository.save(report);
+    const savedReport = await this.reportProductRepository.save(report);
+
+    await this.mailService.sendReportProductEmail({
+      reporter,
+      seller: product.seller,
+      product,
+      report: savedReport,
+    });
+
+    return savedReport;
   }
 }
