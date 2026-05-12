@@ -14,14 +14,16 @@ const query = `
           id
           categoryName
           productName
-          coefficient
+          productionCoefficient
+          disposalCoefficient
         }
       }
       co2Factor {
         id
         categoryName
         productName
-        coefficient
+        productionCoefficient
+        disposalCoefficient
       }
 
     }

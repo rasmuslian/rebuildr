@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import { Co2Factor } from "gql/graphql";
+import { Co2FactorWithDisposal } from "@/queries/co2-factor/update-co2-factor";
 
 const query = `
   query Co2Factors {
@@ -7,14 +7,15 @@ const query = `
       id
       categoryName
       productName
-      coefficient
+      productionCoefficient
+      disposalCoefficient
     }
   }
 `;
 
 export const listCo2Factors = async () => {
   const response = await apiClient.post<
-    GraphQLResponse<{ co2Factors: Co2Factor[] }>
+    GraphQLResponse<{ co2Factors: Co2FactorWithDisposal[] }>
   >("/", {
     query,
   });

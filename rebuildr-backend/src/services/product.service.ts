@@ -427,7 +427,8 @@ export class ProductService {
     //CO2
     if (input.weight || input.categoryId) {
       const co2 = await this.getProductCO2(product);
-      product.co2Saving = co2 ?? product.co2Saving;
+      product.co2SavingSeller = co2.co2SavingSeller ?? product.co2SavingSeller;
+      product.co2SavingBuyer = co2.co2SavingBuyer ?? product.co2SavingBuyer;
     }
 
     //Transportations
@@ -618,7 +619,10 @@ export class ProductService {
           categoryId: product.categoryId,
         });
 
-        return product.weight * co2Factor.coefficient;
+        return {
+          co2SavingBuyer: product.weight * co2Factor.productionCoefficient,
+          co2SavingSeller: product.weight * co2Factor.disposalCoefficient,
+        };
       } catch {
         this.logger.error('co2 factor not found', {
           categoryId: product.categoryId,

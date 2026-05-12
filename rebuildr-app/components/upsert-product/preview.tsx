@@ -59,7 +59,7 @@ const PREVIEW_PRODUCT_UPSERT = gql`
   query PreviewProductUpsert($input: GetProductInput!) {
     product(input: $input) {
       id
-      co2Saving
+      co2SavingSeller
     }
   }
 `;
@@ -166,7 +166,7 @@ export const Preview = ({ product, dbProductId }: Props) => {
         parentWidth={width}
         onAllImagesPress={handleShowAllImagesPopup}
       />
-      <CO2Savings co2Saving={productData?.product.co2Saving} />
+      <CO2Savings co2SavingSeller={productData?.product.co2SavingSeller} />
       {product.approximatePlace && product.pickupEnabled && (
         <PickupPosition
           address={product.approximatePlace.address}

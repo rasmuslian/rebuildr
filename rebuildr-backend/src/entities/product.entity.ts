@@ -344,7 +344,11 @@ export class Product {
 
   @Field({ nullable: true })
   @Column({ nullable: true, type: 'float' })
-  co2Saving?: number;
+  co2SavingBuyer?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'float' })
+  co2SavingSeller?: number;
 
   @Column({ nullable: true })
   publishedAt?: Date;
