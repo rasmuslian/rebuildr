@@ -166,12 +166,15 @@ export class MailService {
     }
   }
 
-  async sendReportProductEmail(input: {
-    reporter: User;
-    seller: User;
-    product: { id: string; title: string };
-    report: { message: string; type: ReportProductTypeEnum };
-  }) {
+  async sendReportProductEmail(
+    input: {
+      reporter: User;
+      seller: User;
+      product: { id: string; title: string };
+      report: { message: string; type: ReportProductTypeEnum };
+    },
+    to?: string,
+  ) {
     const context = {
       ...this.baseContext,
       productTitle: input.product.title,
@@ -186,7 +189,7 @@ export class MailService {
     );
     const html = handlebarsTemplate(context);
     const data = {
-      to: 'support@rebuildr.org',
+      to: to ?? 'support@rebuildr.org',
       from: this.from,
       subject: 'Rapportering av produkt',
       text: 'Rapportering av produkt',
@@ -269,16 +272,19 @@ export class MailService {
       return true;
     }
     if (template === 'reportProduct') {
-      await this.sendReportProductEmail({
-        reporter: user,
-        seller: user,
-        product: { id: '123', title: 'Rapporterad produkt' },
-        report: {
-          message:
-            'Testar rapportera produkt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-          type: ReportProductTypeEnum.OTHER,
+      await this.sendReportProductEmail(
+        {
+          reporter: user,
+          seller: user,
+          product: { id: '123', title: 'Rapporterad produkt' },
+          report: {
+            message:
+              'Testar rapportera produkt. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            type: ReportProductTypeEnum.OTHER,
+          },
         },
-      });
+        user.email,
+      );
       return true;
     }
     if (template === 'reportPurchase') {
