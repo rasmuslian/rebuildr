@@ -39,7 +39,8 @@ export default function ArticlePage() {
         loading={loading}
         headerComponent={<TopBar theme="light" />}
       >
-        <View style={{ width: 720, alignSelf: "center" }}>
+        <View style={{ width: 720, alignSelf: "center", gap: 24 }}>
+          <Header showBackButton title={data?.articleBySlug.title} />
           <ParseHtml html={data?.articleBySlug.body} />
         </View>
       </ScreenLayout>
