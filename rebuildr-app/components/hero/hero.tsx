@@ -20,14 +20,14 @@ export default function Hero({
     return (
       <HeroMobile
         scrollY={scrollY}
-        headline="Sveriges marknadsplats för återbrukat byggmaterial"
+        headline="Sveriges marknadsplats för återbrukat byggmaterial & verktyg"
         searchBar="Vad letar du efter?"
       />
     );
   } else if (isDesktop && showFor === "desktop") {
     return (
       <HeroDesktop
-        headline="Sveriges marknadsplats för återbrukat byggmaterial"
+        headline="Sveriges marknadsplats för återbrukat byggmaterial & verktyg"
         searchBar="Vad letar du efter?"
         showSearchBar={showSearchBar}
       />

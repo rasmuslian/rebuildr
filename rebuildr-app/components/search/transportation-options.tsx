@@ -148,7 +148,7 @@ export const TransportationOptions = ({
                   type="continuous"
                   sliderProps={{
                     min: 1000,
-                    max: 80000,
+                    max: 1500000,
                     value: pickupDistance,
                     onChange: (v) => setPickupDistance(v),
                     width: isDesktop ? 290 : screenWidth * (3 / 5),
