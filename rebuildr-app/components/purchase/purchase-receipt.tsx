@@ -192,8 +192,7 @@ export const PurchaseReceipt = ({
         />
       </View>
       <Divider />
-      <View style={{ gap: 16 }}>
-        <Headline size="small">Kvitto</Headline>
+      <View>
         <ReceiptSection purchaseId={data.purchase.id} />
       </View>
       <Divider />

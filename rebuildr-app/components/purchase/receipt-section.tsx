@@ -7,6 +7,7 @@ import {
 import { formatCO2 } from "@/utils/formattings";
 import { gql, useQuery } from "@apollo/client";
 import { Divider } from "@components/dividers/divider";
+import { ExplainCO2WhyTwoNumbersSheet } from "@components/explanation-information-sheets/explain-co2-why-two-numbers-sheet";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -18,7 +19,8 @@ import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import dayjs from "dayjs";
-import { View } from "react-native";
+import { useState } from "react";
+import { Platform, Pressable, View } from "react-native";
 
 const RECEIPT_SECTION = gql`
   query ReceiptSection($input: GetPurchaseInput!) {
@@ -105,8 +107,35 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
   const payedAt = purchase.paymentAcceptedAt ?? purchase.createdAt;
   const buyerIsMe = me.id === purchase.buyer.id;
 
+  const handlePrint = () => {
+    const el = document.getElementById("receipt-section");
+    if (!el) return;
+
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.id = "receipt-print-clone";
+    document.body.appendChild(clone);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @media print {
+        body > *:not(#receipt-print-clone) { display: none !important; }
+        #receipt-print-clone { margin-top: 20px; }
+        #receipt-print-button { display: none !important; }
+        #receipt-co2-read-more { display: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    window.onafterprint = () => {
+      document.head.removeChild(style);
+      document.body.removeChild(clone);
+      window.onafterprint = null;
+    };
+    window.print();
+  };
+
   return (
-    <View>
+    <View nativeID="receipt-section">
       <View>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <View
@@ -118,12 +147,17 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
           >
             <Icon icon="receipt" />
           </View>
-          <View style={{ justifyContent: "space-between" }}>
+          <View style={{ justifyContent: "space-between", flex: 1 }}>
             <Title size="large">Transaktionskvitto</Title>
             <Body size="small">
               Verifikat för {buyerIsMe ? "ditt köp" : "din försäljning"}
             </Body>
           </View>
+          {Platform.OS === "web" && (
+            <Pressable nativeID="receipt-print-button" onPress={handlePrint}>
+              <Icon icon="upload" />
+            </Pressable>
+          )}
         </View>
         <Body size="small" color="secondary" style={{ marginTop: 10 }}>
           {dayjs(payedAt).format("D MMMM, YYYY")}
@@ -389,6 +423,7 @@ const BuyerCO2Summary = ({
   quantityCO2SavingBuyer,
   quantityCO2SavingSeller,
 }: BuyerCO2SummaryProps) => {
+  const [showExplanation, setShowExplanation] = useState(false);
   const colors = useThemeColor();
   return (
     <View
@@ -398,7 +433,7 @@ const BuyerCO2Summary = ({
         borderRadius: borderRadius.medium,
         borderWidth: 1,
         padding: 16,
-        paddingBottom: 52,
+        paddingBottom: 24,
         marginTop: 24,
       }}
     >
@@ -444,10 +479,21 @@ const BuyerCO2Summary = ({
       </Label>
       <Headline
         size="small"
-        style={{ color: colors.logo.vector, marginTop: 10 }}
+        style={{ color: colors.logo.vector, marginTop: 10, marginBottom: 24 }}
       >
         {formatCO2(quantityCO2SavingSeller + quantityCO2SavingBuyer)} kg CO₂e
       </Headline>
+      <Body
+        nativeID="receipt-co2-read-more"
+        size="small"
+        onPress={() => setShowExplanation(true)}
+      >
+        Läs mer hur vi räknar
+      </Body>
+      <ExplainCO2WhyTwoNumbersSheet
+        show={showExplanation}
+        onDismiss={() => setShowExplanation(false)}
+      />
     </View>
   );
 };
@@ -460,6 +506,8 @@ const SellerCO2Summary = ({
   quantityCO2SavingBuyer,
   quantityCO2SavingSeller,
 }: SellerCO2SummaryProps) => {
+  const [showExplanation, setShowExplanation] = useState(false);
+
   const colors = useThemeColor();
   return (
     <View
@@ -469,7 +517,7 @@ const SellerCO2Summary = ({
         borderRadius: borderRadius.medium,
         borderWidth: 1,
         padding: 16,
-        paddingBottom: 52,
+        paddingBottom: 24,
         marginTop: 24,
       }}
     >
@@ -515,10 +563,21 @@ const SellerCO2Summary = ({
       </Label>
       <Headline
         size="small"
-        style={{ color: colors.logo.vector, marginTop: 10 }}
+        style={{ color: colors.logo.vector, marginTop: 10, marginBottom: 24 }}
       >
         {formatCO2(quantityCO2SavingSeller + quantityCO2SavingBuyer)} kg CO₂e
       </Headline>
+      <Body
+        nativeID="receipt-co2-read-more"
+        size="small"
+        onPress={() => setShowExplanation(true)}
+      >
+        Läs mer hur vi räknar
+      </Body>
+      <ExplainCO2WhyTwoNumbersSheet
+        show={showExplanation}
+        onDismiss={() => setShowExplanation(false)}
+      />
     </View>
   );
 };
