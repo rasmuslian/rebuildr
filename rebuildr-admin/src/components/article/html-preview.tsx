@@ -12,8 +12,18 @@ import EmptyContainer from "@components/empty-container";
 import Accordion from "@components/article/accordion";
 import LinkGroup from "@components/article/link-group";
 import CTABlock from "@components/article/cta-block";
-import Image from "next/image";
 import { colors } from "tailwind.config";
+
+const isMeaningfulChild = (node: DOMNode) =>
+  !(
+    node.type === "text" &&
+    ((node as unknown as { data?: string }).data ?? "").trim() === ""
+  );
+
+const findFirstImg = (children: DOMNode[]) =>
+  children.find(
+    (c) => c instanceof Element && (c as Element).name === "img",
+  ) as Element | undefined;
 
 type Props = {
   html: string;
@@ -59,6 +69,16 @@ const parseHtml = (html: string) => {
             );
           }
           case "p": {
+            const meaningful = (domNode.children as DOMNode[]).filter(
+              isMeaningfulChild,
+            );
+            const isImgOnly =
+              meaningful.length === 1 &&
+              meaningful[0] instanceof Element &&
+              (meaningful[0] as Element).name === "img";
+            if (isImgOnly) {
+              return <>{domToReact(domNode.children as DOMNode[], options)}</>;
+            }
             return (
               <p className="mb-6 text-body-medium">
                 {domToReact(domNode.children as DOMNode[], options)}
@@ -90,16 +110,37 @@ const parseHtml = (html: string) => {
               </a>
             );
           }
+          case "figure": {
+            const imgChild = findFirstImg(domNode.children as DOMNode[]);
+            if (!imgChild) return <NotParsed />;
+            return (
+              <figure className="mb-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={imgChild.attribs.alt ?? ""}
+                  src={imgChild.attribs.src}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    borderRadius: 12,
+                  }}
+                />
+              </figure>
+            );
+          }
           case "img": {
             return (
-              <Image
-                alt=""
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                alt={domNode.attribs.alt ?? ""}
                 src={domNode.attribs.src}
-                width={400}
-                height={400}
                 style={{
-                  aspectRatio: 1,
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
                   borderRadius: 12,
+                  marginBottom: 24,
                 }}
               />
             );

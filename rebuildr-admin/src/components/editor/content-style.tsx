@@ -1,6 +1,17 @@
 import { colors } from "tailwind.config";
 
 export const contentStyle = `
+  figure {
+    margin: 16px 0;
+    padding: 0;
+    display: block;
+  }
+  figure.image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+  }
   img {
     height: auto;
     display: block;

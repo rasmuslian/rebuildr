@@ -217,7 +217,7 @@ export const Delivery = ({
                 type="continuous"
                 sliderProps={{
                   min: 1000,
-                  max: 80000,
+                  max: 1500000,
                   value: radius,
                   onChange: onSetRadius,
                   width: isDesktop ? 240 : screenWidth * (3 / 5),
