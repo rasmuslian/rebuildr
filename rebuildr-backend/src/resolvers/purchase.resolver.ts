@@ -394,8 +394,12 @@ export class PurchaseResolver {
   }
 
   @ResolveField(() => String)
-  async payoutBankLast4(@Parent() purchase: Purchase) {
-    const account = await this.purchaseService.getPayoutBank(purchase);
+  @UseGuards(GqlAuthGuard)
+  async payoutBankLast4(
+    @Parent() purchase: Purchase,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    const account = await this.purchaseService.getPayoutBank(purchase, user.id);
     return account.last4;
   }
 }

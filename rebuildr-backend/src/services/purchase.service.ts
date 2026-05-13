@@ -1019,7 +1019,7 @@ export class PurchaseService {
     return this.purchaseRepository.save(purchase);
   }
 
-  async getPayoutBank(purchase: Purchase) {
+  async getPayoutBank(purchase: Purchase, currentUserId: string) {
     const { payoutBankAccountId, payoutBankLast4, payoutBankName } = purchase;
 
     if (payoutBankAccountId && payoutBankLast4 && payoutBankName) {
@@ -1038,6 +1038,13 @@ export class PurchaseService {
     if (!product.seller) {
       this.logger.error('Could not find seller of purchase', { purchase });
       throw InternalServerException();
+    }
+    if (product.seller.id !== currentUserId) {
+      this.logger.error("User not allowed to read other user's payoutBank", {
+        currentUserId,
+        purchase,
+      });
+      throw ForbiddenException();
     }
     if (!product.seller.connectedAccountId) {
       this.logger.error('Seller is missing connectedAccountId', { purchase });
