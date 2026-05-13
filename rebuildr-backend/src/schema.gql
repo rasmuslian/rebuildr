@@ -72,6 +72,7 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
+  payoutBankLast4: String
   abortedById: String
   paymentMethod: PaymentMethod
   transportationMethod: TransportationEnum!
@@ -200,6 +201,9 @@ type User {
   organizationAccount: User
   organizationOwner: User
   totalCO2Savings: Float!
+  totalCO2SavingsBuyer: Float!
+  totalCO2SavingsSeller: Float!
+  numberOfCompletedPurchases: Int!
 }
 
 enum UserRoleEnum {
@@ -289,7 +293,8 @@ enum BrandTypeEnum {
 
 type CO2Factor {
   id: ID!
-  coefficient: Float!
+  productionCoefficient: Float!
+  disposalCoefficient: Float!
   productName: String!
   categoryName: String!
 }
@@ -394,7 +399,8 @@ type Product {
   deliveryEnabled: Boolean!
   deliveryRadius: Float
   noProject: Boolean
-  co2Saving: Float
+  co2SavingBuyer: Float
+  co2SavingSeller: Float
   category: Category
   seller: User!
   primaryImage: File
@@ -1193,6 +1199,7 @@ type Mutation {
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
   cmsRefundPurchase(input: CmsRefundPurchaseInput!): Purchase!
+  cmsBackfillPayoutBankDetails: Int!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
@@ -1222,7 +1229,8 @@ type Mutation {
   cmsCreatePartner(input: CmsCreatePartnerInput!): CmsCreatePartnerResponse!
   cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
-  updateCO2Factors: Boolean!
+  cmsUpdateCO2Factor(input: CmsUpdateCO2Factor!): CO2Factor!
+  syncCO2Factors: Boolean!
   updatePageContent(input: UpdatePageContentInput!): PageContent!
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
@@ -1717,6 +1725,11 @@ input CmsUpdatePartnerInput {
 
 input CmsDeletePartnerInput {
   id: String!
+}
+
+input CmsUpdateCO2Factor {
+  id: String!
+  disposalCoefficient: Float
 }
 
 input UpdatePageContentInput {

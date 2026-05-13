@@ -30,7 +30,7 @@ const EditCO2Relation = ({ category, onSettled }: Props) => {
   const options = useMemo(
     () =>
       co2Factors.map((factor) => ({
-        label: `${factor.coefficient} - ${factor.categoryName} - ${factor.productName}`,
+        label: `${factor.productionCoefficient} - ${factor.categoryName} - ${factor.productName}`,
         value: factor.id,
       })),
     [co2Factors],

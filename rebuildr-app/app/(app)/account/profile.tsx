@@ -159,7 +159,15 @@ export default function Profile() {
           )}
 
           {tab === "co2" && (
-            <CO2Summary totalCO2Savings={profileData.user.totalCO2Savings} />
+            <CO2Summary
+              totalCO2Savings={profileData.user.totalCO2Savings}
+              totalCO2SavingsBuyer={profileData.user.totalCO2SavingsBuyer}
+              totalCO2SavingsSeller={profileData.user.totalCO2SavingsSeller}
+              numberOfSoldProducts={profileData.user.numberOfSoldProducts}
+              numberOfCompletedPurchases={
+                profileData.user.numberOfCompletedPurchases
+              }
+            />
           )}
         </ScreenLayout>
 
@@ -244,7 +252,15 @@ export default function Profile() {
         )}
 
         {tab === "co2" && (
-          <CO2Summary totalCO2Savings={profileData.user.totalCO2Savings} />
+          <CO2Summary
+            totalCO2Savings={profileData.user.totalCO2Savings}
+            totalCO2SavingsBuyer={profileData.user.totalCO2SavingsBuyer}
+            totalCO2SavingsSeller={profileData.user.totalCO2SavingsSeller}
+            numberOfSoldProducts={profileData.user.numberOfSoldProducts}
+            numberOfCompletedPurchases={
+              profileData.user.numberOfCompletedPurchases
+            }
+          />
         )}
       </ScreenLayout>
     </>

@@ -286,7 +286,7 @@ export const ProductDesktop = ({
                   <Divider />
                 </>
               )}
-              <CO2Savings co2Saving={product.co2Saving} />
+              <CO2Savings co2SavingSeller={product.co2SavingSeller} />
               <Divider />
               <InfoSection
                 createdAt={product.createdAt}
