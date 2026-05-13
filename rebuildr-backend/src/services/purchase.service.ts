@@ -1013,11 +1013,47 @@ export class PurchaseService {
       logger,
     );
   }
+
   async reportPurchaseResolved(purchase: Purchase) {
     purchase.pausedAt = null;
     return this.purchaseRepository.save(purchase);
   }
 
+  async getPayoutBank(purchase: Purchase) {
+    const { payoutBankAccountId, payoutBankLast4, payoutBankName } = purchase;
+
+    if (payoutBankAccountId && payoutBankLast4 && payoutBankName) {
+      return {
+        id: payoutBankAccountId,
+        last4: payoutBankLast4,
+        bankName: payoutBankName,
+      };
+    }
+
+    const product = await this.productRepository.findOne({
+      where: { id: purchase.productId },
+      relations: { seller: true },
+    });
+
+    if (!product.seller) {
+      this.logger.error('Could not find seller of purchase', { purchase });
+      throw InternalServerException();
+    }
+    if (!product.seller.connectedAccountId) {
+      this.logger.error('Seller is missing connectedAccountId', { purchase });
+      throw InternalServerException();
+    }
+
+    const account = await this.stripeService.getDefaultPayoutAccount(
+      product.seller.connectedAccountId,
+    );
+
+    if (!account) {
+      this.logger.error('payout bank account not found!', { purchase });
+      throw InternalServerException();
+    }
+    return account;
+  }
   //---------------------------------------------------------------
 
   //------------------ CRON jobs ----------------------------

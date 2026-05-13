@@ -4,13 +4,18 @@ import { StyleSheet, View, ViewStyle } from "react-native";
 
 type Props = {
   style?: ViewStyle;
+  color?: string;
 };
 
-export const Divider = ({ style }: Props) => {
+export const Divider = ({ style, color }: Props) => {
   const colors = useThemeColor();
 
   const styles = dividerStyles(colors);
-  return <View style={[styles.bottomDivider, style]} />;
+  return (
+    <View
+      style={[styles.bottomDivider, style, color && { borderColor: color }]}
+    />
+  );
 };
 
 export const dividerStyles = (colors: ColorTokens) =>

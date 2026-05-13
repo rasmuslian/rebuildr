@@ -266,7 +266,16 @@ export class StripeService {
     );
   }
 
-  async retrieveExternalAccounts(connectedAccountId: string) {
+  async retrieveExternalAccounts(connectedAccountId: string): Promise<
+    {
+      id: string;
+      type: string;
+      bankName: string;
+      routingNumber: string;
+      last4: string;
+      default: string;
+    }[]
+  > {
     const account = await this.retrieveAccount(connectedAccountId);
     const formattedPayoutAccounts = account.external_accounts.data.reduce(
       (acc, payoutAccount) => {
@@ -288,6 +297,11 @@ export class StripeService {
       [],
     );
     return formattedPayoutAccounts;
+  }
+  async getDefaultPayoutAccount(connectedAccountId: string) {
+    const accounts = await this.retrieveExternalAccounts(connectedAccountId);
+
+    return accounts.find((account) => account.default);
   }
 
   async retrieveAccount(connectedAccountId: string) {

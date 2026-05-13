@@ -5,7 +5,6 @@ import {
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Avatar } from "@components/avatar/avatar";
-import { ReceiptCard } from "@components/purchase/receipt-card";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
@@ -25,6 +24,7 @@ import { trackEvent } from "@/utils/analytics";
 import { Popup } from "@components/popup/popup";
 import { ShippingCodeContent } from "@components/shipping-code/shipping-code-content";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { ReceiptSection } from "./receipt-section";
 
 export const PURCHASE_RECEIPT = gql`
   query PurchaseReceipt($input: GetPurchaseInput!) {
@@ -194,18 +194,7 @@ export const PurchaseReceipt = ({
       <Divider />
       <View style={{ gap: 16 }}>
         <Headline size="small">Kvitto</Headline>
-        <ReceiptCard
-          productPrice={data.purchase.product.price}
-          purchasedQuantity={data.purchase.purchasedQuantity}
-          paymentMethod={data.purchase.paymentMethod}
-          payedAt={data.purchase.paymentAcceptedAt ?? data.purchase.createdAt}
-          shippingPrice={data.purchase.shippingPrice}
-          deliveryPrice={data.purchase.product.deliveryPrice}
-          transportationMethod={data.purchase.transportationMethod}
-          boughtForFree={data.purchase.boughtForFree}
-          role={buyerIsMe ? "buyer" : "seller"}
-          userType={data.me.type}
-        />
+        <ReceiptSection purchaseId={data.purchase.id} />
       </View>
       <Divider />
       {data.purchase.transportationMethod === TransportationEnum.Shipping && (

@@ -392,4 +392,10 @@ export class PurchaseResolver {
   async canAbort(@Parent() purchase: Purchase) {
     return this.purchaseService.canAbortPurchase(purchase);
   }
+
+  @ResolveField(() => String)
+  async payoutBankLast4(@Parent() purchase: Purchase) {
+    const account = await this.purchaseService.getPayoutBank(purchase);
+    return account.last4;
+  }
 }

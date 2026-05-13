@@ -54,6 +54,7 @@ import { Paperclip } from "./paperclip";
 import { Minus } from "./minus";
 import { Navigation } from "./navigation";
 import { Magic } from "./magic";
+import { Receipt } from "./receipt";
 
 export type IconType =
   | "placeholder"
@@ -107,7 +108,8 @@ export type IconType =
   | "qrCode"
   | "star"
   | "paperclip"
-  | "magic";
+  | "magic"
+  | "receipt";
 
 export interface IconProps extends SvgProps {
   size: number;
@@ -275,6 +277,8 @@ export const Icon = ({
       return <Paperclip {...props} size={size} color={color} />;
     case "magic":
       return <Magic {...props} size={size} color={color} />;
+    case "receipt":
+      return <Receipt {...props} size={size} color={color} />;
     default:
       break;
   }
