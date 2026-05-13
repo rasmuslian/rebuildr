@@ -5,8 +5,8 @@ import { useState } from "react";
 import { View } from "react-native";
 import co2Svg from "@assets/svgs/co2.svg";
 import { Image } from "expo-image";
-import { ExplainCO2CalculationSheet } from "@components/explanation-information-sheets/explain-co2-calculation-bottom-sheet";
 import { formatCO2 } from "@/utils/formattings";
+import { ExplainCO2WhyTwoNumbersSheet } from "@components/explanation-information-sheets/explain-co2-why-two-numbers-sheet";
 
 type Props = {
   co2SavingSeller?: number | null;
@@ -38,15 +38,15 @@ export const CO2Savings = ({ co2SavingSeller }: Props) => {
           </Label>
         )}
         <Body size="small">
-          Cirka 90–99% lägre än en ny vara. Vi jämför klimat-påverkan för en ny
-          vara med de små utsläpp som uppstår vid återbruk, främst transport och
-          hantering. Skillnaden är din klimat-besparing.
+          Cirka 90–99% lägre än en ny vara. Siffran visar nyproduktionens
+          utsläpp (A1–A3, Boverkets klimatdatabas) som du undviker genom att
+          köpa begagnat.
         </Body>
         <Body size="small" onPress={() => setShowExplanation(true)}>
           Läs mer hur vi räknar
         </Body>
       </View>
-      <ExplainCO2CalculationSheet
+      <ExplainCO2WhyTwoNumbersSheet
         show={showExplanation}
         onDismiss={() => setShowExplanation(false)}
       />

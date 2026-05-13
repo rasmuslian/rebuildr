@@ -1,6 +1,6 @@
 import { formatCO2 } from "@/utils/formattings";
 import { Divider } from "@components/dividers/divider";
-import { ExplainCO2CalculationSheet } from "@components/explanation-information-sheets/explain-co2-calculation-bottom-sheet";
+import { ExplainCO2WhyTwoNumbersSheet } from "@components/explanation-information-sheets/explain-co2-why-two-numbers-sheet";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
@@ -110,7 +110,7 @@ export const CO2Summary = ({
         Så här räknar vi
       </Body>
 
-      <ExplainCO2CalculationSheet
+      <ExplainCO2WhyTwoNumbersSheet
         show={showExplanation}
         onDismiss={() => setShowExplanation(false)}
       />
