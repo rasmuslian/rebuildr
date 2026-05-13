@@ -957,12 +957,16 @@ export class PurchaseService {
           'Seller does not have available funds for payout yet. Will try again later',
         );
       } else {
-        const payoutResponse = await this.stripeService.createPayout(
-          seller.connectedAccountId,
-          approvedPurchase.paymentIntentId,
-        );
+        const { payout, bankAccountId, bankName, bankLast4 } =
+          await this.stripeService.createPayout(
+            seller.connectedAccountId,
+            approvedPurchase.paymentIntentId,
+          );
 
-        approvedPurchase.payoutId = payoutResponse.id;
+        approvedPurchase.payoutId = payout.id;
+        approvedPurchase.payoutBankAccountId = bankAccountId;
+        approvedPurchase.payoutBankName = bankName;
+        approvedPurchase.payoutBankLast4 = bankLast4;
       }
     } catch (err) {
       logger.error(
@@ -1300,11 +1304,15 @@ export class PurchaseService {
       await Promise.all(
         purchasesAvailableForPayout.map(async (purchase) => {
           try {
-            const payout = await this.stripeService.createPayout(
-              purchase.product.seller.connectedAccountId,
-              purchase.paymentIntentId,
-            );
+            const { payout, bankAccountId, bankName, bankLast4 } =
+              await this.stripeService.createPayout(
+                purchase.product.seller.connectedAccountId,
+                purchase.paymentIntentId,
+              );
             purchase.payoutId = payout.id;
+            purchase.payoutBankAccountId = bankAccountId;
+            purchase.payoutBankName = bankName;
+            purchase.payoutBankLast4 = bankLast4;
             logger.info('Payed out purchase', {
               purchaseId: purchase.id,
               paymentIntentId: purchase.paymentIntentId,

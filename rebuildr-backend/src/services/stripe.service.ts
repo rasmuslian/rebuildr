@@ -405,7 +405,42 @@ export class StripeService {
           stripeAccount: connectedAccountId,
         },
       );
-      return payout;
+
+      let bankAccountId: string | undefined;
+      let bankName: string | undefined;
+      let bankLast4: string | undefined;
+
+      const destinationId =
+        typeof payout.destination === 'string'
+          ? payout.destination
+          : payout.destination?.id;
+
+      if (destinationId) {
+        try {
+          const destination =
+            await this.stripe.accounts.retrieveExternalAccount(
+              connectedAccountId,
+              destinationId,
+              { stripeAccount: connectedAccountId },
+            );
+          if (destination.object === 'bank_account') {
+            bankAccountId = destination.id;
+            bankName = destination.bank_name;
+            bankLast4 = destination.last4;
+          }
+        } catch (e) {
+          this.logger.warn(
+            'Could not retrieve payout destination bank account',
+            {
+              payoutId: payout.id,
+              destinationId,
+              error: e,
+            },
+          );
+        }
+      }
+
+      return { payout, bankAccountId, bankName, bankLast4 };
     } catch (e) {
       this.logger.error('Payout failed', {
         error: e,

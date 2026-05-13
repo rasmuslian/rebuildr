@@ -162,6 +162,15 @@ export class Purchase {
   @Column({ nullable: true })
   refundId?: string;
 
+  @Column({ nullable: true })
+  payoutBankAccountId?: string;
+
+  @Column({ nullable: true })
+  payoutBankName?: string;
+
+  @Column({ nullable: true })
+  payoutBankLast4?: string;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   abortedById?: string;
