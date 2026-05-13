@@ -29,7 +29,9 @@ export interface IUserLoaders {
   reviewedLoader: DataLoader<string, Review[]>;
   getOrganizations: DataLoader<string, User[]>;
   getOrganizationOwners: DataLoader<string, User[]>;
-  totalCO2Savings: DataLoader<string, number>;
+  totalCO2SavingsBuyer: DataLoader<string, number>;
+  totalCO2SavingsSeller: DataLoader<string, number>;
+  numberOfCompletedPurchases: DataLoader<string, number>;
 }
 
 @Injectable()
@@ -261,8 +263,8 @@ export class UserLoader {
     });
   }
 
-  private totalCO2Savings() {
-    return new DataLoader(async (userIds) => {
+  private totalCO2SavingsBuyer() {
+    return new DataLoader<string, number>(async (userIds) => {
       const users: { userId: string; totalCO2Saving: number }[] =
         await this.dataSource
           .getRepository(User)
@@ -270,7 +272,58 @@ export class UserLoader {
           .leftJoin(
             (qb) =>
               qb
-                .select('p."sellerId", SUM(p."co2Saving") as "co2"')
+                .select('pur."buyerId", SUM(p."co2SavingBuyer") as "co2"')
+                .from(Purchase, 'pur')
+                .innerJoin(
+                  Product,
+                  'p',
+                  `p.id = pur."productId" AND p."soldByQuantity" = false`,
+                )
+                .where('pur."failedAt" IS NULL')
+                .groupBy('pur."buyerId"'),
+            'non_qty',
+            'non_qty."buyerId" = u.id',
+          )
+          .leftJoin(
+            (qb) =>
+              qb
+                .select(
+                  'pur2."buyerId", SUM(pur2."purchasedQuantity" * p2."co2SavingBuyer") as "co2"',
+                )
+                .from(Purchase, 'pur2')
+                .innerJoin(
+                  Product,
+                  'p2',
+                  `p2.id = pur2."productId" AND p2."soldByQuantity" = true`,
+                )
+                .where('pur2."failedAt" IS NULL')
+                .groupBy('pur2."buyerId"'),
+            'qty',
+            'qty."buyerId" = u.id',
+          )
+          .select(
+            'u.id as "userId", COALESCE(non_qty."co2", 0) + COALESCE(qty."co2", 0) as "totalCO2Saving"',
+          )
+          .where('u.id IN (:...userIds)', { userIds })
+          .getRawMany();
+
+      return userIds.map(
+        (userId) =>
+          users.find((user) => user.userId === userId)?.totalCO2Saving ?? 0,
+      );
+    });
+  }
+
+  private totalCO2SavingsSeller() {
+    return new DataLoader<string, number>(async (userIds) => {
+      const users: { userId: string; totalCO2Saving: number }[] =
+        await this.dataSource
+          .getRepository(User)
+          .createQueryBuilder('u')
+          .leftJoin(
+            (qb) =>
+              qb
+                .select('p."sellerId", SUM(p."co2SavingSeller") as "co2"')
                 .from(Product, 'p')
                 .where(
                   `p."soldByQuantity" = false AND p.status = '${ProductStatus.SOLD}'`,
@@ -283,7 +336,7 @@ export class UserLoader {
             (qb) =>
               qb
                 .select(
-                  'p2."sellerId", SUM(pur."purchasedQuantity" * p2."co2Saving") as "co2"',
+                  'p2."sellerId", SUM(pur."purchasedQuantity" * p2."co2SavingSeller") as "co2"',
                 )
                 .from(Purchase, 'pur')
                 .innerJoin(
@@ -302,11 +355,29 @@ export class UserLoader {
           .where('u.id IN (:...userIds)', { userIds })
           .getRawMany();
 
-      const savings = userIds.map(
+      return userIds.map(
         (userId) =>
           users.find((user) => user.userId === userId)?.totalCO2Saving ?? 0,
       );
-      return savings;
+    });
+  }
+
+  private numberOfCompletedPurchases() {
+    return new DataLoader<string, number>(async (userIds) => {
+      const counts: { userId: string; count: string }[] =
+        await this.dataSource
+          .getRepository(Purchase)
+          .createQueryBuilder('pur')
+          .select('pur."buyerId" as "userId", COUNT(pur.id) as "count"')
+          .where('pur."buyerId" IN (:...userIds)', { userIds })
+          .andWhere('pur."failedAt" IS NULL')
+          .groupBy('pur."buyerId"')
+          .getRawMany();
+
+      return userIds.map(
+        (userId) =>
+          parseInt(counts.find((c) => c.userId === userId)?.count ?? '0'),
+      );
     });
   }
 
@@ -335,7 +406,9 @@ export class UserLoader {
       reviewedLoader: this.reviewedLoader(),
       getOrganizations: this.getOrganizations(),
       getOrganizationOwners: this.getOrganizationOwners(),
-      totalCO2Savings: this.totalCO2Savings(),
+      totalCO2SavingsBuyer: this.totalCO2SavingsBuyer(),
+      totalCO2SavingsSeller: this.totalCO2SavingsSeller(),
+      numberOfCompletedPurchases: this.numberOfCompletedPurchases(),
     };
   }
 }

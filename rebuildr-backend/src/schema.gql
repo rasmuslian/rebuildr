@@ -200,6 +200,9 @@ type User {
   organizationAccount: User
   organizationOwner: User
   totalCO2Savings: Float!
+  totalCO2SavingsBuyer: Float!
+  totalCO2SavingsSeller: Float!
+  numberOfCompletedPurchases: Int!
 }
 
 enum UserRoleEnum {

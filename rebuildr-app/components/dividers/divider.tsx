@@ -1,12 +1,16 @@
 import { ColorTokens } from "@constants/colors";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 
-export const Divider = () => {
+type Props = {
+  style?: ViewStyle;
+};
+
+export const Divider = ({ style }: Props) => {
   const colors = useThemeColor();
 
   const styles = dividerStyles(colors);
-  return <View style={styles.bottomDivider} />;
+  return <View style={[styles.bottomDivider, style]} />;
 };
 
 export const dividerStyles = (colors: ColorTokens) =>
