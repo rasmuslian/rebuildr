@@ -46,6 +46,7 @@ import { Home } from "./home";
 import { Edit } from "./edit";
 import { Hamburger } from "./hamburger";
 import { Instagram } from "./instagram";
+import { Substack } from "./substack";
 import { Linkedin } from "./linkedin";
 import { QrCode } from "./qrCode";
 import { Heart2 } from "./heart2";
@@ -77,6 +78,7 @@ export type IconType =
   | "heart2Filled"
   | "hamburger"
   | "instagram"
+  | "substack"
   | "linkedin"
   | "home"
   | "list"
@@ -261,6 +263,8 @@ export const Icon = ({
       return <Hamburger {...props} size={size} color={color} />;
     case "instagram":
       return <Instagram {...props} size={size} color={color} />;
+    case "substack":
+      return <Substack {...props} size={size} color={color} />;
     case "linkedin":
       return <Linkedin {...props} size={size} color={color} />;
     case "message":
