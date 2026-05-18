@@ -283,7 +283,9 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
           title={product.title}
           heart={product.sellerId !== me?.id}
           liked={!!product.likedByMe}
-          account={product.seller}
+          account={{
+            location: product.approximatePlace?.address,
+          }}
           onHeartPress={() => {
             onToggleProductHeart({
               productId: product.id,

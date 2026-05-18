@@ -38,6 +38,9 @@ export const ACTIVE_PRODUCT_POPUP = gql`
           url
         }
       }
+      approximatePlace {
+        address
+      }
       primaryImage {
         id
         url
