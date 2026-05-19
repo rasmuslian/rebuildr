@@ -30,7 +30,7 @@ export const AdGridSection = ({
   const width = (screenWidth - 48) / 2;
 
   return (
-    <View style={{ gap: 24 }}>
+    <View style={{ gap: 16 }}>
       {!!header && (
         <SectionHeader
           onPress={onHeaderPress ? () => onHeaderPress() : undefined}
@@ -76,7 +76,7 @@ export const AdGridSection = ({
           label="Läs in fler"
           onPress={pagination.onShowMore}
           loading={pagination.loading}
-          style={{ marginTop: 24 }}
+          style={{ marginTop: 32 }}
         />
       )}
     </View>
