@@ -41,8 +41,12 @@ import { usePersistedState } from "@hooks/use-persisted-state";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
-import { useContext, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { useCallback, useContext, useState } from "react";
+import { Platform, useWindowDimensions, View } from "react-native";
+import {
+  PRODUCT_LABEL_HOST_ID,
+  ProductLabelSheet,
+} from "@components/product-label/product-label-sheet";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -103,10 +107,56 @@ export const ProductDesktop = ({
     product.soldByQuantity ? 1 : undefined,
   );
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
+  const [isPrintingLabel, setIsPrintingLabel] = useState(false);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showMapPopup, setShowMapPopup] = useState(false);
+
+  const handleSheetReady = useCallback(() => {
+    if (Platform.OS !== "web") return;
+    const el = document.getElementById(PRODUCT_LABEL_HOST_ID);
+    if (!el) return;
+
+    const cloneId = "product-label-print-clone";
+    const existing = document.getElementById(cloneId);
+    if (existing) existing.remove();
+
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.id = cloneId;
+    clone.style.position = "static";
+    clone.style.left = "0";
+    clone.style.top = "0";
+    document.body.appendChild(clone);
+
+    const style = document.createElement("style");
+    style.setAttribute("data-product-label-print", "1");
+    style.textContent = `
+      @page { size: A4; margin: 12px; }
+      @media print {
+        body > *:not(#${cloneId}) { display: none !important; }
+        #${cloneId} { display: flex !important; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const cleanup = () => {
+      style.remove();
+      clone.remove();
+      window.onafterprint = null;
+      setIsPrintingLabel(false);
+    };
+    window.onafterprint = cleanup;
+    window.print();
+  }, []);
+
+  const startPrintLabel = useCallback(() => {
+    if (Platform.OS === "web") {
+      setIsPrintingLabel(true);
+    } else {
+      printProductLabel({ productId: product.id });
+    }
+  }, [product.id]);
 
   const pickupEnabled =
     approximatePlace &&
@@ -139,7 +189,7 @@ export const ProductDesktop = ({
         if (state.showCreateLabelModal) {
           setShowCreateProductLabel(true);
         } else {
-          printProductLabel({ productId: product.id });
+          startPrintLabel();
         }
       },
     });
@@ -351,10 +401,26 @@ export const ProductDesktop = ({
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
-        onPressPrintProductLabel={() =>
-          printProductLabel({ productId: product.id })
-        }
+        onPressPrintProductLabel={() => {
+          setShowCreateProductLabel(false);
+          startPrintLabel();
+        }}
       />
+      {isPrintingLabel && Platform.OS === "web" && (
+        <View
+          style={{
+            position: "fixed" as "absolute",
+            left: -10000,
+            top: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <ProductLabelSheet
+            productId={product.id}
+            onReady={handleSheetReady}
+          />
+        </View>
+      )}
       <Popup
         open={showImagePopup}
         onClose={() => setShowImagePopup(false)}

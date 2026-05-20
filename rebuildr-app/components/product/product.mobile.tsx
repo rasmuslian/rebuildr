@@ -19,12 +19,17 @@ import { ButtonProps } from "@components/buttons/button";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
+import { Platform, View } from "react-native";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
+import {
+  PRODUCT_LABEL_HOST_ID,
+  ProductLabelSheet,
+} from "@components/product-label/product-label-sheet";
 
 import { ReportProduct } from "@components/report/report-product";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -95,8 +100,54 @@ export const ProductMobile = ({
   const { isLoggedIn } = useUser();
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
+  const [isPrintingLabel, setIsPrintingLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
+
+  const handleSheetReady = useCallback(() => {
+    if (Platform.OS !== "web") return;
+    const el = document.getElementById(PRODUCT_LABEL_HOST_ID);
+    if (!el) return;
+
+    const cloneId = "product-label-print-clone";
+    const existing = document.getElementById(cloneId);
+    if (existing) existing.remove();
+
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.id = cloneId;
+    clone.style.position = "static";
+    clone.style.left = "0";
+    clone.style.top = "0";
+    document.body.appendChild(clone);
+
+    const style = document.createElement("style");
+    style.setAttribute("data-product-label-print", "1");
+    style.textContent = `
+      @page { size: A4; margin: 12px; }
+      @media print {
+        body > *:not(#${cloneId}) { display: none !important; }
+        #${cloneId} { display: flex !important; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const cleanup = () => {
+      style.remove();
+      clone.remove();
+      window.onafterprint = null;
+      setIsPrintingLabel(false);
+    };
+    window.onafterprint = cleanup;
+    window.print();
+  }, []);
+
+  const startPrintLabel = useCallback(() => {
+    if (Platform.OS === "web") {
+      setIsPrintingLabel(true);
+    } else {
+      printProductLabel({ productId });
+    }
+  }, [productId]);
 
   const ctas: ButtonProps[] = [];
 
@@ -110,7 +161,7 @@ export const ProductMobile = ({
         if (state.showCreateLabelModal) {
           setShowCreateProductLabel(true);
         } else {
-          printProductLabel({ productId });
+          startPrintLabel();
         }
       },
     });
@@ -272,8 +323,23 @@ export const ProductMobile = ({
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
-        onPressPrintProductLabel={() => printProductLabel({ productId })}
+        onPressPrintProductLabel={() => {
+          setShowCreateProductLabel(false);
+          startPrintLabel();
+        }}
       />
+      {isPrintingLabel && Platform.OS === "web" && (
+        <View
+          style={{
+            position: "fixed" as "absolute",
+            left: -10000,
+            top: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <ProductLabelSheet productId={productId} onReady={handleSheetReady} />
+        </View>
+      )}
     </>
   );
 };
