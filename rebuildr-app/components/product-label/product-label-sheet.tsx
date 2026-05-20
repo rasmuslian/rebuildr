@@ -69,71 +69,57 @@ const GET_PRODUCT = gql`
 
 export const PRODUCT_LABEL_HOST_ID = "product-label-print-host";
 
-type Props = {
-  productId: string;
-  onReady?: () => void;
-};
+type Product = NonNullable<GetProductQuery["product"]>;
 
-export const ProductLabelSheet = ({ productId, onReady }: Props) => {
-  const colors = useThemeColor();
-
-  const { data } = useQuery<GetProductQuery, GetProductQueryVariables>(
-    GET_PRODUCT,
-    {
-      variables: { input: { id: productId } },
-    },
-  );
-
-  const product = data?.product;
-
-  useEffect(() => {
-    if (product && onReady) onReady();
-  }, [product, onReady]);
-
-  if (!product) return null;
-
-  const quantity = product.primaryQuantity ?? 0;
-  const quantityUnit = product.primaryUnit ?? QuantityUnitEnum.Amount;
-
-  const measurementsList: string[] = [];
+const buildMeasurementsList = (product: Product): string[] => {
+  const list: string[] = [];
 
   if (product.thickness) {
-    measurementsList.push(
+    list.push(
       `${measurements.THICKNESS.name} ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`,
     );
   }
-
   if (product.width) {
-    measurementsList.push(
+    list.push(
       `${measurements.WIDTH.name} ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`,
     );
   }
-
   if (product.length) {
-    measurementsList.push(
+    list.push(
       `${measurements.LENGTH.name} ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`,
     );
   }
-
   if (product.height) {
-    measurementsList.push(
+    list.push(
       `${measurements.HEIGHT.name} ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`,
     );
   }
-
   if (product.diameter) {
-    measurementsList.push(
+    list.push(
       `${measurements.DIAMETER.name} ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`,
     );
   }
-
   if (product.weight) {
-    measurementsList.push(
+    list.push(
       `${measurements.WEIGHT.name} ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`,
     );
   }
 
-  const ProductLabel = () => (
+  return list;
+};
+
+type ProductLabelProps = {
+  product: Product;
+  productId: string;
+};
+
+const ProductLabel = ({ product, productId }: ProductLabelProps) => {
+  const colors = useThemeColor();
+  const quantity = product.primaryQuantity ?? 0;
+  const quantityUnit = product.primaryUnit ?? QuantityUnitEnum.Amount;
+  const measurementsList = buildMeasurementsList(product);
+
+  return (
     <View
       style={{
         flexDirection: "column",
@@ -209,6 +195,28 @@ export const ProductLabelSheet = ({ productId, onReady }: Props) => {
       </View>
     </View>
   );
+};
+
+type Props = {
+  productId: string;
+  onReady?: () => void;
+};
+
+export const ProductLabelSheet = ({ productId, onReady }: Props) => {
+  const { data } = useQuery<GetProductQuery, GetProductQueryVariables>(
+    GET_PRODUCT,
+    {
+      variables: { input: { id: productId } },
+    },
+  );
+
+  const product = data?.product;
+
+  useEffect(() => {
+    if (product && onReady) onReady();
+  }, [product, onReady]);
+
+  if (!product) return null;
 
   return (
     <View
@@ -227,8 +235,8 @@ export const ProductLabelSheet = ({ productId, onReady }: Props) => {
           gap: 12,
         }}
       >
-        <ProductLabel />
-        <ProductLabel />
+        <ProductLabel product={product} productId={productId} />
+        <ProductLabel product={product} productId={productId} />
       </View>
       <View
         style={{
@@ -236,8 +244,8 @@ export const ProductLabelSheet = ({ productId, onReady }: Props) => {
           gap: 12,
         }}
       >
-        <ProductLabel />
-        <ProductLabel />
+        <ProductLabel product={product} productId={productId} />
+        <ProductLabel product={product} productId={productId} />
       </View>
     </View>
   );

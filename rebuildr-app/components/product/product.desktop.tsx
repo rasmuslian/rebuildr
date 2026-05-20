@@ -9,7 +9,6 @@ import {
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
-import { printProductLabel } from "@/utils/products/print-product-label";
 import { AdRowSectionDesktop } from "@components/ad-row-section/ad-row-section.desktop";
 import { Button, ButtonProps } from "@components/buttons/button";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
@@ -41,12 +40,10 @@ import { usePersistedState } from "@hooks/use-persisted-state";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
-import { useCallback, useContext, useState } from "react";
-import { Platform, useWindowDimensions, View } from "react-native";
-import {
-  PRODUCT_LABEL_HOST_ID,
-  ProductLabelSheet,
-} from "@components/product-label/product-label-sheet";
+import { useContext, useState } from "react";
+import { useWindowDimensions, View } from "react-native";
+import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -107,56 +104,15 @@ export const ProductDesktop = ({
     product.soldByQuantity ? 1 : undefined,
   );
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
-  const [isPrintingLabel, setIsPrintingLabel] = useState(false);
+  const {
+    isPrinting: isPrintingLabel,
+    print: startPrintLabel,
+    handleReady: handleSheetReady,
+  } = usePrintProductLabel(product.id);
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showMapPopup, setShowMapPopup] = useState(false);
-
-  const handleSheetReady = useCallback(() => {
-    if (Platform.OS !== "web") return;
-    const el = document.getElementById(PRODUCT_LABEL_HOST_ID);
-    if (!el) return;
-
-    const cloneId = "product-label-print-clone";
-    const existing = document.getElementById(cloneId);
-    if (existing) existing.remove();
-
-    const clone = el.cloneNode(true) as HTMLElement;
-    clone.id = cloneId;
-    clone.style.position = "static";
-    clone.style.left = "0";
-    clone.style.top = "0";
-    document.body.appendChild(clone);
-
-    const style = document.createElement("style");
-    style.setAttribute("data-product-label-print", "1");
-    style.textContent = `
-      @page { size: A4; margin: 12px; }
-      @media print {
-        body > *:not(#${cloneId}) { display: none !important; }
-        #${cloneId} { display: flex !important; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    const cleanup = () => {
-      style.remove();
-      clone.remove();
-      window.onafterprint = null;
-      setIsPrintingLabel(false);
-    };
-    window.onafterprint = cleanup;
-    window.print();
-  }, []);
-
-  const startPrintLabel = useCallback(() => {
-    if (Platform.OS === "web") {
-      setIsPrintingLabel(true);
-    } else {
-      printProductLabel({ productId: product.id });
-    }
-  }, [product.id]);
 
   const pickupEnabled =
     approximatePlace &&
@@ -406,21 +362,11 @@ export const ProductDesktop = ({
           startPrintLabel();
         }}
       />
-      {isPrintingLabel && Platform.OS === "web" && (
-        <View
-          style={{
-            position: "fixed" as "absolute",
-            left: -10000,
-            top: 0,
-            pointerEvents: "none",
-          }}
-        >
-          <ProductLabelSheet
-            productId={product.id}
-            onReady={handleSheetReady}
-          />
-        </View>
-      )}
+      <PrintProductLabelPortal
+        isPrinting={isPrintingLabel}
+        productId={product.id}
+        onReady={handleSheetReady}
+      />
       <Popup
         open={showImagePopup}
         onClose={() => setShowImagePopup(false)}
