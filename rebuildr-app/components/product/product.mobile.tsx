@@ -25,11 +25,12 @@ import { BuyersProtection } from "@components/buyers-protection/buyers-protectio
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
+import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 import { ReportProduct } from "@components/report/report-product";
 import { LoginModalContext } from "@context/loginModalContext";
 import { SimilarProducts } from "@components/similar-products/similar-products";
-import { printProductLabel } from "@/utils/products/print-product-label";
 import { ProjectSection } from "@components/preview-product/project-section";
 import { UserSection } from "@components/preview-product/user-section";
 import { InfoSection } from "@components/preview-product/info-section";
@@ -97,6 +98,11 @@ export const ProductMobile = ({
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
+  const {
+    isPrinting: isPrintingLabel,
+    print: startPrintLabel,
+    handleReady: handleSheetReady,
+  } = usePrintProductLabel(productId);
 
   const ctas: ButtonProps[] = [];
 
@@ -110,7 +116,7 @@ export const ProductMobile = ({
         if (state.showCreateLabelModal) {
           setShowCreateProductLabel(true);
         } else {
-          printProductLabel({ productId });
+          startPrintLabel();
         }
       },
     });
@@ -272,7 +278,15 @@ export const ProductMobile = ({
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
-        onPressPrintProductLabel={() => printProductLabel({ productId })}
+        onPressPrintProductLabel={() => {
+          setShowCreateProductLabel(false);
+          startPrintLabel();
+        }}
+      />
+      <PrintProductLabelPortal
+        isPrinting={isPrintingLabel}
+        productId={productId}
+        onReady={handleSheetReady}
       />
     </>
   );
