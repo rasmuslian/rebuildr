@@ -266,7 +266,16 @@ export class StripeService {
     );
   }
 
-  async retrieveExternalAccounts(connectedAccountId: string) {
+  async retrieveExternalAccounts(connectedAccountId: string): Promise<
+    {
+      id: string;
+      type: string;
+      bankName: string;
+      routingNumber: string;
+      last4: string;
+      default: string;
+    }[]
+  > {
     const account = await this.retrieveAccount(connectedAccountId);
     const formattedPayoutAccounts = account.external_accounts.data.reduce(
       (acc, payoutAccount) => {
@@ -288,6 +297,11 @@ export class StripeService {
       [],
     );
     return formattedPayoutAccounts;
+  }
+  async getDefaultPayoutAccount(connectedAccountId: string) {
+    const accounts = await this.retrieveExternalAccounts(connectedAccountId);
+
+    return accounts.find((account) => account.default);
   }
 
   async retrieveAccount(connectedAccountId: string) {
@@ -405,13 +419,70 @@ export class StripeService {
           stripeAccount: connectedAccountId,
         },
       );
-      return payout;
+
+      let bankAccountId: string | undefined;
+      let bankName: string | undefined;
+      let bankLast4: string | undefined;
+
+      const destinationId =
+        typeof payout.destination === 'string'
+          ? payout.destination
+          : payout.destination?.id;
+
+      if (destinationId) {
+        try {
+          const destination =
+            await this.stripe.accounts.retrieveExternalAccount(
+              connectedAccountId,
+              destinationId,
+              { stripeAccount: connectedAccountId },
+            );
+          if (destination.object === 'bank_account') {
+            bankAccountId = destination.id;
+            bankName = destination.bank_name;
+            bankLast4 = destination.last4;
+          }
+        } catch (e) {
+          this.logger.warn(
+            'Could not retrieve payout destination bank account',
+            {
+              payoutId: payout.id,
+              destinationId,
+              error: e,
+            },
+          );
+        }
+      }
+
+      return { payout, bankAccountId, bankName, bankLast4 };
     } catch (e) {
       this.logger.error('Payout failed', {
         error: e,
       });
       throw new Error('Payout failed');
     }
+  }
+
+  async getPayoutBankDetails(payoutId: string, connectedAccountId: string) {
+    const payout = await this.stripe.payouts.retrieve(
+      payoutId,
+      { expand: ['destination'] },
+      { stripeAccount: connectedAccountId },
+    );
+    const destination = payout.destination;
+    if (
+      destination &&
+      typeof destination === 'object' &&
+      destination.object === 'bank_account' &&
+      !('deleted' in destination)
+    ) {
+      return {
+        bankAccountId: destination.id,
+        bankName: destination.bank_name,
+        bankLast4: destination.last4,
+      };
+    }
+    return null;
   }
 
   async deleteAccount(user: User) {

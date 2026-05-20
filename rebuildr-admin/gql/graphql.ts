@@ -99,9 +99,10 @@ export type BrandsInput = {
 export type Co2Factor = {
   __typename?: 'CO2Factor';
   categoryName: Scalars['String']['output'];
-  coefficient: Scalars['Float']['output'];
+  disposalCoefficient: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   productName: Scalars['String']['output'];
+  productionCoefficient: Scalars['Float']['output'];
 };
 
 export enum CanAbortDeniedReasonEnum {
@@ -169,6 +170,7 @@ export type CategoryInput = {
 
 export enum ChatActionEnum {
   Abort = 'ABORT',
+  Aboutabort = 'ABOUTABORT',
   Aboutpayout = 'ABOUTPAYOUT',
   Aboutreview = 'ABOUTREVIEW',
   Report = 'REPORT'
@@ -456,6 +458,11 @@ export type CmsUpdateBannerInput = {
 export type CmsUpdateBrandInput = {
   id: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+export type CmsUpdateCo2Factor = {
+  disposalCoefficient?: InputMaybe<Scalars['Float']['input']>;
+  id: Scalars['String']['input'];
 };
 
 export type CmsUpdateCategoriesInput = {
@@ -1034,6 +1041,7 @@ export type Mutation = {
   cmsUpdateArticle: Article;
   cmsUpdateBanner: CmsCreateBannerResponse;
   cmsUpdateBrand: Brand;
+  cmsUpdateCO2Factor: Co2Factor;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
@@ -1073,7 +1081,7 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
-  updateCO2Factors: Scalars['Boolean']['output'];
+  syncCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
   updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
@@ -1241,6 +1249,11 @@ export type MutationCmsUpdateBannerArgs = {
 
 export type MutationCmsUpdateBrandArgs = {
   input: CmsUpdateBrandInput;
+};
+
+
+export type MutationCmsUpdateCo2FactorArgs = {
+  input: CmsUpdateCo2Factor;
 };
 
 
@@ -1553,7 +1566,8 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
-  co2Saving?: Maybe<Scalars['Float']['output']>;
+  co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
+  co2SavingSeller?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;

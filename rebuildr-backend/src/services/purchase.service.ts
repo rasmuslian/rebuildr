@@ -957,12 +957,16 @@ export class PurchaseService {
           'Seller does not have available funds for payout yet. Will try again later',
         );
       } else {
-        const payoutResponse = await this.stripeService.createPayout(
-          seller.connectedAccountId,
-          approvedPurchase.paymentIntentId,
-        );
+        const { payout, bankAccountId, bankName, bankLast4 } =
+          await this.stripeService.createPayout(
+            seller.connectedAccountId,
+            approvedPurchase.paymentIntentId,
+          );
 
-        approvedPurchase.payoutId = payoutResponse.id;
+        approvedPurchase.payoutId = payout.id;
+        approvedPurchase.payoutBankAccountId = bankAccountId;
+        approvedPurchase.payoutBankName = bankName;
+        approvedPurchase.payoutBankLast4 = bankLast4;
       }
     } catch (err) {
       logger.error(
@@ -1008,6 +1012,54 @@ export class PurchaseService {
       purchase.product,
       logger,
     );
+  }
+
+  async reportPurchaseResolved(purchase: Purchase) {
+    purchase.pausedAt = null;
+    return this.purchaseRepository.save(purchase);
+  }
+
+  async getPayoutBank(purchase: Purchase, currentUserId: string) {
+    const { payoutBankAccountId, payoutBankLast4, payoutBankName } = purchase;
+
+    if (payoutBankAccountId && payoutBankLast4 && payoutBankName) {
+      return {
+        id: payoutBankAccountId,
+        last4: payoutBankLast4,
+        bankName: payoutBankName,
+      };
+    }
+
+    const product = await this.productRepository.findOne({
+      where: { id: purchase.productId },
+      relations: { seller: true },
+    });
+
+    if (!product.seller) {
+      this.logger.error('Could not find seller of purchase', { purchase });
+      throw InternalServerException();
+    }
+    if (product.seller.id !== currentUserId) {
+      this.logger.error("User not allowed to read other user's payoutBank", {
+        currentUserId,
+        purchase,
+      });
+      throw ForbiddenException();
+    }
+    if (!product.seller.connectedAccountId) {
+      this.logger.error('Seller is missing connectedAccountId', { purchase });
+      throw InternalServerException();
+    }
+
+    const account = await this.stripeService.getDefaultPayoutAccount(
+      product.seller.connectedAccountId,
+    );
+
+    if (!account) {
+      this.logger.error('payout bank account not found!', { purchase });
+      throw InternalServerException();
+    }
+    return account;
   }
   //---------------------------------------------------------------
 
@@ -1300,11 +1352,15 @@ export class PurchaseService {
       await Promise.all(
         purchasesAvailableForPayout.map(async (purchase) => {
           try {
-            const payout = await this.stripeService.createPayout(
-              purchase.product.seller.connectedAccountId,
-              purchase.paymentIntentId,
-            );
+            const { payout, bankAccountId, bankName, bankLast4 } =
+              await this.stripeService.createPayout(
+                purchase.product.seller.connectedAccountId,
+                purchase.paymentIntentId,
+              );
             purchase.payoutId = payout.id;
+            purchase.payoutBankAccountId = bankAccountId;
+            purchase.payoutBankName = bankName;
+            purchase.payoutBankLast4 = bankLast4;
             logger.info('Payed out purchase', {
               purchaseId: purchase.id,
               paymentIntentId: purchase.paymentIntentId,
@@ -1327,10 +1383,6 @@ export class PurchaseService {
     }
 
     logger.info('Automatic payout completed');
-  }
-  async reportPurchaseResolved(purchase: Purchase) {
-    purchase.pausedAt = null;
-    return this.purchaseRepository.save(purchase);
   }
 
   //---------------------------------------------------------------
@@ -1748,6 +1800,53 @@ export class PurchaseService {
     });
 
     return this.purchaseRepository.save(purchase);
+  }
+
+  async cmsBackfillPayoutBankDetails(logger: Logger) {
+    const purchases = await this.purchaseRepository.find({
+      where: { payoutId: Not(IsNull()), payoutBankAccountId: IsNull() },
+      relations: { product: { seller: true } },
+    });
+
+    let updated = 0;
+    await Promise.all(
+      purchases.map(async (purchase) => {
+        const connectedAccountId = purchase.product?.seller?.connectedAccountId;
+        if (!connectedAccountId) return;
+        try {
+          const details = await this.stripeService.getPayoutBankDetails(
+            purchase.payoutId,
+            connectedAccountId,
+          );
+          if (details) {
+            await this.purchaseRepository.update(
+              { id: purchase.id },
+              {
+                payoutBankAccountId: details.bankAccountId,
+                payoutBankName: details.bankName,
+                payoutBankLast4: details.bankLast4,
+              },
+            );
+            updated++;
+          }
+        } catch (e) {
+          logger.warn(
+            'cmsBackfillPayoutBankDetails: could not backfill purchase',
+            {
+              purchaseId: purchase.id,
+              payoutId: purchase.payoutId,
+              error: e,
+            },
+          );
+        }
+      }),
+    );
+
+    logger.info('cmsBackfillPayoutBankDetails completed', {
+      total: purchases.length,
+      updated,
+    });
+    return updated;
   }
 
   //------------------------------------------------------------

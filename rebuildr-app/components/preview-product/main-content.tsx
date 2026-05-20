@@ -205,132 +205,137 @@ export const MainContent = ({
       {actionSection}
 
       <Divider />
-      <SectionHeader>Specifikation</SectionHeader>
-      <View style={{ gap: 16 }}>
-        <View style={{ gap: 4 }}>
-          <Label size="medium">Varumärke</Label>
-          <Body size="medium">{brand?.name}</Body>
-        </View>
-        <View style={{ gap: 4 }}>
-          <Label size="medium">Antal och enhet</Label>
-          <Body size="medium">
-            {product.primaryQuantity}{" "}
-            {product.primaryUnit ? quantities[product.primaryUnit].plural : ""}
-          </Body>
-          {product.secondaryQuantity && (
+
+      <View>
+        <Headline size="small">Specifikation</Headline>
+        <View style={{ gap: 16, marginTop: 16 }}>
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Varumärke</Label>
+            <Body size="medium">{brand?.name}</Body>
+          </View>
+          <View style={{ gap: 4 }}>
+            <Label size="medium">Antal och enhet</Label>
             <Body size="medium">
-              {product.secondaryQuantity}{" "}
-              {product.secondaryUnit
-                ? quantities[product.secondaryUnit].plural
+              {product.primaryQuantity}{" "}
+              {product.primaryUnit
+                ? quantities[product.primaryUnit].plural
                 : ""}
             </Body>
-          )}
-        </View>
-        <View style={{ gap: 4 }}>
-          <Label size="medium">Skick</Label>
-          {product.condition && (
-            <Body size="medium">{conditions[product.condition].name} </Body>
-          )}
-        </View>
-        {showSpecificsMeasurements && (
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Mått</Label>
-            {!!product.thickness && (
+            {product.secondaryQuantity && (
               <Body size="medium">
-                Tjocklek: {product.thickness}{" "}
-                {measurements.THICKNESS.options[product.thicknessUnit]?.name}
-              </Body>
-            )}
-            {!!product.height && (
-              <Body size="medium">
-                Höjd: {product.height}{" "}
-                {measurements.HEIGHT.options[product.heightUnit]?.name}
-              </Body>
-            )}
-            {!!product.width && (
-              <Body size="medium">
-                Bredd: {product.width}{" "}
-                {measurements.WIDTH.options[product.widthUnit]?.name}
-              </Body>
-            )}
-            {!!product.length && (
-              <Body size="medium">
-                Längd: {product.length}{" "}
-                {measurements.LENGTH.options[product.lengthUnit]?.name}
-              </Body>
-            )}
-            {!!product.diameter && (
-              <Body size="medium">
-                Diameter: {product.diameter}{" "}
-                {measurements.DIAMETER.options[product.diameterUnit]?.name}
-              </Body>
-            )}
-            {!!product.weight && (
-              <Body size="medium">
-                Vikt: {product.weight}{" "}
-                {measurements.WEIGHT.options[product.weightUnit]?.name}
+                {product.secondaryQuantity}{" "}
+                {product.secondaryUnit
+                  ? quantities[product.secondaryUnit].plural
+                  : ""}
               </Body>
             )}
           </View>
-        )}
-        {product.color && (
           <View style={{ gap: 4 }}>
-            <Label size="medium">Färg</Label>
-            <View
-              style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
-            >
+            <Label size="medium">Skick</Label>
+            {product.condition && (
+              <Body size="medium">{conditions[product.condition].name} </Body>
+            )}
+          </View>
+          {showSpecificsMeasurements && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Mått</Label>
+              {!!product.thickness && (
+                <Body size="medium">
+                  Tjocklek: {product.thickness}{" "}
+                  {measurements.THICKNESS.options[product.thicknessUnit]?.name}
+                </Body>
+              )}
+              {!!product.height && (
+                <Body size="medium">
+                  Höjd: {product.height}{" "}
+                  {measurements.HEIGHT.options[product.heightUnit]?.name}
+                </Body>
+              )}
+              {!!product.width && (
+                <Body size="medium">
+                  Bredd: {product.width}{" "}
+                  {measurements.WIDTH.options[product.widthUnit]?.name}
+                </Body>
+              )}
+              {!!product.length && (
+                <Body size="medium">
+                  Längd: {product.length}{" "}
+                  {measurements.LENGTH.options[product.lengthUnit]?.name}
+                </Body>
+              )}
+              {!!product.diameter && (
+                <Body size="medium">
+                  Diameter: {product.diameter}{" "}
+                  {measurements.DIAMETER.options[product.diameterUnit]?.name}
+                </Body>
+              )}
+              {!!product.weight && (
+                <Body size="medium">
+                  Vikt: {product.weight}{" "}
+                  {measurements.WEIGHT.options[product.weightUnit]?.name}
+                </Body>
+              )}
+            </View>
+          )}
+          {product.color && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Färg</Label>
               <View
-                style={{
-                  width: 25,
-                  height: 25,
-                  backgroundColor:
-                    product.colorType === ColorTypeEnum.FreeText
-                      ? freeTextColorToHex(product.color)
-                      : ncsToRgbStyle(product.color),
-                  borderWidth: strokeWidth.regular,
-                  borderColor: colors.dividers.neutral,
-                  borderRadius: borderRadius.xSmall,
-                }}
-              />
-              <Body size="medium">
-                {colorTypes[product.colorType].text}: {product.color}
-              </Body>
-            </View>
-          </View>
-        )}
-        {!!product.additionalInfo && (
-          <View style={{ gap: 4 }}>
-            <Label size="medium">Bra att veta</Label>
-            <CollapsableText
-              text={product.additionalInfo}
-              readLess="Läs mindre"
-              readMore="Läs hela"
-            />
-          </View>
-        )}
-        {showSpecificsDocuments && (
-          <View style={{ gap: 8 }}>
-            <Label size="medium">Dokument</Label>
-            <View style={{ gap: 16 }}>
-              {documents.map((document, i) => (
-                <Pressable
-                  onPress={() => Linking.openURL(document.url)}
-                  key={i}
+                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              >
+                <View
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
+                    width: 25,
+                    height: 25,
+                    backgroundColor:
+                      product.colorType === ColorTypeEnum.FreeText
+                        ? freeTextColorToHex(product.color)
+                        : ncsToRgbStyle(product.color),
+                    borderWidth: strokeWidth.regular,
+                    borderColor: colors.dividers.neutral,
+                    borderRadius: borderRadius.xSmall,
                   }}
-                >
-                  <DocumentIcon mimeType={document.mimeType} />
-                  <Body size="medium" isLink>
-                    {document.name ?? "NO_NAME"}
-                  </Body>
-                </Pressable>
-              ))}
+                />
+                <Body size="medium">
+                  {colorTypes[product.colorType].text}: {product.color}
+                </Body>
+              </View>
             </View>
-          </View>
-        )}
+          )}
+          {!!product.additionalInfo && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Bra att veta</Label>
+              <CollapsableText
+                text={product.additionalInfo}
+                readLess="Läs mindre"
+                readMore="Läs hela"
+              />
+            </View>
+          )}
+          {showSpecificsDocuments && (
+            <View style={{ gap: 8 }}>
+              <Label size="medium">Dokument</Label>
+              <View style={{ gap: 16 }}>
+                {documents.map((document, i) => (
+                  <Pressable
+                    onPress={() => Linking.openURL(document.url)}
+                    key={i}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <DocumentIcon mimeType={document.mimeType} />
+                    <Body size="medium" isLink>
+                      {document.name ?? "NO_NAME"}
+                    </Body>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );

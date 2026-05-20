@@ -541,6 +541,34 @@ export class UserResolver {
     @Parent() user: User,
     @Context('userLoaders') userLoaders: IUserLoaders,
   ) {
-    return await userLoaders.totalCO2Savings.load(user.id);
+    const [buyer, seller] = await Promise.all([
+      userLoaders.totalCO2SavingsBuyer.load(user.id),
+      userLoaders.totalCO2SavingsSeller.load(user.id),
+    ]);
+    return buyer + seller;
+  }
+
+  @ResolveField(() => Number)
+  async totalCO2SavingsBuyer(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.totalCO2SavingsBuyer.load(user.id);
+  }
+
+  @ResolveField(() => Number)
+  async totalCO2SavingsSeller(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.totalCO2SavingsSeller.load(user.id);
+  }
+
+  @ResolveField(() => Int)
+  async numberOfCompletedPurchases(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ): Promise<number> {
+    return await userLoaders.numberOfCompletedPurchases.load(user.id);
   }
 }

@@ -316,6 +316,16 @@ export class PurchaseResolver {
     );
   }
 
+  @Mutation(() => Int)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsBackfillPayoutBankDetails(
+    @RequestId() requestId: string,
+  ): Promise<number> {
+    const childLogger = this.logger.child({ requestId });
+    return this.purchaseService.cmsBackfillPayoutBankDetails(childLogger);
+  }
+
   @ResolveField(() => Boolean)
   async isShipping(@Parent() purchase: Purchase) {
     return this.purchaseService.isShipping(purchase);
@@ -381,5 +391,15 @@ export class PurchaseResolver {
   @ResolveField(() => CanAbortResponse, { nullable: true })
   async canAbort(@Parent() purchase: Purchase) {
     return this.purchaseService.canAbortPurchase(purchase);
+  }
+
+  @ResolveField(() => String)
+  @UseGuards(GqlAuthGuard)
+  async payoutBankLast4(
+    @Parent() purchase: Purchase,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    const account = await this.purchaseService.getPayoutBank(purchase, user.id);
+    return account.last4;
   }
 }

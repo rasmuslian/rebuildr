@@ -33,7 +33,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     weightUnit
     color
     colorType
-    co2Saving
+    co2SavingSeller
     hasOngoingPurchase(includeOwnPurchases: true)
     images {
       id

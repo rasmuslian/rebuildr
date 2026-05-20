@@ -46,6 +46,7 @@ import { Home } from "./home";
 import { Edit } from "./edit";
 import { Hamburger } from "./hamburger";
 import { Instagram } from "./instagram";
+import { Substack } from "./substack";
 import { Linkedin } from "./linkedin";
 import { QrCode } from "./qrCode";
 import { Heart2 } from "./heart2";
@@ -54,6 +55,7 @@ import { Paperclip } from "./paperclip";
 import { Minus } from "./minus";
 import { Navigation } from "./navigation";
 import { Magic } from "./magic";
+import { Receipt } from "./receipt";
 
 export type IconType =
   | "placeholder"
@@ -76,6 +78,7 @@ export type IconType =
   | "heart2Filled"
   | "hamburger"
   | "instagram"
+  | "substack"
   | "linkedin"
   | "home"
   | "list"
@@ -107,7 +110,8 @@ export type IconType =
   | "qrCode"
   | "star"
   | "paperclip"
-  | "magic";
+  | "magic"
+  | "receipt";
 
 export interface IconProps extends SvgProps {
   size: number;
@@ -259,6 +263,8 @@ export const Icon = ({
       return <Hamburger {...props} size={size} color={color} />;
     case "instagram":
       return <Instagram {...props} size={size} color={color} />;
+    case "substack":
+      return <Substack {...props} size={size} color={color} />;
     case "linkedin":
       return <Linkedin {...props} size={size} color={color} />;
     case "message":
@@ -275,6 +281,8 @@ export const Icon = ({
       return <Paperclip {...props} size={size} color={color} />;
     case "magic":
       return <Magic {...props} size={size} color={color} />;
+    case "receipt":
+      return <Receipt {...props} size={size} color={color} />;
     default:
       break;
   }

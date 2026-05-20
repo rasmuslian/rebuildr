@@ -5,14 +5,14 @@ import { useState } from "react";
 import { View } from "react-native";
 import co2Svg from "@assets/svgs/co2.svg";
 import { Image } from "expo-image";
-import { ExplainCO2CalculationSheet } from "@components/explanation-information-sheets/explain-co2-calculation-bottom-sheet";
 import { formatCO2 } from "@/utils/formattings";
+import { ExplainCO2WhyTwoNumbersSheet } from "@components/explanation-information-sheets/explain-co2-why-two-numbers-sheet";
 
 type Props = {
-  co2Saving?: number | null;
+  co2SavingSeller?: number | null;
 };
 
-export const CO2Savings = ({ co2Saving }: Props) => {
+export const CO2Savings = ({ co2SavingSeller }: Props) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const colors = useThemeColor();
   return (
@@ -30,23 +30,23 @@ export const CO2Savings = ({ co2Saving }: Props) => {
       >
         <Image source={{ uri: co2Svg.uri }} style={{ height: 36, width: 52 }} />
         <Headline size="large">
-          {co2Saving ? formatCO2(co2Saving) : "X"} kg CO₂ sparat
+          {co2SavingSeller ? formatCO2(co2SavingSeller) : "X"} kg CO₂ sparat
         </Headline>
-        {!co2Saving && (
+        {!co2SavingSeller && (
           <Label size="medium" color="error">
             Säljaren behöver ange vikt för att CO₂ besparing skall visas
           </Label>
         )}
         <Body size="small">
-          Cirka 90–99% lägre än en ny vara. Vi jämför klimat-påverkan för en ny
-          vara med de små utsläpp som uppstår vid återbruk, främst transport och
-          hantering. Skillnaden är din klimat-besparing.
+          Cirka 90–99% lägre än en ny vara. Siffran visar nyproduktionens
+          utsläpp (A1–A3, Boverkets klimatdatabas) som du undviker genom att
+          köpa begagnat.
         </Body>
         <Body size="small" onPress={() => setShowExplanation(true)}>
           Läs mer hur vi räknar
         </Body>
       </View>
-      <ExplainCO2CalculationSheet
+      <ExplainCO2WhyTwoNumbersSheet
         show={showExplanation}
         onDismiss={() => setShowExplanation(false)}
       />

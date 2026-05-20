@@ -30,10 +30,17 @@ export class CO2Factor {
 
   @Field()
   @Column({
-    comment: "Co2 coefficient matching 'A1-A3 Conservative' in Boverket",
+    comment: "Co2 coefficient matching 'A1-A3'",
     type: 'float',
   })
-  coefficient: number;
+  productionCoefficient: number;
+
+  @Field()
+  @Column({
+    comment: "Co2 coefficient matching 'C1-C3'",
+    type: 'float',
+  })
+  disposalCoefficient: number;
 
   @Field()
   @Column({ comment: "Matching 'name' in Boverket" })
