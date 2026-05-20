@@ -104,11 +104,8 @@ export const ProductDesktop = ({
     product.soldByQuantity ? 1 : undefined,
   );
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
-  const {
-    isPrinting: isPrintingLabel,
-    print: startPrintLabel,
-    handleReady: handleSheetReady,
-  } = usePrintProductLabel(product.id);
+  const { print: startPrintLabel, handleReady: handleSheetReady } =
+    usePrintProductLabel();
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
@@ -363,7 +360,6 @@ export const ProductDesktop = ({
         }}
       />
       <PrintProductLabelPortal
-        isPrinting={isPrintingLabel}
         productId={product.id}
         onReady={handleSheetReady}
       />

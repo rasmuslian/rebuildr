@@ -1,16 +1,21 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef } from "react";
 import { Platform } from "react-native";
-import { printProductLabel } from "@/utils/products/print-product-label";
 import { PRODUCT_LABEL_HOST_ID } from "@components/product-label/product-label-sheet";
 
 const CLONE_ID = "product-label-print-clone";
 const STYLE_ATTR = "data-product-label-print";
 
-export const usePrintProductLabel = (productId: string) => {
-  const [isPrinting, setIsPrinting] = useState(false);
+export const usePrintProductLabel = () => {
+  const isReadyRef = useRef(false);
 
   const handleReady = useCallback(() => {
+    isReadyRef.current = true;
+  }, []);
+
+  const print = useCallback(() => {
     if (Platform.OS !== "web") return;
+    if (!isReadyRef.current) return;
+
     const el = document.getElementById(PRODUCT_LABEL_HOST_ID);
     if (!el) return;
 
@@ -31,29 +36,20 @@ export const usePrintProductLabel = (productId: string) => {
     style.textContent = `
       @page { size: A4; margin: 12px; }
       @media print {
+        html, body { margin: 0 !important; padding: 0 !important; height: auto !important; }
         body > *:not(#${CLONE_ID}) { display: none !important; }
         #${CLONE_ID} { display: flex !important; }
       }
     `;
     document.head.appendChild(style);
 
-    const cleanup = () => {
+    window.onafterprint = () => {
       style.remove();
       clone.remove();
       window.onafterprint = null;
-      setIsPrinting(false);
     };
-    window.onafterprint = cleanup;
     window.print();
   }, []);
 
-  const print = useCallback(() => {
-    if (Platform.OS === "web") {
-      setIsPrinting(true);
-    } else {
-      printProductLabel({ productId });
-    }
-  }, [productId]);
-
-  return { isPrinting, print, handleReady };
+  return { print, handleReady };
 };
