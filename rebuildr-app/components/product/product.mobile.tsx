@@ -20,6 +20,7 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useContext, useState } from "react";
+import { Platform } from "react-native";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
@@ -98,15 +99,12 @@ export const ProductMobile = ({
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
-  const {
-    isPrinting: isPrintingLabel,
-    print: startPrintLabel,
-    handleReady: handleSheetReady,
-  } = usePrintProductLabel(productId);
+  const { print: startPrintLabel, handleReady: handleSheetReady } =
+    usePrintProductLabel();
 
   const ctas: ButtonProps[] = [];
 
-  if (isMyProduct) {
+  if (isMyProduct && Platform.OS === "web") {
     ctas.push({
       icon: "qrCode",
       label: "Skapa etikett",
@@ -284,7 +282,6 @@ export const ProductMobile = ({
         }}
       />
       <PrintProductLabelPortal
-        isPrinting={isPrintingLabel}
         productId={productId}
         onReady={handleSheetReady}
       />
