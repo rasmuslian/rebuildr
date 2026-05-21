@@ -10,6 +10,7 @@ import {
   ColorTypeEnum,
   AnalyzeProductImagesMutation,
   AnalyzeProductImagesMutationVariables,
+  CreateSellerAccountMutation,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -23,7 +24,6 @@ import { Preview } from "./preview";
 import { View } from "react-native";
 import { HandleDraft } from "@components/sell-product/handle-draft";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
-import { PayoutHandler } from "../sell-product/payout-handler";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { Button } from "@components/buttons/button";
 import * as Sentry from "@sentry/react-native";
@@ -33,6 +33,7 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { SellerOnboardingHandler } from "@components/sell-product/seller-onboarding-handler";
 
 export const ANALYZE_PRODUCT_IMAGE = gql`
   mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
@@ -73,7 +74,9 @@ export const UPSERT_PRODUCT = gql`
     }
     me {
       id
-      sellerAccountIsEnabled
+      sellerAccount {
+        canReceivePayment
+      }
     }
   }
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
@@ -90,6 +93,14 @@ const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
     }
   }
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
+
+const CREATE_SELLER_ACCOUNT = gql`
+  mutation CreateSellerAccount {
+    createSellerAccount {
+      canReceivePayment
+    }
+  }
 `;
 
 export const initialProduct: ProductFields = {
@@ -172,7 +183,7 @@ export const UpsertProduct = ({
   //variable determining when we have fetched data processed it
   const [initialized, setInitialized] = useState(false);
   const [step, setStep] = useState<
-    "details" | "project" | "transportation" | "preview" | "payout"
+    "details" | "project" | "transportation" | "preview" | "onboarding"
   >("details");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
@@ -205,6 +216,8 @@ export const UpsertProduct = ({
       refetch();
     },
   });
+  const [createSellerAccount, { loading: createSellerAccountLoading }] =
+    useMutation<CreateSellerAccountMutation>(CREATE_SELLER_ACCOUNT);
 
   useEffect(() => {
     const productToState = async (
@@ -292,10 +305,6 @@ export const UpsertProduct = ({
       setInitialized(true);
     };
     if (data) {
-      //check if user has payout account
-      if (!data.me.sellerAccountIsEnabled && mode === "create") {
-        setStep("payout");
-      }
       //convert to productState
       productToState(data.product);
     }
@@ -551,8 +560,8 @@ export const UpsertProduct = ({
       onClose();
       return;
     }
-    if (step === "payout") {
-      onClose();
+    if (step === "onboarding") {
+      setStep("preview");
       return;
     }
     //Check if we should prompt draft saving sheet
@@ -721,7 +730,23 @@ export const UpsertProduct = ({
     //if no errors, proceed
     return true;
   };
-  const onVerifyPreview = () => {
+  const onVerifyPreview = async () => {
+    if (!data) return;
+
+    let sellerAccount = data.me.sellerAccount;
+    //Create seller account if it does not exist
+    if (!sellerAccount) {
+      const response = await createSellerAccount();
+      if (response.errors || !response.data) {
+        return;
+      }
+      sellerAccount = response.data.createSellerAccount;
+    }
+    //Seller account needs more information, send seller to onboarding
+    if (!sellerAccount.canReceivePayment) {
+      setStep("onboarding");
+      return;
+    }
     onSave(true);
   };
   const onProductDeleted = () => {
@@ -773,7 +798,7 @@ export const UpsertProduct = ({
               label={mode === "create" ? "Publicera" : "Publicera"}
               onPress={onVerifyPreview}
               style={{ flex: 1 }}
-              loading={updateDraftLoading}
+              loading={updateDraftLoading || createSellerAccountLoading}
             />
           </View>
         </View>
@@ -790,13 +815,7 @@ export const UpsertProduct = ({
 
   const header = (
     <ProgressHeader
-      prog1={
-        mode === "edit"
-          ? progressDetails()
-          : step === "payout"
-            ? 25
-            : progressDetails()
-      }
+      prog1={progressDetails()}
       prog2={step !== "details" ? projectProgress : undefined}
       prog3={
         step !== "details" && step !== "project"
@@ -855,10 +874,13 @@ export const UpsertProduct = ({
         );
       case "preview":
         return <Preview product={product} dbProductId={data.product.id} />;
-      case "payout":
+      case "onboarding":
         return (
-          <PayoutHandler
-            onFinish={() => setStep("details")}
+          <SellerOnboardingHandler
+            onFinish={() => {
+              setStep("preview");
+              onVerifyPreview();
+            }}
             onAbort={onFinish}
           />
         );
