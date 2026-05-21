@@ -34,7 +34,7 @@ export const usePrintProductLabel = () => {
     const style = document.createElement("style");
     style.setAttribute(STYLE_ATTR, "1");
     style.textContent = `
-      @page { size: A4; margin: 12px; }
+      @page { size: A4; margin: 0; }
       @media print {
         html, body { margin: 0 !important; padding: 0 !important; height: auto !important; }
         body > *:not(#${CLONE_ID}) { display: none !important; }

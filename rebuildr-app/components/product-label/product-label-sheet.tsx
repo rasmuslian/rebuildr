@@ -124,7 +124,7 @@ const ProductLabel = ({ product, productId }: ProductLabelProps) => {
       style={{
         flexDirection: "column",
         width: 375,
-        height: 530,
+        height: 482,
         padding: 24,
         gap: 16,
         borderWidth: 1,
@@ -147,7 +147,7 @@ const ProductLabel = ({ product, productId }: ProductLabelProps) => {
 
       <Divider />
 
-      <View style={{ gap: 16, height: 262, overflow: "hidden" }}>
+      <View style={{ gap: 16, height: 212, overflow: "hidden" }}>
         <View style={{ gap: 4 }}>
           <Title size="large">{product.title}</Title>
           <Body color="secondary" size="small" numberOfLines={1}>
@@ -223,7 +223,7 @@ export const ProductLabelSheet = ({ productId, onReady }: Props) => {
       nativeID={PRODUCT_LABEL_HOST_ID}
       style={{
         width: 786,
-        height: 1099,
+        height: 1000,
         padding: 12,
         flexDirection: "column",
         gap: 12,
