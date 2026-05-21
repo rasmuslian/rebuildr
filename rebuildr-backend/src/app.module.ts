@@ -134,6 +134,8 @@ import { Conversation } from './entities/conversation.entity';
 import { ConversationLoader } from './dataloaders/conversation.loader';
 import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
+import { StatisticsResolver } from './resolvers/statistics.resolver';
+import { StatisticsService } from './services/statistics.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -347,6 +349,8 @@ export interface RequestType {
     AIService,
     BannerService,
     BannerResolver,
+    StatisticsResolver,
+    StatisticsService,
   ],
 })
 export class AppModule {}

@@ -45,6 +45,7 @@ export type Article = {
   body: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  slug: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -98,9 +99,10 @@ export type BrandsInput = {
 export type Co2Factor = {
   __typename?: 'CO2Factor';
   categoryName: Scalars['String']['output'];
-  coefficient: Scalars['Float']['output'];
+  disposalCoefficient: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   productName: Scalars['String']['output'];
+  productionCoefficient: Scalars['Float']['output'];
 };
 
 export enum CanAbortDeniedReasonEnum {
@@ -165,6 +167,14 @@ export enum CategoryIconEnum {
 export type CategoryInput = {
   id: Scalars['String']['input'];
 };
+
+export enum ChatActionEnum {
+  Abort = 'ABORT',
+  Aboutabort = 'ABOUTABORT',
+  Aboutpayout = 'ABOUTPAYOUT',
+  Aboutreview = 'ABOUTREVIEW',
+  Report = 'REPORT'
+}
 
 export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
@@ -357,6 +367,52 @@ export type CmsListUsersResponse = {
   users: Array<User>;
 };
 
+export type CmsPreviewSystemMessageInput = {
+  decision?: InputMaybe<Scalars['String']['input']>;
+  firstSale?: InputMaybe<Scalars['Boolean']['input']>;
+  isFree?: InputMaybe<Scalars['Boolean']['input']>;
+  provider?: InputMaybe<ShippingProviderEnum>;
+  role: SystemMessageRoleEnum;
+  step: SystemMessageStepEnum;
+  transportation?: InputMaybe<TransportationEnum>;
+};
+
+export type CmsProductStatisticsDataPoint = {
+  __typename?: 'CmsProductStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export enum CmsProductStatisticsGroupByEnum {
+  Day = 'DAY',
+  Month = 'MONTH',
+  Week = 'WEEK'
+}
+
+export type CmsProductStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsProductStatisticsResponse = {
+  __typename?: 'CmsProductStatisticsResponse';
+  data: Array<CmsProductStatisticsDataPoint>;
+};
+
+export type CmsPurchaseStatisticsDataPoint = {
+  __typename?: 'CmsPurchaseStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsPurchaseStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsPurchaseStatisticsResponse = {
+  __typename?: 'CmsPurchaseStatisticsResponse';
+  data: Array<CmsPurchaseStatisticsDataPoint>;
+};
+
 export type CmsReassignBrandInput = {
   fromBrandId: Scalars['String']['input'];
   toBrandId: Scalars['String']['input'];
@@ -402,6 +458,11 @@ export type CmsUpdateBannerInput = {
 export type CmsUpdateBrandInput = {
   id: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+export type CmsUpdateCo2Factor = {
+  disposalCoefficient?: InputMaybe<Scalars['Float']['input']>;
+  id: Scalars['String']['input'];
 };
 
 export type CmsUpdateCategoriesInput = {
@@ -507,6 +568,21 @@ export type CmsUpdateUsersInput = {
   postCode?: InputMaybe<Scalars['String']['input']>;
   role: UserRoleEnum;
   websiteUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsUserStatisticsDataPoint = {
+  __typename?: 'CmsUserStatisticsDataPoint';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsUserStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsUserStatisticsResponse = {
+  __typename?: 'CmsUserStatisticsResponse';
+  data: Array<CmsUserStatisticsDataPoint>;
 };
 
 export enum ColorTypeEnum {
@@ -965,6 +1041,7 @@ export type Mutation = {
   cmsUpdateArticle: Article;
   cmsUpdateBanner: CmsCreateBannerResponse;
   cmsUpdateBrand: Brand;
+  cmsUpdateCO2Factor: Co2Factor;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
@@ -1004,7 +1081,7 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
-  updateCO2Factors: Scalars['Boolean']['output'];
+  syncCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
   updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
@@ -1172,6 +1249,11 @@ export type MutationCmsUpdateBannerArgs = {
 
 export type MutationCmsUpdateBrandArgs = {
   input: CmsUpdateBrandInput;
+};
+
+
+export type MutationCmsUpdateCo2FactorArgs = {
+  input: CmsUpdateCo2Factor;
 };
 
 
@@ -1484,7 +1566,8 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
-  co2Saving?: Maybe<Scalars['Float']['output']>;
+  co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
+  co2SavingSeller?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
@@ -1739,6 +1822,7 @@ export type Query = {
   __typename?: 'Query';
   addressToLocation: LocationResponse;
   article: Article;
+  articleBySlug: Article;
   banners: Array<Banner>;
   brand: Brand;
   brands: Array<Brand>;
@@ -1749,10 +1833,15 @@ export type Query = {
   cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
   cmsListBanners: Array<Banner>;
+  cmsListChatActions: Array<ChatActionEnum>;
   cmsListFiles: CmsListFilesResponse;
   cmsListProducts: CmsListProductsResponse;
   cmsListProjects: CmsListProjectsResponse;
   cmsListUsers: CmsListUsersResponse;
+  cmsPreviewSystemMessage: Scalars['String']['output'];
+  cmsProductStatistics: CmsProductStatisticsResponse;
+  cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
+  cmsUserStatistics: CmsUserStatisticsResponse;
   co2Factors: Array<Co2Factor>;
   exactAndApproximatePlace: ExactAndApproximatePlaceResponse;
   footerSection: FooterSection;
@@ -1806,6 +1895,11 @@ export type QueryAddressToLocationArgs = {
 
 export type QueryArticleArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryArticleBySlugArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -1866,6 +1960,26 @@ export type QueryCmsListProjectsArgs = {
 
 export type QueryCmsListUsersArgs = {
   input: CmsListUsersInput;
+};
+
+
+export type QueryCmsPreviewSystemMessageArgs = {
+  input: CmsPreviewSystemMessageInput;
+};
+
+
+export type QueryCmsProductStatisticsArgs = {
+  input?: InputMaybe<CmsProductStatisticsInput>;
+};
+
+
+export type QueryCmsPurchaseStatisticsArgs = {
+  input?: InputMaybe<CmsPurchaseStatisticsInput>;
+};
+
+
+export type QueryCmsUserStatisticsArgs = {
+  input?: InputMaybe<CmsUserStatisticsInput>;
 };
 
 
@@ -2179,6 +2293,26 @@ export type ShippingPrice = {
 export enum ShippingProviderEnum {
   Dhl = 'DHL',
   Postnord = 'POSTNORD'
+}
+
+export enum SystemMessageRoleEnum {
+  Buyer = 'BUYER',
+  Seller = 'SELLER'
+}
+
+export enum SystemMessageStepEnum {
+  HandoffConfirmed = 'HANDOFF_CONFIRMED',
+  LateShippingDropOff = 'LATE_SHIPPING_DROP_OFF',
+  PurchaseAbortedByBuyer = 'PURCHASE_ABORTED_BY_BUYER',
+  PurchaseAbortedBySeller = 'PURCHASE_ABORTED_BY_SELLER',
+  PurchaseInitiated = 'PURCHASE_INITIATED',
+  PurchaseReported = 'PURCHASE_REPORTED',
+  PurchaseSuccess = 'PURCHASE_SUCCESS',
+  SellerResponded = 'SELLER_RESPONDED',
+  ShipmentArrived = 'SHIPMENT_ARRIVED',
+  ShipmentDelivered = 'SHIPMENT_DELIVERED',
+  ShipmentDroppedOff = 'SHIPMENT_DROPPED_OFF',
+  SupportConcluded = 'SUPPORT_CONCLUDED'
 }
 
 export enum TransportationEnum {

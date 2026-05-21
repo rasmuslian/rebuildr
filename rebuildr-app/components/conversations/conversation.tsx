@@ -8,6 +8,9 @@ import { useState } from "react";
 import { View } from "react-native";
 import dayjs from "dayjs";
 import { ConversationQuery } from "@/gql/graphql";
+import { ExplainReviewsBottomSheet } from "@components/explanation-information-sheets/explain-reviews-bottom-sheet";
+import { ExplainPayoutsBottomSheet } from "@components/explanation-information-sheets/explain-payouts-bottom-sheet";
+import { ExplainCancelPurchaseBottomSheet } from "@components/explanation-information-sheets/explain-cancel-purchase-bottom-sheet";
 
 type Props = {
   data: ConversationQuery;
@@ -25,6 +28,9 @@ export const Conversation = ({
   const colors = useThemeColor();
   const [showAbortSheet, setShowAbortSheet] = useState(false);
   const [showReportSheet, setShowReportSheet] = useState(false);
+  const [showAboutPayoutSheet, setShowAboutPayoutSheet] = useState(false);
+  const [showAboutReviewSheet, setShowAboutReviewSheet] = useState(false);
+  const [showAboutAbortSheet, setShowAboutAbortSheet] = useState(false);
 
   const conversationByDate = data.getConversation.messages.slice().reduce(
     (
@@ -124,6 +130,9 @@ export const Conversation = ({
                     senderIsMe={senderIsMe}
                     onAbortPurchase={() => setShowAbortSheet(true)}
                     onReport={() => setShowReportSheet(true)}
+                    onAboutReview={() => setShowAboutReviewSheet(true)}
+                    onAboutPayout={() => setShowAboutPayoutSheet(true)}
+                    onAboutAbort={() => setShowAboutAbortSheet(true)}
                   />
                 ));
               })}
@@ -159,6 +168,24 @@ export const Conversation = ({
           show={showReportSheet}
           onDismiss={() => setShowReportSheet(false)}
           onCreateReportComplete={() => refetch()}
+        />
+      )}
+      {purchase && (
+        <ExplainReviewsBottomSheet
+          show={showAboutReviewSheet}
+          onDismiss={() => setShowAboutReviewSheet(false)}
+        />
+      )}
+      {purchase && (
+        <ExplainPayoutsBottomSheet
+          show={showAboutPayoutSheet}
+          onDismiss={() => setShowAboutPayoutSheet(false)}
+        />
+      )}
+      {purchase && (
+        <ExplainCancelPurchaseBottomSheet
+          show={showAboutAbortSheet}
+          onDismiss={() => setShowAboutAbortSheet(false)}
         />
       )}
     </>

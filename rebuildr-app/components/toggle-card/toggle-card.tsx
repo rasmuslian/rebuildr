@@ -15,6 +15,7 @@ type ToggleCardProps = {
   offColor?: "disabled" | "tonal" | "none";
   headerDivider?: boolean;
   error?: boolean;
+  disabled?: boolean;
 } & PropsWithChildren;
 
 export const ToggleCard = ({
@@ -26,6 +27,7 @@ export const ToggleCard = ({
   offColor = "tonal",
   headerDivider,
   error,
+  disabled,
   children,
 }: ToggleCardProps) => {
   const colors = useThemeColor();
@@ -91,7 +93,7 @@ export const ToggleCard = ({
               description
             ))}
         </View>
-        <Toggle value={enabled} onPress={onPress} />
+        <Toggle value={enabled} onPress={onPress} disabled={disabled} />
       </View>
       {headerDivider && enabled && <Divider />}
       {enabled ? children : null}

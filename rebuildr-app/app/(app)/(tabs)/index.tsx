@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
-import { View, Animated } from "react-native";
+import { View, Animated, ScrollView } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import Head from "expo-router/head";
 import { TrendingNow } from "@components/trending-now/trending-now";
 import { NewArrivals } from "@components/new-arrivals/new-arrivals";
@@ -20,6 +21,8 @@ import { useFocusEffect } from "expo-router";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
@@ -68,6 +71,7 @@ export default function Landing() {
         <Hero scrollY={scrollY} showFor="mobile" />
 
         <Animated.ScrollView
+          ref={scrollRef}
           scrollEventThrottle={8}
           showsHorizontalScrollIndicator={false}
           onScroll={Animated.event(

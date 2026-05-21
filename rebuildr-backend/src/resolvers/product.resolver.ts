@@ -728,6 +728,7 @@ export class ProductResolver {
     return this.productService.cmsListProducts(input);
   }
 
+
   @Mutation(() => CmsCreateProductResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])

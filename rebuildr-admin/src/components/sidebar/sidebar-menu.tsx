@@ -22,8 +22,10 @@ import {
   TagOutlined,
   TeamOutlined,
   FilePdfOutlined,
+  MessageOutlined,
   ShoppingCartOutlined,
   PictureOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -108,6 +110,13 @@ const SidebarMenu = () => {
     getItem("Köp", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
 
     { type: "divider" },
+    getItem(
+      "Systemmeddelanden",
+      routes.LIST_SYSTEM_MESSAGES,
+      <MessageOutlined />,
+    ),
+
+    { type: "divider" },
     getItem("Användare", routes.LIST_USER, <UserOutlined />),
 
     { type: "divider" },
@@ -121,6 +130,9 @@ const SidebarMenu = () => {
       getItem("Skapa artikel", routes.CREATE_ARTICLE),
       getItem("Visa alla artiklar", routes.LIST_ARTICLE),
     ]),
+
+    { type: "divider" },
+    getItem("Statistik", routes.STATISTICS, <BarChartOutlined />),
 
     { type: "divider" },
     getItem("Inställningar", "/setting", <SettingOutlined />, [

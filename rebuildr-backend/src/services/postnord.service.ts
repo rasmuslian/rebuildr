@@ -203,7 +203,6 @@ export class PostnordService {
           //to buyer
           this.systemMessagesService.shipmentDeliveredBuyer(
             purchase.buyer,
-            purchase.product.seller,
             purchase.product,
             purchase,
           );

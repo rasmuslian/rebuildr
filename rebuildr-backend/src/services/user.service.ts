@@ -508,12 +508,10 @@ export class UserService {
     if (!user.connectedAccountId) {
       return null;
     }
-    const accounts = await this.stripeService.retrieveExternalAccounts(
+
+    return await this.stripeService.getDefaultPayoutAccount(
       user.connectedAccountId,
     );
-
-    const account = accounts.find((account) => account.default);
-    return account;
   }
 
   async sellerAccountIsCreated(user: User) {

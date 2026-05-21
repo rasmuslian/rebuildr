@@ -72,6 +72,7 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
+  payoutBankLast4: String
   abortedById: String
   paymentMethod: PaymentMethod
   transportationMethod: TransportationEnum!
@@ -200,6 +201,9 @@ type User {
   organizationAccount: User
   organizationOwner: User
   totalCO2Savings: Float!
+  totalCO2SavingsBuyer: Float!
+  totalCO2SavingsSeller: Float!
+  numberOfCompletedPurchases: Int!
 }
 
 enum UserRoleEnum {
@@ -289,7 +293,8 @@ enum BrandTypeEnum {
 
 type CO2Factor {
   id: ID!
-  coefficient: Float!
+  productionCoefficient: Float!
+  disposalCoefficient: Float!
   productName: String!
   categoryName: String!
 }
@@ -394,7 +399,8 @@ type Product {
   deliveryEnabled: Boolean!
   deliveryRadius: Float
   noProject: Boolean
-  co2Saving: Float
+  co2SavingBuyer: Float
+  co2SavingSeller: Float
   category: Category
   seller: User!
   primaryImage: File
@@ -775,6 +781,33 @@ type CmsCreateBannerResponse {
   imagePutUrl: String
 }
 
+type CmsProductStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsProductStatisticsResponse {
+  data: [CmsProductStatisticsDataPoint!]!
+}
+
+type CmsUserStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsUserStatisticsResponse {
+  data: [CmsUserStatisticsDataPoint!]!
+}
+
+type CmsPurchaseStatisticsDataPoint {
+  date: String!
+  count: Int!
+}
+
+type CmsPurchaseStatisticsResponse {
+  data: [CmsPurchaseStatisticsDataPoint!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -798,6 +831,8 @@ type Query {
   getCategories(input: GetCategoriesInput!): [Category!]!
   rootCategories(input: RootCategoriesInput): [Category!]!
   popularCategories(input: PopularCategoriesInput): [Category!]!
+  cmsPreviewSystemMessage(input: CmsPreviewSystemMessageInput!): String!
+  cmsListChatActions: [ChatActionEnum!]!
   getConversation(input: GetConversationInput!): Conversation!
   getConversations(input: GetConversationsInput!): [Conversation!]!
   getUnreadConversationsCount: Int!
@@ -836,6 +871,9 @@ type Query {
   banners: [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
+  cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
+  cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
+  cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
 }
 
 input UserExistsInput {
@@ -938,6 +976,44 @@ enum OrderCategoriesEnum {
 
 input PopularCategoriesInput {
   limit: Int!
+}
+
+input CmsPreviewSystemMessageInput {
+  step: SystemMessageStepEnum!
+  role: SystemMessageRoleEnum!
+  transportation: TransportationEnum
+  isFree: Boolean
+  firstSale: Boolean
+  provider: ShippingProviderEnum
+  decision: String
+}
+
+enum SystemMessageStepEnum {
+  PURCHASE_INITIATED
+  SELLER_RESPONDED
+  HANDOFF_CONFIRMED
+  SHIPMENT_DROPPED_OFF
+  SHIPMENT_ARRIVED
+  SHIPMENT_DELIVERED
+  PURCHASE_SUCCESS
+  PURCHASE_REPORTED
+  SUPPORT_CONCLUDED
+  PURCHASE_ABORTED_BY_BUYER
+  PURCHASE_ABORTED_BY_SELLER
+  LATE_SHIPPING_DROP_OFF
+}
+
+enum SystemMessageRoleEnum {
+  BUYER
+  SELLER
+}
+
+enum ChatActionEnum {
+  ABORT
+  REPORT
+  ABOUTREVIEW
+  ABOUTPAYOUT
+  ABOUTABORT
 }
 
 input GetConversationInput {
@@ -1063,6 +1139,24 @@ input ListPageContentInput {
   pageSize: Int
 }
 
+input CmsProductStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+enum CmsProductStatisticsGroupByEnum {
+  DAY
+  WEEK
+  MONTH
+}
+
+input CmsUserStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPurchaseStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): User!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -1110,6 +1204,7 @@ type Mutation {
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
   cmsRefundPurchase(input: CmsRefundPurchaseInput!): Purchase!
+  cmsBackfillPayoutBankDetails: Int!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
@@ -1139,7 +1234,8 @@ type Mutation {
   cmsCreatePartner(input: CmsCreatePartnerInput!): CmsCreatePartnerResponse!
   cmsUpdatePartner(input: CmsUpdatePartnerInput!): CmsCreatePartnerResponse!
   cmsDeletePartner(input: CmsDeletePartnerInput!): Boolean!
-  updateCO2Factors: Boolean!
+  cmsUpdateCO2Factor(input: CmsUpdateCO2Factor!): CO2Factor!
+  syncCO2Factors: Boolean!
   updatePageContent(input: UpdatePageContentInput!): PageContent!
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
@@ -1634,6 +1730,11 @@ input CmsUpdatePartnerInput {
 
 input CmsDeletePartnerInput {
   id: String!
+}
+
+input CmsUpdateCO2Factor {
+  id: String!
+  disposalCoefficient: Float
 }
 
 input UpdatePageContentInput {

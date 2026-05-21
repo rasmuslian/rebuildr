@@ -5,7 +5,10 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Pressable, View } from "react-native";
 import dayjs from "dayjs";
 import { ConversationQuery, MessageTypeEnum } from "@/gql/graphql";
-import { SystemMessage } from "@components/messages/system-message";
+import {
+  ChatActionProps,
+  SystemMessage,
+} from "@components/messages/system-message";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import { useEffect, useRef, useState } from "react";
@@ -19,9 +22,7 @@ type Props = {
   createdAt: Date;
   alwaysShowTime?: boolean;
   senderIsMe: boolean;
-  onAbortPurchase: () => void;
-  onReport: () => void;
-};
+} & ChatActionProps;
 
 export const ChatBlock = ({
   message,
@@ -32,8 +33,7 @@ export const ChatBlock = ({
   createdAt,
   alwaysShowTime,
   senderIsMe,
-  onAbortPurchase,
-  onReport,
+  ...chatActionProps
 }: Props) => {
   const [showTime, setShowTime] = useState(alwaysShowTime);
   const isSystemMessage = type === MessageTypeEnum.System;
@@ -82,13 +82,12 @@ export const ChatBlock = ({
               message={message}
               senderIsMe={senderIsMe}
               isSystemMessage={isSystemMessage}
-              onAbortPurchase={onAbortPurchase}
-              onReport={onReport}
               maxWidth={
                 maxWidth !== null
                   ? maxWidth - (!senderIsMe ? 48 : 0) - 16 - 48
                   : undefined
               }
+              {...chatActionProps}
             />
           )}
           {images && <ImageMessage images={images} />}
@@ -114,18 +113,15 @@ type TextMessageProps = {
   message: string;
   senderIsMe: boolean;
   isSystemMessage: boolean;
-  onAbortPurchase: () => void;
-  onReport: () => void;
   maxWidth?: number;
-};
+} & ChatActionProps;
 
 const TextMessage = ({
   message,
   senderIsMe,
   isSystemMessage,
-  onAbortPurchase,
-  onReport,
   maxWidth,
+  ...chatActionProps
 }: TextMessageProps) => {
   const colors = useThemeColor();
 
@@ -160,11 +156,7 @@ const TextMessage = ({
       ]}
     >
       {isSystemMessage ? (
-        <SystemMessage
-          text={message}
-          onAbortPurchase={onAbortPurchase}
-          onReport={onReport}
-        />
+        <SystemMessage text={message} {...chatActionProps} />
       ) : (
         <Body
           size="large"

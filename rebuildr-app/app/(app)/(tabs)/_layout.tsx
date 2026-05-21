@@ -63,9 +63,20 @@ export default function TabLayout() {
             name: "Hem",
             icon: "home",
             onPress: () => {
-              filterBuilder.reset().apply();
-              searchContext.reset();
-              router.navigate("/");
+              const homeRoute = props.state.routes.find(
+                (r) => r.name === "index",
+              );
+              if (!homeRoute) return;
+              const event = props.navigation.emit({
+                type: "tabPress",
+                target: homeRoute.key,
+                canPreventDefault: true,
+              });
+              if (!isHighlighted("") && !event.defaultPrevented) {
+                filterBuilder.reset().apply();
+                searchContext.reset();
+                router.navigate("/");
+              }
             },
             highlight: isHighlighted(""),
           },

@@ -9,7 +9,6 @@ import {
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
-import { printProductLabel } from "@/utils/products/print-product-label";
 import { AdRowSectionDesktop } from "@components/ad-row-section/ad-row-section.desktop";
 import { Button, ButtonProps } from "@components/buttons/button";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
@@ -43,6 +42,8 @@ import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
+import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -103,6 +104,8 @@ export const ProductDesktop = ({
     product.soldByQuantity ? 1 : undefined,
   );
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
+  const { print: startPrintLabel, handleReady: handleSheetReady } =
+    usePrintProductLabel();
   const [rightColumnWidth, setRightColumnWidth] = useState<number>(0);
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
@@ -139,7 +142,7 @@ export const ProductDesktop = ({
         if (state.showCreateLabelModal) {
           setShowCreateProductLabel(true);
         } else {
-          printProductLabel({ productId: product.id });
+          startPrintLabel();
         }
       },
     });
@@ -286,7 +289,7 @@ export const ProductDesktop = ({
                   <Divider />
                 </>
               )}
-              <CO2Savings co2Saving={product.co2Saving} />
+              <CO2Savings co2SavingSeller={product.co2SavingSeller} />
               <Divider />
               <InfoSection
                 createdAt={product.createdAt}
@@ -351,9 +354,14 @@ export const ProductDesktop = ({
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
-        onPressPrintProductLabel={() =>
-          printProductLabel({ productId: product.id })
-        }
+        onPressPrintProductLabel={() => {
+          setShowCreateProductLabel(false);
+          startPrintLabel();
+        }}
+      />
+      <PrintProductLabelPortal
+        productId={product.id}
+        onReady={handleSheetReady}
       />
       <Popup
         open={showImagePopup}

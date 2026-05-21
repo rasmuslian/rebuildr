@@ -30,6 +30,9 @@ export const CONVERSATION = gql`
         title
         price
         soldByQuantity
+        primaryQuantity
+        primaryUnit
+        condition
         status
         primaryImage {
           id
@@ -43,6 +46,7 @@ export const CONVERSATION = gql`
       purchase {
         id
         status
+        purchasedQuantity
         paymentAcceptedAt
         shipmentBookedAt
         shipmentDeliveredAt

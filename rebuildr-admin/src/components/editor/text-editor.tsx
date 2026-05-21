@@ -74,7 +74,8 @@ const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
 
   const insertImage = (imageSource: string) => {
     if (!editorRef.current) return;
-    editorRef.current.execCommand("InsertImage", false, imageSource);
+    const html = `<figure class="image"><img src="${imageSource}" alt="" /></figure>`;
+    editorRef.current.execCommand("InsertHTML", false, html);
     editorRef.current.execCommand("InsertNewBlockAfter");
     setState({ isImageLibraryOpen: false });
   };
@@ -293,10 +294,13 @@ const TextEditor = ({ value, setValue, height = 900, placeholder }: Props) => {
           toolbar_sticky: true,
           image_dimensions: false,
           media_dimensions: false,
-          image_caption: true,
+          image_caption: false,
           object_resizing: false,
           link_title: false,
           relative_urls: false,
+          valid_children:
+            "+body[figure],-p[img],-h1[img],-h2[img],-h3[img],-h4[img],-h5[img],-h6[img],-li[img]",
+          extended_valid_elements: "figure[class],img[src|alt|class]",
           content_style: contentStyle,
           setup: setupEditor,
         }}

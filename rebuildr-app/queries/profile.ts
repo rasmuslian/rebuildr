@@ -58,6 +58,9 @@ export const PROFILE = gql`
         }
       }
       totalCO2Savings
+      totalCO2SavingsBuyer
+      totalCO2SavingsSeller
+      numberOfCompletedPurchases
     }
     me @include(if: $isLoggedIn) {
       id

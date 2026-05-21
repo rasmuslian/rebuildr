@@ -20,16 +20,18 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { useContext, useState } from "react";
+import { Platform } from "react-native";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
+import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 import { ReportProduct } from "@components/report/report-product";
 import { LoginModalContext } from "@context/loginModalContext";
 import { SimilarProducts } from "@components/similar-products/similar-products";
-import { printProductLabel } from "@/utils/products/print-product-label";
 import { ProjectSection } from "@components/preview-product/project-section";
 import { UserSection } from "@components/preview-product/user-section";
 import { InfoSection } from "@components/preview-product/info-section";
@@ -97,10 +99,12 @@ export const ProductMobile = ({
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { setVisible } = useContext(LoginModalContext);
+  const { print: startPrintLabel, handleReady: handleSheetReady } =
+    usePrintProductLabel();
 
   const ctas: ButtonProps[] = [];
 
-  if (isMyProduct) {
+  if (isMyProduct && Platform.OS === "web") {
     ctas.push({
       icon: "qrCode",
       label: "Skapa etikett",
@@ -110,7 +114,7 @@ export const ProductMobile = ({
         if (state.showCreateLabelModal) {
           setShowCreateProductLabel(true);
         } else {
-          printProductLabel({ productId });
+          startPrintLabel();
         }
       },
     });
@@ -192,7 +196,7 @@ export const ProductMobile = ({
             </>
           )}
         <Divider />
-        <CO2Savings co2Saving={product.co2Saving} />
+        <CO2Savings co2SavingSeller={product.co2SavingSeller} />
         <Divider />
         <InfoSection
           createdAt={product.createdAt}
@@ -272,7 +276,14 @@ export const ProductMobile = ({
           setShowCreateProductLabel(false);
           setState({ showCreateLabelModal: false });
         }}
-        onPressPrintProductLabel={() => printProductLabel({ productId })}
+        onPressPrintProductLabel={() => {
+          setShowCreateProductLabel(false);
+          startPrintLabel();
+        }}
+      />
+      <PrintProductLabelPortal
+        productId={productId}
+        onReady={handleSheetReady}
       />
     </>
   );

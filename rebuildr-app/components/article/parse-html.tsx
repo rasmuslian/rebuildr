@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Display, Body, Headline, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import parse, {
@@ -6,7 +7,7 @@ import parse, {
   Element,
   DOMNode,
 } from "html-react-parser";
-import { Image } from "expo-image";
+import { Image, ImageLoadEventData } from "expo-image";
 
 import CTABlock from "@components/article/cta-block";
 import Accordion from "@components/article/accordion";
@@ -14,6 +15,39 @@ import LinkGroup from "@components/article/link-group";
 import { Divider } from "@components/dividers/divider";
 import { Linking, Pressable, View } from "react-native";
 import { Icon } from "@icons/icon";
+
+const isMeaningfulChild = (node: DOMNode) =>
+  !(
+    node.type === "text" &&
+    ((node as unknown as { data?: string }).data ?? "").trim() === ""
+  );
+
+const findFirstImg = (children: DOMNode[]) =>
+  children.find(
+    (c) => c instanceof Element && (c as Element).name === "img",
+  ) as Element | undefined;
+
+const ArticleImage = ({ src, alt }: { src: string; alt?: string }) => {
+  const [aspectRatio, setAspectRatio] = useState<number | undefined>(undefined);
+  return (
+    <Image
+      cachePolicy="memory-disk"
+      source={src}
+      contentFit="contain"
+      accessibilityLabel={alt}
+      onLoad={(e: ImageLoadEventData) => {
+        const w = e?.source?.width;
+        const h = e?.source?.height;
+        if (w && h) setAspectRatio(w / h);
+      }}
+      style={{
+        width: "100%",
+        aspectRatio: aspectRatio ?? 16 / 9,
+        borderRadius: borderRadius.medium,
+      }}
+    />
+  );
+};
 
 type Props = {
   html?: string;
@@ -58,6 +92,16 @@ export default function ParseHtml({ html }: Props) {
             );
           }
           case "p": {
+            const meaningful = (domNode.children as DOMNode[]).filter(
+              isMeaningfulChild,
+            );
+            const isImgOnly =
+              meaningful.length === 1 &&
+              meaningful[0] instanceof Element &&
+              (meaningful[0] as Element).name === "img";
+            if (isImgOnly) {
+              return <>{domToReact(domNode.children as DOMNode[], options)}</>;
+            }
             return (
               <Body size="medium" style={{ marginBottom: 24 }}>
                 {domToReact(domNode.children as DOMNode[], options)}
@@ -109,17 +153,26 @@ export default function ParseHtml({ html }: Props) {
               </Pressable>
             );
           }
+          case "figure": {
+            const imgChild = findFirstImg(domNode.children as DOMNode[]);
+            if (!imgChild) return <NotParsed />;
+            return (
+              <View style={{ marginBottom: 24 }}>
+                <ArticleImage
+                  src={imgChild.attribs.src}
+                  alt={imgChild.attribs.alt}
+                />
+              </View>
+            );
+          }
           case "img": {
             return (
-              <Image
-                cachePolicy="memory-disk"
-                source={domNode.attribs.src}
-                style={{
-                  aspectRatio: 1,
-                  borderRadius: borderRadius.medium,
-                  width: "100%",
-                }}
-              />
+              <View style={{ marginBottom: 24 }}>
+                <ArticleImage
+                  src={domNode.attribs.src}
+                  alt={domNode.attribs.alt}
+                />
+              </View>
             );
           }
           case "summary": {

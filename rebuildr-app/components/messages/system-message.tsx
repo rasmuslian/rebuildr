@@ -2,6 +2,14 @@ import { StyleSheet, View } from "react-native";
 import Markdown, { RenderRules } from "react-native-markdown-display";
 import { Body } from "@components/typography/text";
 import dayjs from "dayjs";
+import { ChatActionEnum } from "@/gql/graphql";
+export type ChatActionProps = {
+  onAbortPurchase: () => void;
+  onReport: () => void;
+  onAboutReview: () => void;
+  onAboutPayout: () => void;
+  onAboutAbort: () => void;
+};
 
 export const parseSystemMessagePreview = (text: string): string =>
   text
@@ -28,15 +36,22 @@ export const parseSystemMessagePreview = (text: string): string =>
 
 type Props = {
   text: string;
-  onAbortPurchase: () => void;
-  onReport: () => void;
-};
-enum MessageLinkEnum {
-  ABORT = "ABORT",
-  REPORT = "REPORT",
-}
+} & ChatActionProps;
 
 export const SystemMessage = ({ text, onAbortPurchase, onReport }: Props) => {
+  const getCallback = (chatAction: ChatActionEnum) => {
+    switch (chatAction) {
+      case ChatActionEnum.Abort:
+        return onAbortPurchase;
+      case ChatActionEnum.Report:
+        return onReport;
+      case ChatActionEnum.Aboutreview:
+      case ChatActionEnum.Aboutpayout:
+        return () => {
+          /**TODO */
+        };
+    }
+  };
   const rules: RenderRules = {
     //Used for normal text. Cant use 'body' or 'paragraph' since they will wrap the other rules and
     //then affect their line height
@@ -74,32 +89,15 @@ export const SystemMessage = ({ text, onAbortPurchase, onReport }: Props) => {
           </Body>
         );
       } else {
-        switch (node.attributes.href) {
-          case MessageLinkEnum.ABORT:
-            return (
-              <Body
-                onPress={onAbortPurchase}
-                key={node.key}
-                size={childOfSmall ? "small" : "large"}
-              >
-                {children}
-              </Body>
-            );
-          case MessageLinkEnum.REPORT:
-            return (
-              <Body
-                onPress={onReport}
-                key={node.key}
-                isLink
-                size={childOfSmall ? "small" : "large"}
-              >
-                {children}
-              </Body>
-            );
-          default:
-            //No valid link enum
-            return null;
-        }
+        return (
+          <Body
+            onPress={getCallback(node.attributes.href as ChatActionEnum)}
+            key={node.key}
+            size={childOfSmall ? "small" : "large"}
+          >
+            {children}
+          </Body>
+        );
       }
     },
   };

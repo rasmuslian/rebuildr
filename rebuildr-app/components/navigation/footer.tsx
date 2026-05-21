@@ -1,4 +1,4 @@
-import { Pressable, View, FlatList } from "react-native";
+import { Linking, Pressable, View, FlatList } from "react-native";
 import React from "react";
 import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
@@ -141,6 +141,14 @@ export default function Footer() {
 
               <Pressable onPress={() => console.log("Linkedin icon pressed")}>
                 <Icon icon="linkedin" color="primaryLight" />
+              </Pressable>
+
+              <Pressable
+                onPress={() =>
+                  Linking.openURL("https://substack.com/@rebuildr")
+                }
+              >
+                <Icon icon="substack" color="primaryLight" />
               </Pressable>
             </View>
           </View>
