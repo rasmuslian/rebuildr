@@ -14,6 +14,7 @@ import { ExternalExceptionFilter } from '@nestjs/core/exceptions/external-except
 import { AuthenticationError } from '@nestjs/apollo';
 import { Logger } from 'winston';
 import * as bodyParser from 'body-parser';
+import helmet from 'helmet';
 import { GqlContextType } from '@nestjs/graphql';
 import { SentryExceptionCaptured } from '@sentry/nestjs';
 
@@ -64,7 +65,29 @@ async function bootstrap() {
   // Stripe webhook needs raw body
   app.use('/stripe-webhook', bodyParser.raw({ type: 'application/json' }));
 
-  app.enableCors();
+  //https://docs.nestjs.com/security/helmet
+  app.use(
+    helmet({
+      //this configuration is necessary to allow apollo sandbox
+      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: [
+            `'self'`,
+            'data:',
+            'apollo-server-landing-page.cdn.apollographql.com',
+          ],
+          scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+          manifestSrc: [
+            `'self'`,
+            'apollo-server-landing-page.cdn.apollographql.com',
+          ],
+          frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+        },
+      },
+    }),
+  );
+  app.enableCors({ origin: process.env.WEB_BASE_URL, credentials: true });
   await app.listen(3000);
 }
 bootstrap();

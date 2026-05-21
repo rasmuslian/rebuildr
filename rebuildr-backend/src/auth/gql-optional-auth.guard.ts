@@ -13,7 +13,7 @@ export class GqlOptionalAuthGuard implements CanActivate {
   ) {}
   async canActivate(context: ExecutionContext) {
     const request = GqlExecutionContext.create(context).getContext().req;
-    const [type, token] = request.headers.authorization.split(' ') ?? [];
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
     if (type !== 'Bearer') {
       return true;
     }

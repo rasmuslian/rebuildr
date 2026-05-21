@@ -13,7 +13,11 @@ import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthedUserType, jwtConstants } from './auth/constants';
+import {
+  AuthedUserType,
+  authThrottleConfig,
+  jwtConstants,
+} from './auth/constants';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { UserResolver } from './resolvers/user.resolver';
 import { ProductResolver } from './resolvers/product.resolver';
@@ -258,6 +262,11 @@ export interface RequestType {
       {
         ttl: 1000,
         limit: 2,
+      },
+      {
+        name: 'auth',
+        ttl: authThrottleConfig.ttl,
+        limit: authThrottleConfig.limit,
       },
     ]),
     CacheModule.register(),

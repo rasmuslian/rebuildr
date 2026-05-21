@@ -13,7 +13,15 @@ import {
   InternalServerException,
   NotFoundException,
 } from 'src/exceptions';
-import { FindOptionsWhere, ILike, IsNull, Not, Repository } from 'typeorm';
+import {
+  FindOptionsWhere,
+  ILike,
+  In,
+  IsNull,
+  LessThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   CmsListUsersInput,
@@ -42,6 +50,7 @@ import { Project } from 'src/entities/project.entity';
 import { validateWebsite } from 'src/utility/website';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { Cron, CronExpression } from '@nestjs/schedule';
 @Injectable()
 export class UserService {
   constructor(
@@ -137,6 +146,15 @@ export class UserService {
     }
 
     return RegistrationStatusEnum.DONE;
+  }
+
+  async userExists(email: string) {
+    const user = await this.findOneByEmail(email);
+    if (!user) return { exists: false };
+    return {
+      exists: true,
+      registrationStatus: await this.getRegistrationStatus(user),
+    };
   }
 
   async update(input: UpdateUserInput, requesterId: string) {
@@ -715,5 +733,32 @@ export class UserService {
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
     }
+  }
+
+  @Cron(CronExpression.EVERY_WEEK)
+  async deleteUnverifiedUsers() {
+    this.logger.info({ message: 'running deleteUnverifiedUsers()' });
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const users = await this.userRepository.find({
+      where: {
+        emailVerifiedAt: IsNull(),
+        deletedAt: IsNull(),
+        createdAt: LessThan(oneWeekAgo),
+        type: UserType.PERSONAL,
+      },
+      select: { id: true },
+    });
+
+    if (!users.length) return;
+    this.logger.info({
+      message: `Deleting ${users.length} number of users`,
+      users,
+    });
+
+    const userIds = users.map((u) => u.id);
+    await this.refreshTokenRepository.delete({ userId: In(userIds) });
+    await this.userRepository.delete(userIds);
   }
 }

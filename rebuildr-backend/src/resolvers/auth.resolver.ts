@@ -15,8 +15,10 @@ import { UseGuards, UsePipes } from '@nestjs/common';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { RequestType } from 'src/app.module';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { AuthedUserType } from 'src/auth/constants';
+import { AuthedUserType, authThrottleConfig } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @InputType()
 export class RegisterUserInput {
@@ -149,6 +151,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
     return await this.authService.registerUser(input);
@@ -163,6 +167,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => ResendVerificationMailResponse)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
   @UsePipes(new ZodValidationPipe(resendVerificationMailSchema))
   async resendVerificationMail(
     @Args('input') input: ResendVerificationMailInput,
@@ -180,6 +186,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => LoginResponse)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
   async login(
     @Args('input') input: LoginInput,
     @Context('req') req: RequestType,
@@ -193,6 +201,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => LoginResponse)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
   async cmsLogin(
     @Args('input') input: LoginInput,
     @Context('req') req: RequestType,
@@ -206,6 +216,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => ResetPasswordResponse)
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
   async resetPassword(@Args('input') input: ResetPasswordInput) {
     return await this.authService.resetPassword(input);
   }
