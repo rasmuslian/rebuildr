@@ -4,7 +4,6 @@ import QRCode from "react-native-qrcode-svg";
 import { Logo } from "@components/logo/logo";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Label, Title, Body, Headline } from "@components/typography/text";
-import { useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import {
   GetProductQuery,
@@ -68,75 +67,59 @@ const GET_PRODUCT = gql`
   }
 `;
 
-export default function PrintproductLabel() {
-  const { productId } = useLocalSearchParams<{ productId: string }>();
-  const colors = useThemeColor();
+export const PRODUCT_LABEL_HOST_ID = "product-label-print-host";
 
-  const { data } = useQuery<GetProductQuery, GetProductQueryVariables>(
-    GET_PRODUCT,
-    {
-      variables: {
-        input: {
-          id: productId,
-        },
-      },
-    },
-  );
+type Product = NonNullable<GetProductQuery["product"]>;
 
-  const product = data?.product;
-
-  useEffect(() => {
-    if (!product || Platform.OS !== "web") return;
-    if (!window.opener) return;
-
-    window.onafterprint = () => window.close();
-    window.print();
-  }, [product]);
-
-  if (!product) return;
-
-  const quantity = product.primaryQuantity ?? 0;
-  const quantityUnit = product.primaryUnit ?? QuantityUnitEnum.Amount;
-
-  const measurementsList: string[] = [];
+const buildMeasurementsList = (product: Product): string[] => {
+  const list: string[] = [];
 
   if (product.thickness) {
-    measurementsList.push(
+    list.push(
       `${measurements.THICKNESS.name} ${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`,
     );
   }
-
   if (product.width) {
-    measurementsList.push(
+    list.push(
       `${measurements.WIDTH.name} ${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`,
     );
   }
-
   if (product.length) {
-    measurementsList.push(
+    list.push(
       `${measurements.LENGTH.name} ${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`,
     );
   }
-
   if (product.height) {
-    measurementsList.push(
+    list.push(
       `${measurements.HEIGHT.name} ${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`,
     );
   }
-
   if (product.diameter) {
-    measurementsList.push(
+    list.push(
       `${measurements.DIAMETER.name} ${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`,
     );
   }
-
   if (product.weight) {
-    measurementsList.push(
+    list.push(
       `${measurements.WEIGHT.name} ${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`,
     );
   }
 
-  const ProductLabel = () => (
+  return list;
+};
+
+type ProductLabelProps = {
+  product: Product;
+  productId: string;
+};
+
+const ProductLabel = ({ product, productId }: ProductLabelProps) => {
+  const colors = useThemeColor();
+  const quantity = product.primaryQuantity ?? 0;
+  const quantityUnit = product.primaryUnit ?? QuantityUnitEnum.Amount;
+  const measurementsList = buildMeasurementsList(product);
+
+  return (
     <View
       style={{
         flexDirection: "column",
@@ -147,7 +130,6 @@ export default function PrintproductLabel() {
         borderWidth: 1,
         borderColor: colors.dividers.neutral,
         borderRadius: borderRadius.medium,
-        margin: "auto",
       }}
     >
       <View style={{ flexDirection: "row", gap: 16, paddingBottom: 8 }}>
@@ -213,38 +195,58 @@ export default function PrintproductLabel() {
       </View>
     </View>
   );
+};
+
+type Props = {
+  productId: string;
+  onReady?: () => void;
+};
+
+export const ProductLabelSheet = ({ productId, onReady }: Props) => {
+  const { data } = useQuery<GetProductQuery, GetProductQueryVariables>(
+    GET_PRODUCT,
+    {
+      variables: { input: { id: productId } },
+    },
+  );
+
+  const product = data?.product;
+
+  useEffect(() => {
+    if (product && onReady) onReady();
+  }, [product, onReady]);
+
+  if (!product) return null;
 
   return (
-    <>
-      {Platform.OS === "web" && (
-        <style>
-          {`@media print {
-            @page {
-              margin: 12px;
-            }
-            body {
-              margin: 0px;
-              zoom: 0.90;
-            }
-          }`}
-        </style>
-      )}
+    <View
+      nativeID={PRODUCT_LABEL_HOST_ID}
+      style={{
+        width: 786,
+        height: 1099,
+        padding: 12,
+        flexDirection: "column",
+        gap: 12,
+      }}
+    >
       <View
         style={{
-          flex: 1,
-          flexDirection: "column",
-          justifyContent: "space-around",
+          flexDirection: "row",
+          gap: 12,
         }}
       >
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <ProductLabel />
-          <ProductLabel />
-        </View>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <ProductLabel />
-          <ProductLabel />
-        </View>
+        <ProductLabel product={product} productId={productId} />
+        <ProductLabel product={product} productId={productId} />
       </View>
-    </>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 12,
+        }}
+      >
+        <ProductLabel product={product} productId={productId} />
+        <ProductLabel product={product} productId={productId} />
+      </View>
+    </View>
   );
-}
+};
