@@ -16,11 +16,14 @@ import { paymentMethodStrings } from "@constants/paymentMethods";
 import { quantities } from "@constants/quantities";
 import { shippingProviderStrings } from "@constants/shippingProviders";
 import { borderRadius } from "@constants/sizes";
+import { usePrintReceipt } from "@hooks/purchase/use-print-receipt";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { Platform, Pressable, View } from "react-native";
+
+export const RECEIPT_HOST_ID = "receipt-print-host";
 
 const RECEIPT_SECTION = gql`
   query ReceiptSection($input: GetPurchaseInput!) {
@@ -75,6 +78,7 @@ type Props = {
 
 export const ReceiptSection = ({ purchaseId }: Props) => {
   const colors = useThemeColor();
+  const { print } = usePrintReceipt();
   const { data } = useQuery<ReceiptSectionQuery, ReceiptSectionQueryVariables>(
     RECEIPT_SECTION,
     {
@@ -107,35 +111,8 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
   const payedAt = purchase.paymentAcceptedAt ?? purchase.createdAt;
   const buyerIsMe = me.id === purchase.buyer.id;
 
-  const handlePrint = () => {
-    const el = document.getElementById("receipt-section");
-    if (!el) return;
-
-    const clone = el.cloneNode(true) as HTMLElement;
-    clone.id = "receipt-print-clone";
-    document.body.appendChild(clone);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      @media print {
-        body > *:not(#receipt-print-clone) { display: none !important; }
-        #receipt-print-clone { margin-top: 20px; }
-        #receipt-print-button { display: none !important; }
-        #receipt-co2-read-more { display: none !important; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    window.onafterprint = () => {
-      document.head.removeChild(style);
-      document.body.removeChild(clone);
-      window.onafterprint = null;
-    };
-    window.print();
-  };
-
   return (
-    <View nativeID="receipt-section">
+    <View nativeID={RECEIPT_HOST_ID}>
       <View>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <View
@@ -154,7 +131,7 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
             </Body>
           </View>
           {Platform.OS === "web" && (
-            <Pressable nativeID="receipt-print-button" onPress={handlePrint}>
+            <Pressable nativeID="receipt-print-button" onPress={print}>
               <Icon icon="upload" />
             </Pressable>
           )}
