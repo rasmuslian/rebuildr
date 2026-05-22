@@ -1,22 +1,15 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { Platform } from "react-native";
-import { PRODUCT_LABEL_HOST_ID } from "@components/product-label/product-label-sheet";
+import { RECEIPT_HOST_ID } from "@components/purchase/receipt-section";
 
-const CLONE_ID = "product-label-print-clone";
-const STYLE_ATTR = "data-product-label-print";
+const CLONE_ID = "receipt-print-clone";
+const STYLE_ATTR = "data-receipt-print";
 
-export const usePrintProductLabel = () => {
-  const isReadyRef = useRef(false);
-
-  const handleReady = useCallback(() => {
-    isReadyRef.current = true;
-  }, []);
-
+export const usePrintReceipt = () => {
   const print = useCallback(() => {
     if (Platform.OS !== "web") return;
-    if (!isReadyRef.current) return;
 
-    const el = document.getElementById(PRODUCT_LABEL_HOST_ID);
+    const el = document.getElementById(RECEIPT_HOST_ID);
     if (!el) return;
 
     document.getElementById(CLONE_ID)?.remove();
@@ -26,9 +19,6 @@ export const usePrintProductLabel = () => {
 
     const clone = el.cloneNode(true) as HTMLElement;
     clone.id = CLONE_ID;
-    clone.style.position = "static";
-    clone.style.left = "0";
-    clone.style.top = "0";
     document.body.appendChild(clone);
 
     const style = document.createElement("style");
@@ -38,7 +28,16 @@ export const usePrintProductLabel = () => {
       @media print {
         html, body { margin: 0 !important; padding: 0 !important; height: auto !important; }
         body > *:not(#${CLONE_ID}) { display: none !important; }
-        #${CLONE_ID} { display: flex !important; }
+        #${CLONE_ID} {
+          width: 200mm !important;
+          max-height: 263mm !important;
+          margin: 0 !important;
+          padding: 8mm !important;
+          box-sizing: border-box;
+          overflow: hidden !important;
+        }
+        #receipt-print-button { display: none !important; }
+        #receipt-co2-read-more { display: none !important; }
       }
     `;
     document.head.appendChild(style);
@@ -51,5 +50,5 @@ export const usePrintProductLabel = () => {
     window.print();
   }, []);
 
-  return { print, handleReady };
+  return { print };
 };
