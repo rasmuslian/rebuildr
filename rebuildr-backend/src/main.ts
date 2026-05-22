@@ -87,7 +87,13 @@ async function bootstrap() {
       },
     }),
   );
-  app.enableCors({ origin: process.env.WEB_BASE_URL, credentials: true });
+  const allowedOrigins = [
+    process.env.WEB_BASE_URL,
+    ...(process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+      : []),
+  ].filter(Boolean);
+  app.enableCors({ origin: allowedOrigins, credentials: true });
   await app.listen(3000);
 }
 bootstrap();
