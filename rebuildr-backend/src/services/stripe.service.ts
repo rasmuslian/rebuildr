@@ -352,6 +352,10 @@ export class StripeService {
     const account = await this.retrieveAccount(connectedAccountId);
     return account.charges_enabled;
   }
+  async accountCanReceivePayout(connectedAccountId: string) {
+    const account = await this.retrieveAccount(connectedAccountId);
+    return account.payouts_enabled;
+  }
   async accountIsEnabled(connectedAccountId: string) {
     const account = await this.retrieveAccount(connectedAccountId);
     const { requirements } = account;

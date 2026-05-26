@@ -219,7 +219,10 @@ export class PurchaseService {
         shippingProvider: existingPurchase.shippingPrice?.provider,
       });
 
-      if ((input.purchasedQuantity ?? null) !== (existingPurchase.purchasedQuantity ?? null)) {
+      if (
+        (input.purchasedQuantity ?? null) !==
+        (existingPurchase.purchasedQuantity ?? null)
+      ) {
         logger.error({
           message: 'Existing purchase has different purchaseQuantity',
           existingPurchase,
@@ -948,6 +951,16 @@ export class PurchaseService {
         sellerId: seller.id,
         buyerId: buyer.id,
       });
+      const canReceivePayout = await this.stripeService.accountCanReceivePayout(
+        seller.connectedAccountId,
+      );
+      if (!canReceivePayout) {
+        logger.info(
+          'acceptPurchase: Seller account cannot receive payout yet. Will try again later',
+          { sellerId: seller.id, purchaseId: approvedPurchase.id },
+        );
+        return await this.purchaseRepository.save(approvedPurchase);
+      }
       const payoutAvailable = await this.stripeService.payoutAvailable(
         seller.connectedAccountId,
         approvedPurchase.paymentIntentId,
@@ -1334,6 +1347,15 @@ export class PurchaseService {
             sellerId: purchase.product.seller.id,
           });
           return;
+        }
+        const canReceivePayout =
+          await this.stripeService.accountCanReceivePayout(accountId);
+        if (!canReceivePayout) {
+          logger.info(
+            'automaticPayout: Seller account cannot receive payout yet, skipping',
+            { sellerId: purchase.product.seller.id, purchaseId: purchase.id },
+          );
+          return undefined;
         }
         const payoutAvailable = await this.stripeService.payoutAvailable(
           purchase.product.seller.connectedAccountId,
