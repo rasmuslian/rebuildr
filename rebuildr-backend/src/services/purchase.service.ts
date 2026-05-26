@@ -50,6 +50,7 @@ import Stripe from 'stripe';
 import { idFromObject } from 'src/utility/stripe/utils';
 import { ShippingPriceService } from './shipping-price.service';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class PurchaseService {
@@ -70,6 +71,7 @@ export class PurchaseService {
     private reportPurchaseService: ReportPurchaseService,
     private stripeService: StripeService,
     private shippingPriceService: ShippingPriceService,
+    private mailService: MailService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -1531,6 +1533,14 @@ export class PurchaseService {
             logger.error('purchaseWithShipping system messages failed', err),
           );
       }
+    }
+
+    if (updateResult.affected > 0 && !canReceivePayout) {
+      this.mailService
+        .sendActivatePayoutsEmail({
+          email: purchase.product.seller.email,
+        })
+        .catch((e) => logger.error('sendActivatePayoutsEmail failed', e));
     }
 
     if (purchase.transportationMethod === TransportationEnum.SHIPPING) {

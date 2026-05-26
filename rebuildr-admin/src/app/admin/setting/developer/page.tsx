@@ -190,6 +190,15 @@ const DeveloperSetting = () => {
           >
             Mottagit användarmeddelande
           </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({ template: "activatePayouts" })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Aktivera utbetalningar
+          </Button>
         </div>
       </div>
     </div>
