@@ -266,7 +266,7 @@ export class MailService {
   async sendActivatePayoutsEmail(input: { email: string }) {
     const context = {
       ...this.baseContext,
-      payoutOnboardingUrl: `${this.baseUrl}/account/settings/payout`,
+      payoutOnboardingUrl: `${this.baseUrl}/go/activate-payouts`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(activatePayoutsTemplate).html,
