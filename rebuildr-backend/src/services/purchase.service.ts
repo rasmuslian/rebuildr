@@ -219,7 +219,7 @@ export class PurchaseService {
         shippingProvider: existingPurchase.shippingPrice?.provider,
       });
 
-      if (input.purchasedQuantity !== existingPurchase.purchasedQuantity) {
+      if ((input.purchasedQuantity ?? null) !== (existingPurchase.purchasedQuantity ?? null)) {
         logger.error({
           message: 'Existing purchase has different purchaseQuantity',
           existingPurchase,

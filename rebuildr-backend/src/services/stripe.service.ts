@@ -18,7 +18,6 @@ import { SellerAccount } from 'src/resolvers/user.resolver';
 import { registerEnumType } from '@nestjs/graphql';
 
 const paymentCapabilities: (keyof Stripe.AccountCreateParams.Capabilities)[] = [
-  'swish_payments',
   'card_payments',
 ];
 
@@ -193,7 +192,6 @@ export class StripeService {
         },
         capabilities: {
           card_payments: { requested: true },
-          swish_payments: { requested: true },
           transfers: { requested: true },
         },
         country: 'SE',
@@ -223,7 +221,7 @@ export class StripeService {
     }
 
     //Prefill data
-    let scbData: IFetchBusinessResponse[number];
+    let scbData: IFetchBusinessResponse[number] | undefined;
     try {
       const businessData = await this.scbAPI.fetchBusiness(
         organizationUser.organizationNumber,
@@ -246,20 +244,20 @@ export class StripeService {
         business_type: 'company',
         company: {
           structure: 'private_corporation',
-          name: scbData.Företagsnamn ?? organizationUser.username,
+          name: scbData?.Företagsnamn ?? organizationUser.username,
           address: {
-            line1: scbData.PostAdress ?? organizationUser.address,
-            postal_code: scbData.PostNr ?? organizationUser.postCode,
-            city: scbData.PostOrt ?? organizationUser.city,
+            line1: scbData?.PostAdress ?? organizationUser.address,
+            postal_code: scbData?.PostNr ?? organizationUser.postCode,
+            city: scbData?.PostOrt ?? organizationUser.city,
             country: 'SE',
           },
           phone: validPhoneNumber
-            ? addCountryCode(scbData.Telefon ?? organizationUser.phoneNumber)
+            ? addCountryCode(scbData?.Telefon ?? organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
         },
         business_profile: {
-          name: scbData.Företagsnamn ?? organizationUser.username,
+          name: scbData?.Företagsnamn ?? organizationUser.username,
         },
         email: owner.email,
         controller: {

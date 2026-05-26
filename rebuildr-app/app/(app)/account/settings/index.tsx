@@ -147,14 +147,12 @@ export default function Settings({ onBack, onNavigation }: Props) {
         </>
       )}
       <View style={{ gap: 16 }}>
-        {data?.me.sellerAccountIsEnabled && (
-          <LinkEntry
-            label="Utbetalningskonto"
-            body="Lägg till eller ändra hur du tar emot betalningar."
-            link={onNavigation ? undefined : "/account/settings/payout"}
-            onPress={() => onNavigation?.({ page: "payout-index", params: {} })}
-          />
-        )}
+        <LinkEntry
+          label="Utbetalningskonto"
+          body="Lägg till eller ändra hur du tar emot betalningar."
+          link={onNavigation ? undefined : "/account/settings/payout"}
+          onPress={() => onNavigation?.({ page: "payout-index", params: {} })}
+        />
         <LinkEntry
           label="Kontaktuppgifter"
           body="Uppdatera e-post, användarnamn, lösenord och adresser."
