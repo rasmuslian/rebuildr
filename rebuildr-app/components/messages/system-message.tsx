@@ -3,6 +3,7 @@ import Markdown, { RenderRules } from "react-native-markdown-display";
 import { Body } from "@components/typography/text";
 import dayjs from "dayjs";
 import { ChatActionEnum } from "@/gql/graphql";
+import { router } from "expo-router";
 export type ChatActionProps = {
   onAbortPurchase: () => void;
   onReport: () => void;
@@ -49,6 +50,10 @@ export const SystemMessage = ({ text, onAbortPurchase, onReport }: Props) => {
       case ChatActionEnum.Aboutpayout:
         return () => {
           /**TODO */
+        };
+      case ChatActionEnum.Onboardpayout:
+        return () => {
+          router.navigate("/account/settings/payout");
         };
     }
   };

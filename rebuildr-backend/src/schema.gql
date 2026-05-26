@@ -992,6 +992,7 @@ input CmsPreviewSystemMessageInput {
   firstSale: Boolean
   provider: ShippingProviderEnum
   decision: String
+  showAddPayoutText: Boolean
 }
 
 enum SystemMessageStepEnum {
@@ -1017,6 +1018,7 @@ enum SystemMessageRoleEnum {
 enum ChatActionEnum {
   ABORT
   REPORT
+  ONBOARDPAYOUT
   ABOUTREVIEW
   ABOUTPAYOUT
   ABOUTABORT

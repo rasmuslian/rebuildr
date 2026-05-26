@@ -37,6 +37,7 @@ export interface CmsPreviewSystemMessageOptions {
   firstSale?: boolean;
   provider?: ShippingProviderEnum;
   decision?: string;
+  showAddPayoutText?: boolean;
 }
 
 const transportationWording: {
@@ -66,6 +67,7 @@ const tradeWording = {
 export enum ChatActionEnum {
   ABORT = 'ABORT',
   REPORT = 'REPORT',
+  ONBOARDPAYOUT = 'ONBOARDPAYOUT',
   ABOUTREVIEW = 'ABOUTREVIEW',
   ABOUTPAYOUT = 'ABOUTPAYOUT',
   ABOUTABORT = 'ABOUTABORT',
@@ -150,16 +152,25 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
     transportWord: string,
     paymentDate: Date,
     isFree: boolean,
+    showAddPayoutText: boolean,
   ): string {
     return isFree
       ? `# Du har sålt varan för 0kr! Svara köparen i chatten och bestäm tid och plats för ${transportWord}.
 
 
-# Du behöver svara inom 24h - [](<date::D MMMM kl. HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts affären automatiskt.`
+# Du behöver svara inom 24h - [](<date::D MMMM HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts affären automatiskt.`
       : `# Du har sålt en vara! Svara köparen i chatten och bestäm tid och plats för ${transportWord}.
 
 
-# Du behöver svara inom 24h - [](<date::D MMMM kl. HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.`;
+# Du behöver svara inom 24h - [](<date::D MMMM HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.
+
+${
+  showAddPayoutText
+    ? `# Aktivera utbetalningar.
+${this.formatLink('Registrera ditt konto hos Stripe', ChatActionEnum.ONBOARDPAYOUT)} så ligger pengarna redo när köparen godkänt varan.`
+    : ''
+}
+`;
   }
 
   private buildSellerRespondedBuyerMessage(
@@ -239,11 +250,20 @@ _Stämmer inte varan med annonsen? ${this.formatLink('Rapportera problem med kö
   private buildPurchaseWithShippingSellerMessage(
     paymentDate: Date,
     provider: ShippingProviderEnum,
+    showAddPayoutText: boolean,
   ): string {
     return `# Du har sålt en vara! Lämna in paketet senast den [](<date::D MMMM::${dayjs(paymentDate).add(7, 'day').toDate()}>).
 
 
-# Visa din QR-kod hos valfritt ${provider === ShippingProviderEnum.DHL ? 'DHL' : 'PostNord'}-ombud. Ombudet skriver ut fraktsedeln åt dig, så du behöver inte förbereda något hemma.
+# Visa din QR-kod hos valfritt ${provider === ShippingProviderEnum.DHL ? 'DHL' : 'Postnord'}-ombud. Ombudet skriver ut fraktsedeln åt dig, så du behöver inte förbereda något hemma.
+
+${
+  showAddPayoutText
+    ? `# Aktivera utbetalningar.
+${this.formatLink('Registrera ditt konto hos Stripe', ChatActionEnum.ONBOARDPAYOUT)} så ligger pengarna redo när köparen godkänt varan.`
+    : ''
+}
+
 
 _Du kan ${this.formatLink('avbryta innan paketet skickas', ChatActionEnum.ABORT)}._`;
   }
@@ -258,7 +278,7 @@ _Du kan ${this.formatLink('avbryta innan paketet skickas', ChatActionEnum.ABORT)
 # Hämta ut det hos ombud senast [](<date::D MMMM::${dayjs(shipmentDeliveredAt).add(7, 'days').toDate()}>).
 
 
-# Du får en kod från ${provider === ShippingProviderEnum.DHL ? 'DHL' : 'PostNord'} via sms eller mejl.`;
+# Du får en kod från ${provider === ShippingProviderEnum.DHL ? 'DHL' : 'Postnord'} via sms eller mejl.`;
   }
 
   private buildShipmentDroppedOffSellerMessage(): string {
@@ -311,6 +331,7 @@ _${this.formatLink('Om omdömen på Rebuildr', ChatActionEnum.ABOUTREVIEW)}_`;
   private buildPurchaseSuccessSellerMessage(
     isFree: boolean,
     firstSale: boolean,
+    showAddPayoutText: boolean,
   ): string {
     return isFree
       ? `# Överlämningen är nu bekräftad och allting är klart!
@@ -318,6 +339,12 @@ _${this.formatLink('Om omdömen på Rebuildr', ChatActionEnum.ABOUTREVIEW)}_`;
 
 # Nu kan du passa på att lämna ett omdöme om köparen.`
       : `# Köparen har godkänt varan!
+${
+  showAddPayoutText
+    ? `# Aktivera utbetalningar för att få pengarna.
+Vi håller pengarna säkert hos Stripe tills du ${this.formatLink('registrerat ditt utbetalningskonto', ChatActionEnum.ONBOARDPAYOUT)}.`
+    : ''
+}
 
 
 # ${firstSale ? 'Eftersom det här är din första försäljning kan det ta upp till 7 vardagar innan pengarna finns på plats. Därefter tar det normalt 1-3 bankdagar.' : 'Pengarna beräknas nå dig inom 1-3 bankdagar.'}
@@ -437,6 +464,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     product: Product,
     purchase: Purchase,
     isFree = false,
+    showAddPayoutText: boolean,
   ) {
     await this.message({
       productId: product.id,
@@ -447,6 +475,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
         transportationWording[purchase.transportationMethod].form1,
         purchase.paymentAcceptedAt,
         isFree,
+        showAddPayoutText,
       ),
     });
   }
@@ -548,6 +577,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     product: Product,
     purchase: Purchase,
     provider: ShippingProviderEnum,
+    showAddPayoutText: boolean,
   ) {
     await this.message({
       productId: product.id,
@@ -557,6 +587,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
       message: this.buildPurchaseWithShippingSellerMessage(
         purchase.paymentAcceptedAt,
         provider,
+        showAddPayoutText,
       ),
     });
   }
@@ -661,13 +692,18 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
     purchase: Purchase,
     isFree = false,
     firstSale = false,
+    showAddPayoutText: boolean,
   ) {
     await this.message({
       productId: product.id,
       purchaseId: purchase.id,
       buyerId: buyer.id,
       receiverId: seller.id,
-      message: this.buildPurchaseSuccessSellerMessage(isFree, firstSale),
+      message: this.buildPurchaseSuccessSellerMessage(
+        isFree,
+        firstSale,
+        showAddPayoutText,
+      ),
     });
   }
 
@@ -838,6 +874,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
       firstSale = false,
       provider = ShippingProviderEnum.DHL,
       decision = '[beslut]',
+      showAddPayoutText = false,
     } = options;
 
     const now = new Date();
@@ -855,7 +892,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
                 'Säljaren',
                 now,
               )
-            : this.buildPurchaseWithShippingSellerMessage(now, provider);
+            : this.buildPurchaseWithShippingSellerMessage(
+                now,
+                provider,
+                showAddPayoutText,
+              );
       } else {
         message =
           role === SystemMessageRoleEnum.BUYER
@@ -869,6 +910,7 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
                 transportWord,
                 now,
                 isFree,
+                showAddPayoutText,
               );
       }
     } else if (step === SystemMessageStepEnum.SELLER_RESPONDED) {
@@ -897,7 +939,11 @@ _Vill du lämna ett omdöme redan nu? Du kan recensera din upplevelse, även om 
       message =
         role === SystemMessageRoleEnum.BUYER
           ? this.buildPurchaseSuccessBuyerMessage(isFree)
-          : this.buildPurchaseSuccessSellerMessage(isFree, firstSale);
+          : this.buildPurchaseSuccessSellerMessage(
+              isFree,
+              firstSale,
+              showAddPayoutText,
+            );
     } else if (step === SystemMessageStepEnum.PURCHASE_REPORTED) {
       message =
         role === SystemMessageRoleEnum.BUYER

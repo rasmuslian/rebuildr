@@ -419,6 +419,7 @@ export class PurchaseService {
             purchase.product,
             purchase,
             true,
+            false,
           ),
         );
     }
@@ -639,6 +640,8 @@ export class PurchaseService {
         purchase.product,
         purchase,
         true,
+        false,
+        false,
       );
       purchase.approvedAt = new Date();
       purchase.payoutStartedAt = new Date();
@@ -920,6 +923,12 @@ export class PurchaseService {
           },
         },
       });
+      let canReceivePayout = false;
+      if (purchase.product.seller.connectedAccountId) {
+        canReceivePayout = await this.stripeService.accountCanReceivePayout(
+          purchase.product.seller.connectedAccountId,
+        );
+      }
       await this.systemMessagesService.purchaseSuccessBuyer(
         buyer,
         product,
@@ -930,7 +939,9 @@ export class PurchaseService {
         seller,
         product,
         purchase,
+        false,
         nrOfCompletedSales > 0,
+        !canReceivePayout,
       );
     }
     purchase.approvedAt = new Date();
@@ -1467,6 +1478,13 @@ export class PurchaseService {
       },
     );
 
+    let canReceivePayout = false;
+    if (purchase.product.seller.connectedAccountId) {
+      canReceivePayout = await this.stripeService.accountCanReceivePayout(
+        purchase.product.seller.connectedAccountId,
+      );
+    }
+
     if (updateResult.affected > 0) {
       purchase.paymentAcceptedAt = paymentAcceptedAt;
       //System messages
@@ -1485,6 +1503,7 @@ export class PurchaseService {
               purchase.product,
               purchase,
               purchase.shippingPrice?.provider,
+              !canReceivePayout,
             ),
           )
           .catch((err) =>
@@ -1504,6 +1523,8 @@ export class PurchaseService {
               purchase.product.seller,
               purchase.product,
               purchase,
+              false,
+              !canReceivePayout,
             ),
           )
           .catch((err) =>
