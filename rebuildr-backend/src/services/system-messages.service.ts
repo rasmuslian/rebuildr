@@ -158,11 +158,11 @@ _Om säljaren inte svarar inom 24 timmar får du automatiskt pengarna tillbaka._
       ? `# Du har sålt varan för 0kr! Svara köparen i chatten och bestäm tid och plats för ${transportWord}.
 
 
-# Du behöver svara inom 24h - [](<date::D MMMM HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts affären automatiskt.`
+# Du behöver svara inom 24h - [](<date::D MMMM kl. HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts affären automatiskt.`
       : `# Du har sålt en vara! Svara köparen i chatten och bestäm tid och plats för ${transportWord}.
 
 
-# Du behöver svara inom 24h - [](<date::D MMMM HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.
+# Du behöver svara inom 24h - [](<date::D MMMM kl. HH:mm::${dayjs(paymentDate).add(1, 'day').toDate()}>), annars avbryts köpet automatiskt och köparen får tillbaka sina pengar.
 
 ${
   showAddPayoutText
