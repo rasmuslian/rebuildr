@@ -168,7 +168,6 @@ export class Purchase {
   @Column({ nullable: true })
   payoutBankName?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   payoutBankLast4?: string;
 

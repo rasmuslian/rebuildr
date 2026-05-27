@@ -316,16 +316,6 @@ export class PurchaseResolver {
     );
   }
 
-  @Mutation(() => Int)
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles([UserRoleEnum.ADMIN])
-  async cmsBackfillPayoutBankDetails(
-    @RequestId() requestId: string,
-  ): Promise<number> {
-    const childLogger = this.logger.child({ requestId });
-    return this.purchaseService.cmsBackfillPayoutBankDetails(childLogger);
-  }
-
   @ResolveField(() => Boolean)
   async isShipping(@Parent() purchase: Purchase) {
     return this.purchaseService.isShipping(purchase);

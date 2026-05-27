@@ -1855,52 +1855,5 @@ export class PurchaseService {
     return this.purchaseRepository.save(purchase);
   }
 
-  async cmsBackfillPayoutBankDetails(logger: Logger) {
-    const purchases = await this.purchaseRepository.find({
-      where: { payoutId: Not(IsNull()), payoutBankAccountId: IsNull() },
-      relations: { product: { seller: true } },
-    });
-
-    let updated = 0;
-    await Promise.all(
-      purchases.map(async (purchase) => {
-        const connectedAccountId = purchase.product?.seller?.connectedAccountId;
-        if (!connectedAccountId) return;
-        try {
-          const details = await this.stripeService.getPayoutBankDetails(
-            purchase.payoutId,
-            connectedAccountId,
-          );
-          if (details) {
-            await this.purchaseRepository.update(
-              { id: purchase.id },
-              {
-                payoutBankAccountId: details.bankAccountId,
-                payoutBankName: details.bankName,
-                payoutBankLast4: details.bankLast4,
-              },
-            );
-            updated++;
-          }
-        } catch (e) {
-          logger.warn(
-            'cmsBackfillPayoutBankDetails: could not backfill purchase',
-            {
-              purchaseId: purchase.id,
-              payoutId: purchase.payoutId,
-              error: e,
-            },
-          );
-        }
-      }),
-    );
-
-    logger.info('cmsBackfillPayoutBankDetails completed', {
-      total: purchases.length,
-      updated,
-    });
-    return updated;
-  }
-
   //------------------------------------------------------------
 }
