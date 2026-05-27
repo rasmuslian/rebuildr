@@ -3,10 +3,8 @@ import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Stack } from "expo-router";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { ComingSoon } from "@components/coming-soon/coming-soon";
 import { LoginModalContext } from "@context/loginModalContext";
 import { use } from "react";
-import { shouldShowComingSoon } from "@/utils/coming-soon";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -25,12 +23,6 @@ export default function AppLayout() {
       isLoggedIn: isLoggedInVar(),
     },
   });
-
-  const showComingSoon = shouldShowComingSoon();
-
-  if (showComingSoon) {
-    return <ComingSoon />;
-  }
 
   if (data?.me?.registrationStatus === RegisterStatusEnum.Details) {
     setVisible(true);

@@ -33,7 +33,6 @@ import { BuyModal } from "@components/buy/buy-modal";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
-import { shouldShowComingSoon } from "@/utils/coming-soon";
 import { EditProduct } from "@components/product/edit-product";
 import { SellProduct } from "@components/sell-product/sell-product";
 import { CookieConsent } from "@components/cookies/cookie-consent";
@@ -88,52 +87,44 @@ const RootLayout = () => {
     return null;
   }
 
-  const showComingSoon = shouldShowComingSoon();
-
   return (
     <ApolloProvider client={client}>
-      {showComingSoon ? (
-        <ScreenDimensionsProvider>
-          <Slot />
-        </ScreenDimensionsProvider>
-      ) : (
-        <LoginModalContext.Provider
-          value={{
-            visible: showLoginModal,
-            setVisible: setShowLoginModal,
-          }}
-        >
-          <LocationProvider>
-            <SellProductProvider>
-              <EditProductProdiver>
-                <GestureHandlerRootView>
-                  <PortalProvider>
-                    <BuyModalProvider>
-                      <BottomSheetModalProvider>
-                        <ScreenDimensionsProvider>
-                          <SearchProvider>
-                            <ReRouteHandler>
-                              <Slot />
-                              <CookieConsent />
-                              <HamburgerMenu />
-                              <LoginModalView />
-                              <SellProduct />
-                              <EditProduct />
-                              <SearchDropdown />
-                              <BuyModal />
-                              <PortalHost name="OverlayProvider" />
-                            </ReRouteHandler>
-                          </SearchProvider>
-                        </ScreenDimensionsProvider>
-                      </BottomSheetModalProvider>
-                    </BuyModalProvider>
-                  </PortalProvider>
-                </GestureHandlerRootView>
-              </EditProductProdiver>
-            </SellProductProvider>
-          </LocationProvider>
-        </LoginModalContext.Provider>
-      )}
+      <LoginModalContext.Provider
+        value={{
+          visible: showLoginModal,
+          setVisible: setShowLoginModal,
+        }}
+      >
+        <LocationProvider>
+          <SellProductProvider>
+            <EditProductProdiver>
+              <GestureHandlerRootView>
+                <PortalProvider>
+                  <BuyModalProvider>
+                    <BottomSheetModalProvider>
+                      <ScreenDimensionsProvider>
+                        <SearchProvider>
+                          <ReRouteHandler>
+                            <Slot />
+                            <CookieConsent />
+                            <HamburgerMenu />
+                            <LoginModalView />
+                            <SellProduct />
+                            <EditProduct />
+                            <SearchDropdown />
+                            <BuyModal />
+                            <PortalHost name="OverlayProvider" />
+                          </ReRouteHandler>
+                        </SearchProvider>
+                      </ScreenDimensionsProvider>
+                    </BottomSheetModalProvider>
+                  </BuyModalProvider>
+                </PortalProvider>
+              </GestureHandlerRootView>
+            </EditProductProdiver>
+          </SellProductProvider>
+        </LocationProvider>
+      </LoginModalContext.Provider>
     </ApolloProvider>
   );
 };
