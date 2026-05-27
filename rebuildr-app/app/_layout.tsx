@@ -31,7 +31,6 @@ import * as Sentry from "@sentry/react-native";
 import { BuyModalProvider } from "@context/buy-modal-context";
 import { BuyModal } from "@components/buy/buy-modal";
 import { ReRouteHandler } from "@components/re-route-handler/re-route-handler";
-import { PwaInstallPrompt } from "@components/pwa/pwa-install-prompt";
 import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { LocationProvider } from "@context/location-context";
 import { shouldShowComingSoon } from "@/utils/coming-soon";
@@ -122,7 +121,6 @@ const RootLayout = () => {
                               <EditProduct />
                               <SearchDropdown />
                               <BuyModal />
-                              <PwaInstallPrompt />
                               <PortalHost name="OverlayProvider" />
                             </ReRouteHandler>
                           </SearchProvider>
