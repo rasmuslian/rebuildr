@@ -23,7 +23,6 @@ export const SellProduct = () => {
   useEffect(() => {
     if (visible) {
       getOrCreateDraft();
-      return;
     }
   }, [visible]);
 

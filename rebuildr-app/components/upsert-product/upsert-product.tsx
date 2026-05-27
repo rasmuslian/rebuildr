@@ -913,7 +913,7 @@ export const UpsertProduct = ({
           <View>{header}</View>
           <View>
             {isInitializing ? (
-              <LoadingSpinner style={{ minHeight: 300 }} />
+              <LoadingSpinner style={{ marginTop: 24 }} />
             ) : (
               viewChildren()
             )}
@@ -951,7 +951,7 @@ export const UpsertProduct = ({
     >
       <View style={{ marginBottom: 32 }}>
         {isInitializing ? (
-          <LoadingSpinner style={{ minHeight: 300 }} />
+          <LoadingSpinner style={{ marginTop: 24 }} />
         ) : (
           viewChildren()
         )}
