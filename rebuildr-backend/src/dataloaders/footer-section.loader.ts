@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import DataLoader from 'dataloader';
 import { DataSource, In } from 'typeorm';
 
+import { Article } from 'src/entities/article.entity';
 import { FooterSectionEntry } from 'src/entities/footer-section-entry.entity';
 
 export interface IFooterSectionLoaders {
+  articleLoader: DataLoader<string, Article | null>;
   entriesLoader: DataLoader<string, FooterSectionEntry[]>;
 }
 
@@ -29,8 +31,21 @@ export class FooterSectionLoader {
     );
   }
 
+  private articleLoader() {
+    return new DataLoader<string, Article | null>(async (articleIds) => {
+      const articles = await this.dataSource.getRepository(Article).find({
+        where: { id: In(articleIds) },
+      });
+
+      return articleIds.map(
+        (id) => articles.find((article) => article.id === id) ?? null,
+      );
+    });
+  }
+
   createLoaders(): IFooterSectionLoaders {
     return {
+      articleLoader: this.articleLoader(),
       entriesLoader: this.entriesLoader(),
     };
   }
