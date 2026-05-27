@@ -2,7 +2,7 @@ import { SellProductQueryQuery } from "@/gql/graphql";
 import { gql, useLazyQuery } from "@apollo/client";
 import { useSellProductContext } from "@context/sell-product-context";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const SELL_PRODUCT_QUERY = gql`
   query SellProductQuery {
@@ -23,18 +23,16 @@ export const SellProduct = () => {
   useEffect(() => {
     if (visible) {
       getOrCreateDraft();
+      return;
     }
   }, [visible]);
 
-  if (!data || loading) {
-    return null;
-  }
-
   return (
     <UpsertProduct
-      productId={data.getOrCreateDraftProduct.id}
+      productId={data?.getOrCreateDraftProduct?.id}
       mode="create"
       visible={visible}
+      loading={!data?.getOrCreateDraftProduct?.id || loading}
       onHide={() => {
         setVisible(false);
       }}

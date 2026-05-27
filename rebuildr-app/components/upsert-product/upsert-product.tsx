@@ -26,6 +26,7 @@ import { HandleDraft } from "@components/sell-product/handle-draft";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { Button } from "@components/buttons/button";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import * as Sentry from "@sentry/react-native";
 import { Body } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
@@ -164,9 +165,10 @@ const detailsErrorFields = [
 const transportaionErrorFields = ["delivery"];
 
 type Props = {
-  productId: string;
+  productId?: string;
   mode: "create" | "edit";
   visible: boolean;
+  loading?: boolean;
   onHide: () => void;
   onPublished: () => void;
 };
@@ -175,6 +177,7 @@ export const UpsertProduct = ({
   productId,
   mode,
   visible,
+  loading,
   onHide,
   onPublished,
 }: Props) => {
@@ -197,10 +200,17 @@ export const UpsertProduct = ({
     number | undefined
   >(undefined);
 
-  const { data, refetch } = useQuery<
-    UpsertProductQuery,
-    UpsertProductQueryVariables
-  >(UPSERT_PRODUCT, { variables: { input: { id: productId } } });
+  const {
+    data,
+    loading: productLoading,
+    refetch,
+  } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
+    UPSERT_PRODUCT,
+    {
+      variables: { input: { id: productId ?? "" } },
+      skip: !productId,
+    },
+  );
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -218,6 +228,12 @@ export const UpsertProduct = ({
   });
   const [createSellerAccount, { loading: createSellerAccountLoading }] =
     useMutation<CreateSellerAccountMutation>(CREATE_SELLER_ACCOUNT);
+
+  useEffect(() => {
+    if (visible) {
+      setInitialized(false);
+    }
+  }, [productId]);
 
   useEffect(() => {
     const productToState = async (
@@ -304,7 +320,7 @@ export const UpsertProduct = ({
       setProduct(stateProduct);
       setInitialized(true);
     };
-    if (data) {
+    if (data?.product) {
       //convert to productState
       productToState(data.product);
     }
@@ -501,7 +517,7 @@ export const UpsertProduct = ({
   };
 
   const onAnalyzeImages = async () => {
-    if (!data) return;
+    if (!data || !productId) return;
     //save first so that all images are available on the backend
     const saved = await update();
     if (!saved) return;
@@ -566,6 +582,7 @@ export const UpsertProduct = ({
     }
     //Check if we should prompt draft saving sheet
     if (!data) {
+      onClose();
       return;
     }
     const dbProduct = data.product;
@@ -755,6 +772,7 @@ export const UpsertProduct = ({
   const reset = () => {
     setShowHandleDraft(false);
     setProduct(initialProduct);
+    setInitialized(false);
     setStep("details");
   };
   const onClose = () => {
@@ -767,9 +785,11 @@ export const UpsertProduct = ({
   };
 
   const showFooter = step === "preview";
+  const updateDraftLoading = updatingProduct || uploadingMedia;
+  const isInitializing = loading || productLoading || !data || !initialized;
 
   const renderFooter = () => {
-    if (showFooter) {
+    if (showFooter && !isInitializing) {
       return (
         <View
           style={{
@@ -807,12 +827,6 @@ export const UpsertProduct = ({
     return undefined;
   };
 
-  if (!data || !initialized) {
-    return null;
-  }
-
-  const updateDraftLoading = updatingProduct || uploadingMedia;
-
   const header = (
     <ProgressHeader
       prog1={progressDetails()}
@@ -834,6 +848,10 @@ export const UpsertProduct = ({
   );
 
   const viewChildren = () => {
+    if (!data) {
+      return null;
+    }
+
     switch (step) {
       case "details":
         return (
@@ -893,20 +911,28 @@ export const UpsertProduct = ({
       <>
         <SlideInSheet open={visible} bottomMargin={0} onClose={onDismissSheet}>
           <View>{header}</View>
-          <View>{viewChildren()}</View>
-          {showFooter && (
+          <View>
+            {isInitializing ? (
+              <LoadingSpinner style={{ minHeight: 300 }} />
+            ) : (
+              viewChildren()
+            )}
+          </View>
+          {showFooter && !isInitializing && (
             <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
           )}
         </SlideInSheet>
-        <HandleDraft
-          show={showHandleDraft}
-          onDismiss={() => setShowHandleDraft(false)}
-          dbDraft={data.product}
-          product={product}
-          onSaveDraft={() => onSave(false)}
-          saveLoading={updateDraftLoading}
-          onProductDeleted={onProductDeleted}
-        />
+        {data && (
+          <HandleDraft
+            show={showHandleDraft}
+            onDismiss={() => setShowHandleDraft(false)}
+            dbDraft={data.product}
+            product={product}
+            onSaveDraft={() => onSave(false)}
+            saveLoading={updateDraftLoading}
+            onProductDeleted={onProductDeleted}
+          />
+        )}
       </>
     );
   }
@@ -920,19 +946,27 @@ export const UpsertProduct = ({
       open={visible}
       onDismiss={onDismissSheet}
       header={header}
-      footer={renderFooter()}
+      footer={isInitializing ? undefined : renderFooter()}
       isStickyFooter
     >
-      <View style={{ marginBottom: 32 }}>{viewChildren()}</View>
-      <HandleDraft
-        show={showHandleDraft}
-        onDismiss={() => setShowHandleDraft(false)}
-        dbDraft={data.product}
-        product={product}
-        onSaveDraft={() => onSave(false)}
-        saveLoading={updateDraftLoading}
-        onProductDeleted={onProductDeleted}
-      />
+      <View style={{ marginBottom: 32 }}>
+        {isInitializing ? (
+          <LoadingSpinner style={{ minHeight: 300 }} />
+        ) : (
+          viewChildren()
+        )}
+      </View>
+      {data && (
+        <HandleDraft
+          show={showHandleDraft}
+          onDismiss={() => setShowHandleDraft(false)}
+          dbDraft={data.product}
+          product={product}
+          onSaveDraft={() => onSave(false)}
+          saveLoading={updateDraftLoading}
+          onProductDeleted={onProductDeleted}
+        />
+      )}
     </BottomSheet>
   );
 };
