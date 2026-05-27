@@ -14,7 +14,20 @@ import { addCountryCode, isValidPhonenumber } from 'src/utility/phone-number';
 import * as Sentry from '@sentry/nestjs';
 import { SCBAPI } from 'src/apis/scb.api';
 import { IFetchBusinessResponse } from 'src/apis/types/scb/types';
+import { SellerAccount } from 'src/resolvers/user.resolver';
+import { registerEnumType } from '@nestjs/graphql';
 
+const paymentCapabilities: (keyof Stripe.AccountCreateParams.Capabilities)[] = [
+  'card_payments',
+];
+
+export enum SellerAccountCapabilityEnum {
+  PAYMENT = 'PAYMENT',
+  FULL = 'FULL',
+}
+registerEnumType(SellerAccountCapabilityEnum, {
+  name: 'SellerAccountCapabilityEnum',
+});
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
@@ -37,7 +50,7 @@ export class StripeService {
     });
   }
 
-  async onboardAccount(user: User) {
+  async onboardAccount(user: User, capability: SellerAccountCapabilityEnum) {
     let connectedUser = user;
     if (!connectedUser.connectedAccountId) {
       const connectedAccountId =
@@ -49,25 +62,75 @@ export class StripeService {
     const accountSession = await this.stripe.accountSessions.create({
       account: connectedUser.connectedAccountId,
       components: {
-        account_onboarding: { enabled: true },
+        account_onboarding: {
+          enabled: true,
+          features:
+            capability === SellerAccountCapabilityEnum.PAYMENT
+              ? {
+                  external_account_collection: false,
+                  disable_stripe_user_authentication: true,
+                }
+              : undefined,
+        },
       },
     });
 
-    const account = await this.retrieveAccount(
-      connectedUser.connectedAccountId,
-    );
+    let fields: string[] = [];
+    //If we are only interested in being able to receive payment
+    //Then the required fields becomes the required fields of the payment capabilities.
+    if (capability === SellerAccountCapabilityEnum.PAYMENT) {
+      const capabilityRequirements = await Promise.all(
+        paymentCapabilities.map((cap) =>
+          this.stripe.accounts.retrieveCapability(
+            connectedUser.connectedAccountId,
+            cap,
+          ),
+        ),
+      );
+
+      const paymentFields = [
+        ...new Set(
+          capabilityRequirements.flatMap((cap) => [
+            ...cap.requirements.currently_due,
+            ...cap.requirements.eventually_due,
+            ...cap.requirements.past_due,
+          ]),
+        ),
+      ];
+      fields = [...paymentFields];
+    }
+    //If FULL then all requirements on the account are required
+    if (capability === SellerAccountCapabilityEnum.FULL) {
+      const account = await this.retrieveAccount(
+        connectedUser.connectedAccountId,
+      );
+      fields = [
+        ...account.requirements.currently_due,
+        ...account.requirements.eventually_due,
+        ...account.requirements.past_due,
+      ];
+    }
 
     return {
       clientSecret: accountSession.client_secret,
       user: connectedUser,
-      fields: [
-        ...account.requirements.currently_due,
-        ...account.requirements.eventually_due,
-        ...account.requirements.past_due,
-      ],
+      fields,
     };
   }
 
+  async createSellerAccount(user: User) {
+    if (!user.connectedAccountId) {
+      if (user.type === UserType.BUSINESS) {
+        user.connectedAccountId =
+          await this.createConnectedAccountOrganization(user);
+      }
+      if (user.type === UserType.PERSONAL) {
+        user.connectedAccountId =
+          await this.createConnectedAccountIndividual(user);
+      }
+    }
+    return await this.getSellerAccount(user);
+  }
   async createConnectedAccount(user: User) {
     if (user.type === UserType.BUSINESS) {
       return await this.createConnectedAccountOrganization(user);
@@ -131,7 +194,6 @@ export class StripeService {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-
         country: 'SE',
       });
       return account.id;
@@ -159,7 +221,7 @@ export class StripeService {
     }
 
     //Prefill data
-    let scbData: IFetchBusinessResponse[number];
+    let scbData: IFetchBusinessResponse[number] | undefined;
     try {
       const businessData = await this.scbAPI.fetchBusiness(
         organizationUser.organizationNumber,
@@ -182,20 +244,20 @@ export class StripeService {
         business_type: 'company',
         company: {
           structure: 'private_corporation',
-          name: scbData.Företagsnamn ?? organizationUser.username,
+          name: scbData?.Företagsnamn ?? organizationUser.username,
           address: {
-            line1: scbData.PostAdress ?? organizationUser.address,
-            postal_code: scbData.PostNr ?? organizationUser.postCode,
-            city: scbData.PostOrt ?? organizationUser.city,
+            line1: scbData?.PostAdress ?? organizationUser.address,
+            postal_code: scbData?.PostNr ?? organizationUser.postCode,
+            city: scbData?.PostOrt ?? organizationUser.city,
             country: 'SE',
           },
           phone: validPhoneNumber
-            ? addCountryCode(scbData.Telefon ?? organizationUser.phoneNumber)
+            ? addCountryCode(scbData?.Telefon ?? organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
         },
         business_profile: {
-          name: scbData.Företagsnamn ?? organizationUser.username,
+          name: scbData?.Företagsnamn ?? organizationUser.username,
         },
         email: owner.email,
         controller: {
@@ -242,6 +304,58 @@ export class StripeService {
     );
   }
 
+  async getSellerAccount(user: User): Promise<SellerAccount | null> {
+    if (!user.connectedAccountId) {
+      return null;
+    }
+    const account = await this.retrieveAccount(user.connectedAccountId);
+    const { requirements } = account;
+    const missingRequirements =
+      !!requirements.currently_due.length ||
+      !!requirements.eventually_due.length ||
+      !!requirements.past_due.length;
+
+    if (!missingRequirements && requirements.disabled_reason) {
+      this.logger.info('Stripe acccount is disabled with no requirements', {
+        accountId: account.id,
+        accountName:
+          account.individual?.first_name + account.individual?.last_name,
+        requirements,
+      });
+    }
+    if (
+      !missingRequirements &&
+      account.charges_enabled &&
+      account.payouts_enabled &&
+      account.details_submitted
+    ) {
+      return {
+        id: account.id,
+        canReceivePayout: true,
+        canReceivePayment: true,
+      };
+    }
+    if (account.charges_enabled) {
+      return {
+        id: account.id,
+        canReceivePayout: false,
+        canReceivePayment: true,
+      };
+    }
+    return {
+      id: account.id,
+      canReceivePayment: false,
+      canReceivePayout: false,
+    };
+  }
+  async accountCanReceivePayment(connectedAccountId: string) {
+    const account = await this.retrieveAccount(connectedAccountId);
+    return account.charges_enabled;
+  }
+  async accountCanReceivePayout(connectedAccountId: string) {
+    const account = await this.retrieveAccount(connectedAccountId);
+    return account.payouts_enabled;
+  }
   async accountIsEnabled(connectedAccountId: string) {
     const account = await this.retrieveAccount(connectedAccountId);
     const { requirements } = account;
@@ -461,28 +575,6 @@ export class StripeService {
       });
       throw new Error('Payout failed');
     }
-  }
-
-  async getPayoutBankDetails(payoutId: string, connectedAccountId: string) {
-    const payout = await this.stripe.payouts.retrieve(
-      payoutId,
-      { expand: ['destination'] },
-      { stripeAccount: connectedAccountId },
-    );
-    const destination = payout.destination;
-    if (
-      destination &&
-      typeof destination === 'object' &&
-      destination.object === 'bank_account' &&
-      !('deleted' in destination)
-    ) {
-      return {
-        bankAccountId: destination.id,
-        bankName: destination.bank_name,
-        bankLast4: destination.last4,
-      };
-    }
-    return null;
   }
 
   async deleteAccount(user: User) {

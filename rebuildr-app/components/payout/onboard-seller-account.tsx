@@ -6,8 +6,7 @@ import {
 } from "@stripe/react-connect-js";
 import { gql, useLazyQuery } from "@apollo/client";
 import {
-  PayoutCheckSellerAccountQuery,
-  PayoutCheckSellerAccountQueryVariables,
+  OnboardSellerGetAccountQuery,
   SellerAccountCapabilityEnum,
 } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
@@ -16,11 +15,13 @@ import { useState } from "react";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body } from "@components/typography/text";
 
-const PAYOUT_CHECK_SELLER_ACCOUNT = gql`
-  query PayoutCheckSellerAccount {
+const ONBOARD_SELLER_GET_ACCOUNT = gql`
+  query OnboardSellerGetAccount {
     me {
       id
-      sellerAccountIsEnabled
+      sellerAccount {
+        canReceivePayment
+      }
     }
   }
 `;
@@ -30,16 +31,15 @@ type Props = {
   onAbort: () => void;
 };
 
-export default function PayoutStripe({ onExit, onAbort }: Props) {
+export default function OnboardSellerAccount({ onExit, onAbort }: Props) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { stripeConnectInstance, createConnectInstance, fields } =
-    useStripeConnect(SellerAccountCapabilityEnum.Full);
+    useStripeConnect(SellerAccountCapabilityEnum.Payment);
 
-  const [checkSellerAccount] = useLazyQuery<
-    PayoutCheckSellerAccountQuery,
-    PayoutCheckSellerAccountQueryVariables
-  >(PAYOUT_CHECK_SELLER_ACCOUNT);
+  const [checkSellerAccount] = useLazyQuery<OnboardSellerGetAccountQuery>(
+    ONBOARD_SELLER_GET_ACCOUNT,
+  );
 
   const onLoaderStart = () => {
     setLoading(false);
@@ -53,7 +53,7 @@ export default function PayoutStripe({ onExit, onAbort }: Props) {
     const { data } = await checkSellerAccount({
       fetchPolicy: "network-only",
     });
-    if (data?.me.sellerAccountIsEnabled) {
+    if (data?.me.sellerAccount?.canReceivePayment) {
       onExit();
       return;
     }
@@ -83,9 +83,9 @@ export default function PayoutStripe({ onExit, onAbort }: Props) {
                 requirements: fields?.length
                   ? {
                       only: fields,
+                      exclude: ["summary"],
                     }
                   : undefined,
-                futureRequirements: "include",
               }}
               onLoaderStart={onLoaderStart}
               onExit={async () => {

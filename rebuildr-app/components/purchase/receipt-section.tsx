@@ -1,6 +1,10 @@
 import {
-  ReceiptSectionQuery,
-  ReceiptSectionQueryVariables,
+  ReceiptSectionBaseQuery,
+  ReceiptSectionBaseQueryVariables,
+  ReceiptSectionBuyerPaymentQuery,
+  ReceiptSectionBuyerPaymentQueryVariables,
+  ReceiptSectionSellerPaymentQuery,
+  ReceiptSectionSellerPaymentQueryVariables,
   TransportationEnum,
   UserType,
 } from "@/gql/graphql";
@@ -25,17 +29,14 @@ import { Platform, Pressable, View } from "react-native";
 
 export const RECEIPT_HOST_ID = "receipt-print-host";
 
-const RECEIPT_SECTION = gql`
-  query ReceiptSection($input: GetPurchaseInput!) {
+const RECEIPT_SECTION_BASE = gql`
+  query ReceiptSectionBase($input: GetPurchaseInput!) {
     purchase(input: $input) {
       id
       purchasedQuantity
       createdAt
       paymentAcceptedAt
-      paymentMethod
       transportationMethod
-      boughtForFree
-      payoutBankLast4
       shippingPrice {
         id
         price
@@ -72,6 +73,25 @@ const RECEIPT_SECTION = gql`
   }
 `;
 
+const RECEIPT_SECTION_BUYER_PAYMENT = gql`
+  query ReceiptSectionBuyerPayment($input: GetPurchaseInput!) {
+    purchase(input: $input) {
+      id
+      paymentMethod
+    }
+  }
+`;
+
+const RECEIPT_SECTION_SELLER_PAYMENT = gql`
+  query ReceiptSectionSellerPayment($input: GetPurchaseInput!) {
+    purchase(input: $input) {
+      id
+      boughtForFree
+      payoutBankLast4
+    }
+  }
+`;
+
 type Props = {
   purchaseId: string;
 };
@@ -79,18 +99,40 @@ type Props = {
 export const ReceiptSection = ({ purchaseId }: Props) => {
   const colors = useThemeColor();
   const { print } = usePrintReceipt();
-  const { data } = useQuery<ReceiptSectionQuery, ReceiptSectionQueryVariables>(
-    RECEIPT_SECTION,
-    {
-      variables: { input: { id: purchaseId } },
-    },
-  );
-  if (!data) {
-    return <LoadingSpinner />;
-  }
-  const purchase = data.purchase;
+
+  const variables = { input: { id: purchaseId } };
+
+  const { data: baseData } = useQuery<
+    ReceiptSectionBaseQuery,
+    ReceiptSectionBaseQueryVariables
+  >(RECEIPT_SECTION_BASE, { variables });
+
+  const buyerIsMe =
+    baseData != null && baseData.me.id === baseData.purchase.buyer.id;
+
+  const { data: buyerPaymentData } = useQuery<
+    ReceiptSectionBuyerPaymentQuery,
+    ReceiptSectionBuyerPaymentQueryVariables
+  >(RECEIPT_SECTION_BUYER_PAYMENT, {
+    variables,
+    skip: !baseData || !buyerIsMe,
+  });
+
+  const { data: sellerPaymentData } = useQuery<
+    ReceiptSectionSellerPaymentQuery,
+    ReceiptSectionSellerPaymentQueryVariables
+  >(RECEIPT_SECTION_SELLER_PAYMENT, {
+    variables,
+    skip: !baseData || buyerIsMe,
+  });
+
+  if (!baseData) return <LoadingSpinner />;
+  if (buyerIsMe && !buyerPaymentData) return <LoadingSpinner />;
+  if (!buyerIsMe && !sellerPaymentData) return <LoadingSpinner />;
+
+  const purchase = baseData.purchase;
   const product = purchase.product;
-  const me = data.me;
+  const me = baseData.me;
 
   const purchaseQuantityFactor = purchase.purchasedQuantity ?? 1;
 
@@ -109,7 +151,6 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
     (product.co2SavingSeller ?? 0) * purchaseQuantityFactor;
 
   const payedAt = purchase.paymentAcceptedAt ?? purchase.createdAt;
-  const buyerIsMe = me.id === purchase.buyer.id;
 
   return (
     <View nativeID={RECEIPT_HOST_ID}>
@@ -187,26 +228,30 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
         </View>
       </View>
       {/** Payment Summaries */}
-      {buyerIsMe && (
+      {buyerIsMe && buyerPaymentData && (
         <BuyerPaymentSummary
           quantityPrice={quantityPrice}
           totalPrice={totalPrice}
           purchase={purchase}
           product={product}
+          paymentMethod={buyerPaymentData.purchase.paymentMethod}
         />
       )}
-      {!buyerIsMe && me.type === UserType.Personal && (
+      {!buyerIsMe && me.type === UserType.Personal && sellerPaymentData && (
         <SellerPaymentSummary
           quantityPrice={quantityPrice}
           purchase={purchase}
           product={product}
+          boughtForFree={sellerPaymentData.purchase.boughtForFree}
+          payoutBankLast4={sellerPaymentData.purchase.payoutBankLast4}
         />
       )}
-      {!buyerIsMe && me.type === UserType.Business && (
+      {!buyerIsMe && me.type === UserType.Business && sellerPaymentData && (
         <BusinessPaymentSummary
           quantityPrice={quantityPrice}
           purchase={purchase}
           product={product}
+          payoutBankLast4={sellerPaymentData.purchase.payoutBankLast4}
         />
       )}
       {/** CO2 summaries */}
@@ -228,9 +273,10 @@ export const ReceiptSection = ({ purchaseId }: Props) => {
 
 type BuyerPaymentSummaryProps = {
   quantityPrice: number;
-  purchase: ReceiptSectionQuery["purchase"];
-  product: ReceiptSectionQuery["purchase"]["product"];
+  purchase: ReceiptSectionBaseQuery["purchase"];
+  product: ReceiptSectionBaseQuery["purchase"]["product"];
   totalPrice: number;
+  paymentMethod: ReceiptSectionBuyerPaymentQuery["purchase"]["paymentMethod"];
 };
 
 const BuyerPaymentSummary = ({
@@ -238,6 +284,7 @@ const BuyerPaymentSummary = ({
   purchase,
   product,
   totalPrice,
+  paymentMethod,
 }: BuyerPaymentSummaryProps) => {
   return (
     <View style={{ gap: 16, marginTop: 24 }}>
@@ -256,32 +303,33 @@ const BuyerPaymentSummary = ({
         <Row left="Hemtransport" right={`${product.deliveryPrice ?? 0} kr`} />
       )}
       <Row left="Totalt" right={`${totalPrice} kr`} isBold />
-      {purchase.paymentMethod && (
-        <Row
-          left="Betalsätt:"
-          right={paymentMethodStrings[purchase.paymentMethod]}
-        />
+      {paymentMethod && (
+        <Row left="Betalsätt:" right={paymentMethodStrings[paymentMethod]} />
       )}
     </View>
   );
 };
 type SellerPaymentSummaryProps = {
   quantityPrice: number;
-  purchase: ReceiptSectionQuery["purchase"];
-  product: ReceiptSectionQuery["purchase"]["product"];
+  purchase: ReceiptSectionBaseQuery["purchase"];
+  product: ReceiptSectionBaseQuery["purchase"]["product"];
+  boughtForFree: ReceiptSectionSellerPaymentQuery["purchase"]["boughtForFree"];
+  payoutBankLast4: ReceiptSectionSellerPaymentQuery["purchase"]["payoutBankLast4"];
 };
 
 const SellerPaymentSummary = ({
   quantityPrice,
   purchase,
   product,
+  boughtForFree,
+  payoutBankLast4,
 }: SellerPaymentSummaryProps) => {
   const provision = Math.round(quantityPrice * 0.1);
   const earnings = quantityPrice - provision + (product.deliveryPrice ?? 0);
   return (
     <View style={{ gap: 16, marginTop: 24 }}>
       <Row left="Ditt försäljningspris" right={`${quantityPrice} kr`} />
-      {!purchase.boughtForFree && (
+      {!boughtForFree && (
         <Row left="Provision till RebuildR (10%)" right={`-${provision} kr`} />
       )}
       {purchase.transportationMethod === TransportationEnum.Shipping &&
@@ -301,21 +349,27 @@ const SellerPaymentSummary = ({
       <Row left="Du får utbetalt" right={`${earnings} kr`} isBold />
       <Row
         left="Utbetalning till konto:"
-        right={`****${purchase.payoutBankLast4}`}
+        right={
+          purchase.paymentAcceptedAt
+            ? `****${payoutBankLast4}`
+            : "Konto ej valt"
+        }
       />
     </View>
   );
 };
 type BusinessPaymentSummaryProps = {
   quantityPrice: number;
-  purchase: ReceiptSectionQuery["purchase"];
-  product: ReceiptSectionQuery["purchase"]["product"];
+  purchase: ReceiptSectionBaseQuery["purchase"];
+  product: ReceiptSectionBaseQuery["purchase"]["product"];
+  payoutBankLast4: ReceiptSectionSellerPaymentQuery["purchase"]["payoutBankLast4"];
 };
 
 const BusinessPaymentSummary = ({
   quantityPrice,
   purchase,
   product,
+  payoutBankLast4,
 }: BusinessPaymentSummaryProps) => {
   const provision = Math.round(quantityPrice * 0.1);
   const earnings = quantityPrice - provision + (product.deliveryPrice ?? 0);
@@ -344,7 +398,11 @@ const BusinessPaymentSummary = ({
       <Row left="Du får utbetalt" right={`${earnings} kr`} isBold />
       <Row
         left="Utbetalning till konto:"
-        right={`****${purchase.payoutBankLast4}`}
+        right={
+          purchase.paymentAcceptedAt
+            ? `****${payoutBankLast4}`
+            : "Konto ej valt"
+        }
       />
       <Body size="small" color="secondary">
         Du som säljer ansvarar för att redovisa momsen på försäljningspriset.

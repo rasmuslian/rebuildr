@@ -56,6 +56,9 @@ export class CmsPreviewSystemMessageInput
 
   @Field({ nullable: true })
   decision?: string;
+
+  @Field({ nullable: true })
+  showAddPayoutText?: boolean;
 }
 
 @InputType()

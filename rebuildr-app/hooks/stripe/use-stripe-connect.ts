@@ -7,14 +7,15 @@ import { gql, useMutation } from "@apollo/client";
 import {
   OnboardSellerAccountMutation,
   OnboardSellerAccountMutationVariables,
+  SellerAccountCapabilityEnum,
 } from "@/gql/graphql";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
 import { textStyles } from "@components/typography/typeface";
 
 const ONBOARD_SELLER_ACCOUNT = gql`
-  mutation OnboardSellerAccount {
-    onboardSellerAccount {
+  mutation OnboardSellerAccount($input: OnboardSellerAccountInput!) {
+    onboardSellerAccount(input: $input) {
       user {
         id
       }
@@ -24,7 +25,7 @@ const ONBOARD_SELLER_ACCOUNT = gql`
   }
 `;
 
-export const useStripeConnect = () => {
+export const useStripeConnect = (capability: SellerAccountCapabilityEnum) => {
   const [stripeConnectInstance, setStripeConnectInstance] =
     useState<StripeConnectInstance | null>(null);
   const colors = useThemeColor();
@@ -32,7 +33,13 @@ export const useStripeConnect = () => {
   const [onboardAccount, { data, loading }] = useMutation<
     OnboardSellerAccountMutation,
     OnboardSellerAccountMutationVariables
-  >(ONBOARD_SELLER_ACCOUNT);
+  >(ONBOARD_SELLER_ACCOUNT, {
+    variables: {
+      input: {
+        capability,
+      },
+    },
+  });
 
   const createConnectInstance = async () => {
     if (loading) {

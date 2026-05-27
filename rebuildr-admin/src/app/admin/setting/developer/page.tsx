@@ -4,7 +4,6 @@ import { App, Button, Divider } from "antd";
 import React from "react";
 import { updateCO2Factors } from "@/queries/co2/update-co2-factors";
 import { syncApproximateLocations } from "@/queries/map-pin/sync-approximate-locations";
-import { cmsBackfillPayoutBankDetails } from "@/queries/purchase/cms-backfill-payout-bank-details";
 import { useMutation } from "@tanstack/react-query";
 import { CmsTestTemplateInput } from "gql/graphql";
 import { testTemplates } from "@/queries/email/test-templates";
@@ -53,28 +52,6 @@ const DeveloperSetting = () => {
         });
       },
     });
-  const {
-    mutateAsync: runBackfillPayoutBankDetails,
-    isPending: isBackfillingPayoutBankDetails,
-  } = useMutation({
-    mutationFn: async () => {
-      const count = await cmsBackfillPayoutBankDetails();
-      if (count === undefined) throw new Error();
-      return count;
-    },
-    onSuccess: (count) => {
-      notification.success({
-        message: "Bankinformation ifylld",
-        description: `${count} köp uppdaterades med bankinformation.`,
-      });
-    },
-    onError: () => {
-      notification.error({
-        message: "Misslyckades",
-        description: "Kunde inte fylla i bankinformation. Försök igen senare.",
-      });
-    },
-  });
   const { mutateAsync: sendEmailTemplate, isPending: isSendingEmailTemplate } =
     useMutation({
       mutationFn: async (input: CmsTestTemplateInput) => {
@@ -121,22 +98,6 @@ const DeveloperSetting = () => {
           disabled={isUpdatingCO2Factors}
         >
           Uppdatera CO2 data
-        </Button>
-      </div>
-      <Divider />
-
-      <div className="flex flex-col gap-2">
-        <h3>Fyll i bankinformation för utbetalningar</h3>
-        <p>
-          Hämtar bankinformation från Stripe för alla köp som har ett
-          utbetalnings-ID men saknar sparad bankinformation.
-        </p>
-        <Button
-          style={{ width: 300 }}
-          onClick={() => runBackfillPayoutBankDetails()}
-          disabled={isBackfillingPayoutBankDetails}
-        >
-          Fyll i bankinformation
         </Button>
       </div>
       <Divider />
@@ -189,6 +150,15 @@ const DeveloperSetting = () => {
             disabled={isSendingEmailTemplate}
           >
             Mottagit användarmeddelande
+          </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({ template: "activatePayouts" })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Aktivera utbetalningar
           </Button>
         </div>
       </div>
