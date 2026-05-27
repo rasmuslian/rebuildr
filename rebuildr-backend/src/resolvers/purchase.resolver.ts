@@ -383,13 +383,13 @@ export class PurchaseResolver {
     return this.purchaseService.canAbortPurchase(purchase);
   }
 
-  @ResolveField(() => String)
+  @ResolveField(() => String, { nullable: true })
   @UseGuards(GqlAuthGuard)
   async payoutBankLast4(
     @Parent() purchase: Purchase,
     @CurrentUser() user: AuthedUserType,
   ) {
     const account = await this.purchaseService.getPayoutBank(purchase, user.id);
-    return account.last4;
+    return account?.last4;
   }
 }

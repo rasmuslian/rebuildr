@@ -1081,10 +1081,6 @@ export class PurchaseService {
       product.seller.connectedAccountId,
     );
 
-    if (!account) {
-      this.logger.error('payout bank account not found!', { purchase });
-      throw InternalServerException();
-    }
     return account;
   }
   //---------------------------------------------------------------

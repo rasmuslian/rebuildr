@@ -91,7 +91,7 @@ type Purchase {
   reportPurchase: ReportPurchase
   conversation: Conversation
   canAbort: CanAbortResponse
-  payoutBankLast4: String!
+  payoutBankLast4: String
 }
 
 enum PurchaseStatusEnum {

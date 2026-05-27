@@ -301,7 +301,11 @@ const SellerPaymentSummary = ({
       <Row left="Du får utbetalt" right={`${earnings} kr`} isBold />
       <Row
         left="Utbetalning till konto:"
-        right={`****${purchase.payoutBankLast4}`}
+        right={
+          purchase.paymentAcceptedAt
+            ? `****${purchase.payoutBankLast4}`
+            : "Konto ej valt"
+        }
       />
     </View>
   );
@@ -344,7 +348,11 @@ const BusinessPaymentSummary = ({
       <Row left="Du får utbetalt" right={`${earnings} kr`} isBold />
       <Row
         left="Utbetalning till konto:"
-        right={`****${purchase.payoutBankLast4}`}
+        right={
+          purchase.paymentAcceptedAt
+            ? `****${purchase.payoutBankLast4}`
+            : "Konto ej valt"
+        }
       />
       <Body size="small" color="secondary">
         Du som säljer ansvarar för att redovisa momsen på försäljningspriset.
