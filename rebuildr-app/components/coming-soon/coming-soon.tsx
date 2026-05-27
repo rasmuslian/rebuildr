@@ -17,8 +17,8 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useScreenType } from "@hooks/useScreenType";
 
 const COMING_SOON_SIGN_UP = gql`
-  mutation ComingSoonSignUp($input: String!) {
-    signupNewsLetter(email: $input)
+  mutation ComingSoonSignUp($input: SignupNewsLetterInput!) {
+    signupNewsLetter(input: $input)
   }
 `;
 
@@ -95,7 +95,7 @@ export const ComingSoon = () => {
                       onChange: setEmail,
                       placeholder: "Ange din e-post...",
                       onSubmitEditing: () =>
-                        signup({ variables: { input: email } }),
+                        signup({ variables: { input: { email } } }),
                       error: error?.message ?? undefined,
                     },
                   ]}

@@ -157,6 +157,18 @@ export class UpdateOrganizationUserInput {
 }
 
 @InputType()
+export class SignupNewsLetterInput {
+  @Field()
+  email: string;
+
+  @Field({ nullable: true })
+  firstName?: string;
+
+  @Field({ nullable: true })
+  lastName?: string;
+}
+
+@InputType()
 export class GetUserInput {
   @Field()
   id: string;
@@ -405,8 +417,14 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async signupNewsLetter(@Args('email') email: string) {
-    return await this.mailchimpService.addSubscriberToNewsletterList(email);
+  async signupNewsLetter(
+    @Args('input') input: SignupNewsLetterInput,
+  ) {
+    return await this.mailchimpService.addSubscriberToNewsletterList(
+      input.email,
+      input.firstName,
+      input.lastName,
+    );
   }
 
   @Mutation(() => SellerAccount)

@@ -26,6 +26,7 @@ import {
   ShoppingCartOutlined,
   PictureOutlined,
   BarChartOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -105,6 +106,9 @@ const SidebarMenu = () => {
       getItem("Skapa banner", routes.CREATE_BANNER),
       getItem("Visa alla banners", routes.LIST_BANNER),
     ]),
+
+    { type: "divider" },
+    getItem("Nyhetsbrev & tävling", routes.NEWSLETTER_COMPETITION, <MailOutlined />),
 
     { type: "divider" },
     getItem("Köp", routes.LIST_PURCHASE, <ShoppingCartOutlined />),
