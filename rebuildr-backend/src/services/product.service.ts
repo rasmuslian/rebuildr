@@ -869,7 +869,6 @@ export class ProductService {
     const limit = _limit ?? 20;
     query.limit(limit > 40 ? 40 : limit);
     query.offset((offset ?? 0) * limit);
-    query.addSelect('count(*) over() as total');
 
     const result = await query.getManyAndCount();
 
