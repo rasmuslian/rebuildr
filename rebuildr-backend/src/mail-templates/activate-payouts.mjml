@@ -22,7 +22,7 @@
         </mj-text>
 
         <mj-text align="center" color="#343434" font-family="Poppins" font-size="16px" line-height="25px" padding-bottom="40px">
-          Därefter tar utbetalningarna <strong>2–3 bankdagar</strong>. Behöver du pengarna snabbare kan du använda <strong>Stripe Instant Pay</strong> — pengarna på ditt konto inom 30 minuter. <em>Observera att Instant Pay inte är tillgängligt vid första utbetalningen.</em>
+          Därefter tar utbetalningarna <strong>2–3 bankdagar</strong>.
         </mj-text>
 
         <mj-button background-color="#863CFF" border-radius="12px" href="{{payoutOnboardingUrl}}" padding="8px 23px">
