@@ -12,6 +12,7 @@ import { Purchase } from 'src/entities/purchase.entity';
 import { ReportProduct } from 'src/entities/report-product.entity';
 import { MapPin } from 'src/entities/map-pin.entity';
 import { LocationInputType } from 'src/resolvers/geocoding.resolver';
+import { Category } from 'src/entities/category.entity';
 
 export interface IProductLoaders {
   getProduct: DataLoader<string, Product>;
@@ -30,6 +31,7 @@ export interface IProductLoaders {
     { productId: string; location: LocationInputType },
     number
   >;
+  categoryLoader: DataLoader<string, Category>;
 }
 
 @Injectable()
@@ -190,6 +192,10 @@ export class ProductLoader {
       >('reportProducts', Product),
       mapPinLoader: this.mapPinLoader(),
       distanceToLocationLoader: this.distanceToLocationLoader(),
+      categoryLoader: this.dataloaderService.targetByParentIdLoader<Category>(
+        'category',
+        Product,
+      ),
     };
   }
 }
