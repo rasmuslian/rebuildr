@@ -577,28 +577,6 @@ export class StripeService {
     }
   }
 
-  async getPayoutBankDetails(payoutId: string, connectedAccountId: string) {
-    const payout = await this.stripe.payouts.retrieve(
-      payoutId,
-      { expand: ['destination'] },
-      { stripeAccount: connectedAccountId },
-    );
-    const destination = payout.destination;
-    if (
-      destination &&
-      typeof destination === 'object' &&
-      destination.object === 'bank_account' &&
-      !('deleted' in destination)
-    ) {
-      return {
-        bankAccountId: destination.id,
-        bankName: destination.bank_name,
-        bankLast4: destination.last4,
-      };
-    }
-    return null;
-  }
-
   async deleteAccount(user: User) {
     try {
       const deletedAccount = await this.stripe.accounts.del(

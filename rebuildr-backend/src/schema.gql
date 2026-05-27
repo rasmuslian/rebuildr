@@ -72,7 +72,6 @@ type Purchase {
   pausedAt: DateTime
   payoutFailedAt: DateTime
   status: PurchaseStatusEnum!
-  payoutBankLast4: String
   abortedById: String
   paymentMethod: PaymentMethod
   transportationMethod: TransportationEnum!
@@ -92,6 +91,7 @@ type Purchase {
   reportPurchase: ReportPurchase
   conversation: Conversation
   canAbort: CanAbortResponse
+  payoutBankLast4: String
 }
 
 enum PurchaseStatusEnum {
@@ -1213,7 +1213,6 @@ type Mutation {
   abortPurchase(input: AbortPurchaseInput!): Purchase!
   cmsListPurchases(input: CmsListPurchasesInput!): CmsListPurchasesResponse!
   cmsRefundPurchase(input: CmsRefundPurchaseInput!): Purchase!
-  cmsBackfillPayoutBankDetails: Int!
   createBrandByUser(input: CreateBrandByUserInput!): Brand!
   cmsCreateBrand(input: CmsCreateBrandInput!): Brand!
   cmsUpdateBrand(input: CmsUpdateBrandInput!): Brand!
