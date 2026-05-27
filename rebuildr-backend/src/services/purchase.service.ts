@@ -50,6 +50,7 @@ import Stripe from 'stripe';
 import { idFromObject } from 'src/utility/stripe/utils';
 import { ShippingPriceService } from './shipping-price.service';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class PurchaseService {
@@ -70,6 +71,7 @@ export class PurchaseService {
     private reportPurchaseService: ReportPurchaseService,
     private stripeService: StripeService,
     private shippingPriceService: ShippingPriceService,
+    private mailService: MailService,
   ) {}
 
   async getPurchase(id: string, currentUserId: string) {
@@ -219,7 +221,10 @@ export class PurchaseService {
         shippingProvider: existingPurchase.shippingPrice?.provider,
       });
 
-      if (input.purchasedQuantity !== existingPurchase.purchasedQuantity) {
+      if (
+        (input.purchasedQuantity ?? null) !==
+        (existingPurchase.purchasedQuantity ?? null)
+      ) {
         logger.error({
           message: 'Existing purchase has different purchaseQuantity',
           existingPurchase,
@@ -416,6 +421,7 @@ export class PurchaseService {
             purchase.product,
             purchase,
             true,
+            false,
           ),
         );
     }
@@ -636,6 +642,8 @@ export class PurchaseService {
         purchase.product,
         purchase,
         true,
+        false,
+        false,
       );
       purchase.approvedAt = new Date();
       purchase.payoutStartedAt = new Date();
@@ -917,6 +925,12 @@ export class PurchaseService {
           },
         },
       });
+      let canReceivePayout = false;
+      if (purchase.product.seller.connectedAccountId) {
+        canReceivePayout = await this.stripeService.accountCanReceivePayout(
+          purchase.product.seller.connectedAccountId,
+        );
+      }
       await this.systemMessagesService.purchaseSuccessBuyer(
         buyer,
         product,
@@ -927,7 +941,9 @@ export class PurchaseService {
         seller,
         product,
         purchase,
+        false,
         nrOfCompletedSales > 0,
+        !canReceivePayout,
       );
     }
     purchase.approvedAt = new Date();
@@ -948,6 +964,16 @@ export class PurchaseService {
         sellerId: seller.id,
         buyerId: buyer.id,
       });
+      const canReceivePayout = await this.stripeService.accountCanReceivePayout(
+        seller.connectedAccountId,
+      );
+      if (!canReceivePayout) {
+        logger.info(
+          'acceptPurchase: Seller account cannot receive payout yet. Will try again later',
+          { sellerId: seller.id, purchaseId: approvedPurchase.id },
+        );
+        return await this.purchaseRepository.save(approvedPurchase);
+      }
       const payoutAvailable = await this.stripeService.payoutAvailable(
         seller.connectedAccountId,
         approvedPurchase.paymentIntentId,
@@ -1335,6 +1361,15 @@ export class PurchaseService {
           });
           return;
         }
+        const canReceivePayout =
+          await this.stripeService.accountCanReceivePayout(accountId);
+        if (!canReceivePayout) {
+          logger.info(
+            'automaticPayout: Seller account cannot receive payout yet, skipping',
+            { sellerId: purchase.product.seller.id, purchaseId: purchase.id },
+          );
+          return undefined;
+        }
         const payoutAvailable = await this.stripeService.payoutAvailable(
           purchase.product.seller.connectedAccountId,
           purchase.paymentIntentId,
@@ -1445,6 +1480,13 @@ export class PurchaseService {
       },
     );
 
+    let canReceivePayout = false;
+    if (purchase.product.seller.connectedAccountId) {
+      canReceivePayout = await this.stripeService.accountCanReceivePayout(
+        purchase.product.seller.connectedAccountId,
+      );
+    }
+
     if (updateResult.affected > 0) {
       purchase.paymentAcceptedAt = paymentAcceptedAt;
       //System messages
@@ -1463,6 +1505,7 @@ export class PurchaseService {
               purchase.product,
               purchase,
               purchase.shippingPrice?.provider,
+              !canReceivePayout,
             ),
           )
           .catch((err) =>
@@ -1482,12 +1525,22 @@ export class PurchaseService {
               purchase.product.seller,
               purchase.product,
               purchase,
+              false,
+              !canReceivePayout,
             ),
           )
           .catch((err) =>
             logger.error('purchaseWithShipping system messages failed', err),
           );
       }
+    }
+
+    if (updateResult.affected > 0 && !canReceivePayout) {
+      this.mailService
+        .sendActivatePayoutsEmail({
+          email: purchase.product.seller.email,
+        })
+        .catch((e) => logger.error('sendActivatePayoutsEmail failed', e));
     }
 
     if (purchase.transportationMethod === TransportationEnum.SHIPPING) {

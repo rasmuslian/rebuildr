@@ -28,6 +28,7 @@ import {
   CmsListUsersResponse,
   CmsUpdateUsersInput,
   CreateOrganizationUserInput,
+  OnboardSellerAccountInput,
   OrderUsersEnum,
   UpdateOrganizationUserInput,
   UpdateUserInput,
@@ -457,7 +458,10 @@ export class UserService {
     };
   }
 
-  async onboardSellerAccount(currentUserId: string) {
+  async onboardSellerAccount(
+    input: OnboardSellerAccountInput,
+    currentUserId: string,
+  ) {
     const user = await this.userRepository.findOne({
       where: { id: currentUserId },
     });
@@ -465,7 +469,7 @@ export class UserService {
       return BadUserInputException();
     }
 
-    return await this.stripeService.onboardAccount(user);
+    return await this.stripeService.onboardAccount(user, input.capability);
   }
   async createSellerAccount(currentUserId: string) {
     const user = await this.userRepository.findOne({
@@ -475,7 +479,10 @@ export class UserService {
       return BadUserInputException();
     }
 
-    return await this.stripeService.createConnectedAccount(user);
+    const sellerAccount = await this.stripeService.createSellerAccount(user);
+    user.connectedAccountId = sellerAccount.id;
+    await this.userRepository.save(user);
+    return sellerAccount;
   }
 
   async addPayoutAccount(currentUserId: string, token: string) {
@@ -514,6 +521,13 @@ export class UserService {
     );
   }
 
+  async getSellerAccount(user: User, currentUserId: string) {
+    if (user.id !== currentUserId) {
+      throw ForbiddenException();
+    }
+
+    return await this.stripeService.getSellerAccount(user);
+  }
   async sellerAccountIsCreated(user: User) {
     if (!user.connectedAccountId) {
       return false;

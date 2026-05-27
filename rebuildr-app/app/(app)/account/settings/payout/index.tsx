@@ -9,19 +9,23 @@ import { Body, Display, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { View } from "react-native";
 import Bankkonto from "@assets/svgs/bankkonto.svg";
 import { Image } from "expo-image";
 import { useScreenType } from "@hooks/useScreenType";
 import { Header } from "@components/navigation/headers/header";
 import { AccountState } from "@components/account/account-wrapper.desktop";
+import { PayoutHandler } from "@components/sell-product/payout-handler";
 
 const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   query AccountSettingsPayoutQuery {
     me {
       id
       type
+      sellerAccount {
+        canReceivePayout
+      }
       payoutAccount {
         type
         routingNumber
@@ -38,9 +42,10 @@ type Props = {
 };
 
 export default function Payout({ onNavigation, onBack }: Props) {
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
-  const { data, refetch } = useQuery<AccountSettingsPayoutQueryQuery>(
+  const { data, loading, refetch } = useQuery<AccountSettingsPayoutQueryQuery>(
     ACCOUNT_SETTINGS_PAYOUT_QUERY,
   );
 
@@ -50,7 +55,7 @@ export default function Payout({ onNavigation, onBack }: Props) {
     }, [refetch]),
   );
 
-  if (!data) {
+  if (!data || loading) {
     return <LoadingSpinner />;
   }
 
@@ -93,6 +98,10 @@ export default function Payout({ onNavigation, onBack }: Props) {
         <Button
           label="Lägg till utbetalningskonto"
           onPress={() => {
+            if (!data.me.sellerAccount?.canReceivePayout) {
+              setShowOnboarding(true);
+              return;
+            }
             if (onNavigation) {
               onNavigation({ page: "payout-add" });
               return;
@@ -102,6 +111,15 @@ export default function Payout({ onNavigation, onBack }: Props) {
         />
       }
     >
+      {showOnboarding && (
+        <PayoutHandler
+          onFinish={() => {
+            refetch();
+            setShowOnboarding(false);
+          }}
+          onAbort={() => setShowOnboarding(false)}
+        />
+      )}
       {data.me.payoutAccount ? (
         <>
           <Display size="small">Du får dina utbetalningar till:</Display>

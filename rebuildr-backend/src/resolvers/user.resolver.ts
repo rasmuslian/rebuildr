@@ -41,6 +41,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { MailchimpService } from 'src/services/mailchimp.service';
 import { FileInputType } from './file.resolver';
+import { SellerAccountCapabilityEnum } from 'src/services/stripe.service';
 
 export enum ProductsRecommendationSourceEnum {
   LIKES = 'LIKES',
@@ -212,6 +213,11 @@ export class RecommendedProductsInput {
   excludeOwnProducts?: boolean;
 }
 
+@InputType()
+export class OnboardSellerAccountInput {
+  @Field(() => SellerAccountCapabilityEnum)
+  capability: SellerAccountCapabilityEnum;
+}
 @ObjectType()
 export class OnboardSellerAccountResponse {
   @Field(() => User)
@@ -275,6 +281,15 @@ export class CmsUpdateUsersInput {
 
   @Field({ nullable: true })
   websiteUrl?: string;
+}
+
+@ObjectType()
+export class SellerAccount {
+  id: string;
+  @Field(() => Boolean)
+  canReceivePayment: boolean;
+  @Field(() => Boolean)
+  canReceivePayout: boolean;
 }
 @Resolver(() => User)
 export class UserResolver {
@@ -374,8 +389,11 @@ export class UserResolver {
 
   @Mutation(() => OnboardSellerAccountResponse)
   @UseGuards(GqlAuthGuard)
-  async onboardSellerAccount(@CurrentUser() user: AuthedUserType) {
-    return await this.userService.onboardSellerAccount(user.id);
+  async onboardSellerAccount(
+    @Args('input') input: OnboardSellerAccountInput,
+    @CurrentUser() user: AuthedUserType,
+  ) {
+    return await this.userService.onboardSellerAccount(input, user.id);
   }
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
@@ -389,6 +407,12 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async signupNewsLetter(@Args('email') email: string) {
     return await this.mailchimpService.addSubscriberToNewsletterList(email);
+  }
+
+  @Mutation(() => SellerAccount)
+  @UseGuards(GqlAuthGuard)
+  async createSellerAccount(@CurrentUser() user: AuthedUserType) {
+    return await this.userService.createSellerAccount(user.id);
   }
 
   @ResolveField(() => Boolean)
@@ -582,5 +606,14 @@ export class UserResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ): Promise<number> {
     return await userLoaders.numberOfCompletedPurchases.load(user.id);
+  }
+
+  @ResolveField(() => SellerAccount, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async sellerAccount(
+    @Parent() user: User,
+    @CurrentUser() currentUser: AuthedUserType,
+  ) {
+    return await this.userService.getSellerAccount(user, currentUser.id);
   }
 }

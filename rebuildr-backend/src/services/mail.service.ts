@@ -38,6 +38,10 @@ const userMessageTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/user-message.mjml`,
   'utf8',
 );
+const activatePayoutsTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/activate-payouts.mjml`,
+  'utf8',
+);
 
 const MAILGUN_DOMAIN = 'rebuildr.se';
 
@@ -259,6 +263,30 @@ export class MailService {
     }
   }
 
+  async sendActivatePayoutsEmail(input: { email: string }) {
+    const context = {
+      ...this.baseContext,
+      payoutOnboardingUrl: `${this.baseUrl}/go/activate-payouts`,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(activatePayoutsTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: 'Aktivera utbetalningar — så får du betalt för dina annonser',
+      text: 'Aktivera utbetalningar — så får du betalt för dina annonser',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
   async cmsTestTemplate(template: string, userId: string) {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) return false;
@@ -315,6 +343,12 @@ export class MailService {
       await this.sendUserMessageEmail({
         productTitle: 'Product title',
         receiverEmail: user.email,
+      });
+      return true;
+    }
+    if (template === 'activatePayouts') {
+      await this.sendActivatePayoutsEmail({
+        email: user.email,
       });
       return true;
     }

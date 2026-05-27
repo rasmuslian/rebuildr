@@ -1,0 +1,44 @@
+<mjml>
+  <mj-head>
+  </mj-head>
+  <mj-body background-color="#F8F1E3" height="1024px">
+
+    <mj-section padding-top="100px"></mj-section>
+    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="50px" border-radius="12px">
+      <mj-column width="400px">
+        <mj-text align="center" font-size="21px" font-family="Poppins" font-weight="700" color="#343434" padding-bottom="4px">
+          Snyggt jobbat — din första annons är ute!
+        </mj-text>
+        <mj-text align="center" font-size="21px" font-family="Poppins" font-weight="700" color="#343434" padding-bottom="32px">
+          Aktivera <span style="color: #863CFF;">utbetalningar</span> så är du redo att få betalt.
+        </mj-text>
+
+        <mj-text align="center" color="#343434" font-family="Poppins" font-size="16px" line-height="25px" padding-bottom="20px">
+          När en köpare betalar för din vara håller vi pengarna säkert hos vår betalpartner Stripe tills affären är klar. För att kunna föra över dem till dig behöver du registrera ett utbetalningskonto.
+        </mj-text>
+
+        <mj-text align="center" color="#343434" font-family="Poppins" font-size="16px" line-height="25px" padding-bottom="20px">
+          <strong>Första utbetalningen tar upp till 7 bankdagar</strong> medan Stripe verifierar ditt konto och din identitet — en trygghet för både dig och köparen.
+        </mj-text>
+
+        <mj-text align="center" color="#343434" font-family="Poppins" font-size="16px" line-height="25px" padding-bottom="40px">
+          Därefter tar utbetalningarna <strong>2–3 bankdagar</strong>. Behöver du pengarna snabbare kan du använda <strong>Stripe Instant Pay</strong> — pengarna på ditt konto inom 30 minuter. <em>Observera att Instant Pay inte är tillgängligt vid första utbetalningen.</em>
+        </mj-text>
+
+        <mj-button background-color="#863CFF" border-radius="12px" href="{{payoutOnboardingUrl}}" padding="8px 23px">
+          <mj-text font-size="16px" line-height="24px" font-family="Poppins">Aktivera utbetalningar</mj-text>
+        </mj-button>
+
+        <mj-text align="center" color="#888888" font-family="Poppins" font-size="14px" padding-top="24px">
+          Hjälp? <a href="mailto:support@rebuildr.org" style="color: #343434; font-weight: 500; text-decoration: none;">support@rebuildr.org</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding-top="56px" padding-bottom="40px">
+      <mj-column>
+        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const ACTION_HREFS = new Set(["ABORT", "REPORT", "ABOUTREVIEW", "ABOUTPAYOUT"]);
+const ACTION_HREFS = new Set(["ABORT", "REPORT", "ABOUTREVIEW", "ABOUTPAYOUT", "ONBOARDPAYOUT"]);
 
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
@@ -26,7 +26,23 @@ function parseInline(text: string): React.ReactNode[] {
     } else {
       const linkText = match[2] ?? match[4];
       const href = match[3] ?? match[5];
-      if (ACTION_HREFS.has(href)) {
+      if (href.startsWith("date::")) {
+        const pieces = href.split("::");
+        const fmt = pieces[1] ?? "";
+        const dateStr = pieces.slice(2).join("::");
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          const svMonths = ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
+          const day = d.getDate();
+          const month = svMonths[d.getMonth()];
+          const formatted = fmt.includes("HH:mm")
+            ? `${day} ${month} kl. ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+            : `${day} ${month}`;
+          parts.push(formatted);
+        } else {
+          parts.push(dateStr || linkText);
+        }
+      } else if (ACTION_HREFS.has(href)) {
         parts.push(
           <span
             key={match.index}

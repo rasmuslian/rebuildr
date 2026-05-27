@@ -30,6 +30,7 @@ type FormValues = {
   firstSale: boolean;
   provider: ShippingProviderEnum;
   decision: string;
+  showAddPayoutText: boolean;
 };
 
 const STEP_LABELS: Record<SystemMessageStepEnum, string> = {
@@ -77,6 +78,7 @@ const initialValues: FormValues = {
   firstSale: false,
   provider: ShippingProviderEnum.Dhl,
   decision: "",
+  showAddPayoutText: false,
 };
 
 const SystemMessagesTable = () => {
@@ -96,6 +98,10 @@ const SystemMessagesTable = () => {
   const showDecision =
     values.step === SystemMessageStepEnum.SupportConcluded;
   const showRole = values.step !== SystemMessageStepEnum.ShipmentArrived;
+  const showAddPayoutText =
+    values.role === SystemMessageRoleEnum.Seller &&
+    (values.step === SystemMessageStepEnum.PurchaseInitiated ||
+      values.step === SystemMessageStepEnum.PurchaseSuccess);
 
   const { data: preview, isLoading } = useQuery({
     queryKey: ["preview-system-message", values],
@@ -108,6 +114,7 @@ const SystemMessagesTable = () => {
         firstSale: showFirstSale ? values.firstSale : undefined,
         provider: showProvider ? values.provider : undefined,
         decision: showDecision ? values.decision || undefined : undefined,
+        showAddPayoutText: showAddPayoutText ? values.showAddPayoutText : undefined,
       }),
   });
 
@@ -202,6 +209,19 @@ const SystemMessagesTable = () => {
                     onChange={(e) => set({ firstSale: e.target.checked })}
                   >
                     Första försäljning
+                  </Checkbox>
+                </Form.Item>
+              )}
+
+              {showAddPayoutText && (
+                <Form.Item>
+                  <Checkbox
+                    checked={values.showAddPayoutText}
+                    onChange={(e) =>
+                      set({ showAddPayoutText: e.target.checked })
+                    }
+                  >
+                    Visa utbetalningsonboarding-länk
                   </Checkbox>
                 </Form.Item>
               )}

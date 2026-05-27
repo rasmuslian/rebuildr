@@ -173,6 +173,7 @@ export enum ChatActionEnum {
   Aboutabort = 'ABOUTABORT',
   Aboutpayout = 'ABOUTPAYOUT',
   Aboutreview = 'ABOUTREVIEW',
+  Onboardpayout = 'ONBOARDPAYOUT',
   Report = 'REPORT'
 }
 
@@ -373,6 +374,7 @@ export type CmsPreviewSystemMessageInput = {
   isFree?: InputMaybe<Scalars['Boolean']['input']>;
   provider?: InputMaybe<ShippingProviderEnum>;
   role: SystemMessageRoleEnum;
+  showAddPayoutText?: InputMaybe<Scalars['Boolean']['input']>;
   step: SystemMessageStepEnum;
   transportation?: InputMaybe<TransportationEnum>;
 };
@@ -1014,6 +1016,7 @@ export type Mutation = {
   analyzeProductImages: Product;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
+  cmsBackfillPayoutBankDetails: Scalars['Int']['output'];
   cmsCreateArticle: Article;
   cmsCreateBanner: CmsCreateBannerResponse;
   cmsCreateBrand: Brand;
@@ -1059,6 +1062,7 @@ export type Mutation = {
   createReportPurchase: ReportPurchase;
   createReview: Review;
   createSearchResult?: Maybe<SearchResult>;
+  createSellerAccount: SellerAccount;
   deleteAccount: User;
   deleteConnectedAccount: Scalars['Boolean']['output'];
   deleteDraft: Scalars['Boolean']['output'];
@@ -1387,6 +1391,11 @@ export type MutationNewPasswordArgs = {
 };
 
 
+export type MutationOnboardSellerAccountArgs = {
+  input: OnboardSellerAccountInput;
+};
+
+
 export type MutationPurchaseProductArgs = {
   input: PurchaseProductInput;
 };
@@ -1479,6 +1488,10 @@ export type NewPasswordInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
   resetPasswordToken: Scalars['String']['input'];
+};
+
+export type OnboardSellerAccountInput = {
+  capability: SellerAccountCapabilityEnum;
 };
 
 export type OnboardSellerAccountResponse = {
@@ -1745,6 +1758,7 @@ export type Purchase = {
   paymentAcceptedAt?: Maybe<Scalars['DateTime']['output']>;
   paymentMethod?: Maybe<PaymentMethod>;
   paymentStartedAt?: Maybe<Scalars['DateTime']['output']>;
+  payoutBankLast4?: Maybe<Scalars['String']['output']>;
   payoutFailedAt?: Maybe<Scalars['DateTime']['output']>;
   payoutReceivedAt?: Maybe<Scalars['DateTime']['output']>;
   payoutStartedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1882,7 +1896,7 @@ export type Query = {
   purchase: Purchase;
   rootCategories: Array<Category>;
   user: User;
-  userExists?: Maybe<User>;
+  userExists: UserExistsResponse;
   usernameIsValid: Scalars['Boolean']['output'];
   users: UsersResponse;
 };
@@ -2255,6 +2269,17 @@ export type SearchResult = {
   searchString: Scalars['String']['output'];
 };
 
+export type SellerAccount = {
+  __typename?: 'SellerAccount';
+  canReceivePayment: Scalars['Boolean']['output'];
+  canReceivePayout: Scalars['Boolean']['output'];
+};
+
+export enum SellerAccountCapabilityEnum {
+  Full = 'FULL',
+  Payment = 'PAYMENT'
+}
+
 export type ServicePointResponse = {
   __typename?: 'ServicePointResponse';
   city: Scalars['String']['output'];
@@ -2436,6 +2461,7 @@ export type User = {
   name?: Maybe<Scalars['String']['output']>;
   notifyOnMessage: Scalars['Boolean']['output'];
   notifyOnPurchaseUpdate: Scalars['Boolean']['output'];
+  numberOfCompletedPurchases: Scalars['Int']['output'];
   numberOfPublishedProducts: Scalars['Int']['output'];
   numberOfSoldProducts: Scalars['Int']['output'];
   organizationAccount?: Maybe<User>;
@@ -2455,9 +2481,12 @@ export type User = {
   reviewed: Array<Review>;
   role: UserRoleEnum;
   sales: Array<Purchase>;
+  sellerAccount?: Maybe<SellerAccount>;
   sellerAccountIsCreated: Scalars['Boolean']['output'];
   sellerAccountIsEnabled: Scalars['Boolean']['output'];
   totalCO2Savings: Scalars['Float']['output'];
+  totalCO2SavingsBuyer: Scalars['Float']['output'];
+  totalCO2SavingsSeller: Scalars['Float']['output'];
   type: UserType;
   username?: Maybe<Scalars['String']['output']>;
   websiteUrl?: Maybe<Scalars['String']['output']>;
@@ -2478,6 +2507,12 @@ export type UserRecommendedProductsArgs = {
 
 export type UserExistsInput = {
   email: Scalars['String']['input'];
+};
+
+export type UserExistsResponse = {
+  __typename?: 'UserExistsResponse';
+  exists: Scalars['Boolean']['output'];
+  registrationStatus?: Maybe<RegisterStatusEnum>;
 };
 
 export enum UserRoleEnum {

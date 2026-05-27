@@ -204,6 +204,7 @@ type User {
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!
   numberOfCompletedPurchases: Int!
+  sellerAccount: SellerAccount
 }
 
 enum UserRoleEnum {
@@ -670,6 +671,11 @@ type CmsListUsersResponse {
   total: Int!
 }
 
+type SellerAccount {
+  canReceivePayment: Boolean!
+  canReceivePayout: Boolean!
+}
+
 type CmsCreateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -986,6 +992,7 @@ input CmsPreviewSystemMessageInput {
   firstSale: Boolean
   provider: ShippingProviderEnum
   decision: String
+  showAddPayoutText: Boolean
 }
 
 enum SystemMessageStepEnum {
@@ -1011,6 +1018,7 @@ enum SystemMessageRoleEnum {
 enum ChatActionEnum {
   ABORT
   REPORT
+  ONBOARDPAYOUT
   ABOUTREVIEW
   ABOUTPAYOUT
   ABOUTABORT
@@ -1174,9 +1182,10 @@ type Mutation {
   createOrganizationUser(input: CreateOrganizationUserInput!): User!
   updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
   deleteAccount: User!
-  onboardSellerAccount: OnboardSellerAccountResponse!
+  onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
   signupNewsLetter(email: String!): Boolean!
+  createSellerAccount: SellerAccount!
   cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!
@@ -1331,6 +1340,15 @@ input UpdateOrganizationUserInput {
   city: String
   phoneNumber: String
   websiteUrl: String
+}
+
+input OnboardSellerAccountInput {
+  capability: SellerAccountCapabilityEnum!
+}
+
+enum SellerAccountCapabilityEnum {
+  PAYMENT
+  FULL
 }
 
 input CmsCreateProductInput {
