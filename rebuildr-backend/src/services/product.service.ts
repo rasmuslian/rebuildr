@@ -676,7 +676,8 @@ export class ProductService {
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
         .andWhere(
-          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE '${input.searchString}%' )`,
+          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE :titleSearch )`,
+          { titleSearch: `${input.searchString}%` },
         )
         .addSelect('rp.resultrank', 'resultrank');
     }
@@ -1246,7 +1247,8 @@ export class ProductService {
           SELECT pc.id from product p
             INNER JOIN category c ON c.id = p."categoryId"
             INNER join category pc on pc.id = c."parentId"
-            WHERE p.id = '${similarToProductId}')`,
+            WHERE p.id = :similarToProductId)`,
+        { similarToProductId },
       )
       .where('p.id != :similarToProductId', { similarToProductId })
       .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`)

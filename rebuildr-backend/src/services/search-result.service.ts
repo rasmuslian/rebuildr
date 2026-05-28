@@ -70,7 +70,7 @@ export class SearchResultService {
     return await this.searchResultRepository
       .createQueryBuilder('sr')
       .select('DISTINCT ON (sr."searchString") sr.*')
-      .where(`sr."searchString" ILIKE '%${input.searchString}%'`)
+      .where(`sr."searchString" ILIKE :search`, { search: `%${input.searchString}%` })
       .limit(5)
       .getRawMany();
   }
