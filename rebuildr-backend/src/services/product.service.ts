@@ -767,13 +767,13 @@ export class ProductService {
     input: ProductsInput,
     _limit?: number,
     offset?: number,
-    userId?: string,
+    currentUserId?: string,
   ) {
     const query = this.productRepository.createQueryBuilder('p');
 
     //Only admin will see hidden products
-    if (userId) {
-      const user = await this.userRepository.findOneBy({ id: userId });
+    if (currentUserId) {
+      const user = await this.userRepository.findOneBy({ id: currentUserId });
       if (!user) {
         throw BadUserInputException('Invalid user');
       }
@@ -826,8 +826,8 @@ export class ProductService {
       query.setParameter('origin', origin);
     }
 
-    if (input.excludeOwnProducts && userId) {
-      query.andWhere('p.sellerId != :userId', { userId });
+    if (input.excludeOwnProducts && currentUserId) {
+      query.andWhere('p.sellerId != :currentUserId', { currentUserId });
     }
     query.addOrderBy('p."status"');
     switch (input.orderBy) {
@@ -872,6 +872,16 @@ export class ProductService {
     query.offset((offset ?? 0) * limit);
 
     const result = await query.getManyAndCount();
+
+    //Create search result if this search yielded any result
+    if (result[1] && input.searchString && currentUserId) {
+      this.searchResultService.createSearchResult(
+        {
+          searchString: input.searchString,
+        },
+        currentUserId,
+      );
+    }
 
     return {
       products: result[0],

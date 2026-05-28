@@ -53,13 +53,3 @@ export const CLEAR_SEARCH_HISTORY_MUTATION = gql`
     clearSearchHistory
   }
 `;
-
-export const CREATE_SEARCH_RESULT = gql`
-  mutation CreateSearchResult($input: CreateSearchResultInput!) {
-    createSearchResult(input: $input) {
-      id
-      searchString
-      count
-    }
-  }
-`;

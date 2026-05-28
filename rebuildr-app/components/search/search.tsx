@@ -13,13 +13,7 @@ import { Pressable } from "react-native-gesture-handler";
 import { useRef } from "react";
 import { useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
-import {
-  CreateSearchResultMutation,
-  CreateSearchResultMutationVariables,
-} from "@/gql/graphql";
-import { useMutation } from "@apollo/client";
 import { router } from "expo-router";
-import { CREATE_SEARCH_RESULT } from "./queries";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
 type Props = {
@@ -49,11 +43,6 @@ export const Search = ({
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
-
-  const [createSearchResult] = useMutation<
-    CreateSearchResultMutation,
-    CreateSearchResultMutationVariables
-  >(CREATE_SEARCH_RESULT);
 
   const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
@@ -85,9 +74,6 @@ export const Search = ({
 
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
     const { text } = event.nativeEvent;
-    if (text) {
-      createSearchResult({ variables: { input: { searchString: text } } });
-    }
 
     filterBuilder.reset().setSearchString(text).apply();
     setSearchState({ dropdownVisible: false });
