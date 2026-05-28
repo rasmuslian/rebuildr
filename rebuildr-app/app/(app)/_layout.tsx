@@ -44,6 +44,7 @@ export default function AppLayout() {
       <Stack.Screen name="product-list" />
       <Stack.Screen name="project" />
       <Stack.Screen name="article" />
+      <Stack.Screen name="signup" />
     </Stack>
   );
 }

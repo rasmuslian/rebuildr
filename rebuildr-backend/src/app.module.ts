@@ -131,6 +131,9 @@ import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
 import { BannerLoader } from './dataloaders/banner.loader';
+import { NewsletterCompetition } from './entities/newsletter-competition.entity';
+import { NewsletterCompetitionService } from './services/newsletter-competition.service';
+import { NewsletterCompetitionResolver } from './resolvers/newsletter-competition.resolver';
 import { Conversation } from './entities/conversation.entity';
 import { ConversationLoader } from './dataloaders/conversation.loader';
 import { ConversationResolver } from './resolvers/conversation.resolver';
@@ -195,6 +198,7 @@ export interface RequestType {
       CO2Factor,
       PageContent,
       Banner,
+      NewsletterCompetition,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -353,6 +357,8 @@ export interface RequestType {
     AIService,
     BannerService,
     BannerResolver,
+    NewsletterCompetitionService,
+    NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
   ],
