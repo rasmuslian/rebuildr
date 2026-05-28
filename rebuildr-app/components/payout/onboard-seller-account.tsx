@@ -1,14 +1,11 @@
 import { View } from "react-native";
-import { useStripeConnect } from "@hooks/stripe/use-stripe-connect";
 import {
   ConnectAccountOnboarding,
   ConnectComponentsProvider,
 } from "@stripe/react-connect-js";
+import { StripeConnectInstance } from "@stripe/connect-js";
 import { gql, useLazyQuery } from "@apollo/client";
-import {
-  OnboardSellerGetAccountQuery,
-  SellerAccountCapabilityEnum,
-} from "@/gql/graphql";
+import { OnboardSellerGetAccountQuery } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
 import { useState } from "react";
@@ -29,13 +26,20 @@ const ONBOARD_SELLER_GET_ACCOUNT = gql`
 type Props = {
   onExit: () => void;
   onAbort: () => void;
+  stripeConnectInstance: StripeConnectInstance | null;
+  createConnectInstance: () => void;
+  fields: string[] | undefined;
 };
 
-export default function OnboardSellerAccount({ onExit, onAbort }: Props) {
+export default function OnboardSellerAccount({
+  onExit,
+  onAbort,
+  stripeConnectInstance,
+  createConnectInstance,
+  fields,
+}: Props) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const { stripeConnectInstance, createConnectInstance, fields } =
-    useStripeConnect(SellerAccountCapabilityEnum.Payment);
 
   const [checkSellerAccount] = useLazyQuery<OnboardSellerGetAccountQuery>(
     ONBOARD_SELLER_GET_ACCOUNT,
