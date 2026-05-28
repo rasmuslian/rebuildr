@@ -502,6 +502,21 @@ export type CmsUpdateFooterSectionInput = {
   title: Scalars['String']['input'];
 };
 
+export type CmsUpdateNewsletterCompetitionInput = {
+  bodyText: Scalars['String']['input'];
+  nextDrawDate: Scalars['DateTime']['input'];
+  productImage?: InputMaybe<FileInputType>;
+  productTitle: Scalars['String']['input'];
+  productValue: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CmsUpdateNewsletterCompetitionResponse = {
+  __typename?: 'CmsUpdateNewsletterCompetitionResponse';
+  imagePutUrl?: Maybe<Scalars['String']['output']>;
+  newsletterCompetition: NewsletterCompetition;
+};
+
 export type CmsUpdatePartnerInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
@@ -1016,7 +1031,6 @@ export type Mutation = {
   analyzeProductImages: Product;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
-  cmsBackfillPayoutBankDetails: Scalars['Int']['output'];
   cmsCreateArticle: Article;
   cmsCreateBanner: CmsCreateBannerResponse;
   cmsCreateBrand: Brand;
@@ -1048,6 +1062,7 @@ export type Mutation = {
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
+  cmsUpdateNewsletterCompetition: CmsUpdateNewsletterCompetitionResponse;
   cmsUpdatePartner: CmsCreatePartnerResponse;
   cmsUpdateProduct: CmsUpdateProductResponse;
   cmsUpdateProject: Project;
@@ -1276,6 +1291,11 @@ export type MutationCmsUpdateFooterSectionArgs = {
 };
 
 
+export type MutationCmsUpdateNewsletterCompetitionArgs = {
+  input: CmsUpdateNewsletterCompetitionInput;
+};
+
+
 export type MutationCmsUpdatePartnerArgs = {
   input: CmsUpdatePartnerInput;
 };
@@ -1432,7 +1452,7 @@ export type MutationSetLikeProjectArgs = {
 
 
 export type MutationSignupNewsLetterArgs = {
-  email: Scalars['String']['input'];
+  input: SignupNewsLetterInput;
 };
 
 
@@ -1488,6 +1508,19 @@ export type NewPasswordInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
   resetPasswordToken: Scalars['String']['input'];
+};
+
+export type NewsletterCompetition = {
+  __typename?: 'NewsletterCompetition';
+  bodyText: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  nextDrawDate: Scalars['DateTime']['output'];
+  productImage?: Maybe<File>;
+  productTitle: Scalars['String']['output'];
+  productValue: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type OnboardSellerAccountInput = {
@@ -1887,6 +1920,7 @@ export type Query = {
   myPurchase?: Maybe<Purchase>;
   myPurchases: Array<Purchase>;
   nearbyServicePoints: Array<ServicePointResponse>;
+  newsletterCompetition: NewsletterCompetition;
   pageContentById: PageContent;
   pageContentByPage: PageContent;
   partners: Array<Partner>;
@@ -2319,6 +2353,12 @@ export enum ShippingProviderEnum {
   Dhl = 'DHL',
   Postnord = 'POSTNORD'
 }
+
+export type SignupNewsLetterInput = {
+  email: Scalars['String']['input'];
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+};
 
 export enum SystemMessageRoleEnum {
   Buyer = 'BUYER',
