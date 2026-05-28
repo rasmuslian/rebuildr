@@ -1,4 +1,5 @@
 import apiClient from "@/lib/api-client";
+import { FileInputType } from "gql/graphql";
 
 const query = `
   mutation CmsUpdateNewsletterCompetition($input: CmsUpdateNewsletterCompetitionInput!) {
@@ -6,6 +7,7 @@ const query = `
       imagePutUrl
       newsletterCompetition {
         id
+        title
         productTitle
         productValue
         bodyText
@@ -21,12 +23,7 @@ export type UpdateNewsletterCompetitionInput = {
   productValue: string;
   bodyText: string;
   nextDrawDate: Date;
-  productImage?: {
-    url: string;
-    name: string;
-    mimeType: string;
-    source: string;
-  };
+  productImage?: FileInputType;
 };
 
 export type UpdateNewsletterCompetitionResponse = {
@@ -36,12 +33,12 @@ export type UpdateNewsletterCompetitionResponse = {
 
 export const updateNewsletterCompetition = async (
   input: UpdateNewsletterCompetitionInput,
-): Promise<UpdateNewsletterCompetitionResponse> => {
+) => {
   const response = await apiClient.post<
     GraphQLResponse<{
       cmsUpdateNewsletterCompetition: UpdateNewsletterCompetitionResponse;
     }>
   >("/", { query, variables: { input } });
 
-  return response.data.data.cmsUpdateNewsletterCompetition;
+  return response.data.data?.cmsUpdateNewsletterCompetition;
 };
