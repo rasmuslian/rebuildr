@@ -489,6 +489,38 @@ enum BannerPresetBackground {
   METALLIC
 }
 
+type FooterSection {
+  id: ID!
+  title: String!
+  orderIndex: Float!
+  entries: [FooterSectionEntry!]!
+}
+
+type FooterSectionEntry {
+  id: ID!
+  type: FooterSectionEntryType!
+  label: String
+  url: String
+  orderIndex: Float!
+  articleId: String
+  footerSectionId: String!
+  article: Article
+}
+
+enum FooterSectionEntryType {
+  ARTICLE
+  LINK
+}
+
+type Article {
+  id: ID!
+  title: String!
+  slug: String!
+  body: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -701,38 +733,6 @@ type CmsListProjectsResponse {
   total: Int!
 }
 
-type FooterSection {
-  id: ID!
-  title: String!
-  orderIndex: Float!
-  entries: [FooterSectionEntry!]!
-}
-
-type FooterSectionEntry {
-  id: ID!
-  type: FooterSectionEntryType!
-  label: String
-  url: String
-  orderIndex: Float!
-  articleId: String
-  footerSectionId: String!
-  article: Article
-}
-
-enum FooterSectionEntryType {
-  ARTICLE
-  LINK
-}
-
-type Article {
-  id: ID!
-  title: String!
-  slug: String!
-  body: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
 type ListArticlesResponse {
   articles: [Article!]!
   total: Int!
@@ -784,6 +784,23 @@ type ListPageContentResponse {
 
 type CmsCreateBannerResponse {
   banner: Banner!
+  imagePutUrl: String
+}
+
+type NewsletterCompetition {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  title: String!
+  productTitle: String!
+  productValue: String!
+  bodyText: String!
+  nextDrawDate: DateTime!
+  productImage: File
+}
+
+type CmsUpdateNewsletterCompetitionResponse {
+  newsletterCompetition: NewsletterCompetition!
   imagePutUrl: String
 }
 
@@ -877,6 +894,7 @@ type Query {
   banners: [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
+  newsletterCompetition: NewsletterCompetition!
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
@@ -1184,7 +1202,7 @@ type Mutation {
   deleteAccount: User!
   onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
-  signupNewsLetter(email: String!): Boolean!
+  signupNewsLetter(input: SignupNewsLetterInput!): Boolean!
   createSellerAccount: SellerAccount!
   cmsCreateProduct(input: CmsCreateProductInput!): CmsCreateProductResponse!
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
@@ -1225,7 +1243,6 @@ type Mutation {
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
-  createSearchResult(input: CreateSearchResultInput!): SearchResult
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
@@ -1247,6 +1264,7 @@ type Mutation {
   updatePageContent(input: UpdatePageContentInput!): PageContent!
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
+  cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
 }
 
 input RegisterUserInput {
@@ -1348,6 +1366,12 @@ input OnboardSellerAccountInput {
 enum SellerAccountCapabilityEnum {
   PAYMENT
   FULL
+}
+
+input SignupNewsLetterInput {
+  email: String!
+  firstName: String
+  lastName: String
 }
 
 input CmsCreateProductInput {
@@ -1671,10 +1695,6 @@ input SetLikeProjectInput {
   like: Boolean!
 }
 
-input CreateSearchResultInput {
-  searchString: String!
-}
-
 input CreateReviewInput {
   purchaseId: String!
   review: String!
@@ -1780,4 +1800,13 @@ input CmsUpdateBannerInput {
   backgroundImage: FileInputType
   showFrom: DateTime!
   showTo: DateTime
+}
+
+input CmsUpdateNewsletterCompetitionInput {
+  title: String!
+  productTitle: String!
+  productValue: String!
+  bodyText: String!
+  nextDrawDate: DateTime!
+  productImage: FileInputType
 }

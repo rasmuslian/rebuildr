@@ -13,7 +13,6 @@ import {
 } from '@nestjs/graphql';
 import { AuthedUserType } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { ISearchResultLoaders } from 'src/dataloaders/search-result.loader';
 import { IUserLoaders } from 'src/dataloaders/user.loader';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -60,15 +59,6 @@ export class SearchResultResolver {
     @Args('input') input: GetSimilarSearchResultsInput,
   ) {
     return await this.searchResultService.getSimilarSearchResults(input);
-  }
-
-  @Mutation(() => SearchResult, { nullable: true })
-  @UseGuards(GqlOptionalAuthGuard)
-  async createSearchResult(
-    @Args('input') input: CreateSearchResultInput,
-    @CurrentUser() user?: AuthedUserType,
-  ): Promise<SearchResult> {
-    return await this.searchResultService.createSearchResult(input, user?.id);
   }
 
   @Mutation(() => Boolean)

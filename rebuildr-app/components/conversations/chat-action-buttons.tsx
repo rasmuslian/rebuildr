@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Button } from "@components/buttons/button";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { router } from "expo-router";
 import { gql, useMutation } from "@apollo/client";
 import {
@@ -17,6 +17,7 @@ import {
 import { useScreenType } from "@hooks/useScreenType";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { CONVERSATION } from "@/app/(app)/conversation/[conversationId]";
+import { QuantityStepper } from "@components/preview-product/quantity-stepper";
 
 const CONVERSATION_ACCEPT_PURCHASE = gql`
   mutation ConversationAcceptPurchase($input: AcceptPurchaseInput!) {
@@ -57,6 +58,8 @@ export const ChatActionButtons = ({
   const { setVisible: setBuyModalVisible, setContent: setBuyModalContent } =
     useBuyModalContext();
 
+  const [quantity, setQuantity] = useState<number>(1);
+
   const [acceptPurchase, { loading: acceptPurchaseLoading }] = useMutation<
     ConversationAcceptPurchaseMutation,
     ConversationAcceptPurchaseMutationVariables
@@ -69,24 +72,40 @@ export const ChatActionButtons = ({
   let firstButton: ReactNode = null;
   if (!purchase && product.status === ProductStatusEnum.Published) {
     firstButton = !sellerIsMe ? (
-      <Button
-        label="Köp"
-        onPress={() => {
-          if (isDesktop) {
-            setBuyModalContent({
-              buyState: "summary",
-              productId: product.id,
-            });
-            setBuyModalVisible(true);
-          } else {
-            router.navigate({
-              pathname: "/buy/[productId]",
-              params: { productId: product.id },
-            });
-          }
-        }}
-        disabled={me.type === UserType.Business}
-      />
+      <View style={{ gap: 8, minWidth: 200 }}>
+        {product.soldByQuantity && (
+          <QuantityStepper
+            value={quantity}
+            onChange={setQuantity}
+            max={product.primaryQuantity ?? 1}
+            unit={product.primaryUnit ?? undefined}
+          />
+        )}
+        <Button
+          label="Köp"
+          onPress={() => {
+            if (isDesktop) {
+              setBuyModalContent({
+                buyState: "summary",
+                productId: product.id,
+                quantity: product.soldByQuantity ? quantity : undefined,
+              });
+              setBuyModalVisible(true);
+            } else {
+              router.navigate({
+                pathname: "/buy/[productId]",
+                params: {
+                  productId: product.id,
+                  ...(product.soldByQuantity
+                    ? { quantity: String(quantity) }
+                    : {}),
+                },
+              });
+            }
+          }}
+          disabled={me.type === UserType.Business}
+        />
+      </View>
     ) : null;
   }
   if (purchase) {

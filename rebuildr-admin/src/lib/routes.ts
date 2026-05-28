@@ -47,4 +47,6 @@ export enum routes {
   STATISTICS = "/admin/statistics",
 
   LIST_SYSTEM_MESSAGES = "/admin/system-messages",
+
+  NEWSLETTER_COMPETITION = "/admin/newsletter",
 }

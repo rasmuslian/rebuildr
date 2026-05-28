@@ -100,7 +100,7 @@ export class UserService {
     query.where('u."deletedAt" IS NULL');
 
     if (input.name) {
-      query.andWhere(`u.username ILike '%${input.name}%'`);
+      query.andWhere(`u.username ILIKE :name`, { name: `%${input.name}%` });
     }
     if (input.hasProject) {
       query.andWhereExists(
@@ -110,7 +110,7 @@ export class UserService {
       );
     }
     if (input.type) {
-      query.andWhere(`u.type = '${input.type}'`);
+      query.andWhere(`u.type = :type`, { type: input.type });
     }
 
     query.orderBy('u."isFeatured"', 'DESC');

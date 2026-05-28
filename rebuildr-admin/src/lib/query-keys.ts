@@ -22,4 +22,5 @@ export enum queryKeys {
   LIST_PAGE_CONTENTS = "list-page-contents",
   LIST_BANNERS = "list-banners",
   GET_USER = "get-user",
+  NEWSLETTER_COMPETITION = "newsletter-competition",
 }

@@ -8,6 +8,7 @@ import {
   Root,
   Mutation,
   Int,
+  Context,
 } from '@nestjs/graphql';
 import { FooterSection } from 'src/entities/footer-section.entity';
 import { FooterSectionService } from 'src/services/footer-section.service';
@@ -20,7 +21,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
-import { FooterSectionEntryService } from 'src/services/footer-section-entry.service';
+import { IFooterSectionLoaders } from 'src/dataloaders/footer-section.loader';
 
 @InputType()
 export class FooterEntryInput {
@@ -69,10 +70,7 @@ export class CmsUpdateFooterSectionInput {
 
 @Resolver(() => FooterSection)
 export class FooterSectionResolver {
-  constructor(
-    private footerSectionService: FooterSectionService,
-    private footerSectionEntryService: FooterSectionEntryService,
-  ) {}
+  constructor(private footerSectionService: FooterSectionService) {}
 
   @Query(() => FooterSection)
   async footerSection(@Args('id') id: string) {
@@ -114,7 +112,9 @@ export class FooterSectionResolver {
   @ResolveField(() => [FooterSectionEntry])
   async entries(
     @Root() _footerSection: FooterSection,
+    @Context('footerSectionLoaders')
+    footerSectionLoaders: IFooterSectionLoaders,
   ): Promise<FooterSectionEntry[]> {
-    return await this.footerSectionEntryService.findMany(_footerSection.id);
+    return await footerSectionLoaders.entriesLoader.load(_footerSection.id);
   }
 }

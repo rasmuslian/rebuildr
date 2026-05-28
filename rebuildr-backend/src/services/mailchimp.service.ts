@@ -47,11 +47,23 @@ export class MailchimpService implements OnModuleInit {
     return mailchimp.ping.get();
   }
 
-  async addSubscriberToNewsletterList(email: string): Promise<boolean> {
+  async addSubscriberToNewsletterList(
+    email: string,
+    firstName?: string,
+    lastName?: string,
+  ): Promise<boolean> {
     try {
       await mailchimp.lists.addListMember(this.newsletterListId, {
         email_address: email,
         status: 'subscribed',
+        ...(firstName || lastName
+          ? {
+              merge_fields: {
+                ...(firstName ? { FNAME: firstName } : {}),
+                ...(lastName ? { LNAME: lastName } : {}),
+              },
+            }
+          : {}),
       });
 
       return true;
@@ -60,7 +72,7 @@ export class MailchimpService implements OnModuleInit {
       const title = err.response?.body?.title;
 
       if (title === 'Member Exists') {
-        throw BadUserInputException('Email redan finns!');
+        throw BadUserInputException('Denna email är redan prenumerant!');
       }
 
       throw BadUserInputException('Lyckades inte lägga till email!');

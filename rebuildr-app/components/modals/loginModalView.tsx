@@ -31,7 +31,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Header } from "@components/navigation/headers/header";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GTMTagEnum } from "@constants/google-tag-manager";
 
 const LOGIN = gql`
@@ -110,7 +110,11 @@ const LoginModalView = () => {
         isLoggedInVar(true);
         reset();
         setVisible(false);
-        reloadAppAsync();
+        if (Platform.OS === "web") {
+          window.location.replace("/");
+        } else {
+          reloadAppAsync();
+        }
       },
       onError: () => {
         setWrongPassword(true);

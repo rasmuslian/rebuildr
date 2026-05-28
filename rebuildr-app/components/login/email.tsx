@@ -48,7 +48,7 @@ export default function Email({ onSubmit, initialEmail }: Props) {
                 onEnterEmail(email);
               }
             },
-            error,
+            error: "Felaktig e-postadress",
           },
         ]}
       />

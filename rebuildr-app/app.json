@@ -28,7 +28,8 @@
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "plugins": [
       [
@@ -46,7 +47,12 @@
         }
       ],
       "expo-font",
-      "expo-router"
+      [
+        "expo-router",
+        {
+          "sitemap": false
+        }
+      ]
     ]
   }
 }

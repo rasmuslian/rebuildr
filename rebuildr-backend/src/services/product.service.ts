@@ -676,7 +676,8 @@ export class ProductService {
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
         .andWhere(
-          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE '${input.searchString}%' )`,
+          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE :titleSearch )`,
+          { titleSearch: `${input.searchString}%` },
         )
         .addSelect('rp.resultrank', 'resultrank');
     }
@@ -766,13 +767,13 @@ export class ProductService {
     input: ProductsInput,
     _limit?: number,
     offset?: number,
-    userId?: string,
+    currentUserId?: string,
   ) {
     const query = this.productRepository.createQueryBuilder('p');
 
     //Only admin will see hidden products
-    if (userId) {
-      const user = await this.userRepository.findOneBy({ id: userId });
+    if (currentUserId) {
+      const user = await this.userRepository.findOneBy({ id: currentUserId });
       if (!user) {
         throw BadUserInputException('Invalid user');
       }
@@ -825,8 +826,8 @@ export class ProductService {
       query.setParameter('origin', origin);
     }
 
-    if (input.excludeOwnProducts && userId) {
-      query.andWhere('p.sellerId != :userId', { userId });
+    if (input.excludeOwnProducts && currentUserId) {
+      query.andWhere('p.sellerId != :currentUserId', { currentUserId });
     }
     query.addOrderBy('p."status"');
     switch (input.orderBy) {
@@ -869,9 +870,18 @@ export class ProductService {
     const limit = _limit ?? 20;
     query.limit(limit > 40 ? 40 : limit);
     query.offset((offset ?? 0) * limit);
-    query.addSelect('count(*) over() as total');
 
     const result = await query.getManyAndCount();
+
+    //Create search result if this search yielded any result
+    if (result[1] && input.searchString && currentUserId) {
+      this.searchResultService.createSearchResult(
+        {
+          searchString: input.searchString,
+        },
+        currentUserId,
+      );
+    }
 
     return {
       products: result[0],
@@ -1247,7 +1257,8 @@ export class ProductService {
           SELECT pc.id from product p
             INNER JOIN category c ON c.id = p."categoryId"
             INNER join category pc on pc.id = c."parentId"
-            WHERE p.id = '${similarToProductId}')`,
+            WHERE p.id = :similarToProductId)`,
+        { similarToProductId },
       )
       .where('p.id != :similarToProductId', { similarToProductId })
       .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`)
