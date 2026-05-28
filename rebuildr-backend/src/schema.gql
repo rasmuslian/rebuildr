@@ -489,6 +489,38 @@ enum BannerPresetBackground {
   METALLIC
 }
 
+type FooterSection {
+  id: ID!
+  title: String!
+  orderIndex: Float!
+  entries: [FooterSectionEntry!]!
+}
+
+type FooterSectionEntry {
+  id: ID!
+  type: FooterSectionEntryType!
+  label: String
+  url: String
+  orderIndex: Float!
+  articleId: String
+  footerSectionId: String!
+  article: Article
+}
+
+enum FooterSectionEntryType {
+  ARTICLE
+  LINK
+}
+
+type Article {
+  id: ID!
+  title: String!
+  slug: String!
+  body: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -699,38 +731,6 @@ type CmsReassignBrandResponse {
 type CmsListProjectsResponse {
   projects: [Project!]!
   total: Int!
-}
-
-type FooterSection {
-  id: ID!
-  title: String!
-  orderIndex: Float!
-  entries: [FooterSectionEntry!]!
-}
-
-type FooterSectionEntry {
-  id: ID!
-  type: FooterSectionEntryType!
-  label: String
-  url: String
-  orderIndex: Float!
-  articleId: String
-  footerSectionId: String!
-  article: Article
-}
-
-enum FooterSectionEntryType {
-  ARTICLE
-  LINK
-}
-
-type Article {
-  id: ID!
-  title: String!
-  slug: String!
-  body: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
 }
 
 type ListArticlesResponse {

@@ -96,6 +96,7 @@ import { ArticleService } from './services/article.service';
 import { FooterSection } from './entities/footer-section.entity';
 import { FooterSectionResolver } from './resolvers/footer-section.resolver';
 import { FooterSectionService } from './services/footer-section.service';
+import { FooterSectionLoader } from './dataloaders/footer-section.loader';
 import { FooterSectionEntry } from './entities/footer-section-entry.entity';
 import { FooterSectionEntryService } from './services/footer-section-entry.service';
 import { FooterSectionEntryResolver } from './resolvers/footer-section-entry.resolver';
@@ -215,6 +216,7 @@ export interface RequestType {
         PartnerLoader,
         BrandLoader,
         BannerLoader,
+        FooterSectionLoader,
         ConfigService,
       ],
       useFactory: (
@@ -230,6 +232,7 @@ export interface RequestType {
         partnerLoaderService: PartnerLoader,
         brandLoaderService: BrandLoader,
         bannerLoaderService: BannerLoader,
+        footerSectionLoaderService: FooterSectionLoader,
         configService: ConfigService<EnvironmentVariables>,
       ) => {
         const isProd = configService.get('NODE_ENV') === 'production';
@@ -250,6 +253,7 @@ export interface RequestType {
             partnerLoaders: partnerLoaderService.createLoaders(),
             brandLoaders: brandLoaderService.createLoaders(),
             bannerLoaders: bannerLoaderService.createLoaders(),
+            footerSectionLoaders: footerSectionLoaderService.createLoaders(),
             req,
             res,
           }),

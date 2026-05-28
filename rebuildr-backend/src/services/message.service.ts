@@ -133,7 +133,7 @@ export class MessageService {
     if (!conversation) {
       //Find the latest conversation on productId with buyerId which does not yet have a purchase
       //There could potentially be more than one but we take the latest conversation
-      //and connect it to the purchaseId. This convo and its earlies messages are now part of this
+      //and connect it to the purchaseId. This convo and its earlier messages are now part of this
       //purchase
       const latestConversation = await this.conversationRepository.findOne({
         where: [
