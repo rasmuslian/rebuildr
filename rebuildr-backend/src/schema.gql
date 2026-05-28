@@ -1243,7 +1243,6 @@ type Mutation {
   createProject(input: CreateProjectInput!): Project!
   updateProject(input: UpdateProjectInput!): Project!
   setLikeProject(input: SetLikeProjectInput!): Project!
-  createSearchResult(input: CreateSearchResultInput!): SearchResult
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
@@ -1694,10 +1693,6 @@ input UpdateProjectInput {
 input SetLikeProjectInput {
   id: String!
   like: Boolean!
-}
-
-input CreateSearchResultInput {
-  searchString: String!
 }
 
 input CreateReviewInput {
