@@ -34,11 +34,10 @@ export type NewsletterCompetitionData = {
   } | null;
 };
 
-export const getNewsletterCompetition =
-  async (): Promise<NewsletterCompetitionData> => {
-    const response = await apiClient.post<
-      GraphQLResponse<{ newsletterCompetition: NewsletterCompetitionData }>
-    >("/", { query });
+export const getNewsletterCompetition = async () => {
+  const response = await apiClient.post<
+    GraphQLResponse<{ newsletterCompetition: NewsletterCompetitionData }>
+  >("/", { query });
 
-    return response.data.data.newsletterCompetition;
-  };
+  return response.data.data?.newsletterCompetition;
+};
