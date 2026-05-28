@@ -728,7 +728,6 @@ export class ProductResolver {
     return this.productService.cmsListProducts(input);
   }
 
-
   @Mutation(() => CmsCreateProductResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -850,8 +849,11 @@ export class ProductResolver {
   }
 
   @ResolveField(() => Category, { nullable: true })
-  async category(@Root() _product: Product) {
-    return this.categoryService.findOne(_product.categoryId);
+  async category(
+    @Root() _product: Product,
+    @Context('productLoaders') productLoaders: IProductLoaders,
+  ) {
+    return productLoaders.categoryLoader.load(_product.id);
   }
 
   @ResolveField(() => User)
