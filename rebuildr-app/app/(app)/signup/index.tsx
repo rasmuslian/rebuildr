@@ -8,6 +8,7 @@ import { Label, Title, Display, Body } from "@components/typography/text";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import TopBar from "@components/navigation/top-bar/top-bar";
+import Svg, { Path as SvgPath } from "react-native-svg";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import {
   ComingSoonSignUpMutation,
@@ -114,6 +115,25 @@ export default function CompetitionPage() {
         </Title>
       </View>
       <Divider />
+    </View>
+  );
+
+  const heroCurveOverlay = (
+    <View
+      pointerEvents="none"
+      style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
+    >
+      <Svg
+        width="100%"
+        height={29}
+        viewBox="0 0 375 29"
+        preserveAspectRatio="none"
+      >
+        <SvgPath
+          d="M0 0 C0 0 92 29 187.5 29 C283 29 375 0 375 0 L375 29 L0 29 Z"
+          fill={colors.background.neutral}
+        />
+      </Svg>
     </View>
   );
 
@@ -306,13 +326,18 @@ export default function CompetitionPage() {
           <ImageBackground
             source={require("@assets/images/main-background.png")}
             resizeMode="cover"
-            style={{
-              backgroundColor: colors.logo.vector,
-              width: "100%",
-              overflow: "hidden",
-              borderRadius: borderRadius.medium,
-              minHeight: 320,
-            }}
+            style={[
+              {
+                backgroundColor: colors.logo.vector,
+                width: "100%",
+                overflow: "hidden",
+                minHeight: 320,
+              },
+              {
+                clipPath:
+                  "polygon(0 0, 100% 0, 100% 92%, 87.5% 94%, 75% 97%, 62.5% 99%, 50% 100%, 37.5% 99%, 25% 97%, 12.5% 94%, 0 92%)",
+              } as any,
+            ]}
           >
             {headerContent}
             <View
@@ -375,7 +400,7 @@ export default function CompetitionPage() {
                 <Title
                   size="small"
                   color="secondary"
-                  style={{ textAlign: "center" }}
+                  style={{ textAlign: "center", color: primitives.primary300 }}
                 >
                   Värde:{" "}
                   {competition?.productValue
@@ -413,7 +438,7 @@ export default function CompetitionPage() {
             backgroundColor: colors.logo.vector,
             width: "100%",
             overflow: "hidden",
-            minHeight: 300,
+            minHeight: 400,
           }}
         >
           {headerContent}
@@ -437,16 +462,17 @@ export default function CompetitionPage() {
               color="primaryLight"
               style={{
                 textAlign: "center",
+                marginHorizontal: 32,
               }}
             >
-              {competition?.title ??
-                "Vinn verktyg\nför 10 000 kr\nvarje vecka."}
+              {competition?.title}
             </Display>
           </View>
+          {heroCurveOverlay}
         </ImageBackground>
 
         {/* Product card */}
-        <View style={{ alignItems: "center", marginTop: -32 }}>
+        <View style={{ alignItems: "center", marginTop: -82 }}>
           <View
             style={{
               width: 343,
@@ -483,6 +509,7 @@ export default function CompetitionPage() {
                 color="secondary"
                 style={{
                   textAlign: "center",
+                  color: primitives.primary300,
                 }}
               >
                 Värde:{" "}
@@ -519,7 +546,7 @@ const SignupSuccess = ({ show, onDismiss }: SignupSuccessProps) => {
       <View>
         <Image
           source={BottomsheetPopupHero}
-          style={{ height: 103 }}
+          style={{ width: "100%", aspectRatio: 3 / 1 }}
           contentFit="contain"
         />
       </View>
@@ -535,15 +562,15 @@ const SignupSuccess = ({ show, onDismiss }: SignupSuccessProps) => {
         >
           Välkommen till oss!
         </Title>
-        <Title size="small" color="secondary" style={{ textAlign: "center" }}>
+        <Body size="medium" style={{ textAlign: "center" }}>
           Du är nu registrerad som prenumerant hos oss och är med i tävlingen.
           Köp och sälj något redan idag på RebuildR - hitta något unikt för ditt
           byggprojekt, stort som litet.
-        </Title>
-        <Title size="small" color="secondary" style={{ textAlign: "center" }}>
+        </Body>
+        <Body size="medium" style={{ textAlign: "center" }}>
           Registrera ditt användarkonto här och få ytterligare vinstchans i
           dragningen:
-        </Title>
+        </Body>
       </View>
 
       {/* CTA */}
@@ -567,20 +594,20 @@ const SignupSuccess = ({ show, onDismiss }: SignupSuccessProps) => {
       </View>
 
       {/* Support email */}
-      <Title
-        size="small"
+      <Body
+        size="medium"
         color="secondary"
         style={{ textAlign: "center", paddingHorizontal: 52 }}
       >
         Om du har några frågor, kontakta oss på{" "}
-        <Title
-          size="small"
+        <Body
+          size="medium"
           isLink
           onPress={() => Linking.openURL("mailto:support@rebuildr.org")}
         >
           support@rebuildr.org
-        </Title>
-      </Title>
+        </Body>
+      </Body>
 
       {/* Logo */}
       <View style={{ alignItems: "center" }}>
