@@ -26,3 +26,6 @@ export const apolloBadFieldsError = (e: ApolloError) => {
 
   return badFieldsError.fields;
 };
+
+export const apolloIsNotFoundError = (e: ApolloError) =>
+  e.graphQLErrors.some((gqlError) => gqlError.extensions?.code === "NOT_FOUND");
