@@ -11,6 +11,8 @@ import ParseHtml from "@components/article/parse-html";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { View } from "react-native";
+import CustomNotFound from "@/app/+not-found";
+import { apolloIsNotFoundError } from "@/utils/apollo-errors";
 
 const GET_ARTICLE_BY_SLUG = gql`
   query GetArticleBySlug($slug: String!) {
@@ -26,12 +28,16 @@ export default function ArticlePage() {
   const { isDesktop } = useScreenType();
   const { slug } = useLocalSearchParams<{ slug: string }>();
 
-  const { data, loading } = useQuery<
+  const { data, loading, error } = useQuery<
     GetArticleBySlugQuery,
     GetArticleBySlugQueryVariables
   >(GET_ARTICLE_BY_SLUG, {
     variables: { slug },
   });
+
+  if (error && apolloIsNotFoundError(error)) {
+    return <CustomNotFound />;
+  }
 
   if (isDesktop) {
     return (
