@@ -4,13 +4,17 @@ import { useUser } from "@hooks/useUser";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
 import { EditProject } from "@components/project/edit-project";
+import { useRequireAuth } from "@components/require-auth/require-auth";
 
 export default function EditProjectPage() {
   const { me } = useUser();
+  const { redirect } = useRequireAuth();
   const { projectId, ownerId } = useLocalSearchParams<{
     projectId: string;
     ownerId: string;
   }>();
+
+  if (redirect) return redirect;
 
   const isMyProject = ownerId && ownerId === me?.id;
 

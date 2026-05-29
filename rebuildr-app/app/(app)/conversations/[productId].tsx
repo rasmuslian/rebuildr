@@ -19,6 +19,7 @@ import { ProductConversationsList } from "@components/conversations/product-conv
 import { useScreenType } from "@hooks/useScreenType";
 import { ConversationsDesktop } from "@components/conversations/conversations.desktop";
 import { GET_CONVERSATIONS } from "@/app/(app)/(tabs)/conversations";
+import { useRequireAuth } from "@components/require-auth/require-auth";
 
 export const PRODUCT_CONVERSATIONS = gql`
   query productConversations($input: GetConversationsInput!) {
@@ -96,13 +97,14 @@ export default function ConversationsProduct() {
     productId: string;
   }>();
   const { isDesktop } = useScreenType();
+  const { isLoggedIn, redirect } = useRequireAuth();
 
   const { data: desktopData, refetch: desktopRefetch } = useQuery<
     GetConversationsQuery,
     GetConversationsQueryVariables
   >(GET_CONVERSATIONS, {
     variables: { input: { type: GetConversationsType.BuyingAndSelling } },
-    skip: !isDesktop,
+    skip: !isDesktop || !isLoggedIn,
   });
 
   const { data } = useQuery<
@@ -115,6 +117,7 @@ export default function ConversationsProduct() {
         type: GetConversationsType.BuyingAndSelling,
       },
     },
+    skip: !isLoggedIn,
     fetchPolicy: "network-only",
   });
 
@@ -132,6 +135,8 @@ export default function ConversationsProduct() {
       });
     }
   }, [data, isDesktop]);
+
+  if (redirect) return redirect;
 
   if (isDesktop) {
     if (!desktopData) return <LoadingSpinner />;

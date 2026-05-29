@@ -12,6 +12,7 @@ import { MessageInput } from "@components/conversations/message-input";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
+import { useRequireAuth } from "@components/require-auth/require-auth";
 import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 
@@ -41,11 +42,14 @@ const NEW_CONVERSATION_PRODUCT = gql`
 
 export default function NewConversation() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
+  const { isLoggedIn, redirect } = useRequireAuth();
 
   const { data } = useQuery<InitialChatQuery, InitialChatQueryVariables>(
     NEW_CONVERSATION_PRODUCT,
-    { variables: { input: { id: productId } } },
+    { variables: { input: { id: productId } }, skip: !isLoggedIn },
   );
+
+  if (redirect) return redirect;
 
   if (!data) {
     return <LoadingSpinner />;

@@ -2,10 +2,13 @@ import { AccountState } from "@components/account/account-wrapper.desktop";
 import { useScreenType } from "@hooks/useScreenType";
 import { router, usePathname } from "expo-router";
 import { PropsWithChildren, useEffect } from "react";
+import { useReactiveVar } from "@apollo/client";
+import { isLoggedInVar } from "@/apollo/config";
 
 export const ReRouteHandler = ({ children }: PropsWithChildren) => {
   const pathname = usePathname();
   const { isDesktop } = useScreenType();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
 
   const navigateToLandingAccountModal = (page: AccountState["page"]) => {
     router.navigate({
@@ -21,6 +24,27 @@ export const ReRouteHandler = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (!isDesktop) {
+      return;
+    }
+
+    switch (pathname) {
+      case "/categories": {
+        router.navigate({
+          pathname: "/",
+          params: { category: "all" },
+        });
+        break;
+      }
+      case "/search":
+        router.navigate({
+          pathname: "/search/products",
+        });
+        break;
+      default:
+        break;
+    }
+
+    if (!isLoggedIn) {
       return;
     }
 
@@ -48,18 +72,6 @@ export const ReRouteHandler = ({ children }: PropsWithChildren) => {
         break;
       case "/account/settings/add-business":
         navigateToLandingAccountModal("business-add");
-        break;
-      case "/categories": {
-        router.navigate({
-          pathname: "/",
-          params: { category: "all" },
-        });
-        break;
-      }
-      case "/search":
-        router.navigate({
-          pathname: "/search/products",
-        });
         break;
       default:
         break;
@@ -115,7 +127,7 @@ export const ReRouteHandler = ({ children }: PropsWithChildren) => {
         },
       });
     }
-  }, [pathname, isDesktop]);
+  }, [pathname, isDesktop, isLoggedIn]);
 
   return <>{children}</>;
 };
