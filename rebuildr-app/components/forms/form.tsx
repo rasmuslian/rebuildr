@@ -22,7 +22,7 @@ export type BaseFieldProps = {
 
 type FieldType =
   | (BaseFieldProps & Omit<TextInputProps, "error"> & { type: "text" })
-  | (BaseFieldProps & MaskedInputProps & { type: "masked" })
+  | (BaseFieldProps & Omit<MaskedInputProps, "error"> & { type: "masked" })
   | (BaseFieldProps & SearchInputProps & { type: "search" })
   | (BaseFieldProps & Omit<PriceInputProps, "error"> & { type: "price" })
   | (BaseFieldProps & SelectInputProps<string> & { type: "select" })

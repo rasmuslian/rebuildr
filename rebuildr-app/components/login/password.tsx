@@ -35,7 +35,7 @@ export default function Password({
             heading: "Lösenord",
             onChangeText: (text) => setPassword(text),
             value: password,
-            error: wrongPassword,
+            error: wrongPassword ? "Felaktigt lösenord" : undefined,
           },
         ]}
       />
