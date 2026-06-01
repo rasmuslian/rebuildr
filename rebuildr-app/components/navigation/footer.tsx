@@ -144,7 +144,9 @@ export default function Footer() {
               </Pressable>
 
               <Pressable
-                onPress={() => Linking.openURL("https://rebuildr.substack.com")}
+                onPress={() =>
+                  Linking.openURL("https://rebuildr.substack.com/archive")
+                }
               >
                 <Icon icon="substack" color="primaryLight" />
               </Pressable>

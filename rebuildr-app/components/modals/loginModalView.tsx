@@ -33,6 +33,8 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Header } from "@components/navigation/headers/header";
 import { Platform, View } from "react-native";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { WelcomeRegistrationModal } from "@components/modals/welcome-registration-modal";
+import { useSellProductContext } from "@context/sell-product-context";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -79,6 +81,8 @@ const LoginModalView = () => {
   const [state, setState] = useState<
     "email" | "password" | "forgotPassword" | "verify" | "details" | "business"
   >("email");
+  const [showWelcome, setShowWelcome] = useState(false);
+  const { setVisible: setSellVisible } = useSellProductContext();
 
   const [login, { loading }] = useMutation(LOGIN);
   const { logout } = useLogout();
@@ -263,7 +267,7 @@ const LoginModalView = () => {
         key="details"
         onDone={() => {
           setVisible(false);
-          router.replace("/");
+          setShowWelcome(true);
         }}
         onCreateBusiness={onCreateBusiness}
         onExit={() => {
@@ -278,8 +282,8 @@ const LoginModalView = () => {
       <CreateBusiness
         key="business"
         onDone={() => {
-          reloadAppAsync();
           setVisible(false);
+          setShowWelcome(true);
         }}
         onExit={() => {
           reloadAppAsync();
@@ -312,20 +316,31 @@ const LoginModalView = () => {
     onBackFunction = () => setState("password");
   }
 
-  if (isDesktop) {
-    return (
-      <SlideInSheet
-        title={getTitle()}
-        open={visible}
-        onClose={handleClosePress}
-        style={{ flex: 1 }}
-      >
-        {viewChildren}
-      </SlideInSheet>
-    );
-  }
+  const handleWelcomeClose = () => {
+    setShowWelcome(false);
+    reset();
 
-  return (
+    router.replace("/");
+  };
+
+  const handleWelcomeCreateListing = () => {
+    setShowWelcome(false);
+    reset();
+
+    router.replace("/");
+    setSellVisible(true);
+  };
+
+  const loginModal = isDesktop ? (
+    <SlideInSheet
+      title={getTitle()}
+      open={visible}
+      onClose={handleClosePress}
+      style={{ flex: 1 }}
+    >
+      {viewChildren}
+    </SlideInSheet>
+  ) : (
     <BottomSheet
       name="login"
       scrollable={["verify", "details", "business"].includes(state)}
@@ -353,6 +368,17 @@ const LoginModalView = () => {
         {viewChildren}
       </View>
     </BottomSheet>
+  );
+
+  return (
+    <>
+      {loginModal}
+      <WelcomeRegistrationModal
+        open={showWelcome}
+        onClose={handleWelcomeClose}
+        onCreateListing={handleWelcomeCreateListing}
+      />
+    </>
   );
 };
 
