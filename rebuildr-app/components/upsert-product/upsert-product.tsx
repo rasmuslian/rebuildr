@@ -14,7 +14,7 @@ import {
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { FileType, ProductFields } from "@components/upsert-product/types";
+import { FileType, ProductFields, PublishedProductData } from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
 import { trackEvent } from "@/utils/analytics";
 import { ProgressHeader } from "@components/product/progress-header";
@@ -170,7 +170,7 @@ type Props = {
   visible: boolean;
   loading?: boolean;
   onHide: () => void;
-  onPublished: () => void;
+  onPublished: (product?: PublishedProductData) => void;
 };
 
 export const UpsertProduct = ({
@@ -532,7 +532,17 @@ export const UpsertProduct = ({
     if (result) {
       if (published) {
         trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
-        onFinish();
+        const publishedData: PublishedProductData = {
+          title: product.title,
+          imageUrl: product.images?.[0]?.uri,
+          condition: product.condition,
+          primaryQuantity: product.primaryQuantity,
+          primaryUnit: product.primaryUnit,
+          price: product.price,
+          isGiveaway: product.isGiveaway,
+          soldByQuantity: product.soldByQuantity,
+        };
+        onFinish(publishedData);
       } else {
         onClose();
       }
@@ -779,9 +789,9 @@ export const UpsertProduct = ({
     reset();
     onHide();
   };
-  const onFinish = () => {
+  const onFinish = (publishedData?: PublishedProductData) => {
     reset();
-    onPublished();
+    onPublished(publishedData);
   };
 
   const showFooter = step === "preview";

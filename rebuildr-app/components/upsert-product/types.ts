@@ -17,6 +17,17 @@ export type FileType = {
   name?: string | null;
 };
 
+export type PublishedProductData = {
+  title?: string;
+  imageUrl?: string;
+  condition: ProductConditionEnum;
+  primaryQuantity?: number;
+  primaryUnit?: QuantityUnitEnum;
+  price?: number;
+  isGiveaway?: boolean;
+  soldByQuantity?: boolean;
+};
+
 export type ProductFields = {
   //initial
   categoryIds?: string[];
