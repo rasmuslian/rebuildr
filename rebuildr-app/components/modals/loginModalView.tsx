@@ -82,7 +82,6 @@ const LoginModalView = () => {
     "email" | "password" | "forgotPassword" | "verify" | "details" | "business"
   >("email");
   const [showWelcome, setShowWelcome] = useState(false);
-  const [needsReload, setNeedsReload] = useState(false);
   const { setVisible: setSellVisible } = useSellProductContext();
 
   const [login, { loading }] = useMutation(LOGIN);
@@ -283,7 +282,6 @@ const LoginModalView = () => {
       <CreateBusiness
         key="business"
         onDone={() => {
-          setNeedsReload(true);
           setVisible(false);
           setShowWelcome(true);
         }}
@@ -321,24 +319,16 @@ const LoginModalView = () => {
   const handleWelcomeClose = () => {
     setShowWelcome(false);
     reset();
-    if (needsReload) {
-      setNeedsReload(false);
-      reloadAppAsync();
-    } else {
-      router.replace("/");
-    }
+
+    router.replace("/");
   };
 
   const handleWelcomeCreateListing = () => {
     setShowWelcome(false);
     reset();
-    if (needsReload) {
-      setNeedsReload(false);
-      reloadAppAsync();
-    } else {
-      router.replace("/");
-      setSellVisible(true);
-    }
+
+    router.replace("/");
+    setSellVisible(true);
   };
 
   const loginModal = isDesktop ? (
