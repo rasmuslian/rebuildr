@@ -20,6 +20,7 @@ import { View } from "react-native";
 import { PRODUCT_CONVERSATIONS } from "../conversations/[productId]";
 import { ChatHeader } from "@components/conversations/chat-header";
 import { useScreenType } from "@hooks/useScreenType";
+import { useRequireAuth } from "@components/require-auth/require-auth";
 
 export const CONVERSATION = gql`
   query Conversation($input: GetConversationInput!) {
@@ -108,6 +109,7 @@ export const CONVERSATION = gql`
 export default function ConversationProduct() {
   const [showReviewSheet, setShowReviewSheet] = useState(false);
   const { isDesktop } = useScreenType();
+  const { isLoggedIn, redirect } = useRequireAuth();
 
   const { conversationId } = useLocalSearchParams<{
     conversationId: string;
@@ -121,6 +123,7 @@ export default function ConversationProduct() {
         id: conversationId,
       },
     },
+    skip: !isLoggedIn,
     onCompleted(data) {
       onMarkConversationAsRead({
         conversationId,
@@ -130,6 +133,8 @@ export default function ConversationProduct() {
   });
 
   const { onMarkConversationAsRead } = useMarkConversationAsRead();
+
+  if (redirect) return redirect;
 
   const sellerIsMe = data?.me.id === data?.getConversation.product.seller.id;
 
