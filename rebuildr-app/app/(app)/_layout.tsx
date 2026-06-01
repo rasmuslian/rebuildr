@@ -35,7 +35,7 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="product" />
+      <Stack.Screen name="product/[productId]" />
       <Stack.Screen name="conversations" />
       <Stack.Screen name="account" />
       <Stack.Screen name="search" />

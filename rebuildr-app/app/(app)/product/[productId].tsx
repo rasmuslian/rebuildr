@@ -13,6 +13,7 @@ import { ProductMobile } from "@components/product/product.mobile";
 import { ProductDesktop } from "@components/product/product.desktop";
 import { useLocationContext } from "@context/location-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
+import CustomNotFound from "@/app/+not-found";
 
 const PRODUCT_VIEW = gql`
   query ProductView(
@@ -39,20 +40,24 @@ export default function Product() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { isDesktop } = useScreenType();
 
-  const { data } = useQuery<ProductViewQuery, ProductViewQueryVariables>(
-    PRODUCT_VIEW,
-    {
-      variables: {
-        input: { id: productId },
-        isLoggedIn,
-        distanceFrom: userCoords
-          ? { lat: userCoords.latitude, lng: userCoords.longitude }
-          : undefined,
-      },
+  const { data, loading, error } = useQuery<
+    ProductViewQuery,
+    ProductViewQueryVariables
+  >(PRODUCT_VIEW, {
+    variables: {
+      input: { id: productId },
+      isLoggedIn,
+      distanceFrom: userCoords
+        ? { lat: userCoords.latitude, lng: userCoords.longitude }
+        : undefined,
     },
-  );
+  });
 
-  if (!data) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
+  if (error || !data) {
+    return <CustomNotFound />;
+  }
+
   const product = data.product;
   const me = data.me;
 
