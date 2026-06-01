@@ -9,6 +9,10 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
 import { Image } from "expo-image";
 import { View } from "react-native";
+import { Icon } from "@icons/icon";
+import { primitives } from "@constants/colors";
+import { useUser } from "@hooks/useUser";
+import { router } from "expo-router";
 
 type Props = {
   open: boolean;
@@ -19,22 +23,53 @@ type Props = {
 export const PublishSuccessSheet = ({ open, onDismiss, product }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
+  const user = useUser();
 
   const content = (
     <View style={{ alignItems: "center", gap: 16, paddingBottom: 8 }}>
       {product?.imageUrl && (
-        <Image
-          source={{ uri: product.imageUrl }}
-          style={{ width: 98, height: 98, borderRadius: borderRadius.small }}
-        />
+        <View>
+          <Image
+            source={{ uri: product.imageUrl }}
+            style={{ width: 98, height: 98, borderRadius: borderRadius.small }}
+          />
+          <View
+            style={{
+              borderRadius: 300,
+              backgroundColor: primitives.primary400,
+              padding: 8,
+              position: "absolute",
+              right: -10,
+              top: -10,
+            }}
+          >
+            <Icon icon="check" color="primaryLight" size={18} />
+          </View>
+        </View>
       )}
       <View style={{ gap: 8, alignItems: "center" }}>
         <Title size="medium" style={{ textAlign: "center" }}>
           Utmärkt!
         </Title>
-        <Body size="small" style={{ textAlign: "center" }}>
-          Om ett par minuter är annonsen synlig på RebuildR.
-        </Body>
+        {user.me && (
+          <Body size="small" style={{ textAlign: "center" }}>
+            Din annons är nu publicerad på RebuildR. Andra kan se den i flödet,
+            och du hittar den själv under{" "}
+            <Body
+              size="small"
+              onPress={() => {
+                router.navigate({
+                  pathname: "/product-list/[userId]",
+                  params: { userId: user.me!.id },
+                });
+                onDismiss();
+              }}
+            >
+              Dina annonser
+            </Body>
+            .
+          </Body>
+        )}
       </View>
       {product && (
         <View
@@ -45,6 +80,7 @@ export const PublishSuccessSheet = ({ open, onDismiss, product }: Props) => {
             paddingTop: 16,
             paddingBottom: 12,
             paddingHorizontal: 16,
+            marginTop: 8,
           }}
         >
           <AdList
@@ -74,30 +110,12 @@ export const PublishSuccessSheet = ({ open, onDismiss, product }: Props) => {
     );
   }
 
-  const header = (
-    <View style={{ marginTop: 8, marginBottom: 24 }}>
-      <View style={{ alignItems: "center" }}>
-        <View
-          style={{
-            width: 74,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: colors.dividers.neutral,
-          }}
-        />
-      </View>
-      <View style={{ position: "absolute", right: 0, top: -8 }}>
-        <Button icon="X" type="text" onPress={onDismiss} />
-      </View>
-    </View>
-  );
-
   return (
     <BottomSheet
       name="publicerad-annons"
       open={open}
       onDismiss={onDismiss}
-      header={header}
+      title="Din annons har publicerats!"
     >
       {content}
     </BottomSheet>

@@ -14,7 +14,11 @@ import {
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
-import { FileType, ProductFields, PublishedProductData } from "@components/upsert-product/types";
+import {
+  FileType,
+  ProductFields,
+  PublishedProductData,
+} from "@components/upsert-product/types";
 import { useEffect, useState } from "react";
 import { trackEvent } from "@/utils/analytics";
 import { ProgressHeader } from "@components/product/progress-header";
