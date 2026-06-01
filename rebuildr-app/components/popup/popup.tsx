@@ -1,16 +1,23 @@
 import { Button } from "@components/buttons/button";
 import { primitives } from "@constants/colors";
 import { Portal } from "@gorhom/portal";
-import { PropsWithChildren, useEffect, useMemo, useRef } from "react";
+import {
+  PropsWithChildren,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Animated, Easing, Pressable, View } from "react-native";
 
 type Props = {
   open: boolean;
   onClose?: () => void;
   type?: "full" | "partial";
+  footer?: ReactElement;
 } & PropsWithChildren;
 
-export const Popup = ({ open, onClose, type, children }: Props) => {
+export const Popup = ({ open, onClose, type, children, footer }: Props) => {
   const isFull = type === "full";
   const contentAnimation = useRef(new Animated.Value(0)).current;
   const key = useMemo(() => `popup-${Math.random().toString(8)}`, []);
@@ -66,6 +73,7 @@ export const Popup = ({ open, onClose, type, children }: Props) => {
           }}
         >
           {children}
+          {footer && footer}
         </View>
         {isFull && (
           <View style={{ position: "absolute", top: 24, right: 18 }}>

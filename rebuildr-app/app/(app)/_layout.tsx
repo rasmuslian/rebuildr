@@ -4,7 +4,7 @@ import { gql, useQuery } from "@apollo/client";
 import { Stack } from "expo-router";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { LoginModalContext } from "@context/loginModalContext";
-import { use } from "react";
+import { use, useEffect } from "react";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -24,9 +24,11 @@ export default function AppLayout() {
     },
   });
 
-  if (data?.me?.registrationStatus === RegisterStatusEnum.Details) {
-    setVisible(true);
-  }
+  useEffect(() => {
+    if (data?.me?.registrationStatus === RegisterStatusEnum.Details) {
+      setVisible(true);
+    }
+  }, [data?.me?.registrationStatus, setVisible]);
 
   if (!data) {
     return <LoadingSpinner />;
@@ -35,7 +37,7 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="product" />
+      <Stack.Screen name="product/[productId]" />
       <Stack.Screen name="conversations" />
       <Stack.Screen name="account" />
       <Stack.Screen name="search" />

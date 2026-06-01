@@ -54,10 +54,10 @@ export default function TopBarDesktop({
   const { data: tabData } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
   useEffect(() => {
-    if (!openAccount && params.account) {
+    if (!openAccount && params.account && isLoggedIn) {
       setOpenAccount(params.account as AccountState["page"]);
     }
-  }, [params.account]);
+  }, [params.account, isLoggedIn]);
 
   useEffect(() => {
     if (params.category === "all") {

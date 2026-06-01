@@ -126,7 +126,9 @@ export const initializeApollo = async () => {
         }
       }
       if (networkError) {
-        console.error("Network Error:", networkError);
+        if (__DEV__) {
+          console.error("Network Error:", networkError);
+        }
       }
     },
   );

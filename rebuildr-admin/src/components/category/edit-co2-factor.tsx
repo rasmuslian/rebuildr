@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { App, Button, InputNumber } from "antd";
+import { App, Button } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AdminForm from "@/components/admin-form";
 import FormField from "@/components/form-field";
@@ -75,11 +75,14 @@ const EditCO2Factor = ({ co2Factor, onSettled }: Props) => {
       </FormField>
 
       <FormField label="Deponikoefficient">
-        <InputNumber
+        <input
+          type="number"
           value={disposalCoefficient}
-          onChange={(value) => setDisposalCoefficient(value ?? 0)}
+          onChange={(e) =>
+            setDisposalCoefficient(parseFloat(e.target.value) || 0)
+          }
           step={0.01}
-          style={{ width: "100%" }}
+          className="border-neutral_200 w-full rounded border px-3 py-2 text-label-medium"
         />
       </FormField>
 
