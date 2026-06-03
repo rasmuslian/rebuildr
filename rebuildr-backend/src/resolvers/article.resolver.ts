@@ -43,6 +43,9 @@ export class ListArticlesInput {
 
   @Field(() => Int, { nullable: true })
   pageSize?: number;
+
+  @Field(() => String, { nullable: true })
+  searchString?: string;
 }
 
 @ObjectType()

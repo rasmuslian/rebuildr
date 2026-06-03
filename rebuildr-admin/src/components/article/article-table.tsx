@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Table, Divider, Button, App } from "antd";
 import { useState } from "@/hooks/use-state";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -13,13 +13,17 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/utils/date-utils";
 import { deleteArticle } from "@/queries/article/delete-article";
+import { debounce } from "lodash";
+import SearchField from "@components/search-field";
 
 type StateType = {
+  searchString: string;
   pageSize: number;
   page: number;
 };
 
 const initialState: StateType = {
+  searchString: "",
   pageSize: 10,
   page: 1,
 };
@@ -27,14 +31,21 @@ const initialState: StateType = {
 const ArticleTable = () => {
   const router = useRouter();
   const [state, setState] = useState(initialState);
-  const { pageSize, page } = state;
+  const { pageSize, page, searchString } = state;
   const { modal, notification } = App.useApp();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: [queryKeys.LIST_ARTICLES, page, pageSize],
-    queryFn: () => listArticles({ page: page - 1, pageSize }),
+    queryKey: [queryKeys.LIST_ARTICLES, page, pageSize, searchString],
+    queryFn: () => listArticles({ page: page - 1, pageSize, searchString }),
   });
+
+  const onSearchStringChange = useCallback(
+    debounce((event: React.ChangeEvent<HTMLInputElement>) => {
+      setState({ searchString: event.target.value, page: initialState.page });
+    }, 400),
+    [],
+  );
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (articleId: string) => {
@@ -128,6 +139,12 @@ const ArticleTable = () => {
   return (
     <div className="flex flex-col gap-5">
       <Divider orientation="left">Alla artiklar</Divider>
+
+      <SearchField
+        placeholder="Sök på rubrik"
+        defaultValue={searchString}
+        onChange={onSearchStringChange}
+      />
 
       <Table
         columns={columns}

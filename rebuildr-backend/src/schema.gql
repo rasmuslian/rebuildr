@@ -1141,6 +1141,7 @@ input NearbyServicePointsInput {
 input ListArticlesInput {
   page: Int
   pageSize: Int
+  searchString: String
 }
 
 input MapPinGroupsInput {
