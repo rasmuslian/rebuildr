@@ -86,8 +86,8 @@ const presetBackgroundImages: Partial<
   Record<BannerPresetBackground, ImageSource>
 > = {
   [BannerPresetBackground.Rebuildr]: require("@assets/images/main-background.png"),
-  [BannerPresetBackground.Wood]: require("@assets/images/banner-wood.png"),
-  [BannerPresetBackground.Metallic]: require("@assets/images/banner-metallic.png"),
+  [BannerPresetBackground.Wood]: require("@assets/images/banner-wood.webp"),
+  [BannerPresetBackground.Metallic]: require("@assets/images/banner-metallic.webp"),
 };
 
 const getBannerImageSource = (
