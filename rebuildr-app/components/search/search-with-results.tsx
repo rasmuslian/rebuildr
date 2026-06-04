@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useSearchContext } from "@context/search-context";
+import { capitalFirstLetter } from "@/utils/formattings";
 
 type Props = {
   data: DoSearchQuery | undefined;
@@ -90,7 +91,9 @@ export const SearchWithResults = ({
                 }}
               >
                 <View>
-                  <Label size="large">{searchResult.searchString}</Label>
+                  <Label size="large">
+                    {capitalFirstLetter(searchResult.searchString)}
+                  </Label>
                   <Body size="small">
                     {searchResult.count}{" "}
                     {searchResult.count === 1 ? "träff" : "träffar"}

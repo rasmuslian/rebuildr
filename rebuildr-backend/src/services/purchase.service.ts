@@ -66,7 +66,9 @@ export class PurchaseService {
     private reviewRepository: Repository<Review>,
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
+    @Inject(forwardRef(() => ShippingPriceService))
     private shippingService: ShippingService,
+    @Inject(forwardRef(() => SystemMessagesService))
     private systemMessagesService: SystemMessagesService,
     private reportPurchaseService: ReportPurchaseService,
     private stripeService: StripeService,

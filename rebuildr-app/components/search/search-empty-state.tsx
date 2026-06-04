@@ -14,6 +14,7 @@ import { useSearchContext } from "@context/search-context";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { useScreenType } from "@hooks/useScreenType";
 import { useLocationContext } from "@context/location-context";
+import { capitalFirstLetter } from "@/utils/formattings";
 
 type Props = {
   data: SearchQuery | undefined;
@@ -151,7 +152,9 @@ export const SearchEmptyState = ({ data, size = "large" }: Props) => {
                   }}
                 >
                   <View>
-                    <Label size="large">"{searchResult.searchString}"</Label>
+                    <Label size="large">
+                      "{capitalFirstLetter(searchResult.searchString)}"
+                    </Label>
                     <Body size="small">
                       {searchResult.count}{" "}
                       {searchResult.count === 1 ? "träff" : "träffar"}

@@ -456,6 +456,174 @@ input LocationInputType {
   lng: Float!
 }
 
+type GetAddressResponse {
+  address: String!
+}
+
+type LocationSearchResponse {
+  result: [String!]!
+}
+
+type LocationResponse {
+  lat: Float!
+  lng: Float!
+}
+
+type ApproximatePlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
+}
+
+type ExactPlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
+}
+
+type ExactAndApproximatePlaceResponse {
+  exact: ExactPlaceResponse!
+  approximate: ApproximatePlaceResponse!
+}
+
+type CmsListFilesResponse {
+  files: [File!]!
+  total: Int!
+}
+
+type CmsCreateFilesResponse {
+  presignedPutUrls: [String!]!
+}
+
+type UpdateUserResponse {
+  user: User!
+  profilePicturePutUrl: String
+}
+
+type UserExistsResponse {
+  exists: Boolean!
+  registrationStatus: RegisterStatusEnum
+}
+
+type UsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
+type PayoutAccount {
+  type: String!
+  routingNumber: String
+  last4: String
+  bankName: String
+}
+
+type OnboardSellerAccountResponse {
+  user: User!
+  clientSecret: String!
+  fields: [String!]!
+}
+
+type CmsListUsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
+type SellerAccount {
+  canReceivePayment: Boolean!
+  canReceivePayout: Boolean!
+}
+
+type PurchaseProductResponse {
+  product: Product!
+  purchase: Purchase!
+  reference: String
+}
+
+type CmsListPurchasesResponse {
+  purchases: [Purchase!]!
+  total: Int!
+}
+
+type CanAbortResponse {
+  deniedReason: CanAbortDeniedReasonEnum!
+}
+
+enum CanAbortDeniedReasonEnum {
+  SHIPPING
+  HANDOFF
+}
+
+type ServicePointResponse {
+  id: String!
+  name: String!
+  distance: Float!
+  streetName: String!
+  streetNumber: String!
+  postalCode: String!
+  city: String!
+}
+
+type CreateProductResponse {
+  product: Product!
+  presignedPutUrls: [String!]!
+}
+
+type UpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type PaginatedProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type ProductsResponse {
+  products: [Product!]!
+  total: Int!
+
+  """
+  If address or location is supplied to Products(), this will have corresponding coordinates
+  """
+  origin: LocationResponse
+}
+
+type ShippingOptionResponse {
+  shippingPrice: ShippingPrice!
+  servicePoints: [ServicePointResponse!]!
+}
+
+type DeliveryOptionResponse {
+  deliverToLocation: LocationResponse!
+  isWithinRadius: Boolean!
+  distanceFromProduct: Float!
+  deliveryPrice: Float!
+  postalCode: String
+}
+
+type CmsListProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type CmsCreateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type CmsUpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type ProductPriceRangeResponse {
+  min: Int!
+  max: Int!
+}
+
 type Partner {
   id: ID!
   createdAt: DateTime!
@@ -538,174 +706,6 @@ type GetNewTokensResponse {
 
 type ResetPasswordResponse {
   message: String!
-}
-
-type GetAddressResponse {
-  address: String!
-}
-
-type LocationSearchResponse {
-  result: [String!]!
-}
-
-type LocationResponse {
-  lat: Float!
-  lng: Float!
-}
-
-type ApproximatePlaceResponse {
-  lat: Float!
-  lng: Float!
-  address: String!
-}
-
-type ExactPlaceResponse {
-  lat: Float!
-  lng: Float!
-  address: String!
-}
-
-type ExactAndApproximatePlaceResponse {
-  exact: ExactPlaceResponse!
-  approximate: ApproximatePlaceResponse!
-}
-
-type PurchaseProductResponse {
-  product: Product!
-  purchase: Purchase!
-  reference: String
-}
-
-type CmsListPurchasesResponse {
-  purchases: [Purchase!]!
-  total: Int!
-}
-
-type CanAbortResponse {
-  deniedReason: CanAbortDeniedReasonEnum!
-}
-
-enum CanAbortDeniedReasonEnum {
-  SHIPPING
-  HANDOFF
-}
-
-type ServicePointResponse {
-  id: String!
-  name: String!
-  distance: Float!
-  streetName: String!
-  streetNumber: String!
-  postalCode: String!
-  city: String!
-}
-
-type CmsListFilesResponse {
-  files: [File!]!
-  total: Int!
-}
-
-type CmsCreateFilesResponse {
-  presignedPutUrls: [String!]!
-}
-
-type CreateProductResponse {
-  product: Product!
-  presignedPutUrls: [String!]!
-}
-
-type UpdateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type PaginatedProductsResponse {
-  products: [Product!]!
-  total: Int!
-}
-
-type ProductsResponse {
-  products: [Product!]!
-  total: Int!
-
-  """
-  If address or location is supplied to Products(), this will have corresponding coordinates
-  """
-  origin: LocationResponse
-}
-
-type ShippingOptionResponse {
-  shippingPrice: ShippingPrice!
-  servicePoints: [ServicePointResponse!]!
-}
-
-type DeliveryOptionResponse {
-  deliverToLocation: LocationResponse!
-  isWithinRadius: Boolean!
-  distanceFromProduct: Float!
-  deliveryPrice: Float!
-  postalCode: String
-}
-
-type CmsListProductsResponse {
-  products: [Product!]!
-  total: Int!
-}
-
-type CmsCreateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type CmsUpdateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type ProductPriceRangeResponse {
-  min: Int!
-  max: Int!
-}
-
-type UpdateUserResponse {
-  user: User!
-  profilePicturePutUrl: String
-}
-
-type UserExistsResponse {
-  exists: Boolean!
-  registrationStatus: RegisterStatusEnum
-}
-
-type UsersResponse {
-  users: [User!]!
-  total: Int!
-}
-
-type PayoutAccount {
-  type: String!
-  routingNumber: String
-  last4: String
-  bankName: String
-}
-
-type OnboardSellerAccountResponse {
-  user: User!
-  clientSecret: String!
-  fields: [String!]!
-}
-
-type CmsListUsersResponse {
-  users: [User!]!
-  total: Int!
-}
-
-type SellerAccount {
-  canReceivePayment: Boolean!
-  canReceivePayout: Boolean!
 }
 
 type CmsCreateCategoryResponse {
@@ -1141,6 +1141,7 @@ input NearbyServicePointsInput {
 input ListArticlesInput {
   page: Int
   pageSize: Int
+  searchString: String
 }
 
 input MapPinGroupsInput {

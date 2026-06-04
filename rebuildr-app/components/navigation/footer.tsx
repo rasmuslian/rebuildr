@@ -135,11 +135,21 @@ export default function Footer() {
                 gap: 24,
               }}
             >
-              <Pressable onPress={() => console.log("Instagram icon pressed")}>
+              <Pressable
+                onPress={() =>
+                  Linking.openURL("https://www.instagram.com/rebuildr.se")
+                }
+              >
                 <Icon icon="instagram" color="primaryLight" />
               </Pressable>
 
-              <Pressable onPress={() => console.log("Linkedin icon pressed")}>
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(
+                    "https://www.linkedin.com/company/rebuildrnordics",
+                  )
+                }
+              >
                 <Icon icon="linkedin" color="primaryLight" />
               </Pressable>
 
@@ -156,7 +166,7 @@ export default function Footer() {
         </View>
 
         <Body size="small" color="success">
-          © 2025 Rebuildr. All rights reserved.
+          © 2026 Rebuildr. All rights reserved.
         </Body>
       </View>
     </View>

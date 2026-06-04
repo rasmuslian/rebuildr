@@ -308,6 +308,7 @@ export class UserResolver {
   constructor(
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+    @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     private projectService: ProjectService,
     private mailchimpService: MailchimpService,
@@ -417,9 +418,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async signupNewsLetter(
-    @Args('input') input: SignupNewsLetterInput,
-  ) {
+  async signupNewsLetter(@Args('input') input: SignupNewsLetterInput) {
     return await this.mailchimpService.addSubscriberToNewsletterList(
       input.email,
       input.firstName,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import slugify from 'slugify';
 import { Article } from 'src/entities/article.entity';
 import {
@@ -72,10 +72,11 @@ export class ArticleService {
   }
 
   async listArticles(input: ListArticlesInput): Promise<ListArticlesResponse> {
-    const { pageSize = 10, page = 0 } = input;
+    const { pageSize = 10, page = 0, searchString = '' } = input;
     const skip = Math.max(0, pageSize * page);
 
     const [articles, total] = await this.articleRepository.findAndCount({
+      where: { title: ILike(`%${searchString}%`) },
       take: pageSize,
       skip,
       order: { updatedAt: 'DESC' },

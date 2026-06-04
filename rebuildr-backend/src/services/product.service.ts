@@ -67,6 +67,8 @@ import { UserService } from './user.service';
 import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
 
+export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -85,6 +87,7 @@ export class ProductService {
     @InjectRepository(ShippingPrice)
     private shippingPriceRepository: Repository<ShippingPrice>,
     private shippingService: ShippingService,
+    @Inject(forwardRef(() => SearchResultService))
     private searchResultService: SearchResultService,
     private dataSource: DataSource,
     private projectService: ProjectService,
@@ -676,7 +679,7 @@ export class ProductService {
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
         .andWhere(
-          `(rp.resultrank > 0.25 OR ${productAlias}.title ILIKE :titleSearch )`,
+          `(rp.resultrank > ${PRODUCT_SEARCH_RANK_THRESHOLD} OR ${productAlias}.title ILIKE :titleSearch)`,
           { titleSearch: `${input.searchString}%` },
         )
         .addSelect('rp.resultrank', 'resultrank');
