@@ -3,7 +3,7 @@ import DataLoader from 'dataloader';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ProductStatus } from 'src/entities/product.entity';
-import { PurchaseStatusEnum } from 'src/entities/purchase.entity';
+import { PRODUCT_SEARCH_RANK_THRESHOLD } from 'src/services/product.service';
 
 export interface ISearchResultLoaders {
   getSearchResultProductCount: DataLoader<string, number>;
@@ -22,21 +22,14 @@ export class SearchResultLoader {
         .leftJoin(
           'product',
           'p',
-          `ts_rank(p."textSearch", plainto_tsquery(sr."searchString"), 0) + similarity (p. "title", sr."searchString") > 0.3 AND p."status" = '${ProductStatus.PUBLISHED}'::product_status_enum`,
+          `(
+            ts_rank(p."textSearch", plainto_tsquery(sr."searchString"), 0) + similarity(p."title", sr."searchString") > ${PRODUCT_SEARCH_RANK_THRESHOLD}
+            OR p."title" ILIKE (sr."searchString" || '%')
+          )
+          AND (p."status" = '${ProductStatus.PUBLISHED}'::product_status_enum OR p."status" = '${ProductStatus.SOLD}'::product_status_enum)
+          AND p."hiddenReason" IS NULL`,
         )
         .where('sr.id IN (:...ids)', { ids: searchResultIds })
-        .andWhere((qb) => {
-          const subquery = qb
-            .subQuery()
-            .select('1')
-            .from('purchase', 'pu')
-            .where('pu.productId = p.id')
-            .andWhere(
-              `pu."status" = '${PurchaseStatusEnum.FINISHED_FAILED}'::purchase_status_enum OR pu."status" IS NULL`,
-            )
-            .getQuery();
-          return `NOT EXISTS ${subquery}`;
-        })
         .groupBy('sr.id')
         .getRawMany();
       return searchResultIds.map(

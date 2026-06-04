@@ -76,3 +76,8 @@ export const formatDistance = (distance: number) => {
     maximumFractionDigits: 0,
   }).format(distance / 1000);
 };
+
+export const capitalFirstLetter = (word: string) => {
+  if (!word) return "";
+  return word.charAt(0).toUpperCase() + word.slice(1);
+};

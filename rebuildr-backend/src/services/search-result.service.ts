@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { SearchResult } from 'src/entities/search-result.entity';
-import { DataSource, ILike, IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import {
   CreateSearchResultInput,
@@ -27,6 +27,8 @@ export class SearchResultService {
       return null;
     }
 
+    const normalizedSearchString = input.searchString.trim().toLowerCase();
+
     const searcher = await this.userRepository.findOne({
       where: { id: currentUserId },
     });
@@ -37,7 +39,7 @@ export class SearchResultService {
     const existingSearchResult = await this.searchResultRepository.findOne({
       where: {
         searcher: { id: searcher.id },
-        searchString: ILike(input.searchString),
+        searchString: normalizedSearchString,
         deletedAt: IsNull(),
       },
     });
@@ -49,7 +51,7 @@ export class SearchResultService {
       });
     }
     const searchResult = new SearchResult();
-    searchResult.searchString = input.searchString;
+    searchResult.searchString = normalizedSearchString;
     searchResult.searcher = searcher;
 
     return await this.searchResultRepository.save(searchResult);

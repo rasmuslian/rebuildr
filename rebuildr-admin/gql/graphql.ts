@@ -692,10 +692,6 @@ export type CreateReviewInput = {
   stars: Scalars['Int']['input'];
 };
 
-export type CreateSearchResultInput = {
-  searchString: Scalars['String']['input'];
-};
-
 export type DeleteProjectInput = {
   id: Scalars['String']['input'];
 };
@@ -862,6 +858,7 @@ export type LatestPurchaseInput = {
 export type ListArticlesInput = {
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ListArticlesResponse = {
@@ -1076,7 +1073,6 @@ export type Mutation = {
   createReportProduct: ReportProduct;
   createReportPurchase: ReportPurchase;
   createReview: Review;
-  createSearchResult?: Maybe<SearchResult>;
   createSellerAccount: SellerAccount;
   deleteAccount: User;
   deleteConnectedAccount: Scalars['Boolean']['output'];
@@ -1353,11 +1349,6 @@ export type MutationCreateReportPurchaseArgs = {
 
 export type MutationCreateReviewArgs = {
   input: CreateReviewInput;
-};
-
-
-export type MutationCreateSearchResultArgs = {
-  input: CreateSearchResultInput;
 };
 
 
