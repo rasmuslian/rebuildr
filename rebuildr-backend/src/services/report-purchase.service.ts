@@ -26,6 +26,7 @@ export class ReportPurchaseService {
     private reportPurchaseRepository: Repository<ReportPurchase>,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
+    @Inject(forwardRef(() => SystemMessagesService))
     private systemMessagesService: SystemMessagesService,
     @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,

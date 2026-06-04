@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Conversation } from 'src/entities/conversation.entity';
@@ -23,6 +23,7 @@ export class ConversationService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @Inject(forwardRef(() => MessageService))
     private messageService: MessageService,
     private mailService: MailService,
     private dataSource: DataSource,
