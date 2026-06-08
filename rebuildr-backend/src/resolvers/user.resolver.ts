@@ -122,14 +122,6 @@ class UserExistsResponse {
 }
 
 @InputType()
-export class CreateOrganizationUserInput {
-  @Field(() => String)
-  organizationNumber: string;
-
-  @Field(() => String)
-  organizationName: string;
-}
-@InputType()
 export class UpdateOrganizationUserInput {
   @Field()
   id: string;
@@ -374,15 +366,6 @@ export class UserResolver {
     @Args('input') input: UpdateUserInput,
   ) {
     return this.userService.update(input, _user.id);
-  }
-
-  @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
-  async createOrganizationUser(
-    @Args('input') input: CreateOrganizationUserInput,
-    @CurrentUser() user: AuthedUserType,
-  ): Promise<User> {
-    return await this.userService.createOrganizationUser(input, user.id);
   }
 
   @Mutation(() => User)

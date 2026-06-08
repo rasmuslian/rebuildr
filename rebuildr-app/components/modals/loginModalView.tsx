@@ -24,7 +24,6 @@ import {
   UserExistsQueryVariables,
 } from "@/gql/graphql";
 import { Details } from "@components/login/details";
-import { CreateBusiness } from "@components/login/createBusiness";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
@@ -79,7 +78,7 @@ const LoginModalView = () => {
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
   const [state, setState] = useState<
-    "email" | "password" | "forgotPassword" | "verify" | "details" | "business"
+    "email" | "password" | "forgotPassword" | "verify" | "details"
   >("email");
   const [showWelcome, setShowWelcome] = useState(false);
   const { setVisible: setSellVisible } = useSellProductContext();
@@ -152,10 +151,6 @@ const LoginModalView = () => {
         reloadAppAsync();
         router.replace("/");
         break;
-      case "business":
-        reloadAppAsync();
-        setVisible(false);
-        break;
       default:
         reset();
         setVisible(false);
@@ -214,10 +209,6 @@ const LoginModalView = () => {
     setState("details");
   };
 
-  const onCreateBusiness = () => {
-    setState("business");
-  };
-
   useEffect(() => {
     if (visible) {
       sheetRef.current?.present();
@@ -269,25 +260,11 @@ const LoginModalView = () => {
           setVisible(false);
           setShowWelcome(true);
         }}
-        onCreateBusiness={onCreateBusiness}
         onExit={() => {
           setVisible(false);
           logout();
           reloadAppAsync();
           router.replace("/");
-        }}
-      />
-    ),
-    state === "business" && (
-      <CreateBusiness
-        key="business"
-        onDone={() => {
-          setVisible(false);
-          setShowWelcome(true);
-        }}
-        onExit={() => {
-          reloadAppAsync();
-          setVisible(false);
         }}
       />
     ),
@@ -302,7 +279,6 @@ const LoginModalView = () => {
         return "Logga in";
       case "verify":
       case "details":
-      case "business":
         return "Skapa ditt nya konto";
       default:
         return "";

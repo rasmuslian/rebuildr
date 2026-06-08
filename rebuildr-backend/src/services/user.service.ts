@@ -27,7 +27,6 @@ import {
   CmsListUsersInput,
   CmsListUsersResponse,
   CmsUpdateUsersInput,
-  CreateOrganizationUserInput,
   OnboardSellerAccountInput,
   OrderUsersEnum,
   UpdateOrganizationUserInput,
@@ -291,69 +290,6 @@ export class UserService {
     };
   }
 
-  /**
-   *
-   * @param input
-   * @param input.type The type of the organization: UserType.BUSINESS | UserType.NONPROFIT
-   * @param input.organizationNumber The organization number
-   * @param input.username The name of the organization
-   * @param input.creatorId The ID of the personal account user creating the organization
-   * @returns The created organization user
-   */
-
-  async createOrganizationUser(
-    input: CreateOrganizationUserInput,
-    currentUserId: string,
-  ) {
-    const creator = await this.userRepository.findOne({
-      where: { id: currentUserId },
-      relations: { organizations: true },
-    });
-    if (!creator) {
-      throw BadUserInputException('Creator not found');
-    }
-    if (creator.organizations.some((o) => !o.deletedAt)) {
-      throw ForbiddenException('User can only have one organization');
-    }
-    const organizationExist = await this.organizationExists(
-      input.organizationNumber,
-    );
-    if (organizationExist) {
-      throw BadFieldsInputException([
-        {
-          message:
-            'An organization with given organization number already exist',
-          name: 'organizationNumber',
-          type: 'VALUE_TAKEN',
-        },
-      ]);
-    }
-    //verify org number
-    const onlyDigits = input.organizationNumber.replace(/\D/g, '');
-    if (onlyDigits.length !== 10) {
-      throw BadFieldsInputException([
-        {
-          message: 'Invalid organization number',
-          name: 'organizationNumber',
-          type: 'BAD_VALUE',
-        },
-      ]);
-    }
-    const organizationNumber = onlyDigits;
-
-    const organizationUser = new User();
-    organizationUser.organizationNumber = organizationNumber;
-    organizationUser.username = input.organizationName;
-    organizationUser.type = UserType.BUSINESS;
-
-    creator.organizations = creator.organizations || [];
-    creator.organizations.push(organizationUser);
-
-    const _creator = await this.userRepository.save(creator);
-    organizationUser.organizationUsers = [_creator];
-    const _organizationUser = await this.userRepository.save(organizationUser);
-    return _organizationUser;
-  }
   async updateOrganizationUser(
     input: UpdateOrganizationUserInput,
     currentUserId: string,

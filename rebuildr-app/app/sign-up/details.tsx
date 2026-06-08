@@ -13,9 +13,6 @@ export default function DetailsScreen() {
         onDone={() => {
           router.replace("/");
         }}
-        onCreateBusiness={() => {
-          router.navigate("/sign-up/create-business");
-        }}
         onExit={() => {
           logout();
         }}
