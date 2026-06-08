@@ -38,6 +38,10 @@ const userMessageTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/user-message.mjml`,
   'utf8',
 );
+const accountExistsTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/account-exists.mjml`,
+  'utf8',
+);
 const activatePayoutsTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/activate-payouts.mjml`,
   'utf8',
@@ -95,6 +99,31 @@ export class MailService {
       from: this.from,
       subject: 'Email verification',
       text: 'verify',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendAccountExistsEmail(input: { email: string }) {
+    const context = {
+      ...this.baseContext,
+      email: input.email,
+      loginUrl: this.baseUrl,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(accountExistsTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: 'Kontot finns redan',
+      text: 'Det finns redan ett konto kopplat till denna e-postadress.',
       html,
     };
     try {

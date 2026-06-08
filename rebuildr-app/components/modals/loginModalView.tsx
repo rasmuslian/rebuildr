@@ -8,22 +8,19 @@ import React, {
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
-import Password from "@components/login/password";
 import ForgotPassword from "@components/login/forgotPassword";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
 import { trackEvent } from "@/utils/analytics";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
 import {
-  RegisterStatusEnum,
   RegisterUserMutation,
   RegisterUserMutationVariables,
-  UserExistsQuery,
-  UserExistsQueryVariables,
 } from "@/gql/graphql";
 import { Details } from "@components/login/details";
+import Register from "@components/login/register";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
@@ -55,14 +52,6 @@ const RESET_PASSWORD = gql`
   }
 `;
 
-const USER_EXISTS = gql`
-  query UserExists($input: UserExistsInput!) {
-    userExists(input: $input) {
-      exists
-      registrationStatus
-    }
-  }
-`;
 
 const REGISTER_USER = gql`
   mutation RegisterUser($input: RegisterUserInput!) {
@@ -78,7 +67,7 @@ const LoginModalView = () => {
   const [wrongPassword, setWrongPassword] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
   const [state, setState] = useState<
-    "email" | "password" | "forgotPassword" | "verify" | "details"
+    "email" | "register" | "forgotPassword" | "verify" | "details"
   >("email");
   const [showWelcome, setShowWelcome] = useState(false);
   const { setVisible: setSellVisible } = useSellProductContext();
@@ -124,10 +113,6 @@ const LoginModalView = () => {
       },
     });
   };
-  const [userExists, { loading: userExistsLoading }] = useLazyQuery<
-    UserExistsQuery,
-    UserExistsQueryVariables
-  >(USER_EXISTS, { fetchPolicy: "network-only" });
   const [registerUser, { loading: registerUserLoading }] = useMutation<
     RegisterUserMutation,
     RegisterUserMutationVariables
@@ -139,7 +124,7 @@ const LoginModalView = () => {
   const handleClosePress = useCallback(() => {
     switch (state) {
       case "email":
-      case "password":
+      case "register":
       case "forgotPassword":
       case "verify":
         reset();
@@ -157,40 +142,26 @@ const LoginModalView = () => {
     }
   }, [setVisible]);
 
-  const onSubmitEmail = (email: string) => {
-    if (userExistsLoading || registerUserLoading) {
-      return;
-    }
-    setEmail(email);
+  const onCreatePersonalAccount = (submittedEmail: string) => {
+    setEmail(submittedEmail);
+    setState("register");
+  };
 
-    userExists({
-      variables: { input: { email } },
-      onCompleted: (data) => {
-        if (
-          !data.userExists.exists ||
-          data.userExists.registrationStatus === RegisterStatusEnum.Email ||
-          data.userExists.registrationStatus === RegisterStatusEnum.Details
-        ) {
-          registerUser({
-            variables: { input: { email } },
-            onCompleted: () => {
-              trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
-              setState("verify");
-              sheetRef.current?.snapToIndex(fullScreenIndex);
-            },
-          });
-          return;
-        }
-        setState("password");
+  const onSubmitRegisterEmail = (submittedEmail: string) => {
+    if (registerUserLoading) return;
+    setEmail(submittedEmail);
+    registerUser({
+      variables: { input: { email: submittedEmail } },
+      onCompleted: () => {
+        trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
+        setState("verify");
+        sheetRef.current?.snapToIndex(fullScreenIndex);
       },
     });
   };
 
-  const onSubmitPassword = (password: string) => {
-    onLogin(email, password);
-  };
-
-  const onForgotPassword = () => {
+  const onForgotPassword = (submittedEmail: string) => {
+    setEmail(submittedEmail);
     setState("forgotPassword");
   };
 
@@ -221,27 +192,26 @@ const LoginModalView = () => {
     state === "email" && (
       <Email
         key="email"
-        onSubmit={(email) => {
-          onSubmitEmail(email);
-        }}
+        onLogin={onLogin}
+        onForgotPassword={onForgotPassword}
+        onCreatePersonalAccount={onCreatePersonalAccount}
+        wrongPassword={wrongPassword}
+        loading={loading}
         initialEmail={email}
       />
     ),
-    state === "password" && (
-      <Password
-        key="password"
-        onSubmit={(password) => {
-          onSubmitPassword(password);
-        }}
-        loading={loading}
-        onForgotPassword={onForgotPassword}
-        wrongPassword={wrongPassword}
+    state === "register" && (
+      <Register
+        key="register"
+        onSubmit={onSubmitRegisterEmail}
+        initialEmail={email}
+        loading={registerUserLoading}
       />
     ),
     state === "forgotPassword" && (
       <ForgotPassword
         key="forgotPassword"
-        onBack={() => setState("password")}
+        onBack={() => setState("email")}
         onSubmit={onRequestPasswordReset}
         currentEmail={email}
       />
@@ -274,7 +244,8 @@ const LoginModalView = () => {
     switch (state) {
       case "email":
         return "Logga in eller skapa konto";
-      case "password":
+      case "register":
+        return "Skapa ett privat konto";
       case "forgotPassword":
         return "Logga in";
       case "verify":
@@ -285,11 +256,11 @@ const LoginModalView = () => {
     }
   };
   let onBackFunction = null;
-  if (state === "password") {
+  if (state === "register") {
     onBackFunction = () => setState("email");
   }
   if (state === "forgotPassword") {
-    onBackFunction = () => setState("password");
+    onBackFunction = () => setState("email");
   }
 
   const handleWelcomeClose = () => {

@@ -31,6 +31,12 @@ const registerUserSchema = z.object({
     .email()
     .transform((value) => value.toLowerCase().trim()),
 });
+
+@ObjectType()
+export class RegisterUserResponse {
+  @Field(() => String)
+  id: string;
+}
 @InputType()
 export class FinalizeUserInput {
   @Field()
@@ -150,12 +156,13 @@ export class AuthResolver {
     return await this.authService.usernameIsValid(username);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => RegisterUserResponse)
   @UseGuards(GqlThrottlerGuard)
   @Throttle({ auth: authThrottleConfig })
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
-    return await this.authService.registerUser(input);
+    const { id } = await this.authService.registerUser(input);
+    return { id };
   }
 
   @Mutation(() => LoginResponse)

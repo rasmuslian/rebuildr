@@ -689,6 +689,10 @@ type Article {
   updatedAt: DateTime!
 }
 
+type RegisterUserResponse {
+  id: String!
+}
+
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -1185,7 +1189,7 @@ input CmsPurchaseStatisticsInput {
 }
 
 type Mutation {
-  registerUser(input: RegisterUserInput!): User!
+  registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
@@ -1197,7 +1201,6 @@ type Mutation {
   newPassword(input: NewPasswordInput!): LoginResponse!
   cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
-  createOrganizationUser(input: CreateOrganizationUserInput!): User!
   updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
   deleteAccount: User!
   onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
@@ -1341,11 +1344,6 @@ input UpdateUserInput {
 input FileInputType {
   mimeType: String!
   name: String
-}
-
-input CreateOrganizationUserInput {
-  organizationNumber: String!
-  organizationName: String!
 }
 
 input UpdateOrganizationUserInput {

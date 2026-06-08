@@ -52,15 +52,20 @@ export class AuthService {
     let user = await this.userRepository.findOneBy({
       email: input.email,
     });
+
+    if (user?.emailVerifiedAt && user?.username) {
+      // Fully registered account — notify silently without revealing the account exists to the caller
+      await this.mailService.sendAccountExistsEmail({ email: input.email });
+      return user;
+    }
+
     if (!user) {
       user = new User();
       user.email = input.email;
     }
-    //Make sure to reset this in case that the user already exists.
-    //This will happen if the user canceled the registration after having verified their email
+    // Reset verification in case the user abandoned registration after verifying their email
     user.emailVerifiedAt = null;
 
-    //generate token
     const token = await this.generateEmailValidationCode();
     user.verifyEmailToken = token.hash;
     const registeredUser = await this.userRepository.save(user);
