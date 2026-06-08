@@ -228,9 +228,4 @@ export class AuthResolver {
     return await this.authService.newPassword(input);
   }
 
-  @Mutation(() => LoginResponse)
-  @UseGuards(GqlAuthGuard)
-  async switchAccount(@Args('id') id: string) {
-    return await this.authService.switchAccount(id);
-  }
 }

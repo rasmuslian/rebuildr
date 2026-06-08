@@ -1195,7 +1195,6 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
-  switchAccount(id: String!): LoginResponse!
   cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   createOrganizationUser(input: CreateOrganizationUserInput!): User!

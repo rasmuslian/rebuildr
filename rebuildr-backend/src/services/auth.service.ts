@@ -411,24 +411,4 @@ export class AuthService {
     return { user: user, accessToken, refreshToken };
   }
 
-  /**
-   *
-   * @param id The id of the user to switch to
-   * @returns The user, accessToken and refreshToken
-   */
-  async switchAccount(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw BadUserInputException();
-    }
-
-    const refreshToken = await this.updateRefreshToken(user);
-    const accessToken = await this.createJwtToken(user);
-
-    return {
-      user,
-      accessToken,
-      refreshToken,
-    };
-  }
 }
