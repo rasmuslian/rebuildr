@@ -113,6 +113,24 @@ class UserExistsInput {
 }
 
 @ObjectType()
+export class OrganizationLookupResponse {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  address: string;
+
+  @Field(() => String)
+  zipCode: string;
+
+  @Field(() => String)
+  city: string;
+
+  @Field(() => Boolean)
+  alreadyRegistered: boolean;
+}
+
+@ObjectType()
 class UserExistsResponse {
   @Field(() => Boolean)
   exists: boolean;
@@ -317,6 +335,13 @@ export class UserResolver {
   @Throttle({ auth: authThrottleConfig })
   async userExists(@Args('input') input: UserExistsInput) {
     return this.userService.userExists(input.email);
+  }
+
+  @Query(() => OrganizationLookupResponse, { nullable: true })
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
+  async lookupOrganizationNumber(@Args('orgNumber') orgNumber: string) {
+    return this.userService.lookupOrganizationNumber(orgNumber);
   }
 
   @Query(() => User)

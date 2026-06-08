@@ -500,6 +500,14 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type OrganizationLookupResponse {
+  name: String!
+  address: String!
+  zipCode: String!
+  city: String!
+  alreadyRegistered: Boolean!
+}
+
 type UserExistsResponse {
   exists: Boolean!
   registrationStatus: RegisterStatusEnum
@@ -839,6 +847,7 @@ type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
   userExists(input: UserExistsInput!): UserExistsResponse!
+  lookupOrganizationNumber(orgNumber: String!): OrganizationLookupResponse
   user(input: GetUserInput!): User!
   users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
   cmsGetUser(id: String!): User!
@@ -1272,6 +1281,7 @@ type Mutation {
 
 input RegisterUserInput {
   email: String!
+  organizationNumber: String
 }
 
 input VerifyEmailInput {

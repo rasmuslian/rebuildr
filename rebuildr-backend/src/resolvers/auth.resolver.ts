@@ -24,12 +24,16 @@ import { Throttle } from '@nestjs/throttler';
 export class RegisterUserInput {
   @Field(() => String)
   email: string;
+
+  @Field(() => String, { nullable: true })
+  organizationNumber?: string;
 }
 const registerUserSchema = z.object({
   email: z
     .string()
     .email()
     .transform((value) => value.toLowerCase().trim()),
+  organizationNumber: z.string().optional(),
 });
 
 @ObjectType()

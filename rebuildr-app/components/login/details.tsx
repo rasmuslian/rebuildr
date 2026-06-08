@@ -1,17 +1,22 @@
 import {
+  DetailsOrgSummaryQuery,
+  DetailsOrgSummaryQueryVariables,
   DetailsQueryQuery,
   DetailsValidUsernameQuery,
   DetailsValidUsernameQueryVariables,
   UpdateDetailsFieldsMutation,
   UpdateDetailsFieldsMutationVariables,
+  UserType,
 } from "@/gql/graphql";
+import { formatOrgNumber } from "@/utils/formattings";
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Check } from "@components/controls/check";
+import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Display, Headline, Title } from "@components/typography/text";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { CreatePassword } from "./create-password";
 import { useScreenType } from "@hooks/useScreenType";
@@ -23,6 +28,20 @@ const DETAILS_QUERY = gql`
     me {
       id
       email
+      type
+      organizationNumber
+    }
+  }
+`;
+
+const DETAILS_ORG_SUMMARY = gql`
+  query DetailsOrgSummary($orgNumber: String!) {
+    lookupOrganizationNumber(orgNumber: $orgNumber) {
+      name
+      address
+      zipCode
+      city
+      alreadyRegistered
     }
   }
 `;
@@ -57,15 +76,18 @@ export const Details = ({ onDone, onExit }: Props) => {
   const { isDesktop } = useScreenType();
 
   const { data } = useQuery<DetailsQueryQuery>(DETAILS_QUERY);
-  const [updateDetails, { data: updateDetailsData, reset, loading }] =
-    useMutation<
-      UpdateDetailsFieldsMutation,
-      UpdateDetailsFieldsMutationVariables
-    >(UPDATE_DETAILS_FIELDS);
+  const [updateDetails, { loading }] = useMutation<
+    UpdateDetailsFieldsMutation,
+    UpdateDetailsFieldsMutationVariables
+  >(UPDATE_DETAILS_FIELDS);
   const [checkUsername, { data: checkUsernameData }] = useLazyQuery<
     DetailsValidUsernameQuery,
     DetailsValidUsernameQueryVariables
   >(DETAILS_VALID_USERNAME);
+  const [getOrgSummary, { data: orgSummaryData }] = useLazyQuery<
+    DetailsOrgSummaryQuery,
+    DetailsOrgSummaryQueryVariables
+  >(DETAILS_ORG_SUMMARY);
 
   const debouncedCheckUsername = useDebounceCallback(checkUsername, 300);
 
@@ -85,6 +107,13 @@ export const Details = ({ onDone, onExit }: Props) => {
       onCompleted: onDone,
     });
   };
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.me.type === UserType.Business && data.me.organizationNumber) {
+      getOrgSummary({ variables: { orgNumber: data.me.organizationNumber } });
+    }
+  }, [data]);
 
   if (!data?.me) {
     return <LoadingSpinner />;
@@ -123,6 +152,40 @@ export const Details = ({ onDone, onExit }: Props) => {
             inställningarna efter att kontot är klart.
           </Body>
         </View>
+        {orgSummaryData?.lookupOrganizationNumber && (
+          <View style={{ gap: 16, marginTop: 8 }}>
+            <View style={{ gap: 4 }}>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.name}
+              </Title>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.address}
+              </Title>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.zipCode}{" "}
+                {orgSummaryData.lookupOrganizationNumber.city}
+              </Title>
+            </View>
+            <Divider />
+          </View>
+        )}
+        {data.me.organizationNumber && (
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderColor: colors.dividers.neutral,
+              paddingVertical: 16,
+              gap: 4,
+            }}
+          >
+            <Body size="medium" color="secondary">
+              Ert organisationsnummer
+            </Body>
+            <Title size="medium">
+              {formatOrgNumber(data.me.organizationNumber)}
+            </Title>
+          </View>
+        )}
         <View style={{ marginBottom: 16 }}>
           <Headline size="small" style={{ marginVertical: 16 }}>
             Kontodetaljer

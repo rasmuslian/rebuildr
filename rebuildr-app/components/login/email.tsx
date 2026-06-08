@@ -45,8 +45,9 @@ export default function Email({
 
   return (
     <View style={{ gap: isDesktop ? 24 : 16 }}>
-      <Display size="small">Logga in eller skapa ett privat konto</Display>
+      <Display size="small">Logga in</Display>
       <Form
+        style={{ gap: 24 }}
         fields={[
           {
             type: "text",

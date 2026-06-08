@@ -12,7 +12,21 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onCreateListing: () => void;
+  isBusiness?: boolean;
 };
+
+const ContactLink = () => (
+  <Body size="medium" style={{ textAlign: "center" }}>
+    {"Behöver du hjälp? "}
+    <Body
+      size="medium"
+      isLink
+      onPress={() => Linking.openURL("mailto:support@rebuildr.org")}
+    >
+      Kontakta oss
+    </Body>
+  </Body>
+);
 
 const WelcomeFooter = ({
   onCreateListing,
@@ -80,12 +94,47 @@ const WelcomeContent = () => (
   </View>
 );
 
+const BusinessWelcomeContent = () => (
+  <View style={{ paddingBottom: 8, flex: 1 }}>
+    <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
+      <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
+        <Image source={LogoIconLight} style={{ width: 127, height: 127 }} />
+      </View>
+    </View>
+    <View style={{ gap: 24 }}>
+      <Display size="small" style={{ textAlign: "center" }}>
+        Företagskontot är skapat!
+      </Display>
+      <Body size="medium" style={{ textAlign: "center" }}>
+        {
+          "Tack! Vi går nu igenom och verifierar uppgifterna för ditt företagskonto. Du får ett mejl så snart kontot är godkänt — "
+        }
+        <Title size="medium">vanligtvis inom 24 timmar.</Title>
+      </Body>
+      <Body size="medium" style={{ textAlign: "center" }}>
+        Du kan logga in på ditt företagskonto först när verifieringen är klar.
+      </Body>
+    </View>
+  </View>
+);
+
 export const WelcomeRegistrationModal = ({
   open,
   onClose,
   onCreateListing,
+  isBusiness,
 }: Props) => {
   const { isDesktop } = useScreenType();
+
+  const title = isBusiness
+    ? "Skapa ditt nya företagkonto"
+    : "Välkommen till RebuildR!";
+  const content = isBusiness ? <BusinessWelcomeContent /> : <WelcomeContent />;
+  const footer = isBusiness ? (
+    <ContactLink />
+  ) : (
+    <WelcomeFooter onCreateListing={onCreateListing} />
+  );
 
   if (isDesktop) {
     return (
@@ -94,9 +143,7 @@ export const WelcomeRegistrationModal = ({
         onClose={onClose}
         type="partial"
         footer={
-          <View style={{ padding: 16, paddingBottom: 24 }}>
-            <WelcomeFooter onCreateListing={onCreateListing} />
-          </View>
+          <View style={{ padding: 16, paddingBottom: 24 }}>{footer}</View>
         }
       >
         <View
@@ -108,11 +155,11 @@ export const WelcomeRegistrationModal = ({
           }}
         >
           <Header
-            title="Välkommen till RebuildR!"
+            title={title}
             showBackButton={false}
             ctas={[{ icon: "X", onPress: onClose }]}
           />
-          <WelcomeContent />
+          {content}
         </View>
       </Popup>
     );
@@ -121,15 +168,15 @@ export const WelcomeRegistrationModal = ({
   return (
     <BottomSheet
       name="welcome-registration"
-      title="Välkommen till RebuildR!"
+      title={title}
       open={open}
       onDismiss={onClose}
       scrollable
       screenHeight
       isStickyFooter
-      footer={<WelcomeFooter onCreateListing={onCreateListing} />}
+      footer={footer}
     >
-      <WelcomeContent />
+      {content}
     </BottomSheet>
   );
 };

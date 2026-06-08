@@ -12,7 +12,7 @@ import {
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRoleEnum } from 'src/entities/user.entity';
+import { User, UserRoleEnum, UserType } from 'src/entities/user.entity';
 import {
   ILike,
   LessThanOrEqual,
@@ -65,6 +65,11 @@ export class AuthService {
     }
     // Reset verification in case the user abandoned registration after verifying their email
     user.emailVerifiedAt = null;
+
+    if (input.organizationNumber) {
+      user.type = UserType.BUSINESS;
+      user.organizationNumber = input.organizationNumber;
+    }
 
     const token = await this.generateEmailValidationCode();
     user.verifyEmailToken = token.hash;

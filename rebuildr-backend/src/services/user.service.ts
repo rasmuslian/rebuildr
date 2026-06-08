@@ -51,6 +51,7 @@ import { validateWebsite } from 'src/utility/website';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { OrganizationService } from './organization.service';
 @Injectable()
 export class UserService {
   constructor(
@@ -66,6 +67,7 @@ export class UserService {
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private organizationService: OrganizationService,
   ) {}
 
   async findOne(id: string) {
@@ -375,10 +377,13 @@ export class UserService {
     return await this.userRepository.save(organization);
   }
 
-  async organizationExists(organizationNumber: string) {
-    return !!(await this.userRepository.findOne({
-      where: { organizationNumber },
-    }));
+  async lookupOrganizationNumber(orgNumber: string) {
+    const [data, alreadyRegistered] = await Promise.all([
+      this.organizationService.lookupOrganizationNumber(orgNumber),
+      this.userRepository.existsBy({ organizationNumber: orgNumber }),
+    ]);
+    if (!data) return null;
+    return { ...data, alreadyRegistered };
   }
 
   addressLocationToCoordinates(user: User, currentUserId: string) {
