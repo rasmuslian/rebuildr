@@ -11,6 +11,7 @@ import { Divider } from "@components/dividers/divider";
 import { useState } from "react";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body } from "@components/typography/text";
+import * as Sentry from "@sentry/react-native";
 
 const ONBOARD_SELLER_GET_ACCOUNT = gql`
   query OnboardSellerGetAccount {
@@ -27,7 +28,7 @@ type Props = {
   onExit: () => void;
   onAbort: () => void;
   stripeConnectInstance: StripeConnectInstance | null;
-  createConnectInstance: () => void;
+  createConnectInstance: () => Promise<void>;
   fields: string[] | undefined;
 };
 
@@ -61,9 +62,22 @@ export default function OnboardSellerAccount({
       onExit();
       return;
     }
+    Sentry.captureMessage(
+      "onExitOnboarding completed without the user being able to recieve payment",
+      {
+        level: "info",
+        contexts: {
+          problem: {
+            data,
+            fields,
+          },
+        },
+      },
+    );
 
-    setSubmitting(false);
-    createConnectInstance();
+    createConnectInstance().then(() => {
+      setSubmitting(false);
+    });
   };
 
   if (submitting) {
@@ -84,12 +98,10 @@ export default function OnboardSellerAccount({
             <ConnectAccountOnboarding
               collectionOptions={{
                 fields: "eventually_due",
-                requirements: fields?.length
-                  ? {
-                      only: fields,
-                      exclude: ["summary"],
-                    }
-                  : undefined,
+                requirements: {
+                  ...(fields?.length ? { only: fields } : {}),
+                  exclude: ["summary"],
+                },
               }}
               onLoaderStart={onLoaderStart}
               onExit={async () => {
