@@ -199,7 +199,6 @@ type User {
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
-  organizationAccount: User
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!
@@ -1211,7 +1210,6 @@ type Mutation {
   newPassword(input: NewPasswordInput!): LoginResponse!
   cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
-  updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
   approveBusinessAccount(userId: String!): User!
   deleteAccount: User!
   onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
@@ -1351,22 +1349,12 @@ input UpdateUserInput {
   profilePicture: FileInputType
   notifyOnMessage: Boolean
   notifyOnPurchaseUpdate: Boolean
+  websiteUrl: String
 }
 
 input FileInputType {
   mimeType: String!
   name: String
-}
-
-input UpdateOrganizationUserInput {
-  id: String!
-  organizationName: String
-  address: String
-  name: String
-  postCode: String
-  city: String
-  phoneNumber: String
-  websiteUrl: String
 }
 
 input OnboardSellerAccountInput {

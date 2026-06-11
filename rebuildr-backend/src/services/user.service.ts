@@ -30,7 +30,6 @@ import {
   CmsUpdateUsersInput,
   OnboardSellerAccountInput,
   OrderUsersEnum,
-  UpdateOrganizationUserInput,
   UpdateUserInput,
   UsersInput,
 } from 'src/resolvers/user.resolver';
@@ -270,89 +269,9 @@ export class UserService {
       user.notifyOnPurchaseUpdate = input.notifyOnPurchaseUpdate;
     }
 
-    return {
-      user: await this.userRepository.save(user),
-      profilePicturePutUrl: user.profilePicture
-        ? this.fileService.uploadFile(user.profilePicture, true)
-        : null,
-    };
-  }
-
-  async updateOrganizationUser(
-    input: UpdateOrganizationUserInput,
-    currentUserId: string,
-  ) {
-    const organization = await this.userRepository.findOne({
-      where: { id: input.id },
-      relations: {
-        organizationUsers: true,
-      },
-    });
-
-    if (
-      organization.id !== currentUserId &&
-      !organization.organizationUsers.some((ou) => ou.id === currentUserId)
-    ) {
-      throw ForbiddenException();
-    }
-
-    if (input.organizationName) {
-      const usernameTaken = await this.userRepository.existsBy({
-        username: input.organizationName,
-        id: Not(organization.id),
-      });
-      if (usernameTaken) {
-        throw BadFieldsInputException([
-          { message: 'Username taken', name: 'username', type: 'VALUE_TAKEN' },
-        ]);
-      }
-      organization.username = input.organizationName;
-    }
-
-    if (input.address) {
-      organization.address = input.address;
-      const location = await this.geocodingService.addressToLocation(
-        input.address,
-      );
-
-      organization.addressLocation = {
-        type: 'Point',
-        coordinates: [location.lat, location.lng],
-      };
-
-      const approximateLocation =
-        await this.geocodingService.locationToApproximation(location);
-      organization.mapPin = new MapPin({
-        address: approximateLocation.address,
-        location: {
-          type: 'Point',
-          coordinates: [approximateLocation.lat, approximateLocation.lng],
-        },
-      });
-    }
-    if (input.city) {
-      organization.city = input.city;
-    }
-    if (input.name) {
-      organization.name = input.name;
-    }
-    if (input.phoneNumber) {
-      if (!swedishPhoneNumberRegex.test(input.phoneNumber)) {
-        throw BadUserInputException('Invalid phone number');
-      }
-      organization.phoneNumber = input.phoneNumber;
-    }
-
-    if (input.postCode) {
-      if (!swedishPostCodeRegex.test(input.postCode)) {
-        throw BadUserInputException('Invalid post code');
-      }
-      organization.postCode = input.postCode;
-    }
-
     if (input.websiteUrl) {
       try {
-        organization.websiteUrl = validateWebsite(input.websiteUrl);
+        user.websiteUrl = validateWebsite(input.websiteUrl);
       } catch {
         throw BadFieldsInputException([
           { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
@@ -360,7 +279,12 @@ export class UserService {
       }
     }
 
-    return await this.userRepository.save(organization);
+    return {
+      user: await this.userRepository.save(user),
+      profilePicturePutUrl: user.profilePicture
+        ? this.fileService.uploadFile(user.profilePicture, true)
+        : null,
+    };
   }
 
   async lookupOrganizationNumber(orgNumber: string) {
