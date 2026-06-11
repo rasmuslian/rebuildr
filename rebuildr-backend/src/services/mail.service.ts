@@ -445,6 +445,17 @@ export class MailService {
       });
       return true;
     }
+    if (template === 'businessRegistrationNotification') {
+      await this.sendBusinessRegistrationNotification({
+        email: user.email,
+        organizationNumber: '556000-0000',
+      });
+      return true;
+    }
+    if (template === 'businessApproved') {
+      await this.sendBusinessApprovedEmail({ email: user.email });
+      return true;
+    }
 
     return false;
   }
