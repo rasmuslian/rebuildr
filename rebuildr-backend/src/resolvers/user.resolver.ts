@@ -95,6 +95,9 @@ export class UpdateUserInput {
   notifyOnMessage?: boolean;
   @Field({ nullable: true })
   notifyOnPurchaseUpdate?: boolean;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 
 @ObjectType()
@@ -137,33 +140,6 @@ class UserExistsResponse {
 
   @Field(() => RegistrationStatusEnum, { nullable: true })
   registrationStatus?: RegistrationStatusEnum;
-}
-
-@InputType()
-export class UpdateOrganizationUserInput {
-  @Field()
-  id: string;
-
-  @Field({ nullable: true })
-  organizationName?: string;
-
-  @Field({ nullable: true })
-  address?: string;
-
-  @Field({ nullable: true })
-  name?: string;
-
-  @Field({ nullable: true })
-  postCode?: string;
-
-  @Field({ nullable: true })
-  city?: string;
-
-  @Field({ nullable: true })
-  phoneNumber?: string;
-
-  @Field({ nullable: true })
-  websiteUrl?: string;
 }
 
 @InputType()
@@ -397,15 +373,6 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
-  async updateOrganizationUser(
-    @Args('input') input: UpdateOrganizationUserInput,
-    @CurrentUser() user: AuthedUserType,
-  ) {
-    return await this.userService.updateOrganizationUser(input, user.id);
-  }
-
-  @Mutation(() => User)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
   async approveBusinessAccount(@Args('userId') userId: string) {
@@ -587,15 +554,6 @@ export class UserResolver {
       limit,
       offset,
     );
-  }
-
-  @ResolveField(() => User, { nullable: true })
-  async organizationAccount(
-    @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
-  ) {
-    const organizations = await userLoaders.getOrganizations.load(user.id);
-    return organizations?.[0];
   }
 
   @ResolveField(() => Number)
