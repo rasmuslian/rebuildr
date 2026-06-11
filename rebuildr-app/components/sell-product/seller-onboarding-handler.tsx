@@ -16,7 +16,7 @@ export const SellerOnboardingHandler = ({ onFinish, onAbort }: Props) => {
   const { stripeConnectInstance, createConnectInstance, fields } =
     useStripeConnect(SellerAccountCapabilityEnum.Payment);
 
-  const Content = () => (
+  const content = (
     <OnboardSellerAccount
       stripeConnectInstance={stripeConnectInstance}
       createConnectInstance={createConnectInstance}
@@ -32,7 +32,7 @@ export const SellerOnboardingHandler = ({ onFinish, onAbort }: Props) => {
   );
 
   if (isDesktop) {
-    return <Content />;
+    return content;
   }
 
   return (
@@ -43,7 +43,7 @@ export const SellerOnboardingHandler = ({ onFinish, onAbort }: Props) => {
       scrollable
       screenHeight
     >
-      <Content />
+      {content}
     </BottomSheet>
   );
 };
