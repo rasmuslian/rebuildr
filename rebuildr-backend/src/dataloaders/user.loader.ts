@@ -28,7 +28,6 @@ export interface IUserLoaders {
   ratingLoader: DataLoader<string, number>;
   reviewedLoader: DataLoader<string, Review[]>;
   getOrganizations: DataLoader<string, User[]>;
-  getOrganizationOwners: DataLoader<string, User[]>;
   totalCO2SavingsBuyer: DataLoader<string, number>;
   totalCO2SavingsSeller: DataLoader<string, number>;
   numberOfCompletedPurchases: DataLoader<string, number>;
@@ -239,29 +238,6 @@ export class UserLoader {
       ) as User[][];
     });
   }
-  private getOrganizationOwners() {
-    return new DataLoader<string, User[]>(async (userIds) => {
-      const organizationWithOwners = await this.dataSource
-        .getRepository(User)
-        .find({
-          where: {
-            id: In(userIds),
-            deletedAt: IsNull(),
-          },
-          relations: {
-            organizationUsers: true,
-          },
-        });
-
-      return userIds.map((userId) =>
-        organizationWithOwners
-          .find((organization) => organization.id === userId)
-          ?.organizationUsers.filter(
-            (owner) => owner.type === UserType.PERSONAL && !owner.deletedAt,
-          ),
-      ) as User[][];
-    });
-  }
 
   private totalCO2SavingsBuyer() {
     return new DataLoader<string, number>(async (userIds) => {
@@ -364,19 +340,17 @@ export class UserLoader {
 
   private numberOfCompletedPurchases() {
     return new DataLoader<string, number>(async (userIds) => {
-      const counts: { userId: string; count: string }[] =
-        await this.dataSource
-          .getRepository(Purchase)
-          .createQueryBuilder('pur')
-          .select('pur."buyerId" as "userId", COUNT(pur.id) as "count"')
-          .where('pur."buyerId" IN (:...userIds)', { userIds })
-          .andWhere('pur."failedAt" IS NULL')
-          .groupBy('pur."buyerId"')
-          .getRawMany();
+      const counts: { userId: string; count: string }[] = await this.dataSource
+        .getRepository(Purchase)
+        .createQueryBuilder('pur')
+        .select('pur."buyerId" as "userId", COUNT(pur.id) as "count"')
+        .where('pur."buyerId" IN (:...userIds)', { userIds })
+        .andWhere('pur."failedAt" IS NULL')
+        .groupBy('pur."buyerId"')
+        .getRawMany();
 
-      return userIds.map(
-        (userId) =>
-          parseInt(counts.find((c) => c.userId === userId)?.count ?? '0'),
+      return userIds.map((userId) =>
+        parseInt(counts.find((c) => c.userId === userId)?.count ?? '0'),
       );
     });
   }
@@ -405,7 +379,6 @@ export class UserLoader {
       likedProductsLoader: this.likedProductsLoader(),
       reviewedLoader: this.reviewedLoader(),
       getOrganizations: this.getOrganizations(),
-      getOrganizationOwners: this.getOrganizationOwners(),
       totalCO2SavingsBuyer: this.totalCO2SavingsBuyer(),
       totalCO2SavingsSeller: this.totalCO2SavingsSeller(),
       numberOfCompletedPurchases: this.numberOfCompletedPurchases(),

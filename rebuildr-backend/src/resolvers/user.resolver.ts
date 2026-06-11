@@ -113,6 +113,24 @@ class UserExistsInput {
 }
 
 @ObjectType()
+export class OrganizationLookupResponse {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  address: string;
+
+  @Field(() => String)
+  zipCode: string;
+
+  @Field(() => String)
+  city: string;
+
+  @Field(() => Boolean)
+  alreadyRegistered: boolean;
+}
+
+@ObjectType()
 class UserExistsResponse {
   @Field(() => Boolean)
   exists: boolean;
@@ -121,14 +139,6 @@ class UserExistsResponse {
   registrationStatus?: RegistrationStatusEnum;
 }
 
-@InputType()
-export class CreateOrganizationUserInput {
-  @Field(() => String)
-  organizationNumber: string;
-
-  @Field(() => String)
-  organizationName: string;
-}
 @InputType()
 export class UpdateOrganizationUserInput {
   @Field()
@@ -255,6 +265,9 @@ export class CmsListUsersInput {
 
   @Field({ nullable: true })
   canSell?: boolean;
+
+  @Field({ nullable: true })
+  pendingApproval?: boolean;
 }
 
 @ObjectType()
@@ -327,6 +340,13 @@ export class UserResolver {
     return this.userService.userExists(input.email);
   }
 
+  @Query(() => OrganizationLookupResponse, { nullable: true })
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
+  async lookupOrganizationNumber(@Args('orgNumber') orgNumber: string) {
+    return this.userService.lookupOrganizationNumber(orgNumber);
+  }
+
   @Query(() => User)
   async user(@Args('input') input: GetUserInput) {
     return await this.userService.findOne(input.id);
@@ -378,20 +398,18 @@ export class UserResolver {
 
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
-  async createOrganizationUser(
-    @Args('input') input: CreateOrganizationUserInput,
-    @CurrentUser() user: AuthedUserType,
-  ): Promise<User> {
-    return await this.userService.createOrganizationUser(input, user.id);
-  }
-
-  @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
   async updateOrganizationUser(
     @Args('input') input: UpdateOrganizationUserInput,
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.userService.updateOrganizationUser(input, user.id);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async approveBusinessAccount(@Args('userId') userId: string) {
+    return this.userService.approveBusinessAccount(userId);
   }
 
   @Mutation(() => User)
@@ -578,15 +596,6 @@ export class UserResolver {
   ) {
     const organizations = await userLoaders.getOrganizations.load(user.id);
     return organizations?.[0];
-  }
-
-  @ResolveField(() => User, { nullable: true })
-  async organizationOwner(
-    @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
-  ) {
-    const owners = await userLoaders.getOrganizationOwners.load(user.id);
-    return owners?.[0];
   }
 
   @ResolveField(() => Number)

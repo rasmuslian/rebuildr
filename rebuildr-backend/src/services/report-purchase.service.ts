@@ -16,7 +16,6 @@ import { SystemMessagesService } from './system-messages.service';
 import { PurchaseService } from './purchase.service';
 import { Logger } from 'winston';
 import { MailService } from './mail.service';
-import { UserType } from 'src/entities/user.entity';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -84,15 +83,9 @@ export class ReportPurchaseService {
     purchase.pausedAt = new Date();
     await this.purchaseRepository.save(purchase);
 
-    let seller = purchase.product.seller;
-    if (seller.type === UserType.BUSINESS) {
-      const owner = await this.userService.findOrganizationOwner(seller);
-      seller = owner;
-    }
-
     await this.mailService.sendReportpurchaseEmail({
       buyer: purchase.buyer,
-      seller,
+      seller: purchase.product.seller,
       product: purchase.product,
       purchase: purchase,
       report: report,

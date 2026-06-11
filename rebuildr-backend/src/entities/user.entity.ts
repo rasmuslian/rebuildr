@@ -79,6 +79,7 @@ export class User {
   @Column({ nullable: true })
   description?: string;
 
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 

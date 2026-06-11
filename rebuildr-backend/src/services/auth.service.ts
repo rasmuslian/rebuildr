@@ -12,7 +12,7 @@ import {
 import { MailService } from './mail.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRoleEnum } from 'src/entities/user.entity';
+import { User, UserRoleEnum, UserType } from 'src/entities/user.entity';
 import {
   ILike,
   LessThanOrEqual,
@@ -52,15 +52,25 @@ export class AuthService {
     let user = await this.userRepository.findOneBy({
       email: input.email,
     });
+
+    if (user?.emailVerifiedAt && user?.username) {
+      // Fully registered account — notify silently without revealing the account exists to the caller
+      await this.mailService.sendAccountExistsEmail({ email: input.email });
+      return user;
+    }
+
     if (!user) {
       user = new User();
       user.email = input.email;
     }
-    //Make sure to reset this in case that the user already exists.
-    //This will happen if the user canceled the registration after having verified their email
+    // Reset verification in case the user abandoned registration after verifying their email
     user.emailVerifiedAt = null;
 
-    //generate token
+    if (input.organizationNumber) {
+      user.type = UserType.BUSINESS;
+      user.organizationNumber = input.organizationNumber;
+    }
+
     const token = await this.generateEmailValidationCode();
     user.verifyEmailToken = token.hash;
     const registeredUser = await this.userRepository.save(user);
@@ -89,6 +99,13 @@ export class AuthService {
     user.password = await bcrypt.hash(input.password, 10);
 
     const savedUser = await this.userRepository.save(user);
+
+    if (savedUser.type === UserType.BUSINESS && savedUser.organizationNumber) {
+      await this.mailService.sendBusinessRegistrationNotification({
+        email: savedUser.email,
+        organizationNumber: savedUser.organizationNumber,
+      });
+    }
 
     return savedUser;
   }
@@ -411,24 +428,4 @@ export class AuthService {
     return { user: user, accessToken, refreshToken };
   }
 
-  /**
-   *
-   * @param id The id of the user to switch to
-   * @returns The user, accessToken and refreshToken
-   */
-  async switchAccount(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw BadUserInputException();
-    }
-
-    const refreshToken = await this.updateRefreshToken(user);
-    const accessToken = await this.createJwtToken(user);
-
-    return {
-      user,
-      accessToken,
-      refreshToken,
-    };
-  }
 }

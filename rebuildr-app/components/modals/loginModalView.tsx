@@ -8,23 +8,20 @@ import React, {
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
-import Password from "@components/login/password";
 import ForgotPassword from "@components/login/forgotPassword";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isLoggedInVar } from "@/apollo/config";
 import { trackEvent } from "@/utils/analytics";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
 import {
-  RegisterStatusEnum,
   RegisterUserMutation,
   RegisterUserMutationVariables,
-  UserExistsQuery,
-  UserExistsQueryVariables,
 } from "@/gql/graphql";
 import { Details } from "@components/login/details";
-import { CreateBusiness } from "@components/login/createBusiness";
+import Register from "@components/login/register";
+import RegisterBusiness from "@components/login/register-business";
 import { router } from "expo-router";
 import { useLogout } from "@hooks/useLogout";
 import { useScreenType } from "@hooks/useScreenType";
@@ -56,15 +53,6 @@ const RESET_PASSWORD = gql`
   }
 `;
 
-const USER_EXISTS = gql`
-  query UserExists($input: UserExistsInput!) {
-    userExists(input: $input) {
-      exists
-      registrationStatus
-    }
-  }
-`;
-
 const REGISTER_USER = gql`
   mutation RegisterUser($input: RegisterUserInput!) {
     registerUser(input: $input) {
@@ -77,11 +65,18 @@ const LoginModalView = () => {
   const { isDesktop } = useScreenType();
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
   const [state, setState] = useState<
-    "email" | "password" | "forgotPassword" | "verify" | "details" | "business"
+    | "email"
+    | "register"
+    | "register-business"
+    | "forgotPassword"
+    | "verify"
+    | "details"
   >("email");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [isBusinessRegistration, setIsBusinessRegistration] = useState(false);
   const { setVisible: setSellVisible } = useSellProductContext();
 
   const [login, { loading }] = useMutation(LOGIN);
@@ -92,6 +87,8 @@ const LoginModalView = () => {
     setState("email");
     setEmail("");
     setWrongPassword(false);
+    setPendingApproval(false);
+    setIsBusinessRegistration(false);
   };
 
   const onLogin = async (email: string, password: string) => {
@@ -120,15 +117,18 @@ const LoginModalView = () => {
           reloadAppAsync();
         }
       },
-      onError: () => {
-        setWrongPassword(true);
+      onError: (error) => {
+        const isPending = error.graphQLErrors.some(
+          (e) => e.extensions?.code === "BUSINESS_PENDING_APPROVAL",
+        );
+        if (isPending) {
+          setPendingApproval(true);
+        } else {
+          setWrongPassword(true);
+        }
       },
     });
   };
-  const [userExists, { loading: userExistsLoading }] = useLazyQuery<
-    UserExistsQuery,
-    UserExistsQueryVariables
-  >(USER_EXISTS, { fetchPolicy: "network-only" });
   const [registerUser, { loading: registerUserLoading }] = useMutation<
     RegisterUserMutation,
     RegisterUserMutationVariables
@@ -140,62 +140,70 @@ const LoginModalView = () => {
   const handleClosePress = useCallback(() => {
     switch (state) {
       case "email":
-      case "password":
+      case "register":
+      case "register-business":
       case "forgotPassword":
       case "verify":
         reset();
         setVisible(false);
         break;
       case "details":
+        if (showWelcome) break;
         setVisible(false);
         logout();
         reloadAppAsync();
         router.replace("/");
         break;
-      case "business":
-        reloadAppAsync();
-        setVisible(false);
-        break;
       default:
         reset();
         setVisible(false);
     }
-  }, [setVisible]);
+  }, [state, showWelcome, setVisible, logout]);
 
-  const onSubmitEmail = (email: string) => {
-    if (userExistsLoading || registerUserLoading) {
-      return;
-    }
-    setEmail(email);
+  const onCreatePersonalAccount = (submittedEmail: string) => {
+    setEmail(submittedEmail);
+    setState("register");
+  };
 
-    userExists({
-      variables: { input: { email } },
-      onCompleted: (data) => {
-        if (
-          !data.userExists.exists ||
-          data.userExists.registrationStatus === RegisterStatusEnum.Email ||
-          data.userExists.registrationStatus === RegisterStatusEnum.Details
-        ) {
-          registerUser({
-            variables: { input: { email } },
-            onCompleted: () => {
-              trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
-              setState("verify");
-              sheetRef.current?.snapToIndex(fullScreenIndex);
-            },
-          });
-          return;
-        }
-        setState("password");
+  const onCreateBusinessAccount = (submittedEmail: string) => {
+    setEmail(submittedEmail);
+    setIsBusinessRegistration(true);
+    setState("register-business");
+  };
+
+  const onSubmitRegisterEmail = (submittedEmail: string) => {
+    if (registerUserLoading) return;
+    setEmail(submittedEmail);
+    registerUser({
+      variables: { input: { email: submittedEmail } },
+      onCompleted: () => {
+        trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
+        setState("verify");
+        sheetRef.current?.snapToIndex(fullScreenIndex);
       },
     });
   };
 
-  const onSubmitPassword = (password: string) => {
-    onLogin(email, password);
+  const onSubmitRegisterBusiness = (
+    submittedEmail: string,
+    orgNumber: string,
+  ) => {
+    if (registerUserLoading) return;
+    setEmail(submittedEmail);
+    registerUser({
+      variables: {
+        input: { email: submittedEmail, organizationNumber: orgNumber },
+      },
+      onCompleted: () => {
+        trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
+        setState("verify");
+        sheetRef.current?.snapToIndex(fullScreenIndex);
+      },
+    });
   };
 
-  const onForgotPassword = () => {
+  const onForgotPassword = (submittedEmail: string) => {
+    setEmail(submittedEmail);
     setState("forgotPassword");
   };
 
@@ -214,10 +222,6 @@ const LoginModalView = () => {
     setState("details");
   };
 
-  const onCreateBusiness = () => {
-    setState("business");
-  };
-
   useEffect(() => {
     if (visible) {
       sheetRef.current?.present();
@@ -230,27 +234,36 @@ const LoginModalView = () => {
     state === "email" && (
       <Email
         key="email"
-        onSubmit={(email) => {
-          onSubmitEmail(email);
-        }}
+        onLogin={onLogin}
+        onForgotPassword={onForgotPassword}
+        onCreatePersonalAccount={onCreatePersonalAccount}
+        onCreateBusinessAccount={onCreateBusinessAccount}
+        wrongPassword={wrongPassword}
+        pendingApproval={pendingApproval}
+        loading={loading}
         initialEmail={email}
       />
     ),
-    state === "password" && (
-      <Password
-        key="password"
-        onSubmit={(password) => {
-          onSubmitPassword(password);
-        }}
-        loading={loading}
-        onForgotPassword={onForgotPassword}
-        wrongPassword={wrongPassword}
+    state === "register" && (
+      <Register
+        key="register"
+        onSubmit={onSubmitRegisterEmail}
+        initialEmail={email}
+        loading={registerUserLoading}
+      />
+    ),
+    state === "register-business" && (
+      <RegisterBusiness
+        key="register-business"
+        onSubmit={onSubmitRegisterBusiness}
+        initialEmail={email}
+        loading={registerUserLoading}
       />
     ),
     state === "forgotPassword" && (
       <ForgotPassword
         key="forgotPassword"
-        onBack={() => setState("password")}
+        onBack={() => setState("email")}
         onSubmit={onRequestPasswordReset}
         currentEmail={email}
       />
@@ -265,29 +278,17 @@ const LoginModalView = () => {
     state === "details" && (
       <Details
         key="details"
-        onDone={() => {
-          setVisible(false);
+        onDone={async () => {
+          if (isBusinessRegistration) {
+            await logout();
+          }
           setShowWelcome(true);
         }}
-        onCreateBusiness={onCreateBusiness}
         onExit={() => {
           setVisible(false);
           logout();
           reloadAppAsync();
           router.replace("/");
-        }}
-      />
-    ),
-    state === "business" && (
-      <CreateBusiness
-        key="business"
-        onDone={() => {
-          setVisible(false);
-          setShowWelcome(true);
-        }}
-        onExit={() => {
-          reloadAppAsync();
-          setVisible(false);
         }}
       />
     ),
@@ -297,36 +298,38 @@ const LoginModalView = () => {
     switch (state) {
       case "email":
         return "Logga in eller skapa konto";
-      case "password":
+      case "register":
+        return "Skapa ett privat konto";
+      case "register-business":
+        return "Skapa ditt nya företagkonto";
       case "forgotPassword":
         return "Logga in";
       case "verify":
       case "details":
-      case "business":
         return "Skapa ditt nya konto";
       default:
         return "";
     }
   };
   let onBackFunction = null;
-  if (state === "password") {
+  if (state === "register" || state === "register-business") {
     onBackFunction = () => setState("email");
   }
   if (state === "forgotPassword") {
-    onBackFunction = () => setState("password");
+    onBackFunction = () => setState("email");
   }
 
   const handleWelcomeClose = () => {
     setShowWelcome(false);
+    setVisible(false);
     reset();
-
     router.replace("/");
   };
 
   const handleWelcomeCreateListing = () => {
     setShowWelcome(false);
+    setVisible(false);
     reset();
-
     router.replace("/");
     setSellVisible(true);
   };
@@ -377,6 +380,7 @@ const LoginModalView = () => {
         open={showWelcome}
         onClose={handleWelcomeClose}
         onCreateListing={handleWelcomeCreateListing}
+        isBusiness={isBusinessRegistration}
       />
     </>
   );

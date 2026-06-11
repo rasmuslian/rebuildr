@@ -104,7 +104,7 @@ const DeveloperSetting = () => {
 
       <div className="flex flex-col gap-5">
         <h3>Skicka epostmeddelanden för att testa templates</h3>
-        <div className="flex flex-row gap-5">
+        <div className="grid grid-cols-3 gap-5">
           <Button
             style={{ width: 300 }}
             onClick={() => sendEmailTemplate({ template: "verifyEmail" })}
@@ -159,6 +159,26 @@ const DeveloperSetting = () => {
             disabled={isSendingEmailTemplate}
           >
             Aktivera utbetalningar
+          </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({
+                template: "businessRegistrationNotification",
+              })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Nytt företagskonto (admin-notis)
+          </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({ template: "businessApproved" })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Företagskonto godkänt
           </Button>
         </div>
       </div>

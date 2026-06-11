@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { MailService } from './mail.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   RegistrationStatusEnum,
@@ -27,7 +28,6 @@ import {
   CmsListUsersInput,
   CmsListUsersResponse,
   CmsUpdateUsersInput,
-  CreateOrganizationUserInput,
   OnboardSellerAccountInput,
   OrderUsersEnum,
   UpdateOrganizationUserInput,
@@ -52,6 +52,7 @@ import { validateWebsite } from 'src/utility/website';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { OrganizationService } from './organization.service';
 @Injectable()
 export class UserService {
   constructor(
@@ -67,6 +68,8 @@ export class UserService {
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private organizationService: OrganizationService,
+    private mailService: MailService,
   ) {}
 
   async findOne(id: string) {
@@ -77,22 +80,6 @@ export class UserService {
     return await this.userRepository.findOneBy({
       email: email.toLowerCase().trim(),
     });
-  }
-
-  async findOrganizationOwner(organizationUser: User) {
-    if (organizationUser.type === UserType.PERSONAL) {
-      return null;
-    }
-
-    const owner = await this.userRepository.findOne({
-      where: {
-        organizations: {
-          id: organizationUser.id,
-        },
-      },
-    });
-
-    return owner;
   }
 
   async getUsers(input: UsersInput, _limit?: number, offset?: number) {
@@ -291,69 +278,6 @@ export class UserService {
     };
   }
 
-  /**
-   *
-   * @param input
-   * @param input.type The type of the organization: UserType.BUSINESS | UserType.NONPROFIT
-   * @param input.organizationNumber The organization number
-   * @param input.username The name of the organization
-   * @param input.creatorId The ID of the personal account user creating the organization
-   * @returns The created organization user
-   */
-
-  async createOrganizationUser(
-    input: CreateOrganizationUserInput,
-    currentUserId: string,
-  ) {
-    const creator = await this.userRepository.findOne({
-      where: { id: currentUserId },
-      relations: { organizations: true },
-    });
-    if (!creator) {
-      throw BadUserInputException('Creator not found');
-    }
-    if (creator.organizations.some((o) => !o.deletedAt)) {
-      throw ForbiddenException('User can only have one organization');
-    }
-    const organizationExist = await this.organizationExists(
-      input.organizationNumber,
-    );
-    if (organizationExist) {
-      throw BadFieldsInputException([
-        {
-          message:
-            'An organization with given organization number already exist',
-          name: 'organizationNumber',
-          type: 'VALUE_TAKEN',
-        },
-      ]);
-    }
-    //verify org number
-    const onlyDigits = input.organizationNumber.replace(/\D/g, '');
-    if (onlyDigits.length !== 10) {
-      throw BadFieldsInputException([
-        {
-          message: 'Invalid organization number',
-          name: 'organizationNumber',
-          type: 'BAD_VALUE',
-        },
-      ]);
-    }
-    const organizationNumber = onlyDigits;
-
-    const organizationUser = new User();
-    organizationUser.organizationNumber = organizationNumber;
-    organizationUser.username = input.organizationName;
-    organizationUser.type = UserType.BUSINESS;
-
-    creator.organizations = creator.organizations || [];
-    creator.organizations.push(organizationUser);
-
-    const _creator = await this.userRepository.save(creator);
-    organizationUser.organizationUsers = [_creator];
-    const _organizationUser = await this.userRepository.save(organizationUser);
-    return _organizationUser;
-  }
   async updateOrganizationUser(
     input: UpdateOrganizationUserInput,
     currentUserId: string,
@@ -439,10 +363,13 @@ export class UserService {
     return await this.userRepository.save(organization);
   }
 
-  async organizationExists(organizationNumber: string) {
-    return !!(await this.userRepository.findOne({
-      where: { organizationNumber },
-    }));
+  async lookupOrganizationNumber(orgNumber: string) {
+    const [data, alreadyRegistered] = await Promise.all([
+      this.organizationService.lookupOrganizationNumber(orgNumber),
+      this.userRepository.existsBy({ organizationNumber: orgNumber }),
+    ]);
+    if (!data) return null;
+    return { ...data, alreadyRegistered };
   }
 
   addressLocationToCoordinates(user: User, currentUserId: string) {
@@ -640,6 +567,27 @@ export class UserService {
       businessFilter = { ...businessFilter, connectedAccountId: Not(IsNull()) };
     }
 
+    if (input.pendingApproval) {
+      const pendingFilter: FindOptionsWhere<User> = {
+        type: UserType.BUSINESS,
+        organizationApprovedAt: IsNull(),
+        emailVerifiedAt: Not(IsNull()),
+        username: Not(IsNull()),
+        deletedAt: IsNull(),
+      };
+      const [users, total] = await this.userRepository.findAndCount({
+        where: [
+          { ...pendingFilter, name: ILike(`%${searchString}%`) },
+          { ...pendingFilter, username: ILike(`%${searchString}%`) },
+          { ...pendingFilter, email: ILike(`%${searchString}%`) },
+        ],
+        take: pageSize,
+        skip,
+        order: { createdAt: 'DESC' },
+      });
+      return { users, total };
+    }
+
     const [users, total] = await this.userRepository.findAndCount({
       where: [
         {
@@ -747,6 +695,22 @@ export class UserService {
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
     }
+  }
+
+  async approveBusinessAccount(userId: string) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user || user.type !== UserType.BUSINESS) {
+      throw NotFoundException('Business account not found');
+    }
+    if (user.organizationApprovedAt) {
+      return user;
+    }
+    user.organizationApprovedAt = new Date();
+    const savedUser = await this.userRepository.save(user);
+    await this.mailService.sendBusinessApprovedEmail({
+      email: savedUser.email,
+    });
+    return savedUser;
   }
 
   @Cron(CronExpression.EVERY_WEEK)

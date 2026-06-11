@@ -19,18 +19,32 @@ import { AuthedUserType, authThrottleConfig } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
+import {
+  BusinessPendingApprovalException,
+} from 'src/exceptions';
+import { UserType } from 'src/entities/user.entity';
 
 @InputType()
 export class RegisterUserInput {
   @Field(() => String)
   email: string;
+
+  @Field(() => String, { nullable: true })
+  organizationNumber?: string;
 }
 const registerUserSchema = z.object({
   email: z
     .string()
     .email()
     .transform((value) => value.toLowerCase().trim()),
+  organizationNumber: z.string().optional(),
 });
+
+@ObjectType()
+export class RegisterUserResponse {
+  @Field(() => String)
+  id: string;
+}
 @InputType()
 export class FinalizeUserInput {
   @Field()
@@ -150,12 +164,13 @@ export class AuthResolver {
     return await this.authService.usernameIsValid(username);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => RegisterUserResponse)
   @UseGuards(GqlThrottlerGuard)
   @Throttle({ auth: authThrottleConfig })
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async registerUser(@Args('input') input: RegisterUserInput) {
-    return await this.authService.registerUser(input);
+    const { id } = await this.authService.registerUser(input);
+    return { id };
   }
 
   @Mutation(() => LoginResponse)
@@ -192,7 +207,14 @@ export class AuthResolver {
     @Args('input') input: LoginInput,
     @Context('req') req: RequestType,
   ) {
-    return await this.authService.login(input, req);
+    const result = await this.authService.login(input, req);
+    if (
+      result.user.type === UserType.BUSINESS &&
+      !result.user.organizationApprovedAt
+    ) {
+      throw BusinessPendingApprovalException();
+    }
+    return result;
   }
 
   @Mutation(() => Boolean)
@@ -228,9 +250,4 @@ export class AuthResolver {
     return await this.authService.newPassword(input);
   }
 
-  @Mutation(() => LoginResponse)
-  @UseGuards(GqlAuthGuard)
-  async switchAccount(@Args('id') id: string) {
-    return await this.authService.switchAccount(id);
-  }
 }

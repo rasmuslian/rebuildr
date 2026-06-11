@@ -11,6 +11,7 @@ import { AuthService } from './services/auth.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
+import { OrganizationService } from './services/organization.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import {
@@ -292,6 +293,7 @@ export interface RequestType {
     AuthService,
     UserResolver,
     UserService,
+    OrganizationService,
     ProductResolver,
     ProductService,
     CategoryResolver,

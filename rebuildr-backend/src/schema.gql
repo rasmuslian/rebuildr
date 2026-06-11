@@ -169,6 +169,7 @@ type User {
   email: String
   name: String
   description: String
+  createdAt: DateTime!
   address: String
   postCode: String
   city: String
@@ -199,7 +200,6 @@ type User {
   payoutAccount: PayoutAccount
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   organizationAccount: User
-  organizationOwner: User
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!
@@ -500,6 +500,14 @@ type UpdateUserResponse {
   profilePicturePutUrl: String
 }
 
+type OrganizationLookupResponse {
+  name: String!
+  address: String!
+  zipCode: String!
+  city: String!
+  alreadyRegistered: Boolean!
+}
+
 type UserExistsResponse {
   exists: Boolean!
   registrationStatus: RegisterStatusEnum
@@ -689,6 +697,10 @@ type Article {
   updatedAt: DateTime!
 }
 
+type RegisterUserResponse {
+  id: String!
+}
+
 type ResendVerificationMailResponse {
   message: String!
 }
@@ -835,6 +847,7 @@ type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
   userExists(input: UserExistsInput!): UserExistsResponse!
+  lookupOrganizationNumber(orgNumber: String!): OrganizationLookupResponse
   user(input: GetUserInput!): User!
   users(input: UsersInput!, offset: Int, limit: Int): UsersResponse!
   cmsGetUser(id: String!): User!
@@ -925,6 +938,7 @@ input CmsListUsersInput {
   pageSize: Int
   searchString: String
   canSell: Boolean
+  pendingApproval: Boolean
 }
 
 input GetProductInput {
@@ -1185,7 +1199,7 @@ input CmsPurchaseStatisticsInput {
 }
 
 type Mutation {
-  registerUser(input: RegisterUserInput!): User!
+  registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
   resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
@@ -1195,11 +1209,10 @@ type Mutation {
   getNewTokens(input: GetNewTokensInput!): GetNewTokensResponse!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResponse!
   newPassword(input: NewPasswordInput!): LoginResponse!
-  switchAccount(id: String!): LoginResponse!
   cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
-  createOrganizationUser(input: CreateOrganizationUserInput!): User!
   updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
+  approveBusinessAccount(userId: String!): User!
   deleteAccount: User!
   onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
@@ -1270,6 +1283,7 @@ type Mutation {
 
 input RegisterUserInput {
   email: String!
+  organizationNumber: String
 }
 
 input VerifyEmailInput {
@@ -1342,11 +1356,6 @@ input UpdateUserInput {
 input FileInputType {
   mimeType: String!
   name: String
-}
-
-input CreateOrganizationUserInput {
-  organizationNumber: String!
-  organizationName: String!
 }
 
 input UpdateOrganizationUserInput {
