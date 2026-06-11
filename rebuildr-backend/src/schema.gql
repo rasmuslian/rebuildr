@@ -200,7 +200,6 @@ type User {
   payoutAccount: PayoutAccount
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   organizationAccount: User
-  organizationOwner: User
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!

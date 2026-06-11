@@ -598,15 +598,6 @@ export class UserResolver {
     return organizations?.[0];
   }
 
-  @ResolveField(() => User, { nullable: true })
-  async organizationOwner(
-    @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
-  ) {
-    const owners = await userLoaders.getOrganizationOwners.load(user.id);
-    return owners?.[0];
-  }
-
   @ResolveField(() => Number)
   async totalCO2Savings(
     @Parent() user: User,

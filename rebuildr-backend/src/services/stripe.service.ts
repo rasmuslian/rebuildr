@@ -203,16 +203,6 @@ export class StripeService {
     }
   }
   async createConnectedAccountOrganization(organizationUser: User) {
-    const owner = await this.userRepository.findOne({
-      where: {
-        organizations: { id: organizationUser.id },
-      },
-    });
-    if (!owner) {
-      this.logger.error('Organization does not have an owner');
-      throw InternalServerException();
-    }
-
     if (!organizationUser.organizationNumber) {
       this.logger.error('Organization does not have an organization number', {
         organizationUser,
@@ -259,7 +249,7 @@ export class StripeService {
         business_profile: {
           name: scbData?.Företagsnamn ?? organizationUser.username,
         },
-        email: owner.email,
+        email: organizationUser.email,
         controller: {
           stripe_dashboard: {
             type: 'none',

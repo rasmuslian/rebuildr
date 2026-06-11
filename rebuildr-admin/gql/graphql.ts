@@ -2510,7 +2510,6 @@ export type User = {
   organizationAccount?: Maybe<User>;
   organizationApprovedAt?: Maybe<Scalars['DateTime']['output']>;
   organizationNumber?: Maybe<Scalars['String']['output']>;
-  organizationOwner?: Maybe<User>;
   payoutAccount?: Maybe<PayoutAccount>;
   phoneNumber?: Maybe<Scalars['String']['output']>;
   postCode?: Maybe<Scalars['String']['output']>;

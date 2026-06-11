@@ -82,22 +82,6 @@ export class UserService {
     });
   }
 
-  async findOrganizationOwner(organizationUser: User) {
-    if (organizationUser.type === UserType.PERSONAL) {
-      return null;
-    }
-
-    const owner = await this.userRepository.findOne({
-      where: {
-        organizations: {
-          id: organizationUser.id,
-        },
-      },
-    });
-
-    return owner;
-  }
-
   async getUsers(input: UsersInput, _limit?: number, offset?: number) {
     const query = this.userRepository.createQueryBuilder('u');
     query.where('u."deletedAt" IS NULL');
