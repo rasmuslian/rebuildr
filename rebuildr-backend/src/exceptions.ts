@@ -68,3 +68,11 @@ export const NotFoundException = (message?: string) => {
     },
   });
 };
+
+export const BusinessPendingApprovalException = () => {
+  return new GraphQLError('Business account pending approval', {
+    extensions: {
+      code: 'BUSINESS_PENDING_APPROVAL',
+    },
+  });
+};

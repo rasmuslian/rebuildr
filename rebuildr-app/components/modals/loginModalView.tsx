@@ -65,6 +65,7 @@ const LoginModalView = () => {
   const { isDesktop } = useScreenType();
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
   const { visible, setVisible } = useContext(LoginModalContext);
   const [state, setState] = useState<
     | "email"
@@ -86,6 +87,7 @@ const LoginModalView = () => {
     setState("email");
     setEmail("");
     setWrongPassword(false);
+    setPendingApproval(false);
     setIsBusinessRegistration(false);
   };
 
@@ -115,8 +117,15 @@ const LoginModalView = () => {
           reloadAppAsync();
         }
       },
-      onError: () => {
-        setWrongPassword(true);
+      onError: (error) => {
+        const isPending = error.graphQLErrors.some(
+          (e) => e.extensions?.code === "BUSINESS_PENDING_APPROVAL",
+        );
+        if (isPending) {
+          setPendingApproval(true);
+        } else {
+          setWrongPassword(true);
+        }
       },
     });
   };
@@ -139,6 +148,7 @@ const LoginModalView = () => {
         setVisible(false);
         break;
       case "details":
+        if (showWelcome) break;
         setVisible(false);
         logout();
         reloadAppAsync();
@@ -148,7 +158,7 @@ const LoginModalView = () => {
         reset();
         setVisible(false);
     }
-  }, [setVisible]);
+  }, [state, showWelcome, setVisible, logout]);
 
   const onCreatePersonalAccount = (submittedEmail: string) => {
     setEmail(submittedEmail);
@@ -229,6 +239,7 @@ const LoginModalView = () => {
         onCreatePersonalAccount={onCreatePersonalAccount}
         onCreateBusinessAccount={onCreateBusinessAccount}
         wrongPassword={wrongPassword}
+        pendingApproval={pendingApproval}
         loading={loading}
         initialEmail={email}
       />
@@ -267,8 +278,10 @@ const LoginModalView = () => {
     state === "details" && (
       <Details
         key="details"
-        onDone={() => {
-          setVisible(false);
+        onDone={async () => {
+          if (isBusinessRegistration) {
+            await logout();
+          }
           setShowWelcome(true);
         }}
         onExit={() => {
@@ -308,15 +321,15 @@ const LoginModalView = () => {
 
   const handleWelcomeClose = () => {
     setShowWelcome(false);
+    setVisible(false);
     reset();
-
     router.replace("/");
   };
 
   const handleWelcomeCreateListing = () => {
     setShowWelcome(false);
+    setVisible(false);
     reset();
-
     router.replace("/");
     setSellVisible(true);
   };

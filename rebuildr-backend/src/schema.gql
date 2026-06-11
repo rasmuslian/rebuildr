@@ -169,6 +169,7 @@ type User {
   email: String
   name: String
   description: String
+  createdAt: DateTime!
   address: String
   postCode: String
   city: String
@@ -938,6 +939,7 @@ input CmsListUsersInput {
   pageSize: Int
   searchString: String
   canSell: Boolean
+  pendingApproval: Boolean
 }
 
 input GetProductInput {
@@ -1211,6 +1213,7 @@ type Mutation {
   cmsUpdateUser(input: CmsUpdateUsersInput!): User!
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   updateOrganizationUser(input: UpdateOrganizationUserInput!): User!
+  approveBusinessAccount(userId: String!): User!
   deleteAccount: User!
   onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!

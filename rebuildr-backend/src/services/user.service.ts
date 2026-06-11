@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { MailService } from './mail.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   RegistrationStatusEnum,
@@ -68,6 +69,7 @@ export class UserService {
     private projectRepository: Repository<Project>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private organizationService: OrganizationService,
+    private mailService: MailService,
   ) {}
 
   async findOne(id: string) {
@@ -581,6 +583,27 @@ export class UserService {
       businessFilter = { ...businessFilter, connectedAccountId: Not(IsNull()) };
     }
 
+    if (input.pendingApproval) {
+      const pendingFilter: FindOptionsWhere<User> = {
+        type: UserType.BUSINESS,
+        organizationApprovedAt: IsNull(),
+        emailVerifiedAt: Not(IsNull()),
+        username: Not(IsNull()),
+        deletedAt: IsNull(),
+      };
+      const [users, total] = await this.userRepository.findAndCount({
+        where: [
+          { ...pendingFilter, name: ILike(`%${searchString}%`) },
+          { ...pendingFilter, username: ILike(`%${searchString}%`) },
+          { ...pendingFilter, email: ILike(`%${searchString}%`) },
+        ],
+        take: pageSize,
+        skip,
+        order: { createdAt: 'DESC' },
+      });
+      return { users, total };
+    }
+
     const [users, total] = await this.userRepository.findAndCount({
       where: [
         {
@@ -688,6 +711,22 @@ export class UserService {
     } catch (error) {
       throw BadUserInputException(`Failed to update user: ${error}`);
     }
+  }
+
+  async approveBusinessAccount(userId: string) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user || user.type !== UserType.BUSINESS) {
+      throw NotFoundException('Business account not found');
+    }
+    if (user.organizationApprovedAt) {
+      return user;
+    }
+    user.organizationApprovedAt = new Date();
+    const savedUser = await this.userRepository.save(user);
+    await this.mailService.sendBusinessApprovedEmail({
+      email: savedUser.email,
+    });
+    return savedUser;
   }
 
   @Cron(CronExpression.EVERY_WEEK)

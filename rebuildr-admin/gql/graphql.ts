@@ -359,6 +359,7 @@ export type CmsListUsersInput = {
   canSell?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  pendingApproval?: InputMaybe<Scalars['Boolean']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -634,11 +635,6 @@ export type CreateMessageInput = {
   images?: InputMaybe<Array<FileInputType>>;
   message: Scalars['String']['input'];
   productId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type CreateOrganizationUserInput = {
-  organizationName: Scalars['String']['input'];
-  organizationNumber: Scalars['String']['input'];
 };
 
 export type CreateProductInput = {
@@ -1026,6 +1022,7 @@ export type Mutation = {
   acceptPurchase: Purchase;
   addPayoutAccount: User;
   analyzeProductImages: Product;
+  approveBusinessAccount: User;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsCreateArticle: Article;
@@ -1067,7 +1064,6 @@ export type Mutation = {
   createBrandByUser: Brand;
   createDraftProduct: Product;
   createMessage: Message;
-  createOrganizationUser: User;
   createProduct: CreateProductResponse;
   createProject: Project;
   createReportProduct: ReportProduct;
@@ -1087,14 +1083,13 @@ export type Mutation = {
   newPassword: LoginResponse;
   onboardSellerAccount: OnboardSellerAccountResponse;
   purchaseProduct: PurchaseProductResponse;
-  registerUser: User;
+  registerUser: RegisterUserResponse;
   removeProduct: Product;
   resendVerificationMail: ResendVerificationMailResponse;
   resetPassword: ResetPasswordResponse;
   setLikeProduct: Product;
   setLikeProject: Project;
   signupNewsLetter: Scalars['Boolean']['output'];
-  switchAccount: LoginResponse;
   syncApproximateLocations: Scalars['Boolean']['output'];
   syncCO2Factors: Scalars['Boolean']['output'];
   updateOrganizationUser: User;
@@ -1123,6 +1118,11 @@ export type MutationAddPayoutAccountArgs = {
 
 export type MutationAnalyzeProductImagesArgs = {
   input: AnalyzeProductImagesInput;
+};
+
+
+export type MutationApproveBusinessAccountArgs = {
+  userId: Scalars['String']['input'];
 };
 
 
@@ -1322,11 +1322,6 @@ export type MutationCreateMessageArgs = {
 };
 
 
-export type MutationCreateOrganizationUserArgs = {
-  input: CreateOrganizationUserInput;
-};
-
-
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
 };
@@ -1447,11 +1442,6 @@ export type MutationSignupNewsLetterArgs = {
 };
 
 
-export type MutationSwitchAccountArgs = {
-  id: Scalars['String']['input'];
-};
-
-
 export type MutationUpdateOrganizationUserArgs = {
   input: UpdateOrganizationUserInput;
 };
@@ -1542,6 +1532,15 @@ export enum OrderProductsEnum {
 export enum OrderUsersEnum {
   Alphabetical = 'ALPHABETICAL'
 }
+
+export type OrganizationLookupResponse = {
+  __typename?: 'OrganizationLookupResponse';
+  address: Scalars['String']['output'];
+  alreadyRegistered: Scalars['Boolean']['output'];
+  city: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  zipCode: Scalars['String']['output'];
+};
 
 export type PageContent = {
   __typename?: 'PageContent';
@@ -1905,6 +1904,7 @@ export type Query = {
   listPageContents: ListPageContentResponse;
   locationSearch: LocationSearchResponse;
   locationToAddress: GetAddressResponse;
+  lookupOrganizationNumber?: Maybe<OrganizationLookupResponse>;
   mapPinGroups: MapPinGroupsResponse;
   me: User;
   myProjects: Array<Project>;
@@ -2112,6 +2112,11 @@ export type QueryLocationToAddressArgs = {
 };
 
 
+export type QueryLookupOrganizationNumberArgs = {
+  orgNumber: Scalars['String']['input'];
+};
+
+
 export type QueryMapPinGroupsArgs = {
   input: MapPinGroupsInput;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -2205,6 +2210,12 @@ export enum RegisterStatusEnum {
 
 export type RegisterUserInput = {
   email: Scalars['String']['input'];
+  organizationNumber?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type RegisterUserResponse = {
+  __typename?: 'RegisterUserResponse';
+  id: Scalars['String']['output'];
 };
 
 export type RemoveProductInput = {
@@ -2482,6 +2493,7 @@ export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   city?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];

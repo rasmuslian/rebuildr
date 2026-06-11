@@ -13,6 +13,7 @@ type Props = {
   onCreatePersonalAccount: (email: string) => void;
   onCreateBusinessAccount?: (email: string) => void;
   wrongPassword?: boolean;
+  pendingApproval?: boolean;
   loading?: boolean;
   initialEmail?: string;
 };
@@ -23,6 +24,7 @@ export default function Email({
   onCreatePersonalAccount,
   onCreateBusinessAccount,
   wrongPassword,
+  pendingApproval,
   loading,
   initialEmail,
 }: Props) {
@@ -86,6 +88,12 @@ export default function Email({
         loading={loading}
         disabled={!canLogin}
       />
+      {pendingApproval && (
+        <Body size="small" color="error" style={{ textAlign: "center" }}>
+          Ditt företagskonto väntar på godkännande. Du får ett mejl när kontot
+          är godkänt.
+        </Body>
+      )}
       <View
         style={{
           flexDirection: "row",

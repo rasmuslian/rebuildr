@@ -265,6 +265,9 @@ export class CmsListUsersInput {
 
   @Field({ nullable: true })
   canSell?: boolean;
+
+  @Field({ nullable: true })
+  pendingApproval?: boolean;
 }
 
 @ObjectType()
@@ -400,6 +403,13 @@ export class UserResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return await this.userService.updateOrganizationUser(input, user.id);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async approveBusinessAccount(@Args('userId') userId: string) {
+    return this.userService.approveBusinessAccount(userId);
   }
 
   @Mutation(() => User)

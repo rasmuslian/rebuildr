@@ -124,6 +124,9 @@ const SidebarMenu = () => {
     getItem("Användare", routes.LIST_USER, <UserOutlined />),
 
     { type: "divider" },
+    getItem("Företagskonton", routes.LIST_BUSINESS, <TeamOutlined />),
+
+    { type: "divider" },
     getItem("Bildbibliotek", routes.Image_Library, <FileImageOutlined />),
 
     { type: "divider" },
