@@ -270,18 +270,18 @@ export const Details = ({ onDone, onExit }: Props) => {
             />
           </View>
         )}
+        {!isDesktop && (
+          <Button
+            label="Fortsätt"
+            loading={loading}
+            onPress={() => {
+              onProceed();
+            }}
+            disabled={!canContinue()}
+            style={{ marginTop: 24 }}
+          />
+        )}
       </View>
-      {!isDesktop && (
-        <Button
-          label="Fortsätt"
-          loading={loading}
-          onPress={() => {
-            onProceed();
-          }}
-          disabled={!canContinue()}
-          style={{ marginTop: 24 }}
-        />
-      )}
     </>
   );
 };
