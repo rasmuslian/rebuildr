@@ -3,6 +3,7 @@ import Head from "expo-router/head";
 import { useCallback } from "react";
 import { Pressable, View } from "react-native";
 
+import Footer from "@components/navigation/footer";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -144,6 +145,7 @@ export default function BygghjalpenLandingPage() {
             </View>
           </View>
         </View>
+        <Footer />
       </View>
     </>
   );
