@@ -1,13 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-native-markdown-display";
 import {
   ActivityIndicator,
@@ -51,7 +45,7 @@ const GUEST_ID_KEY = "bygghjalpen_guest_id";
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-const getAuthHeaders = async () => {
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const token = await AsyncStorage.getItem("access_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
@@ -76,10 +70,12 @@ const readJson = async <T,>(path: string): Promise<T> => {
   return response.json();
 };
 
-export default function BygghjalpenPage() {
+export default function BygghjalpenChatPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const scrollRef = useRef<ScrollView>(null);
+  const initialQuestionSentRef = useRef(false);
+  const params = useLocalSearchParams<{ question?: string }>();
   const isLoggedIn = isLoggedInVar();
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>();
@@ -122,11 +118,6 @@ export default function BygghjalpenPage() {
     );
   }, [messages]);
 
-  const selectedChat = useMemo(
-    () => chats.find((chat) => chat.id === activeChatId),
-    [activeChatId, chats],
-  );
-
   const loadMessages = async (chatId: string) => {
     setLoadingChat(true);
     setError(undefined);
@@ -163,75 +154,88 @@ export default function BygghjalpenPage() {
     }
   };
 
-  const sendMessage = async () => {
-    const message = input.trim();
-    if (!message || streaming) return;
+  const sendMessage = useCallback(
+    async (overrideMessage?: string) => {
+      const message = (overrideMessage ?? input).trim();
+      if (!message || streaming) return;
 
-    setInput("");
-    setStreaming(true);
-    setError(undefined);
+      setInput("");
+      setStreaming(true);
+      setError(undefined);
 
-    const assistantId = `assistant-${Date.now()}`;
-    setMessages((current) => [
-      ...current,
-      { id: `user-${Date.now()}`, role: "user", content: message },
-      { id: assistantId, role: "assistant", content: "", pending: true },
-    ]);
+      const assistantId = `assistant-${Date.now()}`;
+      setMessages((current) => [
+        ...current,
+        { id: `user-${Date.now()}`, role: "user", content: message },
+        { id: assistantId, role: "assistant", content: "", pending: true },
+      ]);
 
-    try {
-      const guestId = isLoggedIn ? undefined : await getGuestId();
-      const response = await fetch(`${apiUrl}/bygghjalpen/chat/stream`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(await getAuthHeaders()),
-        },
-        body: JSON.stringify({ chatId: activeChatId, message, guestId }),
-      });
+      try {
+        const guestId = isLoggedIn ? undefined : await getGuestId();
+        const response = await fetch(`${apiUrl}/bygghjalpen/chat/stream`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeaders()),
+          },
+          body: JSON.stringify({ chatId: activeChatId, message, guestId }),
+        });
 
-      if (!response.ok || !response.body) {
-        throw new Error("Stream failed");
+        if (!response.ok || !response.body) {
+          throw new Error("Stream failed");
+        }
+
+        await readEventStream(response.body, (streamEvent) => {
+          if (streamEvent.event === "chat") {
+            const chat = streamEvent.data as ChatSummary;
+            setActiveChatId(chat.id);
+          }
+
+          if (streamEvent.event === "delta") {
+            const delta = streamEvent.data as string;
+            setMessages((current) =>
+              current.map((item) =>
+                item.id === assistantId
+                  ? { ...item, content: item.content + delta, pending: false }
+                  : item,
+              ),
+            );
+          }
+
+          if (streamEvent.event === "error") {
+            const payload = streamEvent.data as { message?: string };
+            throw new Error(payload.message);
+          }
+        });
+
+        setMessages((current) =>
+          current.map((item) =>
+            item.id === assistantId ? { ...item, pending: false } : item,
+          ),
+        );
+        loadChats();
+      } catch (e) {
+        const messageText = e instanceof Error ? e.message : undefined;
+        setError(messageText ?? "Något gick fel. Försök igen.");
+        setMessages((current) =>
+          current.filter((item) => item.id !== assistantId),
+        );
+      } finally {
+        setStreaming(false);
       }
+    },
+    [activeChatId, input, isLoggedIn, loadChats, streaming],
+  );
 
-      await readEventStream(response.body, (streamEvent) => {
-        if (streamEvent.event === "chat") {
-          const chat = streamEvent.data as ChatSummary;
-          setActiveChatId(chat.id);
-        }
+  useEffect(() => {
+    const question = Array.isArray(params.question)
+      ? params.question[0]
+      : params.question;
+    if (!question?.trim() || initialQuestionSentRef.current) return;
 
-        if (streamEvent.event === "delta") {
-          const delta = streamEvent.data as string;
-          setMessages((current) =>
-            current.map((item) =>
-              item.id === assistantId
-                ? { ...item, content: item.content + delta, pending: false }
-                : item,
-            ),
-          );
-        }
-
-        if (streamEvent.event === "error") {
-          const payload = streamEvent.data as { message?: string };
-          throw new Error(payload.message);
-        }
-      });
-
-      setMessages((current) =>
-        current.map((item) =>
-          item.id === assistantId ? { ...item, pending: false } : item,
-        ),
-      );
-      loadChats();
-    } catch (e) {
-      const messageText = e instanceof Error ? e.message : undefined;
-      setError(messageText ?? "Något gick fel. Försök igen.");
-      setMessages((current) =>
-        current.filter((item) => item.id !== assistantId),
-      );
-    } finally {
-      setStreaming(false);
-    }
-  };
+    initialQuestionSentRef.current = true;
+    sendMessage(question);
+  }, [params.question, sendMessage]);
 
   const examples = [
     "Vilket virke passar till en enkel altan?",
@@ -242,24 +246,27 @@ export default function BygghjalpenPage() {
   return (
     <>
       <Head>
-        <title>Bygghjälpen | RebuildR</title>
+        <title>Bygghjälpen chat | RebuildR</title>
         <meta
           name="description"
-          content="Bygghjälpen hjälper dig med bygg, renovering, hemmafix och återbruk av byggmaterial."
+          content="Chatta med Bygghjälpen om bygg, renovering, hemmafix och återbruk av byggmaterial."
         />
       </Head>
 
-      <View style={{ flex: 1, backgroundColor: colors.background.secondary }}>
-        <TopBar theme="light" showSearchBar={false} />
+      <View style={{ flex: 1, backgroundColor: primitives.secondary200 }}>
+        <TopBar theme="dark" showSearchBar={false} />
         <View
           style={{
             flex: 1,
             flexDirection: isDesktop ? "row" : "column",
-            paddingHorizontal: isDesktop
-              ? horizontalPadding.desktop
-              : horizontalPadding.mobile,
-            paddingVertical: isDesktop ? 24 : 12,
+            alignSelf: "center",
+            backgroundColor: primitives.neutrals100,
             gap: 16,
+            maxWidth: 1200,
+            overflow: "hidden",
+            paddingHorizontal: isDesktop ? 24 : horizontalPadding.mobile,
+            paddingVertical: isDesktop ? 24 : 16,
+            width: "100%",
           }}
         >
           {isDesktop && isLoggedIn && (
@@ -275,37 +282,34 @@ export default function BygghjalpenPage() {
             style={{
               flex: 1,
               minHeight: 0,
-              backgroundColor: colors.background.neutral,
-              borderColor: colors.dividers.secondary,
-              borderRadius: borderRadius.medium,
+              backgroundColor: primitives.neutrals100,
+              borderColor: primitives.neutrals400,
+              borderRadius: 16,
               borderWidth: 1,
+              boxShadow: "0px 4px 12px rgba(30, 30, 30, 0.08)",
               overflow: "hidden",
             }}
           >
-            <View
-              style={{
-                borderBottomColor: colors.dividers.neutral,
-                borderBottomWidth: 1,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: 12,
-                padding: 16,
-              }}
-            >
-              <View style={{ flex: 1, gap: 4 }}>
-                <Title size="medium">Bygghjälpen</Title>
-                <Body size="small" color="secondary">
-                  {selectedChat?.title ??
-                    "Fråga om bygg, hemmafix, materialval eller publika RebuildR-annonser."}
-                </Body>
-              </View>
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button
-                  type="tonal"
-                  icon="+"
-                  label="Ny chat"
-                  onPress={startNewChat}
-                />
+            {(!isDesktop || activeChatId) && (
+              <View
+                style={{
+                  backgroundColor: primitives.secondary100,
+                  borderBottomColor: primitives.secondary500,
+                  borderBottomWidth: 1,
+                  flexDirection: "row",
+                  gap: 8,
+                  justifyContent: "flex-end",
+                  padding: 12,
+                }}
+              >
+                {!isDesktop && (
+                  <Button
+                    type="tonal"
+                    icon="+"
+                    label="Ny"
+                    onPress={startNewChat}
+                  />
+                )}
                 {activeChatId && isLoggedIn && (
                   <Button
                     type="danger"
@@ -314,14 +318,15 @@ export default function BygghjalpenPage() {
                   />
                 )}
               </View>
-            </View>
+            )}
 
             {!isDesktop && isLoggedIn && chats.length > 0 && (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{
-                  borderBottomColor: colors.dividers.neutral,
+                  backgroundColor: primitives.neutrals100,
+                  borderBottomColor: primitives.secondary500,
                   borderBottomWidth: 1,
                 }}
                 contentContainerStyle={{ gap: 8, padding: 12 }}
@@ -336,10 +341,12 @@ export default function BygghjalpenPage() {
                       <View
                         style={{
                           backgroundColor: active
-                            ? colors.background.primary
+                            ? primitives.primary100
                             : primitives.secondary100,
-                          borderColor: colors.dividers.secondary,
-                          borderRadius: borderRadius.small,
+                          borderColor: active
+                            ? primitives.primary300
+                            : primitives.secondary500,
+                          borderRadius: borderRadius.medium,
                           borderWidth: 1,
                           maxWidth: 220,
                           paddingHorizontal: 10,
@@ -378,7 +385,10 @@ export default function BygghjalpenPage() {
                 }}
               >
                 {messages.length === 0 ? (
-                  <EmptyState examples={examples} onExamplePress={setInput} />
+                  <EmptyState
+                    examples={examples}
+                    onExamplePress={sendMessage}
+                  />
                 ) : (
                   messages.map((message) => (
                     <MessageBubble key={message.id} message={message} />
@@ -397,7 +407,8 @@ export default function BygghjalpenPage() {
 
             <View
               style={{
-                borderTopColor: colors.dividers.neutral,
+                backgroundColor: primitives.neutrals100,
+                borderTopColor: primitives.secondary500,
                 borderTopWidth: 1,
                 padding: 12,
               }}
@@ -405,8 +416,8 @@ export default function BygghjalpenPage() {
               <View
                 style={{
                   alignItems: "flex-end",
-                  backgroundColor: primitives.secondary100,
-                  borderColor: colors.dividers.secondary,
+                  backgroundColor: primitives.neutrals100,
+                  borderColor: primitives.neutrals400,
                   borderRadius: borderRadius.medium,
                   borderWidth: 1,
                   flexDirection: "row",
@@ -430,11 +441,10 @@ export default function BygghjalpenPage() {
                   style={{
                     color: colors.text.primaryDark,
                     flex: 1,
-                    fontFamily: "Poppins-Regular",
+                    fontFamily: "Inter-Regular",
                     fontSize: 15,
                     maxHeight: 132,
                     minHeight: 28,
-                    outlineStyle: "none",
                   }}
                 />
                 <Button
@@ -442,7 +452,7 @@ export default function BygghjalpenPage() {
                   icon={streaming ? undefined : "arrowUp"}
                   loading={streaming}
                   disabled={!input.trim()}
-                  onPress={sendMessage}
+                  onPress={() => sendMessage()}
                 />
               </View>
               <Label size="small" color="secondary" style={{ marginTop: 8 }}>
@@ -468,20 +478,26 @@ const HistorySidebar = ({
   onSelect: (chatId: string) => void;
   onNewChat: () => void;
 }) => {
-  const colors = useThemeColor();
   return (
     <View
       style={{
-        backgroundColor: colors.background.neutral,
-        borderColor: colors.dividers.secondary,
-        borderRadius: borderRadius.medium,
+        backgroundColor: primitives.secondary100,
+        borderColor: primitives.secondary500,
+        borderRadius: 16,
         borderWidth: 1,
+        boxShadow: "0px 4px 12px rgba(30, 30, 30, 0.06)",
         gap: 12,
         padding: 12,
         width: 300,
       }}
     >
-      <Button type="filled" icon="+" label="Ny chat" onPress={onNewChat} />
+      <View style={{ gap: 4 }}>
+        <Title size="small">Tidigare frågor</Title>
+        <Body size="small" color="secondary">
+          Fortsätt där du slutade.
+        </Body>
+      </View>
+      <Button type="tonal" icon="+" label="Ny chat" onPress={onNewChat} />
       <ScrollView contentContainerStyle={{ gap: 6 }}>
         {chats.map((chat) => {
           const active = chat.id === activeChatId;
@@ -490,9 +506,11 @@ const HistorySidebar = ({
               <View
                 style={{
                   backgroundColor: active
-                    ? colors.background.primary
+                    ? primitives.primary100
                     : "transparent",
-                  borderRadius: borderRadius.small,
+                  borderColor: active ? primitives.primary300 : "transparent",
+                  borderRadius: borderRadius.medium,
+                  borderWidth: 1,
                   gap: 4,
                   paddingHorizontal: 10,
                   paddingVertical: 10,
@@ -520,23 +538,33 @@ const EmptyState = ({
   examples: string[];
   onExamplePress: (value: string) => void;
 }) => {
-  const colors = useThemeColor();
   return (
     <View
-      style={{ alignSelf: "center", gap: 18, maxWidth: 720, width: "100%" }}
+      style={{ alignSelf: "center", gap: 20, maxWidth: 760, width: "100%" }}
     >
-      <View style={{ alignItems: "center", gap: 10 }}>
+      <View style={{ alignItems: "center", gap: 12 }}>
         <View
           style={{
             alignItems: "center",
-            backgroundColor: colors.logo.vector,
-            borderRadius: 16,
-            height: 52,
+            backgroundColor: primitives.primary200,
+            borderRadius: 999,
+            height: 64,
             justifyContent: "center",
-            width: 52,
+            width: 64,
           }}
         >
-          <Icon icon="magic" color="primaryLight" size={24} />
+          <View
+            style={{
+              alignItems: "center",
+              backgroundColor: primitives.primary800,
+              borderRadius: 999,
+              height: 44,
+              justifyContent: "center",
+              width: 44,
+            }}
+          >
+            <Icon icon="magic" color="primaryLight" size={22} />
+          </View>
         </View>
         <Title size="large" style={{ textAlign: "center" }}>
           Vad bygger du idag?
@@ -551,13 +579,25 @@ const EmptyState = ({
           <Pressable key={example} onPress={() => onExamplePress(example)}>
             <View
               style={{
-                borderColor: colors.dividers.secondary,
-                borderRadius: borderRadius.small,
+                backgroundColor: primitives.secondary100,
+                borderColor: primitives.secondary500,
+                borderRadius: borderRadius.medium,
                 borderWidth: 1,
+                flexDirection: "row",
+                gap: 10,
                 padding: 12,
               }}
             >
-              <Body>{example}</Body>
+              <View
+                style={{
+                  backgroundColor: primitives.accent500,
+                  borderRadius: 999,
+                  height: 8,
+                  marginTop: 8,
+                  width: 8,
+                }}
+              />
+              <Body style={{ flex: 1 }}>{example}</Body>
             </View>
           </Pressable>
         ))}
@@ -573,8 +613,10 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
     <View
       style={{
         alignSelf: isUser ? "flex-end" : "flex-start",
-        backgroundColor: isUser ? colors.logo.vector : primitives.secondary100,
-        borderColor: isUser ? colors.logo.vector : colors.dividers.secondary,
+        backgroundColor: isUser
+          ? primitives.primary800
+          : primitives.secondary100,
+        borderColor: isUser ? primitives.primary800 : primitives.secondary500,
         borderRadius: borderRadius.medium,
         borderWidth: 1,
         maxWidth: "82%",
@@ -584,7 +626,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
     >
       {message.pending && !message.content ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <ActivityIndicator color={colors.logo.vector} />
+          <ActivityIndicator color={primitives.primary800} />
           <Body color="secondary">Tänker...</Body>
         </View>
       ) : isUser ? (
@@ -594,7 +636,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
           style={{
             body: {
               color: colors.text.primaryDark,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Inter-Regular",
               fontSize: 15,
               lineHeight: 23,
             },
@@ -614,7 +656,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
             },
             link: { color: colors.text.link },
             table: {
-              borderColor: colors.dividers.secondary,
+              borderColor: primitives.secondary500,
               borderWidth: 1,
             },
           }}
