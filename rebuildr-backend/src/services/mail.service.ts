@@ -54,6 +54,10 @@ const businessApprovedTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/business-approved.mjml`,
   'utf8',
 );
+const welcomeIndividualTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/welcome-individual.mjml`,
+  'utf8',
+);
 
 const MAILGUN_DOMAIN = 'rebuildr.se';
 
@@ -356,6 +360,32 @@ export class MailService {
     }
   }
 
+  async sendWelcomeIndividualEmail(input: { email: string }) {
+    const context = {
+      ...this.baseContext,
+      sellUrl: this.baseUrl,
+      profileUrl: `${this.baseUrl}/account/profile`,
+      payoutUrl: `${this.baseUrl}/go/activate-payouts`,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(welcomeIndividualTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: 'Välkommen till Rebuildr!',
+      text: 'Välkommen till Rebuildr! Ditt konto är klart — så här kommer du igång.',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
   async sendBusinessApprovedEmail(input: { email: string }) {
     const context = {
       ...this.baseContext,
@@ -454,6 +484,10 @@ export class MailService {
     }
     if (template === 'businessApproved') {
       await this.sendBusinessApprovedEmail({ email: user.email });
+      return true;
+    }
+    if (template === 'welcomeIndividual') {
+      await this.sendWelcomeIndividualEmail({ email: user.email });
       return true;
     }
 
