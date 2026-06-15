@@ -1,5 +1,7 @@
 <mjml>
-  <mj-head> </mj-head>
+  <mj-head>
+    <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
+  </mj-head>
 
   <mj-body background-color="rgba(249, 249, 249, 1)" width="632px">
     <mj-section padding-top="32px" />
