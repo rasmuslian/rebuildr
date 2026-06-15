@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
@@ -17,10 +18,11 @@ import {
 } from 'src/entities/bygghjalpen-message.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { FileService } from 'src/services/file.service';
-import { IsNull, Repository } from 'typeorm';
+import { Brackets, IsNull, Repository } from 'typeorm';
 
 const MAX_MESSAGE_LENGTH = 4_000;
 const MAX_CONTEXT_MESSAGES = 16;
+const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 
 export interface BygghjalpenChatSummary {
   id: string;
@@ -54,8 +56,25 @@ interface SearchPublicProductsInput {
   onlyGiveaways?: boolean;
 }
 
+interface PublicProductSearchResult {
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  isGiveaway: boolean;
+  condition: Product['condition'];
+  category?: string;
+  brand?: string;
+  pickupEnabled: boolean;
+  deliveryEnabled: boolean;
+  url: string;
+  imageUrl?: string;
+}
+
 @Injectable()
 export class BygghjalpenService {
+  private readonly logger = new Logger(BygghjalpenService.name);
+
   private google = createGoogleGenerativeAI({
     apiKey: process.env.GEMINI_API_KEY,
   });
@@ -71,7 +90,7 @@ Viktiga gränser:
 - Du får aldrig skriva, ändra, reservera, köpa, sälja, kontakta säljare eller på annat sätt mutera data i RebuildR.
 - Du får bara använda verktyg för att läsa publikt synliga produktannonser.
 
-När användaren letar material, använd searchPublicProducts om det kan hjälpa. Presentera träffar kort med titel, pris, skick och länk. Säg om sökningen inte hittade något bra och föreslå bättre sökord.
+När användaren letar material eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Presentera träffar kort med titel, pris, skick och länk. Säg om sökningen inte hittade något bra och föreslå bättre sökord.
 
 Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det gör svaret mer lättläst.`;
 
@@ -166,10 +185,11 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       content: userMessage,
     });
 
-    const contextMessages = await this.getContextMessages(chat.id);
     let assistantMessage = '';
 
     try {
+      const contextMessages = await this.getContextMessages(chat.id);
+
       const result = streamText({
         model: this.google('gemini-2.5-flash'),
         system: this.systemPrompt,
@@ -208,7 +228,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
                 ),
             }),
             execute: async (toolInput) =>
-              this.searchPublicProducts(toolInput as SearchPublicProductsInput),
+              this.safeSearchPublicProducts(
+                toolInput as SearchPublicProductsInput,
+              ),
           }),
         },
       });
@@ -227,7 +249,11 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
       this.writeEvent(response, 'done', { ok: true });
       response.end();
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        'Bygghjalpen failed to stream a response',
+        error instanceof Error ? error.stack : String(error),
+      );
       this.writeEvent(response, 'error', {
         message:
           'Bygghjälpen kunde inte svara just nu. Försök igen om en stund.',
@@ -282,8 +308,23 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     }));
   }
 
-  private async searchPublicProducts(input: SearchPublicProductsInput) {
+  private async safeSearchPublicProducts(input: SearchPublicProductsInput) {
+    try {
+      return await this.searchPublicProducts(input);
+    } catch (error) {
+      this.logger.warn(
+        `Bygghjalpen product search failed for query "${input.query}"`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      return [];
+    }
+  }
+
+  private async searchPublicProducts(
+    input: SearchPublicProductsInput,
+  ): Promise<PublicProductSearchResult[]> {
     const limit = Math.min(input.limit ?? 5, 8);
+    const searchTerms = this.createSearchTerms(input.query);
     const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.images', 'image')
@@ -293,11 +334,27 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       .andWhere('product."hiddenReason" IS NULL')
       .andWhere('product."deletedAt" IS NULL')
       .andWhere(
-        '(product.title ILIKE :search OR product.description ILIKE :search)',
-        { search: `%${input.query}%` },
+        new Brackets((qb) => {
+          qb.where(
+            'product."textSearch" @@ plainto_tsquery(\'swedish\', :searchQuery)',
+          ).orWhere(
+            'similarity(product.title, :searchQuery) > :searchRankThreshold',
+          );
+
+          searchTerms.forEach((searchTerm, index) => {
+            qb.orWhere(
+              `(product.title ILIKE :searchTerm${index} OR product.description ILIKE :searchTerm${index})`,
+              { [`searchTerm${index}`]: `%${searchTerm}%` },
+            );
+          });
+        }),
       )
-      .orderBy('product."publishedAt"', 'DESC')
-      .take(limit);
+      .setParameters({
+        searchQuery: input.query,
+        searchRankThreshold: PRODUCT_SEARCH_RANK_THRESHOLD,
+      })
+      .orderBy('product."publishedAt"', 'DESC', 'NULLS LAST')
+      .limit(limit);
 
     if (input.maxPrice !== undefined) {
       query.andWhere('product.price <= :maxPrice', {
@@ -313,6 +370,10 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return Promise.all(
       products.map(async (product) => {
         const primaryImage = product.images?.[0];
+        const imageUrl = primaryImage
+          ? await this.getPublicProductImageUrl(primaryImage)
+          : undefined;
+
         return {
           id: product.id,
           title: product.title,
@@ -325,12 +386,82 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
           pickupEnabled: product.pickupEnabled,
           deliveryEnabled: product.deliveryEnabled,
           url: `/product/${product.id}`,
-          imageUrl: primaryImage
-            ? await this.fileService.getUrl(primaryImage)
-            : undefined,
+          imageUrl,
         };
       }),
     );
+  }
+
+  private createSearchTerms(query: string) {
+    const stopWords = new Set([
+      'att',
+      'den',
+      'det',
+      'din',
+      'dit',
+      'efter',
+      'eller',
+      'era',
+      'ett',
+      'finns',
+      'för',
+      'har',
+      'hos',
+      'hur',
+      'jag',
+      'kan',
+      'med',
+      'mig',
+      'ni',
+      'någon',
+      'något',
+      'några',
+      'och',
+      'produkt',
+      'produkter',
+      'på',
+      'rebuildr',
+      'som',
+      'till',
+      'vad',
+      'vill',
+      'vår',
+      'våra',
+    ]);
+    const terms = query
+      .toLocaleLowerCase('sv-SE')
+      .split(/\s+/)
+      .map((term) => term.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+      .filter((term) => term.length >= 3 && !stopWords.has(term));
+
+    return [
+      ...new Set(terms.flatMap((term) => [term, ...this.stemSearchTerm(term)])),
+    ];
+  }
+
+  private stemSearchTerm(term: string) {
+    if (term.length < 5) return [];
+
+    if (/(arna|erna|orna)$/.test(term)) return [term.slice(0, -4)];
+    if (/(ar|er|or)$/.test(term)) return [term.slice(0, -2)];
+    if (/(en|et)$/.test(term)) return [term.slice(0, -2)];
+    if (/r$/.test(term)) return [term.slice(0, -1)];
+
+    return [];
+  }
+
+  private async getPublicProductImageUrl(
+    primaryImage: Product['images'][number],
+  ) {
+    try {
+      return await this.fileService.getUrl(primaryImage);
+    } catch (error) {
+      this.logger.warn(
+        `Could not resolve product image URL for Bygghjalpen search result ${primaryImage.id}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      return undefined;
+    }
   }
 
   private toMessageResponse(

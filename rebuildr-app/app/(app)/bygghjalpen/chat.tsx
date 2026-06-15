@@ -1,3 +1,4 @@
+import { useReactiveVar } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
@@ -16,6 +17,7 @@ import {
 import { isLoggedInVar } from "@/apollo/config";
 import { Button } from "@components/buttons/button";
 import TopBar from "@components/navigation/top-bar/top-bar";
+import { Pictogram } from "@components/pictograms/pictogram";
 import { Body, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { borderRadius, horizontalPadding } from "@constants/sizes";
@@ -44,6 +46,7 @@ type StreamEvent = {
 };
 
 const GUEST_ID_KEY = "bygghjalpen_guest_id";
+const CHAT_CONTENT_MAX_WIDTH = 760;
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -79,7 +82,7 @@ export default function BygghjalpenChatPage() {
   const scrollRef = useRef<ScrollView>(null);
   const initialQuestionSentRef = useRef(false);
   const params = useLocalSearchParams<{ question?: string }>();
-  const isLoggedIn = isLoggedInVar();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -116,6 +119,12 @@ export default function BygghjalpenChatPage() {
       setError("Kunde inte hämta chatthistoriken.");
     }
   }, [isLoggedIn]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadChats();
+    }, [loadChats]),
+  );
 
   useEffect(() => {
     loadChats();
@@ -259,7 +268,7 @@ export default function BygghjalpenChatPage() {
   return (
     <>
       <Head>
-        <title>Bygghjälpen chat | RebuildR</title>
+        <title>RebuildR - Bygghjälpen</title>
         <meta
           name="description"
           content="Chatta med Bygghjälpen om bygg, renovering, hemmafix och återbruk av byggmaterial."
@@ -359,24 +368,31 @@ export default function BygghjalpenChatPage() {
                   ref={scrollRef}
                   style={{ flex: 1 }}
                   contentContainerStyle={{
-                    flexGrow: 1,
-                    gap: 14,
                     justifyContent: messages.length ? "flex-start" : "center",
                     paddingBottom: isDesktop ? 24 : 16,
                     paddingHorizontal: isDesktop ? 24 : 0,
                     paddingTop: isDesktop ? 24 : 72,
                   }}
                 >
-                  {messages.length === 0 ? (
-                    <EmptyState
-                      examples={examples}
-                      onExamplePress={sendMessage}
-                    />
-                  ) : (
-                    messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))
-                  )}
+                  <View
+                    style={{
+                      alignSelf: "center",
+                      gap: 14,
+                      maxWidth: CHAT_CONTENT_MAX_WIDTH,
+                      width: "100%",
+                    }}
+                  >
+                    {messages.length === 0 ? (
+                      <EmptyState
+                        examples={examples}
+                        onExamplePress={sendMessage}
+                      />
+                    ) : (
+                      messages.map((message) => (
+                        <MessageBubble key={message.id} message={message} />
+                      ))
+                    )}
+                  </View>
                 </ScrollView>
               )}
 
@@ -391,60 +407,73 @@ export default function BygghjalpenChatPage() {
               <View
                 style={{
                   backgroundColor: primitives.neutrals100,
-                  borderTopColor: primitives.secondary500,
-                  borderTopWidth: 1,
-                  padding: 12,
+                  paddingBottom: 12,
+                  paddingTop: 12,
                 }}
               >
                 <View
                   style={{
-                    alignItems: "flex-end",
-                    backgroundColor: primitives.neutrals100,
-                    borderColor: primitives.neutrals400,
-                    borderRadius: borderRadius.medium,
-                    borderWidth: 1,
-                    flexDirection: "row",
-                    gap: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
+                    alignSelf: "center",
+                    maxWidth: CHAT_CONTENT_MAX_WIDTH,
+                    width: "100%",
                   }}
                 >
-                  <TextInput
-                    value={input}
-                    onChangeText={setInput}
-                    placeholder="Skriv din fråga..."
-                    placeholderTextColor={colors.text.secondary}
-                    multiline
-                    editable={!streaming}
-                    onKeyPress={({ nativeEvent }) => {
-                      if (
-                        nativeEvent.key === "Enter" &&
-                        !input.includes("\n")
-                      ) {
-                        sendMessage();
-                      }
-                    }}
+                  <View
                     style={{
-                      color: colors.text.primaryDark,
-                      flex: 1,
-                      fontFamily: "Inter-Regular",
-                      fontSize: 15,
-                      maxHeight: 132,
-                      minHeight: 28,
+                      alignItems: "flex-end",
+                      backgroundColor: primitives.neutrals100,
+                      borderColor: primitives.neutrals400,
+                      borderRadius: borderRadius.medium,
+                      borderWidth: 1,
+                      flexDirection: "row",
+                      gap: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
                     }}
-                  />
-                  <Button
-                    type="filled"
-                    icon={streaming ? undefined : "arrowUp"}
-                    loading={streaming}
-                    disabled={!input.trim()}
-                    onPress={() => sendMessage()}
-                  />
+                  >
+                    <TextInput
+                      value={input}
+                      onChangeText={setInput}
+                      placeholder="Skriv din fråga..."
+                      placeholderTextColor={colors.text.secondary}
+                      multiline
+                      editable={!streaming}
+                      onKeyPress={({ nativeEvent }) => {
+                        if (
+                          nativeEvent.key === "Enter" &&
+                          !input.includes("\n")
+                        ) {
+                          sendMessage();
+                        }
+                      }}
+                      style={{
+                        color: colors.text.primaryDark,
+                        flex: 1,
+                        fontFamily: "Inter-Regular",
+                        fontSize: 15,
+                        maxHeight: 132,
+                        minHeight: 28,
+                        outlineColor: "transparent",
+                        outlineWidth: 0,
+                      }}
+                    />
+                    <Button
+                      type="filled"
+                      icon={streaming ? undefined : "arrowRight"}
+                      loading={streaming}
+                      disabled={!input.trim()}
+                      onPress={() => sendMessage()}
+                    />
+                  </View>
+                  <Label
+                    size="small"
+                    color="secondary"
+                    style={{ marginTop: 8 }}
+                  >
+                    Bygghjälpen kan göra misstag. Kontrollera alltid kritiska
+                    beslut med fackperson.
+                  </Label>
                 </View>
-                <Label size="small" color="secondary" style={{ marginTop: 8 }}>
-                  Bygghjälpen kan göra misstag. Kontrollera alltid kritiska
-                  beslut med fackperson.
-                </Label>
               </View>
             </View>
           </View>
@@ -486,7 +515,10 @@ const HistorySidebar = ({
         </Body>
       </View>
       <Button type="filled" icon="+" label="Ny chatt" onPress={onNewChat} />
-      <ScrollView contentContainerStyle={{ gap: 6, overflow: "visible" }}>
+      <ScrollView
+        contentContainerStyle={{ gap: 6, overflow: "visible" }}
+        showsVerticalScrollIndicator={false}
+      >
         {chats.map((chat) => {
           const active = chat.id === activeChatId;
           return (
@@ -495,6 +527,7 @@ const HistorySidebar = ({
               chat={chat}
               active={active}
               actionsOpen={openActionsChatId === chat.id}
+              showActionsOnHover
               onDelete={() => {
                 setOpenActionsChatId(undefined);
                 onDelete(chat.id);
@@ -658,6 +691,7 @@ const HistoryChatRow = ({
   chat,
   active,
   actionsOpen,
+  showActionsOnHover = false,
   onDelete,
   onSelect,
   onToggleActions,
@@ -665,12 +699,18 @@ const HistoryChatRow = ({
   chat: ChatSummary;
   active: boolean;
   actionsOpen: boolean;
+  showActionsOnHover?: boolean;
   onDelete: () => void;
   onSelect: () => void;
   onToggleActions: () => void;
 }) => {
+  const [hovered, setHovered] = useState(false);
+  const showActions = !showActionsOnHover || hovered || actionsOpen;
+
   return (
     <View
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       style={{
         backgroundColor: active ? primitives.primary100 : "transparent",
         borderColor: active ? primitives.primary300 : "transparent",
@@ -682,6 +722,7 @@ const HistoryChatRow = ({
         paddingRight: 4,
         paddingVertical: 6,
         position: "relative",
+        alignItems: "center",
         zIndex: actionsOpen ? 10000 : 1,
       }}
     >
@@ -695,15 +736,17 @@ const HistoryChatRow = ({
       </Pressable>
       <Pressable
         onPress={onToggleActions}
+        pointerEvents={showActions ? "auto" : "none"}
         style={{
           alignItems: "center",
           borderRadius: borderRadius.medium,
           height: 36,
           justifyContent: "center",
+          opacity: showActions ? 1 : 0,
           width: 36,
         }}
       >
-        <Icon icon="kebab" color="primaryDark" size={18} />
+        <Icon icon="kebabHorizontal" color="disabled" size={14} />
       </Pressable>
       {actionsOpen && (
         <View
@@ -741,7 +784,12 @@ const EmptyState = ({
 }) => {
   return (
     <View
-      style={{ alignSelf: "center", gap: 20, maxWidth: 760, width: "100%" }}
+      style={{
+        alignSelf: "center",
+        gap: 20,
+        maxWidth: CHAT_CONTENT_MAX_WIDTH,
+        width: "100%",
+      }}
     >
       <View style={{ alignItems: "center", gap: 12 }}>
         <View
@@ -749,9 +797,9 @@ const EmptyState = ({
             alignItems: "center",
             backgroundColor: primitives.primary200,
             borderRadius: 999,
-            height: 64,
+            height: 66,
             justifyContent: "center",
-            width: 64,
+            width: 66,
           }}
         >
           <View
@@ -764,7 +812,12 @@ const EmptyState = ({
               width: 44,
             }}
           >
-            <Icon icon="magic" color="primaryLight" size={22} />
+            <Pictogram
+              pictogram="sparkle"
+              type="large"
+              color="primaryLight"
+              size={28}
+            />
           </View>
         </View>
         <Title size="large" style={{ textAlign: "center" }}>
