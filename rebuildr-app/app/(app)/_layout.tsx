@@ -30,7 +30,12 @@ export default function AppLayout() {
     }
   }, [data?.me?.registrationStatus, setVisible]);
 
-  if (!data) {
+  // Only block on the registration-status check for logged-in users. During
+  // static export (SSR) and on a logged-out client first render, isLoggedInVar()
+  // is false, so we render the Stack immediately — this lets child screens (and
+  // their <RebuildrHead/> metadata) be captured in the static HTML, and keeps
+  // server/client first render identical to avoid hydration mismatches.
+  if (isLoggedInVar() && !data) {
     return <LoadingSpinner />;
   }
 

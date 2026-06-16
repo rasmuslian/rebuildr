@@ -29,6 +29,7 @@ import { useUser } from "@hooks/useUser";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const NEWSLETTER_COMPETITION = gql`
   query NewsletterCompetition {
@@ -56,6 +57,13 @@ export default function CompetitionPage() {
   const { data: competitionData } = useQuery(NEWSLETTER_COMPETITION);
   const competition = competitionData?.newsletterCompetition;
   const { isDesktop } = useScreenType();
+
+  const head = (
+    <RebuildrHead
+      title="Nyhetsbrev & tävling"
+      description="Prenumerera på RebuildRs nyhetsbrev och var med i veckans utlottning av verktyg. Återbruk, tips och nyheter om återbrukat byggmaterial."
+    />
+  );
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -316,6 +324,7 @@ export default function CompetitionPage() {
   if (isDesktop) {
     return (
       <>
+        {head}
         <ScreenLayout
           headerComponent={<TopBar theme="light" />}
           desktopFooter
@@ -359,6 +368,7 @@ export default function CompetitionPage() {
                 size="small"
                 color="primaryLight"
                 style={{ textAlign: "center" }}
+                heading={1}
               >
                 {competition?.title ??
                   "Vinn verktyg\nför 10 000 kr\nvarje vecka."}
@@ -421,6 +431,7 @@ export default function CompetitionPage() {
 
   return (
     <>
+      {head}
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={[
@@ -464,6 +475,7 @@ export default function CompetitionPage() {
                 textAlign: "center",
                 marginHorizontal: 32,
               }}
+              heading={1}
             >
               {competition?.title}
             </Display>

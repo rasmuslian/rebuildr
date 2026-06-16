@@ -186,6 +186,7 @@ export const ProductDesktop = ({
               <ImageGallery
                 images={product.images}
                 status={product.status}
+                productTitle={product.title}
                 displaySoldOverlay
               />
               <View

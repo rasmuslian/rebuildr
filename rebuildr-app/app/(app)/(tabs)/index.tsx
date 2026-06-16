@@ -18,6 +18,7 @@ import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
+import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -61,7 +62,7 @@ export default function Landing() {
 
   return (
     <>
-      <RebuildrHead />
+      <RebuildrHead jsonLd={[organizationSchema, webSiteSchema]} />
       <Head>
         <meta name="theme-color" content={colors.logo.vector} />
       </Head>

@@ -1,4 +1,4 @@
-import { TextProps, TextStyle, Text } from "react-native";
+import { TextProps, TextStyle, Text, Platform } from "react-native";
 import {
   BodySize,
   DisplaySize,
@@ -17,6 +17,13 @@ type Props = {
   upperCase?: boolean;
   isLink?: boolean;
   link?: Href;
+  /**
+   * Renders the text as a semantic heading. On web this emits
+   * role="heading" + aria-level (RN Web has no real <hN>, but Google treats
+   * role=heading/aria-level=1 as an H1-equivalent); on native it sets the
+   * "header" accessibility role for screen readers.
+   */
+  heading?: 1 | 2 | 3 | 4 | 5 | 6;
 } & TextProps;
 type DisplayProps = { size?: DisplaySize } & Props;
 type HeadlineProps = { size?: HeadlineSize } & Props;
@@ -30,15 +37,23 @@ export const Base = ({
   upperCase,
   isLink,
   link,
+  heading,
   ...props
 }: Props & { textStyle: TextStyle }) => {
   const colors = useThemeColor();
 
   const styles = useResponsiveStyle(textStyle) as TextStyle;
 
+  const headingProps = heading
+    ? Platform.OS === "web"
+      ? ({ role: "heading", "aria-level": heading } as const)
+      : ({ accessibilityRole: "header" } as const)
+    : {};
+
   const textComponent = (
     <Text
       {...props}
+      {...headingProps}
       style={[
         styles,
         { color: colors.text[color] },
