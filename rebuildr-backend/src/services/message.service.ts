@@ -2,8 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message, MessageTypeEnum } from 'src/entities/message.entity';
 import { Product } from 'src/entities/product.entity';
-import { Purchase } from 'src/entities/purchase.entity';
-import { User, UserType } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { BadUserInputException } from 'src/exceptions';
 import { CreateMessageInput } from 'src/resolvers/message.resolver';
 import { IsNull, Repository } from 'typeorm';
@@ -31,8 +30,6 @@ export class MessageService {
     private userRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    @InjectRepository(Purchase)
-    private purchaseRepository: Repository<Purchase>,
     @Inject(forwardRef(() => PurchaseService))
     private purchaseService: PurchaseService,
     private mailService: MailService,
@@ -90,7 +87,6 @@ export class MessageService {
       const product = await this.productRepository.findOne({
         where: { id: input.productId },
       });
-      console.log('product :>> ', product);
       if (!product || senderId === product.sellerId) {
         this.logger.error({
           message:
@@ -163,7 +159,6 @@ export class MessageService {
 
     try {
       //--------------- eMail Part --------------------------
-      //If the receiver is an organization, the email is sent to the owner instead
       const receiver = await this.userRepository.findOneBy({
         id: input.receiverId,
       });
@@ -174,26 +169,14 @@ export class MessageService {
         });
         throw new Error('Receiver not found');
       }
-      let mailReceiver = receiver;
-      if (receiver.type === UserType.BUSINESS) {
-        const owner = await this.userService.findOrganizationOwner(receiver);
-        if (!owner) {
-          this.logger.error({
-            message: 'sendSystemMessage: receiver.owner not found',
-            input,
-          });
-          throw new Error('Receiver not found');
-        }
-        mailReceiver = owner;
-      }
       //Send mail if user allows it
       const product = await this.productRepository.findOneBy({
         id: input.productId,
       });
-      if (mailReceiver.notifyOnPurchaseUpdate) {
+      if (receiver.notifyOnPurchaseUpdate) {
         this.mailService.sendSystemMessageEmail({
           product,
-          receiver: mailReceiver,
+          receiver,
         });
       }
     } catch {

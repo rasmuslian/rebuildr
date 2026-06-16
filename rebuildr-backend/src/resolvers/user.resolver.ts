@@ -95,6 +95,9 @@ export class UpdateUserInput {
   notifyOnMessage?: boolean;
   @Field({ nullable: true })
   notifyOnPurchaseUpdate?: boolean;
+
+  @Field({ nullable: true })
+  websiteUrl?: string;
 }
 
 @ObjectType()
@@ -113,47 +116,30 @@ class UserExistsInput {
 }
 
 @ObjectType()
+export class OrganizationLookupResponse {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  address: string;
+
+  @Field(() => String)
+  zipCode: string;
+
+  @Field(() => String)
+  city: string;
+
+  @Field(() => Boolean)
+  alreadyRegistered: boolean;
+}
+
+@ObjectType()
 class UserExistsResponse {
   @Field(() => Boolean)
   exists: boolean;
 
   @Field(() => RegistrationStatusEnum, { nullable: true })
   registrationStatus?: RegistrationStatusEnum;
-}
-
-@InputType()
-export class CreateOrganizationUserInput {
-  @Field(() => String)
-  organizationNumber: string;
-
-  @Field(() => String)
-  organizationName: string;
-}
-@InputType()
-export class UpdateOrganizationUserInput {
-  @Field()
-  id: string;
-
-  @Field({ nullable: true })
-  organizationName?: string;
-
-  @Field({ nullable: true })
-  address?: string;
-
-  @Field({ nullable: true })
-  name?: string;
-
-  @Field({ nullable: true })
-  postCode?: string;
-
-  @Field({ nullable: true })
-  city?: string;
-
-  @Field({ nullable: true })
-  phoneNumber?: string;
-
-  @Field({ nullable: true })
-  websiteUrl?: string;
 }
 
 @InputType()
@@ -255,6 +241,9 @@ export class CmsListUsersInput {
 
   @Field({ nullable: true })
   canSell?: boolean;
+
+  @Field({ nullable: true })
+  pendingApproval?: boolean;
 }
 
 @ObjectType()
@@ -327,6 +316,13 @@ export class UserResolver {
     return this.userService.userExists(input.email);
   }
 
+  @Query(() => OrganizationLookupResponse, { nullable: true })
+  @UseGuards(GqlThrottlerGuard)
+  @Throttle({ auth: authThrottleConfig })
+  async lookupOrganizationNumber(@Args('orgNumber') orgNumber: string) {
+    return this.userService.lookupOrganizationNumber(orgNumber);
+  }
+
   @Query(() => User)
   async user(@Args('input') input: GetUserInput) {
     return await this.userService.findOne(input.id);
@@ -377,21 +373,10 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
-  async createOrganizationUser(
-    @Args('input') input: CreateOrganizationUserInput,
-    @CurrentUser() user: AuthedUserType,
-  ): Promise<User> {
-    return await this.userService.createOrganizationUser(input, user.id);
-  }
-
-  @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
-  async updateOrganizationUser(
-    @Args('input') input: UpdateOrganizationUserInput,
-    @CurrentUser() user: AuthedUserType,
-  ) {
-    return await this.userService.updateOrganizationUser(input, user.id);
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async approveBusinessAccount(@Args('userId') userId: string) {
+    return this.userService.approveBusinessAccount(userId);
   }
 
   @Mutation(() => User)
@@ -569,24 +554,6 @@ export class UserResolver {
       limit,
       offset,
     );
-  }
-
-  @ResolveField(() => User, { nullable: true })
-  async organizationAccount(
-    @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
-  ) {
-    const organizations = await userLoaders.getOrganizations.load(user.id);
-    return organizations?.[0];
-  }
-
-  @ResolveField(() => User, { nullable: true })
-  async organizationOwner(
-    @Parent() user: User,
-    @Context('userLoaders') userLoaders: IUserLoaders,
-  ) {
-    const owners = await userLoaders.getOrganizationOwners.load(user.id);
-    return owners?.[0];
   }
 
   @ResolveField(() => Number)

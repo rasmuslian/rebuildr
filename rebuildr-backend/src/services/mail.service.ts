@@ -38,8 +38,20 @@ const userMessageTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/user-message.mjml`,
   'utf8',
 );
+const accountExistsTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/account-exists.mjml`,
+  'utf8',
+);
 const activatePayoutsTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/activate-payouts.mjml`,
+  'utf8',
+);
+const businessRegistrationNotificationTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/business-registration-notification.mjml`,
+  'utf8',
+);
+const businessApprovedTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/business-approved.mjml`,
   'utf8',
 );
 
@@ -95,6 +107,31 @@ export class MailService {
       from: this.from,
       subject: 'Email verification',
       text: 'verify',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendAccountExistsEmail(input: { email: string }) {
+    const context = {
+      ...this.baseContext,
+      email: input.email,
+      loginUrl: this.baseUrl,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(accountExistsTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: 'Kontot finns redan',
+      text: 'Det finns redan ett konto kopplat till denna e-postadress.',
       html,
     };
     try {
@@ -287,6 +324,62 @@ export class MailService {
     }
   }
 
+  async sendBusinessRegistrationNotification(input: {
+    email: string;
+    organizationNumber: string;
+  }) {
+    const context = {
+      ...this.baseContext,
+      businessEmail: input.email,
+      organizationNumber: input.organizationNumber,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(businessRegistrationNotificationTemplate).html,
+    );
+    console.log('sending businessRegistrationMail');
+    const html = handlebarsTemplate(context);
+    const data = {
+      to:
+        process.env.NODE_ENV === 'development'
+          ? input.email
+          : 'support@rebuildr.org',
+      from: this.from,
+      subject: 'Nytt företagskonto väntar på godkännande',
+      text: `Nytt företagskonto: ${input.email} (${input.organizationNumber})`,
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendBusinessApprovedEmail(input: { email: string }) {
+    const context = {
+      ...this.baseContext,
+      loginUrl: this.baseUrl,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(businessApprovedTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: 'Ditt företagskonto är godkänt',
+      text: 'Ditt företagskonto hos RebuildR är nu godkänt. Du kan nu logga in.',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
   async cmsTestTemplate(template: string, userId: string) {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) return false;
@@ -350,6 +443,17 @@ export class MailService {
       await this.sendActivatePayoutsEmail({
         email: user.email,
       });
+      return true;
+    }
+    if (template === 'businessRegistrationNotification') {
+      await this.sendBusinessRegistrationNotification({
+        email: user.email,
+        organizationNumber: '556000-0000',
+      });
+      return true;
+    }
+    if (template === 'businessApproved') {
+      await this.sendBusinessApprovedEmail({ email: user.email });
       return true;
     }
 

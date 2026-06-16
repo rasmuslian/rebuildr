@@ -13,12 +13,14 @@ import { gql, useMutation } from "@apollo/client";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 
 const ORGANIZATION_SETTING_UPDATE = gql`
-  mutation OrganizationSettingUpdate($input: UpdateOrganizationUserInput!) {
-    updateOrganizationUser(input: $input) {
-      id
-      username
-      organizationNumber
-      websiteUrl
+  mutation OrganizationSettingUpdate($input: UpdateUserInput!) {
+    updateUser(input: $input) {
+      user {
+        id
+        username
+        organizationNumber
+        websiteUrl
+      }
     }
   }
 `;
@@ -42,7 +44,7 @@ export const OrganizationSetting = ({ user }: Props) => {
       variables: {
         input: {
           id: user.id,
-          organizationName: name,
+          username: name,
           websiteUrl: website,
         },
       },
