@@ -208,6 +208,36 @@ export class ProductService {
     return await this.createDraft(currentUserId);
   }
 
+  /**
+   * Server-side publish gate: requires a verified email and applies a velocity
+   * cap for brand-new accounts.
+   *
+   * TODO: stronger seller verification (phone OTP / BankID before first
+   * publish) can plug in here.
+   */
+  private async assertCanPublish(sellerId: string) {
+    const seller = await this.userRepository.findOneBy({ id: sellerId });
+    if (!seller || !seller.emailVerifiedAt) {
+      throw BadUserInputException('Seller is not verified');
+    }
+    const accountAgeMs = Date.now() - seller.createdAt.getTime();
+    const isNewAccount = accountAgeMs < 7 * 24 * 60 * 60 * 1000;
+    if (isNewAccount) {
+      const NEW_ACCOUNT_PUBLISH_CAP = 20;
+      const publishedCount = await this.productRepository.count({
+        where: {
+          sellerId,
+          status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+        },
+      });
+      if (publishedCount >= NEW_ACCOUNT_PUBLISH_CAP) {
+        throw BadUserInputException(
+          'Publish limit reached for new accounts. Please contact support.',
+        );
+      }
+    }
+  }
+
   async updateProduct(
     input: UpdateProductInput,
     currentUserId: string,
@@ -220,6 +250,9 @@ export class ProductService {
         images: true,
         documents: true,
         purchases: true,
+        //category must be loaded — the PUBLISHED validation below checks it,
+        //and not every update includes a categoryId in the input
+        category: true,
       },
     });
 
@@ -348,11 +381,19 @@ export class ProductService {
 
     //null means removing the category
     if (!!input.categoryId || input.categoryId === null) {
-      const category = await this.categoryRepository.findOne({
-        where: { id: Equal(input.categoryId) },
-      });
-      product.categoryId = category.id;
-      product.category = category;
+      if (input.categoryId === null) {
+        product.categoryId = null;
+        product.category = null;
+      } else {
+        const category = await this.categoryRepository.findOne({
+          where: { id: Equal(input.categoryId) },
+        });
+        if (!category) {
+          throw BadUserInputException('Category not found');
+        }
+        product.categoryId = category.id;
+        product.category = category;
+      }
     }
 
     //Project
@@ -469,6 +510,8 @@ export class ProductService {
 
     //By this point we can validate the product, but only if it is to be published
     if (product.status === ProductStatus.PUBLISHED) {
+      await this.assertCanPublish(product.sellerId);
+
       const parseResult = z
         .object({
           title: z.string().min(1),

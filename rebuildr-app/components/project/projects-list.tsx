@@ -34,9 +34,11 @@ export const PROJECTS_LIST_FRAGMENT = gql`
 
 type Props = {
   projects: ProjectsListFragmentFragment[];
+  /** When provided, own project cards get an edit affordance wired to this. */
+  onEditProject?: (id: string) => void;
 };
 
-export const ProjectsList = ({ projects }: Props) => {
+export const ProjectsList = ({ projects, onEditProject }: Props) => {
   const { isDesktop } = useScreenType();
   const { me } = useUser();
 
@@ -49,6 +51,7 @@ export const ProjectsList = ({ projects }: Props) => {
       ]}
     >
       {projects.map((project, index) => {
+        const isMine = project.user.id === me?.id;
         return (
           <View
             style={[
@@ -62,8 +65,13 @@ export const ProjectsList = ({ projects }: Props) => {
           >
             <ProjectCard
               key={index}
-              showHeart={project.user.id !== me?.id}
+              showHeart={!isMine}
               project={project}
+              onEdit={
+                isMine && onEditProject
+                  ? () => onEditProject(project.id)
+                  : undefined
+              }
             />
           </View>
         );

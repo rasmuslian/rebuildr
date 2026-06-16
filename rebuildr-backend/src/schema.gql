@@ -370,6 +370,8 @@ type Product {
   createdAt: DateTime!
   updatedAt: DateTime!
   sellerId: String!
+  priceSuggestionMin: Int
+  priceSuggestionMax: Int
   soldByQuantity: Boolean!
   address: String
   hiddenReason: String
@@ -737,6 +739,11 @@ type ListBrandsResponse {
 type CmsReassignBrandResponse {
   fromBrand: Brand!
   toBrand: Brand!
+}
+
+type UpdateProjectResponse {
+  project: Project!
+  projectPicturePutUrl: String
 }
 
 type CmsListProjectsResponse {
@@ -1253,7 +1260,7 @@ type Mutation {
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
   cmsUpdateProject(input: CmsUpdateProjectInput!): Project!
   createProject(input: CreateProjectInput!): Project!
-  updateProject(input: UpdateProjectInput!): Project!
+  updateProject(input: UpdateProjectInput!): UpdateProjectResponse!
   setLikeProject(input: SetLikeProjectInput!): Project!
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
@@ -1686,6 +1693,7 @@ input UpdateProjectInput {
   contactEmail: String
   contactPhone: String
   showDetailsOnMap: Boolean
+  projectPicture: FileInputType
 }
 
 input SetLikeProjectInput {

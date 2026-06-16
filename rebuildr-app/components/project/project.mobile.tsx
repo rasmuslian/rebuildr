@@ -11,6 +11,7 @@ import { useUser } from "@hooks/useUser";
 import { SearchBar } from "@components/search/search-bar";
 import { Display, Label, Body } from "@components/typography/text";
 import { View, useWindowDimensions, Animated, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { Avatar } from "@components/avatar/avatar";
 import { CompanyBadge } from "@components/badges/company-badge";
 import { Divider } from "@components/dividers/divider";
@@ -157,6 +158,14 @@ export const ProjectMobile = () => {
               </View>
             </View>
           </View>
+
+          {project?.projectPicture?.url && (
+            <Image
+              source={{ uri: project.projectPicture.url }}
+              style={{ width: "100%", height: 200, borderRadius: 12 }}
+              contentFit="cover"
+            />
+          )}
 
           <Display size="small">{project?.title}</Display>
 

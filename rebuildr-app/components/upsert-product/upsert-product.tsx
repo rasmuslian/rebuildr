@@ -19,14 +19,15 @@ import {
   ProductFields,
   PublishedProductData,
 } from "@components/upsert-product/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/utils/analytics";
 import { ProgressHeader } from "@components/product/progress-header";
-import { NEW_PROJECT_ID, Project } from "./project";
+import { NEW_PROJECT_ID } from "./project-chips";
 import { Transportation } from "./transportation";
 import { Preview } from "./preview";
 import { View } from "react-native";
 import { HandleDraft } from "@components/sell-product/handle-draft";
+import { SellerOnboardingHandler } from "@components/sell-product/seller-onboarding-handler";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { Button } from "@components/buttons/button";
@@ -38,14 +39,28 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
 import { GTMTagEnum } from "@constants/google-tag-manager";
-import { SellerOnboardingHandler } from "@components/sell-product/seller-onboarding-handler";
 
+//The selection set must be a superset of every UpsertProductProductFragment
+//field the AI can change (with identical sub-selections, notably category).
+//Otherwise the cached UPSERT_PRODUCT query becomes a partial hit after the
+//cache merge and Apollo silently refetches it over the network — the very
+//round trip this mutation's response is meant to replace.
 export const ANALYZE_PRODUCT_IMAGE = gql`
   mutation AnalyzeProductImages($input: AnalyzeProductImagesInput!) {
     analyzeProductImages(input: $input) {
       id
       title
       description
+      additionalInfo
+      priceSuggestionMin
+      priceSuggestionMax
+      co2SavingSeller
+      category {
+        id
+        name
+        hasChildren
+        ancestorIds
+      }
       primaryQuantity
       primaryUnit
       secondaryQuantity
@@ -61,6 +76,7 @@ export const ANALYZE_PRODUCT_IMAGE = gql`
       diameter
       diameterUnit
       weight
+      weightUnit
       color
       colorType
       condition
@@ -190,31 +206,24 @@ export const UpsertProduct = ({
   //variable determining when we have fetched data processed it
   const [initialized, setInitialized] = useState(false);
   const [step, setStep] = useState<
-    "details" | "project" | "transportation" | "preview" | "onboarding"
+    "details" | "transportation" | "preview" | "onboarding"
   >("details");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
 
   //progress
-  const [projectProgress, setProjectProgress] = useState<number | undefined>(
-    undefined,
-  );
   const [transportationProgress, setTransportationProgress] = useState<
     number | undefined
   >(undefined);
 
-  const {
-    data,
-    loading: productLoading,
-    refetch,
-  } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
-    UPSERT_PRODUCT,
-    {
-      variables: { input: { id: productId ?? "" } },
-      skip: !productId,
-    },
-  );
+  const { data, loading: productLoading } = useQuery<
+    UpsertProductQuery,
+    UpsertProductQueryVariables
+  >(UPSERT_PRODUCT, {
+    variables: { input: { id: productId ?? "" } },
+    skip: !productId,
+  });
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -225,17 +234,16 @@ export const UpsertProduct = ({
   ] = useMutation<
     AnalyzeProductImagesMutation,
     AnalyzeProductImagesMutationVariables
-  >(ANALYZE_PRODUCT_IMAGE, {
-    onCompleted: () => {
-      refetch();
-    },
-  });
+  >(ANALYZE_PRODUCT_IMAGE);
   const [createSellerAccount, { loading: createSellerAccountLoading }] =
     useMutation<CreateSellerAccountMutation>(CREATE_SELLER_ACCOUNT);
 
   useEffect(() => {
     if (visible) {
       setInitialized(false);
+      //a new draft means a new ad — the auto-analysis must be allowed to run
+      //again (the wizard component stays mounted between ads)
+      autoAnalyzeTriggered.current = false;
     }
   }, [productId]);
 
@@ -292,6 +300,8 @@ export const UpsertProduct = ({
         weightUnit: dbProduct?.weightUnit ?? undefined,
         isGiveaway: dbProduct?.isGiveaway,
         soldByQuantity: dbProduct?.soldByQuantity ?? undefined,
+        priceSuggestionMin: dbProduct?.priceSuggestionMin ?? undefined,
+        priceSuggestionMax: dbProduct?.priceSuggestionMax ?? undefined,
         condition: dbProduct?.condition,
         brandId: dbProduct?.brand ? dbProduct?.brand.id : undefined,
         images: images.length ? images : undefined,
@@ -403,9 +413,13 @@ export const UpsertProduct = ({
           weightUnit: product.weightUnit,
           isGiveAway: product.isGiveaway,
           soldByQuantity: product.soldByQuantity,
-          categoryId: product.categoryIds
-            ? (product.categoryIds.at(-1) ?? null)
-            : undefined,
+          //only send null (= remove category) when the db product actually
+          //has a category to remove — a fresh photo-first draft has none yet
+          categoryId: product.categoryIds?.length
+            ? product.categoryIds.at(-1)
+            : data.product.category
+              ? null
+              : undefined,
           brandId: product.brandId,
           condition: product.condition,
           addImages: addFiles(product.images, data.product.images),
@@ -520,14 +534,57 @@ export const UpsertProduct = ({
     return false;
   };
 
+  const [analyzePending, setAnalyzePending] = useState(false);
   const onAnalyzeImages = async () => {
     if (!data || !productId) return;
-    //save first so that all images are available on the backend
-    const saved = await update();
-    if (!saved) return;
+    //the Apollo loading flag only turns on once the mutation fires — this
+    //state also covers the image-saving update() below, so the UI shows the
+    //analysis state for the whole run
+    setAnalyzePending(true);
+    try {
+      //save first so that all images are available on the backend
+      const saved = await update();
+      if (!saved) return;
 
-    await analyzeImages({ variables: { input: { productId } } });
+      await analyzeImages({ variables: { input: { productId } } });
+    } finally {
+      setAnalyzePending(false);
+    }
   };
+
+  //Photo-first: run AI analysis automatically when the first image arrives on
+  //a fresh ad — the user confirms AI suggestions instead of typing everything.
+  const autoAnalyzeTriggered = useRef(false);
+  //mirrors the auto-analyze effect's guards so the analysis state is visible
+  //from the very first render after an image is added — without this the
+  //category pickers flash until the effect has run and update() has saved
+  const willAutoAnalyze =
+    mode === "create" &&
+    !autoAnalyzeTriggered.current &&
+    initialized &&
+    !!product.images?.length &&
+    !product.title &&
+    !product.description;
+  useEffect(() => {
+    if (
+      mode !== "create" ||
+      autoAnalyzeTriggered.current ||
+      !initialized ||
+      imageAnalyzeLoading ||
+      !product.images?.length ||
+      //don't clobber a resumed draft the user already wrote on
+      product.title ||
+      product.description
+    ) {
+      return;
+    }
+    autoAnalyzeTriggered.current = true;
+    //never let an analysis failure crash the wizard — the user can always
+    //fill in the fields manually
+    onAnalyzeImages().catch((e) => {
+      Sentry.captureException(e);
+    });
+  }, [product.images?.length, initialized]);
 
   const onSave = async (published: boolean) => {
     const result = await update(
@@ -537,6 +594,7 @@ export const UpsertProduct = ({
       if (published) {
         trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         const publishedData: PublishedProductData = {
+          productId: data?.product.id,
           title: product.title,
           imageUrl: product.images?.[0]?.uri,
           condition: product.condition,
@@ -590,6 +648,7 @@ export const UpsertProduct = ({
       onClose();
       return;
     }
+    //From the onboarding step, dismiss returns to the preview
     if (step === "onboarding") {
       setStep("preview");
       return;
@@ -678,7 +737,7 @@ export const UpsertProduct = ({
   const onNextDetails = () => {
     const result = onVerifyDetails(product);
     if (result) {
-      setStep("project");
+      setStep("transportation");
     }
   };
   const onNextTransportation = () => {
@@ -705,7 +764,7 @@ export const UpsertProduct = ({
     }
     if (!_product.isGiveaway) {
       if (_product.price === undefined) {
-        badFields["price"] = `Ange Pris eller Bortskänkes`;
+        badFields["price"] = `Ange pris (0 kr = bortskänkes)`;
       } else if (_product.price < data.product.minimumPrice) {
         badFields["price"] =
           `Priset måste vara högre än ${data.product.minimumPrice} kr`;
@@ -732,9 +791,6 @@ export const UpsertProduct = ({
 
     //if no errors, proceed
     return true;
-  };
-  const onVerifyProject = () => {
-    setStep("transportation");
   };
   const onVerifyTransportation = (p?: ProductFields) => {
     if (!data) return;
@@ -773,7 +829,8 @@ export const UpsertProduct = ({
       }
       sellerAccount = response.data.createSellerAccount;
     }
-    //Seller account needs more information, send seller to onboarding
+    //Seller must verify personal details before they can receive payment —
+    //send them to the onboarding step before publishing.
     if (!sellerAccount.canReceivePayment) {
       setStep("onboarding");
       return;
@@ -788,6 +845,7 @@ export const UpsertProduct = ({
     setProduct(initialProduct);
     setInitialized(false);
     setStep("details");
+    autoAnalyzeTriggered.current = false;
   };
   const onClose = () => {
     reset();
@@ -844,12 +902,7 @@ export const UpsertProduct = ({
   const header = (
     <ProgressHeader
       prog1={progressDetails()}
-      prog2={step !== "details" ? projectProgress : undefined}
-      prog3={
-        step !== "details" && step !== "project"
-          ? transportationProgress
-          : undefined
-      }
+      prog2={step !== "details" ? transportationProgress : undefined}
       onClose={onDismissSheet}
       title={
         mode === "edit"
@@ -875,19 +928,10 @@ export const UpsertProduct = ({
             onNext={onNextDetails}
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
-            imageAnalyzeLoading={imageAnalyzeLoading}
+            imageAnalyzeLoading={
+              imageAnalyzeLoading || analyzePending || willAutoAnalyze
+            }
             imageAnalyzeError={!!imageAnalyzeError}
-          />
-        );
-      case "project":
-        return (
-          <Project
-            product={product}
-            update={onUpdateProduct}
-            onNext={onVerifyProject}
-            nextIsDisabled={!projectProgress || projectProgress < 100}
-            updateProgress={(progress) => setProjectProgress(progress)}
-            onBack={() => setStep("details")}
           />
         );
       case "transportation":
@@ -900,7 +944,7 @@ export const UpsertProduct = ({
               !transportationProgress || transportationProgress < 100
             }
             updateProgress={(progress) => setTransportationProgress(progress)}
-            onBack={() => setStep("project")}
+            onBack={() => setStep("details")}
             badFields={fieldErrors}
           />
         );
@@ -933,7 +977,19 @@ export const UpsertProduct = ({
             )}
           </View>
           {showFooter && !isInitializing && (
-            <View style={{ marginBottom: 24 }}>{renderFooter()}</View>
+            <View
+              style={{
+                position: "sticky",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 10,
+                backgroundColor: "white",
+                paddingBottom: 32,
+              }}
+            >
+              {renderFooter()}
+            </View>
           )}
         </SlideInSheet>
         {data && (
