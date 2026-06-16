@@ -6,6 +6,7 @@ import { UserCard } from "@components/cards/user-card";
 import {
   ProfileUpdateUserMutation,
   ProfileUpdateUserMutationVariables,
+  UserType,
 } from "@/gql/graphql";
 import { PROFILE_UPDATE_USER } from "queries";
 import { useMutation } from "@apollo/client";
@@ -92,14 +93,22 @@ export const EditProfile = ({ onEditCompleted }: Props) => {
       <Button label="Ladda upp profilbild" onPress={onPickProfilePicture} />
       <View style={{ gap: 16 }}>
         <Divider />
-        <Headline size="small">Din profil</Headline>
+        <Headline size="small">
+          {me.type === UserType.Business
+            ? "Din företagspresentation"
+            : "Din profil"}
+        </Headline>
         <View style={{ gap: 12 }}>
           <TextInput
             style={{ minHeight: 172 }}
             multiline
             value={description}
             onChange={(t) => setDescription(t.slice(0, 5000))}
-            placeholder="Här kan du skriva en kort beskrivning om dig själv och vad du säljer."
+            placeholder={
+              me.type === UserType.Business
+                ? "Här kan du skriva en presentation om ditt företag/organisation."
+                : "Här kan du skriva en kort beskrivning om dig själv och vad du säljer."
+            }
           />
           <Body size="small" color="secondary">
             {description.length ?? 0} av 5000 tecken
