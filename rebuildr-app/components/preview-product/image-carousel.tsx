@@ -22,6 +22,7 @@ type Props = {
   displaySoldOverlay?: boolean;
   width?: number;
   ratio?: number;
+  productTitle?: string;
 };
 
 export const ImageCarousel = ({
@@ -30,6 +31,7 @@ export const ImageCarousel = ({
   displaySoldOverlay = true,
   width,
   ratio = 1,
+  productTitle,
 }: Props) => {
   const [showImagesSheet, setShowImagesSheet] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -85,12 +87,19 @@ export const ImageCarousel = ({
             return data.id ? data.id : Math.random().toString();
           }}
           contentContainerStyle={{ gap: 8 }}
-          renderItem={({ item: image }) => {
+          renderItem={({ item: image, index }) => {
             return (
               <View>
                 <Image
                   source={image.url}
                   contentFit="cover"
+                  alt={
+                    productTitle
+                      ? `${productTitle} – återbrukat byggmaterial på RebuildR${
+                          images.length > 1 ? ` (bild ${index + 1})` : ""
+                        }`
+                      : undefined
+                  }
                   style={{
                     height: imageHeight,
                     borderRadius: borderRadius.medium,

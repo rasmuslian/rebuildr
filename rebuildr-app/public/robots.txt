@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Privata / icke-indexerbara delar av appen
+Disallow: /account
+Disallow: /conversations
+Disallow: /conversation
+Disallow: /buy
+Disallow: /new-password
+
+Sitemap: https://rebuildr.se/sitemap.xml

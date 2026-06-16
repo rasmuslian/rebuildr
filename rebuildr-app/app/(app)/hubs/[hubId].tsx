@@ -6,6 +6,7 @@ import { Header } from "@components/navigation/headers/header";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { borderRadius } from "@constants/sizes";
 import { useLocalSearchParams } from "expo-router";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const HUB = gql`
   query Hub($input: GetProjectInput!) {
@@ -32,15 +33,23 @@ export default function Hub() {
   }
 
   return (
-    <ScreenLayout
-      headerComponent={<Header title={data.getProject.title ?? "Hub"} />}
-    >
-      <InteractiveMap
-        initialCenter={data?.getProject.approximatePlace}
-        productsInput={{ projectId: hubId }}
-        projectsInput={{ ids: [hubId] }}
-        style={{ height: "100%", borderRadius: borderRadius.small }}
+    <>
+      <RebuildrHead
+        title={data.getProject.title ?? "Hub"}
+        description={`Försäljningsplats för återbrukat byggmaterial: ${data.getProject.title ?? "hub"} på RebuildR.`}
       />
-    </ScreenLayout>
+      <ScreenLayout
+        headerComponent={
+          <Header title={data.getProject.title ?? "Hub"} headingLevel={1} />
+        }
+      >
+        <InteractiveMap
+          initialCenter={data?.getProject.approximatePlace}
+          productsInput={{ projectId: hubId }}
+          projectsInput={{ ids: [hubId] }}
+          style={{ height: "100%", borderRadius: borderRadius.small }}
+        />
+      </ScreenLayout>
+    </>
   );
 }

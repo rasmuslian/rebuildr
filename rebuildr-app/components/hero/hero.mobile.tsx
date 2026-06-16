@@ -51,6 +51,7 @@ export default function HeroMobile({ scrollY, headline, searchBar }: Props) {
           <Headline
             onLayout={(e) => setHeadlineHeight(e.nativeEvent.layout.height)}
             size="small"
+            heading={1}
             style={{
               color: colors.logo.background,
               paddingBottom: 12,

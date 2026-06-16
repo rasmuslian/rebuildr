@@ -1,0 +1,27 @@
+# RebuildR
+
+> RebuildR är en svensk digital marknadsplats och rörelse för återbrukat byggmaterial. Privatpersoner och företag köper och säljer begagnat byggmaterial för att minska svinn och klimatavtryck i byggbranschen.
+
+## Om
+
+- [Startsida](https://rebuildr.se/): Köp och sälj återbrukat byggmaterial.
+- [Partners](https://rebuildr.se/partners): Företag och organisationer som samarbetar med RebuildR.
+- [Företagsförsäljning / hubbar](https://rebuildr.se/hubs): Företag som säljer återbruk direkt till privatpersoner.
+
+## Sök & kategorier
+
+- [Sök produkter](https://rebuildr.se/search/products): Bläddra bland allt återbrukat byggmaterial.
+- [Nyinkommet](https://rebuildr.se/search/products/new-arrivals)
+- [Populärt just nu](https://rebuildr.se/search/products/trending-now)
+- [I säsong](https://rebuildr.se/search/in-season)
+
+## Guider & innehåll
+
+- Artiklar och guider om återbruk finns under `/article/{slug}`.
+- En komplett lista över alla sidor finns i [sitemap.xml](https://rebuildr.se/sitemap.xml).
+
+## Kontakt
+
+- E-post: support@rebuildr.org
+- Instagram: https://www.instagram.com/rebuildr.se
+- LinkedIn: https://www.linkedin.com/company/rebuildrnordics

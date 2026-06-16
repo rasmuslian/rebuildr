@@ -4,6 +4,12 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "strict": true,
+    "resolveJsonModule": true,
+    // Build scripts (scripts/*.ts) are run via `node --experimental-strip-types`,
+    // which requires explicit .ts extensions on relative imports. Metro bundles
+    // the app, so tsc only typechecks here (noEmit) and this is safe.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@icons/*": ["components/icons/*"],
       "@pictograms/*": ["components/pictograms/*"],

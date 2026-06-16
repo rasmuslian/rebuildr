@@ -16,6 +16,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
 import { initializeApollo } from "@/apollo/config";
+import { createServerApolloClient } from "@/apollo/server-client";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -64,7 +65,8 @@ dayjs.locale("sv");
 dayjs.extend(relativeTime);
 
 const RootLayout = () => {
-  const [loaded] = useFonts({
+  // Triggers async font loading; we intentionally don't block render on the result.
+  useFonts({
     "Poppins-Regular": Poppins_400Regular,
     "Poppins-Medium": Poppins_500Medium,
     "Poppins-SemiBold": Poppins_600SemiBold,
@@ -72,7 +74,12 @@ const RootLayout = () => {
     "Inter-Regular": Inter_400Regular,
   });
 
-  const [client, setClient] = useState<ApolloClient<NormalizedCacheObject>>();
+  // Start with a synchronous, auth-less client so the very first render works
+  // during static export (`expo export -p web`, runs in Node where useEffect
+  // never fires) and during client hydration (must match the server HTML).
+  // The full auth-enabled client is swapped in on mount, client-side only.
+  const [client, setClient] =
+    useState<ApolloClient<NormalizedCacheObject>>(createServerApolloClient);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
@@ -83,9 +90,8 @@ const RootLayout = () => {
       .catch((e) => console.log("e :>> ", e));
   }, []);
 
-  if (!client || !loaded) {
-    return null;
-  }
+  // NB: deliberately not gating on `loaded` (fonts) — that would return null
+  // during SSR and re-introduce the empty-shell problem. Fonts hydrate client-side.
 
   return (
     <ApolloProvider client={client}>

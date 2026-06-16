@@ -9,7 +9,8 @@
     "web": "op run --env-file=\".env.local.1p\" -- expo start --web",
     "lint": "eslint . ",
     "codegen": "graphql-codegen --config codegen.ts",
-    "build:web": "op run --env-file=\".env.local.1p\" -- expo export -p web"
+    "generate-sitemap": "tsx scripts/generate-sitemap.ts",
+    "build:web": "op run --env-file=\".env.local.1p\" -- bash -c 'tsx scripts/generate-sitemap.ts && expo export -p web'"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
@@ -92,6 +93,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.4.0",
     "prettier": "^3.5.3",
+    "tsx": "^4.22.4",
     "typescript-eslint": "^8.44.0"
   },
   "private": true

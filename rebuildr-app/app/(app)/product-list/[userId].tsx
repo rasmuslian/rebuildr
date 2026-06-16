@@ -9,6 +9,7 @@ import TopBar from "@components/navigation/top-bar/top-bar";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { ProductEmptyState } from "@components/profile/product-empty-state";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export const PRODUCT_LIST = gql`
   query ProductList($input: ProductsInput!, $limit: Int, $offset: Int) {
@@ -96,16 +97,21 @@ export default function ProductList() {
   const sellerIsMe = data?.me.id === userId;
 
   return (
-    <ScreenLayout
-      headerComponent={
-        isDesktop ? (
-          <TopBar theme="light" />
-        ) : (
-          <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
-        )
-      }
-      loading={loading}
-    >
+    <>
+      <RebuildrHead
+        title="Annonser"
+        description="Bläddra bland annonser för återbrukat byggmaterial på RebuildR."
+      />
+      <ScreenLayout
+        headerComponent={
+          isDesktop ? (
+            <TopBar theme="light" />
+          ) : (
+            <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
+          )
+        }
+        loading={loading}
+      >
       {numberOfProducts > 0 ? (
         <AdGridSection
           header={isDesktop ? "Dina annonser" : undefined}
@@ -142,6 +148,7 @@ export default function ProductList() {
       ) : (
         <ProductEmptyState sellerIsMe={sellerIsMe} />
       )}
-    </ScreenLayout>
+      </ScreenLayout>
+    </>
   );
 }
