@@ -196,9 +196,14 @@ export const Details = ({ onDone, onExit }: Props) => {
                 fields={[
                   {
                     type: "text",
-                    heading: "Användarnamn",
+                    heading:
+                      data.me.type === UserType.Business
+                        ? "Företagsnamn"
+                        : "Användarnamn",
                     description:
-                      "Ditt användarnamn är det namn som visas på din publika profil.",
+                      data.me.type === UserType.Business
+                        ? "Ange det företagsnamn du vill visa publikt på din profil."
+                        : "Ditt användarnamn är det namn som visas på din publika profil.",
                     value: username,
                     onChange: onChangeUsername,
                     disabled: loading,
