@@ -730,9 +730,9 @@ type CmsReassignBrandResponse {
   toBrand: Brand!
 }
 
-type SetProjectPictureResponse {
+type UpdateProjectResponse {
   project: Project!
-  putUrl: String!
+  projectPicturePutUrl: String
 }
 
 type CmsListProjectsResponse {
@@ -1249,8 +1249,7 @@ type Mutation {
   cmsCreateProject(input: CmsCreateProjectInput!): Project!
   cmsUpdateProject(input: CmsUpdateProjectInput!): Project!
   createProject(input: CreateProjectInput!): Project!
-  updateProject(input: UpdateProjectInput!): Project!
-  setProjectPicture(input: SetProjectPictureInput!): SetProjectPictureResponse!
+  updateProject(input: UpdateProjectInput!): UpdateProjectResponse!
   setLikeProject(input: SetLikeProjectInput!): Project!
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
@@ -1697,12 +1696,7 @@ input UpdateProjectInput {
   contactEmail: String
   contactPhone: String
   showDetailsOnMap: Boolean
-}
-
-input SetProjectPictureInput {
-  projectId: String!
-  mimeType: String!
-  name: String
+  projectPicture: FileInputType
 }
 
 input SetLikeProjectInput {

@@ -8,7 +8,6 @@ import {
   CreateProjectInput,
   GetProjectInput,
   SetLikeProjectInput,
-  SetProjectPictureInput,
   UpdateProjectInput,
   DeleteProjectInput,
 } from 'src/resolvers/project.resolver';
@@ -110,7 +109,7 @@ export class ProjectService {
   async update(input: UpdateProjectInput, currentUserId: string) {
     const project = await this.projectRepository.findOne({
       where: { id: input.id },
-      relations: { mapPin: true },
+      relations: { mapPin: true, projectPicture: true },
     });
 
     if (!project) {
@@ -166,41 +165,23 @@ export class ProjectService {
       project.showDetailsOnMap = input.showDetailsOnMap;
     }
 
-    return await this.projectRepository.save(project);
-  }
-
-  async setProjectPicture(
-    input: SetProjectPictureInput,
-    currentUserId: string,
-  ): Promise<{ project: Project; putUrl: string }> {
-    const project = await this.projectRepository.findOne({
-      where: { id: input.projectId },
-      relations: { projectPicture: true },
-    });
-
-    if (!project) {
-      throw BadUserInputException('Project not found');
+    // Cover image is set in the same mutation as the other fields, mirroring
+    // how updateUser handles profilePicture.
+    if (input.projectPicture) {
+      if (project.projectPicture) {
+        await this.fileService.deleteFiles([project.projectPicture]);
+      }
+      project.projectPicture = await this.fileService.createFile(
+        input.projectPicture,
+      );
     }
-    if (project.userId !== currentUserId) {
-      throw ForbiddenException();
-    }
-
-    if (project.projectPicture) {
-      await this.fileService.deleteFiles([project.projectPicture]);
-    }
-
-    project.projectPicture = await this.fileService.createFile({
-      mimeType: input.mimeType,
-      name: input.name,
-    });
 
     const saved = await this.projectRepository.save(project);
-    const putUrl = await this.fileService.uploadFile(
-      project.projectPicture,
-      true,
-    );
+    const projectPicturePutUrl = input.projectPicture
+      ? await this.fileService.uploadFile(project.projectPicture, true)
+      : undefined;
 
-    return { project: saved, putUrl };
+    return { project: saved, projectPicturePutUrl };
   }
 
   async delete(input: DeleteProjectInput, currentUserId: string) {

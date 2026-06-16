@@ -32,11 +32,6 @@ type Props = {
   onChange: () => void;
 };
 
-/**
- * One compact row for the chosen category ("Byggmaterial › Virke" + Ändra)
- * replacing the two full-size pickers once both levels are selected — the
- * normal case after the AI has suggested a category.
- */
 export const CategorySummaryRow = ({ categoryId, onChange }: Props) => {
   const colors = useThemeColor();
   const { data } = useQuery<

@@ -27,6 +27,7 @@ import { Transportation } from "./transportation";
 import { Preview } from "./preview";
 import { View } from "react-native";
 import { HandleDraft } from "@components/sell-product/handle-draft";
+import { SellerOnboardingHandler } from "@components/sell-product/seller-onboarding-handler";
 import { apolloBadFieldsError } from "@/utils/apollo-errors";
 import { UPSERT_PRODUCT_PRODUCT_FRAGMENT } from "./queries";
 import { Button } from "@components/buttons/button";
@@ -204,9 +205,9 @@ export const UpsertProduct = ({
   const [product, setProduct] = useState<ProductFields>(initialProduct);
   //variable determining when we have fetched data processed it
   const [initialized, setInitialized] = useState(false);
-  const [step, setStep] = useState<"details" | "transportation" | "preview">(
-    "details",
-  );
+  const [step, setStep] = useState<
+    "details" | "transportation" | "preview" | "onboarding"
+  >("details");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
@@ -579,7 +580,7 @@ export const UpsertProduct = ({
     }
     autoAnalyzeTriggered.current = true;
     //never let an analysis failure crash the wizard — the user can always
-    //fill in fields manually or re-run via "Annonsförslag med AI"
+    //fill in the fields manually
     onAnalyzeImages().catch((e) => {
       Sentry.captureException(e);
     });
@@ -645,6 +646,11 @@ export const UpsertProduct = ({
   const onDismissSheet = () => {
     if (mode === "edit") {
       onClose();
+      return;
+    }
+    //From the onboarding step, dismiss returns to the preview
+    if (step === "onboarding") {
+      setStep("preview");
       return;
     }
     //Check if we should prompt draft saving sheet
@@ -814,15 +820,20 @@ export const UpsertProduct = ({
   const onVerifyPreview = async () => {
     if (!data) return;
 
-    //Ensure a seller account exists (checkout requires it) — created
-    //silently, no KYC at publish. Payout details are filled in later under
-    //"Aktivera utbetalningar", when the seller has sold something and has a
-    //real incentive.
-    if (!data.me.sellerAccount) {
+    let sellerAccount = data.me.sellerAccount;
+    //Create seller account if it does not exist
+    if (!sellerAccount) {
       const response = await createSellerAccount();
       if (response.errors || !response.data) {
         return;
       }
+      sellerAccount = response.data.createSellerAccount;
+    }
+    //Seller must verify personal details before they can receive payment —
+    //send them to the onboarding step before publishing.
+    if (!sellerAccount.canReceivePayment) {
+      setStep("onboarding");
+      return;
     }
     onSave(true);
   };
@@ -939,6 +950,16 @@ export const UpsertProduct = ({
         );
       case "preview":
         return <Preview product={product} dbProductId={data.product.id} />;
+      case "onboarding":
+        return (
+          <SellerOnboardingHandler
+            onFinish={() => {
+              setStep("preview");
+              onVerifyPreview();
+            }}
+            onAbort={onFinish}
+          />
+        );
     }
     return null;
   };

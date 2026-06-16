@@ -209,10 +209,11 @@ export class ProductService {
   }
 
   /**
-   * Server-side publish gate (previously publish was only validated in the
-   * frontend). Today: verified email + a velocity cap for brand-new accounts.
-   * This is the slot where stronger seller verification (phone OTP, BankID
-   * before first publish) plugs in later.
+   * Server-side publish gate: requires a verified email and applies a velocity
+   * cap for brand-new accounts.
+   *
+   * TODO: stronger seller verification (phone OTP / BankID before first
+   * publish) can plug in here.
    */
   private async assertCanPublish(sellerId: string) {
     const seller = await this.userRepository.findOneBy({ id: sellerId });

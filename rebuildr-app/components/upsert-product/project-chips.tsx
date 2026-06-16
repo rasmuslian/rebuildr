@@ -48,11 +48,6 @@ type Props = {
   update: (product: Partial<ProductFields>) => void;
 };
 
-/**
- * Compact, optional project linking. Replaces the old blocking "project" wizard
- * step: only rendered for users who already have projects, never required.
- * Selecting a project auto-fills the product's pickup address.
- */
 export const ProjectChips = ({ product, update }: Props) => {
   const [showCreate, setShowCreate] = useState(false);
 

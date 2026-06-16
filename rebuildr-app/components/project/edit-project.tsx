@@ -1,8 +1,6 @@
 import {
   EditProjectQueryQuery,
   EditProjectQueryQueryVariables,
-  SetProjectPictureMutation,
-  SetProjectPictureMutationVariables,
   UpdateProjectMutation,
   UpdateProjectMutationVariables,
 } from "@/gql/graphql";
@@ -36,41 +34,33 @@ const EDIT_PROJECT_QUERY = gql`
   }
 `;
 
-const SET_PROJECT_PICTURE = gql`
-  mutation SetProjectPicture($input: SetProjectPictureInput!) {
-    setProjectPicture(input: $input) {
-      putUrl
+const UPDATE_PROJECT = gql`
+  mutation UpdateProject($input: UpdateProjectInput!) {
+    updateProject(input: $input) {
+      projectPicturePutUrl
       project {
         id
+        title
+        description
+        shortText
+        contactName
+        contactEmail
+        contactPhone
+        address
+        showDetailsOnMap
+        location {
+          lat
+          lng
+        }
+        approximatePlace {
+          lat
+          lng
+          address
+        }
         projectPicture {
           id
           url
         }
-      }
-    }
-  }
-`;
-
-const UPDATE_PROJECT = gql`
-  mutation UpdateProject($input: UpdateProjectInput!) {
-    updateProject(input: $input) {
-      id
-      title
-      description
-      shortText
-      contactName
-      contactEmail
-      contactPhone
-      address
-      showDetailsOnMap
-      location {
-        lat
-        lng
-      }
-      approximatePlace {
-        lat
-        lng
-        address
       }
     }
   }
@@ -101,34 +91,11 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
     UpdateProjectMutation,
     UpdateProjectMutationVariables
   >(UPDATE_PROJECT);
-  const [setProjectPicture, { loading: uploadingPicture }] = useMutation<
-    SetProjectPictureMutation,
-    SetProjectPictureMutationVariables
-  >(SET_PROJECT_PICTURE);
 
   const onPickPicture = async () => {
     const image = await pickImage();
     if (!image) return;
     setPickedPicture(image);
-  };
-
-  const uploadPicture = async () => {
-    if (!pickedPicture) return;
-    const { data } = await setProjectPicture({
-      variables: {
-        input: { projectId: id, mimeType: pickedPicture.mimeType },
-      },
-    });
-    if (data?.setProjectPicture.putUrl) {
-      await fetch(data.setProjectPicture.putUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": pickedPicture.mimeType,
-          "x-amz-acl": "public-read",
-        },
-        body: pickedPicture.file,
-      });
-    }
   };
 
   const onEditProject = (project: ProjectFormType) => {
@@ -147,11 +114,26 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
           contactEmail: project.contactEmail,
           contactPhone: project.contactPhone,
           showDetailsOnMap: project.showDetailsOnMap,
+          // Cover image rides along in updateProject, mirroring updateUser's
+          // profilePicture handling.
+          projectPicture: pickedPicture
+            ? { mimeType: pickedPicture.mimeType }
+            : undefined,
         },
       },
       onCompleted: async (data) => {
-        await uploadPicture();
-        onEdited(data.updateProject.id);
+        const putUrl = data.updateProject.projectPicturePutUrl;
+        if (putUrl && pickedPicture) {
+          await fetch(putUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": pickedPicture.mimeType,
+              "x-amz-acl": "public-read",
+            },
+            body: pickedPicture.file,
+          });
+        }
+        onEdited(data.updateProject.project.id);
       },
     });
   };
@@ -166,7 +148,7 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
         project={data.getProject}
         onSave={(project) => onEditProject(project)}
         onDelete={onDeleteProject}
-        isLoading={updatingProject || uploadingPicture}
+        isLoading={updatingProject}
         currentPictureUrl={data.getProject.projectPicture?.url}
         pickedPictureUri={pickedPicture?.uri}
         onPickPicture={onPickPicture}
