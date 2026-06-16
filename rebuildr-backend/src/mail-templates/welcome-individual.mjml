@@ -1,95 +1,247 @@
 <mjml>
   <mj-head>
-    <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
+    <mj-font
+      name="Poppins"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    />
   </mj-head>
   <mj-body background-color="#F8F1E3" height="1024px">
-
     <mj-section padding-top="100px"></mj-section>
-    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="16px" border-radius="12px 12px 0 0">
+    <mj-section
+      background-color="#FFFFFF"
+      padding-top="50px"
+      padding-bottom="16px"
+      border-radius="12px 12px 0 0"
+    >
       <mj-column width="400px">
-        <mj-text align="center" font-size="24px" font-family="Poppins" font-weight="700" color="#343434" padding-bottom="8px">
+        <mj-text
+          align="center"
+          font-size="24px"
+          font-family="Poppins"
+          font-weight="700"
+          color="#343434"
+          padding-bottom="8px"
+        >
           Välkommen till Rebuildr!
         </mj-text>
-        <mj-text align="center" font-size="16px" font-family="Poppins" color="#888888" line-height="25px" padding-bottom="8px">
+        <mj-text
+          align="center"
+          font-size="16px"
+          font-family="Poppins"
+          color="#888888"
+          line-height="25px"
+          padding-bottom="8px"
+        >
           Ditt konto är klart — så här kommer du igång.
         </mj-text>
       </mj-column>
     </mj-section>
 
-    <mj-section background-color="#FFFFFF" padding="0 0 8px 0" border-top="1px solid #F0E8D6">
+    <mj-section
+      background-color="#FFFFFF"
+      padding="0 0 8px 0"
+      border-top="1px solid #F0E8D6"
+    >
       <mj-column width="400px">
-        <mj-text align="left" font-size="13px" font-family="Poppins" font-weight="600" color="#863CFF" line-height="20px" padding-bottom="4px">
-          SEKTION 1
-        </mj-text>
-        <mj-text align="left" font-size="18px" font-family="Poppins" font-weight="700" color="#343434" line-height="26px" padding-bottom="8px">
+        <mj-text
+          align="left"
+          font-size="18px"
+          font-family="Poppins"
+          font-weight="700"
+          color="#343434"
+          line-height="26px"
+          padding-bottom="8px"
+        >
           Lägg upp din första annons
         </mj-text>
-        <mj-text align="left" color="#343434" font-family="Poppins" font-size="15px" line-height="24px" padding-bottom="20px">
-          Kom igång direkt. Du kan börja sälja redan nu. Välj kategori, ladda upp bilder och sätt pris — det tar bara några minuter att få ut din första annons.
+        <mj-text
+          align="left"
+          color="#343434"
+          font-family="Poppins"
+          font-size="15px"
+          line-height="24px"
+          padding-bottom="20px"
+        >
+          Kom igång direkt. Du kan börja sälja redan nu. Välj kategori, ladda
+          upp bilder och sätt pris — det tar bara några minuter att få ut din
+          första annons.
         </mj-text>
-        <mj-button align="left" background-color="#863CFF" border-radius="12px" href="{{sellUrl}}" padding-bottom="32px" inner-padding="10px 24px">
-          <mj-text font-size="15px" line-height="22px" font-family="Poppins" font-weight="500">Lägg upp annons</mj-text>
+        <mj-button
+          align="left"
+          background-color="#863CFF"
+          border-radius="12px"
+          href="{{sellUrl}}"
+          padding-bottom="32px"
+          inner-padding="10px 24px"
+        >
+          <mj-text
+            font-size="15px"
+            line-height="22px"
+            font-family="Poppins"
+            font-weight="500"
+            >Lägg upp annons</mj-text
+          >
         </mj-button>
       </mj-column>
     </mj-section>
 
-    <mj-section background-color="#FFFFFF" padding="0 0 8px 0" border-top="1px solid #F0E8D6">
+    <mj-section
+      background-color="#FFFFFF"
+      padding="0 0 8px 0"
+      border-top="1px solid #F0E8D6"
+    >
       <mj-column width="400px">
-        <mj-text align="left" font-size="13px" font-family="Poppins" font-weight="600" color="#863CFF" line-height="20px" padding-bottom="4px">
-          SEKTION 2
-        </mj-text>
-        <mj-text align="left" font-size="18px" font-family="Poppins" font-weight="700" color="#343434" line-height="26px" padding-bottom="8px">
+        <mj-text
+          align="left"
+          font-size="18px"
+          font-family="Poppins"
+          font-weight="700"
+          color="#343434"
+          line-height="26px"
+          padding-bottom="8px"
+        >
           Komplettera din profil
         </mj-text>
-        <mj-text align="left" color="#343434" font-family="Poppins" font-size="15px" line-height="24px" padding-bottom="20px">
-          Bli mer trovärdig som säljare. Köpare handlar hellre av någon de känner till. Lägg till en profilbild och en kort presentation om dig — det tar bara en minut och ökar dina chanser att sälja.
+        <mj-text
+          align="left"
+          color="#343434"
+          font-family="Poppins"
+          font-size="15px"
+          line-height="24px"
+          padding-bottom="20px"
+        >
+          Bli mer trovärdig som säljare. Köpare handlar hellre av någon de
+          känner till. Lägg till en profilbild och en kort presentation om dig —
+          det tar bara en minut och ökar dina chanser att sälja.
         </mj-text>
-        <mj-button align="left" background-color="transparent" border="1px solid #343434" border-radius="12px" color="#343434" href="{{profileUrl}}" padding-bottom="32px" inner-padding="10px 24px">
-          <mj-text font-size="15px" line-height="22px" font-family="Poppins" font-weight="500">Uppdatera profilen</mj-text>
+        <mj-button
+          align="left"
+          background-color="transparent"
+          border="1px solid #343434"
+          border-radius="12px"
+          color="#343434"
+          href="{{profileUrl}}"
+          padding-bottom="32px"
+          inner-padding="10px 24px"
+        >
+          <mj-text
+            font-size="15px"
+            line-height="22px"
+            font-family="Poppins"
+            font-weight="500"
+            >Uppdatera profilen</mj-text
+          >
         </mj-button>
       </mj-column>
     </mj-section>
 
-    <mj-section background-color="#FFFFFF" padding="0 0 50px 0" border-top="1px solid #F0E8D6" border-radius="0 0 12px 12px">
+    <mj-section
+      background-color="#FFFFFF"
+      padding="0 0 50px 0"
+      border-top="1px solid #F0E8D6"
+      border-radius="0 0 12px 12px"
+    >
       <mj-column width="400px">
-        <mj-text align="left" font-size="13px" font-family="Poppins" font-weight="600" color="#863CFF" line-height="20px" padding-bottom="4px">
-          SEKTION 3
-        </mj-text>
-        <mj-text align="left" font-size="18px" font-family="Poppins" font-weight="700" color="#343434" line-height="26px" padding-bottom="8px">
+        <mj-text
+          align="left"
+          font-size="18px"
+          font-family="Poppins"
+          font-weight="700"
+          color="#343434"
+          line-height="26px"
+          padding-bottom="8px"
+        >
           Aktivera utbetalningar
         </mj-text>
-        <mj-text align="left" color="#343434" font-family="Poppins" font-size="15px" line-height="24px" padding-bottom="16px">
-          Förbered för betalning. För att vi ska kunna betala ut pengarna när du sålt en vara behöver du registrera ett utbetalningskonto hos vår betalpartner Stripe. Detta gör du under "Utbetalningskonto" i menyn.
+        <mj-text
+          align="left"
+          color="#343434"
+          font-family="Poppins"
+          font-size="15px"
+          line-height="24px"
+          padding-bottom="16px"
+        >
+          Förbered för betalning. För att vi ska kunna betala ut pengarna när du
+          sålt en vara behöver du registrera ett utbetalningskonto hos vår
+          betalpartner Stripe. Detta gör du under "Utbetalningskonto" i menyn.
         </mj-text>
-        <mj-text align="left" color="#343434" font-family="Poppins" font-size="15px" line-height="24px" padding-bottom="8px">
+        <mj-text
+          align="left"
+          color="#343434"
+          font-family="Poppins"
+          font-size="15px"
+          line-height="24px"
+          padding-bottom="8px"
+        >
           <strong>Så går det till:</strong>
         </mj-text>
-        <mj-text align="left" color="#343434" font-family="Poppins" font-size="15px" line-height="24px" padding-bottom="16px">
+        <mj-text
+          align="left"
+          color="#343434"
+          font-family="Poppins"
+          font-size="15px"
+          line-height="24px"
+          padding-bottom="16px"
+        >
           1. Du fyller i några uppgifter hos Stripe — tar ca 3 minuter.<br />
           2. Stripe verifierar ditt konto och din identitet.<br />
-          3. Första utbetalningen tar upp till 7 bankdagar medan verifieringen pågår — en engångsprocess för allas trygghet.<br />
+          3. Första utbetalningen tar upp till 7 bankdagar medan verifieringen
+          pågår — en engångsprocess för allas trygghet.<br />
           4. Därefter får du pengarna inom 2–3 bankdagar efter varje såld vara.
         </mj-text>
-        <mj-text align="left" color="#888888" font-family="Poppins" font-size="14px" line-height="22px" padding-bottom="20px" font-style="italic">
-          Tips: Du kan publicera annonser redan nu — Stripe behöver bara vara helt klart för att du ska få utbetalningar.
+        <mj-text
+          align="left"
+          color="#888888"
+          font-family="Poppins"
+          font-size="14px"
+          line-height="22px"
+          padding-bottom="20px"
+          font-style="italic"
+        >
+          Tips: Du kan publicera annonser redan nu — Stripe behöver bara vara
+          helt klart för att du ska få utbetalningar.
         </mj-text>
-        <mj-button align="left" background-color="#863CFF" border-radius="12px" href="{{payoutUrl}}" padding-bottom="8px" inner-padding="10px 24px">
-          <mj-text font-size="15px" line-height="22px" font-family="Poppins" font-weight="500">Aktivera utbetalningar</mj-text>
+        <mj-button
+          align="left"
+          background-color="#863CFF"
+          border-radius="12px"
+          href="{{payoutUrl}}"
+          padding-bottom="8px"
+          inner-padding="10px 24px"
+        >
+          <mj-text
+            font-size="15px"
+            line-height="22px"
+            font-family="Poppins"
+            font-weight="500"
+            >Aktivera utbetalningar</mj-text
+          >
         </mj-button>
       </mj-column>
     </mj-section>
 
     <mj-section padding-top="40px" padding-bottom="16px">
       <mj-column>
-        <mj-text align="center" color="#888888" font-family="Poppins" font-size="14px" line-height="22px">
-          Behöver du hjälp? Vi finns alltid att nå via <a href="mailto:support@rebuildr.org" style="color: #863CFF; text-decoration: none;">support@rebuildr.org</a>
+        <mj-text
+          align="center"
+          color="#888888"
+          font-family="Poppins"
+          font-size="14px"
+          line-height="22px"
+        >
+          Behöver du hjälp? Vi finns alltid att nå via
+          <a
+            href="mailto:support@rebuildr.org"
+            style="color: #863cff; text-decoration: none"
+            >support@rebuildr.org</a
+          >
         </mj-text>
       </mj-column>
     </mj-section>
 
     <mj-section padding-bottom="40px">
       <mj-column>
-        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
+        <mj-image src="{{logo}}" alt="RebuildR logo" width="180px" />
       </mj-column>
     </mj-section>
   </mj-body>
