@@ -219,24 +219,14 @@ GROUP BY
 
     await Promise.all(
       receivers.map(async (receiver) => {
-        let receiverEmail = receiver.receiverEmail;
         logger.info('Notifying user of missed message', {
           productTitle: receiver.productTitle,
           userId: receiver.receiverId,
         });
-        if (receiver.userType === UserType.BUSINESS) {
-          const owner = await this.userRepository.findOne({
-            where: { organizations: { id: receiver.receiverId } },
-          });
-          if (!owner) {
-            logger.error({ message: 'Owner not found', receiver });
-            return;
-          }
-          receiverEmail = owner.email;
-        }
+
         await this.mailService.sendUserMessageEmail({
           productTitle: receiver.productTitle,
-          receiverEmail,
+          receiverEmail: receiver.receiverEmail,
         });
       }),
     );

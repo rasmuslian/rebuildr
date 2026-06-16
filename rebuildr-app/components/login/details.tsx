@@ -1,36 +1,47 @@
 import {
+  DetailsOrgSummaryQuery,
+  DetailsOrgSummaryQueryVariables,
   DetailsQueryQuery,
   DetailsValidUsernameQuery,
   DetailsValidUsernameQueryVariables,
   UpdateDetailsFieldsMutation,
   UpdateDetailsFieldsMutationVariables,
+  UserType,
 } from "@/gql/graphql";
+import { formatOrgNumber } from "@/utils/formattings";
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Check } from "@components/controls/check";
-import { Toggle } from "@components/controls/toggle";
+import { Divider } from "@components/dividers/divider";
 import { Form } from "@components/forms/form";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import {
-  Body,
-  Display,
-  Headline,
-  Label,
-  Title,
-} from "@components/typography/text";
-import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
-import React, { useState } from "react";
+import { Body, Display, Headline, Title } from "@components/typography/text";
+import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { CreatePassword } from "./create-password";
 import { useScreenType } from "@hooks/useScreenType";
 import { useDebounceCallback } from "usehooks-ts";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 const DETAILS_QUERY = gql`
   query DetailsQuery {
     me {
       id
       email
+      type
+      organizationNumber
+    }
+  }
+`;
+
+const DETAILS_ORG_SUMMARY = gql`
+  query DetailsOrgSummary($orgNumber: String!) {
+    lookupOrganizationNumber(orgNumber: $orgNumber) {
+      name
+      address
+      zipCode
+      city
+      alreadyRegistered
     }
   }
 `;
@@ -52,43 +63,36 @@ const DETAILS_VALID_USERNAME = gql`
 
 type Props = {
   onDone: () => void;
-  onCreateBusiness: () => void;
   onExit: () => void;
 };
-export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
+export const Details = ({ onDone, onExit }: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordValid, setPasswordValid] = useState(false);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [dontCreateBusiness, setDontCreateBusiness] = useState(false);
-  const [createBusiness, setCreateBusiness] = useState(false);
 
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
 
   const { data } = useQuery<DetailsQueryQuery>(DETAILS_QUERY);
-  const [updateDetails, { data: updateDetailsData, reset, loading }] =
-    useMutation<
-      UpdateDetailsFieldsMutation,
-      UpdateDetailsFieldsMutationVariables
-    >(UPDATE_DETAILS_FIELDS);
+  const [updateDetails, { loading }] = useMutation<
+    UpdateDetailsFieldsMutation,
+    UpdateDetailsFieldsMutationVariables
+  >(UPDATE_DETAILS_FIELDS);
   const [checkUsername, { data: checkUsernameData }] = useLazyQuery<
     DetailsValidUsernameQuery,
     DetailsValidUsernameQueryVariables
   >(DETAILS_VALID_USERNAME);
+  const [getOrgSummary, { data: orgSummaryData }] = useLazyQuery<
+    DetailsOrgSummaryQuery,
+    DetailsOrgSummaryQueryVariables
+  >(DETAILS_ORG_SUMMARY);
 
   const debouncedCheckUsername = useDebounceCallback(checkUsername, 300);
 
   const canContinue = () => {
-    const usernameCorrect = !!username;
-    return (
-      passwordValid &&
-      usernameCorrect &&
-      termsAccepted &&
-      !loading &&
-      (!updateDetailsData || dontCreateBusiness || createBusiness)
-    );
+    return passwordValid && !!username && termsAccepted && !loading;
   };
 
   const onChangeUsername = (name: string) => {
@@ -97,30 +101,19 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
   };
 
   const onProceed = () => {
-    if (loading) {
-      return;
-    }
-    if (!updateDetailsData) {
-      updateDetails({
-        variables: {
-          input: {
-            username,
-            password,
-          },
-        },
-      });
-      return;
-    }
-
-    if (dontCreateBusiness) {
-      onDone();
-      return;
-    }
-
-    if (createBusiness) {
-      onCreateBusiness();
-    }
+    if (loading) return;
+    updateDetails({
+      variables: { input: { username, password } },
+      onCompleted: onDone,
+    });
   };
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.me.type === UserType.Business && data.me.organizationNumber) {
+      getOrgSummary({ variables: { orgNumber: data.me.organizationNumber } });
+    }
+  }, [data]);
 
   if (!data?.me) {
     return <LoadingSpinner />;
@@ -159,192 +152,116 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
             inställningarna efter att kontot är klart.
           </Body>
         </View>
-        {updateDetailsData ? (
-          <>
+        {orgSummaryData?.lookupOrganizationNumber && (
+          <View style={{ gap: 16, marginTop: 8 }}>
+            <View style={{ gap: 4 }}>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.name}
+              </Title>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.address}
+              </Title>
+              <Title size="medium">
+                {orgSummaryData.lookupOrganizationNumber.zipCode}{" "}
+                {orgSummaryData.lookupOrganizationNumber.city}
+              </Title>
+            </View>
+            <Divider />
+          </View>
+        )}
+        {data.me.organizationNumber && (
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderColor: colors.dividers.neutral,
+              paddingVertical: 16,
+              gap: 4,
+            }}
+          >
+            <Body size="medium" color="secondary">
+              Ert organisationsnummer
+            </Body>
+            <Title size="medium">
+              {formatOrgNumber(data.me.organizationNumber)}
+            </Title>
+          </View>
+        )}
+        <View style={{ marginBottom: 16 }}>
+          <Headline size="small" style={{ marginVertical: 16 }}>
+            Kontodetaljer
+          </Headline>
+          <View style={{ gap: 24 }}>
+            <View>
+              <Form
+                fields={[
+                  {
+                    type: "text",
+                    heading:
+                      data.me.type === UserType.Business
+                        ? "Företagsnamn"
+                        : "Användarnamn",
+                    description:
+                      data.me.type === UserType.Business
+                        ? "Ange det företagsnamn du vill visa publikt på din profil."
+                        : "Ditt användarnamn är det namn som visas på din publika profil.",
+                    value: username,
+                    onChange: onChangeUsername,
+                    disabled: loading,
+                    error:
+                      checkUsernameData &&
+                      checkUsernameData.usernameIsValid === false
+                        ? "Användarnamnet är redan taget"
+                        : undefined,
+                  },
+                ]}
+              />
+            </View>
+            <CreatePassword
+              password={password}
+              onChangePassword={setPassword}
+              onChangeValidity={setPasswordValid}
+            />
             <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                borderBottomWidth: 1,
-                borderColor: colors.dividers.neutral,
-                paddingBottom: 16,
-                paddingTop: 16,
+                gap: 24,
               }}
             >
-              <View>
-                <Title size="medium" style={{ marginBottom: 4 }}>
-                  Kontodetaljer
-                </Title>
-                <Body size="medium" color="secondary">
-                  Användarnamn: {username}
-                </Body>
-                <Body size="medium" color="secondary">
-                  Lösenord:{" "}
-                  {"•".repeat(Math.min(8, Math.max(0, password.length - 3))) +
-                    password.slice(password.length - 3)}
-                </Body>
-              </View>
-              <Button
-                type="tonal"
-                label="Ändra"
-                onPress={() => {
-                  setCreateBusiness(false);
-                  setDontCreateBusiness(false);
-                  reset();
-                }}
-              />
-            </View>
-            <View style={{ marginTop: 16, gap: 16 }}>
-              <Headline size="small">
-                Vill du skaffa ett företagskonto?
-              </Headline>
-              <View
-                style={[
-                  {
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderRadius: borderRadius.medium,
-                    backgroundColor: colors.buttons.tonal.enabled,
-                    padding: 16,
-                  },
-                  dontCreateBusiness && {
-                    borderColor: colors.textField.clicked,
-                    borderWidth: 1,
-                    padding: 15,
-                    backgroundColor: colors.background.neutral,
-                  },
-                  createBusiness && {
-                    backgroundColor: colors.buttons.filled.disabled,
-                  },
-                ]}
-              >
-                <View style={{ gap: 4, flex: 1 }}>
-                  <Label size="medium">Nej, inte just nu</Label>
-                  <Body size="medium">
-                    Inga problem! Du kan alltid lägga till ett företagskonto
-                    senare när det passar dig.
+              <Body size="medium">
+                Genom att skapa ett konto hos RebuildR godkänner jag{" "}
+                <Pressable onPress={() => {}}>
+                  <Body
+                    size="medium"
+                    link={{
+                      pathname: "/article/[slug]",
+                      params: { slug: "anvandaravtal" },
+                    }}
+                  >
+                    villkoren
                   </Body>
-                </View>
-                <Toggle
-                  value={dontCreateBusiness}
-                  onPress={() => {
-                    setCreateBusiness(false);
-                    setDontCreateBusiness(!dontCreateBusiness);
-                  }}
-                />
-              </View>
-              <View
-                style={[
-                  {
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderRadius: borderRadius.medium,
-                    backgroundColor: colors.buttons.tonal.enabled,
-                    padding: 16,
-                  },
-                  createBusiness && {
-                    borderColor: colors.textField.clicked,
-                    borderWidth: 1,
-                    padding: 15,
-                    backgroundColor: colors.background.neutral,
-                  },
-                  dontCreateBusiness && {
-                    backgroundColor: colors.buttons.filled.disabled,
-                  },
-                ]}
-              >
-                <View style={{ gap: 4, flex: 1 }}>
-                  <Label size="medium">Ja, skapa ett företagskonto</Label>
-                  <Body size="medium">
-                    Perfekt! Vi hjälper dig att komma igång med företagskontot –
-                    enkelt och smidigt!
+                </Pressable>{" "}
+                och{" "}
+                <Pressable>
+                  <Body
+                    size="medium"
+                    link={{
+                      pathname: "/article/[slug]",
+                      params: { slug: "integritetspolicy" },
+                    }}
+                  >
+                    integritetspolicyn
                   </Body>
-                </View>
-                <Toggle
-                  value={createBusiness}
-                  onPress={() => {
-                    setDontCreateBusiness(false);
-                    setCreateBusiness(!createBusiness);
-                  }}
-                />
-              </View>
-            </View>
-          </>
-        ) : (
-          <View style={{ marginBottom: 16 }}>
-            <Headline size="small" style={{ marginVertical: 16 }}>
-              Kontodetaljer
-            </Headline>
-            <View style={{ gap: 24 }}>
-              <View>
-                <Form
-                  fields={[
-                    {
-                      type: "text",
-                      heading: "Användarnamn",
-                      description:
-                        "Ditt användarnamn är det namn som visas på din publika profil.",
-                      value: username,
-                      onChange: onChangeUsername,
-                      disabled: loading,
-                      error:
-                        checkUsernameData &&
-                        checkUsernameData.usernameIsValid === false
-                          ? "Användarnamnet är redan taget"
-                          : undefined,
-                    },
-                  ]}
-                />
-              </View>
-              <CreatePassword
-                password={password}
-                onChangePassword={setPassword}
-                onChangeValidity={setPasswordValid}
+                </Pressable>
+                .
+              </Body>
+              <Check
+                selected={termsAccepted}
+                onPress={() => setTermsAccepted(!termsAccepted)}
               />
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  gap: 24,
-                }}
-              >
-                <Body size="medium">
-                  Genom att skapa ett konto hos RebuildR godkänner jag{" "}
-                  <Pressable onPress={() => {}}>
-                    <Body
-                      size="medium"
-                      link={{
-                        pathname: "/article/[slug]",
-                        params: { slug: "anvandaravtal" },
-                      }}
-                    >
-                      villkoren
-                    </Body>
-                  </Pressable>{" "}
-                  och{" "}
-                  <Pressable>
-                    <Body
-                      size="medium"
-                      link={{
-                        pathname: "/article/[slug]",
-                        params: { slug: "integritetspolicy" },
-                      }}
-                    >
-                      integritetspolicyn
-                    </Body>
-                  </Pressable>
-                  .
-                </Body>
-                <Check
-                  selected={termsAccepted}
-                  onPress={() => setTermsAccepted(!termsAccepted)}
-                />
-              </View>
             </View>
           </View>
-        )}
+        </View>
         {isDesktop && (
           <View style={{ flex: 1, justifyContent: "flex-end" }}>
             <Button
@@ -358,18 +275,18 @@ export const Details = ({ onDone, onCreateBusiness, onExit }: Props) => {
             />
           </View>
         )}
+        {!isDesktop && (
+          <Button
+            label="Fortsätt"
+            loading={loading}
+            onPress={() => {
+              onProceed();
+            }}
+            disabled={!canContinue()}
+            style={{ marginTop: 24 }}
+          />
+        )}
       </View>
-      {!isDesktop && (
-        <Button
-          label="Fortsätt"
-          loading={loading}
-          onPress={() => {
-            onProceed();
-          }}
-          disabled={!canContinue()}
-          style={{ marginTop: 24 }}
-        />
-      )}
     </>
   );
 };

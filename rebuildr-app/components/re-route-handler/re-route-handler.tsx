@@ -70,9 +70,6 @@ export const ReRouteHandler = ({ children }: PropsWithChildren) => {
       case "/account/settings/user":
         navigateToLandingAccountModal("user");
         break;
-      case "/account/settings/add-business":
-        navigateToLandingAccountModal("business-add");
-        break;
       default:
         break;
     }

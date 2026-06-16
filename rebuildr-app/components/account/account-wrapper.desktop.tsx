@@ -9,7 +9,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import DeleteAccount from "@/app/(app)/account/settings/delete-account";
 import User from "@/app/(app)/account/settings/user";
-import AddBusiness from "@/app/(app)/account/settings/add-business";
 import Settings from "@/app/(app)/account/settings";
 
 export type AccountState = {
@@ -20,8 +19,7 @@ export type AccountState = {
     | "payout-add"
     | "notifications"
     | "delete-account"
-    | "user"
-    | "business-add";
+    | "user";
   params?: Record<string, string | number>;
 };
 
@@ -97,12 +95,6 @@ export const AccountWrapperDesktop = ({
         <User
           onBack={() => setState({ page: "settings", params: {} })}
           initialSection={state.params?.initialSection as string | undefined}
-        />
-      );
-    case "business-add":
-      return (
-        <AddBusiness
-          onBack={() => setState({ page: "settings", params: {} })}
         />
       );
     default:

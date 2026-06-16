@@ -1,0 +1,24 @@
+<mjml>
+  <mj-head>
+  </mj-head>
+  <mj-body background-color="#F8F1E3" height="1024px">
+    <mj-section padding-top="100px"></mj-section>
+    <mj-section background-color="#FFFFFF" padding-top="50px" padding-bottom="50px" border-radius="12px">
+      <mj-column width="400px">
+        <mj-text align="center" font-size="21px" font-family="Roboto" color="#343434" font-weight="500">Någon försökte skapa ett konto med din e-postadress</mj-text>
+        <mj-text align="center" color="#343434" font-family="Roboto" font-size="16px" line-height="25px">
+          Det finns redan ett RebuildR-konto kopplat till {{email}}. Om det inte var du som försökte registrera dig kan du ignorera detta mail. Annars, logga in på ditt befintliga konto.
+        </mj-text>
+        <mj-button background-color="#863CFF" border-radius="12px" href={{loginUrl}} padding="8px 23px">
+          <mj-text font-size="16px" line-height="24px" font-family="Poppins">Logga in</mj-text>
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding-top="56px" padding-bottom="40px">
+      <mj-column>
+        <mj-image src={{logo}} alt="RebuildR logo" width="180px" />
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
