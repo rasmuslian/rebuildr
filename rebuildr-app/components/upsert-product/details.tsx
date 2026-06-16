@@ -10,9 +10,13 @@ import { MeasurementsSection } from "@components/product/measurements-section";
 import { PriceSection } from "@components/product/price-section";
 import { QuantitiesSection } from "@components/product/quantities-section";
 import { RootCategorySection } from "@components/product/root-category-section";
-import { Title, Body } from "@components/typography/text";
-import { useState } from "react";
+import { CategorySummaryRow } from "@components/product/category-summary-row";
+import { Title, Body, Label } from "@components/typography/text";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
+import { AnalyzeProgress } from "./analyze-progress";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { borderRadius } from "@constants/sizes";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 import { ColorSection } from "@components/product/color-section";
@@ -44,6 +48,22 @@ export const Details = ({
   imageAnalyzeError,
 }: Props) => {
   const { isDesktop } = useScreenType();
+  const colors = useThemeColor();
+
+  //Track the AI analysis lifecycle to show the right banner state
+  const [aiCompleted, setAiCompleted] = useState(false);
+  const prevAnalyzeLoading = useRef(false);
+  useEffect(() => {
+    if (
+      prevAnalyzeLoading.current &&
+      !imageAnalyzeLoading &&
+      !imageAnalyzeError
+    ) {
+      setAiCompleted(true);
+    }
+    prevAnalyzeLoading.current = imageAnalyzeLoading;
+  }, [imageAnalyzeLoading, imageAnalyzeError]);
+
   const [showDetails, setShowDetails] = useState(() => {
     const measurementSet = (
       ["thickness", "height", "width", "length", "diameter"] as const
@@ -58,6 +78,7 @@ export const Details = ({
     );
   });
 
+  const hasImages = !!product.images?.length;
   const rootCategoryId = product.categoryIds?.[0];
   const categoryId = product.categoryIds?.[1];
   const showContinue = rootCategoryId && categoryId && product.brandId;
@@ -70,36 +91,91 @@ export const Details = ({
         paddingBottom: isDesktop && !showContinue ? 32 : 0,
       }}
     >
-      <RootCategorySection
-        onSelect={(id) => {
-          update({ ...product, categoryIds: [id] });
-        }}
-        selectedId={product.categoryIds?.[0]}
-        onChange={() => {
-          update({ ...product, categoryIds: [] });
-        }}
-      />
-      {rootCategoryId && (
-        <CategorySection
-          parentId={rootCategoryId}
-          onSelect={(id) =>
-            update({
-              categoryIds: [...(product.categoryIds ?? []), id],
-            })
-          }
-          selectedId={product.categoryIds?.[1]}
-          onChange={() => update({ ...product, categoryIds: [rootCategoryId] })}
+      <View style={{ gap: 8 }}>
+        <Body size="large">Börja med bilder — vi fyller i resten åt dig.</Body>
+        <ImageSection
+          images={product.images ?? []}
+          imageError={badFields?.["images"]}
+          onUpdateImages={(images) => {
+            update({ ...product, images });
+          }}
         />
+      </View>
+      {/* Start minimal: nothing else until the first image is added */}
+      {hasImages && imageAnalyzeLoading && <AnalyzeProgress />}
+      {aiCompleted && !imageAnalyzeLoading && (
+        <View
+          style={{
+            backgroundColor: colors.buttons.tonal.enabled,
+            borderRadius: borderRadius.medium,
+            padding: 16,
+          }}
+        >
+          <Label size="medium">✓ AI-förslag ifyllda</Label>
+          <Body size="small" color="secondary">
+            Granska och justera fälten nedan — särskilt mängd, mått och pris —
+            innan du går vidare.
+          </Body>
+        </View>
       )}
-      {categoryId && (
-        <>
-          <ImageSection
-            images={product.images ?? []}
-            imageError={badFields?.["images"]}
-            onUpdateImages={(images) => {
-              update({ ...product, images });
-            }}
+      {imageAnalyzeError && !imageAnalyzeLoading && (
+        <View
+          style={{
+            backgroundColor: colors.buttons.tonal.enabled,
+            borderRadius: borderRadius.medium,
+            padding: 16,
+            gap: 8,
+          }}
+        >
+          <Label size="medium">AI-förslaget misslyckades</Label>
+          <Body size="small" color="secondary">
+            Fyll i fälten manuellt, eller{" "}
+            <Body size="small" isLink onPress={() => onAnalyzeImages()}>
+              försök igen
+            </Body>
+            .
+          </Body>
+        </View>
+      )}
+      {/* Category: one compact row when chosen (the normal case after AI),
+          full pickers only while choosing — and never while the AI is still
+          analyzing (it usually picks the category itself) */}
+      {hasImages &&
+        !imageAnalyzeLoading &&
+        (categoryId ? (
+          <CategorySummaryRow
+            categoryId={categoryId}
+            onChange={() => update({ ...product, categoryIds: [] })}
           />
+        ) : (
+          <>
+            <RootCategorySection
+              onSelect={(id) => {
+                update({ ...product, categoryIds: [id] });
+              }}
+              selectedId={product.categoryIds?.[0]}
+              onChange={() => {
+                update({ ...product, categoryIds: [] });
+              }}
+            />
+            {rootCategoryId && (
+              <CategorySection
+                parentId={rootCategoryId}
+                onSelect={(id) =>
+                  update({
+                    categoryIds: [...(product.categoryIds ?? []), id],
+                  })
+                }
+                selectedId={product.categoryIds?.[1]}
+                onChange={() =>
+                  update({ ...product, categoryIds: [rootCategoryId] })
+                }
+              />
+            )}
+          </>
+        ))}
+      {hasImages && categoryId && (
+        <>
           <PriceSection
             price={product.price}
             minimumPrice={product.minimumPrice ?? 0}
@@ -110,6 +186,8 @@ export const Details = ({
             onUpdateSoldByQuantity={(soldByQuantity) =>
               update({ soldByQuantity, price: undefined })
             }
+            priceSuggestionMin={product.priceSuggestionMin}
+            priceSuggestionMax={product.priceSuggestionMax}
           />
           <DescriptionSection
             product={product}
@@ -117,9 +195,6 @@ export const Details = ({
             descriptionError={badFields?.["description"]}
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
-            onAnalyzeImages={onAnalyzeImages}
-            imageAnalyzeLoading={imageAnalyzeLoading}
-            imageAnalyzeError={imageAnalyzeError}
           />
           <QuantitiesSection
             categoryId={categoryId}

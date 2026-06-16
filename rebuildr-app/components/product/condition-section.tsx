@@ -1,6 +1,6 @@
 import { ProductConditionEnum } from "@/gql/graphql";
 
-import { Body, Display, Label, Title } from "@components/typography/text";
+import { Body, Display, Label } from "@components/typography/text";
 import { conditions } from "@constants/conditions";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -35,10 +35,9 @@ export const ConditionSection = ({
   return (
     <View>
       <Display size="small" style={{ marginBottom: 24 }}>
-        Ange skick
+        Skick
       </Display>
       <View style={{ gap: 4, marginBottom: 16 }}>
-        <Title size="medium">Vad är skicket?</Title>
         <Body size="medium">
           Att ange rätt skick är viktigt för både dig och köparen. Det skapar
           förtroende och underlättar försäljningen. Läs vår{" "}

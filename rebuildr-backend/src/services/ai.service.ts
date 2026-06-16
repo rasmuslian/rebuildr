@@ -1,4 +1,9 @@
-import { GoogleGenAI, Part, PartMediaResolutionLevel } from '@google/genai';
+import {
+  GoogleGenAI,
+  Part,
+  PartMediaResolutionLevel,
+  ThinkingLevel,
+} from '@google/genai';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -7,9 +12,10 @@ import {
   Product,
   ProductConditionEnum,
 } from 'src/entities/product.entity';
+import { Category } from 'src/entities/category.entity';
 import { BadUserInputException, InternalServerException } from 'src/exceptions';
 import { AnalyzeProductImagesInput } from 'src/resolvers/product.resolver';
-import { Repository } from 'typeorm';
+import { Not, IsNull, Repository } from 'typeorm';
 import { FileService } from './file.service';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -19,14 +25,24 @@ import { BrandService } from './brand.service';
 const IMAGE_FETCH_TIMEOUT_MS = 10_000;
 const GEMINI_TIMEOUT_MS = 60_000;
 const GEMINI_RETRY_DELAY_MS = 1_500;
+const LEAF_CATEGORIES_TTL_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class AIService {
   private gemini: GoogleGenAI;
+  //categories change a few times a year via CMS — a TTL bounds staleness
+  //without coupling this service to category writes
+  private leafCategoriesCache: {
+    categories: Category[];
+    categoryList: string;
+    fetchedAt: number;
+  } | null = null;
 
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
     private fileService: FileService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private brandService: BrandService,
@@ -51,7 +67,11 @@ export class AIService {
 
     const quantities = Object.keys(QuantityUnitEnum);
 
+    const { categories: leafCategories, categoryList } =
+      await this.getLeafCategories();
+
     // Fetch images from S3 and convert to base64
+    const imageFetchStart = Date.now();
     let imageParts: Part[];
     try {
       imageParts = await Promise.all(
@@ -72,8 +92,10 @@ export class AIService {
               data: imageBase64,
               mimeType: image.mimeType || 'image/jpeg',
             },
+            //MEDIUM is enough: the app downscales uploads to ~800px width, so
+            //HIGH only spends extra image tokens (= latency) on upscaled pixels
             mediaResolution: {
-              level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+              level: PartMediaResolutionLevel.MEDIA_RESOLUTION_MEDIUM,
             },
           };
         }),
@@ -86,12 +108,20 @@ export class AIService {
       });
       throw InternalServerException('Failed to fetch product images');
     }
+    this.logger.info('AI analysis: images fetched', {
+      productId: product.id,
+      imageCount: product.images.length,
+      durationMs: Date.now() - imageFetchStart,
+    });
 
     // Call Gemini API with retry for transient failures
     const geminiRequest = {
       model: 'gemini-3-flash-preview',
       config: {
         responseMimeType: 'application/json' as const,
+        //Gemini 3 thinks dynamically by default, which can add seconds; this
+        //task (structured extraction) doesn't need deep reasoning
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       },
       contents: [
         {
@@ -167,6 +197,20 @@ export class AIService {
               "color": "ONLY if the product has a painted, coated or color-significant surface where color is relevant — such as painted
               panels, tiles, metal sheets, doors, windows, radiators, plasterboard. If color is
               irrelevant for this product type, return null.",
+              "categoryId": "The id of the single best-matching category for this product, chosen
+              from the category list below. Return EXACTLY the id string (a UUID) from the list —
+              never invent an id, never return a name. If no category in the list is a reasonable
+              match, return null.
+              CATEGORY LIST (id | parent > name):
+              ${categoryList}",
+              "priceSuggestionMin": "Lower bound of a realistic asking-price range in SEK (integer)
+              for this product on the Swedish second-hand market for reclaimed building materials,
+              given its type, condition and quantity. The range covers the TOTAL listed quantity,
+              not per unit. Be conservative — second-hand building materials typically sell for
+              20-50% of new price. If you cannot make a meaningful estimate, return null.",
+              "priceSuggestionMax": "Upper bound of the same realistic asking-price range in SEK
+              (integer). Must be >= priceSuggestionMin. If you cannot make a meaningful estimate,
+              return null.",
               }
               `,
             },
@@ -176,9 +220,15 @@ export class AIService {
     };
 
     let result: string | undefined;
+    const geminiStart = Date.now();
     try {
       const response = await this.callGeminiWithRetry(geminiRequest);
       result = response.text;
+      this.logger.info('AI analysis: Gemini responded', {
+        productId: product.id,
+        imageCount: product.images.length,
+        durationMs: Date.now() - geminiStart,
+      });
     } catch (e) {
       this.logger.error('Gemini API call failed', {
         error: e instanceof Error ? e.message : e,
@@ -220,12 +270,48 @@ export class AIService {
       color,
       condition,
       brand,
+      categoryId,
+      priceSuggestionMin,
+      priceSuggestionMax,
     } = parsed;
 
     // Assign text fields
     product.title = title as string;
     product.description = description as string;
     product.additionalInfo = additionalInfo as string;
+
+    // Category suggestion — only accept ids that exist in the leaf list we
+    // sent (guards against hallucinated ids; mirrors the publish-time check
+    // that a product category must be a child category).
+    if (categoryId && typeof categoryId === 'string') {
+      const matched = leafCategories.find((c) => c.id === categoryId.trim());
+      if (matched) {
+        //set the id only — assigning the long-lived cached entity to a product
+        //that is then save()d would let TypeORM cascade into the shared cache
+        product.categoryId = matched.id;
+      } else {
+        this.logger.warn('Invalid categoryId from Gemini, skipping', {
+          productId: product.id,
+          categoryId,
+        });
+      }
+    }
+
+    // Price suggestion — never applied to price itself, stored separately and
+    // shown to the seller as a hint.
+    const parseSek = (value: unknown): number | null => {
+      const n = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+      return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+    };
+    const suggestionMin = parseSek(priceSuggestionMin);
+    const suggestionMax = parseSek(priceSuggestionMax);
+    if (suggestionMin !== null && suggestionMax !== null) {
+      product.priceSuggestionMin = Math.min(suggestionMin, suggestionMax);
+      product.priceSuggestionMax = Math.max(suggestionMin, suggestionMax);
+    } else {
+      product.priceSuggestionMin = null;
+      product.priceSuggestionMax = null;
+    }
 
     // Parse primary quantification
     if (
@@ -335,6 +421,29 @@ export class AIService {
       });
       throw InternalServerException('Failed to save product');
     }
+  }
+
+  // Leaf categories (with parent names) injected into the prompt so the
+  // model can suggest a category. Only child categories are valid targets —
+  // publishing requires a category with a parentId. Cached: the list is
+  // ~16k chars rebuilt from a DB query otherwise repeated on every analysis.
+  private async getLeafCategories() {
+    const now = Date.now();
+    if (
+      this.leafCategoriesCache &&
+      now - this.leafCategoriesCache.fetchedAt < LEAF_CATEGORIES_TTL_MS
+    ) {
+      return this.leafCategoriesCache;
+    }
+    const categories = await this.categoryRepository.find({
+      where: { parentId: Not(IsNull()) },
+      relations: { parent: true },
+    });
+    const categoryList = categories
+      .map((c) => `${c.id} | ${c.parent?.name ?? ''} > ${c.name}`)
+      .join('\n');
+    this.leafCategoriesCache = { categories, categoryList, fetchedAt: now };
+    return this.leafCategoriesCache;
   }
 
   private async callGeminiWithRetry(

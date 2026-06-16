@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   AfterLoad,
   BeforeInsert,
@@ -116,6 +116,18 @@ export class Product {
 
   @Column()
   price: number;
+
+  /**
+   * AI-suggested price range (SEK) from image analysis. Suggestion only —
+   * never auto-applied to price; the seller always sets price explicitly.
+   */
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, type: 'int' })
+  priceSuggestionMin?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, type: 'int' })
+  priceSuggestionMax?: number | null;
 
   @Field(() => Boolean)
   @Column({ default: false })

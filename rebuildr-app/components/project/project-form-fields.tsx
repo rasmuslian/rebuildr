@@ -3,6 +3,7 @@ import { Toggle } from "@components/controls/toggle";
 import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { Pressable, View } from "react-native";
+import { Image } from "expo-image";
 import Map from "@components/maps/map";
 import { useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -28,6 +29,10 @@ type Props = {
   onSave: (project: ProjectFormType) => void;
   onDelete?: () => void;
   isLoading?: boolean;
+  /** Cover image (only used in edit mode — not in the ad flow). */
+  currentPictureUrl?: string;
+  pickedPictureUri?: string;
+  onPickPicture?: () => void;
 };
 
 export const ProjectFormFields = ({
@@ -36,6 +41,9 @@ export const ProjectFormFields = ({
   onSave,
   onDelete,
   isLoading: _isLoading,
+  currentPictureUrl,
+  pickedPictureUri,
+  onPickPicture,
 }: Props) => {
   const [title, setTitle] = useState(project?.title ?? "");
   const [description, setDescription] = useState(project?.description ?? "");
@@ -113,8 +121,29 @@ export const ProjectFormFields = ({
   const canSave = !!title && !!address && !isLoading;
   const isError = !!shortTextError;
 
+  const coverUri = pickedPictureUri ?? currentPictureUrl;
+
   return (
     <View style={{ gap: 24 }}>
+      {onPickPicture && (
+        <View style={{ gap: 8 }}>
+          <Title size="medium">Omslagsbild</Title>
+          {coverUri && (
+            <Image
+              source={{ uri: coverUri }}
+              style={{ width: "100%", height: 180, borderRadius: 12 }}
+              contentFit="cover"
+            />
+          )}
+          <Button
+            label={coverUri ? "Byt omslagsbild" : "Lägg till omslagsbild"}
+            type="tonal"
+            icon="addImage"
+            onPress={onPickPicture}
+            disabled={_isLoading}
+          />
+        </View>
+      )}
       <Form
         style={{ gap: 24 }}
         fields={[

@@ -18,6 +18,7 @@ export type FileType = {
 };
 
 export type PublishedProductData = {
+  productId?: string;
   title?: string;
   imageUrl?: string;
   condition: ProductConditionEnum;
@@ -53,6 +54,8 @@ export type ProductFields = {
   weightUnit: MeasurementUnitEnum;
   isGiveaway?: boolean;
   soldByQuantity?: boolean;
+  priceSuggestionMin?: number;
+  priceSuggestionMax?: number;
   condition: ProductConditionEnum;
   brandId?: string | null;
   images?: FileType[];

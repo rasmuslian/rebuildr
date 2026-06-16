@@ -57,6 +57,11 @@ export const HandleDraft = ({
       onCompleted: () => {
         onProductDeleted();
       },
+      //never crash the app on a failed delete — close the sheet; the draft
+      //simply resumes next time the user opens "Ny annons"
+      onError: () => {
+        onProductDeleted();
+      },
     });
   };
 

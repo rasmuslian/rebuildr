@@ -6,6 +6,7 @@ import { Button } from "@components/buttons/button";
 import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
+import { ProjectChips } from "./project-chips";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 
@@ -102,6 +103,7 @@ export const Transportation = ({
 
   return (
     <View style={{ gap: 24, marginTop: 24 }}>
+      <ProjectChips product={product} update={update} />
       <Display size="small">Leverans</Display>
       <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>
       <View style={{ gap: 16, paddingBottom: 16 }}>

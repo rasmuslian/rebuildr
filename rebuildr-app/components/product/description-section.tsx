@@ -1,4 +1,3 @@
-import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
 import { Body, Display } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
@@ -11,9 +10,6 @@ type Props = {
   descriptionError?: string;
   onChangeTitle: (t: string) => void;
   onChangeDescription: (d: string) => void;
-  onAnalyzeImages: () => Promise<void>;
-  imageAnalyzeLoading: boolean;
-  imageAnalyzeError?: boolean;
 };
 
 export const DescriptionSection = ({
@@ -22,9 +18,6 @@ export const DescriptionSection = ({
   descriptionError,
   onChangeTitle: _onChangeTitle,
   onChangeDescription: _onChangeDescription,
-  onAnalyzeImages,
-  imageAnalyzeLoading,
-  imageAnalyzeError,
 }: Props) => {
   const [title, setTitle] = useState(product.title ?? "");
   const [description, setDescription] = useState(product.description ?? "");
@@ -49,24 +42,6 @@ export const DescriptionSection = ({
       <Display size="small" style={{ marginBottom: 24 }}>
         Beskriv din produkt
       </Display>
-      <View style={{ gap: 12, marginBottom: 24 }}>
-        <Button
-          label="Annonsförslag med AI"
-          onPress={onAnalyzeImages}
-          loading={imageAnalyzeLoading}
-          disabled={!product.images?.length}
-          icon="magic"
-          iconPosition="left"
-        />
-        {imageAnalyzeError && (
-          <Body size="small" color="error">
-            Något gick fel vid AI-genereringen
-          </Body>
-        )}
-        <Body size="small" color="secondary">
-          Förslag genereras av AI – granska före publicering
-        </Body>
-      </View>
       <Form
         style={{ gap: 24 }}
         fields={[

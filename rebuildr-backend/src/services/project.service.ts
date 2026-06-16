@@ -8,6 +8,7 @@ import {
   CreateProjectInput,
   GetProjectInput,
   SetLikeProjectInput,
+  SetProjectPictureInput,
   UpdateProjectInput,
   DeleteProjectInput,
 } from 'src/resolvers/project.resolver';
@@ -166,6 +167,40 @@ export class ProjectService {
     }
 
     return await this.projectRepository.save(project);
+  }
+
+  async setProjectPicture(
+    input: SetProjectPictureInput,
+    currentUserId: string,
+  ): Promise<{ project: Project; putUrl: string }> {
+    const project = await this.projectRepository.findOne({
+      where: { id: input.projectId },
+      relations: { projectPicture: true },
+    });
+
+    if (!project) {
+      throw BadUserInputException('Project not found');
+    }
+    if (project.userId !== currentUserId) {
+      throw ForbiddenException();
+    }
+
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
+
+    project.projectPicture = await this.fileService.createFile({
+      mimeType: input.mimeType,
+      name: input.name,
+    });
+
+    const saved = await this.projectRepository.save(project);
+    const putUrl = await this.fileService.uploadFile(
+      project.projectPicture,
+      true,
+    );
+
+    return { project: saved, putUrl };
   }
 
   async delete(input: DeleteProjectInput, currentUserId: string) {

@@ -15,6 +15,7 @@ import {
   Headline,
 } from "@components/typography/text";
 import { View, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { Avatar } from "@components/avatar/avatar";
 import { CompanyBadge } from "@components/badges/company-badge";
 import { Divider } from "@components/dividers/divider";
@@ -102,6 +103,13 @@ export const ProjectDesktop = () => {
           <View style={{ flexDirection: "row", gap: 72 }}>
             <View style={{ flex: 1 }}>
               <View style={{ gap: 16 }}>
+                {project?.projectPicture?.url && (
+                  <Image
+                    source={{ uri: project.projectPicture.url }}
+                    style={{ width: "100%", height: 240, borderRadius: 12 }}
+                    contentFit="cover"
+                  />
+                )}
                 <View
                   style={{
                     flexDirection: "row",

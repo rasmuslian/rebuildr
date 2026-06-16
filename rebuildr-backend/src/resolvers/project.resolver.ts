@@ -94,6 +94,27 @@ export class SetLikeProjectInput {
 }
 
 @InputType()
+export class SetProjectPictureInput {
+  @Field()
+  projectId: string;
+
+  @Field()
+  mimeType: string;
+
+  @Field({ nullable: true })
+  name?: string;
+}
+
+@ObjectType()
+export class SetProjectPictureResponse {
+  @Field(() => Project)
+  project: Project;
+
+  @Field(() => String)
+  putUrl: string;
+}
+
+@InputType()
 export class CmsListProjectsInput {
   @Field(() => Int, { nullable: true })
   page?: number;
@@ -247,6 +268,15 @@ export class ProjectResolver {
     @CurrentUser() user: AuthedUserType,
   ) {
     return this.projectService.update(input, user.id);
+  }
+
+  @Mutation(() => SetProjectPictureResponse)
+  @UseGuards(GqlAuthGuard)
+  async setProjectPicture(
+    @Args('input') input: SetProjectPictureInput,
+    @CurrentUser() user: AuthedUserType,
+  ): Promise<SetProjectPictureResponse> {
+    return this.projectService.setProjectPicture(input, user.id);
   }
 
   @Mutation(() => Project)

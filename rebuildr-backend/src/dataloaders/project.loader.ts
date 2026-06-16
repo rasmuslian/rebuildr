@@ -90,7 +90,7 @@ export class ProjectLoader {
     return {
       productsLoader: this.productsLoader(),
       projectPictureLoader: this.dataloaderService.targetByParentIdLoader<File>(
-        'profilePicture',
+        'projectPicture',
         Project,
       ),
       likedByUserLoader: this.likedByUserLoader(),

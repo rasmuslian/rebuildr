@@ -12,12 +12,16 @@ import {
 } from 'src/resolvers/file.resolver';
 import { S3Service } from './s3.service';
 import { FileType, FileSourceEnum } from 'src/constants/enums';
+import { Inject } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 @Injectable()
 export class FileService {
   constructor(
     @InjectRepository(File)
     private fileRepository: Repository<File>,
     private s3Service: S3Service,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async findOne(id: string) {
@@ -59,11 +63,21 @@ export class FileService {
     }
 
     const ids = files.map((file) => file.id);
+    //S3 objects are stored with the file extension in the key (see
+    //uploadFile: `${id}.${ext}`) — deleting by bare id never matched
+    const keys = files.map(
+      (file) => `${file.id}.${file.mimeType.split('/')[1]}`,
+    );
 
     try {
-      await this.s3Service.deleteFiles(ids);
-    } catch {
-      throw InternalServerException('Error when deleting files');
+      await this.s3Service.deleteFiles(keys);
+    } catch (e) {
+      //A failed storage cleanup must never block the user action (deleting a
+      //draft/product). Orphaned objects are logged and can be swept later.
+      this.logger.error('S3 cleanup failed, continuing with db delete', {
+        error: e instanceof Error ? e.message : e,
+        keys,
+      });
     }
 
     return await this.fileRepository.delete(ids);

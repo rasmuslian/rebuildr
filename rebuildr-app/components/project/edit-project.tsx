@@ -1,6 +1,8 @@
 import {
   EditProjectQueryQuery,
   EditProjectQueryQueryVariables,
+  SetProjectPictureMutation,
+  SetProjectPictureMutationVariables,
   UpdateProjectMutation,
   UpdateProjectMutationVariables,
 } from "@/gql/graphql";
@@ -8,6 +10,7 @@ import { gql, useMutation, useSuspenseQuery } from "@apollo/client";
 import { ProjectFormFields, ProjectFormType } from "./project-form-fields";
 import { DeleteProjectBottomSheet } from "./delete-project-bottom-sheet";
 import { useState } from "react";
+import { useImageHandler } from "@hooks/use-image-handler";
 
 const EDIT_PROJECT_QUERY = gql`
   query EditProjectQuery($input: GetProjectInput!) {
@@ -24,6 +27,25 @@ const EDIT_PROJECT_QUERY = gql`
       location {
         lat
         lng
+      }
+      projectPicture {
+        id
+        url
+      }
+    }
+  }
+`;
+
+const SET_PROJECT_PICTURE = gql`
+  mutation SetProjectPicture($input: SetProjectPictureInput!) {
+    setProjectPicture(input: $input) {
+      putUrl
+      project {
+        id
+        projectPicture {
+          id
+          url
+        }
       }
     }
   }
@@ -62,6 +84,13 @@ type Props = {
 
 export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const { pickImage } = useImageHandler();
+  const [pickedPicture, setPickedPicture] = useState<{
+    uri: string;
+    mimeType: string;
+    file: File;
+    name?: string | null;
+  }>();
   const { data } = useSuspenseQuery<
     EditProjectQueryQuery,
     EditProjectQueryQueryVariables
@@ -72,6 +101,35 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
     UpdateProjectMutation,
     UpdateProjectMutationVariables
   >(UPDATE_PROJECT);
+  const [setProjectPicture, { loading: uploadingPicture }] = useMutation<
+    SetProjectPictureMutation,
+    SetProjectPictureMutationVariables
+  >(SET_PROJECT_PICTURE);
+
+  const onPickPicture = async () => {
+    const image = await pickImage();
+    if (!image) return;
+    setPickedPicture(image);
+  };
+
+  const uploadPicture = async () => {
+    if (!pickedPicture) return;
+    const { data } = await setProjectPicture({
+      variables: {
+        input: { projectId: id, mimeType: pickedPicture.mimeType },
+      },
+    });
+    if (data?.setProjectPicture.putUrl) {
+      await fetch(data.setProjectPicture.putUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": pickedPicture.mimeType,
+          "x-amz-acl": "public-read",
+        },
+        body: pickedPicture.file,
+      });
+    }
+  };
 
   const onEditProject = (project: ProjectFormType) => {
     updateProject({
@@ -91,7 +149,8 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
           showDetailsOnMap: project.showDetailsOnMap,
         },
       },
-      onCompleted: (data) => {
+      onCompleted: async (data) => {
+        await uploadPicture();
         onEdited(data.updateProject.id);
       },
     });
@@ -107,7 +166,10 @@ export const EditProject = ({ id, onEdited, onDeleted }: Props) => {
         project={data.getProject}
         onSave={(project) => onEditProject(project)}
         onDelete={onDeleteProject}
-        isLoading={updatingProject}
+        isLoading={updatingProject || uploadingPicture}
+        currentPictureUrl={data.getProject.projectPicture?.url}
+        pickedPictureUri={pickedPicture?.uri}
+        onPickPicture={onPickPicture}
       />
       <DeleteProjectBottomSheet
         projectId={id}
