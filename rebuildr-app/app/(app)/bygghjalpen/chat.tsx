@@ -411,9 +411,7 @@ export default function BygghjalpenChatPage() {
                 >
                   <View
                     style={{
-                      alignSelf: "center",
                       gap: 14,
-                      maxWidth: CHAT_CONTENT_MAX_WIDTH,
                       width: "100%",
                     }}
                   >
@@ -904,14 +902,15 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
   return (
     <View
       style={{
-        alignSelf: isUser ? "flex-end" : "flex-start",
+        alignSelf: isUser ? "flex-end" : "stretch",
         backgroundColor: isUser ? primitives.primary800 : "transparent",
         borderColor: primitives.primary800,
         borderRadius: isUser ? borderRadius.medium : 0,
         borderWidth: isUser ? 1 : 0,
-        maxWidth: "82%",
+        maxWidth: isUser ? "82%" : undefined,
         paddingHorizontal: isUser ? 14 : 0,
         paddingVertical: isUser ? 12 : 0,
+        width: isUser ? undefined : "100%",
       }}
     >
       {message.pending && !message.content ? (
@@ -927,12 +926,18 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
             if (part.type === "text") {
               if (!part.content.trim()) return null;
               return (
-                <Markdown
+                <View
                   key={`${message.id}-text-${index}`}
-                  style={markdownStyle(colors)}
+                  style={{
+                    alignSelf: "center",
+                    maxWidth: CHAT_CONTENT_MAX_WIDTH,
+                    width: "100%",
+                  }}
                 >
-                  {part.content}
-                </Markdown>
+                  <Markdown style={markdownStyle(colors)}>
+                    {part.content}
+                  </Markdown>
+                </View>
               );
             }
 
