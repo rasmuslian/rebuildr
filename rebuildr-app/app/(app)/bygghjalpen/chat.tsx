@@ -349,17 +349,6 @@ export default function BygghjalpenChatPage() {
               width: "100%",
             }}
           >
-            {!isDesktop && (
-              <MobileChatActions
-                showHistory={isLoggedIn}
-                open={showMobileHistory}
-                onHistoryPress={() =>
-                  setShowMobileHistory((current) => !current)
-                }
-                onNewChat={startNewChat}
-              />
-            )}
-
             {!isDesktop && isLoggedIn && showMobileHistory && (
               <MobileHistoryOverlay
                 chats={chats}
@@ -388,6 +377,15 @@ export default function BygghjalpenChatPage() {
                 overflow: "hidden",
               }}
             >
+              <ChatHeader
+                isDesktop={isDesktop}
+                showHistory={isLoggedIn}
+                historyOpen={showMobileHistory}
+                onHistoryPress={() =>
+                  setShowMobileHistory((current) => !current)
+                }
+                onNewChat={startNewChat}
+              />
               {loadingChat ? (
                 <View
                   style={{
@@ -406,7 +404,7 @@ export default function BygghjalpenChatPage() {
                     justifyContent: messages.length ? "flex-start" : "center",
                     paddingBottom: isDesktop ? 24 : 16,
                     paddingHorizontal: isDesktop ? 24 : 0,
-                    paddingTop: isDesktop ? 24 : 72,
+                    paddingTop: isDesktop ? 24 : 16,
                   }}
                 >
                   <View
@@ -542,7 +540,7 @@ const HistorySidebar = ({
       }}
     >
       <View style={{ gap: 4 }}>
-        <Title size="small">Tidigare frågor</Title>
+        <Title size="medium">Tidigare frågor</Title>
         <Body size="small" color="secondary">
           Fortsätt där du slutade.
         </Body>
@@ -579,6 +577,44 @@ const HistorySidebar = ({
   );
 };
 
+const ChatHeader = ({
+  isDesktop,
+  showHistory,
+  historyOpen,
+  onHistoryPress,
+  onNewChat,
+}: {
+  isDesktop: boolean;
+  showHistory: boolean;
+  historyOpen: boolean;
+  onHistoryPress: () => void;
+  onNewChat: () => void;
+}) => {
+  return (
+    <View
+      style={{
+        alignItems: isDesktop ? "flex-start" : "center",
+        flexDirection: isDesktop ? "column" : "row",
+        gap: isDesktop ? 0 : 12,
+        justifyContent: isDesktop ? "flex-start" : "flex-start",
+        minHeight: isDesktop ? undefined : 64,
+        paddingHorizontal: isDesktop ? 24 : 0,
+        paddingVertical: isDesktop ? 16 : 12,
+      }}
+    >
+      {!isDesktop && (
+        <MobileChatActions
+          showHistory={showHistory}
+          open={historyOpen}
+          onHistoryPress={onHistoryPress}
+          onNewChat={onNewChat}
+        />
+      )}
+      <Title size={isDesktop ? "medium" : "small"}>Bygghjälpen</Title>
+    </View>
+  );
+};
+
 const MobileChatActions = ({
   showHistory,
   open,
@@ -595,9 +631,6 @@ const MobileChatActions = ({
       style={{
         flexDirection: "row",
         gap: 8,
-        left: horizontalPadding.mobile,
-        position: "absolute",
-        top: 16,
         zIndex: 30,
       }}
     >
@@ -1071,7 +1104,6 @@ const ChatProductCard = ({
         borderColor: primitives.neutrals300,
         borderRadius: borderRadius.medium,
         borderWidth: 1,
-        boxShadow: "0px 6px 18px rgba(30, 30, 30, 0.08)",
         flexDirection: isSingle ? "row" : "column",
         gap: isSingle ? 12 : 9,
         opacity: pressed ? 0.82 : 1,
@@ -1111,9 +1143,7 @@ const ChatProductCard = ({
                 key={label}
                 style={{
                   backgroundColor: primitives.secondary100,
-                  borderColor: primitives.secondary500,
                   borderRadius: borderRadius.xSmall,
-                  borderWidth: 1,
                   paddingHorizontal: 7,
                   paddingVertical: 3,
                 }}
