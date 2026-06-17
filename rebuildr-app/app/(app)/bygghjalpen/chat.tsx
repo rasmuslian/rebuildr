@@ -13,6 +13,7 @@ import Markdown from "react-native-markdown-display";
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   Image,
   LayoutChangeEvent,
   Platform,
@@ -120,6 +121,7 @@ export default function BygghjalpenChatPage() {
   const { isDesktop } = useScreenType();
   const { height: windowHeight } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
   const initialQuestionSentRef = useRef(false);
   const params = useLocalSearchParams<{ question?: string }>();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -132,9 +134,15 @@ export default function BygghjalpenChatPage() {
   const [error, setError] = useState<string>();
   const [showMobileHistory, setShowMobileHistory] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(0);
+  const [desktopActionsChatId, setDesktopActionsChatId] = useState<string>();
+  const [mobileActionsChatId, setMobileActionsChatId] = useState<string>();
 
   const handleTopBarLayout = useCallback((event: LayoutChangeEvent) => {
     setTopBarHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const focusChatInput = useCallback(() => {
+    requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
   useFocusEffect(
@@ -145,6 +153,12 @@ export default function BygghjalpenChatPage() {
         document.body.style.backgroundColor = "";
       };
     }, [colors.background.secondary]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      focusChatInput();
+    }, [focusChatInput]),
   );
 
   const loadChats = useCallback(async () => {
@@ -190,6 +204,7 @@ export default function BygghjalpenChatPage() {
       setError("Kunde inte öppna chatten.");
     } finally {
       setLoadingChat(false);
+      focusChatInput();
     }
   };
 
@@ -198,6 +213,9 @@ export default function BygghjalpenChatPage() {
     setMessages([]);
     setError(undefined);
     setShowMobileHistory(false);
+    setDesktopActionsChatId(undefined);
+    setMobileActionsChatId(undefined);
+    focusChatInput();
   };
 
   const deleteChat = async (chatId: string) => {
@@ -210,6 +228,8 @@ export default function BygghjalpenChatPage() {
       if (chatId === activeChatId) {
         startNewChat();
       }
+      setDesktopActionsChatId(undefined);
+      setMobileActionsChatId(undefined);
       loadChats();
     } catch {
       setError("Kunde inte ta bort chatten.");
@@ -224,6 +244,7 @@ export default function BygghjalpenChatPage() {
       setInput("");
       setStreaming(true);
       setError(undefined);
+      focusChatInput();
 
       const assistantId = `assistant-${Date.now()}`;
       setMessages((current) => [
@@ -301,9 +322,10 @@ export default function BygghjalpenChatPage() {
         );
       } finally {
         setStreaming(false);
+        focusChatInput();
       }
     },
-    [activeChatId, input, isLoggedIn, loadChats, streaming],
+    [activeChatId, focusChatInput, input, isLoggedIn, loadChats, streaming],
   );
 
   useEffect(() => {
@@ -371,13 +393,36 @@ export default function BygghjalpenChatPage() {
               width: "100%",
             }}
           >
+            {isDesktop && desktopActionsChatId && (
+              <Pressable
+                onPress={() => setDesktopActionsChatId(undefined)}
+                style={{
+                  bottom: 0,
+                  left: 0,
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  zIndex: 9999,
+                }}
+              />
+            )}
             {!isDesktop && isLoggedIn && showMobileHistory && (
               <MobileHistoryOverlay
                 chats={chats}
                 activeChatId={activeChatId}
-                onClose={() => setShowMobileHistory(false)}
+                openActionsChatId={mobileActionsChatId}
+                onClose={() => {
+                  setMobileActionsChatId(undefined);
+                  setShowMobileHistory(false);
+                }}
                 onDelete={deleteChat}
                 onSelect={loadMessages}
+                onToggleActions={(chatId) =>
+                  setMobileActionsChatId((current) =>
+                    current === chatId ? undefined : chatId,
+                  )
+                }
+                onCloseActions={() => setMobileActionsChatId(undefined)}
               />
             )}
 
@@ -385,9 +430,15 @@ export default function BygghjalpenChatPage() {
               <HistorySidebar
                 chats={chats}
                 activeChatId={activeChatId}
+                openActionsChatId={desktopActionsChatId}
                 onSelect={loadMessages}
                 onNewChat={startNewChat}
                 onDelete={deleteChat}
+                onToggleActions={(chatId) =>
+                  setDesktopActionsChatId((current) =>
+                    current === chatId ? undefined : chatId,
+                  )
+                }
               />
             )}
 
@@ -485,12 +536,13 @@ export default function BygghjalpenChatPage() {
                     }}
                   >
                     <TextInput
+                      ref={inputRef}
                       value={input}
                       onChangeText={setInput}
                       placeholder="Skriv din fråga..."
                       placeholderTextColor={colors.text.secondary}
                       multiline
-                      editable={!streaming}
+                      autoFocus
                       onKeyPress={({ nativeEvent }) => {
                         if (
                           nativeEvent.key === "Enter" &&
@@ -514,7 +566,7 @@ export default function BygghjalpenChatPage() {
                       type="filled"
                       icon={streaming ? undefined : "arrowRight"}
                       loading={streaming}
-                      disabled={!input.trim()}
+                      disabled={!input.trim() || streaming}
                       onPress={() => sendMessage()}
                     />
                   </View>
@@ -539,25 +591,29 @@ export default function BygghjalpenChatPage() {
 const HistorySidebar = ({
   chats,
   activeChatId,
+  openActionsChatId,
   onSelect,
   onNewChat,
   onDelete,
+  onToggleActions,
 }: {
   chats: ChatSummary[];
   activeChatId?: string;
+  openActionsChatId?: string;
   onSelect: (chatId: string) => void;
   onNewChat: () => void;
   onDelete: (chatId: string) => void;
+  onToggleActions: (chatId: string) => void;
 }) => {
-  const [openActionsChatId, setOpenActionsChatId] = useState<string>();
-
   return (
     <View
       style={{
         backgroundColor: primitives.neutrals100,
         borderRadius: 16,
         gap: 12,
+        overflow: "visible",
         padding: 12,
+        position: "relative",
         width: 300,
       }}
     >
@@ -582,14 +638,9 @@ const HistorySidebar = ({
               actionsOpen={openActionsChatId === chat.id}
               showActionsOnHover
               onDelete={() => {
-                setOpenActionsChatId(undefined);
                 onDelete(chat.id);
               }}
-              onToggleActions={() =>
-                setOpenActionsChatId((current) =>
-                  current === chat.id ? undefined : chat.id,
-                )
-              }
+              onToggleActions={() => onToggleActions(chat.id)}
               onSelect={() => onSelect(chat.id)}
             />
           );
@@ -693,18 +744,22 @@ const MobileIconButton = ({
 const MobileHistoryOverlay = ({
   chats,
   activeChatId,
+  openActionsChatId,
   onClose,
   onSelect,
   onDelete,
+  onToggleActions,
+  onCloseActions,
 }: {
   chats: ChatSummary[];
   activeChatId?: string;
+  openActionsChatId?: string;
   onClose: () => void;
   onSelect: (chatId: string) => void;
   onDelete: (chatId: string) => void;
+  onToggleActions: (chatId: string) => void;
+  onCloseActions: () => void;
 }) => {
-  const [openActionsChatId, setOpenActionsChatId] = useState<string>();
-
   return (
     <View
       style={{
@@ -736,6 +791,7 @@ const MobileHistoryOverlay = ({
           maxHeight: 420,
           overflow: "visible",
           padding: 12,
+          position: "relative",
           width: "100%",
         }}
       >
@@ -754,14 +810,9 @@ const MobileHistoryOverlay = ({
                 active={active}
                 actionsOpen={openActionsChatId === chat.id}
                 onDelete={() => {
-                  setOpenActionsChatId(undefined);
                   onDelete(chat.id);
                 }}
-                onToggleActions={() =>
-                  setOpenActionsChatId((current) =>
-                    current === chat.id ? undefined : chat.id,
-                  )
-                }
+                onToggleActions={() => onToggleActions(chat.id)}
                 onSelect={() => {
                   onSelect(chat.id);
                   onClose();
@@ -770,6 +821,19 @@ const MobileHistoryOverlay = ({
             );
           })}
         </ScrollView>
+        {openActionsChatId && (
+          <Pressable
+            onPress={onCloseActions}
+            style={{
+              bottom: 0,
+              left: 0,
+              position: "absolute",
+              right: 0,
+              top: 0,
+              zIndex: 10000,
+            }}
+          />
+        )}
       </View>
     </View>
   );
@@ -969,9 +1033,17 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
       }}
     >
       {message.pending && !message.content ? (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <ActivityIndicator color={primitives.primary800} />
-          <Body color="secondary">Tänker...</Body>
+        <View
+          style={{
+            alignSelf: "center",
+            maxWidth: CHAT_CONTENT_MAX_WIDTH,
+            width: "100%",
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <InlineThinkingSpinner />
+            <Body color="secondary">Tänker...</Body>
+          </View>
         </View>
       ) : isUser ? (
         <Body color="primaryLight">{message.content}</Body>
@@ -1017,6 +1089,56 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
             ))}
         </View>
       )}
+    </View>
+  );
+};
+
+const InlineThinkingSpinner = () => {
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 1500,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
+    ).start();
+  }, [rotation]);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        height: 28,
+        justifyContent: "center",
+        width: 28,
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: "rgba(0,0,0,0.28)",
+          borderRadius: borderRadius.xSmall,
+          height: 28,
+          justifyContent: "center",
+          overflow: "hidden",
+          width: 28,
+        }}
+      >
+        <Animated.View style={{ transform: [{ rotate: spin }] }}>
+          <Image
+            source={require("../../../assets/images/loader-icon.png")}
+            style={{ height: 52, width: 52 }}
+          />
+        </Animated.View>
+      </View>
     </View>
   );
 };
