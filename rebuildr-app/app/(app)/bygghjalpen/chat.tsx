@@ -85,6 +85,11 @@ type StreamEvent = {
   data: unknown;
 };
 
+type ActiveStream = {
+  id: number;
+  abortController: AbortController;
+};
+
 const GUEST_ID_KEY = "bygghjalpen_guest_id";
 const CHAT_CONTENT_MAX_WIDTH = 760;
 const STREAM_TEXT_FADE_DURATION = 260;
@@ -128,10 +133,13 @@ export default function BygghjalpenChatPage() {
   const scrollRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const initialQuestionSentRef = useRef(false);
+  const activeChatIdRef = useRef<string | undefined>(undefined);
+  const activeStreamRef = useRef<ActiveStream | undefined>(undefined);
+  const streamSequenceRef = useRef(0);
   const params = useLocalSearchParams<{ question?: string }>();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const [chats, setChats] = useState<ChatSummary[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string>();
+  const [activeChatId, setActiveChatIdState] = useState<string>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loadingChat, setLoadingChat] = useState(false);
@@ -146,8 +154,28 @@ export default function BygghjalpenChatPage() {
     setTopBarHeight(event.nativeEvent.layout.height);
   }, []);
 
+  const setActiveChatId = useCallback((chatId?: string) => {
+    activeChatIdRef.current = chatId;
+    setActiveChatIdState(chatId);
+  }, []);
+
+  const cancelActiveStream = useCallback(() => {
+    const activeStream = activeStreamRef.current;
+    activeStreamRef.current = undefined;
+    activeStream?.abortController.abort();
+    setStreaming(false);
+  }, []);
+
   const focusChatInput = useCallback(() => {
     requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const activeStream = activeStreamRef.current;
+      activeStreamRef.current = undefined;
+      activeStream?.abortController.abort();
+    };
   }, []);
 
   useFocusEffect(
@@ -196,6 +224,7 @@ export default function BygghjalpenChatPage() {
   }, [messages]);
 
   const loadMessages = async (chatId: string) => {
+    cancelActiveStream();
     setLoadingChat(true);
     setError(undefined);
     try {
@@ -214,6 +243,7 @@ export default function BygghjalpenChatPage() {
   };
 
   const startNewChat = () => {
+    cancelActiveStream();
     setActiveChatId(undefined);
     setMessages([]);
     setError(undefined);
@@ -244,13 +274,19 @@ export default function BygghjalpenChatPage() {
   const sendMessage = useCallback(
     async (overrideMessage?: string) => {
       const message = (overrideMessage ?? input).trim();
-      if (!message || streaming) return;
+      if (!message || streaming || loadingChat) return;
 
       setInput("");
       setStreaming(true);
       setError(undefined);
       focusChatInput();
 
+      const abortController = new AbortController();
+      const streamId = streamSequenceRef.current + 1;
+      streamSequenceRef.current = streamId;
+      activeStreamRef.current = { id: streamId, abortController };
+      const isCurrentStream = () => activeStreamRef.current?.id === streamId;
+      const requestChatId = activeChatIdRef.current;
       const assistantId = `assistant-${Date.now()}`;
       setMessages((current) => [
         ...current,
@@ -272,14 +308,20 @@ export default function BygghjalpenChatPage() {
             "Content-Type": "application/json",
             ...(await getAuthHeaders()),
           },
-          body: JSON.stringify({ chatId: activeChatId, message, guestId }),
+          body: JSON.stringify({ chatId: requestChatId, message, guestId }),
+          signal: abortController.signal,
         });
+
+        if (!isCurrentStream()) return;
 
         if (!response.ok || !response.body) {
           throw new Error("Stream failed");
         }
 
+        let receivedDone = false;
         await readEventStream(response.body, (streamEvent) => {
+          if (!isCurrentStream()) return;
+
           if (streamEvent.event === "chat") {
             const chat = streamEvent.data as ChatSummary;
             setActiveChatId(chat.id);
@@ -309,7 +351,17 @@ export default function BygghjalpenChatPage() {
             const payload = streamEvent.data as { message?: string };
             throw new Error(payload.message);
           }
+
+          if (streamEvent.event === "done") {
+            receivedDone = true;
+          }
         });
+
+        if (!isCurrentStream()) return;
+
+        if (!receivedDone) {
+          throw new Error("Svaret avbröts innan det blev klart. Försök igen.");
+        }
 
         setMessages((current) =>
           current.map((item) =>
@@ -320,29 +372,47 @@ export default function BygghjalpenChatPage() {
         );
         loadChats();
       } catch (e) {
+        if (!isCurrentStream() || isAbortError(e)) return;
+
         const messageText = e instanceof Error ? e.message : undefined;
         setError(messageText ?? "Något gick fel. Försök igen.");
         setMessages((current) =>
           current.filter((item) => item.id !== assistantId),
         );
       } finally {
-        setStreaming(false);
-        focusChatInput();
+        if (isCurrentStream()) {
+          activeStreamRef.current = undefined;
+          setStreaming(false);
+          focusChatInput();
+        }
       }
     },
-    [activeChatId, focusChatInput, input, isLoggedIn, loadChats, streaming],
+    [
+      focusChatInput,
+      input,
+      isLoggedIn,
+      loadChats,
+      loadingChat,
+      setActiveChatId,
+      streaming,
+    ],
   );
 
   const handleInputKeyPress = useCallback(
     (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-      if (event.nativeEvent.key !== "Enter" || !input.trim() || streaming) {
+      if (
+        event.nativeEvent.key !== "Enter" ||
+        !input.trim() ||
+        streaming ||
+        loadingChat
+      ) {
         return;
       }
 
       event.preventDefault();
       sendMessage();
     },
-    [input, sendMessage, streaming],
+    [input, loadingChat, sendMessage, streaming],
   );
 
   useEffect(() => {
@@ -576,7 +646,7 @@ export default function BygghjalpenChatPage() {
                       type="filled"
                       icon={streaming ? undefined : "arrowRight"}
                       loading={streaming}
-                      disabled={!input.trim() || streaming}
+                      disabled={!input.trim() || streaming || loadingChat}
                       onPress={() => sendMessage()}
                     />
                   </View>
@@ -1828,6 +1898,10 @@ const readEventStream = async (
       if (event) onEvent(event);
     }
   }
+};
+
+const isAbortError = (error: unknown) => {
+  return error instanceof Error && error.name === "AbortError";
 };
 
 const parseStreamEvent = (rawEvent: string): StreamEvent | undefined => {

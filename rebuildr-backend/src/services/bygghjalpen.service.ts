@@ -6,8 +6,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
-import { Response } from 'express';
+import { FinishReason, ModelMessage, stepCountIs, streamText, tool } from 'ai';
+import { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { AuthedUserType } from 'src/auth/constants';
@@ -16,6 +16,7 @@ import {
   BygghjalpenProductDisplay,
   BygghjalpenMessage,
   BygghjalpenMessageRole,
+  BygghjalpenMessageStatus,
 } from 'src/entities/bygghjalpen-message.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { FileService } from 'src/services/file.service';
@@ -23,7 +24,15 @@ import { Brackets, IsNull, Repository } from 'typeorm';
 
 const MAX_MESSAGE_LENGTH = 4_000;
 const MAX_CONTEXT_MESSAGES = 16;
+const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
+const MAX_OUTPUT_TOKENS = 3_200;
 const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
+const STREAM_ERROR_MESSAGE =
+  'Bygghjälpen kunde inte svara just nu. Försök igen om en stund.';
+const STREAM_INTERRUPTED_MESSAGE =
+  'Svaret avbröts innan det blev klart. Ställ gärna frågan igen om du vill fortsätta.';
+const STREAM_LENGTH_LIMIT_MESSAGE =
+  'Jag nådde längdgränsen för svaret. Ställ gärna en följdfråga om du vill att jag fortsätter eller fördjupar en del.';
 
 export interface BygghjalpenChatSummary {
   id: string;
@@ -153,6 +162,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   async streamMessage(
     input: SendMessageInput,
     owner: ChatOwner,
+    request: Request,
     response: Response,
   ) {
     const userMessage = input.message?.trim();
@@ -176,6 +186,10 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     response.setHeader('Connection', 'keep-alive');
     response.flushHeaders?.();
 
+    const abortController = new AbortController();
+    const abortStream = () => abortController.abort();
+    request.on('close', abortStream);
+
     this.writeEvent(response, 'chat', {
       id: chat.id,
       title: chat.title,
@@ -183,23 +197,30 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       updatedAt: chat.updatedAt,
     });
 
-    await this.messageRepository.save({
-      chatId: chat.id,
-      role: BygghjalpenMessageRole.USER,
-      content: userMessage,
-    });
-
+    let savedUserMessage: BygghjalpenMessage | undefined;
     let assistantMessage = '';
+    let assistantSaved = false;
     const searchableProductsById = new Map<string, PublicProductSearchResult>();
 
     try {
-      const contextMessages = await this.getContextMessages(chat.id);
+      savedUserMessage = await this.messageRepository.save({
+        chatId: chat.id,
+        role: BygghjalpenMessageRole.USER,
+        status: BygghjalpenMessageStatus.COMPLETE,
+        content: userMessage,
+      });
+
+      const contextMessages = await this.getContextMessages(
+        chat.id,
+        savedUserMessage.id,
+      );
 
       const result = streamText({
         model: this.google('gemini-2.5-flash'),
         system: this.systemPrompt,
         messages: contextMessages,
-        maxOutputTokens: 1_600,
+        abortSignal: abortController.signal,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
         temperature: 0.35,
         stopWhen: stepCountIs(4),
         tools: {
@@ -250,6 +271,16 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         this.writeEvent(response, 'delta', textDelta);
       }
 
+      const finishReason = await result.finishReason;
+      const messageStatus = this.getAssistantMessageStatus(finishReason);
+      const finishNotice = this.getFinishNotice(finishReason);
+
+      if (finishNotice) {
+        const finishNoticeMarkdown = `\n\n_${finishNotice}_`;
+        assistantMessage += finishNoticeMarkdown;
+        this.writeEvent(response, 'delta', finishNoticeMarkdown);
+      }
+
       const productDisplays = this.extractProductDisplays(
         assistantMessage,
         searchableProductsById,
@@ -261,23 +292,62 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       await this.messageRepository.save({
         chatId: chat.id,
         role: BygghjalpenMessageRole.ASSISTANT,
+        status: messageStatus,
         content: assistantMessage,
         productDisplays: productDisplays.length ? productDisplays : null,
       });
+      assistantSaved = true;
       await this.chatRepository.update(chat.id, { updatedAt: new Date() });
 
-      this.writeEvent(response, 'done', { ok: true });
-      response.end();
+      if (!response.destroyed && !response.writableEnded) {
+        this.writeEvent(response, 'done', { ok: true });
+        response.end();
+      }
     } catch (error) {
-      this.logger.error(
-        'Bygghjalpen failed to stream a response',
-        error instanceof Error ? error.stack : String(error),
-      );
-      this.writeEvent(response, 'error', {
-        message:
-          'Bygghjälpen kunde inte svara just nu. Försök igen om en stund.',
-      });
-      response.end();
+      const streamWasAborted = abortController.signal.aborted;
+
+      if (!streamWasAborted) {
+        this.logger.error(
+          'Bygghjalpen failed to stream a response',
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+
+      if (savedUserMessage && !assistantSaved) {
+        const fallbackContent = assistantMessage.trim()
+          ? `${assistantMessage}\n\n_${streamWasAborted ? STREAM_INTERRUPTED_MESSAGE : STREAM_ERROR_MESSAGE}_`
+          : streamWasAborted
+            ? STREAM_INTERRUPTED_MESSAGE
+            : STREAM_ERROR_MESSAGE;
+        const fallbackProductDisplays = this.extractProductDisplays(
+          fallbackContent,
+          searchableProductsById,
+        );
+
+        await this.messageRepository.save({
+          chatId: chat.id,
+          role: BygghjalpenMessageRole.ASSISTANT,
+          status: streamWasAborted
+            ? BygghjalpenMessageStatus.INTERRUPTED
+            : BygghjalpenMessageStatus.FAILED,
+          content: fallbackContent,
+          productDisplays: fallbackProductDisplays.length
+            ? fallbackProductDisplays
+            : null,
+        });
+        await this.chatRepository.update(chat.id, { updatedAt: new Date() });
+      }
+
+      if (!response.destroyed && !response.writableEnded) {
+        this.writeEvent(response, 'error', {
+          message: streamWasAborted
+            ? STREAM_INTERRUPTED_MESSAGE
+            : STREAM_ERROR_MESSAGE,
+        });
+        response.end();
+      }
+    } finally {
+      request.off('close', abortStream);
     }
   }
 
@@ -314,17 +384,81 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return this.chatRepository.findOne({ where });
   }
 
-  private async getContextMessages(chatId: string): Promise<ModelMessage[]> {
+  private async getContextMessages(
+    chatId: string,
+    currentUserMessageId?: string,
+  ): Promise<ModelMessage[]> {
     const messages = await this.messageRepository.find({
       where: { chatId },
       order: { createdAt: 'DESC' },
-      take: MAX_CONTEXT_MESSAGES,
+      take: MAX_CONTEXT_LOOKBACK_MESSAGES,
     });
 
-    return messages.reverse().map((message) => ({
+    const orderedMessages = messages.reverse();
+    const contextMessages = this.getCompleteContextMessages(
+      orderedMessages,
+      currentUserMessageId,
+    );
+
+    return contextMessages.slice(-MAX_CONTEXT_MESSAGES).map((message) => ({
       role: message.role === BygghjalpenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
     }));
+  }
+
+  private getCompleteContextMessages(
+    messages: BygghjalpenMessage[],
+    currentUserMessageId?: string,
+  ) {
+    const currentUserMessageIndex = currentUserMessageId
+      ? messages.findIndex((message) => message.id === currentUserMessageId)
+      : -1;
+    const currentUserMessage =
+      currentUserMessageIndex >= 0 ? messages[currentUserMessageIndex] : null;
+    const previousMessages =
+      currentUserMessageIndex >= 0
+        ? messages.slice(0, currentUserMessageIndex)
+        : messages;
+    const completeMessages: BygghjalpenMessage[] = [];
+
+    for (let index = 0; index < previousMessages.length; index += 1) {
+      const message = previousMessages[index];
+      const nextMessage = previousMessages[index + 1];
+
+      if (message.role === BygghjalpenMessageRole.USER) {
+        if (
+          nextMessage?.role === BygghjalpenMessageRole.ASSISTANT &&
+          nextMessage.status === BygghjalpenMessageStatus.COMPLETE
+        ) {
+          completeMessages.push(message, nextMessage);
+          index += 1;
+        }
+        continue;
+      }
+
+      if (
+        message.role === BygghjalpenMessageRole.ASSISTANT &&
+        message.status === BygghjalpenMessageStatus.COMPLETE
+      ) {
+        completeMessages.push(message);
+      }
+    }
+
+    if (currentUserMessage) {
+      completeMessages.push(currentUserMessage);
+    }
+
+    return completeMessages;
+  }
+
+  private getAssistantMessageStatus(finishReason: FinishReason) {
+    return finishReason === 'length'
+      ? BygghjalpenMessageStatus.INTERRUPTED
+      : BygghjalpenMessageStatus.COMPLETE;
+  }
+
+  private getFinishNotice(finishReason: FinishReason) {
+    return finishReason === 'length' ? STREAM_LENGTH_LIMIT_MESSAGE : undefined;
   }
 
   private async safeSearchPublicProducts(input: SearchPublicProductsInput) {
@@ -522,8 +656,14 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   }
 
   private writeEvent(response: Response, event: string, data: unknown) {
-    response.write(`event: ${event}\n`);
-    response.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (response.destroyed || response.writableEnded) return;
+
+    try {
+      response.write(`event: ${event}\n`);
+      response.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch {
+      return;
+    }
   }
 
   private createTitle(message: string) {

@@ -65,6 +65,7 @@ export class BygghjalpenController {
     return this.bygghjalpenService.streamMessage(
       body,
       { user, guestId: body.guestId },
+      request,
       response,
     );
   }

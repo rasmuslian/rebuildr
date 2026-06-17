@@ -33,6 +33,12 @@ export enum BygghjalpenMessageRole {
   ASSISTANT = 'ASSISTANT',
 }
 
+export enum BygghjalpenMessageStatus {
+  COMPLETE = 'COMPLETE',
+  INTERRUPTED = 'INTERRUPTED',
+  FAILED = 'FAILED',
+}
+
 @Entity()
 export class BygghjalpenMessage {
   @PrimaryGeneratedColumn('uuid')
@@ -43,6 +49,13 @@ export class BygghjalpenMessage {
 
   @Column({ type: 'enum', enum: BygghjalpenMessageRole })
   role: BygghjalpenMessageRole;
+
+  @Column({
+    type: 'enum',
+    enum: BygghjalpenMessageStatus,
+    default: BygghjalpenMessageStatus.COMPLETE,
+  })
+  status: BygghjalpenMessageStatus;
 
   @Column({ type: 'text' })
   content: string;
