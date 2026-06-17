@@ -6,21 +6,24 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import Markdown from "react-native-markdown-display";
+import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import {
   ActivityIndicator,
   Animated,
   Easing,
   Image,
   LayoutChangeEvent,
+  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
   Text,
   TextInput,
+  TextInputKeyPressEventData,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -88,6 +91,8 @@ const STREAM_TEXT_FADE_DURATION = 260;
 const STREAM_TEXT_FADE_STAGGER = 28;
 const STREAM_TEXT_FADE_TAIL = 260;
 const STREAM_TEXT_MAX_BACKLOG = 180;
+
+const markdownFadeParser = MarkdownIt({ typographer: true });
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -328,6 +333,18 @@ export default function BygghjalpenChatPage() {
     [activeChatId, focusChatInput, input, isLoggedIn, loadChats, streaming],
   );
 
+  const handleInputKeyPress = useCallback(
+    (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+      if (event.nativeEvent.key !== "Enter" || !input.trim() || streaming) {
+        return;
+      }
+
+      event.preventDefault();
+      sendMessage();
+    },
+    [input, sendMessage, streaming],
+  );
+
   useEffect(() => {
     const question = Array.isArray(params.question)
       ? params.question[0]
@@ -543,14 +560,7 @@ export default function BygghjalpenChatPage() {
                       placeholderTextColor={colors.text.secondary}
                       multiline
                       autoFocus
-                      onKeyPress={({ nativeEvent }) => {
-                        if (
-                          nativeEvent.key === "Enter" &&
-                          !input.includes("\n")
-                        ) {
-                          sendMessage();
-                        }
-                      }}
+                      onKeyPress={handleInputKeyPress}
                       style={{
                         color: colors.text.primaryDark,
                         flex: 1,
@@ -1156,7 +1166,10 @@ const FadingMarkdown = ({
   const wordStatesRef = useRef<Map<number, WordFadeState>>(new Map());
   const previousContentRef = useRef(content);
   const previousVisibleWordCountRef = useRef(0);
-  const currentVisibleWordCountRef = useRef(0);
+  const visibleWords = useMemo(
+    () => getMarkdownVisibleWords(content),
+    [content],
+  );
 
   useEffect(() => {
     if (streaming) {
@@ -1174,14 +1187,14 @@ const FadingMarkdown = ({
   useLayoutEffect(() => {
     if (!animated) return;
 
-    const visibleWordCount = currentVisibleWordCountRef.current;
+    const visibleWordCount = visibleWords.length;
     for (const wordIndex of wordStatesRef.current.keys()) {
       if (wordIndex >= visibleWordCount)
         wordStatesRef.current.delete(wordIndex);
     }
     previousVisibleWordCountRef.current = visibleWordCount;
     previousContentRef.current = content;
-  }, [animated, content]);
+  }, [animated, content, visibleWords.length]);
 
   if (!animated) {
     return <Markdown style={markdownStyle(colors)}>{content}</Markdown>;
@@ -1196,15 +1209,13 @@ const FadingMarkdown = ({
     previousVisibleWordCountRef.current = 0;
   }
 
-  currentVisibleWordCountRef.current = 0;
   const previousVisibleWordCount = previousVisibleWordCountRef.current;
 
-  const getWordState = () => {
-    const wordIndex = currentVisibleWordCountRef.current++;
+  const getWordState = (wordIndex: number) => {
     const existingState = wordStatesRef.current.get(wordIndex);
     if (existingState) return existingState;
 
-    const shouldAnimate = streaming && wordIndex >= previousVisibleWordCount;
+    const shouldAnimate = animated && wordIndex >= previousVisibleWordCount;
     const delay = shouldAnimate
       ? Math.min(
           (wordIndex - previousVisibleWordCount) * STREAM_TEXT_FADE_STAGGER,
@@ -1220,13 +1231,26 @@ const FadingMarkdown = ({
     return nextState;
   };
 
-  const getListItemMarkerState = (node: MarkdownNode) => {
-    const listItemWordCount = countMarkdownNodeWords(node);
-    if (!listItemWordCount) return undefined;
+  const visibleWordSlots = visibleWords.map((word, index) => ({
+    state: getWordState(index),
+    word,
+  }));
+  const wordStateQueues = createWordStateQueues(visibleWordSlots);
 
-    const firstListItemWordIndex =
-      currentVisibleWordCountRef.current - listItemWordCount;
-    return wordStatesRef.current.get(firstListItemWordIndex);
+  const consumeWordState = (word: string) => {
+    const queue = wordStateQueues.get(word);
+    return queue?.shift();
+  };
+
+  const getListItemMarkerState = (node: MarkdownNode) => {
+    const listItemWords = getMarkdownNodeVisibleWords(node);
+    const firstListItemWordIndex = findWordSequenceIndex(
+      visibleWords,
+      listItemWords,
+    );
+    return firstListItemWordIndex >= 0
+      ? wordStatesRef.current.get(firstListItemWordIndex)
+      : undefined;
   };
 
   const rules = {
@@ -1297,7 +1321,7 @@ const FadingMarkdown = ({
         {(node.content?.match(/\s+|\S+/g) ?? []).map((segment, localIndex) => {
           if (/^\s+$/.test(segment)) return segment;
           return (
-            <FadingWord key={localIndex} state={getWordState()}>
+            <FadingWord key={localIndex} state={consumeWordState(segment)}>
               {segment}
             </FadingWord>
           );
@@ -1318,9 +1342,10 @@ const FadingWord = ({
   state,
 }: {
   children: React.ReactNode;
-  state: WordFadeState;
+  state?: WordFadeState;
 }) => {
   useEffect(() => {
+    if (!state) return;
     if (state.status !== "pending") return;
     state.status = "running";
     Animated.sequence([
@@ -1334,6 +1359,7 @@ const FadingWord = ({
       state.status = "done";
     });
   }, [state]);
+  if (!state) return <Text>{children}</Text>;
   return (
     <Animated.Text style={{ opacity: state.value }}>{children}</Animated.Text>
   );
@@ -1356,26 +1382,89 @@ const FadingListMarker = ({
   );
 };
 
-const countMarkdownNodeWords = (node: MarkdownNode): number => {
-  const ownWords = node.type === "text" ? countWords(node.content) : 0;
-  return (
-    ownWords +
-    (node.children?.reduce(
-      (total, child) => total + countMarkdownNodeWords(child),
-      0,
-    ) ?? 0)
+const getMarkdownVisibleWords = (content: string) => {
+  const words: string[] = [];
+  const tokens = markdownFadeParser.parse(content, {}) as MarkdownFadeToken[];
+  tokens.forEach((token) => collectMarkdownTokenVisibleWords(token, words));
+  return words;
+};
+
+const collectMarkdownTokenVisibleWords = (
+  token: MarkdownFadeToken,
+  words: string[],
+) => {
+  if (token.children?.length) {
+    token.children.forEach((child) =>
+      collectMarkdownTokenVisibleWords(child, words),
+    );
+    return;
+  }
+
+  if (["code_block", "fence", "text", "code_inline"].includes(token.type)) {
+    appendWords(words, token.content);
+  }
+};
+
+const getMarkdownNodeVisibleWords = (node: MarkdownNode) => {
+  const words: string[] = [];
+  collectMarkdownNodeVisibleWords(node, words);
+  return words;
+};
+
+const collectMarkdownNodeVisibleWords = (
+  node: MarkdownNode,
+  words: string[],
+) => {
+  if (node.type === "text") appendWords(words, node.content);
+  node.children?.forEach((child) =>
+    collectMarkdownNodeVisibleWords(child, words),
   );
 };
 
-const countWords = (value?: string) => value?.match(/\S+/g)?.length ?? 0;
+const appendWords = (words: string[], value?: string) => {
+  words.push(...(value?.match(/\S+/g) ?? []));
+};
+
+const createWordStateQueues = (slots: WordFadeSlot[]) => {
+  const queues = new Map<string, WordFadeState[]>();
+  slots.forEach((slot) => {
+    const queue = queues.get(slot.word) ?? [];
+    queue.push(slot.state);
+    queues.set(slot.word, queue);
+  });
+  return queues;
+};
+
+const findWordSequenceIndex = (words: string[], sequence: string[]) => {
+  if (!sequence.length || sequence.length > words.length) return -1;
+
+  for (let index = 0; index <= words.length - sequence.length; index++) {
+    if (sequence.every((word, offset) => words[index + offset] === word)) {
+      return index;
+    }
+  }
+
+  return -1;
+};
 
 const hasMarkdownParent = (parents: MarkdownNode[], type: string) =>
   parents.some((parent) => parent.type === type);
+
+type WordFadeSlot = {
+  state: WordFadeState;
+  word: string;
+};
 
 type WordFadeState = {
   delay: number;
   status: "pending" | "running" | "done";
   value: Animated.Value;
+};
+
+type MarkdownFadeToken = {
+  children?: MarkdownFadeToken[];
+  content?: string;
+  type: string;
 };
 
 type MarkdownNode = {
