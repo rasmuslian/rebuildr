@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { AuthedUserType } from 'src/auth/constants';
 import { BygghjalpenChat } from 'src/entities/bygghjalpen-chat.entity';
 import {
+  BygghjalpenProductDisplay,
   BygghjalpenMessage,
   BygghjalpenMessageRole,
 } from 'src/entities/bygghjalpen-message.entity';
@@ -36,6 +37,7 @@ export interface BygghjalpenMessageResponse {
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
+  productDisplays?: BygghjalpenProductDisplay[] | null;
 }
 
 interface ChatOwner {
@@ -90,7 +92,9 @@ Viktiga gränser:
 - Du får aldrig skriva, ändra, reservera, köpa, sälja, kontakta säljare eller på annat sätt mutera data i RebuildR.
 - Du får bara använda verktyg för att läsa publikt synliga produktannonser.
 
-När användaren letar material eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Presentera träffar kort med titel, pris, skick och länk. Säg om sökningen inte hittade något bra och föreslå bättre sökord.
+När användaren letar material eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Sammanfatta kort varför träffarna passar. Säg om sökningen inte hittade något bra och föreslå bättre sökord.
+
+När searchPublicProducts returnerar produkter och du vill visa en eller flera av dem som riktiga produktkort, skriv en egen rad med exakt format <rebuildr-products ids="id1,id2,id3" />. Använd bara id:n som verktyget nyss returnerade. Välj bara de mest relevanta produkterna, och visa gärna en enda produkt om bara en träff är riktigt bra. Skriv inte produktkortet själv i text.
 
 Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det gör svaret mer lättläst.`;
 
@@ -186,6 +190,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     });
 
     let assistantMessage = '';
+    const searchableProductsById = new Map<string, PublicProductSearchResult>();
 
     try {
       const contextMessages = await this.getContextMessages(chat.id);
@@ -227,10 +232,15 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
                   'Sätt true om användaren letar efter gratis material.',
                 ),
             }),
-            execute: async (toolInput) =>
-              this.safeSearchPublicProducts(
+            execute: async (toolInput) => {
+              const products = await this.safeSearchPublicProducts(
                 toolInput as SearchPublicProductsInput,
-              ),
+              );
+              products.forEach((product) => {
+                searchableProductsById.set(product.id, product);
+              });
+              return products;
+            },
           }),
         },
       });
@@ -240,10 +250,19 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         this.writeEvent(response, 'delta', textDelta);
       }
 
+      const productDisplays = this.extractProductDisplays(
+        assistantMessage,
+        searchableProductsById,
+      );
+      if (productDisplays.length > 0) {
+        this.writeEvent(response, 'productDisplays', productDisplays);
+      }
+
       await this.messageRepository.save({
         chatId: chat.id,
         role: BygghjalpenMessageRole.ASSISTANT,
         content: assistantMessage,
+        productDisplays: productDisplays.length ? productDisplays : null,
       });
       await this.chatRepository.update(chat.id, { updatedAt: new Date() });
 
@@ -472,7 +491,34 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       role: message.role === BygghjalpenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
       createdAt: message.createdAt,
+      productDisplays: message.productDisplays,
     };
+  }
+
+  private extractProductDisplays(
+    content: string,
+    searchableProductsById: Map<string, PublicProductSearchResult>,
+  ): BygghjalpenProductDisplay[] {
+    const displays: BygghjalpenProductDisplay[] = [];
+    const tagRegex = /<rebuildr-products\s+ids=(['"])(.*?)\1\s*\/?\s*>/g;
+
+    for (const match of content.matchAll(tagRegex)) {
+      const ids = match[2]
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+      const uniqueIds = [...new Set(ids)];
+      const products = uniqueIds
+        .map((id) => searchableProductsById.get(id))
+        .filter((product): product is PublicProductSearchResult => !!product)
+        .slice(0, 8);
+
+      if (products.length > 0) {
+        displays.push({ type: 'products', products });
+      }
+    }
+
+    return displays;
   }
 
   private writeEvent(response: Response, event: string, data: unknown) {
