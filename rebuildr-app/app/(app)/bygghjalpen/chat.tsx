@@ -2,14 +2,23 @@ import { useReactiveVar } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Markdown from "react-native-markdown-display";
 import {
   ActivityIndicator,
+  Animated,
   Image,
   LayoutChangeEvent,
+  Platform,
   Pressable,
   ScrollView,
+  Text,
   TextInput,
   useWindowDimensions,
   View,
@@ -43,6 +52,7 @@ type ChatMessage = {
   content: string;
   createdAt?: string;
   pending?: boolean;
+  streaming?: boolean;
   productDisplays?: ProductDisplay[] | null;
 };
 
@@ -73,6 +83,10 @@ type StreamEvent = {
 
 const GUEST_ID_KEY = "bygghjalpen_guest_id";
 const CHAT_CONTENT_MAX_WIDTH = 760;
+const STREAM_TEXT_FADE_DURATION = 260;
+const STREAM_TEXT_FADE_STAGGER = 28;
+const STREAM_TEXT_FADE_TAIL = 260;
+const STREAM_TEXT_MAX_BACKLOG = 180;
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -215,7 +229,13 @@ export default function BygghjalpenChatPage() {
       setMessages((current) => [
         ...current,
         { id: `user-${Date.now()}`, role: "user", content: message },
-        { id: assistantId, role: "assistant", content: "", pending: true },
+        {
+          id: assistantId,
+          role: "assistant",
+          content: "",
+          pending: true,
+          streaming: true,
+        },
       ]);
 
       try {
@@ -267,7 +287,9 @@ export default function BygghjalpenChatPage() {
 
         setMessages((current) =>
           current.map((item) =>
-            item.id === assistantId ? { ...item, pending: false } : item,
+            item.id === assistantId
+              ? { ...item, pending: false, streaming: false }
+              : item,
           ),
         );
         loadChats();
@@ -967,9 +989,11 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
                     width: "100%",
                   }}
                 >
-                  <Markdown style={markdownStyle(colors)}>
-                    {part.content}
-                  </Markdown>
+                  <FadingMarkdown
+                    content={part.content}
+                    streaming={Boolean(message.streaming)}
+                    colors={colors}
+                  />
                 </View>
               );
             }
@@ -996,6 +1020,253 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
     </View>
   );
 };
+
+const FadingMarkdown = ({
+  content,
+  colors,
+  streaming,
+}: {
+  content: string;
+  colors: ReturnType<typeof useThemeColor>;
+  streaming: boolean;
+}) => {
+  const [animated, setAnimated] = useState(streaming);
+  const wordStatesRef = useRef<Map<number, WordFadeState>>(new Map());
+  const previousContentRef = useRef(content);
+  const previousVisibleWordCountRef = useRef(0);
+  const currentVisibleWordCountRef = useRef(0);
+
+  useEffect(() => {
+    if (streaming) {
+      setAnimated(true);
+      return;
+    }
+
+    const id = setTimeout(
+      () => setAnimated(false),
+      STREAM_TEXT_FADE_DURATION + STREAM_TEXT_FADE_TAIL,
+    );
+    return () => clearTimeout(id);
+  }, [streaming]);
+
+  useLayoutEffect(() => {
+    if (!animated) return;
+
+    const visibleWordCount = currentVisibleWordCountRef.current;
+    for (const wordIndex of wordStatesRef.current.keys()) {
+      if (wordIndex >= visibleWordCount)
+        wordStatesRef.current.delete(wordIndex);
+    }
+    previousVisibleWordCountRef.current = visibleWordCount;
+    previousContentRef.current = content;
+  }, [animated, content]);
+
+  if (!animated) {
+    return <Markdown style={markdownStyle(colors)}>{content}</Markdown>;
+  }
+
+  if (
+    content.length < previousContentRef.current.length ||
+    (previousContentRef.current &&
+      !content.startsWith(previousContentRef.current))
+  ) {
+    wordStatesRef.current.clear();
+    previousVisibleWordCountRef.current = 0;
+  }
+
+  currentVisibleWordCountRef.current = 0;
+  const previousVisibleWordCount = previousVisibleWordCountRef.current;
+
+  const getWordState = () => {
+    const wordIndex = currentVisibleWordCountRef.current++;
+    const existingState = wordStatesRef.current.get(wordIndex);
+    if (existingState) return existingState;
+
+    const shouldAnimate = streaming && wordIndex >= previousVisibleWordCount;
+    const delay = shouldAnimate
+      ? Math.min(
+          (wordIndex - previousVisibleWordCount) * STREAM_TEXT_FADE_STAGGER,
+          STREAM_TEXT_MAX_BACKLOG,
+        )
+      : 0;
+    const nextState: WordFadeState = {
+      delay,
+      status: shouldAnimate ? "pending" : "done",
+      value: new Animated.Value(shouldAnimate ? 0 : 1),
+    };
+    wordStatesRef.current.set(wordIndex, nextState);
+    return nextState;
+  };
+
+  const getListItemMarkerState = (node: MarkdownNode) => {
+    const listItemWordCount = countMarkdownNodeWords(node);
+    if (!listItemWordCount) return undefined;
+
+    const firstListItemWordIndex =
+      currentVisibleWordCountRef.current - listItemWordCount;
+    return wordStatesRef.current.get(firstListItemWordIndex);
+  };
+
+  const rules = {
+    list_item: (
+      node: MarkdownNode,
+      children: React.ReactNode,
+      parent: MarkdownNode[],
+      styles: MarkdownStyleMap,
+      inheritedStyles: object = {},
+    ) => {
+      const markerState = getListItemMarkerState(node);
+
+      if (hasMarkdownParent(parent, "bullet_list")) {
+        return (
+          <View key={node.key} style={styles._VIEW_SAFE_list_item}>
+            <FadingListMarker
+              state={markerState}
+              style={[inheritedStyles, styles.bullet_list_icon]}
+            >
+              {Platform.select({
+                android: "\u2022",
+                ios: "\u00B7",
+                default: "\u2022",
+              })}
+            </FadingListMarker>
+            <View style={styles._VIEW_SAFE_bullet_list_content}>
+              {children}
+            </View>
+          </View>
+        );
+      }
+
+      if (hasMarkdownParent(parent, "ordered_list")) {
+        const orderedList = parent.find((item) => item.type === "ordered_list");
+        const start = Number(orderedList?.attributes?.start ?? 1);
+        const listItemNumber = start + node.index;
+
+        return (
+          <View key={node.key} style={styles._VIEW_SAFE_list_item}>
+            <FadingListMarker
+              state={markerState}
+              style={[inheritedStyles, styles.ordered_list_icon]}
+            >
+              {listItemNumber}
+              {node.markup}
+            </FadingListMarker>
+            <View style={styles._VIEW_SAFE_ordered_list_content}>
+              {children}
+            </View>
+          </View>
+        );
+      }
+
+      return (
+        <View key={node.key} style={styles._VIEW_SAFE_list_item}>
+          {children}
+        </View>
+      );
+    },
+    text: (
+      node: MarkdownNode,
+      _children: React.ReactNode,
+      _parent: unknown,
+      styles: MarkdownStyleMap,
+      inheritedStyles: object = {},
+    ) => (
+      <Text key={node.key} style={[inheritedStyles, styles.text]}>
+        {(node.content?.match(/\s+|\S+/g) ?? []).map((segment, localIndex) => {
+          if (/^\s+$/.test(segment)) return segment;
+          return (
+            <FadingWord key={localIndex} state={getWordState()}>
+              {segment}
+            </FadingWord>
+          );
+        })}
+      </Text>
+    ),
+  };
+
+  return (
+    <Markdown rules={rules} style={markdownStyle(colors)}>
+      {content}
+    </Markdown>
+  );
+};
+
+const FadingWord = ({
+  children,
+  state,
+}: {
+  children: React.ReactNode;
+  state: WordFadeState;
+}) => {
+  useEffect(() => {
+    if (state.status !== "pending") return;
+    state.status = "running";
+    Animated.sequence([
+      Animated.delay(state.delay),
+      Animated.timing(state.value, {
+        duration: STREAM_TEXT_FADE_DURATION,
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      state.status = "done";
+    });
+  }, [state]);
+  return (
+    <Animated.Text style={{ opacity: state.value }}>{children}</Animated.Text>
+  );
+};
+
+const FadingListMarker = ({
+  children,
+  state,
+  style,
+}: {
+  children: React.ReactNode;
+  state?: WordFadeState;
+  style: object;
+}) => {
+  if (!state) return <Text style={style}>{children}</Text>;
+  return (
+    <Animated.Text style={[style, { opacity: state.value }]} accessible={false}>
+      {children}
+    </Animated.Text>
+  );
+};
+
+const countMarkdownNodeWords = (node: MarkdownNode): number => {
+  const ownWords = node.type === "text" ? countWords(node.content) : 0;
+  return (
+    ownWords +
+    (node.children?.reduce(
+      (total, child) => total + countMarkdownNodeWords(child),
+      0,
+    ) ?? 0)
+  );
+};
+
+const countWords = (value?: string) => value?.match(/\S+/g)?.length ?? 0;
+
+const hasMarkdownParent = (parents: MarkdownNode[], type: string) =>
+  parents.some((parent) => parent.type === type);
+
+type WordFadeState = {
+  delay: number;
+  status: "pending" | "running" | "done";
+  value: Animated.Value;
+};
+
+type MarkdownNode = {
+  attributes?: Record<string, string | number>;
+  children?: MarkdownNode[];
+  content?: string;
+  index: number;
+  key: string;
+  markup?: string;
+  type: string;
+};
+
+type MarkdownStyleMap = Record<string, object>;
 
 const markdownStyle = (colors: ReturnType<typeof useThemeColor>) => ({
   body: {
