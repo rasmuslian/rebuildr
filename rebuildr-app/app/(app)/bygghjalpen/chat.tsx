@@ -90,6 +90,12 @@ type ActiveStream = {
   abortController: AbortController;
 };
 
+type HistoryActionMenuState = {
+  chatId: string;
+  top: number;
+  right: number;
+};
+
 const GUEST_ID_KEY = "bygghjalpen_guest_id";
 const CHAT_CONTENT_MAX_WIDTH = 760;
 const STREAM_TEXT_FADE_DURATION = 260;
@@ -147,8 +153,13 @@ export default function BygghjalpenChatPage() {
   const [error, setError] = useState<string>();
   const [showMobileHistory, setShowMobileHistory] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(0);
-  const [desktopActionsChatId, setDesktopActionsChatId] = useState<string>();
-  const [mobileActionsChatId, setMobileActionsChatId] = useState<string>();
+  const [desktopActionsMenu, setDesktopActionsMenu] =
+    useState<HistoryActionMenuState>();
+  const [mobileActionsMenu, setMobileActionsMenu] =
+    useState<HistoryActionMenuState>();
+
+  const desktopActionsChatId = desktopActionsMenu?.chatId;
+  const mobileActionsChatId = mobileActionsMenu?.chatId;
 
   const handleTopBarLayout = useCallback((event: LayoutChangeEvent) => {
     setTopBarHeight(event.nativeEvent.layout.height);
@@ -248,10 +259,40 @@ export default function BygghjalpenChatPage() {
     setMessages([]);
     setError(undefined);
     setShowMobileHistory(false);
-    setDesktopActionsChatId(undefined);
-    setMobileActionsChatId(undefined);
+    setDesktopActionsMenu(undefined);
+    setMobileActionsMenu(undefined);
     focusChatInput();
   };
+
+  const toggleDesktopActions = useCallback(
+    (position: HistoryActionMenuState) => {
+      setDesktopActionsMenu((current) =>
+        current?.chatId === position.chatId ? undefined : position,
+      );
+    },
+    [],
+  );
+
+  const toggleMobileActions = useCallback(
+    (position: HistoryActionMenuState) => {
+      setMobileActionsMenu((current) =>
+        current?.chatId === position.chatId ? undefined : position,
+      );
+    },
+    [],
+  );
+
+  const moveDesktopActions = useCallback((chatId: string, top: number) => {
+    setDesktopActionsMenu((current) =>
+      current?.chatId === chatId ? { ...current, top } : current,
+    );
+  }, []);
+
+  const moveMobileActions = useCallback((chatId: string, top: number) => {
+    setMobileActionsMenu((current) =>
+      current?.chatId === chatId ? { ...current, top } : current,
+    );
+  }, []);
 
   const deleteChat = async (chatId: string) => {
     if (!isLoggedIn) return;
@@ -263,8 +304,8 @@ export default function BygghjalpenChatPage() {
       if (chatId === activeChatId) {
         startNewChat();
       }
-      setDesktopActionsChatId(undefined);
-      setMobileActionsChatId(undefined);
+      setDesktopActionsMenu(undefined);
+      setMobileActionsMenu(undefined);
       loadChats();
     } catch {
       setError("Kunde inte ta bort chatten.");
@@ -482,7 +523,7 @@ export default function BygghjalpenChatPage() {
           >
             {isDesktop && desktopActionsChatId && (
               <Pressable
-                onPress={() => setDesktopActionsChatId(undefined)}
+                onPress={() => setDesktopActionsMenu(undefined)}
                 style={{
                   bottom: 0,
                   left: 0,
@@ -499,17 +540,15 @@ export default function BygghjalpenChatPage() {
                 activeChatId={activeChatId}
                 openActionsChatId={mobileActionsChatId}
                 onClose={() => {
-                  setMobileActionsChatId(undefined);
+                  setMobileActionsMenu(undefined);
                   setShowMobileHistory(false);
                 }}
                 onDelete={deleteChat}
                 onSelect={loadMessages}
-                onToggleActions={(chatId) =>
-                  setMobileActionsChatId((current) =>
-                    current === chatId ? undefined : chatId,
-                  )
-                }
-                onCloseActions={() => setMobileActionsChatId(undefined)}
+                openActionsMenu={mobileActionsMenu}
+                onToggleActions={toggleMobileActions}
+                onMoveActions={moveMobileActions}
+                onCloseActions={() => setMobileActionsMenu(undefined)}
               />
             )}
 
@@ -517,15 +556,12 @@ export default function BygghjalpenChatPage() {
               <HistorySidebar
                 chats={chats}
                 activeChatId={activeChatId}
-                openActionsChatId={desktopActionsChatId}
+                openActionsMenu={desktopActionsMenu}
                 onSelect={loadMessages}
                 onNewChat={startNewChat}
                 onDelete={deleteChat}
-                onToggleActions={(chatId) =>
-                  setDesktopActionsChatId((current) =>
-                    current === chatId ? undefined : chatId,
-                  )
-                }
+                onToggleActions={toggleDesktopActions}
+                onMoveActions={moveDesktopActions}
                 actionsOpen={!!desktopActionsChatId}
               />
             )}
@@ -673,23 +709,43 @@ const HistorySidebar = ({
   chats,
   activeChatId,
   actionsOpen,
-  openActionsChatId,
+  openActionsMenu,
   onSelect,
   onNewChat,
   onDelete,
   onToggleActions,
+  onMoveActions,
 }: {
   chats: ChatSummary[];
   activeChatId?: string;
   actionsOpen: boolean;
-  openActionsChatId?: string;
+  openActionsMenu?: HistoryActionMenuState;
   onSelect: (chatId: string) => void;
   onNewChat: () => void;
   onDelete: (chatId: string) => void;
-  onToggleActions: (chatId: string) => void;
+  onToggleActions: (position: HistoryActionMenuState) => void;
+  onMoveActions: (chatId: string, top: number) => void;
 }) => {
+  const menuHostRef = useRef<View>(null);
+  const scrollYRef = useRef(0);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<{ contentOffset: { y: number } }>) => {
+      const nextScrollY = event.nativeEvent.contentOffset.y;
+      const deltaY = nextScrollY - scrollYRef.current;
+      scrollYRef.current = nextScrollY;
+
+      if (openActionsMenu) {
+        onMoveActions(openActionsMenu.chatId, openActionsMenu.top - deltaY);
+      }
+    },
+    [onMoveActions, openActionsMenu],
+  );
+
   return (
     <View
+      ref={menuHostRef}
+      collapsable={false}
       style={{
         backgroundColor: primitives.neutrals100,
         borderRadius: 16,
@@ -710,6 +766,8 @@ const HistorySidebar = ({
       <Button type="filled" icon="+" label="Ny chatt" onPress={onNewChat} />
       <ScrollView
         contentContainerStyle={{ gap: 6, overflow: "visible" }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {chats.map((chat) => {
@@ -719,17 +777,25 @@ const HistorySidebar = ({
               key={chat.id}
               chat={chat}
               active={active}
-              actionsOpen={openActionsChatId === chat.id}
+              actionsOpen={openActionsMenu?.chatId === chat.id}
+              menuHostRef={menuHostRef}
               showActionsOnHover
               onDelete={() => {
                 onDelete(chat.id);
               }}
-              onToggleActions={() => onToggleActions(chat.id)}
+              onToggleActions={onToggleActions}
               onSelect={() => onSelect(chat.id)}
             />
           );
         })}
       </ScrollView>
+      {openActionsMenu && (
+        <HistoryChatActionsMenu
+          onDelete={() => onDelete(openActionsMenu.chatId)}
+          right={openActionsMenu.right}
+          top={openActionsMenu.top}
+        />
+      )}
     </View>
   );
 };
@@ -829,21 +895,41 @@ const MobileHistoryOverlay = ({
   chats,
   activeChatId,
   openActionsChatId,
+  openActionsMenu,
   onClose,
   onSelect,
   onDelete,
   onToggleActions,
+  onMoveActions,
   onCloseActions,
 }: {
   chats: ChatSummary[];
   activeChatId?: string;
   openActionsChatId?: string;
+  openActionsMenu?: HistoryActionMenuState;
   onClose: () => void;
   onSelect: (chatId: string) => void;
   onDelete: (chatId: string) => void;
-  onToggleActions: (chatId: string) => void;
+  onToggleActions: (position: HistoryActionMenuState) => void;
+  onMoveActions: (chatId: string, top: number) => void;
   onCloseActions: () => void;
 }) => {
+  const menuHostRef = useRef<View>(null);
+  const scrollYRef = useRef(0);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<{ contentOffset: { y: number } }>) => {
+      const nextScrollY = event.nativeEvent.contentOffset.y;
+      const deltaY = nextScrollY - scrollYRef.current;
+      scrollYRef.current = nextScrollY;
+
+      if (openActionsMenu) {
+        onMoveActions(openActionsMenu.chatId, openActionsMenu.top - deltaY);
+      }
+    },
+    [onMoveActions, openActionsMenu],
+  );
+
   return (
     <View
       style={{
@@ -869,6 +955,8 @@ const MobileHistoryOverlay = ({
         }}
       />
       <View
+        ref={menuHostRef}
+        collapsable={false}
         style={{
           backgroundColor: primitives.neutrals100,
           borderRadius: 16,
@@ -886,6 +974,8 @@ const MobileHistoryOverlay = ({
         </View>
         <ScrollView
           contentContainerStyle={{ gap: 6, overflow: "visible" }}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           style={{ zIndex: openActionsChatId ? 20 : 1 }}
         >
           {chats.map((chat) => {
@@ -896,10 +986,11 @@ const MobileHistoryOverlay = ({
                 chat={chat}
                 active={active}
                 actionsOpen={openActionsChatId === chat.id}
+                menuHostRef={menuHostRef}
                 onDelete={() => {
                   onDelete(chat.id);
                 }}
-                onToggleActions={() => onToggleActions(chat.id)}
+                onToggleActions={onToggleActions}
                 onSelect={() => {
                   onSelect(chat.id);
                   onClose();
@@ -921,6 +1012,13 @@ const MobileHistoryOverlay = ({
             }}
           />
         )}
+        {openActionsMenu && (
+          <HistoryChatActionsMenu
+            onDelete={() => onDelete(openActionsMenu.chatId)}
+            right={openActionsMenu.right}
+            top={openActionsMenu.top}
+          />
+        )}
       </View>
     </View>
   );
@@ -930,6 +1028,7 @@ const HistoryChatRow = ({
   chat,
   active,
   actionsOpen,
+  menuHostRef,
   showActionsOnHover = false,
   onDelete,
   onSelect,
@@ -938,13 +1037,31 @@ const HistoryChatRow = ({
   chat: ChatSummary;
   active: boolean;
   actionsOpen: boolean;
+  menuHostRef: React.RefObject<View | null>;
   showActionsOnHover?: boolean;
   onDelete: () => void;
   onSelect: () => void;
-  onToggleActions: () => void;
+  onToggleActions: (position: HistoryActionMenuState) => void;
 }) => {
   const [hovered, setHovered] = useState(false);
+  const kebabRef = useRef<View>(null);
   const showActions = !showActionsOnHover || hovered || actionsOpen;
+
+  const handleToggleActions = useCallback(() => {
+    const menuHost = menuHostRef.current;
+    const kebab = kebabRef.current;
+    if (!menuHost || !kebab) return;
+
+    kebab.measureInWindow((kebabX, kebabY, kebabWidth, kebabHeight) => {
+      menuHost.measureInWindow((hostX, hostY, hostWidth) => {
+        onToggleActions({
+          chatId: chat.id,
+          right: Math.max(hostX + hostWidth - (kebabX + kebabWidth), 0),
+          top: kebabY - hostY + kebabHeight + 6,
+        });
+      });
+    });
+  }, [chat.id, menuHostRef, onToggleActions]);
 
   return (
     <View
@@ -957,12 +1074,13 @@ const HistoryChatRow = ({
         borderWidth: 1,
         flexDirection: "row",
         gap: 8,
+        overflow: "visible",
         paddingLeft: 10,
         paddingRight: 4,
         paddingVertical: 6,
         position: "relative",
         alignItems: "center",
-        zIndex: actionsOpen ? 10000 : 1,
+        zIndex: actionsOpen ? 2 : 1,
       }}
     >
       <Pressable onPress={onSelect} style={{ flex: 1, gap: 4, paddingTop: 4 }}>
@@ -974,7 +1092,9 @@ const HistoryChatRow = ({
         </Body>
       </Pressable>
       <Pressable
-        onPress={onToggleActions}
+        ref={kebabRef}
+        collapsable={false}
+        onPress={handleToggleActions}
         pointerEvents={showActions ? "auto" : "none"}
         style={{
           alignItems: "center",
@@ -987,29 +1107,40 @@ const HistoryChatRow = ({
       >
         <Icon icon="kebabHorizontal" color="disabled" size={14} />
       </Pressable>
-      {actionsOpen && (
-        <View
-          style={{
-            backgroundColor: primitives.neutrals100,
-            borderColor: primitives.neutrals300,
-            borderRadius: borderRadius.medium,
-            borderWidth: 1,
-            boxShadow: "0px 4px 12px rgba(30, 30, 30, 0.12)",
-            padding: 6,
-            position: "absolute",
-            right: 0,
-            top: 42,
-            width: 160,
-            zIndex: 10001,
-          }}
-        >
-          <Pressable onPress={onDelete}>
-            <View style={{ padding: 10 }}>
-              <Label size="medium">Ta bort chatten</Label>
-            </View>
-          </Pressable>
+    </View>
+  );
+};
+
+const HistoryChatActionsMenu = ({
+  top,
+  right,
+  onDelete,
+}: {
+  top: number;
+  right: number;
+  onDelete: () => void;
+}) => {
+  return (
+    <View
+      style={{
+        backgroundColor: primitives.neutrals100,
+        borderColor: primitives.neutrals300,
+        borderRadius: borderRadius.medium,
+        borderWidth: 1,
+        boxShadow: "0px 4px 12px rgba(30, 30, 30, 0.12)",
+        padding: 6,
+        position: "absolute",
+        right,
+        top,
+        width: 160,
+        zIndex: 20,
+      }}
+    >
+      <Pressable onPress={onDelete}>
+        <View style={{ padding: 10 }}>
+          <Label size="medium">Ta bort chatten</Label>
         </View>
-      )}
+      </Pressable>
     </View>
   );
 };
