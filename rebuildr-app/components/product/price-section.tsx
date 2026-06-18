@@ -2,6 +2,7 @@ import { Toggle } from "@components/controls/toggle";
 import { TextInput } from "@components/forms/textInput";
 import { Body, Display, Label } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { formatNumber } from "@/utils/formattings";
 import { View } from "react-native";
 
 type Props = {
@@ -105,9 +106,10 @@ export const PriceSection = ({
           }}
         >
           <View style={{ flex: 1 }}>
-            <Label size="medium">{`AI-prisförslag: ${priceSuggestionMin}–${priceSuggestionMax} kr`}</Label>
+            <Label size="medium">{`Prisförslag: ${formatNumber(priceSuggestionMin)}–${formatNumber(priceSuggestionMax)} kr`}</Label>
             <Body size="small" color="secondary">
-              Baserat på dina bilder. Du bestämmer alltid priset själv.
+              AI har bedömt dina bilder och vad liknande sålts för. Du sätter
+              priset själv.
             </Body>
           </View>
           <Body
@@ -115,7 +117,7 @@ export const PriceSection = ({
             isLink
             onPress={() => onUpdate(false, suggestionMid)}
           >
-            {`Använd ${suggestionMid} kr`}
+            {`Använd ${formatNumber(suggestionMid)} kr`}
           </Body>
         </View>
       )}
