@@ -489,7 +489,7 @@ export default function BygghjalpenChatPage() {
                   position: "absolute",
                   right: 0,
                   top: 0,
-                  zIndex: 9999,
+                  zIndex: 10,
                 }}
               />
             )}
@@ -526,6 +526,7 @@ export default function BygghjalpenChatPage() {
                     current === chatId ? undefined : chatId,
                   )
                 }
+                actionsOpen={!!desktopActionsChatId}
               />
             )}
 
@@ -671,6 +672,7 @@ export default function BygghjalpenChatPage() {
 const HistorySidebar = ({
   chats,
   activeChatId,
+  actionsOpen,
   openActionsChatId,
   onSelect,
   onNewChat,
@@ -679,6 +681,7 @@ const HistorySidebar = ({
 }: {
   chats: ChatSummary[];
   activeChatId?: string;
+  actionsOpen: boolean;
   openActionsChatId?: string;
   onSelect: (chatId: string) => void;
   onNewChat: () => void;
@@ -695,6 +698,7 @@ const HistorySidebar = ({
         padding: 12,
         position: "relative",
         width: 300,
+        zIndex: actionsOpen ? 20 : 1,
       }}
     >
       <View style={{ gap: 4 }}>
@@ -880,7 +884,10 @@ const MobileHistoryOverlay = ({
             <Title size="small">Tidigare frågor</Title>
           </View>
         </View>
-        <ScrollView contentContainerStyle={{ gap: 6, overflow: "visible" }}>
+        <ScrollView
+          contentContainerStyle={{ gap: 6, overflow: "visible" }}
+          style={{ zIndex: openActionsChatId ? 20 : 1 }}
+        >
           {chats.map((chat) => {
             const active = chat.id === activeChatId;
             return (
@@ -910,7 +917,7 @@ const MobileHistoryOverlay = ({
               position: "absolute",
               right: 0,
               top: 0,
-              zIndex: 10000,
+              zIndex: 10,
             }}
           />
         )}
