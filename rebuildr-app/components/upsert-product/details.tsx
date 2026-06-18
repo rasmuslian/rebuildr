@@ -50,8 +50,15 @@ export const Details = ({
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
 
-  //Track the AI analysis lifecycle to show the right banner state
-  const [aiCompleted, setAiCompleted] = useState(false);
+  //Track the AI analysis lifecycle to show the right banner state.
+  //`hasSuggestions` latches true after the first successful run (or starts true
+  //for a resumed draft that already has content). A later re-run that fails —
+  //e.g. a transient AI error when another image is added — then keeps the
+  //suggestions we already have instead of flipping to the "failed, fill in
+  //manually" banner. This also keeps the two banners mutually exclusive.
+  const [hasSuggestions, setHasSuggestions] = useState(
+    () => !!product.title || !!product.description,
+  );
   const prevAnalyzeLoading = useRef(false);
   useEffect(() => {
     if (
@@ -59,7 +66,7 @@ export const Details = ({
       !imageAnalyzeLoading &&
       !imageAnalyzeError
     ) {
-      setAiCompleted(true);
+      setHasSuggestions(true);
     }
     prevAnalyzeLoading.current = imageAnalyzeLoading;
   }, [imageAnalyzeLoading, imageAnalyzeError]);
@@ -103,7 +110,7 @@ export const Details = ({
       </View>
       {/* Start minimal: nothing else until the first image is added */}
       {hasImages && imageAnalyzeLoading && <AnalyzeProgress />}
-      {aiCompleted && !imageAnalyzeLoading && (
+      {hasSuggestions && !imageAnalyzeLoading && (
         <View
           style={{
             backgroundColor: colors.buttons.tonal.enabled,
@@ -116,9 +123,15 @@ export const Details = ({
             Granska och justera fälten nedan — särskilt mängd, mått och pris —
             innan du går vidare.
           </Body>
+          {imageAnalyzeError && (
+            <Body size="small" color="secondary" style={{ marginTop: 8 }}>
+              Kunde inte uppdatera förslaget med den senaste bilden — tidigare
+              förslag står kvar.
+            </Body>
+          )}
         </View>
       )}
-      {imageAnalyzeError && !imageAnalyzeLoading && (
+      {imageAnalyzeError && !imageAnalyzeLoading && !hasSuggestions && (
         <View
           style={{
             backgroundColor: colors.buttons.tonal.enabled,
