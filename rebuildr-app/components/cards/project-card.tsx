@@ -24,9 +24,11 @@ export type ProjectCardProject = {
 type Props = {
   showHeart: boolean;
   project: ProjectCardProject;
+  /** When provided, shows an edit (pencil) affordance on the card. */
+  onEdit?: () => void;
 };
 
-export const ProjectCard = ({ showHeart, project }: Props) => {
+export const ProjectCard = ({ showHeart, project, onEdit }: Props) => {
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
 
@@ -91,6 +93,23 @@ export const ProjectCard = ({ showHeart, project }: Props) => {
                   opacity={project.likedByMe ? undefined : "99"}
                   icon="heartFilled"
                 />
+              </Pressable>
+            )}
+            {onEdit && (
+              <Pressable
+                style={({ pressed }) => ({
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  backgroundColor: "white",
+                  borderRadius: 999,
+                  padding: 6,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+                pointerEvents="box-only"
+                onPress={onEdit}
+              >
+                <Icon icon="edit" />
               </Pressable>
             )}
           </View>

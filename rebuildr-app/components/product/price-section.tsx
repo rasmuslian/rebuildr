@@ -1,8 +1,8 @@
-import { Check } from "@components/controls/check";
 import { Toggle } from "@components/controls/toggle";
 import { TextInput } from "@components/forms/textInput";
 import { Body, Display, Label } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { formatNumber } from "@/utils/formattings";
 import { View } from "react-native";
 
 type Props = {
@@ -13,6 +13,8 @@ type Props = {
   onUpdate: (isGiveaway: boolean, price?: number) => void;
   soldByQuantity: boolean;
   onUpdateSoldByQuantity: (value: boolean) => void;
+  priceSuggestionMin?: number;
+  priceSuggestionMax?: number;
 };
 
 export const PriceSection = ({
@@ -23,10 +25,24 @@ export const PriceSection = ({
   onUpdate,
   soldByQuantity,
   onUpdateSoldByQuantity,
+  priceSuggestionMin,
+  priceSuggestionMax,
 }: Props) => {
   const colors = useThemeColor();
 
   const priceHigherThan = minimumPrice - 1;
+
+  //AI suggestion is shown as a hint only — price is never auto-filled.
+  const suggestionMid =
+    priceSuggestionMin !== undefined && priceSuggestionMax !== undefined
+      ? Math.round((priceSuggestionMin + priceSuggestionMax) / 2)
+      : undefined;
+  const showSuggestion =
+    suggestionMid !== undefined &&
+    suggestionMid >= minimumPrice &&
+    !soldByQuantity &&
+    price === undefined &&
+    !isGiveaway;
 
   return (
     <View
@@ -45,7 +61,7 @@ export const PriceSection = ({
       {priceHigherThan > 0 ? (
         <View style={{ paddingBottom: 12 }}>
           <Body size="small" color="secondary">
-            {`Du kan antingen ange ett pris över ${priceHigherThan} kr, eller markera att varan bortskänkes (0 kr).`}
+            {`Ange ett pris över ${priceHigherThan} kr — eller 0 kr om varan bortskänkes.`}
           </Body>
         </View>
       ) : null}
@@ -76,6 +92,35 @@ export const PriceSection = ({
           {priceError}
         </Body>
       )}
+      {showSuggestion && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            marginTop: 12,
+            backgroundColor: colors.buttons.tonal.enabled,
+            borderRadius: 8,
+            padding: 12,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Label size="medium">{`Prisförslag: ${formatNumber(priceSuggestionMin)}–${formatNumber(priceSuggestionMax)} kr`}</Label>
+            <Body size="small" color="secondary">
+              AI har bedömt dina bilder och vad liknande sålts för. Du sätter
+              priset själv.
+            </Body>
+          </View>
+          <Body
+            size="medium"
+            isLink
+            onPress={() => onUpdate(false, suggestionMid)}
+          >
+            {`Använd ${formatNumber(suggestionMid)} kr`}
+          </Body>
+        </View>
+      )}
       <View
         style={{
           flexDirection: "row",
@@ -102,22 +147,11 @@ export const PriceSection = ({
           onPress={() => onUpdateSoldByQuantity(!soldByQuantity)}
         />
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 16,
-          alignItems: "center",
-          marginTop: 24,
-        }}
-      >
-        <Check
-          selected={isGiveaway}
-          onPress={() => {
-            onUpdate(!isGiveaway, isGiveaway ? undefined : 0);
-          }}
-        />
-        <Body size="medium">Bortskänkes</Body>
-      </View>
+      {isGiveaway && (
+        <Body size="small" style={{ marginTop: 12 }}>
+          ✓ Varan bortskänkes (0 kr)
+        </Body>
+      )}
     </View>
   );
 };

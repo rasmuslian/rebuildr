@@ -9,6 +9,8 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     price
     isGiveaway
     soldByQuantity
+    priceSuggestionMin
+    priceSuggestionMax
     condition
     primaryQuantity
     primaryUnit

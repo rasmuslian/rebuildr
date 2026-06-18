@@ -31,6 +31,7 @@ import { User } from 'src/entities/user.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/entities/user.entity';
+import { FileInputType } from './file.resolver';
 
 @InputType()
 export class GetProjectInput {
@@ -82,6 +83,17 @@ export class UpdateProjectInput {
   contactPhone?: string;
   @Field({ nullable: true })
   showDetailsOnMap?: boolean;
+  @Field(() => FileInputType, { nullable: true })
+  projectPicture?: FileInputType;
+}
+
+@ObjectType()
+export class UpdateProjectResponse {
+  @Field(() => Project)
+  project: Project;
+
+  @Field(() => String, { nullable: true })
+  projectPicturePutUrl?: string;
 }
 
 @InputType()
@@ -240,12 +252,12 @@ export class ProjectResolver {
     return await this.projectService.create(input, user.id);
   }
 
-  @Mutation(() => Project)
+  @Mutation(() => UpdateProjectResponse)
   @UseGuards(GqlAuthGuard)
   async updateProject(
     @Args('input') input: UpdateProjectInput,
     @CurrentUser() user: AuthedUserType,
-  ) {
+  ): Promise<UpdateProjectResponse> {
     return this.projectService.update(input, user.id);
   }
 

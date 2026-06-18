@@ -13,6 +13,7 @@ import { Icon } from "@icons/icon";
 import { primitives } from "@constants/colors";
 import { useUser } from "@hooks/useUser";
 import { router } from "expo-router";
+import { ProjectSuggestionCard } from "./project-suggestion-card";
 
 type Props = {
   open: boolean;
@@ -93,6 +94,13 @@ export const PublishSuccessSheet = ({ open, onDismiss, product }: Props) => {
             imageUrl={product.imageUrl}
           />
         </View>
+      )}
+      {product?.productId && user.me && (
+        <ProjectSuggestionCard
+          productId={product.productId}
+          sellerId={user.me.id}
+          onDismiss={onDismiss}
+        />
       )}
     </View>
   );

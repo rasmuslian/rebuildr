@@ -109,7 +109,7 @@ export class ProjectService {
   async update(input: UpdateProjectInput, currentUserId: string) {
     const project = await this.projectRepository.findOne({
       where: { id: input.id },
-      relations: { mapPin: true },
+      relations: { mapPin: true, projectPicture: true },
     });
 
     if (!project) {
@@ -165,7 +165,23 @@ export class ProjectService {
       project.showDetailsOnMap = input.showDetailsOnMap;
     }
 
-    return await this.projectRepository.save(project);
+    // Cover image is set in the same mutation as the other fields, mirroring
+    // how updateUser handles profilePicture.
+    if (input.projectPicture) {
+      if (project.projectPicture) {
+        await this.fileService.deleteFiles([project.projectPicture]);
+      }
+      project.projectPicture = await this.fileService.createFile(
+        input.projectPicture,
+      );
+    }
+
+    const saved = await this.projectRepository.save(project);
+    const projectPicturePutUrl = input.projectPicture
+      ? await this.fileService.uploadFile(project.projectPicture, true)
+      : undefined;
+
+    return { project: saved, projectPicturePutUrl };
   }
 
   async delete(input: DeleteProjectInput, currentUserId: string) {
