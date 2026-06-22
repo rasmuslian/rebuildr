@@ -136,7 +136,7 @@ export const SearchWithResults = ({
 
       {!!products.length && (
         <View style={sectionStyle(1)}>
-          <Header>Produkter</Header>
+          <Header>Annonser</Header>
           <View style={{ gap: 12 }}>
             {products.map((product, i) => (
               <Pressable
