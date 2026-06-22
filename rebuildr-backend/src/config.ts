@@ -9,6 +9,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1),
   GOOGLE_GEOCODING_API_KEY: z.string().min(1),
   GOOGLE_PLACES_AUTOCOMPLETE_API_KEY: z.string().min(1),
+  GEMINI_API_KEY: z.string().min(1),
   SPACES_KEY: z.string().min(1),
   SPACES_SECRET: z.string().min(1),
   MAILGUN_API_KEY: z.string().min(1),
