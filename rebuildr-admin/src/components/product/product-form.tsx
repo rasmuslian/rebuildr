@@ -131,6 +131,81 @@ const ProductForm = ({
 
           <Controller
             control={control}
+            name="searchAliases"
+            render={({ field: { value, onChange } }) => (
+              <FormField
+                label="Direkta sökalias"
+                error={errors.searchAliases?.message}
+              >
+                <Input.TextArea
+                  value={value?.join(", ")}
+                  rows={3}
+                  placeholder="Ex. såg, handsåg, metallsåg"
+                  onChange={(event) =>
+                    onChange(
+                      event.target.value
+                        .split(",")
+                        .map((term) => term.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                />
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="searchRelatedTerms"
+            render={({ field: { value, onChange } }) => (
+              <FormField
+                label="Relaterade söktermer"
+                error={errors.searchRelatedTerms?.message}
+              >
+                <Input.TextArea
+                  value={value?.join(", ")}
+                  rows={3}
+                  placeholder="Ex. verktyg, kapverktyg"
+                  onChange={(event) =>
+                    onChange(
+                      event.target.value
+                        .split(",")
+                        .map((term) => term.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                />
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="searchUseCases"
+            render={({ field: { value, onChange } }) => (
+              <FormField
+                label="Sökbara användningsfall"
+                error={errors.searchUseCases?.message}
+              >
+                <Input.TextArea
+                  value={value?.join(", ")}
+                  rows={3}
+                  placeholder="Ex. kapa metall, såga metall"
+                  onChange={(event) =>
+                    onChange(
+                      event.target.value
+                        .split(",")
+                        .map((term) => term.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                />
+              </FormField>
+            )}
+          />
+
+          <Controller
+            control={control}
             name="pricing.price"
             render={({ field: { value, onChange } }) => (
               <FormField

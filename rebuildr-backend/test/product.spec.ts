@@ -32,6 +32,8 @@ import { S3Service } from 'src/services/s3.service';
 import { S3Mock } from './mocks/s3.mock';
 import { SCBAPI } from 'src/apis/scb.api';
 import { SCBAPIMock } from './mocks/scb-api.mock';
+import { Brand } from 'src/entities/brand.entity';
+import { SearchEnrichmentService } from 'src/services/search-enrichment.service';
 
 const moduleMocker = new ModuleMocker(global);
 const now = new Date();
@@ -72,6 +74,18 @@ describe('Product', () => {
     const mockRepositoryShippingPrice = {
       find: jest.fn(() => [shippingPriceFixture]),
     };
+    const mockRepositoryBrand = {
+      findOne: jest.fn(),
+    };
+    const mockSearchEnrichmentService = {
+      generateProductSearchEnrichment: jest.fn().mockResolvedValue({
+        searchAliases: [],
+        searchRelatedTerms: [],
+        searchUseCases: [],
+      }),
+      sanitizeTerms: jest.fn((terms: string[]) => terms ?? []),
+      buildProductSearchDocument: jest.fn(() => 'search document'),
+    };
 
     module = await Test.createTestingModule({
       providers: [
@@ -88,6 +102,10 @@ describe('Product', () => {
         {
           provide: getRepositoryToken(Category),
           useValue: mockRepositoryCategory,
+        },
+        {
+          provide: getRepositoryToken(Brand),
+          useValue: mockRepositoryBrand,
         },
         {
           provide: getRepositoryToken(Purchase),
@@ -116,6 +134,10 @@ describe('Product', () => {
         {
           provide: S3Service,
           useClass: S3Mock,
+        },
+        {
+          provide: SearchEnrichmentService,
+          useValue: mockSearchEnrichmentService,
         },
         {
           provide: SCBAPI,
@@ -669,6 +691,7 @@ const getFixtures = () => {
     children: [],
     inSelection: false,
     inSeason: false,
+    searchAliases: [],
     brands: [],
     measurements: [],
   };

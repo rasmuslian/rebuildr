@@ -9,6 +9,7 @@ const query = `
         id
         name
         description
+        searchAliases
         inSeason
         inSelection
         image {

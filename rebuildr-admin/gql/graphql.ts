@@ -143,6 +143,7 @@ export type Category = {
   parent?: Maybe<Category>;
   parentId?: Maybe<Scalars['String']['output']>;
   primaryQuantityUnit?: Maybe<QuantityUnitEnum>;
+  searchAliases: Array<Scalars['String']['output']>;
   secondaryQuantityUnit?: Maybe<QuantityUnitEnum>;
 };
 
@@ -217,6 +218,7 @@ export type CmsCreateCategoryInput = {
   measurements: Array<MeasurementTypeEnum>;
   name: Scalars['String']['input'];
   parentId?: InputMaybe<Scalars['String']['input']>;
+  searchAliases?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type CmsCreateCategoryResponse = {
@@ -274,6 +276,9 @@ export type CmsCreateProductInput = {
   primaryQuantity: Scalars['Float']['input'];
   primaryUnit: QuantityUnitEnum;
   projectId?: InputMaybe<Scalars['String']['input']>;
+  searchAliases?: InputMaybe<Array<Scalars['String']['input']>>;
+  searchRelatedTerms?: InputMaybe<Array<Scalars['String']['input']>>;
+  searchUseCases?: InputMaybe<Array<Scalars['String']['input']>>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   sellerId?: InputMaybe<Scalars['String']['input']>;
@@ -483,6 +488,7 @@ export type CmsUpdateCategoryInput = {
   measurements?: InputMaybe<Array<MeasurementTypeEnum>>;
   name?: InputMaybe<Scalars['String']['input']>;
   parentId?: InputMaybe<Scalars['String']['input']>;
+  searchAliases?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type CmsUpdateCategoryOrderInput = {
@@ -550,6 +556,9 @@ export type CmsUpdateProductInput = {
   projectId?: InputMaybe<Scalars['String']['input']>;
   removeDocuments?: InputMaybe<Array<Scalars['String']['input']>>;
   removeImages?: InputMaybe<Array<Scalars['String']['input']>>;
+  searchAliases?: InputMaybe<Array<Scalars['String']['input']>>;
+  searchRelatedTerms?: InputMaybe<Array<Scalars['String']['input']>>;
+  searchUseCases?: InputMaybe<Array<Scalars['String']['input']>>;
   secondaryQuantity?: InputMaybe<Scalars['Float']['input']>;
   secondaryUnit?: InputMaybe<QuantityUnitEnum>;
   shippingPriceIds?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1092,10 +1101,9 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   syncApproximateLocations: Scalars['Boolean']['output'];
   syncCO2Factors: Scalars['Boolean']['output'];
-  updateOrganizationUser: User;
   updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
-  updateProject: Project;
+  updateProject: UpdateProjectResponse;
   updateUser: UpdateUserResponse;
   verifyEmail: LoginResponse;
 };
@@ -1442,11 +1450,6 @@ export type MutationSignupNewsLetterArgs = {
 };
 
 
-export type MutationUpdateOrganizationUserArgs = {
-  input: UpdateOrganizationUserInput;
-};
-
-
 export type MutationUpdatePageContentArgs = {
   input: UpdatePageContentInput;
 };
@@ -1632,11 +1635,17 @@ export type Product = {
   noProject?: Maybe<Scalars['Boolean']['output']>;
   pickupEnabled: Scalars['Boolean']['output'];
   price: Scalars['Float']['output'];
+  priceSuggestionMax?: Maybe<Scalars['Int']['output']>;
+  priceSuggestionMin?: Maybe<Scalars['Int']['output']>;
   primaryImage?: Maybe<File>;
   primaryQuantity?: Maybe<Scalars['Float']['output']>;
   primaryUnit?: Maybe<QuantityUnitEnum>;
   project?: Maybe<Project>;
   reportProducts: Array<ReportProduct>;
+  searchAliases: Array<Scalars['String']['output']>;
+  searchDocument?: Maybe<Scalars['String']['output']>;
+  searchRelatedTerms: Array<Scalars['String']['output']>;
+  searchUseCases: Array<Scalars['String']['output']>;
   secondaryQuantity?: Maybe<Scalars['Float']['output']>;
   secondaryUnit?: Maybe<QuantityUnitEnum>;
   seller: User;
@@ -2388,17 +2397,6 @@ export enum TransportationEnum {
   Shipping = 'SHIPPING'
 }
 
-export type UpdateOrganizationUserInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
-  city?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['String']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-  organizationName?: InputMaybe<Scalars['String']['input']>;
-  phoneNumber?: InputMaybe<Scalars['String']['input']>;
-  postCode?: InputMaybe<Scalars['String']['input']>;
-  websiteUrl?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type UpdatePageContentInput = {
   heroHtml: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -2462,9 +2460,16 @@ export type UpdateProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   location?: InputMaybe<LocationInputType>;
+  projectPicture?: InputMaybe<FileInputType>;
   shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateProjectResponse = {
+  __typename?: 'UpdateProjectResponse';
+  project: Project;
+  projectPicturePutUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type UpdateUserInput = {
@@ -2481,6 +2486,7 @@ export type UpdateUserInput = {
   postCode?: InputMaybe<Scalars['String']['input']>;
   profilePicture?: InputMaybe<FileInputType>;
   username?: InputMaybe<Scalars['String']['input']>;
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserResponse = {
@@ -2507,7 +2513,6 @@ export type User = {
   numberOfCompletedPurchases: Scalars['Int']['output'];
   numberOfPublishedProducts: Scalars['Int']['output'];
   numberOfSoldProducts: Scalars['Int']['output'];
-  organizationAccount?: Maybe<User>;
   organizationApprovedAt?: Maybe<Scalars['DateTime']['output']>;
   organizationNumber?: Maybe<Scalars['String']['output']>;
   payoutAccount?: Maybe<PayoutAccount>;

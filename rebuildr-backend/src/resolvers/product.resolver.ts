@@ -569,6 +569,15 @@ class CmsBaseProductInput extends QuantityInput {
 
   @Field({ nullable: true })
   soldByQuantity?: boolean;
+
+  @Field(() => [String], { nullable: true })
+  searchAliases?: string[];
+
+  @Field(() => [String], { nullable: true })
+  searchRelatedTerms?: string[];
+
+  @Field(() => [String], { nullable: true })
+  searchUseCases?: string[];
 }
 
 @InputType()

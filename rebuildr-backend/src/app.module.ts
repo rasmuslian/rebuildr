@@ -145,6 +145,7 @@ import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
 import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
 import { BygghjalpenController } from './controllers/bygghjalpen.controller';
 import { BygghjalpenService } from './services/bygghjalpen.service';
+import { SearchEnrichmentService } from './services/search-enrichment.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -370,6 +371,7 @@ export interface RequestType {
     StatisticsResolver,
     StatisticsService,
     BygghjalpenService,
+    SearchEnrichmentService,
   ],
 })
 export class AppModule {}

@@ -66,6 +66,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { UserService } from './user.service';
 import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
+import { SearchEnrichmentService } from './search-enrichment.service';
+import { Brand } from 'src/entities/brand.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 
@@ -78,6 +80,8 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Brand)
+    private brandRepository: Repository<Brand>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private conversationService: ConversationService,
@@ -95,6 +99,7 @@ export class ProductService {
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private shippingPriceService: ShippingPriceService,
+    private searchEnrichmentService: SearchEnrichmentService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -156,6 +161,7 @@ export class ProductService {
     );
 
     product.images = images;
+    await this.enrichProductSearchMetadata(product);
     const createdProduct = await this.productRepository.save(product);
 
     return {
@@ -649,6 +655,8 @@ export class ProductService {
     );
     product.documents = updatedDocuments;
 
+    await this.enrichProductSearchMetadata(product);
+
     const savedProduct = await this.productRepository.save(product);
 
     return {
@@ -712,19 +720,41 @@ export class ProductService {
       qb.addCommonTableExpression(
         `SELECT
             p.id,
-            ts_rank(p."textSearch", plainto_tsquery(:searchString), 0) + similarity(p.title, :searchString) as resultrank
+            (
+              CASE WHEN lower(p.title) = lower(:searchString) THEN 8 ELSE 0 END +
+              CASE WHEN p.title ILIKE (:searchString || '%') THEN 5 ELSE 0 END +
+              CASE WHEN p.title ILIKE ('%' || :searchString || '%') THEN 4 ELSE 0 END +
+              CASE WHEN c.name ILIKE ('%' || :searchString || '%') THEN 3.5 ELSE 0 END +
+              CASE WHEN parent.name ILIKE ('%' || :searchString || '%') THEN 2.5 ELSE 0 END +
+              CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(c."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%')) THEN 2.5 ELSE 0 END +
+              CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(p."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%')) THEN 2 ELSE 0 END +
+              CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(p."searchRelatedTerms", '{}')) term WHERE term ILIKE ('%' || :searchString || '%')) THEN 1.2 ELSE 0 END +
+              CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(p."searchUseCases", '{}')) use_case WHERE use_case ILIKE ('%' || :searchString || '%')) THEN 1 ELSE 0 END +
+              CASE WHEN p.description ILIKE ('%' || :searchString || '%') THEN 0.8 ELSE 0 END +
+              ts_rank(coalesce(p."searchDocumentTsvector", p."textSearch"), websearch_to_tsquery('swedish', :searchString), 0) +
+              word_similarity(lower(:searchString), lower(p.title)) +
+              (similarity(lower(coalesce(p."searchDocument", '')), lower(:searchString)) * 0.5)
+            ) as resultrank
           FROM product p
-          WHERE p."textSearch" @@ plainto_tsquery(:searchString)
-            OR similarity(p.title, :searchString) > 0
+          LEFT JOIN category c ON c.id = p."categoryId"
+          LEFT JOIN category parent ON parent.id = c."parentId"
+          WHERE coalesce(p."searchDocumentTsvector", p."textSearch") @@ websearch_to_tsquery('swedish', :searchString)
+            OR p.title ILIKE ('%' || :searchString || '%')
+            OR p.description ILIKE ('%' || :searchString || '%')
+            OR c.name ILIKE ('%' || :searchString || '%')
+            OR parent.name ILIKE ('%' || :searchString || '%')
+            OR EXISTS (SELECT 1 FROM unnest(coalesce(c."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%'))
+            OR EXISTS (SELECT 1 FROM unnest(coalesce(p."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%'))
+            OR EXISTS (SELECT 1 FROM unnest(coalesce(p."searchRelatedTerms", '{}')) term WHERE term ILIKE ('%' || :searchString || '%'))
+            OR EXISTS (SELECT 1 FROM unnest(coalesce(p."searchUseCases", '{}')) use_case WHERE use_case ILIKE ('%' || :searchString || '%'))
+            OR word_similarity(lower(:searchString), lower(p.title)) >= 0.55
+            OR word_similarity(lower(:searchString), lower(coalesce(p."searchDocument", ''))) >= 0.45
           `,
         'ranked_products',
       )
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
-        .andWhere(
-          `(rp.resultrank > ${PRODUCT_SEARCH_RANK_THRESHOLD} OR ${productAlias}.title ILIKE :titleSearch)`,
-          { titleSearch: `${input.searchString}%` },
-        )
+        .andWhere(`rp.resultrank > ${PRODUCT_SEARCH_RANK_THRESHOLD}`)
         .addSelect('rp.resultrank', 'resultrank');
     }
 
@@ -1428,6 +1458,12 @@ export class ProductService {
         ...measurement,
       });
 
+      await this.enrichProductSearchMetadata(product, {
+        searchAliases: input.searchAliases,
+        searchRelatedTerms: input.searchRelatedTerms,
+        searchUseCases: input.searchUseCases,
+      });
+
       return {
         product: await this.productRepository.save(product),
         imagePutUrls: await this.fileService.uploadFiles(product.images, true),
@@ -1512,6 +1548,12 @@ export class ProductService {
         ...measurement,
       });
 
+      await this.enrichProductSearchMetadata(product, {
+        searchAliases: input.searchAliases,
+        searchRelatedTerms: input.searchRelatedTerms,
+        searchUseCases: input.searchUseCases,
+      });
+
       return {
         product: await this.productRepository.save(product),
         imagePutUrls: await this.fileService.uploadFiles(product.images, true),
@@ -1578,5 +1620,88 @@ export class ProductService {
     } catch (error) {
       throw BadUserInputException(`Failed to delete product: ${error}`);
     }
+  }
+
+  private async enrichProductSearchMetadata(
+    product: Product,
+    input?: {
+      searchAliases?: string[] | null;
+      searchRelatedTerms?: string[] | null;
+      searchUseCases?: string[] | null;
+    },
+  ) {
+    const categoryId = product.categoryId ?? product.category?.id;
+    const category = product.category?.parent
+      ? product.category
+      : categoryId
+        ? await this.categoryRepository.findOne({
+            where: { id: categoryId },
+            relations: { parent: true },
+          })
+        : null;
+    const brand = product.brandId
+      ? await this.brandRepository.findOne({ where: { id: product.brandId } })
+      : null;
+
+    const providedAliases = input?.searchAliases;
+    const providedRelatedTerms = input?.searchRelatedTerms;
+    const providedUseCases = input?.searchUseCases;
+    const hasExistingSearchTerms = Boolean(
+      product.searchAliases?.length ||
+        product.searchRelatedTerms?.length ||
+        product.searchUseCases?.length,
+    );
+    const hasProvidedSearchTerms =
+      Boolean(
+        providedAliases?.length ||
+          providedRelatedTerms?.length ||
+          providedUseCases?.length,
+      ) ||
+      (hasExistingSearchTerms &&
+        (providedAliases !== undefined ||
+          providedRelatedTerms !== undefined ||
+          providedUseCases !== undefined));
+
+    const generated = hasProvidedSearchTerms
+      ? null
+      : await this.searchEnrichmentService.generateProductSearchEnrichment({
+          title: product.title,
+          description: product.description,
+          categoryName: category?.name,
+          parentCategoryName: category?.parent?.name,
+          categorySearchAliases: category?.searchAliases,
+          brandName: brand?.name,
+        });
+
+    product.searchAliases = this.searchEnrichmentService.sanitizeTerms(
+      providedAliases ??
+        generated?.searchAliases ??
+        product.searchAliases ??
+        [],
+    );
+    product.searchRelatedTerms = this.searchEnrichmentService.sanitizeTerms(
+      providedRelatedTerms ??
+        generated?.searchRelatedTerms ??
+        product.searchRelatedTerms ??
+        [],
+    );
+    product.searchUseCases = this.searchEnrichmentService.sanitizeTerms(
+      providedUseCases ??
+        generated?.searchUseCases ??
+        product.searchUseCases ??
+        [],
+    );
+    product.searchDocument =
+      this.searchEnrichmentService.buildProductSearchDocument({
+        title: product.title,
+        description: product.description,
+        categoryName: category?.name,
+        parentCategoryName: category?.parent?.name,
+        categorySearchAliases: category?.searchAliases,
+        brandName: brand?.name,
+        searchAliases: product.searchAliases,
+        searchRelatedTerms: product.searchRelatedTerms,
+        searchUseCases: product.searchUseCases,
+      });
   }
 }

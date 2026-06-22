@@ -70,6 +70,9 @@ class CmsBaseCategoryInput {
 
   @Field({ nullable: true })
   co2FactorId?: string;
+
+  @Field(() => [String], { nullable: true })
+  searchAliases?: string[];
 }
 
 @InputType()

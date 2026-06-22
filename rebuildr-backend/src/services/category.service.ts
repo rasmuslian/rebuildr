@@ -17,6 +17,7 @@ import {
 } from 'src/resolvers/category.resolver';
 import { Equal, IsNull, Repository, In } from 'typeorm';
 import { FileService } from './file.service';
+import { SearchEnrichmentService } from './search-enrichment.service';
 
 @Injectable()
 export class CategoryService {
@@ -28,6 +29,7 @@ export class CategoryService {
     private brandRepository: Repository<Brand>,
     @InjectRepository(CategoryTree)
     private categoryTreeRepository: Repository<CategoryTree>,
+    private searchEnrichmentService: SearchEnrichmentService,
   ) {}
 
   async findOne(id: string) {
@@ -131,6 +133,11 @@ export class CategoryService {
       const brands = input.brandIds
         ? await this.brandRepository.findBy({ id: In(input.brandIds) })
         : null;
+      const parentCategory = input.parentId
+        ? await this.categoryRepository.findOneBy({ id: input.parentId })
+        : category.parentId
+          ? await this.categoryRepository.findOneBy({ id: category.parentId })
+          : null;
 
       Object.assign<Category, Partial<Category>>(category, {
         inSeason:
@@ -145,6 +152,15 @@ export class CategoryService {
         parentId: input.parentId ?? category.parentId,
         brands: brands ?? category.brands,
         co2FactorId: input.co2FactorId ?? category.co2FactorId,
+        searchAliases: input.searchAliases?.length
+          ? this.searchEnrichmentService.sanitizeTerms(input.searchAliases)
+          : input.searchAliases && category.searchAliases?.length
+            ? []
+            : await this.searchEnrichmentService.generateCategoryAliases({
+                name: input.name ?? category.name,
+                description: input.description ?? category.description,
+                parentName: parentCategory?.name,
+              }),
       });
 
       if (input.image) {
@@ -188,6 +204,13 @@ export class CategoryService {
         measurements: input.measurements,
         parent: parentCategory,
         brands: brands,
+        searchAliases: input.searchAliases?.length
+          ? this.searchEnrichmentService.sanitizeTerms(input.searchAliases)
+          : await this.searchEnrichmentService.generateCategoryAliases({
+              name: input.name,
+              description: input.description,
+              parentName: parentCategory?.name,
+            }),
       });
 
       if (input.image) {
