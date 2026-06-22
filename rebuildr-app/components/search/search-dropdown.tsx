@@ -1,6 +1,5 @@
 import { SearchQuery, SearchQueryVariables } from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
-import { Divider } from "@components/dividers/divider";
 import { Dropdown } from "@components/dropdown/dropdown";
 import { View } from "react-native";
 import { isLoggedInVar } from "@/apollo/config";
@@ -29,9 +28,6 @@ export const SearchDropdown = () => {
       position={searchState.dropdownPosition}
       onClose={handleClose}
     >
-      <View style={{ marginTop: 12 }}>
-        <Divider />
-      </View>
       <View style={{ padding: 16, gap: 16 }}>
         {searchState.searchString ? (
           <SearchWithResults

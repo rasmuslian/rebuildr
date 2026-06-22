@@ -1,3 +1,4 @@
+import { Divider } from "@components/dividers/divider";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 
@@ -38,6 +39,7 @@ export const Dropdown = ({ children, position, visible }: DropdownProps) => {
         borderColor: colors.dividers.neutral,
       }}
     >
+      <Divider />
       <ScrollView style={{ maxHeight }} showsVerticalScrollIndicator={false}>
         {children}
       </ScrollView>

@@ -52,13 +52,15 @@ export const Search = ({
   const xBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
     : backgroundColor || colors.buttons.iconQuickLink.hovered;
+  const shouldMergeWithDropdown =
+    isDesktop && isDropdownAnchorActive && searchState.dropdownVisible;
 
   const updateDropdownPosition = useCallback(
     (showDropdown = false) => {
       if (!isDesktop || !inputWrapperRef.current) return;
 
       inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
-        const dropdownPosition = { x: pageX, y: pageY + height - 12, width };
+        const dropdownPosition = { x: pageX, y: pageY + height, width };
         const previousDropdownPosition = dropdownPositionRef.current;
         const hasPositionChanged =
           previousDropdownPosition.x !== dropdownPosition.x ||
@@ -150,6 +152,12 @@ export const Search = ({
           paddingHorizontal: 10,
           backgroundColor: inputBackgroundColor,
           borderRadius: borderRadius.medium,
+          borderBottomLeftRadius: shouldMergeWithDropdown
+            ? 0
+            : borderRadius.medium,
+          borderBottomRightRadius: shouldMergeWithDropdown
+            ? 0
+            : borderRadius.medium,
           ...borderStyle,
         },
         style,
