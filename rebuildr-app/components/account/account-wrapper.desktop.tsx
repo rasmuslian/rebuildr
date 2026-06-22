@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AccountContent from "./account-content";
 import { SlideInHeader } from "@components/slide-in-sheet/slide-in-sheet";
 import { View } from "react-native";
@@ -36,6 +36,12 @@ export const AccountWrapperDesktop = ({
     page: initialPage || "index",
     params: {},
   });
+
+  useEffect(() => {
+    if (initialPage) {
+      setState({ page: initialPage, params: {} });
+    }
+  }, [initialPage]);
 
   switch (state.page) {
     case "index":

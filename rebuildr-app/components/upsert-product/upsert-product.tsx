@@ -243,7 +243,7 @@ export const UpsertProduct = ({
       setInitialized(false);
       //a new draft means a new ad — the auto-analysis must be allowed to run
       //again (the wizard component stays mounted between ads)
-      autoAnalyzeTriggered.current = false;
+      analyzedImageCount.current = 0;
     }
   }, [productId]);
 
@@ -332,6 +332,16 @@ export const UpsertProduct = ({
         status: dbProduct.status ?? product.status,
       };
       setProduct(stateProduct);
+      //Baseline the analyzed-image count ONCE, on the first load of this draft —
+      //not on every data change. A resumed draft that already has content keeps
+      //its images marked analyzed (merely opening it won't re-run AI); a blank
+      //draft stays at 0 so the first image triggers analysis. Re-running this on
+      //later data changes — e.g. the save step before analysis, when no title
+      //exists yet — would wrongly reset it to 0 and double-trigger the analysis.
+      if (!initialized) {
+        analyzedImageCount.current =
+          dbProduct.title || dbProduct.description ? images.length : 0;
+      }
       setInitialized(true);
     };
     if (data?.product) {
@@ -552,39 +562,55 @@ export const UpsertProduct = ({
     }
   };
 
-  //Photo-first: run AI analysis automatically when the first image arrives on
-  //a fresh ad — the user confirms AI suggestions instead of typing everything.
-  const autoAnalyzeTriggered = useRef(false);
-  //mirrors the auto-analyze effect's guards so the analysis state is visible
-  //from the very first render after an image is added — without this the
-  //category pickers flash until the effect has run and update() has saved
+  //Photo-first: (re)run AI analysis whenever images are ADDED, so every new
+  //photo informs the suggestions across all images. The first photo auto-fills
+  //a fresh ad; each additional photo re-runs the analysis on the whole set.
+  //analyzedImageCount tracks the image count we last kicked off analysis for.
+  const analyzedImageCount = useRef(0);
+  const imageCount = product.images?.length ?? 0;
+  //debounce so a burst of added images coalesces into ONE analysis over the
+  //whole set — fewer AI calls (= fewer transient failures) and it matches the
+  //"re-run on all images" intent better than one call per image
+  const reanalyzeTimer = useRef<ReturnType<typeof setTimeout>>();
+  //mirrors the effect's guards so the analysis state is visible from the very
+  //first render after an image is added — without this the category pickers
+  //flash until the effect has run and update() has saved
   const willAutoAnalyze =
     mode === "create" &&
-    !autoAnalyzeTriggered.current &&
     initialized &&
-    !!product.images?.length &&
-    !product.title &&
-    !product.description;
+    imageCount > analyzedImageCount.current &&
+    !imageAnalyzeLoading &&
+    !analyzePending;
   useEffect(() => {
+    if (mode !== "create" || !initialized) {
+      return;
+    }
+    if (imageCount === 0) {
+      //all images removed — let the next added image analyze again
+      analyzedImageCount.current = 0;
+      return;
+    }
+    //only (re)analyze when images were added, and never overlap a running
+    //analysis — the loading/pending deps re-run this effect when a run
+    //finishes, so any images added mid-run get picked up right after
     if (
-      mode !== "create" ||
-      autoAnalyzeTriggered.current ||
-      !initialized ||
+      imageCount <= analyzedImageCount.current ||
       imageAnalyzeLoading ||
-      !product.images?.length ||
-      //don't clobber a resumed draft the user already wrote on
-      product.title ||
-      product.description
+      analyzePending
     ) {
       return;
     }
-    autoAnalyzeTriggered.current = true;
-    //never let an analysis failure crash the wizard — the user can always
-    //fill in the fields manually
-    onAnalyzeImages().catch((e) => {
-      Sentry.captureException(e);
-    });
-  }, [product.images?.length, initialized]);
+    //wait until the user stops adding images, then analyze the full set once
+    reanalyzeTimer.current = setTimeout(() => {
+      analyzedImageCount.current = imageCount;
+      //never let an analysis failure crash the wizard — the user can always
+      //fill in the fields manually
+      onAnalyzeImages().catch((e) => {
+        Sentry.captureException(e);
+      });
+    }, 700);
+    return () => clearTimeout(reanalyzeTimer.current);
+  }, [imageCount, initialized, imageAnalyzeLoading, analyzePending]);
 
   const onSave = async (published: boolean) => {
     const result = await update(
@@ -845,7 +871,7 @@ export const UpsertProduct = ({
     setProduct(initialProduct);
     setInitialized(false);
     setStep("details");
-    autoAnalyzeTriggered.current = false;
+    analyzedImageCount.current = 0;
   };
   const onClose = () => {
     reset();

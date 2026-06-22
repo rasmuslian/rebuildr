@@ -22,6 +22,17 @@ export const formatPrice = (price?: number) => {
   }).format(price);
 };
 
+//group thousands without a currency suffix, e.g. 1500 -> "1 500"
+export const formatNumber = (value?: number) => {
+  if (value === undefined) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 export const formatRating = (rating?: number) => {
   if (rating === undefined) {
     return "";

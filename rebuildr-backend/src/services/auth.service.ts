@@ -105,6 +105,10 @@ export class AuthService {
         email: savedUser.email,
         organizationNumber: savedUser.organizationNumber,
       });
+    } else {
+      await this.mailService.sendWelcomeIndividualEmail({
+        email: savedUser.email,
+      });
     }
 
     return savedUser;

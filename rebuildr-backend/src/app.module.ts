@@ -141,6 +141,10 @@ import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
 import { StatisticsResolver } from './resolvers/statistics.resolver';
 import { StatisticsService } from './services/statistics.service';
+import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
+import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
+import { BygghjalpenController } from './controllers/bygghjalpen.controller';
+import { BygghjalpenService } from './services/bygghjalpen.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -200,6 +204,8 @@ export interface RequestType {
       PageContent,
       Banner,
       NewsletterCompetition,
+      BygghjalpenChat,
+      BygghjalpenMessage,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -281,7 +287,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [StripWebhookController],
+  controllers: [StripWebhookController, BygghjalpenController],
   providers: [
     {
       provide: APP_FILTER,
@@ -363,6 +369,7 @@ export interface RequestType {
     NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
+    BygghjalpenService,
   ],
 })
 export class AppModule {}

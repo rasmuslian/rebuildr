@@ -180,6 +180,15 @@ const DeveloperSetting = () => {
           >
             Företagskonto godkänt
           </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({ template: "welcomeIndividual" })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Välkommen (privatperson)
+          </Button>
         </div>
       </div>
     </div>

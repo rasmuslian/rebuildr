@@ -32,6 +32,7 @@ import { Trash } from "./trash";
 import { Upload } from "./upload";
 import { Download } from "./download";
 import { Kebab } from "./kebab";
+import { KebabHorizontal } from "./kebabHorizontal";
 import { ArrowUp } from "./arrowUp";
 import { AddFile } from "./addFile";
 import { User } from "./user";
@@ -100,6 +101,7 @@ export type IconType =
   | "upload"
   | "download"
   | "kebab"
+  | "kebabHorizontal"
   | "arrowUp"
   | "file"
   | "addFile"
@@ -251,6 +253,8 @@ export const Icon = ({
       return <Download {...props} size={size} color={color} />;
     case "kebab":
       return <Kebab {...props} size={size} color={color} />;
+    case "kebabHorizontal":
+      return <KebabHorizontal {...props} size={size} color={color} />;
     case "arrowUp":
       return <ArrowUp {...props} size={size} color={color} />;
     case "file":
