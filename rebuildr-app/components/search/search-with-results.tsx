@@ -10,6 +10,7 @@ import { Avatar } from "@components/avatar/avatar";
 import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { dividerStyles } from "@components/dividers/divider";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useSearchContext } from "@context/search-context";
@@ -20,12 +21,14 @@ import { Icon } from "@icons/icon";
 type Props = {
   data: DoSearchQuery | undefined;
   searchString?: string;
+  searchCompleted?: boolean;
   size?: "small" | "large";
 };
 
 export const SearchWithResults = ({
   data,
   searchString,
+  searchCompleted = false,
   size = "large",
 }: Props) => {
   const { filterBuilder } = useFilterProduct();
@@ -48,7 +51,8 @@ export const SearchWithResults = ({
     !!products.length ||
     !!categoryMatches.length ||
     !!exactUsers.length;
-  const showSuggestions = !!similarSearchResults.length || !hasAnyResult;
+  const showSuggestions =
+    !!similarSearchResults.length || (searchCompleted && !hasAnyResult);
   const visibleSections = [
     showSuggestions,
     !!products.length,
@@ -91,6 +95,12 @@ export const SearchWithResults = ({
     searchContext.search(searchTerm);
     router.navigate("/search/products");
   };
+
+  if (!searchCompleted) {
+    return (
+      <LoadingSpinner style={{ minHeight: size === "large" ? 160 : 96 }} />
+    );
+  }
 
   return (
     <>

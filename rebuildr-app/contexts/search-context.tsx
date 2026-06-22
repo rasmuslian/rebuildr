@@ -4,6 +4,7 @@ import React, {
   PropsWithChildren,
   Dispatch,
   useEffect,
+  useRef,
 } from "react";
 import { useReducerState } from "@hooks/useReducerState";
 import { DoSearchQuery, DoSearchQueryVariables } from "@/gql/graphql";
@@ -16,6 +17,7 @@ type StateType = {
   dropdownPosition: { x: number; y: number; width: number };
   searchData?: DoSearchQuery;
   searchString?: string;
+  completedSearchString?: string;
 };
 
 const initialState: StateType = {
@@ -23,6 +25,7 @@ const initialState: StateType = {
   dropdownPosition: { x: 0, y: 0, width: 0 },
   searchData: undefined,
   searchString: undefined,
+  completedSearchString: undefined,
 };
 
 type ContextType = {
@@ -36,6 +39,7 @@ const Context = createContext<ContextType | null>(null);
 
 export const SearchProvider = ({ children }: PropsWithChildren) => {
   const [state, setState] = useReducerState<StateType>(initialState);
+  const latestSearchStringRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!state.dropdownVisible) {
@@ -45,22 +49,32 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
 
   const [doSearch] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
     DO_SEARCH,
-    {
-      onCompleted: (data) => {
-        setState({ searchData: data });
-      },
-    },
   );
 
   const search = useDebounce((text: string) => {
-    if (text.length > 0) {
+    const searchString = text.trim();
+    latestSearchStringRef.current = searchString || undefined;
+
+    setState({
+      searchData: undefined,
+      completedSearchString: undefined,
+    });
+
+    if (searchString.length > 0) {
       doSearch({
         variables: {
-          searchResultsInput: { searchString: text },
-          productsInput: { searchString: text },
+          searchResultsInput: { searchString },
+          productsInput: { searchString },
           categoriesInput: {},
-          usersInput: { name: text },
+          usersInput: { name: searchString },
         },
+      }).then(({ data }) => {
+        if (!data || latestSearchStringRef.current !== searchString) return;
+
+        setState({
+          searchData: data,
+          completedSearchString: searchString,
+        });
       });
     }
   }, 300);

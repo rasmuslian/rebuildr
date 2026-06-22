@@ -10,6 +10,8 @@ import { useSearchContext } from "@context/search-context";
 
 export const SearchDropdown = () => {
   const { searchState, setSearchState } = useSearchContext();
+  const searchString = searchState.searchString?.trim();
+  const searchCompleted = searchState.completedSearchString === searchString;
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
@@ -29,10 +31,11 @@ export const SearchDropdown = () => {
       onClose={handleClose}
     >
       <View style={{ padding: 16, gap: 16 }}>
-        {searchState.searchString ? (
+        {searchString ? (
           <SearchWithResults
-            data={searchState.searchData}
-            searchString={searchState.searchString}
+            data={searchCompleted ? searchState.searchData : undefined}
+            searchString={searchString}
+            searchCompleted={searchCompleted}
             size="small"
           />
         ) : (
