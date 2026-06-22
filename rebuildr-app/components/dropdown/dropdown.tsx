@@ -1,5 +1,5 @@
 import { useThemeColor } from "@hooks/useThemeColor";
-import { View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 
 type DropdownProps = {
   children: React.ReactNode;
@@ -14,7 +14,12 @@ type DropdownProps = {
 
 export const Dropdown = ({ children, position, visible }: DropdownProps) => {
   const colors = useThemeColor();
+  const { height } = useWindowDimensions();
+
   if (!visible) return null;
+
+  const maxHeight = Math.max(240, height - position.y - 16);
+
   return (
     <View
       style={{
@@ -33,7 +38,9 @@ export const Dropdown = ({ children, position, visible }: DropdownProps) => {
         borderColor: colors.dividers.neutral,
       }}
     >
-      {children}
+      <ScrollView style={{ maxHeight }} showsVerticalScrollIndicator={false}>
+        {children}
+      </ScrollView>
     </View>
   );
 };

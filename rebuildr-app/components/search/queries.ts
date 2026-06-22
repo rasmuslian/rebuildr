@@ -25,12 +25,34 @@ export const SEARCH = gql`
 export const DO_SEARCH = gql`
   query DoSearch(
     $searchResultsInput: GetSimilarSearchResultsInput!
+    $productsInput: ProductsInput!
+    $categoriesInput: GetCategoriesInput!
     $usersInput: UsersInput!
   ) {
     getSimilarSearchResults(input: $searchResultsInput) {
       id
       searchString
-      count
+    }
+    products(input: $productsInput, limit: 5, offset: 0) {
+      total
+      products {
+        id
+        title
+        price
+        primaryImage {
+          id
+          url
+        }
+      }
+    }
+    getCategories(input: $categoriesInput) {
+      id
+      name
+      parentId
+      image {
+        id
+        url
+      }
     }
     users(input: $usersInput) {
       users {

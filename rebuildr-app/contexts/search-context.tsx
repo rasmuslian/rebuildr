@@ -57,6 +57,8 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
       doSearch({
         variables: {
           searchResultsInput: { searchString: text },
+          productsInput: { searchString: text },
+          categoriesInput: {},
           usersInput: { name: text },
         },
       });
