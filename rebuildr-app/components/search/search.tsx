@@ -60,6 +60,7 @@ export const Search = ({
       if (!isDesktop || !inputWrapperRef.current) return;
 
       inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const dropdownAnchorPosition = { x: pageX, y: pageY, width, height };
         const dropdownPosition = { x: pageX, y: pageY + height, width };
         const previousDropdownPosition = dropdownPositionRef.current;
         const hasPositionChanged =
@@ -71,6 +72,7 @@ export const Search = ({
 
         dropdownPositionRef.current = dropdownPosition;
         setSearchState({
+          dropdownAnchorPosition,
           dropdownPosition,
           ...(showDropdown ? { dropdownVisible: true } : {}),
         });

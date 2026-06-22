@@ -1,5 +1,6 @@
 import { Divider } from "@components/dividers/divider";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useEffect, useRef } from "react";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 
 type DropdownProps = {
@@ -11,11 +12,53 @@ type DropdownProps = {
     y: number;
     width: number;
   };
+  ignoredPosition?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 };
 
-export const Dropdown = ({ children, position, visible }: DropdownProps) => {
+export const Dropdown = ({
+  children,
+  position,
+  ignoredPosition,
+  visible,
+  onClose,
+}: DropdownProps) => {
   const colors = useThemeColor();
   const { height } = useWindowDimensions();
+  const dropdownRef = useRef<View | null>(null);
+
+  useEffect(() => {
+    if (!visible || !onClose || typeof document === "undefined") return;
+
+    const handleOutsidePress = (event: MouseEvent) => {
+      const dropdownElement = dropdownRef.current as unknown as {
+        contains?: (target: EventTarget | null) => boolean;
+      } | null;
+
+      if (dropdownElement?.contains?.(event.target)) return;
+
+      const isIgnoredPosition =
+        !!ignoredPosition &&
+        event.clientX >= ignoredPosition.x &&
+        event.clientX <= ignoredPosition.x + ignoredPosition.width &&
+        event.clientY >= ignoredPosition.y &&
+        event.clientY <= ignoredPosition.y + ignoredPosition.height;
+
+      if (isIgnoredPosition) return;
+
+      onClose();
+    };
+
+    document.addEventListener("mousedown", handleOutsidePress);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsidePress);
+    };
+  }, [ignoredPosition, onClose, visible]);
 
   if (!visible) return null;
 
@@ -23,6 +66,7 @@ export const Dropdown = ({ children, position, visible }: DropdownProps) => {
 
   return (
     <View
+      ref={dropdownRef}
       style={{
         position: "fixed",
         width: position.width,

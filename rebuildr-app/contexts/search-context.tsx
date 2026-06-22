@@ -15,6 +15,7 @@ import { useDebounce } from "@hooks/use-debounce";
 type StateType = {
   dropdownVisible: boolean;
   dropdownPosition: { x: number; y: number; width: number };
+  dropdownAnchorPosition: { x: number; y: number; width: number; height: number };
   searchData?: DoSearchQuery;
   searchString?: string;
   completedSearchString?: string;
@@ -23,6 +24,7 @@ type StateType = {
 const initialState: StateType = {
   dropdownVisible: false,
   dropdownPosition: { x: 0, y: 0, width: 0 },
+  dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
   searchData: undefined,
   searchString: undefined,
   completedSearchString: undefined,
@@ -43,7 +45,10 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (!state.dropdownVisible) {
-      setState({ dropdownPosition: { x: 0, y: 0, width: 0 } });
+      setState({
+        dropdownPosition: { x: 0, y: 0, width: 0 },
+        dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
+      });
     }
   }, [state.dropdownVisible]);
 
