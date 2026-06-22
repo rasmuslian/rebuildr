@@ -10,7 +10,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
@@ -43,6 +43,8 @@ export const Search = ({
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
+  const dropdownPositionRef = useRef(searchState.dropdownPosition);
+  const [isDropdownAnchorActive, setIsDropdownAnchorActive] = useState(false);
 
   const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
@@ -51,16 +53,72 @@ export const Search = ({
     ? colors.background.neutral
     : backgroundColor || colors.buttons.iconQuickLink.hovered;
 
-  const openDropdown = () => {
-    if (isDesktop && inputWrapperRef.current) {
+  const updateDropdownPosition = useCallback(
+    (showDropdown = false) => {
+      if (!isDesktop || !inputWrapperRef.current) return;
+
       inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const dropdownPosition = { x: pageX, y: pageY + height - 12, width };
+        const previousDropdownPosition = dropdownPositionRef.current;
+        const hasPositionChanged =
+          previousDropdownPosition.x !== dropdownPosition.x ||
+          previousDropdownPosition.y !== dropdownPosition.y ||
+          previousDropdownPosition.width !== dropdownPosition.width;
+
+        if (!hasPositionChanged && !showDropdown) return;
+
+        dropdownPositionRef.current = dropdownPosition;
         setSearchState({
-          dropdownPosition: { x: pageX, y: pageY + height - 12, width },
-          dropdownVisible: true,
+          dropdownPosition,
+          ...(showDropdown ? { dropdownVisible: true } : {}),
         });
       });
+    },
+    [isDesktop, setSearchState],
+  );
+
+  const openDropdown = () => {
+    if (isDesktop && inputWrapperRef.current) {
+      setIsDropdownAnchorActive(true);
+      updateDropdownPosition(true);
     }
   };
+
+  useEffect(() => {
+    if (!searchState.dropdownVisible) {
+      setIsDropdownAnchorActive(false);
+    }
+  }, [searchState.dropdownVisible]);
+
+  useEffect(() => {
+    if (
+      !isDesktop ||
+      !visible ||
+      !isDropdownAnchorActive ||
+      !searchState.dropdownVisible
+    ) {
+      return;
+    }
+
+    let animationFrameId: number;
+
+    const syncDropdownPosition = () => {
+      updateDropdownPosition();
+      animationFrameId = requestAnimationFrame(syncDropdownPosition);
+    };
+
+    animationFrameId = requestAnimationFrame(syncDropdownPosition);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [
+    isDesktop,
+    isDropdownAnchorActive,
+    searchState.dropdownVisible,
+    updateDropdownPosition,
+    visible,
+  ]);
 
   const onChangeText = (text: string) => {
     setSearchState({ searchString: text });
@@ -125,6 +183,7 @@ export const Search = ({
           onPress={() => {
             onChangeText("");
             if (isDesktop) {
+              setIsDropdownAnchorActive(false);
               setSearchState({ dropdownVisible: false });
             }
           }}

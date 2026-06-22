@@ -178,7 +178,7 @@ export const SearchWithResults = ({
           </View>
           <View style={{ width: "100%" }}>
             <Button
-              label="Visa allt"
+              label="Visa alla resultat"
               type="tonal"
               onPress={openSearchResults}
               style={{
