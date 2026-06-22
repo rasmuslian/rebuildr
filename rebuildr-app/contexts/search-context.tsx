@@ -15,7 +15,12 @@ import { useDebounce } from "@hooks/use-debounce";
 type StateType = {
   dropdownVisible: boolean;
   dropdownPosition: { x: number; y: number; width: number };
-  dropdownAnchorPosition: { x: number; y: number; width: number; height: number };
+  dropdownAnchorPosition: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   searchData?: DoSearchQuery;
   searchString?: string;
   completedSearchString?: string;
