@@ -726,6 +726,7 @@ export class ProductService {
               CASE WHEN p.title ILIKE ('%' || :searchString || '%') THEN 4 ELSE 0 END +
               CASE WHEN c.name ILIKE ('%' || :searchString || '%') THEN 3.5 ELSE 0 END +
               CASE WHEN parent.name ILIKE ('%' || :searchString || '%') THEN 2.5 ELSE 0 END +
+              CASE WHEN b.name ILIKE ('%' || :searchString || '%') THEN 2.25 ELSE 0 END +
               CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(c."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%')) THEN 2.5 ELSE 0 END +
               CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(p."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%')) THEN 2 ELSE 0 END +
               CASE WHEN EXISTS (SELECT 1 FROM unnest(coalesce(p."searchRelatedTerms", '{}')) term WHERE term ILIKE ('%' || :searchString || '%')) THEN 1.2 ELSE 0 END +
@@ -738,9 +739,11 @@ export class ProductService {
           FROM product p
           LEFT JOIN category c ON c.id = p."categoryId"
           LEFT JOIN category parent ON parent.id = c."parentId"
+          LEFT JOIN brand b ON b.id = p."brandId"
           WHERE coalesce(p."searchDocumentTsvector", p."textSearch") @@ websearch_to_tsquery('swedish', :searchString)
             OR p.title ILIKE ('%' || :searchString || '%')
             OR p.description ILIKE ('%' || :searchString || '%')
+            OR b.name ILIKE ('%' || :searchString || '%')
             OR c.name ILIKE ('%' || :searchString || '%')
             OR parent.name ILIKE ('%' || :searchString || '%')
             OR EXISTS (SELECT 1 FROM unnest(coalesce(c."searchAliases", '{}')) alias WHERE alias ILIKE ('%' || :searchString || '%'))

@@ -25,6 +25,7 @@ export class SearchResultLoader {
             coalesce(p."searchDocumentTsvector", p."textSearch") @@ websearch_to_tsquery('swedish', sr."searchString")
             OR p."title" ILIKE ('%' || sr."searchString" || '%')
             OR p.description ILIKE ('%' || sr."searchString" || '%')
+            OR EXISTS (SELECT 1 FROM brand b WHERE b.id = p."brandId" AND b.name ILIKE ('%' || sr."searchString" || '%'))
             OR EXISTS (SELECT 1 FROM category c WHERE c.id = p."categoryId" AND c.name ILIKE ('%' || sr."searchString" || '%'))
             OR EXISTS (
               SELECT 1 FROM category c
