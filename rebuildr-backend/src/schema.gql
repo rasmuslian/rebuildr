@@ -198,11 +198,7 @@ type User {
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
-  recommendedProducts(
-    input: RecommendedProductsInput!
-    limit: Int
-    offset: Int
-  ): [Product!]!
+  recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!
@@ -885,15 +881,9 @@ type Query {
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
   getOrCreateDraftProduct: Product!
-  getPickupOption(
-    input: GetTransportationOptionsInput!
-  ): ApproximatePlaceResponse
-  getShippingOptions(
-    input: GetTransportationOptionsInput!
-  ): [ShippingOptionResponse!]!
-  getDeliveryOption(
-    input: GetTransportationOptionsInput!
-  ): DeliveryOptionResponse
+  getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
+  getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
+  getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
   getProductPriceRange: ProductPriceRangeResponse!
   cmsGetProduct(productId: String!): Product!
   cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
@@ -911,9 +901,7 @@ type Query {
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
-  exactAndApproximatePlace(
-    input: LocationInputType!
-  ): ExactAndApproximatePlaceResponse!
+  exactAndApproximatePlace(input: LocationInputType!): ExactAndApproximatePlaceResponse!
   purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
   myPurchase(input: MyPurchaseInput!): Purchase
@@ -928,23 +916,15 @@ type Query {
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
-  getSimilarSearchResults(
-    input: GetSimilarSearchResultsInput!
-  ): [SearchResult!]!
+  getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   searchSuggestions(input: GetSearchSuggestionsInput!): [SearchSuggestion!]!
-  nearbyServicePoints(
-    input: NearbyServicePointsInput!
-  ): [ServicePointResponse!]!
+  nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
   articleBySlug(slug: String!): Article!
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  mapPinGroups(
-    input: MapPinGroupsInput!
-    offset: Int
-    limit: Int
-  ): MapPinGroupsResponse!
+  mapPinGroups(input: MapPinGroupsInput!, offset: Int, limit: Int): MapPinGroupsResponse!
   partners: [Partner!]!
   co2Factors: [CO2Factor!]!
   pageContentById(id: String!): PageContent!
@@ -954,13 +934,9 @@ type Query {
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
   newsletterCompetition: NewsletterCompetition!
-  cmsProductStatistics(
-    input: CmsProductStatisticsInput
-  ): CmsProductStatisticsResponse!
+  cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
-  cmsPurchaseStatistics(
-    input: CmsPurchaseStatisticsInput
-  ): CmsPurchaseStatisticsResponse!
+  cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
 }
 
 input UserExistsInput {
@@ -1256,9 +1232,7 @@ input CmsPurchaseStatisticsInput {
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
-  resendVerificationMail(
-    input: ResendVerificationMailInput!
-  ): ResendVerificationMailResponse!
+  resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
   login(input: LoginInput!): LoginResponse!
   logout(input: LogoutInput!): Boolean!
@@ -1270,9 +1244,7 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   approveBusinessAccount(userId: String!): User!
   deleteAccount: User!
-  onboardSellerAccount(
-    input: OnboardSellerAccountInput!
-  ): OnboardSellerAccountResponse!
+  onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
   signupNewsLetter(input: SignupNewsLetterInput!): Boolean!
   createSellerAccount: SellerAccount!
@@ -1318,9 +1290,7 @@ type Mutation {
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
-  cmsResolveReportPurchase(
-    input: CmsResolveReportPurchaseInput!
-  ): ReportPurchase!
+  cmsResolveReportPurchase(input: CmsResolveReportPurchaseInput!): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
@@ -1338,9 +1308,7 @@ type Mutation {
   updatePageContent(input: UpdatePageContentInput!): PageContent!
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
-  cmsUpdateNewsletterCompetition(
-    input: CmsUpdateNewsletterCompetitionInput!
-  ): CmsUpdateNewsletterCompetitionResponse!
+  cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
 }
 
 input RegisterUserInput {

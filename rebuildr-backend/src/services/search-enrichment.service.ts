@@ -65,7 +65,8 @@ export class SearchEnrichmentService {
           schema: categoryAliasSchema,
         }),
         prompt: `
-You generate Swedish search aliases for RebuildR, a marketplace for reclaimed building materials.
+You generate Swedish search term aliases for RebuildR, a marketplace for reclaimed building materials.
+The goal is to help users find this product when they search for related terms.
 
 Return strict JSON matching the schema. Swedish terms only. Use construction/building marketplace terminology.
 Generate 5-12 useful aliases that help users find this category when they search related product terms.
@@ -78,7 +79,7 @@ Description: ${input.description ?? 'Saknas'}
 `,
       });
 
-  return this.sanitizeTerms([...output.aliases, ...fallbackAliases]).slice(
+      return this.sanitizeTerms([...output.aliases, ...fallbackAliases]).slice(
         0,
         MAX_DIRECT_ALIASES,
       );
@@ -110,6 +111,7 @@ Description: ${input.description ?? 'Saknas'}
         }),
         prompt: `
 You generate Swedish search term aliases/related terms/use cases for RebuildR, a marketplace for reclaimed building materials.
+The goal is to help users find this product when they search for related terms.
 
 Return strict JSON matching the schema. Swedish terms only. Use construction/building marketplace terminology.
 No brands unless the brand is explicitly present in the input. Do not invent brands.
