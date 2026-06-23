@@ -15,7 +15,7 @@ const RETRY_DELAYS_MS = [5000, 15000, 45000, 120000];
 
 type BackfillState = 'IDLE' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
-type SearchEnrichmentBackfillStatus = {
+interface SearchEnrichmentBackfillStatus {
   state: BackfillState;
   startedAt?: Date;
   finishedAt?: Date;
@@ -31,7 +31,7 @@ type SearchEnrichmentBackfillStatus = {
   currentAttempt?: number;
   lastProgressAt?: Date;
   lastError?: string;
-};
+}
 
 @Injectable()
 export class SearchEnrichmentBackfillService {

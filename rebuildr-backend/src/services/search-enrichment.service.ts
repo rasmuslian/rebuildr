@@ -5,20 +5,20 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { z } from 'zod';
 import { Logger } from 'winston';
 
-type ProductSearchContext = {
+interface ProductSearchContext {
   title: string;
   description?: string | null;
   categoryName?: string | null;
   parentCategoryName?: string | null;
   categorySearchAliases?: string[] | null;
   brandName?: string | null;
-};
+}
 
-type ProductSearchEnrichment = {
+interface ProductSearchEnrichment {
   searchAliases: string[];
   searchRelatedTerms: string[];
   searchUseCases: string[];
-};
+}
 
 type ProductSearchDocumentInput = ProductSearchContext &
   ProductSearchEnrichment;
@@ -45,9 +45,9 @@ const productSearchEnrichmentSchema = z.object({
   searchUseCases: z.array(z.string()).max(MAX_USE_CASES),
 });
 
-type SearchEnrichmentOptions = {
+interface SearchEnrichmentOptions {
   allowFallback?: boolean;
-};
+}
 
 @Injectable()
 export class SearchEnrichmentService {

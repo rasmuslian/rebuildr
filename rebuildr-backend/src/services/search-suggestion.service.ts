@@ -7,13 +7,13 @@ import {
   SearchSuggestionTypeEnum,
 } from 'src/resolvers/search-suggestion.resolver';
 
-type SearchSuggestionRow = {
+interface SearchSuggestionRow {
   label: string;
   type: SearchSuggestionTypeEnum;
   categoryId: string | null;
   parentId: string | null;
   productCount: string;
-};
+}
 
 @Injectable()
 export class SearchSuggestionService {
