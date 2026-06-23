@@ -16,6 +16,9 @@ import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 
+const CLEAR_BUTTON_SIZE = 22;
+const CLEAR_BUTTON_SPACING = 8;
+
 type Props = {
   visible?: boolean;
   onChange?: (value: string) => void;
@@ -188,28 +191,37 @@ export const Search = ({
           lineHeight: undefined,
         }}
       />
-      {(searchState.dropdownVisible || !!searchState.searchString?.length) && (
-        <Pressable
-          onPress={() => {
-            onChangeText("");
-            if (isDesktop) {
-              setIsDropdownAnchorActive(false);
-              setSearchState({ dropdownVisible: false });
-            }
-          }}
-        >
-          <View
-            style={{
-              marginLeft: 8,
-              borderRadius: borderRadius.medium,
-              backgroundColor: xBackgroundColor,
-              padding: 2,
+      <View
+        style={{
+          width: CLEAR_BUTTON_SIZE + CLEAR_BUTTON_SPACING,
+          height: CLEAR_BUTTON_SIZE,
+          marginLeft: CLEAR_BUTTON_SPACING,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {!!searchState.searchString?.length && (
+          <Pressable
+            onPress={() => {
+              onChangeText("");
+              if (isDesktop) {
+                setIsDropdownAnchorActive(false);
+                setSearchState({ dropdownVisible: false });
+              }
             }}
           >
-            <Icon icon="X" size={18} />
-          </View>
-        </Pressable>
-      )}
+            <View
+              style={{
+                borderRadius: borderRadius.medium,
+                backgroundColor: xBackgroundColor,
+                padding: 2,
+              }}
+            >
+              <Icon icon="X" size={18} />
+            </View>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 };
