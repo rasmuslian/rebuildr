@@ -44,7 +44,9 @@ export const SearchWithResults = ({
     )
     .slice(0, 5);
   const exactUsers = (data?.users.users ?? []).filter(
-    (user) => user.username?.toLocaleLowerCase() === normalizedSearchString,
+    (user) =>
+      user.username?.toLocaleLowerCase() === normalizedSearchString ||
+      user.name?.trim().toLocaleLowerCase() === normalizedSearchString,
   );
   const hasAnyResult =
     !!searchSuggestions.length ||
@@ -286,7 +288,9 @@ export const SearchWithResults = ({
                     imageUrl={user.profilePicture?.url}
                   />
                   <View style={{ gap: 2, flex: 1 }}>
-                    <Label size="large">{user.username}</Label>
+                    <Label size="large">
+                      {user.name?.trim() || user.username}
+                    </Label>
                     <View
                       style={{
                         flexDirection: "row",

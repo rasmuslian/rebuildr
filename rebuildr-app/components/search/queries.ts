@@ -61,6 +61,7 @@ export const DO_SEARCH = gql`
       users {
         id
         username
+        name
         type
         numberOfPublishedProducts
         numberOfSoldProducts
