@@ -58,6 +58,7 @@ import { minimumProductPrice } from 'src/constants/pricing';
 import { FileInputType } from './file.resolver';
 import { AIService } from 'src/services/ai.service';
 import { ShippingPriceService } from 'src/services/shipping-price.service';
+import { SearchEnrichmentBackfillService } from 'src/services/search-enrichment-backfill.service';
 import { BadUserInputException } from 'src/exceptions';
 
 export enum OrderProductsEnum {
@@ -641,6 +642,54 @@ export class ProductPriceRangeResponse {
   max: number;
 }
 
+@ObjectType()
+export class CmsSearchEnrichmentBackfillStatus {
+  @Field(() => String)
+  state: string;
+
+  @Field(() => Date, { nullable: true })
+  startedAt?: Date;
+
+  @Field(() => Date, { nullable: true })
+  finishedAt?: Date;
+
+  @Field(() => Int)
+  enrichedCategories: number;
+
+  @Field(() => Int)
+  enrichedProducts: number;
+
+  @Field(() => Int)
+  failedCategories: number;
+
+  @Field(() => Int)
+  failedProducts: number;
+
+  @Field(() => Int)
+  remainingCategories: number;
+
+  @Field(() => Int)
+  remainingProducts: number;
+
+  @Field(() => String, { nullable: true })
+  currentItemType?: string;
+
+  @Field(() => String, { nullable: true })
+  currentItemId?: string;
+
+  @Field(() => String, { nullable: true })
+  currentItemName?: string;
+
+  @Field(() => Int, { nullable: true })
+  currentAttempt?: number;
+
+  @Field(() => Date, { nullable: true })
+  lastProgressAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  lastError?: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -650,6 +699,7 @@ export class ProductResolver {
     private eventService: EventService,
     private aiService: AIService,
     private shippingPriceService: ShippingPriceService,
+    private searchEnrichmentBackfillService: SearchEnrichmentBackfillService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -756,6 +806,13 @@ export class ProductResolver {
     return this.productService.cmsListProducts(input);
   }
 
+  @Query(() => CmsSearchEnrichmentBackfillStatus)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsSearchEnrichmentBackfillStatus(): Promise<CmsSearchEnrichmentBackfillStatus> {
+    return this.searchEnrichmentBackfillService.getStatus();
+  }
+
   @Mutation(() => CmsCreateProductResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -795,6 +852,13 @@ export class ProductResolver {
     @Args('productId') productId: string,
   ): Promise<Product> {
     return this.productService.cmsUnhideProduct(productId);
+  }
+
+  @Mutation(() => CmsSearchEnrichmentBackfillStatus)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsBackfillSearchEnrichment(): Promise<CmsSearchEnrichmentBackfillStatus> {
+    return this.searchEnrichmentBackfillService.startBackfill();
   }
 
   @Mutation(() => Product)

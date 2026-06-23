@@ -680,6 +680,24 @@ type ProductPriceRangeResponse {
   max: Int!
 }
 
+type CmsSearchEnrichmentBackfillStatus {
+  state: String!
+  startedAt: DateTime
+  finishedAt: DateTime
+  enrichedCategories: Int!
+  enrichedProducts: Int!
+  failedCategories: Int!
+  failedProducts: Int!
+  remainingCategories: Int!
+  remainingProducts: Int!
+  currentItemType: String
+  currentItemId: String
+  currentItemName: String
+  currentAttempt: Int
+  lastProgressAt: DateTime
+  lastError: String
+}
+
 type UpdateUserResponse {
   user: User!
   profilePicturePutUrl: String
@@ -888,6 +906,7 @@ type Query {
   getProductPriceRange: ProductPriceRangeResponse!
   cmsGetProduct(productId: String!): Product!
   cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
+  cmsSearchEnrichmentBackfillStatus: CmsSearchEnrichmentBackfillStatus!
   category(input: CategoryInput!): Category!
   categories(input: CategoriesInput!): [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -1253,6 +1272,7 @@ type Mutation {
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!
   cmsUnhideProduct(productId: String!): Product!
+  cmsBackfillSearchEnrichment: CmsSearchEnrichmentBackfillStatus!
   cmsDeleteProduct(productId: String!): Product!
   createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!

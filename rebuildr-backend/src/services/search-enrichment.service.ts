@@ -26,6 +26,14 @@ type ProductSearchDocumentInput = ProductSearchContext &
 const MAX_DIRECT_ALIASES = 12;
 const MAX_RELATED_TERMS = 10;
 const MAX_USE_CASES = 8;
+const SEARCH_ENRICHMENT_TIMEOUT_MS = 15000;
+
+class SearchEnrichmentTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`Search enrichment generation timed out after ${timeoutMs}ms`);
+    this.name = 'SearchEnrichmentTimeoutError';
+  }
+}
 
 const categoryAliasSchema = z.object({
   aliases: z.array(z.string()).max(MAX_DIRECT_ALIASES),
@@ -36,6 +44,10 @@ const productSearchEnrichmentSchema = z.object({
   searchRelatedTerms: z.array(z.string()).max(MAX_RELATED_TERMS),
   searchUseCases: z.array(z.string()).max(MAX_USE_CASES),
 });
+
+type SearchEnrichmentOptions = {
+  allowFallback?: boolean;
+};
 
 @Injectable()
 export class SearchEnrichmentService {
@@ -52,6 +64,43 @@ export class SearchEnrichmentService {
     description?: string | null;
     parentName?: string | null;
   }): Promise<string[]> {
+    return this.generateCategoryAliasesInternal(input, { allowFallback: true });
+  }
+
+  async generateCategoryAliasesOrThrow(input: {
+    name: string;
+    description?: string | null;
+    parentName?: string | null;
+  }): Promise<string[]> {
+    return this.generateCategoryAliasesInternal(input, {
+      allowFallback: false,
+    });
+  }
+
+  async generateProductSearchEnrichment(
+    input: ProductSearchContext,
+  ): Promise<ProductSearchEnrichment> {
+    return this.generateProductSearchEnrichmentInternal(input, {
+      allowFallback: true,
+    });
+  }
+
+  async generateProductSearchEnrichmentOrThrow(
+    input: ProductSearchContext,
+  ): Promise<ProductSearchEnrichment> {
+    return this.generateProductSearchEnrichmentInternal(input, {
+      allowFallback: false,
+    });
+  }
+
+  private async generateCategoryAliasesInternal(
+    input: {
+      name: string;
+      description?: string | null;
+      parentName?: string | null;
+    },
+    options: SearchEnrichmentOptions,
+  ): Promise<string[]> {
     const fallbackAliases = this.createFallbackTerms([
       input.name,
       input.description,
@@ -59,12 +108,15 @@ export class SearchEnrichmentService {
     ]);
 
     try {
-      const { output } = await generateText({
-        model: this.google('gemini-3.5-flash'),
-        output: Output.object({
-          schema: categoryAliasSchema,
-        }),
-        prompt: `
+      const { output } = await this.withTimeout(
+        (abortSignal) =>
+          generateText({
+            model: this.google('gemini-3.5-flash'),
+            abortSignal,
+            output: Output.object({
+              schema: categoryAliasSchema,
+            }),
+            prompt: `
 You generate Swedish search term aliases for RebuildR, a marketplace for reclaimed building materials.
 The goal is to help users find this product when they search for related terms.
 
@@ -77,23 +129,32 @@ Category: ${input.name}
 Parent category: ${input.parentName ?? 'Saknas'}
 Description: ${input.description ?? 'Saknas'}
 `,
-      });
-
-      return this.sanitizeTerms([...output.aliases, ...fallbackAliases]).slice(
-        0,
-        MAX_DIRECT_ALIASES,
+          }),
+        SEARCH_ENRICHMENT_TIMEOUT_MS,
       );
+
+      return this.sanitizeTerms(
+        options.allowFallback
+          ? [...output.aliases, ...fallbackAliases]
+          : output.aliases,
+      ).slice(0, MAX_DIRECT_ALIASES);
     } catch (error) {
       this.logger.warn('Category search alias generation failed', {
         categoryName: input.name,
         error: error instanceof Error ? error.message : String(error),
       });
+
+      if (!options.allowFallback) {
+        throw error;
+      }
+
       return fallbackAliases.slice(0, MAX_DIRECT_ALIASES);
     }
   }
 
-  async generateProductSearchEnrichment(
+  private async generateProductSearchEnrichmentInternal(
     input: ProductSearchContext,
+    options: SearchEnrichmentOptions,
   ): Promise<ProductSearchEnrichment> {
     const fallbackTerms = this.createFallbackTerms([
       input.title,
@@ -104,12 +165,15 @@ Description: ${input.description ?? 'Saknas'}
     ]);
 
     try {
-      const { output } = await generateText({
-        model: this.google('gemini-3.5-flash'),
-        output: Output.object({
-          schema: productSearchEnrichmentSchema,
-        }),
-        prompt: `
+      const { output } = await this.withTimeout(
+        (abortSignal) =>
+          generateText({
+            model: this.google('gemini-3.5-flash'),
+            abortSignal,
+            output: Output.object({
+              schema: productSearchEnrichmentSchema,
+            }),
+            prompt: `
 You generate Swedish search term aliases/related terms/use cases for RebuildR, a marketplace for reclaimed building materials.
 The goal is to help users find this product when they search for related terms.
 
@@ -132,13 +196,16 @@ Category: ${[input.parentCategoryName, input.categoryName].filter(Boolean).join(
 Category aliases: ${(input.categorySearchAliases ?? []).join(', ') || 'Saknas'}
 Brand: ${input.brandName ?? 'Saknas'}
 `,
-      });
+          }),
+        SEARCH_ENRICHMENT_TIMEOUT_MS,
+      );
 
       return {
-        searchAliases: this.sanitizeTerms([
-          ...output.searchAliases,
-          ...fallbackTerms,
-        ]).slice(0, MAX_DIRECT_ALIASES),
+        searchAliases: this.sanitizeTerms(
+          options.allowFallback
+            ? [...output.searchAliases, ...fallbackTerms]
+            : output.searchAliases,
+        ).slice(0, MAX_DIRECT_ALIASES),
         searchRelatedTerms: this.sanitizeTerms(output.searchRelatedTerms).slice(
           0,
           MAX_RELATED_TERMS,
@@ -153,6 +220,11 @@ Brand: ${input.brandName ?? 'Saknas'}
         title: input.title,
         error: error instanceof Error ? error.message : String(error),
       });
+
+      if (!options.allowFallback) {
+        throw error;
+      }
+
       return {
         searchAliases: fallbackTerms.slice(0, MAX_DIRECT_ALIASES),
         searchRelatedTerms: [],
@@ -222,5 +294,29 @@ Brand: ${input.brandName ?? 'Saknas'}
     if (/r$/.test(term)) return [term.slice(0, -1)];
 
     return [];
+  }
+
+  private async withTimeout<T>(
+    operation: (abortSignal: AbortSignal) => Promise<T>,
+    timeoutMs: number,
+  ): Promise<T> {
+    const abortController = new AbortController();
+    let timeout: NodeJS.Timeout;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        abortController.abort();
+        reject(new SearchEnrichmentTimeoutError(timeoutMs));
+      }, timeoutMs);
+    });
+
+    try {
+      return await Promise.race([
+        operation(abortController.signal),
+        timeoutPromise,
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 }
