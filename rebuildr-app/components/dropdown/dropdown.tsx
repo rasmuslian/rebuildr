@@ -18,6 +18,7 @@ type DropdownProps = {
     width: number;
     height: number;
   };
+  showTopDivider?: boolean;
 };
 
 export const Dropdown = ({
@@ -26,6 +27,7 @@ export const Dropdown = ({
   ignoredPosition,
   visible,
   onClose,
+  showTopDivider = true,
 }: DropdownProps) => {
   const colors = useThemeColor();
   const { height } = useWindowDimensions();
@@ -83,7 +85,7 @@ export const Dropdown = ({
         borderColor: colors.dividers.neutral,
       }}
     >
-      <Divider />
+      {showTopDivider && <Divider />}
       <ScrollView style={{ maxHeight }} showsVerticalScrollIndicator={false}>
         {children}
       </ScrollView>

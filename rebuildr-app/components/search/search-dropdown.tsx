@@ -29,6 +29,7 @@ export const SearchDropdown = () => {
       visible={searchState.dropdownVisible}
       position={searchState.dropdownPosition}
       ignoredPosition={searchState.dropdownAnchorPosition}
+      showTopDivider={!searchState.dropdownHideTopDivider}
       onClose={handleClose}
     >
       <View style={{ padding: 16, gap: 16 }}>

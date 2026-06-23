@@ -57,6 +57,15 @@ export const Search = ({
     : backgroundColor || colors.buttons.iconQuickLink.hovered;
   const shouldMergeWithDropdown =
     isDesktop && isDropdownAnchorActive && searchState.dropdownVisible;
+  const hasVisibleBorder =
+    !!borderStyle &&
+    [
+      borderStyle.borderWidth,
+      borderStyle.borderTopWidth,
+      borderStyle.borderBottomWidth,
+      borderStyle.borderLeftWidth,
+      borderStyle.borderRightWidth,
+    ].some((value) => typeof value === "number" && value > 0);
 
   const updateDropdownPosition = useCallback(
     (showDropdown = false) => {
@@ -77,11 +86,12 @@ export const Search = ({
         setSearchState({
           dropdownAnchorPosition,
           dropdownPosition,
+          dropdownHideTopDivider: hasVisibleBorder,
           ...(showDropdown ? { dropdownVisible: true } : {}),
         });
       });
     },
-    [isDesktop, setSearchState],
+    [hasVisibleBorder, isDesktop, setSearchState],
   );
 
   const openDropdown = () => {
