@@ -150,7 +150,7 @@ export const Search = ({
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
     const { text } = event.nativeEvent;
 
-    filterBuilder.reset().setSearchString(text).apply();
+    filterBuilder.setSearchString(text).apply();
     setSearchState({ dropdownVisible: false });
     router.navigate("/search/products");
   };

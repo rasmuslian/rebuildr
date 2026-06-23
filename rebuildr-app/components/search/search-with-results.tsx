@@ -80,16 +80,13 @@ export const SearchWithResults = ({
   };
 
   const openSearchResults = () => {
-    filterBuilder
-      .reset()
-      .setSearchString(searchString ?? "")
-      .apply();
+    filterBuilder.setSearchString(searchString ?? "").apply();
     searchContext.setSearchState({ dropdownVisible: false });
     router.navigate("/search/products");
   };
 
   const openSearchTerm = (searchTerm: string) => {
-    filterBuilder.reset().setSearchString(searchTerm).apply();
+    filterBuilder.setSearchString(searchTerm).apply();
     searchContext.setSearchState({
       dropdownVisible: false,
       searchString: searchTerm,

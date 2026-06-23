@@ -19,7 +19,9 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { FilterSlideSheet } from "@components/filter-product/filter-slide-sheet";
 import { FilterBottomSheet } from "@components/filter-product/filter-bottom-sheet";
 import {
-  TransportationFilterOptions,
+  defaultTransportationFilterOptions,
+  getTransportationLabel,
+  PersistedTransportationFilterOptions,
   TransportationOptions,
 } from "@components/search/transportation-options";
 import InteractiveMap from "@components/maps/interactive-map";
@@ -27,20 +29,30 @@ import { SEARCH_PRODUCTS_QUERY } from "@/queries";
 import { useReducerState } from "@hooks/useReducerState";
 import { useUser } from "@hooks/useUser";
 import { borderRadius } from "@constants/sizes";
+import { defaultRadius } from "@constants/map";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
+import { getItem, setItem } from "@/utils/async-storage";
 
 type StateType = {
   showFilter: boolean;
   transportationLabel: string;
   showTransportSheet: boolean;
+  transportationHydrated: boolean;
+  transportationOptions: PersistedTransportationFilterOptions;
 };
+
+const TRANSPORTATION_FILTER_STORAGE_KEY = "search-transportation-filter";
 
 const initialState: StateType = {
   showFilter: false,
-  transportationLabel: "Alla leveranssätt",
+  transportationLabel: getTransportationLabel(
+    defaultTransportationFilterOptions,
+  ),
   showTransportSheet: false,
+  transportationHydrated: false,
+  transportationOptions: defaultTransportationFilterOptions,
 };
 
 type Props = {
@@ -65,14 +77,66 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
     lng: userCoords.longitude,
   };
 
-  const { data, loading, refetch, fetchMore } = useQuery<
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateTransportationOptions = async () => {
+      const storedOptions = normalizeTransportationOptions(
+        await getItem(TRANSPORTATION_FILTER_STORAGE_KEY),
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      const nextOptions = storedOptions ?? defaultTransportationFilterOptions;
+
+      setState({
+        transportationHydrated: true,
+        transportationLabel: getTransportationLabel(nextOptions),
+        transportationOptions: nextOptions,
+      });
+    };
+
+    hydrateTransportationOptions().catch(() => {
+      if (cancelled) {
+        return;
+      }
+
+      setState({
+        transportationHydrated: true,
+        transportationLabel: getTransportationLabel(
+          defaultTransportationFilterOptions,
+        ),
+        transportationOptions: defaultTransportationFilterOptions,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const transportationLocation =
+    state.transportationOptions.location ?? userLocation;
+
+  const { data, loading, fetchMore } = useQuery<
     SearchProductsQuery,
     SearchProductsQueryVariables
   >(SEARCH_PRODUCTS_QUERY, {
+    skip: !state.transportationHydrated,
     variables: {
       input: {
         ...toProductsQueryInput(),
-        location: userLocation,
+        distance: state.transportationOptions.pickup
+          ? state.transportationOptions.distance
+          : undefined,
+        location: state.transportationOptions.pickup
+          ? transportationLocation
+          : undefined,
+        pickup: state.transportationOptions.pickup,
+        shipping: state.transportationOptions.shipping,
+        delivery: state.transportationOptions.delivery,
       },
       limit: PAGE_SIZE,
       offset: 0,
@@ -105,20 +169,16 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
   };
 
   const onApplyTranportationOptions = async (
-    options: TransportationFilterOptions,
+    options: PersistedTransportationFilterOptions,
   ) => {
-    await refetch({
-      input: {
-        ...toProductsQueryInput,
-        ...options,
-      },
+    setState({
+      showTransportSheet: false,
+      transportationLabel: getTransportationLabel(options),
+      transportationOptions: options,
     });
-    setState({ showTransportSheet: false });
-  };
 
-  useEffect(() => {
-    refetch();
-  }, [filter]);
+    await setItem(TRANSPORTATION_FILTER_STORAGE_KEY, options);
+  };
 
   return (
     <>
@@ -226,19 +286,45 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
                 height: screenHeight - 72 - 48,
                 borderRadius: borderRadius.medium,
               }}
-              productsInput={toProductsQueryInput()}
+              productsInput={{
+                ...toProductsQueryInput(),
+                distance: state.transportationOptions.pickup
+                  ? state.transportationOptions.distance
+                  : undefined,
+                location: state.transportationOptions.pickup
+                  ? transportationLocation
+                  : undefined,
+                pickup: state.transportationOptions.pickup,
+                shipping: state.transportationOptions.shipping,
+                delivery: state.transportationOptions.delivery,
+              }}
             />
           </View>
 
           <SlideInSheet
             open={state.showTransportSheet}
-            onClose={() => setState({ showTransportSheet: false })}
+            onClose={() =>
+              setState({
+                showTransportSheet: false,
+                transportationLabel: getTransportationLabel(
+                  state.transportationOptions,
+                ),
+              })
+            }
             title="Leveransalternativ"
             contentWaitOnAnimation
           >
             <TransportationOptions
+              key={`desktop-${state.showTransportSheet}-${JSON.stringify(
+                state.transportationOptions,
+              )}`}
               data={data}
               loading={loading}
+              initialOptions={{
+                ...state.transportationOptions,
+                distance: state.transportationOptions.distance ?? defaultRadius,
+                location: transportationLocation,
+              }}
               setTransportationLabel={(label) =>
                 setState({ transportationLabel: label })
               }
@@ -368,14 +454,29 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
 
           <BottomSheet
             open={state.showTransportSheet}
-            onDismiss={() => setState({ showTransportSheet: false })}
+            onDismiss={() =>
+              setState({
+                showTransportSheet: false,
+                transportationLabel: getTransportationLabel(
+                  state.transportationOptions,
+                ),
+              })
+            }
             name="delivery"
             title="Leveransalternativ"
             scrollable
           >
             <TransportationOptions
+              key={`mobile-${state.showTransportSheet}-${JSON.stringify(
+                state.transportationOptions,
+              )}`}
               data={data}
               loading={loading}
+              initialOptions={{
+                ...state.transportationOptions,
+                distance: state.transportationOptions.distance ?? defaultRadius,
+                location: transportationLocation,
+              }}
               setTransportationLabel={(label) =>
                 setState({ transportationLabel: label })
               }
@@ -387,3 +488,43 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
     </>
   );
 }
+
+const normalizeTransportationOptions = (
+  value: unknown,
+): PersistedTransportationFilterOptions | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const options = value as Partial<PersistedTransportationFilterOptions>;
+  const location = options.location as
+    | { lat?: number; lng?: number }
+    | undefined;
+
+  return {
+    pickup:
+      typeof options.pickup === "boolean"
+        ? options.pickup
+        : defaultTransportationFilterOptions.pickup,
+    shipping:
+      typeof options.shipping === "boolean"
+        ? options.shipping
+        : defaultTransportationFilterOptions.shipping,
+    delivery:
+      typeof options.delivery === "boolean"
+        ? options.delivery
+        : defaultTransportationFilterOptions.delivery,
+    distance:
+      typeof options.distance === "number"
+        ? options.distance
+        : defaultTransportationFilterOptions.distance,
+    location:
+      typeof location?.lat === "number" && typeof location?.lng === "number"
+        ? { lat: location.lat, lng: location.lng }
+        : undefined,
+    useMyLocation:
+      typeof options.useMyLocation === "boolean"
+        ? options.useMyLocation
+        : defaultTransportationFilterOptions.useMyLocation,
+  };
+};

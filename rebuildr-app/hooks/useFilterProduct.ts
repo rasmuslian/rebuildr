@@ -1,11 +1,31 @@
 import { productFilterVar } from "@/apollo/config";
-import { Category, OrderProductsEnum } from "@/gql/graphql";
+import {
+  Category,
+  OrderProductsEnum,
+  ProductConditionEnum,
+} from "@/gql/graphql";
+import { getItem, setItem } from "@/utils/async-storage";
 import { useReactiveVar } from "@apollo/client";
+import { useEffect } from "react";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
+
+const PRODUCT_FILTER_STORAGE_KEY = "product-filter";
+
+let hasHydratedProductFilter = false;
 
 export const useFilterProduct = () => {
   const filter = useReactiveVar(productFilterVar);
   const filterBuilder = new FilterBuilder(filter);
+
+  useEffect(() => {
+    if (hasHydratedProductFilter) {
+      return;
+    }
+
+    hasHydratedProductFilter = true;
+
+    hydrateProductFilter().catch(() => undefined);
+  }, []);
 
   const nrOfAppliedFilters = () => {
     let acc = 0;
@@ -75,7 +95,10 @@ class FilterBuilder {
   }
 
   apply() {
-    this.filter = productFilterVar({ ...this.filter });
+    const nextFilter = { ...this.filter };
+
+    this.filter = productFilterVar(nextFilter);
+    setItem(PRODUCT_FILTER_STORAGE_KEY, nextFilter).catch(() => undefined);
   }
 
   setOrdering(sorting: OrderProductsEnum) {
@@ -223,3 +246,81 @@ class FilterBuilder {
     return this;
   }
 }
+
+const isStringArray = (value: unknown): value is string[] => {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
+};
+
+const isConditionArray = (value: unknown): value is ProductConditionEnum[] => {
+  return (
+    Array.isArray(value) &&
+    value.every((item) =>
+      Object.values(ProductConditionEnum).includes(
+        item as ProductConditionEnum,
+      ),
+    )
+  );
+};
+
+const isPriceRange = (value: unknown): value is [number, number] => {
+  return (
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value.every((item) => typeof item === "number")
+  );
+};
+
+const normalizeStoredFilter = (value: unknown): Filter | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const storedFilter = value as Partial<Filter>;
+
+  return {
+    sorting: Object.values(OrderProductsEnum).includes(
+      storedFilter.sorting as OrderProductsEnum,
+    )
+      ? (storedFilter.sorting as OrderProductsEnum)
+      : initialFilterProduct.sorting,
+    rootCategoryIds: isStringArray(storedFilter.rootCategoryIds)
+      ? storedFilter.rootCategoryIds
+      : undefined,
+    categoryIds: isStringArray(storedFilter.categoryIds)
+      ? storedFilter.categoryIds
+      : undefined,
+    brandIds: isStringArray(storedFilter.brandIds)
+      ? storedFilter.brandIds
+      : undefined,
+    conditions: isConditionArray(storedFilter.conditions)
+      ? storedFilter.conditions
+      : undefined,
+    price: isPriceRange(storedFilter.price) ? storedFilter.price : undefined,
+    giveaway:
+      typeof storedFilter.giveaway === "boolean"
+        ? storedFilter.giveaway
+        : initialFilterProduct.giveaway,
+    searchString:
+      typeof storedFilter.searchString === "string"
+        ? storedFilter.searchString
+        : undefined,
+    projectId:
+      typeof storedFilter.projectId === "string"
+        ? storedFilter.projectId
+        : undefined,
+  };
+};
+
+const hydrateProductFilter = async () => {
+  const storedFilter = normalizeStoredFilter(
+    await getItem(PRODUCT_FILTER_STORAGE_KEY),
+  );
+
+  if (!storedFilter) {
+    return;
+  }
+
+  productFilterVar(storedFilter);
+};
