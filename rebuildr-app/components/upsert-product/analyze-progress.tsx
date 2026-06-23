@@ -1,5 +1,4 @@
 import { Body, Label } from "@components/typography/text";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useRef, useState } from "react";
@@ -40,42 +39,37 @@ export const AnalyzeProgress = () => {
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
+        gap: 8,
         backgroundColor: colors.buttons.tonal.enabled,
         borderRadius: borderRadius.medium,
         padding: 16,
       }}
     >
-      <LoadingSpinner />
-      <View style={{ flex: 1, gap: 6 }}>
-        <Label size="medium">{STEPS[stepIndex]}</Label>
-        <View
+      <Label size="medium">{STEPS[stepIndex]}</Label>
+      <View
+        style={{
+          height: 4,
+          borderRadius: borderRadius.small,
+          backgroundColor: colors.background.neutral,
+          overflow: "hidden",
+        }}
+      >
+        <Animated.View
           style={{
-            height: 4,
+            height: "100%",
             borderRadius: borderRadius.small,
-            backgroundColor: colors.background.neutral,
-            overflow: "hidden",
+            backgroundColor: colors.buttons.filled.enabled,
+            width: progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["0%", "100%"],
+            }),
           }}
-        >
-          <Animated.View
-            style={{
-              height: "100%",
-              borderRadius: borderRadius.small,
-              backgroundColor: colors.buttons.filled.enabled,
-              width: progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: ["0%", "100%"],
-              }),
-            }}
-          />
-        </View>
-        <Body size="small" color="secondary">
-          Kategori, rubrik, beskrivning och mer fylls i automatiskt utifrån
-          bilderna du laddat upp.
-        </Body>
+        />
       </View>
+      <Body size="small" color="secondary">
+        Kategori, rubrik, beskrivning och mer fylls i automatiskt utifrån
+        bilderna du laddat upp.
+      </Body>
     </View>
   );
 };
