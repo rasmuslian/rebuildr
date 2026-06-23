@@ -674,6 +674,25 @@ export class ProductResolver {
     return this.productService.findAll({ ...input }, limit, offset, user?.id);
   }
 
+  @Query(() => ProductsResponse)
+  @UseGuards(GqlOptionalAuthGuard)
+  async relatedProducts(
+    @Args('input') input: ProductsInput,
+    @Args('excludeProductIds', { nullable: true, type: () => [ID] })
+    excludeProductIds?: string[],
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+    @CurrentUser() user?: AuthedUserType,
+  ) {
+    return this.productService.relatedProducts(
+      { ...input },
+      excludeProductIds ?? [],
+      limit,
+      offset,
+      user?.id,
+    );
+  }
+
   @Query(() => Product, { nullable: true })
   @UseGuards(GqlAuthGuard)
   async getDraftedProduct(@CurrentUser() _user: AuthedUserType) {

@@ -70,6 +70,14 @@ import { SearchEnrichmentService } from './search-enrichment.service';
 import { Brand } from 'src/entities/brand.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
+const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
+
+interface FindProductsQueryOptions {
+  excludeProductIds?: string[];
+  ignoreDistance?: boolean;
+  ignoreTransportation?: boolean;
+  searchRankThreshold?: number;
+}
 
 @Injectable()
 export class ProductService {
@@ -698,6 +706,7 @@ export class ProductService {
     input: ProductsInput,
     qb: SelectQueryBuilder<T>,
     productAlias: string,
+    options: FindProductsQueryOptions = {},
   ) {
     qb.andWhere(
       `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
@@ -713,6 +722,12 @@ export class ProductService {
     if (input.projectId) {
       qb.andWhere(`${productAlias}."projectId" = :projectId`, {
         projectId: input.projectId,
+      });
+    }
+
+    if (options.excludeProductIds?.length) {
+      qb.andWhere(`${productAlias}.id NOT IN (:...excludeProductIds)`, {
+        excludeProductIds: options.excludeProductIds,
       });
     }
 
@@ -757,15 +772,20 @@ export class ProductService {
       )
         .setParameter('searchString', input.searchString)
         .innerJoin('ranked_products', 'rp', `rp.id = ${productAlias}.id`)
-        .andWhere(`rp.resultrank > ${PRODUCT_SEARCH_RANK_THRESHOLD}`)
+        .andWhere('rp.resultrank > :searchRankThreshold', {
+          searchRankThreshold:
+            options.searchRankThreshold ?? PRODUCT_SEARCH_RANK_THRESHOLD,
+        })
         .addSelect('rp.resultrank', 'resultrank');
     }
 
     //Transportation
-    qb.andWhere(`
-      (${input.pickup === false ? 'FALSE' : `${productAlias}."pickupEnabled" = TRUE`}
-        OR ${input.shipping === false ? 'FALSE' : `EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = ${productAlias}.id)`}
-        OR ${input.delivery === false ? 'FALSE' : `${productAlias}."deliveryEnabled" = TRUE`})`);
+    if (!options.ignoreTransportation) {
+      qb.andWhere(`
+        (${input.pickup === false ? 'FALSE' : `${productAlias}."pickupEnabled" = TRUE`}
+          OR ${input.shipping === false ? 'FALSE' : `EXISTS (SELECT 1 from product_shipping_prices_shipping_price WHERE "productId" = ${productAlias}.id)`}
+          OR ${input.delivery === false ? 'FALSE' : `${productAlias}."deliveryEnabled" = TRUE`})`);
+    }
 
     //Include products based on category criterias
     if (
@@ -847,6 +867,7 @@ export class ProductService {
     _limit?: number,
     offset?: number,
     currentUserId?: string,
+    options: FindProductsQueryOptions = {},
   ) {
     const query = this.productRepository.createQueryBuilder('p');
 
@@ -858,7 +879,7 @@ export class ProductService {
       }
     }
 
-    this.basicFindProductsInputQueryBuilder(input, query, 'p');
+    this.basicFindProductsInputQueryBuilder(input, query, 'p', options);
 
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
@@ -880,7 +901,7 @@ export class ProductService {
     }
     if (origin !== undefined) {
       //If distance is included, only select products whose distance to origin is less than input.distance
-      if (input.distance) {
+      if (input.distance && !options.ignoreDistance) {
         //convert from km to meters
         const distance = input.distance;
 
@@ -969,6 +990,31 @@ export class ProductService {
         : null,
       total: result[1],
     };
+  }
+
+  async relatedProducts(
+    input: ProductsInput,
+    excludeProductIds: string[],
+    _limit?: number,
+    offset?: number,
+    currentUserId?: string,
+  ) {
+    const relaxedInput: ProductsInput = {
+      ...input,
+      orderBy: OrderProductsEnum.BEST_MATCH,
+      distance: undefined,
+      location: undefined,
+      pickup: undefined,
+      shipping: undefined,
+      delivery: undefined,
+    };
+
+    return this.findAll(relaxedInput, _limit, offset, currentUserId, {
+      excludeProductIds,
+      ignoreDistance: true,
+      ignoreTransportation: true,
+      searchRankThreshold: RELATED_PRODUCT_SEARCH_RANK_THRESHOLD,
+    });
   }
 
   async findOne(id: string, currentUserId: string) {

@@ -879,6 +879,7 @@ type Query {
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
+  relatedProducts(input: ProductsInput!, excludeProductIds: [ID!], offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
   getOrCreateDraftProduct: Product!
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
