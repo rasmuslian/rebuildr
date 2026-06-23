@@ -24,14 +24,17 @@ export const SEARCH = gql`
 
 export const DO_SEARCH = gql`
   query DoSearch(
-    $searchResultsInput: GetSimilarSearchResultsInput!
+    $searchSuggestionsInput: GetSearchSuggestionsInput!
     $productsInput: ProductsInput!
     $categoriesInput: GetCategoriesInput!
     $usersInput: UsersInput!
   ) {
-    getSimilarSearchResults(input: $searchResultsInput) {
-      id
-      searchString
+    searchSuggestions(input: $searchSuggestionsInput) {
+      label
+      type
+      categoryId
+      parentId
+      productCount
     }
     products(input: $productsInput, limit: 5, offset: 0) {
       total

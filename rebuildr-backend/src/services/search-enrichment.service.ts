@@ -1,6 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Inject, Injectable } from '@nestjs/common';
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { z } from 'zod';
 import { Logger } from 'winston';
@@ -59,9 +59,11 @@ export class SearchEnrichmentService {
     ]);
 
     try {
-      const { object } = await generateObject({
-        model: this.google('gemini-2.5-flash'),
-        schema: categoryAliasSchema,
+      const { output } = await generateText({
+        model: this.google('gemini-3.5-flash'),
+        output: Output.object({
+          schema: categoryAliasSchema,
+        }),
         prompt: `
 You generate Swedish search aliases for RebuildR, a marketplace for reclaimed building materials.
 
@@ -76,7 +78,7 @@ Description: ${input.description ?? 'Saknas'}
 `,
       });
 
-      return this.sanitizeTerms([...object.aliases, ...fallbackAliases]).slice(
+  return this.sanitizeTerms([...output.aliases, ...fallbackAliases]).slice(
         0,
         MAX_DIRECT_ALIASES,
       );
@@ -101,11 +103,13 @@ Description: ${input.description ?? 'Saknas'}
     ]);
 
     try {
-      const { object } = await generateObject({
-        model: this.google('gemini-2.5-flash'),
-        schema: productSearchEnrichmentSchema,
+      const { output } = await generateText({
+        model: this.google('gemini-3.5-flash'),
+        output: Output.object({
+          schema: productSearchEnrichmentSchema,
+        }),
         prompt: `
-You generate Swedish search metadata for RebuildR, a marketplace for reclaimed building materials.
+You generate Swedish search term aliases/related terms/use cases for RebuildR, a marketplace for reclaimed building materials.
 
 Return strict JSON matching the schema. Swedish terms only. Use construction/building marketplace terminology.
 No brands unless the brand is explicitly present in the input. Do not invent brands.
@@ -130,14 +134,14 @@ Brand: ${input.brandName ?? 'Saknas'}
 
       return {
         searchAliases: this.sanitizeTerms([
-          ...object.searchAliases,
+          ...output.searchAliases,
           ...fallbackTerms,
         ]).slice(0, MAX_DIRECT_ALIASES),
-        searchRelatedTerms: this.sanitizeTerms(object.searchRelatedTerms).slice(
+        searchRelatedTerms: this.sanitizeTerms(output.searchRelatedTerms).slice(
           0,
           MAX_RELATED_TERMS,
         ),
-        searchUseCases: this.sanitizeTerms(object.searchUseCases).slice(
+        searchUseCases: this.sanitizeTerms(output.searchUseCases).slice(
           0,
           MAX_USE_CASES,
         ),

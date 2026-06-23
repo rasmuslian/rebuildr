@@ -73,7 +73,7 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
     if (searchString.length > 0) {
       doSearch({
         variables: {
-          searchResultsInput: { searchString },
+          searchSuggestionsInput: { searchString, limit: 8 },
           productsInput: { searchString },
           categoriesInput: {},
           usersInput: { name: searchString },

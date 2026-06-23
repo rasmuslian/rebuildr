@@ -69,6 +69,8 @@ import { SearchResult } from './entities/search-result.entity';
 import { SearchResultLoader } from './dataloaders/search-result.loader';
 import { SearchResultService } from './services/search-result.service';
 import { SearchResultResolver } from './resolvers/search-result.resolver';
+import { SearchSuggestionResolver } from './resolvers/search-suggestion.resolver';
+import { SearchSuggestionService } from './services/search-suggestion.service';
 import { Review } from './entities/review.entity';
 import { ProjectLoader } from './dataloaders/project.loader';
 import { ReviewLoader } from './dataloaders/review.loader';
@@ -332,6 +334,8 @@ export interface RequestType {
     ShippingPriceService,
     SearchResultService,
     SearchResultResolver,
+    SearchSuggestionService,
+    SearchSuggestionResolver,
     ReviewResolver,
     ReviewService,
     ShippingResolver,

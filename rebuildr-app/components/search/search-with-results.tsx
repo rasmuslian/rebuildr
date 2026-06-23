@@ -36,7 +36,7 @@ export const SearchWithResults = ({
 
   const colors = useThemeColor();
   const normalizedSearchString = searchString?.trim().toLocaleLowerCase() ?? "";
-  const similarSearchResults = data?.getSimilarSearchResults ?? [];
+  const searchSuggestions = data?.searchSuggestions ?? [];
   const products = data?.products.products ?? [];
   const categoryMatches = (data?.getCategories ?? [])
     .filter((category) =>
@@ -47,12 +47,12 @@ export const SearchWithResults = ({
     (user) => user.username?.toLocaleLowerCase() === normalizedSearchString,
   );
   const hasAnyResult =
-    !!similarSearchResults.length ||
+    !!searchSuggestions.length ||
     !!products.length ||
     !!categoryMatches.length ||
     !!exactUsers.length;
   const showSuggestions =
-    !!similarSearchResults.length || (searchCompleted && !hasAnyResult);
+    !!searchSuggestions.length || (searchCompleted && !hasAnyResult);
   const visibleSections = [
     showSuggestions,
     !!products.length,
@@ -96,6 +96,12 @@ export const SearchWithResults = ({
     router.navigate("/search/products");
   };
 
+  const openSearchSuggestion = (
+    suggestion: NonNullable<DoSearchQuery["searchSuggestions"]>[number],
+  ) => {
+    openSearchTerm(suggestion.label);
+  };
+
   if (!searchCompleted) {
     return (
       <LoadingSpinner style={{ minHeight: size === "large" ? 160 : 96 }} />
@@ -105,15 +111,15 @@ export const SearchWithResults = ({
   return (
     <>
       {showSuggestions && (
-        <View style={sectionStyle(0, similarSearchResults.length ? 16 : 12)}>
+        <View style={sectionStyle(0, searchSuggestions.length ? 16 : 12)}>
           <Header>Sökförslag</Header>
-          {similarSearchResults.length ? (
+          {searchSuggestions.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 8, paddingRight: 16 }}>
-                {similarSearchResults.map((searchResult, i) => (
+                {searchSuggestions.map((suggestion, i) => (
                   <Pressable
                     key={i}
-                    onPress={() => openSearchTerm(searchResult.searchString)}
+                    onPress={() => openSearchSuggestion(suggestion)}
                   >
                     <View
                       style={{
@@ -128,7 +134,7 @@ export const SearchWithResults = ({
                     >
                       <Icon icon="search" size={16} />
                       <Label size="large">
-                        {capitalFirstLetter(searchResult.searchString)}
+                        {capitalFirstLetter(suggestion.label)}
                       </Label>
                     </View>
                   </Pressable>
