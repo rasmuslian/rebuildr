@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "npm run migration:run:prod && nest start",
+    "start": "npm run migration:run:prod && node dist/src/main",
     "start:dev": "op run --env-file=\".env.local.1p\" -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
@@ -21,7 +21,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:run:prod": "npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
+    "migration:run:prod": "typeorm migration:run -d ./dist/src/ormconfig-migrations.js",
     "migration:run": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:run -- -d ./src/ormconfig-migrations.ts",
     "migration:show": "npm run typeorm migration:show -- -d ./src/ormconfig-migrations.ts",
     "migration:revert": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
@@ -29,6 +29,7 @@
     "migration:create": "npm run typeorm migration:create"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.81",
     "@apollo/server": "^4.11.0",
     "@aws-sdk/client-s3": "^3.608.0",
     "@aws-sdk/credential-providers": "^3.606.0",
@@ -51,6 +52,7 @@
     "@sentry/nestjs": "^10.22.0",
     "@sentry/profiling-node": "^10.22.0",
     "@types/mailchimp__mailchimp_marketing": "^3.0.21",
+    "ai": "^6.0.202",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.7.6",
     "class-transformer": "^0.5.1",

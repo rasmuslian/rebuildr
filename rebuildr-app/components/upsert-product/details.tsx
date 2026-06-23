@@ -99,7 +99,10 @@ export const Details = ({
       }}
     >
       <View style={{ gap: 8 }}>
-        <Body size="large">Börja med bilder — vi fyller i resten åt dig.</Body>
+        <Body size="large">
+          Börja med bilderna, så ger AI förslag på din annons. Ändra fritt innan
+          du publicerar.
+        </Body>
         <ImageSection
           images={product.images ?? []}
           imageError={badFields?.["images"]}
