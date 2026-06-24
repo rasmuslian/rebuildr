@@ -8,6 +8,9 @@ node_modules/
 dist/
 web-build/
 
+# Generated at build time by scripts/generate-sitemap.ts (incl. sitemap index chunks)
+public/sitemap*.xml
+
 # Native
 *.orig.*
 *.jks

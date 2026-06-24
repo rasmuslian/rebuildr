@@ -153,7 +153,11 @@ export const ProductMobile = ({
         }
         style={{ gap: 24, marginTop: 8 }}
       >
-        <ImageCarousel images={product.images} status={product.status} />
+        <ImageCarousel
+          images={product.images}
+          status={product.status}
+          productTitle={product.title}
+        />
         <MainContent
           product={product}
           brand={product.brand}

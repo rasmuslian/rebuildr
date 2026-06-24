@@ -37,6 +37,7 @@ export default function HeroDesktop({
       >
         <Headline
           size="medium"
+          heading={1}
           style={{
             color: colors.logo.background,
             paddingBottom: 24,
