@@ -840,10 +840,6 @@ export type GetShippingPriceInput = {
   id: Scalars['String']['input'];
 };
 
-export type GetSimilarSearchResultsInput = {
-  searchString: Scalars['String']['input'];
-};
-
 export type GetTransportationOptionsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   postCode?: InputMaybe<Scalars['String']['input']>;
@@ -1720,6 +1716,7 @@ export type ProductsInput = {
   maxPrice?: InputMaybe<Scalars['Float']['input']>;
   minPrice?: InputMaybe<Scalars['Float']['input']>;
   orderBy?: InputMaybe<OrderProductsEnum>;
+  onlyPublished?: InputMaybe<Scalars['Boolean']['input']>;
   pickup?: InputMaybe<Scalars['Boolean']['input']>;
   projectId?: InputMaybe<Scalars['String']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
@@ -1904,7 +1901,6 @@ export type Query = {
   getSearchResults: Array<SearchResult>;
   getShippingOptions: Array<ShippingOptionResponse>;
   getShippingPrice: ShippingPrice;
-  getSimilarSearchResults: Array<SearchResult>;
   getUnreadConversationsCount: Scalars['Int']['output'];
   latestPurchase?: Maybe<Purchase>;
   listArticles: ListArticlesResponse;
@@ -2083,11 +2079,6 @@ export type QueryGetShippingOptionsArgs = {
 
 export type QueryGetShippingPriceArgs = {
   input: GetShippingPriceInput;
-};
-
-
-export type QueryGetSimilarSearchResultsArgs = {
-  input: GetSimilarSearchResultsInput;
 };
 
 

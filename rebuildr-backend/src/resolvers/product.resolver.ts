@@ -58,7 +58,7 @@ import { minimumProductPrice } from 'src/constants/pricing';
 import { FileInputType } from './file.resolver';
 import { AIService } from 'src/services/ai.service';
 import { ShippingPriceService } from 'src/services/shipping-price.service';
-import { SearchEnrichmentBackfillService } from 'src/services/search-enrichment-backfill.service';
+import { SearchEnrichmentService } from 'src/services/search-enrichment.service';
 import { BadUserInputException } from 'src/exceptions';
 
 export enum OrderProductsEnum {
@@ -338,6 +338,9 @@ export class ProductsInput {
 
   @Field({ nullable: true })
   excludeOwnProducts?: boolean;
+
+  @Field({ nullable: true })
+  onlyPublished?: boolean;
 }
 
 @ObjectType()
@@ -699,7 +702,7 @@ export class ProductResolver {
     private eventService: EventService,
     private aiService: AIService,
     private shippingPriceService: ShippingPriceService,
-    private searchEnrichmentBackfillService: SearchEnrichmentBackfillService,
+    private searchEnrichmentService: SearchEnrichmentService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -810,7 +813,7 @@ export class ProductResolver {
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
   async cmsSearchEnrichmentBackfillStatus(): Promise<CmsSearchEnrichmentBackfillStatus> {
-    return this.searchEnrichmentBackfillService.getStatus();
+    return this.searchEnrichmentService.getStatus();
   }
 
   @Mutation(() => CmsCreateProductResponse)
@@ -858,7 +861,7 @@ export class ProductResolver {
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
   async cmsBackfillSearchEnrichment(): Promise<CmsSearchEnrichmentBackfillStatus> {
-    return this.searchEnrichmentBackfillService.startBackfill();
+    return this.searchEnrichmentService.startBackfill();
   }
 
   @Mutation(() => Product)

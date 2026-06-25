@@ -148,7 +148,6 @@ import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
 import { BygghjalpenController } from './controllers/bygghjalpen.controller';
 import { BygghjalpenService } from './services/bygghjalpen.service';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
-import { SearchEnrichmentBackfillService } from './services/search-enrichment-backfill.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -377,7 +376,6 @@ export interface RequestType {
     StatisticsService,
     BygghjalpenService,
     SearchEnrichmentService,
-    SearchEnrichmentBackfillService,
   ],
 })
 export class AppModule {}

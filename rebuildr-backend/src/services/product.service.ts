@@ -74,7 +74,6 @@ const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
 
 interface FindProductsQueryOptions {
   excludeProductIds?: string[];
-  ignoreDistance?: boolean;
   ignoreTransportation?: boolean;
   searchRankThreshold?: number;
 }
@@ -709,7 +708,9 @@ export class ProductService {
     options: FindProductsQueryOptions = {},
   ) {
     qb.andWhere(
-      `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
+      input.onlyPublished
+        ? `${productAlias}.status = 'PUBLISHED'`
+        : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
@@ -901,7 +902,7 @@ export class ProductService {
     }
     if (origin !== undefined) {
       //If distance is included, only select products whose distance to origin is less than input.distance
-      if (input.distance && !options.ignoreDistance) {
+      if (input.distance) {
         //convert from km to meters
         const distance = input.distance;
 
@@ -1011,7 +1012,6 @@ export class ProductService {
 
     return this.findAll(relaxedInput, _limit, offset, currentUserId, {
       excludeProductIds,
-      ignoreDistance: true,
       ignoreTransportation: true,
       searchRankThreshold: RELATED_PRODUCT_SEARCH_RANK_THRESHOLD,
     });

@@ -936,7 +936,6 @@ type Query {
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
-  getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   searchSuggestions(input: GetSearchSuggestionsInput!): [SearchSuggestion!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
@@ -1012,6 +1011,7 @@ input ProductsInput {
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
+  onlyPublished: Boolean
 }
 
 enum OrderProductsEnum {
@@ -1186,10 +1186,6 @@ input GetShippingPriceInput {
 input GetSearchResultsInput {
   page: Int!
   pageSize: Int!
-}
-
-input GetSimilarSearchResultsInput {
-  searchString: String!
 }
 
 input GetSearchSuggestionsInput {

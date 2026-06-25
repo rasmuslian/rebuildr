@@ -77,7 +77,7 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
       doSearch({
         variables: {
           searchSuggestionsInput: { searchString, limit: 8 },
-          productsInput: { searchString },
+          productsInput: { searchString, onlyPublished: true },
           categoriesInput: {},
           usersInput: { name: searchString },
         },
