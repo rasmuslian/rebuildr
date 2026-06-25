@@ -17,6 +17,7 @@ import { Header } from "@components/navigation/headers/header";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import ParseHtml from "@components/article/parse-html";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const PARTNERS_PAGE = gql`
   query PartnersPage($page: String!) {
@@ -69,6 +70,7 @@ export default function Partners() {
               >
                 <Image
                   source={p.logo.url}
+                  alt={`${p.name} – partner till RebuildR`}
                   style={{
                     height: "100%",
                     width: "100%",
@@ -101,25 +103,38 @@ export default function Partners() {
     </>
   );
 
+  const head = (
+    <RebuildrHead
+      title="Partners"
+      description="RebuildR samarbetar med partners inom återbrukat byggmaterial. Upptäck företagen som driver återbruk i byggbranschen framåt."
+    />
+  );
+
   if (isDesktop) {
     return (
-      <ScreenLayout
-        headerComponent={<TopBar theme="light" />}
-        style={{ width: 720, alignSelf: "center" }}
-      >
-        {content}
-      </ScreenLayout>
+      <>
+        {head}
+        <ScreenLayout
+          headerComponent={<TopBar theme="light" />}
+          style={{ width: 720, alignSelf: "center" }}
+        >
+          {content}
+        </ScreenLayout>
+      </>
     );
   }
 
   return (
-    <ScreenLayout
-      loading={loading}
-      headerComponent={
-        <Header title="Hem" onBack={() => router.replace("/")} />
-      }
-    >
-      {content}
-    </ScreenLayout>
+    <>
+      {head}
+      <ScreenLayout
+        loading={loading}
+        headerComponent={
+          <Header title="Hem" onBack={() => router.replace("/")} />
+        }
+      >
+        {content}
+      </ScreenLayout>
+    </>
   );
 }

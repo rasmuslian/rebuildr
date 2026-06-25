@@ -122,7 +122,10 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
 
   return (
     <>
-      <RebuildrHead title="Sök produkter" />
+      <RebuildrHead
+        title={title ?? "Sök produkter"}
+        description={`${title ?? "Sök produkter"} – bläddra och sök bland återbrukat byggmaterial på RebuildR.`}
+      />
 
       {isDesktop ? (
         <>
@@ -147,7 +150,9 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
 
               {title && (
                 <View style={{ marginBottom: 24 }}>
-                  <Display size="small">{title}</Display>
+                  <Display size="small" heading={1}>
+                    {title}
+                  </Display>
                 </View>
               )}
 
@@ -272,7 +277,9 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
 
           {title && (
             <View style={{ marginBottom: 24 }}>
-              <Display size="small">{title}</Display>
+              <Display size="small" heading={1}>
+                {title}
+              </Display>
             </View>
           )}
 

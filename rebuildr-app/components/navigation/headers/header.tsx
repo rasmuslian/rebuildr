@@ -16,6 +16,8 @@ type Props = {
   middle?: ReactElement;
   showDivider?: boolean;
   ctaRowMarginRight?: number;
+  /** When set, renders the title as a semantic heading of this level (SEO). */
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 } & PropsWithChildren;
 
 export const Header = ({
@@ -27,6 +29,7 @@ export const Header = ({
   middle,
   showDivider = true,
   ctaRowMarginRight,
+  headingLevel,
 }: Props) => {
   const colors = useThemeColor();
 
@@ -66,7 +69,11 @@ export const Header = ({
           />
         )}
         {title && (
-          <Title size="medium" style={{ marginVertical: 8 }}>
+          <Title
+            size="medium"
+            style={{ marginVertical: 8 }}
+            heading={headingLevel}
+          >
             {title}
           </Title>
         )}

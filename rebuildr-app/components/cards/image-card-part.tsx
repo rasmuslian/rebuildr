@@ -9,6 +9,7 @@ type Props = {
   sold: boolean;
   position: "left" | "up" | "down" | "full";
   imageAspectRatio?: number;
+  alt?: string;
 };
 
 export const ImageCardPart = ({
@@ -16,6 +17,7 @@ export const ImageCardPart = ({
   position,
   sold,
   imageAspectRatio = 1,
+  alt,
 }: Props) => {
   let borderStyle = {};
   if (position === "down") {
@@ -47,6 +49,7 @@ export const ImageCardPart = ({
           source={{
             uri: imageUrl,
           }}
+          alt={alt}
           style={{
             aspectRatio: imageAspectRatio,
             flexGrow: 1,
