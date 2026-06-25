@@ -145,6 +145,9 @@ import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
 import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
 import { BygghjalpenController } from './controllers/bygghjalpen.controller';
 import { BygghjalpenService } from './services/bygghjalpen.service';
+import { BankIDResolver } from './resolvers/bankid.resolver';
+import { BankIDService } from './services/bankid.service';
+import { Identity } from './entities/identity.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -206,6 +209,7 @@ export interface RequestType {
       NewsletterCompetition,
       BygghjalpenChat,
       BygghjalpenMessage,
+      Identity,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -370,6 +374,8 @@ export interface RequestType {
     StatisticsResolver,
     StatisticsService,
     BygghjalpenService,
+    BankIDResolver,
+    BankIDService,
   ],
 })
 export class AppModule {}

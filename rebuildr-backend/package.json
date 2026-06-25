@@ -53,6 +53,7 @@
     "@sentry/profiling-node": "^10.22.0",
     "@types/mailchimp__mailchimp_marketing": "^3.0.21",
     "ai": "^6.0.202",
+    "bankid": "^3.2.1",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.7.6",
     "class-transformer": "^0.5.1",

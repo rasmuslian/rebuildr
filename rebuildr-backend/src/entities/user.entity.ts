@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   ManyToMany,
+  ManyToOne,
   JoinTable,
   OneToOne,
   JoinColumn,
@@ -21,6 +22,7 @@ import { File } from './file.entity';
 import { Review } from './review.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
+import { Identity } from './identity.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -220,4 +222,11 @@ export class User {
   })
   @JoinColumn()
   mapPin?: MapPin;
+
+  @Column({ nullable: true })
+  identityId?: string;
+
+  @ManyToOne(() => Identity, (identity) => identity.users, { nullable: true })
+  @JoinColumn()
+  identity?: Identity;
 }

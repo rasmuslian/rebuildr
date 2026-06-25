@@ -1,5 +1,5 @@
 import { ProductStatusEnum } from "@/gql/graphql";
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useEditProductContext } from "@context/edit-product-context";
@@ -7,10 +7,11 @@ import { LoginModalContext } from "@context/loginModalContext";
 import { useScreenType } from "@hooks/useScreenType";
 import { useUser } from "@hooks/useUser";
 import { router, useLocalSearchParams } from "expo-router";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { View } from "react-native";
 import { trackEvent } from "@/utils/analytics";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { VerifyMeBottomSheet } from "@components/verify-me/verify-me-bottomsheet";
 
 const ACTION_SECTION_REDIRECT = gql`
   query ActionSectionRedirect($input: MyPurchaseInput!) {
@@ -38,7 +39,8 @@ export const ActionSection = ({
   buyButtonDisabled,
   onRemovePress,
 }: Props) => {
-  const { isLoggedIn } = useUser();
+  const [showVerifyMe, setShowVerifyMe] = useState(false);
+  const { me, isLoggedIn, refetch: refetchMe, loading: loadingMe } = useUser();
   const { setVisible } = useContext(LoginModalContext);
   const { editProduct } = useEditProductContext();
   const { isMobile } = useScreenType();
@@ -109,10 +111,16 @@ export const ActionSection = ({
           {status === ProductStatusEnum.Published && (
             <Button
               label="Köp nu"
+              loading={loadingMe}
               onPress={() => {
                 trackEvent(GTMTagEnum.BEGIN_CHECKOUT, { item_id: productId });
                 if (!isLoggedIn) {
                   setVisible(true);
+                  return;
+                }
+                if (!me) return;
+                if (!me.isVerified) {
+                  setShowVerifyMe(true);
                   return;
                 }
                 if (isMobile) {
@@ -149,6 +157,18 @@ export const ActionSection = ({
           />
         </>
       )}
+      <VerifyMeBottomSheet
+        show={showVerifyMe}
+        onDismiss={() => setShowVerifyMe(false)}
+        onResult={async () => {
+          await refetchMe();
+          setShowVerifyMe(false);
+          router.navigate({
+            pathname: "/buy/[productId]",
+            params: { productId, quantity },
+          });
+        }}
+      />
     </View>
   );
 };

@@ -204,6 +204,7 @@ type User {
   totalCO2SavingsSeller: Float!
   numberOfCompletedPurchases: Int!
   sellerAccount: SellerAccount
+  isVerified: Boolean!
 }
 
 enum UserRoleEnum {
@@ -849,6 +850,22 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
+type InitBankIDVerifyResponse {
+  orderRef: String!
+  autoStartToken: String!
+}
+
+type CollectBankIDVerifyResponse {
+  status: BankIDVerifyStatus!
+  qrData: String
+}
+
+enum BankIDVerifyStatus {
+  pending
+  complete
+  failed
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -917,6 +934,7 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
 }
 
 input UserExistsInput {
@@ -1284,6 +1302,7 @@ type Mutation {
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
+  initBankIDVerify: InitBankIDVerifyResponse!
 }
 
 input RegisterUserInput {
