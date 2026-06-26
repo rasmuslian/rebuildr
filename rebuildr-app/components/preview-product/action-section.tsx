@@ -161,8 +161,8 @@ export const ActionSection = ({
         show={showVerifyMe}
         onDismiss={() => setShowVerifyMe(false)}
         onResult={async () => {
-          await refetchMe();
           setShowVerifyMe(false);
+          await refetchMe();
           router.navigate({
             pathname: "/buy/[productId]",
             params: { productId, quantity },
