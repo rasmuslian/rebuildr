@@ -50,16 +50,39 @@ function send(res, file, code = 200) {
   fs.createReadStream(file).pipe(res);
 }
 
+// For dynamic routes like /product/abc123, find the [param].html template in the
+// parent directory so React hydrates from the right shell, not the homepage shell.
+function tryDynamicTemplate(p) {
+  const parts = p.split("/").filter(Boolean);
+  for (let i = parts.length; i > 0; i--) {
+    const parentDir = path.join(DIST, ...parts.slice(0, i - 1));
+    try {
+      const entries = fs.readdirSync(parentDir);
+      const tmpl = entries.find((e) => /^\[.+\]\.html$/.test(e));
+      if (tmpl) {
+        const candidate = path.join(parentDir, tmpl);
+        if (fs.statSync(candidate).isFile()) return candidate;
+      }
+    } catch {
+      // directory doesn't exist
+    }
+  }
+  return null;
+}
+
 // File-first static server with SPA fallback.
 // Prerendered routes (e.g. /article/<slug>) are served as real HTML so crawlers
 // see per-page content + self-canonical. Client-only dynamic routes (products,
 // buy, account, conversations, categories ...) have no prerendered file and fall
-// back to index.html so the app boots and renders them client-side.
+// back to their [param].html template so React hydrates without a mismatch.
 http
   .createServer((req, res) => {
     const p = decodeURIComponent((req.url || "/").split("?")[0]);
     const file =
-      tryFile(p) || tryFile(p + ".html") || tryFile(path.join(p, "index.html"));
+      tryFile(p) ||
+      tryFile(p + ".html") ||
+      tryFile(path.join(p, "index.html")) ||
+      tryDynamicTemplate(p);
     if (file) return send(res, file);
     // Missing asset (has a file extension) -> real 404, not the app shell.
     if (/\.[a-z0-9]+$/i.test(p)) {
