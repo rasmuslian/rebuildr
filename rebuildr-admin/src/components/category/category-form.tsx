@@ -129,6 +129,28 @@ const CategoryForm = ({
 
       <Controller
         control={control}
+        name="searchAliases"
+        render={({ field: { value, onChange } }) => (
+          <FormField label="Sökalias" error={errors.searchAliases?.message}>
+            <Input.TextArea
+              value={value?.join(", ")}
+              rows={3}
+              placeholder="Ex. såg, bågfil, handsåg"
+              onChange={(event) =>
+                onChange(
+                  event.target.value
+                    .split(",")
+                    .map((term) => term.trim())
+                    .filter(Boolean),
+                )
+              }
+            />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
         name="parentId"
         render={({ field: { value, onChange } }) => (
           <FormField label="Huvudkategori" error={errors.parentId?.message}>

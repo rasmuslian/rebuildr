@@ -4,6 +4,7 @@ import React, {
   PropsWithChildren,
   Dispatch,
   useEffect,
+  useRef,
 } from "react";
 import { useReducerState } from "@hooks/useReducerState";
 import { DoSearchQuery, DoSearchQueryVariables } from "@/gql/graphql";
@@ -13,16 +14,27 @@ import { useDebounce } from "@hooks/use-debounce";
 
 type StateType = {
   dropdownVisible: boolean;
+  dropdownHideTopDivider: boolean;
   dropdownPosition: { x: number; y: number; width: number };
+  dropdownAnchorPosition: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   searchData?: DoSearchQuery;
   searchString?: string;
+  completedSearchString?: string;
 };
 
 const initialState: StateType = {
   dropdownVisible: false,
+  dropdownHideTopDivider: false,
   dropdownPosition: { x: 0, y: 0, width: 0 },
+  dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
   searchData: undefined,
   searchString: undefined,
+  completedSearchString: undefined,
 };
 
 type ContextType = {
@@ -36,29 +48,46 @@ const Context = createContext<ContextType | null>(null);
 
 export const SearchProvider = ({ children }: PropsWithChildren) => {
   const [state, setState] = useReducerState<StateType>(initialState);
+  const latestSearchStringRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!state.dropdownVisible) {
-      setState({ dropdownPosition: { x: 0, y: 0, width: 0 } });
+      setState({
+        dropdownHideTopDivider: false,
+        dropdownPosition: { x: 0, y: 0, width: 0 },
+        dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
+      });
     }
   }, [state.dropdownVisible]);
 
   const [doSearch] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
     DO_SEARCH,
-    {
-      onCompleted: (data) => {
-        setState({ searchData: data });
-      },
-    },
   );
 
   const search = useDebounce((text: string) => {
-    if (text.length > 0) {
+    const searchString = text.trim();
+    latestSearchStringRef.current = searchString || undefined;
+
+    setState({
+      searchData: undefined,
+      completedSearchString: undefined,
+    });
+
+    if (searchString.length > 0) {
       doSearch({
         variables: {
-          searchResultsInput: { searchString: text },
-          usersInput: { name: text },
+          searchSuggestionsInput: { searchString, limit: 8 },
+          productsInput: { searchString, onlyPublished: true },
+          categoriesInput: {},
+          usersInput: { name: searchString },
         },
+      }).then(({ data }) => {
+        if (!data || latestSearchStringRef.current !== searchString) return;
+
+        setState({
+          searchData: data,
+          completedSearchString: searchString,
+        });
       });
     }
   }, 300);

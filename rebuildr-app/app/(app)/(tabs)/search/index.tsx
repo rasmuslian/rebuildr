@@ -12,6 +12,8 @@ import { useUser } from "@hooks/useUser";
 export default function Search() {
   const { searchState } = useSearchContext();
   const { isLoggedIn } = useUser();
+  const searchString = searchState.searchString?.trim();
+  const searchCompleted = searchState.completedSearchString === searchString;
 
   const { data } = useQuery<SearchQuery, SearchQueryVariables>(SEARCH, {
     variables: {
@@ -33,10 +35,11 @@ export default function Search() {
         }
         style={{ gap: 16 }}
       >
-        {searchState.searchString ? (
+        {searchString ? (
           <SearchWithResults
-            data={searchState.searchData}
-            searchString={searchState.searchString}
+            data={searchCompleted ? searchState.searchData : undefined}
+            searchString={searchString}
+            searchCompleted={searchCompleted}
           />
         ) : (
           <SearchEmptyState data={data} />

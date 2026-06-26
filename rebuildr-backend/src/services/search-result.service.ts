@@ -3,10 +3,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { SearchResult } from 'src/entities/search-result.entity';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
-import {
-  CreateSearchResultInput,
-  GetSimilarSearchResultsInput,
-} from 'src/resolvers/search-result.resolver';
+import { CreateSearchResultInput } from 'src/resolvers/search-result.resolver';
 import { BadUserInputException } from 'src/exceptions';
 
 @Injectable()
@@ -66,15 +63,6 @@ export class SearchResultService {
       [userId],
     );
     return true;
-  }
-
-  async getSimilarSearchResults(input: GetSimilarSearchResultsInput) {
-    return await this.searchResultRepository
-      .createQueryBuilder('sr')
-      .select('DISTINCT ON (sr."searchString") sr.*')
-      .where(`sr."searchString" ILIKE :search`, { search: `%${input.searchString}%` })
-      .limit(5)
-      .getRawMany();
   }
 
   async getLatestSearch(userId: string): Promise<SearchResult> {

@@ -11,6 +11,7 @@ const query = `
       inSeason
       inSelection
       measurements
+      searchAliases
       parentId
       image {
         id

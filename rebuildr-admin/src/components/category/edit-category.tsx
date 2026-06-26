@@ -41,6 +41,7 @@ const EditCategory = ({ category }: Props) => {
       measurements: category.measurements,
       parentId: category.parentId ?? undefined,
       brandIds: category.brands.map((brand) => brand.id),
+      searchAliases: category.searchAliases ?? [],
     },
   });
 
