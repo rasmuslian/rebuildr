@@ -8,10 +8,13 @@ import {
   registerEnumType,
   Resolver,
 } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { ForbiddenException, UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { AuthedUserType } from 'src/auth/constants';
+import { UserRoleEnum } from 'src/entities/user.entity';
 import {
   BankIDService,
   BankIDVerifyStatusEnum,
@@ -60,5 +63,15 @@ export class BankIDResolver {
     @CurrentUser() user: AuthedUserType,
   ): Promise<CollectBankIDVerifyResponse> {
     return this.bankIDService.collectVerify(orderRef, user.id);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async resetUserIdentity(@Args('userId') userId: string): Promise<boolean> {
+    if (process.env.ADMIN_ENV !== 'staging') {
+      throw new ForbiddenException('Only available on staging');
+    }
+    return this.bankIDService.resetIdentity(userId);
   }
 }

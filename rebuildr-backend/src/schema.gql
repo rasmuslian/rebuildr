@@ -1297,6 +1297,7 @@ type Mutation {
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
   initBankIDVerify: InitBankIDVerifyResponse!
+  resetUserIdentity(userId: String!): Boolean!
 }
 
 input RegisterUserInput {

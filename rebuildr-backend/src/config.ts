@@ -21,6 +21,7 @@ const envSchema = z.object({
   BANKID_PFX_B64: z.string().optional(),
   BANKID_PASSPHRASE: z.string().optional(),
   SSN_HMAC_SECRET: z.string().optional(),
+  ADMIN_ENV: z.string().optional(),
 });
 export type EnvironmentVariables = z.infer<typeof envSchema>;
 

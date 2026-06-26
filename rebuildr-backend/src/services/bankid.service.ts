@@ -123,6 +123,26 @@ export class BankIDService {
     return `bankid.${entry.qrStartToken}.${elapsed}.${hash}`;
   }
 
+  async resetIdentity(userId: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: { identity: true },
+    });
+    if (!user?.identity) return false;
+
+    const identityId = user.identity.id;
+    await this.userRepository.update(userId, { identityId: null });
+
+    const remaining = await this.userRepository.count({
+      where: { identityId },
+    });
+    if (remaining === 0) {
+      await this.identityRepository.delete(identityId);
+    }
+
+    return true;
+  }
+
   private async linkIdentity(
     userId: string,
     personalNumber: string,
