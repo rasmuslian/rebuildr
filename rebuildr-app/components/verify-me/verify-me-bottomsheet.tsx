@@ -1,7 +1,9 @@
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
+import { Popup } from "@components/popup/popup";
 import { Body, Display, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useRef, useState } from "react";
@@ -42,6 +44,7 @@ type Step = "idle" | "waiting" | "qr" | "failed";
 
 export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const [step, setStep] = useState<Step>("idle");
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
@@ -138,13 +141,8 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
     onDismiss();
   };
 
-  return (
-    <BottomSheet
-      title="BankID-verifiering"
-      open={show}
-      name="BankID"
-      onDismiss={handleDismiss}
-    >
+  const content = (
+    <>
       {step === "idle" && (
         <>
           <Display size="small" style={{ marginBottom: 24 }}>
@@ -248,6 +246,25 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
           </View>
         </>
       )}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <Popup open={show} onClose={handleDismiss}>
+        <View style={{ padding: 24 }}>{content}</View>
+      </Popup>
+    );
+  }
+
+  return (
+    <BottomSheet
+      title="BankID-verifiering"
+      open={show}
+      name="BankID"
+      onDismiss={handleDismiss}
+    >
+      {content}
     </BottomSheet>
   );
 };
