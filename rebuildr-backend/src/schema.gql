@@ -204,6 +204,7 @@ type User {
   totalCO2SavingsSeller: Float!
   numberOfCompletedPurchases: Int!
   sellerAccount: SellerAccount
+  isVerified: Boolean!
 }
 
 enum UserRoleEnum {
@@ -619,11 +620,6 @@ type CmsCreateFilesResponse {
   presignedPutUrls: [String!]!
 }
 
-type CreateProductResponse {
-  product: Product!
-  presignedPutUrls: [String!]!
-}
-
 type UpdateProductResponse {
   product: Product!
   imagePutUrls: [String!]!
@@ -886,6 +882,22 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
+type InitBankIDVerifyResponse {
+  orderRef: String!
+  autoStartToken: String!
+}
+
+type CollectBankIDVerifyResponse {
+  status: BankIDVerifyStatus!
+  qrData: String
+}
+
+enum BankIDVerifyStatus {
+  pending
+  complete
+  failed
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -956,6 +968,7 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
 }
 
 input UserExistsInput {
@@ -1270,7 +1283,6 @@ type Mutation {
   cmsUnhideProduct(productId: String!): Product!
   cmsBackfillSearchEnrichment: CmsSearchEnrichmentBackfillStatus!
   cmsDeleteProduct(productId: String!): Product!
-  createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
   setLikeProduct(input: SetLikeProductInput!): Product!
@@ -1326,6 +1338,8 @@ type Mutation {
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
+  initBankIDVerify: InitBankIDVerifyResponse!
+  resetUserIdentity(userId: String!): Boolean!
 }
 
 input RegisterUserInput {
@@ -1500,23 +1514,6 @@ input CmsUpdateProductInput {
   removeImages: [String!]
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
-}
-
-input CreateProductInput {
-  title: String!
-  categoryId: String!
-  price: Float!
-  address: String!
-  images: [FileInputType!]
-  isGiveaway: Boolean
-  brandId: String
-  amount: Float
-  height: Float
-  width: Float
-  depth: Float
-  volume: Float
-  condition: ProductConditionEnum!
-  description: String
 }
 
 input UpdateProductInput {

@@ -410,6 +410,10 @@ export class UserService {
     }
   }
 
+  isVerified(user: User) {
+    return !!user.identityId;
+  }
+
   /**
    * Deletes user.
    * Does not remove it from database but instead anonymizes the user's data
