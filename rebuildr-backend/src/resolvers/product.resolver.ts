@@ -28,10 +28,8 @@ import {
 } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
-import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { CategoryService } from 'src/services/category.service';
 import { ProductService } from 'src/services/product.service';
-import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
@@ -74,75 +72,6 @@ registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 export class AnalyzeProductImagesInput {
   @Field()
   productId: string;
-}
-
-@InputType()
-export class CreateProductInput {
-  @Field()
-  title: string;
-
-  @Field()
-  categoryId: string;
-
-  @Field()
-  price: number;
-
-  @Field(() => String)
-  address: string;
-
-  @Field(() => [FileInputType], { nullable: true })
-  images?: FileInputType[];
-
-  @Field(() => Boolean, { nullable: true })
-  isGiveaway?: boolean;
-
-  @Field(() => String, { nullable: true })
-  brandId?: string;
-
-  @Field({ nullable: true })
-  amount?: number;
-
-  @Field({ nullable: true })
-  height?: number;
-
-  @Field({ nullable: true })
-  width?: number;
-
-  @Field({ nullable: true })
-  depth?: number;
-
-  @Field({ nullable: true })
-  volume?: number;
-
-  @Field(() => ProductConditionEnum)
-  condition: ProductConditionEnum;
-
-  @Field(() => String, { nullable: true })
-  description?: string;
-}
-const createProductSchema = z.object({
-  title: z.string(),
-  categoryId: z.string(),
-  price: z.number(),
-  address: z.string(),
-  images: z.array(z.object({ mimeType: z.string() })).optional(),
-  isGiveaway: z.boolean().optional(),
-  brandId: z.string().optional(),
-  amount: z.number().optional(),
-  height: z.number().optional(),
-  width: z.number().optional(),
-  depth: z.number().optional(),
-  volume: z.number().optional(),
-  condition: z.nativeEnum(ProductConditionEnum),
-  description: z.string().optional(),
-});
-@ObjectType()
-export class CreateProductResponse {
-  @Field(() => Product)
-  product: Product;
-
-  @Field(() => [String])
-  presignedPutUrls: string[];
 }
 
 @InputType()
@@ -776,19 +705,6 @@ export class ProductResolver {
     @Args('productId') productId: string,
   ): Promise<Product> {
     return this.productService.cmsDeleteProduct(productId);
-  }
-
-  @Mutation(() => CreateProductResponse)
-  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
-  async createProduct(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input', new ZodValidationPipe(createProductSchema))
-    input: CreateProductInput,
-  ) {
-    return this.productService.create({
-      ...input,
-      userId: _user.id,
-    });
   }
 
   @Mutation(() => Product)

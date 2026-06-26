@@ -1,11 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import {
-  Product,
-  ProductConditionEnum,
-  ProductStatus,
-} from 'src/entities/product.entity';
+import { Product, ProductStatus } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   BadField,
@@ -22,7 +18,6 @@ import {
   CmsListProductsResponse,
   CmsUpdateProductInput,
   CmsUpdateProductResponse,
-  CreateProductResponse,
   GetTransportationOptionsInput,
   OrderProductsEnum,
   PaginatedProductsResponse,
@@ -43,7 +38,6 @@ import {
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { PurchaseService } from './purchase.service';
-import { QuantityUnitEnum } from 'src/constants/enums';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import { Logger } from 'winston';
 import * as z from 'zod';
@@ -97,72 +91,6 @@ export class ProductService {
     private shippingPriceService: ShippingPriceService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
-
-  async create(input: {
-    title: string;
-    categoryId: string;
-    userId: string;
-    price: number;
-    address: string;
-    images?: FileInputType[];
-    isGiveaway?: boolean;
-    brand?: string;
-    amount?: number;
-    height?: number;
-    width?: number;
-    depth?: number;
-    volume?: number;
-    condition: ProductConditionEnum;
-    description?: string;
-  }): Promise<CreateProductResponse> {
-    const product = new Product();
-
-    const category = await this.categoryRepository.findOneBy({
-      id: input.categoryId,
-    });
-    if (!category) {
-      throw BadUserInputException('Invalid input');
-    }
-
-    const user = await this.userRepository.findOneBy({ id: input.userId });
-    if (!user) {
-      throw BadUserInputException('Invalid input');
-    }
-
-    product.title = input.title;
-    product.category = category;
-    product.seller = user;
-    product.price = input.price;
-    product.address = input.address;
-    product.isGiveaway = input.isGiveaway;
-    product.primaryQuantity = input.amount;
-    product.primaryUnit = QuantityUnitEnum.AMOUNT;
-    product.height = input.height;
-    product.width = input.width;
-    product.thickness = input.depth;
-    product.condition = input.condition;
-    product.description = input.description;
-    const location = await this.geocodingService.addressToLocation(
-      input.address,
-    );
-    product.addressLocation = {
-      type: 'Point',
-      coordinates: [location.lat, location.lng],
-    };
-    const images = await Promise.all(
-      input.images?.map((image) => {
-        return this.fileService.createFile({ mimeType: image.mimeType });
-      }) ?? [],
-    );
-
-    product.images = images;
-    const createdProduct = await this.productRepository.save(product);
-
-    return {
-      product: createdProduct,
-      presignedPutUrls: await this.fileService.uploadFiles(images, true),
-    };
-  }
 
   async getDraft(currentUserId: string) {
     return await this.productRepository.findOne({

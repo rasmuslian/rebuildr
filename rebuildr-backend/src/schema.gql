@@ -573,11 +573,6 @@ type ServicePointResponse {
   city: String!
 }
 
-type CreateProductResponse {
-  product: Product!
-  presignedPutUrls: [String!]!
-}
-
 type UpdateProductResponse {
   product: Product!
   imagePutUrls: [String!]!
@@ -1246,7 +1241,6 @@ type Mutation {
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!
   cmsUnhideProduct(productId: String!): Product!
   cmsDeleteProduct(productId: String!): Product!
-  createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
   setLikeProduct(input: SetLikeProductInput!): Product!
@@ -1471,23 +1465,6 @@ input CmsUpdateProductInput {
   removeImages: [String!]
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
-}
-
-input CreateProductInput {
-  title: String!
-  categoryId: String!
-  price: Float!
-  address: String!
-  images: [FileInputType!]
-  isGiveaway: Boolean
-  brandId: String
-  amount: Float
-  height: Float
-  width: Float
-  depth: Float
-  volume: Float
-  condition: ProductConditionEnum!
-  description: String
 }
 
 input UpdateProductInput {

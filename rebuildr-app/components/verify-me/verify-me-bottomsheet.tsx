@@ -110,10 +110,6 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
       Linking.openURL(
         `bankid:///?autostarttoken=${autoStartToken}&redirect=null`,
       );
-      // const redirectUrl = encodeURIComponent(window.location.href);
-      // Linking.openURL(
-      //   `bankid:///?autostarttoken=${autoStartToken}&redirect=${redirectUrl}`,
-      // );
     } catch {
       setStep("failed");
     }
