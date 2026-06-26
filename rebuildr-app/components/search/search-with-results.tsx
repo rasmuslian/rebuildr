@@ -1,32 +1,76 @@
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { Pressable, ScrollView, View } from "react-native";
+
 import { DoSearchQuery, UserType } from "@/gql/graphql";
+import { capitalFirstLetter, formatPrice } from "@/utils/formattings";
+import PlaceholderCategory from "@assets/images/category-placeholder.jpeg";
+import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { Avatar } from "@components/avatar/avatar";
 import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { dividerStyles } from "@components/dividers/divider";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Headline, Label, Title } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import { useSearchContext } from "@context/search-context";
+import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
-import { router } from "expo-router";
-import { Pressable, View } from "react-native";
-import { useFilterProduct } from "@hooks/useFilterProduct";
-import { useSearchContext } from "@context/search-context";
-import { capitalFirstLetter } from "@/utils/formattings";
 
 type Props = {
   data: DoSearchQuery | undefined;
   searchString?: string;
+  searchCompleted?: boolean;
   size?: "small" | "large";
 };
 
 export const SearchWithResults = ({
   data,
   searchString,
+  searchCompleted = false,
   size = "large",
 }: Props) => {
   const { filterBuilder } = useFilterProduct();
   const searchContext = useSearchContext();
 
   const colors = useThemeColor();
+  const normalizedSearchString = searchString?.trim().toLocaleLowerCase() ?? "";
+  const searchSuggestions = data?.searchSuggestions ?? [];
+  const products = data?.products.products ?? [];
+  const categoryMatches = (data?.getCategories ?? [])
+    .filter((category) =>
+      category.name.toLocaleLowerCase().includes(normalizedSearchString),
+    )
+    .slice(0, 5);
+  const exactUsers = (data?.users.users ?? []).filter(
+    (user) =>
+      user.username?.toLocaleLowerCase() === normalizedSearchString ||
+      user.name?.trim().toLocaleLowerCase() === normalizedSearchString,
+  );
+  const hasAnyResult =
+    !!searchSuggestions.length ||
+    !!products.length ||
+    !!categoryMatches.length ||
+    !!exactUsers.length;
+  const showSuggestions =
+    !!searchSuggestions.length || (searchCompleted && !hasAnyResult);
+  const visibleSections = [
+    showSuggestions,
+    !!products.length,
+    !!categoryMatches.length,
+    !!exactUsers.length,
+  ];
+
+  const hasSectionAfter = (index: number) => {
+    return visibleSections.slice(index + 1).some(Boolean);
+  };
+
+  const sectionStyle = (index: number, paddingBottom = 16) => [
+    { gap: 12, paddingBottom },
+    hasSectionAfter(index) && dividerStyles(colors).bottomDivider,
+  ];
+
   const Header = ({ children }: { children: React.ReactNode }) => {
     if (size === "large") {
       return <Headline size="small">{children}</Headline>;
@@ -34,136 +78,242 @@ export const SearchWithResults = ({
       return <Title size="medium">{children}</Title>;
     }
   };
+
+  const openSearchResults = () => {
+    filterBuilder.setSearchString(searchString ?? "").apply();
+    searchContext.setSearchState({ dropdownVisible: false });
+    router.navigate("/search/products");
+  };
+
+  const openSearchTerm = (searchTerm: string) => {
+    filterBuilder.setSearchString(searchTerm).apply();
+    searchContext.setSearchState({
+      dropdownVisible: false,
+      searchString: searchTerm,
+    });
+    searchContext.search(searchTerm);
+    router.navigate("/search/products");
+  };
+
+  const openSearchSuggestion = (
+    suggestion: NonNullable<DoSearchQuery["searchSuggestions"]>[number],
+  ) => {
+    openSearchTerm(suggestion.label);
+  };
+
+  if (!searchCompleted) {
+    return (
+      <LoadingSpinner style={{ minHeight: size === "large" ? 160 : 96 }} />
+    );
+  }
+
   return (
     <>
-      <View
-        style={[
-          {
-            gap: 12,
-            paddingBottom: data?.getSimilarSearchResults?.length ? 16 : 12,
-          },
-          dividerStyles(colors).bottomDivider,
-        ]}
-      >
-        <View>
-          <Header>Andra söker efter</Header>
-          {!data?.getSimilarSearchResults?.length && (
-            <View>
-              <Body size="medium">
-                Ojdå, vi kunde inte hitta några annonser som matchar '
-                {searchString}'.
-              </Body>
-              <View
-                style={{ flexShrink: 1, marginTop: 12, flexDirection: "row" }}
-              >
-                <Button
-                  onPress={() => {
-                    router.navigate("/search");
-                  }}
-                  label="Sök igen"
-                />
+      {showSuggestions && (
+        <View style={sectionStyle(0, searchSuggestions.length ? 16 : 12)}>
+          <Header>Sökförslag</Header>
+          {searchSuggestions.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: "row", gap: 8, paddingRight: 16 }}>
+                {searchSuggestions.map((suggestion, i) => (
+                  <Pressable
+                    key={i}
+                    onPress={() => openSearchSuggestion(suggestion)}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        borderRadius: borderRadius.medium,
+                        backgroundColor: colors.background.secondary,
+                      }}
+                    >
+                      <Icon icon="search" size={16} />
+                      <Label size="large">
+                        {capitalFirstLetter(suggestion.label)}
+                      </Label>
+                    </View>
+                  </Pressable>
+                ))}
               </View>
-            </View>
-          )}
-        </View>
-        <View style={{ gap: 16 }}>
-          {data?.getSimilarSearchResults?.map((searchResult, i) => (
-            <Pressable
-              key={i}
-              onPress={() => {
-                filterBuilder
-                  .reset()
-                  .setSearchString(searchResult.searchString)
-                  .apply();
-                searchContext.setSearchState({
-                  dropdownVisible: false,
-                  searchString: searchResult.searchString,
-                });
-                searchContext.search(searchResult.searchString);
-                router.navigate("/search/products");
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View>
-                  <Label size="large">
-                    {capitalFirstLetter(searchResult.searchString)}
-                  </Label>
-                  <Body size="small">
-                    {searchResult.count}{" "}
-                    {searchResult.count === 1 ? "träff" : "träffar"}
-                  </Body>
-                </View>
-                <Icon icon="search" size={18} />
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-      <View style={{ paddingVertical: 0 }}>
-        <Header>Säljare</Header>
-        {!data?.users.users.length && (
-          <View>
+            </ScrollView>
+          ) : (
             <Body size="medium">
-              Hoppsan! Det verkar inte finnas någon säljare som heter '
+              Ojdå, vi kunde inte hitta några sökförslag som matchar '
               {searchString}'.
             </Body>
-          </View>
-        )}
-        <View style={{ marginTop: 12, gap: 16 }}>
-          {data?.users.users.map((user, i) => (
-            <Pressable
-              key={i}
-              onPress={() => {
-                router.navigate({
-                  pathname: "/account/profile",
-                  params: { userId: user.id },
-                });
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 16,
+          )}
+        </View>
+      )}
+
+      {!!products.length && (
+        <View style={sectionStyle(1)}>
+          <Header>Annonser</Header>
+          <View style={{ gap: 12 }}>
+            {products.map((product, i) => (
+              <Pressable
+                key={i}
+                onPress={() => {
+                  searchContext.setSearchState({ dropdownVisible: false });
+                  router.navigate({
+                    pathname: "/product/[productId]",
+                    params: { productId: product.id },
+                  });
                 }}
               >
-                <Avatar
-                  placeholder={user.type}
-                  imageUrl={user.profilePicture?.url}
-                />
-                <View style={{ gap: 2, flex: 1 }}>
-                  <Label size="large">{user.username}</Label>
-                  <View
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <Image
+                    source={product.primaryImage?.url ?? PlaceholderProduct.uri}
                     style={{
-                      flexDirection: "row",
-                      gap: 2,
-                      alignItems: "center",
+                      width: 56,
+                      height: 56,
+                      borderRadius: borderRadius.small,
+                      backgroundColor: colors.background.secondary,
                     }}
-                  >
-                    {user.type === UserType.Business && (
-                      <View>
-                        <Badge size="medium" text="Företag" />
-                      </View>
-                    )}
-
-                    <Body size="small">
-                      {user.numberOfPublishedProducts} annonser •{" "}
-                      {user.numberOfSoldProducts} sålda
-                    </Body>
+                  />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Label size="large" numberOfLines={1}>
+                      {product.title}
+                    </Label>
+                    <Body size="small">{formatPrice(product.price)}</Body>
                   </View>
+                  <Icon icon="chevronRight" size={18} />
                 </View>
-                <Icon icon="search" size={18} />
-              </View>
-            </Pressable>
-          ))}
+              </Pressable>
+            ))}
+          </View>
+          <View style={{ width: "100%" }}>
+            <Button
+              label="Visa alla resultat"
+              type="tonal"
+              onPress={openSearchResults}
+              style={{
+                width: "100%",
+                backgroundColor: colors.background.secondary,
+              }}
+            />
+          </View>
         </View>
-      </View>
+      )}
+
+      {!!categoryMatches.length && (
+        <View style={sectionStyle(2)}>
+          <Header>Kategorier</Header>
+          <View style={{ gap: 12 }}>
+            {categoryMatches.map((category, i) => (
+              <Pressable
+                key={i}
+                onPress={() => {
+                  filterBuilder
+                    .setCategories([category])
+                    .setSearchString("")
+                    .apply();
+
+                  searchContext.setSearchState({
+                    dropdownVisible: false,
+                    searchString: undefined,
+                  });
+
+                  router.navigate({
+                    pathname: "/search/products/[categoryId]",
+                    params: { categoryId: category.id },
+                  });
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <Image
+                    source={category.image?.url ?? PlaceholderCategory.uri}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: borderRadius.small,
+                      backgroundColor: colors.background.secondary,
+                    }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Label size="large" numberOfLines={1}>
+                      {category.name}
+                    </Label>
+                  </View>
+                  <Icon icon="chevronRight" size={18} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {!!exactUsers.length && (
+        <View style={sectionStyle(3, 0)}>
+          <Header>Säljare</Header>
+          <View style={{ marginTop: 12, gap: 16 }}>
+            {exactUsers.map((user, i) => (
+              <Pressable
+                key={i}
+                onPress={() => {
+                  searchContext.setSearchState({ dropdownVisible: false });
+                  router.navigate({
+                    pathname: "/account/profile",
+                    params: { userId: user.id },
+                  });
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 16,
+                  }}
+                >
+                  <Avatar
+                    placeholder={user.type}
+                    imageUrl={user.profilePicture?.url}
+                  />
+                  <View style={{ gap: 2, flex: 1 }}>
+                    <Label size="large">
+                      {user.name?.trim() || user.username}
+                    </Label>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 2,
+                        alignItems: "center",
+                      }}
+                    >
+                      {user.type === UserType.Business && (
+                        <View>
+                          <Badge size="medium" text="Företag" />
+                        </View>
+                      )}
+
+                      <Body size="small">
+                        {user.numberOfPublishedProducts} annonser •{" "}
+                        {user.numberOfSoldProducts} sålda
+                      </Body>
+                    </View>
+                  </View>
+                  <Icon icon="search" size={18} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
     </>
   );
 };

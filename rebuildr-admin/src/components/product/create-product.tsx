@@ -45,6 +45,9 @@ const CreateProduct = () => {
       pricing: {
         isGiveaway: false,
       },
+      searchAliases: [],
+      searchRelatedTerms: [],
+      searchUseCases: [],
       soldByQuantity: false,
       color: {
         enabled: false,
@@ -114,6 +117,9 @@ const CreateProduct = () => {
     const newProduct: CmsCreateProductInput = {
       title: formData.title,
       description: formData.description,
+      searchAliases: formData.searchAliases,
+      searchRelatedTerms: formData.searchRelatedTerms,
+      searchUseCases: formData.searchUseCases,
       brandId: formData.brandId,
       categoryId: formData.categoryId,
       condition: formData.condition,

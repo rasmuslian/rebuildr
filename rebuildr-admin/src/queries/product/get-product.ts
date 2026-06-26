@@ -7,6 +7,9 @@ const query = `
       id
       title
       description
+      searchAliases
+      searchRelatedTerms
+      searchUseCases
       condition
       price
       isGiveaway

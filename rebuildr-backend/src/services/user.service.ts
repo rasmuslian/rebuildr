@@ -86,7 +86,16 @@ export class UserService {
     query.where('u."deletedAt" IS NULL');
 
     if (input.name) {
-      query.andWhere(`u.username ILIKE :name`, { name: `%${input.name}%` });
+      const exactName = input.name.trim();
+
+      query.andWhere(`(u.username ILIKE :name OR u.name ILIKE :name)`, {
+        name: `%${exactName}%`,
+      });
+      query.addOrderBy(
+        `CASE WHEN u.username ILIKE :exactName OR u.name ILIKE :exactName THEN 0 ELSE 1 END`,
+        'ASC',
+      );
+      query.setParameter('exactName', exactName);
     }
     if (input.hasProject) {
       query.andWhereExists(

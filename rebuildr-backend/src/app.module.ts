@@ -69,6 +69,8 @@ import { SearchResult } from './entities/search-result.entity';
 import { SearchResultLoader } from './dataloaders/search-result.loader';
 import { SearchResultService } from './services/search-result.service';
 import { SearchResultResolver } from './resolvers/search-result.resolver';
+import { SearchSuggestionResolver } from './resolvers/search-suggestion.resolver';
+import { SearchSuggestionService } from './services/search-suggestion.service';
 import { Review } from './entities/review.entity';
 import { ProjectLoader } from './dataloaders/project.loader';
 import { ReviewLoader } from './dataloaders/review.loader';
@@ -145,6 +147,7 @@ import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
 import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
 import { BygghjalpenController } from './controllers/bygghjalpen.controller';
 import { BygghjalpenService } from './services/bygghjalpen.service';
+import { SearchEnrichmentService } from './services/search-enrichment.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -331,6 +334,8 @@ export interface RequestType {
     ShippingPriceService,
     SearchResultService,
     SearchResultResolver,
+    SearchSuggestionService,
+    SearchSuggestionResolver,
     ReviewResolver,
     ReviewService,
     ShippingResolver,
@@ -370,6 +375,7 @@ export interface RequestType {
     StatisticsResolver,
     StatisticsService,
     BygghjalpenService,
+    SearchEnrichmentService,
   ],
 })
 export class AppModule {}
