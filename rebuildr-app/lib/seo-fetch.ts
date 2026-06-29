@@ -36,6 +36,7 @@ export type ArticleSummary = {
   slug: string;
   title: string;
   body: string;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -46,6 +47,7 @@ const LIST_ARTICLES = /* GraphQL */ `
         slug
         title
         body
+        createdAt
         updatedAt
       }
     }

@@ -42,10 +42,23 @@ function tryFile(rel) {
   return null;
 }
 
+// Content-hashed build output (/_expo/*, /assets/*) never changes for a given
+// filename → cache forever. HTML must always revalidate so deploys take effect.
+// Everything else (images, sitemap, robots) gets a modest TTL.
+function cacheControl(file) {
+  const rel = file.slice(DIST.length);
+  if (path.extname(file).toLowerCase() === ".html") return "no-cache";
+  if (rel.startsWith("/_expo/") || rel.startsWith("/assets/")) {
+    return "public, max-age=31536000, immutable";
+  }
+  return "public, max-age=3600";
+}
+
 function send(res, file, code = 200) {
   res.writeHead(code, {
     "Content-Type":
       MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
+    "Cache-Control": cacheControl(file),
   });
   fs.createReadStream(file).pipe(res);
 }

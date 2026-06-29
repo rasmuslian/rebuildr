@@ -3,10 +3,11 @@
  * via the build:web script). Files in public/ are copied to the export root, so
  * the result is served at /sitemap.xml.
  *
- * Includes static routes, all articles, and all PUBLISHED products. For a
- * marketplace the product count can be large, so when the total exceeds the
- * sitemaps.org limit (50 000 URLs / file) we automatically emit a sitemap INDEX
- * (sitemap.xml) pointing at chunked files (sitemap-1.xml, sitemap-2.xml, …).
+ * Includes static routes + indexable articles. Product listings are excluded
+ * (client-rendered, volatile, noindex). It also writes lib/articles-seo.generated.json
+ * (per-article title/description/body/dates) consumed by the article route's static
+ * render. When the URL count exceeds the sitemaps.org limit (50 000 URLs / file)
+ * we emit a sitemap INDEX (sitemap.xml) pointing at chunked files.
  *
  * Run with: tsx scripts/generate-sitemap.ts
  * (needs EXPO_PUBLIC_API_URL + EXPO_PUBLIC_SITE_URL in env — provided by op run).
@@ -14,15 +15,19 @@
 import { writeFileSync, readdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import {
-  fetchAllArticles,
-  fetchAllProducts,
-  htmlToExcerpt,
-} from "../lib/seo-fetch.ts";
+import { fetchAllArticles, htmlToExcerpt } from "../lib/seo-fetch.ts";
 import { SITE_URL } from "../lib/site-url.ts";
 
 // Stay safely under the 50 000-URL spec limit per file.
 const MAX_URLS_PER_FILE = 45000;
+
+// Internal/in-app CMS article slugs that should not be indexed as web pages
+// (in-app modal copy, legacy dumps, test content). Kept out of the sitemap.
+const isInternalSlug = (slug: string) =>
+  /^bottom-sheet-/.test(slug) ||
+  /^gamla-/.test(slug) ||
+  /^automatiserade-meddelanden/.test(slug) ||
+  /^testar-/.test(slug);
 
 // Public, indexable routes that always exist (mirrors the route inventory in the
 // SEO report). Private/auth routes are intentionally excluded.
@@ -81,41 +86,55 @@ async function main() {
 
   const entries: UrlEntry[] = STATIC_ROUTES.map((path) => ({
     loc: `${SITE_URL}${path}`,
-    changefreq: "weekly",
   }));
 
-  const seoMap: Record<string, { title: string; excerpt: string }> = {};
+  const seoMap: Record<
+    string,
+    {
+      title: string;
+      description: string;
+      body: string;
+      datePublished?: string;
+      dateModified?: string;
+    }
+  > = {};
 
   try {
     const articles = await fetchAllArticles();
+    let included = 0;
     for (const a of articles) {
+      // Always store the build-time SEO data so the article route can render the
+      // full body + per-article meta into the static HTML (even for internal
+      // articles that we keep out of the sitemap).
+      seoMap[a.slug] = {
+        title: a.title,
+        // Meta description: short (~155 chars) per best practice.
+        description: htmlToExcerpt(a.body, 155),
+        // Full HTML body: rendered server-side so crawlers/AI see real content.
+        body: a.body,
+        datePublished: a.createdAt,
+        dateModified: a.updatedAt,
+      };
+      // Keep internal/in-app CMS entries out of the sitemap (they exist only to
+      // power in-app modals/legacy screens, not as standalone web pages).
+      if (isInternalSlug(a.slug)) continue;
       entries.push({
         loc: `${SITE_URL}/article/${a.slug}`,
         lastmod: day(a.updatedAt),
-        changefreq: "monthly",
       });
-      seoMap[a.slug] = { title: a.title, excerpt: htmlToExcerpt(a.body) };
+      included += 1;
     }
-    console.log(`Sitemap: ${articles.length} articles`);
+    console.log(
+      `Sitemap: ${included} articles included (${articles.length - included} internal slugs skipped)`,
+    );
   } catch (err) {
     console.warn("Sitemap: could not fetch articles:", err);
   }
 
-  let productCount = 0;
-  try {
-    const products = await fetchAllProducts();
-    for (const p of products) {
-      entries.push({
-        loc: `${SITE_URL}/product/${p.id}`,
-        lastmod: day(p.updatedAt),
-        changefreq: "daily",
-      });
-    }
-    productCount = products.length;
-    console.log(`Sitemap: ${products.length} published products`);
-  } catch (err) {
-    console.warn("Sitemap: could not fetch products:", err);
-  }
+  // Product listings are intentionally NOT in the sitemap: they are client-
+  // rendered (no crawlable content) and volatile (sold/created constantly), so
+  // indexing them as empty shells hurts crawl quality. Product pages also carry
+  // <meta name="robots" content="noindex">. SEO focus is articles + categories.
 
   // Single file when small; sitemap index + chunks when large.
   if (entries.length <= MAX_URLS_PER_FILE) {
@@ -129,7 +148,7 @@ async function main() {
     });
     writeFileSync(join(publicDir, "sitemap.xml"), indexXml(files), "utf8");
     console.log(
-      `Wrote sitemap index (${files.length} files, ${entries.length} URLs total: ${STATIC_ROUTES.length} static + ${productCount} products + articles)`,
+      `Wrote sitemap index (${files.length} files, ${entries.length} URLs total)`,
     );
   }
 
