@@ -74,6 +74,7 @@ export const PROFILE_PRODUCTS = gql`
       products {
         id
         status
+        availability
         title
         price
         soldByQuantity

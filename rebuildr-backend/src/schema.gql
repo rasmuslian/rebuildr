@@ -399,6 +399,7 @@ type Product {
   availability: ProductAvailabilityEnum!
   estimatedAvailableAt: DateTime
   availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
@@ -1519,6 +1520,7 @@ input UpdateProductInput {
   availability: ProductAvailabilityEnum
   estimatedAvailableAt: DateTime
   availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]

@@ -13,6 +13,7 @@ export const SEARCH_PRODUCTS_QUERY = gql`
         id
         title
         status
+        availability
         price
         soldByQuantity
         condition

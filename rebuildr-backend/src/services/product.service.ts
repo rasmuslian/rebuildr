@@ -343,6 +343,9 @@ export class ProductService {
     if (input.availabilityPrecision !== undefined) {
       product.availabilityPrecision = input.availabilityPrecision;
     }
+    if (input.availableUntil !== undefined) {
+      product.availableUntil = input.availableUntil;
+    }
     //null means removing the brand
     if (!!input.brandId || input.brandId === null) {
       product.brandId = input.brandId;

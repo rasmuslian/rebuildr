@@ -1,4 +1,8 @@
-import { MyFavoritesQuery, MyFavoritesQueryVariables } from "@/gql/graphql";
+import {
+  MyFavoritesQuery,
+  MyFavoritesQueryVariables,
+  ProductAvailabilityEnum,
+} from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
 import { EmptyStateCard } from "@components/cards/empty-state-card";
 import { Header } from "@components/navigation/headers/header";
@@ -134,6 +138,8 @@ export default function Favorites() {
           products={
             (data?.me.likedProducts?.products ?? []).map((product) => ({
               id: product.id,
+              upcoming:
+                product.availability === ProductAvailabilityEnum.Upcoming,
               imageUri: product.primaryImage?.url,
               title: product.title,
               quantity: product.primaryQuantity,

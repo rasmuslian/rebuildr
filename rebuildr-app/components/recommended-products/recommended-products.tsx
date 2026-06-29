@@ -7,6 +7,7 @@ import {
   RecommendedProductsQuery,
   RecommendedProductsQueryVariables,
   ProductsRecommendationSourceEnum,
+  ProductAvailabilityEnum,
   Category,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
@@ -37,6 +38,7 @@ const RECOMMENDED_PRODUCTS = gql`
         id
         title
         status
+        availability
         price
         soldByQuantity
         condition
@@ -149,6 +151,9 @@ export function RecommendedProducts({ title, source }: Props) {
                 price={product.price}
                 soldByQuantity={product.soldByQuantity}
                 status={product.status}
+                upcoming={
+                  product.availability === ProductAvailabilityEnum.Upcoming
+                }
                 onHeartPress={() => {
                   onToggleProductHeart({
                     productId: product.id,

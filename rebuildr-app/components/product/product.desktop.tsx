@@ -64,6 +64,7 @@ type Props = {
     id: string;
     title: string;
     status: ProductStatusEnum;
+    availability: ProductAvailabilityEnum;
     likedByMe?: boolean | null;
     primaryQuantity?: number | null;
     primaryUnit?: QuantityUnitEnum | null;
@@ -155,7 +156,10 @@ export const ProductDesktop = ({
   }
 
   // Owner can convert a "coming soon" listing to available now.
-  if (isMyProduct && product.availability === ProductAvailabilityEnum.Upcoming) {
+  if (
+    isMyProduct &&
+    product.availability === ProductAvailabilityEnum.Upcoming
+  ) {
     ctas.push({
       label: "Markera som tillgänglig",
       loading: markAvailableLoading,

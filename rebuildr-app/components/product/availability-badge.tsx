@@ -17,6 +17,12 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
+/**
+ * On-brand "Snart till salu" status pill. Green = status (per the Rebuildr
+ * style reference); reserved purple is for actions, not status. Renders
+ * nothing for available listings. Shared across grid, detail and preview so
+ * the status reads consistently everywhere, for private and business sellers.
+ */
 export const AvailabilityBadge = ({
   availability,
   estimatedAvailableAt,

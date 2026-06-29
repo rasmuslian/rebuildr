@@ -373,6 +373,7 @@ export const UpsertProduct = ({
         availability: dbProduct.availability ?? undefined,
         estimatedAvailableAt: dbProduct.estimatedAvailableAt ?? undefined,
         availabilityPrecision: dbProduct.availabilityPrecision ?? undefined,
+        availableUntil: dbProduct.availableUntil ?? undefined,
       };
       setProduct(stateProduct);
       //Baseline the analyzed-image count ONCE, on the first load of this draft —
@@ -512,6 +513,7 @@ export const UpsertProduct = ({
           availability: product.availability,
           estimatedAvailableAt: product.estimatedAvailableAt || null,
           availabilityPrecision: product.availabilityPrecision,
+          availableUntil: product.availableUntil || null,
         },
       },
     });

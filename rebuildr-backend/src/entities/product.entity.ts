@@ -327,6 +327,14 @@ export class Product {
   })
   availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
 
+  /**
+   * Optional date when the listing should expire. After this date a scheduled
+   * job hides the ad (sets hiddenReason) so it drops out of search and listings.
+   */
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'timestamptz' })
+  availableUntil?: Date | null;
+
   @Field(() => ProductVisibility)
   @Column({
     type: 'enum',

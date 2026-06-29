@@ -77,7 +77,7 @@ export const Calendar = ({ value, onChange, minDate }: Props) => {
         <Pressable
           onPress={() => setVisibleMonth(visibleMonth.subtract(1, "month"))}
           hitSlop={8}
-          style={{ padding: 12 }}
+          style={{ padding: 8 }}
         >
           <Icon icon="chevronLeft" size={20} color="primaryDark" />
         </Pressable>
@@ -87,7 +87,7 @@ export const Calendar = ({ value, onChange, minDate }: Props) => {
         <Pressable
           onPress={() => setVisibleMonth(visibleMonth.add(1, "month"))}
           hitSlop={8}
-          style={{ padding: 12 }}
+          style={{ padding: 8 }}
         >
           <Icon icon="chevronRight" size={20} color="primaryDark" />
         </Pressable>
@@ -124,25 +124,18 @@ export const Calendar = ({ value, onChange, minDate }: Props) => {
               <Pressable
                 disabled={isDisabled}
                 onPress={() => onChange(day.format("YYYY-MM-DD"))}
-                style={(state) => {
-                  const { focused } = state as { focused?: boolean };
-                  return {
-                    width: 40,
-                    height: 40,
-                    borderRadius: borderRadius.full,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: isSelected
-                      ? primitives.primary700
-                      : "transparent",
-                    borderWidth:
-                      isToday && !isSelected ? strokeWidth.regular : 0,
-                    borderColor: primitives.primary700,
-                    opacity: isDisabled ? 0.3 : 1,
-                    ...(focused && {
-                      boxShadow: `0 0 0 2px ${primitives.accent500}`,
-                    }),
-                  };
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: borderRadius.full,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isSelected
+                    ? primitives.primary700
+                    : "transparent",
+                  borderWidth: isToday && !isSelected ? strokeWidth.regular : 0,
+                  borderColor: primitives.primary700,
+                  opacity: isDisabled ? 0.3 : 1,
                 }}
               >
                 <Label

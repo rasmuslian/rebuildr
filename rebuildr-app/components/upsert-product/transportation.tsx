@@ -7,6 +7,7 @@ import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
 import { ProjectChips } from "./project-chips";
+import { AvailabilitySection } from "./availability-section";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 
@@ -104,6 +105,11 @@ export const Transportation = ({
   return (
     <View style={{ gap: 24, marginTop: 24 }}>
       <ProjectChips product={product} update={update} />
+      <AvailabilitySection
+        product={product}
+        update={update}
+        error={badFields?.["availability"]}
+      />
       <Display size="small">Leverans</Display>
       <View style={{ gap: 16, paddingBottom: 16 }}>
         <Suspense fallback={<LoadingSpinner />}>
