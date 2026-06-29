@@ -1,4 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import dayjs from 'dayjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import {
@@ -34,6 +36,7 @@ import {
   Equal,
   In,
   IsNull,
+  LessThanOrEqual,
   Not,
   Point,
   Repository,
@@ -68,6 +71,13 @@ import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
+
+/**
+ * hiddenReason sentinel set by the auto-expiry job when a listing passes its
+ * optional availableUntil date. Reuses the existing `hiddenReason IS NULL`
+ * filters so expired ads drop out of search and listings everywhere.
+ */
+export const AD_EXPIRED_HIDDEN_REASON = 'AD_EXPIRED';
 
 @Injectable()
 export class ProductService {
@@ -375,6 +385,9 @@ export class ProductService {
     }
     if (input.availabilityPrecision !== undefined) {
       product.availabilityPrecision = input.availabilityPrecision;
+    }
+    if (input.availableUntil !== undefined) {
+      product.availableUntil = input.availableUntil;
     }
     //null means removing the brand
     if (!!input.brandId || input.brandId === null) {
@@ -1532,6 +1545,34 @@ export class ProductService {
     } catch (error) {
       throw BadUserInputException(`Failed to update product: ${error}`);
     }
+  }
+
+  /**
+   * Hide listings whose optional end date (availableUntil) has passed. Only
+   * touches still-visible published ads, so it's idempotent: once hiddenReason
+   * is set the row no longer matches and won't be processed again.
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async hideExpiredListings(): Promise<void> {
+    const logger = this.logger.child({
+      cron: 'hideExpiredListings',
+      requestId: crypto.randomUUID(),
+    });
+    const now = dayjs().toDate();
+    const expired = await this.productRepository.find({
+      where: {
+        availableUntil: LessThanOrEqual(now),
+        hiddenReason: IsNull(),
+        status: ProductStatus.PUBLISHED,
+      },
+    });
+    if (!expired.length) return;
+
+    logger.info('Hiding expired listings', { count: expired.length });
+    await this.productRepository.update(
+      { id: In(expired.map((p) => p.id)) },
+      { hiddenReason: AD_EXPIRED_HIDDEN_REASON },
+    );
   }
 
   async cmsHideProduct(productId: string, hiddenReason: string) {

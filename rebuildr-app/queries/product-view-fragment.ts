@@ -7,6 +7,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     availability
     estimatedAvailableAt
     availabilityPrecision
+    availableUntil
     createdAt
     updatedAt
     canDelete
@@ -133,6 +134,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
         id
         title
         status
+        availability
         likedByMe
         primaryQuantity
         primaryUnit

@@ -61,6 +61,7 @@ type Props = {
     id: string;
     title: string;
     status: ProductStatusEnum;
+    availability: ProductAvailabilityEnum;
     likedByMe?: boolean | null;
     primaryQuantity?: number | null;
     primaryUnit?: QuantityUnitEnum | null;
@@ -111,7 +112,10 @@ export const ProductMobile = ({
 
   const ctas: ButtonProps[] = [];
 
-  if (isMyProduct && product.availability === ProductAvailabilityEnum.Upcoming) {
+  if (
+    isMyProduct &&
+    product.availability === ProductAvailabilityEnum.Upcoming
+  ) {
     ctas.push({
       label: "Markera som tillgänglig",
       type: "tonal",
@@ -261,6 +265,9 @@ export const ProductMobile = ({
                 price={item.price}
                 soldByQuantity={item.soldByQuantity}
                 status={item.status}
+                upcoming={
+                  item.availability === ProductAvailabilityEnum.Upcoming
+                }
                 onHeartPress={() => {
                   onToggleProductHeart({
                     productId: item.id,

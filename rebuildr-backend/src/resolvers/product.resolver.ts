@@ -236,6 +236,9 @@ export class UpdateProductInput {
   @Field(() => ProductAvailabilityPrecisionEnum, { nullable: true })
   availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
 
+  @Field(() => Date, { nullable: true })
+  availableUntil?: Date | null;
+
   @Field(() => [FileInputType], { nullable: true })
   addImages?: FileInputType[];
 

@@ -2,11 +2,10 @@ import {
   Brand,
   Category,
   ColorTypeEnum,
-  ProductAvailabilityEnum,
   ProductStatusEnum,
   ProductViewQuery,
 } from "@/gql/graphql";
-import { formatAvailability } from "@/utils/availability";
+import { AvailabilityBadge } from "@components/product/availability-badge";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -89,26 +88,12 @@ export const MainContent = ({
           {product.primaryUnit ? quantities[product.primaryUnit].plural : ""} •{" "}
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
-        {product.availability === ProductAvailabilityEnum.Upcoming && (
-          <View
-            style={{
-              alignSelf: "flex-start",
-              marginTop: 8,
-              backgroundColor: "#9a6b00",
-              paddingVertical: 4,
-              paddingHorizontal: 10,
-              borderRadius: borderRadius.small,
-            }}
-          >
-            <Label size="medium" color="primaryLight">
-              {formatAvailability(
-                product.availability,
-                product.estimatedAvailableAt,
-                product.availabilityPrecision,
-              )}
-            </Label>
-          </View>
-        )}
+        <AvailabilityBadge
+          availability={product.availability}
+          estimatedAvailableAt={product.estimatedAvailableAt}
+          availabilityPrecision={product.availabilityPrecision}
+          style={{ marginTop: 8 }}
+        />
       </View>
       {product.status !== ProductStatusEnum.Sold && (
         <View>

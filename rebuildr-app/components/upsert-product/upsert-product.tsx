@@ -11,6 +11,7 @@ import {
   AnalyzeProductImagesMutation,
   AnalyzeProductImagesMutationVariables,
   CreateSellerAccountMutation,
+  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -182,7 +183,7 @@ const detailsErrorFields = [
   "description",
   "primary",
 ];
-const transportaionErrorFields = ["delivery"];
+const transportaionErrorFields = ["delivery", "availability"];
 
 type Props = {
   productId?: string;
@@ -333,6 +334,7 @@ export const UpsertProduct = ({
         availability: dbProduct.availability ?? undefined,
         estimatedAvailableAt: dbProduct.estimatedAvailableAt ?? undefined,
         availabilityPrecision: dbProduct.availabilityPrecision ?? undefined,
+        availableUntil: dbProduct.availableUntil ?? undefined,
       };
       setProduct(stateProduct);
       //Baseline the analyzed-image count ONCE, on the first load of this draft —
@@ -467,6 +469,7 @@ export const UpsertProduct = ({
           availability: product.availability,
           estimatedAvailableAt: product.estimatedAvailableAt || null,
           availabilityPrecision: product.availabilityPrecision,
+          availableUntil: product.availableUntil || null,
         },
       },
     });
@@ -830,6 +833,7 @@ export const UpsertProduct = ({
     const badFields: FieldErrorsType = { ...fieldErrors };
 
     delete badFields["delivery"];
+    delete badFields["availability"];
     if (
       _product.isGiveaway &&
       _product.deliveryEnabled &&
@@ -839,6 +843,17 @@ export const UpsertProduct = ({
     ) {
       badFields["delivery"] =
         `Vid bortskänkes måste priset för hemleverans vara minst ${data.product.minimumPrice}kr eller gratis`;
+    }
+    if (_product.availability === ProductAvailabilityEnum.Upcoming) {
+      if (!_product.estimatedAvailableAt) {
+        badFields["availability"] = "Välj när varan blir tillgänglig";
+      } else if (
+        _product.availableUntil &&
+        new Date(_product.availableUntil) <=
+          new Date(_product.estimatedAvailableAt)
+      ) {
+        badFields["availability"] = "Slutdatum måste vara efter startdatum";
+      }
     }
     setFieldErrors(badFields);
     if (Object.keys(badFields).length) {

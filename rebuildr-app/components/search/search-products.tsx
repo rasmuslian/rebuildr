@@ -1,4 +1,5 @@
 import {
+  ProductAvailabilityEnum,
   SearchProductsQuery,
   SearchProductsQueryVariables,
 } from "@/gql/graphql";
@@ -200,6 +201,8 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
                     price: product.price,
                     soldByQuantity: product.soldByQuantity,
                     status: product.status,
+                    upcoming:
+                      product.availability === ProductAvailabilityEnum.Upcoming,
                     heart: product.seller.id !== data.me?.id,
                     liked: !!product.likedByMe,
                     onHeartPress: () => {
@@ -343,6 +346,8 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
                 price: product.price,
                 soldByQuantity: product.soldByQuantity,
                 status: product.status,
+                upcoming:
+                  product.availability === ProductAvailabilityEnum.Upcoming,
                 heart: product.seller.id !== data.me?.id,
                 liked: !!product.likedByMe,
                 onHeartPress: () => {

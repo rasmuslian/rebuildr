@@ -34,6 +34,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     availability
     estimatedAvailableAt
     availabilityPrecision
+    availableUntil
     co2SavingSeller
     images {
       id

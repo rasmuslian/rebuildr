@@ -100,4 +100,5 @@ export type ProductFields = {
   availability?: ProductAvailabilityEnum;
   estimatedAvailableAt?: string | null;
   availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
+  availableUntil?: string | null;
 };
