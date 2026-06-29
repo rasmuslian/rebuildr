@@ -4,6 +4,9 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
   fragment ProductViewFragment on Product {
     id
     status
+    availability
+    estimatedAvailableAt
+    availabilityPrecision
     createdAt
     updatedAt
     canDelete

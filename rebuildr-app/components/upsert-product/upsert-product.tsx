@@ -330,6 +330,9 @@ export const UpsertProduct = ({
         shippingPrices: dbProduct.shippingPrices ?? [],
 
         status: dbProduct.status ?? product.status,
+        availability: dbProduct.availability ?? undefined,
+        estimatedAvailableAt: dbProduct.estimatedAvailableAt ?? undefined,
+        availabilityPrecision: dbProduct.availabilityPrecision ?? undefined,
       };
       setProduct(stateProduct);
       //Baseline the analyzed-image count ONCE, on the first load of this draft —
@@ -461,6 +464,9 @@ export const UpsertProduct = ({
           deliveryEnabled: product.deliveryEnabled,
 
           status,
+          availability: product.availability,
+          estimatedAvailableAt: product.estimatedAvailableAt || null,
+          availabilityPrecision: product.availabilityPrecision,
         },
       },
     });

@@ -14,6 +14,7 @@ import { CategorySummaryRow } from "@components/product/category-summary-row";
 import { Title, Body, Label } from "@components/typography/text";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
+import { TextInput } from "@components/forms/textInput";
 import { AnalyzeProgress } from "./analyze-progress";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
@@ -24,6 +25,8 @@ import {
   MeasurementTypeEnum,
   MeasurementUnitEnum,
   QuantityUnitEnum,
+  ProductAvailabilityEnum,
+  ProductAvailabilityPrecisionEnum,
 } from "@/gql/graphql";
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
@@ -49,6 +52,53 @@ export const Details = ({
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
+
+  // --- "kommande" availability inputs ---
+  const precision =
+    product.availabilityPrecision ?? ProductAvailabilityPrecisionEnum.Exact;
+  const estDate = product.estimatedAvailableAt
+    ? new Date(product.estimatedAvailableAt)
+    : null;
+  const [dateText, setDateText] = useState(
+    product.estimatedAvailableAt &&
+      precision !== ProductAvailabilityPrecisionEnum.Quarter
+      ? product.estimatedAvailableAt.slice(
+          0,
+          precision === ProductAvailabilityPrecisionEnum.Month ? 7 : 10,
+        )
+      : "",
+  );
+  const [quarter, setQuarter] = useState<number | undefined>(
+    estDate ? Math.floor(estDate.getMonth() / 3) + 1 : undefined,
+  );
+  const [qYear, setQYear] = useState(
+    estDate ? String(estDate.getFullYear()) : "",
+  );
+
+  const choosePrecision = (p: ProductAvailabilityPrecisionEnum) => {
+    if (p === ProductAvailabilityPrecisionEnum.Unknown) {
+      update({ availabilityPrecision: p, estimatedAvailableAt: null });
+    } else {
+      update({ availabilityPrecision: p });
+    }
+  };
+
+  const onDateChange = (t: string) => {
+    setDateText(t);
+    const d = new Date(t);
+    update({
+      estimatedAvailableAt: t && !isNaN(d.getTime()) ? d.toISOString() : null,
+    });
+  };
+
+  const applyQuarter = (q?: number, year?: string) => {
+    if (q && year && /^\d{4}$/.test(year)) {
+      const month = String((q - 1) * 3 + 1).padStart(2, "0");
+      update({ estimatedAvailableAt: `${year}-${month}-01` });
+    } else {
+      update({ estimatedAvailableAt: null });
+    }
+  };
 
   //Track the AI analysis lifecycle to show the right banner state.
   //`hasSuggestions` latches true after the first successful run (or starts true
@@ -244,6 +294,118 @@ export const Details = ({
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
+          <View style={{ gap: 8 }}>
+            <Label size="medium">Tillgänglighet</Label>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button
+                label="Tillgänglig nu"
+                style={{ flex: 1 }}
+                type={
+                  product.availability === ProductAvailabilityEnum.Upcoming
+                    ? "tonal"
+                    : "filled"
+                }
+                onPress={() =>
+                  update({
+                    availability: ProductAvailabilityEnum.Available,
+                    estimatedAvailableAt: null,
+                  })
+                }
+              />
+              <Button
+                label="Kommande"
+                style={{ flex: 1 }}
+                type={
+                  product.availability === ProductAvailabilityEnum.Upcoming
+                    ? "filled"
+                    : "tonal"
+                }
+                onPress={() =>
+                  update({ availability: ProductAvailabilityEnum.Upcoming })
+                }
+              />
+            </View>
+            {product.availability === ProductAvailabilityEnum.Upcoming && (
+              <View style={{ gap: 8 }}>
+                <Body size="small">När blir den tillgänglig?</Body>
+                <View
+                  style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}
+                >
+                  {[
+                    {
+                      value: ProductAvailabilityPrecisionEnum.Exact,
+                      label: "Exakt datum",
+                    },
+                    {
+                      value: ProductAvailabilityPrecisionEnum.Month,
+                      label: "Månad",
+                    },
+                    {
+                      value: ProductAvailabilityPrecisionEnum.Quarter,
+                      label: "Kvartal",
+                    },
+                    {
+                      value: ProductAvailabilityPrecisionEnum.Unknown,
+                      label: "Vet ej",
+                    },
+                  ].map(({ value, label }) => (
+                    <Button
+                      key={value}
+                      label={label}
+                      type={precision === value ? "filled" : "tonal"}
+                      onPress={() => choosePrecision(value)}
+                    />
+                  ))}
+                </View>
+
+                {precision === ProductAvailabilityPrecisionEnum.Exact && (
+                  <TextInput
+                    placeholder="ÅÅÅÅ-MM-DD"
+                    value={dateText}
+                    onChange={onDateChange}
+                  />
+                )}
+                {precision === ProductAvailabilityPrecisionEnum.Month && (
+                  <TextInput
+                    placeholder="ÅÅÅÅ-MM"
+                    value={dateText}
+                    onChange={onDateChange}
+                  />
+                )}
+                {precision === ProductAvailabilityPrecisionEnum.Quarter && (
+                  <View style={{ gap: 8 }}>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      {[1, 2, 3, 4].map((q) => (
+                        <Button
+                          key={q}
+                          label={`Q${q}`}
+                          style={{ flex: 1 }}
+                          type={quarter === q ? "filled" : "tonal"}
+                          onPress={() => {
+                            setQuarter(q);
+                            applyQuarter(q, qYear);
+                          }}
+                        />
+                      ))}
+                    </View>
+                    <TextInput
+                      placeholder="År (ÅÅÅÅ)"
+                      value={qYear}
+                      onChange={(y) => {
+                        setQYear(y);
+                        applyQuarter(quarter, y);
+                      }}
+                    />
+                  </View>
+                )}
+
+                <Body size="small">
+                  Synlig för planering innan den är tillgänglig. Osäkert datum?
+                  Välj Kvartal eller "Vet ej" — du kan uppdatera senare.
+                </Body>
+              </View>
+            )}
+          </View>
           <View
             style={{
               flexDirection: "row",

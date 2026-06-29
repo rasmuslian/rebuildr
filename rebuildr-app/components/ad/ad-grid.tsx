@@ -24,6 +24,7 @@ type Props = {
   liked?: boolean;
   status?: ProductStatusEnum;
   distance?: number | null;
+  upcoming?: boolean;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -36,6 +37,7 @@ export const AdGrid = ({
   liked,
   status,
   distance,
+  upcoming,
   title,
   price,
   ...adDescriptionProps
@@ -77,6 +79,23 @@ export const AdGrid = ({
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
+        {upcoming && !overlayText && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 8,
+              left: 8,
+              paddingVertical: 2,
+              paddingHorizontal: 8,
+              borderRadius: borderRadius.xSmall,
+              backgroundColor: "#9a6b00",
+            }}
+          >
+            <Label size="medium" color="primaryLight">
+              Kommande
+            </Label>
+          </View>
+        )}
       </View>
       {distance && (
         <View

@@ -7,6 +7,7 @@ import {
   ProductViewQuery,
   QuantityUnitEnum,
   UserType,
+  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { Divider } from "@components/dividers/divider";
 import { AllImages } from "@components/preview-product/all-images";
@@ -15,7 +16,11 @@ import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router, useLocalSearchParams } from "expo-router";
-import { ButtonProps } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
+import { Body } from "@components/typography/text";
+import { Popup } from "@components/popup/popup";
+import { View } from "react-native";
+import { useMarkProductAvailable } from "@hooks/product/use-mark-product-available";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
@@ -101,8 +106,23 @@ export const ProductMobile = ({
   const { setVisible } = useContext(LoginModalContext);
   const { print: startPrintLabel, handleReady: handleSheetReady } =
     usePrintProductLabel();
+  const { markAvailable, loading: markAvailableLoading } =
+    useMarkProductAvailable();
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const ctas: ButtonProps[] = [];
+
+  if (isMyProduct && product.availability === ProductAvailabilityEnum.Upcoming) {
+    ctas.push({
+      label: "Markera som tillgänglig",
+      type: "tonal",
+      loading: markAvailableLoading,
+      onPress: async () => {
+        await markAvailable(product.id);
+        setInfoMessage("Annonsen är nu markerad som tillgänglig.");
+      },
+    });
+  }
 
   if (isMyProduct && Platform.OS === "web") {
     ctas.push({
@@ -285,6 +305,16 @@ export const ProductMobile = ({
         productId={productId}
         onReady={handleSheetReady}
       />
+      <Popup
+        open={!!infoMessage}
+        onClose={() => setInfoMessage(null)}
+        type="partial"
+      >
+        <View style={{ gap: 16, padding: 24 }}>
+          <Body size="large">{infoMessage}</Body>
+          <Button label="OK" onPress={() => setInfoMessage(null)} />
+        </View>
+      </Popup>
     </>
   );
 };

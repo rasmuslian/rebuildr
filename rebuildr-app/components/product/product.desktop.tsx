@@ -8,6 +8,7 @@ import {
   ProductViewQuery,
   QuantityUnitEnum,
   UserType,
+  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { AdRowSectionDesktop } from "@components/ad-row-section/ad-row-section.desktop";
 import { Button, ButtonProps } from "@components/buttons/button";
@@ -44,6 +45,8 @@ import { useContext, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
+import { useMarkProductAvailable } from "@hooks/product/use-mark-product-available";
+import { Body } from "@components/typography/text";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -110,6 +113,9 @@ export const ProductDesktop = ({
   const imageGalleryHeight = screenHeight - 72 - 48;
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showMapPopup, setShowMapPopup] = useState(false);
+  const { markAvailable, loading: markAvailableLoading } =
+    useMarkProductAvailable();
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const pickupEnabled =
     approximatePlace &&
@@ -144,6 +150,18 @@ export const ProductDesktop = ({
         } else {
           startPrintLabel();
         }
+      },
+    });
+  }
+
+  // Owner can convert a "coming soon" listing to available now.
+  if (isMyProduct && product.availability === ProductAvailabilityEnum.Upcoming) {
+    ctas.push({
+      label: "Markera som tillgänglig",
+      loading: markAvailableLoading,
+      onPress: async () => {
+        await markAvailable(product.id);
+        setInfoMessage("Annonsen är nu markerad som tillgänglig.");
       },
     });
   }
@@ -382,6 +400,16 @@ export const ProductDesktop = ({
             markerType={MapPinTypeEnum.Product}
           />
         )}
+      </Popup>
+      <Popup
+        open={!!infoMessage}
+        onClose={() => setInfoMessage(null)}
+        type="partial"
+      >
+        <View style={{ gap: 16, padding: 24 }}>
+          <Body size="large">{infoMessage}</Body>
+          <Button label="OK" onPress={() => setInfoMessage(null)} />
+        </View>
       </Popup>
     </>
   );
