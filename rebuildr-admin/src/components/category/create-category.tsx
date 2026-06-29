@@ -31,6 +31,7 @@ const CreateCategory = () => {
       image: [],
       parentId: undefined,
       brandIds: [],
+      searchAliases: [],
     },
   });
 

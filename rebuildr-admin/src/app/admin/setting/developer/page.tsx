@@ -1,15 +1,31 @@
 "use client";
 
 import { App, Button, Divider } from "antd";
-import React from "react";
-import { updateCO2Factors } from "@/queries/co2/update-co2-factors";
-import { syncApproximateLocations } from "@/queries/map-pin/sync-approximate-locations";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CmsTestTemplateInput } from "gql/graphql";
+import React, { useState } from "react";
+
+import { queryKeys } from "@/lib/query-keys";
+import { updateCO2Factors } from "@/queries/co2/update-co2-factors";
 import { testTemplates } from "@/queries/email/test-templates";
+import { syncApproximateLocations } from "@/queries/map-pin/sync-approximate-locations";
+import { backfillSearchEnrichment } from "@/queries/product/backfill-search-enrichment";
+import { getSearchEnrichmentBackfillStatus } from "@/queries/product/get-search-enrichment-backfill-status";
 
 const DeveloperSetting = () => {
   const { notification } = App.useApp();
+  const queryClient = useQueryClient();
+  const [
+    hasStartedSearchEnrichmentBackfill,
+    setHasStartedSearchEnrichmentBackfill,
+  ] = useState(false);
+  const { data: searchEnrichmentBackfillStatus } = useQuery({
+    queryKey: [queryKeys.SEARCH_ENRICHMENT_BACKFILL_STATUS],
+    queryFn: getSearchEnrichmentBackfillStatus,
+    refetchInterval: (query) =>
+      query.state.data?.state === "RUNNING" ? 3000 : false,
+    refetchIntervalInBackground: true,
+  });
   const { mutateAsync: syncProductLocations, isPending: isSyncingLocations } =
     useMutation({
       mutationFn: async () => {
@@ -52,6 +68,52 @@ const DeveloperSetting = () => {
         });
       },
     });
+  const {
+    mutateAsync: runBackfillSearchEnrichment,
+    isPending: isBackfillingSearchEnrichment,
+  } = useMutation({
+    mutationFn: async () => {
+      const response = await backfillSearchEnrichment();
+      if (response === undefined) throw new Error();
+      return response;
+    },
+    onSuccess: (status) => {
+      setHasStartedSearchEnrichmentBackfill(true);
+      queryClient.setQueryData(
+        [queryKeys.SEARCH_ENRICHMENT_BACKFILL_STATUS],
+        status,
+      );
+      queryClient.invalidateQueries({
+        queryKey: [queryKeys.SEARCH_ENRICHMENT_BACKFILL_STATUS],
+      });
+
+      if (
+        status.state === "RUNNING" &&
+        status.startedAt &&
+        !status.finishedAt
+      ) {
+        notification.info({
+          message: "Backfill startad",
+          description:
+            "Sökalias, relaterade termer och användningsområden genereras nu i bakgrunden.",
+        });
+        return;
+      }
+
+      notification.info({
+        message: "Backfillstatus uppdaterad",
+        description:
+          "En tidigare backfill kör redan eller har nyligen avslutats. Se status nedan.",
+      });
+    },
+    onError: () => {
+      notification.error({
+        message: "Backfill kunde inte startas",
+        description:
+          "Sökmetadata kunde tyvärr inte börja fyllas på. Försök igen senare.",
+      });
+    },
+  });
   const { mutateAsync: sendEmailTemplate, isPending: isSendingEmailTemplate } =
     useMutation({
       mutationFn: async (input: CmsTestTemplateInput) => {
@@ -72,6 +134,10 @@ const DeveloperSetting = () => {
         });
       },
     });
+  const showSearchEnrichmentBackfillStatus =
+    searchEnrichmentBackfillStatus?.state === "RUNNING" ||
+    hasStartedSearchEnrichmentBackfill;
+
   return (
     <div className="flex max-w-screen-lg flex-col gap-2">
       <Divider orientation="left">Utvecklargenvägar</Divider>
@@ -99,6 +165,48 @@ const DeveloperSetting = () => {
         >
           Uppdatera CO2 data
         </Button>
+      </div>
+      <Divider />
+
+      <div className="flex flex-col gap-2">
+        <h3>Backfilla LLM-genererad sökmetadata</h3>
+        <p>
+          Fyll på sökalias, relaterade termer och användningsområden för
+          produkter och kategorier. Jobbet använder endast LLM-generering. Om
+          genereringen misslyckas markeras jobbet som misslyckat i stället för
+          att fylla på med enklare fallback-data.
+        </p>
+        <Button
+          style={{ width: 300 }}
+          onClick={() => runBackfillSearchEnrichment()}
+          disabled={isBackfillingSearchEnrichment}
+        >
+          Starta search backfill
+        </Button>
+        {showSearchEnrichmentBackfillStatus ? (
+          <>
+            <p>
+              Status: {searchEnrichmentBackfillStatus?.state ?? "Okänd"}
+              {searchEnrichmentBackfillStatus
+                ? ` | Produkter: ${searchEnrichmentBackfillStatus.enrichedProducts} klara, ${searchEnrichmentBackfillStatus.failedProducts} fel, ${searchEnrichmentBackfillStatus.remainingProducts} kvar | Kategorier: ${searchEnrichmentBackfillStatus.enrichedCategories} klara, ${searchEnrichmentBackfillStatus.failedCategories} fel, ${searchEnrichmentBackfillStatus.remainingCategories} kvar`
+                : ""}
+            </p>
+            {searchEnrichmentBackfillStatus?.currentItemId ? (
+              <p>
+                Bearbetar: {searchEnrichmentBackfillStatus.currentItemType}{" "}
+                {searchEnrichmentBackfillStatus.currentItemName} (
+                {searchEnrichmentBackfillStatus.currentItemId}) försök{" "}
+                {searchEnrichmentBackfillStatus.currentAttempt ?? "?"}
+                {searchEnrichmentBackfillStatus.lastProgressAt
+                  ? ` | Senaste progress: ${new Date(searchEnrichmentBackfillStatus.lastProgressAt).toLocaleTimeString("sv-SE")}`
+                  : ""}
+              </p>
+            ) : null}
+            {searchEnrichmentBackfillStatus?.lastError ? (
+              <p>Senaste fel: {searchEnrichmentBackfillStatus.lastError}</p>
+            ) : null}
+          </>
+        ) : null}
       </div>
       <Divider />
 
@@ -153,9 +261,7 @@ const DeveloperSetting = () => {
           </Button>
           <Button
             style={{ width: 300 }}
-            onClick={() =>
-              sendEmailTemplate({ template: "activatePayouts" })
-            }
+            onClick={() => sendEmailTemplate({ template: "activatePayouts" })}
             disabled={isSendingEmailTemplate}
           >
             Aktivera utbetalningar
@@ -173,18 +279,14 @@ const DeveloperSetting = () => {
           </Button>
           <Button
             style={{ width: 300 }}
-            onClick={() =>
-              sendEmailTemplate({ template: "businessApproved" })
-            }
+            onClick={() => sendEmailTemplate({ template: "businessApproved" })}
             disabled={isSendingEmailTemplate}
           >
             Företagskonto godkänt
           </Button>
           <Button
             style={{ width: 300 }}
-            onClick={() =>
-              sendEmailTemplate({ template: "welcomeIndividual" })
-            }
+            onClick={() => sendEmailTemplate({ template: "welcomeIndividual" })}
             disabled={isSendingEmailTemplate}
           >
             Välkommen (privatperson)

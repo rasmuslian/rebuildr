@@ -54,6 +54,10 @@ export class Category {
   @Column()
   description: string;
 
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchAliases: string[];
+
   /**
    * The order index of the category.
    * Used to sort the categories in the frontend.

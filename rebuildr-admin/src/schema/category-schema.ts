@@ -19,6 +19,8 @@ export const CategorySchema = z.object({
   parentId: z.string().optional(),
 
   brandIds: z.array(z.string({ message: "Välj varumärken!" })),
+
+  searchAliases: z.array(z.string()),
 });
 
 export type CategorySchemaType = z.infer<typeof CategorySchema>;

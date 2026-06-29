@@ -72,12 +72,11 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
       }}
     >
       <Display size="small" style={{ marginBottom: 16 }}>
-        Bilder
+        Lägg till bilder
       </Display>
-      <Body size="large" style={{ marginBottom: 18 }}>
+      <Body size="large">
         Den första bilden du laddar upp blir omslagsbilden för din annons.
       </Body>
-      <Body size="large">Du måste ladda upp minst en bild.</Body>
       {images.length ? (
         <ScrollView
           horizontal

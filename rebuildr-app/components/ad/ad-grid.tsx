@@ -78,6 +78,11 @@ export const AdGrid = ({
               ? DeletedProduct.uri
               : (imageUri ?? PlaceholderProduct.uri)
           }
+          accessibilityLabel={
+            title
+              ? `${title} – återbrukat byggmaterial på RebuildR`
+              : "Produktbild på återbrukat byggmaterial"
+          }
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}

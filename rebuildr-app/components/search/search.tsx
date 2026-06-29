@@ -10,11 +10,14 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+
+const CLEAR_BUTTON_SIZE = 22;
+const CLEAR_BUTTON_SPACING = 8;
 
 type Props = {
   visible?: boolean;
@@ -43,6 +46,8 @@ export const Search = ({
   const { isDesktop } = useScreenType();
   const inputWrapperRef = useRef<View>(null);
   const textInputRef = useRef<TextInput>(null);
+  const dropdownPositionRef = useRef(searchState.dropdownPosition);
+  const [isDropdownAnchorActive, setIsDropdownAnchorActive] = useState(false);
 
   const inputBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
@@ -50,17 +55,87 @@ export const Search = ({
   const xBackgroundColor = searchState.dropdownVisible
     ? colors.background.neutral
     : backgroundColor || colors.buttons.iconQuickLink.hovered;
+  const shouldMergeWithDropdown =
+    isDesktop && isDropdownAnchorActive && searchState.dropdownVisible;
+  const hasVisibleBorder =
+    !!borderStyle &&
+    [
+      borderStyle.borderWidth,
+      borderStyle.borderTopWidth,
+      borderStyle.borderBottomWidth,
+      borderStyle.borderLeftWidth,
+      borderStyle.borderRightWidth,
+    ].some((value) => typeof value === "number" && value > 0);
+
+  const updateDropdownPosition = useCallback(
+    (showDropdown = false) => {
+      if (!isDesktop || !inputWrapperRef.current) return;
+
+      inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const dropdownAnchorPosition = { x: pageX, y: pageY, width, height };
+        const dropdownPosition = { x: pageX, y: pageY + height, width };
+        const previousDropdownPosition = dropdownPositionRef.current;
+        const hasPositionChanged =
+          previousDropdownPosition.x !== dropdownPosition.x ||
+          previousDropdownPosition.y !== dropdownPosition.y ||
+          previousDropdownPosition.width !== dropdownPosition.width;
+
+        if (!hasPositionChanged && !showDropdown) return;
+
+        dropdownPositionRef.current = dropdownPosition;
+        setSearchState({
+          dropdownAnchorPosition,
+          dropdownPosition,
+          dropdownHideTopDivider: hasVisibleBorder,
+          ...(showDropdown ? { dropdownVisible: true } : {}),
+        });
+      });
+    },
+    [hasVisibleBorder, isDesktop, setSearchState],
+  );
 
   const openDropdown = () => {
     if (isDesktop && inputWrapperRef.current) {
-      inputWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
-        setSearchState({
-          dropdownPosition: { x: pageX, y: pageY + height - 12, width },
-          dropdownVisible: true,
-        });
-      });
+      setIsDropdownAnchorActive(true);
+      updateDropdownPosition(true);
     }
   };
+
+  useEffect(() => {
+    if (!searchState.dropdownVisible) {
+      setIsDropdownAnchorActive(false);
+    }
+  }, [searchState.dropdownVisible]);
+
+  useEffect(() => {
+    if (
+      !isDesktop ||
+      !visible ||
+      !isDropdownAnchorActive ||
+      !searchState.dropdownVisible
+    ) {
+      return;
+    }
+
+    let animationFrameId: number;
+
+    const syncDropdownPosition = () => {
+      updateDropdownPosition();
+      animationFrameId = requestAnimationFrame(syncDropdownPosition);
+    };
+
+    animationFrameId = requestAnimationFrame(syncDropdownPosition);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [
+    isDesktop,
+    isDropdownAnchorActive,
+    searchState.dropdownVisible,
+    updateDropdownPosition,
+    visible,
+  ]);
 
   const onChangeText = (text: string) => {
     setSearchState({ searchString: text });
@@ -75,7 +150,7 @@ export const Search = ({
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
     const { text } = event.nativeEvent;
 
-    filterBuilder.reset().setSearchString(text).apply();
+    filterBuilder.setSearchString(text).apply();
     setSearchState({ dropdownVisible: false });
     router.navigate("/search/products");
   };
@@ -92,6 +167,12 @@ export const Search = ({
           paddingHorizontal: 10,
           backgroundColor: inputBackgroundColor,
           borderRadius: borderRadius.medium,
+          borderBottomLeftRadius: shouldMergeWithDropdown
+            ? 0
+            : borderRadius.medium,
+          borderBottomRightRadius: shouldMergeWithDropdown
+            ? 0
+            : borderRadius.medium,
           ...borderStyle,
         },
         style,
@@ -120,27 +201,37 @@ export const Search = ({
           lineHeight: undefined,
         }}
       />
-      {(searchState.dropdownVisible || !!searchState.searchString?.length) && (
-        <Pressable
-          onPress={() => {
-            onChangeText("");
-            if (isDesktop) {
-              setSearchState({ dropdownVisible: false });
-            }
-          }}
-        >
-          <View
-            style={{
-              marginLeft: 8,
-              borderRadius: borderRadius.medium,
-              backgroundColor: xBackgroundColor,
-              padding: 2,
+      <View
+        style={{
+          width: CLEAR_BUTTON_SIZE + CLEAR_BUTTON_SPACING,
+          height: CLEAR_BUTTON_SIZE,
+          marginLeft: CLEAR_BUTTON_SPACING,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {!!searchState.searchString?.length && (
+          <Pressable
+            onPress={() => {
+              onChangeText("");
+              if (isDesktop) {
+                setIsDropdownAnchorActive(false);
+                setSearchState({ dropdownVisible: false });
+              }
             }}
           >
-            <Icon icon="X" size={18} />
-          </View>
-        </Pressable>
-      )}
+            <View
+              style={{
+                borderRadius: borderRadius.medium,
+                backgroundColor: xBackgroundColor,
+                padding: 2,
+              }}
+            >
+              <Icon icon="X" size={18} />
+            </View>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 };

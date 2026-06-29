@@ -18,32 +18,85 @@ export type TransportationFilterOptions = Pick<
   "distance" | "location" | "pickup" | "shipping" | "delivery"
 >;
 
+export type PersistedTransportationFilterOptions =
+  TransportationFilterOptions & {
+    useMyLocation: boolean;
+  };
+
+export const defaultTransportationFilterOptions: PersistedTransportationFilterOptions =
+  {
+    distance: defaultRadius,
+    location: undefined,
+    pickup: true,
+    shipping: true,
+    delivery: true,
+    useMyLocation: false,
+  };
+
+export const getTransportationLabel = (
+  options: Pick<
+    PersistedTransportationFilterOptions,
+    "pickup" | "shipping" | "delivery" | "distance"
+  >,
+) => {
+  let label = "Inga leveranssätt";
+
+  if (options.delivery) {
+    label = "Hemtransport";
+  }
+  if (options.shipping) {
+    label = "Fraktleverans";
+  }
+  if (options.pickup) {
+    label = `Hämta själv • ${formatMetersToKm(options.distance)} km`;
+  }
+  if (
+    (options.pickup && options.delivery) ||
+    (options.pickup && options.shipping) ||
+    (options.delivery && options.shipping)
+  ) {
+    label = "Flera leveranssätt";
+  }
+  if (options.pickup && options.delivery && options.shipping) {
+    label = "Alla leveranssätt";
+  }
+
+  return label;
+};
+
 type Props = {
   data?: SearchProductsQuery;
   loading?: boolean;
   setTransportationLabel: (label: string) => void;
-  onApply: (transportationInput: TransportationFilterOptions) => void;
+  initialOptions?: PersistedTransportationFilterOptions;
+  onApply: (transportationInput: PersistedTransportationFilterOptions) => void;
 };
 
 export const TransportationOptions = ({
   data,
   loading,
   setTransportationLabel,
+  initialOptions = defaultTransportationFilterOptions,
   onApply,
 }: Props) => {
-  const [pickup, setPickup] = useState(true);
-  const [pickupDistance, setPickupDistance] = useState(defaultRadius);
-  const [isMyLocation, setIsMyLocation] = useState(false);
-  const [shipping, setShipping] = useState(true);
-  const [delivery, setDelivery] = useState(true);
+  const [pickup, setPickup] = useState(initialOptions.pickup);
+  const [pickupDistance, setPickupDistance] = useState(
+    initialOptions.distance ?? defaultRadius,
+  );
+  const [isMyLocation, setIsMyLocation] = useState(
+    initialOptions.useMyLocation,
+  );
+  const [shipping, setShipping] = useState(initialOptions.shipping);
+  const [delivery, setDelivery] = useState(initialOptions.delivery);
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
 
   const { location, setMyLocation, setMapLocation } = useLocationAddress({
-    location: data?.me?.location ?? {
-      lat: defaultCenter[0],
-      lng: defaultCenter[1],
-    },
+    location: initialOptions.location ??
+      data?.me?.location ?? {
+        lat: defaultCenter[0],
+        lng: defaultCenter[1],
+      },
   });
 
   const onToggleMyLocation = () => {
@@ -88,28 +141,15 @@ export const TransportationOptions = ({
   };
 
   useEffect(() => {
-    let label = "Inga leveranssätt";
-    if (delivery) {
-      label = "Hemtransport";
-    }
-    if (shipping) {
-      label = "Fraktleverans";
-    }
-    if (pickup) {
-      label = `Hämta själv • ${formatMetersToKm(pickupDistance)} km`;
-    }
-    if (
-      (pickup && delivery) ||
-      (pickup && shipping) ||
-      (delivery && shipping)
-    ) {
-      label = "Flera leveranssätt";
-    }
-    if (pickup && delivery && shipping) {
-      label = "Alla leveranssätt";
-    }
-    setTransportationLabel(label);
-  }, [pickup, delivery, shipping]);
+    setTransportationLabel(
+      getTransportationLabel({
+        pickup,
+        shipping,
+        delivery,
+        distance: pickupDistance,
+      }),
+    );
+  }, [pickup, delivery, shipping, pickupDistance, setTransportationLabel]);
 
   const onApplyTranportationOptions = async () => {
     onApply({
@@ -118,6 +158,7 @@ export const TransportationOptions = ({
       pickup,
       shipping,
       delivery,
+      useMyLocation: isMyLocation,
     });
   };
 

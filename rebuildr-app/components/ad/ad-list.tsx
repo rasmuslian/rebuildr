@@ -32,6 +32,11 @@ export const AdList = ({
                 ? DeletedProduct.uri
                 : imageUrl,
           }}
+          alt={
+            adDescriptionProps.title
+              ? `${adDescriptionProps.title} – återbrukat byggmaterial på RebuildR`
+              : "Produktbild på återbrukat byggmaterial"
+          }
           style={{
             width: imageSize,
             height: imageSize,

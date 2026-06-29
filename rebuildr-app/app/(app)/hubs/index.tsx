@@ -23,6 +23,7 @@ import { Popup } from "@components/popup/popup";
 import React, { useState } from "react";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { Divider } from "@components/dividers/divider";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const HUBS = gql`
   query Hubs($input: UsersInput!) {
@@ -70,7 +71,9 @@ export default function Hubs() {
 
   const content = (
     <View style={{ gap: 24 }}>
-      <Display size="small">Företagsförsäljning</Display>
+      <Display size="small" heading={1}>
+        Företagsförsäljning
+      </Display>
       <Body size="medium">
         RebuildR gör det möjligt för företag och organisationer att sälja
         återbrukat material direkt till privatpersoner. Vi skapar en praktisk
@@ -95,6 +98,7 @@ export default function Hubs() {
             >
               <Image
                 source={u.profilePicture?.url ?? PlaceHolder}
+                alt={`${u.username ?? "Företag"} – säljer återbruk på RebuildR`}
                 style={{
                   height: "100%",
                   width: "100%",
@@ -152,62 +156,75 @@ export default function Hubs() {
     </View>
   );
 
+  const head = (
+    <RebuildrHead
+      title="Företagsförsäljning – hubbar"
+      description="Företag och organisationer säljer återbrukat byggmaterial direkt till privatpersoner via RebuildRs hubbar. Hitta försäljningsplatser nära dig."
+    />
+  );
+
   if (isDesktop) {
     return (
-      <ScreenLayout
-        headerComponent={<TopBar theme="light" />}
-        style={{ width: 720, alignSelf: "center" }}
-      >
-        {content}
-        <Popup
-          open={!!showProject}
-          onClose={() => setShowProject(undefined)}
-          type="full"
+      <>
+        {head}
+        <ScreenLayout
+          headerComponent={<TopBar theme="light" />}
+          style={{ width: 720, alignSelf: "center" }}
         >
-          {showProject && (
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <View style={{ padding: 24, width: "70%" }}>
-                <Headline size="small" style={{ marginBottom: 16 }}>
-                  {showProject.title}
-                </Headline>
-                <Body
-                  size="medium"
-                  color="primaryDark"
-                  style={{ marginBottom: 16 }}
-                >
-                  {showProject.approximatePlace.address}
-                </Body>
-                <Body
-                  size="small"
-                  color="secondary"
-                  style={{ marginBottom: 24 }}
-                >
-                  Ungefärligt område. Adress visas först när ett köp har
-                  genomförts.
-                </Body>
-                <MapThumbnail
-                  coords={[
-                    showProject.approximatePlace.lat,
-                    showProject.approximatePlace.lng,
-                  ]}
-                  markerType={MapPinTypeEnum.Hub}
-                  style={{ height: 700 }}
-                />
+          {content}
+          <Popup
+            open={!!showProject}
+            onClose={() => setShowProject(undefined)}
+            type="full"
+          >
+            {showProject && (
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <View style={{ padding: 24, width: "70%" }}>
+                  <Headline size="small" style={{ marginBottom: 16 }}>
+                    {showProject.title}
+                  </Headline>
+                  <Body
+                    size="medium"
+                    color="primaryDark"
+                    style={{ marginBottom: 16 }}
+                  >
+                    {showProject.approximatePlace.address}
+                  </Body>
+                  <Body
+                    size="small"
+                    color="secondary"
+                    style={{ marginBottom: 24 }}
+                  >
+                    Ungefärligt område. Adress visas först när ett köp har
+                    genomförts.
+                  </Body>
+                  <MapThumbnail
+                    coords={[
+                      showProject.approximatePlace.lat,
+                      showProject.approximatePlace.lng,
+                    ]}
+                    markerType={MapPinTypeEnum.Hub}
+                    style={{ height: 700 }}
+                  />
+                </View>
               </View>
-            </View>
-          )}
-        </Popup>
-      </ScreenLayout>
+            )}
+          </Popup>
+        </ScreenLayout>
+      </>
     );
   }
 
   return (
-    <ScreenLayout
-      headerComponent={
-        <Header title="Hem" onBack={() => router.replace("/")} />
-      }
-    >
-      {content}
-    </ScreenLayout>
+    <>
+      {head}
+      <ScreenLayout
+        headerComponent={
+          <Header title="Hem" onBack={() => router.replace("/")} />
+        }
+      >
+        {content}
+      </ScreenLayout>
+    </>
   );
 }

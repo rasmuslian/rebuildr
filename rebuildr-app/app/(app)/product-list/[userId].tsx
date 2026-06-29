@@ -13,6 +13,7 @@ import TopBar from "@components/navigation/top-bar/top-bar";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { ProductEmptyState } from "@components/profile/product-empty-state";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 export const PRODUCT_LIST = gql`
   query ProductList($input: ProductsInput!, $limit: Int, $offset: Int) {
@@ -101,53 +102,60 @@ export default function ProductList() {
   const sellerIsMe = data?.me.id === userId;
 
   return (
-    <ScreenLayout
-      headerComponent={
-        isDesktop ? (
-          <TopBar theme="light" />
+    <>
+      <RebuildrHead
+        title="Annonser"
+        description="Bläddra bland annonser för återbrukat byggmaterial på RebuildR."
+      />
+      <ScreenLayout
+        headerComponent={
+          isDesktop ? (
+            <TopBar theme="light" />
+          ) : (
+            <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
+          )
+        }
+        loading={loading}
+      >
+        {numberOfProducts > 0 ? (
+          <AdGridSection
+            header={isDesktop ? "Dina annonser" : undefined}
+            products={products.map((product) => ({
+              id: product.id,
+              status: product.status,
+              upcoming:
+                product.availability === ProductAvailabilityEnum.Upcoming,
+              imageUri: product.primaryImage?.url,
+              title: product.title,
+              quantity: product.primaryQuantity,
+              quantityUnit: product.primaryUnit,
+              condition: product.condition,
+              account: {
+                rating: product.seller.rating,
+                type: product.seller.type,
+                location: product.approximatePlace?.address,
+              },
+              price: product.price,
+              soldByQuantity: product.soldByQuantity,
+              heart: data?.me?.id !== userId,
+              liked: !!product.likedByMe,
+              onHeartPress: () => {
+                onToggleProductHeart({
+                  productId: product.id,
+                  likedByMe: !!product.likedByMe,
+                });
+              },
+            }))}
+            pagination={{
+              onShowMore,
+              loading,
+              total: data?.products.total ?? 0,
+            }}
+          />
         ) : (
-          <Header title={sellerIsMe ? "Dina annonser" : "Annonser"} />
-        )
-      }
-      loading={loading}
-    >
-      {numberOfProducts > 0 ? (
-        <AdGridSection
-          header={isDesktop ? "Dina annonser" : undefined}
-          products={products.map((product) => ({
-            id: product.id,
-            status: product.status,
-            upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
-            imageUri: product.primaryImage?.url,
-            title: product.title,
-            quantity: product.primaryQuantity,
-            quantityUnit: product.primaryUnit,
-            condition: product.condition,
-            account: {
-              rating: product.seller.rating,
-              type: product.seller.type,
-              location: product.approximatePlace?.address,
-            },
-            price: product.price,
-            soldByQuantity: product.soldByQuantity,
-            heart: data?.me?.id !== userId,
-            liked: !!product.likedByMe,
-            onHeartPress: () => {
-              onToggleProductHeart({
-                productId: product.id,
-                likedByMe: !!product.likedByMe,
-              });
-            },
-          }))}
-          pagination={{
-            onShowMore,
-            loading,
-            total: data?.products.total ?? 0,
-          }}
-        />
-      ) : (
-        <ProductEmptyState sellerIsMe={sellerIsMe} />
-      )}
-    </ScreenLayout>
+          <ProductEmptyState sellerIsMe={sellerIsMe} />
+        )}
+      </ScreenLayout>
+    </>
   );
 }

@@ -103,6 +103,33 @@ export class Product {
   @Column({ nullable: true })
   additionalInfo?: string;
 
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchAliases: string[];
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchRelatedTerms: string[];
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchUseCases: string[];
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'text' })
+  searchDocument?: string;
+
+  @Column({
+    type: 'tsvector',
+    nullable: true,
+    select: false,
+    insert: false,
+    update: false,
+    generatedType: 'STORED',
+    asExpression: `to_tsvector('swedish', coalesce("searchDocument", ''))`,
+  })
+  searchDocumentTsvector?: string;
+
   @Column({
     type: 'tsvector',
     nullable: true,

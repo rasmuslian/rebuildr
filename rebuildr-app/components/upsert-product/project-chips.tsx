@@ -1,7 +1,8 @@
 import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { FilterChip } from "@components/chips/filterChip";
 import { CreateProjectInline } from "@components/project/create-project-inline";
-import { Body, Headline } from "@components/typography/text";
+import { Body, Display, Headline } from "@components/typography/text";
+import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
 import {
@@ -50,6 +51,15 @@ type Props = {
 
 export const ProjectChips = ({ product, update }: Props) => {
   const [showCreate, setShowCreate] = useState(false);
+  const colors = useThemeColor();
+
+  //unselected project chips use the same grey tonal fill as the cards on the
+  //details step (e.g. "Tillåt delköp") instead of the default outlined chip
+  const unselectedChipStyle = {
+    backgroundColor: colors.buttons.tonal.disabled,
+    borderWidth: 0,
+    paddingHorizontal: 8,
+  };
 
   const { data, refetch } = useQuery<ProductBottomSheetProjectMyProjectsQuery>(
     PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS,
@@ -98,6 +108,7 @@ export const ProjectChips = ({ product, update }: Props) => {
 
   return (
     <View style={{ gap: 8, marginBottom: 8 }}>
+      <Display size="small">Projekt</Display>
       <Headline size="small">Hör annonsen till ett projekt?</Headline>
       <Body size="medium">
         Valfritt — adressen fylls i automatiskt och köpare ser fler annonser
@@ -116,6 +127,7 @@ export const ProjectChips = ({ product, update }: Props) => {
             key={p.id}
             label={p.title}
             selected={selectedId === p.id}
+            style={selectedId === p.id ? undefined : unselectedChipStyle}
             onPress={() =>
               selectedId === p.id ? onDeselect() : onSelect(p.id)
             }
@@ -124,6 +136,7 @@ export const ProjectChips = ({ product, update }: Props) => {
         <FilterChip
           label="+ Nytt projekt"
           selected={showCreate}
+          style={showCreate ? undefined : unselectedChipStyle}
           onPress={() => setShowCreate(!showCreate)}
         />
       </View>

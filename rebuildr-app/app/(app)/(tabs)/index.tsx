@@ -18,6 +18,7 @@ import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
+import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -26,6 +27,7 @@ export default function Landing() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
+  const previousShowSearchBarTopBar = useRef(showSearchBarTopBar);
   const { searchState, setSearchState } = useSearchContext();
   const [headlineHeight, setHeadlineHeight] = useState(0);
 
@@ -49,19 +51,33 @@ export default function Landing() {
       } else if (value <= breakpoint && showSearchBarTopBar) {
         setShowSearchBarTopBar(false);
       }
-      if (isDesktop && searchState.dropdownVisible && !showSearchBarTopBar) {
-        setSearchState({ dropdownVisible: false });
-      }
     });
 
     return () => {
       scrollY.removeListener(listener);
     };
-  }, [headlineHeight, showSearchBarTopBar, searchState.dropdownVisible]);
+  }, [headlineHeight, showSearchBarTopBar]);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    if (previousShowSearchBarTopBar.current === showSearchBarTopBar) return;
+
+    previousShowSearchBarTopBar.current = showSearchBarTopBar;
+
+    if (searchState.dropdownVisible) {
+      setSearchState({ dropdownVisible: false });
+    }
+  }, [
+    isDesktop,
+    searchState.dropdownVisible,
+    setSearchState,
+    showSearchBarTopBar,
+  ]);
 
   return (
     <>
-      <RebuildrHead />
+      <RebuildrHead jsonLd={[organizationSchema, webSiteSchema]} />
       <Head>
         <meta name="theme-color" content={colors.logo.vector} />
       </Head>

@@ -12,6 +12,7 @@ import { permanentSection } from "@constants/permanent-sections";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { View } from "react-native";
+import RebuildrHead from "@components/meta-data/rebuildr-head";
 
 const SEARCH_IN_SEASON = gql`
   query SearchInSeason($input: CategoriesInput!) {
@@ -41,34 +42,42 @@ export default function InSeasonPage() {
   });
 
   return (
-    <ScreenLayout
-      loading={loading}
-      style={{ marginTop: 24 }}
-      headerComponent={
-        isDesktop ? (
-          <TopBar showFor={["desktop"]} theme="light" />
-        ) : (
-          <SearchBar
-            onPressArrow={() => router.navigate("/")}
-            placeholder="Vad letar du efter?"
-            searchOnSubmit
-          />
-        )
-      }
-      desktopFooter={isDesktop}
-    >
-      <View
-        style={{
-          marginBottom: 24,
-        }}
+    <>
+      <RebuildrHead
+        title={`${permanentSection.forTheSeason.title} – återbrukat byggmaterial`}
+        description="Säsongsanpassat återbrukat byggmaterial på RebuildR. Hitta rätt material i säsong för ditt byggprojekt."
+      />
+      <ScreenLayout
+        loading={loading}
+        style={{ marginTop: 24 }}
+        headerComponent={
+          isDesktop ? (
+            <TopBar showFor={["desktop"]} theme="light" />
+          ) : (
+            <SearchBar
+              onPressArrow={() => router.navigate("/")}
+              placeholder="Vad letar du efter?"
+              searchOnSubmit
+            />
+          )
+        }
+        desktopFooter={isDesktop}
       >
-        <Display size="small">{permanentSection.forTheSeason.title}</Display>
-      </View>
-      <View style={{ gap: 16 }}>
-        {data?.categories.map((c, i) => (
-          <CategorySection category={c} key={i} />
-        ))}
-      </View>
-    </ScreenLayout>
+        <View
+          style={{
+            marginBottom: 24,
+          }}
+        >
+          <Display size="small" heading={1}>
+            {permanentSection.forTheSeason.title}
+          </Display>
+        </View>
+        <View style={{ gap: 16 }}>
+          {data?.categories.map((c, i) => (
+            <CategorySection category={c} key={i} />
+          ))}
+        </View>
+      </ScreenLayout>
+    </>
   );
 }

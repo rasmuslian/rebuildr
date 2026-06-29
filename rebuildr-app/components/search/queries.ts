@@ -24,18 +24,44 @@ export const SEARCH = gql`
 
 export const DO_SEARCH = gql`
   query DoSearch(
-    $searchResultsInput: GetSimilarSearchResultsInput!
+    $searchSuggestionsInput: GetSearchSuggestionsInput!
+    $productsInput: ProductsInput!
+    $categoriesInput: GetCategoriesInput!
     $usersInput: UsersInput!
   ) {
-    getSimilarSearchResults(input: $searchResultsInput) {
+    searchSuggestions(input: $searchSuggestionsInput) {
+      label
+      type
+      categoryId
+      parentId
+      productCount
+    }
+    products(input: $productsInput, limit: 5, offset: 0) {
+      total
+      products {
+        id
+        title
+        price
+        primaryImage {
+          id
+          url
+        }
+      }
+    }
+    getCategories(input: $categoriesInput) {
       id
-      searchString
-      count
+      name
+      parentId
+      image {
+        id
+        url
+      }
     }
     users(input: $usersInput) {
       users {
         id
         username
+        name
         type
         numberOfPublishedProducts
         numberOfSoldProducts
