@@ -14,6 +14,11 @@ export default function AccountLayout() {
       />
       <Stack.Screen name="purchases" options={{ headerShown: false }} />
       <Stack.Screen name="sales" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="internal-inventory"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="organization" options={{ headerShown: false }} />
     </Stack>
   );
 }

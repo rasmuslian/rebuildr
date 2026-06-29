@@ -3,6 +3,7 @@ import {
   MeasurementUnitEnum,
   ProductConditionEnum,
   ProductStatusEnum,
+  ProductVisibilityEnum,
   QuantityUnitEnum,
   ShippingProviderEnum,
 } from "@/gql/graphql";
@@ -95,4 +96,5 @@ export type ProductFields = {
   deliveryEnabled: boolean;
 
   status: ProductStatusEnum;
+  visibility?: ProductVisibilityEnum;
 };

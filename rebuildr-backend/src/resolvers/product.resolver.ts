@@ -25,6 +25,7 @@ import {
   Product,
   ProductConditionEnum,
   ProductStatus,
+  ProductVisibilityEnum,
 } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
@@ -225,6 +226,9 @@ export class UpdateProductInput {
   @Field(() => ProductStatus, { nullable: true })
   status?: ProductStatus;
 
+  @Field(() => ProductVisibilityEnum, { nullable: true })
+  visibility?: ProductVisibilityEnum;
+
   @Field(() => [FileInputType], { nullable: true })
   addImages?: FileInputType[];
 
@@ -337,6 +341,13 @@ export class ProductsInput {
 
   @Field({ nullable: true })
   excludeOwnProducts?: boolean;
+
+  /**
+   * Filter by listing visibility. Omitted = PUBLIC only (the open marketplace
+   * never shows internal listings). INTERNAL is owner-restricted in findAll.
+   */
+  @Field(() => ProductVisibilityEnum, { nullable: true })
+  visibility?: ProductVisibilityEnum;
 }
 
 @ObjectType()

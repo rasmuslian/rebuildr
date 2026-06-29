@@ -95,6 +95,7 @@ export const UPSERT_PRODUCT = gql`
     }
     me {
       id
+      type
       sellerAccount {
         canReceivePayment
       }
@@ -330,6 +331,7 @@ export const UpsertProduct = ({
         shippingPrices: dbProduct.shippingPrices ?? [],
 
         status: dbProduct.status ?? product.status,
+        visibility: dbProduct.visibility ?? undefined,
       };
       setProduct(stateProduct);
       //Baseline the analyzed-image count ONCE, on the first load of this draft —
@@ -461,6 +463,7 @@ export const UpsertProduct = ({
           deliveryEnabled: product.deliveryEnabled,
 
           status,
+          visibility: product.visibility,
         },
       },
     });
@@ -975,7 +978,13 @@ export const UpsertProduct = ({
           />
         );
       case "preview":
-        return <Preview product={product} dbProductId={data.product.id} />;
+        return (
+          <Preview
+            product={product}
+            dbProductId={data.product.id}
+            update={onUpdateProduct}
+          />
+        );
       case "onboarding":
         return (
           <SellerOnboardingHandler

@@ -396,6 +396,8 @@ type Product {
   colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
+  visibility: ProductVisibilityEnum!
+  organizationId: String
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
@@ -450,6 +452,11 @@ enum ProductStatusEnum {
   PUBLISHED
   SOLD
   DELETED
+}
+
+enum ProductVisibilityEnum {
+  PUBLIC
+  INTERNAL
 }
 
 input LocationInputType {
@@ -540,6 +547,48 @@ type CmsListUsersResponse {
 type SellerAccount {
   canReceivePayment: Boolean!
   canReceivePayout: Boolean!
+}
+
+type OrganizationMembership {
+  id: ID!
+  organizationId: String!
+  userId: String!
+  user: User
+  role: OrganizationRoleEnum!
+  createdAt: DateTime!
+}
+
+enum OrganizationRoleEnum {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+type Organization {
+  id: ID!
+  name: String!
+  organizationNumber: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type OrganizationInvite {
+  id: ID!
+  organizationId: String!
+  email: String!
+  role: OrganizationRoleEnum!
+  status: OrganizationInviteStatusEnum!
+  token: String!
+  invitedByUserId: String
+  createdAt: DateTime!
+  acceptedAt: DateTime
+}
+
+enum OrganizationInviteStatusEnum {
+  PENDING
+  ACCEPTED
+  REVOKED
 }
 
 type PurchaseProductResponse {
@@ -849,6 +898,12 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
+type MyOrganizationView {
+  organization: Organization
+  members: [OrganizationMembership!]!
+  pendingInvites: [OrganizationInvite!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -917,6 +972,7 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  myOrganization: MyOrganizationView!
 }
 
 input UserExistsInput {
@@ -972,6 +1028,7 @@ input ProductsInput {
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
+  visibility: ProductVisibilityEnum
 }
 
 enum OrderProductsEnum {
@@ -1284,6 +1341,10 @@ type Mutation {
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
+  inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
+  acceptOrganizationInvite(token: String!): OrganizationMembership!
+  aiImportInventoryImages(images: [String!]!): [Product!]!
+  aiImportInventoryDocument(file: String!, mimeType: String!): [Product!]!
 }
 
 input RegisterUserInput {
@@ -1501,6 +1562,7 @@ input UpdateProductInput {
   colorType: ColorTypeEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
+  visibility: ProductVisibilityEnum
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]
@@ -1815,4 +1877,9 @@ input CmsUpdateNewsletterCompetitionInput {
   bodyText: String!
   nextDrawDate: DateTime!
   productImage: FileInputType
+}
+
+input InviteOrganizationMemberInput {
+  email: String!
+  role: OrganizationRoleEnum
 }

@@ -54,6 +54,17 @@ export enum MeasurementUnitEnum {
 }
 registerEnumType(MeasurementUnitEnum, { name: 'MeasurementUnitEnum' });
 
+/**
+ * Where a listing is shown. PUBLIC = the open marketplace (default, as today).
+ * INTERNAL = only the owning company's internal inventory ("internlager") —
+ * excluded from all public marketplace queries.
+ */
+export enum ProductVisibilityEnum {
+  PUBLIC = 'PUBLIC',
+  INTERNAL = 'INTERNAL',
+}
+registerEnumType(ProductVisibilityEnum, { name: 'ProductVisibilityEnum' });
+
 export enum ColorTypeEnum {
   NCS = 'NCS',
   FREE_TEXT = 'FREE_TEXT',
@@ -278,6 +289,24 @@ export class Product {
   @Field(() => ProductStatus)
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
   status: ProductStatus;
+
+  @Field(() => ProductVisibilityEnum)
+  @Column({
+    type: 'enum',
+    enum: ProductVisibilityEnum,
+    enumName: 'product_visibility_enum',
+    default: ProductVisibilityEnum.PUBLIC,
+  })
+  visibility: ProductVisibilityEnum;
+
+  /**
+   * The organization that owns this listing. Set when published as INTERNAL so
+   * all members of the company share the same internal inventory. Stored as a
+   * plain FK column (no ORM relation) to avoid an entity import cycle.
+   */
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  organizationId?: string | null;
 
   @Column({ nullable: true })
   brandId?: string;

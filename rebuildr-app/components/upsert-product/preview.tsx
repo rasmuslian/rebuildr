@@ -13,9 +13,13 @@ import {
   ProductBottomSheetPreviewCategoryQueryVariables,
   ProductBottomSheetPreviewQuery,
   ProductStatusEnum,
+  ProductVisibilityEnum,
+  UserType,
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { Button } from "@components/buttons/button";
+import { Label, Body } from "@components/typography/text";
 import { ProductFields } from "./types";
 import { useState } from "react";
 import { useScreenType } from "@hooks/useScreenType";
@@ -51,6 +55,7 @@ const PRODUCT_BOTTOM_SHEET_PREVIEW = gql`
     me {
       id
       address
+      type
     }
   }
 `;
@@ -67,9 +72,10 @@ const PREVIEW_PRODUCT_UPSERT = gql`
 type Props = {
   product: ProductFields;
   dbProductId: string;
+  update?: (partialProduct: Partial<ProductFields>) => void;
 };
 
-export const Preview = ({ product, dbProductId }: Props) => {
+export const Preview = ({ product, dbProductId, update }: Props) => {
   const { isDesktop } = useScreenType();
   const [width, setWidth] = useState<number | undefined>(undefined);
   const [showAllImagesPopup, setShowAllImagesPopup] = useState(false);
@@ -133,6 +139,45 @@ export const Preview = ({ product, dbProductId }: Props) => {
         setWidth(w - 16);
       }}
     >
+      {data.me.type === UserType.Business && update && (
+        <View style={{ gap: 8 }}>
+          <Label size="medium">Var ska annonsen synas?</Label>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Button
+              label="Extern marknad"
+              style={{ flex: 1 }}
+              type={
+                (product.visibility ?? ProductVisibilityEnum.Public) ===
+                ProductVisibilityEnum.Internal
+                  ? "tonal"
+                  : "filled"
+              }
+              onPress={() =>
+                update({ visibility: ProductVisibilityEnum.Public })
+              }
+            />
+            <Button
+              label="Internt lager"
+              style={{ flex: 1 }}
+              type={
+                (product.visibility ?? ProductVisibilityEnum.Public) ===
+                ProductVisibilityEnum.Internal
+                  ? "filled"
+                  : "tonal"
+              }
+              onPress={() =>
+                update({ visibility: ProductVisibilityEnum.Internal })
+              }
+            />
+          </View>
+          <Body size="small">
+            {(product.visibility ?? ProductVisibilityEnum.Public) ===
+            ProductVisibilityEnum.Internal
+              ? "Visas bara i ert internlager — publiceras inte på den öppna marknaden."
+              : "Publiceras på Rebuildrs öppna marknad."}
+          </Body>
+        </View>
+      )}
       {isDesktop ? (
         <ImageGallery
           images={product.images?.map((i) => ({ url: i.uri })) ?? []}

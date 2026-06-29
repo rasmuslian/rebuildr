@@ -5,6 +5,7 @@ import {
   Product,
   ProductConditionEnum,
   ProductStatus,
+  ProductVisibilityEnum,
 } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
@@ -66,6 +67,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { UserService } from './user.service';
 import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
+import { OrganizationService } from './organization.service';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 
@@ -95,6 +97,7 @@ export class ProductService {
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private shippingPriceService: ShippingPriceService,
+    private organizationService: OrganizationService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -366,6 +369,17 @@ export class ProductService {
     }
     if (input.status) {
       product.status = input.status;
+    }
+    if (input.visibility !== undefined) {
+      product.visibility = input.visibility;
+      // Attach the listing to the user's company so all members share it.
+      if (input.visibility === ProductVisibilityEnum.INTERNAL) {
+        const org =
+          await this.organizationService.getOrCreateUserOrganization(
+            currentUserId,
+          );
+        product.organizationId = org.id;
+      }
     }
     //null means removing the brand
     if (!!input.brandId || input.brandId === null) {
@@ -696,6 +710,17 @@ export class ProductService {
     );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
+    // Visibility: the open marketplace only ever shows PUBLIC listings.
+    // INTERNAL is returned only when explicitly requested (and findAll forces
+    // ownership so internal listings can't be enumerated by others).
+    if (input.visibility) {
+      qb.andWhere(`${productAlias}.visibility = :visibility`, {
+        visibility: input.visibility,
+      });
+    } else {
+      qb.andWhere(`${productAlias}.visibility = 'PUBLIC'`);
+    }
+
     if (input.sellerId) {
       qb.andWhere(`${productAlias}."sellerId" = :sellerId`, {
         sellerId: input.sellerId,
@@ -825,7 +850,22 @@ export class ProductService {
       }
     }
 
+    if (input.visibility === ProductVisibilityEnum.INTERNAL && !currentUserId) {
+      throw ForbiddenException();
+    }
+
     this.basicFindProductsInputQueryBuilder(input, query, 'p');
+
+    // Internal listings are scoped to the viewer's organization(s) so the whole
+    // company shares one internal inventory — and nobody outside it can see it.
+    if (input.visibility === ProductVisibilityEnum.INTERNAL) {
+      const orgIds =
+        await this.organizationService.getUserOrganizationIds(currentUserId);
+      query.andWhere(
+        orgIds.length ? 'p."organizationId" IN (:...orgIds)' : '1 = 0',
+        { orgIds: orgIds.length ? orgIds : [''] },
+      );
+    }
 
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
