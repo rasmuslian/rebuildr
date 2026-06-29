@@ -25,6 +25,7 @@ type Props = {
   status?: ProductStatusEnum;
   distance?: number | null;
   onPress?: () => void;
+  upcoming?: boolean;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -38,6 +39,7 @@ export const AdGrid = ({
   status,
   distance,
   onPress,
+  upcoming,
   title,
   price,
   ...adDescriptionProps
@@ -88,6 +90,23 @@ export const AdGrid = ({
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
+        {upcoming && !overlayText && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 8,
+              left: 8,
+              paddingVertical: 2,
+              paddingHorizontal: 8,
+              borderRadius: borderRadius.xSmall,
+              backgroundColor: "#9a6b00",
+            }}
+          >
+            <Label size="medium" color="primaryLight">
+              Kommande
+            </Label>
+          </View>
+        )}
       </View>
       {distance && (
         <View

@@ -25,6 +25,8 @@ import {
   Product,
   ProductConditionEnum,
   ProductStatus,
+  ProductAvailabilityEnum,
+  ProductAvailabilityPrecisionEnum,
 } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
@@ -157,6 +159,15 @@ export class UpdateProductInput {
 
   @Field(() => ProductStatus, { nullable: true })
   status?: ProductStatus;
+
+  @Field(() => ProductAvailabilityEnum, { nullable: true })
+  availability?: ProductAvailabilityEnum;
+
+  @Field(() => Date, { nullable: true })
+  estimatedAvailableAt?: Date | null;
+
+  @Field(() => ProductAvailabilityPrecisionEnum, { nullable: true })
+  availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
 
   @Field(() => [FileInputType], { nullable: true })
   addImages?: FileInputType[];

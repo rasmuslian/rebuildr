@@ -27,8 +27,6 @@ import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
 import { Conversation } from './conversation.entity';
-import { InternalAdImportBatch } from './internal-ad-import-batch.entity';
-import { InternalAdReservation } from './internal-ad-reservation.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -47,12 +45,6 @@ export enum ProductStatus {
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
 
-export enum ProductVisibility {
-  PUBLIC = 'PUBLIC',
-  INTERNAL = 'INTERNAL',
-}
-registerEnumType(ProductVisibility, { name: 'ProductVisibilityEnum' });
-
 export enum MeasurementUnitEnum {
   M = 'M',
   DM = 'DM',
@@ -67,6 +59,30 @@ export enum ColorTypeEnum {
   FREE_TEXT = 'FREE_TEXT',
 }
 registerEnumType(ColorTypeEnum, { name: 'ColorTypeEnum' });
+
+/**
+ * Whether the item is available now or a "coming soon" listing (kommande
+ * annons) — communicated before it can be delivered, with an estimated date.
+ */
+export enum ProductAvailabilityEnum {
+  AVAILABLE = 'AVAILABLE',
+  UPCOMING = 'UPCOMING',
+}
+registerEnumType(ProductAvailabilityEnum, { name: 'ProductAvailabilityEnum' });
+
+/**
+ * How precise the estimated availability date is, so "coming soon" listings can
+ * express uncertainty instead of being forced to a specific day.
+ */
+export enum ProductAvailabilityPrecisionEnum {
+  EXACT = 'EXACT',
+  MONTH = 'MONTH',
+  QUARTER = 'QUARTER',
+  UNKNOWN = 'UNKNOWN',
+}
+registerEnumType(ProductAvailabilityPrecisionEnum, {
+  name: 'ProductAvailabilityPrecisionEnum',
+});
 
 @Entity()
 @ObjectType()
@@ -86,37 +102,6 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   additionalInfo?: string;
-
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
-  internalReferenceNumber?: string;
-
-  @Field(() => [String])
-  @Column('text', { array: true, default: [] })
-  searchAliases: string[];
-
-  @Field(() => [String])
-  @Column('text', { array: true, default: [] })
-  searchRelatedTerms: string[];
-
-  @Field(() => [String])
-  @Column('text', { array: true, default: [] })
-  searchUseCases: string[];
-
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true, type: 'text' })
-  searchDocument?: string;
-
-  @Column({
-    type: 'tsvector',
-    nullable: true,
-    select: false,
-    insert: false,
-    update: false,
-    generatedType: 'STORED',
-    asExpression: `to_tsvector('swedish', coalesce("searchDocument", ''))`,
-  })
-  searchDocumentTsvector?: string;
 
   @Column({
     type: 'tsvector',
@@ -318,6 +303,30 @@ export class Product {
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
   status: ProductStatus;
 
+  @Field(() => ProductAvailabilityEnum)
+  @Column({
+    type: 'enum',
+    enum: ProductAvailabilityEnum,
+    enumName: 'product_availability_enum',
+    default: ProductAvailabilityEnum.AVAILABLE,
+  })
+  availability: ProductAvailabilityEnum;
+
+  /** Estimated availability date for "coming soon" (UPCOMING) listings. */
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'timestamptz' })
+  estimatedAvailableAt?: Date | null;
+
+  /** Precision of estimatedAvailableAt (exact day / month / quarter / unknown). */
+  @Field(() => ProductAvailabilityPrecisionEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ProductAvailabilityPrecisionEnum,
+    enumName: 'product_availability_precision_enum',
+    nullable: true,
+  })
+  availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
+
   @Field(() => ProductVisibility)
   @Column({
     type: 'enum',
@@ -394,10 +403,6 @@ export class Product {
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
 
-  @Field(() => [InternalAdReservation])
-  @OneToMany(() => InternalAdReservation, (reservation) => reservation.product)
-  internalReservations: InternalAdReservation[];
-
   @OneToMany(() => Conversation, (conversation) => conversation.product)
   conversations: Conversation[];
 
@@ -444,13 +449,6 @@ export class Product {
 
   @Column({ nullable: true })
   publishedAt?: Date;
-
-  @Column({ nullable: true })
-  internalAdImportBatchId?: string;
-  @ManyToOne(() => InternalAdImportBatch, (batch) => batch.products, {
-    nullable: true,
-  })
-  internalAdImportBatch?: InternalAdImportBatch;
 
   //--------------Life cycle logic----------------
   private _previousStatus?: ProductStatus;

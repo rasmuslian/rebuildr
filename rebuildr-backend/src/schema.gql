@@ -163,40 +163,6 @@ enum ReportProductTypeEnum {
   OTHER
 }
 
-type OrganizationMembership {
-  id: ID!
-  organizationId: String!
-  userId: String!
-  role: OrganizationMemberRoleEnum!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  user: User!
-  organization: User!
-}
-
-enum OrganizationMemberRoleEnum {
-  ADMIN
-  MEMBER
-}
-
-type OrganizationInvite {
-  id: ID!
-  email: String!
-  organizationId: String!
-  invitedByUserId: String!
-  role: OrganizationMemberRoleEnum!
-  status: OrganizationInviteStatusEnum!
-  acceptedByUserId: String
-  acceptedAt: DateTime
-  createdAt: DateTime!
-}
-
-enum OrganizationInviteStatusEnum {
-  PENDING
-  ACCEPTED
-  REVOKED
-}
-
 type User {
   id: ID!
   username: String
@@ -212,7 +178,6 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
-  internalAdsAccess: Boolean!
   websiteUrl: String
   isFeatured: Boolean!
   notifyOnMessage: Boolean!
@@ -239,7 +204,6 @@ type User {
   totalCO2SavingsSeller: Float!
   numberOfCompletedPurchases: Int!
   sellerAccount: SellerAccount
-  isVerified: Boolean!
 }
 
 enum UserRoleEnum {
@@ -339,7 +303,6 @@ type Category {
   id: ID!
   name: String!
   description: String!
-  searchAliases: [String!]!
   orderIndex: Int!
   parentId: String
   inSelection: Boolean!
@@ -399,49 +362,11 @@ enum MeasurementTypeEnum {
   WEIGHT
 }
 
-type InternalAdImportBatch {
-  id: ID!
-  organizationId: String!
-  createdByUserId: String!
-  status: InternalAdImportBatchStatusEnum!
-  progress: Int!
-  errorMessage: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  files: [File!]!
-  products: [Product!]!
-}
-
-enum InternalAdImportBatchStatusEnum {
-  UPLOADING
-  QUEUED
-  PROCESSING
-  READY
-  FAILED
-  PUBLISHED
-}
-
-type InternalAdReservation {
-  id: ID!
-  productId: String!
-  reservedByUserId: String!
-  quantity: Int
-  reservedAt: DateTime!
-  canceledAt: DateTime
-  soldAt: DateTime
-  reservedByUser: User!
-}
-
 type Product {
   id: ID!
   title: String!
   description: String
   additionalInfo: String
-  internalReferenceNumber: String
-  searchAliases: [String!]!
-  searchRelatedTerms: [String!]!
-  searchUseCases: [String!]!
-  searchDocument: String
   createdAt: DateTime!
   updatedAt: DateTime!
   sellerId: String!
@@ -471,17 +396,13 @@ type Product {
   colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
-  visibility: ProductVisibilityEnum!
-  publiclyAvailable: Boolean!
-  publicPriceConfirmed: Boolean!
-  internalOrganizationId: String
-  createdByUserId: String
-  internalValidationIssues: [String!]!
+  availability: ProductAvailabilityEnum!
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
   deliveryRadius: Float
-  internalReservations: [InternalAdReservation!]!
   noProject: Boolean
   co2SavingBuyer: Float
   co2SavingSeller: Float
@@ -534,14 +455,197 @@ enum ProductStatusEnum {
   DELETED
 }
 
-enum ProductVisibilityEnum {
-  PUBLIC
-  INTERNAL
+enum ProductAvailabilityEnum {
+  AVAILABLE
+  UPCOMING
+}
+
+enum ProductAvailabilityPrecisionEnum {
+  EXACT
+  MONTH
+  QUARTER
+  UNKNOWN
 }
 
 input LocationInputType {
   lat: Float!
   lng: Float!
+}
+
+type GetAddressResponse {
+  address: String!
+}
+
+type LocationSearchResponse {
+  result: [String!]!
+}
+
+type LocationResponse {
+  lat: Float!
+  lng: Float!
+}
+
+type ApproximatePlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
+}
+
+type ExactPlaceResponse {
+  lat: Float!
+  lng: Float!
+  address: String!
+}
+
+type ExactAndApproximatePlaceResponse {
+  exact: ExactPlaceResponse!
+  approximate: ApproximatePlaceResponse!
+}
+
+type CmsListFilesResponse {
+  files: [File!]!
+  total: Int!
+}
+
+type CmsCreateFilesResponse {
+  presignedPutUrls: [String!]!
+}
+
+type UpdateUserResponse {
+  user: User!
+  profilePicturePutUrl: String
+}
+
+type OrganizationLookupResponse {
+  name: String!
+  address: String!
+  zipCode: String!
+  city: String!
+  alreadyRegistered: Boolean!
+}
+
+type UserExistsResponse {
+  exists: Boolean!
+  registrationStatus: RegisterStatusEnum
+}
+
+type UsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
+type PayoutAccount {
+  type: String!
+  routingNumber: String
+  last4: String
+  bankName: String
+}
+
+type OnboardSellerAccountResponse {
+  user: User!
+  clientSecret: String!
+  fields: [String!]!
+}
+
+type CmsListUsersResponse {
+  users: [User!]!
+  total: Int!
+}
+
+type SellerAccount {
+  canReceivePayment: Boolean!
+  canReceivePayout: Boolean!
+}
+
+type PurchaseProductResponse {
+  product: Product!
+  purchase: Purchase!
+  reference: String
+}
+
+type CmsListPurchasesResponse {
+  purchases: [Purchase!]!
+  total: Int!
+}
+
+type CanAbortResponse {
+  deniedReason: CanAbortDeniedReasonEnum!
+}
+
+enum CanAbortDeniedReasonEnum {
+  SHIPPING
+  HANDOFF
+}
+
+type ServicePointResponse {
+  id: String!
+  name: String!
+  distance: Float!
+  streetName: String!
+  streetNumber: String!
+  postalCode: String!
+  city: String!
+}
+
+type CreateProductResponse {
+  product: Product!
+  presignedPutUrls: [String!]!
+}
+
+type UpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type PaginatedProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type ProductsResponse {
+  products: [Product!]!
+  total: Int!
+
+  """
+  If address or location is supplied to Products(), this will have corresponding coordinates
+  """
+  origin: LocationResponse
+}
+
+type ShippingOptionResponse {
+  shippingPrice: ShippingPrice!
+  servicePoints: [ServicePointResponse!]!
+}
+
+type DeliveryOptionResponse {
+  deliverToLocation: LocationResponse!
+  isWithinRadius: Boolean!
+  distanceFromProduct: Float!
+  deliveryPrice: Float!
+  postalCode: String
+}
+
+type CmsListProductsResponse {
+  products: [Product!]!
+  total: Int!
+}
+
+type CmsCreateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type CmsUpdateProductResponse {
+  product: Product!
+  imagePutUrls: [String!]!
+  documentPutUrls: [String!]!
+}
+
+type ProductPriceRangeResponse {
+  min: Int!
+  max: Int!
 }
 
 type Partner {
@@ -632,195 +736,6 @@ type ResetPasswordResponse {
   message: String!
 }
 
-type GetAddressResponse {
-  address: String!
-}
-
-type LocationSearchResponse {
-  result: [String!]!
-}
-
-type LocationResponse {
-  lat: Float!
-  lng: Float!
-}
-
-type ApproximatePlaceResponse {
-  lat: Float!
-  lng: Float!
-  address: String!
-}
-
-type ExactPlaceResponse {
-  lat: Float!
-  lng: Float!
-  address: String!
-}
-
-type ExactAndApproximatePlaceResponse {
-  exact: ExactPlaceResponse!
-  approximate: ApproximatePlaceResponse!
-}
-
-type PurchaseProductResponse {
-  product: Product!
-  purchase: Purchase!
-  reference: String
-}
-
-type CmsListPurchasesResponse {
-  purchases: [Purchase!]!
-  total: Int!
-}
-
-type CanAbortResponse {
-  deniedReason: CanAbortDeniedReasonEnum!
-}
-
-enum CanAbortDeniedReasonEnum {
-  SHIPPING
-  HANDOFF
-}
-
-type ServicePointResponse {
-  id: String!
-  name: String!
-  distance: Float!
-  streetName: String!
-  streetNumber: String!
-  postalCode: String!
-  city: String!
-}
-
-type CmsListFilesResponse {
-  files: [File!]!
-  total: Int!
-}
-
-type CmsCreateFilesResponse {
-  presignedPutUrls: [String!]!
-}
-
-type UpdateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type PaginatedProductsResponse {
-  products: [Product!]!
-  total: Int!
-}
-
-type ProductsResponse {
-  products: [Product!]!
-  total: Int!
-
-  """
-  If address or location is supplied to Products(), this will have corresponding coordinates
-  """
-  origin: LocationResponse
-}
-
-type ShippingOptionResponse {
-  shippingPrice: ShippingPrice!
-  servicePoints: [ServicePointResponse!]!
-}
-
-type DeliveryOptionResponse {
-  deliverToLocation: LocationResponse!
-  isWithinRadius: Boolean!
-  distanceFromProduct: Float!
-  deliveryPrice: Float!
-  postalCode: String
-}
-
-type CmsListProductsResponse {
-  products: [Product!]!
-  total: Int!
-}
-
-type CmsCreateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type CmsUpdateProductResponse {
-  product: Product!
-  imagePutUrls: [String!]!
-  documentPutUrls: [String!]!
-}
-
-type ProductPriceRangeResponse {
-  min: Int!
-  max: Int!
-}
-
-type CmsSearchEnrichmentBackfillStatus {
-  state: String!
-  startedAt: DateTime
-  finishedAt: DateTime
-  enrichedCategories: Int!
-  enrichedProducts: Int!
-  failedCategories: Int!
-  failedProducts: Int!
-  remainingCategories: Int!
-  remainingProducts: Int!
-  currentItemType: String
-  currentItemId: String
-  currentItemName: String
-  currentAttempt: Int
-  lastProgressAt: DateTime
-  lastError: String
-}
-
-type UpdateUserResponse {
-  user: User!
-  profilePicturePutUrl: String
-}
-
-type OrganizationLookupResponse {
-  name: String!
-  address: String!
-  zipCode: String!
-  city: String!
-  alreadyRegistered: Boolean!
-}
-
-type UserExistsResponse {
-  exists: Boolean!
-  registrationStatus: RegisterStatusEnum
-}
-
-type UsersResponse {
-  users: [User!]!
-  total: Int!
-}
-
-type PayoutAccount {
-  type: String!
-  routingNumber: String
-  last4: String
-  bankName: String
-}
-
-type OnboardSellerAccountResponse {
-  user: User!
-  clientSecret: String!
-  fields: [String!]!
-}
-
-type CmsListUsersResponse {
-  users: [User!]!
-  total: Int!
-}
-
-type SellerAccount {
-  canReceivePayment: Boolean!
-  canReceivePayout: Boolean!
-}
-
 type CmsCreateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -849,20 +764,6 @@ type UpdateProjectResponse {
 type CmsListProjectsResponse {
   projects: [Project!]!
   total: Int!
-}
-
-type SearchSuggestion {
-  label: String!
-  type: SearchSuggestionTypeEnum!
-  categoryId: String
-  parentId: String
-  productCount: Int!
-}
-
-enum SearchSuggestionTypeEnum {
-  PRODUCT_TERM
-  BRAND
-  USE_CASE
 }
 
 type ListArticlesResponse {
@@ -963,33 +864,6 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
-type InitBankIDVerifyResponse {
-  orderRef: String!
-  autoStartToken: String!
-}
-
-type CollectBankIDVerifyResponse {
-  status: BankIDVerifyStatus!
-  qrData: String
-}
-
-enum BankIDVerifyStatus {
-  pending
-  complete
-  failed
-}
-
-type InternalAdsOrganizationContext {
-  organization: User!
-  role: OrganizationMemberRoleEnum!
-  isOrganizationAccount: Boolean!
-}
-
-type CreateInternalAdImportBatchResponse {
-  batch: InternalAdImportBatch!
-  uploadUrls: [String!]!
-}
-
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -1001,7 +875,6 @@ type Query {
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
-  relatedProducts(input: ProductsInput!, excludeProductIds: [ID!], offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
   getOrCreateDraftProduct: Product!
   getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
@@ -1010,7 +883,6 @@ type Query {
   getProductPriceRange: ProductPriceRangeResponse!
   cmsGetProduct(productId: String!): Product!
   cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
-  cmsSearchEnrichmentBackfillStatus: CmsSearchEnrichmentBackfillStatus!
   category(input: CategoryInput!): Category!
   categories(input: CategoriesInput!): [Category!]!
   getCategories(input: GetCategoriesInput!): [Category!]!
@@ -1040,7 +912,7 @@ type Query {
   getShippingPrice(input: GetShippingPriceInput!): ShippingPrice!
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
-  searchSuggestions(input: GetSearchSuggestionsInput!): [SearchSuggestion!]!
+  getSimilarSearchResults(input: GetSimilarSearchResultsInput!): [SearchResult!]!
   nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
   article(id: String!): Article!
   articleBySlug(slug: String!): Article!
@@ -1060,17 +932,6 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
-  collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
-  internalAdsOrganizationContext: InternalAdsOrganizationContext
-  internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
-  relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
-  internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
-  internalAd(productId: String!): Product!
-  internalAdDrafts(batchId: String): [Product!]!
-  organizationMembers: [OrganizationMembership!]!
-  organizationInvites: [OrganizationInvite!]!
-  internalAdImportBatch(batchId: String!): InternalAdImportBatch!
-  cmsInternalAds(input: CmsInternalAdsInput!): PaginatedProductsResponse!
 }
 
 input UserExistsInput {
@@ -1099,7 +960,6 @@ input CmsListUsersInput {
   searchString: String
   canSell: Boolean
   pendingApproval: Boolean
-  businessOnly: Boolean
 }
 
 input GetProductInput {
@@ -1127,7 +987,6 @@ input ProductsInput {
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
-  onlyPublished: Boolean
 }
 
 enum OrderProductsEnum {
@@ -1304,9 +1163,8 @@ input GetSearchResultsInput {
   pageSize: Int!
 }
 
-input GetSearchSuggestionsInput {
+input GetSimilarSearchResultsInput {
   searchString: String!
-  limit: Int
 }
 
 input NearbyServicePointsInput {
@@ -1361,12 +1219,6 @@ input CmsPurchaseStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
 
-input CmsInternalAdsInput {
-  page: Int
-  pageSize: Int
-  searchString: String
-}
-
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -1390,8 +1242,8 @@ type Mutation {
   cmsUpdateProduct(input: CmsUpdateProductInput!): CmsUpdateProductResponse!
   cmsHideProduct(productId: String!, hiddenReason: String!): Product!
   cmsUnhideProduct(productId: String!): Product!
-  cmsBackfillSearchEnrichment: CmsSearchEnrichmentBackfillStatus!
   cmsDeleteProduct(productId: String!): Product!
+  createProduct(input: CreateProductInput!): CreateProductResponse!
   createDraftProduct: Product!
   updateProduct(input: UpdateProductInput!): UpdateProductResponse!
   setLikeProduct(input: SetLikeProductInput!): Product!
@@ -1447,21 +1299,6 @@ type Mutation {
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
-  initBankIDVerify: InitBankIDVerifyResponse!
-  resetUserIdentity(userId: String!): Boolean!
-  inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
-  acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
-  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
-  createInternalAdDraft: Product!
-  removeInternalAdDraft(productId: String!): Boolean!
-  removeInternalAdImportBatch(batchId: String!): Boolean!
-  publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
-  setInternalAdPublicAvailability(productId: String!, publiclyAvailable: Boolean!, price: Float): Product!
-  reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
-  cancelInternalAdReservation(reservationId: String!): InternalAdReservation!
-  markInternalAdSold(input: MarkInternalAdSoldInput!): Product!
-  createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!): CreateInternalAdImportBatchResponse!
-  startInternalAdImportBatch(batchId: String!): InternalAdImportBatch!
 }
 
 input RegisterUserInput {
@@ -1518,7 +1355,6 @@ input CmsUpdateUsersInput {
   phoneNumber: String
   isFeatured: Boolean
   websiteUrl: String
-  internalAdsAccess: Boolean
 }
 
 input UpdateUserInput {
@@ -1582,9 +1418,6 @@ input CmsCreateProductInput {
   color: String
   colorType: ColorTypeEnum
   soldByQuantity: Boolean
-  searchAliases: [String!]
-  searchRelatedTerms: [String!]
-  searchUseCases: [String!]
   images: [FileInputType!]!
   documents: [FileInputType!]!
   sellerId: String
@@ -1629,14 +1462,28 @@ input CmsUpdateProductInput {
   color: String
   colorType: ColorTypeEnum
   soldByQuantity: Boolean
-  searchAliases: [String!]
-  searchRelatedTerms: [String!]
-  searchUseCases: [String!]
   id: String!
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]
   removeDocuments: [String!]
+}
+
+input CreateProductInput {
+  title: String!
+  categoryId: String!
+  price: Float!
+  address: String!
+  images: [FileInputType!]
+  isGiveaway: Boolean
+  brandId: String
+  amount: Float
+  height: Float
+  width: Float
+  depth: Float
+  volume: Float
+  condition: ProductConditionEnum!
+  description: String
 }
 
 input UpdateProductInput {
@@ -1645,7 +1492,6 @@ input UpdateProductInput {
   location: LocationInputType
   description: String
   additionalInfo: String
-  internalReferenceNumber: String
   categoryId: String
   brandId: String
   price: Float
@@ -1670,6 +1516,9 @@ input UpdateProductInput {
   colorType: ColorTypeEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
+  availability: ProductAvailabilityEnum
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]
@@ -1702,7 +1551,6 @@ input CmsCreateCategoryInput {
   parentId: String
   brandIds: [String!]
   co2FactorId: String
-  searchAliases: [String!]
   inSelection: Boolean!
   inSeason: Boolean!
   name: String!
@@ -1715,7 +1563,6 @@ input CmsUpdateCategoryInput {
   parentId: String
   brandIds: [String!]
   co2FactorId: String
-  searchAliases: [String!]
   id: String!
   inSelection: Boolean
   inSeason: Boolean
@@ -1986,34 +1833,4 @@ input CmsUpdateNewsletterCompetitionInput {
   bodyText: String!
   nextDrawDate: DateTime!
   productImage: FileInputType
-}
-
-input InviteOrganizationMemberInput {
-  email: String!
-  role: OrganizationMemberRoleEnum!
-}
-
-input AcceptOrganizationInviteInput {
-  token: String!
-  username: String
-  password: String
-}
-
-input UpdateOrganizationMemberRoleInput {
-  userId: String!
-  role: OrganizationMemberRoleEnum!
-}
-
-input ReserveInternalAdInput {
-  productId: String!
-  quantity: Int
-}
-
-input MarkInternalAdSoldInput {
-  productId: String!
-  reservationId: ID
-}
-
-input CreateInternalAdImportBatchInput {
-  files: [FileInputType!]!
 }
