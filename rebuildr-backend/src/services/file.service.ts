@@ -90,6 +90,10 @@ export class FileService {
   }
 
   async getUrl(file: File) {
+    // AI-generated/local images bypass S3 entirely.
+    if (file.externalUrl) {
+      return file.externalUrl;
+    }
     const fileExtension = file.mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
     return await this.s3Service.getUrl(key, file.private);

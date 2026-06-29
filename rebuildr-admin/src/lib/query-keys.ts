@@ -24,4 +24,7 @@ export enum queryKeys {
   GET_USER = "get-user",
   NEWSLETTER_COMPETITION = "newsletter-competition",
   LIST_PENDING_BUSINESSES = "list-pending-businesses",
+  LIST_ORGANIZATIONS = "list-organizations",
+  ORGANIZATION_INVENTORY = "organization-inventory",
+  INVENTORY_SUMMARY = "inventory-summary",
 }

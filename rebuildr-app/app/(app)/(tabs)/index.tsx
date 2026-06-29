@@ -14,6 +14,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { ProductsRecommendationSourceEnum } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { NearYou } from "@components/near-you/near-you";
+import { InternalListings } from "@components/internal-listings/internal-listings-section";
 import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
@@ -100,6 +101,7 @@ export default function Landing() {
             }}
           >
             <RootCategoriesHorizontal />
+            <InternalListings />
             <NewArrivals />
             <NearYou />
             <ForTheSeason />

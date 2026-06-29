@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import React, { useState, useCallback } from "react";
-import { MyAccountQuery } from "@/gql/graphql";
+import { MyAccountQuery, UserType } from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
 import { UserCard } from "@components/cards/user-card";
 import { Divider } from "@components/dividers/divider";
@@ -130,6 +130,20 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
             params: { userId: me.id },
           }}
         />
+        {me.type === UserType.Business && (
+          <LinkEntry
+            label="Internt lager"
+            body="Annonser som bara visas internt"
+            link="/account/internal-inventory"
+          />
+        )}
+        {me.type === UserType.Business && (
+          <LinkEntry
+            label="Mitt företag"
+            body="Hantera organisation och bjud in kollegor"
+            link="/account/organization"
+          />
+        )}
         <LinkEntry
           label="Dina försäljningar"
           body={me.sales.length + " annonser"}

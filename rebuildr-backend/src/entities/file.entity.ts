@@ -48,6 +48,13 @@ export class File {
   @Column({ type: Boolean, default: false })
   private: boolean;
 
+  /**
+   * If set, File.url returns this directly instead of building an S3 URL.
+   * Used for AI-generated inventory images served from local disk (no S3).
+   */
+  @Column({ nullable: true })
+  externalUrl?: string;
+
   @Column({ type: 'enum', enum: FileSourceEnum, default: FileSourceEnum.APP })
   source: FileSourceEnum;
 

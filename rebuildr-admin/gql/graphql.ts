@@ -846,6 +846,11 @@ export type GetUserInput = {
   id: Scalars['String']['input'];
 };
 
+export type InviteOrganizationMemberInput = {
+  email: Scalars['String']['input'];
+  role?: InputMaybe<OrganizationRoleEnum>;
+};
+
 export type LatestPurchaseInput = {
   otherUserId: Scalars['String']['input'];
   productId: Scalars['String']['input'];
@@ -1019,8 +1024,11 @@ export enum MessageTypeEnum {
 export type Mutation = {
   __typename?: 'Mutation';
   abortPurchase: Purchase;
+  acceptOrganizationInvite: OrganizationMembership;
   acceptPurchase: Purchase;
   addPayoutAccount: User;
+  aiImportInventoryDocument: Array<Product>;
+  aiImportInventoryImages: Array<Product>;
   analyzeProductImages: Product;
   approveBusinessAccount: User;
   cancelPurchase: Purchase;
@@ -1076,6 +1084,7 @@ export type Mutation = {
   deleteProject: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
+  inviteOrganizationMember: OrganizationInvite;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   markConversationAsRead: Conversation;
@@ -1092,10 +1101,9 @@ export type Mutation = {
   signupNewsLetter: Scalars['Boolean']['output'];
   syncApproximateLocations: Scalars['Boolean']['output'];
   syncCO2Factors: Scalars['Boolean']['output'];
-  updateOrganizationUser: User;
   updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
-  updateProject: Project;
+  updateProject: UpdateProjectResponse;
   updateUser: UpdateUserResponse;
   verifyEmail: LoginResponse;
 };
@@ -1106,6 +1114,11 @@ export type MutationAbortPurchaseArgs = {
 };
 
 
+export type MutationAcceptOrganizationInviteArgs = {
+  token: Scalars['String']['input'];
+};
+
+
 export type MutationAcceptPurchaseArgs = {
   input: AcceptPurchaseInput;
 };
@@ -1113,6 +1126,17 @@ export type MutationAcceptPurchaseArgs = {
 
 export type MutationAddPayoutAccountArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type MutationAiImportInventoryDocumentArgs = {
+  file: Scalars['String']['input'];
+  mimeType: Scalars['String']['input'];
+};
+
+
+export type MutationAiImportInventoryImagesArgs = {
+  images: Array<Scalars['String']['input']>;
 };
 
 
@@ -1372,6 +1396,11 @@ export type MutationGetNewTokensArgs = {
 };
 
 
+export type MutationInviteOrganizationMemberArgs = {
+  input: InviteOrganizationMemberInput;
+};
+
+
 export type MutationLoginArgs = {
   input: LoginInput;
 };
@@ -1442,11 +1471,6 @@ export type MutationSignupNewsLetterArgs = {
 };
 
 
-export type MutationUpdateOrganizationUserArgs = {
-  input: UpdateOrganizationUserInput;
-};
-
-
 export type MutationUpdatePageContentArgs = {
   input: UpdatePageContentInput;
 };
@@ -1469,6 +1493,13 @@ export type MutationUpdateUserArgs = {
 
 export type MutationVerifyEmailArgs = {
   input: VerifyEmailInput;
+};
+
+export type MyOrganizationView = {
+  __typename?: 'MyOrganizationView';
+  members: Array<OrganizationMembership>;
+  organization?: Maybe<Organization>;
+  pendingInvites: Array<OrganizationInvite>;
 };
 
 export type MyPurchaseInput = {
@@ -1533,6 +1564,34 @@ export enum OrderUsersEnum {
   Alphabetical = 'ALPHABETICAL'
 }
 
+export type Organization = {
+  __typename?: 'Organization';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  organizationNumber?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type OrganizationInvite = {
+  __typename?: 'OrganizationInvite';
+  acceptedAt?: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  invitedByUserId?: Maybe<Scalars['String']['output']>;
+  organizationId: Scalars['String']['output'];
+  role: OrganizationRoleEnum;
+  status: OrganizationInviteStatusEnum;
+  token: Scalars['String']['output'];
+};
+
+export enum OrganizationInviteStatusEnum {
+  Accepted = 'ACCEPTED',
+  Pending = 'PENDING',
+  Revoked = 'REVOKED'
+}
+
 export type OrganizationLookupResponse = {
   __typename?: 'OrganizationLookupResponse';
   address: Scalars['String']['output'];
@@ -1541,6 +1600,23 @@ export type OrganizationLookupResponse = {
   name: Scalars['String']['output'];
   zipCode: Scalars['String']['output'];
 };
+
+export type OrganizationMembership = {
+  __typename?: 'OrganizationMembership';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  organizationId: Scalars['String']['output'];
+  role: OrganizationRoleEnum;
+  user?: Maybe<User>;
+  userId: Scalars['String']['output'];
+};
+
+export enum OrganizationRoleEnum {
+  Admin = 'ADMIN',
+  Member = 'MEMBER',
+  Owner = 'OWNER',
+  Viewer = 'VIEWER'
+}
 
 export type PageContent = {
   __typename?: 'PageContent';
@@ -1630,8 +1706,11 @@ export type Product = {
   location?: Maybe<LocationResponse>;
   minimumPrice: Scalars['Int']['output'];
   noProject?: Maybe<Scalars['Boolean']['output']>;
+  organizationId?: Maybe<Scalars['String']['output']>;
   pickupEnabled: Scalars['Boolean']['output'];
   price: Scalars['Float']['output'];
+  priceSuggestionMax?: Maybe<Scalars['Int']['output']>;
+  priceSuggestionMin?: Maybe<Scalars['Int']['output']>;
   primaryImage?: Maybe<File>;
   primaryQuantity?: Maybe<Scalars['Float']['output']>;
   primaryUnit?: Maybe<QuantityUnitEnum>;
@@ -1649,6 +1728,7 @@ export type Product = {
   thicknessUnit: MeasurementUnitEnum;
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+  visibility: ProductVisibilityEnum;
   weight?: Maybe<Scalars['Float']['output']>;
   weightUnit: MeasurementUnitEnum;
   width?: Maybe<Scalars['Float']['output']>;
@@ -1697,6 +1777,11 @@ export enum ProductStatusEnum {
   Sold = 'SOLD'
 }
 
+export enum ProductVisibilityEnum {
+  Internal = 'INTERNAL',
+  Public = 'PUBLIC'
+}
+
 export type ProductsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1718,6 +1803,7 @@ export type ProductsInput = {
   selectionCategories?: InputMaybe<Scalars['Boolean']['input']>;
   sellerId?: InputMaybe<Scalars['String']['input']>;
   shipping?: InputMaybe<Scalars['Boolean']['input']>;
+  visibility?: InputMaybe<ProductVisibilityEnum>;
 };
 
 export enum ProductsRecommendationSourceEnum {
@@ -1907,6 +1993,7 @@ export type Query = {
   lookupOrganizationNumber?: Maybe<OrganizationLookupResponse>;
   mapPinGroups: MapPinGroupsResponse;
   me: User;
+  myOrganization: MyOrganizationView;
   myProjects: Array<Project>;
   myPurchase?: Maybe<Purchase>;
   myPurchases: Array<Purchase>;
@@ -2388,17 +2475,6 @@ export enum TransportationEnum {
   Shipping = 'SHIPPING'
 }
 
-export type UpdateOrganizationUserInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
-  city?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['String']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-  organizationName?: InputMaybe<Scalars['String']['input']>;
-  phoneNumber?: InputMaybe<Scalars['String']['input']>;
-  postCode?: InputMaybe<Scalars['String']['input']>;
-  websiteUrl?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type UpdatePageContentInput = {
   heroHtml: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -2442,6 +2518,7 @@ export type UpdateProductInput = {
   thickness?: InputMaybe<Scalars['Float']['input']>;
   thicknessUnit?: InputMaybe<MeasurementUnitEnum>;
   title?: InputMaybe<Scalars['String']['input']>;
+  visibility?: InputMaybe<ProductVisibilityEnum>;
   weight?: InputMaybe<Scalars['Float']['input']>;
   weightUnit?: InputMaybe<MeasurementUnitEnum>;
   width?: InputMaybe<Scalars['Float']['input']>;
@@ -2462,9 +2539,16 @@ export type UpdateProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   location?: InputMaybe<LocationInputType>;
+  projectPicture?: InputMaybe<FileInputType>;
   shortText?: InputMaybe<Scalars['String']['input']>;
   showDetailsOnMap?: InputMaybe<Scalars['Boolean']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateProjectResponse = {
+  __typename?: 'UpdateProjectResponse';
+  project: Project;
+  projectPicturePutUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type UpdateUserInput = {
@@ -2481,6 +2565,7 @@ export type UpdateUserInput = {
   postCode?: InputMaybe<Scalars['String']['input']>;
   profilePicture?: InputMaybe<FileInputType>;
   username?: InputMaybe<Scalars['String']['input']>;
+  websiteUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserResponse = {
@@ -2507,7 +2592,6 @@ export type User = {
   numberOfCompletedPurchases: Scalars['Int']['output'];
   numberOfPublishedProducts: Scalars['Int']['output'];
   numberOfSoldProducts: Scalars['Int']['output'];
-  organizationAccount?: Maybe<User>;
   organizationApprovedAt?: Maybe<Scalars['DateTime']['output']>;
   organizationNumber?: Maybe<Scalars['String']['output']>;
   payoutAccount?: Maybe<PayoutAccount>;

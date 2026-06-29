@@ -145,6 +145,12 @@ import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
 import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
 import { BygghjalpenController } from './controllers/bygghjalpen.controller';
 import { BygghjalpenService } from './services/bygghjalpen.service';
+import { Organization } from './entities/organization.entity';
+import { OrganizationMembership } from './entities/organization-membership.entity';
+import { OrganizationInvite } from './entities/organization-invite.entity';
+import { OrganizationResolver } from './resolvers/organization.resolver';
+import { InventoryService } from './services/inventory.service';
+import { InventoryResolver } from './resolvers/inventory.resolver';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -206,6 +212,9 @@ export interface RequestType {
       NewsletterCompetition,
       BygghjalpenChat,
       BygghjalpenMessage,
+      Organization,
+      OrganizationMembership,
+      OrganizationInvite,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -370,6 +379,9 @@ export interface RequestType {
     StatisticsResolver,
     StatisticsService,
     BygghjalpenService,
+    OrganizationResolver,
+    InventoryService,
+    InventoryResolver,
   ],
 })
 export class AppModule {}

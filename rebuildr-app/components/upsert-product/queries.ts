@@ -31,6 +31,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     color
     colorType
     status
+    visibility
     co2SavingSeller
     images {
       id

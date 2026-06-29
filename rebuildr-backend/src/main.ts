@@ -2,6 +2,8 @@
 import './instrument';
 
 import { BaseExceptionFilter, NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import {
   WINSTON_MODULE_NEST_PROVIDER,
@@ -59,8 +61,16 @@ export class AuthenticationErrorFilter<
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
+  // DEV/LOCAL: serve AI-generated inventory images from local disk (no S3) at
+  // /generated/<file>. Used by the internlager AI-import when Spaces is gated.
+  app.useStaticAssets(join(process.cwd(), 'generated-images'), {
+    prefix: '/generated/',
+  });
 
   // Stripe webhook needs raw body
   app.use('/stripe-webhook', bodyParser.raw({ type: 'application/json' }));

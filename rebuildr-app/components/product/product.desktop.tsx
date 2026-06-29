@@ -6,11 +6,13 @@ import {
   ProductConditionEnum,
   ProductStatusEnum,
   ProductViewQuery,
+  ProductVisibilityEnum,
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
 import { AdRowSectionDesktop } from "@components/ad-row-section/ad-row-section.desktop";
 import { Button, ButtonProps } from "@components/buttons/button";
+import { Body } from "@components/typography/text";
 import { BuyersProtection } from "@components/buyers-protection/buyers-protection";
 import { Divider } from "@components/dividers/divider";
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
@@ -44,6 +46,7 @@ import { useContext, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
+import { useSetProductVisibility } from "@hooks/product/use-set-product-visibility";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -131,6 +134,10 @@ export const ProductDesktop = ({
     setShowMapPopup(true);
   };
 
+  const { setVisibility, loading: visibilityLoading } =
+    useSetProductVisibility();
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
   const ctas: ButtonProps[] = [];
 
   if (isMyProduct) {
@@ -144,6 +151,29 @@ export const ProductDesktop = ({
         } else {
           startPrintLabel();
         }
+      },
+    });
+  }
+
+  // Business owners can move a listing between the internal inventory and the
+  // public marketplace straight from the detail view.
+  if (isMyProduct && me?.type === UserType.Business) {
+    const isInternal = product.visibility === ProductVisibilityEnum.Internal;
+    ctas.push({
+      label: isInternal ? "Publicera externt" : "Flytta till internt lager",
+      loading: visibilityLoading,
+      onPress: async () => {
+        await setVisibility(
+          product.id,
+          isInternal
+            ? ProductVisibilityEnum.Public
+            : ProductVisibilityEnum.Internal,
+        );
+        setInfoMessage(
+          isInternal
+            ? "Annonsen är nu publicerad externt – synlig för alla på öppna marknaden."
+            : "Annonsen är flyttad till internt lager och syns inte längre externt.",
+        );
       },
     });
   }
@@ -382,6 +412,16 @@ export const ProductDesktop = ({
             markerType={MapPinTypeEnum.Product}
           />
         )}
+      </Popup>
+      <Popup
+        open={!!infoMessage}
+        onClose={() => setInfoMessage(null)}
+        type="partial"
+      >
+        <View style={{ gap: 16, padding: 24 }}>
+          <Body size="large">{infoMessage}</Body>
+          <Button label="OK" onPress={() => setInfoMessage(null)} />
+        </View>
       </Popup>
     </>
   );

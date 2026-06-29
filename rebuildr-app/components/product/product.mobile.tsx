@@ -5,6 +5,7 @@ import {
   ProductConditionEnum,
   ProductStatusEnum,
   ProductViewQuery,
+  ProductVisibilityEnum,
   QuantityUnitEnum,
   UserType,
 } from "@/gql/graphql";
@@ -15,7 +16,10 @@ import { MainContent } from "@components/preview-product/main-content";
 import { PickupPosition } from "@components/preview-product/pickup-position";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { router, useLocalSearchParams } from "expo-router";
-import { ButtonProps } from "@components/buttons/button";
+import { Button, ButtonProps } from "@components/buttons/button";
+import { Body } from "@components/typography/text";
+import { Popup } from "@components/popup/popup";
+import { View } from "react-native";
 import { AdGrid } from "@components/ad/ad-grid";
 import { Header } from "@components/navigation/headers/header";
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
@@ -28,6 +32,7 @@ import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
+import { useSetProductVisibility } from "@hooks/product/use-set-product-visibility";
 
 import { ReportProduct } from "@components/report/report-product";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -102,6 +107,10 @@ export const ProductMobile = ({
   const { print: startPrintLabel, handleReady: handleSheetReady } =
     usePrintProductLabel();
 
+  const { setVisibility, loading: visibilityLoading } =
+    useSetProductVisibility();
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
   const ctas: ButtonProps[] = [];
 
   if (isMyProduct && Platform.OS === "web") {
@@ -116,6 +125,28 @@ export const ProductMobile = ({
         } else {
           startPrintLabel();
         }
+      },
+    });
+  }
+
+  if (isMyProduct && me?.type === UserType.Business) {
+    const isInternal = product.visibility === ProductVisibilityEnum.Internal;
+    ctas.push({
+      label: isInternal ? "Publicera externt" : "Flytta till internt lager",
+      type: "tonal",
+      loading: visibilityLoading,
+      onPress: async () => {
+        await setVisibility(
+          product.id,
+          isInternal
+            ? ProductVisibilityEnum.Public
+            : ProductVisibilityEnum.Internal,
+        );
+        setInfoMessage(
+          isInternal
+            ? "Annonsen är nu publicerad externt – synlig för alla på öppna marknaden."
+            : "Annonsen är flyttad till internt lager och syns inte längre externt.",
+        );
       },
     });
   }
@@ -285,6 +316,16 @@ export const ProductMobile = ({
         productId={productId}
         onReady={handleSheetReady}
       />
+      <Popup
+        open={!!infoMessage}
+        onClose={() => setInfoMessage(null)}
+        type="partial"
+      >
+        <View style={{ gap: 16, padding: 24 }}>
+          <Body size="large">{infoMessage}</Body>
+          <Button label="OK" onPress={() => setInfoMessage(null)} />
+        </View>
+      </Popup>
     </>
   );
 };
