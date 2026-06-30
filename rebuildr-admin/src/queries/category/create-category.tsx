@@ -7,6 +7,7 @@ const query = `
       category {
         id
         name
+        searchAliases
       }
       imagePutUrl
     }

@@ -23,7 +23,6 @@ import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import CompetitionSponsor from "@assets/images/competition-sponsor.png";
 import BottomsheetPopupHero from "@assets/images/bottomsheet-popup-hero.png";
 import { Divider } from "@components/dividers/divider";
-import { formatPrice } from "@/utils/formattings";
 import { Form } from "@components/forms/form";
 import { useUser } from "@hooks/useUser";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -413,9 +412,7 @@ export default function CompetitionPage() {
                   style={{ textAlign: "center", color: primitives.primary300 }}
                 >
                   Värde:{" "}
-                  {competition?.productValue
-                    ? formatPrice(competition.productValue)
-                    : ""}
+                  {competition?.productValue ?? ""}
                 </Title>
               </View>
             </View>
@@ -525,9 +522,7 @@ export default function CompetitionPage() {
                 }}
               >
                 Värde:{" "}
-                {competition?.productValue
-                  ? formatPrice(competition.productValue)
-                  : ""}
+                {competition?.productValue ?? ""}
               </Title>
             </View>
           </View>

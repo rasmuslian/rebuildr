@@ -12,6 +12,7 @@ const GET_ME = gql`
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
+      isVerified
       profilePicture {
         id
         url
@@ -23,14 +24,18 @@ const GET_ME = gql`
 export const useUser = () => {
   const isLoggedIn = useReactiveVar(isLoggedInVar);
 
-  const { data, loading } = useQuery<GetMeQuery, GetMeQueryVariables>(GET_ME, {
-    variables: {},
-    skip: !isLoggedIn,
-  });
+  const { data, loading, refetch } = useQuery<GetMeQuery, GetMeQueryVariables>(
+    GET_ME,
+    {
+      variables: {},
+      skip: !isLoggedIn,
+    },
+  );
 
   return {
     isLoggedIn,
     me: data?.me,
     loading,
+    refetch,
   };
 };

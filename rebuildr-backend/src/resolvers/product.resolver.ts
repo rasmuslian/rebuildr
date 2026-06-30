@@ -28,10 +28,8 @@ import {
 } from 'src/entities/product.entity';
 import { User } from 'src/entities/user.entity';
 import { File } from 'src/entities/file.entity';
-import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { CategoryService } from 'src/services/category.service';
 import { ProductService } from 'src/services/product.service';
-import z from 'zod';
 import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { EventService } from 'src/services/event.service';
@@ -58,6 +56,7 @@ import { minimumProductPrice } from 'src/constants/pricing';
 import { FileInputType } from './file.resolver';
 import { AIService } from 'src/services/ai.service';
 import { ShippingPriceService } from 'src/services/shipping-price.service';
+import { SearchEnrichmentService } from 'src/services/search-enrichment.service';
 import { BadUserInputException } from 'src/exceptions';
 
 export enum OrderProductsEnum {
@@ -74,75 +73,6 @@ registerEnumType(OrderProductsEnum, { name: 'OrderProductsEnum' });
 export class AnalyzeProductImagesInput {
   @Field()
   productId: string;
-}
-
-@InputType()
-export class CreateProductInput {
-  @Field()
-  title: string;
-
-  @Field()
-  categoryId: string;
-
-  @Field()
-  price: number;
-
-  @Field(() => String)
-  address: string;
-
-  @Field(() => [FileInputType], { nullable: true })
-  images?: FileInputType[];
-
-  @Field(() => Boolean, { nullable: true })
-  isGiveaway?: boolean;
-
-  @Field(() => String, { nullable: true })
-  brandId?: string;
-
-  @Field({ nullable: true })
-  amount?: number;
-
-  @Field({ nullable: true })
-  height?: number;
-
-  @Field({ nullable: true })
-  width?: number;
-
-  @Field({ nullable: true })
-  depth?: number;
-
-  @Field({ nullable: true })
-  volume?: number;
-
-  @Field(() => ProductConditionEnum)
-  condition: ProductConditionEnum;
-
-  @Field(() => String, { nullable: true })
-  description?: string;
-}
-const createProductSchema = z.object({
-  title: z.string(),
-  categoryId: z.string(),
-  price: z.number(),
-  address: z.string(),
-  images: z.array(z.object({ mimeType: z.string() })).optional(),
-  isGiveaway: z.boolean().optional(),
-  brandId: z.string().optional(),
-  amount: z.number().optional(),
-  height: z.number().optional(),
-  width: z.number().optional(),
-  depth: z.number().optional(),
-  volume: z.number().optional(),
-  condition: z.nativeEnum(ProductConditionEnum),
-  description: z.string().optional(),
-});
-@ObjectType()
-export class CreateProductResponse {
-  @Field(() => Product)
-  product: Product;
-
-  @Field(() => [String])
-  presignedPutUrls: string[];
 }
 
 @InputType()
@@ -337,6 +267,9 @@ export class ProductsInput {
 
   @Field({ nullable: true })
   excludeOwnProducts?: boolean;
+
+  @Field({ nullable: true })
+  onlyPublished?: boolean;
 }
 
 @ObjectType()
@@ -569,6 +502,15 @@ class CmsBaseProductInput extends QuantityInput {
 
   @Field({ nullable: true })
   soldByQuantity?: boolean;
+
+  @Field(() => [String], { nullable: true })
+  searchAliases?: string[];
+
+  @Field(() => [String], { nullable: true })
+  searchRelatedTerms?: string[];
+
+  @Field(() => [String], { nullable: true })
+  searchUseCases?: string[];
 }
 
 @InputType()
@@ -632,6 +574,54 @@ export class ProductPriceRangeResponse {
   max: number;
 }
 
+@ObjectType()
+export class CmsSearchEnrichmentBackfillStatus {
+  @Field(() => String)
+  state: string;
+
+  @Field(() => Date, { nullable: true })
+  startedAt?: Date;
+
+  @Field(() => Date, { nullable: true })
+  finishedAt?: Date;
+
+  @Field(() => Int)
+  enrichedCategories: number;
+
+  @Field(() => Int)
+  enrichedProducts: number;
+
+  @Field(() => Int)
+  failedCategories: number;
+
+  @Field(() => Int)
+  failedProducts: number;
+
+  @Field(() => Int)
+  remainingCategories: number;
+
+  @Field(() => Int)
+  remainingProducts: number;
+
+  @Field(() => String, { nullable: true })
+  currentItemType?: string;
+
+  @Field(() => String, { nullable: true })
+  currentItemId?: string;
+
+  @Field(() => String, { nullable: true })
+  currentItemName?: string;
+
+  @Field(() => Int, { nullable: true })
+  currentAttempt?: number;
+
+  @Field(() => Date, { nullable: true })
+  lastProgressAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  lastError?: string;
+}
+
 @Resolver(() => Product)
 export class ProductResolver {
   constructor(
@@ -641,6 +631,7 @@ export class ProductResolver {
     private eventService: EventService,
     private aiService: AIService,
     private shippingPriceService: ShippingPriceService,
+    private searchEnrichmentService: SearchEnrichmentService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -663,6 +654,25 @@ export class ProductResolver {
     @CurrentUser() user?: AuthedUserType,
   ) {
     return this.productService.findAll({ ...input }, limit, offset, user?.id);
+  }
+
+  @Query(() => ProductsResponse)
+  @UseGuards(GqlOptionalAuthGuard)
+  async relatedProducts(
+    @Args('input') input: ProductsInput,
+    @Args('excludeProductIds', { nullable: true, type: () => [ID] })
+    excludeProductIds?: string[],
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+    @CurrentUser() user?: AuthedUserType,
+  ) {
+    return this.productService.relatedProducts(
+      { ...input },
+      excludeProductIds ?? [],
+      limit,
+      offset,
+      user?.id,
+    );
   }
 
   @Query(() => Product, { nullable: true })
@@ -728,6 +738,13 @@ export class ProductResolver {
     return this.productService.cmsListProducts(input);
   }
 
+  @Query(() => CmsSearchEnrichmentBackfillStatus)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsSearchEnrichmentBackfillStatus(): Promise<CmsSearchEnrichmentBackfillStatus> {
+    return this.searchEnrichmentService.getStatus();
+  }
+
   @Mutation(() => CmsCreateProductResponse)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -769,6 +786,13 @@ export class ProductResolver {
     return this.productService.cmsUnhideProduct(productId);
   }
 
+  @Mutation(() => CmsSearchEnrichmentBackfillStatus)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  async cmsBackfillSearchEnrichment(): Promise<CmsSearchEnrichmentBackfillStatus> {
+    return this.searchEnrichmentService.startBackfill();
+  }
+
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
@@ -776,19 +800,6 @@ export class ProductResolver {
     @Args('productId') productId: string,
   ): Promise<Product> {
     return this.productService.cmsDeleteProduct(productId);
-  }
-
-  @Mutation(() => CreateProductResponse)
-  @UseGuards(GqlAuthGuard, GqlThrottlerGuard)
-  async createProduct(
-    @CurrentUser() _user: AuthedUserType,
-    @Args('input', new ZodValidationPipe(createProductSchema))
-    input: CreateProductInput,
-  ) {
-    return this.productService.create({
-      ...input,
-      userId: _user.id,
-    });
   }
 
   @Mutation(() => Product)

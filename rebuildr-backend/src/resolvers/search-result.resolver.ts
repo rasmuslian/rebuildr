@@ -34,12 +34,6 @@ export class GetSearchResultsInput {
   pageSize: number;
 }
 
-@InputType()
-export class GetSimilarSearchResultsInput {
-  @Field()
-  searchString: string;
-}
-
 @Resolver(() => SearchResult)
 export class SearchResultResolver {
   constructor(private readonly searchResultService: SearchResultService) {}
@@ -52,13 +46,6 @@ export class SearchResultResolver {
     @Context('userLoaders') userLoaders: IUserLoaders,
   ): Promise<SearchResult[]> {
     return await userLoaders.getSearchResultsLoader(input).load(user.id);
-  }
-
-  @Query(() => [SearchResult])
-  async getSimilarSearchResults(
-    @Args('input') input: GetSimilarSearchResultsInput,
-  ) {
-    return await this.searchResultService.getSimilarSearchResults(input);
   }
 
   @Mutation(() => Boolean)

@@ -39,6 +39,7 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { VerifyMeBottomSheet } from "@components/verify-me/verify-me-bottomsheet";
 
 //The selection set must be a superset of every UpsertProductProductFragment
 //field the AI can change (with identical sub-selections, notably category).
@@ -95,6 +96,7 @@ export const UPSERT_PRODUCT = gql`
     }
     me {
       id
+      isVerified
       sellerAccount {
         canReceivePayment
       }
@@ -217,13 +219,19 @@ export const UpsertProduct = ({
     number | undefined
   >(undefined);
 
-  const { data, loading: productLoading } = useQuery<
-    UpsertProductQuery,
-    UpsertProductQueryVariables
-  >(UPSERT_PRODUCT, {
-    variables: { input: { id: productId ?? "" } },
-    skip: !productId,
-  });
+  const [showVerifyMe, setShowVerifyMe] = useState(false);
+
+  const {
+    data,
+    loading: productLoading,
+    refetch,
+  } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
+    UPSERT_PRODUCT,
+    {
+      variables: { input: { id: productId ?? "" } },
+      skip: !productId,
+    },
+  );
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -843,10 +851,16 @@ export const UpsertProduct = ({
     //if no errors, proceed
     return true;
   };
-  const onVerifyPreview = async () => {
-    if (!data) return;
+  const onVerifyPreview = async (freshData?: typeof data) => {
+    const d = freshData ?? data;
+    if (!d) return;
 
-    let sellerAccount = data.me.sellerAccount;
+    if (!d.me.isVerified) {
+      setShowVerifyMe(true);
+      return;
+    }
+
+    let sellerAccount = d.me.sellerAccount;
     //Create seller account if it does not exist
     if (!sellerAccount) {
       const response = await createSellerAccount();
@@ -913,8 +927,8 @@ export const UpsertProduct = ({
               style={{ flex: 1 }}
             />
             <Button
-              label={mode === "create" ? "Publicera" : "Publicera"}
-              onPress={onVerifyPreview}
+              label="Publicera"
+              onPress={() => onVerifyPreview()}
               style={{ flex: 1 }}
               loading={updateDraftLoading || createSellerAccountLoading}
             />
@@ -1029,6 +1043,15 @@ export const UpsertProduct = ({
             onProductDeleted={onProductDeleted}
           />
         )}
+        <VerifyMeBottomSheet
+          show={showVerifyMe}
+          onDismiss={() => setShowVerifyMe(false)}
+          onResult={async () => {
+            setShowVerifyMe(false);
+            const result = await refetch();
+            onVerifyPreview(result.data);
+          }}
+        />
       </>
     );
   }
@@ -1063,6 +1086,15 @@ export const UpsertProduct = ({
           onProductDeleted={onProductDeleted}
         />
       )}
+      <VerifyMeBottomSheet
+        show={showVerifyMe}
+        onDismiss={() => setShowVerifyMe(false)}
+        onResult={async () => {
+          setShowVerifyMe(false);
+          const result = await refetch();
+          onVerifyPreview(result.data);
+        }}
+      />
     </BottomSheet>
   );
 };

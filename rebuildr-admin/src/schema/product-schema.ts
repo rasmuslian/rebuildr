@@ -22,6 +22,12 @@ export const ProductSchema = z.object({
     .string({ message: "Du måste ange beskrivning." })
     .min(3, { message: "Beskrivningen måste vara minst 3 tecken!" }),
 
+  searchAliases: z.array(z.string()),
+
+  searchRelatedTerms: z.array(z.string()),
+
+  searchUseCases: z.array(z.string()),
+
   color: z
     .object({
       enabled: z.boolean(),

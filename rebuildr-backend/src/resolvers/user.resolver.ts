@@ -600,4 +600,10 @@ export class UserResolver {
   ) {
     return await this.userService.getSellerAccount(user, currentUser.id);
   }
+
+  @ResolveField(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async isVerified(@Parent() user: User) {
+    return this.userService.isVerified(user);
+  }
 }
