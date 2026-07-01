@@ -35,7 +35,6 @@ import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { BygghjalpenPageHeader } from "@components/bygghjalpen/page-header";
 import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
-import { Pictogram } from "@components/pictograms/pictogram";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
@@ -522,7 +521,7 @@ export default function BygghjalpenChatPage() {
                 style={{ flex: 1 }}
                 contentContainerStyle={{
                   flexGrow: 1,
-                  justifyContent: messages.length ? "flex-start" : "center",
+                  justifyContent: "flex-start",
                   paddingBottom: isDesktop ? 24 : 20,
                   paddingTop: 32,
                 }}
@@ -533,22 +532,23 @@ export default function BygghjalpenChatPage() {
                     width: "100%",
                   }}
                 >
+                  <ConversationTitle
+                    title={messages.length ? activeChatTitle : "Ny chatt"}
+                  />
                   {messages.length === 0 ? (
                     <EmptyState
+                      isDesktop={isDesktop}
                       examples={examples}
                       onExamplePress={sendMessage}
                     />
                   ) : (
-                    <>
-                      <ConversationTitle title={activeChatTitle} />
-                      {messages.map((message) => (
-                        <MessageBubble
-                          key={message.id}
-                          message={message}
-                          onSearchMaterials={sendMaterialSearch}
-                        />
-                      ))}
-                    </>
+                    messages.map((message) => (
+                      <MessageBubble
+                        key={message.id}
+                        message={message}
+                        onSearchMaterials={sendMaterialSearch}
+                      />
+                    ))
                   )}
                 </View>
               </ScrollView>
@@ -606,93 +606,89 @@ export default function BygghjalpenChatPage() {
 const ConversationTitle = ({ title }: { title?: string }) => {
   return (
     <Headline size="small" heading={1} style={{ color: primitives.primary800 }}>
-      {title ?? "Ny fråga"}
+      {title ?? "Ny chatt"}
     </Headline>
   );
 };
 
 const EmptyState = ({
+  isDesktop,
   examples,
   onExamplePress,
 }: {
+  isDesktop: boolean;
   examples: string[];
   onExamplePress: (value: string) => void;
 }) => {
   return (
     <View
       style={{
-        alignSelf: "center",
-        gap: 20,
+        gap: 14,
         maxWidth: CHAT_LAYOUT_MAX_WIDTH,
         width: "100%",
       }}
     >
-      <View style={{ alignItems: "center", gap: 12 }}>
-        <View
-          style={{
-            alignItems: "center",
-            backgroundColor: primitives.primary200,
-            borderRadius: 999,
-            height: 66,
-            justifyContent: "center",
-            width: 66,
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              backgroundColor: primitives.primary800,
-              borderRadius: 999,
-              height: 44,
-              justifyContent: "center",
-              width: 44,
-            }}
-          >
-            <Pictogram
-              pictogram="sparkle"
-              type="large"
-              color="primaryLight"
-              size={28}
-            />
-          </View>
-        </View>
-        <Title size="large" style={{ textAlign: "center" }}>
-          Vad bygger du idag?
-        </Title>
-        <Body color="secondary" style={{ textAlign: "center" }}>
-          Få hjälp att tänka igenom steg, material, verktyg och återbrukade
-          fynd.
-        </Body>
-      </View>
-      <View style={{ gap: 8 }}>
+      <Label size="small" color="secondary">
+        Exempel på frågor till Återbyggaren:
+      </Label>
+      <View
+        style={{
+          alignItems: "flex-start",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 10,
+        }}
+      >
         {examples.map((example) => (
-          <Pressable key={example} onPress={() => onExamplePress(example)}>
-            <View
-              style={{
-                backgroundColor: primitives.secondary100,
-                borderColor: primitives.secondary500,
-                borderRadius: borderRadius.medium,
-                borderWidth: 1,
-                flexDirection: "row",
-                gap: 10,
-                padding: 12,
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: primitives.accent500,
-                  borderRadius: 999,
-                  height: 8,
-                  marginTop: 8,
-                  width: 8,
-                }}
-              />
-              <Body style={{ flex: 1 }}>{example}</Body>
-            </View>
-          </Pressable>
+          <QuestionChip
+            key={example}
+            text={example}
+            onPress={() => onExamplePress(example)}
+          />
         ))}
       </View>
     </View>
+  );
+};
+
+const QuestionChip = ({
+  onPress,
+  text,
+}: {
+  onPress: () => void;
+  text: string;
+}) => {
+  return (
+    <Pressable onPress={onPress}>
+      {({ hovered, pressed }) => (
+        <View
+          style={{
+            backgroundColor:
+              hovered || pressed
+                ? primitives.secondary200
+                : primitives.neutrals100,
+            borderColor:
+              hovered || pressed
+                ? primitives.primary300
+                : primitives.neutrals300,
+            borderRadius: borderRadius.small,
+            borderWidth: 1,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+          }}
+        >
+          <Label
+            size="medium"
+            style={{
+              color: primitives.primary800,
+              textAlign: "center",
+            }}
+          >
+            {text}
+          </Label>
+        </View>
+      )}
+    </Pressable>
   );
 };
 
