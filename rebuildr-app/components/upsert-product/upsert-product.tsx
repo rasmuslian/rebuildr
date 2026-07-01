@@ -849,7 +849,7 @@ export const UpsertProduct = ({
     }
   };
   const onNextTransportation = () => {
-    const result = onVerifyTransportation(product);
+    const result = onVerifyTransportation(product, true);
     update().then(() => {
       if (result) {
         setStep("preview");
@@ -900,12 +900,20 @@ export const UpsertProduct = ({
     //if no errors, proceed
     return true;
   };
-  const onVerifyTransportation = (p?: ProductFields) => {
+  // enforceAvailability: only surface the "snart till salu" date errors on an
+  // actual submit (Förhandsgranska), not on every live edit — otherwise the
+  // red error flashes the instant you pick "Snart till salu", before you've
+  // had a chance to choose a date.
+  const onVerifyTransportation = (
+    p?: ProductFields,
+    enforceAvailability = false,
+  ) => {
     if (!data) return;
     const _product = p ?? product;
     const badFields: FieldErrorsType = { ...fieldErrors };
 
     delete badFields["delivery"];
+    delete badFields["availability"];
     if (
       _product.isGiveaway &&
       _product.deliveryEnabled &&
@@ -915,6 +923,20 @@ export const UpsertProduct = ({
     ) {
       badFields["delivery"] =
         `Vid bortskänkes måste priset för hemleverans vara minst ${data.product.minimumPrice}kr eller gratis`;
+    }
+    if (
+      enforceAvailability &&
+      _product.availability === ProductAvailabilityEnum.Upcoming
+    ) {
+      if (!_product.estimatedAvailableAt) {
+        badFields["availability"] = "Välj när varan blir tillgänglig";
+      } else if (
+        _product.availableUntil &&
+        new Date(_product.availableUntil) <=
+          new Date(_product.estimatedAvailableAt)
+      ) {
+        badFields["availability"] = "Slutdatum måste vara efter startdatum";
+      }
     }
     setFieldErrors(badFields);
     if (Object.keys(badFields).length) {
