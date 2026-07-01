@@ -13,21 +13,15 @@ import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
+import { horizontalPadding } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 
-const desktopQuestionExamples = [
+const questionExamples = [
   "Vad behöver jag för att bygga en altan?",
   "Hur bygger jag ett uterum?",
   "Hur stor del av mitt badrum kan jag bygga återbrukat?",
   "Vilka fönster finns återbrukat nära mig?",
-];
-
-const mobileQuestionExamples = [
-  "Vad behöver jag för att bygga en altan?",
-  "Hur stor del av mitt badrum kan jag bygga återbrukat?",
-  "Vilka fönster finns återbrukat nära mig?",
-  "Hur bygger jag ett uterum?",
 ];
 
 export default function BygghjalpenLandingPage() {
@@ -37,10 +31,6 @@ export default function BygghjalpenLandingPage() {
   const [question, setQuestion] = useState("");
   const topBarHeight = isDesktop ? 72 : 56;
   const pageHeight = Math.max(windowHeight - topBarHeight, 0);
-  const questionExamples = isDesktop
-    ? desktopQuestionExamples
-    : mobileQuestionExamples;
-
   const openChat = useCallback((initialQuestion?: string) => {
     const trimmedQuestion = initialQuestion?.trim();
 
@@ -99,8 +89,8 @@ export default function BygghjalpenLandingPage() {
           <View
             style={{
               alignSelf: "center",
-              maxWidth: 480,
-              paddingHorizontal: isDesktop ? 0 : 24,
+              maxWidth: 640,
+              paddingHorizontal: isDesktop ? 0 : horizontalPadding.mobile,
               paddingTop: isDesktop ? 58 : 55,
               position: "relative",
               width: "100%",
@@ -108,7 +98,7 @@ export default function BygghjalpenLandingPage() {
             }}
           >
             <Headline
-              size={isDesktop ? "medium" : "large"}
+              size={isDesktop ? "large" : "large"}
               heading={1}
               style={{
                 color: primitives.primary200,
@@ -122,11 +112,11 @@ export default function BygghjalpenLandingPage() {
             </Headline>
 
             <Body
-              size="small"
+              size={isDesktop ? "large" : "medium"}
               style={{
                 color: primitives.primary200,
                 marginTop: isDesktop ? 23 : 20,
-                maxWidth: isDesktop ? 470 : 335,
+                maxWidth: 640,
                 textAlign: isDesktop ? "center" : "left",
               }}
             >
@@ -233,7 +223,7 @@ const QuestionChip = ({
   const colors = useThemeColor();
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} style={{ maxWidth: "100%" }}>
       {({ hovered, pressed }) => (
         <View
           style={{
@@ -241,6 +231,7 @@ const QuestionChip = ({
               hovered || pressed ? primitives.primary300 : colors.text.success,
             borderRadius: 4,
             borderWidth: 1,
+            maxWidth: "100%",
             paddingHorizontal: 8,
             paddingVertical: 3,
           }}
@@ -248,7 +239,7 @@ const QuestionChip = ({
           <Label
             style={{
               color: colors.text.primaryLight,
-              textAlign: "center",
+              flexShrink: 1,
               fontWeight: "500",
             }}
           >
