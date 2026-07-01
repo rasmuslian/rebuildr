@@ -403,8 +403,13 @@ export default function BygghjalpenChatPage() {
 
   const handleInputKeyPress = useCallback(
     (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+      const nativeEvent = event.nativeEvent as TextInputKeyPressEventData & {
+        shiftKey?: boolean;
+      };
+
       if (
-        event.nativeEvent.key !== "Enter" ||
+        nativeEvent.key !== "Enter" ||
+        nativeEvent.shiftKey ||
         !input.trim() ||
         streaming ||
         loadingChat
@@ -528,7 +533,7 @@ export default function BygghjalpenChatPage() {
               >
                 <View
                   style={{
-                    gap: isDesktop ? 16 : 20,
+                    gap: 24,
                     width: "100%",
                   }}
                 >
@@ -565,7 +570,7 @@ export default function BygghjalpenChatPage() {
             <View
               style={{
                 backgroundColor: primitives.secondary100,
-                borderTopColor: primitives.secondary500,
+                borderTopColor: colors.dividers.neutral,
                 borderTopWidth: isDesktop ? 0 : 1,
                 paddingBottom: isDesktop ? 18 : 22,
                 paddingTop: isDesktop ? 10 : 20,
@@ -590,10 +595,10 @@ export default function BygghjalpenChatPage() {
                   onSubmit={() => sendMessage()}
                   value={input}
                 />
-                <Label size="small" color="secondary" style={{ marginTop: 8 }}>
+                <Body size="small" color="primaryDark" style={{ marginTop: 8 }}>
                   Återbyggaren kan göra misstag. Kontrollera alltid kritiska
                   beslut med fackperson.
-                </Label>
+                </Body>
               </View>
             </View>
           </View>

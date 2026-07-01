@@ -17,6 +17,15 @@ import { primitives } from "@constants/colors";
 import { useScreenType } from "@hooks/useScreenType";
 import { Icon } from "@icons/icon";
 
+const COMPACT_INPUT_LINE_HEIGHT = 20;
+const COMPACT_INPUT_VERTICAL_PADDING = 4;
+const MIN_COMPACT_INPUT_CONTENT_HEIGHT = COMPACT_INPUT_LINE_HEIGHT;
+
+const getExplicitLineCount = (text: string) => text.split(/\r\n|\r|\n/).length;
+
+const getMinContentHeightForValue = (text: string) =>
+  getExplicitLineCount(text) * COMPACT_INPUT_LINE_HEIGHT;
+
 type BygghjalpenPromptBoxProps = {
   autoFocus?: boolean;
   bordered?: boolean;
@@ -52,13 +61,31 @@ export const BygghjalpenPromptBox = React.forwardRef<
     ref,
   ) => {
     const { isDesktop } = useScreenType();
-    const [contentHeight, setContentHeight] = React.useState(20);
+    const previousLineCountRef = React.useRef(getExplicitLineCount(value));
+    const [contentHeight, setContentHeight] = React.useState(
+      MIN_COMPACT_INPUT_CONTENT_HEIGHT,
+    );
     const compactInputHeight = Math.min(Math.max(contentHeight, 24), 132);
+
+    React.useEffect(() => {
+      const lineCount = getExplicitLineCount(value);
+
+      if (compact && lineCount < previousLineCountRef.current) {
+        setContentHeight(getMinContentHeightForValue(value));
+      }
+
+      previousLineCountRef.current = lineCount;
+    }, [compact, value]);
 
     const handleContentSizeChange = (
       event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>,
     ) => {
-      setContentHeight(event.nativeEvent.contentSize.height);
+      setContentHeight(
+        Math.max(
+          event.nativeEvent.contentSize.height,
+          getMinContentHeightForValue(value),
+        ),
+      );
     };
 
     return (
@@ -79,31 +106,39 @@ export const BygghjalpenPromptBox = React.forwardRef<
           style,
         ]}
       >
-        <TextInput
-          ref={ref}
-          autoFocus={autoFocus}
-          editable={!loading}
-          multiline
-          onChangeText={onChangeText}
-          onContentSizeChange={compact ? handleContentSizeChange : undefined}
-          onKeyPress={onKeyPress}
-          placeholder={placeholder}
-          placeholderTextColor={primitives.neutrals800}
-          value={value}
+        <View
           style={{
-            color: primitives.neutrals900,
             flex: compact ? undefined : 1,
-            fontFamily: "Inter-Regular",
-            fontSize: 14,
-            height: compact ? compactInputHeight : undefined,
-            lineHeight: 20,
-            maxHeight: compact ? 132 : undefined,
-            outlineColor: "transparent",
-            outlineWidth: 0,
-            padding: 0,
-            textAlignVertical: "top",
+            paddingVertical: compact ? COMPACT_INPUT_VERTICAL_PADDING : 0,
           }}
-        />
+        >
+          <TextInput
+            ref={ref}
+            autoFocus={autoFocus}
+            blurOnSubmit={false}
+            editable={!loading}
+            multiline
+            onChangeText={onChangeText}
+            onContentSizeChange={compact ? handleContentSizeChange : undefined}
+            onKeyPress={onKeyPress}
+            placeholder={placeholder}
+            placeholderTextColor={primitives.neutrals800}
+            value={value}
+            style={{
+              color: primitives.neutrals900,
+              flex: compact ? undefined : 1,
+              fontFamily: "Inter-Regular",
+              fontSize: 14,
+              height: compact ? compactInputHeight : undefined,
+              lineHeight: COMPACT_INPUT_LINE_HEIGHT,
+              maxHeight: compact ? 132 : undefined,
+              outlineColor: "transparent",
+              outlineWidth: 0,
+              padding: 0,
+              textAlignVertical: "top",
+            }}
+          />
+        </View>
         <View
           style={{
             alignItems: "center",
@@ -111,7 +146,13 @@ export const BygghjalpenPromptBox = React.forwardRef<
             justifyContent: "space-between",
           }}
         >
-          <View style={{ flexDirection: "row", gap: isDesktop ? 8 : 10 }}>
+          <View
+            style={{
+              marginTop: 16,
+              flexDirection: "row",
+              gap: isDesktop ? 8 : 10,
+            }}
+          >
             <PromptIconButton icon="paperclip" />
             <PromptIconButton icon="addPhoto" />
           </View>
