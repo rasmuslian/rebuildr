@@ -1,27 +1,59 @@
 import { router, useFocusEffect } from "expo-router";
 import Head from "expo-router/head";
-import { useCallback } from "react";
-import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Image as ExpoImage } from "expo-image";
+import { useCallback, useState } from "react";
+import {
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
-import Footer from "@components/navigation/footer";
+import SendVector from "@assets/svgs/send-vector.svg";
 import TopBar from "@components/navigation/top-bar/top-bar";
-import { useThemeColor } from "@hooks/useThemeColor";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
-import { borderRadius, horizontalPadding } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { Icon } from "@icons/icon";
 
+const desktopQuestionExamples = [
+  "Vad behöver jag för att bygga en altan?",
+  "Hur bygger jag ett uterum?",
+  "Hur stor del av mitt badrum kan jag bygga återbrukat?",
+  "Vilka fönster finns återbrukat nära mig?",
+];
+
+const mobileQuestionExamples = [
+  "Vad behöver jag för att bygga en altan?",
+  "Hur stor del av mitt badrum kan jag bygga återbrukat?",
+  "Vilka fönster finns återbrukat nära mig?",
+  "Hur bygger jag ett uterum?",
+];
+
 export default function BygghjalpenLandingPage() {
   const { isDesktop } = useScreenType();
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const [question, setQuestion] = useState("");
   const topBarHeight = isDesktop ? 72 : 56;
-  const heroMinHeight = Math.max(windowHeight - topBarHeight, 0);
-  const exampleQuestions = [
-    "Vilket virke passar till en enkel altan?",
-    "Hur räknar jag material till en gipsvägg?",
-    "Vad kan jag köpa begagnat till badrummet?",
-  ];
+  const pageHeight = Math.max(windowHeight - topBarHeight, 0);
+  const questionExamples = isDesktop
+    ? desktopQuestionExamples
+    : mobileQuestionExamples;
+
+  const openChat = useCallback((initialQuestion?: string) => {
+    const trimmedQuestion = initialQuestion?.trim();
+
+    if (trimmedQuestion) {
+      router.navigate(
+        `/bygghjalpen/chat?question=${encodeURIComponent(trimmedQuestion)}`,
+      );
+      return;
+    }
+
+    router.navigate("/bygghjalpen/chat");
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,246 +68,288 @@ export default function BygghjalpenLandingPage() {
   return (
     <>
       <Head>
-        <title>RebuildR - Bygghjälpen</title>
+        <title>RebuildR - Återbyggaren</title>
         <meta
           name="description"
-          content="Bygghjälpen hjälper dig planera bygg, renovering och återbrukade materialval."
+          content="Återbyggaren visar hur mycket av ditt projekt du kan bygga återbrukat med material på RebuildR nära dig."
         />
       </Head>
 
-      <View style={{ flex: 1, backgroundColor: primitives.primary800 }}>
+      <View
+        style={{
+          backgroundColor: primitives.primary800,
+          flex: 1,
+          height: windowHeight,
+          overflow: "hidden",
+        }}
+      >
         <TopBar theme="dark" showSearchBar={false} />
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
+        <View
+          style={{
+            flex: 1,
+            minHeight: pageHeight,
+            overflow: "hidden",
+            position: "relative",
+          }}
         >
+          <MainBackground
+            isDesktop={isDesktop}
+            parentHeight={pageHeight}
+            parentWidth={windowWidth}
+          />
           <View
             style={{
-              justifyContent: "center",
-              minHeight: heroMinHeight,
-              overflow: "hidden",
-              paddingBottom: isDesktop ? 72 : 40,
-              paddingHorizontal: isDesktop
-                ? horizontalPadding.desktop
-                : horizontalPadding.mobile,
-              paddingTop: isDesktop ? 72 : 40,
+              alignSelf: "center",
+              maxWidth: 480,
+              paddingHorizontal: isDesktop ? 0 : 24,
+              paddingTop: isDesktop ? 58 : 55,
               position: "relative",
+              width: "100%",
+              zIndex: 1,
             }}
           >
-            <HeroPattern />
+            <Headline
+              size={isDesktop ? "medium" : "large"}
+              heading={1}
+              style={{
+                color: primitives.secondary200,
+                textAlign: isDesktop ? "center" : "left",
+              }}
+            >
+              Återbyggaren{" "}
+              <Text style={{ color: primitives.primary300 }}>
+                visar hur mycket av ditt projekt du kan bygga återbrukat
+              </Text>
+            </Headline>
+
+            <Body
+              size="small"
+              style={{
+                color: primitives.secondary200,
+                marginTop: isDesktop ? 23 : 20,
+                maxWidth: isDesktop ? 470 : 335,
+                textAlign: isDesktop ? "center" : "left",
+              }}
+            >
+              Beskriv ditt projekt. Återbyggaren guidar dig kring vad du ska
+              bygga, vilka material du behöver – och hur mycket som finns
+              återbrukat på RebuildR nära dig.
+            </Body>
+
             <View
               style={{
-                alignSelf: "center",
-                flexDirection: isDesktop ? "row" : "column",
-                gap: isDesktop ? 56 : 28,
-                maxWidth: 1200,
+                backgroundColor: primitives.neutrals100,
+                borderRadius: isDesktop ? 8 : 9,
+                height: isDesktop ? 123 : 162,
+                marginTop: isDesktop ? 30 : 12,
+                paddingBottom: isDesktop ? 12 : 14,
+                paddingHorizontal: isDesktop ? 12 : 18,
+                paddingTop: isDesktop ? 12 : 18,
                 width: "100%",
               }}
             >
-              <View style={{ flex: 1, gap: 20, maxWidth: 700 }}>
-                <View
-                  style={{
-                    alignSelf: "flex-start",
-                    backgroundColor: primitives.neutrals10,
-                    borderColor: primitives.neutrals50,
-                    borderRadius: 999,
-                    borderWidth: 1,
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                  }}
-                >
-                  <Label
-                    size="medium"
-                    style={{ color: primitives.secondary200 }}
-                  >
-                    Bygg, material och återbruk
-                  </Label>
-                </View>
-                <Headline
-                  size="large"
-                  style={{ color: primitives.secondary200, maxWidth: 640 }}
-                >
-                  Bygghjälpen hjälper dig tänka klart innan du börjar.
-                </Headline>
-                <Body
-                  style={{
-                    color: primitives.secondary200,
-                    maxWidth: 590,
-                    opacity: 0.9,
-                  }}
-                >
-                  Beskriv ditt projekt och få vägledning kring material, mått,
-                  verktyg, arbetsordning och vad som kan vara smart att köpa
-                  återbrukat på RebuildR.
-                </Body>
-                <View
-                  style={{
-                    flexDirection: isDesktop ? "row" : "column",
-                    gap: 12,
-                  }}
-                >
-                  <HeroButton
-                    onPress={() => router.navigate("/bygghjalpen/chat")}
-                  />
-                  <View
-                    style={{
-                      alignItems: "center",
-                      alignSelf: isDesktop ? "center" : "stretch",
-                      justifyContent: "center",
-                      backgroundColor: primitives.neutrals10,
-                      borderRadius: borderRadius.medium,
-                      minHeight: 44,
-                      paddingHorizontal: 14,
-                      paddingVertical: 10,
-                    }}
-                  >
-                    <Label
-                      size="large"
-                      style={{ color: primitives.secondary200 }}
-                    >
-                      Svar på svenska
-                    </Label>
-                  </View>
-                </View>
-              </View>
-
+              <TextInput
+                value={question}
+                onChangeText={setQuestion}
+                placeholder="Ställ din fråga här"
+                placeholderTextColor={primitives.neutrals800}
+                multiline
+                style={{
+                  color: primitives.neutrals900,
+                  flex: 1,
+                  fontFamily: "Inter-Regular",
+                  fontSize: 14,
+                  lineHeight: 20,
+                  outlineColor: "transparent",
+                  outlineWidth: 0,
+                  padding: 0,
+                  textAlignVertical: "top",
+                }}
+              />
               <View
                 style={{
-                  backgroundColor: primitives.secondary200,
-                  borderRadius: 16,
-                  gap: 14,
-                  padding: 16,
-                  width: isDesktop ? 380 : "100%",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
                 }}
               >
-                <Label size="large">Exempel på vad du kan fråga</Label>
-                {exampleQuestions.map((question) => (
-                  <ExampleLine key={question} text={question} />
+                <View style={{ flexDirection: "row", gap: isDesktop ? 8 : 10 }}>
+                  <PromptIconButton icon="paperclip" />
+                  <PromptIconButton icon="addPhoto" />
+                </View>
+                <SendButton onPress={() => openChat(question)} />
+              </View>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: primitives.neutrals50,
+                height: 1,
+                marginTop: isDesktop ? 23 : 33,
+                width: "100%",
+              }}
+            />
+
+            <View style={{ marginTop: 14 }}>
+              <Label size="small" style={{ color: primitives.primary300 }}>
+                Exempel på frågor till Återbyggaren:
+              </Label>
+              <View
+                style={{
+                  alignItems: isDesktop ? "flex-start" : "center",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: isDesktop ? 12 : 11,
+                  marginTop: isDesktop ? 9 : 13,
+                }}
+              >
+                {questionExamples.map((example) => (
+                  <QuestionChip
+                    key={example}
+                    text={example}
+                    onPress={() => openChat(example)}
+                  />
                 ))}
               </View>
             </View>
           </View>
-          <Footer />
-        </ScrollView>
+        </View>
       </View>
     </>
   );
 }
 
-const HeroButton = ({ onPress }: { onPress: () => void }) => {
-  const colors = useThemeColor("dark");
+const backgroundAspectRatio = 1440 / 487;
+
+const MainBackground = ({
+  isDesktop,
+  parentHeight,
+  parentWidth,
+}: {
+  isDesktop: boolean;
+  parentHeight: number;
+  parentWidth: number;
+}) => {
+  const desktopWidth = Math.max(parentWidth * 1.36, parentHeight * 2.15, 1680);
+  const mobileWidth = Math.max(parentWidth * 1.58, parentHeight * 1.3, 840);
+  const imageWidth = isDesktop ? desktopWidth : mobileWidth;
+  const imageHeight = imageWidth / backgroundAspectRatio;
 
   return (
-    <Pressable onPress={onPress}>
-      {({ hovered, pressed }) => {
-        let backgroundColor = colors.buttons.filled.enabled;
-
-        if (pressed) {
-          backgroundColor = colors.buttons.filled.pressed;
-        } else if (hovered) {
-          backgroundColor = colors.buttons.filled.hovered;
-        }
-
-        return (
-          <View
-            style={{
-              alignItems: "center",
-              backgroundColor,
-              borderRadius: borderRadius.medium,
-              flexDirection: "row",
-              gap: 8,
-              justifyContent: "center",
-              minHeight: 44,
-              paddingHorizontal: 18,
-              paddingVertical: 10,
-            }}
-          >
-            <Label size="large">Ställ fråga</Label>
-            <Icon icon="arrowRight" color="primaryDark" size={18} />
-          </View>
-        );
+    <View
+      style={{
+        bottom: 0,
+        left: 0,
+        pointerEvents: "none",
+        position: "absolute",
+        right: 0,
+        top: 0,
       }}
-    </Pressable>
+    >
+      <Image
+        source={require("@assets/images/main-background.png")}
+        resizeMode="cover"
+        style={{
+          height: imageHeight,
+          position: "absolute",
+          right: -imageWidth * (isDesktop ? 0.43 : 0.42),
+          top: isDesktop ? parentHeight * 0.06 : 405,
+          transform: [{ rotate: isDesktop ? "-43deg" : "-35deg" }],
+          width: imageWidth,
+        }}
+      />
+    </View>
   );
 };
 
-const ExampleLine = ({ text }: { text: string }) => {
+const SendButton = ({ onPress }: { onPress: () => void }) => {
   return (
     <Pressable
-      onPress={() =>
-        router.navigate({
-          pathname: "/bygghjalpen/chat",
-          params: { question: text },
-        })
-      }
+      accessibilityLabel="Skicka fråga"
+      accessibilityRole="button"
+      onPress={onPress}
     >
       {({ hovered, pressed }) => (
         <View
           style={{
+            alignItems: "center",
             backgroundColor:
-              pressed || hovered
-                ? primitives.accent100
-                : primitives.neutrals100,
-            borderColor:
-              pressed || hovered
-                ? primitives.accent500
-                : primitives.secondary500,
-            borderRadius: borderRadius.medium,
-            borderWidth: 1,
-            flexDirection: "row",
-            gap: 10,
-            padding: 12,
+              hovered || pressed ? primitives.accent400 : primitives.accent500,
+            borderRadius: 999,
+            height: 32,
+            justifyContent: "center",
+            opacity: pressed ? 0.88 : 1,
+            width: 32,
           }}
         >
-          <View
-            style={{
-              backgroundColor: primitives.accent500,
-              borderRadius: 999,
-              height: 8,
-              marginTop: 8,
-              width: 8,
-            }}
+          <ExpoImage
+            source={SendVector.uri}
+            style={{ height: 14, width: 16 }}
           />
-          <Body style={{ flex: 1 }}>{text}</Body>
         </View>
       )}
     </Pressable>
   );
 };
 
-const HeroPattern = () => {
+const PromptIconButton = ({ icon }: { icon: "paperclip" | "addPhoto" }) => {
   return (
-    <>
-      {[0, 1, 2, 3].map((item) => (
+    <Pressable
+      accessibilityLabel={
+        icon === "paperclip" ? "Bifoga fil" : "Lägg till bild"
+      }
+      accessibilityRole="button"
+    >
+      {({ hovered, pressed }) => (
         <View
-          key={item}
           style={{
-            borderColor: primitives.neutrals10,
-            borderRadius: 999,
-            borderWidth: 1,
-            height: 180,
-            opacity: 0.72,
-            position: "absolute",
-            right: -60 + item * 70,
-            top: -52 + item * 22,
-            transform: [{ rotate: "-18deg" }],
-            width: 52,
+            alignItems: "center",
+            height: 24,
+            justifyContent: "center",
+            opacity: hovered || pressed ? 0.7 : 1,
+            width: 24,
           }}
-        />
-      ))}
-      <View
-        style={{
-          backgroundColor: primitives.neutrals10,
-          borderRadius: 999,
-          height: 220,
-          left: -120,
-          opacity: 0.6,
-          position: "absolute",
-          top: 36,
-          width: 220,
-        }}
-      />
-    </>
+        >
+          <Icon icon={icon} customColor={primitives.neutrals600} size={22} />
+        </View>
+      )}
+    </Pressable>
+  );
+};
+
+const QuestionChip = ({
+  onPress,
+  text,
+}: {
+  onPress: () => void;
+  text: string;
+}) => {
+  return (
+    <Pressable onPress={onPress}>
+      {({ hovered, pressed }) => (
+        <View
+          style={{
+            borderColor:
+              hovered || pressed
+                ? primitives.primary300
+                : primitives.primary400,
+            borderRadius: 4,
+            borderWidth: 1,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+          }}
+        >
+          <Label
+            size="large"
+            style={{
+              color: primitives.neutrals100,
+              textAlign: "center",
+            }}
+          >
+            {text}
+          </Label>
+        </View>
+      )}
+    </Pressable>
   );
 };
