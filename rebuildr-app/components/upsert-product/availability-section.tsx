@@ -87,8 +87,9 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
               onClear={() => update({ availableUntil: null })}
             />
             <Body size="small" color="secondary">
-              Synlig för planering innan den är tillgänglig. Sätt ett slutdatum
-              om annonsen ska tas bort automatiskt.
+              Annonsen syns direkt, märkt “Snart till salu”, men går att köpa
+              först från startdatumet. Slutdatum är valfritt – då tas annonsen
+              bort automatiskt.
             </Body>
           </View>
         )}
