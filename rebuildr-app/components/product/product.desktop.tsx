@@ -276,6 +276,10 @@ export const ProductDesktop = ({
                       status={product.status}
                       isMyProduct={isMyProduct}
                       buyButtonDisabled={buyButtonDisabled}
+                      isUpcoming={
+                        product.availability ===
+                        ProductAvailabilityEnum.Upcoming
+                      }
                       onRemovePress={() => {
                         setShowRemoveProductsSheet(true);
                       }}

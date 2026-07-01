@@ -3,7 +3,11 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductAvailabilityEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   BadField,
@@ -1590,6 +1594,40 @@ export class ProductService {
     await this.productRepository.update(
       { id: In(expired.map((p) => p.id)) },
       { hiddenReason: AD_EXPIRED_HIDDEN_REASON },
+    );
+  }
+
+  /**
+   * Flip "snart till salu" (UPCOMING) listings to AVAILABLE once their start
+   * date has passed, so the seller doesn't have to mark them manually. Rows
+   * without a date (estimatedAvailableAt null) never match, so they stay
+   * UPCOMING until the seller acts. Idempotent: once AVAILABLE the row no
+   * longer matches. Mirrors the manual markAvailable (clears date/precision,
+   * keeps availableUntil so the expiry job still applies).
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async activateDueUpcomingListings(): Promise<void> {
+    const logger = this.logger.child({
+      cron: 'activateDueUpcomingListings',
+      requestId: crypto.randomUUID(),
+    });
+    const now = dayjs().toDate();
+    const due = await this.productRepository.find({
+      where: {
+        availability: ProductAvailabilityEnum.UPCOMING,
+        estimatedAvailableAt: LessThanOrEqual(now),
+      },
+    });
+    if (!due.length) return;
+
+    logger.info('Activating due upcoming listings', { count: due.length });
+    await this.productRepository.update(
+      { id: In(due.map((p) => p.id)) },
+      {
+        availability: ProductAvailabilityEnum.AVAILABLE,
+        estimatedAvailableAt: null,
+        availabilityPrecision: null,
+      },
     );
   }
 

@@ -1,5 +1,5 @@
 import { Pressable, View } from "react-native";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Body, Label } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { borderRadius, strokeWidth } from "@constants/sizes";
@@ -18,8 +18,9 @@ type Props = {
 };
 
 /**
- * A labelled date field that shows the chosen date and expands an inline
- * Calendar on tap. Used for "Tillgänglig från" and the optional end date.
+ * A labelled date field that expands an inline Calendar on tap. When it opens
+ * it nudges itself into view so the calendar isn't hidden below the fold (web;
+ * a no-op on native where scrollIntoView doesn't exist).
  */
 export const DateField = ({
   label,
@@ -32,6 +33,22 @@ export const DateField = ({
 }: Props) => {
   const [open, setOpen] = useState(false);
   const formatted = formatExactDate(value);
+  const calendarRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    // react-native-web renders View as a DOM node, so scrollIntoView exists
+    // there; guard so native (no such method) just skips it.
+    const node = calendarRef.current as unknown as {
+      scrollIntoView?: (opts?: {
+        behavior?: "smooth" | "auto";
+        block?: "center" | "nearest" | "start" | "end";
+      }) => void;
+    } | null;
+    requestAnimationFrame(() =>
+      node?.scrollIntoView?.({ behavior: "smooth", block: "center" }),
+    );
+  }, [open]);
 
   return (
     <View style={{ gap: 8 }}>
@@ -75,14 +92,16 @@ export const DateField = ({
         </View>
       </Pressable>
       {open && (
-        <Calendar
-          value={value}
-          minDate={minDate}
-          onChange={(d) => {
-            onChange(d);
-            setOpen(false);
-          }}
-        />
+        <View ref={calendarRef}>
+          <Calendar
+            value={value}
+            minDate={minDate}
+            onChange={(d) => {
+              onChange(d);
+              setOpen(false);
+            }}
+          />
+        </View>
       )}
       {error && (
         <Body size="small" color="error">
