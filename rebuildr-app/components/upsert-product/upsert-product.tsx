@@ -6,6 +6,8 @@ import {
   UpsertProductQueryVariables,
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
+  UpsertProductPublishInternalAdDraftsMutation,
+  UpsertProductPublishInternalAdDraftsMutationVariables,
   MeasurementUnitEnum,
   ColorTypeEnum,
   AnalyzeProductImagesMutation,
@@ -118,6 +120,16 @@ const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
 `;
 
+const UPSERT_PRODUCT_PUBLISH_INTERNAL_AD_DRAFTS = gql`
+  mutation UpsertProductPublishInternalAdDrafts($productIds: [ID!]!) {
+    publishInternalAdDrafts(productIds: $productIds) {
+      id
+      status
+      internalValidationIssues
+    }
+  }
+`;
+
 const CREATE_SELLER_ACCOUNT = gql`
   mutation CreateSellerAccount {
     createSellerAccount {
@@ -191,6 +203,7 @@ type Props = {
   mode: "create" | "edit";
   visible: boolean;
   loading?: boolean;
+  internalMode?: boolean;
   onHide: () => void;
   onPublished: (product?: PublishedProductData) => void;
 };
@@ -200,6 +213,7 @@ export const UpsertProduct = ({
   mode,
   visible,
   loading,
+  internalMode = false,
   onHide,
   onPublished,
 }: Props) => {
@@ -236,6 +250,13 @@ export const UpsertProduct = ({
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT, { refetchQueries: [GET_PROJECT] });
+  const [
+    publishInternalDrafts,
+    { loading: publishingInternal, error: publishInternalError },
+  ] = useMutation<
+    UpsertProductPublishInternalAdDraftsMutation,
+    UpsertProductPublishInternalAdDraftsMutationVariables
+  >(UPSERT_PRODUCT_PUBLISH_INTERNAL_AD_DRAFTS);
   const [
     analyzeImages,
     { loading: imageAnalyzeLoading, error: imageAnalyzeError },
@@ -289,7 +310,7 @@ export const UpsertProduct = ({
         title: dbProduct?.title || undefined,
         description: dbProduct?.description ?? undefined,
         additionalInfo: dbProduct?.additionalInfo ?? undefined,
-        price: dbProduct?.price || undefined,
+        price: internalMode ? 0 : dbProduct?.price || undefined,
         primaryQuantity: dbProduct?.primaryQuantity ?? undefined,
         primaryUnit: dbProduct?.primaryUnit ?? undefined,
         secondaryQuantity: dbProduct?.secondaryQuantity ?? undefined,
@@ -306,7 +327,7 @@ export const UpsertProduct = ({
         diameterUnit: dbProduct?.diameterUnit ?? undefined,
         weight: dbProduct?.weight ?? undefined,
         weightUnit: dbProduct?.weightUnit ?? undefined,
-        isGiveaway: dbProduct?.isGiveaway,
+        isGiveaway: internalMode ? true : dbProduct?.isGiveaway,
         soldByQuantity: dbProduct?.soldByQuantity ?? undefined,
         priceSuggestionMin: dbProduct?.priceSuggestionMin ?? undefined,
         priceSuggestionMax: dbProduct?.priceSuggestionMax ?? undefined,
@@ -412,7 +433,7 @@ export const UpsertProduct = ({
           title: product.title,
           description: product.description,
           additionalInfo: product.additionalInfo,
-          price: product.price,
+          price: internalMode ? 0 : product.price,
           primaryQuantity: product.primaryQuantity,
           primaryUnit: product.primaryUnit,
           secondaryQuantity: product.secondaryQuantity ?? null,
@@ -429,7 +450,7 @@ export const UpsertProduct = ({
           diameterUnit: product.diameterUnit,
           weight: product.weight,
           weightUnit: product.weightUnit,
-          isGiveAway: product.isGiveaway,
+          isGiveAway: internalMode ? true : product.isGiveaway,
           soldByQuantity: product.soldByQuantity,
           //only send null (= remove category) when the db product actually
           //has a category to remove — a fresh photo-first draft has none yet
@@ -459,14 +480,16 @@ export const UpsertProduct = ({
           noProject: product.noProject,
 
           //transportation
-          pickupEnabled: product.pickupEnabled,
+          pickupEnabled: internalMode ? true : product.pickupEnabled,
           location: product.location
             ? { lat: product.location.lat, lng: product.location.lng }
             : undefined,
-          shippingPriceIds: product.shippingPrices.map((sp) => sp.id),
+          shippingPriceIds: internalMode
+            ? []
+            : product.shippingPrices.map((sp) => sp.id),
           deliveryRadius: product.deliveryRadius,
           deliveryPrice: product.deliveryPrice,
-          deliveryEnabled: product.deliveryEnabled,
+          deliveryEnabled: internalMode ? false : product.deliveryEnabled,
 
           status,
         },
@@ -579,18 +602,21 @@ export const UpsertProduct = ({
   //debounce so a burst of added images coalesces into ONE analysis over the
   //whole set — fewer AI calls (= fewer transient failures) and it matches the
   //"re-run on all images" intent better than one call per image
-  const reanalyzeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reanalyzeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   //mirrors the effect's guards so the analysis state is visible from the very
   //first render after an image is added — without this the category pickers
   //flash until the effect has run and update() has saved
+  const shouldAutoAnalyzeImages = mode === "create" || internalMode;
   const willAutoAnalyze =
-    mode === "create" &&
+    shouldAutoAnalyzeImages &&
     initialized &&
     imageCount > analyzedImageCount.current &&
     !imageAnalyzeLoading &&
     !analyzePending;
   useEffect(() => {
-    if (mode !== "create" || !initialized) {
+    if (!shouldAutoAnalyzeImages || !initialized) {
       return;
     }
     if (imageCount === 0) {
@@ -618,14 +644,28 @@ export const UpsertProduct = ({
       });
     }, 700);
     return () => clearTimeout(reanalyzeTimer.current);
-  }, [imageCount, initialized, imageAnalyzeLoading, analyzePending]);
+  }, [
+    imageCount,
+    initialized,
+    imageAnalyzeLoading,
+    analyzePending,
+    shouldAutoAnalyzeImages,
+  ]);
 
   const onSave = async (published: boolean) => {
     const result = await update(
-      published ? ProductStatusEnum.Published : undefined,
+      published && !internalMode ? ProductStatusEnum.Published : undefined,
     );
     if (result) {
       if (published) {
+        if (internalMode && data?.product.id) {
+          const publishResult = await publishInternalDrafts({
+            variables: { productIds: [data.product.id] },
+          });
+          if (publishResult.errors) {
+            return;
+          }
+        }
         trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         const publishedData: PublishedProductData = {
           productId: data?.product.id,
@@ -650,8 +690,8 @@ export const UpsertProduct = ({
       return 0;
     }
 
-    const totalMandatories = 7;
-    let obligatories = 0;
+    const totalMandatories = internalMode ? 6 : 7;
+    let obligatories = internalMode ? 1 : 0;
     if (product.images?.length) {
       obligatories += 1;
     }
@@ -771,6 +811,14 @@ export const UpsertProduct = ({
   const onNextDetails = () => {
     const result = onVerifyDetails(product);
     if (result) {
+      if (internalMode) {
+        update().then((saved) => {
+          if (saved) {
+            setStep("preview");
+          }
+        });
+        return;
+      }
       setStep("transportation");
     }
   };
@@ -796,7 +844,7 @@ export const UpsertProduct = ({
     if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
-    if (!_product.isGiveaway) {
+    if (!internalMode && !_product.isGiveaway) {
       if (_product.price === undefined) {
         badFields["price"] = `Ange pris (0 kr = bortskänkes)`;
       } else if (_product.price < data.product.minimumPrice) {
@@ -855,6 +903,11 @@ export const UpsertProduct = ({
     const d = freshData ?? data;
     if (!d) return;
 
+    if (internalMode) {
+      onSave(true);
+      return;
+    }
+
     if (!d.me.isVerified) {
       setShowVerifyMe(true);
       return;
@@ -897,7 +950,8 @@ export const UpsertProduct = ({
   };
 
   const showFooter = step === "preview";
-  const updateDraftLoading = updatingProduct || uploadingMedia;
+  const updateDraftLoading =
+    updatingProduct || uploadingMedia || publishingInternal;
   const isInitializing = loading || productLoading || !data || !initialized;
 
   const renderFooter = () => {
@@ -909,7 +963,7 @@ export const UpsertProduct = ({
             gap: 6,
           }}
         >
-          {error && (
+          {(error || publishInternalError) && (
             <Body size="small" color="error">
               Något gick fel, vänligen gå tillbaka och se över alla fält
             </Body>
@@ -946,10 +1000,16 @@ export const UpsertProduct = ({
       onClose={onDismissSheet}
       title={
         mode === "edit"
-          ? "Redigera annons"
+          ? internalMode
+            ? "Redigera intern annons"
+            : "Redigera annons"
           : step === "preview"
-            ? "Förhandsgranska annons"
-            : "Ny annons"
+            ? internalMode
+              ? "Förhandsgranska intern annons"
+              : "Förhandsgranska annons"
+            : internalMode
+              ? "Ny intern annons"
+              : "Ny annons"
       }
     />
   );
@@ -972,6 +1032,7 @@ export const UpsertProduct = ({
               imageAnalyzeLoading || analyzePending || willAutoAnalyze
             }
             imageAnalyzeError={!!imageAnalyzeError}
+            internalMode={internalMode}
           />
         );
       case "transportation":

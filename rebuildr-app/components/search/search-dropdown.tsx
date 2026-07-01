@@ -7,6 +7,7 @@ import { SearchWithResults } from "./search-with-results";
 import { SearchEmptyState } from "./search-empty-state";
 import { SEARCH } from "./queries";
 import { useSearchContext } from "@context/search-context";
+import { InternalSearchWithResults } from "./internal-search-with-results";
 
 export const SearchDropdown = () => {
   const { searchState, setSearchState } = useSearchContext();
@@ -33,7 +34,13 @@ export const SearchDropdown = () => {
       onClose={handleClose}
     >
       <View style={{ padding: 16, gap: 16 }}>
-        {searchString ? (
+        {searchString && searchState.searchScope === "internal" ? (
+          <InternalSearchWithResults
+            data={searchCompleted ? searchState.internalSearchData : undefined}
+            searchString={searchString}
+            searchCompleted={searchCompleted}
+          />
+        ) : searchString ? (
           <SearchWithResults
             data={searchCompleted ? searchState.searchData : undefined}
             searchString={searchString}

@@ -1,7 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   BadField,
@@ -62,6 +66,7 @@ import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
 import { SearchEnrichmentService } from './search-enrichment.service';
 import { Brand } from 'src/entities/brand.entity';
+import { OrganizationMemberRole } from 'src/entities/organization-membership.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
@@ -196,9 +201,18 @@ export class ProductService {
       },
     });
 
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    const canManageInternalProduct =
+      product.visibility === ProductVisibility.INTERNAL &&
+      (await this.canManageInternalProduct(product, currentUserId));
+
     if (
       currentUserRole !== UserRoleEnum.ADMIN &&
-      currentUserId !== product.sellerId
+      currentUserId !== product.sellerId &&
+      !canManageInternalProduct
     ) {
       logger.error('User does not have permission to update product', {
         currentUserId,
@@ -303,6 +317,10 @@ export class ProductService {
     if (convertedPrice !== undefined) {
       product.price = convertedPrice;
       product.isGiveaway = convertedPrice <= 0;
+    }
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      product.price = 0;
+      product.isGiveaway = true;
     }
     if (input.status) {
       product.status = input.status;
@@ -450,7 +468,9 @@ export class ProductService {
 
     //By this point we can validate the product, but only if it is to be published
     if (product.status === ProductStatus.PUBLISHED) {
-      await this.assertCanPublish(product.sellerId);
+      if (product.visibility !== ProductVisibility.INTERNAL) {
+        await this.assertCanPublish(product.sellerId);
+      }
 
       const parseResult = z
         .object({
@@ -504,7 +524,11 @@ export class ProductService {
         throw BadUserInputException('Product must have at least one image');
       }
 
-      if (!product.isGiveaway && product.price < minimumProductPrice) {
+      if (
+        product.visibility !== ProductVisibility.INTERNAL &&
+        !product.isGiveaway &&
+        product.price < minimumProductPrice
+      ) {
         logger.error({
           message: 'Too low price',
           price: product.price,
@@ -513,7 +537,11 @@ export class ProductService {
 
         throw BadUserInputException('Too low price');
       }
-      if (!product.isGiveaway && product.price > maximumProductPrice) {
+      if (
+        product.visibility !== ProductVisibility.INTERNAL &&
+        !product.isGiveaway &&
+        product.price > maximumProductPrice
+      ) {
         logger.error({
           message: 'Too high price',
           price: product.price,
@@ -639,6 +667,7 @@ export class ProductService {
         ? `${productAlias}.status = 'PUBLISHED'`
         : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
+    qb.andWhere(`${productAlias}.visibility = '${ProductVisibility.PUBLIC}'`);
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
     if (input.sellerId) {
@@ -961,8 +990,43 @@ export class ProductService {
         throw BadUserInputException();
       }
     }
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      if (!currentUserId) {
+        throw BadUserInputException();
+      }
+      const hasAccess = await this.canAccessInternalProduct(
+        product,
+        currentUserId,
+      );
+      if (!hasAccess) {
+        throw ForbiddenException();
+      }
+    }
 
     return product;
+  }
+
+  private async canAccessInternalProduct(product: Product, userId: string) {
+    if (product.internalOrganizationId === userId) return true;
+    const result = await this.dataSource.query(
+      `SELECT 1 FROM organization_membership WHERE "organizationId" = $1 AND "userId" = $2 LIMIT 1`,
+      [product.internalOrganizationId, userId],
+    );
+    return result.length > 0;
+  }
+
+  private async canManageInternalProduct(product: Product, userId: string) {
+    if (
+      product.createdByUserId === userId ||
+      product.internalOrganizationId === userId
+    ) {
+      return true;
+    }
+    const result = await this.dataSource.query(
+      `SELECT 1 FROM organization_membership WHERE "organizationId" = $1 AND "userId" = $2 AND role = $3 LIMIT 1`,
+      [product.internalOrganizationId, userId, OrganizationMemberRole.ADMIN],
+    );
+    return result.length > 0;
   }
 
   async isLikedBy(productId: string, userId?: string) {
@@ -1250,6 +1314,9 @@ export class ProductService {
 
         query.andWhere(`p."hiddenReason" IS NULL`);
         query.andWhere(`(p.status = 'PUBLISHED' OR p.status = 'SOLD')`);
+        query.andWhere('p.visibility = :visibility', {
+          visibility: ProductVisibility.PUBLIC,
+        });
         query.andWhere(
           '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
           { categoryIds },
@@ -1314,6 +1381,9 @@ export class ProductService {
       )
       .where('p.id != :similarToProductId', { similarToProductId })
       .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`)
+      .andWhere('p.visibility = :visibility', {
+        visibility: ProductVisibility.PUBLIC,
+      })
       .andWhere('p."hiddenReason" IS NULL');
     query.addOrderBy('p.publishedAt', 'DESC');
 
@@ -1344,22 +1414,26 @@ export class ProductService {
       where: [
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           title: ILike(`%${searchString}%`),
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           seller: {
             username: ILike(`%${searchString}%`),
           },
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           seller: {
             email: ILike(`%${searchString}%`),
           },
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           category: {
             name: ILike(`%${searchString}%`),
           },

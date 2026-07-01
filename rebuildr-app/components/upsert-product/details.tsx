@@ -11,7 +11,7 @@ import { PriceSection } from "@components/product/price-section";
 import { QuantitiesSection } from "@components/product/quantities-section";
 import { RootCategorySection } from "@components/product/root-category-section";
 import { CategorySummaryRow } from "@components/product/category-summary-row";
-import { Title, Body, Label } from "@components/typography/text";
+import { Body, Display, Label, Title } from "@components/typography/text";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
 import { AnalyzeProgress } from "./analyze-progress";
@@ -36,6 +36,7 @@ type Props = {
   onAnalyzeImages: () => Promise<void>;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
+  internalMode?: boolean;
 };
 
 export const Details = ({
@@ -46,6 +47,7 @@ export const Details = ({
   onAnalyzeImages,
   imageAnalyzeLoading,
   imageAnalyzeError,
+  internalMode,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
@@ -192,19 +194,36 @@ export const Details = ({
         ))}
       {hasImages && categoryId && (
         <>
-          <PriceSection
-            price={product.price}
-            minimumPrice={product.minimumPrice ?? 0}
-            priceError={badFields?.["price"]}
-            isGiveaway={!!product.isGiveaway}
-            onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
-            soldByQuantity={!!product.soldByQuantity}
-            onUpdateSoldByQuantity={(soldByQuantity) =>
-              update({ soldByQuantity, price: undefined })
-            }
-            priceSuggestionMin={product.priceSuggestionMin}
-            priceSuggestionMax={product.priceSuggestionMax}
-          />
+          {internalMode ? (
+            <View
+              style={{
+                borderBottomWidth: 1,
+                borderColor: colors.dividers.neutral,
+                paddingBottom: 16,
+                gap: 4,
+              }}
+            >
+              <Display size="small">Intern annons</Display>
+              <Body size="medium" color="secondary">
+                Pris visas inte i Internlagret. Kollegor reserverar materialet
+                och ni markerar det som sålt när det är hämtat eller avstämt.
+              </Body>
+            </View>
+          ) : (
+            <PriceSection
+              price={product.price}
+              minimumPrice={product.minimumPrice ?? 0}
+              priceError={badFields?.["price"]}
+              isGiveaway={!!product.isGiveaway}
+              onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
+              soldByQuantity={!!product.soldByQuantity}
+              onUpdateSoldByQuantity={(soldByQuantity) =>
+                update({ soldByQuantity, price: undefined })
+              }
+              priceSuggestionMin={product.priceSuggestionMin}
+              priceSuggestionMax={product.priceSuggestionMax}
+            />
+          )}
           <DescriptionSection
             product={product}
             titleError={badFields?.["title"]}

@@ -1,0 +1,36 @@
+<mjml>
+  <mj-body background-color="#F5EFFF">
+    <mj-section background-color="#ffffff" padding="32px 24px">
+      <mj-column>
+        <mj-image src="{{logo}}" alt="RebuildR" width="160px" />
+        <mj-text
+          font-size="20px"
+          font-family="Roboto"
+          color="#1E1E1E"
+          font-weight="600"
+          align="center"
+        >
+          Uppdatering i Internlagret
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          font-family="Roboto"
+          color="#323232"
+          line-height="1.5"
+          align="center"
+        >
+          {{actorName}} har {{action}} “{{productTitle}}”.
+        </mj-text>
+        <mj-button
+          href="{{internalAdsUrl}}"
+          background-color="#863CFF"
+          color="#ffffff"
+          border-radius="8px"
+          font-family="Roboto"
+        >
+          Öppna Internlagret
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

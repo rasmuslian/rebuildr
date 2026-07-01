@@ -30,6 +30,12 @@ type Props = {
   showSearchBar?: boolean;
   animateSearchBar?: boolean;
   me?: GetMeQuery["me"];
+  sellButtonLabel?: string;
+  onSellButtonPress?: () => void;
+  backgroundColor?: string;
+  foregroundColor?: string;
+  showBottomBorder?: boolean;
+  categoriesButtonBackgroundColor?: string;
 };
 
 export default function TopBarDesktop({
@@ -38,6 +44,12 @@ export default function TopBarDesktop({
   showSearchBar = true,
   animateSearchBar = false,
   me,
+  sellButtonLabel,
+  onSellButtonPress,
+  backgroundColor,
+  foregroundColor,
+  showBottomBorder = true,
+  categoriesButtonBackgroundColor,
 }: Props) {
   const searchContext = useSearchContext();
   const { filterBuilder } = useFilterProduct();
@@ -111,7 +123,10 @@ export default function TopBarDesktop({
           width: "100%",
           paddingHorizontal: horizontalPadding.desktop,
           backgroundColor:
-            theme === "light" ? colors.background.neutral : colors.logo.vector,
+            backgroundColor ??
+            (theme === "light"
+              ? colors.background.neutral
+              : colors.logo.vector),
           justifyContent: "space-between",
           alignItems: "center",
           display: "flex",
@@ -130,7 +145,10 @@ export default function TopBarDesktop({
             <Logo
               width={118}
               height={24}
-              customColor={theme === "light" ? colors.logo.vector : undefined}
+              customColor={
+                foregroundColor ??
+                (theme === "light" ? colors.logo.vector : undefined)
+              }
             />
           </Pressable>
           <Animated.View
@@ -211,12 +229,17 @@ export default function TopBarDesktop({
             onPress={() => showHamburgerMenuVar(true)}
             icon="categories"
             label="Kategorier"
+            style={
+              categoriesButtonBackgroundColor
+                ? { backgroundColor: categoriesButtonBackgroundColor }
+                : undefined
+            }
           />
           {isLoggedIn ? (
             <Button
               type="filled"
-              onPress={() => setSellProductVisible(true)}
-              label="Ny annons"
+              onPress={onSellButtonPress ?? (() => setSellProductVisible(true))}
+              label={sellButtonLabel ?? "Ny annons"}
               theme={theme}
             />
           ) : (
@@ -229,7 +252,7 @@ export default function TopBarDesktop({
           )}
         </View>
       </View>
-      {theme === "light" && (
+      {theme === "light" && showBottomBorder && (
         <View
           style={{ marginTop: -1, marginHorizontal: horizontalPadding.desktop }}
         >

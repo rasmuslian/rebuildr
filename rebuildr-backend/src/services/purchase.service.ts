@@ -1,5 +1,9 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import {
   Purchase,
   PurchaseStatusEnum,
@@ -111,6 +115,7 @@ export class PurchaseService {
       where: {
         id: input.productId,
         status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
+        visibility: ProductVisibility.PUBLIC,
       },
       relations: {
         seller: true,

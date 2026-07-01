@@ -18,7 +18,11 @@ import {
   BygghjalpenMessageRole,
   BygghjalpenMessageStatus,
 } from 'src/entities/bygghjalpen-message.entity';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { FileService } from 'src/services/file.service';
 import { Brackets, IsNull, Repository } from 'typeorm';
 
@@ -484,6 +488,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.brand', 'brand')
       .where('product.status = :status', { status: ProductStatus.PUBLISHED })
+      .andWhere('product.visibility = :visibility', {
+        visibility: ProductVisibility.PUBLIC,
+      })
       .andWhere('product."hiddenReason" IS NULL')
       .andWhere('product."deletedAt" IS NULL')
       .andWhere(

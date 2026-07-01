@@ -2,8 +2,10 @@ import { showHamburgerMenuVar } from "@/apollo/config";
 import {
   HamburgerMenuQuery,
   HamburgerMenuQueryVariables,
+  InternalAdsMenuContextQuery,
   OrderProductsEnum,
 } from "@/gql/graphql";
+import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
 import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import {
   RootCategoriesVertical,
@@ -18,6 +20,7 @@ import { useForegroundPermissions } from "expo-location";
 import { Href, Link, router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
+import { useUser } from "@hooks/useUser";
 
 const HAMBURGER_MENU = gql`
   query HamburgerMenu($input: CategoriesInput!) {
@@ -42,6 +45,7 @@ export const HamburgerMenu = () => {
     RootCategoriesVerticalCategory | undefined
   >();
   const { isDesktop } = useScreenType();
+  const { isLoggedIn } = useUser();
   const { filterBuilder } = useFilterProduct();
   const [status] = useForegroundPermissions();
 
@@ -55,6 +59,10 @@ export const HamburgerMenu = () => {
       },
     },
   );
+  const { data: internalAdsContextData } =
+    useQuery<InternalAdsMenuContextQuery>(INTERNAL_ADS_MENU_CONTEXT, {
+      skip: !isLoggedIn,
+    });
 
   const onClose = () => {
     showHamburgerMenuVar(false);
@@ -84,6 +92,9 @@ export const HamburgerMenu = () => {
     >
       {!category && (
         <View style={{ gap: 14 }}>
+          {internalAdsContextData?.internalAdsOrganizationContext && (
+            <Entry title="Internlagret" link="/internal-ads" />
+          )}
           <Entry
             title={permanentSection.newArrivals.title}
             link="/search/products/new-arrivals"

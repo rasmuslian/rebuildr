@@ -151,6 +151,17 @@ import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
+import { InternalAdsService } from './services/internal-ads.service';
+import {
+  InternalAdImportBatchResolver,
+  InternalAdReservationResolver,
+  InternalAdsResolver,
+  OrganizationMembershipResolver,
+} from './resolvers/internal-ads.resolver';
+import { OrganizationMembership } from './entities/organization-membership.entity';
+import { OrganizationInvite } from './entities/organization-invite.entity';
+import { InternalAdReservation } from './entities/internal-ad-reservation.entity';
+import { InternalAdImportBatch } from './entities/internal-ad-import-batch.entity';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -213,6 +224,10 @@ export interface RequestType {
       BygghjalpenChat,
       BygghjalpenMessage,
       Identity,
+      OrganizationMembership,
+      OrganizationInvite,
+      InternalAdReservation,
+      InternalAdImportBatch,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -382,6 +397,11 @@ export interface RequestType {
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
+    InternalAdsService,
+    InternalAdsResolver,
+    OrganizationMembershipResolver,
+    InternalAdReservationResolver,
+    InternalAdImportBatchResolver,
   ],
 })
 export class AppModule {}

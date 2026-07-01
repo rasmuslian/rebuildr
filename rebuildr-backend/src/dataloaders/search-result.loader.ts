@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DataLoader from 'dataloader';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { ProductStatus } from 'src/entities/product.entity';
+import { ProductStatus, ProductVisibility } from 'src/entities/product.entity';
 
 export interface ISearchResultLoaders {
   getSearchResultProductCount: DataLoader<string, number>;
@@ -43,6 +43,7 @@ export class SearchResultLoader {
             OR word_similarity(lower(sr."searchString"), lower(coalesce(p."searchDocument", ''))) >= 0.45
           )
           AND (p."status" = '${ProductStatus.PUBLISHED}'::product_status_enum OR p."status" = '${ProductStatus.SOLD}'::product_status_enum)
+          AND p."visibility" = '${ProductVisibility.PUBLIC}'::product_visibility_enum
           AND p."hiddenReason" IS NULL`,
         )
         .where('sr.id IN (:...ids)', { ids: searchResultIds })

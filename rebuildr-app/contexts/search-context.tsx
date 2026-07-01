@@ -7,10 +7,18 @@ import React, {
   useRef,
 } from "react";
 import { useReducerState } from "@hooks/useReducerState";
-import { DoSearchQuery, DoSearchQueryVariables } from "@/gql/graphql";
+import {
+  DoSearchQuery,
+  DoSearchQueryVariables,
+  InternalAdsSearchQuery,
+  InternalAdsSearchQueryVariables,
+} from "@/gql/graphql";
 import { useLazyQuery } from "@apollo/client";
 import { DO_SEARCH } from "@components/search/queries";
 import { useDebounce } from "@hooks/use-debounce";
+import { INTERNAL_ADS_SEARCH } from "@/queries/internal-ads";
+
+export type SearchScope = "public" | "internal";
 
 type StateType = {
   dropdownVisible: boolean;
@@ -23,8 +31,10 @@ type StateType = {
     height: number;
   };
   searchData?: DoSearchQuery;
+  internalSearchData?: InternalAdsSearchQuery;
   searchString?: string;
   completedSearchString?: string;
+  searchScope: SearchScope;
 };
 
 const initialState: StateType = {
@@ -33,15 +43,17 @@ const initialState: StateType = {
   dropdownPosition: { x: 0, y: 0, width: 0 },
   dropdownAnchorPosition: { x: 0, y: 0, width: 0, height: 0 },
   searchData: undefined,
+  internalSearchData: undefined,
   searchString: undefined,
   completedSearchString: undefined,
+  searchScope: "public",
 };
 
 type ContextType = {
   searchState: StateType;
   setSearchState: Dispatch<Partial<StateType>>;
   reset: () => void;
-  search: (text: string) => void;
+  search: (text: string, scope?: SearchScope) => void;
 };
 
 const Context = createContext<ContextType | null>(null);
@@ -63,17 +75,40 @@ export const SearchProvider = ({ children }: PropsWithChildren) => {
   const [doSearch] = useLazyQuery<DoSearchQuery, DoSearchQueryVariables>(
     DO_SEARCH,
   );
+  const [doInternalSearch] = useLazyQuery<
+    InternalAdsSearchQuery,
+    InternalAdsSearchQueryVariables
+  >(INTERNAL_ADS_SEARCH);
 
-  const search = useDebounce((text: string) => {
+  const search = useDebounce((text: string, scope: SearchScope = "public") => {
     const searchString = text.trim();
     latestSearchStringRef.current = searchString || undefined;
 
     setState({
       searchData: undefined,
+      internalSearchData: undefined,
       completedSearchString: undefined,
+      searchScope: scope,
     });
 
     if (searchString.length > 0) {
+      if (scope === "internal") {
+        doInternalSearch({
+          variables: {
+            input: { searchString },
+          },
+        }).then(({ data }) => {
+          if (!data || latestSearchStringRef.current !== searchString) return;
+
+          setState({
+            internalSearchData: data,
+            completedSearchString: searchString,
+            searchScope: scope,
+          });
+        });
+        return;
+      }
+
       doSearch({
         variables: {
           searchSuggestionsInput: { searchString, limit: 8 },

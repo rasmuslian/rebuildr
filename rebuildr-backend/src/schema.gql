@@ -163,6 +163,40 @@ enum ReportProductTypeEnum {
   OTHER
 }
 
+type OrganizationMembership {
+  id: ID!
+  organizationId: String!
+  userId: String!
+  role: OrganizationMemberRoleEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  user: User!
+  organization: User!
+}
+
+enum OrganizationMemberRoleEnum {
+  ADMIN
+  MEMBER
+}
+
+type OrganizationInvite {
+  id: ID!
+  email: String!
+  organizationId: String!
+  invitedByUserId: String!
+  role: OrganizationMemberRoleEnum!
+  status: OrganizationInviteStatusEnum!
+  acceptedByUserId: String
+  acceptedAt: DateTime
+  createdAt: DateTime!
+}
+
+enum OrganizationInviteStatusEnum {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
 type User {
   id: ID!
   username: String
@@ -178,6 +212,7 @@ type User {
   type: UserType!
   organizationNumber: String
   organizationApprovedAt: DateTime
+  internalAdsAccess: Boolean!
   websiteUrl: String
   isFeatured: Boolean!
   notifyOnMessage: Boolean!
@@ -364,6 +399,39 @@ enum MeasurementTypeEnum {
   WEIGHT
 }
 
+type InternalAdImportBatch {
+  id: ID!
+  organizationId: String!
+  createdByUserId: String!
+  status: InternalAdImportBatchStatusEnum!
+  progress: Int!
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  files: [File!]!
+  products: [Product!]!
+}
+
+enum InternalAdImportBatchStatusEnum {
+  UPLOADING
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+  PUBLISHED
+}
+
+type InternalAdReservation {
+  id: ID!
+  productId: String!
+  reservedByUserId: String!
+  quantity: Int
+  reservedAt: DateTime!
+  canceledAt: DateTime
+  soldAt: DateTime
+  reservedByUser: User!
+}
+
 type Product {
   id: ID!
   title: String!
@@ -402,10 +470,15 @@ type Product {
   colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
+  visibility: ProductVisibilityEnum!
+  internalOrganizationId: String
+  createdByUserId: String
+  internalValidationIssues: [String!]!
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
   deliveryRadius: Float
+  internalReservations: [InternalAdReservation!]!
   noProject: Boolean
   co2SavingBuyer: Float
   co2SavingSeller: Float
@@ -456,6 +529,11 @@ enum ProductStatusEnum {
   PUBLISHED
   SOLD
   DELETED
+}
+
+enum ProductVisibilityEnum {
+  PUBLIC
+  INTERNAL
 }
 
 input LocationInputType {
@@ -898,6 +976,17 @@ enum BankIDVerifyStatus {
   failed
 }
 
+type InternalAdsOrganizationContext {
+  organization: User!
+  role: OrganizationMemberRoleEnum!
+  isOrganizationAccount: Boolean!
+}
+
+type CreateInternalAdImportBatchResponse {
+  batch: InternalAdImportBatch!
+  uploadUrls: [String!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -969,6 +1058,14 @@ type Query {
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
+  internalAdsOrganizationContext: InternalAdsOrganizationContext
+  internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
+  internalAd(productId: String!): Product!
+  internalAdDrafts(batchId: String): [Product!]!
+  organizationMembers: [OrganizationMembership!]!
+  organizationInvites: [OrganizationInvite!]!
+  internalAdImportBatch(batchId: String!): InternalAdImportBatch!
+  cmsInternalAds(input: CmsInternalAdsInput!): PaginatedProductsResponse!
 }
 
 input UserExistsInput {
@@ -997,6 +1094,7 @@ input CmsListUsersInput {
   searchString: String
   canSell: Boolean
   pendingApproval: Boolean
+  businessOnly: Boolean
 }
 
 input GetProductInput {
@@ -1258,6 +1356,12 @@ input CmsPurchaseStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
 
+input CmsInternalAdsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
+}
+
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
@@ -1340,6 +1444,17 @@ type Mutation {
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
   initBankIDVerify: InitBankIDVerifyResponse!
   resetUserIdentity(userId: String!): Boolean!
+  inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
+  acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
+  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
+  createInternalAdDraft: Product!
+  removeInternalAdDraft(productId: String!): Boolean!
+  publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
+  reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
+  cancelInternalAdReservation(reservationId: String!): InternalAdReservation!
+  markInternalAdSold(input: MarkInternalAdSoldInput!): Product!
+  createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!): CreateInternalAdImportBatchResponse!
+  startInternalAdImportBatch(batchId: String!): InternalAdImportBatch!
 }
 
 input RegisterUserInput {
@@ -1396,6 +1511,7 @@ input CmsUpdateUsersInput {
   phoneNumber: String
   isFeatured: Boolean
   websiteUrl: String
+  internalAdsAccess: Boolean
 }
 
 input UpdateUserInput {
@@ -1862,4 +1978,34 @@ input CmsUpdateNewsletterCompetitionInput {
   bodyText: String!
   nextDrawDate: DateTime!
   productImage: FileInputType
+}
+
+input InviteOrganizationMemberInput {
+  email: String!
+  role: OrganizationMemberRoleEnum!
+}
+
+input AcceptOrganizationInviteInput {
+  token: String!
+  username: String
+  password: String
+}
+
+input UpdateOrganizationMemberRoleInput {
+  userId: String!
+  role: OrganizationMemberRoleEnum!
+}
+
+input ReserveInternalAdInput {
+  productId: String!
+  quantity: Int
+}
+
+input MarkInternalAdSoldInput {
+  productId: String!
+  reservationId: ID
+}
+
+input CreateInternalAdImportBatchInput {
+  files: [FileInputType!]!
 }

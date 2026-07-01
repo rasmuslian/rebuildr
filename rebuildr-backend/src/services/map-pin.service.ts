@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
@@ -61,8 +65,11 @@ export class MapPinService {
         .leftJoinAndSelect(
           'project.products',
           'product',
-          'product.status = :status',
-          { status: ProductStatus.PUBLISHED },
+          'product.status = :status AND product.visibility = :visibility',
+          {
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.PUBLIC,
+          },
         )
         .leftJoinAndSelect('map_pin', 'mp', 'product."mapPinId" = mp.id')
         .where('project.addressLocation IS NOT NULL')
@@ -196,6 +203,9 @@ export class MapPinService {
         .andWhere('product.projectId IS NULL')
         .andWhere('product.status = :status', {
           status: ProductStatus.PUBLISHED,
+        })
+        .andWhere('product.visibility = :visibility', {
+          visibility: ProductVisibility.PUBLIC,
         })
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)

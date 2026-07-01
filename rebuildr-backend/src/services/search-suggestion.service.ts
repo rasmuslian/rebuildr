@@ -44,6 +44,7 @@ export class SearchSuggestionService {
           p."publishedAt"
         FROM product p
         WHERE p.status = 'PUBLISHED'::product_status_enum
+          AND p."visibility" = 'PUBLIC'::product_visibility_enum
           AND p."hiddenReason" IS NULL
           AND p."deletedAt" IS NULL
       ),

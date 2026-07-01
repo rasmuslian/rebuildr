@@ -23,6 +23,8 @@ import { Review } from './review.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
 import { Identity } from './identity.entity';
+import { OrganizationInvite } from './organization-invite.entity';
+import { OrganizationMembership } from './organization-membership.entity';
 
 export enum UserRoleEnum {
   USER = 'USER',
@@ -168,6 +170,25 @@ export class User {
   @Field(() => Date, { nullable: true })
   @Column({ type: Date, nullable: true })
   organizationApprovedAt?: Date;
+
+  @Field()
+  @Column({ default: false })
+  internalAdsAccess: boolean;
+
+  @OneToMany(
+    () => OrganizationMembership,
+    (membership) => membership.organization,
+  )
+  organizationMemberships: OrganizationMembership[];
+
+  @OneToMany(() => OrganizationMembership, (membership) => membership.user)
+  internalOrganizationMemberships: OrganizationMembership[];
+
+  @OneToMany(() => OrganizationInvite, (invite) => invite.organization)
+  organizationInvites: OrganizationInvite[];
+
+  @OneToMany(() => Product, (product) => product.createdByUser)
+  createdInternalProducts: Product[];
 
   @Field({ nullable: true })
   @Column({ nullable: true })

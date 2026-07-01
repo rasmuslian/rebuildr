@@ -1,6 +1,10 @@
 import { View } from "react-native";
 import React, { useState, useCallback } from "react";
-import { MyAccountQuery } from "@/gql/graphql";
+import {
+  InternalAdsMenuContextQuery,
+  MyAccountQuery,
+  OrganizationMemberRoleEnum,
+} from "@/gql/graphql";
 import { Button } from "@components/buttons/button";
 import { UserCard } from "@components/cards/user-card";
 import { Divider } from "@components/dividers/divider";
@@ -11,6 +15,7 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
 import { isPurchaseDone } from "@/utils/purchases/purchases";
 import { useLogout } from "@hooks/useLogout";
+import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -50,7 +55,7 @@ export const MY_ACCOUNT = gql`
 `;
 
 type AccountState = {
-  page: "index" | "settings";
+  page: "index" | "settings" | "organization-members";
   params?: Record<string, string | number>;
 };
 
@@ -62,8 +67,13 @@ type Props = {
 export default function AccountContent({ onNavigation, onClose }: Props) {
   const [editMode, setEditMode] = useState(false);
   const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
+  const { data: internalAdsContextData } =
+    useQuery<InternalAdsMenuContextQuery>(INTERNAL_ADS_MENU_CONTEXT);
   const { logout, loading: logoutLoading } = useLogout();
   const me = data?.me;
+  const isOrganizationAdmin =
+    internalAdsContextData?.internalAdsOrganizationContext?.role ===
+    OrganizationMemberRoleEnum.Admin;
 
   const handleLogout = async () => {
     await logout();
@@ -150,6 +160,18 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
           body={(me.likedProducts?.total ?? 0) + " annonser"}
           link="/account/favorites"
         />
+        {isOrganizationAdmin && (
+          <LinkEntry
+            label="Organisationsmedlemmar"
+            body="Hantera roller och inbjudningar"
+            link={onNavigation ? undefined : "/account/organization-members"}
+            onPress={
+              onNavigation
+                ? () => onNavigation({ page: "organization-members" })
+                : undefined
+            }
+          />
+        )}
         <LinkEntry
           label="Kontoinställningar"
           body="Hantera dina uppgifter och inställningar"

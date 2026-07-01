@@ -6,7 +6,11 @@ import { GetSearchResultsInput } from 'src/resolvers/search-result.resolver';
 import { SearchResult } from 'src/entities/search-result.entity';
 import { DataSource, In, IsNull } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { File } from 'src/entities/file.entity';
 import { Review } from 'src/entities/review.entity';
@@ -88,6 +92,7 @@ export class UserLoader {
         where: {
           sellerId: In(userIds),
           status: ProductStatus.SOLD,
+          visibility: ProductVisibility.PUBLIC,
         },
       });
 
@@ -106,6 +111,7 @@ export class UserLoader {
             id: In(userIds),
           },
           status: ProductStatus.PUBLISHED,
+          visibility: ProductVisibility.PUBLIC,
           deletedAt: IsNull(),
         },
       });
@@ -125,6 +131,7 @@ export class UserLoader {
             id: In(userIds),
           },
           status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+          visibility: ProductVisibility.PUBLIC,
           deletedAt: IsNull(),
         },
         order: { status: 'ASC', createdAt: 'DESC' },

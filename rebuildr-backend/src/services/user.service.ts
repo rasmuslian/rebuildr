@@ -525,6 +525,28 @@ export class UserService {
       return { users, total };
     }
 
+    if (input.businessOnly) {
+      const businessFilter: FindOptionsWhere<User> = {
+        type: UserType.BUSINESS,
+        deletedAt: IsNull(),
+      };
+      const [users, total] = await this.userRepository.findAndCount({
+        where: [
+          { ...businessFilter, name: ILike(`%${searchString}%`) },
+          { ...businessFilter, username: ILike(`%${searchString}%`) },
+          { ...businessFilter, email: ILike(`%${searchString}%`) },
+          {
+            ...businessFilter,
+            organizationNumber: ILike(`%${searchString}%`),
+          },
+        ],
+        take: pageSize,
+        skip,
+        order: { createdAt: 'DESC' },
+      });
+      return { users, total };
+    }
+
     const [users, total] = await this.userRepository.findAndCount({
       where: [
         {
@@ -579,7 +601,7 @@ export class UserService {
   }
 
   async cmsUpdateUser(input: CmsUpdateUsersInput): Promise<User> {
-    const { id, address, websiteUrl, ...rest } = input;
+    const { id, address, websiteUrl, internalAdsAccess, ...rest } = input;
 
     const user = await this.userRepository.findOne({
       where: { id },
@@ -622,6 +644,15 @@ export class UserService {
             { message: 'Invalid url', name: 'websiteUrl', type: 'BAD_VALUE' },
           ]);
         }
+      }
+
+      if (internalAdsAccess !== undefined) {
+        if (user.type !== UserType.BUSINESS) {
+          throw BadUserInputException(
+            'Only business users can use internal ads',
+          );
+        }
+        user.internalAdsAccess = internalAdsAccess;
       }
 
       Object.assign<User, Partial<User>>(user, {

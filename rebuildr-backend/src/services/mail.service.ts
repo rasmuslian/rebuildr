@@ -58,6 +58,14 @@ const welcomeIndividualTemplate = fs.readFileSync(
   `${__dirname}/../mail-templates/welcome-individual.mjml`,
   'utf8',
 );
+const organizationInviteTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/organization-invite.mjml`,
+  'utf8',
+);
+const internalAdEventTemplate = fs.readFileSync(
+  `${__dirname}/../mail-templates/internal-ad-event.mjml`,
+  'utf8',
+);
 
 const MAILGUN_DOMAIN = 'rebuildr.se';
 
@@ -400,6 +408,67 @@ export class MailService {
       from: this.from,
       subject: 'Ditt företagskonto är godkänt',
       text: 'Ditt företagskonto hos RebuildR är nu godkänt. Du kan nu logga in.',
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendOrganizationInviteEmail(input: {
+    email: string;
+    organizationName: string;
+    token: string;
+  }) {
+    const context = {
+      ...this.baseContext,
+      organizationName: input.organizationName,
+      inviteUrl: `${this.baseUrl}/internal-ads/invite?token=${input.token}`,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(organizationInviteTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: `${input.organizationName} har bjudit in dig till Internlagret`,
+      text: `${input.organizationName} har bjudit in dig till Internlagret.`,
+      html,
+    };
+    try {
+      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+    } catch (e) {
+      this.logger.error('error sending mail', { e });
+      throw InternalServerException();
+    }
+  }
+
+  async sendInternalAdEventEmail(input: {
+    email: string;
+    productTitle: string;
+    actorName: string;
+    action: string;
+  }) {
+    const context = {
+      ...this.baseContext,
+      productTitle: input.productTitle,
+      actorName: input.actorName,
+      action: input.action,
+      internalAdsUrl: `${this.baseUrl}/internal-ads`,
+    };
+    const handlebarsTemplate = handlebars.compile(
+      mjml(internalAdEventTemplate).html,
+    );
+    const html = handlebarsTemplate(context);
+    const data = {
+      to: input.email,
+      from: this.from,
+      subject: `Internlagret: ${input.productTitle}`,
+      text: `${input.actorName} har ${input.action} ${input.productTitle}.`,
       html,
     };
     try {

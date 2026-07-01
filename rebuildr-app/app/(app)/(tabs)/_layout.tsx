@@ -31,6 +31,7 @@ export default function TabLayout() {
   const { filterBuilder } = useFilterProduct();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
+  const isInternalAdsRoute = pathName.startsWith("/internal-ads");
 
   return (
     <Tabs
@@ -89,11 +90,16 @@ export default function TabLayout() {
             highlight: isHighlighted("categories"),
           },
           {
-            name: "Ny annons",
+            name: isInternalAdsRoute ? "Ny intern annons" : "Ny annons",
             icon: "newListing",
             onPress: () => {
               if (!isLoggedIn) {
                 setLoginVisible(true);
+              } else if (isInternalAdsRoute) {
+                router.navigate({
+                  pathname: "/internal-ads",
+                  params: { action: "create", t: Date.now().toString() },
+                });
               } else {
                 setSellProductVisible(true);
               }

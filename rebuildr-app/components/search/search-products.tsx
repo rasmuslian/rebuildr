@@ -85,7 +85,7 @@ type ProductCardSource = {
   seller: {
     id: string;
     type: UserType;
-    rating: number;
+    rating?: number | null;
   };
 };
 
@@ -234,7 +234,7 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
     quantity: product.primaryQuantity,
     condition: product.condition,
     account: {
-      rating: product.seller.rating,
+      rating: product.seller.rating ?? 0,
       type: product.seller.type,
       location: product.approximatePlace?.address,
     },

@@ -24,6 +24,7 @@ type Props = {
   liked?: boolean;
   status?: ProductStatusEnum;
   distance?: number | null;
+  onPress?: () => void;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -36,6 +37,7 @@ export const AdGrid = ({
   liked,
   status,
   distance,
+  onPress,
   title,
   price,
   ...adDescriptionProps
@@ -60,6 +62,10 @@ export const AdGrid = ({
           item_name: title,
           price,
         });
+        if (onPress) {
+          onPress();
+          return;
+        }
         router.navigate({
           pathname: "/product/[productId]",
           params: { productId: id },
