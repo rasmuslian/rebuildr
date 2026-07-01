@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 
-import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
+import { AterbyggarenPromptBox } from "@components/aterbyggaren/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -24,7 +24,7 @@ const questionExamples = [
   "Vilka fönster finns återbrukat nära mig?",
 ];
 
-export default function BygghjalpenLandingPage() {
+export default function AterbyggarenLandingPage() {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -36,12 +36,12 @@ export default function BygghjalpenLandingPage() {
 
     if (trimmedQuestion) {
       router.navigate(
-        `/bygghjalpen/chat?question=${encodeURIComponent(trimmedQuestion)}`,
+        `/aterbyggaren/chat?question=${encodeURIComponent(trimmedQuestion)}`,
       );
       return;
     }
 
-    router.navigate("/bygghjalpen/chat");
+    router.navigate("/aterbyggaren/chat");
   }, []);
 
   useFocusEffect(
@@ -125,7 +125,7 @@ export default function BygghjalpenLandingPage() {
               återbrukat på RebuildR nära dig.
             </Body>
 
-            <BygghjalpenPromptBox
+            <AterbyggarenPromptBox
               value={question}
               onChangeText={setQuestion}
               onSubmit={() => openChat(question)}

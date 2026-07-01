@@ -26,7 +26,7 @@ const getExplicitLineCount = (text: string) => text.split(/\r\n|\r|\n/).length;
 const getMinContentHeightForValue = (text: string) =>
   getExplicitLineCount(text) * COMPACT_INPUT_LINE_HEIGHT;
 
-type BygghjalpenPromptBoxProps = {
+type AterbyggarenPromptBoxProps = {
   autoFocus?: boolean;
   bordered?: boolean;
   compact?: boolean;
@@ -40,9 +40,9 @@ type BygghjalpenPromptBoxProps = {
   value: string;
 };
 
-export const BygghjalpenPromptBox = React.forwardRef<
+export const AterbyggarenPromptBox = React.forwardRef<
   TextInput,
-  BygghjalpenPromptBoxProps
+  AterbyggarenPromptBoxProps
 >(
   (
     {
@@ -167,7 +167,7 @@ export const BygghjalpenPromptBox = React.forwardRef<
   },
 );
 
-BygghjalpenPromptBox.displayName = "BygghjalpenPromptBox";
+AterbyggarenPromptBox.displayName = "AterbyggarenPromptBox";
 
 const PromptSendButton = ({
   disabled,

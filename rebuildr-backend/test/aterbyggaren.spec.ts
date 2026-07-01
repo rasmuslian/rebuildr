@@ -3,12 +3,12 @@ import { EventEmitter } from 'events';
 import { Request, Response } from 'express';
 
 import {
-  BygghjalpenMessage,
-  BygghjalpenMessageRole,
-  BygghjalpenMessageStatus,
-} from 'src/entities/bygghjalpen-message.entity';
+  AterbyggarenMessage,
+  AterbyggarenMessageRole,
+  AterbyggarenMessageStatus,
+} from 'src/entities/aterbyggaren-message.entity';
 import { UserRoleEnum } from 'src/entities/user.entity';
-import { BygghjalpenService } from 'src/services/bygghjalpen.service';
+import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
 type GetContextMessages = (
   chatId: string,
@@ -27,7 +27,7 @@ jest.mock('ai', () => ({
 
 const mockStreamText = jest.mocked(streamText);
 
-describe('BygghjalpenService', () => {
+describe('AterbyggarenService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,33 +36,33 @@ describe('BygghjalpenService', () => {
     const messages = [
       createMessage(
         'user-complete',
-        BygghjalpenMessageRole.USER,
+        AterbyggarenMessageRole.USER,
         'Första frågan',
       ),
       createMessage(
         'assistant-complete',
-        BygghjalpenMessageRole.ASSISTANT,
+        AterbyggarenMessageRole.ASSISTANT,
         'Första svaret',
       ),
       createMessage(
         'user-interrupted',
-        BygghjalpenMessageRole.USER,
+        AterbyggarenMessageRole.USER,
         'Frågan som avbröts',
       ),
       createMessage(
         'assistant-interrupted',
-        BygghjalpenMessageRole.ASSISTANT,
+        AterbyggarenMessageRole.ASSISTANT,
         'Halvt svar',
-        BygghjalpenMessageStatus.INTERRUPTED,
+        AterbyggarenMessageStatus.INTERRUPTED,
       ),
       createMessage(
         'user-orphaned',
-        BygghjalpenMessageRole.USER,
+        AterbyggarenMessageRole.USER,
         'Frågan utan assistentsvar',
       ),
       createMessage(
         'user-current',
-        BygghjalpenMessageRole.USER,
+        AterbyggarenMessageRole.USER,
         'Nuvarande fråga',
       ),
     ];
@@ -92,7 +92,7 @@ describe('BygghjalpenService', () => {
       textStream: createTextStream(['Planera materialet i steg.']),
     } as unknown as ReturnType<typeof streamText>);
 
-    const savedMessages: Partial<BygghjalpenMessage>[] = [];
+    const savedMessages: Partial<AterbyggarenMessage>[] = [];
     const service = createService({ messages: savedMessages });
     const request = new EventEmitter() as Request;
     const response = createResponse();
@@ -111,10 +111,10 @@ describe('BygghjalpenService', () => {
     );
 
     const assistantMessage = savedMessages.find(
-      (message) => message.role === BygghjalpenMessageRole.ASSISTANT,
+      (message) => message.role === AterbyggarenMessageRole.ASSISTANT,
     );
 
-    expect(assistantMessage?.status).toBe(BygghjalpenMessageStatus.INTERRUPTED);
+    expect(assistantMessage?.status).toBe(AterbyggarenMessageStatus.INTERRUPTED);
     expect(assistantMessage?.content).toContain(
       'Jag nådde längdgränsen för svaret',
     );
@@ -127,7 +127,7 @@ describe('BygghjalpenService', () => {
 const createService = ({
   messages,
 }: {
-  messages: Partial<BygghjalpenMessage>[];
+  messages: Partial<AterbyggarenMessage>[];
 }) => {
   const now = new Date('2026-06-17T12:00:00.000Z');
   const chatRepository = {
@@ -172,28 +172,28 @@ const createService = ({
   };
   const fileService = { getUrl: jest.fn() };
 
-  return new BygghjalpenService(
+  return new AterbyggarenService(
     chatRepository as unknown as ConstructorParameters<
-      typeof BygghjalpenService
+      typeof AterbyggarenService
     >[0],
     messageRepository as unknown as ConstructorParameters<
-      typeof BygghjalpenService
+      typeof AterbyggarenService
     >[1],
     productRepository as unknown as ConstructorParameters<
-      typeof BygghjalpenService
+      typeof AterbyggarenService
     >[2],
     fileService as unknown as ConstructorParameters<
-      typeof BygghjalpenService
+      typeof AterbyggarenService
     >[3],
   );
 };
 
 const createMessage = (
   id: string,
-  role: BygghjalpenMessageRole,
+  role: AterbyggarenMessageRole,
   content: string,
-  status = BygghjalpenMessageStatus.COMPLETE,
-): Partial<BygghjalpenMessage> => ({
+  status = AterbyggarenMessageStatus.COMPLETE,
+): Partial<AterbyggarenMessage> => ({
   id,
   role,
   status,

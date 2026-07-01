@@ -11,13 +11,13 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { AuthedUserType } from 'src/auth/constants';
-import { BygghjalpenChat } from 'src/entities/bygghjalpen-chat.entity';
+import { AterbyggarenChat } from 'src/entities/aterbyggaren-chat.entity';
 import {
-  BygghjalpenProductDisplay,
-  BygghjalpenMessage,
-  BygghjalpenMessageRole,
-  BygghjalpenMessageStatus,
-} from 'src/entities/bygghjalpen-message.entity';
+  AterbyggarenProductDisplay,
+  AterbyggarenMessage,
+  AterbyggarenMessageRole,
+  AterbyggarenMessageStatus,
+} from 'src/entities/aterbyggaren-message.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import { FileService } from 'src/services/file.service';
 import { Brackets, IsNull, Repository } from 'typeorm';
@@ -28,25 +28,25 @@ const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
 const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 const STREAM_ERROR_MESSAGE =
-  'Bygghjälpen kunde inte svara just nu. Försök igen om en stund.';
+  'Återbyggaren kunde inte svara just nu. Försök igen om en stund.';
 const STREAM_INTERRUPTED_MESSAGE =
   'Svaret avbröts innan det blev klart. Ställ gärna frågan igen om du vill fortsätta.';
 const STREAM_LENGTH_LIMIT_MESSAGE =
   'Jag nådde längdgränsen för svaret. Ställ gärna en följdfråga om du vill att jag fortsätter eller fördjupar en del.';
 
-export interface BygghjalpenChatSummary {
+export interface AterbyggarenChatSummary {
   id: string;
   title?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface BygghjalpenMessageResponse {
+export interface AterbyggarenMessageResponse {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
-  productDisplays?: BygghjalpenProductDisplay[] | null;
+  productDisplays?: AterbyggarenProductDisplay[] | null;
 }
 
 interface ChatOwner {
@@ -83,8 +83,8 @@ interface PublicProductSearchResult {
 }
 
 @Injectable()
-export class BygghjalpenService {
-  private readonly logger = new Logger(BygghjalpenService.name);
+export class AterbyggarenService {
+  private readonly logger = new Logger(AterbyggarenService.name);
 
   private google = createGoogleGenerativeAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -113,16 +113,16 @@ När searchPublicProducts returnerar produkter och du vill visa en eller flera a
 Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det gör svaret mer lättläst.`;
 
   constructor(
-    @InjectRepository(BygghjalpenChat)
-    private chatRepository: Repository<BygghjalpenChat>,
-    @InjectRepository(BygghjalpenMessage)
-    private messageRepository: Repository<BygghjalpenMessage>,
+    @InjectRepository(AterbyggarenChat)
+    private chatRepository: Repository<AterbyggarenChat>,
+    @InjectRepository(AterbyggarenMessage)
+    private messageRepository: Repository<AterbyggarenMessage>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private fileService: FileService,
   ) {}
 
-  async listChats(user?: AuthedUserType): Promise<BygghjalpenChatSummary[]> {
+  async listChats(user?: AuthedUserType): Promise<AterbyggarenChatSummary[]> {
     if (!user) return [];
 
     return this.chatRepository.find({
@@ -135,7 +135,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   async getMessages(
     chatId: string,
     user?: AuthedUserType,
-  ): Promise<BygghjalpenMessageResponse[]> {
+  ): Promise<AterbyggarenMessageResponse[]> {
     if (!user) return [];
 
     const chat = await this.getOwnedChat(chatId, { user });
@@ -202,7 +202,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       updatedAt: chat.updatedAt,
     });
 
-    let savedUserMessage: BygghjalpenMessage | undefined;
+    let savedUserMessage: AterbyggarenMessage | undefined;
     let assistantMessage = '';
     let assistantSaved = false;
     const searchableProductsById = new Map<string, PublicProductSearchResult>();
@@ -210,8 +210,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     try {
       savedUserMessage = await this.messageRepository.save({
         chatId: chat.id,
-        role: BygghjalpenMessageRole.USER,
-        status: BygghjalpenMessageStatus.COMPLETE,
+        role: AterbyggarenMessageRole.USER,
+        status: AterbyggarenMessageStatus.COMPLETE,
         content: userMessage,
       });
 
@@ -296,7 +296,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
       await this.messageRepository.save({
         chatId: chat.id,
-        role: BygghjalpenMessageRole.ASSISTANT,
+        role: AterbyggarenMessageRole.ASSISTANT,
         status: messageStatus,
         content: assistantMessage,
         productDisplays: productDisplays.length ? productDisplays : null,
@@ -313,7 +313,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
       if (!streamWasAborted) {
         this.logger.error(
-          'Bygghjalpen failed to stream a response',
+          'Aterbyggaren failed to stream a response',
           error instanceof Error ? error.stack : String(error),
         );
       }
@@ -331,10 +331,10 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
         await this.messageRepository.save({
           chatId: chat.id,
-          role: BygghjalpenMessageRole.ASSISTANT,
+          role: AterbyggarenMessageRole.ASSISTANT,
           status: streamWasAborted
-            ? BygghjalpenMessageStatus.INTERRUPTED
-            : BygghjalpenMessageStatus.FAILED,
+            ? AterbyggarenMessageStatus.INTERRUPTED
+            : AterbyggarenMessageStatus.FAILED,
           content: fallbackContent,
           productDisplays: fallbackProductDisplays.length
             ? fallbackProductDisplays
@@ -406,13 +406,13 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     );
 
     return contextMessages.slice(-MAX_CONTEXT_MESSAGES).map((message) => ({
-      role: message.role === BygghjalpenMessageRole.USER ? 'user' : 'assistant',
+      role: message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
     }));
   }
 
   private getCompleteContextMessages(
-    messages: BygghjalpenMessage[],
+    messages: AterbyggarenMessage[],
     currentUserMessageId?: string,
   ) {
     const currentUserMessageIndex = currentUserMessageId
@@ -424,16 +424,16 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       currentUserMessageIndex >= 0
         ? messages.slice(0, currentUserMessageIndex)
         : messages;
-    const completeMessages: BygghjalpenMessage[] = [];
+    const completeMessages: AterbyggarenMessage[] = [];
 
     for (let index = 0; index < previousMessages.length; index += 1) {
       const message = previousMessages[index];
       const nextMessage = previousMessages[index + 1];
 
-      if (message.role === BygghjalpenMessageRole.USER) {
+      if (message.role === AterbyggarenMessageRole.USER) {
         if (
-          nextMessage?.role === BygghjalpenMessageRole.ASSISTANT &&
-          nextMessage.status === BygghjalpenMessageStatus.COMPLETE
+          nextMessage?.role === AterbyggarenMessageRole.ASSISTANT &&
+          nextMessage.status === AterbyggarenMessageStatus.COMPLETE
         ) {
           completeMessages.push(message, nextMessage);
           index += 1;
@@ -442,8 +442,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       }
 
       if (
-        message.role === BygghjalpenMessageRole.ASSISTANT &&
-        message.status === BygghjalpenMessageStatus.COMPLETE
+        message.role === AterbyggarenMessageRole.ASSISTANT &&
+        message.status === AterbyggarenMessageStatus.COMPLETE
       ) {
         completeMessages.push(message);
       }
@@ -458,8 +458,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
   private getAssistantMessageStatus(finishReason: FinishReason) {
     return finishReason === 'length'
-      ? BygghjalpenMessageStatus.INTERRUPTED
-      : BygghjalpenMessageStatus.COMPLETE;
+      ? AterbyggarenMessageStatus.INTERRUPTED
+      : AterbyggarenMessageStatus.COMPLETE;
   }
 
   private getFinishNotice(finishReason: FinishReason) {
@@ -471,7 +471,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       return await this.searchPublicProducts(input);
     } catch (error) {
       this.logger.warn(
-        `Bygghjalpen product search failed for query "${input.query}"`,
+        `Aterbyggaren product search failed for query "${input.query}"`,
         error instanceof Error ? error.stack : String(error),
       );
       return [];
@@ -615,7 +615,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       return await this.fileService.getUrl(primaryImage);
     } catch (error) {
       this.logger.warn(
-        `Could not resolve product image URL for Bygghjalpen search result ${primaryImage.id}`,
+        `Could not resolve product image URL for Aterbyggaren search result ${primaryImage.id}`,
         error instanceof Error ? error.stack : String(error),
       );
       return undefined;
@@ -623,11 +623,11 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   }
 
   private toMessageResponse(
-    message: BygghjalpenMessage,
-  ): BygghjalpenMessageResponse {
+    message: AterbyggarenMessage,
+  ): AterbyggarenMessageResponse {
     return {
       id: message.id,
-      role: message.role === BygghjalpenMessageRole.USER ? 'user' : 'assistant',
+      role: message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
       createdAt: message.createdAt,
       productDisplays: message.productDisplays,
@@ -637,8 +637,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   private extractProductDisplays(
     content: string,
     searchableProductsById: Map<string, PublicProductSearchResult>,
-  ): BygghjalpenProductDisplay[] {
-    const displays: BygghjalpenProductDisplay[] = [];
+  ): AterbyggarenProductDisplay[] {
+    const displays: AterbyggarenProductDisplay[] = [];
     const tagRegex = /<rebuildr-products\s+ids=(['"])(.*?)\1\s*\/?\s*>/g;
 
     for (const match of content.matchAll(tagRegex)) {

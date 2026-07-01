@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import { isLoggedInVar } from "@/apollo/config";
-import { BygghjalpenPageHeader } from "@components/bygghjalpen/page-header";
+import { AterbyggarenPageHeader } from "@components/aterbyggaren/page-header";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -44,7 +44,7 @@ const readJson = async <T,>(path: string): Promise<T> => {
   return response.json();
 };
 
-export default function BygghjalpenHistoryPage() {
+export default function AterbyggarenHistoryPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { height: windowHeight } = useWindowDimensions();
@@ -67,7 +67,7 @@ export default function BygghjalpenHistoryPage() {
     setLoading(true);
     setError(undefined);
     try {
-      const nextChats = await readJson<ChatSummary[]>("/bygghjalpen/chats");
+      const nextChats = await readJson<ChatSummary[]>("/aterbyggaren/chats");
       setChats(nextChats);
     } catch {
       setError("Kunde inte hämta tidigare frågor.");
@@ -134,10 +134,10 @@ export default function BygghjalpenHistoryPage() {
               width: "100%",
             }}
           >
-            <BygghjalpenPageHeader
+            <AterbyggarenPageHeader
               isDesktop={isDesktop}
               onHistoryPress={loadChats}
-              onNewChat={() => router.navigate("/bygghjalpen/chat")}
+              onNewChat={() => router.navigate("/aterbyggaren/chat")}
             />
 
             <ScrollView
@@ -187,7 +187,7 @@ const HistoryRow = ({ chat }: { chat: ChatSummary }) => {
     <Pressable
       onPress={() =>
         router.navigate({
-          pathname: "/bygghjalpen/chat",
+          pathname: "/aterbyggaren/chat",
           params: { chatId: chat.id },
         })
       }

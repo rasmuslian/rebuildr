@@ -32,8 +32,8 @@ import { ProductConditionEnum } from "@/gql/graphql";
 import { isLoggedInVar } from "@/apollo/config";
 import { formatPrice } from "@/utils/formattings";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
-import { BygghjalpenPageHeader } from "@components/bygghjalpen/page-header";
-import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
+import { AterbyggarenPageHeader } from "@components/aterbyggaren/page-header";
+import { AterbyggarenPromptBox } from "@components/aterbyggaren/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -101,7 +101,7 @@ type ActiveStream = {
   abortController: AbortController;
 };
 
-const GUEST_ID_KEY = "bygghjalpen_guest_id";
+const GUEST_ID_KEY = "aterbyggaren_guest_id";
 const CHAT_LAYOUT_MAX_WIDTH = 640;
 const STREAM_TEXT_FADE_DURATION = 260;
 const STREAM_TEXT_FADE_STAGGER = 28;
@@ -137,7 +137,7 @@ const readJson = async <T,>(path: string): Promise<T> => {
   return response.json();
 };
 
-export default function BygghjalpenChatPage() {
+export default function AterbyggarenChatPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { height: windowHeight } = useWindowDimensions();
@@ -209,7 +209,7 @@ export default function BygghjalpenChatPage() {
       return;
     }
     try {
-      const nextChats = await readJson<ChatSummary[]>("/bygghjalpen/chats");
+      const nextChats = await readJson<ChatSummary[]>("/aterbyggaren/chats");
       setChats(nextChats);
     } catch {
       setError("Kunde inte hämta chatthistoriken.");
@@ -246,7 +246,7 @@ export default function BygghjalpenChatPage() {
       setError(undefined);
       try {
         const nextMessages = await readJson<ChatMessage[]>(
-          `/bygghjalpen/chats/${chatId}/messages`,
+          `/aterbyggaren/chats/${chatId}/messages`,
         );
         setActiveChatId(chatId);
         setActiveChatTitle(
@@ -269,7 +269,7 @@ export default function BygghjalpenChatPage() {
     setActiveChatTitle(undefined);
     setMessages([]);
     setError(undefined);
-    router.replace("/bygghjalpen/chat");
+    router.replace("/aterbyggaren/chat");
     focusChatInput();
   };
 
@@ -304,7 +304,7 @@ export default function BygghjalpenChatPage() {
 
       try {
         const guestId = isLoggedIn ? undefined : await getGuestId();
-        const response = await fetch(`${apiUrl}/bygghjalpen/chat/stream`, {
+        const response = await fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -502,11 +502,11 @@ export default function BygghjalpenChatPage() {
               width: "100%",
             }}
           >
-            <BygghjalpenPageHeader
+            <AterbyggarenPageHeader
               isDesktop={isDesktop}
               showHistory={isLoggedIn}
               onHistoryPress={() =>
-                router.navigate("/bygghjalpen/history" as never)
+                router.navigate("/aterbyggaren/history" as never)
               }
               onNewChat={startNewChat}
             />
@@ -583,7 +583,7 @@ export default function BygghjalpenChatPage() {
                   width: "100%",
                 }}
               >
-                <BygghjalpenPromptBox
+                <AterbyggarenPromptBox
                   ref={inputRef}
                   autoFocus
                   bordered

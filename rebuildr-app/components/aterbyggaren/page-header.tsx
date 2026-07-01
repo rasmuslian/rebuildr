@@ -4,19 +4,19 @@ import { Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { Icon } from "@icons/icon";
 
-type BygghjalpenPageHeaderProps = {
+type AterbyggarenPageHeaderProps = {
   isDesktop: boolean;
   showHistory?: boolean;
   onHistoryPress: () => void;
   onNewChat: () => void;
 };
 
-export const BygghjalpenPageHeader = ({
+export const AterbyggarenPageHeader = ({
   isDesktop,
   showHistory = true,
   onHistoryPress,
   onNewChat,
-}: BygghjalpenPageHeaderProps) => {
+}: AterbyggarenPageHeaderProps) => {
   return (
     <View style={{ gap: 24 }}>
       <View

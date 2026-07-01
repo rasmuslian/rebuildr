@@ -143,10 +143,10 @@ import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
 import { StatisticsResolver } from './resolvers/statistics.resolver';
 import { StatisticsService } from './services/statistics.service';
-import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
-import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
-import { BygghjalpenController } from './controllers/bygghjalpen.controller';
-import { BygghjalpenService } from './services/bygghjalpen.service';
+import { AterbyggarenChat } from './entities/aterbyggaren-chat.entity';
+import { AterbyggarenMessage } from './entities/aterbyggaren-message.entity';
+import { AterbyggarenController } from './controllers/aterbyggaren.controller';
+import { AterbyggarenService } from './services/aterbyggaren.service';
 import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
@@ -210,8 +210,8 @@ export interface RequestType {
       PageContent,
       Banner,
       NewsletterCompetition,
-      BygghjalpenChat,
-      BygghjalpenMessage,
+      AterbyggarenChat,
+      AterbyggarenMessage,
       Identity,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
@@ -294,7 +294,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [StripWebhookController, BygghjalpenController],
+  controllers: [StripWebhookController, AterbyggarenController],
   providers: [
     {
       provide: APP_FILTER,
@@ -378,7 +378,7 @@ export interface RequestType {
     NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
-    BygghjalpenService,
+    AterbyggarenService,
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,

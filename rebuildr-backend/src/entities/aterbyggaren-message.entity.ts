@@ -6,9 +6,9 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { BygghjalpenChat } from './bygghjalpen-chat.entity';
+import { AterbyggarenChat } from './aterbyggaren-chat.entity';
 
-export interface BygghjalpenDisplayedProduct {
+export interface AterbyggarenDisplayedProduct {
   id: string;
   title: string;
   description?: string;
@@ -23,51 +23,51 @@ export interface BygghjalpenDisplayedProduct {
   imageUrl?: string;
 }
 
-export interface BygghjalpenProductDisplay {
+export interface AterbyggarenProductDisplay {
   type: 'products';
-  products: BygghjalpenDisplayedProduct[];
+  products: AterbyggarenDisplayedProduct[];
 }
 
-export enum BygghjalpenMessageRole {
+export enum AterbyggarenMessageRole {
   USER = 'USER',
   ASSISTANT = 'ASSISTANT',
 }
 
-export enum BygghjalpenMessageStatus {
+export enum AterbyggarenMessageStatus {
   COMPLETE = 'COMPLETE',
   INTERRUPTED = 'INTERRUPTED',
   FAILED = 'FAILED',
 }
 
-@Entity()
-export class BygghjalpenMessage {
+@Entity('bygghjalpen_message')
+export class AterbyggarenMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @Column({ type: 'enum', enum: BygghjalpenMessageRole })
-  role: BygghjalpenMessageRole;
+  @Column({ type: 'enum', enum: AterbyggarenMessageRole })
+  role: AterbyggarenMessageRole;
 
   @Column({
     type: 'enum',
-    enum: BygghjalpenMessageStatus,
-    default: BygghjalpenMessageStatus.COMPLETE,
+    enum: AterbyggarenMessageStatus,
+    default: AterbyggarenMessageStatus.COMPLETE,
   })
-  status: BygghjalpenMessageStatus;
+  status: AterbyggarenMessageStatus;
 
   @Column({ type: 'text' })
   content: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  productDisplays?: BygghjalpenProductDisplay[] | null;
+  productDisplays?: AterbyggarenProductDisplay[] | null;
 
   @Column()
   chatId: string;
 
-  @ManyToOne(() => BygghjalpenChat, (chat) => chat.messages, {
+  @ManyToOne(() => AterbyggarenChat, (chat) => chat.messages, {
     onDelete: 'CASCADE',
   })
-  chat: BygghjalpenChat;
+  chat: AterbyggarenChat;
 }

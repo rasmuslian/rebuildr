@@ -16,7 +16,7 @@ import { Request, Response } from 'express';
 
 import { AccessTokenPayload, AuthedUserType } from 'src/auth/constants';
 import { EnvironmentVariables } from 'src/config';
-import { BygghjalpenService } from 'src/services/bygghjalpen.service';
+import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
 interface StreamBody {
   chatId?: string;
@@ -24,22 +24,22 @@ interface StreamBody {
   guestId?: string;
 }
 
-@Controller('bygghjalpen')
-export class BygghjalpenController {
+@Controller('aterbyggaren')
+export class AterbyggarenController {
   constructor(
-    private bygghjalpenService: BygghjalpenService,
+    private aterbyggarenService: AterbyggarenService,
     private jwtService: JwtService,
     private configService: ConfigService<EnvironmentVariables>,
   ) {}
 
   @Get('chats')
   async listChats(@Req() request: Request) {
-    return this.bygghjalpenService.listChats(await this.getUser(request));
+    return this.aterbyggarenService.listChats(await this.getUser(request));
   }
 
   @Get('chats/:chatId/messages')
   async getMessages(@Param('chatId') chatId: string, @Req() request: Request) {
-    return this.bygghjalpenService.getMessages(
+    return this.aterbyggarenService.getMessages(
       chatId,
       await this.getUser(request),
     );
@@ -47,7 +47,7 @@ export class BygghjalpenController {
 
   @Delete('chats/:chatId')
   async deleteChat(@Param('chatId') chatId: string, @Req() request: Request) {
-    return this.bygghjalpenService.deleteChat(
+    return this.aterbyggarenService.deleteChat(
       chatId,
       await this.getUser(request),
     );
@@ -62,7 +62,7 @@ export class BygghjalpenController {
     @Res() response: Response,
   ) {
     const user = await this.getUser(request);
-    return this.bygghjalpenService.streamMessage(
+    return this.aterbyggarenService.streamMessage(
       body,
       { user, guestId: body.guestId },
       request,
