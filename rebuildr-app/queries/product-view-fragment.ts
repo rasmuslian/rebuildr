@@ -40,6 +40,7 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
       mimeType
       url
       name
+      hasVariants
     }
     documents {
       id

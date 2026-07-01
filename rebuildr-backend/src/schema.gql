@@ -274,6 +274,7 @@ type File {
   name: String
   mimeType: String!
   url: String!
+  hasVariants: Boolean!
 }
 
 type Brand {
