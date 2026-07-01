@@ -14,6 +14,7 @@ import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { useScreenType } from "@hooks/useScreenType";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 const desktopQuestionExamples = [
   "Vad behöver jag för att bygga en altan?",
@@ -31,6 +32,7 @@ const mobileQuestionExamples = [
 
 export default function BygghjalpenLandingPage() {
   const { isDesktop } = useScreenType();
+  const colors = useThemeColor();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const [question, setQuestion] = useState("");
   const topBarHeight = isDesktop ? 72 : 56;
@@ -109,12 +111,12 @@ export default function BygghjalpenLandingPage() {
               size={isDesktop ? "medium" : "large"}
               heading={1}
               style={{
-                color: primitives.secondary200,
+                color: primitives.primary200,
                 textAlign: isDesktop ? "center" : "left",
               }}
             >
               Återbyggaren{" "}
-              <Text style={{ color: primitives.primary300 }}>
+              <Text style={{ color: primitives.primary400 }}>
                 visar hur mycket av ditt projekt du kan bygga återbrukat
               </Text>
             </Headline>
@@ -122,7 +124,7 @@ export default function BygghjalpenLandingPage() {
             <Body
               size="small"
               style={{
-                color: primitives.secondary200,
+                color: primitives.primary200,
                 marginTop: isDesktop ? 23 : 20,
                 maxWidth: isDesktop ? 470 : 335,
                 textAlign: isDesktop ? "center" : "left",
@@ -142,7 +144,7 @@ export default function BygghjalpenLandingPage() {
 
             <View
               style={{
-                backgroundColor: primitives.neutrals50,
+                backgroundColor: colors.dividers.primary,
                 height: 1,
                 marginTop: isDesktop ? 23 : 33,
                 width: "100%",
@@ -150,7 +152,7 @@ export default function BygghjalpenLandingPage() {
             />
 
             <View style={{ marginTop: 14 }}>
-              <Label size="small" style={{ color: primitives.primary300 }}>
+              <Label size="small" style={{ color: colors.dividers.primary }}>
                 Exempel på frågor till Återbyggaren:
               </Label>
               <View
@@ -228,15 +230,15 @@ const QuestionChip = ({
   onPress: () => void;
   text: string;
 }) => {
+  const colors = useThemeColor();
+
   return (
     <Pressable onPress={onPress}>
       {({ hovered, pressed }) => (
         <View
           style={{
             borderColor:
-              hovered || pressed
-                ? primitives.primary300
-                : primitives.primary400,
+              hovered || pressed ? primitives.primary300 : colors.text.success,
             borderRadius: 4,
             borderWidth: 1,
             paddingHorizontal: 8,
@@ -244,10 +246,10 @@ const QuestionChip = ({
           }}
         >
           <Label
-            size="large"
             style={{
-              color: primitives.neutrals100,
+              color: colors.text.primaryLight,
               textAlign: "center",
+              fontWeight: "500",
             }}
           >
             {text}
