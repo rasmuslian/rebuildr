@@ -1,9 +1,8 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
 import {
   Product,
+  ProductAvailabilityEnum,
   ProductStatus,
-  ProductVisibility,
 } from 'src/entities/product.entity';
 import {
   Purchase,
@@ -64,8 +63,6 @@ export class PurchaseService {
     private purchaseRepository: Repository<Purchase>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    @InjectRepository(InternalAdReservation)
-    private reservationRepository: Repository<InternalAdReservation>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -115,18 +112,10 @@ export class PurchaseService {
       transportationMethod: input.transportationMethod,
     });
     const product = await this.productRepository.findOne({
-      where: [
-        {
-          id: input.productId,
-          status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
-          visibility: ProductVisibility.PUBLIC,
-        },
-        {
-          id: input.productId,
-          status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
-          publiclyAvailable: true,
-        },
-      ],
+      where: {
+        id: input.productId,
+        status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
+      },
       relations: {
         seller: true,
         purchases: true,
@@ -150,6 +139,18 @@ export class PurchaseService {
         buyerId: currentUserId,
       });
       throw BadUserInputException('Product not found');
+    }
+
+    //A "snart till salu" (UPCOMING) listing isn't available for delivery yet,
+    //so it can't be purchased until it flips to AVAILABLE (auto on its start
+    //date, or manually by the seller).
+    if (product.availability === ProductAvailabilityEnum.UPCOMING) {
+      logger.error({
+        message: 'Attempt to buy an upcoming product',
+        productId: product.id,
+        buyerId: currentUserId,
+      });
+      throw BadUserInputException('Varan är inte tillgänglig än');
     }
 
     //Validate input
@@ -177,20 +178,8 @@ export class PurchaseService {
       );
     }
 
-    const reservedQuantity = product.soldByQuantity
-      ? (
-          await this.reservationRepository.find({
-            where: {
-              productId: product.id,
-              canceledAt: IsNull(),
-              soldAt: IsNull(),
-            },
-          })
-        ).reduce((sum, reservation) => sum + (reservation.quantity ?? 0), 0)
-      : 0;
     const isAvailable = product.soldByQuantity
-      ? (input.purchasedQuantity ?? 1) <=
-        (product.primaryQuantity ?? 0) - reservedQuantity
+      ? (input.purchasedQuantity ?? 1) <= product.primaryQuantity
       : product.status === ProductStatus.PUBLISHED;
 
     const existingPurchase = product.purchases.find(
