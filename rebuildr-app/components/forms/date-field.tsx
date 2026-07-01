@@ -55,18 +55,27 @@ export const DateField = ({
       <Label size="medium">{label}</Label>
       <Pressable
         onPress={() => setOpen((o) => !o)}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderWidth: strokeWidth.regular,
-          borderColor: error
-            ? primitives.semanticError500
-            : primitives.neutrals400,
-          borderRadius: borderRadius.medium,
-          paddingVertical: 12,
-          paddingHorizontal: 14,
-          backgroundColor: primitives.neutrals100,
+        style={(state) => {
+          // react-native-web adds `focused`; type it in for the focus ring.
+          const { focused } = state as { focused?: boolean };
+          return {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderWidth: strokeWidth.regular,
+            // Don't shout red while the picker is open and the user is choosing.
+            borderColor:
+              error && !open
+                ? primitives.semanticError500
+                : primitives.neutrals400,
+            borderRadius: borderRadius.medium,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            backgroundColor: primitives.neutrals100,
+            ...(focused && {
+              boxShadow: `0 0 0 2px ${primitives.accent500}`,
+            }),
+          };
         }}
       >
         <Body size="medium" color={formatted ? "primaryDark" : "secondary"}>
