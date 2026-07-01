@@ -19,14 +19,18 @@ import {
   AterbyggarenMessageStatus,
 } from 'src/entities/aterbyggaren-message.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  OrderProductsEnum,
+  ProductsInput,
+} from 'src/resolvers/product.resolver';
 import { FileService } from 'src/services/file.service';
-import { Brackets, IsNull, Repository } from 'typeorm';
+import { ProductService } from 'src/services/product.service';
+import { In, IsNull, Repository } from 'typeorm';
 
 const MAX_MESSAGE_LENGTH = 4_000;
 const MAX_CONTEXT_MESSAGES = 16;
 const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
-const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 const STREAM_ERROR_MESSAGE =
   'Återbyggaren kunde inte svara just nu. Försök igen om en stund.';
 const STREAM_INTERRUPTED_MESSAGE =
@@ -119,6 +123,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     private messageRepository: Repository<AterbyggarenMessage>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private productService: ProductService,
     private fileService: FileService,
   ) {}
 
@@ -406,7 +411,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     );
 
     return contextMessages.slice(-MAX_CONTEXT_MESSAGES).map((message) => ({
-      role: message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
+      role:
+        message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
     }));
   }
@@ -481,52 +487,42 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   private async searchPublicProducts(
     input: SearchPublicProductsInput,
   ): Promise<PublicProductSearchResult[]> {
+    const searchString = input.query.trim();
+    if (!searchString) return [];
+
     const limit = Math.min(input.limit ?? 5, 8);
-    const searchTerms = this.createSearchTerms(input.query);
-    const query = this.productRepository
-      .createQueryBuilder('product')
-      .leftJoinAndSelect('product.images', 'image')
-      .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.brand', 'brand')
-      .where('product.status = :status', { status: ProductStatus.PUBLISHED })
-      .andWhere('product."hiddenReason" IS NULL')
-      .andWhere('product."deletedAt" IS NULL')
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where(
-            'product."textSearch" @@ plainto_tsquery(\'swedish\', :searchQuery)',
-          ).orWhere(
-            'similarity(product.title, :searchQuery) > :searchRankThreshold',
-          );
+    const productsInput: ProductsInput = {
+      searchString,
+      orderBy: OrderProductsEnum.BEST_MATCH,
+      onlyPublished: true,
+      maxPrice: input.maxPrice,
+      giveaway: input.onlyGiveaways ? true : undefined,
+    };
+    const exactProductsResult = await this.productService.findAll(
+      productsInput,
+      limit,
+      0,
+      undefined,
+    );
+    const exactProducts = exactProductsResult.products;
+    let products = exactProducts;
 
-          searchTerms.forEach((searchTerm, index) => {
-            qb.orWhere(
-              `(product.title ILIKE :searchTerm${index} OR product.description ILIKE :searchTerm${index})`,
-              { [`searchTerm${index}`]: `%${searchTerm}%` },
-            );
-          });
-        }),
-      )
-      .setParameters({
-        searchQuery: input.query,
-        searchRankThreshold: PRODUCT_SEARCH_RANK_THRESHOLD,
-      })
-      .orderBy('product."publishedAt"', 'DESC', 'NULLS LAST')
-      .limit(limit);
-
-    if (input.maxPrice !== undefined) {
-      query.andWhere('product.price <= :maxPrice', {
-        maxPrice: Math.round(input.maxPrice * 100),
-      });
-    }
-    if (input.onlyGiveaways) {
-      query.andWhere('product."isGiveaway" = TRUE');
+    if (exactProducts.length < limit) {
+      const relatedProductsResult = await this.productService.relatedProducts(
+        productsInput,
+        exactProducts.map((product) => product.id),
+        limit - exactProducts.length,
+        0,
+        undefined,
+      );
+      products = [...exactProducts, ...relatedProductsResult.products];
     }
 
-    const products = await query.getMany();
+    const productsWithRelations =
+      await this.loadPublicProductRelations(products);
 
     return Promise.all(
-      products.map(async (product) => {
+      productsWithRelations.map(async (product) => {
         const primaryImage = product.images?.[0];
         const imageUrl = primaryImage
           ? await this.getPublicProductImageUrl(primaryImage)
@@ -550,62 +546,26 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     );
   }
 
-  private createSearchTerms(query: string) {
-    const stopWords = new Set([
-      'att',
-      'den',
-      'det',
-      'din',
-      'dit',
-      'efter',
-      'eller',
-      'era',
-      'ett',
-      'finns',
-      'för',
-      'har',
-      'hos',
-      'hur',
-      'jag',
-      'kan',
-      'med',
-      'mig',
-      'ni',
-      'någon',
-      'något',
-      'några',
-      'och',
-      'produkt',
-      'produkter',
-      'på',
-      'rebuildr',
-      'som',
-      'till',
-      'vad',
-      'vill',
-      'vår',
-      'våra',
-    ]);
-    const terms = query
-      .toLocaleLowerCase('sv-SE')
-      .split(/\s+/)
-      .map((term) => term.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
-      .filter((term) => term.length >= 3 && !stopWords.has(term));
+  private async loadPublicProductRelations(products: Product[]) {
+    const productIds = products.map((product) => product.id);
+    if (!productIds.length) return [];
 
-    return [
-      ...new Set(terms.flatMap((term) => [term, ...this.stemSearchTerm(term)])),
-    ];
-  }
+    const productsWithRelations = await this.productRepository.find({
+      where: {
+        id: In(productIds),
+        status: ProductStatus.PUBLISHED,
+        hiddenReason: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: { images: true, category: true, brand: true },
+    });
+    const productsById = new Map(
+      productsWithRelations.map((product) => [product.id, product]),
+    );
 
-  private stemSearchTerm(term: string) {
-    if (term.length < 5) return [];
-
-    if (/(arna|erna|orna)$/.test(term)) return [term.slice(0, -4)];
-    if (/(ar|er|or)$/.test(term)) return [term.slice(0, -2)];
-    if (/(en|et)$/.test(term)) return [term.slice(0, -2)];
-    if (/r$/.test(term)) return [term.slice(0, -1)];
-
-    return [];
+    return products
+      .map((product) => productsById.get(product.id))
+      .filter((product): product is Product => !!product);
   }
 
   private async getPublicProductImageUrl(
@@ -627,7 +587,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
   ): AterbyggarenMessageResponse {
     return {
       id: message.id,
-      role: message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
+      role:
+        message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
       createdAt: message.createdAt,
       productDisplays: message.productDisplays,

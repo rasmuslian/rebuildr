@@ -17,13 +17,11 @@ import {
   Easing,
   Image,
   LayoutChangeEvent,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
   Text,
   TextInput,
-  TextInputKeyPressEventData,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -401,28 +399,6 @@ export default function AterbyggarenChatPage() {
     ],
   );
 
-  const handleInputKeyPress = useCallback(
-    (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-      const nativeEvent = event.nativeEvent as TextInputKeyPressEventData & {
-        shiftKey?: boolean;
-      };
-
-      if (
-        nativeEvent.key !== "Enter" ||
-        nativeEvent.shiftKey ||
-        !input.trim() ||
-        streaming ||
-        loadingChat
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      sendMessage();
-    },
-    [input, loadingChat, sendMessage, streaming],
-  );
-
   useEffect(() => {
     const chatId = Array.isArray(params.chatId)
       ? params.chatId[0]
@@ -591,7 +567,6 @@ export default function AterbyggarenChatPage() {
                   disabled={!input.trim() || streaming || loadingChat}
                   loading={streaming}
                   onChangeText={setInput}
-                  onKeyPress={handleInputKeyPress}
                   onSubmit={() => sendMessage()}
                   value={input}
                 />

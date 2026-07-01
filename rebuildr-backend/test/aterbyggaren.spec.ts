@@ -7,6 +7,12 @@ import {
   AterbyggarenMessageRole,
   AterbyggarenMessageStatus,
 } from 'src/entities/aterbyggaren-message.entity';
+import {
+  Product,
+  ProductConditionEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
+import { OrderProductsEnum } from 'src/resolvers/product.resolver';
 import { UserRoleEnum } from 'src/entities/user.entity';
 import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
@@ -114,7 +120,9 @@ describe('AterbyggarenService', () => {
       (message) => message.role === AterbyggarenMessageRole.ASSISTANT,
     );
 
-    expect(assistantMessage?.status).toBe(AterbyggarenMessageStatus.INTERRUPTED);
+    expect(assistantMessage?.status).toBe(
+      AterbyggarenMessageStatus.INTERRUPTED,
+    );
     expect(assistantMessage?.content).toContain(
       'Jag nådde längdgränsen för svaret',
     );
@@ -122,12 +130,130 @@ describe('AterbyggarenService', () => {
       expect.stringContaining('event: done'),
     );
   });
+
+  it('searches products through the shared ranked product search', async () => {
+    const exactProduct = createProduct({ id: 'product-exact' });
+    const relatedProduct = createProduct({
+      id: 'product-related',
+      title: 'Relaterad innerdörr',
+      category: { name: 'Dörrar' },
+      brand: { name: 'Återbruket' },
+      images: [{ id: 'image-related' }],
+    });
+    const productService = {
+      findAll: jest.fn(async () => ({
+        products: [exactProduct],
+        origin: null,
+        total: 1,
+      })),
+      relatedProducts: jest.fn(async () => ({
+        products: [relatedProduct],
+        origin: null,
+        total: 1,
+      })),
+    };
+    const productRepository = {
+      find: jest.fn(async () => [
+        createProduct({
+          id: 'product-exact',
+          category: { name: 'Fönster' },
+          brand: { name: 'Byggreturen' },
+          images: [{ id: 'image-exact' }],
+        }),
+        relatedProduct,
+      ]),
+    };
+    const fileService = {
+      getUrl: jest.fn(
+        async (file: { id: string }) =>
+          `https://cdn.example.com/${file.id}.jpg`,
+      ),
+    };
+    const service = createService({
+      messages: [],
+      productRepository,
+      productService,
+      fileService,
+    });
+    const searchPublicProducts = Reflect.get(
+      service,
+      'searchPublicProducts',
+    ) as (input: {
+      query: string;
+      limit?: number;
+      maxPrice?: number;
+      onlyGiveaways?: boolean;
+    }) => Promise<unknown[]>;
+
+    const results = await searchPublicProducts.call(service, {
+      query: ' gamla fönster ',
+      limit: 3,
+      maxPrice: 250,
+      onlyGiveaways: true,
+    });
+
+    expect(productService.findAll).toHaveBeenCalledWith(
+      {
+        searchString: 'gamla fönster',
+        orderBy: OrderProductsEnum.BEST_MATCH,
+        onlyPublished: true,
+        maxPrice: 250,
+        giveaway: true,
+      },
+      3,
+      0,
+      undefined,
+    );
+    expect(productService.relatedProducts).toHaveBeenCalledWith(
+      {
+        searchString: 'gamla fönster',
+        orderBy: OrderProductsEnum.BEST_MATCH,
+        onlyPublished: true,
+        maxPrice: 250,
+        giveaway: true,
+      },
+      ['product-exact'],
+      2,
+      0,
+      undefined,
+    );
+    expect(productRepository.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        relations: { images: true, category: true, brand: true },
+        where: expect.objectContaining({ status: ProductStatus.PUBLISHED }),
+      }),
+    );
+    expect(results).toEqual([
+      expect.objectContaining({
+        id: 'product-exact',
+        category: 'Fönster',
+        brand: 'Byggreturen',
+        imageUrl: 'https://cdn.example.com/image-exact.jpg',
+      }),
+      expect.objectContaining({
+        id: 'product-related',
+        category: 'Dörrar',
+        brand: 'Återbruket',
+        imageUrl: 'https://cdn.example.com/image-related.jpg',
+      }),
+    ]);
+  });
 });
 
 const createService = ({
   messages,
+  productRepository,
+  productService,
+  fileService,
 }: {
   messages: Partial<AterbyggarenMessage>[];
+  productRepository?: Partial<
+    ConstructorParameters<typeof AterbyggarenService>[2]
+  >;
+  productService?: Partial<
+    ConstructorParameters<typeof AterbyggarenService>[3]
+  >;
+  fileService?: Partial<ConstructorParameters<typeof AterbyggarenService>[4]>;
 }) => {
   const now = new Date('2026-06-17T12:00:00.000Z');
   const chatRepository = {
@@ -159,18 +285,18 @@ const createService = ({
       return savedMessage;
     }),
   };
-  const productRepository = {
-    createQueryBuilder: jest.fn(() => ({
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      setParameters: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([]),
+  const productRepositoryMock = productRepository ?? {
+    find: jest.fn(async () => []),
+  };
+  const productServiceMock = productService ?? {
+    findAll: jest.fn(async () => ({ products: [], origin: null, total: 0 })),
+    relatedProducts: jest.fn(async () => ({
+      products: [],
+      origin: null,
+      total: 0,
     })),
   };
-  const fileService = { getUrl: jest.fn() };
+  const fileServiceMock = fileService ?? { getUrl: jest.fn() };
 
   return new AterbyggarenService(
     chatRepository as unknown as ConstructorParameters<
@@ -179,14 +305,45 @@ const createService = ({
     messageRepository as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[1],
-    productRepository as unknown as ConstructorParameters<
+    productRepositoryMock as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[2],
-    fileService as unknown as ConstructorParameters<
+    productServiceMock as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[3],
+    fileServiceMock as unknown as ConstructorParameters<
+      typeof AterbyggarenService
+    >[4],
   );
 };
+
+const createProduct = ({
+  id,
+  title = 'Gammalt fönster',
+  category,
+  brand,
+  images = [],
+}: {
+  id: string;
+  title?: string;
+  category?: { name: string };
+  brand?: { name: string };
+  images?: { id: string }[];
+}): Product =>
+  ({
+    id,
+    title,
+    description: 'Beskrivning',
+    price: 12000,
+    isGiveaway: false,
+    condition: ProductConditionEnum.GOOD,
+    category,
+    brand,
+    pickupEnabled: true,
+    deliveryEnabled: false,
+    images,
+    status: ProductStatus.PUBLISHED,
+  }) as Product;
 
 const createMessage = (
   id: string,

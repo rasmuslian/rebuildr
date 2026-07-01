@@ -3,10 +3,12 @@ import React from "react";
 import {
   ActivityIndicator,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   StyleProp,
   TextInput,
   TextInputContentSizeChangeEventData,
+  TextInputKeyPressEventData,
   TextInputProps,
   View,
   ViewStyle,
@@ -40,6 +42,35 @@ type AterbyggarenPromptBoxProps = {
   value: string;
 };
 
+type PromptSubmitKeyEvent = NativeSyntheticEvent<TextInputKeyPressEventData> & {
+  getModifierState?: (key: string) => boolean;
+  key?: string;
+  nativeEvent: TextInputKeyPressEventData & {
+    getModifierState?: (key: string) => boolean;
+    isComposing?: boolean;
+    keyCode?: number;
+    shiftKey?: boolean;
+  };
+  shiftKey?: boolean;
+};
+
+const isPlainEnterKeyEvent = (event: PromptSubmitKeyEvent) => {
+  const isShiftPressed =
+    event.shiftKey ||
+    event.nativeEvent.shiftKey ||
+    event.getModifierState?.("Shift") ||
+    event.nativeEvent.getModifierState?.("Shift") ||
+    false;
+  const isComposing =
+    event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229;
+
+  return (
+    (event.key ?? event.nativeEvent.key) === "Enter" &&
+    !isShiftPressed &&
+    !isComposing
+  );
+};
+
 export const AterbyggarenPromptBox = React.forwardRef<
   TextInput,
   AterbyggarenPromptBoxProps
@@ -67,6 +98,12 @@ export const AterbyggarenPromptBox = React.forwardRef<
     );
     const compactInputHeight = Math.min(Math.max(contentHeight, 24), 132);
 
+    const handleSubmit = React.useCallback(() => {
+      if (disabled || loading) return;
+
+      onSubmit();
+    }, [disabled, loading, onSubmit]);
+
     React.useEffect(() => {
       const lineCount = getExplicitLineCount(value);
 
@@ -87,6 +124,21 @@ export const AterbyggarenPromptBox = React.forwardRef<
         ),
       );
     };
+
+    const handleKeyPress = React.useCallback<
+      NonNullable<TextInputProps["onKeyPress"]>
+    >(
+      (event) => {
+        if (isPlainEnterKeyEvent(event as PromptSubmitKeyEvent)) {
+          event.preventDefault();
+          handleSubmit();
+          return;
+        }
+
+        onKeyPress?.(event);
+      },
+      [handleSubmit, onKeyPress],
+    );
 
     return (
       <View
@@ -115,12 +167,13 @@ export const AterbyggarenPromptBox = React.forwardRef<
           <TextInput
             ref={ref}
             autoFocus={autoFocus}
-            blurOnSubmit={false}
+            blurOnSubmit
             editable={!loading}
             multiline
             onChangeText={onChangeText}
             onContentSizeChange={compact ? handleContentSizeChange : undefined}
-            onKeyPress={onKeyPress}
+            onKeyPress={Platform.OS === "web" ? handleKeyPress : onKeyPress}
+            onSubmitEditing={handleSubmit}
             placeholder={placeholder}
             placeholderTextColor={primitives.neutrals800}
             value={value}
