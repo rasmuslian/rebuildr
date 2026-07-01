@@ -1,22 +1,19 @@
 import { router, useFocusEffect } from "expo-router";
 import Head from "expo-router/head";
-import { Image as ExpoImage } from "expo-image";
 import { useCallback, useState } from "react";
 import {
   Image,
   Pressable,
   Text,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
 
-import SendVector from "@assets/svgs/send-vector.svg";
+import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { useScreenType } from "@hooks/useScreenType";
-import { Icon } from "@icons/icon";
 
 const desktopQuestionExamples = [
   "Vad behöver jag för att bygga en altan?",
@@ -136,50 +133,12 @@ export default function BygghjalpenLandingPage() {
               återbrukat på RebuildR nära dig.
             </Body>
 
-            <View
-              style={{
-                backgroundColor: primitives.neutrals100,
-                borderRadius: isDesktop ? 8 : 9,
-                height: isDesktop ? 123 : 162,
-                marginTop: isDesktop ? 30 : 12,
-                paddingBottom: isDesktop ? 12 : 14,
-                paddingHorizontal: isDesktop ? 12 : 18,
-                paddingTop: isDesktop ? 12 : 18,
-                width: "100%",
-              }}
-            >
-              <TextInput
-                value={question}
-                onChangeText={setQuestion}
-                placeholder="Ställ din fråga här"
-                placeholderTextColor={primitives.neutrals800}
-                multiline
-                style={{
-                  color: primitives.neutrals900,
-                  flex: 1,
-                  fontFamily: "Inter-Regular",
-                  fontSize: 14,
-                  lineHeight: 20,
-                  outlineColor: "transparent",
-                  outlineWidth: 0,
-                  padding: 0,
-                  textAlignVertical: "top",
-                }}
-              />
-              <View
-                style={{
-                  alignItems: "center",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View style={{ flexDirection: "row", gap: isDesktop ? 8 : 10 }}>
-                  <PromptIconButton icon="paperclip" />
-                  <PromptIconButton icon="addPhoto" />
-                </View>
-                <SendButton onPress={() => openChat(question)} />
-              </View>
-            </View>
+            <BygghjalpenPromptBox
+              value={question}
+              onChangeText={setQuestion}
+              onSubmit={() => openChat(question)}
+              style={{ marginTop: isDesktop ? 30 : 12 }}
+            />
 
             <View
               style={{
@@ -259,61 +218,6 @@ const MainBackground = ({
         }}
       />
     </View>
-  );
-};
-
-const SendButton = ({ onPress }: { onPress: () => void }) => {
-  return (
-    <Pressable
-      accessibilityLabel="Skicka fråga"
-      accessibilityRole="button"
-      onPress={onPress}
-    >
-      {({ hovered, pressed }) => (
-        <View
-          style={{
-            alignItems: "center",
-            backgroundColor:
-              hovered || pressed ? primitives.accent400 : primitives.accent500,
-            borderRadius: 999,
-            height: 32,
-            justifyContent: "center",
-            opacity: pressed ? 0.88 : 1,
-            width: 32,
-          }}
-        >
-          <ExpoImage
-            source={SendVector.uri}
-            style={{ height: 14, width: 16 }}
-          />
-        </View>
-      )}
-    </Pressable>
-  );
-};
-
-const PromptIconButton = ({ icon }: { icon: "paperclip" | "addPhoto" }) => {
-  return (
-    <Pressable
-      accessibilityLabel={
-        icon === "paperclip" ? "Bifoga fil" : "Lägg till bild"
-      }
-      accessibilityRole="button"
-    >
-      {({ hovered, pressed }) => (
-        <View
-          style={{
-            alignItems: "center",
-            height: 24,
-            justifyContent: "center",
-            opacity: hovered || pressed ? 0.7 : 1,
-            width: 24,
-          }}
-        >
-          <Icon icon={icon} customColor={primitives.neutrals600} size={22} />
-        </View>
-      )}
-    </Pressable>
   );
 };
 

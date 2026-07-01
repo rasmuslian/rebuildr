@@ -32,10 +32,11 @@ import { ProductConditionEnum } from "@/gql/graphql";
 import { isLoggedInVar } from "@/apollo/config";
 import { formatPrice } from "@/utils/formattings";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
-import { Button } from "@components/buttons/button";
+import { BygghjalpenPageHeader } from "@components/bygghjalpen/page-header";
+import { BygghjalpenPromptBox } from "@components/bygghjalpen/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Pictogram } from "@components/pictograms/pictogram";
-import { Body, Label, Title } from "@components/typography/text";
+import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
 import { borderRadius, horizontalPadding } from "@constants/sizes";
@@ -80,6 +81,17 @@ type ProductDisplay = {
   products: DisplayedProduct[];
 };
 
+type MaterialListItem = {
+  id: string;
+  label: string;
+  query: string;
+};
+
+type MaterialListDisplay = {
+  title: string;
+  items: MaterialListItem[];
+};
+
 type StreamEvent = {
   event: string;
   data: unknown;
@@ -90,14 +102,8 @@ type ActiveStream = {
   abortController: AbortController;
 };
 
-type HistoryActionMenuState = {
-  chatId: string;
-  top: number;
-  right: number;
-};
-
 const GUEST_ID_KEY = "bygghjalpen_guest_id";
-const CHAT_CONTENT_MAX_WIDTH = 760;
+const CHAT_LAYOUT_MAX_WIDTH = 640;
 const STREAM_TEXT_FADE_DURATION = 260;
 const STREAM_TEXT_FADE_STAGGER = 28;
 const STREAM_TEXT_FADE_TAIL = 260;
@@ -142,24 +148,17 @@ export default function BygghjalpenChatPage() {
   const activeChatIdRef = useRef<string | undefined>(undefined);
   const activeStreamRef = useRef<ActiveStream | undefined>(undefined);
   const streamSequenceRef = useRef(0);
-  const params = useLocalSearchParams<{ question?: string }>();
+  const params = useLocalSearchParams<{ question?: string; chatId?: string }>();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatIdState] = useState<string>();
+  const [activeChatTitle, setActiveChatTitle] = useState<string>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loadingChat, setLoadingChat] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string>();
-  const [showMobileHistory, setShowMobileHistory] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(0);
-  const [desktopActionsMenu, setDesktopActionsMenu] =
-    useState<HistoryActionMenuState>();
-  const [mobileActionsMenu, setMobileActionsMenu] =
-    useState<HistoryActionMenuState>();
-
-  const desktopActionsChatId = desktopActionsMenu?.chatId;
-  const mobileActionsChatId = mobileActionsMenu?.chatId;
 
   const handleTopBarLayout = useCallback((event: LayoutChangeEvent) => {
     setTopBarHeight(event.nativeEvent.layout.height);
@@ -192,11 +191,11 @@ export default function BygghjalpenChatPage() {
   useFocusEffect(
     useCallback(() => {
       if (typeof document === "undefined") return;
-      document.body.style.backgroundColor = colors.background.secondary;
+      document.body.style.backgroundColor = primitives.secondary100;
       return () => {
         document.body.style.backgroundColor = "";
       };
-    }, [colors.background.secondary]),
+    }, []),
   );
 
   useFocusEffect(
@@ -229,87 +228,50 @@ export default function BygghjalpenChatPage() {
   }, [loadChats]);
 
   useEffect(() => {
+    if (!activeChatId || activeChatTitle) return;
+    setActiveChatTitle(
+      chats.find((chat) => chat.id === activeChatId)?.title ?? undefined,
+    );
+  }, [activeChatId, activeChatTitle, chats]);
+
+  useEffect(() => {
     requestAnimationFrame(() =>
       scrollRef.current?.scrollToEnd({ animated: true }),
     );
   }, [messages]);
 
-  const loadMessages = async (chatId: string) => {
-    cancelActiveStream();
-    setLoadingChat(true);
-    setError(undefined);
-    try {
-      const nextMessages = await readJson<ChatMessage[]>(
-        `/bygghjalpen/chats/${chatId}/messages`,
-      );
-      setActiveChatId(chatId);
-      setMessages(nextMessages);
-      setShowMobileHistory(false);
-    } catch {
-      setError("Kunde inte öppna chatten.");
-    } finally {
-      setLoadingChat(false);
-      focusChatInput();
-    }
-  };
+  const loadMessages = useCallback(
+    async (chatId: string) => {
+      cancelActiveStream();
+      setLoadingChat(true);
+      setError(undefined);
+      try {
+        const nextMessages = await readJson<ChatMessage[]>(
+          `/bygghjalpen/chats/${chatId}/messages`,
+        );
+        setActiveChatId(chatId);
+        setActiveChatTitle(
+          chats.find((chat) => chat.id === chatId)?.title ?? undefined,
+        );
+        setMessages(nextMessages);
+      } catch {
+        setError("Kunde inte öppna chatten.");
+      } finally {
+        setLoadingChat(false);
+        focusChatInput();
+      }
+    },
+    [cancelActiveStream, chats, focusChatInput, setActiveChatId],
+  );
 
   const startNewChat = () => {
     cancelActiveStream();
     setActiveChatId(undefined);
+    setActiveChatTitle(undefined);
     setMessages([]);
     setError(undefined);
-    setShowMobileHistory(false);
-    setDesktopActionsMenu(undefined);
-    setMobileActionsMenu(undefined);
+    router.replace("/bygghjalpen/chat");
     focusChatInput();
-  };
-
-  const toggleDesktopActions = useCallback(
-    (position: HistoryActionMenuState) => {
-      setDesktopActionsMenu((current) =>
-        current?.chatId === position.chatId ? undefined : position,
-      );
-    },
-    [],
-  );
-
-  const toggleMobileActions = useCallback(
-    (position: HistoryActionMenuState) => {
-      setMobileActionsMenu((current) =>
-        current?.chatId === position.chatId ? undefined : position,
-      );
-    },
-    [],
-  );
-
-  const moveDesktopActions = useCallback((chatId: string, top: number) => {
-    setDesktopActionsMenu((current) =>
-      current?.chatId === chatId ? { ...current, top } : current,
-    );
-  }, []);
-
-  const moveMobileActions = useCallback((chatId: string, top: number) => {
-    setMobileActionsMenu((current) =>
-      current?.chatId === chatId ? { ...current, top } : current,
-    );
-  }, []);
-
-  const deleteChat = async (chatId: string) => {
-    if (!isLoggedIn) return;
-    try {
-      await fetch(`${apiUrl}/bygghjalpen/chats/${chatId}`, {
-        method: "DELETE",
-        headers: await getAuthHeaders(),
-      });
-      if (chatId === activeChatId) {
-        startNewChat();
-      }
-      setDesktopActionsMenu(undefined);
-      setMobileActionsMenu(undefined);
-      loadChats();
-    } catch {
-      setError("Kunde inte ta bort chatten.");
-    }
   };
 
   const sendMessage = useCallback(
@@ -366,6 +328,7 @@ export default function BygghjalpenChatPage() {
           if (streamEvent.event === "chat") {
             const chat = streamEvent.data as ChatSummary;
             setActiveChatId(chat.id);
+            setActiveChatTitle(chat.title);
           }
 
           if (streamEvent.event === "delta") {
@@ -457,6 +420,15 @@ export default function BygghjalpenChatPage() {
   );
 
   useEffect(() => {
+    const chatId = Array.isArray(params.chatId)
+      ? params.chatId[0]
+      : params.chatId;
+    if (!chatId || chatId === activeChatId) return;
+
+    loadMessages(chatId);
+  }, [activeChatId, loadMessages, params.chatId]);
+
+  useEffect(() => {
     const question = Array.isArray(params.question)
       ? params.question[0]
       : params.question;
@@ -472,22 +444,34 @@ export default function BygghjalpenChatPage() {
     "Hur planerar jag materialåtgång för gipsvägg?",
   ];
 
+  const sendMaterialSearch = useCallback(
+    (items: MaterialListItem[]) => {
+      if (!items.length) return;
+      sendMessage(
+        `Sök på RebuildR efter dessa material från materiallistan: ${items
+          .map((item) => `${item.label} (sökfras: ${item.query})`)
+          .join(
+            "; ",
+          )}. Gruppera resultatet efter materialtyp och visa produktkort.`,
+      );
+    },
+    [sendMessage],
+  );
+
   return (
     <>
       <Head>
-        <title>RebuildR - Bygghjälpen</title>
+        <title>RebuildR - Återbyggaren</title>
         <meta
           name="description"
-          content="Chatta med Bygghjälpen om bygg, renovering, hemmafix och återbruk av byggmaterial."
+          content="Chatta med Återbyggaren om bygg, renovering, hemmafix och återbruk av byggmaterial."
         />
       </Head>
 
       <View
         style={{
           flex: 1,
-          backgroundColor: isDesktop
-            ? primitives.secondary200
-            : primitives.neutrals100,
+          backgroundColor: primitives.secondary100,
           height: windowHeight,
           overflow: "hidden",
         }}
@@ -497,9 +481,7 @@ export default function BygghjalpenChatPage() {
         </View>
         <View
           style={{
-            backgroundColor: isDesktop
-              ? primitives.secondary200
-              : primitives.neutrals100,
+            backgroundColor: primitives.secondary100,
             height: Math.max(windowHeight - topBarHeight, 0),
             overflow: "hidden",
           }}
@@ -507,195 +489,111 @@ export default function BygghjalpenChatPage() {
           <View
             style={{
               flex: 1,
-              flexDirection: isDesktop ? "row" : "column",
               alignSelf: "center",
-              backgroundColor: isDesktop
-                ? primitives.secondary200
-                : primitives.neutrals100,
-              gap: isDesktop ? 16 : 0,
-              maxWidth: isDesktop ? 1200 : undefined,
+              maxWidth: CHAT_LAYOUT_MAX_WIDTH,
               overflow: "hidden",
-              paddingHorizontal: isDesktop ? 24 : horizontalPadding.mobile,
-              paddingVertical: isDesktop ? 24 : 0,
+              paddingHorizontal: isDesktop ? 0 : horizontalPadding.mobile,
+              paddingTop: isDesktop ? 48 : 14,
               position: "relative",
               width: "100%",
             }}
           >
-            {isDesktop && desktopActionsChatId && (
-              <Pressable
-                onPress={() => setDesktopActionsMenu(undefined)}
-                style={{
-                  bottom: 0,
-                  left: 0,
-                  position: "absolute",
-                  right: 0,
-                  top: 0,
-                  zIndex: 10,
-                }}
-              />
-            )}
-            {!isDesktop && isLoggedIn && showMobileHistory && (
-              <MobileHistoryOverlay
-                chats={chats}
-                activeChatId={activeChatId}
-                openActionsChatId={mobileActionsChatId}
-                onClose={() => {
-                  setMobileActionsMenu(undefined);
-                  setShowMobileHistory(false);
-                }}
-                onDelete={deleteChat}
-                onSelect={loadMessages}
-                openActionsMenu={mobileActionsMenu}
-                onToggleActions={toggleMobileActions}
-                onMoveActions={moveMobileActions}
-                onCloseActions={() => setMobileActionsMenu(undefined)}
-              />
-            )}
-
-            {isDesktop && isLoggedIn && (
-              <HistorySidebar
-                chats={chats}
-                activeChatId={activeChatId}
-                openActionsMenu={desktopActionsMenu}
-                onSelect={loadMessages}
-                onNewChat={startNewChat}
-                onDelete={deleteChat}
-                onToggleActions={toggleDesktopActions}
-                onMoveActions={moveDesktopActions}
-                actionsOpen={!!desktopActionsChatId}
-              />
-            )}
-
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: primitives.neutrals100,
-                borderRadius: isDesktop ? 16 : 0,
-                overflow: "hidden",
-              }}
-            >
-              <ChatHeader
-                isDesktop={isDesktop}
-                showHistory={isLoggedIn}
-                historyOpen={showMobileHistory}
-                onHistoryPress={() =>
-                  setShowMobileHistory((current) => !current)
-                }
-                onNewChat={startNewChat}
-              />
-              {loadingChat ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <ActivityIndicator color={colors.logo.vector} />
-                </View>
-              ) : (
-                <ScrollView
-                  ref={scrollRef}
-                  style={{ flex: 1 }}
-                  contentContainerStyle={{
-                    justifyContent: messages.length ? "flex-start" : "center",
-                    paddingBottom: isDesktop ? 24 : 16,
-                    paddingHorizontal: isDesktop ? 24 : 0,
-                    paddingTop: isDesktop ? 24 : 16,
-                  }}
-                >
-                  <View
-                    style={{
-                      gap: 14,
-                      width: "100%",
-                    }}
-                  >
-                    {messages.length === 0 ? (
-                      <EmptyState
-                        examples={examples}
-                        onExamplePress={sendMessage}
-                      />
-                    ) : (
-                      messages.map((message) => (
-                        <MessageBubble key={message.id} message={message} />
-                      ))
-                    )}
-                  </View>
-                </ScrollView>
-              )}
-
-              {error && (
-                <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                  <Body size="small" color="error">
-                    {error}
-                  </Body>
-                </View>
-              )}
-
+            <BygghjalpenPageHeader
+              isDesktop={isDesktop}
+              showHistory={isLoggedIn}
+              onHistoryPress={() =>
+                router.navigate("/bygghjalpen/history" as never)
+              }
+              onNewChat={startNewChat}
+            />
+            {loadingChat ? (
               <View
                 style={{
-                  backgroundColor: primitives.neutrals100,
-                  paddingBottom: 12,
-                  paddingTop: 12,
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ActivityIndicator color={colors.logo.vector} />
+              </View>
+            ) : (
+              <ScrollView
+                ref={scrollRef}
+                style={{ flex: 1 }}
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: messages.length ? "flex-start" : "center",
+                  paddingBottom: isDesktop ? 24 : 20,
+                  paddingTop: 32,
                 }}
               >
                 <View
                   style={{
-                    alignSelf: "center",
-                    maxWidth: CHAT_CONTENT_MAX_WIDTH,
+                    gap: isDesktop ? 16 : 20,
                     width: "100%",
                   }}
                 >
-                  <View
-                    style={{
-                      alignItems: "flex-end",
-                      backgroundColor: primitives.neutrals100,
-                      borderColor: primitives.neutrals400,
-                      borderRadius: borderRadius.medium,
-                      borderWidth: 1,
-                      flexDirection: "row",
-                      gap: 8,
-                      paddingHorizontal: 12,
-                      paddingVertical: 10,
-                    }}
-                  >
-                    <TextInput
-                      ref={inputRef}
-                      value={input}
-                      onChangeText={setInput}
-                      placeholder="Skriv din fråga..."
-                      placeholderTextColor={colors.text.secondary}
-                      multiline
-                      autoFocus
-                      onKeyPress={handleInputKeyPress}
-                      style={{
-                        color: colors.text.primaryDark,
-                        flex: 1,
-                        fontFamily: "Inter-Regular",
-                        fontSize: 15,
-                        maxHeight: 132,
-                        minHeight: 28,
-                        outlineColor: "transparent",
-                        outlineWidth: 0,
-                      }}
+                  {messages.length === 0 ? (
+                    <EmptyState
+                      examples={examples}
+                      onExamplePress={sendMessage}
                     />
-                    <Button
-                      type="filled"
-                      icon={streaming ? undefined : "arrowRight"}
-                      loading={streaming}
-                      disabled={!input.trim() || streaming || loadingChat}
-                      onPress={() => sendMessage()}
-                    />
-                  </View>
-                  <Label
-                    size="small"
-                    color="secondary"
-                    style={{ marginTop: 8 }}
-                  >
-                    Bygghjälpen kan göra misstag. Kontrollera alltid kritiska
-                    beslut med fackperson.
-                  </Label>
+                  ) : (
+                    <>
+                      <ConversationTitle title={activeChatTitle} />
+                      {messages.map((message) => (
+                        <MessageBubble
+                          key={message.id}
+                          message={message}
+                          onSearchMaterials={sendMaterialSearch}
+                        />
+                      ))}
+                    </>
+                  )}
                 </View>
+              </ScrollView>
+            )}
+
+            {error && (
+              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+                <Body size="small" color="error">
+                  {error}
+                </Body>
+              </View>
+            )}
+
+            <View
+              style={{
+                backgroundColor: primitives.secondary100,
+                borderTopColor: primitives.secondary500,
+                borderTopWidth: isDesktop ? 0 : 1,
+                paddingBottom: isDesktop ? 18 : 22,
+                paddingTop: isDesktop ? 10 : 20,
+              }}
+            >
+              <View
+                style={{
+                  alignSelf: "center",
+                  maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+                  width: "100%",
+                }}
+              >
+                <BygghjalpenPromptBox
+                  ref={inputRef}
+                  autoFocus
+                  bordered
+                  compact
+                  disabled={!input.trim() || streaming || loadingChat}
+                  loading={streaming}
+                  onChangeText={setInput}
+                  onKeyPress={handleInputKeyPress}
+                  onSubmit={() => sendMessage()}
+                  value={input}
+                />
+                <Label size="small" color="secondary" style={{ marginTop: 8 }}>
+                  Återbyggaren kan göra misstag. Kontrollera alltid kritiska
+                  beslut med fackperson.
+                </Label>
               </View>
             </View>
           </View>
@@ -705,443 +603,11 @@ export default function BygghjalpenChatPage() {
   );
 }
 
-const HistorySidebar = ({
-  chats,
-  activeChatId,
-  actionsOpen,
-  openActionsMenu,
-  onSelect,
-  onNewChat,
-  onDelete,
-  onToggleActions,
-  onMoveActions,
-}: {
-  chats: ChatSummary[];
-  activeChatId?: string;
-  actionsOpen: boolean;
-  openActionsMenu?: HistoryActionMenuState;
-  onSelect: (chatId: string) => void;
-  onNewChat: () => void;
-  onDelete: (chatId: string) => void;
-  onToggleActions: (position: HistoryActionMenuState) => void;
-  onMoveActions: (chatId: string, top: number) => void;
-}) => {
-  const menuHostRef = useRef<View>(null);
-  const scrollYRef = useRef(0);
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<{ contentOffset: { y: number } }>) => {
-      const nextScrollY = event.nativeEvent.contentOffset.y;
-      const deltaY = nextScrollY - scrollYRef.current;
-      scrollYRef.current = nextScrollY;
-
-      if (openActionsMenu) {
-        onMoveActions(openActionsMenu.chatId, openActionsMenu.top - deltaY);
-      }
-    },
-    [onMoveActions, openActionsMenu],
-  );
-
+const ConversationTitle = ({ title }: { title?: string }) => {
   return (
-    <View
-      ref={menuHostRef}
-      collapsable={false}
-      style={{
-        backgroundColor: primitives.neutrals100,
-        borderRadius: 16,
-        gap: 12,
-        overflow: "visible",
-        padding: 12,
-        position: "relative",
-        width: 300,
-        zIndex: actionsOpen ? 20 : 1,
-      }}
-    >
-      <View style={{ gap: 4 }}>
-        <Title size="medium">Tidigare frågor</Title>
-        <Body size="small" color="secondary">
-          Fortsätt där du slutade.
-        </Body>
-      </View>
-      <Button type="filled" icon="+" label="Ny chatt" onPress={onNewChat} />
-      <ScrollView
-        contentContainerStyle={{ gap: 6, overflow: "visible" }}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
-        {chats.map((chat) => {
-          const active = chat.id === activeChatId;
-          return (
-            <HistoryChatRow
-              key={chat.id}
-              chat={chat}
-              active={active}
-              actionsOpen={openActionsMenu?.chatId === chat.id}
-              menuHostRef={menuHostRef}
-              showActionsOnHover
-              onDelete={() => {
-                onDelete(chat.id);
-              }}
-              onToggleActions={onToggleActions}
-              onSelect={() => onSelect(chat.id)}
-            />
-          );
-        })}
-      </ScrollView>
-      {openActionsMenu && (
-        <HistoryChatActionsMenu
-          onDelete={() => onDelete(openActionsMenu.chatId)}
-          right={openActionsMenu.right}
-          top={openActionsMenu.top}
-        />
-      )}
-    </View>
-  );
-};
-
-const ChatHeader = ({
-  isDesktop,
-  showHistory,
-  historyOpen,
-  onHistoryPress,
-  onNewChat,
-}: {
-  isDesktop: boolean;
-  showHistory: boolean;
-  historyOpen: boolean;
-  onHistoryPress: () => void;
-  onNewChat: () => void;
-}) => {
-  return (
-    <View
-      style={{
-        alignItems: isDesktop ? "flex-start" : "center",
-        flexDirection: isDesktop ? "column" : "row",
-        gap: isDesktop ? 0 : 12,
-        justifyContent: isDesktop ? "flex-start" : "flex-start",
-        minHeight: isDesktop ? undefined : 64,
-        paddingHorizontal: isDesktop ? 24 : 0,
-        paddingVertical: isDesktop ? 16 : 12,
-      }}
-    >
-      {!isDesktop && (
-        <MobileChatActions
-          showHistory={showHistory}
-          open={historyOpen}
-          onHistoryPress={onHistoryPress}
-          onNewChat={onNewChat}
-        />
-      )}
-      <Title size={isDesktop ? "medium" : "small"}>Bygghjälpen</Title>
-    </View>
-  );
-};
-
-const MobileChatActions = ({
-  showHistory,
-  open,
-  onHistoryPress,
-  onNewChat,
-}: {
-  showHistory: boolean;
-  open: boolean;
-  onHistoryPress: () => void;
-  onNewChat: () => void;
-}) => {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 8,
-        zIndex: 30,
-      }}
-    >
-      {showHistory && (
-        <MobileIconButton icon={open ? "X" : "list"} onPress={onHistoryPress} />
-      )}
-      <MobileIconButton icon="+" onPress={onNewChat} />
-    </View>
-  );
-};
-
-const MobileIconButton = ({
-  icon,
-  onPress,
-}: {
-  icon: "list" | "+" | "X";
-  onPress: () => void;
-}) => {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        alignItems: "center",
-        backgroundColor: primitives.neutrals100,
-        borderColor: primitives.neutrals300,
-        borderRadius: borderRadius.medium,
-        borderWidth: 1,
-        height: 40,
-        justifyContent: "center",
-        width: 40,
-      }}
-    >
-      <Icon icon={icon} color="primaryDark" size={20} />
-    </Pressable>
-  );
-};
-
-const MobileHistoryOverlay = ({
-  chats,
-  activeChatId,
-  openActionsChatId,
-  openActionsMenu,
-  onClose,
-  onSelect,
-  onDelete,
-  onToggleActions,
-  onMoveActions,
-  onCloseActions,
-}: {
-  chats: ChatSummary[];
-  activeChatId?: string;
-  openActionsChatId?: string;
-  openActionsMenu?: HistoryActionMenuState;
-  onClose: () => void;
-  onSelect: (chatId: string) => void;
-  onDelete: (chatId: string) => void;
-  onToggleActions: (position: HistoryActionMenuState) => void;
-  onMoveActions: (chatId: string, top: number) => void;
-  onCloseActions: () => void;
-}) => {
-  const menuHostRef = useRef<View>(null);
-  const scrollYRef = useRef(0);
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<{ contentOffset: { y: number } }>) => {
-      const nextScrollY = event.nativeEvent.contentOffset.y;
-      const deltaY = nextScrollY - scrollYRef.current;
-      scrollYRef.current = nextScrollY;
-
-      if (openActionsMenu) {
-        onMoveActions(openActionsMenu.chatId, openActionsMenu.top - deltaY);
-      }
-    },
-    [onMoveActions, openActionsMenu],
-  );
-
-  return (
-    <View
-      style={{
-        backgroundColor: "rgba(30, 30, 30, 0.24)",
-        bottom: 0,
-        left: 0,
-        padding: 16,
-        paddingTop: 68,
-        position: "absolute",
-        right: 0,
-        top: 0,
-        zIndex: 40,
-      }}
-    >
-      <Pressable
-        onPress={onClose}
-        style={{
-          bottom: 0,
-          left: 0,
-          position: "absolute",
-          right: 0,
-          top: 0,
-        }}
-      />
-      <View
-        ref={menuHostRef}
-        collapsable={false}
-        style={{
-          backgroundColor: primitives.neutrals100,
-          borderRadius: 16,
-          maxHeight: 420,
-          overflow: "visible",
-          padding: 12,
-          position: "relative",
-          width: "100%",
-        }}
-      >
-        <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
-          <View style={{ flex: 1 }}>
-            <Title size="small">Tidigare frågor</Title>
-          </View>
-        </View>
-        <ScrollView
-          contentContainerStyle={{ gap: 6, overflow: "visible" }}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          style={{ zIndex: openActionsChatId ? 20 : 1 }}
-        >
-          {chats.map((chat) => {
-            const active = chat.id === activeChatId;
-            return (
-              <HistoryChatRow
-                key={chat.id}
-                chat={chat}
-                active={active}
-                actionsOpen={openActionsChatId === chat.id}
-                menuHostRef={menuHostRef}
-                onDelete={() => {
-                  onDelete(chat.id);
-                }}
-                onToggleActions={onToggleActions}
-                onSelect={() => {
-                  onSelect(chat.id);
-                  onClose();
-                }}
-              />
-            );
-          })}
-        </ScrollView>
-        {openActionsChatId && (
-          <Pressable
-            onPress={onCloseActions}
-            style={{
-              bottom: 0,
-              left: 0,
-              position: "absolute",
-              right: 0,
-              top: 0,
-              zIndex: 10,
-            }}
-          />
-        )}
-        {openActionsMenu && (
-          <HistoryChatActionsMenu
-            onDelete={() => onDelete(openActionsMenu.chatId)}
-            right={openActionsMenu.right}
-            top={openActionsMenu.top}
-          />
-        )}
-      </View>
-    </View>
-  );
-};
-
-const HistoryChatRow = ({
-  chat,
-  active,
-  actionsOpen,
-  menuHostRef,
-  showActionsOnHover = false,
-  onDelete,
-  onSelect,
-  onToggleActions,
-}: {
-  chat: ChatSummary;
-  active: boolean;
-  actionsOpen: boolean;
-  menuHostRef: React.RefObject<View | null>;
-  showActionsOnHover?: boolean;
-  onDelete: () => void;
-  onSelect: () => void;
-  onToggleActions: (position: HistoryActionMenuState) => void;
-}) => {
-  const [hovered, setHovered] = useState(false);
-  const kebabRef = useRef<View>(null);
-  const showActions = !showActionsOnHover || hovered || actionsOpen;
-
-  const handleToggleActions = useCallback(() => {
-    const menuHost = menuHostRef.current;
-    const kebab = kebabRef.current;
-    if (!menuHost || !kebab) return;
-
-    kebab.measureInWindow((kebabX, kebabY, kebabWidth, kebabHeight) => {
-      menuHost.measureInWindow((hostX, hostY, hostWidth) => {
-        onToggleActions({
-          chatId: chat.id,
-          right: Math.max(hostX + hostWidth - (kebabX + kebabWidth), 0),
-          top: kebabY - hostY + kebabHeight + 6,
-        });
-      });
-    });
-  }, [chat.id, menuHostRef, onToggleActions]);
-
-  return (
-    <View
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      style={{
-        backgroundColor: active ? primitives.primary100 : "transparent",
-        borderColor: active ? primitives.primary300 : "transparent",
-        borderRadius: borderRadius.medium,
-        borderWidth: 1,
-        flexDirection: "row",
-        gap: 8,
-        overflow: "visible",
-        paddingLeft: 10,
-        paddingRight: 4,
-        paddingVertical: 6,
-        position: "relative",
-        alignItems: "center",
-        zIndex: actionsOpen ? 2 : 1,
-      }}
-    >
-      <Pressable onPress={onSelect} style={{ flex: 1, gap: 4, paddingTop: 4 }}>
-        <Label size="medium" numberOfLines={1}>
-          {chat.title ?? "Ny chatt"}
-        </Label>
-        <Body size="small" color="secondary">
-          {new Date(chat.updatedAt).toLocaleDateString("sv-SE")}
-        </Body>
-      </Pressable>
-      <Pressable
-        ref={kebabRef}
-        collapsable={false}
-        onPress={handleToggleActions}
-        pointerEvents={showActions ? "auto" : "none"}
-        style={{
-          alignItems: "center",
-          borderRadius: borderRadius.medium,
-          height: 36,
-          justifyContent: "center",
-          opacity: showActions ? 1 : 0,
-          width: 36,
-        }}
-      >
-        <Icon icon="kebabHorizontal" color="disabled" size={14} />
-      </Pressable>
-    </View>
-  );
-};
-
-const HistoryChatActionsMenu = ({
-  top,
-  right,
-  onDelete,
-}: {
-  top: number;
-  right: number;
-  onDelete: () => void;
-}) => {
-  return (
-    <View
-      style={{
-        backgroundColor: primitives.neutrals100,
-        borderColor: primitives.neutrals300,
-        borderRadius: borderRadius.medium,
-        borderWidth: 1,
-        boxShadow: "0px 4px 12px rgba(30, 30, 30, 0.12)",
-        padding: 6,
-        position: "absolute",
-        right,
-        top,
-        width: 160,
-        zIndex: 20,
-      }}
-    >
-      <Pressable onPress={onDelete}>
-        <View style={{ padding: 10 }}>
-          <Label size="medium">Ta bort chatten</Label>
-        </View>
-      </Pressable>
-    </View>
+    <Headline size="small" heading={1} style={{ color: primitives.primary800 }}>
+      {title ?? "Ny fråga"}
+    </Headline>
   );
 };
 
@@ -1157,7 +623,7 @@ const EmptyState = ({
       style={{
         alignSelf: "center",
         gap: 20,
-        maxWidth: CHAT_CONTENT_MAX_WIDTH,
+        maxWidth: CHAT_LAYOUT_MAX_WIDTH,
         width: "100%",
       }}
     >
@@ -1230,7 +696,13 @@ const EmptyState = ({
   );
 };
 
-const MessageBubble = ({ message }: { message: ChatMessage }) => {
+const MessageBubble = ({
+  message,
+  onSearchMaterials,
+}: {
+  message: ChatMessage;
+  onSearchMaterials: (items: MaterialListItem[]) => void;
+}) => {
   const colors = useThemeColor();
   const isUser = message.role === "user";
   const contentParts = parseAssistantContent(message.content);
@@ -1240,8 +712,8 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
     <View
       style={{
         alignSelf: isUser ? "flex-end" : "stretch",
-        backgroundColor: isUser ? primitives.primary800 : "transparent",
-        borderColor: primitives.primary800,
+        backgroundColor: isUser ? primitives.neutrals200 : "transparent",
+        borderColor: primitives.neutrals200,
         borderRadius: isUser ? borderRadius.medium : 0,
         borderWidth: isUser ? 1 : 0,
         maxWidth: isUser ? "82%" : undefined,
@@ -1254,7 +726,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
         <View
           style={{
             alignSelf: "center",
-            maxWidth: CHAT_CONTENT_MAX_WIDTH,
+            maxWidth: CHAT_LAYOUT_MAX_WIDTH,
             width: "100%",
           }}
         >
@@ -1264,7 +736,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
           </View>
         </View>
       ) : isUser ? (
-        <Body color="primaryLight">{message.content}</Body>
+        <Body color="secondary">{message.content}</Body>
       ) : (
         <View style={{ gap: 12, width: "100%" }}>
           {contentParts.map((part, index) => {
@@ -1275,7 +747,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
                   key={`${message.id}-text-${index}`}
                   style={{
                     alignSelf: "center",
-                    maxWidth: CHAT_CONTENT_MAX_WIDTH,
+                    maxWidth: CHAT_LAYOUT_MAX_WIDTH,
                     width: "100%",
                   }}
                 >
@@ -1285,6 +757,16 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
                     colors={colors}
                   />
                 </View>
+              );
+            }
+
+            if (part.type === "materialList") {
+              return (
+                <MaterialListCard
+                  key={`${message.id}-materials-${index}`}
+                  display={part.display}
+                  onSearch={onSearchMaterials}
+                />
               );
             }
 
@@ -1866,41 +1348,252 @@ const markdownStyle = (colors: ReturnType<typeof useThemeColor>) => ({
 
 type AssistantContentPart =
   | { type: "text"; content: string }
-  | { type: "productDisplay" };
+  | { type: "productDisplay" }
+  | { type: "materialList"; display: MaterialListDisplay };
 
 const parseAssistantContent = (content: string): AssistantContentPart[] => {
   const parts: AssistantContentPart[] = [];
-  const tagRegex = /<rebuildr-products\s+ids=(['"])(.*?)\1\s*\/?\s*>/g;
+  const tagRegex = /<rebuildr-(products|material-list)\s+([^>]*?)\s*\/?\s*>/g;
   let cursor = 0;
 
   for (const match of content.matchAll(tagRegex)) {
     if (match.index === undefined) continue;
     parts.push({ type: "text", content: content.slice(cursor, match.index) });
-    parts.push({ type: "productDisplay" });
+
+    if (match[1] === "products") {
+      parts.push({ type: "productDisplay" });
+    } else {
+      const materialList = parseMaterialListAttributes(match[2]);
+      if (materialList) {
+        parts.push({ type: "materialList", display: materialList });
+      }
+    }
+
     cursor = match.index + match[0].length;
   }
 
-  const tail = content.slice(cursor).replace(/<rebuildr-products[^>]*$/g, "");
+  const tail = content.slice(cursor).replace(/<rebuildr-[^>]*$/g, "");
   parts.push({ type: "text", content: tail });
 
   return parts;
 };
 
+const parseMaterialListAttributes = (
+  attributes: string,
+): MaterialListDisplay | undefined => {
+  const title = readTagAttribute(attributes, "title") ?? "Materiallista";
+  const rawItems = readTagAttribute(attributes, "items");
+  if (!rawItems) return undefined;
+
+  const items = rawItems
+    .split("|")
+    .map((rawItem, index) => {
+      const [label, query] = rawItem.split("::").map((part) => part.trim());
+      if (!label) return undefined;
+      return {
+        id: `${index}-${label}`,
+        label,
+        query: query || label,
+      };
+    })
+    .filter((item): item is MaterialListItem => !!item);
+
+  if (!items.length) return undefined;
+  return { title, items };
+};
+
+const readTagAttribute = (attributes: string, name: string) => {
+  const match = attributes.match(new RegExp(`${name}=(["'])(.*?)\\1`));
+  return match?.[2]?.replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+};
+
+const MaterialListCard = ({
+  display,
+  onSearch,
+}: {
+  display: MaterialListDisplay;
+  onSearch: (items: MaterialListItem[]) => void;
+}) => {
+  const [selectedIds, setSelectedIds] = useState(
+    () => new Set(display.items.map((item) => item.id)),
+  );
+  const selectedItems = display.items.filter((item) =>
+    selectedIds.has(item.id),
+  );
+
+  const toggleItem = (itemId: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <View
+      style={{
+        alignSelf: "center",
+        backgroundColor: primitives.neutrals100,
+        borderColor: primitives.neutrals300,
+        borderRadius: 12,
+        borderWidth: 1,
+        maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+        overflow: "hidden",
+        width: "100%",
+      }}
+    >
+      <View style={{ gap: 4, padding: 16 }}>
+        <Title size="small">{display.title}</Title>
+        <Body size="small" color="secondary">
+          {display.items.length} delar • välj vad du vill söka efter
+        </Body>
+      </View>
+      <View
+        style={{
+          borderTopColor: primitives.neutrals200,
+          borderTopWidth: 1,
+          gap: 12,
+          padding: 16,
+        }}
+      >
+        {display.items.map((item) => {
+          const selected = selectedIds.has(item.id);
+          return (
+            <Pressable
+              key={item.id}
+              onPress={() => toggleItem(item.id)}
+              style={{ alignItems: "center", flexDirection: "row", gap: 12 }}
+            >
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: selected
+                    ? primitives.accent500
+                    : primitives.neutrals100,
+                  borderColor: selected
+                    ? primitives.accent500
+                    : primitives.neutrals400,
+                  borderRadius: 6,
+                  borderWidth: 2,
+                  height: 28,
+                  justifyContent: "center",
+                  width: 28,
+                }}
+              >
+                {selected && (
+                  <Icon icon="check" color="primaryLight" size={16} />
+                )}
+              </View>
+              <Label size="medium" style={{ flex: 1 }}>
+                {item.label}
+              </Label>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 12,
+          padding: 16,
+          paddingTop: 0,
+        }}
+      >
+        <MaterialSearchButton
+          disabled={!selectedItems.length}
+          label="Sök markerade"
+          primary
+          onPress={() => onSearch(selectedItems)}
+        />
+        <MaterialSearchButton
+          label="Sök alla"
+          onPress={() => onSearch(display.items)}
+        />
+      </View>
+    </View>
+  );
+};
+
+const MaterialSearchButton = ({
+  disabled = false,
+  label,
+  primary = false,
+  onPress,
+}: {
+  disabled?: boolean;
+  label: string;
+  primary?: boolean;
+  onPress: () => void;
+}) => {
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        alignItems: "center",
+        backgroundColor: primary
+          ? primitives.accent500
+          : primitives.neutrals100,
+        borderColor: primary ? primitives.accent500 : primitives.neutrals300,
+        borderRadius: 12,
+        borderWidth: 1,
+        flex: 1,
+        opacity: disabled ? 0.48 : pressed ? 0.78 : 1,
+        paddingHorizontal: 12,
+        paddingVertical: 13,
+      })}
+    >
+      <Label color={primary ? "primaryLight" : "primaryDark"} size="medium">
+        {label}
+      </Label>
+    </Pressable>
+  );
+};
+
 const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
+  const { isDesktop } = useScreenType();
   const products = display.products.slice(0, 8);
   if (products.length === 1) {
     return <ChatProductCard product={products[0]} variant="single" />;
   }
 
+  if (isDesktop) {
+    return (
+      <View
+        style={{
+          alignSelf: "center",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 16,
+          maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+          width: "100%",
+        }}
+      >
+        {products.map((product) => (
+          <View key={product.id} style={{ width: 154 }}>
+            <ChatProductCard product={product} variant="gallery" />
+          </View>
+        ))}
+      </View>
+    );
+  }
+
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: 10, marginRight: -horizontalPadding.mobile }}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingRight: 4 }}
+        contentContainerStyle={{
+          gap: 12,
+          paddingRight: horizontalPadding.mobile,
+        }}
       >
         {products.map((product) => (
-          <View key={product.id} style={{ width: 214 }}>
+          <View key={product.id} style={{ width: 114 }}>
             <ChatProductCard product={product} variant="gallery" />
           </View>
         ))}
@@ -1917,6 +1610,7 @@ const ChatProductCard = ({
   variant: "single" | "gallery";
 }) => {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
   const isSingle = variant === "single";
   const detail = [
     product.category,
@@ -1940,14 +1634,14 @@ const ChatProductCard = ({
       }
       style={({ pressed }) => ({
         backgroundColor: primitives.neutrals100,
-        borderColor: primitives.neutrals300,
-        borderRadius: borderRadius.medium,
-        borderWidth: 1,
+        borderColor: primitives.neutrals200,
+        borderRadius: isDesktop ? 8 : 10,
+        borderWidth: isSingle ? 1 : 0,
         flexDirection: isSingle ? "row" : "column",
-        gap: isSingle ? 12 : 9,
+        gap: isSingle ? 12 : 8,
         opacity: pressed ? 0.82 : 1,
         overflow: "hidden",
-        padding: 8,
+        padding: isDesktop || isSingle ? 8 : 0,
         width: "100%",
       })}
     >
@@ -1956,27 +1650,36 @@ const ChatProductCard = ({
         style={{
           aspectRatio: 1,
           backgroundColor: primitives.neutrals200,
-          borderRadius: borderRadius.small,
+          borderRadius: isDesktop ? 6 : 10,
           height: isSingle ? 118 : undefined,
           width: isSingle ? 118 : "100%",
         }}
       />
-      <View style={{ flex: 1, gap: 8, padding: isSingle ? 4 : 2 }}>
+      <View
+        style={{ flex: 1, gap: 6, padding: isSingle ? 4 : isDesktop ? 2 : 0 }}
+      >
         <View style={{ gap: 4 }}>
-          <Title size="small" numberOfLines={2}>
+          <Label size={isDesktop ? "small" : "medium"} numberOfLines={2}>
             {product.title}
-          </Title>
+          </Label>
           {!!detail && (
             <Body size="small" color="secondary" numberOfLines={1}>
               {detail}
             </Body>
           )}
         </View>
-        <View style={{ gap: 8, marginTop: "auto" }}>
-          <Label size="large">
+        <View style={{ gap: isDesktop ? 8 : 6, marginTop: "auto" }}>
+          <Label size={isDesktop ? "medium" : "large"}>
             {product.isGiveaway ? "Gratis" : formatPrice(product.price)}
           </Label>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 6,
+              display: isDesktop || isSingle ? "flex" : "none",
+            }}
+          >
             {fulfillment.map((label) => (
               <View
                 key={label}

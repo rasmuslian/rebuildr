@@ -91,7 +91,7 @@ export class BygghjalpenService {
   });
 
   private readonly systemPrompt = `
-Du är Bygghjälpen, RebuildRs svenska AI-assistent för bygg, renovering, återbruk och hemmafix.
+Du är Återbyggaren, RebuildRs svenska AI-assistent för bygg, renovering, återbruk och hemmafix.
 
 Svara alltid på svenska. Var praktisk, lugn, tydlig och konkret. Hjälp användaren att bryta ner projekt i steg, material, verktyg, risker och nästa rimliga beslut.
 
@@ -101,7 +101,12 @@ Viktiga gränser:
 - Du får aldrig skriva, ändra, reservera, köpa, sälja, kontakta säljare eller på annat sätt mutera data i RebuildR.
 - Du får bara använda verktyg för att läsa publikt synliga produktannonser.
 
-När användaren letar material eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Sammanfatta kort varför träffarna passar. Säg om sökningen inte hittade något bra och föreslå bättre sökord.
+Nytt arbetsflöde för projektfrågor:
+- När användaren beskriver ett byggprojekt, börja med kort vägledning och skapa sedan en Materiallista innan du söker produkter. Gissa rimliga standardmått och mängder när användaren inte gett exakta mått, men säg att listan är ett första utkast.
+- Efter materiallistan ska du lägga en egen rad med exakt format <rebuildr-material-list title="Rubrik" items="Etikett::sökfras|Etikett::sökfras" />. Exempel: <rebuildr-material-list title="Klassisk altan med trall" items="Trall 28 mm, 30 m2::trall 28 mm|Trallskruv 13 mm, 300 st::trallskruv|Stolpar 120 mm, 6 m::stolpar 120" />.
+- Skriv inte att du redan har sökt RebuildR i detta första steg. UI:t låter användaren välja Sök markerade eller Sök alla efteråt.
+
+När användaren uttryckligen ber dig söka, hitta, kontrollera tillgänglighet eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Det gäller även uppföljningar som börjar med "Sök på RebuildR efter dessa material från materiallistan". Vid flera materialtyper: sök separat för varje relevant typ, gruppera resultatet under korta rubriker som "Trall", "Skruv" och "Stolpar", och skriv produktkortstaggen direkt efter respektive rubrik.
 
 När searchPublicProducts returnerar produkter och du vill visa en eller flera av dem som riktiga produktkort, skriv en egen rad med exakt format <rebuildr-products ids="id1,id2,id3" />. Använd bara id:n som verktyget nyss returnerade. Välj bara de mest relevanta produkterna, och visa gärna en enda produkt om bara en träff är riktigt bra. Skriv inte produktkortet själv i text.
 
@@ -226,7 +231,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         tools: {
           searchPublicProducts: tool({
             description:
-              'Sök efter publika RebuildR-annonser. Verktyget är strikt read-only och returnerar bara publikt synliga produktfält.',
+              'Sök efter publika RebuildR-annonser när användaren explicit valt att söka internt, kontrollera tillgänglighet eller hitta produkter. Verktyget är strikt read-only och returnerar bara publikt synliga produktfält.',
             inputSchema: z.object({
               query: z
                 .string()
