@@ -111,13 +111,21 @@ const SegmentOption = ({
   // Height 40 matches the Button component (Tillbaka / Förhandsgranska).
   <Pressable
     onPress={onPress}
-    style={{
-      flex: 1,
-      height: 40,
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: borderRadius.medium,
-      backgroundColor: selected ? primitives.accent500 : primitives.neutrals200,
+    style={(state) => {
+      const { focused } = state as { focused?: boolean };
+      return {
+        flex: 1,
+        height: 40,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: borderRadius.medium,
+        backgroundColor: selected
+          ? primitives.accent500
+          : primitives.neutrals200,
+        ...(focused && {
+          boxShadow: `0 0 0 2px ${primitives.accent500}`,
+        }),
+      };
     }}
   >
     <Label size="large" color={selected ? "primaryLight" : "primaryDark"}>
