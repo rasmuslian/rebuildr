@@ -40,8 +40,6 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
     });
 
   return (
-    // gap 24 between heading and content mirrors the "Leverans" section so the
-    // two read as the same kind of step section.
     <View style={{ gap: 24 }}>
       <Display size="small">Tillgänglighet</Display>
       <View style={{ gap: 16 }}>
@@ -107,9 +105,8 @@ const SegmentOption = ({
   selected: boolean;
   onPress: () => void;
 }) => (
-  // Selected uses the same purple as the delivery toggles (accent500);
-  // unselected is a neutral grey so the section isn't too purple-heavy.
-  // Height 40 matches the Button component (Tillbaka / Förhandsgranska).
+  // Selected = purple to match the delivery toggles; calendar/badge stay green
+  // (a deliberate split, so don't "unify" this to green).
   <Pressable
     onPress={onPress}
     style={(state) => {
