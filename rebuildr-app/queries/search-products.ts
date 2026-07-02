@@ -26,8 +26,7 @@ export const SEARCH_PRODUCTS_QUERY = gql`
         }
         primaryImage {
           id
-          url
-          hasVariants
+          url(width: 400)
         }
         approximatePlace {
           address
@@ -83,8 +82,7 @@ export const RELATED_SEARCH_PRODUCTS_QUERY = gql`
         }
         primaryImage {
           id
-          url
-          hasVariants
+          url(width: 400)
         }
         approximatePlace {
           address

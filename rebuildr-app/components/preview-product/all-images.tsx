@@ -5,10 +5,10 @@ import { borderRadius } from "@constants/sizes";
 import { useState } from "react";
 import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 import { Pressable } from "react-native-gesture-handler";
-import { variantUrl } from "@/utils/image-helpers";
 
 type Props = {
-  images: { url: string; hasVariants?: boolean }[];
+  // thumbUrl is a smaller variant (url(width: 200) alias) when queried.
+  images: { url: string; thumbUrl?: string }[];
   imagesPerRow?: number;
   parentWidth?: number;
   onAllImagesPress?: () => void;
@@ -59,7 +59,7 @@ export const AllImages = ({
                       .map((image, i) => (
                         <Image
                           key={i}
-                          source={variantUrl(image, 200)}
+                          source={image.thumbUrl ?? image.url}
                           style={{
                             aspectRatio: 1,
                             width,
@@ -96,7 +96,7 @@ export const AllImages = ({
           {images.map((image, i) => (
             <Image
               key={i}
-              source={variantUrl(image, 200)}
+              source={image.thumbUrl ?? image.url}
               style={{
                 aspectRatio: 1,
                 width,

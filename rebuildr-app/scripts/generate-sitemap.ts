@@ -21,14 +21,6 @@ import { SITE_URL } from "../lib/site-url.ts";
 // Stay safely under the 50 000-URL spec limit per file.
 const MAX_URLS_PER_FILE = 45000;
 
-// Internal/in-app CMS article slugs that should not be indexed as web pages
-// (in-app modal copy, legacy dumps, test content). Kept out of the sitemap.
-const isInternalSlug = (slug: string) =>
-  /^bottom-sheet-/.test(slug) ||
-  /^gamla-/.test(slug) ||
-  /^automatiserade-meddelanden/.test(slug) ||
-  /^testar-/.test(slug);
-
 // Public, indexable routes that always exist (mirrors the route inventory in the
 // SEO report). Private/auth routes are intentionally excluded.
 const STATIC_ROUTES = [
@@ -94,6 +86,7 @@ async function main() {
       title: string;
       description: string;
       body: string;
+      isInternal?: boolean;
       datePublished?: string;
       dateModified?: string;
     }
@@ -112,12 +105,13 @@ async function main() {
         description: htmlToExcerpt(a.body, 155),
         // Full HTML body: rendered server-side so crawlers/AI see real content.
         body: a.body,
+        isInternal: a.isInternal || undefined,
         datePublished: a.createdAt,
         dateModified: a.updatedAt,
       };
-      // Keep internal/in-app CMS entries out of the sitemap (they exist only to
-      // power in-app modals/legacy screens, not as standalone web pages).
-      if (isInternalSlug(a.slug)) continue;
+      // Internal/in-app CMS entries (article.isInternal in the CMS) stay out of
+      // the sitemap; the article page also renders noindex for them.
+      if (a.isInternal) continue;
       entries.push({
         loc: `${SITE_URL}/article/${a.slug}`,
         lastmod: day(a.updatedAt),
@@ -125,7 +119,7 @@ async function main() {
       included += 1;
     }
     console.log(
-      `Sitemap: ${included} articles included (${articles.length - included} internal slugs skipped)`,
+      `Sitemap: ${included} articles included (${articles.length - included} internal skipped)`,
     );
   } catch (err) {
     console.warn("Sitemap: could not fetch articles:", err);

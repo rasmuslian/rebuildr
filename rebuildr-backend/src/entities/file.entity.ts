@@ -48,10 +48,9 @@ export class File {
   @Column({ type: Boolean, default: false })
   private: boolean;
 
-  // Set to true once WebP size variants ({id}_200.webp, _400, _800) have been
-  // generated in Spaces by ImageVariantService. Exposed so the client only
-  // requests optimized variant URLs when they actually exist.
-  @Field()
+  // Internal column (not exposed in GraphQL): set by ImageVariantService once
+  // WebP size variants exist in Spaces. The url(width) resolver uses it to
+  // return variant vs original — clients never need to know the URL scheme.
   @Column({ type: Boolean, default: false })
   hasVariants: boolean;
 

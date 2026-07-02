@@ -8,10 +8,9 @@ import { Logger } from 'winston';
 import { File } from '../entities/file.entity';
 import { S3Service } from './s3.service';
 
-// WebP variant widths generated for every public image. Uploads are already
-// capped at ~800px client-side (rebuildr-app useOptimizeImage), so we only ever
-// scale down. Keys follow the convention `${id}_${width}.webp`.
-const VARIANT_WIDTHS = [200, 400, 800];
+// WebP variant widths generated for every public image, stored as
+// `${id}_${width}.webp`. Also used by FileService.getUrl to resolve url(width).
+export const VARIANT_WIDTHS = [200, 400, 800];
 const WEBP_QUALITY = 75;
 // Images processed per sweep tick (sharp is CPU-heavy — keep the batch modest).
 const BATCH_SIZE = 10;
@@ -20,11 +19,9 @@ const MIN_AGE_MS = 2 * 60_000;
 
 /**
  * Generates responsive WebP variants for public images and stores them in
- * Spaces. Because uploads go client → Spaces via presigned URLs, the backend
- * never sees the bytes at upload time, so this runs as a periodic sweep instead
- * of a synchronous hook. The same sweep also drains the historical backlog (all
- * pre-existing files default to hasVariants=false), so no separate backfill is
- * needed. The frontend only requests variant URLs when File.hasVariants is true.
+ * Spaces. Runs as a periodic sweep (not an upload hook) because uploads go
+ * client → Spaces via presigned URLs, so the backend never sees the bytes at
+ * upload time. The sweep picks up anything with hasVariants=false.
  */
 @Injectable()
 export class ImageVariantService {
@@ -88,13 +85,13 @@ export class ImageVariantService {
         );
       }
 
-      // Only flag as done once every variant is uploaded, so the frontend never
-      // requests a variant URL that 404s.
+      // Only flag as done once every variant is uploaded, so url(width) never
+      // resolves to a variant that doesn't exist yet.
       file.hasVariants = true;
       await this.fileRepository.save(file);
     } catch (e) {
-      // Leave hasVariants=false → retried next tick; the frontend serves the
-      // original in the meantime. Logged for visibility.
+      // Leave hasVariants=false → retried next tick (original URL served
+      // meanwhile). Logged for visibility.
       this.logger.warn('ImageVariantService.generate failed', {
         fileId: file.id,
         error: e instanceof Error ? e.message : e,

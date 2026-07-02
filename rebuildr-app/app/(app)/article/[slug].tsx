@@ -57,6 +57,7 @@ const seoData = articlesSeo as Record<
     title: string;
     description: string;
     body: string;
+    isInternal?: boolean;
     datePublished?: string;
     dateModified?: string;
   }
@@ -94,6 +95,7 @@ export default function ArticlePage() {
       title={title}
       description={description}
       ogType="article"
+      noindex={!!seoEntry?.isInternal}
       jsonLd={articleSchema({
         title,
         description,

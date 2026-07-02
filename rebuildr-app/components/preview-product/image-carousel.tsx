@@ -15,10 +15,9 @@ import { AllImagesBottomSheet } from "./all-images-bottom-sheet";
 import { Popup } from "@components/popup/popup";
 import { AllImagesPopupContent } from "./all-images-popup-content";
 import { useScreenType } from "@hooks/useScreenType";
-import { variantUrl } from "@/utils/image-helpers";
 
 type Props = {
-  images: { id?: string; url: string; hasVariants?: boolean }[];
+  images: { id?: string; url: string }[];
   status: Product["status"];
   displaySoldOverlay?: boolean;
   width?: number;
@@ -92,7 +91,7 @@ export const ImageCarousel = ({
             return (
               <View>
                 <Image
-                  source={variantUrl(image, imageWidth)}
+                  source={image.url}
                   cachePolicy="memory-disk"
                   contentFit="cover"
                   alt={
