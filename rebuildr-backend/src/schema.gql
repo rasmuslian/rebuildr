@@ -205,6 +205,7 @@ type User {
   numberOfCompletedPurchases: Int!
   sellerAccount: SellerAccount
   isVerified: Boolean!
+  creditsafeCheckStatus: CreditsafeCheckStatusEnum!
 }
 
 enum UserRoleEnum {
@@ -231,6 +232,13 @@ input RecommendedProductsInput {
 enum ProductsRecommendationSourceEnum {
   LIKES
   SEARCH_HISTORY
+}
+
+enum CreditsafeCheckStatusEnum {
+  NOT_CHECKED
+  MATCHED
+  NO_MATCH
+  COMPANY_ERROR
 }
 
 type Conversation {

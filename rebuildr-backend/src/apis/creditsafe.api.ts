@@ -9,16 +9,17 @@ import { EnvironmentVariables } from 'src/config';
 import { CustomFetch } from 'src/utility/custom-fetch';
 import { Logger } from 'winston';
 import {
+  ICreditsafeRejection,
   IGetDataResponse,
   IGetSignatoryResponse,
 } from './types/creditsafe/types';
 import {
-  CreditSafeErrorException,
-  CreditSafeRejectionException,
+  CreditsafeErrorException,
+  CreditsafeRejectionException,
 } from 'src/exceptions';
 
 @Injectable()
-export class CreditSafeAPI {
+export class CreditsafeAPI {
   private baseUrl: string;
   private username: string;
   private password: string;
@@ -40,8 +41,18 @@ export class CreditSafeAPI {
     this.username = this.configService.get('CREDITSAFE_USERNAME');
     this.password = this.configService.get('CREDITSAFE_PASSWORD');
     if (!this.username || !this.password) {
-      this.logger.warn('CreditSafe: Missing authentication variables');
+      this.logger.warn('Creditsafe: Missing authentication variables');
     }
+  }
+
+  // Rejection codes (e.g. company inactive/bankrupt) are S-prefixed; anything
+  // else is a genuine API/integration error (bad token, unknown block, ...).
+  private throwOnError(error?: ICreditsafeRejection) {
+    if (!error) return;
+    if (error.code.startsWith('S')) {
+      throw CreditsafeRejectionException(error);
+    }
+    throw CreditsafeErrorException(error);
   }
 
   //Authenticate.
@@ -92,12 +103,7 @@ needed to build your own credit report
         surfaceErrorBody: true,
       },
     );
-    if (response.error) {
-      if (response.error.code.startsWith('S')) {
-        throw CreditSafeRejectionException(response.error);
-      }
-      throw CreditSafeErrorException(response.error);
-    }
+    this.throwOnError(response.error);
     return response;
   }
   /**
@@ -110,16 +116,22 @@ actually has the right to do it.
     transactionid?: string,
   ): Promise<IGetSignatoryResponse> {
     const token = await this.getToken();
-    return await this.customFetch.send(this.baseUrl + '/getsignatory', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response: IGetSignatoryResponse = await this.customFetch.send(
+      this.baseUrl + '/getsignatory',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          searchnumber,
+          language: 'sv',
+          ...(transactionid ? { transactionid } : {}),
+        },
+        surfaceErrorBody: true,
       },
-      params: {
-        searchnumber,
-        language: 'sv',
-        ...(transactionid ? { transactionid } : {}),
-      },
-    });
+    );
+    this.throwOnError(response.error);
+    return response;
   }
 }

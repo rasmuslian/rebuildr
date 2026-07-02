@@ -42,6 +42,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { MailchimpService } from 'src/services/mailchimp.service';
 import { FileInputType } from './file.resolver';
 import { SellerAccountCapabilityEnum } from 'src/services/stripe.service';
+import { ICreditsafeSignupEvaluation } from 'src/apis/types/creditsafe/types';
 
 export enum ProductsRecommendationSourceEnum {
   LIKES = 'LIKES',
@@ -55,6 +56,16 @@ export enum OrderUsersEnum {
   ALPHABETICAL = 'ALPHABETICAL',
 }
 registerEnumType(OrderUsersEnum, { name: 'OrderUsersEnum' });
+
+export enum CreditsafeCheckStatusEnum {
+  NOT_CHECKED = 'NOT_CHECKED',
+  MATCHED = 'MATCHED',
+  NO_MATCH = 'NO_MATCH',
+  COMPANY_ERROR = 'COMPANY_ERROR',
+}
+registerEnumType(CreditsafeCheckStatusEnum, {
+  name: 'CreditsafeCheckStatusEnum',
+});
 
 @InputType()
 export class UpdateUserInput {
@@ -605,5 +616,19 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard)
   async isVerified(@Parent() user: User) {
     return this.userService.isVerified(user);
+  }
+
+  @ResolveField(() => CreditsafeCheckStatusEnum)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  creditsafeCheckStatus(@Parent() user: User): CreditsafeCheckStatusEnum {
+    const evaluation =
+      user.creditsafeData as unknown as ICreditsafeSignupEvaluation | undefined;
+    if (!evaluation) return CreditsafeCheckStatusEnum.NOT_CHECKED;
+    if (evaluation.approved) return CreditsafeCheckStatusEnum.MATCHED;
+    if ('error' in evaluation.getData) {
+      return CreditsafeCheckStatusEnum.COMPANY_ERROR;
+    }
+    return CreditsafeCheckStatusEnum.NO_MATCH;
   }
 }

@@ -77,7 +77,7 @@ export const BusinessPendingApprovalException = () => {
   });
 };
 
-export const CreditSafeRejectionException = (rejection: {
+export const CreditsafeRejectionException = (rejection: {
   code: string;
   text: string;
   detail?: string;
@@ -91,7 +91,7 @@ export const CreditSafeRejectionException = (rejection: {
   });
 };
 
-export const CreditSafeErrorException = (error: {
+export const CreditsafeErrorException = (error: {
   code: string;
   text: string;
   detail?: string;

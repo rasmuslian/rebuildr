@@ -5,34 +5,9 @@ import { Body, Display, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { useEffect, useRef, useState } from "react";
-import { Linking, View } from "react-native";
+import { useBankIdVerify } from "@hooks/useBankIdVerify";
+import { View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import {
-  InitBankIdVerifyMutation,
-  CollectBankIdVerifyQuery,
-  CollectBankIdVerifyQueryVariables,
-  BankIdVerifyStatus,
-} from "@/gql/graphql";
-
-const INIT_BANK_ID_VERIFY = gql`
-  mutation InitBankIdVerify {
-    initBankIDVerify {
-      orderRef
-      autoStartToken
-    }
-  }
-`;
-
-const COLLECT_BANK_ID_VERIFY = gql`
-  query CollectBankIdVerify($orderRef: String!) {
-    collectBankIDVerify(orderRef: $orderRef) {
-      status
-      qrData
-    }
-  }
-`;
 
 type Props = {
   show: boolean;
@@ -40,100 +15,21 @@ type Props = {
   onResult: () => void;
 };
 
-type Step = "idle" | "waiting" | "qr" | "failed";
-
 export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
-  const [step, setStep] = useState<Step>("idle");
-  const [orderRef, setOrderRef] = useState<string | null>(null);
-  const channelRef = useRef<BroadcastChannel | null>(null);
-
-  const [initBankIDVerify, { loading: initiating }] =
-    useMutation<InitBankIdVerifyMutation>(INIT_BANK_ID_VERIFY);
-
-  const isPolling = step === "waiting" || step === "qr";
-  const { data: collectData } = useQuery<
-    CollectBankIdVerifyQuery,
-    CollectBankIdVerifyQueryVariables
-  >(COLLECT_BANK_ID_VERIFY, {
-    variables: { orderRef: orderRef! },
-    skip: !orderRef || !isPolling,
-    pollInterval: step === "qr" ? 1000 : 2000,
-    fetchPolicy: "network-only",
-  });
-
-  useEffect(() => {
-    const status = collectData?.collectBankIDVerify?.status;
-    if (!status) return;
-
-    if (status === BankIdVerifyStatus.Complete) {
-      setOrderRef(null);
-      setStep("idle");
-      onResult();
-    } else if (status === BankIdVerifyStatus.Failed) {
-      setOrderRef(null);
-      setStep("failed");
-    }
-  }, [collectData?.collectBankIDVerify?.status]);
-
-  useEffect(() => {
-    if ((step !== "waiting" && step !== "qr") || typeof window === "undefined")
-      return;
-
-    if ("BroadcastChannel" in window) {
-      channelRef.current = new BroadcastChannel("bankid");
-      channelRef.current.onmessage = (e) => {
-        if (e.data?.status === "complete") {
-          setOrderRef(null);
-          setStep("idle");
-          onResult();
-        }
-      };
-    }
-
-    return () => {
-      channelRef.current?.close();
-      channelRef.current = null;
-    };
-  }, [step]);
-
-  const handleSameDevice = async () => {
-    try {
-      const { data } = await initBankIDVerify();
-      if (!data?.initBankIDVerify) return;
-
-      const { orderRef: ref, autoStartToken } = data.initBankIDVerify;
-      setOrderRef(ref);
-      setStep("waiting");
-
-      Linking.openURL(
-        `bankid:///?autostarttoken=${autoStartToken}&redirect=null`,
-      );
-    } catch {
-      setStep("failed");
-    }
-  };
-
-  const handleOtherDevice = async () => {
-    try {
-      const { data } = await initBankIDVerify();
-      if (!data?.initBankIDVerify) return;
-      setOrderRef(data.initBankIDVerify.orderRef);
-      setStep("qr");
-    } catch {
-      setStep("failed");
-    }
-  };
-
-  const handleRetry = () => {
-    setStep("idle");
-    setOrderRef(null);
-  };
+  const {
+    step,
+    qrData,
+    initiating,
+    handleSameDevice,
+    handleOtherDevice,
+    handleRetry,
+    reset,
+  } = useBankIdVerify({ onResult });
 
   const handleDismiss = () => {
-    setStep("idle");
-    setOrderRef(null);
+    reset();
     onDismiss();
   };
 
@@ -211,11 +107,8 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
           </Body>
 
           <View style={{ alignItems: "center", marginBottom: 32 }}>
-            {collectData?.collectBankIDVerify?.qrData ? (
-              <QRCode
-                value={collectData.collectBankIDVerify.qrData}
-                size={200}
-              />
+            {qrData ? (
+              <QRCode value={qrData} size={200} />
             ) : (
               <View style={{ width: 200, height: 200 }} />
             )}

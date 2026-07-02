@@ -101,10 +101,12 @@ export class AuthService {
     const savedUser = await this.userRepository.save(user);
 
     if (savedUser.type === UserType.BUSINESS && savedUser.organizationNumber) {
-      await this.mailService.sendBusinessRegistrationNotification({
-        email: savedUser.email,
-        organizationNumber: savedUser.organizationNumber,
-      });
+      if (!savedUser.organizationApprovedAt) {
+        await this.mailService.sendBusinessRegistrationNotification({
+          email: savedUser.email,
+          organizationNumber: savedUser.organizationNumber,
+        });
+      }
     } else {
       await this.mailService.sendWelcomeIndividualEmail({
         email: savedUser.email,

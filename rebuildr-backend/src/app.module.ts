@@ -152,7 +152,7 @@ import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
-import { CreditSafeAPI } from './apis/creditsafe.api';
+import { CreditsafeAPI } from './apis/creditsafe.api';
 import { CreditsafeService } from './services/creditsafe.service';
 
 export interface RequestType {
@@ -386,7 +386,7 @@ export interface RequestType {
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
-    CreditSafeAPI,
+    CreditsafeAPI,
     CreditsafeService,
   ],
 })

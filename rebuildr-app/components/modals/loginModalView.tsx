@@ -15,6 +15,7 @@ import { isLoggedInVar } from "@/apollo/config";
 import { trackEvent } from "@/utils/analytics";
 import { reloadAppAsync } from "expo";
 import { Verify } from "@components/login/verify";
+import { VerifyBankId } from "@components/login/verify-bankid";
 import {
   RegisterUserMutation,
   RegisterUserMutationVariables,
@@ -73,10 +74,12 @@ const LoginModalView = () => {
     | "register-business"
     | "forgotPassword"
     | "verify"
+    | "bankid"
     | "details"
   >("email");
   const [showWelcome, setShowWelcome] = useState(false);
   const [isBusinessRegistration, setIsBusinessRegistration] = useState(false);
+  const [isBusinessApproved, setIsBusinessApproved] = useState(false);
   const { setVisible: setSellVisible } = useSellProductContext();
 
   const [login, { loading }] = useMutation(LOGIN);
@@ -89,6 +92,7 @@ const LoginModalView = () => {
     setWrongPassword(false);
     setPendingApproval(false);
     setIsBusinessRegistration(false);
+    setIsBusinessApproved(false);
   };
 
   const onLogin = async (email: string, password: string) => {
@@ -147,6 +151,7 @@ const LoginModalView = () => {
         reset();
         setVisible(false);
         break;
+      case "bankid":
       case "details":
         if (showWelcome) break;
         setVisible(false);
@@ -219,7 +224,7 @@ const LoginModalView = () => {
   };
 
   const onVerifiedSuccess = (id: string) => {
-    setState("details");
+    setState(isBusinessRegistration ? "bankid" : "details");
   };
 
   useEffect(() => {
@@ -275,11 +280,15 @@ const LoginModalView = () => {
         onSuccess={(id) => onVerifiedSuccess(id)}
       />
     ),
+    state === "bankid" && (
+      <VerifyBankId key="bankid" onSuccess={() => setState("details")} />
+    ),
     state === "details" && (
       <Details
         key="details"
-        onDone={async () => {
-          if (isBusinessRegistration) {
+        onDone={async (isApproved) => {
+          setIsBusinessApproved(isApproved);
+          if (isBusinessRegistration && !isApproved) {
             await logout();
           }
           setShowWelcome(true);
@@ -305,6 +314,7 @@ const LoginModalView = () => {
       case "forgotPassword":
         return "Logga in";
       case "verify":
+      case "bankid":
       case "details":
         return "Skapa ditt nya konto";
       default:
@@ -346,8 +356,8 @@ const LoginModalView = () => {
   ) : (
     <BottomSheet
       name="login"
-      scrollable={["verify", "details", "business"].includes(state)}
-      screenHeight={["verify", "details", "business"].includes(state)}
+      scrollable={["verify", "bankid", "details", "business"].includes(state)}
+      screenHeight={["verify", "bankid", "details", "business"].includes(state)}
       containerStyle={{ flex: 1 }}
       header={
         <Header
@@ -381,6 +391,7 @@ const LoginModalView = () => {
         onClose={handleWelcomeClose}
         onCreateListing={handleWelcomeCreateListing}
         isBusiness={isBusinessRegistration}
+        isApproved={isBusinessApproved}
       />
     </>
   );
