@@ -541,7 +541,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return { valid: true, items };
   }
 
-  private validateAttachmentInputs(input?: AterbyggarenAttachmentInput[]):
+  private validateAttachmentInputs(
+    input?: AterbyggarenAttachmentInput[],
+  ):
     | { valid: true; items: AterbyggarenAttachmentInput[] }
     | { valid: false; message: string } {
     if (!input?.length) return { valid: true, items: [] };
@@ -688,7 +690,10 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
       return {
         ...message,
-        content: [{ type: 'text', text: String(message.content) }, ...attachments],
+        content: [
+          { type: 'text', text: String(message.content) },
+          ...attachments,
+        ],
       };
     });
   }
