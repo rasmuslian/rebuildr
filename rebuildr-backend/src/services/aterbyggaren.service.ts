@@ -11,6 +11,8 @@ import {
   FinishReason,
   ImagePart,
   ModelMessage,
+  Output,
+  generateText,
   stepCountIs,
   streamText,
   tool,
@@ -41,12 +43,18 @@ const MAX_ATTACHMENT_COUNT = 4;
 const MAX_CONTEXT_MESSAGES = 16;
 const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
+const MAX_TITLE_LENGTH = 46;
+const TITLE_GENERATION_TIMEOUT_MS = 4_000;
 const STREAM_ERROR_MESSAGE =
   'Återbyggaren kunde inte svara just nu. Försök igen om en stund.';
 const STREAM_INTERRUPTED_MESSAGE =
   'Svaret avbröts innan det blev klart. Ställ gärna frågan igen om du vill fortsätta.';
 const STREAM_LENGTH_LIMIT_MESSAGE =
   'Jag nådde längdgränsen för svaret. Ställ gärna en följdfråga om du vill att jag fortsätter eller fördjupar en del.';
+
+const chatTitleSchema = z.object({
+  title: z.string().min(1).max(MAX_TITLE_LENGTH),
+});
 
 export interface AterbyggarenChatSummary {
   id: string;
@@ -275,7 +283,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     }
     const attachments = await this.getStreamAttachments(attachmentRefs.items);
 
-    const chat = await this.getOrCreateChat({
+    const { chat, created } = await this.getOrCreateChat({
       chatId: input.chatId,
       titleSeed: userMessage,
       owner,
@@ -300,6 +308,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     let savedUserMessage: AterbyggarenMessage | undefined;
     let assistantMessage = '';
     let assistantSaved = false;
+    let titleGeneration: Promise<void> | undefined;
     const searchableProductsById = new Map<string, PublicProductSearchResult>();
 
     try {
@@ -311,6 +320,15 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       });
 
       await this.attachFilesToMessage(savedUserMessage, attachments);
+
+      if (created) {
+        titleGeneration = this.generateAndSaveChatTitle({
+          chatId: chat.id,
+          placeholderTitle: chat.title,
+          userMessage,
+          response,
+        });
+      }
 
       const contextMessages = this.withCurrentAttachments(
         await this.getContextMessages(chat.id, savedUserMessage.id),
@@ -402,6 +420,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       assistantSaved = true;
       await this.chatRepository.update(chat.id, { updatedAt: new Date() });
 
+      await titleGeneration;
+
       if (!response.destroyed && !response.writableEnded) {
         this.writeEvent(response, 'done', { ok: true });
         response.end();
@@ -450,6 +470,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         response.end();
       }
     } finally {
+      await titleGeneration;
       request.off('close', abortStream);
     }
   }
@@ -468,7 +489,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       if (!existingChat) {
         throw new BadRequestException('Chatten kunde inte hittas');
       }
-      return existingChat;
+      return { chat: existingChat, created: false };
     }
 
     const chat = this.chatRepository.create({
@@ -476,7 +497,78 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       userId: owner.user?.id,
       guestId: owner.user ? undefined : owner.guestId,
     });
-    return this.chatRepository.save(chat);
+    return { chat: await this.chatRepository.save(chat), created: true };
+  }
+
+  private async generateAndSaveChatTitle({
+    chatId,
+    placeholderTitle,
+    userMessage,
+    response,
+  }: {
+    chatId: string;
+    placeholderTitle?: string;
+    userMessage: string;
+    response: Response;
+  }) {
+    try {
+      const title = await this.generateChatTitle(userMessage);
+      if (!title || title === placeholderTitle) return;
+
+      await this.chatRepository.update(chatId, {
+        title,
+        updatedAt: new Date(),
+      });
+      this.writeEvent(response, 'title', { id: chatId, title });
+    } catch (error) {
+      this.logger.warn(
+        'Aterbyggaren title generation failed',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  private async generateChatTitle(userMessage: string) {
+    const { output } = await this.withTimeout(
+      (abortSignal) =>
+        generateText({
+          model: this.google('gemini-2.5-flash'),
+          abortSignal,
+          output: Output.object({
+            schema: chatTitleSchema,
+          }),
+          temperature: 0.2,
+          prompt: `
+Skapa en kort svensk chattrubrik för Återbyggaren baserat på användarens första meddelande.
+
+Regler:
+- 2-6 ord.
+- Max ${MAX_TITLE_LENGTH} tecken.
+- Ingen punkt, inga citattecken och ingen markdown.
+- Skriv bara en neutral rubrik som passar i en chattlista.
+
+Första meddelandet:
+${userMessage}
+`,
+        }),
+      TITLE_GENERATION_TIMEOUT_MS,
+    );
+
+    return this.normalizeGeneratedTitle(output.title);
+  }
+
+  private async withTimeout<T>(
+    task: (abortSignal: AbortSignal) => Promise<T>,
+    timeoutMs: number,
+  ) {
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => abortController.abort(), timeoutMs);
+
+    try {
+      return await task(abortController.signal);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   private async getOwnedChat(chatId: string, owner: ChatOwner) {
@@ -967,6 +1059,21 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
   private createTitle(message: string) {
     const title = message.replace(/\s+/g, ' ').trim();
-    return title.length > 46 ? `${title.slice(0, 43)}...` : title;
+    return title.length > MAX_TITLE_LENGTH
+      ? `${title.slice(0, MAX_TITLE_LENGTH - 3)}...`
+      : title;
+  }
+
+  private normalizeGeneratedTitle(title: string) {
+    const normalizedTitle = title
+      .replace(/["'“”‘’]/g, '')
+      .replace(/[.!?。]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!normalizedTitle) return undefined;
+    return normalizedTitle.length > MAX_TITLE_LENGTH
+      ? normalizedTitle.slice(0, MAX_TITLE_LENGTH).trim()
+      : normalizedTitle;
   }
 }

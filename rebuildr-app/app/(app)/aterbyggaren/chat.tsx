@@ -483,6 +483,16 @@ export default function AterbyggarenChatPage() {
             setActiveChatTitle(chat.title);
           }
 
+          if (streamEvent.event === "title") {
+            const chat = streamEvent.data as Pick<ChatSummary, "id" | "title">;
+            setActiveChatTitle(chat.title);
+            setChats((current) =>
+              current.map((item) =>
+                item.id === chat.id ? { ...item, title: chat.title } : item,
+              ),
+            );
+          }
+
           if (streamEvent.event === "delta") {
             const delta = streamEvent.data as string;
             setMessages((current) =>

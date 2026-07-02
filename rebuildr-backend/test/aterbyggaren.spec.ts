@@ -1,4 +1,4 @@
-import { streamText } from 'ai';
+import { generateText, streamText } from 'ai';
 import { EventEmitter } from 'events';
 import { Request, Response } from 'express';
 
@@ -26,16 +26,24 @@ jest.mock('@ai-sdk/google', () => ({
 }));
 
 jest.mock('ai', () => ({
+  Output: {
+    object: jest.fn((config) => config),
+  },
+  generateText: jest.fn(),
   streamText: jest.fn(),
   stepCountIs: jest.fn((stepCount: number) => ({ stepCount })),
   tool: jest.fn((config) => config),
 }));
 
+const mockGenerateText = jest.mocked(generateText);
 const mockStreamText = jest.mocked(streamText);
 
 describe('AterbyggarenService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGenerateText.mockResolvedValue({
+      output: { title: 'Planera gipsvägg' },
+    } as unknown as Awaited<ReturnType<typeof generateText>>);
   });
 
   it('excludes incomplete previous turns from the next model context', async () => {
@@ -128,6 +136,50 @@ describe('AterbyggarenService', () => {
     );
     expect(response.write).toHaveBeenCalledWith(
       expect.stringContaining('event: done'),
+    );
+  });
+
+  it('keeps the first user message as placeholder and streams a generated short title', async () => {
+    mockStreamText.mockReturnValue({
+      finishReason: Promise.resolve('stop'),
+      textStream: createTextStream(['Börja med att mäta väggen.']),
+    } as unknown as ReturnType<typeof streamText>);
+    mockGenerateText.mockResolvedValueOnce({
+      output: { title: 'Planera gipsvägg' },
+    } as unknown as Awaited<ReturnType<typeof generateText>>);
+
+    const service = createService({ messages: [] });
+    const request = new EventEmitter() as Request;
+    const response = createResponse();
+
+    await service.streamMessage(
+      { message: 'Hur planerar jag materialåtgång för gipsvägg?' },
+      {
+        user: {
+          id: 'user-1',
+          email: 'user@example.com',
+          role: UserRoleEnum.USER,
+        },
+      },
+      request,
+      response,
+    );
+
+    expect(response.write).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '"title":"Hur planerar jag materialåtgång för gipsvägg?"',
+      ),
+    );
+    expect(mockGenerateText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        output: expect.objectContaining({ schema: expect.any(Object) }),
+      }),
+    );
+    expect(response.write).toHaveBeenCalledWith(
+      expect.stringContaining('event: title'),
+    );
+    expect(response.write).toHaveBeenCalledWith(
+      expect.stringContaining('"title":"Planera gipsvägg"'),
     );
   });
 
