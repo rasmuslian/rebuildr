@@ -4,6 +4,7 @@ import {
   ActiveProjectPopupQuery,
   ActiveProjectPopupQueryVariables,
   MapPinGroupsQuery,
+  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { ACTIVE_PROJECT_POPUP, ACTIVE_PRODUCT_POPUP } from "@/queries";
 import { useApolloClient, useQuery } from "@apollo/client";
@@ -281,6 +282,7 @@ export const ActiveMarkerPopup = ({ mapPinGroup }: Props) => {
           condition={product.condition}
           imageUri={product.primaryImage?.url}
           title={product.title}
+          upcoming={product.availability === ProductAvailabilityEnum.Upcoming}
           heart={product.sellerId !== me?.id}
           liked={!!product.likedByMe}
           account={{

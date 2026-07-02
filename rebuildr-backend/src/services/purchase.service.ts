@@ -1,5 +1,9 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductAvailabilityEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import {
   Purchase,
   PurchaseStatusEnum,
@@ -135,6 +139,18 @@ export class PurchaseService {
         buyerId: currentUserId,
       });
       throw BadUserInputException('Product not found');
+    }
+
+    //A "snart till salu" (UPCOMING) listing isn't available for delivery yet,
+    //so it can't be purchased until it flips to AVAILABLE (auto on its start
+    //date, or manually by the seller).
+    if (product.availability === ProductAvailabilityEnum.UPCOMING) {
+      logger.error({
+        message: 'Attempt to buy an upcoming product',
+        productId: product.id,
+        buyerId: currentUserId,
+      });
+      throw BadUserInputException('Varan är inte tillgänglig än');
     }
 
     //Validate input

@@ -5,6 +5,7 @@ import {
   ProductStatusEnum,
   ProductViewQuery,
 } from "@/gql/graphql";
+import { AvailabilityBadge } from "@components/product/availability-badge";
 import { FilterChip } from "@components/chips/filterChip";
 import { Divider } from "@components/dividers/divider";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -87,6 +88,12 @@ export const MainContent = ({
           {product.primaryUnit ? quantities[product.primaryUnit].plural : ""} •{" "}
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
+        <AvailabilityBadge
+          availability={product.availability}
+          estimatedAvailableAt={product.estimatedAvailableAt}
+          availabilityPrecision={product.availabilityPrecision}
+          style={{ marginTop: 8 }}
+        />
       </View>
       {product.status !== ProductStatusEnum.Sold && (
         <View>

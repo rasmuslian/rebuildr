@@ -11,6 +11,7 @@ import {
   AnalyzeProductImagesMutation,
   AnalyzeProductImagesMutationVariables,
   CreateSellerAccountMutation,
+  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -184,7 +185,7 @@ const detailsErrorFields = [
   "description",
   "primary",
 ];
-const transportaionErrorFields = ["delivery"];
+const transportaionErrorFields = ["delivery", "availability"];
 
 type Props = {
   productId?: string;
@@ -338,6 +339,10 @@ export const UpsertProduct = ({
         shippingPrices: dbProduct.shippingPrices ?? [],
 
         status: dbProduct.status ?? product.status,
+        availability: dbProduct.availability ?? undefined,
+        estimatedAvailableAt: dbProduct.estimatedAvailableAt ?? undefined,
+        availabilityPrecision: dbProduct.availabilityPrecision ?? undefined,
+        availableUntil: dbProduct.availableUntil ?? undefined,
       };
       setProduct(stateProduct);
       //Baseline the analyzed-image count ONCE, on the first load of this draft —
@@ -469,6 +474,10 @@ export const UpsertProduct = ({
           deliveryEnabled: product.deliveryEnabled,
 
           status,
+          availability: product.availability,
+          estimatedAvailableAt: product.estimatedAvailableAt || null,
+          availabilityPrecision: product.availabilityPrecision,
+          availableUntil: product.availableUntil || null,
         },
       },
     });
@@ -775,7 +784,7 @@ export const UpsertProduct = ({
     }
   };
   const onNextTransportation = () => {
-    const result = onVerifyTransportation(product);
+    const result = onVerifyTransportation(product, true);
     update().then(() => {
       if (result) {
         setStep("preview");
@@ -826,12 +835,20 @@ export const UpsertProduct = ({
     //if no errors, proceed
     return true;
   };
-  const onVerifyTransportation = (p?: ProductFields) => {
+  // enforceAvailability: only surface the "snart till salu" date errors on an
+  // actual submit (Förhandsgranska), not on every live edit — otherwise the
+  // red error flashes the instant you pick "Snart till salu", before you've
+  // had a chance to choose a date.
+  const onVerifyTransportation = (
+    p?: ProductFields,
+    enforceAvailability = false,
+  ) => {
     if (!data) return;
     const _product = p ?? product;
     const badFields: FieldErrorsType = { ...fieldErrors };
 
     delete badFields["delivery"];
+    delete badFields["availability"];
     if (
       _product.isGiveaway &&
       _product.deliveryEnabled &&
@@ -841,6 +858,20 @@ export const UpsertProduct = ({
     ) {
       badFields["delivery"] =
         `Vid bortskänkes måste priset för hemleverans vara minst ${data.product.minimumPrice}kr eller gratis`;
+    }
+    if (
+      enforceAvailability &&
+      _product.availability === ProductAvailabilityEnum.Upcoming
+    ) {
+      if (!_product.estimatedAvailableAt) {
+        badFields["availability"] = "Välj när varan blir tillgänglig";
+      } else if (
+        _product.availableUntil &&
+        new Date(_product.availableUntil) <=
+          new Date(_product.estimatedAvailableAt)
+      ) {
+        badFields["availability"] = "Slutdatum måste vara efter startdatum";
+      }
     }
     setFieldErrors(badFields);
     if (Object.keys(badFields).length) {

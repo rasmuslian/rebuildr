@@ -3,7 +3,11 @@ import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
 import { useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
-import { ProductListQuery, ProductListQueryVariables } from "@/gql/graphql";
+import {
+  ProductAvailabilityEnum,
+  ProductListQuery,
+  ProductListQueryVariables,
+} from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
@@ -17,6 +21,7 @@ export const PRODUCT_LIST = gql`
       products {
         id
         status
+        availability
         title
         price
         soldByQuantity
@@ -118,6 +123,8 @@ export default function ProductList() {
             products={products.map((product) => ({
               id: product.id,
               status: product.status,
+              upcoming:
+                product.availability === ProductAvailabilityEnum.Upcoming,
               imageUri: product.primaryImage?.url,
               title: product.title,
               quantity: product.primaryQuantity,

@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import {
   GetProjectQuery,
   GetProjectQueryVariables,
+  ProductAvailabilityEnum,
   UserType,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
@@ -216,6 +217,9 @@ export const ProjectDesktop = () => {
                     price={product.price}
                     soldByQuantity={product.soldByQuantity}
                     status={product.status}
+                    upcoming={
+                      product.availability === ProductAvailabilityEnum.Upcoming
+                    }
                     onHeartPress={() => {
                       onToggleProductHeart({
                         productId: product.id,

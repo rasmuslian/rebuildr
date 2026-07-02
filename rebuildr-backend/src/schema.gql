@@ -402,6 +402,10 @@ type Product {
   colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
+  availability: ProductAvailabilityEnum!
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
@@ -456,6 +460,18 @@ enum ProductStatusEnum {
   PUBLISHED
   SOLD
   DELETED
+}
+
+enum ProductAvailabilityEnum {
+  AVAILABLE
+  UPCOMING
+}
+
+enum ProductAvailabilityPrecisionEnum {
+  EXACT
+  MONTH
+  QUARTER
+  UNKNOWN
 }
 
 input LocationInputType {
@@ -1546,6 +1562,10 @@ input UpdateProductInput {
   colorType: ColorTypeEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
+  availability: ProductAvailabilityEnum
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]

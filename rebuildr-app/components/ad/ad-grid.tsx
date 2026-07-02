@@ -10,6 +10,8 @@ import { ProductStatusEnum } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
 import { ProductImageOverlay } from "@components/product/product-image-overlay";
 import { Label } from "@components/typography/text";
+import { primitives } from "@constants/colors";
+import { UPCOMING_LABEL } from "@/utils/availability";
 import { meterToKilometer } from "@/utils/conversions";
 import { trackEvent } from "@/utils/analytics";
 import { GTMTagEnum } from "@constants/google-tag-manager";
@@ -24,6 +26,7 @@ type Props = {
   liked?: boolean;
   status?: ProductStatusEnum;
   distance?: number | null;
+  upcoming?: boolean;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -36,6 +39,7 @@ export const AdGrid = ({
   liked,
   status,
   distance,
+  upcoming,
   title,
   price,
   ...adDescriptionProps
@@ -82,6 +86,23 @@ export const AdGrid = ({
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
+        {upcoming && !overlayText && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 8,
+              left: 8,
+              paddingVertical: 2,
+              paddingHorizontal: 8,
+              borderRadius: borderRadius.full,
+              backgroundColor: primitives.primary700,
+            }}
+          >
+            <Label size="medium" color="primaryLight">
+              {UPCOMING_LABEL}
+            </Label>
+          </View>
+        )}
       </View>
       {distance && (
         <View

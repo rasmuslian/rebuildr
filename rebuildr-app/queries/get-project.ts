@@ -38,6 +38,7 @@ export const GET_PROJECT = gql`
         id
         title
         status
+        availability
         likedByMe
         primaryQuantity
         primaryUnit

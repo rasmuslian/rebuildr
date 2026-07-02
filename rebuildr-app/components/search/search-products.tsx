@@ -1,4 +1,5 @@
 import {
+  ProductAvailabilityEnum,
   ProductsInput,
   ProductStatusEnum,
   ProductConditionEnum,
@@ -74,6 +75,7 @@ type ProductCardSource = {
   id: string;
   title: string;
   status: ProductStatusEnum;
+  availability: ProductAvailabilityEnum;
   price: number;
   soldByQuantity: boolean;
   condition: ProductConditionEnum;
@@ -242,6 +244,7 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
     price: product.price,
     soldByQuantity: product.soldByQuantity,
     status: product.status,
+    upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
     heart: product.seller.id !== viewerId,
     liked: !!product.likedByMe,
     onHeartPress: () => {

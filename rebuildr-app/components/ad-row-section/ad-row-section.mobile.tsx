@@ -1,7 +1,7 @@
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { AdGrid } from "@components/ad/ad-grid";
 import { View } from "react-native";
-import { AdRowSectionQuery } from "@/gql/graphql";
+import { AdRowSectionQuery, ProductAvailabilityEnum } from "@/gql/graphql";
 
 type Props = {
   data: AdRowSectionQuery;
@@ -42,6 +42,7 @@ export const AdRowSectionMobile = ({
               price={item.price}
               soldByQuantity={item.soldByQuantity}
               status={item.status}
+              upcoming={item.availability === ProductAvailabilityEnum.Upcoming}
               distance={item.distanceFromLocation}
               onHeartPress={() => {
                 onToggleProductHeart({
