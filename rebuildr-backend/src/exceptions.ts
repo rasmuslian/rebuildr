@@ -76,3 +76,31 @@ export const BusinessPendingApprovalException = () => {
     },
   });
 };
+
+export const CreditSafeRejectionException = (rejection: {
+  code: string;
+  text: string;
+  detail?: string;
+}) => {
+  return new GraphQLError(rejection.text, {
+    extensions: {
+      code: 'CREDITSAFE_REJECTION',
+      rejectionCode: rejection.code,
+      detail: rejection.detail,
+    },
+  });
+};
+
+export const CreditSafeErrorException = (error: {
+  code: string;
+  text: string;
+  detail?: string;
+}) => {
+  return new GraphQLError(error.text, {
+    extensions: {
+      code: 'CREDITSAFE_ERROR',
+      errorCode: error.code,
+      detail: error.detail,
+    },
+  });
+};
