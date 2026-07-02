@@ -101,6 +101,14 @@ type ActiveStream = {
 
 const GUEST_ID_KEY = "aterbyggaren_guest_id";
 const CHAT_LAYOUT_MAX_WIDTH = 640;
+const CHAT_PRODUCT_GRID_GAP = 12;
+const CHAT_PRODUCT_DESKTOP_COLUMNS = 3;
+const CHAT_PRODUCT_DESKTOP_CARD_WIDTH =
+  (CHAT_LAYOUT_MAX_WIDTH -
+    CHAT_PRODUCT_GRID_GAP * (CHAT_PRODUCT_DESKTOP_COLUMNS - 1)) /
+  CHAT_PRODUCT_DESKTOP_COLUMNS;
+const CHAT_PRODUCT_TITLE_HEIGHT = 32;
+const CHAT_PRODUCT_DETAIL_HEIGHT = 16;
 const STREAM_TEXT_FADE_DURATION = 260;
 const STREAM_TEXT_FADE_STAGGER = 28;
 const STREAM_TEXT_FADE_TAIL = 260;
@@ -1533,9 +1541,6 @@ const MaterialSearchButton = ({
 const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
   const { isDesktop } = useScreenType();
   const products = display.products.slice(0, 8);
-  if (products.length === 1) {
-    return <ChatProductCard product={products[0]} variant="single" />;
-  }
 
   if (isDesktop) {
     return (
@@ -1544,14 +1549,17 @@ const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
           alignSelf: "center",
           flexDirection: "row",
           flexWrap: "wrap",
-          gap: 16,
+          gap: CHAT_PRODUCT_GRID_GAP,
           maxWidth: CHAT_LAYOUT_MAX_WIDTH,
           width: "100%",
         }}
       >
         {products.map((product) => (
-          <View key={product.id} style={{ width: 154 }}>
-            <ChatProductCard product={product} variant="gallery" />
+          <View
+            key={product.id}
+            style={{ width: CHAT_PRODUCT_DESKTOP_CARD_WIDTH }}
+          >
+            <ChatProductCard product={product} />
           </View>
         ))}
       </View>
@@ -1570,7 +1578,7 @@ const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
       >
         {products.map((product) => (
           <View key={product.id} style={{ width: 114 }}>
-            <ChatProductCard product={product} variant="gallery" />
+            <ChatProductCard product={product} />
           </View>
         ))}
       </ScrollView>
@@ -1578,16 +1586,9 @@ const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
   );
 };
 
-const ChatProductCard = ({
-  product,
-  variant,
-}: {
-  product: DisplayedProduct;
-  variant: "single" | "gallery";
-}) => {
+const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
-  const isSingle = variant === "single";
   const detail = [
     product.category,
     product.brand,
@@ -1595,10 +1596,11 @@ const ChatProductCard = ({
   ]
     .filter(Boolean)
     .join(" • ");
-  const fulfillment = [
-    product.pickupEnabled ? "Hämtning" : undefined,
-    product.deliveryEnabled ? "Leverans" : undefined,
-  ].filter(Boolean);
+  const fulfillment = product.pickupEnabled
+    ? "Hämtning"
+    : product.deliveryEnabled
+      ? "Leverans"
+      : undefined;
 
   return (
     <Pressable
@@ -1609,15 +1611,15 @@ const ChatProductCard = ({
         })
       }
       style={({ pressed }) => ({
-        backgroundColor: primitives.neutrals100,
+        backgroundColor: isDesktop ? primitives.neutrals100 : "transparent",
         borderColor: primitives.neutrals200,
         borderRadius: isDesktop ? 8 : 10,
-        borderWidth: isSingle ? 1 : 0,
-        flexDirection: isSingle ? "row" : "column",
-        gap: isSingle ? 12 : 8,
+        borderWidth: 0,
+        flexDirection: "column",
+        gap: 8,
         opacity: pressed ? 0.82 : 1,
         overflow: "hidden",
-        padding: isDesktop || isSingle ? 8 : 0,
+        padding: isDesktop ? 8 : 0,
         width: "100%",
       })}
     >
@@ -1627,22 +1629,25 @@ const ChatProductCard = ({
           aspectRatio: 1,
           backgroundColor: primitives.neutrals200,
           borderRadius: isDesktop ? 6 : 10,
-          height: isSingle ? 118 : undefined,
-          width: isSingle ? 118 : "100%",
+          width: "100%",
         }}
       />
-      <View
-        style={{ flex: 1, gap: 6, padding: isSingle ? 4 : isDesktop ? 2 : 0 }}
-      >
+      <View style={{ flex: 1, gap: 6, padding: isDesktop ? 2 : 0 }}>
         <View style={{ gap: 4 }}>
-          <Label size={isDesktop ? "small" : "medium"} numberOfLines={2}>
+          <Label
+            size={isDesktop ? "small" : "medium"}
+            numberOfLines={2}
+            style={{ height: CHAT_PRODUCT_TITLE_HEIGHT }}
+          >
             {product.title}
           </Label>
-          {!!detail && (
-            <Body size="small" color="secondary" numberOfLines={1}>
-              {detail}
-            </Body>
-          )}
+          <View style={{ height: CHAT_PRODUCT_DETAIL_HEIGHT }}>
+            {!!detail && (
+              <Body size="small" color="secondary" numberOfLines={1}>
+                {detail}
+              </Body>
+            )}
+          </View>
         </View>
         <View style={{ gap: isDesktop ? 8 : 6, marginTop: "auto" }}>
           <Label size={isDesktop ? "medium" : "large"}>
@@ -1651,38 +1656,42 @@ const ChatProductCard = ({
           <View
             style={{
               flexDirection: "row",
-              flexWrap: "wrap",
+              flexWrap: isDesktop ? "nowrap" : "wrap",
               gap: 6,
-              display: isDesktop || isSingle ? "flex" : "none",
+              display: isDesktop ? "flex" : "none",
             }}
           >
-            {fulfillment.map((label) => (
+            {!!fulfillment && (
               <View
-                key={label}
                 style={{
+                  alignItems: "center",
                   backgroundColor: primitives.secondary100,
                   borderRadius: borderRadius.xSmall,
-                  paddingHorizontal: 7,
+                  flexShrink: 0,
+                  paddingHorizontal: 6,
                   paddingVertical: 3,
                 }}
               >
-                <Label size="small" color="secondary">
-                  {label}
+                <Label size="small" color="secondary" numberOfLines={1}>
+                  {fulfillment}
                 </Label>
               </View>
-            ))}
+            )}
             <View
               style={{
                 alignItems: "center",
                 backgroundColor: colors.buttons.tonal.enabled,
                 borderRadius: borderRadius.xSmall,
+                flex: 1,
                 flexDirection: "row",
-                gap: 4,
-                paddingHorizontal: 7,
+                gap: 2,
+                justifyContent: "center",
+                minWidth: 0,
+                paddingHorizontal: 6,
                 paddingVertical: 3,
               }}
             >
-              <Label size="small" color="link">
+              <Label size="small" color="link" numberOfLines={1}>
                 Visa annons
               </Label>
               <Icon icon="arrowRight" color="link" size={12} />
