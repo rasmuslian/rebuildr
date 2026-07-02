@@ -28,6 +28,13 @@ import {
 
 import { ProductConditionEnum } from "@/gql/graphql";
 import { isLoggedInVar } from "@/apollo/config";
+import {
+  AterbyggarenLocalAttachment,
+  AterbyggarenPromptAttachment,
+  consumePendingAterbyggarenChatInput,
+  createAterbyggarenAttachmentId,
+  prepareAterbyggarenStreamAttachments,
+} from "@/lib/aterbyggaren-attachments";
 import { formatPrice } from "@/utils/formattings";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AterbyggarenPageHeader } from "@components/aterbyggaren/page-header";
@@ -37,6 +44,7 @@ import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
 import { borderRadius, horizontalPadding } from "@constants/sizes";
+import { useDocumentHandler } from "@hooks/use-document-handler";
 import { useScreenType } from "@hooks/useScreenType";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -50,6 +58,7 @@ type ChatSummary = {
 };
 
 type ChatMessage = {
+  attachments?: AterbyggarenPromptAttachment[];
   id: string;
   role: "user" | "assistant";
   content: string;
@@ -145,6 +154,10 @@ const readJson = async <T,>(path: string): Promise<T> => {
   return response.json();
 };
 
+type SendMessageOverride =
+  | string
+  | { attachments?: AterbyggarenLocalAttachment[]; message?: string };
+
 export default function AterbyggarenChatPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -155,6 +168,7 @@ export default function AterbyggarenChatPage() {
   const activeChatIdRef = useRef<string | undefined>(undefined);
   const activeStreamRef = useRef<ActiveStream | undefined>(undefined);
   const streamSequenceRef = useRef(0);
+  const { pickDocument } = useDocumentHandler();
   const params = useLocalSearchParams<{ question?: string; chatId?: string }>();
   const isLoggedIn = useReactiveVar(isLoggedInVar);
   const [chats, setChats] = useState<ChatSummary[]>([]);
@@ -162,6 +176,9 @@ export default function AterbyggarenChatPage() {
   const [activeChatTitle, setActiveChatTitle] = useState<string>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState<AterbyggarenLocalAttachment[]>(
+    [],
+  );
   const [loadingChat, setLoadingChat] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string>();
@@ -185,6 +202,35 @@ export default function AterbyggarenChatPage() {
 
   const focusChatInput = useCallback(() => {
     requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  const handlePickFile = useCallback(async () => {
+    try {
+      const document = await pickDocument();
+      if (!document) return;
+      const isImage = document.mimeType.startsWith("image/");
+
+      setAttachments((current) => [
+        ...current,
+        {
+          id: createAterbyggarenAttachmentId(isImage ? "image" : "document"),
+          file: document.file,
+          kind: isImage ? "image" : "document",
+          mimeType: document.mimeType,
+          name: document.name,
+          uri: document.uri,
+        },
+      ]);
+      focusChatInput();
+    } catch {
+      setError("Kunde inte lägga till filen.");
+    }
+  }, [focusChatInput, pickDocument]);
+
+  const handleRemoveAttachment = useCallback((attachmentId: string) => {
+    setAttachments((current) =>
+      current.filter((attachment) => attachment.id !== attachmentId),
+    );
   }, []);
 
   useEffect(() => {
@@ -276,17 +322,29 @@ export default function AterbyggarenChatPage() {
     setActiveChatId(undefined);
     setActiveChatTitle(undefined);
     setMessages([]);
+    setAttachments([]);
     setError(undefined);
     router.replace("/aterbyggaren/chat");
     focusChatInput();
   };
 
   const sendMessage = useCallback(
-    async (overrideMessage?: string) => {
+    async (override?: SendMessageOverride) => {
+      const overrideMessage =
+        typeof override === "string" ? override : override?.message;
+      const selectedAttachments =
+        typeof override === "object" && override.attachments
+          ? override.attachments
+          : typeof override === "string"
+            ? []
+            : attachments;
       const message = (overrideMessage ?? input).trim();
-      if (!message || streaming || loadingChat) return;
+      const sentContent = message || "Analysera bifogade filer.";
+      if ((!message && !selectedAttachments.length) || streaming || loadingChat)
+        return;
 
       setInput("");
+      setAttachments([]);
       setStreaming(true);
       setError(undefined);
       focusChatInput();
@@ -300,7 +358,14 @@ export default function AterbyggarenChatPage() {
       const assistantId = `assistant-${Date.now()}`;
       setMessages((current) => [
         ...current,
-        { id: `user-${Date.now()}`, role: "user", content: message },
+        {
+          id: `user-${Date.now()}`,
+          role: "user",
+          content: sentContent,
+          attachments: selectedAttachments.map(
+            ({ file, ...attachment }) => attachment,
+          ),
+        },
         {
           id: assistantId,
           role: "assistant",
@@ -312,13 +377,20 @@ export default function AterbyggarenChatPage() {
 
       try {
         const guestId = isLoggedIn ? undefined : await getGuestId();
+        const streamAttachments =
+          await prepareAterbyggarenStreamAttachments(selectedAttachments);
         const response = await fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(await getAuthHeaders()),
           },
-          body: JSON.stringify({ chatId: requestChatId, message, guestId }),
+          body: JSON.stringify({
+            attachments: streamAttachments,
+            chatId: requestChatId,
+            message: sentContent,
+            guestId,
+          }),
           signal: abortController.signal,
         });
 
@@ -327,7 +399,6 @@ export default function AterbyggarenChatPage() {
         if (!response.ok || !response.body) {
           throw new Error("Stream failed");
         }
-
         let receivedDone = false;
         await readEventStream(response.body, (streamEvent) => {
           if (!isCurrentStream()) return;
@@ -399,6 +470,7 @@ export default function AterbyggarenChatPage() {
       }
     },
     [
+      attachments,
       focusChatInput,
       input,
       isLoggedIn,
@@ -408,6 +480,17 @@ export default function AterbyggarenChatPage() {
       streaming,
     ],
   );
+
+  useEffect(() => {
+    const pendingInput = consumePendingAterbyggarenChatInput();
+    if (!pendingInput || initialQuestionSentRef.current) return;
+
+    initialQuestionSentRef.current = true;
+    sendMessage({
+      attachments: pendingInput.attachments,
+      message: pendingInput.question,
+    });
+  }, [sendMessage]);
 
   useEffect(() => {
     const chatId = Array.isArray(params.chatId)
@@ -571,12 +654,19 @@ export default function AterbyggarenChatPage() {
               >
                 <AterbyggarenPromptBox
                   ref={inputRef}
+                  attachments={attachments}
                   autoFocus
                   bordered
                   compact
-                  disabled={!input.trim() || streaming || loadingChat}
+                  disabled={
+                    (!input.trim() && !attachments.length) ||
+                    streaming ||
+                    loadingChat
+                  }
                   loading={streaming}
                   onChangeText={setInput}
+                  onPickFile={handlePickFile}
+                  onRemoveAttachment={handleRemoveAttachment}
                   onSubmit={() => sendMessage()}
                   value={input}
                 />
@@ -722,7 +812,12 @@ const MessageBubble = ({
           </View>
         </View>
       ) : isUser ? (
-        <Body color="secondary">{message.content}</Body>
+        <View style={{ gap: 8 }}>
+          {Boolean(message.attachments?.length) && (
+            <UserAttachmentList attachments={message.attachments ?? []} />
+          )}
+          <Body color="secondary">{message.content}</Body>
+        </View>
       ) : (
         <View style={{ gap: 12, width: "100%" }}>
           {contentParts.map((part, index) => {
@@ -775,6 +870,60 @@ const MessageBubble = ({
             ))}
         </View>
       )}
+    </View>
+  );
+};
+
+const UserAttachmentList = ({
+  attachments,
+}: {
+  attachments: AterbyggarenPromptAttachment[];
+}) => {
+  return (
+    <View style={{ gap: 6 }}>
+      {attachments.map((attachment) => (
+        <View
+          key={attachment.id}
+          style={{
+            alignItems: "center",
+            backgroundColor: primitives.neutrals100,
+            borderColor: primitives.neutrals300,
+            borderRadius: 8,
+            borderWidth: 1,
+            flexDirection: "row",
+            gap: 8,
+            maxWidth: 220,
+            minHeight: 34,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+          }}
+        >
+          {attachment.kind === "image" && attachment.uri ? (
+            <Image
+              source={{ uri: attachment.uri }}
+              style={{ borderRadius: 5, height: 24, width: 24 }}
+            />
+          ) : (
+            <Icon
+              icon="paperclip"
+              customColor={primitives.neutrals600}
+              size={18}
+            />
+          )}
+          <Text
+            numberOfLines={1}
+            style={{
+              color: primitives.neutrals800,
+              flexShrink: 1,
+              fontFamily: "Inter-Regular",
+              fontSize: 12,
+              lineHeight: 16,
+            }}
+          >
+            {attachment.name}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 };

@@ -6,7 +6,15 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FinishReason, ModelMessage, stepCountIs, streamText, tool } from 'ai';
+import {
+  FilePart,
+  FinishReason,
+  ImagePart,
+  ModelMessage,
+  stepCountIs,
+  streamText,
+  tool,
+} from 'ai';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 
@@ -28,6 +36,8 @@ import { ProductService } from 'src/services/product.service';
 import { In, IsNull, Repository } from 'typeorm';
 
 const MAX_MESSAGE_LENGTH = 4_000;
+const MAX_ATTACHMENT_COUNT = 4;
+const MAX_ATTACHMENT_BASE64_LENGTH = 6_000_000;
 const MAX_CONTEXT_MESSAGES = 16;
 const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
@@ -59,10 +69,22 @@ interface ChatOwner {
 }
 
 interface SendMessageInput {
+  attachments?: AterbyggarenStreamAttachment[];
   chatId?: string;
   message: string;
   guestId?: string;
 }
+
+interface AterbyggarenStreamAttachment {
+  data: string;
+  kind: 'document' | 'image';
+  mimeType: string;
+  name?: string;
+}
+
+type AttachmentValidationResult =
+  | { valid: true; items: AterbyggarenStreamAttachment[] }
+  | { valid: false; message: string };
 
 interface SearchPublicProductsInput {
   query: string;
@@ -187,6 +209,11 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       response.status(400).json({ message: 'Meddelandet är för långt' });
       return;
     }
+    const attachments = this.validateAttachments(input.attachments);
+    if (attachments.valid === false) {
+      response.status(400).json({ message: attachments.message });
+      return;
+    }
 
     const chat = await this.getOrCreateChat({
       chatId: input.chatId,
@@ -223,9 +250,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         content: userMessage,
       });
 
-      const contextMessages = await this.getContextMessages(
-        chat.id,
-        savedUserMessage.id,
+      const contextMessages = this.withCurrentAttachments(
+        await this.getContextMessages(chat.id, savedUserMessage.id),
+        attachments.items,
       );
 
       const result = streamText({
@@ -419,6 +446,107 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
     }));
+  }
+
+  private validateAttachments(
+    input?: AterbyggarenStreamAttachment[],
+  ): AttachmentValidationResult {
+    if (!input?.length) return { valid: true, items: [] };
+
+    if (input.length > MAX_ATTACHMENT_COUNT) {
+      return {
+        valid: false,
+        message: `Du kan bifoga max ${MAX_ATTACHMENT_COUNT} filer åt gången.`,
+      };
+    }
+
+    let totalLength = 0;
+    const items: AterbyggarenStreamAttachment[] = [];
+    for (const attachment of input) {
+      const data = this.normalizeBase64Data(attachment.data);
+      totalLength += data.length;
+
+      if (!data || !attachment.mimeType) {
+        return { valid: false, message: 'En bifogad fil kunde inte läsas.' };
+      }
+
+      if (attachment.kind !== 'image' && attachment.kind !== 'document') {
+        return { valid: false, message: 'Filtypen stöds inte.' };
+      }
+
+      if (totalLength > MAX_ATTACHMENT_BASE64_LENGTH) {
+        return {
+          valid: false,
+          message: 'De bifogade filerna är för stora. Prova med färre filer.',
+        };
+      }
+
+      if (
+        attachment.kind === 'image' &&
+        !attachment.mimeType.startsWith('image/')
+      ) {
+        return { valid: false, message: 'Bildfilen har ett ogiltigt format.' };
+      }
+
+      items.push({
+        data,
+        kind: attachment.kind,
+        mimeType: attachment.mimeType,
+        name: attachment.name,
+      });
+    }
+
+    return { valid: true, items };
+  }
+
+  private normalizeBase64Data(data: string) {
+    return data.includes(',') ? data.split(',').pop() || '' : data;
+  }
+
+  private withCurrentAttachments(
+    messages: ModelMessage[],
+    attachments: AterbyggarenStreamAttachment[],
+  ): ModelMessage[] {
+    if (!attachments.length) return messages;
+
+    const lastUserMessageIndex = this.getLastUserMessageIndex(messages);
+    if (lastUserMessageIndex < 0) return messages;
+
+    return messages.map((message, index) => {
+      if (index !== lastUserMessageIndex || message.role !== 'user') {
+        return message;
+      }
+
+      return {
+        ...message,
+        content: [
+          { type: 'text', text: String(message.content) },
+          ...attachments.map((attachment): ImagePart | FilePart => {
+            if (attachment.kind === 'image') {
+              return {
+                type: 'image',
+                image: attachment.data,
+                mediaType: attachment.mimeType,
+              };
+            }
+
+            return {
+              type: 'file',
+              data: attachment.data,
+              filename: attachment.name,
+              mediaType: attachment.mimeType,
+            };
+          }),
+        ],
+      };
+    });
+  }
+
+  private getLastUserMessageIndex(messages: ModelMessage[]) {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].role === 'user') return index;
+    }
+    return -1;
   }
 
   private getCompleteContextMessages(

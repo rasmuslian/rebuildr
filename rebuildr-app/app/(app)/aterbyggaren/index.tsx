@@ -9,11 +9,17 @@ import {
   View,
 } from "react-native";
 
+import {
+  AterbyggarenLocalAttachment,
+  createAterbyggarenAttachmentId,
+  setPendingAterbyggarenChatInput,
+} from "@/lib/aterbyggaren-attachments";
 import { AterbyggarenPromptBox } from "@components/aterbyggaren/prompt-box";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline, Label } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { horizontalPadding } from "@constants/sizes";
+import { useDocumentHandler } from "@hooks/use-document-handler";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 
@@ -28,20 +34,69 @@ export default function AterbyggarenLandingPage() {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const { pickDocument } = useDocumentHandler();
   const [question, setQuestion] = useState("");
+  const [attachments, setAttachments] = useState<AterbyggarenLocalAttachment[]>(
+    [],
+  );
+  const [error, setError] = useState<string>();
   const topBarHeight = isDesktop ? 72 : 56;
   const pageHeight = Math.max(windowHeight - topBarHeight, 0);
-  const openChat = useCallback((initialQuestion?: string) => {
-    const trimmedQuestion = initialQuestion?.trim();
+  const openChat = useCallback(
+    (
+      initialQuestion?: string,
+      initialAttachments: AterbyggarenLocalAttachment[] = attachments,
+    ) => {
+      const trimmedQuestion = initialQuestion?.trim() ?? "";
 
-    if (trimmedQuestion) {
-      router.navigate(
-        `/aterbyggaren/chat?question=${encodeURIComponent(trimmedQuestion)}`,
-      );
-      return;
+      if (initialAttachments.length) {
+        setPendingAterbyggarenChatInput({
+          attachments: initialAttachments,
+          question: trimmedQuestion,
+        });
+        router.navigate("/aterbyggaren/chat");
+        return;
+      }
+
+      if (trimmedQuestion) {
+        router.navigate(
+          `/aterbyggaren/chat?question=${encodeURIComponent(trimmedQuestion)}`,
+        );
+        return;
+      }
+
+      router.navigate("/aterbyggaren/chat");
+    },
+    [attachments],
+  );
+
+  const handlePickFile = useCallback(async () => {
+    try {
+      const file = await pickDocument();
+      if (!file) return;
+      const isImage = file.mimeType.startsWith("image/");
+
+      setAttachments((current) => [
+        ...current,
+        {
+          id: createAterbyggarenAttachmentId(isImage ? "image" : "document"),
+          file: file.file,
+          kind: isImage ? "image" : "document",
+          mimeType: file.mimeType,
+          name: file.name,
+          uri: file.uri,
+        },
+      ]);
+      setError(undefined);
+    } catch {
+      setError("Kunde inte lägga till filen.");
     }
+  }, [pickDocument]);
 
-    router.navigate("/aterbyggaren/chat");
+  const handleRemoveAttachment = useCallback((attachmentId: string) => {
+    setAttachments((current) =>
+      current.filter((attachment) => attachment.id !== attachmentId),
+    );
   }, []);
 
   useFocusEffect(
@@ -126,11 +181,24 @@ export default function AterbyggarenLandingPage() {
             </Body>
 
             <AterbyggarenPromptBox
+              attachments={attachments}
               value={question}
               onChangeText={setQuestion}
-              onSubmit={() => openChat(question)}
+              onPickFile={handlePickFile}
+              onRemoveAttachment={handleRemoveAttachment}
+              onSubmit={() => openChat(question, attachments)}
               style={{ marginTop: isDesktop ? 30 : 12 }}
             />
+
+            {error && (
+              <Body
+                size="small"
+                color="error"
+                style={{ marginTop: isDesktop ? 8 : 10 }}
+              >
+                {error}
+              </Body>
+            )}
 
             <View
               style={{
@@ -158,7 +226,7 @@ export default function AterbyggarenLandingPage() {
                   <QuestionChip
                     key={example}
                     text={example}
-                    onPress={() => openChat(example)}
+                    onPress={() => openChat(example, attachments)}
                   />
                 ))}
               </View>

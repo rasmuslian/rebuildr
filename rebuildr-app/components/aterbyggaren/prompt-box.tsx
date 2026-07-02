@@ -10,6 +10,7 @@ import {
   TextInputContentSizeChangeEventData,
   TextInputKeyPressEventData,
   TextInputProps,
+  Text,
   View,
   ViewStyle,
 } from "react-native";
@@ -18,6 +19,9 @@ import SendVector from "@assets/svgs/send-vector.svg";
 import { primitives } from "@constants/colors";
 import { useScreenType } from "@hooks/useScreenType";
 import { Icon } from "@icons/icon";
+import type { AterbyggarenPromptAttachment } from "@/lib/aterbyggaren-attachments";
+
+export type { AterbyggarenPromptAttachment } from "@/lib/aterbyggaren-attachments";
 
 const COMPACT_INPUT_LINE_HEIGHT = 20;
 const COMPACT_INPUT_VERTICAL_PADDING = 4;
@@ -29,13 +33,16 @@ const getMinContentHeightForValue = (text: string) =>
   getExplicitLineCount(text) * COMPACT_INPUT_LINE_HEIGHT;
 
 type AterbyggarenPromptBoxProps = {
+  attachments?: AterbyggarenPromptAttachment[];
   autoFocus?: boolean;
   bordered?: boolean;
   compact?: boolean;
   disabled?: boolean;
   loading?: boolean;
   onChangeText: (value: string) => void;
+  onPickFile?: () => void;
   onKeyPress?: TextInputProps["onKeyPress"];
+  onRemoveAttachment?: (attachmentId: string) => void;
   onSubmit: () => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
@@ -77,13 +84,16 @@ export const AterbyggarenPromptBox = React.forwardRef<
 >(
   (
     {
+      attachments = [],
       autoFocus = false,
       bordered = false,
       compact = false,
       disabled = false,
       loading = false,
       onChangeText,
+      onPickFile,
       onKeyPress,
+      onRemoveAttachment,
       onSubmit,
       placeholder = "Ställ din fråga här",
       style,
@@ -164,6 +174,25 @@ export const AterbyggarenPromptBox = React.forwardRef<
             paddingVertical: compact ? COMPACT_INPUT_VERTICAL_PADDING : 0,
           }}
         >
+          {attachments.length > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 10,
+              }}
+            >
+              {attachments.map((attachment) => (
+                <AttachmentChip
+                  key={attachment.id}
+                  attachment={attachment}
+                  disabled={loading}
+                  onRemove={onRemoveAttachment}
+                />
+              ))}
+            </View>
+          )}
           <TextInput
             ref={ref}
             autoFocus={autoFocus}
@@ -206,8 +235,11 @@ export const AterbyggarenPromptBox = React.forwardRef<
               gap: isDesktop ? 8 : 10,
             }}
           >
-            <PromptIconButton icon="paperclip" />
-            <PromptIconButton icon="addPhoto" />
+            <PromptIconButton
+              disabled={loading}
+              icon="paperclip"
+              onPress={onPickFile}
+            />
           </View>
           <PromptSendButton
             disabled={disabled || loading}
@@ -268,13 +300,93 @@ const PromptSendButton = ({
   );
 };
 
-const PromptIconButton = ({ icon }: { icon: "paperclip" | "addPhoto" }) => {
+const AttachmentChip = ({
+  attachment,
+  disabled,
+  onRemove,
+}: {
+  attachment: AterbyggarenPromptAttachment;
+  disabled: boolean;
+  onRemove?: (attachmentId: string) => void;
+}) => {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        backgroundColor: primitives.neutrals200,
+        borderColor: primitives.neutrals300,
+        borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: "row",
+        gap: 8,
+        maxWidth: 220,
+        minHeight: 34,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+      }}
+    >
+      {attachment.kind === "image" && attachment.uri ? (
+        <ExpoImage
+          source={{ uri: attachment.uri }}
+          style={{ borderRadius: 5, height: 24, width: 24 }}
+        />
+      ) : (
+        <Icon icon="paperclip" customColor={primitives.neutrals600} size={18} />
+      )}
+      <Text
+        numberOfLines={1}
+        style={{
+          color: primitives.neutrals800,
+          flexShrink: 1,
+          fontFamily: "Inter-Regular",
+          fontSize: 12,
+          lineHeight: 16,
+        }}
+      >
+        {attachment.name}
+      </Text>
+      {onRemove && (
+        <Pressable
+          accessibilityLabel={`Ta bort ${attachment.name}`}
+          accessibilityRole="button"
+          disabled={disabled}
+          onPress={() => onRemove(attachment.id)}
+        >
+          {({ hovered, pressed }) => (
+            <View style={{ opacity: hovered || pressed ? 0.65 : 1 }}>
+              <Text
+                style={{
+                  color: primitives.neutrals600,
+                  fontFamily: "Inter-Regular",
+                  fontSize: 16,
+                  lineHeight: 16,
+                }}
+              >
+                x
+              </Text>
+            </View>
+          )}
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
+const PromptIconButton = ({
+  disabled = false,
+  icon,
+  onPress,
+}: {
+  disabled?: boolean;
+  icon: "paperclip";
+  onPress?: () => void;
+}) => {
   return (
     <Pressable
-      accessibilityLabel={
-        icon === "paperclip" ? "Bifoga fil" : "Lägg till bild"
-      }
+      accessibilityLabel="Bifoga fil"
       accessibilityRole="button"
+      disabled={disabled || !onPress}
+      onPress={onPress}
     >
       {({ hovered, pressed }) => (
         <View
@@ -282,7 +394,7 @@ const PromptIconButton = ({ icon }: { icon: "paperclip" | "addPhoto" }) => {
             alignItems: "center",
             height: 24,
             justifyContent: "center",
-            opacity: hovered || pressed ? 0.7 : 1,
+            opacity: disabled ? 0.45 : hovered || pressed ? 0.7 : 1,
             width: 24,
           }}
         >

@@ -19,6 +19,12 @@ import { EnvironmentVariables } from 'src/config';
 import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
 interface StreamBody {
+  attachments?: {
+    data: string;
+    kind: 'document' | 'image';
+    mimeType: string;
+    name?: string;
+  }[];
   chatId?: string;
   message: string;
   guestId?: string;
