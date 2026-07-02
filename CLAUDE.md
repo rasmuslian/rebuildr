@@ -71,7 +71,7 @@ op run --env-file=".env.local.1p" -- next dev            # admin
 ### Formatting (Prettier)
 
 | App         | Quotes | Trailing commas            | Notes                                                    |
-| ----------- | ------ | -------------------------- | -------------------------------------------------------- |
+| ----------- | ------ | --------------------------- | -------------------------------------------------------- |
 | **backend** | Single | `all`                      |                                                          |
 | **app**     | Double | `all`                      |                                                          |
 | **admin**   | Double | `all` (Prettier 3 default) | Tailwind class sorting via `prettier-plugin-tailwindcss` |
@@ -152,12 +152,18 @@ import { fetchSession } from "@lib/session";
 ### Naming Conventions
 
 | Thing                 | Convention                                                                               | Example                        |
-| --------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| --------------------- | ----------------------------------------------------------------------------------------- | ------------------------------- |
 | Files (backend)       | `*.service.ts`, `*.module.ts`, `*.controller.ts`, `*.entity.ts`, `*.dto.ts`, `*.spec.ts` | `user.service.ts`              |
-| Classes/Interfaces    | PascalCase                                                                               | `UserService`, `CreateUserDto` |
-| Variables/functions   | camelCase                                                                                | `getUser()`, `userId`          |
-| Constants             | UPPER_SNAKE_CASE                                                                         | `MAX_RETRIES`                  |
-| Private class members | Underscore prefix                                                                        | `_helper()`                    |
+| Classes/Interfaces    | PascalCase                                                                                | `UserService`, `CreateUserDto` |
+| Variables/functions   | camelCase                                                                                 | `getUser()`, `userId`          |
+| Constants             | UPPER_SNAKE_CASE                                                                          | `MAX_RETRIES`                  |
+| Private class members | Underscore prefix                                                                         | `_helper()`                    |
+
+### Comments
+
+- Only comment the non-obvious **why** — a hidden constraint, a workaround, a subtle invariant. Never restate what the code does.
+- Do not reference specific files, services, or paths from another part of the codebase (e.g. a frontend comment should not point at a backend file). One side's implementation changing shouldn't make the other side's comment wrong or stale.
+- Do not write comments as if answering a prompt or explaining a change to a reviewer (e.g. "added this to fix X" or "changed to support Y"). A comment should read as a fact about the code, not a narration of how it came to be.
 
 ### Error Handling
 
