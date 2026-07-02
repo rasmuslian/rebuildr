@@ -26,6 +26,7 @@ import {
   AterbyggarenMessageRole,
   AterbyggarenMessageStatus,
 } from 'src/entities/aterbyggaren-message.entity';
+import { File } from 'src/entities/file.entity';
 import { Product, ProductStatus } from 'src/entities/product.entity';
 import {
   OrderProductsEnum,
@@ -37,7 +38,6 @@ import { In, IsNull, Repository } from 'typeorm';
 
 const MAX_MESSAGE_LENGTH = 4_000;
 const MAX_ATTACHMENT_COUNT = 4;
-const MAX_ATTACHMENT_BASE64_LENGTH = 6_000_000;
 const MAX_CONTEXT_MESSAGES = 16;
 const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
@@ -56,11 +56,20 @@ export interface AterbyggarenChatSummary {
 }
 
 export interface AterbyggarenMessageResponse {
+  attachments?: AterbyggarenMessageAttachmentResponse[];
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
   productDisplays?: AterbyggarenProductDisplay[] | null;
+}
+
+export interface AterbyggarenMessageAttachmentResponse {
+  id: string;
+  kind: 'document' | 'image';
+  mimeType: string;
+  name?: string;
+  url: string;
 }
 
 interface ChatOwner {
@@ -69,22 +78,42 @@ interface ChatOwner {
 }
 
 interface SendMessageInput {
-  attachments?: AterbyggarenStreamAttachment[];
+  attachments?: AterbyggarenStreamAttachmentRef[];
   chatId?: string;
   message: string;
   guestId?: string;
 }
 
-interface AterbyggarenStreamAttachment {
-  data: string;
+interface PrepareAttachmentsInput {
+  attachments?: AterbyggarenAttachmentInput[];
+}
+
+interface AterbyggarenAttachmentInput {
   kind: 'document' | 'image';
   mimeType: string;
   name?: string;
 }
 
+interface AterbyggarenStreamAttachmentRef {
+  id: string;
+  kind: 'document' | 'image';
+}
+
 type AttachmentValidationResult =
-  | { valid: true; items: AterbyggarenStreamAttachment[] }
+  | { valid: true; items: AterbyggarenStreamAttachmentRef[] }
   | { valid: false; message: string };
+
+type PreparedAterbyggarenAttachment = Omit<
+  AterbyggarenMessageAttachmentResponse,
+  'url'
+> & {
+  putUrl: string;
+};
+
+type AterbyggarenStreamAttachmentFile = {
+  file: File;
+  kind: 'document' | 'image';
+};
 
 interface SearchPublicProductsInput {
   query: string;
@@ -144,6 +173,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     private chatRepository: Repository<AterbyggarenChat>,
     @InjectRepository(AterbyggarenMessage)
     private messageRepository: Repository<AterbyggarenMessage>,
+    @InjectRepository(File)
+    private fileRepository: Repository<File>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private productService: ProductService,
@@ -194,6 +225,34 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return { ok: true };
   }
 
+  async prepareAttachments(
+    input: PrepareAttachmentsInput,
+  ): Promise<{ attachments: PreparedAterbyggarenAttachment[] }> {
+    const validation = this.validateAttachmentInputs(input.attachments);
+    if (validation.valid === false) {
+      throw new BadRequestException(validation.message);
+    }
+
+    const files = await this.fileService.createFiles(
+      validation.items.map((attachment) => ({
+        mimeType: attachment.mimeType,
+        name: attachment.name,
+      })),
+      true,
+    );
+    const putUrls = await this.fileService.uploadFiles(files);
+
+    return {
+      attachments: files.map((file, index) => ({
+        id: file.id,
+        kind: validation.items[index].kind,
+        mimeType: file.mimeType,
+        name: file.name,
+        putUrl: putUrls[index],
+      })),
+    };
+  }
+
   async streamMessage(
     input: SendMessageInput,
     owner: ChatOwner,
@@ -209,11 +268,12 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       response.status(400).json({ message: 'Meddelandet är för långt' });
       return;
     }
-    const attachments = this.validateAttachments(input.attachments);
-    if (attachments.valid === false) {
-      response.status(400).json({ message: attachments.message });
+    const attachmentRefs = this.validateAttachmentRefs(input.attachments);
+    if (attachmentRefs.valid === false) {
+      response.status(400).json({ message: attachmentRefs.message });
       return;
     }
+    const attachments = await this.getStreamAttachments(attachmentRefs.items);
 
     const chat = await this.getOrCreateChat({
       chatId: input.chatId,
@@ -250,9 +310,11 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         content: userMessage,
       });
 
+      await this.attachFilesToMessage(savedUserMessage, attachments);
+
       const contextMessages = this.withCurrentAttachments(
         await this.getContextMessages(chat.id, savedUserMessage.id),
-        attachments.items,
+        await this.getModelAttachmentParts(attachments),
       );
 
       const result = streamText({
@@ -448,8 +510,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     }));
   }
 
-  private validateAttachments(
-    input?: AterbyggarenStreamAttachment[],
+  private validateAttachmentRefs(
+    input?: AterbyggarenStreamAttachmentRef[],
   ): AttachmentValidationResult {
     if (!input?.length) return { valid: true, items: [] };
 
@@ -460,13 +522,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       };
     }
 
-    let totalLength = 0;
-    const items: AterbyggarenStreamAttachment[] = [];
+    const items: AterbyggarenStreamAttachmentRef[] = [];
     for (const attachment of input) {
-      const data = this.normalizeBase64Data(attachment.data);
-      totalLength += data.length;
-
-      if (!data || !attachment.mimeType) {
+      if (!attachment.id) {
         return { valid: false, message: 'En bifogad fil kunde inte läsas.' };
       }
 
@@ -474,11 +532,35 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         return { valid: false, message: 'Filtypen stöds inte.' };
       }
 
-      if (totalLength > MAX_ATTACHMENT_BASE64_LENGTH) {
-        return {
-          valid: false,
-          message: 'De bifogade filerna är för stora. Prova med färre filer.',
-        };
+      items.push({
+        id: attachment.id,
+        kind: attachment.kind,
+      });
+    }
+
+    return { valid: true, items };
+  }
+
+  private validateAttachmentInputs(input?: AterbyggarenAttachmentInput[]):
+    | { valid: true; items: AterbyggarenAttachmentInput[] }
+    | { valid: false; message: string } {
+    if (!input?.length) return { valid: true, items: [] };
+
+    if (input.length > MAX_ATTACHMENT_COUNT) {
+      return {
+        valid: false,
+        message: `Du kan bifoga max ${MAX_ATTACHMENT_COUNT} filer åt gången.`,
+      };
+    }
+
+    const items: AterbyggarenAttachmentInput[] = [];
+    for (const attachment of input) {
+      if (!attachment.mimeType) {
+        return { valid: false, message: 'En bifogad fil kunde inte läsas.' };
+      }
+
+      if (attachment.kind !== 'image' && attachment.kind !== 'document') {
+        return { valid: false, message: 'Filtypen stöds inte.' };
       }
 
       if (
@@ -489,7 +571,6 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       }
 
       items.push({
-        data,
         kind: attachment.kind,
         mimeType: attachment.mimeType,
         name: attachment.name,
@@ -499,13 +580,101 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return { valid: true, items };
   }
 
-  private normalizeBase64Data(data: string) {
-    return data.includes(',') ? data.split(',').pop() || '' : data;
+  private async getStreamAttachments(
+    refs: AterbyggarenStreamAttachmentRef[],
+  ): Promise<AterbyggarenStreamAttachmentFile[]> {
+    if (!refs.length) return [];
+
+    const files = await this.fileRepository.find({
+      where: { id: In(refs.map((attachment) => attachment.id)) },
+    });
+    const filesById = new Map(files.map((file) => [file.id, file]));
+
+    return refs.map((attachment) => {
+      const file = filesById.get(attachment.id);
+      if (!file) {
+        throw new BadRequestException('En bifogad fil kunde inte hittas.');
+      }
+
+      if (attachment.kind === 'image' && !file.mimeType.startsWith('image/')) {
+        throw new BadRequestException('Bildfilen har ett ogiltigt format.');
+      }
+
+      return { file, kind: attachment.kind };
+    });
+  }
+
+  private async attachFilesToMessage(
+    message: AterbyggarenMessage,
+    attachments: AterbyggarenStreamAttachmentFile[],
+  ) {
+    if (!attachments.length) return;
+
+    await this.fileRepository.save(
+      attachments.map(({ file, kind }) => ({
+        ...file,
+        aterbyggarenMessageDocument:
+          kind === 'document' ? message : file.aterbyggarenMessageDocument,
+        aterbyggarenMessageImage:
+          kind === 'image' ? message : file.aterbyggarenMessageImage,
+      })),
+    );
+  }
+
+  private async getModelAttachmentParts(
+    attachments: AterbyggarenStreamAttachmentFile[],
+  ): Promise<Array<ImagePart | FilePart>> {
+    return Promise.all(
+      attachments.map(async ({ file, kind }) => {
+        const url = new URL(await this.fileService.getUrl(file));
+
+        if (kind === 'image') {
+          return {
+            type: 'image',
+            image: url,
+            mediaType: file.mimeType,
+          } satisfies ImagePart;
+        }
+
+        return {
+          type: 'file',
+          data: url,
+          filename: file.name,
+          mediaType: file.mimeType,
+        } satisfies FilePart;
+      }),
+    );
+  }
+
+  private async getMessageAttachments(
+    message: AterbyggarenMessage,
+  ): Promise<AterbyggarenMessageAttachmentResponse[]> {
+    const files = await this.fileRepository.find({
+      where: [
+        { aterbyggarenMessageImage: { id: message.id } },
+        { aterbyggarenMessageDocument: { id: message.id } },
+      ],
+      relations: {
+        aterbyggarenMessageDocument: true,
+        aterbyggarenMessageImage: true,
+      },
+      order: { createdAt: 'ASC' },
+    });
+
+    return Promise.all(
+      files.map(async (file) => ({
+        id: file.id,
+        kind: file.aterbyggarenMessageImage ? 'image' : 'document',
+        mimeType: file.mimeType,
+        name: file.name,
+        url: await this.fileService.getUrl(file),
+      })),
+    );
   }
 
   private withCurrentAttachments(
     messages: ModelMessage[],
-    attachments: AterbyggarenStreamAttachment[],
+    attachments: Array<ImagePart | FilePart>,
   ): ModelMessage[] {
     if (!attachments.length) return messages;
 
@@ -519,25 +688,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
       return {
         ...message,
-        content: [
-          { type: 'text', text: String(message.content) },
-          ...attachments.map((attachment): ImagePart | FilePart => {
-            if (attachment.kind === 'image') {
-              return {
-                type: 'image',
-                image: attachment.data,
-                mediaType: attachment.mimeType,
-              };
-            }
-
-            return {
-              type: 'file',
-              data: attachment.data,
-              filename: attachment.name,
-              mediaType: attachment.mimeType,
-            };
-          }),
-        ],
+        content: [{ type: 'text', text: String(message.content) }, ...attachments],
       };
     });
   }
@@ -759,6 +910,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     userId?: string,
   ): Promise<AterbyggarenMessageResponse> {
     return {
+      attachments: await this.getMessageAttachments(message),
       id: message.id,
       role:
         message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',

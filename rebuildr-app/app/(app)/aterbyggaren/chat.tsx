@@ -33,7 +33,7 @@ import {
   AterbyggarenPromptAttachment,
   consumePendingAterbyggarenChatInput,
   createAterbyggarenAttachmentId,
-  prepareAterbyggarenStreamAttachments,
+  uploadAterbyggarenAttachments,
 } from "@/lib/aterbyggaren-attachments";
 import { formatPrice } from "@/utils/formattings";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
@@ -356,15 +356,38 @@ export default function AterbyggarenChatPage() {
       const isCurrentStream = () => activeStreamRef.current?.id === streamId;
       const requestChatId = activeChatIdRef.current;
       const assistantId = `assistant-${Date.now()}`;
+
+      let previewAttachments: AterbyggarenPromptAttachment[] =
+        selectedAttachments.map(({ file, ...attachment }) => attachment);
+      let streamAttachments: { id: string; kind: "document" | "image" }[] = [];
+
+      try {
+        const authHeaders = await getAuthHeaders();
+        const uploadedAttachments = await uploadAterbyggarenAttachments({
+          apiUrl: apiUrl ?? "",
+          attachments: selectedAttachments,
+          headers: authHeaders,
+        });
+        previewAttachments = uploadedAttachments.previews;
+        streamAttachments = uploadedAttachments.streamAttachments;
+      } catch (e) {
+        activeStreamRef.current = undefined;
+        setInput(message);
+        setAttachments(selectedAttachments);
+        setStreaming(false);
+        const messageText = e instanceof Error ? e.message : undefined;
+        setError(messageText ?? "Kunde inte ladda upp filen.");
+        focusChatInput();
+        return;
+      }
+
       setMessages((current) => [
         ...current,
         {
           id: `user-${Date.now()}`,
           role: "user",
           content: sentContent,
-          attachments: selectedAttachments.map(
-            ({ file, ...attachment }) => attachment,
-          ),
+          attachments: previewAttachments,
         },
         {
           id: assistantId,
@@ -377,13 +400,12 @@ export default function AterbyggarenChatPage() {
 
       try {
         const guestId = isLoggedIn ? undefined : await getGuestId();
-        const streamAttachments =
-          await prepareAterbyggarenStreamAttachments(selectedAttachments);
+        const authHeaders = await getAuthHeaders();
         const response = await fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(await getAuthHeaders()),
+            ...authHeaders,
           },
           body: JSON.stringify({
             attachments: streamAttachments,
@@ -898,9 +920,9 @@ const UserAttachmentList = ({
             paddingVertical: 6,
           }}
         >
-          {attachment.kind === "image" && attachment.uri ? (
+          {attachment.kind === "image" && (attachment.uri || attachment.url) ? (
             <Image
-              source={{ uri: attachment.uri }}
+              source={{ uri: attachment.uri ?? attachment.url }}
               style={{ borderRadius: 5, height: 24, width: 24 }}
             />
           ) : (

@@ -3,10 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { AterbyggarenChat } from './aterbyggaren-chat.entity';
+import { File } from './file.entity';
 
 export interface AterbyggarenDisplayedProduct {
   id: string;
@@ -63,6 +65,12 @@ export class AterbyggarenMessage {
 
   @Column({ type: 'jsonb', nullable: true })
   productDisplays?: AterbyggarenProductDisplay[] | null;
+
+  @OneToMany(() => File, (file) => file.aterbyggarenMessageImage)
+  images: File[];
+
+  @OneToMany(() => File, (file) => file.aterbyggarenMessageDocument)
+  documents: File[];
 
   @Column()
   chatId: string;

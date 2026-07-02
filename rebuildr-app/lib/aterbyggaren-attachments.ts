@@ -4,17 +4,20 @@ export type AterbyggarenPromptAttachment = {
   mimeType: string;
   name: string;
   uri?: string;
+  url?: string;
 };
 
 export type AterbyggarenLocalAttachment = AterbyggarenPromptAttachment & {
   file: File;
 };
 
-export type AterbyggarenStreamAttachment = {
-  data: string;
+export type AterbyggarenStreamAttachmentRef = {
+  id: string;
   kind: "document" | "image";
-  mimeType: string;
-  name?: string;
+};
+
+type PreparedAterbyggarenAttachment = AterbyggarenPromptAttachment & {
+  putUrl: string;
 };
 
 type PendingAterbyggarenChatInput = {
@@ -27,32 +30,74 @@ let pendingChatInput: PendingAterbyggarenChatInput | undefined;
 export const createAterbyggarenAttachmentId = (kind: "document" | "image") =>
   `${kind}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export const fileToBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        reject(new Error("Kunde inte läsa filen."));
-        return;
-      }
-      resolve(result.split(",")[1] ?? result);
-    };
-    reader.readAsDataURL(file);
+export const uploadAterbyggarenAttachments = async ({
+  apiUrl,
+  attachments,
+  headers,
+}: {
+  apiUrl: string;
+  attachments: AterbyggarenLocalAttachment[];
+  headers: Record<string, string>;
+}): Promise<{
+  previews: AterbyggarenPromptAttachment[];
+  streamAttachments: AterbyggarenStreamAttachmentRef[];
+}> => {
+  if (!attachments.length) return { previews: [], streamAttachments: [] };
+
+  const response = await fetch(`${apiUrl}/aterbyggaren/attachments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+    },
+    body: JSON.stringify({
+      attachments: attachments.map((attachment) => ({
+        kind: attachment.kind,
+        mimeType: attachment.mimeType,
+        name: attachment.name,
+      })),
+    }),
   });
 
-export const prepareAterbyggarenStreamAttachments = async (
-  attachments: AterbyggarenLocalAttachment[],
-): Promise<AterbyggarenStreamAttachment[]> => {
-  return Promise.all(
-    attachments.map(async (attachment) => ({
-      data: await fileToBase64(attachment.file),
-      kind: attachment.kind,
-      mimeType: attachment.mimeType,
-      name: attachment.name,
-    })),
+  if (!response.ok) throw new Error("Kunde inte förbereda filuppladdningen.");
+
+  const data = (await response.json()) as {
+    attachments: PreparedAterbyggarenAttachment[];
+  };
+
+  await Promise.all(
+    data.attachments.map(async (preparedAttachment, index) => {
+      const attachment = attachments[index];
+      if (!attachment) return;
+
+      const uploadResponse = await fetch(preparedAttachment.putUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": attachment.mimeType,
+        },
+        body: attachment.file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Kunde inte ladda upp filen.");
+      }
+    }),
   );
+
+  return {
+    previews: data.attachments.map((preparedAttachment, index) => ({
+      id: preparedAttachment.id,
+      kind: preparedAttachment.kind,
+      mimeType: preparedAttachment.mimeType,
+      name: preparedAttachment.name ?? attachments[index]?.name ?? "Fil",
+      uri: attachments[index]?.uri,
+      url: preparedAttachment.url,
+    })),
+    streamAttachments: data.attachments.map((attachment) => ({
+      id: attachment.id,
+      kind: attachment.kind,
+    })),
+  };
 };
 
 export const setPendingAterbyggarenChatInput = (

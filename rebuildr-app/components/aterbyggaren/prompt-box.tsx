@@ -327,9 +327,9 @@ const AttachmentChip = ({
         paddingVertical: 6,
       }}
     >
-      {attachment.kind === "image" && attachment.uri ? (
+      {attachment.kind === "image" && (attachment.uri || attachment.url) ? (
         <ExpoImage
-          source={{ uri: attachment.uri }}
+          source={{ uri: attachment.uri ?? attachment.url }}
           style={{ borderRadius: 5, height: 24, width: 24 }}
         />
       ) : (

@@ -241,19 +241,23 @@ describe('AterbyggarenService', () => {
 });
 
 const createService = ({
+  fileRepository,
+  fileService,
   messages,
   productRepository,
   productService,
-  fileService,
 }: {
-  messages: Partial<AterbyggarenMessage>[];
-  productRepository?: Partial<
+  fileRepository?: Partial<
     ConstructorParameters<typeof AterbyggarenService>[2]
   >;
-  productService?: Partial<
+  fileService?: Partial<ConstructorParameters<typeof AterbyggarenService>[5]>;
+  messages: Partial<AterbyggarenMessage>[];
+  productRepository?: Partial<
     ConstructorParameters<typeof AterbyggarenService>[3]
   >;
-  fileService?: Partial<ConstructorParameters<typeof AterbyggarenService>[4]>;
+  productService?: Partial<
+    ConstructorParameters<typeof AterbyggarenService>[4]
+  >;
 }) => {
   const now = new Date('2026-06-17T12:00:00.000Z');
   const chatRepository = {
@@ -288,6 +292,10 @@ const createService = ({
   const productRepositoryMock = productRepository ?? {
     find: jest.fn(async () => []),
   };
+  const fileRepositoryMock = fileRepository ?? {
+    find: jest.fn(async () => []),
+    save: jest.fn(),
+  };
   const productServiceMock = productService ?? {
     findAll: jest.fn(async () => ({ products: [], origin: null, total: 0 })),
     relatedProducts: jest.fn(async () => ({
@@ -305,15 +313,18 @@ const createService = ({
     messageRepository as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[1],
-    productRepositoryMock as unknown as ConstructorParameters<
+    fileRepositoryMock as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[2],
-    productServiceMock as unknown as ConstructorParameters<
+    productRepositoryMock as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[3],
-    fileServiceMock as unknown as ConstructorParameters<
+    productServiceMock as unknown as ConstructorParameters<
       typeof AterbyggarenService
     >[4],
+    fileServiceMock as unknown as ConstructorParameters<
+      typeof AterbyggarenService
+    >[5],
   );
 };
 

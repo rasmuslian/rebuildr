@@ -20,14 +20,20 @@ import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
 interface StreamBody {
   attachments?: {
-    data: string;
+    id: string;
     kind: 'document' | 'image';
-    mimeType: string;
-    name?: string;
   }[];
   chatId?: string;
   message: string;
   guestId?: string;
+}
+
+interface PrepareAttachmentsBody {
+  attachments?: {
+    kind: 'document' | 'image';
+    mimeType: string;
+    name?: string;
+  }[];
 }
 
 @Controller('aterbyggaren')
@@ -57,6 +63,13 @@ export class AterbyggarenController {
       chatId,
       await this.getUser(request),
     );
+  }
+
+  @Post('attachments')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  async prepareAttachments(@Body() body: PrepareAttachmentsBody) {
+    return this.aterbyggarenService.prepareAttachments(body);
   }
 
   @Post('chat/stream')

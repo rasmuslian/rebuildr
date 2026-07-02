@@ -12,6 +12,7 @@ import { Product } from './product.entity';
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { Message } from './message.entity';
+import { AterbyggarenMessage } from './aterbyggaren-message.entity';
 import { FileSourceEnum } from '../constants/enums';
 
 @Entity()
@@ -62,4 +63,16 @@ export class File {
     nullable: true,
   })
   messageDocument?: Message;
+
+  @ManyToOne(() => AterbyggarenMessage, (message) => message.images, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  aterbyggarenMessageImage?: AterbyggarenMessage;
+
+  @ManyToOne(() => AterbyggarenMessage, (message) => message.documents, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  aterbyggarenMessageDocument?: AterbyggarenMessage;
 }
