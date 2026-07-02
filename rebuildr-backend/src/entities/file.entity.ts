@@ -49,6 +49,12 @@ export class File {
   @Column({ type: Boolean, default: false })
   private: boolean;
 
+  // Internal column (not exposed in GraphQL): set by ImageVariantService once
+  // WebP size variants exist in Spaces. The url(width) resolver uses it to
+  // return variant vs original — clients never need to know the URL scheme.
+  @Column({ type: Boolean, default: false })
+  hasVariants: boolean;
+
   @Column({ type: 'enum', enum: FileSourceEnum, default: FileSourceEnum.APP })
   source: FileSourceEnum;
 

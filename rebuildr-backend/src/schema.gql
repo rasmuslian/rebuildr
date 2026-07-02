@@ -273,7 +273,7 @@ type File {
   id: ID!
   name: String
   mimeType: String!
-  url: String!
+  url(width: Int): String!
 }
 
 type Brand {
@@ -402,6 +402,10 @@ type Product {
   colorType: ColorTypeEnum!
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
+  availability: ProductAvailabilityEnum!
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   distanceFromPosition: Float
   pickupEnabled: Boolean!
   deliveryEnabled: Boolean!
@@ -456,6 +460,18 @@ enum ProductStatusEnum {
   PUBLISHED
   SOLD
   DELETED
+}
+
+enum ProductAvailabilityEnum {
+  AVAILABLE
+  UPCOMING
+}
+
+enum ProductAvailabilityPrecisionEnum {
+  EXACT
+  MONTH
+  QUARTER
+  UNKNOWN
 }
 
 input LocationInputType {
@@ -524,6 +540,7 @@ type Article {
   title: String!
   slug: String!
   body: String!
+  isInternal: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1546,6 +1563,10 @@ input UpdateProductInput {
   colorType: ColorTypeEnum
   condition: ProductConditionEnum
   status: ProductStatusEnum
+  availability: ProductAvailabilityEnum
+  estimatedAvailableAt: DateTime
+  availabilityPrecision: ProductAvailabilityPrecisionEnum
+  availableUntil: DateTime
   addImages: [FileInputType!]
   removeImages: [String!]
   addDocuments: [FileInputType!]

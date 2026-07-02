@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Display, Headline } from "@components/typography/text";
+import { Display } from "@components/typography/text";
 import { Suspense, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Button } from "@components/buttons/button";
@@ -7,6 +7,7 @@ import { Pickup } from "./pickup";
 import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
 import { ProjectChips } from "./project-chips";
+import { AvailabilitySection } from "./availability-section";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 
@@ -105,7 +106,6 @@ export const Transportation = ({
     <View style={{ gap: 24, marginTop: 24 }}>
       <ProjectChips product={product} update={update} />
       <Display size="small">Leverans</Display>
-      <Headline size="small">Vilka leveransalternativ kan du erbjuda?</Headline>
       <View style={{ gap: 16, paddingBottom: 16 }}>
         <Suspense fallback={<LoadingSpinner />}>
           <Pickup
@@ -132,6 +132,11 @@ export const Transportation = ({
           />
         </Suspense>
       </View>
+      <AvailabilitySection
+        product={product}
+        update={update}
+        error={badFields?.["availability"]}
+      />
       <View
         style={[
           {

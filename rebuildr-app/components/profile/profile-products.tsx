@@ -3,6 +3,7 @@ import React from "react";
 import { PROFILE_PRODUCTS } from "queries";
 import { useQuery } from "@apollo/client";
 import {
+  ProductAvailabilityEnum,
   ProfileProductsQuery,
   ProfileProductsQueryVariables,
   ProfileQuery,
@@ -80,6 +81,7 @@ export default function ProfileProducts({ isMyProfile, profileQuery }: Props) {
           products={products.map((product) => ({
             id: product.id,
             status: product.status,
+            upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
             imageUri: product.primaryImage?.url,
             title: product.title,
             quantity: product.primaryQuantity,

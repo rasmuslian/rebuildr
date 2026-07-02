@@ -31,6 +31,10 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     color
     colorType
     status
+    availability
+    estimatedAvailableAt
+    availabilityPrecision
+    availableUntil
     co2SavingSeller
     images {
       id

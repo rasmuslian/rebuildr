@@ -29,6 +29,12 @@ export class Article extends BaseEntity {
   @Column()
   body: string;
 
+  // Internal/in-app content (modal copy, legacy dumps, test articles): kept out
+  // of the sitemap and noindexed, but still rendered as a page for in-app use.
+  @Field()
+  @Column({ default: false })
+  isInternal: boolean;
+
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;

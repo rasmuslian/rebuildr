@@ -18,6 +18,7 @@ export const AD_ROW_SECTION = gql`
         id
         title
         status
+        availability
         likedByMe
         primaryQuantity
         primaryUnit

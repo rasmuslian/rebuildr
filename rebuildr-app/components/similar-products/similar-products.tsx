@@ -3,6 +3,7 @@ import { useFilterProduct } from "@hooks/useFilterProduct";
 import { gql, useQuery } from "@apollo/client";
 import {
   Category,
+  ProductAvailabilityEnum,
   SimilarProductsQuery,
   SimilarProductsQueryVariables,
 } from "@/gql/graphql";
@@ -30,6 +31,7 @@ const SIMILAR_PRODUCTS = gql`
           id
           title
           status
+          availability
           price
           soldByQuantity
           condition
@@ -132,6 +134,7 @@ export function SimilarProducts({ productId }: Props) {
     title: product.title,
     price: product.price,
     status: product.status,
+    upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
     onHeartPress: () => {
       onToggleProductHeart({
         productId: product.id,

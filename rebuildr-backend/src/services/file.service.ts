@@ -11,6 +11,7 @@ import {
   CmsCreateFilesResponse,
 } from 'src/resolvers/file.resolver';
 import { S3Service } from './s3.service';
+import { VARIANT_WIDTHS } from './image-variant.service';
 import { FileType, FileSourceEnum } from 'src/constants/enums';
 import { Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -89,7 +90,21 @@ export class FileService {
     });
   }
 
-  async getUrl(file: File) {
+  // With `width`, returns a size-appropriate WebP variant URL when variants
+  // have been generated (public images only); otherwise the original. Callers
+  // can always render the returned URL.
+  async getUrl(file: File, width?: number) {
+    if (
+      width &&
+      file.hasVariants &&
+      !file.private &&
+      file.mimeType.startsWith('image/')
+    ) {
+      const variantWidth =
+        VARIANT_WIDTHS.find((w) => w >= width) ??
+        VARIANT_WIDTHS[VARIANT_WIDTHS.length - 1];
+      return await this.s3Service.getUrl(`${file.id}_${variantWidth}.webp`);
+    }
     const fileExtension = file.mimeType.split('/')[1];
     const key = file.id + '.' + fileExtension;
     return await this.s3Service.getUrl(key, file.private);
