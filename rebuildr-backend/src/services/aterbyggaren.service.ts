@@ -118,10 +118,10 @@ type PreparedAterbyggarenAttachment = Omit<
   putUrl: string;
 };
 
-type AterbyggarenStreamAttachmentFile = {
+interface AterbyggarenStreamAttachmentFile {
   file: File;
   kind: 'document' | 'image';
-};
+}
 
 interface SearchPublicProductsInput {
   query: string;
@@ -717,7 +717,7 @@ ${userMessage}
 
   private async getModelAttachmentParts(
     attachments: AterbyggarenStreamAttachmentFile[],
-  ): Promise<Array<ImagePart | FilePart>> {
+  ): Promise<(ImagePart | FilePart)[]> {
     return Promise.all(
       attachments.map(async ({ file, kind }) => {
         const url = new URL(await this.fileService.getUrl(file));
@@ -768,7 +768,7 @@ ${userMessage}
 
   private withCurrentAttachments(
     messages: ModelMessage[],
-    attachments: Array<ImagePart | FilePart>,
+    attachments: (ImagePart | FilePart)[],
   ): ModelMessage[] {
     if (!attachments.length) return messages;
 
