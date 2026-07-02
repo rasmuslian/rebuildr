@@ -1,5 +1,4 @@
 import { useReactiveVar } from "@apollo/client";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import Head from "expo-router/head";
 import React, { useCallback, useEffect, useState } from "react";
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 
 import { isLoggedInVar } from "@/apollo/config";
+import { getAuthHeaders, renewStoredAuthTokens } from "@/lib/auth-tokens";
 import { AterbyggarenPageHeader } from "@components/aterbyggaren/page-header";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Body, Headline } from "@components/typography/text";
@@ -31,15 +31,18 @@ type ChatSummary = {
 const HISTORY_PAGE_MAX_WIDTH = 640;
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-const getAuthHeaders = async (): Promise<Record<string, string>> => {
-  const token = await AsyncStorage.getItem("access_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 const readJson = async <T,>(path: string): Promise<T> => {
-  const response = await fetch(`${apiUrl}${path}`, {
+  let response = await fetch(`${apiUrl}${path}`, {
     headers: await getAuthHeaders(),
   });
+
+  if (response.status === 401) {
+    await renewStoredAuthTokens();
+    response = await fetch(`${apiUrl}${path}`, {
+      headers: await getAuthHeaders(),
+    });
+  }
+
   if (!response.ok) throw new Error("Request failed");
   return response.json();
 };

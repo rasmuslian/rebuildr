@@ -29,6 +29,11 @@ import {
 import { ProductConditionEnum } from "@/gql/graphql";
 import { isLoggedInVar } from "@/apollo/config";
 import {
+  AUTH_SESSION_EXPIRED_MESSAGE,
+  getAuthHeaders,
+  renewStoredAuthTokens,
+} from "@/lib/auth-tokens";
+import {
   AterbyggarenLocalAttachment,
   AterbyggarenPromptAttachment,
   consumePendingAterbyggarenChatInput,
@@ -124,15 +129,11 @@ const STREAM_TEXT_FADE_DURATION = 260;
 const STREAM_TEXT_FADE_STAGGER = 28;
 const STREAM_TEXT_FADE_TAIL = 260;
 const STREAM_TEXT_MAX_BACKLOG = 180;
+const CHAT_NOT_FOUND_MESSAGE = "Chatten kunde inte hittas";
 
 const markdownFadeParser = MarkdownIt({ typographer: true });
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-
-const getAuthHeaders = async (): Promise<Record<string, string>> => {
-  const token = await AsyncStorage.getItem("access_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
 
 const getGuestId = async () => {
   const existingGuestId = await AsyncStorage.getItem(GUEST_ID_KEY);
@@ -147,10 +148,22 @@ const getGuestId = async () => {
 };
 
 const readJson = async <T,>(path: string): Promise<T> => {
-  const response = await fetch(`${apiUrl}${path}`, {
+  let response = await fetch(`${apiUrl}${path}`, {
     headers: await getAuthHeaders(),
   });
-  if (!response.ok) throw new Error("Request failed");
+
+  if (response.status === 401) {
+    await renewStoredAuthTokens();
+    response = await fetch(`${apiUrl}${path}`, {
+      headers: await getAuthHeaders(),
+    });
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      (await readResponseErrorMessage(response)) ?? "Request failed",
+    );
+  }
   return response.json();
 };
 
@@ -400,27 +413,66 @@ export default function AterbyggarenChatPage() {
 
       try {
         const guestId = isLoggedIn ? undefined : await getGuestId();
-        const authHeaders = await getAuthHeaders();
-        const response = await fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeaders,
-          },
-          body: JSON.stringify({
-            attachments: streamAttachments,
-            chatId: requestChatId,
-            message: sentContent,
-            guestId,
-          }),
-          signal: abortController.signal,
-        });
+        const createStreamResponse = async () => {
+          const authHeaders = await getAuthHeaders();
+          return fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders,
+            },
+            body: JSON.stringify({
+              attachments: streamAttachments,
+              chatId: requestChatId,
+              message: sentContent,
+              guestId,
+            }),
+            signal: abortController.signal,
+          });
+        };
+        let response = await createStreamResponse();
 
         if (!isCurrentStream()) return;
 
-        if (!response.ok || !response.body) {
-          throw new Error("Stream failed");
+        if (response.status === 401) {
+          try {
+            await renewStoredAuthTokens();
+            response = await createStreamResponse();
+          } catch {
+            throw new Error(AUTH_SESSION_EXPIRED_MESSAGE);
+          }
         }
+
+        if (!response.ok) {
+          let responseMessage = await readResponseErrorMessage(response);
+
+          if (
+            responseMessage === CHAT_NOT_FOUND_MESSAGE &&
+            requestChatId &&
+            isLoggedIn
+          ) {
+            try {
+              await renewStoredAuthTokens();
+              response = await createStreamResponse();
+              responseMessage = response.ok
+                ? undefined
+                : await readResponseErrorMessage(response);
+            } catch {
+              throw new Error(AUTH_SESSION_EXPIRED_MESSAGE);
+            }
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              responseMessage ?? "Kunde inte starta svaret. Försök igen.",
+            );
+          }
+        }
+
+        if (!response.body) {
+          throw new Error("Kunde inte starta svaret. Försök igen.");
+        }
+
         let receivedDone = false;
         await readEventStream(response.body, (streamEvent) => {
           if (!isCurrentStream()) return;
@@ -1932,6 +1984,16 @@ const readEventStream = async (
       const event = parseStreamEvent(part);
       if (event) onEvent(event);
     }
+  }
+};
+
+const readResponseErrorMessage = async (response: Response) => {
+  try {
+    const payload = (await response.json()) as { message?: string | string[] };
+    if (Array.isArray(payload.message)) return payload.message.join("\n");
+    return payload.message;
+  } catch {
+    return undefined;
   }
 };
 

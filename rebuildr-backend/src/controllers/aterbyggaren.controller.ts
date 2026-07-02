@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -91,7 +92,12 @@ export class AterbyggarenController {
 
   private async getUser(request: Request): Promise<AuthedUserType | undefined> {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    if (type !== 'Bearer' || !token) return undefined;
+    if (!type && !token) return undefined;
+    if (type !== 'Bearer' || !token) {
+      throw new UnauthorizedException(
+        'Din inloggning har gått ut. Logga in igen.',
+      );
+    }
 
     try {
       const payload: AccessTokenPayload = await this.jwtService.verifyAsync(
@@ -104,7 +110,9 @@ export class AterbyggarenController {
         role: payload.role,
       };
     } catch {
-      return undefined;
+      throw new UnauthorizedException(
+        'Din inloggning har gått ut. Logga in igen.',
+      );
     }
   }
 }
