@@ -38,6 +38,7 @@ import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
 import { borderRadius, horizontalPadding } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
+import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 
@@ -69,6 +70,7 @@ type DisplayedProduct = {
   brand?: string;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
+  likedByMe?: boolean | null;
   url: string;
   imageUrl?: string;
 };
@@ -1589,6 +1591,9 @@ const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
 const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
+  const { onToggleProductHeart } = useLikeProduct();
+  const [liked, setLiked] = useState(!!product.likedByMe);
   const detail = [
     product.category,
     product.brand,
@@ -1601,6 +1606,18 @@ const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
     : product.deliveryEnabled
       ? "Leverans"
       : undefined;
+
+  useEffect(() => {
+    setLiked(!!product.likedByMe);
+  }, [product.likedByMe]);
+
+  const toggleFavorite = useCallback(() => {
+    setLiked((currentLiked) => !currentLiked);
+    onToggleProductHeart({
+      productId: product.id,
+      likedByMe: liked,
+    });
+  }, [liked, onToggleProductHeart, product.id]);
 
   return (
     <Pressable
@@ -1623,15 +1640,36 @@ const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
         width: "100%",
       })}
     >
-      <Image
-        source={product.imageUrl ?? PlaceholderProduct.uri}
-        style={{
-          aspectRatio: 1,
-          backgroundColor: primitives.neutrals200,
-          borderRadius: isDesktop ? 6 : 10,
-          width: "100%",
-        }}
-      />
+      <View>
+        <Image
+          source={product.imageUrl ?? PlaceholderProduct.uri}
+          style={{
+            aspectRatio: 1,
+            backgroundColor: primitives.neutrals200,
+            borderRadius: isDesktop ? 6 : 10,
+            width: "100%",
+          }}
+        />
+        {isLoggedIn && (
+          <Pressable
+            pointerEvents="box-only"
+            onPress={toggleFavorite}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.7 : 1,
+              position: "absolute",
+              right: 8,
+              top: 8,
+            })}
+          >
+            <Icon
+              strokeColor="primaryLight"
+              color={liked ? "link" : undefined}
+              opacity={liked ? undefined : "99"}
+              icon="heartFilled"
+            />
+          </Pressable>
+        )}
+      </View>
       <View style={{ flex: 1, gap: 6, padding: isDesktop ? 2 : 0 }}>
         <View style={{ gap: 4 }}>
           <Label

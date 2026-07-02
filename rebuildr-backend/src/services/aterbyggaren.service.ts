@@ -82,6 +82,7 @@ interface PublicProductSearchResult {
   brand?: string;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
+  likedByMe?: boolean | null;
   url: string;
   imageUrl?: string;
 }
@@ -151,7 +152,9 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       order: { createdAt: 'ASC' },
     });
 
-    return messages.map((message) => this.toMessageResponse(message));
+    return Promise.all(
+      messages.map((message) => this.toMessageResponse(message, user.id)),
+    );
   }
 
   async deleteChat(chatId: string, user?: AuthedUserType) {
@@ -266,6 +269,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
             execute: async (toolInput) => {
               const products = await this.safeSearchPublicProducts(
                 toolInput as SearchPublicProductsInput,
+                owner.user?.id,
               );
               products.forEach((product) => {
                 searchableProductsById.set(product.id, product);
@@ -472,9 +476,12 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     return finishReason === 'length' ? STREAM_LENGTH_LIMIT_MESSAGE : undefined;
   }
 
-  private async safeSearchPublicProducts(input: SearchPublicProductsInput) {
+  private async safeSearchPublicProducts(
+    input: SearchPublicProductsInput,
+    userId?: string,
+  ) {
     try {
-      return await this.searchPublicProducts(input);
+      return await this.searchPublicProducts(input, userId);
     } catch (error) {
       this.logger.warn(
         `Aterbyggaren product search failed for query "${input.query}"`,
@@ -486,6 +493,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
   private async searchPublicProducts(
     input: SearchPublicProductsInput,
+    userId?: string,
   ): Promise<PublicProductSearchResult[]> {
     const searchString = input.query.trim();
     if (!searchString) return [];
@@ -520,6 +528,10 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
 
     const productsWithRelations =
       await this.loadPublicProductRelations(products);
+    const likedProductIds = await this.getLikedProductIds(
+      productsWithRelations.map((product) => product.id),
+      userId,
+    );
 
     return Promise.all(
       productsWithRelations.map(async (product) => {
@@ -539,6 +551,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
           brand: product.brand?.name,
           pickupEnabled: product.pickupEnabled,
           deliveryEnabled: product.deliveryEnabled,
+          likedByMe: likedProductIds?.has(product.id) ?? null,
           url: `/product/${product.id}`,
           imageUrl,
         };
@@ -568,6 +581,37 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       .filter((product): product is Product => !!product);
   }
 
+  private async getLikedProductIds(productIds: string[], userId?: string) {
+    if (!userId || !productIds.length) return undefined;
+
+    const likedProducts = await this.productRepository.find({
+      where: { id: In(productIds), likedBy: { id: userId } },
+      select: { id: true },
+    });
+
+    return new Set(likedProducts.map((product) => product.id));
+  }
+
+  private async hydrateProductDisplayLikes(
+    productDisplays?: AterbyggarenProductDisplay[] | null,
+    userId?: string,
+  ) {
+    if (!productDisplays?.length || !userId) return productDisplays;
+
+    const productIds = productDisplays.flatMap((display) =>
+      display.products.map((product) => product.id),
+    );
+    const likedProductIds = await this.getLikedProductIds(productIds, userId);
+
+    return productDisplays.map((display) => ({
+      ...display,
+      products: display.products.map((product) => ({
+        ...product,
+        likedByMe: likedProductIds?.has(product.id) ?? null,
+      })),
+    }));
+  }
+
   private async getPublicProductImageUrl(
     primaryImage: Product['images'][number],
   ) {
@@ -582,16 +626,20 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     }
   }
 
-  private toMessageResponse(
+  private async toMessageResponse(
     message: AterbyggarenMessage,
-  ): AterbyggarenMessageResponse {
+    userId?: string,
+  ): Promise<AterbyggarenMessageResponse> {
     return {
       id: message.id,
       role:
         message.role === AterbyggarenMessageRole.USER ? 'user' : 'assistant',
       content: message.content,
       createdAt: message.createdAt,
-      productDisplays: message.productDisplays,
+      productDisplays: await this.hydrateProductDisplayLikes(
+        message.productDisplays,
+        userId,
+      ),
     };
   }
 

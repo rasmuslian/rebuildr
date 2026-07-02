@@ -19,6 +19,7 @@ export interface AterbyggarenDisplayedProduct {
   brand?: string;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
+  likedByMe?: boolean | null;
   url: string;
   imageUrl?: string;
 }
