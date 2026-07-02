@@ -106,6 +106,8 @@ export const AterbyggarenPromptBox = React.forwardRef<
     const [contentHeight, setContentHeight] = React.useState(
       MIN_COMPACT_INPUT_CONTENT_HEIGHT,
     );
+    const hasAttachments = attachments.length > 0;
+    const defaultInputHeight = isDesktop ? 123 : 162;
     const compactInputHeight = Math.min(Math.max(contentHeight, 24), 132);
 
     const handleSubmit = React.useCallback(() => {
@@ -158,8 +160,8 @@ export const AterbyggarenPromptBox = React.forwardRef<
             borderColor: primitives.neutrals300,
             borderRadius: isDesktop ? 8 : 9,
             borderWidth: bordered ? 1 : 0,
-            height: compact ? undefined : isDesktop ? 123 : 162,
-            minHeight: compact ? (isDesktop ? 78 : 88) : undefined,
+            height: compact || hasAttachments ? undefined : defaultInputHeight,
+            minHeight: compact ? (isDesktop ? 78 : 88) : defaultInputHeight,
             paddingBottom: compact ? 12 : isDesktop ? 12 : 14,
             paddingHorizontal: compact ? 12 : isDesktop ? 12 : 18,
             paddingTop: compact ? 12 : isDesktop ? 12 : 18,
