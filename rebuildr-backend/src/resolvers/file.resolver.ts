@@ -66,9 +66,15 @@ export class CmsCreateFilesResponse {
 export class FileResolver {
   constructor(private fileService: FileService) {}
 
+  // Pass `width` to get a size-appropriate WebP variant (when one has been
+  // generated) instead of the original — e.g. `url(width: 200)` for grids.
+  // Falls back to the original URL, so callers can always render the result.
   @ResolveField(() => String)
-  async url(@Parent() file: File) {
-    return this.fileService.getUrl(file);
+  async url(
+    @Parent() file: File,
+    @Args('width', { type: () => Int, nullable: true }) width?: number,
+  ) {
+    return this.fileService.getUrl(file, width);
   }
 
   @Mutation(() => CmsCreateFilesResponse)

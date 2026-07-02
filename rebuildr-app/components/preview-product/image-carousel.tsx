@@ -92,6 +92,7 @@ export const ImageCarousel = ({
               <View>
                 <Image
                   source={image.url}
+                  cachePolicy="memory-disk"
                   contentFit="cover"
                   alt={
                     productTitle

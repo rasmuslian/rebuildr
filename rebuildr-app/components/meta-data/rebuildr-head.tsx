@@ -10,6 +10,8 @@ type Props = {
   description?: string;
 
   isProductPage?: boolean;
+  /** Open Graph type — "website" (default) or "article" for article pages. */
+  ogType?: "website" | "article";
   /**
    * Extra JSON-LD structured data (schema.org) to inject. Pass a single object
    * or an array; each is rendered as its own <script type="application/ld+json">.
@@ -24,6 +26,7 @@ export default function RebuildrHead({
   image,
   description = "RebuildR är en digital marknadsplats och en rörelse för återbrukat byggmaterial.",
   isProductPage = false,
+  ogType = "website",
   jsonLd,
   noindex = false,
 }: Props) {
@@ -58,7 +61,7 @@ export default function RebuildrHead({
         <meta name="keywords" content="Rebuildr, Byggmaterial" />
         {noindex && <meta name="robots" content="noindex" />}
 
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content={ogType} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={image ?? defaultImage} />
@@ -66,6 +69,11 @@ export default function RebuildrHead({
         <meta property="og:image:height" content="630" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:url" content={url} />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={image ?? defaultImage} />
 
         <link rel="canonical" href={url} />
       </Head>

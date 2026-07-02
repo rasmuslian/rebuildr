@@ -42,7 +42,9 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
     images {
       id
       mimeType
-      url
+      # Backend returns a size-appropriate WebP variant when available.
+      url(width: 800)
+      thumbUrl: url(width: 200)
       name
     }
     documents {

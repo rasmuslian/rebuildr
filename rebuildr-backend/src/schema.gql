@@ -273,7 +273,7 @@ type File {
   id: ID!
   name: String
   mimeType: String!
-  url: String!
+  url(width: Int): String!
 }
 
 type Brand {
@@ -540,6 +540,7 @@ type Article {
   title: String!
   slug: String!
   body: String!
+  isInternal: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
