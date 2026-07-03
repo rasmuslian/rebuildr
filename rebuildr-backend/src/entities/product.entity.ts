@@ -60,6 +60,30 @@ export enum ColorTypeEnum {
 }
 registerEnumType(ColorTypeEnum, { name: 'ColorTypeEnum' });
 
+/**
+ * Whether the item is available now or a "coming soon" listing (kommande
+ * annons) — communicated before it can be delivered, with an estimated date.
+ */
+export enum ProductAvailabilityEnum {
+  AVAILABLE = 'AVAILABLE',
+  UPCOMING = 'UPCOMING',
+}
+registerEnumType(ProductAvailabilityEnum, { name: 'ProductAvailabilityEnum' });
+
+/**
+ * How precise the estimated availability date is, so "coming soon" listings can
+ * express uncertainty instead of being forced to a specific day.
+ */
+export enum ProductAvailabilityPrecisionEnum {
+  EXACT = 'EXACT',
+  MONTH = 'MONTH',
+  QUARTER = 'QUARTER',
+  UNKNOWN = 'UNKNOWN',
+}
+registerEnumType(ProductAvailabilityPrecisionEnum, {
+  name: 'ProductAvailabilityPrecisionEnum',
+});
+
 @Entity()
 @ObjectType()
 export class Product {
@@ -305,6 +329,38 @@ export class Product {
   @Field(() => ProductStatus)
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
   status: ProductStatus;
+
+  @Field(() => ProductAvailabilityEnum)
+  @Column({
+    type: 'enum',
+    enum: ProductAvailabilityEnum,
+    enumName: 'product_availability_enum',
+    default: ProductAvailabilityEnum.AVAILABLE,
+  })
+  availability: ProductAvailabilityEnum;
+
+  /** Estimated availability date for "coming soon" (UPCOMING) listings. */
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'timestamptz' })
+  estimatedAvailableAt?: Date | null;
+
+  /** Precision of estimatedAvailableAt (exact day / month / quarter / unknown). */
+  @Field(() => ProductAvailabilityPrecisionEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ProductAvailabilityPrecisionEnum,
+    enumName: 'product_availability_precision_enum',
+    nullable: true,
+  })
+  availabilityPrecision?: ProductAvailabilityPrecisionEnum | null;
+
+  /**
+   * Optional date when the listing should expire. After this date a scheduled
+   * job hides the ad (sets hiddenReason) so it drops out of search and listings.
+   */
+  @Field({ nullable: true })
+  @Column({ nullable: true, type: 'timestamptz' })
+  availableUntil?: Date | null;
 
   @Column({ nullable: true })
   brandId?: string;

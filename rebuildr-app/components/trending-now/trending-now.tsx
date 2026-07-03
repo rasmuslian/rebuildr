@@ -9,6 +9,7 @@ import { useUser } from "@hooks/useUser";
 import {
   Category,
   OrderProductsEnum,
+  ProductAvailabilityEnum,
   TrendingNowProductsQuery,
   TrendingNowProductsQueryVariables,
 } from "@/gql/graphql";
@@ -29,6 +30,7 @@ const TRENDING_NOW_QUERY = gql`
         id
         title
         status
+        availability
         likedByMe
         primaryQuantity
         primaryUnit
@@ -116,6 +118,9 @@ export const TrendingNow = () => {
                 price={item.price}
                 soldByQuantity={item.soldByQuantity}
                 status={item.status}
+                upcoming={
+                  item.availability === ProductAvailabilityEnum.Upcoming
+                }
                 onHeartPress={() => {
                   onToggleProductHeart({
                     productId: item.id,
@@ -147,6 +152,8 @@ export const TrendingNow = () => {
                 price: product.price,
                 soldByQuantity: product.soldByQuantity,
                 status: product.status,
+                upcoming:
+                  product.availability === ProductAvailabilityEnum.Upcoming,
                 heart: product.seller.id !== data.me?.id,
                 liked: !!product.likedByMe,
                 onHeartPress: () => {

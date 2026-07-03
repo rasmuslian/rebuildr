@@ -1,7 +1,13 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import dayjs from 'dayjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductAvailabilityEnum,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
   BadField,
@@ -29,6 +35,7 @@ import {
   Equal,
   In,
   IsNull,
+  LessThanOrEqual,
   Not,
   Point,
   Repository,
@@ -71,6 +78,13 @@ interface FindProductsQueryOptions {
   ignoreTransportation?: boolean;
   searchRankThreshold?: number;
 }
+
+/**
+ * hiddenReason sentinel set by the auto-expiry job when a listing passes its
+ * optional availableUntil date. Reuses the existing `hiddenReason IS NULL`
+ * filters so expired ads drop out of search and listings everywhere.
+ */
+export const AD_EXPIRED_HIDDEN_REASON = 'AD_EXPIRED';
 
 @Injectable()
 export class ProductService {
@@ -306,6 +320,18 @@ export class ProductService {
     }
     if (input.status) {
       product.status = input.status;
+    }
+    if (input.availability !== undefined) {
+      product.availability = input.availability;
+    }
+    if (input.estimatedAvailableAt !== undefined) {
+      product.estimatedAvailableAt = input.estimatedAvailableAt;
+    }
+    if (input.availabilityPrecision !== undefined) {
+      product.availabilityPrecision = input.availabilityPrecision;
+    }
+    if (input.availableUntil !== undefined) {
+      product.availableUntil = input.availableUntil;
     }
     //null means removing the brand
     if (!!input.brandId || input.brandId === null) {
@@ -1541,6 +1567,68 @@ export class ProductService {
     } catch (error) {
       throw BadUserInputException(`Failed to update product: ${error}`);
     }
+  }
+
+  /**
+   * Hide listings whose optional end date (availableUntil) has passed. Only
+   * touches still-visible published ads, so it's idempotent: once hiddenReason
+   * is set the row no longer matches and won't be processed again.
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async hideExpiredListings(): Promise<void> {
+    const logger = this.logger.child({
+      cron: 'hideExpiredListings',
+      requestId: crypto.randomUUID(),
+    });
+    const now = dayjs().toDate();
+    const expired = await this.productRepository.find({
+      where: {
+        availableUntil: LessThanOrEqual(now),
+        hiddenReason: IsNull(),
+        status: ProductStatus.PUBLISHED,
+      },
+    });
+    if (!expired.length) return;
+
+    logger.info('Hiding expired listings', { count: expired.length });
+    await this.productRepository.update(
+      { id: In(expired.map((p) => p.id)) },
+      { hiddenReason: AD_EXPIRED_HIDDEN_REASON },
+    );
+  }
+
+  /**
+   * Flip "snart till salu" (UPCOMING) listings to AVAILABLE once their start
+   * date has passed, so the seller doesn't have to mark them manually. Rows
+   * without a date (estimatedAvailableAt null) never match, so they stay
+   * UPCOMING until the seller acts. Idempotent: once AVAILABLE the row no
+   * longer matches. Mirrors the manual markAvailable (clears date/precision,
+   * keeps availableUntil so the expiry job still applies).
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async activateDueUpcomingListings(): Promise<void> {
+    const logger = this.logger.child({
+      cron: 'activateDueUpcomingListings',
+      requestId: crypto.randomUUID(),
+    });
+    const now = dayjs().toDate();
+    const due = await this.productRepository.find({
+      where: {
+        availability: ProductAvailabilityEnum.UPCOMING,
+        estimatedAvailableAt: LessThanOrEqual(now),
+      },
+    });
+    if (!due.length) return;
+
+    logger.info('Activating due upcoming listings', { count: due.length });
+    await this.productRepository.update(
+      { id: In(due.map((p) => p.id)) },
+      {
+        availability: ProductAvailabilityEnum.AVAILABLE,
+        estimatedAvailableAt: null,
+        availabilityPrecision: null,
+      },
+    );
   }
 
   async cmsHideProduct(productId: string, hiddenReason: string) {

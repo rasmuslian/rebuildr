@@ -115,6 +115,7 @@ import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
 import { S3Service } from './services/s3.service';
+import { ImageVariantService } from './services/image-variant.service';
 import { MailResolver } from './resolvers/mail.resolver';
 import { Partner } from './entities/partner.entity';
 import { PartnerLoader } from './dataloaders/partner.loader';
@@ -363,6 +364,7 @@ export interface RequestType {
     ProjectSubscriber,
     StripeResolver,
     S3Service,
+    ImageVariantService,
     PartnerService,
     PartnerResolver,
     CO2FactorService,

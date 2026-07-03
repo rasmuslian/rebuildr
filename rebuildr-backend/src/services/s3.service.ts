@@ -46,6 +46,25 @@ export class S3Service {
     return signedPutUrl;
   }
 
+  // Upload a buffer we already hold in memory (e.g. a generated WebP variant)
+  // directly to Spaces. Unlike upload(), which returns a presigned URL for the
+  // client to PUT to, this writes the bytes from the backend itself.
+  async putBuffer(
+    key: string,
+    body: Buffer,
+    contentType: string,
+    publicRead = true,
+  ): Promise<void> {
+    const cmd = new PutObjectCommand({
+      Bucket: this.spacesBucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ACL: publicRead ? 'public-read' : undefined,
+    });
+    await this.s3.send(cmd);
+  }
+
   async deleteFiles(keys: string[]) {
     //Return if array is empty
     if (!keys.length) {

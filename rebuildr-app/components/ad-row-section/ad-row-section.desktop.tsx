@@ -4,6 +4,7 @@ import { SectionHeader } from "@components/sections/section-header";
 import {
   AdRowSectionQuery,
   Product,
+  ProductAvailabilityEnum,
   ProductConditionEnum,
   ProductStatusEnum,
   QuantityUnitEnum,
@@ -14,6 +15,7 @@ type Props = {
     id: string;
     title: string;
     status: ProductStatusEnum;
+    availability: ProductAvailabilityEnum;
     likedByMe?: boolean | null;
     primaryQuantity?: number | null;
     primaryUnit?: QuantityUnitEnum | null;
@@ -82,6 +84,9 @@ export const AdRowSectionDesktop = ({
                 price={item.price}
                 soldByQuantity={item.soldByQuantity}
                 status={item.status}
+                upcoming={
+                  item.availability === ProductAvailabilityEnum.Upcoming
+                }
                 distance={item.distanceFromLocation}
                 onHeartPress={() => {
                   onToggleProductHeart({

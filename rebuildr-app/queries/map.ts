@@ -23,6 +23,7 @@ export const ACTIVE_PRODUCT_POPUP = gql`
     product(input: $input) {
       id
       title
+      availability
       condition
       primaryQuantity
       primaryUnit

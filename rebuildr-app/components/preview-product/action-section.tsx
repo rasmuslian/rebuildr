@@ -28,6 +28,7 @@ type Props = {
   status: ProductStatusEnum;
   isMyProduct: boolean;
   buyButtonDisabled: boolean;
+  isUpcoming?: boolean;
   onRemovePress: () => void;
 };
 
@@ -37,6 +38,7 @@ export const ActionSection = ({
   status,
   isMyProduct,
   buyButtonDisabled,
+  isUpcoming,
   onRemovePress,
 }: Props) => {
   const [showVerifyMe, setShowVerifyMe] = useState(false);
@@ -108,7 +110,13 @@ export const ActionSection = ({
         </View>
       ) : (
         <>
-          {status === ProductStatusEnum.Published && (
+          {status === ProductStatusEnum.Published && isUpcoming && (
+            // "Snart till salu" isn't available for purchase yet — the buy
+            // action unlocks when it flips to available (auto on its start
+            // date, or when the seller marks it available).
+            <Button label="Snart till salu" disabled />
+          )}
+          {status === ProductStatusEnum.Published && !isUpcoming && (
             <Button
               label="Köp nu"
               loading={loadingMe}

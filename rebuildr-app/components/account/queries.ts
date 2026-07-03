@@ -8,6 +8,7 @@ export const MY_FAVORITES = gql`
         total
         products {
           id
+          availability
           primaryImage {
             id
             url
