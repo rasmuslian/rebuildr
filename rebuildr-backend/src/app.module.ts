@@ -130,7 +130,6 @@ import { PageContent } from './entities/page-content.entity';
 import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
 import { AIService } from './services/ai.service';
-import { SCBAPI } from './apis/scb.api';
 import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
@@ -372,7 +371,6 @@ export interface RequestType {
     CO2FactorService,
     CO2FactorResolver,
     BoverketAPI,
-    SCBAPI,
     PageContentService,
     PageContentResolver,
     AIService,

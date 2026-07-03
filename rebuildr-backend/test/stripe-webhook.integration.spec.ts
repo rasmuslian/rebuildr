@@ -19,8 +19,7 @@ import { ProductStatus } from 'src/entities/product.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { Review } from 'src/entities/review.entity';
 import { TransportationEnum } from 'src/entities/purchase.entity';
-import { SCBAPI } from 'src/apis/scb.api';
-import { SCBAPIMock } from './mocks/scb-api.mock';
+import { OrganizationService } from 'src/services/organization.service';
 import { ShippingPriceService } from 'src/services/shipping-price.service';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 
@@ -100,8 +99,8 @@ describe('Stripe webhook', () => {
         },
         StripeService,
         {
-          provide: SCBAPI,
-          useClass: SCBAPIMock,
+          provide: OrganizationService,
+          useValue: { lookupOrganizationNumber: jest.fn() },
         },
         {
           provide: ConfigService,
