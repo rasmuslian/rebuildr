@@ -28,8 +28,6 @@ import {
   ForbiddenException,
   InternalServerException,
 } from 'src/exceptions';
-import { SCBAPI } from 'src/apis/scb.api';
-import { SCBAPIMock } from './mocks/scb-api.mock';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -96,10 +94,6 @@ describe('Purchase e2e', () => {
         {
           provide: PostnordAPI,
           useClass: PostnordMock,
-        },
-        {
-          provide: SCBAPI,
-          useClass: SCBAPIMock,
         },
       ],
     })

@@ -130,7 +130,6 @@ import { PageContent } from './entities/page-content.entity';
 import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
 import { AIService } from './services/ai.service';
-import { SCBAPI } from './apis/scb.api';
 import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
@@ -152,6 +151,8 @@ import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
+import { CreditsafeAPI } from './apis/creditsafe.api';
+import { CreditsafeService } from './services/creditsafe.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -370,7 +371,6 @@ export interface RequestType {
     CO2FactorService,
     CO2FactorResolver,
     BoverketAPI,
-    SCBAPI,
     PageContentService,
     PageContentResolver,
     AIService,
@@ -384,6 +384,8 @@ export interface RequestType {
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
+    CreditsafeAPI,
+    CreditsafeService,
   ],
 })
 export class AppModule {}

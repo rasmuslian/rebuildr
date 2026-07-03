@@ -634,7 +634,7 @@ export class UserService {
     }
   }
 
-  async approveBusinessAccount(userId: string) {
+  async approveBusinessAccount(userId: string, sendMail = true) {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user || user.type !== UserType.BUSINESS) {
       throw NotFoundException('Business account not found');
@@ -644,9 +644,11 @@ export class UserService {
     }
     user.organizationApprovedAt = new Date();
     const savedUser = await this.userRepository.save(user);
-    await this.mailService.sendBusinessApprovedEmail({
-      email: savedUser.email,
-    });
+    if (sendMail) {
+      await this.mailService.sendBusinessApprovedEmail({
+        email: savedUser.email,
+      });
+    }
     return savedUser;
   }
 

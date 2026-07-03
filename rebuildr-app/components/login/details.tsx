@@ -30,6 +30,7 @@ const DETAILS_QUERY = gql`
       email
       type
       organizationNumber
+      organizationApprovedAt
     }
   }
 `;
@@ -62,7 +63,7 @@ const DETAILS_VALID_USERNAME = gql`
 `;
 
 type Props = {
-  onDone: () => void;
+  onDone: (isApproved: boolean) => void;
   onExit: () => void;
 };
 export const Details = ({ onDone, onExit }: Props) => {
@@ -104,7 +105,7 @@ export const Details = ({ onDone, onExit }: Props) => {
     if (loading) return;
     updateDetails({
       variables: { input: { username, password } },
-      onCompleted: onDone,
+      onCompleted: () => onDone(!!data?.me?.organizationApprovedAt),
     });
   };
 
