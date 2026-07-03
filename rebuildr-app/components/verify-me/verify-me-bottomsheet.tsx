@@ -60,7 +60,6 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
               <Body size="small">
                 • Säkrare handel mellan verifierade parter
               </Body>
-              <Body size="small">• "Verifierad"-badge på din profil</Body>
               <Body size="small">• Personnummer hashas, ej i klartext</Body>
             </View>
           </View>
