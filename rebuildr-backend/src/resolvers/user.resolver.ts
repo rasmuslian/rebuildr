@@ -622,13 +622,21 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles([UserRoleEnum.ADMIN])
   creditsafeCheckStatus(@Parent() user: User): CreditsafeCheckStatusEnum {
-    const evaluation =
-      user.creditsafeData as unknown as ICreditsafeSignupEvaluation | undefined;
+    const evaluation = user.creditsafeData as unknown as
+      | ICreditsafeSignupEvaluation
+      | undefined;
     if (!evaluation) return CreditsafeCheckStatusEnum.NOT_CHECKED;
     if (evaluation.approved) return CreditsafeCheckStatusEnum.MATCHED;
     if ('error' in evaluation.getData) {
       return CreditsafeCheckStatusEnum.COMPANY_ERROR;
     }
     return CreditsafeCheckStatusEnum.NO_MATCH;
+  }
+
+  @ResolveField(() => String, { nullable: true })
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  creditsafeData(@Parent() user: User): string | null {
+    return user.creditsafeData ? JSON.stringify(user.creditsafeData) : null;
   }
 }

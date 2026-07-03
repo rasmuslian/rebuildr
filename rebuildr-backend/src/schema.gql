@@ -206,6 +206,7 @@ type User {
   sellerAccount: SellerAccount
   isVerified: Boolean!
   creditsafeCheckStatus: CreditsafeCheckStatusEnum!
+  creditsafeData: String
 }
 
 enum UserRoleEnum {
