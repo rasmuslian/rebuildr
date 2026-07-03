@@ -785,11 +785,10 @@ export const UpsertProduct = ({
   };
   const onNextTransportation = () => {
     const result = onVerifyTransportation(product, true);
-    update().then(() => {
-      if (result) {
-        setStep("preview");
-      }
-    });
+    if (!result) return;
+    //preview renders from local state, so skip the save here — it just made
+    //Publicera wait on a background round-trip. Publish does the single save.
+    setStep("preview");
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;

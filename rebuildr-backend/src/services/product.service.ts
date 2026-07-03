@@ -443,13 +443,20 @@ export class ProductService {
 
     //Transportations
     if (input.location) {
-      product.address = (
-        await this.geocodingService.locationToAddress(input.location)
-      ).address;
-      product.addressLocation = {
-        type: 'Point',
-        coordinates: [input.location.lat, input.location.lng],
-      };
+      //only re-geocode when the coordinates changed (or there's no address yet)
+      //— the address is resent unchanged every save; skips a Google round-trip
+      const [currentLat, currentLng] = product.addressLocation?.coordinates ?? [];
+      const locationChanged =
+        currentLat !== input.location.lat || currentLng !== input.location.lng;
+      if (locationChanged || !product.address) {
+        product.address = (
+          await this.geocodingService.locationToAddress(input.location)
+        ).address;
+        product.addressLocation = {
+          type: 'Point',
+          coordinates: [input.location.lat, input.location.lng],
+        };
+      }
     }
     if (input.pickupEnabled !== undefined && input.pickupEnabled !== null) {
       product.pickupEnabled = input.pickupEnabled;
