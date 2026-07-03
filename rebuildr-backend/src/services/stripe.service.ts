@@ -20,6 +20,18 @@ const paymentCapabilities: (keyof Stripe.AccountCreateParams.Capabilities)[] = [
   'card_payments',
 ];
 
+// Maps Creditsafe's companyType.code (Swedish legal form) to Stripe's
+// company.structure.
+const creditsafeCompanyStructureMap: Record<
+  string,
+  Stripe.AccountCreateParams.Company.Structure
+> = {
+  AB: 'private_corporation',
+  HB: 'private_partnership',
+  KB: 'private_partnership',
+  EF: 'sole_proprietorship',
+};
+
 export enum SellerAccountCapabilityEnum {
   PAYMENT = 'PAYMENT',
   FULL = 'FULL',
@@ -227,7 +239,12 @@ export class StripeService {
       const accountBusiness = await this.stripe.accounts.create({
         business_type: 'company',
         company: {
-          structure: 'private_corporation',
+          structure:
+            (organizationData?.companyTypeCode &&
+              creditsafeCompanyStructureMap[
+                organizationData.companyTypeCode
+              ]) ||
+            'private_corporation',
           name: organizationData?.name ?? organizationUser.username,
           address: {
             line1: organizationData?.address ?? organizationUser.address,

@@ -6,6 +6,7 @@ export interface OrganizationData {
   address: string;
   zipCode: string;
   city: string;
+  companyTypeCode?: string;
 }
 
 @Injectable()
@@ -38,6 +39,7 @@ export class OrganizationService {
       address: address.fullAddress,
       zipCode: address.zipCode,
       city: address.town,
+      companyTypeCode: business.companyType?.code,
     };
   }
 }
