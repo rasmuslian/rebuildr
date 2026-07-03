@@ -8,11 +8,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { AterbyggarenMessage } from './aterbyggaren-message.entity';
 import { User } from './user.entity';
-import { BygghjalpenMessage } from './bygghjalpen-message.entity';
 
-@Entity()
-export class BygghjalpenChat {
+@Entity('aterbyggaren_chat')
+export class AterbyggarenChat {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -40,6 +40,6 @@ export class BygghjalpenChat {
   @Column({ type: 'timestamptz', nullable: true })
   deletedAt?: Date | null;
 
-  @OneToMany(() => BygghjalpenMessage, (message) => message.chat)
-  messages: BygghjalpenMessage[];
+  @OneToMany(() => AterbyggarenMessage, (message) => message.chat)
+  messages: AterbyggarenMessage[];
 }

@@ -59,11 +59,20 @@ export class AuthenticationErrorFilter<
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
+  });
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   // Stripe webhook needs raw body
   app.use('/stripe-webhook', bodyParser.raw({ type: 'application/json' }));
+  app.use(
+    '/aterbyggaren/chat/stream',
+    bodyParser.json({ limit: '8mb', type: 'application/json' }),
+  );
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
   //https://docs.nestjs.com/security/helmet
   app.use(

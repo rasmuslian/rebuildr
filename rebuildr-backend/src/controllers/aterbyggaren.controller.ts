@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,30 +17,42 @@ import { Request, Response } from 'express';
 
 import { AccessTokenPayload, AuthedUserType } from 'src/auth/constants';
 import { EnvironmentVariables } from 'src/config';
-import { BygghjalpenService } from 'src/services/bygghjalpen.service';
+import { AterbyggarenService } from 'src/services/aterbyggaren.service';
 
 interface StreamBody {
+  attachments?: {
+    id: string;
+    kind: 'document' | 'image';
+  }[];
   chatId?: string;
   message: string;
   guestId?: string;
 }
 
-@Controller('bygghjalpen')
-export class BygghjalpenController {
+interface PrepareAttachmentsBody {
+  attachments?: {
+    kind: 'document' | 'image';
+    mimeType: string;
+    name?: string;
+  }[];
+}
+
+@Controller('aterbyggaren')
+export class AterbyggarenController {
   constructor(
-    private bygghjalpenService: BygghjalpenService,
+    private aterbyggarenService: AterbyggarenService,
     private jwtService: JwtService,
     private configService: ConfigService<EnvironmentVariables>,
   ) {}
 
   @Get('chats')
   async listChats(@Req() request: Request) {
-    return this.bygghjalpenService.listChats(await this.getUser(request));
+    return this.aterbyggarenService.listChats(await this.getUser(request));
   }
 
   @Get('chats/:chatId/messages')
   async getMessages(@Param('chatId') chatId: string, @Req() request: Request) {
-    return this.bygghjalpenService.getMessages(
+    return this.aterbyggarenService.getMessages(
       chatId,
       await this.getUser(request),
     );
@@ -47,10 +60,17 @@ export class BygghjalpenController {
 
   @Delete('chats/:chatId')
   async deleteChat(@Param('chatId') chatId: string, @Req() request: Request) {
-    return this.bygghjalpenService.deleteChat(
+    return this.aterbyggarenService.deleteChat(
       chatId,
       await this.getUser(request),
     );
+  }
+
+  @Post('attachments')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  async prepareAttachments(@Body() body: PrepareAttachmentsBody) {
+    return this.aterbyggarenService.prepareAttachments(body);
   }
 
   @Post('chat/stream')
@@ -62,7 +82,7 @@ export class BygghjalpenController {
     @Res() response: Response,
   ) {
     const user = await this.getUser(request);
-    return this.bygghjalpenService.streamMessage(
+    return this.aterbyggarenService.streamMessage(
       body,
       { user, guestId: body.guestId },
       request,
@@ -72,7 +92,12 @@ export class BygghjalpenController {
 
   private async getUser(request: Request): Promise<AuthedUserType | undefined> {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    if (type !== 'Bearer' || !token) return undefined;
+    if (!type && !token) return undefined;
+    if (type !== 'Bearer' || !token) {
+      throw new UnauthorizedException(
+        'Din inloggning har gått ut. Logga in igen.',
+      );
+    }
 
     try {
       const payload: AccessTokenPayload = await this.jwtService.verifyAsync(
@@ -85,7 +110,9 @@ export class BygghjalpenController {
         role: payload.role,
       };
     } catch {
-      return undefined;
+      throw new UnauthorizedException(
+        'Din inloggning har gått ut. Logga in igen.',
+      );
     }
   }
 }
