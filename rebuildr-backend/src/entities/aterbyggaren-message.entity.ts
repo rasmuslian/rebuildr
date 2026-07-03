@@ -42,7 +42,7 @@ export enum AterbyggarenMessageStatus {
   FAILED = 'FAILED',
 }
 
-@Entity('bygghjalpen_message')
+@Entity('aterbyggaren_message')
 export class AterbyggarenMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;

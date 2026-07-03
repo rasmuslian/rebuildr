@@ -1,6 +1,6 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import { Stack } from "expo-router";
 import { LoginModalContext } from "@context/loginModalContext";
 import { use, useEffect } from "react";
@@ -16,10 +16,11 @@ const APP_QUERY = gql`
 
 export default function AppLayout() {
   const { setVisible } = use(LoginModalContext);
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data } = useQuery<AppQueryQuery>(APP_QUERY, {
     fetchPolicy: "network-only",
     variables: {
-      isLoggedIn: isLoggedInVar(),
+      isLoggedIn,
     },
   });
 

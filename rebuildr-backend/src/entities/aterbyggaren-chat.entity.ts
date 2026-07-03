@@ -11,7 +11,7 @@ import {
 import { AterbyggarenMessage } from './aterbyggaren-message.entity';
 import { User } from './user.entity';
 
-@Entity('bygghjalpen_chat')
+@Entity('aterbyggaren_chat')
 export class AterbyggarenChat {
   @PrimaryGeneratedColumn('uuid')
   id: string;
