@@ -180,6 +180,7 @@ export default function AterbyggarenChatPage() {
   const initialQuestionSentRef = useRef(false);
   const activeChatIdRef = useRef<string | undefined>(undefined);
   const activeStreamRef = useRef<ActiveStream | undefined>(undefined);
+  const stableMobileWindowHeightRef = useRef(windowHeight);
   const streamSequenceRef = useRef(0);
   const { pickDocument } = useDocumentHandler();
   const params = useLocalSearchParams<{ question?: string; chatId?: string }>();
@@ -196,6 +197,12 @@ export default function AterbyggarenChatPage() {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string>();
   const [topBarHeight, setTopBarHeight] = useState(0);
+  if (isDesktop || windowHeight > stableMobileWindowHeightRef.current) {
+    stableMobileWindowHeightRef.current = windowHeight;
+  }
+  const pageWindowHeight = isDesktop
+    ? windowHeight
+    : stableMobileWindowHeightRef.current;
 
   const handleTopBarLayout = useCallback((event: LayoutChangeEvent) => {
     setTopBarHeight(event.nativeEvent.layout.height);
@@ -214,8 +221,9 @@ export default function AterbyggarenChatPage() {
   }, []);
 
   const focusChatInput = useCallback(() => {
+    if (!isDesktop) return;
     requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
+  }, [isDesktop]);
 
   const handlePickFile = useCallback(async () => {
     try {
@@ -629,7 +637,7 @@ export default function AterbyggarenChatPage() {
         style={{
           flex: 1,
           backgroundColor: primitives.secondary100,
-          height: windowHeight,
+          height: pageWindowHeight,
           overflow: "hidden",
         }}
       >
@@ -639,7 +647,7 @@ export default function AterbyggarenChatPage() {
         <View
           style={{
             backgroundColor: primitives.secondary100,
-            height: Math.max(windowHeight - topBarHeight, 0),
+            height: Math.max(pageWindowHeight - topBarHeight, 0),
             overflow: "hidden",
           }}
         >
@@ -739,7 +747,7 @@ export default function AterbyggarenChatPage() {
                 <AterbyggarenPromptBox
                   ref={inputRef}
                   attachments={attachments}
-                  autoFocus
+                  autoFocus={isDesktop}
                   bordered
                   compact
                   disabled={
