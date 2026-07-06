@@ -11,6 +11,8 @@ const query = `
         organizationNumber
         organizationApprovedAt
         createdAt
+        creditsafeCheckStatus
+        creditsafeData
       }
       total
     }

@@ -30,8 +30,6 @@ import { GeocodingService } from 'src/services/geocoding.service';
 import { FileService } from 'src/services/file.service';
 import { S3Service } from 'src/services/s3.service';
 import { S3Mock } from './mocks/s3.mock';
-import { SCBAPI } from 'src/apis/scb.api';
-import { SCBAPIMock } from './mocks/scb-api.mock';
 import { Brand } from 'src/entities/brand.entity';
 import { SearchEnrichmentService } from 'src/services/search-enrichment.service';
 
@@ -138,10 +136,6 @@ describe('Product', () => {
         {
           provide: SearchEnrichmentService,
           useValue: mockSearchEnrichmentService,
-        },
-        {
-          provide: SCBAPI,
-          useClass: SCBAPIMock,
         },
       ],
     })

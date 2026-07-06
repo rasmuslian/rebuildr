@@ -13,6 +13,7 @@ type Props = {
   onClose: () => void;
   onCreateListing: () => void;
   isBusiness?: boolean;
+  isApproved?: boolean;
 };
 
 const ContactLink = () => (
@@ -52,6 +53,37 @@ const WelcomeFooter = ({
   </>
 );
 
+const WelcomeSteps = () => (
+  <>
+    <View style={{ gap: 4 }}>
+      <Title size="small" style={{ textAlign: "center" }}>
+        Lägg upp din första annons.
+      </Title>
+      <Body size="medium" style={{ textAlign: "center" }}>
+        När profilen är klar är du redo att börja sälja.
+      </Body>
+    </View>
+    <View style={{ gap: 4 }}>
+      <Title size="small" style={{ textAlign: "center" }}>
+        Komplettera din profil.
+      </Title>
+      <Body size="medium" style={{ textAlign: "center" }}>
+        Lägg till en profilbild och en kort presentation — det ökar tryggheten
+        och dina chanser att sälja.
+      </Body>
+    </View>
+    <View style={{ gap: 4 }}>
+      <Title size="small" style={{ textAlign: "center" }}>
+        Aktivera utbetalningar.
+      </Title>
+      <Body size="medium" style={{ textAlign: "center" }}>
+        Registrera ditt utbetalningskonto hos vår betalpartner Stripe så är du
+        redo att få betalt när du sålt en vara.
+      </Body>
+    </View>
+  </>
+);
+
 const WelcomeContent = () => (
   <View style={{ paddingBottom: 8, flex: 1 }}>
     <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
@@ -64,37 +96,29 @@ const WelcomeContent = () => (
       <Title size="medium" style={{ textAlign: "center" }}>
         Ditt konto är klart — så här kommer du igång.
       </Title>
-      <View style={{ gap: 4 }}>
-        <Title size="small" style={{ textAlign: "center" }}>
-          Lägg upp din första annons.
-        </Title>
-        <Body size="medium" style={{ textAlign: "center" }}>
-          När profilen är klar är du redo att börja sälja.
-        </Body>
-      </View>
-      <View style={{ gap: 4 }}>
-        <Title size="small" style={{ textAlign: "center" }}>
-          Komplettera din profil.
-        </Title>
-        <Body size="medium" style={{ textAlign: "center" }}>
-          Lägg till en profilbild och en kort presentation — det ökar tryggheten
-          och dina chanser att sälja.
-        </Body>
-      </View>
-      <View style={{ gap: 4 }}>
-        <Title size="small" style={{ textAlign: "center" }}>
-          Aktivera utbetalningar.
-        </Title>
-        <Body size="medium" style={{ textAlign: "center" }}>
-          Registrera ditt utbetalningskonto hos vår betalpartner Stripe så är du
-          redo att få betalt när du sålt en vara.
-        </Body>
-      </View>
+      <WelcomeSteps />
     </View>
   </View>
 );
 
-const BusinessWelcomeContent = () => (
+const BusinessApprovedWelcomeContent = () => (
+  <View style={{ paddingBottom: 8, flex: 1 }}>
+    <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
+      <Image source={LogoIconLight} style={{ width: 127, height: 127 }} />
+    </View>
+    <View style={{ gap: 16 }}>
+      <Display size="small" style={{ textAlign: "center" }}>
+        Företagskontot är godkänt!
+      </Display>
+      <Title size="medium" style={{ textAlign: "center" }}>
+        Ditt konto är klart — så här kommer du igång.
+      </Title>
+      <WelcomeSteps />
+    </View>
+  </View>
+);
+
+const BusinessPendingWelcomeContent = () => (
   <View style={{ paddingBottom: 8, flex: 1 }}>
     <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
       <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
@@ -123,14 +147,23 @@ export const WelcomeRegistrationModal = ({
   onClose,
   onCreateListing,
   isBusiness,
+  isApproved,
 }: Props) => {
   const { isDesktop } = useScreenType();
 
-  const title = isBusiness
+  const isPendingBusiness = isBusiness && !isApproved;
+
+  const title = isPendingBusiness
     ? "Skapa ditt nya företagkonto"
     : "Välkommen till RebuildR!";
-  const content = isBusiness ? <BusinessWelcomeContent /> : <WelcomeContent />;
-  const footer = isBusiness ? (
+  const content = !isBusiness ? (
+    <WelcomeContent />
+  ) : isApproved ? (
+    <BusinessApprovedWelcomeContent />
+  ) : (
+    <BusinessPendingWelcomeContent />
+  );
+  const footer = isPendingBusiness ? (
     <ContactLink />
   ) : (
     <WelcomeFooter onCreateListing={onCreateListing} />

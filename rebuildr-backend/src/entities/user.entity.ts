@@ -229,4 +229,7 @@ export class User {
   @ManyToOne(() => Identity, (identity) => identity.users, { nullable: true })
   @JoinColumn()
   identity?: Identity;
+
+  @Column({ nullable: true, type: 'json' })
+  creditsafeData?: JSON;
 }

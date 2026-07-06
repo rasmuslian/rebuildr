@@ -1,25 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { SCBAPI } from 'src/apis/scb.api';
+import { CreditsafeService } from 'src/services/creditsafe.service';
 
 export interface OrganizationData {
   name: string;
   address: string;
   zipCode: string;
   city: string;
+  companyTypeCode?: string;
 }
 
 @Injectable()
 export class OrganizationService {
-  constructor(private scbAPI: SCBAPI) {}
+  constructor(private creditsafeService: CreditsafeService) {}
 
   async lookupOrganizationNumber(
     orgNumber: string,
   ): Promise<OrganizationData | null> {
-    const results = await this.scbAPI.fetchBusiness(orgNumber);
-    const business = results[0];
+    const result = await this.creditsafeService.getBusinessInformation(
+      orgNumber,
+    );
+    const business = result.data?.report;
+    const address = business?.contactInformation?.registeredAddress;
 
-    if (!business) {
-      if (process.env.SCB_DEV_STUB === 'true') {
+    if (!business?.companyName || !address) {
+      if (process.env.CREDITSAFE_DEV_STUB === 'true') {
         return {
           name: `Stub AB (${orgNumber})`,
           address: 'Stubgatan 1',
@@ -31,10 +35,11 @@ export class OrganizationService {
     }
 
     return {
-      name: business.Företagsnamn,
-      address: business.PostAdress,
-      zipCode: business.PostNr,
-      city: business.PostOrt,
+      name: business.companyName,
+      address: address.fullAddress,
+      zipCode: address.zipCode,
+      city: address.town,
+      companyTypeCode: business.companyType?.code,
     };
   }
 }

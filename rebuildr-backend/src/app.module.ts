@@ -130,7 +130,6 @@ import { PageContent } from './entities/page-content.entity';
 import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
 import { AIService } from './services/ai.service';
-import { SCBAPI } from './apis/scb.api';
 import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
@@ -144,14 +143,16 @@ import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
 import { StatisticsResolver } from './resolvers/statistics.resolver';
 import { StatisticsService } from './services/statistics.service';
-import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
-import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
-import { BygghjalpenController } from './controllers/bygghjalpen.controller';
-import { BygghjalpenService } from './services/bygghjalpen.service';
+import { AterbyggarenChat } from './entities/aterbyggaren-chat.entity';
+import { AterbyggarenMessage } from './entities/aterbyggaren-message.entity';
+import { AterbyggarenController } from './controllers/aterbyggaren.controller';
+import { AterbyggarenService } from './services/aterbyggaren.service';
 import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
+import { CreditsafeAPI } from './apis/creditsafe.api';
+import { CreditsafeService } from './services/creditsafe.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -211,8 +212,8 @@ export interface RequestType {
       PageContent,
       Banner,
       NewsletterCompetition,
-      BygghjalpenChat,
-      BygghjalpenMessage,
+      AterbyggarenChat,
+      AterbyggarenMessage,
       Identity,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
@@ -295,7 +296,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [StripWebhookController, BygghjalpenController],
+  controllers: [StripWebhookController, AterbyggarenController],
   providers: [
     {
       provide: APP_FILTER,
@@ -370,7 +371,6 @@ export interface RequestType {
     CO2FactorService,
     CO2FactorResolver,
     BoverketAPI,
-    SCBAPI,
     PageContentService,
     PageContentResolver,
     AIService,
@@ -380,10 +380,12 @@ export interface RequestType {
     NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
-    BygghjalpenService,
+    AterbyggarenService,
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
+    CreditsafeAPI,
+    CreditsafeService,
   ],
 })
 export class AppModule {}

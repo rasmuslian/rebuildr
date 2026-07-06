@@ -1,8 +1,7 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import { Stack } from "expo-router";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { LoginModalContext } from "@context/loginModalContext";
 import { use, useEffect } from "react";
 
@@ -17,10 +16,11 @@ const APP_QUERY = gql`
 
 export default function AppLayout() {
   const { setVisible } = use(LoginModalContext);
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { data } = useQuery<AppQueryQuery>(APP_QUERY, {
     fetchPolicy: "network-only",
     variables: {
-      isLoggedIn: isLoggedInVar(),
+      isLoggedIn,
     },
   });
 
@@ -29,15 +29,6 @@ export default function AppLayout() {
       setVisible(true);
     }
   }, [data?.me?.registrationStatus, setVisible]);
-
-  // Only block on the registration-status check for logged-in users. During
-  // static export (SSR) and on a logged-out client first render, isLoggedInVar()
-  // is false, so we render the Stack immediately — this lets child screens (and
-  // their <RebuildrHead/> metadata) be captured in the static HTML, and keeps
-  // server/client first render identical to avoid hydration mismatches.
-  if (isLoggedInVar() && !data) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -52,7 +43,7 @@ export default function AppLayout() {
       <Stack.Screen name="project" />
       <Stack.Screen name="article" />
       <Stack.Screen name="signup" />
-      <Stack.Screen name="bygghjalpen" />
+      <Stack.Screen name="aterbyggaren" />
     </Stack>
   );
 }
