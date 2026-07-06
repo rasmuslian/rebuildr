@@ -511,6 +511,20 @@ export class StripeService {
     return payoutAmount;
   }
 
+  //https://docs.stripe.com/connect/account-balances
+  async getBalance(connectedAccountId: string) {
+    const balance = await this.stripe.balance.retrieve({
+      stripeAccount: connectedAccountId,
+    });
+    const sum = (amounts: { amount: number }[]) =>
+      amounts.reduce((total, entry) => total + entry.amount, 0);
+
+    return {
+      available: sum(balance.available) / 100,
+      pending: sum(balance.pending) / 100,
+    };
+  }
+
   //Fund become available for payout on a 3-day rolling basis after transfer to connected account
   //https://docs.stripe.com/connect/account-balances
   async payoutAvailable(connectedAccountId: string, paymentIntentId: string) {

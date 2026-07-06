@@ -198,6 +198,7 @@ type User {
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
+  balance: StripeBalance
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
@@ -748,6 +749,11 @@ type PayoutAccount {
   routingNumber: String
   last4: String
   bankName: String
+}
+
+type StripeBalance {
+  available: Float!
+  pending: Float!
 }
 
 type OnboardSellerAccountResponse {
