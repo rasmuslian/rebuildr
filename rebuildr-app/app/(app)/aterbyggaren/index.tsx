@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import {
   Image,
   Pressable,
+  ScrollView,
   Text,
   useWindowDimensions,
   View,
@@ -141,97 +142,105 @@ export default function AterbyggarenLandingPage() {
             parentHeight={pageHeight}
             parentWidth={windowWidth}
           />
-          <View
-            style={{
-              alignSelf: "center",
-              maxWidth: 640,
-              paddingHorizontal: isDesktop ? 0 : horizontalPadding.mobile,
-              paddingTop: isDesktop ? 58 : 55,
-              position: "relative",
-              width: "100%",
-              zIndex: 1,
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1, zIndex: 1 }}
+            contentContainerStyle={{
+              alignItems: "center",
+              minHeight: pageHeight,
+              paddingBottom: isDesktop ? 40 : 32,
             }}
           >
-            <Headline
-              size={isDesktop ? "large" : "large"}
-              heading={1}
-              style={{
-                color: primitives.primary200,
-                textAlign: isDesktop ? "center" : "left",
-              }}
-            >
-              Återbyggaren{" "}
-              <Text style={{ color: primitives.primary400 }}>
-                visar hur mycket av ditt projekt du kan bygga återbrukat
-              </Text>
-            </Headline>
-
-            <Body
-              size={isDesktop ? "large" : "medium"}
-              style={{
-                color: primitives.primary200,
-                marginTop: isDesktop ? 23 : 20,
-                maxWidth: 640,
-                textAlign: isDesktop ? "center" : "left",
-              }}
-            >
-              Beskriv ditt projekt. Återbyggaren guidar dig kring vad du ska
-              bygga, vilka material du behöver – och hur mycket som finns
-              återbrukat på RebuildR nära dig.
-            </Body>
-
-            <AterbyggarenPromptBox
-              attachments={attachments}
-              value={question}
-              onChangeText={setQuestion}
-              onPickFile={handlePickFile}
-              onRemoveAttachment={handleRemoveAttachment}
-              onSubmit={() => openChat(question, attachments)}
-              style={{ marginTop: isDesktop ? 30 : 12 }}
-            />
-
-            {error && (
-              <Body
-                size="small"
-                color="error"
-                style={{ marginTop: isDesktop ? 8 : 10 }}
-              >
-                {error}
-              </Body>
-            )}
-
             <View
               style={{
-                backgroundColor: colors.dividers.primary,
-                height: 1,
-                marginTop: isDesktop ? 23 : 33,
+                maxWidth: 640,
+                paddingHorizontal: isDesktop ? 0 : horizontalPadding.mobile,
+                paddingTop: isDesktop ? 58 : 55,
                 width: "100%",
               }}
-            />
-
-            <View style={{ marginTop: 14 }}>
-              <Label size="small" style={{ color: colors.dividers.primary }}>
-                Exempel på frågor till Återbyggaren:
-              </Label>
-              <View
+            >
+              <Headline
+                size={isDesktop ? "large" : "large"}
+                heading={1}
                 style={{
-                  alignItems: isDesktop ? "flex-start" : "center",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: isDesktop ? 12 : 11,
-                  marginTop: isDesktop ? 9 : 13,
+                  color: primitives.primary200,
+                  textAlign: isDesktop ? "center" : "left",
                 }}
               >
-                {questionExamples.map((example) => (
-                  <QuestionChip
-                    key={example}
-                    text={example}
-                    onPress={() => openChat(example, attachments)}
-                  />
-                ))}
+                Återbyggaren{" "}
+                <Text style={{ color: primitives.primary400 }}>
+                  visar hur mycket av ditt projekt du kan bygga återbrukat
+                </Text>
+              </Headline>
+
+              <Body
+                size={isDesktop ? "large" : "medium"}
+                style={{
+                  color: primitives.primary200,
+                  marginTop: isDesktop ? 23 : 20,
+                  maxWidth: 640,
+                  textAlign: isDesktop ? "center" : "left",
+                }}
+              >
+                Beskriv ditt projekt. Återbyggaren guidar dig kring vad du ska
+                bygga, vilka material du behöver – och hur mycket som finns
+                återbrukat på RebuildR nära dig.
+              </Body>
+
+              <AterbyggarenPromptBox
+                attachments={attachments}
+                value={question}
+                onChangeText={setQuestion}
+                onPickFile={handlePickFile}
+                onRemoveAttachment={handleRemoveAttachment}
+                onSubmit={() => openChat(question, attachments)}
+                style={{ marginTop: isDesktop ? 30 : 12 }}
+              />
+
+              {error && (
+                <Body
+                  size="small"
+                  color="error"
+                  style={{ marginTop: isDesktop ? 8 : 10 }}
+                >
+                  {error}
+                </Body>
+              )}
+
+              <View
+                style={{
+                  backgroundColor: colors.dividers.primary,
+                  height: 1,
+                  marginTop: isDesktop ? 23 : 33,
+                  width: "100%",
+                }}
+              />
+
+              <View style={{ marginTop: 14 }}>
+                <Label size="small" style={{ color: colors.dividers.primary }}>
+                  Exempel på frågor till Återbyggaren:
+                </Label>
+                <View
+                  style={{
+                    alignItems: isDesktop ? "flex-start" : "center",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: isDesktop ? 12 : 11,
+                    marginTop: isDesktop ? 9 : 13,
+                  }}
+                >
+                  {questionExamples.map((example) => (
+                    <QuestionChip
+                      key={example}
+                      text={example}
+                      onPress={() => openChat(example, attachments)}
+                    />
+                  ))}
+                </View>
               </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </View>
     </>
