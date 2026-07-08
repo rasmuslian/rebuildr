@@ -1,5 +1,5 @@
 import { ProductStatusEnum } from "@/gql/graphql";
-import { gql, useLazyQuery, useQuery } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useEditProductContext } from "@context/edit-product-context";
@@ -11,6 +11,7 @@ import { useContext, useEffect } from "react";
 import { View } from "react-native";
 import { trackEvent } from "@/utils/analytics";
 import { GTMTagEnum } from "@constants/google-tag-manager";
+import { BuyerProtectionLine } from "@components/buyers-protection/buyer-protection-line";
 
 const ACTION_SECTION_REDIRECT = gql`
   query ActionSectionRedirect($input: MyPurchaseInput!) {
@@ -142,6 +143,9 @@ export const ActionSection = ({
               disabled={buyButtonDisabled}
             />
           )}
+          {status === ProductStatusEnum.Published &&
+            !isUpcoming &&
+            isMobile && <BuyerProtectionLine />}
           <Button
             label="Kontakta säljaren"
             type="tonal"
