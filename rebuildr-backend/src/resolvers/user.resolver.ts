@@ -519,6 +519,14 @@ export class UserResolver {
     return await userLoaders.ratingLoader.load(user.id);
   }
 
+  @ResolveField(() => Int)
+  async reviewCount(
+    @Parent() user: User,
+    @Context('userLoaders') userLoaders: IUserLoaders,
+  ) {
+    return await userLoaders.reviewCountLoader.load(user.id);
+  }
+
   @ResolveField(() => ProductsResponse, { nullable: true })
   async likedProducts(
     @Parent() user: User,

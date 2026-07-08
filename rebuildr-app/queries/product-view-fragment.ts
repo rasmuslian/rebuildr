@@ -126,6 +126,8 @@ export const PRODUCT_VIEW_FRAGMENT = gql`
       type
       username
       rating
+      reviewCount
+      createdAt
       numberOfPublishedProducts
       numberOfSoldProducts
       profilePicture {
