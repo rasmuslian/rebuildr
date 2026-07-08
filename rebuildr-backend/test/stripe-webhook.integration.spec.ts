@@ -351,7 +351,10 @@ describe('Stripe webhook', () => {
     });
     expect(purchaseRepository.update).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'purchase-5' }),
-      expect.objectContaining({ failedAt: expect.any(Date), refundId: 're_123' }),
+      expect.objectContaining({
+        failedAt: expect.any(Date),
+        refundId: 're_123',
+      }),
     );
   });
 
