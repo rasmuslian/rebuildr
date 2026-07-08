@@ -37,6 +37,7 @@ type Props = PropsWithChildren<{
   stackBehavior?: BottomSheetModalStackBehavior;
   open: boolean;
   containerStyle?: ViewStyle;
+  backgroundColor?: string;
 }>;
 
 export const BottomSheet = ({
@@ -53,12 +54,14 @@ export const BottomSheet = ({
   open,
   stackBehavior = "push",
   containerStyle,
+  backgroundColor,
 }: Props) => {
   const safeArea = useSafeAreaInsets();
   const innerRef = useRef<BottomSheetModal>(
     null,
   ) as React.RefObject<BottomSheetModalMethods>;
   const colors = useThemeColor();
+  const sheetBackgroundColor = backgroundColor ?? colors.background.neutral;
   const topBorderRadius = useSharedValue(28);
 
   useEffect(() => {
@@ -137,7 +140,7 @@ export const BottomSheet = ({
           style={[
             animatedBorderRadiusStyle,
             {
-              backgroundColor: colors.background.neutral,
+              backgroundColor: sheetBackgroundColor,
               position: "absolute",
               inset: 0,
             },
@@ -177,7 +180,7 @@ export const BottomSheet = ({
               style={[
                 animatedBorderRadiusStyle,
                 {
-                  backgroundColor: colors.background.neutral,
+                  backgroundColor: sheetBackgroundColor,
                   paddingHorizontal: noPaddingHorizontal ? 0 : 16,
                   flex: 1,
                 },
@@ -215,7 +218,7 @@ export const BottomSheet = ({
             style={[
               animatedBorderRadiusStyle,
               {
-                backgroundColor: colors.background.neutral,
+                backgroundColor: sheetBackgroundColor,
                 paddingHorizontal: noPaddingHorizontal ? 0 : 16,
               },
             ]}
