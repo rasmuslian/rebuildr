@@ -381,6 +381,17 @@ export class UserService {
     );
   }
 
+  async getBalance(user: User, currentUserId: string) {
+    if (user.id !== currentUserId) {
+      throw ForbiddenException();
+    }
+    if (!user.connectedAccountId) {
+      return null;
+    }
+
+    return await this.stripeService.getBalance(user.connectedAccountId);
+  }
+
   async getSellerAccount(user: User, currentUserId: string) {
     if (user.id !== currentUserId) {
       throw ForbiddenException();

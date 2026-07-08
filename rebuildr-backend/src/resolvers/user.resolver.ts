@@ -213,6 +213,15 @@ export class PayoutAccount {
   bankName?: string;
 }
 
+@ObjectType()
+export class StripeBalance {
+  @Field(() => Number)
+  available: number;
+
+  @Field(() => Number)
+  pending: number;
+}
+
 @InputType()
 export class RecommendedProductsInput {
   @Field(() => ProductsRecommendationSourceEnum)
@@ -549,6 +558,15 @@ export class UserResolver {
   @UseGuards(GqlAuthGuard)
   async payoutAccount(@Parent() user: User) {
     return await this.userService.getPayoutAccount(user.id);
+  }
+
+  @ResolveField(() => StripeBalance, { nullable: true })
+  @UseGuards(GqlAuthGuard)
+  async balance(
+    @Parent() user: User,
+    @CurrentUser() currentUser: AuthedUserType,
+  ) {
+    return await this.userService.getBalance(user, currentUser.id);
   }
 
   @ResolveField(() => [Product])
