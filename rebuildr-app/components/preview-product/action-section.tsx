@@ -7,11 +7,10 @@ import { LoginModalContext } from "@context/loginModalContext";
 import { useScreenType } from "@hooks/useScreenType";
 import { useUser } from "@hooks/useUser";
 import { router, useLocalSearchParams } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { View } from "react-native";
 import { trackEvent } from "@/utils/analytics";
 import { GTMTagEnum } from "@constants/google-tag-manager";
-import { VerifyMeBottomSheet } from "@components/verify-me/verify-me-bottomsheet";
 
 const ACTION_SECTION_REDIRECT = gql`
   query ActionSectionRedirect($input: MyPurchaseInput!) {
@@ -41,8 +40,7 @@ export const ActionSection = ({
   isUpcoming,
   onRemovePress,
 }: Props) => {
-  const [showVerifyMe, setShowVerifyMe] = useState(false);
-  const { me, isLoggedIn, refetch: refetchMe, loading: loadingMe } = useUser();
+  const { me, isLoggedIn, loading: loadingMe } = useUser();
   const { setVisible } = useContext(LoginModalContext);
   const { editProduct } = useEditProductContext();
   const { isMobile } = useScreenType();
@@ -127,10 +125,6 @@ export const ActionSection = ({
                   return;
                 }
                 if (!me) return;
-                if (!me.isVerified) {
-                  setShowVerifyMe(true);
-                  return;
-                }
                 if (isMobile) {
                   router.navigate({
                     pathname: "/buy/[productId]",
@@ -165,18 +159,6 @@ export const ActionSection = ({
           />
         </>
       )}
-      <VerifyMeBottomSheet
-        show={showVerifyMe}
-        onDismiss={() => setShowVerifyMe(false)}
-        onResult={async () => {
-          setShowVerifyMe(false);
-          await refetchMe();
-          router.navigate({
-            pathname: "/buy/[productId]",
-            params: { productId, quantity },
-          });
-        }}
-      />
     </View>
   );
 };

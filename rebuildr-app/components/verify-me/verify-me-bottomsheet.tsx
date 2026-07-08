@@ -6,16 +6,34 @@ import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useBankIdVerify } from "@hooks/useBankIdVerify";
-import { View } from "react-native";
+import { useEffect } from "react";
+import { Platform, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 type Props = {
   show: boolean;
   onDismiss: () => void;
   onResult: () => void;
+  context?: "buy" | "publish";
 };
 
-export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
+const introCopy = {
+  buy: {
+    title: "Verifiera dig för att slutföra köpet",
+    body: "För att genomföra köp på RebuildR behöver du verifiera dig med BankID. Det gör att alla affärer sker mellan verifierade användare.",
+  },
+  publish: {
+    title: "Verifiera dig för att publicera",
+    body: "För att publicera annonser på RebuildR behöver du verifiera dig med BankID. Det gör att alla affärer sker mellan verifierade användare.",
+  },
+};
+
+export const VerifyMeBottomSheet = ({
+  show,
+  onDismiss,
+  onResult,
+  context = "buy",
+}: Props) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const {
@@ -33,17 +51,29 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
     onDismiss();
   };
 
+  useEffect(() => {
+    if (!show || Platform.OS !== "web") {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleDismiss();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [show]);
+
   const content = (
     <>
       {step === "idle" && (
         <>
           <Display size="small" style={{ marginBottom: 24 }}>
-            Verifiera dig för att slutföra köpet
+            {introCopy[context].title}
           </Display>
 
           <Body size="medium" style={{ marginBottom: 32 }}>
-            För att genomföra köp på RebuildR behöver du verifiera dig med
-            BankID. Det gör att alla affärer sker mellan verifierade användare.
+            {introCopy[context].body}
           </Body>
 
           <View
@@ -140,7 +170,12 @@ export const VerifyMeBottomSheet = ({ show, onDismiss, onResult }: Props) => {
   if (isDesktop) {
     return (
       <Popup open={show} onClose={handleDismiss}>
-        <View style={{ padding: 24 }}>{content}</View>
+        <View style={{ padding: 24 }}>
+          <View style={{ alignItems: "flex-end", marginBottom: 8 }}>
+            <Button icon="X" onPress={handleDismiss} type="text" />
+          </View>
+          {content}
+        </View>
       </Popup>
     );
   }

@@ -44,7 +44,6 @@ export const VerifyBankId = ({ onSuccess }: Props) => {
               <Body size="small">
                 • Vi kontrollerar dina firmatecknarrättigheter hos Creditsafe
               </Body>
-              {/* <Body size="small">• Personnummer hashas, ej i klartext</Body> */}
             </View>
           </View>
           <View style={{ gap: 8 }}>
