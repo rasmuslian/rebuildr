@@ -914,6 +914,73 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
+type CmsRevenueStatisticsDataPoint {
+  date: String!
+  total: Float!
+}
+
+type CmsRevenueStatisticsResponse {
+  data: [CmsRevenueStatisticsDataPoint!]!
+}
+
+type CmsAverageOrderValueStatisticsDataPoint {
+  date: String!
+  average: Float!
+}
+
+type CmsAverageOrderValueStatisticsResponse {
+  data: [CmsAverageOrderValueStatisticsDataPoint!]!
+}
+
+type CmsActiveListingsByCategoryDataPoint {
+  category: String!
+  count: Int!
+}
+
+type CmsActiveListingsByCategoryResponse {
+  data: [CmsActiveListingsByCategoryDataPoint!]!
+}
+
+type CmsCo2SavingsStatisticsDataPoint {
+  date: String!
+  total: Float!
+}
+
+type CmsCo2SavingsStatisticsResponse {
+  data: [CmsCo2SavingsStatisticsDataPoint!]!
+}
+
+type CmsRepeatBuyerRateStatisticsDataPoint {
+  date: String!
+  total: Int!
+  repeat: Int!
+  percent: Float!
+}
+
+type CmsRepeatBuyerRateStatisticsResponse {
+  data: [CmsRepeatBuyerRateStatisticsDataPoint!]!
+}
+
+type CmsPurchaseFailureRateStatisticsDataPoint {
+  date: String!
+  total: Int!
+  failed: Int!
+  percent: Float!
+}
+
+type CmsPurchaseFailureRateStatisticsResponse {
+  data: [CmsPurchaseFailureRateStatisticsDataPoint!]!
+}
+
+type CmsAverageTimeToPublishStatisticsDataPoint {
+  date: String!
+  averageDays: Float!
+}
+
+type CmsAverageTimeToPublishStatisticsResponse {
+  data: [CmsAverageTimeToPublishStatisticsDataPoint!]!
+}
+
 type InitBankIDVerifyResponse {
   orderRef: String!
   autoStartToken: String!
@@ -1000,6 +1067,13 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  cmsRevenueStatistics(input: CmsRevenueStatisticsInput): CmsRevenueStatisticsResponse!
+  cmsAverageOrderValueStatistics(input: CmsAverageOrderValueStatisticsInput): CmsAverageOrderValueStatisticsResponse!
+  cmsActiveListingsByCategoryStatistics: CmsActiveListingsByCategoryResponse!
+  cmsCo2SavingsStatistics(input: CmsCo2SavingsStatisticsInput): CmsCo2SavingsStatisticsResponse!
+  cmsRepeatBuyerRateStatistics(input: CmsRepeatBuyerRateStatisticsInput): CmsRepeatBuyerRateStatisticsResponse!
+  cmsPurchaseFailureRateStatistics(input: CmsPurchaseFailureRateStatisticsInput): CmsPurchaseFailureRateStatisticsResponse!
+  cmsAverageTimeToPublishStatistics(input: CmsAverageTimeToPublishStatisticsInput): CmsAverageTimeToPublishStatisticsResponse!
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
 }
 
@@ -1287,6 +1361,30 @@ input CmsUserStatisticsInput {
 }
 
 input CmsPurchaseStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsRevenueStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsAverageOrderValueStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsCo2SavingsStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsRepeatBuyerRateStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPurchaseFailureRateStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsAverageTimeToPublishStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
 
