@@ -12,50 +12,50 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  getProductStatistics,
-  ProductStatisticsGroupBy,
-} from "@/queries/product/product-statistics";
+import { getCo2SavingsStatistics } from "@/queries/statistics/co2-savings-statistics";
+import { StatisticsGroupBy } from "@/queries/statistics/user-statistics";
 
-const GROUP_BY_OPTIONS: { label: string; value: ProductStatisticsGroupBy }[] = [
+const GROUP_BY_OPTIONS: { label: string; value: StatisticsGroupBy }[] = [
   { label: "Dag", value: "day" },
   { label: "Vecka", value: "week" },
   { label: "Månad", value: "month" },
 ];
 
-const formatDate = (date: string, groupBy: ProductStatisticsGroupBy) => {
+const formatDate = (date: string, groupBy: StatisticsGroupBy) => {
   const d = new Date(date);
-  if (groupBy === "day") {
-    return d.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
+  if (groupBy === "month") {
+    return d.toLocaleDateString("sv-SE", { year: "numeric", month: "short" });
   }
-  if (groupBy === "week") {
-    return d.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
-  }
-  return d.toLocaleDateString("sv-SE", { year: "numeric", month: "short" });
+  return d.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
 };
 
-const ProductStatisticsChart = () => {
-  const [groupBy, setGroupBy] = useState<ProductStatisticsGroupBy>("month");
+const formatKg = (value: number) =>
+  `${new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(
+    value,
+  )} kg`;
+
+const Co2SavingsStatisticsChart = () => {
+  const [groupBy, setGroupBy] = useState<StatisticsGroupBy>("month");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["product-statistics", groupBy],
-    queryFn: () => getProductStatistics(groupBy),
+    queryKey: ["co2-savings-statistics", groupBy],
+    queryFn: () => getCo2SavingsStatistics(groupBy),
   });
 
   const chartData =
     data?.data.map((point) => ({
       date: formatDate(point.date, groupBy),
-      count: point.count,
+      total: point.total,
     })) ?? [];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h4 className="m-0 text-base font-medium">Annonser skapade över tid</h4>
+        <h4 className="m-0 text-base font-medium">CO2-besparing över tid</h4>
         <Segmented
           options={GROUP_BY_OPTIONS}
           value={groupBy}
-          onChange={(value) => setGroupBy(value as ProductStatisticsGroupBy)}
+          onChange={(value) => setGroupBy(value as StatisticsGroupBy)}
         />
       </div>
 
@@ -71,12 +71,12 @@ const ProductStatisticsChart = () => {
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={formatKg} />
             <Tooltip
-              formatter={(value) => [value, "Produkter"]}
+              formatter={(value) => [formatKg(Number(value)), "CO2-besparing"]}
               labelStyle={{ fontWeight: 600 }}
             />
-            <Bar dataKey="count" fill="#1677ff" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="total" fill="#008300" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -84,4 +84,4 @@ const ProductStatisticsChart = () => {
   );
 };
 
-export default ProductStatisticsChart;
+export default Co2SavingsStatisticsChart;
