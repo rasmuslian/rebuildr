@@ -40,7 +40,7 @@ export const CO2Savings = ({ co2SavingSeller }: Props) => {
         <Body size="small">
           Cirka 90–99% lägre än en ny vara. Siffran visar nyproduktionens
           utsläpp (A1–A3, Boverkets klimatdatabas) som du undviker genom att
-          köpa begagnat.
+          köpa återbrukat.
         </Body>
         <Body size="small" onPress={() => setShowExplanation(true)}>
           Läs mer hur vi räknar
