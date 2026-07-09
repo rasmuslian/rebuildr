@@ -40,7 +40,7 @@ export const SingleDelivery = ({
   productId,
   quantity,
 }: Props) => {
-  const { submitDelivery } = useSubmitSummary({ quantity });
+  const { submitDelivery, verifyMeSheet } = useSubmitSummary({ quantity });
   const colors = useThemeColor();
   const [address, setAddress] = useState("");
   const [deliveryOption, setDeliveryOption] =
@@ -185,6 +185,7 @@ export const SingleDelivery = ({
           />
         )}
       </View>
+      {verifyMeSheet}
     </View>
   );
 };

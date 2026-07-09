@@ -27,7 +27,7 @@ export const BuyersProtection = () => {
       </View>
       <Body
         size="small"
-        link={{ pathname: "/article/[slug]", params: { slug: "sakerhet" } }}
+        link={{ pathname: "/article/[slug]", params: { slug: "saekerhet" } }}
       >
         Läs hur vårt köparskydd fungerar.
       </Body>

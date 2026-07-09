@@ -193,6 +193,7 @@ type User {
   purchases: [Purchase!]!
   sales: [Purchase!]!
   rating: Float
+  reviewCount: Int!
   likedProducts(offset: Int, limit: Int): ProductsResponse
   likedProjects: [Project!]
   location: LocationResponse

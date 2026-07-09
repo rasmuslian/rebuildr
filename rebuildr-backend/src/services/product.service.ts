@@ -1460,6 +1460,12 @@ export class ProductService {
         ...measurement,
       });
 
+      const co2 = await this.getProductCO2(product);
+      if (co2) {
+        product.co2SavingSeller = co2.co2SavingSeller;
+        product.co2SavingBuyer = co2.co2SavingBuyer;
+      }
+
       await this.enrichProductSearchMetadata(product, {
         searchAliases: input.searchAliases,
         searchRelatedTerms: input.searchRelatedTerms,
@@ -1549,6 +1555,12 @@ export class ProductService {
         ...rest,
         ...measurement,
       });
+
+      const co2 = await this.getProductCO2(product);
+      if (co2) {
+        product.co2SavingSeller = co2.co2SavingSeller;
+        product.co2SavingBuyer = co2.co2SavingBuyer;
+      }
 
       await this.enrichProductSearchMetadata(product, {
         searchAliases: input.searchAliases,

@@ -21,7 +21,8 @@ import {
   BannersQuery,
 } from "@/gql/graphql";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Href, Link } from "expo-router";
+import { Link } from "expo-router";
+import { resolveCmsHref } from "@/utils/resolve-cms-href";
 
 const BANNERS = gql`
   query Banners {
@@ -192,7 +193,7 @@ const BannerWrapper = ({ banner, children }: BannerWrapperProps) => {
     );
   }
   if (banner.url) {
-    return <Link href={banner.url as Href}>{children}</Link>;
+    return <Link href={resolveCmsHref(banner.url)}>{children}</Link>;
   }
   return <View>{children}</View>;
 };
