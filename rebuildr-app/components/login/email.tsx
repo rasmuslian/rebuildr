@@ -1,7 +1,6 @@
 import { Button } from "@components/buttons/button";
 import { Form } from "@components/forms/form";
-import { Body, Display } from "@components/typography/text";
-import { useScreenType } from "@hooks/useScreenType";
+import { Body, Display, Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -32,7 +31,6 @@ export default function Email({
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState(false);
   const colors = useThemeColor();
-  const { isDesktop } = useScreenType();
 
   const isEmailValid = z.string().email().safeParse(email).success;
   const canLogin = isEmailValid && password.length > 0;
@@ -46,54 +44,68 @@ export default function Email({
   };
 
   return (
-    <View style={{ gap: isDesktop ? 24 : 16 }}>
-      <Display size="small">Logga in</Display>
-      <Form
-        style={{ gap: 24 }}
-        fields={[
-          {
-            type: "text",
-            heading: "E-postadress",
-            value: email,
-            onChangeText: (text) => {
-              if (emailError) setEmailError(false);
-              setEmail(text);
+    <View style={{ gap: 32 }}>
+      <View style={{ gap: 16, marginVertical: 16 }}>
+        <Display size="small" style={{ textAlign: "center" }}>
+          Logga in
+        </Display>
+        <Title size="medium" style={{ textAlign: "center" }}>
+          Välkommen till Sveriges marknadsplats för återbrukat byggmaterial &
+          verktyg{" "}
+        </Title>
+      </View>
+      <View style={{ gap: 12 }}>
+        <Form
+          style={{ gap: 24 }}
+          fields={[
+            {
+              type: "text",
+              heading: "E-postadress",
+              value: email,
+              onChangeText: (text) => {
+                if (emailError) setEmailError(false);
+                setEmail(text);
+              },
+              error: emailError ? "Felaktig e-postadress" : undefined,
             },
-            error: emailError ? "Felaktig e-postadress" : undefined,
-          },
-          {
-            type: "masked",
-            heading: "Lösenord",
-            value: password,
-            onChangeText: setPassword,
-            error: wrongPassword ? "Felaktig epost eller lösenord" : undefined,
-          },
-        ]}
-      />
-      <Pressable onPress={() => onForgotPassword(email)}>
-        <Body
-          color="link"
-          size="small"
-          style={{
-            textDecorationLine: "underline",
-            textDecorationColor: colors.text.link,
-          }}
-        >
-          Har du glömt lösenordet?
-        </Body>
-      </Pressable>
-      <Button
-        label="Logga in"
-        onPress={handleLogin}
-        loading={loading}
-        disabled={!canLogin}
-      />
-      {pendingApproval && (
-        <Body size="small" color="error" style={{ textAlign: "center" }}>
-          Ditt företagskonto väntar på godkännande. Du får ett mejl när kontot
-          är godkänt.
-        </Body>
-      )}
+            {
+              type: "masked",
+              heading: "Lösenord",
+              value: password,
+              onChangeText: setPassword,
+              error: wrongPassword
+                ? "Felaktig epost eller lösenord"
+                : undefined,
+            },
+          ]}
+        />
+        <Pressable onPress={() => onForgotPassword(email)}>
+          <Body
+            color="link"
+            size="small"
+            style={{
+              textDecorationLine: "underline",
+              textDecorationColor: colors.text.link,
+            }}
+          >
+            Har du glömt lösenordet?
+          </Body>
+        </Pressable>
+      </View>
+      <View style={{ gap: 16 }}>
+        <Button
+          label="Logga in"
+          onPress={handleLogin}
+          loading={loading}
+          disabled={!canLogin}
+        />
+        {pendingApproval && (
+          <Body size="small" color="error" style={{ textAlign: "center" }}>
+            Ditt företagskonto väntar på godkännande. Du får ett mejl när kontot
+            är godkänt.
+          </Body>
+        )}
+      </View>
       <View
         style={{
           flexDirection: "row",
@@ -120,7 +132,7 @@ export default function Email({
           }}
         />
       </View>
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: 24 }}>
         <Button
           type="outlined"
           label="Skapa ett privat konto"

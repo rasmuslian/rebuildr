@@ -7,7 +7,10 @@ import {
 import { gql, useMutation } from "@apollo/client";
 import { useBuyModalContext } from "@context/buy-modal-context";
 import { useScreenType } from "@hooks/useScreenType";
+import { useUser } from "@hooks/useUser";
+import { VerifyMeBottomSheet } from "@components/verify-me/verify-me-bottomsheet";
 import { router } from "expo-router";
+import { useRef, useState } from "react";
 
 const SUMMARY_CREATE_FREE_PURCHASE = gql`
   mutation SummaryCreateFreePurchase($input: PurchaseProductInput!) {
@@ -27,6 +30,32 @@ export const useSubmitSummary = ({ quantity }: { quantity?: number }) => {
   >(SUMMARY_CREATE_FREE_PURCHASE);
   const { isDesktop } = useScreenType();
   const { setContent } = useBuyModalContext();
+  const { me, refetch: refetchMe } = useUser();
+  const [showVerifyMe, setShowVerifyMe] = useState(false);
+  const pendingAction = useRef<(() => void) | null>(null);
+
+  const runVerified = (action: () => void) => {
+    if (!me?.isVerified) {
+      pendingAction.current = action;
+      setShowVerifyMe(true);
+      return;
+    }
+    action();
+  };
+
+  const verifyMeSheet = (
+    <VerifyMeBottomSheet
+      show={showVerifyMe}
+      context="buy"
+      onDismiss={() => setShowVerifyMe(false)}
+      onResult={async () => {
+        setShowVerifyMe(false);
+        await refetchMe();
+        pendingAction.current?.();
+        pendingAction.current = null;
+      }}
+    />
+  );
 
   const handleFree = (
     productId: string,
@@ -89,20 +118,24 @@ export const useSubmitSummary = ({ quantity }: { quantity?: number }) => {
   };
 
   const submitPickup = (productId: string, price: number) => {
-    if (price === 0) {
-      return handleFree(productId, TransportationEnum.Pickup);
-    }
+    runVerified(() => {
+      if (price === 0) {
+        return handleFree(productId, TransportationEnum.Pickup);
+      }
 
-    navigateToPayment(productId, {
-      transportationMethod: "pickup",
-      quantity: quantity ? quantity.toString() : undefined,
+      navigateToPayment(productId, {
+        transportationMethod: "pickup",
+        quantity: quantity ? quantity.toString() : undefined,
+      });
     });
   };
   const submitShipping = (productId: string, servicePointId: string) => {
-    navigateToPayment(productId, {
-      transportationMethod: "shipping",
-      servicePointId,
-      quantity: quantity ? quantity.toString() : undefined,
+    runVerified(() => {
+      navigateToPayment(productId, {
+        transportationMethod: "shipping",
+        servicePointId,
+        quantity: quantity ? quantity.toString() : undefined,
+      });
     });
   };
   const submitDelivery = (
@@ -112,18 +145,20 @@ export const useSubmitSummary = ({ quantity }: { quantity?: number }) => {
     lng: number,
     address: string,
   ) => {
-    if (price === 0) {
-      return handleFree(productId, TransportationEnum.Delivery, {
-        lat,
-        lng,
-        address,
+    runVerified(() => {
+      if (price === 0) {
+        return handleFree(productId, TransportationEnum.Delivery, {
+          lat,
+          lng,
+          address,
+        });
+      }
+      navigateToPayment(productId, {
+        transportationMethod: "delivery",
+        deliverToLocation: `${lat},${lng}`,
+        deliverToAddress: address,
+        quantity: quantity ? quantity.toString() : undefined,
       });
-    }
-    navigateToPayment(productId, {
-      transportationMethod: "delivery",
-      deliverToLocation: `${lat},${lng}`,
-      deliverToAddress: address,
-      quantity: quantity ? quantity.toString() : undefined,
     });
   };
 
@@ -131,5 +166,6 @@ export const useSubmitSummary = ({ quantity }: { quantity?: number }) => {
     submitPickup,
     submitShipping,
     submitDelivery,
+    verifyMeSheet,
   };
 };

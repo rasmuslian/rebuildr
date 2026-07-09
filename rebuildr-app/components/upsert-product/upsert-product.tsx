@@ -1076,6 +1076,7 @@ export const UpsertProduct = ({
         )}
         <VerifyMeBottomSheet
           show={showVerifyMe}
+          context="publish"
           onDismiss={() => setShowVerifyMe(false)}
           onResult={async () => {
             setShowVerifyMe(false);
@@ -1119,6 +1120,7 @@ export const UpsertProduct = ({
       )}
       <VerifyMeBottomSheet
         show={showVerifyMe}
+        context="publish"
         onDismiss={() => setShowVerifyMe(false)}
         onResult={async () => {
           setShowVerifyMe(false);

@@ -209,6 +209,8 @@ export const ProductMobile = ({
           }
         />
         <Divider />
+        <BuyersProtection />
+        <Divider />
         <AllImages images={product.images} />
         {approximatePlace &&
           product.pickupEnabled &&
@@ -240,7 +242,6 @@ export const ProductMobile = ({
             }
           }}
         />
-        <BuyersProtection />
         <UserSection product={product} />
         <Divider />
         {product.project && (

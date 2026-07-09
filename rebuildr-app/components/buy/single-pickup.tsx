@@ -32,7 +32,7 @@ type Props = {
   quantity?: number;
 };
 export const SinglePickup = ({ productId, quantity }: Props) => {
-  const { submitPickup } = useSubmitSummary({ quantity });
+  const { submitPickup, verifyMeSheet } = useSubmitSummary({ quantity });
   const { data } = useQuery<
     SinglePickupOptionQuery,
     SinglePickupOptionQueryVariables
@@ -94,6 +94,7 @@ export const SinglePickup = ({ productId, quantity }: Props) => {
         }}
         bottomText="Du hämtar varan inom 7 dagar."
       />
+      {verifyMeSheet}
     </View>
   );
 };
