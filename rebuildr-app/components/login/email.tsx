@@ -50,7 +50,8 @@ export default function Email({
           Logga in
         </Display>
         <Title size="medium" style={{ textAlign: "center" }}>
-          Välkommen till Sveriges marknadsplats för återbrukat byggmaterial{" "}
+          Välkommen till Sveriges marknadsplats för återbrukat byggmaterial &
+          verktyg{" "}
         </Title>
       </View>
       <View style={{ gap: 12 }}>
