@@ -9,6 +9,7 @@
     "web": "op run --env-file=\".env.local.1p\" -- expo start --web",
     "lint": "eslint . ",
     "codegen": "graphql-codegen --config codegen.ts",
+    "postinstall": "patch-package",
     "generate-sitemap": "tsx scripts/generate-sitemap.ts",
     "build:web": "op run --env-file=\".env.local.1p\" -- bash -c 'tsx scripts/generate-sitemap.ts && expo export -p web'",
     "build:web:ci": "tsx scripts/generate-sitemap.ts && expo export -p web"
@@ -94,6 +95,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.4.0",
+    "patch-package": "^8.0.0",
     "prettier": "^3.5.3",
     "typescript-eslint": "^8.44.0"
   },
