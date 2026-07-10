@@ -1,4 +1,3 @@
-import { ScrollViewStyleReset } from "expo-router/html";
 import { type PropsWithChildren } from "react";
 
 export default function Root({ children }: PropsWithChildren) {
@@ -9,7 +8,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, viewport-fit=cover"
         />
         {/* Consent Mode defaults - must be before GTM */}
         <script dangerouslySetInnerHTML={{ __html: consentDefaults }} />
@@ -25,7 +24,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           }}
         />
 
-        <ScrollViewStyleReset />
+        {/*
+          Replaces expo-router's <ScrollViewStyleReset/> (which locks the document
+          with body{overflow:hidden}) so the document itself scrolls and the mobile
+          browser chrome can collapse. See constants/layout.ts.
+        */}
+        <style
+          id="scroll-reset"
+          dangerouslySetInnerHTML={{
+            __html: `
+html, body { margin: 0; padding: 0; }
+body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+#root { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+`,
+          }}
+        />
       </head>
 
       <body>
@@ -51,4 +64,3 @@ gtag('consent', 'default', {
   wait_for_update: 500
 });
 `;
-
