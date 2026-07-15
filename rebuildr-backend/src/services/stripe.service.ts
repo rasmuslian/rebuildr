@@ -495,8 +495,14 @@ export class StripeService {
 
   async refundPayment(paymentIntentId: string, refundUserId?: string) {
     try {
+      // Destination charges transfer funds to the seller at payment time, so a
+      // refund must pull those funds back and return the platform fee —
+      // otherwise the buyer refund is drawn from the platform balance while
+      // the seller keeps the transfer.
       return await this.stripe.refunds.create({
         payment_intent: paymentIntentId,
+        reverse_transfer: true,
+        refund_application_fee: true,
         metadata: refundUserId ? { refundedBy: refundUserId } : undefined,
       });
     } catch (e) {
