@@ -352,7 +352,7 @@ const LoginModalView = () => {
       }
       scrollable
       screenHeight
-      containerStyle={{ flex: 1 }}
+      containerStyle={{ flexGrow: 1 }}
       backgroundColor={colors.background.secondary}
       header={
         <Header
@@ -372,9 +372,7 @@ const LoginModalView = () => {
       open={visible}
       onDismiss={handleClosePress}
     >
-      <View style={{ marginTop: 24, marginBottom: 12, flex: 1 }}>
-        {viewChildren}
-      </View>
+      <View style={{ marginTop: 24, marginBottom: 56 }}>{viewChildren}</View>
     </BottomSheet>
   );
 
