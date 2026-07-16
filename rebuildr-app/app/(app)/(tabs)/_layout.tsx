@@ -6,10 +6,6 @@ import { View } from "react-native";
 import { MobileTabBar } from "@components/navigation/mobile-tab-bar";
 import { isWeb, screenGrowStyle, WEB_FIXED } from "@constants/layout";
 
-// The unread-conversations query moved into MobileTabBar; re-export it here so
-// existing importers (top-bar.desktop, conversations.desktop) keep working.
-export { TAB_LAYOUT } from "@components/navigation/mobile-tab-bar";
-
 const DEFAULT_TAB_BAR_HEIGHT = 80;
 
 export default function TabLayout() {

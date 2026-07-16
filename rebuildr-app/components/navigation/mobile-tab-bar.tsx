@@ -1,6 +1,6 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { TabLayoutQuery } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -14,12 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSearchContext } from "@context/search-context";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { isWeb } from "@constants/layout";
-
-export const TAB_LAYOUT = gql`
-  query TabLayout {
-    getUnreadConversationsCount
-  }
-`;
+import { TAB_LAYOUT } from "@/queries";
 
 type TabEntry = {
   name: string;

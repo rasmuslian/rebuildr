@@ -1,4 +1,4 @@
-import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
+import { TAB_LAYOUT } from "@/queries";
 import {
   ConversationQuery,
   ConversationQueryVariables,
