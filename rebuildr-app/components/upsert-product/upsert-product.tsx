@@ -786,8 +786,12 @@ export const UpsertProduct = ({
   const onNextTransportation = () => {
     const result = onVerifyTransportation(product, true);
     if (!result) return;
-    //preview renders from local state, so skip the save here — it just made
-    //Publicera wait on a background round-trip. Publish does the single save.
+    //the save must happen, but navigation shouldn't wait for it: the CO2
+    //figure in the preview is computed backend-side from the saved weight and
+    //category, and the mutation response refreshes the cached value when it
+    //lands. A failed save surfaces through the mutation's error state on the
+    //preview footer.
+    update().catch((e) => Sentry.captureException(e));
     setStep("preview");
   };
   const onVerifyDetails = (p?: ProductFields) => {
