@@ -19,6 +19,7 @@ import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
 import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
+import { isWeb, screenGrowStyle, WEB_STICKY } from "@constants/layout";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -40,6 +41,16 @@ export default function Landing() {
       };
     }, []),
   );
+
+  // Web scrolls the document, so drive the animated value from window scroll
+  // instead of an inner ScrollView's onScroll.
+  useEffect(() => {
+    if (!isWeb || typeof window === "undefined") return;
+    const onScroll = () => scrollY.setValue(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (headlineHeight === 0) return;
@@ -75,6 +86,46 @@ export default function Landing() {
     showSearchBarTopBar,
   ]);
 
+  const heroDesktop = (
+    <View
+      onLayout={(event) => setHeadlineHeight(event.nativeEvent.layout.height)}
+    >
+      <Hero
+        scrollY={scrollY}
+        showFor="desktop"
+        showSearchBar={!showSearchBarTopBar}
+      />
+    </View>
+  );
+
+  const content = (
+    <View
+      style={{
+        backgroundColor: colors.background.neutral,
+        flexGrow: 1,
+        paddingHorizontal: isDesktop ? 75 : 16,
+        paddingBottom: 32,
+        paddingTop: isDesktop ? 44 : 16,
+      }}
+    >
+      <RootCategoriesHorizontal />
+      <NewArrivals />
+      <NearYou />
+      <ForTheSeason />
+      <Banners />
+      <TrendingNow />
+      <RecommendedProducts
+        title="Du kanske också gillar"
+        source={ProductsRecommendationSourceEnum.Likes}
+      />
+
+      <RecommendedProducts
+        title="Nytt från din senaste sökning"
+        source={ProductsRecommendationSourceEnum.SearchHistory}
+      />
+    </View>
+  );
+
   return (
     <>
       <RebuildrHead jsonLd={[organizationSchema, webSiteSchema]} />
@@ -82,59 +133,45 @@ export default function Landing() {
         <meta name="theme-color" content={colors.logo.vector} />
       </Head>
 
-      <View style={{ flex: 1, backgroundColor: colors.logo.vector }}>
-        <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
-        <Hero scrollY={scrollY} showFor="mobile" />
-
-        <Animated.ScrollView
-          ref={scrollRef}
-          scrollEventThrottle={8}
-          showsHorizontalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true },
-          )}
+      {isWeb ? (
+        <View
+          style={[screenGrowStyle, { backgroundColor: colors.logo.vector }]}
         >
           <View
-            onLayout={(event) =>
-              setHeadlineHeight(event.nativeEvent.layout.height)
-            }
-          >
-            <Hero
-              scrollY={scrollY}
-              showFor="desktop"
-              showSearchBar={!showSearchBarTopBar}
-            />
-          </View>
-          <View
             style={{
-              backgroundColor: colors.background.neutral,
-              flexGrow: 1,
-              paddingHorizontal: isDesktop ? 75 : 16,
-              paddingBottom: 32,
-              paddingTop: isDesktop ? 44 : 16,
+              position: WEB_STICKY,
+              top: 0,
+              zIndex: 100,
+              backgroundColor: colors.logo.vector,
             }}
           >
-            <RootCategoriesHorizontal />
-            <NewArrivals />
-            <NearYou />
-            <ForTheSeason />
-            <Banners />
-            <TrendingNow />
-            <RecommendedProducts
-              title="Du kanske också gillar"
-              source={ProductsRecommendationSourceEnum.Likes}
-            />
-
-            <RecommendedProducts
-              title="Nytt från din senaste sökning"
-              source={ProductsRecommendationSourceEnum.SearchHistory}
-            />
+            <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
+            <Hero scrollY={scrollY} showFor="mobile" />
           </View>
-
+          {heroDesktop}
+          {content}
           <Footer />
-        </Animated.ScrollView>
-      </View>
+        </View>
+      ) : (
+        <View style={{ flex: 1, backgroundColor: colors.logo.vector }}>
+          <TopBar showSearchBar={showSearchBarTopBar} animateSearchBar />
+          <Hero scrollY={scrollY} showFor="mobile" />
+
+          <Animated.ScrollView
+            ref={scrollRef}
+            scrollEventThrottle={8}
+            showsHorizontalScrollIndicator={false}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true },
+            )}
+          >
+            {heroDesktop}
+            {content}
+            <Footer />
+          </Animated.ScrollView>
+        </View>
+      )}
     </>
   );
 }

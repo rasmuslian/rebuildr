@@ -1,0 +1,13 @@
+diff --git a/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetHostingContainer/styles.web.ts b/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetHostingContainer/styles.web.ts
+index 0000000..1111111 100644
+--- a/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetHostingContainer/styles.web.ts
++++ b/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetHostingContainer/styles.web.ts
+@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
+
+ export const styles = StyleSheet.create({
+   container: {
+-    position: 'absolute',
++    position: 'fixed',
+     left: 0,
+     right: 0,
+     bottom: 0,

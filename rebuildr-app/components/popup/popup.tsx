@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 import { Animated, Easing, Pressable, View } from "react-native";
+import { useBodyScrollLock } from "@hooks/useBodyScrollLock";
 
 type Props = {
   open: boolean;
@@ -21,6 +22,8 @@ export const Popup = ({ open, onClose, type, children, footer }: Props) => {
   const isFull = type === "full";
   const contentAnimation = useRef(new Animated.Value(0)).current;
   const key = useMemo(() => `popup-${Math.random().toString(8)}`, []);
+
+  useBodyScrollLock(open);
 
   const handleClose = () => {
     onClose?.();
