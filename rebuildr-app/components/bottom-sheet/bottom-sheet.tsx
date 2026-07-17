@@ -172,7 +172,7 @@ export const BottomSheet = ({
             contentContainerStyle={
               screenHeight && {
                 justifyContent: "space-between",
-                flex: 1,
+                flexGrow: 1,
               }
             }
           >
