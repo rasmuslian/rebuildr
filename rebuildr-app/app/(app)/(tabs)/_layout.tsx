@@ -1,6 +1,6 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { TabLayoutQuery } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useReactiveVar } from "@apollo/client";
 import { Badge } from "@components/badges/badge";
 import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -22,7 +22,7 @@ export const TAB_LAYOUT = gql`
 
 export default function TabLayout() {
   const colors = useThemeColor();
-  const isLoggedIn = isLoggedInVar();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const pathName = usePathname();
   const { setVisible: setSellProductVisible } = useSellProductContext();
