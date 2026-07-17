@@ -64,6 +64,10 @@ export default function Payout({ onNavigation, onBack }: Props) {
     return <LoadingSpinner />;
   }
 
+  // On desktop the onboarding renders inline instead of in a bottom sheet,
+  // so the underlying content and footer must be hidden while it is open.
+  const showInlineOnboarding = showOnboarding && isDesktop;
+
   const renderNoPayoutAccount = () => {
     return (
       <View style={{ flex: 1, gap: 24 }}>
@@ -100,20 +104,22 @@ export default function Payout({ onNavigation, onBack }: Props) {
       contentHorizontalPadding={isDesktop ? 0 : undefined}
       headerComponent={<Header title="Utbetalningskonto" onBack={onBack} />}
       footerComponent={
-        <Button
-          label="Lägg till utbetalningskonto"
-          onPress={() => {
-            if (!data.me.sellerAccount?.canReceivePayout) {
-              setShowOnboarding(true);
-              return;
-            }
-            if (onNavigation) {
-              onNavigation({ page: "payout-add" });
-              return;
-            }
-            router.navigate("/account/settings/payout/add");
-          }}
-        />
+        showInlineOnboarding ? undefined : (
+          <Button
+            label="Lägg till utbetalningskonto"
+            onPress={() => {
+              if (!data.me.sellerAccount?.canReceivePayout) {
+                setShowOnboarding(true);
+                return;
+              }
+              if (onNavigation) {
+                onNavigation({ page: "payout-add" });
+                return;
+              }
+              router.navigate("/account/settings/payout/add");
+            }}
+          />
+        )
       }
     >
       {showOnboarding && (
@@ -125,7 +131,7 @@ export default function Payout({ onNavigation, onBack }: Props) {
           onAbort={() => setShowOnboarding(false)}
         />
       )}
-      {data.me.payoutAccount ? (
+      {showInlineOnboarding ? null : data.me.payoutAccount ? (
         <>
           {data.me.balance && (
             <View

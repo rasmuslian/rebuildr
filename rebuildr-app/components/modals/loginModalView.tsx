@@ -333,7 +333,7 @@ const LoginModalView = () => {
       open={visible}
       onClose={handleClosePress}
       backgroundColor={colors.background.secondary}
-      style={{ flex: 1 }}
+      style={{ flexGrow: 1 }}
       footer={
         <View style={{ alignItems: "center", paddingBottom: 32 }}>
           <Logo width={120} height={24} customColor={colors.logo.vector} />

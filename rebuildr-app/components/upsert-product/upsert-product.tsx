@@ -785,11 +785,14 @@ export const UpsertProduct = ({
   };
   const onNextTransportation = () => {
     const result = onVerifyTransportation(product, true);
-    update().then(() => {
-      if (result) {
-        setStep("preview");
-      }
-    });
+    if (!result) return;
+    //the save must happen, but navigation shouldn't wait for it: the CO2
+    //figure in the preview is computed backend-side from the saved weight and
+    //category, and the mutation response refreshes the cached value when it
+    //lands. A failed save surfaces through the mutation's error state on the
+    //preview footer.
+    update().catch((e) => Sentry.captureException(e));
+    setStep("preview");
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;
