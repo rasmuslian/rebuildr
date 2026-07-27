@@ -325,7 +325,6 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
           </Body>
         </View>
         <AdGridSection
-          desktopColumnNumber={isDesktop ? 2 : undefined}
           products={relatedProducts.map((product) =>
             mapProductToAd(product, relatedData?.me?.id ?? data?.me?.id),
           )}
@@ -419,7 +418,6 @@ export default function SearchProducts({ title, showDistance = false }: Props) {
               </View>
 
               <AdGridSection
-                desktopColumnNumber={2}
                 products={exactProducts.map((product) =>
                   mapProductToAd(product, data?.me?.id),
                 )}

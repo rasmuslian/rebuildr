@@ -20,6 +20,8 @@ import {
   SCREEN_HORIZONTAL_MARGIN_DESKTOP,
   SCREEN_HORIZONTAL_MARGIN_MOBILE,
 } from "@components/screen-layout/screen-layout";
+import { GRID_CARD, MAX_CONTENT_WIDTH } from "@constants/layout";
+import { getGridColumns } from "@/utils/grid";
 
 type Props = {
   title: string;
@@ -95,17 +97,20 @@ export function RecommendedProducts({ title, source }: Props) {
 
   if (!data || data.me.recommendedProducts.length < 1) return null;
   const products = data.me.recommendedProducts;
-  const productsPerRow = isDesktop ? 4 : 2;
   const columngap = 16;
-  const screenWidthExcludingGap =
-    screenWidth - (productsPerRow - 1) * columngap;
+  // The home feed is capped and centered on wide screens, so size cards against the
+  // capped width and derive the column count from a target card size (not a fixed 4).
+  const availableWidth =
+    Math.min(screenWidth, MAX_CONTENT_WIDTH) -
+    (isDesktop
+      ? SCREEN_HORIZONTAL_MARGIN_DESKTOP
+      : SCREEN_HORIZONTAL_MARGIN_MOBILE) *
+      2;
+  const productsPerRow = isDesktop
+    ? getGridColumns(availableWidth, { ...GRID_CARD, gap: columngap })
+    : 2;
   const width =
-    (screenWidthExcludingGap -
-      (isDesktop
-        ? SCREEN_HORIZONTAL_MARGIN_DESKTOP
-        : SCREEN_HORIZONTAL_MARGIN_MOBILE) *
-        2) /
-    productsPerRow;
+    (availableWidth - (productsPerRow - 1) * columngap) / productsPerRow;
 
   return (
     <View style={{ gap: 16, paddingTop: 16 }}>
