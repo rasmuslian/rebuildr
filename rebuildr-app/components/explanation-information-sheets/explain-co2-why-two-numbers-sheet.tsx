@@ -24,7 +24,6 @@ const Badge = ({
       borderRadius: 4,
       paddingHorizontal: 6,
       justifyContent: "center",
-      alignSelf: "flex-start",
     }}
   >
     <Label size="small">{text}</Label>
@@ -35,36 +34,43 @@ export const ExplainCO2WhyTwoNumbersSheet = ({ show, onDismiss }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
 
-  const introText =
-    "Vi delar upp klimatnyttan för att undvika dubbelräkning. Köparen tar credit för att ny produktion undveks, säljaren tar credit för att materialet slapp deponi. Det är två olika delar av livscykeln — de överlappar aldrig.";
-
   const content = (
     <View style={{ gap: 24 }}>
-      <Body size="small">{introText}</Body>
+      <Label size="large">Vikt × utsläppsfaktor. Det är hela formeln.</Label>
 
       <View style={{ gap: 8 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Badge text="A1 - A3" backgroundColor={colors.navigation.enabled} />
-          <Label size="large">Köparens del · undvikt nyproduktion.</Label>
+          <Label size="large">Köper du återbrukat</Label>
         </View>
-        <Body size="small">{introText}</Body>
+        <Body size="small">
+          slipper världen tillverka nytt. Besparingen är varans vikt gånger vad
+          nytillverkningen hade släppt ut. Faktorn kommer från Boverkets
+          klimatdatabas.
+        </Body>
       </View>
 
       <View style={{ gap: 8 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Badge text="C2–C4" backgroundColor={colors.logo.background} />
-          <Label size="large">Säljarens del · undvikt deponi.</Label>
+          <Label size="large">Säljer du vidare</Label>
         </View>
         <Body size="small">
-          Transport till avfallsanläggning, deponigas (främst metan) och
-          avfallsförbränning. Räknas bort eftersom materialet inte slängdes.
+          går materialet till återbruk istället för till soptippen. Besparingen
+          är samma vikt gånger vad transport och deponi hade släppt ut. Faktorn
+          kommer från den europeiska databasen Ökobaudat.
+        </Body>
+
+        <Body size="small">
+          Exempel: 55 kg träpaneler ger köparen 42 kg CO₂ i undvikt
+          nytillverkning och säljaren 18,5 kg i undvikt deponi. Två besparingar
+          från två olika delar av varans livscykel. Ingen siffra räknas dubbelt.
         </Body>
       </View>
 
       <Body size="small" color="secondary">
-        Metodiken följer EN 15978 och IVL:s handledning Återbrukets
-        klimateffekter vid byggnation (2020). Transport från säljare till köpare
-        (A4) ingår inte i 1.0.
+        Metodiken följer EN 15978 och IVL:s handledning för klimatberäkning av
+        återbruk (2020). Transporten mellan säljare och köpare ingår inte.
       </Body>
     </View>
   );
@@ -80,7 +86,7 @@ export const ExplainCO2WhyTwoNumbersSheet = ({ show, onDismiss }: Props) => {
           }}
         >
           <Header
-            title="Varför två siffror?"
+            title="Så beräknar vi CO₂-besparingen"
             showBackButton={false}
             showDivider
             ctas={[{ icon: "X", onPress: onDismiss }]}
@@ -95,7 +101,7 @@ export const ExplainCO2WhyTwoNumbersSheet = ({ show, onDismiss }: Props) => {
     <BottomSheet
       open={show}
       name="co2 explanation"
-      title="Varför två siffror?"
+      title="Så beräknar vi CO₂-besparingen"
       onDismiss={onDismiss}
     >
       {content}

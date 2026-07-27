@@ -85,6 +85,10 @@ export const ProjectSuggestionCard = ({
 }: Props) => {
   const colors = useThemeColor();
   const [title, setTitle] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  //stays busy through the whole create+link flow — the mutation's loading flag
+  //only covers createProject and would otherwise drop during linking
+  const [submitting, setSubmitting] = useState(false);
   const [createdProject, setCreatedProject] = useState<{
     id: string;
     linkedCount: number;
@@ -100,7 +104,7 @@ export const ProjectSuggestionCard = ({
     },
     fetchPolicy: "network-only",
   });
-  const [createProject, { loading: creating }] = useMutation<
+  const [createProject] = useMutation<
     PublishSuccessCreateProjectMutation,
     PublishSuccessCreateProjectMutationVariables
   >(CREATE_PROJECT);
@@ -121,36 +125,67 @@ export const ProjectSuggestionCard = ({
         )
       : [];
 
-  //the published product itself is included in the seller's product list
-  if (createdProject === null && sameAddressProducts.length < 2) {
+  //< 2 because the seller's own published product is in the list; and without
+  //coordinates we can't create a project — so don't show a dead button
+  if (
+    createdProject === null &&
+    (sameAddressProducts.length < 2 || !product?.location)
+  ) {
     return null;
   }
 
   const suggestedTitle = product?.address?.split(",")[0] ?? "";
 
   const onCreate = async () => {
-    if (!product?.location) return;
+    if (!product?.location || submitting) return;
     const projectTitle = title.trim() || suggestedTitle;
-    if (!projectTitle) return;
+    if (!projectTitle) {
+      setErrorMessage("Ge projektet ett namn först.");
+      return;
+    }
+    setErrorMessage(null);
+    setSubmitting(true);
+    try {
+      let projectId: string | undefined;
+      try {
+        const { data: created } = await createProject({
+          variables: {
+            input: {
+              title: projectTitle,
+              location: {
+                lat: product.location.lat,
+                lng: product.location.lng,
+              },
+            },
+          },
+        });
+        projectId = created?.createProject.id;
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "";
+        setErrorMessage(
+          message.includes("same title")
+            ? "Du har redan ett projekt med det namnet — välj ett annat."
+            : "Projektet kunde inte skapas just nu. Försök igen.",
+        );
+        return;
+      }
+      if (!projectId) {
+        setErrorMessage("Projektet kunde inte skapas just nu. Försök igen.");
+        return;
+      }
 
-    const { data: created } = await createProject({
-      variables: {
-        input: {
-          title: projectTitle,
-          location: { lat: product.location.lat, lng: product.location.lng },
-        },
-      },
-    });
-    const projectId = created?.createProject.id;
-    if (!projectId) return;
-
-    const results = await Promise.allSettled(
-      sameAddressProducts.map((p) =>
-        linkProduct({ variables: { input: { id: p.id, projectId } } }),
-      ),
-    );
-    const linkedCount = results.filter((r) => r.status === "fulfilled").length;
-    setCreatedProject({ id: projectId, linkedCount });
+      const results = await Promise.allSettled(
+        sameAddressProducts.map((p) =>
+          linkProduct({ variables: { input: { id: p.id, projectId } } }),
+        ),
+      );
+      const linkedCount = results.filter(
+        (r) => r.status === "fulfilled",
+      ).length;
+      setCreatedProject({ id: projectId, linkedCount });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -192,11 +227,19 @@ export const ProjectSuggestionCard = ({
           <TextInput
             value={title}
             placeholder={suggestedTitle || "Projektnamn"}
-            onChange={setTitle}
+            onChange={(t) => {
+              setTitle(t);
+              setErrorMessage(null);
+            }}
           />
+          {errorMessage && (
+            <Body size="small" color="error">
+              {errorMessage}
+            </Body>
+          )}
           <Button
             label={`Skapa projekt & koppla ${sameAddressProducts.length} annonser`}
-            loading={creating}
+            loading={submitting}
             onPress={onCreate}
           />
         </>

@@ -25,7 +25,7 @@ export default function Register({ onSubmit, initialEmail, loading }: Props) {
   };
 
   return (
-    <View style={{ gap: 16 }}>
+    <View style={{ gap: 32 }}>
       <Display size="small">Skriv in din e-post för att fortsätta</Display>
       <Form
         fields={[

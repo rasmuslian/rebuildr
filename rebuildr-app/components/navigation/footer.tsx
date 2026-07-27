@@ -12,6 +12,7 @@ import {
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { horizontalPadding } from "@constants/sizes";
+import { resolveCmsHref } from "@/utils/resolve-cms-href";
 
 const LIST_FOOTER_SECTION = gql`
   query ListFooterSection {
@@ -93,7 +94,7 @@ export default function Footer() {
                       pathname: "/(app)/article/[slug]",
                       params: { slug: article.slug },
                     }
-                  : (entry.url as Href);
+                  : resolveCmsHref(entry.url);
                 return (
                   <Link
                     key={entry.id}

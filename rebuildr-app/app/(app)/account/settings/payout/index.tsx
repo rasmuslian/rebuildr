@@ -17,6 +17,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { Header } from "@components/navigation/headers/header";
 import { AccountState } from "@components/account/account-wrapper.desktop";
 import { PayoutHandler } from "@components/sell-product/payout-handler";
+import { formatPrice } from "@/utils/formattings";
 
 const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
   query AccountSettingsPayoutQuery {
@@ -31,6 +32,10 @@ const ACCOUNT_SETTINGS_PAYOUT_QUERY = gql`
         routingNumber
         bankName
         last4
+      }
+      balance {
+        available
+        pending
       }
     }
   }
@@ -58,6 +63,10 @@ export default function Payout({ onNavigation, onBack }: Props) {
   if (!data || loading) {
     return <LoadingSpinner />;
   }
+
+  // On desktop the onboarding renders inline instead of in a bottom sheet,
+  // so the underlying content and footer must be hidden while it is open.
+  const showInlineOnboarding = showOnboarding && isDesktop;
 
   const renderNoPayoutAccount = () => {
     return (
@@ -95,20 +104,22 @@ export default function Payout({ onNavigation, onBack }: Props) {
       contentHorizontalPadding={isDesktop ? 0 : undefined}
       headerComponent={<Header title="Utbetalningskonto" onBack={onBack} />}
       footerComponent={
-        <Button
-          label="Lägg till utbetalningskonto"
-          onPress={() => {
-            if (!data.me.sellerAccount?.canReceivePayout) {
-              setShowOnboarding(true);
-              return;
-            }
-            if (onNavigation) {
-              onNavigation({ page: "payout-add" });
-              return;
-            }
-            router.navigate("/account/settings/payout/add");
-          }}
-        />
+        showInlineOnboarding ? undefined : (
+          <Button
+            label="Lägg till utbetalningskonto"
+            onPress={() => {
+              if (!data.me.sellerAccount?.canReceivePayout) {
+                setShowOnboarding(true);
+                return;
+              }
+              if (onNavigation) {
+                onNavigation({ page: "payout-add" });
+                return;
+              }
+              router.navigate("/account/settings/payout/add");
+            }}
+          />
+        )
       }
     >
       {showOnboarding && (
@@ -120,8 +131,32 @@ export default function Payout({ onNavigation, onBack }: Props) {
           onAbort={() => setShowOnboarding(false)}
         />
       )}
-      {data.me.payoutAccount ? (
+      {showInlineOnboarding ? null : data.me.payoutAccount ? (
         <>
+          {data.me.balance && (
+            <View
+              style={{
+                borderColor: colors.buttons.outlinedStroke.disabled,
+                borderRadius: borderRadius.medium,
+                borderWidth: 1,
+                padding: 16,
+                gap: 4,
+              }}
+            >
+              <Body size="medium" color="secondary">
+                Ditt saldo hos Stripe
+              </Body>
+              <Display size="small">
+                {formatPrice(data.me.balance.available, 2)}
+              </Display>
+              {data.me.balance.pending > 0 && (
+                <Body size="medium" color="secondary">
+                  {formatPrice(data.me.balance.pending, 2)} är på väg att bli
+                  tillgängligt
+                </Body>
+              )}
+            </View>
+          )}
           <Display size="small">Du får dina utbetalningar till:</Display>
           <View
             style={{

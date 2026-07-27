@@ -17,12 +17,11 @@ import {
   ProductStatisticsGroupBy,
 } from "@/queries/product/product-statistics";
 
-const GROUP_BY_OPTIONS: { label: string; value: ProductStatisticsGroupBy }[] =
-  [
-    { label: "Dag", value: "day" },
-    { label: "Vecka", value: "week" },
-    { label: "Månad", value: "month" },
-  ];
+const GROUP_BY_OPTIONS: { label: string; value: ProductStatisticsGroupBy }[] = [
+  { label: "Dag", value: "day" },
+  { label: "Vecka", value: "week" },
+  { label: "Månad", value: "month" },
+];
 
 const formatDate = (date: string, groupBy: ProductStatisticsGroupBy) => {
   const d = new Date(date);
@@ -52,7 +51,7 @@ const ProductStatisticsChart = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h4 className="m-0 text-base font-medium">Produkter skapade över tid</h4>
+        <h4 className="m-0 text-base font-medium">Annonser skapade över tid</h4>
         <Segmented
           options={GROUP_BY_OPTIONS}
           value={groupBy}
@@ -66,7 +65,10 @@ const ProductStatisticsChart = () => {
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
+          >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />

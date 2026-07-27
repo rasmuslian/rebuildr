@@ -16,9 +16,8 @@ export class OrganizationService {
   async lookupOrganizationNumber(
     orgNumber: string,
   ): Promise<OrganizationData | null> {
-    const result = await this.creditsafeService.getBusinessInformation(
-      orgNumber,
-    );
+    const result =
+      await this.creditsafeService.getBusinessInformation(orgNumber);
     const business = result.data?.report;
     const address = business?.contactInformation?.registeredAddress;
 

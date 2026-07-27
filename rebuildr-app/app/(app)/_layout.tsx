@@ -1,9 +1,10 @@
 import { isLoggedInVar } from "@/apollo/config";
 import { AppQueryQuery, RegisterStatusEnum } from "@/gql/graphql";
 import { gql, useQuery, useReactiveVar } from "@apollo/client";
-import { Stack } from "expo-router";
+import { Slot, Stack } from "expo-router";
 import { LoginModalContext } from "@context/loginModalContext";
 import { use, useEffect } from "react";
+import { isWeb } from "@constants/layout";
 
 const APP_QUERY = gql`
   query AppQuery($isLoggedIn: Boolean!) {
@@ -29,6 +30,9 @@ export default function AppLayout() {
       setVisible(true);
     }
   }, [data?.me?.registrationStatus, setVisible]);
+
+  // Web scrolls the document — render a plain Slot (native-stack pins screens).
+  if (isWeb) return <Slot />;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

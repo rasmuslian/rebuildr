@@ -20,6 +20,8 @@ export const UserSection = ({ product }: Props) => {
         numberOfPublishedProducts={product.seller.numberOfPublishedProducts}
         numberOfSoldProducts={product.seller.numberOfSoldProducts}
         rating={product.seller.rating}
+        reviewCount={product.seller.reviewCount}
+        memberSinceYear={new Date(product.seller.createdAt).getFullYear()}
       />
       <Button
         label="Visa profil"
