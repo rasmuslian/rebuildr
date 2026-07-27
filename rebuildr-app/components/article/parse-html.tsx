@@ -53,7 +53,7 @@ type Props = {
   html?: string;
 };
 
-const NotParsed = () => <Body size="small" />;
+const NotParsed = () => null;
 
 export default function ParseHtml({ html }: Props) {
   if (!html) return null;
@@ -102,15 +102,24 @@ export default function ParseHtml({ html }: Props) {
             if (isImgOnly) {
               return <>{domToReact(domNode.children as DOMNode[], options)}</>;
             }
+            // Blank paragraphs authored in the CMS (empty, or containing only
+            // <br>) would otherwise render as empty blocks that still take up
+            // vertical space, stacking into large gaps between sections.
+            const hasRenderableContent = meaningful.some(
+              (c) => !(c instanceof Element && (c as Element).name === "br"),
+            );
+            if (!hasRenderableContent) {
+              return <></>;
+            }
             return (
-              <Body size="medium" style={{ marginBottom: 24 }}>
+              <Body size="large" style={{ marginBottom: 24 }}>
                 {domToReact(domNode.children as DOMNode[], options)}
               </Body>
             );
           }
           case "strong": {
             return (
-              <Label>
+              <Label style={{ fontSize: 16, lineHeight: 24 }}>
                 {domToReact(domNode.children as DOMNode[], options)}
               </Label>
             );
@@ -132,12 +141,12 @@ export default function ParseHtml({ html }: Props) {
                 }}
               >
                 {isOrdered ? (
-                  <Body size="medium">{`${index + 1}.`}</Body>
+                  <Body size="large">{`${index + 1}.`}</Body>
                 ) : (
                   <Icon icon="bullet" size={14} style={{ marginTop: 4 }} />
                 )}
                 <View style={{ flex: 1 }}>
-                  <Body size="medium">
+                  <Body size="large">
                     {domToReact(domNode.children as DOMNode[], options)}
                   </Body>
                 </View>
@@ -147,7 +156,7 @@ export default function ParseHtml({ html }: Props) {
           case "a": {
             return (
               <Pressable onPress={() => Linking.openURL(domNode.attribs.href)}>
-                <Body size="medium" isLink>
+                <Body size="large" isLink>
                   {domToReact(domNode.children as DOMNode[], options)}
                 </Body>
               </Pressable>
