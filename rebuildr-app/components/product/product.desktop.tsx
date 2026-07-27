@@ -46,6 +46,7 @@ import { useWindowDimensions, View } from "react-native";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 import { useMarkProductAvailable } from "@hooks/product/use-mark-product-available";
+import { useWebShare } from "@hooks/use-web-share";
 import { Body } from "@components/typography/text";
 
 type Props = {
@@ -102,6 +103,7 @@ export const ProductDesktop = ({
   const { onToggleProductHeart } = useLikeProduct();
   const { setVisible } = useContext(LoginModalContext);
   const { isLoggedIn } = useUser();
+  const { isAvailable: isWebShareAvailable, share } = useWebShare();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<number | undefined>(
@@ -181,6 +183,15 @@ export const ProductDesktop = ({
           likedByMe: !!product.likedByMe,
         });
       },
+    });
+  }
+
+  if (isWebShareAvailable) {
+    ctas.push({
+      label: "Dela",
+      icon: "upload",
+      iconPosition: "right",
+      onPress: share,
     });
   }
 

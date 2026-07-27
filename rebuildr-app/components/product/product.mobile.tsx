@@ -30,6 +30,7 @@ import { BuyersProtection } from "@components/buyers-protection/buyers-protectio
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
+import { useWebShare } from "@hooks/use-web-share";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
@@ -100,6 +101,7 @@ export const ProductMobile = ({
   );
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
+  const { isAvailable: isWebShareAvailable, share } = useWebShare();
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
@@ -140,6 +142,13 @@ export const ProductMobile = ({
           startPrintLabel();
         }
       },
+    });
+  }
+
+  if (isWebShareAvailable) {
+    ctas.push({
+      icon: "upload",
+      onPress: share,
     });
   }
 
