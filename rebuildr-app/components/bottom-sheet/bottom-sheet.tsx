@@ -38,6 +38,10 @@ type Props = PropsWithChildren<{
   open: boolean;
   containerStyle?: ViewStyle;
   backgroundColor?: string;
+  //when this value changes, the scroll position resets to the top. Pass the
+  //current wizard step so each step starts scrolled to the top instead of
+  //inheriting the previous (taller) step's offset.
+  resetScrollKey?: string | number;
 }>;
 
 export const BottomSheet = ({
@@ -55,14 +59,21 @@ export const BottomSheet = ({
   stackBehavior = "push",
   containerStyle,
   backgroundColor,
+  resetScrollKey,
 }: Props) => {
   const safeArea = useSafeAreaInsets();
   const innerRef = useRef<BottomSheetModal>(
     null,
   ) as React.RefObject<BottomSheetModalMethods>;
+  const scrollRef =
+    useRef<React.ComponentRef<typeof BottomSheetScrollView>>(null);
   const colors = useThemeColor();
   const sheetBackgroundColor = backgroundColor ?? colors.background.neutral;
   const topBorderRadius = useSharedValue(28);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [resetScrollKey]);
 
   useEffect(() => {
     if (open) {
@@ -165,6 +176,7 @@ export const BottomSheet = ({
       {scrollable ? (
         <>
           <BottomSheetScrollView
+            ref={scrollRef}
             style={{
               paddingBottom: safeArea.bottom + 20,
               flex: 1,
@@ -182,7 +194,14 @@ export const BottomSheet = ({
                 {
                   backgroundColor: sheetBackgroundColor,
                   paddingHorizontal: noPaddingHorizontal ? 0 : 16,
-                  flex: 1,
+                  //flexGrow, not flex: flex (flexBasis 0 + shrink) clamps the
+                  //content to the viewport height, so a form taller than the
+                  //screen reports contentHeight == frameHeight. The sheet then
+                  //treats it as non-scrollable and steals vertical pans — you
+                  //can drift down but never scroll back up. flexGrow fills the
+                  //screen when content is short yet lets it grow and scroll when
+                  //tall.
+                  flexGrow: 1,
                 },
               ]}
             >
