@@ -7,6 +7,7 @@ import {
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import * as XLSX from 'xlsx';
 import * as crypto from 'crypto';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { Category } from 'src/entities/category.entity';
@@ -783,18 +784,30 @@ export class InternalAdsService {
         throw new Error(`Could not fetch uploaded file ${file.id}`);
       }
       const buffer = Buffer.from(await response.arrayBuffer());
+      const isXlsx =
+        file.mimeType ===
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       parts.push({
-        text: `FILE_NAME: ${file.name ?? file.id}\nMIME_TYPE: ${file.mimeType}`,
+        text: `FILE_NAME: ${file.name ?? file.id}\nMIME_TYPE: ${isXlsx ? 'text/plain (converted from XLSX)' : file.mimeType}`,
       });
-      parts.push({
-        inlineData: {
-          data: buffer.toString('base64'),
-          mimeType: file.mimeType,
-        },
-        mediaResolution: file.mimeType.startsWith('image/')
-          ? { level: PartMediaResolutionLevel.MEDIA_RESOLUTION_MEDIUM }
-          : undefined,
-      });
+      if (isXlsx) {
+        const workbook = XLSX.read(buffer, { type: 'buffer' });
+        const csv = workbook.SheetNames.map(
+          (sheetName) =>
+            `SHEET: ${sheetName}\n${XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName])}`,
+        ).join('\n\n');
+        parts.push({ text: csv });
+      } else {
+        parts.push({
+          inlineData: {
+            data: buffer.toString('base64'),
+            mimeType: file.mimeType,
+          },
+          mediaResolution: file.mimeType.startsWith('image/')
+            ? { level: PartMediaResolutionLevel.MEDIA_RESOLUTION_MEDIUM }
+            : undefined,
+        });
+      }
     }
     return parts;
   }

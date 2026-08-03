@@ -265,7 +265,11 @@ export default function InternalAdsPage() {
           source={MainBackground}
           resizeMode="cover"
           imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
-          style={{ backgroundColor: primitives.accent100, overflow: "hidden" }}
+          style={{
+            backgroundColor: primitives.accent100,
+            overflow: "hidden",
+            width: "100%",
+          }}
         >
           <View
             style={{
