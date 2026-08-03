@@ -85,10 +85,7 @@ const WelcomeContent = () => (
 );
 
 const WelcomeFooter = ({ onExplore }: { onExplore: () => void }) => (
-  <View style={{ gap: 8 }}>
-    <Button label="Börja utforska" onPress={onExplore} />
-    <Button label="Hoppa över" type="text" onPress={onExplore} />
-  </View>
+  <Button label="Börja utforska" onPress={onExplore} />
 );
 
 export const OnboardingWelcome = () => {
@@ -142,9 +139,20 @@ export const OnboardingWelcome = () => {
       onDismiss={dismiss}
       scrollable
       isStickyFooter
+      header={
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            paddingTop: 8,
+          }}
+        >
+          <Button icon="X" type="text" onPress={dismiss} />
+        </View>
+      }
       footer={<WelcomeFooter onExplore={dismiss} />}
     >
-      <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 8 }}>
         <WelcomeContent />
       </View>
     </BottomSheet>
