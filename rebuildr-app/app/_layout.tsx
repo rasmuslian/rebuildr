@@ -37,6 +37,7 @@ import { LocationProvider } from "@context/location-context";
 import { EditProduct } from "@components/product/edit-product";
 import { SellProduct } from "@components/sell-product/sell-product";
 import { CookieConsent } from "@components/cookies/cookie-consent";
+import { OnboardingWelcome } from "@components/onboarding/onboarding-welcome";
 
 Sentry.init({
   dsn: "https://e2951ca6a123ca14c24a393620c32c67@o115197.ingest.us.sentry.io/4510306687778816",
@@ -114,6 +115,7 @@ const RootLayout = () => {
                           <ReRouteHandler>
                             <Slot />
                             <CookieConsent />
+                            <OnboardingWelcome />
                             <HamburgerMenu />
                             <LoginModalView />
                             <SellProduct />
