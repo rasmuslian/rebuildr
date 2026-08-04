@@ -13,6 +13,7 @@ export type Props<T> = {
   onPress?: () => void;
   placeholder?: string;
   error?: boolean;
+  backgroundColor?: string;
   dropdown?: (collapseDropdown: () => void) => ReactElement;
   options: { value: T; label: string; disabled?: boolean }[];
   onSelect: (value: T) => void;
@@ -88,7 +89,7 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
           borderRadius: borderRadius.medium,
           height: 40,
           borderWidth: strokeWidth.regular,
-          backgroundColor: colors.background.neutral,
+          backgroundColor: props.backgroundColor ?? colors.background.neutral,
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
@@ -105,7 +106,8 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
         <View style={{ position: "relative", zIndex: 10 }}>
           <View
             style={{
-              backgroundColor: colors.background.neutral,
+              backgroundColor:
+                props.backgroundColor ?? colors.background.neutral,
               alignSelf: "flex-end",
               width: "100%",
               paddingHorizontal: 16,

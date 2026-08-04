@@ -3,6 +3,7 @@ import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { Label } from "@components/typography/text";
 import { colorTypes, ColorTypesType } from "@constants/product-color-types";
+import { primitives } from "@constants/colors";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
@@ -47,6 +48,7 @@ export const ColorSection = ({ color: _color, type, onChange }: Props) => {
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
+            backgroundColor={primitives.accent100}
             value={type}
             options={Object.keys(colorTypes).map((o) => ({
               label: colorTypes[o as ColorTypesType].text,

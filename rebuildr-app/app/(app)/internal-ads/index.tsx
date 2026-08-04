@@ -17,6 +17,7 @@ import {
   INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_ADS_PAGE_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
+  REMOVE_INTERNAL_AD_DRAFT,
   START_INTERNAL_AD_IMPORT_BATCH,
 } from "@/queries/internal-ads";
 import { useMutation, useQuery } from "@apollo/client";
@@ -42,7 +43,13 @@ import { Icon } from "@icons/icon";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ImageBackground, Pressable, ScrollView, View } from "react-native";
+import {
+  Animated,
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 
 const PAGE_SIZE = 24;
 
@@ -61,8 +68,10 @@ export default function InternalAdsPage() {
   const [showImport, setShowImport] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileType[]>([]);
   const [activeBatchId, setActiveBatchId] = useState<string>();
-  const [publishedBatchId, setPublishedBatchId] = useState<string>();
+  const [pollBatch, setPollBatch] = useState(false);
+  const [publishRequested, setPublishRequested] = useState(false);
   const handledCreateAction = useRef<string | undefined>(undefined);
+  const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
 
   useFocusEffect(
@@ -102,7 +111,7 @@ export default function InternalAdsPage() {
   >(INTERNAL_AD_IMPORT_BATCH, {
     variables: { batchId: activeBatchId ?? "" },
     skip: !activeBatchId,
-    pollInterval: activeBatchId ? 3000 : 0,
+    pollInterval: pollBatch ? 3000 : 0,
   });
 
   const [createDraft, { loading: creatingDraft }] =
@@ -111,6 +120,7 @@ export default function InternalAdsPage() {
     PublishInternalAdDraftsMutation,
     PublishInternalAdDraftsMutationVariables
   >(PUBLISH_INTERNAL_AD_DRAFTS);
+  const [removeDraft] = useMutation(REMOVE_INTERNAL_AD_DRAFT);
   const [createBatch, { loading: creatingBatch }] = useMutation<
     CreateInternalAdImportBatchMutation,
     CreateInternalAdImportBatchMutationVariables
@@ -136,34 +146,16 @@ export default function InternalAdsPage() {
 
   const batch = batchData?.internalAdImportBatch;
   const importedProducts = batch?.products ?? [];
-  const validImportedProductIds = importedProducts
-    .filter((product) => !product.internalValidationIssues.length)
-    .map((product) => product.id);
-  const productsNeedingReview = importedProducts.filter(
-    (product) => !!product.internalValidationIssues.length,
-  );
 
   useEffect(() => {
-    if (!batch || batch.status !== InternalAdImportBatchStatusEnum.Ready)
-      return;
-    if (publishedBatchId === batch.id || !validImportedProductIds.length)
-      return;
-
-    publishImported({
-      variables: { productIds: validImportedProductIds },
-    }).then(() => {
-      setPublishedBatchId(batch.id);
-      refetch();
-      refetchBatch();
-    });
-  }, [
-    batch,
-    publishedBatchId,
-    publishImported,
-    refetch,
-    refetchBatch,
-    validImportedProductIds.join(","),
-  ]);
+    if (
+      batch?.status === InternalAdImportBatchStatusEnum.Ready ||
+      batch?.status === InternalAdImportBatchStatusEnum.Failed ||
+      batch?.status === InternalAdImportBatchStatusEnum.Published
+    ) {
+      setPollBatch(false);
+    }
+  }, [batch?.status]);
 
   const onPickFiles = async () => {
     const files = await pickDocuments();
@@ -210,18 +202,54 @@ export default function InternalAdsPage() {
       ),
     );
     setActiveBatchId(response.batch.id);
-    setPublishedBatchId(undefined);
+    setPollBatch(true);
     setSelectedFiles([]);
     await startBatch({ variables: { batchId: response.batch.id } });
     await refetchBatch();
   };
 
+  const onPublishImported = async () => {
+    if (publishRequested || publishingImported) return;
+    setPublishRequested(true);
+    try {
+      await Promise.allSettled([...importedDraftSaves.current]);
+      const refreshedBatch = await refetchBatch();
+      const products =
+        refreshedBatch.data?.internalAdImportBatch.products ?? importedProducts;
+      const productIds = products
+        .filter((product) => !product.internalValidationIssues.length)
+        .map((product) => product.id);
+      if (!productIds.length) return;
+      const hasRemainingDrafts = productIds.length < products.length;
+      await publishImported({ variables: { productIds } });
+      await Promise.all([refetch(), refetchBatch()]);
+      if (!hasRemainingDrafts) setShowImport(false);
+    } finally {
+      setPublishRequested(false);
+    }
+  };
+
+  const onDiscardImportedProduct = async (productId: string) => {
+    await removeDraft({ variables: { productId } });
+    await refetchBatch();
+  };
+
+  const onImportedDraftSave = (save: Promise<boolean | undefined>) => {
+    importedDraftSaves.current.add(save);
+    save.then(
+      () => {
+        importedDraftSaves.current.delete(save);
+        return refetchBatch().catch(() => undefined);
+      },
+      () => {
+        importedDraftSaves.current.delete(save);
+        return refetchBatch().catch(() => undefined);
+      },
+    );
+  };
+
   const activeProducts = data?.internalAds.products ?? [];
   const total = data?.internalAds.total ?? 0;
-  const organizationName =
-    data?.internalAdsOrganizationContext?.organization.name ??
-    data?.internalAdsOrganizationContext?.organization.username ??
-    "Internlagret";
   const hasAccess = !!data?.internalAdsOrganizationContext;
 
   const adGridProducts = useMemo(
@@ -389,25 +417,55 @@ export default function InternalAdsPage() {
         title="Importera annonser"
         style={{ gap: 24 }}
         footer={
-          <Button
-            label="Starta import"
-            onPress={onStartImport}
-            loading={creatingBatch || startingBatch || publishingImported}
-            disabled={!selectedFiles.length}
-          />
+          batch ? (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 12,
+                width: "100%",
+                paddingTop: 60,
+              }}
+            >
+              <Button
+                label="Skapa annonser"
+                onPress={onPublishImported}
+                loading={publishRequested || publishingImported}
+                style={{ flex: 1 }}
+              />
+              <Button
+                label="Släng utkast"
+                type="outlined"
+                style={{ flex: 1 }}
+                onPress={async () => {
+                  await Promise.all(
+                    importedProducts.map((product) =>
+                      removeDraft({ variables: { productId: product.id } }),
+                    ),
+                  );
+                  await refetchBatch();
+                  setShowImport(false);
+                }}
+              />
+            </View>
+          ) : (
+            <Button
+              label="Starta import"
+              onPress={onStartImport}
+              loading={creatingBatch || startingBatch}
+              disabled={!selectedFiles.length}
+            />
+          )
         }
       >
         <ImportPanel
           files={selectedFiles}
           batch={batch}
-          productsNeedingReview={productsNeedingReview}
+          products={importedProducts}
+          importStarted={!!activeBatchId}
           onPickFiles={onPickFiles}
           onRemoveFile={onRemoveFile}
-          onEditProduct={(productId) => {
-            setEditorProductId(productId);
-            setShowEditor(true);
-            setShowImport(false);
-          }}
+          onDiscardProduct={onDiscardImportedProduct}
+          onDraftSave={onImportedDraftSave}
         />
       </SlideInSheet>
 
@@ -444,70 +502,76 @@ const AccessEmptyState = () => (
 type ImportPanelProps = {
   files: FileType[];
   batch?: InternalAdImportBatchQuery["internalAdImportBatch"];
-  productsNeedingReview: InternalAdImportBatchQuery["internalAdImportBatch"]["products"];
+  products: InternalAdImportBatchQuery["internalAdImportBatch"]["products"];
+  importStarted: boolean;
   onPickFiles: () => void;
   onRemoveFile: (index: number) => void;
-  onEditProduct: (productId: string) => void;
+  onDiscardProduct: (productId: string) => Promise<void>;
+  onDraftSave: (save: Promise<boolean | undefined>) => void;
 };
 
 const ImportPanel = ({
   files,
   batch,
-  productsNeedingReview,
+  products,
+  importStarted,
   onPickFiles,
   onRemoveFile,
-  onEditProduct,
+  onDiscardProduct,
+  onDraftSave,
 }: ImportPanelProps) => {
   const colors = useThemeColor();
   return (
     <View style={{ gap: 24 }}>
-      <Pressable onPress={onPickFiles}>
-        <View
-          style={{
-            borderRadius: borderRadius.medium,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-            borderStyle: "dashed",
-            borderColor: colors.buttons.outlinedStroke.enabled,
-            borderWidth: 1,
-            gap: 16,
-          }}
-        >
+      {!batch && !importStarted && (
+        <Pressable onPress={onPickFiles}>
           <View
             style={{
-              width: 60,
-              height: 60,
-              backgroundColor: colors.card.message,
-              borderRadius: 38,
+              borderRadius: borderRadius.medium,
               alignItems: "center",
               justifyContent: "center",
+              padding: 16,
+              borderStyle: "dashed",
+              borderColor: colors.buttons.outlinedStroke.enabled,
+              borderWidth: 1,
+              gap: 16,
             }}
           >
-            <Icon icon="upload" />
-          </View>
-          <View style={{ gap: 4 }}>
-            <Title size="medium" style={{ textAlign: "center" }}>
-              Ladda upp filer
-            </Title>
-            <Body
-              size="small"
-              color="secondary"
-              style={{ textAlign: "center" }}
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                backgroundColor: colors.card.message,
+                borderRadius: 38,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              Bilder, dokument och listor kan laddas upp tillsammans.
-            </Body>
+              <Icon icon="upload" />
+            </View>
+            <View style={{ gap: 4 }}>
+              <Title size="medium" style={{ textAlign: "center" }}>
+                Ladda upp filer
+              </Title>
+              <Body
+                size="small"
+                color="secondary"
+                style={{ textAlign: "center" }}
+              >
+                Bilder, dokument och listor kan laddas upp tillsammans.
+              </Body>
+            </View>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      )}
 
       {!!files.length && (
         <View style={{ gap: 12 }}>
           <Label size="large">Valda filer</Label>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          <View style={{ gap: 12 }}>
             {files.map((file) => (
               <FileChip
-                key={file.index}
+                key={`${file.uri ?? file.name}-${file.mimeType}`}
                 file={file}
                 onRemove={() => onRemoveFile(file.index)}
               />
@@ -517,38 +581,156 @@ const ImportPanel = ({
       )}
 
       {batch && (
-        <View style={{ gap: 8 }}>
-          <Label size="large">Importstatus</Label>
-          <Body
-            size="medium"
-            color={
-              batch.status === InternalAdImportBatchStatusEnum.Failed
-                ? "error"
-                : "secondary"
-            }
-          >
-            {batch.errorMessage ?? `${batch.progress}% klart`}
-          </Body>
-          {!!productsNeedingReview.length && (
+        <View style={{ gap: 16 }}>
+          {batch.status !== InternalAdImportBatchStatusEnum.Ready &&
+            batch.status !== InternalAdImportBatchStatusEnum.Failed && (
+              <ImportProgress progress={batch.progress} />
+            )}
+          {batch.status === InternalAdImportBatchStatusEnum.Failed && (
+            <Body size="medium" color="error">
+              {batch.errorMessage ?? "Importen kunde inte slutföras."}
+            </Body>
+          )}
+          {!!products.length && (
             <View style={{ gap: 12, marginTop: 8 }}>
-              <Label size="large">Behöver kompletteras</Label>
-              {productsNeedingReview.map((product) => (
-                <View key={product.id} style={{ gap: 8 }}>
-                  <Body size="medium">{product.title || "Namnlös annons"}</Body>
-                  <Body size="small" color="error">
-                    {product.internalValidationIssues.join(", ")}
-                  </Body>
-                  <Button
-                    label="Öppna annons"
-                    type="tonal"
-                    onPress={() => onEditProduct(product.id)}
-                  />
-                </View>
+              <Label size="large">Granska utkast</Label>
+              {products.map((product) => (
+                <ImportProductRow
+                  key={product.id}
+                  product={product}
+                  onDiscard={onDiscardProduct}
+                  onDraftSave={onDraftSave}
+                />
               ))}
             </View>
           )}
         </View>
       )}
+    </View>
+  );
+};
+
+const ImportProductRow = ({
+  product,
+  onDiscard,
+  onDraftSave,
+}: {
+  product: ImportPanelProps["products"][number];
+  onDiscard: ImportPanelProps["onDiscardProduct"];
+  onDraftSave: ImportPanelProps["onDraftSave"];
+}) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <View
+      style={{
+        borderRadius: borderRadius.medium,
+        backgroundColor: primitives.accent100,
+        padding: expanded ? 0 : 12,
+        gap: 10,
+      }}
+    >
+      <Pressable
+        onPress={() => setExpanded((isExpanded) => !isExpanded)}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          padding: expanded ? 12 : 0,
+        }}
+      >
+        <Image
+          source={{ uri: product.primaryImage?.url ?? PlaceholderProduct.uri }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: borderRadius.small,
+            backgroundColor: primitives.neutrals100,
+          }}
+        />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Body size="medium">{product.title || "Namnlös annons"}</Body>
+          <Body
+            size="small"
+            color={
+              product.internalValidationIssues.length ? "error" : "secondary"
+            }
+          >
+            {product.internalValidationIssues.length
+              ? product.internalValidationIssues.join(", ")
+              : "Klar att skapa"}
+          </Body>
+        </View>
+        <Icon icon={expanded ? "chevronUp" : "chevronDown"} />
+      </Pressable>
+
+      {expanded && (
+        <View style={{ paddingHorizontal: 12 }}>
+          <UpsertProduct
+            productId={product.id}
+            mode="edit"
+            visible
+            inline
+            compact
+            internalMode
+            onDelete={() => onDiscard(product.id)}
+            onHide={() => setExpanded(false)}
+            onInlineDraftSave={onDraftSave}
+            onPublished={() => {
+              setExpanded(false);
+            }}
+          />
+        </View>
+      )}
+    </View>
+  );
+};
+
+const ImportProgress = ({ progress }: { progress: number }) => {
+  const colors = useThemeColor();
+  const width = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(width, {
+      toValue: Math.max(0, Math.min(progress, 100)),
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, width]);
+
+  return (
+    <View
+      style={{
+        gap: 8,
+        backgroundColor: colors.buttons.tonal.enabled,
+        borderRadius: borderRadius.medium,
+        padding: 16,
+      }}
+    >
+      <Label size="medium">Importerar annonser...</Label>
+      <View
+        style={{
+          height: 4,
+          borderRadius: borderRadius.small,
+          backgroundColor: colors.background.neutral,
+          overflow: "hidden",
+        }}
+      >
+        <Animated.View
+          style={{
+            height: "100%",
+            borderRadius: borderRadius.small,
+            backgroundColor: colors.buttons.filled.enabled,
+            width: width.interpolate({
+              inputRange: [0, 100],
+              outputRange: ["0%", "100%"],
+            }),
+          }}
+        />
+      </View>
+      <Body size="small" color="secondary">
+        Läser filer och skapar förslag till dina annonser.
+      </Body>
     </View>
   );
 };
@@ -560,23 +742,24 @@ const FileChip = ({
   file: FileType;
   onRemove: () => void;
 }) => {
-  const colors = useThemeColor();
   const isImage = file.mimeType.startsWith("image/");
   return (
     <View
       style={{
-        width: 140,
-        gap: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
         borderRadius: borderRadius.medium,
-        backgroundColor: colors.background.secondary,
-        padding: 8,
+        backgroundColor: primitives.accent100,
+        padding: 12,
       }}
     >
       <View
         style={{
-          height: 96,
+          width: 36,
+          height: 36,
           borderRadius: borderRadius.small,
-          backgroundColor: colors.card.message,
+          backgroundColor: primitives.neutrals100,
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
@@ -588,12 +771,14 @@ const FileChip = ({
             style={{ width: "100%", height: "100%" }}
           />
         ) : (
-          <Icon icon="upload" />
+          <Icon icon="file" size={18} />
         )}
       </View>
-      <Body size="small" numberOfLines={1}>
-        {file.name ?? "Fil"}
-      </Body>
+      <View style={{ flex: 1 }}>
+        <Body size="small" numberOfLines={1}>
+          {file.name ?? "Fil"}
+        </Body>
+      </View>
       <Button label="Ta bort" type="text" onPress={onRemove} />
     </View>
   );

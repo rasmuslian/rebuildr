@@ -11,13 +11,18 @@ import { useDocumentHandler } from "@hooks/use-document-handler";
 import { DocumentIcon } from "@icons/document-icon";
 
 type Props = {
+  compact?: boolean;
   documents: FileType[];
   onUpdateFiles: (updatedFiles: FileType[]) => void;
 };
 
 const MAX_TOTAL_BYTES = 20000000;
 
-export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
+export const DocumentSection = ({
+  compact = false,
+  documents,
+  onUpdateFiles,
+}: Props) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const { pickDocument } = useDocumentHandler();
@@ -86,17 +91,19 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
   return (
     <View
       style={{
-        paddingBottom: 16,
-        borderBottomWidth: 1,
+        paddingBottom: compact ? 0 : 16,
+        borderBottomWidth: compact ? 0 : 1,
         borderColor: colors.dividers.neutral,
       }}
     >
-      <View style={{ gap: 4, marginBottom: 12 }}>
-        <Label size="medium">Dokument</Label>
-        <Body size="small">
-          Ladda upp dokument som hjälper köparen att förstå produkten, t.ex.
-          manualer, certifikat eller tekniska specifikationer.
-        </Body>
+      <View style={{ gap: 4, marginBottom: compact ? 6 : 12 }}>
+        <Label size={compact ? "small" : "medium"}>Dokument</Label>
+        {!compact && (
+          <Body size="small">
+            Ladda upp dokument som hjälper köparen att förstå produkten, t.ex.
+            manualer, certifikat eller tekniska specifikationer.
+          </Body>
+        )}
       </View>
       <Pressable onPress={() => selectDocument()}>
         <View
@@ -105,33 +112,38 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
             borderWidth: 1,
             borderRadius: borderRadius.medium,
             borderStyle: "dashed",
-            padding: 16,
+            padding: compact ? 10 : 16,
             alignItems: "center",
           }}
         >
           <View
             style={{
-              width: 60,
-              height: 60,
+              width: compact ? 32 : 60,
+              height: compact ? 32 : 60,
               backgroundColor: colors.card.message,
               borderRadius: 38,
-              marginBottom: 16,
+              marginBottom: compact ? 6 : 16,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <Icon icon="addFile" size={24} />
           </View>
-          <Title size="medium" style={{ marginBottom: 4 }}>
-            Ladda upp dokument
+          <Title
+            size={compact ? "small" : "medium"}
+            style={{ marginBottom: 4 }}
+          >
+            Lägg till dokument
           </Title>
-          <Body size="small">Tryck för att ladda upp filer här.</Body>
+          {!compact && (
+            <Body size="small">Tryck för att ladda upp filer här.</Body>
+          )}
         </View>
       </Pressable>
       <Body
         size="small"
         color={sizeError ? "error" : "secondary"}
-        style={{ marginTop: 12 }}
+        style={{ marginTop: compact ? 6 : 12 }}
       >
         {documents.length} Dokument ({getTotalSize()} MB av 20 MB)
       </Body>
@@ -140,7 +152,7 @@ export const DocumentSection = ({ documents, onUpdateFiles }: Props) => {
           {uploadError}hej
         </Body>
       )}
-      <View style={{ gap: 16, marginTop: 16 }}>
+      <View style={{ gap: compact ? 8 : 16, marginTop: compact ? 8 : 16 }}>
         {documents.map((document, i) => (
           <View
             key={i}

@@ -202,9 +202,13 @@ type Props = {
   productId?: string;
   mode: "create" | "edit";
   visible: boolean;
+  inline?: boolean;
+  compact?: boolean;
   loading?: boolean;
   internalMode?: boolean;
   onHide: () => void;
+  onDelete?: () => void;
+  onInlineDraftSave?: (save: Promise<boolean | undefined>) => void;
   onPublished: (product?: PublishedProductData) => void;
 };
 
@@ -212,9 +216,13 @@ export const UpsertProduct = ({
   productId,
   mode,
   visible,
+  inline = false,
+  compact = false,
   loading,
   internalMode = false,
   onHide,
+  onDelete,
+  onInlineDraftSave,
   onPublished,
 }: Props) => {
   const { isDesktop } = useScreenType();
@@ -373,7 +381,7 @@ export const UpsertProduct = ({
       }
       setInitialized(true);
     };
-    if (data?.product) {
+    if (data?.product && !initialized) {
       //convert to productState
       productToState(data.product);
     }
@@ -812,7 +820,13 @@ export const UpsertProduct = ({
     const result = onVerifyDetails(product);
     if (result) {
       if (internalMode) {
-        update().then((saved) => {
+        const save = update();
+        if (inline) {
+          onPublished();
+          onInlineDraftSave?.(save);
+          return;
+        }
+        save.then((saved) => {
           if (saved) {
             setStep("preview");
           }
@@ -1033,6 +1047,9 @@ export const UpsertProduct = ({
             }
             imageAnalyzeError={!!imageAnalyzeError}
             internalMode={internalMode}
+            nextLabel={inline ? "Spara" : undefined}
+            onDelete={inline ? onDelete : undefined}
+            compact={compact}
           />
         );
       case "transportation":
@@ -1064,6 +1081,14 @@ export const UpsertProduct = ({
     }
     return null;
   };
+
+  if (inline) {
+    return isInitializing ? (
+      <LoadingSpinner style={{ marginTop: 24 }} />
+    ) : (
+      <View>{viewChildren()}</View>
+    );
+  }
 
   if (isDesktop) {
     return (

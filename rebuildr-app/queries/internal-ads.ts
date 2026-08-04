@@ -4,6 +4,8 @@ export const INTERNAL_AD_CARD_FIELDS = gql`
   fragment InternalAdCardFields on Product {
     id
     title
+    description
+    additionalInfo
     price
     status
     primaryQuantity

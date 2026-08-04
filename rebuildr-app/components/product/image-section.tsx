@@ -1,4 +1,4 @@
-import { Body, Display, Title } from "@components/typography/text";
+import { Body, Display, Label, Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Image } from "expo-image";
 import React, { useState } from "react";
@@ -11,12 +11,18 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useImageHandler } from "@hooks/use-image-handler";
 
 type Props = {
+  compact?: boolean;
   images: FileType[];
   imageError?: string;
   onUpdateImages: (updatedImages: FileType[]) => void;
 };
 
-export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
+export const ImageSection = ({
+  compact = false,
+  images,
+  imageError,
+  onUpdateImages,
+}: Props) => {
   const colors = useThemeColor();
   const { pickImage, pickImages } = useImageHandler();
 
@@ -66,23 +72,29 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
   return (
     <View
       style={{
-        borderBottomWidth: 1,
+        borderBottomWidth: compact ? 0 : 1,
         borderColor: colors.dividers.neutral,
-        paddingBottom: 16,
+        paddingBottom: compact ? 0 : 16,
       }}
     >
-      <Display size="small" style={{ marginBottom: 16 }}>
-        Lägg till bilder
-      </Display>
-      <Body size="large">
-        Den första bilden du laddar upp blir omslagsbilden för din annons.
-      </Body>
+      {compact ? (
+        <Label size="small">Bilder</Label>
+      ) : (
+        <>
+          <Display size="small" style={{ marginBottom: 16 }}>
+            Lägg till bilder
+          </Display>
+          <Body size="large">
+            Den första bilden du laddar upp blir omslagsbilden för din annons.
+          </Body>
+        </>
+      )}
       {images.length ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8 }}
-          style={{ marginTop: 24 }}
+          style={{ marginTop: compact ? 8 : 24 }}
         >
           {Array.from({
             length: images.length < 10 ? images.length + 1 : 10,
@@ -98,6 +110,7 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
                 }
                 onImageRemoved={() => onImageRemoved(_index)}
                 imageUri={existingImage?.uri}
+                compact={compact}
               />
             );
           })}
@@ -109,18 +122,18 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
               borderRadius: borderRadius.medium,
               alignItems: "center",
               justifyContent: "center",
-              padding: 16,
+              padding: compact ? 10 : 16,
               borderStyle: "dashed",
               borderColor: colors.buttons.outlinedStroke.enabled,
               borderWidth: 1,
-              marginTop: 24,
-              gap: 16,
+              marginTop: compact ? 8 : 24,
+              gap: compact ? 6 : 16,
             }}
           >
             <View
               style={{
-                width: 60,
-                height: 60,
+                width: compact ? 32 : 60,
+                height: compact ? 32 : 60,
                 backgroundColor: colors.card.message,
                 borderRadius: 38,
                 alignItems: "center",
@@ -129,18 +142,22 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
             >
               <Icon icon="addImage" />
             </View>
-            <View style={{ gap: 4 }}>
-              <Title size="medium" style={{ textAlign: "center" }}>
-                Ladda upp bilder
-              </Title>
-              <Body
-                size="small"
-                color="secondary"
-                style={{ textAlign: "center" }}
-              >
-                Tryck för att ladda upp bilder här.
-              </Body>
-            </View>
+            {compact ? (
+              <Label size="small">Lägg till bilder</Label>
+            ) : (
+              <View style={{ gap: 4 }}>
+                <Title size="medium" style={{ textAlign: "center" }}>
+                  Ladda upp bilder
+                </Title>
+                <Body
+                  size="small"
+                  color="secondary"
+                  style={{ textAlign: "center" }}
+                >
+                  Tryck för att ladda upp bilder här.
+                </Body>
+              </View>
+            )}
           </View>
         </Pressable>
       )}
@@ -149,7 +166,11 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
           {imageError}
         </Body>
       )}
-      <Body size="small" style={{ marginTop: 12 }} color="secondary">
+      <Body
+        size="small"
+        style={{ marginTop: compact ? 6 : 12 }}
+        color="secondary"
+      >
         Bilder: {images.length} av 10
       </Body>
     </View>
@@ -157,12 +178,14 @@ export const ImageSection = ({ images, imageError, onUpdateImages }: Props) => {
 };
 
 type ImageCardProps = {
+  compact?: boolean;
   imageUri?: string;
   onImagePicked: () => void;
   onImageRemoved?: () => void;
 };
 
 export const ImageUploadCard = ({
+  compact = false,
   imageUri,
   onImagePicked,
   onImageRemoved,
@@ -171,8 +194,8 @@ export const ImageUploadCard = ({
 
   const colors = useThemeColor();
 
-  const width = 140;
-  const height = 140;
+  const width = compact ? 80 : 140;
+  const height = compact ? 80 : 140;
   return (
     <Pressable
       onPress={onImagePicked}
@@ -200,7 +223,7 @@ export const ImageUploadCard = ({
             style={{
               width: "100%",
               height: "100%",
-              borderRadius: 15,
+              borderRadius: borderRadius.small,
             }}
           />
           {imageLoading && (

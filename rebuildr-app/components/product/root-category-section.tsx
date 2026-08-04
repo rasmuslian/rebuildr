@@ -8,7 +8,7 @@ import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { View } from "react-native";
 import placeholder from "@assets/images/category-placeholder.jpeg";
-import { Display, Headline, Title } from "@components/typography/text";
+import { Body, Title } from "@components/typography/text";
 import { Button } from "@components/buttons/button";
 import { Image } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -43,12 +43,14 @@ const ROOT_CATEGORY_SELECTED_CATEGORY = gql`
 `;
 
 type Props = {
+  compact?: boolean;
   onSelect: (id: string) => void;
   selectedId?: string;
   onChange?: () => void;
 };
 
 export const RootCategorySection = ({
+  compact = false,
   onSelect,
   selectedId,
   onChange,
@@ -82,30 +84,34 @@ export const RootCategorySection = ({
     return (
       <View
         style={{
-          borderBottomWidth: 1,
+          borderBottomWidth: compact ? 0 : 1,
           borderColor: colors.dividers.neutral,
-          paddingBottom: 16,
+          paddingBottom: compact ? 0 : 16,
         }}
       >
-        <Headline size="small" style={{ marginBottom: 12 }}>
+        <Title size="medium" style={{ marginBottom: compact ? 6 : 12 }}>
           Vad ska du sälja?{" "}
-        </Headline>
+        </Title>
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 16,
+            gap: compact ? 8 : 16,
           }}
         >
           <Image
             source={{
               uri: selectedData.category.image?.url ?? placeholder.uri,
             }}
-            style={{ width: 60, height: 60, borderRadius: 100 }}
+            style={{
+              width: compact ? 28 : 60,
+              height: compact ? 28 : 60,
+              borderRadius: 100,
+            }}
           />
           <View style={{ flex: 1 }}>
-            <Title size="medium">{selectedData.category.name}</Title>
+            <Body size="medium">{selectedData.category.name}</Body>
           </View>
           <Button label="Ändra" onPress={onChange} type="tonal" />
         </View>
@@ -115,10 +121,10 @@ export const RootCategorySection = ({
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 24 }}>
+      <Title size="medium" style={{ marginBottom: compact ? 8 : 24 }}>
         Vad ska du sälja?
-      </Display>
-      <View style={{ gap: 16 }}>
+      </Title>
+      <View style={{ gap: compact ? 8 : 16 }}>
         {data?.rootCategories.map((c, i) => {
           return (
             <View
@@ -127,15 +133,19 @@ export const RootCategorySection = ({
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
-                gap: 16,
+                gap: compact ? 8 : 16,
               }}
             >
               <Image
                 source={{ uri: c.image?.url ?? placeholder.uri }}
-                style={{ width: 60, height: 60, borderRadius: 100 }}
+                style={{
+                  width: compact ? 28 : 60,
+                  height: compact ? 28 : 60,
+                  borderRadius: 100,
+                }}
               />
               <View style={{ flex: 1 }}>
-                <Title size="medium">{c.name}</Title>
+                <Body size="medium">{c.name}</Body>
               </View>
               <Button label="Välj" onPress={() => onSelect(c.id)} />
             </View>

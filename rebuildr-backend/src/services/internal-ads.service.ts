@@ -595,7 +595,24 @@ export class InternalAdsService {
   }
 
   async importBatch(currentUserId: string, batchId: string) {
-    return this.findBatchForUser(currentUserId, batchId);
+    const batch = await this.findBatchForUser(currentUserId, batchId);
+    const productsWithUpdatedValidation = batch.products.filter((product) => {
+      const issues = this.validateInternalProduct(product, 0);
+      if (
+        issues.length === product.internalValidationIssues.length &&
+        issues.every(
+          (issue, index) => issue === product.internalValidationIssues[index],
+        )
+      ) {
+        return false;
+      }
+      product.internalValidationIssues = issues;
+      return true;
+    });
+    if (productsWithUpdatedValidation.length) {
+      await this.productRepository.save(productsWithUpdatedValidation);
+    }
+    return batch;
   }
 
   async cmsInternalAds(input: {
@@ -691,8 +708,10 @@ export class InternalAdsService {
 
     for (const draft of drafts) {
       const product = this.productRepository.create({
-        title: draft.title?.trim() ?? '',
-        description: draft.description?.trim() ?? null,
+        title: draft.title?.trim() || 'Material från import',
+        description:
+          draft.description?.trim() ||
+          'Beskrivning saknas i underlaget. Kontrollera och komplettera.',
         additionalInfo: draft.additionalInfo?.trim() ?? null,
         price: 0,
         isGiveaway: true,
@@ -708,6 +727,13 @@ export class InternalAdsService {
         pickupEnabled: true,
         soldByQuantity: false,
       });
+
+      // Keep uncertain imports actionable: a neutral suggestion is easier to
+      // review in bulk than an empty required field.
+      if (!draft.primaryQuantification) {
+        product.primaryQuantity = 1;
+        product.primaryUnit = QuantityUnitEnum.AMOUNT;
+      }
 
       if (draft.categoryId) {
         const category = leafCategories.find(
@@ -752,24 +778,19 @@ export class InternalAdsService {
         savedProduct,
         matchedImages.length,
       );
-      savedProduct.internalValidationIssues = [
-        ...issues,
-        ...(draft.warnings ?? []).filter(Boolean),
-      ];
+      savedProduct.internalValidationIssues = issues;
       await this.productRepository.save(savedProduct);
     }
   }
 
   private validateInternalProduct(product: Product, imageCount: number) {
     const issues: string[] = [];
-    if (!imageCount) issues.push('Minst en bild saknas');
     if (!product.title?.trim()) issues.push('Titel saknas');
     if (!product.description?.trim()) issues.push('Beskrivning saknas');
     if (!product.categoryId) issues.push('Kategori saknas');
     if (!product.primaryQuantity || !product.primaryUnit)
       issues.push('Mängd saknas');
     if (!product.condition) issues.push('Skick saknas');
-    if (!product.brandId && !product.brand) issues.push('Varumärke saknas');
     return issues;
   }
 
@@ -839,7 +860,7 @@ Return ONLY valid JSON with this shape:
   ]
 }
 
-If mandatory listing information is missing, still create the product draft and add a warning. Do not invent exact measurements, brands or quantities when the source is unclear; use null and warnings.
+Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification and condition. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
 
 CATEGORY LIST (id | parent > name):
 ${categoryList}
@@ -960,6 +981,7 @@ ${categoryList}
     const batch = await this.importBatchRepository.findOne({
       where: { id: batchId, organizationId: context.organization.id },
       relations: { files: true, products: true },
+      order: { products: { createdAt: 'ASC' } },
     });
     if (!batch) {
       throw NotFoundException('Import batch not found');

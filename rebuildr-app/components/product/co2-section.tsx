@@ -3,17 +3,18 @@ import { Form } from "@components/forms/form";
 import { Body, Title } from "@components/typography/text";
 import { ProductFields } from "@components/upsert-product/types";
 import { quantities } from "@constants/quantities";
+import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
-import { useThemeColor } from "@hooks/useThemeColor";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
+  compact?: boolean;
   product: ProductFields;
   onChange: (value: number) => void;
 };
 
-export const CO2Section = ({ product, onChange }: Props) => {
+export const CO2Section = ({ compact = false, product, onChange }: Props) => {
   const deriveWeight = () => {
     if (product.soldByQuantity && product.primaryUnit === QuantityUnitEnum.Kg) {
       return 1;
@@ -44,8 +45,6 @@ export const CO2Section = ({ product, onChange }: Props) => {
     product.soldByQuantity,
   ]);
 
-  const colors = useThemeColor();
-
   const onChangeWeight = (v: string) => {
     const toInt = parseInt(v, 10);
     onChange(toInt);
@@ -59,19 +58,21 @@ export const CO2Section = ({ product, onChange }: Props) => {
   return (
     <View
       style={{
-        backgroundColor: colors.background.primary,
-        borderRadius: borderRadius.medium,
-        paddingHorizontal: 16,
-        paddingVertical: 24,
-        gap: 24,
+        backgroundColor: primitives.accent100,
+        borderRadius: compact ? 0 : borderRadius.medium,
+        paddingHorizontal: compact ? 0 : 16,
+        paddingVertical: compact ? 0 : 24,
+        gap: compact ? 8 : 24,
       }}
     >
       <View style={{ gap: 4 }}>
-        <Title size="medium">Lägg till vikt för CO₂ värde</Title>
-        <Body size="medium" color="secondary">
-          Uppskatta vikten så vi kan beräkna klimatbesparingen. Vid delköp
-          räknas besparingen automatiskt om till såld mängd.
-        </Body>
+        <Title size={compact ? "small" : "medium"}>Vikt för CO₂</Title>
+        {!compact && (
+          <Body size="medium" color="secondary">
+            Uppskatta vikten så vi kan beräkna klimatbesparingen. Vid delköp
+            räknas besparingen automatiskt om till såld mängd.
+          </Body>
+        )}
       </View>
       <Form
         fields={[
@@ -84,7 +85,7 @@ export const CO2Section = ({ product, onChange }: Props) => {
             placeholder: weight.toString(),
             value: weight !== 0 ? weight.toString() : "",
             onChange: (v) => onChangeWeight(v),
-            style: { backgroundColor: colors.background.neutral },
+            style: { backgroundColor: primitives.accent100 },
             disabled: product.primaryUnit === QuantityUnitEnum.Kg,
           },
         ]}
