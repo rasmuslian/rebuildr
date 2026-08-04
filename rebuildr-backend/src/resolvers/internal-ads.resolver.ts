@@ -212,6 +212,15 @@ export class InternalAdsResolver {
     return this.internalAdsService.removeInternalDraft(user.id, productId);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async removeInternalAdImportBatch(
+    @CurrentUser() user: AuthedUserType,
+    @Args('batchId') batchId: string,
+  ) {
+    return this.internalAdsService.removeImportBatch(user.id, batchId);
+  }
+
   @Mutation(() => [Product])
   @UseGuards(GqlAuthGuard)
   async publishInternalAdDrafts(

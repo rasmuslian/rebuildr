@@ -1449,6 +1449,7 @@ type Mutation {
   updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
   createInternalAdDraft: Product!
   removeInternalAdDraft(productId: String!): Boolean!
+  removeInternalAdImportBatch(batchId: String!): Boolean!
   publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
   reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
   cancelInternalAdReservation(reservationId: String!): InternalAdReservation!

@@ -117,7 +117,7 @@ const Measurement = ({
       </View>
       <View style={{ flex: 1 }}>
         <SelectInput
-                        backgroundColor={compact ? primitives.accent100 : undefined}
+          backgroundColor={compact ? primitives.accent100 : undefined}
           value={unit}
           options={Object.keys(options).map((o) => ({
             label: options[o as MeasurementUnitEnum]?.name ?? "MISSING UNIT",

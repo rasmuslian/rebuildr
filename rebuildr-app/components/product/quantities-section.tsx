@@ -181,8 +181,7 @@ export const QuantitiesSection = ({
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
-                            backgroundColor={compact ? primitives.accent100 : undefined}
-                            backgroundColor={compact ? primitives.accent100 : undefined}
+            backgroundColor={primitives.accent100}
             value={
               primaryUnit ??
               data.category.primaryQuantityUnit ??
@@ -223,6 +222,7 @@ export const QuantitiesSection = ({
             </View>
             <View style={{ flex: 1 }}>
               <SelectInput
+                backgroundColor={primitives.accent100}
                 value={
                   secondaryUnit ??
                   data.category.secondaryQuantityUnit ??

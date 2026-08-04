@@ -76,6 +76,12 @@ export const REMOVE_INTERNAL_AD_DRAFT = gql`
   }
 `;
 
+export const REMOVE_INTERNAL_AD_IMPORT_BATCH = gql`
+  mutation RemoveInternalAdImportBatch($batchId: String!) {
+    removeInternalAdImportBatch(batchId: $batchId)
+  }
+`;
+
 export const PUBLISH_INTERNAL_AD_DRAFTS = gql`
   mutation PublishInternalAdDrafts($productIds: [ID!]!) {
     publishInternalAdDrafts(productIds: $productIds) {

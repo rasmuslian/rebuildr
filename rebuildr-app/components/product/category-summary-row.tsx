@@ -5,7 +5,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Body, Title } from "@components/typography/text";
-import placeholder from "@assets/images/placeholder-product.png";
+import placeholder from "@assets/images/category-placeholder.jpeg";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Image } from "expo-image";
 import { View } from "react-native";

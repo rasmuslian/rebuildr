@@ -394,7 +394,51 @@ export class InternalAdsService {
     if (product.status !== ProductStatus.DRAFT) {
       throw BadUserInputException('Product is not a draft');
     }
+    const files = [...(product.images ?? []), ...(product.documents ?? [])];
+    await this.fileService.deleteFiles(files);
     await this.productRepository.remove(product);
+    return true;
+  }
+
+  async removeImportBatch(currentUserId: string, batchId: string) {
+    const batch = await this.findBatchForUser(currentUserId, batchId);
+    batch.status = InternalAdImportBatchStatus.FAILED;
+    await this.importBatchRepository.save(batch);
+    const products = await this.productRepository.find({
+      where: { internalAdImportBatchId: batch.id },
+      relations: { images: true, documents: true },
+    });
+    const draftProducts = products.filter(
+      (product) => product.status === ProductStatus.DRAFT,
+    );
+    const productFiles = draftProducts.flatMap((product) => [
+      ...(product.images ?? []),
+      ...(product.documents ?? []),
+    ]);
+    const retainedFileIds = new Set(
+      products
+        .filter((product) => product.status !== ProductStatus.DRAFT)
+        .flatMap((product) => [
+          ...(product.images ?? []),
+          ...(product.documents ?? []),
+        ])
+        .map((file) => file.id),
+    );
+    const batchFiles = batch.files.filter(
+      (file) => !retainedFileIds.has(file.id),
+    );
+    const files = [
+      ...productFiles,
+      ...batchFiles.filter(
+        (file) =>
+          !productFiles.some((productFile) => productFile.id === file.id),
+      ),
+    ];
+    await this.fileService.deleteFiles(files);
+    if (draftProducts.length) {
+      await this.productRepository.remove(draftProducts);
+    }
+    await this.importBatchRepository.remove(batch);
     return true;
   }
 
@@ -655,8 +699,7 @@ export class InternalAdsService {
 
       const { categoryList, leafCategories } = await this.getLeafCategories();
       const fileParts = await this.importFilesToGeminiParts(batch.files);
-      batch.progress = 45;
-      await this.importBatchRepository.save(batch);
+      await this.importBatchRepository.update(batchId, { progress: 45 });
 
       const response = await this.gemini.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -676,15 +719,32 @@ export class InternalAdsService {
           },
         ],
       });
-      batch.progress = 70;
-      await this.importBatchRepository.save(batch);
-
+      const activeBatch = await this.importBatchRepository.findOneBy({
+        id: batchId,
+      });
+      if (
+        !activeBatch ||
+        activeBatch.status === InternalAdImportBatchStatus.FAILED
+      ) {
+        return;
+      }
+      await this.importBatchRepository.update(batchId, { progress: 70 });
       const drafts = this.parseImportResponse(response.text ?? '');
-      await this.createProductsFromDrafts(batch, drafts, leafCategories);
-      batch.status = InternalAdImportBatchStatus.READY;
-      batch.progress = 100;
-      await this.importBatchRepository.save(batch);
+      await this.createProductsFromDrafts(
+        batch,
+        drafts,
+        leafCategories,
+        batchId,
+      );
+      await this.importBatchRepository.update(batchId, {
+        status: InternalAdImportBatchStatus.READY,
+        progress: 100,
+      });
     } catch (error) {
+      const activeBatch = await this.importBatchRepository.findOneBy({
+        id: batchId,
+      });
+      if (!activeBatch) return;
       batch.status = InternalAdImportBatchStatus.FAILED;
       batch.errorMessage =
         error instanceof Error ? error.message : 'Import failed';
@@ -698,6 +758,7 @@ export class InternalAdsService {
     batch: InternalAdImportBatch,
     drafts: ImportDraft[],
     leafCategories: Category[],
+    batchId: string,
   ) {
     const imageFilesByName = new Map(
       batch.files
@@ -707,6 +768,15 @@ export class InternalAdsService {
     const usedImageIds = new Set<string>();
 
     for (const draft of drafts) {
+      const activeBatch = await this.importBatchRepository.findOneBy({
+        id: batchId,
+      });
+      if (
+        !activeBatch ||
+        activeBatch.status === InternalAdImportBatchStatus.FAILED
+      ) {
+        return;
+      }
       const product = this.productRepository.create({
         title: draft.title?.trim() || 'Material från import',
         description:
@@ -728,13 +798,6 @@ export class InternalAdsService {
         soldByQuantity: false,
       });
 
-      // Keep uncertain imports actionable: a neutral suggestion is easier to
-      // review in bulk than an empty required field.
-      if (!draft.primaryQuantification) {
-        product.primaryQuantity = 1;
-        product.primaryUnit = QuantityUnitEnum.AMOUNT;
-      }
-
       if (draft.categoryId) {
         const category = leafCategories.find(
           (item) => item.id === draft.categoryId,
@@ -747,6 +810,12 @@ export class InternalAdsService {
         draft.secondaryQuantification,
         'secondary',
       );
+      // Keep uncertain or malformed AI output reviewable rather than leaving
+      // a required quantity blank.
+      if (!product.primaryQuantity || !product.primaryUnit) {
+        product.primaryQuantity = 1;
+        product.primaryUnit = QuantityUnitEnum.AMOUNT;
+      }
       this.applyDimensions(product, draft.dimensions);
       if (draft.weight) {
         product.weight = Math.round(Number(draft.weight));

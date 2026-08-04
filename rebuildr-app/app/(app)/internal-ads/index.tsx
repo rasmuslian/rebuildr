@@ -18,6 +18,7 @@ import {
   INTERNAL_ADS_PAGE_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
+  REMOVE_INTERNAL_AD_IMPORT_BATCH,
   START_INTERNAL_AD_IMPORT_BATCH,
 } from "@/queries/internal-ads";
 import { useMutation, useQuery } from "@apollo/client";
@@ -121,6 +122,7 @@ export default function InternalAdsPage() {
     PublishInternalAdDraftsMutationVariables
   >(PUBLISH_INTERNAL_AD_DRAFTS);
   const [removeDraft] = useMutation(REMOVE_INTERNAL_AD_DRAFT);
+  const [removeImportBatch] = useMutation(REMOVE_INTERNAL_AD_IMPORT_BATCH);
   const [createBatch, { loading: creatingBatch }] = useMutation<
     CreateInternalAdImportBatchMutation,
     CreateInternalAdImportBatchMutationVariables
@@ -128,6 +130,12 @@ export default function InternalAdsPage() {
   const [startBatch, { loading: startingBatch }] = useMutation(
     START_INTERNAL_AD_IMPORT_BATCH,
   );
+  const [uploadingImport, setUploadingImport] = useState(false);
+  const [discardingImport, setDiscardingImport] = useState(false);
+  const uploadAbortController = useRef<AbortController | undefined>(undefined);
+  const importBatchId = useRef<string | undefined>(undefined);
+  const importGeneration = useRef(0);
+  const batchCreation = useRef<ReturnType<typeof createBatch> | null>(null);
 
   const onCreateInternalAd = useCallback(async () => {
     const result = await createDraft();
@@ -180,7 +188,11 @@ export default function InternalAdsPage() {
 
   const onStartImport = async () => {
     if (!selectedFiles.length) return;
-    const created = await createBatch({
+    const generation = ++importGeneration.current;
+    setUploadingImport(true);
+    const controller = new AbortController();
+    uploadAbortController.current = controller;
+    const creation = createBatch({
       variables: {
         input: {
           files: selectedFiles.map((file) => ({
@@ -190,22 +202,68 @@ export default function InternalAdsPage() {
         },
       },
     });
-    const response = created.data?.createInternalAdImportBatch;
-    if (!response) return;
-    await Promise.all(
-      response.uploadUrls.map((uploadUrl, index) =>
-        fetch(uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": selectedFiles[index].mimeType },
-          body: selectedFiles[index].file,
-        }),
-      ),
-    );
-    setActiveBatchId(response.batch.id);
-    setPollBatch(true);
+    batchCreation.current = creation;
+    try {
+      const created = await creation;
+      const response = created.data?.createInternalAdImportBatch;
+      if (!response) return;
+      importBatchId.current = response.batch.id;
+      setActiveBatchId(response.batch.id);
+      if (importGeneration.current !== generation) {
+        return;
+      }
+      await Promise.all(
+        response.uploadUrls.map((uploadUrl, index) =>
+          fetch(uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": selectedFiles[index].mimeType },
+            body: selectedFiles[index].file,
+            signal: controller.signal,
+          }),
+        ),
+      );
+      if (importGeneration.current !== generation) return;
+      setPollBatch(true);
+      setSelectedFiles([]);
+      await startBatch({ variables: { batchId: response.batch.id } });
+      await refetchBatch();
+    } catch (error) {
+      if (importGeneration.current === generation) throw error;
+    } finally {
+      batchCreation.current = null;
+      uploadAbortController.current = undefined;
+      setUploadingImport(false);
+    }
+  };
+
+  const onDiscardImport = () => {
+    const pendingCreation = batchCreation.current;
+    const knownBatchId = importBatchId.current ?? batch?.id;
+    const generation = ++importGeneration.current;
+    setDiscardingImport(true);
+    uploadAbortController.current?.abort();
+    setPollBatch(false);
+    setActiveBatchId(undefined);
+    importBatchId.current = undefined;
     setSelectedFiles([]);
-    await startBatch({ variables: { batchId: response.batch.id } });
-    await refetchBatch();
+    setShowImport(false);
+
+    (async () => {
+      const created = pendingCreation ? await pendingCreation : undefined;
+      const batchId =
+        knownBatchId ?? created?.data?.createInternalAdImportBatch.batch.id;
+      if (batchId) {
+        await removeImportBatch({ variables: { batchId } });
+      }
+      if (importGeneration.current === generation) {
+        setDiscardingImport(false);
+      }
+    })().catch((error) => {
+      console.error("Failed to discard internal ad import", error);
+      if (importGeneration.current === generation) {
+        setDiscardingImport(false);
+      }
+    });
   };
 
   const onPublishImported = async () => {
@@ -251,6 +309,12 @@ export default function InternalAdsPage() {
   const activeProducts = data?.internalAds.products ?? [];
   const total = data?.internalAds.total ?? 0;
   const hasAccess = !!data?.internalAdsOrganizationContext;
+  const hasImport =
+    (!discardingImport && !!batch) ||
+    uploadingImport ||
+    creatingBatch ||
+    startingBatch;
+  const visibleBatch = discardingImport ? undefined : batch;
 
   const adGridProducts = useMemo(
     () =>
@@ -417,7 +481,7 @@ export default function InternalAdsPage() {
         title="Importera annonser"
         style={{ gap: 24 }}
         footer={
-          batch ? (
+          hasImport ? (
             <View
               style={{
                 flexDirection: "row",
@@ -429,22 +493,19 @@ export default function InternalAdsPage() {
               <Button
                 label="Skapa annonser"
                 onPress={onPublishImported}
-                loading={publishRequested || publishingImported}
+                loading={
+                  publishRequested || publishingImported || uploadingImport
+                }
+                disabled={discardingImport}
                 style={{ flex: 1 }}
               />
               <Button
                 label="Släng utkast"
                 type="outlined"
                 style={{ flex: 1 }}
-                onPress={async () => {
-                  await Promise.all(
-                    importedProducts.map((product) =>
-                      removeDraft({ variables: { productId: product.id } }),
-                    ),
-                  );
-                  await refetchBatch();
-                  setShowImport(false);
-                }}
+                onPress={onDiscardImport}
+                loading={discardingImport}
+                disabled={publishRequested || publishingImported}
               />
             </View>
           ) : (
@@ -459,7 +520,7 @@ export default function InternalAdsPage() {
       >
         <ImportPanel
           files={selectedFiles}
-          batch={batch}
+          batch={visibleBatch}
           products={importedProducts}
           importStarted={!!activeBatchId}
           onPickFiles={onPickFiles}
@@ -565,7 +626,7 @@ const ImportPanel = ({
         </Pressable>
       )}
 
-      {!!files.length && (
+      {!!files.length && !importStarted && (
         <View style={{ gap: 12 }}>
           <Label size="large">Valda filer</Label>
           <View style={{ gap: 12 }}>
