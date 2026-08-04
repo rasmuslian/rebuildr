@@ -87,6 +87,10 @@ export class Product {
   @Column({ nullable: true })
   additionalInfo?: string;
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  internalReferenceNumber?: string;
+
   @Field(() => [String])
   @Column('text', { array: true, default: [] })
   searchAliases: string[];

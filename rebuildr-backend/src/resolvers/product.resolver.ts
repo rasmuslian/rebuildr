@@ -93,6 +93,9 @@ export class UpdateProductInput {
   additionalInfo?: string;
 
   @Field(() => String, { nullable: true })
+  internalReferenceNumber?: string | null;
+
+  @Field(() => String, { nullable: true })
   categoryId?: string | null;
 
   @Field(() => String, { nullable: true })

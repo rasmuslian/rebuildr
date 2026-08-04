@@ -1,5 +1,6 @@
 import { Pressable, View } from "react-native";
 import { Toggle } from "@components/controls/toggle";
+import { Form } from "@components/forms/form";
 import { BrandSection } from "@components/product/brand-section";
 import { CategorySection } from "@components/product/category-section";
 import { ConditionSection } from "@components/product/condition-section";
@@ -232,6 +233,21 @@ export const Details = ({
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
           />
+          {internalMode && (
+            <Form
+              fields={[
+                {
+                  type: "text",
+                  value: product.internalReferenceNumber ?? "",
+                  onChangeText: (internalReferenceNumber) =>
+                    update({ internalReferenceNumber }),
+                  heading: "Internt id/referensnummer",
+                  description: "Valfritt. Visas bara för interna annonser.",
+                  placeholder: "Till exempel INV-12345",
+                },
+              ]}
+            />
+          )}
           <QuantitiesSection
             compact={compact}
             categoryId={categoryId}

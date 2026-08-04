@@ -70,6 +70,7 @@ type ImportDraft = {
   title?: string | null;
   description?: string | null;
   additionalInfo?: string | null;
+  internalReferenceNumber?: string | null;
   brand?: string | null;
   categoryId?: string | null;
   condition?: ProductConditionEnum | null;
@@ -783,6 +784,7 @@ export class InternalAdsService {
           draft.description?.trim() ||
           'Beskrivning saknas i underlaget. Kontrollera och komplettera.',
         additionalInfo: draft.additionalInfo?.trim() ?? null,
+        internalReferenceNumber: draft.internalReferenceNumber?.trim() ?? null,
         price: 0,
         isGiveaway: true,
         status: ProductStatus.DRAFT,
@@ -915,6 +917,7 @@ Return ONLY valid JSON with this shape:
       "title": "Swedish title, max 8 words",
       "description": "Swedish factual description, max 60 words",
       "additionalInfo": "Swedish caveats or visible defects, max 30 words, or null",
+      "internalReferenceNumber": "source reference/inventory/article number, or null",
       "brand": "Brand/manufacturer if known, otherwise Okänt",
       "condition": "${Object.values(ProductConditionEnum).join('|')}",
       "primaryQuantification": "QUANTITY,${Object.keys(QuantityUnitEnum).join('|')}",
@@ -930,6 +933,8 @@ Return ONLY valid JSON with this shape:
 }
 
 Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification and condition. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
+
+Set internalReferenceNumber only when the source explicitly identifies a product reference, inventory number, article number, asset ID, item number, or similarly labelled identifier tied to that product. Do not use row numbers, arbitrary codes, dimensions, quantities, invoice/order numbers, file names, or any unlabelled value that merely looks like an ID. When uncertain, return null.
 
 CATEGORY LIST (id | parent > name):
 ${categoryList}

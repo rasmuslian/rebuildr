@@ -314,6 +314,12 @@ export class ProductService {
     if (input.additionalInfo !== undefined) {
       product.additionalInfo = input.additionalInfo;
     }
+    if (
+      product.visibility === ProductVisibility.INTERNAL &&
+      input.internalReferenceNumber !== undefined
+    ) {
+      product.internalReferenceNumber = input.internalReferenceNumber;
+    }
     if (convertedPrice !== undefined) {
       product.price = convertedPrice;
       product.isGiveaway = convertedPrice <= 0;

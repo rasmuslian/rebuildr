@@ -144,6 +144,7 @@ export const initialProduct: ProductFields = {
   title: undefined,
   description: undefined,
   additionalInfo: undefined,
+  internalReferenceNumber: undefined,
   price: undefined,
   primaryQuantity: undefined,
   primaryUnit: undefined,
@@ -318,6 +319,8 @@ export const UpsertProduct = ({
         title: dbProduct?.title || undefined,
         description: dbProduct?.description ?? undefined,
         additionalInfo: dbProduct?.additionalInfo ?? undefined,
+        internalReferenceNumber:
+          dbProduct?.internalReferenceNumber ?? undefined,
         price: internalMode ? 0 : dbProduct?.price || undefined,
         primaryQuantity: dbProduct?.primaryQuantity ?? undefined,
         primaryUnit: dbProduct?.primaryUnit ?? undefined,
@@ -441,6 +444,9 @@ export const UpsertProduct = ({
           title: product.title,
           description: product.description,
           additionalInfo: product.additionalInfo,
+          internalReferenceNumber: internalMode
+            ? product.internalReferenceNumber
+            : undefined,
           price: internalMode ? 0 : product.price,
           primaryQuantity: product.primaryQuantity,
           primaryUnit: product.primaryUnit,

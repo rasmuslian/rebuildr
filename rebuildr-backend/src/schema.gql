@@ -437,6 +437,7 @@ type Product {
   title: String!
   description: String
   additionalInfo: String
+  internalReferenceNumber: String
   searchAliases: [String!]!
   searchRelatedTerms: [String!]!
   searchUseCases: [String!]!
@@ -1639,6 +1640,7 @@ input UpdateProductInput {
   location: LocationInputType
   description: String
   additionalInfo: String
+  internalReferenceNumber: String
   categoryId: String
   brandId: String
   price: Float
