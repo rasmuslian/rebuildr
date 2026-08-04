@@ -496,7 +496,11 @@ export default function InternalAdsPage() {
                 loading={
                   publishRequested || publishingImported || uploadingImport
                 }
-                disabled={discardingImport}
+                disabled={
+                  discardingImport ||
+                  batch?.status !== InternalAdImportBatchStatusEnum.Ready ||
+                  !importedProducts.length
+                }
                 style={{ flex: 1 }}
               />
               <Button

@@ -18,25 +18,45 @@ import {
 } from "@/queries/internal-ads";
 import { useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
+import { FilterChip } from "@components/chips/filterChip";
+import { CollapsableText } from "@components/collapsable-text/collapsable-text";
+import { Divider } from "@components/dividers/divider";
 import { TextInput } from "@components/forms/textInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import { Header } from "@components/navigation/headers/header";
 import TopBar from "@components/navigation/top-bar/top-bar";
-import { ScreenLayout } from "@components/screen-layout/screen-layout";
-import { Body, Display, Label, Title } from "@components/typography/text";
-import { primitives } from "@constants/colors";
-import { borderRadius } from "@constants/sizes";
+import { Popup } from "@components/popup/popup";
+import { AllImages } from "@components/preview-product/all-images";
+import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
+import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
+import { ImageCarousel } from "@components/preview-product/image-carousel";
+import { ImageGallery } from "@components/preview-product/image-gallery";
+import {
+  SCREEN_TOP_MARGIN,
+  ScreenLayout,
+} from "@components/screen-layout/screen-layout";
+import {
+  Body,
+  Display,
+  Headline,
+  Label,
+  Title,
+} from "@components/typography/text";
+import { conditions } from "@constants/conditions";
+import { quantities } from "@constants/quantities";
 import { useScreenType } from "@hooks/useScreenType";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Image } from "expo-image";
+import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 
 export default function InternalAdDetailPage() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
-  const colors = useThemeColor();
   const { isDesktop } = useScreenType();
+  const { height: screenHeight } = useWindowDimensions();
   const [quantity, setQuantity] = useState("1");
+  const [rightColumnWidth, setRightColumnWidth] = useState(0);
+  const [showImagePopup, setShowImagePopup] = useState(false);
 
   const { data, loading, refetch } = useQuery<
     InternalAdDetailQuery,
@@ -75,6 +95,11 @@ export default function InternalAdDetailPage() {
     : activeReservations.length
       ? 0
       : 1;
+  const requestedQuantity = parseInt(quantity, 10);
+  const isRequestedQuantityValid =
+    Number.isInteger(requestedQuantity) &&
+    requestedQuantity > 0 &&
+    requestedQuantity <= availableQuantity;
   const isAdmin =
     data?.internalAdsOrganizationContext?.role ===
     OrganizationMemberRoleEnum.Admin;
@@ -86,7 +111,7 @@ export default function InternalAdDetailPage() {
       variables: {
         input: {
           productId: product.id,
-          quantity: product.soldByQuantity ? parseInt(quantity, 10) : undefined,
+          quantity: product.soldByQuantity ? requestedQuantity : undefined,
         },
       },
     });
@@ -109,190 +134,463 @@ export default function InternalAdDetailPage() {
   if (loading) return <LoadingSpinner />;
   if (!product) {
     return (
-      <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-        <TopBar theme="light" showSearchBar={false} />
-        <ScreenLayout style={{ backgroundColor: primitives.accent100 }}>
-          <Display size="small">Annonsen finns inte</Display>
-        </ScreenLayout>
-      </View>
+      <ScreenLayout
+        headerComponent={
+          isDesktop ? (
+            <TopBar theme="light" showSearchBar={false} />
+          ) : (
+            <Header onBack={() => router.navigate("/internal-ads")} />
+          )
+        }
+      >
+        <Display size="small">Annonsen finns inte</Display>
+      </ScreenLayout>
     );
   }
 
+  const content = (
+    <InternalAdContent
+      product={product}
+      activeReservations={activeReservations}
+      availableQuantity={availableQuantity}
+      quantity={quantity}
+      setQuantity={setQuantity}
+      isRequestedQuantityValid={isRequestedQuantityValid}
+      reserving={reserving}
+      onReserve={onReserve}
+      showReserveButton={isDesktop}
+    />
+  );
+
+  const secondaryContent = (
+    <>
+      {product.approximatePlace?.address && (
+        <>
+          <Divider />
+          <View style={{ gap: 8 }}>
+            <Headline size="small">Plats för avhämtning</Headline>
+            <Body size="medium">{product.approximatePlace.address}</Body>
+          </View>
+        </>
+      )}
+
+      <Divider />
+
+      <View style={{ gap: 8 }}>
+        <Headline size="small">Publicerad av</Headline>
+        <Body size="medium">
+          {data?.internalAdsOrganizationContext?.organization?.name ??
+            "Din organisation"}
+        </Body>
+      </View>
+
+      <Divider />
+
+      <Reservations
+        reservations={activeReservations}
+        canMarkSold={canMarkSold}
+        canceling={canceling}
+        markingSold={markingSold}
+        onCancel={onCancel}
+        onMarkSold={onMarkSold}
+      />
+
+      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
+        <Button
+          label="Markera hela annonsen som såld"
+          type="tonal"
+          onPress={() => onMarkSold()}
+          loading={markingSold}
+        />
+      )}
+    </>
+  );
+
+  if (!isDesktop) {
+    return (
+      <ScreenLayout
+        headerComponent={
+          <Header
+            showDivider={false}
+            onBack={() => router.navigate("/internal-ads")}
+          />
+        }
+        footerBorder={product.status !== ProductStatusEnum.Sold}
+        footerComponent={
+          product.status !== ProductStatusEnum.Sold ? (
+            <Button
+              label="Reservera"
+              onPress={onReserve}
+              loading={reserving}
+              disabled={
+                availableQuantity <= 0 ||
+                (product.soldByQuantity && !isRequestedQuantityValid)
+              }
+            />
+          ) : undefined
+        }
+        style={{ gap: 24, marginTop: 8 }}
+      >
+        <ImageCarousel
+          images={product.images}
+          status={product.status}
+          productTitle={product.title}
+        />
+        {content}
+        {!!product.images.length && (
+          <>
+            <Divider />
+            <AllImages images={product.images} />
+          </>
+        )}
+        {secondaryContent}
+      </ScreenLayout>
+    );
+  }
+
+  const imageGalleryHeight = screenHeight - 72 - 48;
+
   return (
-    <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-      <TopBar theme="light" showSearchBar={false} />
+    <>
       <ScreenLayout
         desktopFooter
-        contentHorizontalPadding={isDesktop ? 75 : 16}
-        style={{ backgroundColor: primitives.accent100, gap: 24 }}
+        headerComponent={<TopBar theme="light" showSearchBar={false} />}
       >
-        <Button
-          label="Tillbaka till Internlagret"
-          type="text"
-          onPress={() => router.navigate("/internal-ads")}
-          style={{ alignSelf: "flex-start" }}
-        />
-        <View
-          style={{
-            flexDirection: isDesktop ? "row" : "column",
-            gap: 24,
-            alignItems: "flex-start",
-          }}
-        >
-          <View style={{ flex: 1, width: "100%", gap: 12 }}>
-            <Image
-              source={{ uri: product.images[0]?.url }}
-              style={{
-                aspectRatio: 1,
-                borderRadius: borderRadius.medium,
-                backgroundColor: colors.buttons.tonal.enabled,
-              }}
-            />
-            {product.images.length > 1 && (
-              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                {product.images.slice(1).map((image) => (
-                  <Image
-                    key={image.id}
-                    source={{ uri: image.url }}
-                    style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: borderRadius.small,
-                      backgroundColor: colors.buttons.tonal.enabled,
-                    }}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-
+        <View style={{ gap: 48 }}>
           <View
             style={{
-              flex: 1,
-              width: "100%",
-              backgroundColor: colors.background.neutral,
-              borderRadius: borderRadius.medium,
-              padding: 16,
-              gap: 20,
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 48,
+              position: "relative",
             }}
           >
-            <View style={{ gap: 8 }}>
-              <Label size="medium" color="secondary">
-                {product.category?.parent?.name
-                  ? `${product.category.parent.name} / ${product.category.name}`
-                  : product.category?.name}
-              </Label>
-              <Display size="small" heading={1}>
-                {product.title}
-              </Display>
-              <Body size="large" color="secondary">
-                {product.description}
-              </Body>
-              {!!product.additionalInfo && (
-                <Body size="medium">{product.additionalInfo}</Body>
-              )}
-            </View>
-
-            <View style={{ gap: 6 }}>
-              <Title size="medium">Lagerstatus</Title>
-              <Body size="medium" color="secondary">
-                {product.status === ProductStatusEnum.Sold
-                  ? "Såld"
-                  : product.soldByQuantity
-                    ? `${availableQuantity} av ${product.primaryQuantity ?? 0} kvar`
-                    : activeReservations.length
-                      ? "Reserverad"
-                      : "Tillgänglig"}
-              </Body>
-              {product.approximatePlace?.address && (
-                <Body size="small" color="secondary">
-                  Plats: {product.approximatePlace.address}
-                </Body>
-              )}
-            </View>
-
-            {product.status !== ProductStatusEnum.Sold && (
-              <View style={{ gap: 8 }}>
-                {product.soldByQuantity && (
-                  <TextInput
-                    inputType="numeric"
-                    value={quantity}
-                    onChange={setQuantity}
-                    placeholder="Antal"
+            <View
+              style={{
+                position: "sticky",
+                top: SCREEN_TOP_MARGIN,
+                flex: 3,
+                height: imageGalleryHeight,
+                marginRight: 16,
+              }}
+            >
+              <ImageGallery
+                images={product.images}
+                status={product.status}
+                productTitle={product.title}
+                displaySoldOverlay
+              />
+              {!!product.images.length && (
+                <View style={{ position: "absolute", top: 24, left: 24 }}>
+                  <Button
+                    label="Visa alla bilder"
+                    type="filled"
+                    theme="dark"
+                    showShadow
+                    onPress={() => setShowImagePopup(true)}
                   />
-                )}
-                <Button
-                  label="Reservera"
-                  onPress={onReserve}
-                  loading={reserving}
-                  disabled={availableQuantity <= 0}
-                />
-              </View>
-            )}
-
-            <View style={{ gap: 12 }}>
-              <Title size="medium">Reservationer</Title>
-              {activeReservations.length ? (
-                activeReservations.map((reservation) => (
-                  <View key={reservation.id} style={{ gap: 8 }}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        gap: 12,
-                      }}
-                    >
-                      <Body size="medium">
-                        {reservation.reservedByUser.name ??
-                          reservation.reservedByUser.username ??
-                          reservation.reservedByUser.email}
-                        {reservation.quantity
-                          ? ` · ${reservation.quantity}`
-                          : ""}
-                      </Body>
-                      <Label size="medium">
-                        {new Date(reservation.reservedAt).toLocaleDateString(
-                          "sv-SE",
-                        )}
-                      </Label>
-                    </View>
-                    <View
-                      style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}
-                    >
-                      <Button
-                        label="Avboka"
-                        type="tonal"
-                        onPress={() => onCancel(reservation.id)}
-                        loading={canceling}
-                      />
-                      {canMarkSold && (
-                        <Button
-                          label="Markera såld"
-                          onPress={() => onMarkSold(reservation.id)}
-                          loading={markingSold}
-                        />
-                      )}
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <Body size="medium" color="secondary">
-                  Inga aktiva reservationer.
-                </Body>
+                </View>
               )}
             </View>
 
-            {canMarkSold && product.status !== ProductStatusEnum.Sold && (
+            <View
+              style={{ flex: 1, gap: 24 }}
+              onLayout={(event) => {
+                setRightColumnWidth(event.nativeEvent.layout.width);
+              }}
+            >
+              {content}
+              {!!product.images.length && (
+                <AllImages
+                  images={product.images}
+                  imagesPerRow={3}
+                  parentWidth={rightColumnWidth}
+                  onAllImagesPress={() => setShowImagePopup(true)}
+                />
+              )}
+              {secondaryContent}
+            </View>
+          </View>
+        </View>
+      </ScreenLayout>
+      <Popup
+        open={showImagePopup}
+        onClose={() => setShowImagePopup(false)}
+        type="full"
+      >
+        <AllImagesPopupContent images={product.images} />
+      </Popup>
+    </>
+  );
+}
+
+type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]>;
+type InternalReservation = InternalAd["internalReservations"][number];
+
+type InternalAdContentProps = {
+  product: InternalAd;
+  activeReservations: InternalReservation[];
+  availableQuantity: number;
+  quantity: string;
+  setQuantity: (quantity: string) => void;
+  isRequestedQuantityValid: boolean;
+  reserving: boolean;
+  onReserve: () => Promise<void>;
+  showReserveButton: boolean;
+};
+
+const InternalAdContent = ({
+  product,
+  activeReservations,
+  availableQuantity,
+  quantity,
+  setQuantity,
+  isRequestedQuantityValid,
+  reserving,
+  onReserve,
+  showReserveButton,
+}: InternalAdContentProps) => {
+  const stockStatus =
+    product.status === ProductStatusEnum.Sold
+      ? "Såld"
+      : product.soldByQuantity
+        ? "Tillgänglig"
+        : activeReservations.length
+          ? "Reserverad"
+          : "Tillgänglig";
+
+  return (
+    <View style={{ gap: 24 }}>
+      <View style={{ gap: 8 }}>
+        <Body size="medium" color="secondary">
+          Internlagret
+        </Body>
+        <Breadcrumbs
+          parentCategory={product.category?.parent}
+          category={product.category}
+        />
+      </View>
+
+      <View>
+        <Title size="large" heading={1}>
+          {product.title}
+        </Title>
+        <Body size="large" color="secondary">
+          {product.primaryQuantity ?? 0}{" "}
+          {product.primaryUnit ? quantities[product.primaryUnit].plural : "st"}{" "}
+          • {conditions[product.condition].name}
+        </Body>
+      </View>
+
+      <View>
+        <Headline size="large" style={{ marginBottom: 8 }}>
+          {stockStatus}
+        </Headline>
+        {product.status !== ProductStatusEnum.Sold &&
+          product.soldByQuantity && (
+            <Body size="medium" color="secondary">
+              {availableQuantity} av {product.primaryQuantity ?? 0} kvar
+            </Body>
+          )}
+      </View>
+
+      <Divider />
+
+      <View style={{ gap: 16 }}>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          {!!product.primaryQuantity && product.primaryUnit && (
+            <ProductChip
+              text="Antal"
+              boldText={`${product.primaryQuantity} ${quantities[product.primaryUnit].plural}`}
+            />
+          )}
+          {!!product.secondaryQuantity && product.secondaryUnit && (
+            <ProductChip
+              text="Ytterligare antal"
+              boldText={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].plural}`}
+            />
+          )}
+          <ProductChip
+            text="Skick"
+            boldText={conditions[product.condition].name}
+          />
+          {!!product.brand?.name && (
+            <ProductChip text="Varumärke" boldText={product.brand.name} />
+          )}
+        </View>
+
+        {!!product.description && (
+          <CollapsableText
+            text={product.description}
+            readLess="Läs mindre"
+            readMore="Läs hela beskrivningen"
+          />
+        )}
+      </View>
+
+      {product.status !== ProductStatusEnum.Sold && (
+        <View style={{ gap: 8 }}>
+          {product.soldByQuantity && (
+            <TextInput
+              inputType="numeric"
+              value={quantity}
+              onChange={setQuantity}
+              placeholder="Antal att reservera"
+            />
+          )}
+          {showReserveButton && (
+            <Button
+              label="Reservera"
+              onPress={onReserve}
+              loading={reserving}
+              disabled={
+                availableQuantity <= 0 ||
+                (product.soldByQuantity && !isRequestedQuantityValid)
+              }
+            />
+          )}
+        </View>
+      )}
+
+      <Divider />
+
+      <View>
+        <Headline size="small">Specifikation</Headline>
+        <View style={{ gap: 16, marginTop: 16 }}>
+          {!!product.brand?.name && (
+            <Detail label="Varumärke" value={product.brand.name} />
+          )}
+          <Detail
+            label="Antal och enhet"
+            value={`${product.primaryQuantity ?? 0} ${product.primaryUnit ? quantities[product.primaryUnit].plural : "st"}`}
+          />
+          {!!product.secondaryQuantity && product.secondaryUnit && (
+            <Detail
+              label="Ytterligare antal"
+              value={`${product.secondaryQuantity} ${quantities[product.secondaryUnit].plural}`}
+            />
+          )}
+          <Detail label="Skick" value={conditions[product.condition].name} />
+          {!!product.additionalInfo && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Bra att veta</Label>
+              <CollapsableText
+                text={product.additionalInfo}
+                readLess="Läs mindre"
+                readMore="Läs hela"
+              />
+            </View>
+          )}
+          {!!product.documents.length && (
+            <View style={{ gap: 8 }}>
+              <Label size="medium">Dokument</Label>
+              {product.documents.map((document) => (
+                <Pressable
+                  key={document.id}
+                  onPress={() => Linking.openURL(document.url)}
+                >
+                  <Body size="medium" isLink>
+                    {document.name ?? "Öppna dokument"}
+                  </Body>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+};
+
+type ReservationsProps = {
+  reservations: InternalReservation[];
+  canMarkSold: boolean;
+  canceling: boolean;
+  markingSold: boolean;
+  onCancel: (reservationId: string) => Promise<void>;
+  onMarkSold: (reservationId?: string) => Promise<void>;
+};
+
+const Reservations = ({
+  reservations,
+  canMarkSold,
+  canceling,
+  markingSold,
+  onCancel,
+  onMarkSold,
+}: ReservationsProps) => (
+  <View style={{ gap: 12 }}>
+    <Headline size="small">Reservationer</Headline>
+    {reservations.length ? (
+      reservations.map((reservation) => (
+        <View key={reservation.id} style={{ gap: 8 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <Body size="medium">
+              {reservation.reservedByUser.name ??
+                reservation.reservedByUser.username ??
+                reservation.reservedByUser.email}
+              {reservation.quantity ? ` · ${reservation.quantity}` : ""}
+            </Body>
+            <Label size="medium">
+              {new Date(reservation.reservedAt).toLocaleDateString("sv-SE")}
+            </Label>
+          </View>
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+            <Button
+              label="Avboka"
+              type="tonal"
+              onPress={() => onCancel(reservation.id)}
+              loading={canceling}
+            />
+            {canMarkSold && (
               <Button
-                label="Markera hela annonsen som såld"
-                type="tonal"
-                onPress={() => onMarkSold()}
+                label="Markera såld"
+                onPress={() => onMarkSold(reservation.id)}
                 loading={markingSold}
               />
             )}
           </View>
         </View>
-      </ScreenLayout>
-    </View>
-  );
-}
+      ))
+    ) : (
+      <Body size="medium" color="secondary">
+        Inga aktiva reservationer.
+      </Body>
+    )}
+  </View>
+);
+
+type ProductChipProps = {
+  text: string;
+  boldText: string;
+};
+
+const ProductChip = ({ text, boldText }: ProductChipProps) => (
+  <FilterChip
+    label={
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <Body size="medium">{text}:</Body>
+        <Label size="large">{boldText}</Label>
+      </View>
+    }
+    style={{ backgroundColor: "#F6F6F6", height: 0, paddingVertical: 15 }}
+  />
+);
+
+type DetailProps = {
+  label: string;
+  value: string;
+};
+
+const Detail = ({ label, value }: DetailProps) => (
+  <View style={{ gap: 4 }}>
+    <Label size="medium">{label}</Label>
+    <Body size="medium">{value}</Body>
+  </View>
+);

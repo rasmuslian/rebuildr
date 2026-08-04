@@ -197,6 +197,7 @@ export const INTERNAL_AD_DETAIL = gql`
       role
       organization {
         id
+        name
       }
     }
     internalAd(productId: $productId) {
