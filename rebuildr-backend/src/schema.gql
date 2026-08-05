@@ -1036,6 +1036,7 @@ input ProductsInput {
   address: String
   location: LocationInputType
   distance: Float
+  boundingBox: BoundingBoxInput
   pickup: Boolean
   shipping: Boolean
   delivery: Boolean
@@ -1051,6 +1052,11 @@ input ProductsInput {
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
   onlyPublished: Boolean
+}
+
+input BoundingBoxInput {
+  northEast: LocationInputType!
+  southWest: LocationInputType!
 }
 
 enum OrderProductsEnum {

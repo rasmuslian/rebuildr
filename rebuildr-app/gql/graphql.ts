@@ -1445,6 +1445,11 @@ export type GetProductInput = {
   id: Scalars['String']['input'];
 };
 
+export type BoundingBoxInput = {
+  northEast: LocationInputType;
+  southWest: LocationInputType;
+};
+
 export type ProductsInput = {
   sellerId?: InputMaybe<Scalars['String']['input']>;
   projectId?: InputMaybe<Scalars['String']['input']>;
@@ -1452,6 +1457,7 @@ export type ProductsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   location?: InputMaybe<LocationInputType>;
   distance?: InputMaybe<Scalars['Float']['input']>;
+  boundingBox?: InputMaybe<BoundingBoxInput>;
   pickup?: InputMaybe<Scalars['Boolean']['input']>;
   shipping?: InputMaybe<Scalars['Boolean']['input']>;
   delivery?: InputMaybe<Scalars['Boolean']['input']>;
