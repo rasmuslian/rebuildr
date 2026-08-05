@@ -14,6 +14,7 @@ import { Label, Body } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { Icon } from "@icons/icon";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useScreenType } from "@hooks/useScreenType";
 import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
 import { Image } from "expo-image";
 
@@ -108,6 +109,40 @@ const EventController = () => {
 
     boundDebounce();
   }, [state.center]);
+
+  // When auto-search is on, keep the applied search area in sync with the
+  // viewport so the results list follows every pan/zoom.
+  useEffect(() => {
+    if (state.searchOnMove && state.bounds) {
+      setState({ searchArea: state.bounds });
+    }
+  }, [state.bounds, state.searchOnMove]);
+
+  // Zoom out on request (e.g. the empty-results state).
+  useEffect(() => {
+    if (state.zoomOutSignal > 0) {
+      map.whenReady(() => {
+        map.setZoom(map.getZoom() - 2, { animate: false });
+      });
+    }
+  }, [state.zoomOutSignal]);
+
+  // Frame a requested region (e.g. the user + their nearest hit on "Nära mig").
+  // animate:false is deliberate — Leaflet's zoom-animation path can throw
+  // "_leaflet_pos of undefined" on large jumps while markers re-render.
+  useEffect(() => {
+    if (!state.fitBounds) return;
+    const { northEast, southWest } = state.fitBounds;
+    map.whenReady(() => {
+      map.fitBounds(
+        [
+          [northEast.lat, northEast.lng],
+          [southWest.lat, southWest.lng],
+        ],
+        { padding: [60, 60], maxZoom: 14, animate: false },
+      );
+    });
+  }, [state.fitBounds]);
 
   return null;
 };
@@ -311,6 +346,7 @@ const MapInformationController = () => {
 
 const ActivePinController = () => {
   const { state } = useMapContext();
+  const { isDesktop } = useScreenType();
   const activePin = state.activePin;
   if (!activePin) return null;
 
@@ -321,10 +357,12 @@ const ActivePinController = () => {
         position: "absolute",
         right: 16,
         bottom: 16,
-        width: 163,
+        // Roomier on desktop so the card isn't dwarfed by the list cards; the
+        // popup content scales to this width. Mobile keeps the compact size.
+        width: isDesktop ? 288 : 163,
         backgroundColor: "white",
-        paddingHorizontal: 8,
-        paddingVertical: 10,
+        paddingHorizontal: isDesktop ? 12 : 8,
+        paddingVertical: isDesktop ? 12 : 10,
         borderRadius: 18,
         shadowColor: "#000",
         shadowOpacity: 0.2,
