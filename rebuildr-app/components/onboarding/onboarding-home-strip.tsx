@@ -1,13 +1,39 @@
 import { Pressable, View } from "react-native";
 import { Button } from "@components/buttons/button";
-import { Check } from "@components/controls/check";
-import { Body, Title } from "@components/typography/text";
+import { Body, Label, Title } from "@components/typography/text";
+import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { Icon } from "@icons/icon";
+import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useOnboarding } from "@hooks/use-onboarding";
-import { useOnboardingChecklist } from "@hooks/use-onboarding-checklist";
+import {
+  ChecklistStep,
+  useOnboardingChecklist,
+} from "@hooks/use-onboarding-checklist";
 import { OnboardingCelebration } from "./onboarding-celebration";
+
+const ProgressBar = ({ steps }: { steps: ChecklistStep[] }) => {
+  const colors = useThemeColor();
+
+  return (
+    <View style={{ flexDirection: "row", gap: 4, width: 84 }}>
+      {steps.map((step) => (
+        <View
+          key={step.key}
+          style={{
+            flex: 1,
+            height: 4,
+            borderRadius: borderRadius.full,
+            backgroundColor: step.done
+              ? primitives.primary700
+              : colors.buttons.tonal.enabled,
+          }}
+        />
+      ))}
+    </View>
+  );
+};
 
 // Compact companion to the account screen's full checklist: the feed shows one
 // step at a time. Required steps stay until they are actually done; optional
@@ -22,6 +48,7 @@ export const OnboardingHomeStrip = () => {
     dismissCelebration,
   } = useOnboardingChecklist();
   const { isReady, dismissedSteps, dismissStep } = useOnboarding();
+  const { isDesktop } = useScreenType();
   const colors = useThemeColor();
 
   if (!isLoggedIn || loading || !isReady) return null;
@@ -40,44 +67,55 @@ export const OnboardingHomeStrip = () => {
 
   if (!nextStep) return null;
 
+  const action = (
+    <Button
+      label={nextStep.cta}
+      type="outlined"
+      onPress={nextStep.onPress}
+      style={isDesktop ? undefined : { width: "100%" }}
+    />
+  );
+
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        padding: 16,
+        padding: 20,
         marginBottom: 24,
+        gap: 16,
         backgroundColor: colors.background.secondary,
         borderRadius: borderRadius.medium,
       }}
     >
-      <Pressable
-        onPress={nextStep.onPress}
+      <View
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-          flex: 1,
+          flexDirection: isDesktop ? "row" : "column",
+          alignItems: isDesktop ? "center" : "stretch",
+          gap: 16,
         }}
       >
-        <View pointerEvents="none">
-          <Check selected={false} />
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
+        <View style={{ flex: 1, gap: 6, paddingRight: 24 }}>
           <Title size="small">{nextStep.title}</Title>
           <Body size="medium" color="secondary">
-            Kom igång på RebuildR • {completedCount} av {steps.length} klart
+            {nextStep.description}
           </Body>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <ProgressBar steps={steps} />
+            <Label size="small" color="secondary">
+              {completedCount} av {steps.length} klart
+            </Label>
+          </View>
         </View>
-        <Icon icon="chevronRight" color="secondary" size={18} />
-      </Pressable>
+        {action}
+      </View>
       {nextStep.optional && (
-        <Button
-          icon="X"
-          type="text"
+        <Pressable
           onPress={() => dismissStep(nextStep.key)}
-        />
+          hitSlop={12}
+          accessibilityLabel="Dölj det här tipset"
+          style={{ position: "absolute", top: 12, right: 12 }}
+        >
+          <Icon icon="X" color="secondary" size={16} />
+        </Pressable>
       )}
     </View>
   );

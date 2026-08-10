@@ -9,6 +9,7 @@ export type ChecklistStep = {
   key: ChecklistStepKey;
   title: string;
   description: string;
+  cta: string;
   done: boolean;
   // Trust-building but never blocking, so the feed nudge lets the user retire
   // this one on its own. Required steps have no such escape — they stay until
@@ -30,6 +31,7 @@ export const useOnboardingChecklist = () => {
       key: "listing",
       title: "Lägg upp din första annons",
       description: "Lägg till foton, så skriver vår AI annonsen åt dig.",
+      cta: "Lägg upp annons",
       done: hasListing,
       onPress: () => setVisible(true),
     },
@@ -38,6 +40,7 @@ export const useOnboardingChecklist = () => {
       title: "Komplettera din profil",
       description:
         "Bild och presentation gör att fler köpare vågar höra av sig.",
+      cta: "Komplettera profil",
       done: hasProfile,
       optional: true,
       onPress: () => {
@@ -53,6 +56,7 @@ export const useOnboardingChecklist = () => {
       title: "Aktivera utbetalningar",
       description:
         "Koppla ditt utbetalningskonto så du kan få betalt när du sålt.",
+      cta: "Aktivera utbetalningar",
       done: canReceivePayment,
       onPress: () => router.navigate("/account/settings/payout"),
     },
