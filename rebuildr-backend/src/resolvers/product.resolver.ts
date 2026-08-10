@@ -710,6 +710,7 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     const product = await productLoaders.getProduct.load(input.productId);
+    this.productService.assertMarketplaceProduct(product);
     if (!product.pickupEnabled) {
       return null;
     }
@@ -742,6 +743,8 @@ export class ProductResolver {
   }
 
   @Query(() => Product)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
   async cmsGetProduct(@Args('productId') productId: string): Promise<Product> {
     return this.productService.cmsGetProduct(productId);
   }

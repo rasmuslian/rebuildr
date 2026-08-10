@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import DataLoader from 'dataloader';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { DataloaderService } from './dataloader.service';
 import { Project } from 'src/entities/project.entity';
 import { File } from 'src/entities/file.entity';
@@ -59,6 +63,15 @@ export class ProjectLoader {
         .andWhere('p.status NOT IN (:...excludedStatuses)', {
           excludedStatuses: [ProductStatus.DELETED, ProductStatus.DRAFT],
         })
+        .andWhere(
+          '(p.visibility = :publicVisibility OR (p.visibility = :internalVisibility AND p."publiclyAvailable" = true))',
+          {
+            publicVisibility: ProductVisibility.PUBLIC,
+            internalVisibility: ProductVisibility.INTERNAL,
+          },
+        )
+        .andWhere('p."hiddenReason" IS NULL')
+        .andWhere('p."deletedAt" IS NULL')
         .orderBy('p."status", p."createdAt"');
 
       if (searchString && searchString.length > 0) {

@@ -11,6 +11,7 @@ import {
   Product,
   ProductConditionEnum,
   ProductStatus,
+  ProductVisibility,
 } from 'src/entities/product.entity';
 import { User, UserRoleEnum, UserType } from 'src/entities/user.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -600,6 +601,60 @@ describe('Product', () => {
         loggerMock as Logger,
       ),
     ).rejects.toBeDefined();
+  });
+
+  it('only looks up public drafts in the ordinary ad editor', async () => {
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+
+    await productService.getDraft('seller');
+
+    expect(productRepo.findOne).toHaveBeenCalledWith({
+      where: {
+        sellerId: 'seller',
+        status: ProductStatus.DRAFT,
+        visibility: ProductVisibility.PUBLIC,
+      },
+      order: { createdAt: 'DESC' },
+    });
+  });
+
+  it('does not expose a private internal ad through the marketplace product query', async () => {
+    const { draftFixture } = getFixtures();
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+    jest.spyOn(productRepo, 'findOne').mockResolvedValue({
+      ...draftFixture,
+      status: ProductStatus.PUBLISHED,
+      visibility: ProductVisibility.INTERNAL,
+      publiclyAvailable: false,
+      conversations: [],
+    } as Product);
+
+    await expect(
+      productService.findOne('product', 'organization-member'),
+    ).rejects.toBeDefined();
+  });
+
+  it('exposes an explicitly public internal ad through the marketplace product query', async () => {
+    const { draftFixture } = getFixtures();
+    const productRepo = module.get<Repository<Product>>(
+      getRepositoryToken(Product),
+    );
+    const publicInternalProduct = {
+      ...draftFixture,
+      status: ProductStatus.PUBLISHED,
+      visibility: ProductVisibility.INTERNAL,
+      publiclyAvailable: true,
+      conversations: [],
+    } as Product;
+    jest.spyOn(productRepo, 'findOne').mockResolvedValue(publicInternalProduct);
+
+    await expect(productService.findOne('product', undefined)).resolves.toBe(
+      publicInternalProduct,
+    );
   });
 
   it('publish product no transportation', async () => {

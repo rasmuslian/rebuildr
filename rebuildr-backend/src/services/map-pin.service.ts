@@ -65,10 +65,11 @@ export class MapPinService {
         .leftJoinAndSelect(
           'project.products',
           'product',
-          'product.status = :status AND (product.visibility = :visibility OR product."publiclyAvailable" = true)',
+          'product.status = :status AND (product.visibility = :visibility OR (product.visibility = :internalVisibility AND product."publiclyAvailable" = true))',
           {
             status: ProductStatus.PUBLISHED,
             visibility: ProductVisibility.PUBLIC,
+            internalVisibility: ProductVisibility.INTERNAL,
           },
         )
         .leftJoinAndSelect('map_pin', 'mp', 'product."mapPinId" = mp.id')
@@ -205,8 +206,11 @@ export class MapPinService {
           status: ProductStatus.PUBLISHED,
         })
         .andWhere(
-          'product.visibility = :visibility OR product."publiclyAvailable" = true',
-          { visibility: ProductVisibility.PUBLIC },
+          '(product.visibility = :visibility OR (product.visibility = :internalVisibility AND product."publiclyAvailable" = true))',
+          {
+            visibility: ProductVisibility.PUBLIC,
+            internalVisibility: ProductVisibility.INTERNAL,
+          },
         )
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
@@ -298,13 +302,13 @@ export class MapPinService {
     if (limit !== undefined) {
       productPart.limit(limit);
     }
-    if (productsInput) {
-      this.productService.basicFindProductsInputQueryBuilder(
-        productsInput,
-        productPart,
-        'product',
-      );
-    }
+    // The public map is a marketplace surface. Always apply the public-product
+    // boundary, even when the caller does not provide any product filters.
+    this.productService.basicFindProductsInputQueryBuilder(
+      productsInput ?? {},
+      productPart,
+      'product',
+    );
     const [innerProductSql, innerProductParams] =
       productPart.getQueryAndParameters();
 

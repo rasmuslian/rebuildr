@@ -78,7 +78,6 @@ const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
 interface FindProductsQueryOptions {
   excludeProductIds?: string[];
   ignoreTransportation?: boolean;
-  includeOwnInternalAds?: boolean;
   searchRankThreshold?: number;
 }
 
@@ -121,6 +120,7 @@ export class ProductService {
       where: {
         sellerId: currentUserId,
         status: ProductStatus.DRAFT,
+        visibility: ProductVisibility.PUBLIC,
       },
       order: { createdAt: 'DESC' },
     });
@@ -136,6 +136,7 @@ export class ProductService {
       where: {
         sellerId: seller.id,
         status: ProductStatus.DRAFT,
+        visibility: ProductVisibility.PUBLIC,
       },
     });
 
@@ -146,6 +147,7 @@ export class ProductService {
     product.title = '';
     product.price = 0;
     product.status = ProductStatus.DRAFT;
+    product.visibility = ProductVisibility.PUBLIC;
     product.seller = seller;
     product.address = seller.address;
     product.addressLocation = seller.addressLocation;
@@ -694,20 +696,19 @@ export class ProductService {
         ? `${productAlias}.status = 'PUBLISHED'`
         : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
+    // Generic marketplace queries must never expose a private internal ad.
+    // Internal ads are queried exclusively through InternalAdsService, which
+    // applies organization membership checks. The explicit public opt-in is
+    // the only exception.
     qb.andWhere(
-      options.includeOwnInternalAds
-        ? `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."createdByUserId" = :sellerId))`
-        : `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true)`,
+      `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."publiclyAvailable" = true))`,
     );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
     if (input.sellerId) {
-      qb.andWhere(
-        options.includeOwnInternalAds
-          ? `(${productAlias}."sellerId" = :sellerId OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."createdByUserId" = :sellerId))`
-          : `${productAlias}."sellerId" = :sellerId`,
-        { sellerId: input.sellerId },
-      );
+      qb.andWhere(`${productAlias}."sellerId" = :sellerId`, {
+        sellerId: input.sellerId,
+      });
     }
 
     if (input.projectId) {
@@ -870,12 +871,7 @@ export class ProductService {
       }
     }
 
-    this.basicFindProductsInputQueryBuilder(input, query, 'p', {
-      ...options,
-      includeOwnInternalAds:
-        options.includeOwnInternalAds ??
-        (!!currentUserId && input.sellerId === currentUserId),
-    });
+    this.basicFindProductsInputQueryBuilder(input, query, 'p', options);
 
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
@@ -1032,32 +1028,20 @@ export class ProductService {
         throw BadUserInputException();
       }
     }
-    if (
-      product.visibility === ProductVisibility.INTERNAL &&
-      !product.publiclyAvailable
-    ) {
-      if (!currentUserId) {
-        throw BadUserInputException();
-      }
-      const hasAccess = await this.canAccessInternalProduct(
-        product,
-        currentUserId,
-      );
-      if (!hasAccess) {
-        throw ForbiddenException();
-      }
-    }
+    // Even an authorized organization member must use the internal-ad query.
+    // This prevents private ads from rendering on ordinary product routes.
+    this.assertMarketplaceProduct(product);
 
     return product;
   }
 
-  private async canAccessInternalProduct(product: Product, userId: string) {
-    if (product.internalOrganizationId === userId) return true;
-    const result = await this.dataSource.query(
-      `SELECT 1 FROM organization_membership WHERE "organizationId" = $1 AND "userId" = $2 LIMIT 1`,
-      [product.internalOrganizationId, userId],
-    );
-    return result.length > 0;
+  assertMarketplaceProduct(product: Product) {
+    if (
+      product.visibility === ProductVisibility.INTERNAL &&
+      !product.publiclyAvailable
+    ) {
+      throw NotFoundException('Product not found');
+    }
   }
 
   private async canManageInternalProduct(product: Product, userId: string) {
@@ -1098,6 +1082,7 @@ export class ProductService {
     if (!product || !user) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     //If trying to like and not already liking, add user
     if (
@@ -1161,8 +1146,11 @@ export class ProductService {
     if (!draft) {
       throw BadUserInputException();
     }
-    if (draft.status !== ProductStatus.DRAFT) {
-      throw BadUserInputException('Product is not draft');
+    if (
+      draft.status !== ProductStatus.DRAFT ||
+      draft.visibility !== ProductVisibility.PUBLIC
+    ) {
+      throw BadUserInputException('Product is not a public draft');
     }
     if (draft.sellerId !== currentUserId) {
       throw ForbiddenException();
@@ -1261,6 +1249,7 @@ export class ProductService {
     if (!product || !input.postCode) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     return await Promise.all(
       product.shippingPrices.map(async (_shippingPrice) => {
@@ -1294,6 +1283,7 @@ export class ProductService {
     if (!product) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     if (!product.deliveryEnabled) {
       return null;
