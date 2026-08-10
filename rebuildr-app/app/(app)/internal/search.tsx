@@ -12,7 +12,6 @@ import {
 import { useQuery } from "@apollo/client";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Badge } from "@components/badges/badge";
-import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
 import { dividerStyles } from "@components/dividers/divider";
 import { FilterBottomSheet } from "@components/filter-product/filter-bottom-sheet";
@@ -25,17 +24,10 @@ import {
   ScreenLayout,
 } from "@components/screen-layout/screen-layout";
 import { SearchBar } from "@components/search/search-bar";
-import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import {
-  defaultTransportationFilterOptions,
-  getTransportationLabel,
-  PersistedTransportationFilterOptions,
-  TransportationOptions,
-} from "@components/search/transportation-options";
 import { Body, Display, Headline } from "@components/typography/text";
+import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { FilterProductScopeProvider } from "@context/filter-product-scope-context";
-import { useLocationContext } from "@context/location-context";
 import { useSearchContext } from "@context/search-context";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
@@ -60,19 +52,11 @@ const InternalSearchResults = () => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { height: screenHeight } = useWindowDimensions();
-  const { userCoords } = useLocationContext();
   const searchContext = useSearchContext();
   const { filterBuilder, nrOfAppliedFilters, toProductsQueryInput } =
     useFilterProduct();
   const [showFilter, setShowFilter] = useState(false);
-  const [showTransportSheet, setShowTransportSheet] = useState(false);
   const [showMobileMap, setShowMobileMap] = useState(false);
-  const [transportationOptions, setTransportationOptions] = useState(
-    defaultTransportationFilterOptions,
-  );
-  const [transportationLabel, setTransportationLabel] = useState(
-    getTransportationLabel(defaultTransportationFilterOptions),
-  );
 
   useEffect(() => {
     filterBuilder.setSearchString(query).apply();
@@ -84,21 +68,9 @@ const InternalSearchResults = () => {
     });
   }, [query, searchContext.setSearchState]);
 
-  const transportationLocation =
-    transportationOptions.location ??
-    (userCoords
-      ? { lat: userCoords.latitude, lng: userCoords.longitude }
-      : undefined);
   const input = {
     ...toProductsQueryInput(),
     searchString: query,
-    distance: transportationOptions.pickup
-      ? transportationOptions.distance
-      : undefined,
-    location: transportationOptions.pickup ? transportationLocation : undefined,
-    pickup: transportationOptions.pickup,
-    shipping: transportationOptions.shipping,
-    delivery: transportationOptions.delivery,
   };
   const { data, loading, fetchMore } = useQuery<
     InternalAdsPageQuery,
@@ -148,14 +120,6 @@ const InternalSearchResults = () => {
       }),
   });
 
-  const onApplyTransportation = (
-    options: PersistedTransportationFilterOptions,
-  ) => {
-    setTransportationOptions(options);
-    setTransportationLabel(getTransportationLabel(options));
-    setShowTransportSheet(false);
-  };
-
   const results = (
     <>
       <View
@@ -179,16 +143,10 @@ const InternalSearchResults = () => {
             <InteractiveMap
               searchScope="internal"
               productsInput={input}
-              initialCenter={transportationLocation}
               style={{ height: 320, marginBottom: 16 }}
             />
           ) : (
             <MapThumbnail
-              coords={
-                transportationLocation
-                  ? [transportationLocation.lat, transportationLocation.lng]
-                  : undefined
-              }
               style={{ marginBottom: 16 }}
               cta={
                 <Button
@@ -216,11 +174,6 @@ const InternalSearchResults = () => {
           {data?.internalAds.total ?? 0}{" "}
           {data?.internalAds.total === 1 ? "träff" : "träffar"}:
         </Body>
-        <Button
-          label={transportationLabel}
-          onPress={() => setShowTransportSheet(true)}
-          type="tonal"
-        />
         <View>
           <Button
             icon="filterList2"
@@ -312,7 +265,23 @@ const InternalSearchResults = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {isDesktop && <TopBar theme="light" searchScope="internal" />}
+      {isDesktop && (
+        <TopBar
+          theme="light"
+          searchScope="internal"
+          sellButtonLabel="Ny intern annons"
+          onSellButtonPress={() =>
+            router.navigate({
+              pathname: "/internal",
+              params: { action: "create", t: Date.now().toString() },
+            })
+          }
+          backgroundColor={primitives.accent100}
+          foregroundColor={colors.logo.vector}
+          showBottomBorder={false}
+          categoriesButtonBackgroundColor={primitives.neutrals100}
+        />
+      )}
       <ScreenLayout
         headerComponent={
           !isDesktop ? (
@@ -331,7 +300,6 @@ const InternalSearchResults = () => {
             <InteractiveMap
               searchScope="internal"
               productsInput={input}
-              initialCenter={transportationLocation}
               style={{
                 borderRadius: borderRadius.medium,
                 flex: 1,
@@ -347,52 +315,15 @@ const InternalSearchResults = () => {
       </ScreenLayout>
 
       {isDesktop ? (
-        <>
-          <FilterSlideSheet
-            open={showFilter}
-            onClose={() => setShowFilter(false)}
-          />
-          <SlideInSheet
-            open={showTransportSheet}
-            onClose={() => setShowTransportSheet(false)}
-            title="Leveransalternativ"
-            contentWaitOnAnimation
-          >
-            <TransportationOptions
-              initialOptions={{
-                ...transportationOptions,
-                location: transportationLocation,
-              }}
-              loading={loading}
-              setTransportationLabel={setTransportationLabel}
-              onApply={onApplyTransportation}
-            />
-          </SlideInSheet>
-        </>
+        <FilterSlideSheet
+          open={showFilter}
+          onClose={() => setShowFilter(false)}
+        />
       ) : (
-        <>
-          <FilterBottomSheet
-            open={showFilter}
-            onClose={() => setShowFilter(false)}
-          />
-          <BottomSheet
-            open={showTransportSheet}
-            onDismiss={() => setShowTransportSheet(false)}
-            name="internalDelivery"
-            title="Leveransalternativ"
-            scrollable
-          >
-            <TransportationOptions
-              initialOptions={{
-                ...transportationOptions,
-                location: transportationLocation,
-              }}
-              loading={loading}
-              setTransportationLabel={setTransportationLabel}
-              onApply={onApplyTransportation}
-            />
-          </BottomSheet>
-        </>
+        <FilterBottomSheet
+          open={showFilter}
+          onClose={() => setShowFilter(false)}
+        />
       )}
     </View>
   );
