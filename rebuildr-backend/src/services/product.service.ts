@@ -325,10 +325,6 @@ export class ProductService {
       product.price = convertedPrice;
       product.isGiveaway = convertedPrice <= 0;
     }
-    if (product.visibility === ProductVisibility.INTERNAL) {
-      product.price = 0;
-      product.isGiveaway = true;
-    }
     if (input.status) {
       product.status = input.status;
     }

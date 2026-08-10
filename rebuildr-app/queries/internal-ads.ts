@@ -264,7 +264,9 @@ export const INTERNAL_AD_DETAIL = gql`
       soldByQuantity
       internalValidationIssues
       createdByUserId
+      price
       publiclyAvailable
+      publicPriceConfirmed
       images {
         id
         url
@@ -317,13 +319,17 @@ export const SET_INTERNAL_AD_PUBLIC_AVAILABILITY = gql`
   mutation SetInternalAdPublicAvailability(
     $productId: String!
     $publiclyAvailable: Boolean!
+    $price: Float
   ) {
     setInternalAdPublicAvailability(
       productId: $productId
       publiclyAvailable: $publiclyAvailable
+      price: $price
     ) {
       id
+      price
       publiclyAvailable
+      publicPriceConfirmed
     }
   }
 `;

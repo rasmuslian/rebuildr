@@ -332,6 +332,11 @@ export class Product {
   @Column({ default: false })
   publiclyAvailable: boolean;
 
+  /** Records that a seller has explicitly confirmed the public price, including 0 kr. */
+  @Field(() => Boolean)
+  @Column({ default: false })
+  publicPriceConfirmed: boolean;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   internalOrganizationId?: string;

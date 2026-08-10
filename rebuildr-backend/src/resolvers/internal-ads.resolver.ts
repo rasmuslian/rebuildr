@@ -265,11 +265,13 @@ export class InternalAdsResolver {
     @CurrentUser() user: AuthedUserType,
     @Args('productId') productId: string,
     @Args('publiclyAvailable') publiclyAvailable: boolean,
+    @Args('price', { nullable: true }) price?: number,
   ) {
     return this.internalAdsService.setInternalAdPublicAvailability(
       user.id,
       productId,
       publiclyAvailable,
+      price,
     );
   }
 

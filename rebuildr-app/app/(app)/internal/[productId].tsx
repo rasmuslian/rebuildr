@@ -22,6 +22,7 @@ import {
 import { useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
+import { TextInput } from "@components/forms/textInput";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Toggle } from "@components/controls/toggle";
 import { Divider } from "@components/dividers/divider";
@@ -64,6 +65,9 @@ export default function InternalAdDetailPage() {
   const [rightColumnWidth, setRightColumnWidth] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showRemoveProduct, setShowRemoveProduct] = useState(false);
+  const [showPublicPricePrompt, setShowPublicPricePrompt] = useState(false);
+  const [publicPrice, setPublicPrice] = useState("");
+  const [publicPriceError, setPublicPriceError] = useState<string>();
 
   const { data, loading, refetch } = useQuery<
     InternalAdDetailQuery,
@@ -117,15 +121,37 @@ export default function InternalAdDetailPage() {
     OrganizationMemberRoleEnum.Admin;
   const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
 
-  const onSetPublicAvailability = async () => {
+  const updatePublicAvailability = async (price?: number) => {
     if (!product) return;
     await setInternalAdPublicAvailability({
       variables: {
         productId: product.id,
         publiclyAvailable: !product.publiclyAvailable,
+        price,
       },
     });
     await refetch();
+  };
+
+  const onSetPublicAvailability = async () => {
+    if (!product) return;
+    if (!product.publiclyAvailable && !product.publicPriceConfirmed) {
+      setPublicPrice(product.price.toString());
+      setPublicPriceError(undefined);
+      setShowPublicPricePrompt(true);
+      return;
+    }
+    await updatePublicAvailability();
+  };
+
+  const onConfirmPublicPrice = async () => {
+    if (!/^\d+$/.test(publicPrice)) {
+      setPublicPriceError("Ange ett pris på minst 0 kr.");
+      return;
+    }
+    setPublicPriceError(undefined);
+    await updatePublicAvailability(Number(publicPrice));
+    setShowPublicPricePrompt(false);
   };
 
   const onEdit = () => {
@@ -243,6 +269,15 @@ export default function InternalAdDetailPage() {
           canDelete
           onDismiss={() => setShowRemoveProduct(false)}
         />
+        <PublicPricePrompt
+          open={showPublicPricePrompt}
+          price={publicPrice}
+          error={publicPriceError}
+          loading={makingPublic}
+          onChange={setPublicPrice}
+          onConfirm={onConfirmPublicPrice}
+          onClose={() => setShowPublicPricePrompt(false)}
+        />
       </ScreenLayout>
     );
   }
@@ -322,9 +357,79 @@ export default function InternalAdDetailPage() {
         canDelete
         onDismiss={() => setShowRemoveProduct(false)}
       />
+      <PublicPricePrompt
+        open={showPublicPricePrompt}
+        price={publicPrice}
+        error={publicPriceError}
+        loading={makingPublic}
+        onChange={setPublicPrice}
+        onConfirm={onConfirmPublicPrice}
+        onClose={() => setShowPublicPricePrompt(false)}
+      />
     </>
   );
 }
+
+type PublicPricePromptProps = {
+  open: boolean;
+  price: string;
+  error?: string;
+  loading: boolean;
+  onChange: (price: string) => void;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+};
+
+const PublicPricePrompt = ({
+  open,
+  price,
+  error,
+  loading,
+  onChange,
+  onConfirm,
+  onClose,
+}: PublicPricePromptProps) => (
+  <Popup open={open} onClose={onClose}>
+    <View style={{ gap: 24, padding: 32 }}>
+      <View style={{ gap: 8 }}>
+        <Title size="medium">Ange pris för marknadsplatsen</Title>
+        <Body size="medium" color="secondary">
+          Annonsen behöver ett bekräftat pris för att visas på den publika
+          marknadsplatsen.
+        </Body>
+      </View>
+      <View style={{ gap: 4 }}>
+        <Label size="medium">Pris</Label>
+        <TextInput
+          inputType="numeric"
+          value={price}
+          onChange={onChange}
+          placeholder="0"
+          error={!!error}
+        />
+        {!!error && (
+          <Body size="small" color="error">
+            {error}
+          </Body>
+        )}
+      </View>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          label="Avbryt"
+          type="outlined"
+          onPress={onClose}
+          style={{ flex: 1 }}
+        />
+        <Button
+          label="Spara och publicera"
+          onPress={onConfirm}
+          loading={loading}
+          style={{ flex: 1 }}
+        />
+      </View>
+    </View>
+  </Popup>
+);
 
 const InternalAdsTopBar = () => {
   const colors = useThemeColor();

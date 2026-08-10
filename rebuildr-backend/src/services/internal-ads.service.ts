@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as XLSX from 'xlsx';
 import * as crypto from 'crypto';
 import { QuantityUnitEnum } from 'src/constants/enums';
+import { maximumProductPrice } from 'src/constants/pricing';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import {
@@ -631,6 +632,7 @@ export class InternalAdsService {
     currentUserId: string,
     productId: string,
     publiclyAvailable: boolean,
+    price?: number,
   ) {
     const product = await this.internalAd(currentUserId, productId);
     const context = await this.getOrganizationContext(currentUserId);
@@ -642,6 +644,19 @@ export class InternalAdsService {
     }
     if (product.status !== ProductStatus.PUBLISHED) {
       throw BadUserInputException('Product is not published');
+    }
+    if (publiclyAvailable && !product.publicPriceConfirmed) {
+      if (
+        price === undefined ||
+        !Number.isInteger(price) ||
+        price < 0 ||
+        price * 100 > maximumProductPrice
+      ) {
+        throw BadUserInputException('A valid public price must be confirmed');
+      }
+      product.price = price * 100;
+      product.isGiveaway = price === 0;
+      product.publicPriceConfirmed = true;
     }
 
     product.publiclyAvailable = publiclyAvailable;

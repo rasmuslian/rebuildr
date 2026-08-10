@@ -447,7 +447,7 @@ export const UpsertProduct = ({
           internalReferenceNumber: internalMode
             ? product.internalReferenceNumber
             : undefined,
-          price: internalMode ? 0 : product.price,
+          price: internalMode ? undefined : product.price,
           primaryQuantity: product.primaryQuantity,
           primaryUnit: product.primaryUnit,
           secondaryQuantity: product.secondaryQuantity ?? null,
@@ -464,7 +464,7 @@ export const UpsertProduct = ({
           diameterUnit: product.diameterUnit,
           weight: product.weight,
           weightUnit: product.weightUnit,
-          isGiveAway: internalMode ? true : product.isGiveaway,
+          isGiveAway: internalMode ? undefined : product.isGiveaway,
           soldByQuantity: product.soldByQuantity,
           //only send null (= remove category) when the db product actually
           //has a category to remove — a fresh photo-first draft has none yet
