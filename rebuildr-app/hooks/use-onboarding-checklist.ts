@@ -10,6 +10,10 @@ export type ChecklistStep = {
   title: string;
   description: string;
   done: boolean;
+  // Trust-building but never blocking. Optional steps stay on the account
+  // screen and out of the home feed, which is reserved for the steps that
+  // actually stand between the user and a completed sale.
+  optional?: boolean;
   onPress: () => void;
 };
 
@@ -33,13 +37,14 @@ export const useOnboardingChecklist = () => {
       key: "profile",
       title: "Komplettera din profil",
       description:
-        "Lägg till en profilbild och en kort presentation — det ökar tryggheten.",
+        "Bild och presentation gör att fler köpare vågar höra av sig.",
       done: hasProfile,
+      optional: true,
       onPress: () => {
         if (me)
           router.navigate({
             pathname: "/account/profile",
-            params: { userId: me.id },
+            params: { userId: me.id, edit: "true" },
           });
       },
     },
@@ -84,5 +89,6 @@ export const useOnboardingChecklist = () => {
     justCompleted,
     dismissCelebration: () => setJustCompleted(false),
     nextStep: steps.find((step) => !step.done),
+    nextRequiredStep: steps.find((step) => !step.done && !step.optional),
   };
 };

@@ -5,7 +5,6 @@ import { View } from "react-native";
 import LogoIconLight from "@assets/svgs/logo-icon-light.svg";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
-import { Header } from "@components/navigation/headers/header";
 import { Popup } from "@components/popup/popup";
 import { Body, Display, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
@@ -65,11 +64,11 @@ const WelcomeRow = ({
 );
 
 const WelcomeContent = () => (
-  <View style={{ paddingBottom: 8 }}>
-    <View style={{ alignItems: "center", marginBottom: 24, marginTop: 8 }}>
-      <Image source={LogoIconLight} style={{ width: 96, height: 96 }} />
+  <View style={{ paddingBottom: 24 }}>
+    <View style={{ alignItems: "center", marginBottom: 20 }}>
+      <Image source={LogoIconLight} style={{ width: 88, height: 88 }} />
     </View>
-    <View style={{ gap: 8, marginBottom: 24 }}>
+    <View style={{ gap: 10, marginBottom: 28 }}>
       <Display size="small" style={{ textAlign: "center" }}>
         Välkommen till RebuildR
       </Display>
@@ -77,7 +76,7 @@ const WelcomeContent = () => (
         Sveriges marknadsplats för återbrukat byggmaterial & verktyg.
       </Body>
     </View>
-    <View style={{ gap: 16 }}>
+    <View style={{ gap: 20 }}>
       {WELCOME_ROWS.map((row) => (
         <WelcomeRow key={row.title} {...row} />
       ))}
@@ -137,17 +136,15 @@ export const OnboardingWelcome = () => {
         onClose={dismiss}
         type="partial"
         footer={
-          <View style={{ padding: 24, paddingTop: 0 }}>
+          <View style={{ paddingHorizontal: 32, paddingBottom: 32 }}>
             <WelcomeFooter onExplore={dismiss} onReadGuide={readGuide} />
           </View>
         }
       >
-        <View style={{ padding: 24, paddingBottom: 8 }}>
-          <Header
-            title=""
-            showBackButton={false}
-            ctas={[{ icon: "X", onPress: dismiss }]}
-          />
+        <View style={{ paddingHorizontal: 32, paddingTop: 16 }}>
+          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+            <Button icon="X" type="text" onPress={dismiss} />
+          </View>
           <WelcomeContent />
         </View>
       </Popup>
