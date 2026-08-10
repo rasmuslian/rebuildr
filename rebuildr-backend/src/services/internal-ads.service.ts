@@ -496,6 +496,7 @@ export class InternalAdsService {
         seller: true,
         createdByUser: true,
         internalReservations: { reservedByUser: true },
+        shippingPrices: true,
       },
     });
     if (!product) {
@@ -645,6 +646,9 @@ export class InternalAdsService {
     if (product.status !== ProductStatus.PUBLISHED) {
       throw BadUserInputException('Product is not published');
     }
+    if (publiclyAvailable) {
+      this.assertPublicTransportation(product);
+    }
     if (publiclyAvailable && !product.publicPriceConfirmed) {
       if (
         price === undefined ||
@@ -666,6 +670,27 @@ export class InternalAdsService {
     }
     product.publiclyAvailable = publiclyAvailable;
     return this.productRepository.save(product);
+  }
+
+  private assertPublicTransportation(product: Product) {
+    if (
+      !product.pickupEnabled &&
+      !product.shippingPrices?.length &&
+      !product.deliveryEnabled
+    ) {
+      throw BadUserInputException(
+        'At least one public transportation option is required',
+      );
+    }
+    if (
+      (product.pickupEnabled || product.deliveryEnabled) &&
+      (!product.address || !product.addressLocation) &&
+      !product.projectId
+    ) {
+      throw BadUserInputException(
+        'A pickup or delivery address is required for public availability',
+      );
+    }
   }
 
   async reserveInternalAd(

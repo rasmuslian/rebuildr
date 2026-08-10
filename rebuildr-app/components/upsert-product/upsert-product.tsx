@@ -1,4 +1,5 @@
 import {
+  ProductAvailabilityEnum,
   ProductConditionEnum,
   File as GqlFile,
   ProductStatusEnum,
@@ -196,6 +197,7 @@ const detailsErrorFields = [
   "title",
   "description",
   "primary",
+  "availability",
 ];
 const transportaionErrorFields = ["delivery"];
 
@@ -834,6 +836,7 @@ export const UpsertProduct = ({
     const result = onVerifyDetails(product);
     if (result) {
       if (internalMode) {
+        if (!onVerifyTransportation(product, true)) return;
         const save = update();
         if (inline) {
           onPublished();

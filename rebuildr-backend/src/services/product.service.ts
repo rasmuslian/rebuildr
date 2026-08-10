@@ -576,28 +576,34 @@ export class ProductService {
         throw BadUserInputException('Product must specify quantity');
       }
 
-      //Transportation
-      if (
-        !product.pickupEnabled &&
-        !product.shippingPrices.length &&
-        !product.deliveryEnabled
-      ) {
-        logger.error('Product must have a transportation option', {
-          product,
-        });
-        throw BadUserInputException(
-          'Product must have a transportation option',
-        );
-      }
-      if (product.pickupEnabled || product.deliveryEnabled) {
+      // Internal ads are reserved within an organization and do not use the
+      // public pickup/shipping/delivery flow. In particular, an organization
+      // may not have an address set, so do not block internal-ad edits on the
+      // public transportation requirements.
+      if (product.visibility !== ProductVisibility.INTERNAL) {
         if (
-          (!product.address || !product.addressLocation) &&
-          !product.projectId
+          !product.pickupEnabled &&
+          !product.shippingPrices.length &&
+          !product.deliveryEnabled
         ) {
-          logger.error('Product must have an adress for pickup and delivery', {
+          logger.error('Product must have a transportation option', {
             product,
           });
-          throw BadUserInputException('Product missing address');
+          throw BadUserInputException(
+            'Product must have a transportation option',
+          );
+        }
+        if (product.pickupEnabled || product.deliveryEnabled) {
+          if (
+            (!product.address || !product.addressLocation) &&
+            !product.projectId
+          ) {
+            logger.error(
+              'Product must have an adress for pickup and delivery',
+              { product },
+            );
+            throw BadUserInputException('Product missing address');
+          }
         }
       }
     }

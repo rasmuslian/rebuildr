@@ -27,6 +27,8 @@ import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
 import { Conversation } from './conversation.entity';
+import { InternalAdImportBatch } from './internal-ad-import-batch.entity';
+import { InternalAdReservation } from './internal-ad-reservation.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -44,6 +46,12 @@ export enum ProductStatus {
   DELETED = 'DELETED',
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
+
+export enum ProductVisibility {
+  PUBLIC = 'PUBLIC',
+  INTERNAL = 'INTERNAL',
+}
+registerEnumType(ProductVisibility, { name: 'ProductVisibilityEnum' });
 
 export enum MeasurementUnitEnum {
   M = 'M',
@@ -102,6 +110,37 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   additionalInfo?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  internalReferenceNumber?: string;
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchAliases: string[];
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchRelatedTerms: string[];
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  searchUseCases: string[];
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'text' })
+  searchDocument?: string;
+
+  @Column({
+    type: 'tsvector',
+    nullable: true,
+    select: false,
+    insert: false,
+    update: false,
+    generatedType: 'STORED',
+    asExpression: `to_tsvector('swedish', coalesce("searchDocument", ''))`,
+  })
+  searchDocumentTsvector?: string;
 
   @Column({
     type: 'tsvector',
@@ -411,6 +450,10 @@ export class Product {
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
 
+  @Field(() => [InternalAdReservation])
+  @OneToMany(() => InternalAdReservation, (reservation) => reservation.product)
+  internalReservations: InternalAdReservation[];
+
   @OneToMany(() => Conversation, (conversation) => conversation.product)
   conversations: Conversation[];
 
@@ -457,6 +500,13 @@ export class Product {
 
   @Column({ nullable: true })
   publishedAt?: Date;
+
+  @Column({ nullable: true })
+  internalAdImportBatchId?: string;
+  @ManyToOne(() => InternalAdImportBatch, (batch) => batch.products, {
+    nullable: true,
+  })
+  internalAdImportBatch?: InternalAdImportBatch;
 
   //--------------Life cycle logic----------------
   private _previousStatus?: ProductStatus;

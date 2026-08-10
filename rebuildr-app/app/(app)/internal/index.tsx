@@ -7,6 +7,7 @@ import {
   InternalAdImportBatchStatusEnum,
   InternalAdsPageQuery,
   InternalAdsPageQueryVariables,
+  ProductAvailabilityEnum,
   ProductStatusEnum,
   PublishInternalAdDraftsMutation,
   PublishInternalAdDraftsMutationVariables,
@@ -334,6 +335,7 @@ export default function InternalAdsPage() {
         condition: product.condition,
         soldByQuantity: product.soldByQuantity,
         status: product.status,
+        upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
         overlayText:
           product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
         onPress: () =>

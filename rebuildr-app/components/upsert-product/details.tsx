@@ -29,6 +29,7 @@ import {
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
 import { primitives } from "@constants/colors";
+import { AvailabilitySection } from "./availability-section";
 
 type Props = {
   product: ProductFields;
@@ -299,6 +300,13 @@ export const Details = ({
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
+          {internalMode && (
+            <AvailabilitySection
+              product={product}
+              update={update}
+              error={badFields?.["availability"]}
+            />
+          )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>
             <View
               style={{

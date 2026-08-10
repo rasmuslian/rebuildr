@@ -8,6 +8,9 @@ export const INTERNAL_AD_CARD_FIELDS = gql`
     additionalInfo
     price
     status
+    availability
+    estimatedAvailableAt
+    availabilityPrecision
     primaryQuantity
     primaryUnit
     condition
@@ -256,6 +259,9 @@ export const INTERNAL_AD_DETAIL = gql`
       additionalInfo
       internalReferenceNumber
       status
+      availability
+      estimatedAvailableAt
+      availabilityPrecision
       condition
       primaryQuantity
       primaryUnit
@@ -291,8 +297,25 @@ export const INTERNAL_AD_DETAIL = gql`
           name
         }
       }
+      address
+      location {
+        lat
+        lng
+      }
       approximatePlace {
+        lat
+        lng
         address
+      }
+      pickupEnabled
+      deliveryEnabled
+      deliveryRadius
+      deliveryPrice
+      shippingPrices {
+        id
+        maxWeight
+        price
+        provider
       }
       internalReservations {
         id

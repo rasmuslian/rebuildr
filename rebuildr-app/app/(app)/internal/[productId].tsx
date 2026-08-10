@@ -6,6 +6,7 @@ import {
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
   OrganizationMemberRoleEnum,
+  ProductAvailabilityEnum,
   ProductStatusEnum,
   ReserveInternalAdMutation,
   ReserveInternalAdMutationVariables,
@@ -19,7 +20,7 @@ import {
   SET_INTERNAL_AD_PUBLIC_AVAILABILITY,
   RESERVE_INTERNAL_AD,
 } from "@/queries/internal-ads";
-import { useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
 import { TextInput } from "@components/forms/textInput";
@@ -29,12 +30,14 @@ import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Popup } from "@components/popup/popup";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { QuantityStepper } from "@components/preview-product/quantity-stepper";
+import { AvailabilityBadge } from "@components/product/availability-badge";
 import RemoveProduct from "@components/preview-product/remove-product";
 import {
   SCREEN_TOP_MARGIN,
@@ -54,8 +57,22 @@ import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
+import { Delivery } from "@components/upsert-product/delivery";
+import { Pickup } from "@components/upsert-product/pickup";
+import { Shipping } from "@components/upsert-product/shipping";
+import { ProductFields } from "@components/upsert-product/types";
+
+const UPDATE_PUBLIC_TRANSPORT = gql`
+  mutation UpdateInternalAdPublicTransport($input: UpdateProductInput!) {
+    updateProduct(input: $input) {
+      product {
+        id
+      }
+    }
+  }
+`;
 
 export default function InternalAdDetailPage() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
@@ -68,6 +85,7 @@ export default function InternalAdDetailPage() {
   const [showPublicPricePrompt, setShowPublicPricePrompt] = useState(false);
   const [publicPrice, setPublicPrice] = useState("");
   const [publicPriceError, setPublicPriceError] = useState<string>();
+  const [publicTransport, setPublicTransport] = useState<ProductFields>();
 
   const { data, loading, refetch } = useQuery<
     InternalAdDetailQuery,
@@ -93,6 +111,8 @@ export default function InternalAdDetailPage() {
       SetInternalAdPublicAvailabilityMutation,
       SetInternalAdPublicAvailabilityMutationVariables
     >(SET_INTERNAL_AD_PUBLIC_AVAILABILITY);
+  const [updatePublicTransport, { loading: savingPublicTransport }] =
+    useMutation(UPDATE_PUBLIC_TRANSPORT);
 
   const product = data?.internalAd;
   const activeReservations = useMemo(
@@ -135,8 +155,14 @@ export default function InternalAdDetailPage() {
 
   const onSetPublicAvailability = async () => {
     if (!product) return;
-    if (!product.publiclyAvailable && !product.publicPriceConfirmed) {
-      setPublicPrice(product.price.toString());
+    if (!product.publiclyAvailable) {
+      setPublicTransport(toPublicTransportFields(product));
+      setPublicPrice(
+        (product.publicPriceConfirmed
+          ? product.price / 100
+          : product.price
+        ).toString(),
+      );
       setPublicPriceError(undefined);
       setShowPublicPricePrompt(true);
       return;
@@ -149,9 +175,47 @@ export default function InternalAdDetailPage() {
       setPublicPriceError("Ange ett pris på minst 0 kr.");
       return;
     }
+    if (!publicTransport) return;
+    const hasTransport =
+      publicTransport.pickupEnabled ||
+      publicTransport.deliveryEnabled ||
+      publicTransport.shippingPrices.length > 0;
+    const needsAddress =
+      publicTransport.pickupEnabled || publicTransport.deliveryEnabled;
+    if (
+      !hasTransport ||
+      (needsAddress && (!publicTransport.address || !publicTransport.location))
+    ) {
+      setPublicPriceError(
+        "Välj minst ett fraktalternativ och ange adress för avhämtning eller hemtransport.",
+      );
+      return;
+    }
     setPublicPriceError(undefined);
-    await updatePublicAvailability(Number(publicPrice));
-    setShowPublicPricePrompt(false);
+    try {
+      await updatePublicTransport({
+        variables: {
+          input: {
+            id: product?.id,
+            pickupEnabled: publicTransport.pickupEnabled,
+            deliveryEnabled: publicTransport.deliveryEnabled,
+            deliveryPrice: publicTransport.deliveryPrice,
+            deliveryRadius: publicTransport.deliveryRadius,
+            location: publicTransport.location,
+            shippingPriceIds: publicTransport.shippingPrices.map(
+              (price) => price.id,
+            ),
+          },
+        },
+      });
+      await updatePublicAvailability(Number(publicPrice));
+      setShowPublicPricePrompt(false);
+    } catch {
+      // Keep the sheet open so the user can correct missing transport details.
+      setPublicPriceError(
+        "Kunde inte publicera annonsen. Kontrollera pris och fraktalternativ.",
+      );
+    }
   };
 
   const onEdit = () => {
@@ -272,9 +336,11 @@ export default function InternalAdDetailPage() {
         <PublicPricePrompt
           open={showPublicPricePrompt}
           price={publicPrice}
+          transport={publicTransport}
           error={publicPriceError}
-          loading={makingPublic}
+          loading={makingPublic || savingPublicTransport}
           onChange={setPublicPrice}
+          onTransportChange={(transport) => setPublicTransport(transport)}
           onConfirm={onConfirmPublicPrice}
           onClose={() => setShowPublicPricePrompt(false)}
         />
@@ -360,9 +426,11 @@ export default function InternalAdDetailPage() {
       <PublicPricePrompt
         open={showPublicPricePrompt}
         price={publicPrice}
+        transport={publicTransport}
         error={publicPriceError}
-        loading={makingPublic}
+        loading={makingPublic || savingPublicTransport}
         onChange={setPublicPrice}
+        onTransportChange={(transport) => setPublicTransport(transport)}
         onConfirm={onConfirmPublicPrice}
         onClose={() => setShowPublicPricePrompt(false)}
       />
@@ -373,9 +441,11 @@ export default function InternalAdDetailPage() {
 type PublicPricePromptProps = {
   open: boolean;
   price: string;
+  transport?: ProductFields;
   error?: string;
   loading: boolean;
   onChange: (price: string) => void;
+  onTransportChange: (transport: ProductFields) => void;
   onConfirm: () => Promise<void>;
   onClose: () => void;
 };
@@ -383,53 +453,120 @@ type PublicPricePromptProps = {
 const PublicPricePrompt = ({
   open,
   price,
+  transport,
   error,
   loading,
   onChange,
+  onTransportChange,
   onConfirm,
   onClose,
-}: PublicPricePromptProps) => (
-  <Popup open={open} onClose={onClose}>
-    <View style={{ gap: 24, padding: 32 }}>
-      <View style={{ gap: 8 }}>
-        <Title size="medium">Ange pris för marknadsplatsen</Title>
+}: PublicPricePromptProps) => {
+  const [shippingSelected, setShippingSelected] = useState(
+    !!transport?.shippingPrices.length,
+  );
+  useEffect(() => {
+    setShippingSelected(!!transport?.shippingPrices.length);
+  }, [transport?.shippingPrices.length]);
+  const updateTransport = (update: Partial<ProductFields>) => {
+    if (transport) onTransportChange({ ...transport, ...update });
+  };
+
+  return (
+    <SlideInSheet
+      open={open}
+      onClose={onClose}
+      title="Publicera på marknadsplatsen"
+      style={{ gap: 24 }}
+      bottomMargin={36}
+      footer={
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 8,
+            marginTop: 16,
+            paddingBottom: 8,
+          }}
+        >
+          <Button
+            label="Avbryt"
+            type="outlined"
+            onPress={onClose}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label="Spara och publicera"
+            onPress={onConfirm}
+            loading={loading}
+            style={{ flex: 1 }}
+          />
+        </View>
+      }
+    >
+      <View style={{ gap: 24 }}>
         <Body size="medium" color="secondary">
-          Annonsen behöver ett bekräftat pris för att visas på den publika
-          marknadsplatsen.
+          Bekräfta pris och välj minst ett fraktalternativ för den publika
+          annonsen.
         </Body>
-      </View>
-      <View style={{ gap: 4 }}>
-        <Label size="medium">Pris</Label>
-        <TextInput
-          inputType="numeric"
-          value={price}
-          onChange={onChange}
-          placeholder="0"
-          error={!!error}
-        />
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Pris</Label>
+          <TextInput
+            inputType="numeric"
+            value={price}
+            onChange={onChange}
+            placeholder="0"
+            error={!!error}
+          />
+        </View>
+        {transport && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <View style={{ gap: 16 }}>
+              <Pickup
+                product={transport}
+                update={updateTransport}
+                canEdit
+                onEditing={() => undefined}
+                onEditComplete={() => undefined}
+              />
+              <Shipping
+                product={transport}
+                update={updateTransport}
+                shippingSelected={shippingSelected}
+                onShippingSelected={setShippingSelected}
+                onShippingValid={() => undefined}
+              />
+              <Delivery
+                product={transport}
+                update={updateTransport}
+                canEdit
+                onEditing={() => undefined}
+                onEditComplete={() => undefined}
+              />
+            </View>
+          </Suspense>
+        )}
         {!!error && (
           <Body size="small" color="error">
             {error}
           </Body>
         )}
       </View>
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <Button
-          label="Avbryt"
-          type="outlined"
-          onPress={onClose}
-          style={{ flex: 1 }}
-        />
-        <Button
-          label="Spara och publicera"
-          onPress={onConfirm}
-          loading={loading}
-          style={{ flex: 1 }}
-        />
-      </View>
-    </View>
-  </Popup>
-);
+    </SlideInSheet>
+  );
+};
+
+const toPublicTransportFields = (
+  product: NonNullable<InternalAdDetailQuery["internalAd"]>,
+): ProductFields =>
+  ({
+    address: product.address ?? undefined,
+    location: product.location ?? undefined,
+    approximatePlace: product.approximatePlace ?? undefined,
+    pickupEnabled: product.pickupEnabled,
+    deliveryEnabled: product.deliveryEnabled,
+    deliveryRadius: product.deliveryRadius ?? undefined,
+    deliveryPrice: product.deliveryPrice ?? undefined,
+    shippingPrices: product.shippingPrices,
+  }) as ProductFields;
 
 const InternalAdsTopBar = () => {
   const colors = useThemeColor();
@@ -497,14 +634,19 @@ const InternalAdContent = ({
   onMarkSold,
   showReserveButton,
 }: InternalAdContentProps) => {
+  // Older cached listings may not have availability yet; treat them as
+  // available so the rollout remains backwards compatible.
+  const isUpcoming = product.availability === ProductAvailabilityEnum.Upcoming;
   const stockStatus =
     product.status === ProductStatusEnum.Sold
       ? "Såld"
-      : product.soldByQuantity
-        ? "Tillgänglig"
-        : activeReservations.length
-          ? "Reserverad"
-          : "Tillgänglig";
+      : product.availability === ProductAvailabilityEnum.Upcoming
+        ? "Kommande"
+        : product.soldByQuantity
+          ? "Tillgänglig"
+          : activeReservations.length
+            ? "Reserverad"
+            : "Tillgänglig";
 
   return (
     <View style={{ gap: 24 }}>
@@ -527,6 +669,12 @@ const InternalAdContent = ({
           {product.primaryUnit ? quantities[product.primaryUnit].plural : "st"}{" "}
           • {conditions[product.condition].name}
         </Body>
+        <AvailabilityBadge
+          availability={product.availability}
+          estimatedAvailableAt={product.estimatedAvailableAt}
+          availabilityPrecision={product.availabilityPrecision}
+          style={{ marginTop: 8 }}
+        />
       </View>
 
       <View>
