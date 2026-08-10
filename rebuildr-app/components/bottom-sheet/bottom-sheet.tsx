@@ -11,7 +11,7 @@ import {
   useMemo,
   useEffect,
 } from "react";
-import { Pressable, View, ViewStyle } from "react-native";
+import { Platform, Pressable, View, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -67,12 +67,30 @@ export const BottomSheet = ({
   ) as React.RefObject<BottomSheetModalMethods>;
   const scrollRef =
     useRef<React.ComponentRef<typeof BottomSheetScrollView>>(null);
+  const contentRef = useRef<View>(null);
   const colors = useThemeColor();
   const sheetBackgroundColor = backgroundColor ?? colors.background.neutral;
   const topBorderRadius = useSharedValue(28);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
+    //on web the forwarded scroll ref never gets populated, so the scrollTo
+    //above is a no-op there. A View ref IS the DOM node on web — walk up from
+    //the content to the scrollable ancestor and reset it directly.
+    if (Platform.OS === "web") {
+      //stop at the first scrollable ancestor whether or not it currently
+      //overflows — that one is the sheet's own scroll container, and walking
+      //past it would reset a scroll container outside the sheet
+      let node = contentRef.current as unknown as HTMLElement | null;
+      while (node?.parentElement) {
+        node = node.parentElement;
+        const overflowY = getComputedStyle(node).overflowY;
+        if (overflowY === "auto" || overflowY === "scroll") {
+          node.scrollTop = 0;
+          break;
+        }
+      }
+    }
   }, [resetScrollKey]);
 
   useEffect(() => {
@@ -211,7 +229,9 @@ export const BottomSheet = ({
                   height the dynamic sizing measures on web, so sheets end up
                   taller than their content. Callers that want to fill pass it
                   via containerStyle. */}
-              <View style={[containerStyle]}>{children}</View>
+              <View ref={contentRef} style={[containerStyle]}>
+                {children}
+              </View>
               {footer && !isStickyFooter && (
                 <View
                   style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}
