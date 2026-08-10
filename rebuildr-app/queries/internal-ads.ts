@@ -205,6 +205,7 @@ export const INTERNAL_AD_DETAIL = gql`
       title
       description
       additionalInfo
+      internalReferenceNumber
       status
       condition
       primaryQuantity
