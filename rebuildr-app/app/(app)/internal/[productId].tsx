@@ -287,7 +287,7 @@ const InternalAdsTopBar = () => {
       sellButtonLabel="Ny intern annons"
       onSellButtonPress={() =>
         router.navigate({
-          pathname: "/internal-ads",
+          pathname: "/internal",
           params: { action: "create", t: Date.now().toString() },
         })
       }

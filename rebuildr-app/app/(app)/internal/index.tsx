@@ -332,7 +332,7 @@ export default function InternalAdsPage() {
           product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
         onPress: () =>
           router.navigate({
-            pathname: "/internal-ads/[productId]",
+            pathname: "/internal/[productId]",
             params: { productId: product.id },
           }),
       })),

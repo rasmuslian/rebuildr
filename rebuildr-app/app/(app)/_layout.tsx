@@ -53,7 +53,7 @@ export default function AppLayout() {
       <Stack.Screen name="article" />
       <Stack.Screen name="signup" />
       <Stack.Screen name="bygghjalpen" />
-      <Stack.Screen name="internal-ads" />
+      <Stack.Screen name="internal" />
     </Stack>
   );
 }

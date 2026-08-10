@@ -426,7 +426,7 @@ export class MailService {
     const context = {
       ...this.baseContext,
       organizationName: input.organizationName,
-      inviteUrl: `${this.baseUrl}/internal-ads/invite?token=${input.token}`,
+      inviteUrl: `${this.baseUrl}/internal/invite?token=${input.token}`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(organizationInviteTemplate).html,
@@ -458,7 +458,7 @@ export class MailService {
       productTitle: input.productTitle,
       actorName: input.actorName,
       action: input.action,
-      internalAdsUrl: `${this.baseUrl}/internal-ads`,
+      internalAdsUrl: `${this.baseUrl}/internal`,
     };
     const handlebarsTemplate = handlebars.compile(
       mjml(internalAdEventTemplate).html,

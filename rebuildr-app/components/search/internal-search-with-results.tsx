@@ -69,7 +69,7 @@ export const InternalSearchWithResults = ({
       searchString: searchTerm,
       searchScope: "internal",
     });
-    router.navigate({ pathname: "/internal-ads", params: { q: searchTerm } });
+    router.navigate({ pathname: "/internal", params: { q: searchTerm } });
   };
 
   if (!searchCompleted) {
@@ -126,7 +126,7 @@ export const InternalSearchWithResults = ({
                 onPress={() => {
                   searchContext.setSearchState({ dropdownVisible: false });
                   router.navigate({
-                    pathname: "/internal-ads/[productId]",
+                    pathname: "/internal/[productId]",
                     params: { productId: product.id },
                   });
                 }}

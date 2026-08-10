@@ -67,7 +67,7 @@ export default function InternalAdsInvitePage() {
               </Body>
               <Button
                 label="Öppna Internlagret"
-                onPress={() => router.replace("/internal-ads")}
+                onPress={() => router.replace("/internal")}
               />
             </View>
           ) : (

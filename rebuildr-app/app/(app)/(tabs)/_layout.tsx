@@ -31,7 +31,7 @@ export default function TabLayout() {
   const { filterBuilder } = useFilterProduct();
 
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
-  const isInternalAdsRoute = pathName.startsWith("/internal-ads");
+  const isInternalAdsRoute = pathName.startsWith("/internal");
 
   return (
     <Tabs
@@ -97,7 +97,7 @@ export default function TabLayout() {
                 setLoginVisible(true);
               } else if (isInternalAdsRoute) {
                 router.navigate({
-                  pathname: "/internal-ads",
+                  pathname: "/internal",
                   params: { action: "create", t: Date.now().toString() },
                 });
               } else {

@@ -93,7 +93,7 @@ export const HamburgerMenu = () => {
       {!category && (
         <View style={{ gap: 14 }}>
           {internalAdsContextData?.internalAdsOrganizationContext && (
-            <Entry title="Internlagret" link="/internal-ads" />
+            <Entry title="Internlagret" link="/internal" />
           )}
           <Entry
             title={permanentSection.newArrivals.title}
