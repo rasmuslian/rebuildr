@@ -611,7 +611,52 @@ export const UpsertProduct = ({
       const saved = await update();
       if (!saved) return;
 
-      await analyzeImages({ variables: { input: { productId } } });
+      const analysis = await analyzeImages({
+        variables: { input: { productId } },
+      });
+      const analyzedProduct = analysis.data?.analyzeProductImages;
+      if (!analyzedProduct) return;
+
+      // The form is intentionally initialized only once, so cache updates from
+      // the mutation cannot replace the locally edited fields. Apply the AI
+      // result explicitly instead. This is especially important for internal
+      // ads, which use edit mode even when a fresh draft has just been created.
+      setProduct((currentProduct) => ({
+        ...currentProduct,
+        categoryIds: analyzedProduct.category
+          ? [
+              ...analyzedProduct.category.ancestorIds,
+              analyzedProduct.category.id,
+            ]
+          : currentProduct.categoryIds,
+        title: analyzedProduct.title ?? undefined,
+        description: analyzedProduct.description ?? undefined,
+        additionalInfo: analyzedProduct.additionalInfo ?? undefined,
+        priceSuggestionMin: analyzedProduct.priceSuggestionMin ?? undefined,
+        priceSuggestionMax: analyzedProduct.priceSuggestionMax ?? undefined,
+        primaryQuantity: analyzedProduct.primaryQuantity ?? undefined,
+        primaryUnit: analyzedProduct.primaryUnit ?? undefined,
+        secondaryQuantity: analyzedProduct.secondaryQuantity ?? undefined,
+        secondaryUnit: analyzedProduct.secondaryUnit ?? undefined,
+        height: analyzedProduct.height ?? undefined,
+        heightUnit: analyzedProduct.heightUnit ?? currentProduct.heightUnit,
+        width: analyzedProduct.width ?? undefined,
+        widthUnit: analyzedProduct.widthUnit ?? currentProduct.widthUnit,
+        length: analyzedProduct.length ?? undefined,
+        lengthUnit: analyzedProduct.lengthUnit ?? currentProduct.lengthUnit,
+        thickness: analyzedProduct.thickness ?? undefined,
+        thicknessUnit:
+          analyzedProduct.thicknessUnit ?? currentProduct.thicknessUnit,
+        diameter: analyzedProduct.diameter ?? undefined,
+        diameterUnit:
+          analyzedProduct.diameterUnit ?? currentProduct.diameterUnit,
+        weight: analyzedProduct.weight ?? undefined,
+        weightUnit: analyzedProduct.weightUnit ?? currentProduct.weightUnit,
+        color: analyzedProduct.color ?? undefined,
+        colorType: analyzedProduct.colorType ?? currentProduct.colorType,
+        condition: analyzedProduct.condition ?? currentProduct.condition,
+        brandId: analyzedProduct.brand?.id ?? undefined,
+      }));
     } finally {
       setAnalyzePending(false);
     }
