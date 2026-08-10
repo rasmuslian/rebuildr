@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useFilterProduct } from "@hooks/useFilterProduct";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import {
   OrderProductsEnum,
   AdRowSectionQuery,
@@ -20,7 +21,10 @@ export const NewArrivals = () => {
   const { isLoggedIn } = useUser();
   const { isDesktop } = useScreenType();
 
-  const { data } = useQuery<AdRowSectionQuery, AdRowSectionQueryVariables>(
+  const { data, refetch } = useQuery<
+    AdRowSectionQuery,
+    AdRowSectionQueryVariables
+  >(
     AD_ROW_SECTION,
     {
       variables: {
@@ -33,6 +37,12 @@ export const NewArrivals = () => {
         isLoggedIn,
       },
     },
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
   );
 
   if (!data) {

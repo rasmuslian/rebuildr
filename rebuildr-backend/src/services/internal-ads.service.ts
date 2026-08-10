@@ -659,6 +659,11 @@ export class InternalAdsService {
       product.publicPriceConfirmed = true;
     }
 
+    // An internal ad enters the public marketplace when this is enabled. Treat
+    // that as its public publication time so it is included among new arrivals.
+    if (publiclyAvailable && !product.publiclyAvailable) {
+      product.publishedAt = new Date();
+    }
     product.publiclyAvailable = publiclyAvailable;
     return this.productRepository.save(product);
   }

@@ -886,7 +886,10 @@ export class ProductService {
         `;
 
         query.andWhere(
-          `st_distancesphere(${product_address_location}, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(${product_address_location}))) <= :distance`,
+          `(
+            (${product_address_location} IS NOT NULL AND st_distancesphere(${product_address_location}, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(${product_address_location}))) <= :distance)
+            OR (p.visibility = '${ProductVisibility.INTERNAL}' AND p."publiclyAvailable" = true)
+          )`,
           { origin, distance },
         );
       }
