@@ -43,7 +43,7 @@ export class SearchResultLoader {
             OR word_similarity(lower(sr."searchString"), lower(coalesce(p."searchDocument", ''))) >= 0.45
           )
           AND (p."status" = '${ProductStatus.PUBLISHED}'::product_status_enum OR p."status" = '${ProductStatus.SOLD}'::product_status_enum)
-          AND p."visibility" = '${ProductVisibility.PUBLIC}'::product_visibility_enum
+          AND (p."visibility" = '${ProductVisibility.PUBLIC}'::product_visibility_enum OR p."publiclyAvailable" = true)
           AND p."hiddenReason" IS NULL`,
         )
         .where('sr.id IN (:...ids)', { ids: searchResultIds })

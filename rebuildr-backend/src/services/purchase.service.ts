@@ -1,4 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
+import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
 import {
   Product,
   ProductStatus,
@@ -63,6 +64,8 @@ export class PurchaseService {
     private purchaseRepository: Repository<Purchase>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(InternalAdReservation)
+    private reservationRepository: Repository<InternalAdReservation>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -112,11 +115,18 @@ export class PurchaseService {
       transportationMethod: input.transportationMethod,
     });
     const product = await this.productRepository.findOne({
-      where: {
-        id: input.productId,
-        status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
-        visibility: ProductVisibility.PUBLIC,
-      },
+      where: [
+        {
+          id: input.productId,
+          status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
+          visibility: ProductVisibility.PUBLIC,
+        },
+        {
+          id: input.productId,
+          status: Or(Equal(ProductStatus.PUBLISHED), Equal(ProductStatus.SOLD)),
+          publiclyAvailable: true,
+        },
+      ],
       relations: {
         seller: true,
         purchases: true,
@@ -167,8 +177,20 @@ export class PurchaseService {
       );
     }
 
+    const reservedQuantity = product.soldByQuantity
+      ? (
+          await this.reservationRepository.find({
+            where: {
+              productId: product.id,
+              canceledAt: IsNull(),
+              soldAt: IsNull(),
+            },
+          })
+        ).reduce((sum, reservation) => sum + (reservation.quantity ?? 0), 0)
+      : 0;
     const isAvailable = product.soldByQuantity
-      ? (input.purchasedQuantity ?? 1) <= product.primaryQuantity
+      ? (input.purchasedQuantity ?? 1) <=
+        (product.primaryQuantity ?? 0) - reservedQuantity
       : product.status === ProductStatus.PUBLISHED;
 
     const existingPurchase = product.purchases.find(

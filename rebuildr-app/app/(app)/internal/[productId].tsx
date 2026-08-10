@@ -5,6 +5,8 @@ import {
   InternalAdDetailQueryVariables,
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
+  MakeInternalAdPublicMutation,
+  MakeInternalAdPublicMutationVariables,
   OrganizationMemberRoleEnum,
   ProductStatusEnum,
   ReserveInternalAdMutation,
@@ -13,6 +15,7 @@ import {
 import {
   CANCEL_INTERNAL_AD_RESERVATION,
   INTERNAL_AD_DETAIL,
+  MAKE_INTERNAL_AD_PUBLIC,
   MARK_INTERNAL_AD_SOLD,
   RESERVE_INTERNAL_AD,
 } from "@/queries/internal-ads";
@@ -78,6 +81,10 @@ export default function InternalAdDetailPage() {
     MarkInternalAdSoldMutation,
     MarkInternalAdSoldMutationVariables
   >(MARK_INTERNAL_AD_SOLD);
+  const [makeInternalAdPublic, { loading: makingPublic }] = useMutation<
+    MakeInternalAdPublicMutation,
+    MakeInternalAdPublicMutationVariables
+  >(MAKE_INTERNAL_AD_PUBLIC);
 
   const product = data?.internalAd;
   const activeReservations = useMemo(
@@ -105,6 +112,12 @@ export default function InternalAdDetailPage() {
     data?.internalAdsOrganizationContext?.role ===
     OrganizationMemberRoleEnum.Admin;
   const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
+
+  const onMakePublic = async () => {
+    if (!product) return;
+    await makeInternalAdPublic({ variables: { productId: product.id } });
+    await refetch();
+  };
 
   const onReserve = async () => {
     if (!product) return;
@@ -151,8 +164,10 @@ export default function InternalAdDetailPage() {
       reserving={reserving}
       canceling={canceling}
       markingSold={markingSold}
+      makingPublic={makingPublic}
       currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
+      onMakePublic={onMakePublic}
       onReserve={onReserve}
       onCancel={onCancel}
       onMarkSold={onMarkSold}
@@ -311,8 +326,10 @@ type InternalAdContentProps = {
   reserving: boolean;
   canceling: boolean;
   markingSold: boolean;
+  makingPublic: boolean;
   currentUserId: string;
   canMarkSold: boolean;
+  onMakePublic: () => Promise<void>;
   onReserve: () => Promise<void>;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
@@ -328,8 +345,10 @@ const InternalAdContent = ({
   reserving,
   canceling,
   markingSold,
+  makingPublic,
   currentUserId,
   canMarkSold,
+  onMakePublic,
   onReserve,
   onCancel,
   onMarkSold,
@@ -378,6 +397,20 @@ const InternalAdContent = ({
             </Body>
           )}
       </View>
+
+      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
+        <Button
+          label={
+            product.publiclyAvailable
+              ? "Tillgänglig för alla"
+              : "Tillgängliggör för alla"
+          }
+          type="outlined"
+          onPress={onMakePublic}
+          loading={makingPublic}
+          disabled={product.publiclyAvailable}
+        />
+      )}
 
       <Divider />
 

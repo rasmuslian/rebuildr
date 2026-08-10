@@ -65,7 +65,7 @@ export class MapPinService {
         .leftJoinAndSelect(
           'project.products',
           'product',
-          'product.status = :status AND product.visibility = :visibility',
+          'product.status = :status AND (product.visibility = :visibility OR product."publiclyAvailable" = true)',
           {
             status: ProductStatus.PUBLISHED,
             visibility: ProductVisibility.PUBLIC,
@@ -204,9 +204,10 @@ export class MapPinService {
         .andWhere('product.status = :status', {
           status: ProductStatus.PUBLISHED,
         })
-        .andWhere('product.visibility = :visibility', {
-          visibility: ProductVisibility.PUBLIC,
-        })
+        .andWhere(
+          'product.visibility = :visibility OR product."publiclyAvailable" = true',
+          { visibility: ProductVisibility.PUBLIC },
+        )
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)

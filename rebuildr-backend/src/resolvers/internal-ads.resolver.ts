@@ -259,6 +259,15 @@ export class InternalAdsResolver {
     return this.internalAdsService.publishInternalDrafts(user.id, productIds);
   }
 
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async makeInternalAdPublic(
+    @CurrentUser() user: AuthedUserType,
+    @Args('productId') productId: string,
+  ) {
+    return this.internalAdsService.makeInternalAdPublic(user.id, productId);
+  }
+
   @Mutation(() => InternalAdReservation)
   @UseGuards(GqlAuthGuard)
   async reserveInternalAd(

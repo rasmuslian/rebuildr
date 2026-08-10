@@ -327,6 +327,11 @@ export class Product {
   })
   visibility: ProductVisibility;
 
+  /** An internal listing may additionally be shown in the public marketplace. */
+  @Field(() => Boolean)
+  @Column({ default: false })
+  publiclyAvailable: boolean;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   internalOrganizationId?: string;

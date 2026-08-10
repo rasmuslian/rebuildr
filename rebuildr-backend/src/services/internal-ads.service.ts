@@ -627,6 +627,23 @@ export class InternalAdsService {
     return savedProducts;
   }
 
+  async makeInternalAdPublic(currentUserId: string, productId: string) {
+    const product = await this.internalAd(currentUserId, productId);
+    const context = await this.getOrganizationContext(currentUserId);
+    const canManage =
+      product.createdByUserId === currentUserId ||
+      context.role === OrganizationMemberRole.ADMIN;
+    if (!canManage) {
+      throw ForbiddenException();
+    }
+    if (product.status !== ProductStatus.PUBLISHED) {
+      throw BadUserInputException('Product is not published');
+    }
+
+    product.publiclyAvailable = true;
+    return this.productRepository.save(product);
+  }
+
   async reserveInternalAd(
     currentUserId: string,
     input: { productId: string; quantity?: number },

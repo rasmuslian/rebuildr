@@ -472,6 +472,7 @@ type Product {
   condition: ProductConditionEnum!
   status: ProductStatusEnum!
   visibility: ProductVisibilityEnum!
+  publiclyAvailable: Boolean!
   internalOrganizationId: String
   createdByUserId: String
   internalValidationIssues: [String!]!
@@ -1454,6 +1455,7 @@ type Mutation {
   removeInternalAdDraft(productId: String!): Boolean!
   removeInternalAdImportBatch(batchId: String!): Boolean!
   publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
+  makeInternalAdPublic(productId: String!): Product!
   reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
   cancelInternalAdReservation(reservationId: String!): InternalAdReservation!
   markInternalAdSold(input: MarkInternalAdSoldInput!): Product!

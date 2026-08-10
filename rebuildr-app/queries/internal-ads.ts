@@ -264,6 +264,7 @@ export const INTERNAL_AD_DETAIL = gql`
       soldByQuantity
       internalValidationIssues
       createdByUserId
+      publiclyAvailable
       images {
         id
         url
@@ -308,6 +309,15 @@ export const INTERNAL_AD_DETAIL = gql`
     }
     me {
       id
+    }
+  }
+`;
+
+export const MAKE_INTERNAL_AD_PUBLIC = gql`
+  mutation MakeInternalAdPublic($productId: String!) {
+    makeInternalAdPublic(productId: $productId) {
+      id
+      publiclyAvailable
     }
   }
 `;

@@ -673,7 +673,9 @@ export class ProductService {
         ? `${productAlias}.status = 'PUBLISHED'`
         : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
-    qb.andWhere(`${productAlias}.visibility = '${ProductVisibility.PUBLIC}'`);
+    qb.andWhere(
+      `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true)`,
+    );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
     if (input.sellerId) {
@@ -996,7 +998,10 @@ export class ProductService {
         throw BadUserInputException();
       }
     }
-    if (product.visibility === ProductVisibility.INTERNAL) {
+    if (
+      product.visibility === ProductVisibility.INTERNAL &&
+      !product.publiclyAvailable
+    ) {
       if (!currentUserId) {
         throw BadUserInputException();
       }
