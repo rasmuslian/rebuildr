@@ -25,7 +25,6 @@ import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
 import { TextInput } from "@components/forms/textInput";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
-import { Toggle } from "@components/controls/toggle";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import TopBar from "@components/navigation/top-bar/top-bar";
@@ -53,6 +52,7 @@ import {
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
 import { quantities } from "@constants/quantities";
+import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import * as Linking from "expo-linking";
@@ -636,7 +636,6 @@ const InternalAdContent = ({
 }: InternalAdContentProps) => {
   // Older cached listings may not have availability yet; treat them as
   // available so the rollout remains backwards compatible.
-  const isUpcoming = product.availability === ProductAvailabilityEnum.Upcoming;
   const stockStatus =
     product.status === ProductStatusEnum.Sold
       ? "Såld"
@@ -690,34 +689,15 @@ const InternalAdContent = ({
       </View>
 
       {canMarkSold && (
-        <>
-          {product.status !== ProductStatusEnum.Sold && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-              }}
-            >
-              <Label size="large">Tillgänglig på publika marknadsplatsen</Label>
-              <Toggle
-                value={product.publiclyAvailable}
-                onPress={onSetPublicAvailability}
-                disabled={makingPublic}
-              />
-            </View>
-          )}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button
-              label="Ta bort"
-              type="tonal"
-              onPress={onRemove}
-              style={{ flex: 1 }}
-            />
-            <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
-          </View>
-        </>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Button
+            label="Ta bort"
+            type="tonal"
+            onPress={onRemove}
+            style={{ flex: 1 }}
+          />
+          <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
+        </View>
       )}
 
       <Divider />
@@ -786,6 +766,14 @@ const InternalAdContent = ({
         unit={product.primaryUnit ?? undefined}
       />
 
+      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
+        <PublicAvailabilityCard
+          publiclyAvailable={product.publiclyAvailable}
+          loading={makingPublic}
+          onPress={onSetPublicAvailability}
+        />
+      )}
+
       {canMarkSold &&
         product.soldByQuantity &&
         product.status !== ProductStatusEnum.Sold && (
@@ -852,6 +840,44 @@ const InternalAdContent = ({
     </View>
   );
 };
+
+type PublicAvailabilityCardProps = {
+  publiclyAvailable: boolean;
+  loading: boolean;
+  onPress: () => Promise<void>;
+};
+
+const PublicAvailabilityCard = ({
+  publiclyAvailable,
+  loading,
+  onPress,
+}: PublicAvailabilityCardProps) => (
+  <View
+    style={{
+      gap: 16,
+      padding: 16,
+      backgroundColor: primitives.secondary200,
+      borderRadius: borderRadius.medium,
+    }}
+  >
+    <View style={{ gap: 4 }}>
+      <Headline size="small">Publisera externt</Headline>
+      <Body size="medium" color="secondary">
+        Gör annonsen synlig för alla på RebuildR, utanför ert interna lager.
+      </Body>
+    </View>
+    <Button
+      label={
+        publiclyAvailable
+          ? "Avpublicera externt"
+          : "Publicera externt på RebuildR"
+      }
+      type={publiclyAvailable ? "outlined" : "filled"}
+      onPress={onPress}
+      loading={loading}
+    />
+  </View>
+);
 
 type ReservationsProps = {
   reservations: InternalReservation[];
