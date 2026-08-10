@@ -36,6 +36,7 @@ type Props = {
   foregroundColor?: string;
   showBottomBorder?: boolean;
   categoriesButtonBackgroundColor?: string;
+  searchScope?: "public" | "internal";
 };
 
 export default function TopBarDesktop({
@@ -50,6 +51,7 @@ export default function TopBarDesktop({
   foregroundColor,
   showBottomBorder = true,
   categoriesButtonBackgroundColor,
+  searchScope = "public",
 }: Props) {
   const searchContext = useSearchContext();
   const { filterBuilder } = useFilterProduct();
@@ -159,7 +161,12 @@ export default function TopBarDesktop({
             <SearchBar
               visible={showSearchBar}
               searchOnSubmit
-              placeholder="Vad letar du efter?"
+              searchScope={searchScope}
+              placeholder={
+                searchScope === "internal"
+                  ? "Sök i internlagret"
+                  : "Vad letar du efter?"
+              }
               style={{
                 borderBottomWidth: 0,
                 width: 320,

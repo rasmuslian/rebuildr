@@ -158,7 +158,7 @@ export const Search = ({
     if (searchScope === "internal") {
       setSearchState({ dropdownVisible: false, searchScope });
       onSubmitSearch?.(text);
-      router.navigate({ pathname: "/internal", params: { q: text } });
+      router.navigate({ pathname: "/internal/search", params: { q: text } });
       return;
     }
 

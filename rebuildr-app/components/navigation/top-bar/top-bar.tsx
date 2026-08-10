@@ -14,6 +14,7 @@ export default function TopBar({
   foregroundColor,
   showBottomBorder = true,
   categoriesButtonBackgroundColor,
+  searchScope = "public",
 }: {
   showFor?: ("mobile" | "desktop")[];
   theme?: "light" | "dark";
@@ -25,6 +26,7 @@ export default function TopBar({
   foregroundColor?: string;
   showBottomBorder?: boolean;
   categoriesButtonBackgroundColor?: string;
+  searchScope?: "public" | "internal";
 }) {
   const { isLoggedIn, me } = useUser();
   const { isMobile } = useScreenType();
@@ -56,6 +58,7 @@ export default function TopBar({
         foregroundColor={foregroundColor}
         showBottomBorder={showBottomBorder}
         categoriesButtonBackgroundColor={categoriesButtonBackgroundColor}
+        searchScope={searchScope}
       />
     );
   }

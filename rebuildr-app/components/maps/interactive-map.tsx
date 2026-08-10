@@ -8,6 +8,7 @@ type Props = {
   initialCenter?: { lat: number; lng: number };
   productsInput?: ProductsInput;
   projectsInput?: ProjectsInput;
+  searchScope?: "public" | "internal";
 };
 
 export default function InteractiveMap({
@@ -15,6 +16,7 @@ export default function InteractiveMap({
   initialCenter,
   productsInput,
   projectsInput,
+  searchScope,
 }: Props) {
   const [Map, setMap] = useState<React.ComponentType<Props> | null>(null);
 
@@ -34,6 +36,7 @@ export default function InteractiveMap({
           initialCenter={initialCenter}
           productsInput={productsInput}
           projectsInput={projectsInput}
+          searchScope={searchScope}
         >
           <Map />
         </MapProvider>

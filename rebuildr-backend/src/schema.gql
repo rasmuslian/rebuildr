@@ -1061,6 +1061,8 @@ type Query {
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
   internalAdsOrganizationContext: InternalAdsOrganizationContext
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
+  relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
+  internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
   internalAd(productId: String!): Product!
   internalAdDrafts(batchId: String): [Product!]!
   organizationMembers: [OrganizationMembership!]!

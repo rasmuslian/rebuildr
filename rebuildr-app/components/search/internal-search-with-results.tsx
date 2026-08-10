@@ -69,7 +69,10 @@ export const InternalSearchWithResults = ({
       searchString: searchTerm,
       searchScope: "internal",
     });
-    router.navigate({ pathname: "/internal", params: { q: searchTerm } });
+    router.navigate({
+      pathname: "/internal/search",
+      params: { q: searchTerm },
+    });
   };
 
   if (!searchCompleted) {

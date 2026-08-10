@@ -58,10 +58,12 @@ export default function InternalAdsPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const params = useLocalSearchParams<{
+    q?: string;
     action?: string;
     t?: string;
   }>();
   const searchContext = useSearchContext();
+  const [searchString, setSearchString] = useState(params.q ?? "");
   const [editorProductId, setEditorProductId] = useState<string>();
   const [showEditor, setShowEditor] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -75,33 +77,34 @@ export default function InternalAdsPage() {
 
   useFocusEffect(
     useCallback(() => {
-      searchContext.setSearchState({
-        dropdownVisible: false,
-        internalSearchData: undefined,
-        searchString: undefined,
-        completedSearchString: undefined,
-        searchScope: "internal",
-      });
       if (typeof document === "undefined") return;
       document.body.style.backgroundColor = primitives.accent100;
       return () => {
         document.body.style.backgroundColor = "";
       };
-    }, [primitives.accent100, searchContext.setSearchState]),
+    }, [primitives.accent100]),
   );
+
+  useEffect(() => {
+    const query = params.q ?? "";
+    setSearchString(query);
+    searchContext.setSearchState({
+      searchString: query,
+      searchScope: "internal",
+    });
+  }, [params.q]);
 
   const { data, loading, refetch, fetchMore } = useQuery<
     InternalAdsPageQuery,
     InternalAdsPageQueryVariables
   >(INTERNAL_ADS_PAGE_QUERY, {
     variables: {
-      input: {},
+      input: { searchString: searchString || undefined },
       limit: PAGE_SIZE,
       offset: 0,
     },
     fetchPolicy: "cache-and-network",
   });
-
   const { data: batchData, refetch: refetchBatch } = useQuery<
     InternalAdImportBatchQuery,
     InternalAdImportBatchQueryVariables
@@ -334,6 +337,7 @@ export default function InternalAdsPage() {
       })),
     [activeProducts],
   );
+
   return (
     <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
       <TopBar
@@ -391,6 +395,7 @@ export default function InternalAdsPage() {
                   placeholder="Sök i internlagret"
                   searchScope="internal"
                   searchOnSubmit
+                  onSubmitSearch={(text) => setSearchString(text)}
                 />
                 <View
                   style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}
@@ -432,7 +437,11 @@ export default function InternalAdsPage() {
             <AccessEmptyState />
           ) : activeProducts.length ? (
             <AdGridSection
-              header="Interna annonser"
+              header={
+                searchString
+                  ? `Resultat för "${searchString}"`
+                  : "Interna annonser"
+              }
               products={adGridProducts}
               pagination={{
                 total,
@@ -448,10 +457,15 @@ export default function InternalAdsPage() {
             />
           ) : (
             <View style={{ gap: 8, maxWidth: 560 }}>
-              <Title size="large">Inga interna annonser ännu</Title>
+              <Title size="large">
+                {searchString
+                  ? "Inga interna annonser hittades"
+                  : "Inga interna annonser ännu"}
+              </Title>
               <Body size="medium" color="secondary">
-                Skapa en intern annons eller importera flera annonser från
-                filer.
+                {searchString
+                  ? "Prova en annan sökning eller rensa sökfältet."
+                  : "Skapa en intern annons eller importera flera annonser från filer."}
               </Body>
             </View>
           )}

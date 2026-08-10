@@ -33,6 +33,7 @@ import {
   PaginatedProductsResponse,
 } from 'src/resolvers/product.resolver';
 import { InternalAdsService } from 'src/services/internal-ads.service';
+import { MapPinGroupsInput, MapPinGroupsResponse } from './map-pin.resolver';
 
 @ObjectType()
 class InternalAdsOrganizationContext {
@@ -140,6 +141,34 @@ export class InternalAdsResolver {
     @Args('offset', { nullable: true, type: () => Int }) offset?: number,
   ) {
     return this.internalAdsService.internalAds(user.id, input, limit, offset);
+  }
+
+  @Query(() => PaginatedProductsResponse)
+  @UseGuards(GqlAuthGuard)
+  async relatedInternalAds(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: ProductsInput,
+    @Args('excludeProductIds', { nullable: true, type: () => [ID] })
+    excludeProductIds?: string[],
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+  ) {
+    return this.internalAdsService.relatedInternalAds(
+      user.id,
+      input,
+      excludeProductIds ?? [],
+      limit,
+      offset,
+    );
+  }
+
+  @Query(() => MapPinGroupsResponse)
+  @UseGuards(GqlAuthGuard)
+  async internalAdMapPinGroups(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: MapPinGroupsInput,
+  ) {
+    return this.internalAdsService.internalAdMapPinGroups(user.id, input);
   }
 
   @Query(() => Product)

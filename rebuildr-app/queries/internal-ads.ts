@@ -62,6 +62,55 @@ export const INTERNAL_ADS_SEARCH = gql`
   ${INTERNAL_AD_CARD_FIELDS}
 `;
 
+export const RELATED_INTERNAL_ADS = gql`
+  query RelatedInternalAds(
+    $input: ProductsInput!
+    $excludeProductIds: [ID!]
+    $limit: Int
+    $offset: Int
+  ) {
+    relatedInternalAds(
+      input: $input
+      excludeProductIds: $excludeProductIds
+      limit: $limit
+      offset: $offset
+    ) {
+      products {
+        ...InternalAdCardFields
+      }
+      total
+    }
+  }
+  ${INTERNAL_AD_CARD_FIELDS}
+`;
+
+export const INTERNAL_AD_MAP_PIN_GROUPS = gql`
+  query InternalAdMapPinGroups($input: MapPinGroupsInput!) {
+    internalAdMapPinGroups(input: $input) {
+      mapPinGroups {
+        location {
+          lat
+          lng
+        }
+        prices
+        type
+        productIds
+        projectId
+      }
+      total
+    }
+  }
+`;
+
+export const INTERNAL_AD_MAP_POPUP = gql`
+  query InternalAdMapPopup($productId: String!) {
+    internalAd(productId: $productId) {
+      ...InternalAdCardFields
+    }
+  }
+  ${INTERNAL_AD_CARD_FIELDS}
+`;
+
 export const CREATE_INTERNAL_AD_DRAFT = gql`
   mutation CreateInternalAdDraft {
     createInternalAdDraft {

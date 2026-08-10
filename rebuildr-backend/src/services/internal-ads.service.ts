@@ -33,6 +33,7 @@ import {
   ProductStatus,
   ProductVisibility,
 } from 'src/entities/product.entity';
+import { MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
   BadFieldsInputException,
@@ -42,7 +43,11 @@ import {
   NotFoundException,
 } from 'src/exceptions';
 import { FileInputType } from 'src/resolvers/file.resolver';
-import { ProductsInput } from 'src/resolvers/product.resolver';
+import { MapPinGroupsInput } from 'src/resolvers/map-pin.resolver';
+import {
+  OrderProductsEnum,
+  ProductsInput,
+} from 'src/resolvers/product.resolver';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import {
   DataSource,
@@ -349,11 +354,133 @@ export class InternalAdsService {
       .andWhere('p."hiddenReason" IS NULL');
 
     this.applyInternalProductFilters(query, input);
+    const hasOrigin = this.applyInternalProductLocation(query, input);
     query.take(Math.min(limit, 40)).skip(offset * limit);
-    query.addOrderBy('p.status', 'ASC').addOrderBy('p.publishedAt', 'DESC');
+    query.addOrderBy('p.status', 'ASC');
+    this.applyInternalProductOrdering(query, input, hasOrigin);
 
     const [products, total] = await query.getManyAndCount();
     return { products, total };
+  }
+
+  async relatedInternalAds(
+    currentUserId: string,
+    input: ProductsInput,
+    excludeProductIds: string[],
+    limit = 20,
+    offset = 0,
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const query = this.productRepository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.seller', 'seller')
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL');
+
+    this.applyInternalProductFilters(query, {
+      ...input,
+      searchString: undefined,
+      distance: undefined,
+      location: undefined,
+      pickup: undefined,
+      shipping: undefined,
+      delivery: undefined,
+    });
+    if (excludeProductIds.length) {
+      query.andWhere('p.id NOT IN (:...excludeProductIds)', {
+        excludeProductIds,
+      });
+    }
+    query.take(Math.min(limit, 40)).skip(offset * limit);
+    query.addOrderBy('p.status', 'ASC');
+    this.applyInternalProductOrdering(query, input, false);
+
+    const [products, total] = await query.getManyAndCount();
+    return { products, total };
+  }
+
+  async internalAdMapPinGroups(
+    currentUserId: string,
+    input: MapPinGroupsInput,
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const cellSize = this.internalMapCellSize(input.zoom);
+    const query = this.productRepository
+      .createQueryBuilder('p')
+      .innerJoin('p.mapPin', 'mapPin')
+      .select('ST_X(ST_Centroid(ST_Collect(mapPin.location)))', 'latitude')
+      .addSelect('ST_Y(ST_Centroid(ST_Collect(mapPin.location)))', 'longitude')
+      .addSelect('ARRAY_AGG(p.id)', 'productIds')
+      .addSelect('ARRAY_AGG(p.price ORDER BY p.price)', 'prices')
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL')
+      .andWhere(
+        'mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)',
+        {
+          swLat: input.southWest.lat,
+          swLng: input.southWest.lng,
+          neLat: input.northEast.lat,
+          neLng: input.northEast.lng,
+        },
+      )
+      .groupBy('ST_SnapToGrid(mapPin.location, :cellSize)')
+      .setParameter('cellSize', cellSize);
+
+    if (input.productsInput) {
+      this.applyInternalProductFilters(query, input.productsInput);
+      if (
+        input.productsInput.location &&
+        input.productsInput.distance !== undefined
+      ) {
+        query.andWhere(
+          'st_distancesphere(p."addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:mapOrigin), ST_SRID(p."addressLocation"))) <= :mapDistance',
+          {
+            mapOrigin: {
+              type: 'Point',
+              coordinates: [
+                input.productsInput.location.lat,
+                input.productsInput.location.lng,
+              ],
+            },
+            mapDistance: input.productsInput.distance,
+          },
+        );
+      }
+    }
+
+    const groups: {
+      latitude: number;
+      longitude: number;
+      productIds: string[];
+      prices: number[];
+    }[] = await query.getRawMany();
+
+    return {
+      mapPinGroups: groups.map((group) => ({
+        location: { lat: group.latitude, lng: group.longitude },
+        productIds: group.productIds,
+        projectId: null,
+        type: MapPinTypeEnum.PRODUCT,
+        prices: group.prices.map((price) => price / 100),
+      })),
+      total: groups.length,
+    };
   }
 
   async internalAd(currentUserId: string, productId: string) {
@@ -1031,6 +1158,96 @@ ${categoryList}
         brandIds: input.brandIds,
       });
     }
+    if (input.giveaway) {
+      query.andWhere('p."isGiveaway" = TRUE');
+    } else {
+      if (input.minPrice !== undefined) {
+        query.andWhere('p.price / 100 >= :minPrice', {
+          minPrice: input.minPrice,
+        });
+      }
+      if (input.maxPrice !== undefined) {
+        query.andWhere('p.price / 100 <= :maxPrice', {
+          maxPrice: input.maxPrice,
+        });
+      }
+    }
+    if (
+      input.pickup !== undefined ||
+      input.shipping !== undefined ||
+      input.delivery !== undefined
+    ) {
+      query.andWhere(
+        `(${input.pickup === false ? 'FALSE' : 'p."pickupEnabled" = TRUE'}
+          OR ${input.shipping === false ? 'FALSE' : 'EXISTS (SELECT 1 FROM product_shipping_prices_shipping_price WHERE "productId" = p.id)'}
+          OR ${input.delivery === false ? 'FALSE' : 'p."deliveryEnabled" = TRUE'})`,
+      );
+    }
+  }
+
+  private applyInternalProductOrdering(
+    query: SelectQueryBuilder<Product>,
+    input: ProductsInput,
+    hasOrigin: boolean,
+  ) {
+    switch (input.orderBy) {
+      case OrderProductsEnum.OLDEST:
+        query.addOrderBy('p.publishedAt', 'ASC');
+        break;
+      case OrderProductsEnum.PRICE_ASC:
+        query.addOrderBy('p.price', 'ASC');
+        break;
+      case OrderProductsEnum.PRICE_DESC:
+        query.addOrderBy('p.price', 'DESC');
+        break;
+      case OrderProductsEnum.DISTANCE:
+        query.addOrderBy(
+          hasOrigin ? 'distance_from_position' : 'p.publishedAt',
+          hasOrigin ? 'ASC' : 'DESC',
+        );
+        break;
+      case OrderProductsEnum.LATEST:
+      case OrderProductsEnum.BEST_MATCH:
+      default:
+        query.addOrderBy('p.publishedAt', 'DESC');
+    }
+  }
+
+  private applyInternalProductLocation(
+    query: SelectQueryBuilder<Product>,
+    input: ProductsInput,
+  ) {
+    if (!input.location) return false;
+
+    const origin = {
+      type: 'Point',
+      coordinates: [input.location.lat, input.location.lng],
+    };
+    const distanceExpression =
+      'st_distancesphere(p."addressLocation", ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(p."addressLocation")))';
+
+    query
+      .andWhere('p."addressLocation" IS NOT NULL')
+      .addSelect(distanceExpression, 'distance_from_position')
+      .setParameter('origin', origin);
+
+    if (input.distance !== undefined) {
+      query.andWhere(`${distanceExpression} <= :distance`, {
+        distance: input.distance,
+      });
+    }
+
+    return true;
+  }
+
+  private internalMapCellSize(zoom?: number) {
+    if (zoom === undefined) return 0.01;
+    if (zoom <= 5) return 4;
+    if (zoom <= 7) return 1;
+    if (zoom <= 9) return 0.25;
+    if (zoom <= 11) return 0.06;
+    if (zoom <= 13) return 0.015;
+    return 0.004;
   }
 
   private applyQuantification(

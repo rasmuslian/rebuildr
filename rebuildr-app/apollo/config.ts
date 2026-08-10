@@ -25,6 +25,7 @@ const GET_NEW_TOKENS = gql`
 export const isLoggedInVar = makeVar(false);
 export const showHamburgerMenuVar = makeVar(false);
 export const productFilterVar = makeVar(initialFilterProduct);
+export const internalProductFilterVar = makeVar(initialFilterProduct);
 
 export const initializeApollo = async () => {
   let refreshPromise: Promise<string> | null = null;
