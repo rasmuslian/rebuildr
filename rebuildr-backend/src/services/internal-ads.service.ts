@@ -606,20 +606,21 @@ export class InternalAdsService {
       throw BadUserInputException('All internal ads must be valid');
     }
 
+    const batchIds = [
+      ...new Set(
+        products
+          .map((product) => product.internalAdImportBatchId)
+          .filter(Boolean),
+      ),
+    ];
     products.forEach((product) => {
       product.status = ProductStatus.PUBLISHED;
       product.price = 0;
       product.isGiveaway = true;
       product.internalValidationIssues = [];
+      product.internalAdImportBatchId = null;
     });
     const savedProducts = await this.productRepository.save(products);
-    const batchIds = [
-      ...new Set(
-        savedProducts
-          .map((product) => product.internalAdImportBatchId)
-          .filter(Boolean),
-      ),
-    ];
     if (batchIds.length) {
       await this.importBatchRepository.update(batchIds, {
         status: InternalAdImportBatchStatus.PUBLISHED,

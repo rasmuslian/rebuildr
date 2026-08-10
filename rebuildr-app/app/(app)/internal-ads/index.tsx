@@ -151,7 +151,7 @@ export default function InternalAdsPage() {
     onCreateInternalAd();
   }, [onCreateInternalAd, params.action, params.t]);
 
-  const batch = batchData?.internalAdImportBatch;
+  const batch = activeBatchId ? batchData?.internalAdImportBatch : undefined;
   const importedProducts = batch?.products ?? [];
 
   useEffect(() => {
@@ -280,7 +280,13 @@ export default function InternalAdsPage() {
       const hasRemainingDrafts = productIds.length < products.length;
       await publishImported({ variables: { productIds } });
       await Promise.all([refetch(), refetchBatch()]);
-      if (!hasRemainingDrafts) setShowImport(false);
+      if (!hasRemainingDrafts) {
+        setPollBatch(false);
+        setActiveBatchId(undefined);
+        importBatchId.current = undefined;
+        setSelectedFiles([]);
+        setShowImport(false);
+      }
     } finally {
       setPublishRequested(false);
     }
