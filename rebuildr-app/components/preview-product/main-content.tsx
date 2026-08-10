@@ -35,6 +35,7 @@ type Props = {
   documents: { url: string; name?: string | null; mimeType: string }[];
   myAddress?: string | null;
   sellerIsMe?: boolean;
+  hidePrice?: boolean;
   actionSection?: React.ReactNode;
 };
 
@@ -46,6 +47,7 @@ export const MainContent = ({
   myAddress,
   documents,
   sellerIsMe,
+  hidePrice,
   actionSection,
 }: Props) => {
   const colors = useThemeColor();
@@ -88,7 +90,7 @@ export const MainContent = ({
           {product.condition ? conditions[product.condition].name : ""}
         </Body>
       </View>
-      {product.status !== ProductStatusEnum.Sold && (
+      {!hidePrice && product.status !== ProductStatusEnum.Sold && (
         <View>
           <Headline size="large" style={{ marginBottom: 8 }}>
             {formatPrice(product.price)}

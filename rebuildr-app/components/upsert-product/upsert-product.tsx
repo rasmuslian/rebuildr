@@ -1073,7 +1073,13 @@ export const UpsertProduct = ({
           />
         );
       case "preview":
-        return <Preview product={product} dbProductId={data.product.id} />;
+        return (
+          <Preview
+            product={product}
+            dbProductId={data.product.id}
+            internalMode={internalMode}
+          />
+        );
       case "onboarding":
         return (
           <SellerOnboardingHandler
