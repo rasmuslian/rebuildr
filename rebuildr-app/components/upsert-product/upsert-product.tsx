@@ -1102,6 +1102,7 @@ export const UpsertProduct = ({
       header={header}
       footer={isInitializing ? undefined : renderFooter()}
       isStickyFooter
+      resetScrollKey={step}
     >
       <View style={{ marginBottom: 32 }}>
         {isInitializing ? (

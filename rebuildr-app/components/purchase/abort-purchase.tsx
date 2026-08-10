@@ -65,7 +65,15 @@ export const AbortPurchase = ({
   };
 
   const content = (
-    <View style={[{ justifyContent: "space-between", flex: 1, gap: 24 }]}>
+    <View
+      style={[
+        { gap: 24 },
+        //space-between + flex only fill the fixed-height desktop popup. On
+        //mobile the sheet is dynamically sized, so flex: 1 would stretch this
+        //to the full window and space-between would push the buttons far down.
+        isDesktop && { justifyContent: "space-between", flex: 1 },
+      ]}
+    >
       {!canAbort ? (
         <>
           <View style={{ gap: 24 }}>
