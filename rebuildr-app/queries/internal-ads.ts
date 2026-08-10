@@ -313,9 +313,15 @@ export const INTERNAL_AD_DETAIL = gql`
   }
 `;
 
-export const MAKE_INTERNAL_AD_PUBLIC = gql`
-  mutation MakeInternalAdPublic($productId: String!) {
-    makeInternalAdPublic(productId: $productId) {
+export const SET_INTERNAL_AD_PUBLIC_AVAILABILITY = gql`
+  mutation SetInternalAdPublicAvailability(
+    $productId: String!
+    $publiclyAvailable: Boolean!
+  ) {
+    setInternalAdPublicAvailability(
+      productId: $productId
+      publiclyAvailable: $publiclyAvailable
+    ) {
       id
       publiclyAvailable
     }

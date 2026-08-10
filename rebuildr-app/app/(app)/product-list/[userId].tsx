@@ -1,9 +1,13 @@
 import React from "react";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Header } from "@components/navigation/headers/header";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
-import { ProductListQuery, ProductListQueryVariables } from "@/gql/graphql";
+import {
+  ProductListQuery,
+  ProductListQueryVariables,
+  ProductVisibilityEnum,
+} from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
@@ -17,6 +21,7 @@ export const PRODUCT_LIST = gql`
       products {
         id
         status
+        visibility
         title
         price
         soldByQuantity
@@ -130,6 +135,16 @@ export default function ProductList() {
               },
               price: product.price,
               soldByQuantity: product.soldByQuantity,
+              ...(sellerIsMe &&
+              product.visibility === ProductVisibilityEnum.Internal
+                ? {
+                    onPress: () =>
+                      router.navigate({
+                        pathname: "/internal/[productId]",
+                        params: { productId: product.id },
+                      }),
+                  }
+                : {}),
               heart: data?.me?.id !== userId,
               liked: !!product.likedByMe,
               onHeartPress: () => {

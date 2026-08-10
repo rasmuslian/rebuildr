@@ -5,24 +5,25 @@ import {
   InternalAdDetailQueryVariables,
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
-  MakeInternalAdPublicMutation,
-  MakeInternalAdPublicMutationVariables,
   OrganizationMemberRoleEnum,
   ProductStatusEnum,
   ReserveInternalAdMutation,
   ReserveInternalAdMutationVariables,
+  SetInternalAdPublicAvailabilityMutation,
+  SetInternalAdPublicAvailabilityMutationVariables,
 } from "@/gql/graphql";
 import {
   CANCEL_INTERNAL_AD_RESERVATION,
   INTERNAL_AD_DETAIL,
-  MAKE_INTERNAL_AD_PUBLIC,
   MARK_INTERNAL_AD_SOLD,
+  SET_INTERNAL_AD_PUBLIC_AVAILABILITY,
   RESERVE_INTERNAL_AD,
 } from "@/queries/internal-ads";
 import { useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
+import { Toggle } from "@components/controls/toggle";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import TopBar from "@components/navigation/top-bar/top-bar";
@@ -33,6 +34,7 @@ import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { QuantityStepper } from "@components/preview-product/quantity-stepper";
+import RemoveProduct from "@components/preview-product/remove-product";
 import {
   SCREEN_TOP_MARGIN,
   ScreenLayout,
@@ -61,6 +63,7 @@ export default function InternalAdDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [rightColumnWidth, setRightColumnWidth] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
+  const [showRemoveProduct, setShowRemoveProduct] = useState(false);
 
   const { data, loading, refetch } = useQuery<
     InternalAdDetailQuery,
@@ -81,10 +84,11 @@ export default function InternalAdDetailPage() {
     MarkInternalAdSoldMutation,
     MarkInternalAdSoldMutationVariables
   >(MARK_INTERNAL_AD_SOLD);
-  const [makeInternalAdPublic, { loading: makingPublic }] = useMutation<
-    MakeInternalAdPublicMutation,
-    MakeInternalAdPublicMutationVariables
-  >(MAKE_INTERNAL_AD_PUBLIC);
+  const [setInternalAdPublicAvailability, { loading: makingPublic }] =
+    useMutation<
+      SetInternalAdPublicAvailabilityMutation,
+      SetInternalAdPublicAvailabilityMutationVariables
+    >(SET_INTERNAL_AD_PUBLIC_AVAILABILITY);
 
   const product = data?.internalAd;
   const activeReservations = useMemo(
@@ -113,10 +117,26 @@ export default function InternalAdDetailPage() {
     OrganizationMemberRoleEnum.Admin;
   const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
 
-  const onMakePublic = async () => {
+  const onSetPublicAvailability = async () => {
     if (!product) return;
-    await makeInternalAdPublic({ variables: { productId: product.id } });
+    await setInternalAdPublicAvailability({
+      variables: {
+        productId: product.id,
+        publiclyAvailable: !product.publiclyAvailable,
+      },
+    });
     await refetch();
+  };
+
+  const onEdit = () => {
+    router.navigate({
+      pathname: "/internal",
+      params: {
+        action: "edit",
+        productId,
+        t: Date.now().toString(),
+      },
+    });
   };
 
   const onReserve = async () => {
@@ -167,7 +187,9 @@ export default function InternalAdDetailPage() {
       makingPublic={makingPublic}
       currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
-      onMakePublic={onMakePublic}
+      onSetPublicAvailability={onSetPublicAvailability}
+      onEdit={onEdit}
+      onRemove={() => setShowRemoveProduct(true)}
       onReserve={onReserve}
       onCancel={onCancel}
       onMarkSold={onMarkSold}
@@ -215,6 +237,12 @@ export default function InternalAdDetailPage() {
           </>
         )}
         {secondaryContent}
+        <RemoveProduct
+          productId={product.id}
+          show={showRemoveProduct}
+          canDelete
+          onDismiss={() => setShowRemoveProduct(false)}
+        />
       </ScreenLayout>
     );
   }
@@ -288,6 +316,12 @@ export default function InternalAdDetailPage() {
       >
         <AllImagesPopupContent images={product.images} />
       </Popup>
+      <RemoveProduct
+        productId={product.id}
+        show={showRemoveProduct}
+        canDelete
+        onDismiss={() => setShowRemoveProduct(false)}
+      />
     </>
   );
 }
@@ -329,7 +363,9 @@ type InternalAdContentProps = {
   makingPublic: boolean;
   currentUserId: string;
   canMarkSold: boolean;
-  onMakePublic: () => Promise<void>;
+  onSetPublicAvailability: () => Promise<void>;
+  onEdit: () => void;
+  onRemove: () => void;
   onReserve: () => Promise<void>;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
@@ -348,7 +384,9 @@ const InternalAdContent = ({
   makingPublic,
   currentUserId,
   canMarkSold,
-  onMakePublic,
+  onSetPublicAvailability,
+  onEdit,
+  onRemove,
   onReserve,
   onCancel,
   onMarkSold,
@@ -398,18 +436,35 @@ const InternalAdContent = ({
           )}
       </View>
 
-      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
-        <Button
-          label={
-            product.publiclyAvailable
-              ? "Tillgänglig för alla"
-              : "Tillgängliggör för alla"
-          }
-          type="outlined"
-          onPress={onMakePublic}
-          loading={makingPublic}
-          disabled={product.publiclyAvailable}
-        />
+      {canMarkSold && (
+        <>
+          {product.status !== ProductStatusEnum.Sold && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              <Label size="large">Tillgänglig på publika marknadsplatsen</Label>
+              <Toggle
+                value={product.publiclyAvailable}
+                onPress={onSetPublicAvailability}
+                disabled={makingPublic}
+              />
+            </View>
+          )}
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Button
+              label="Ta bort"
+              type="tonal"
+              onPress={onRemove}
+              style={{ flex: 1 }}
+            />
+            <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
+          </View>
+        </>
       )}
 
       <Divider />

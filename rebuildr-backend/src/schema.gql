@@ -233,7 +233,11 @@ type User {
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
-  recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
+  recommendedProducts(
+    input: RecommendedProductsInput!
+    limit: Int
+    offset: Int
+  ): [Product!]!
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
   totalCO2SavingsSeller: Float!
@@ -1000,12 +1004,23 @@ type Query {
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
-  relatedProducts(input: ProductsInput!, excludeProductIds: [ID!], offset: Int, limit: Int): ProductsResponse!
+  relatedProducts(
+    input: ProductsInput!
+    excludeProductIds: [ID!]
+    offset: Int
+    limit: Int
+  ): ProductsResponse!
   getDraftedProduct: Product
   getOrCreateDraftProduct: Product!
-  getPickupOption(input: GetTransportationOptionsInput!): ApproximatePlaceResponse
-  getShippingOptions(input: GetTransportationOptionsInput!): [ShippingOptionResponse!]!
-  getDeliveryOption(input: GetTransportationOptionsInput!): DeliveryOptionResponse
+  getPickupOption(
+    input: GetTransportationOptionsInput!
+  ): ApproximatePlaceResponse
+  getShippingOptions(
+    input: GetTransportationOptionsInput!
+  ): [ShippingOptionResponse!]!
+  getDeliveryOption(
+    input: GetTransportationOptionsInput!
+  ): DeliveryOptionResponse
   getProductPriceRange: ProductPriceRangeResponse!
   cmsGetProduct(productId: String!): Product!
   cmsListProducts(input: CmsListProductsInput!): CmsListProductsResponse!
@@ -1024,7 +1039,9 @@ type Query {
   locationToAddress(input: GetAddressInput!): GetAddressResponse!
   locationSearch(input: LocationSearchInput!): LocationSearchResponse!
   addressToLocation(input: AddressToLocationInput!): LocationResponse!
-  exactAndApproximatePlace(input: LocationInputType!): ExactAndApproximatePlaceResponse!
+  exactAndApproximatePlace(
+    input: LocationInputType!
+  ): ExactAndApproximatePlaceResponse!
   purchase(input: GetPurchaseInput!): Purchase!
   latestPurchase(input: LatestPurchaseInput!): Purchase
   myPurchase(input: MyPurchaseInput!): Purchase
@@ -1040,13 +1057,19 @@ type Query {
   getAllShippingPrices: [ShippingPrice!]!
   getSearchResults(input: GetSearchResultsInput!): [SearchResult!]!
   searchSuggestions(input: GetSearchSuggestionsInput!): [SearchSuggestion!]!
-  nearbyServicePoints(input: NearbyServicePointsInput!): [ServicePointResponse!]!
+  nearbyServicePoints(
+    input: NearbyServicePointsInput!
+  ): [ServicePointResponse!]!
   article(id: String!): Article!
   articleBySlug(slug: String!): Article!
   listArticles(input: ListArticlesInput!): ListArticlesResponse!
   footerSection(id: String!): FooterSection!
   listFooterSection: [FooterSection!]!
-  mapPinGroups(input: MapPinGroupsInput!, offset: Int, limit: Int): MapPinGroupsResponse!
+  mapPinGroups(
+    input: MapPinGroupsInput!
+    offset: Int
+    limit: Int
+  ): MapPinGroupsResponse!
   partners: [Partner!]!
   co2Factors: [CO2Factor!]!
   pageContentById(id: String!): PageContent!
@@ -1056,13 +1079,26 @@ type Query {
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
   newsletterCompetition: NewsletterCompetition!
-  cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
+  cmsProductStatistics(
+    input: CmsProductStatisticsInput
+  ): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
-  cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  cmsPurchaseStatistics(
+    input: CmsPurchaseStatisticsInput
+  ): CmsPurchaseStatisticsResponse!
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
   internalAdsOrganizationContext: InternalAdsOrganizationContext
-  internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
-  relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
+  internalAds(
+    input: ProductsInput!
+    limit: Int
+    offset: Int
+  ): PaginatedProductsResponse!
+  relatedInternalAds(
+    input: ProductsInput!
+    excludeProductIds: [ID!]
+    limit: Int
+    offset: Int
+  ): PaginatedProductsResponse!
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
   internalAd(productId: String!): Product!
   internalAdDrafts(batchId: String): [Product!]!
@@ -1369,7 +1405,9 @@ input CmsInternalAdsInput {
 type Mutation {
   registerUser(input: RegisterUserInput!): RegisterUserResponse!
   verifyEmail(input: VerifyEmailInput!): LoginResponse!
-  resendVerificationMail(input: ResendVerificationMailInput!): ResendVerificationMailResponse!
+  resendVerificationMail(
+    input: ResendVerificationMailInput!
+  ): ResendVerificationMailResponse!
   finalizeUser(input: FinalizeUserInput!): User!
   login(input: LoginInput!): LoginResponse!
   logout(input: LogoutInput!): Boolean!
@@ -1381,7 +1419,9 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserResponse!
   approveBusinessAccount(userId: String!): User!
   deleteAccount: User!
-  onboardSellerAccount(input: OnboardSellerAccountInput!): OnboardSellerAccountResponse!
+  onboardSellerAccount(
+    input: OnboardSellerAccountInput!
+  ): OnboardSellerAccountResponse!
   addPayoutAccount(token: String!): User!
   signupNewsLetter(input: SignupNewsLetterInput!): Boolean!
   createSellerAccount: SellerAccount!
@@ -1427,7 +1467,9 @@ type Mutation {
   clearSearchHistory: Boolean!
   createReview(input: CreateReviewInput!): Review!
   createReportPurchase(input: CreateReportPurchaseInput!): ReportPurchase!
-  cmsResolveReportPurchase(input: CmsResolveReportPurchaseInput!): ReportPurchase!
+  cmsResolveReportPurchase(
+    input: CmsResolveReportPurchaseInput!
+  ): ReportPurchase!
   createReportProduct(input: CreateReportProductInput!): ReportProduct!
   cmsCreateArticle(input: CmsCreateArticleInput!): Article!
   cmsUpdateArticle(input: CmsUpdateArticleInput!): Article!
@@ -1445,21 +1487,32 @@ type Mutation {
   updatePageContent(input: UpdatePageContentInput!): PageContent!
   cmsCreateBanner(input: CmsCreateBannerInput!): CmsCreateBannerResponse!
   cmsUpdateBanner(input: CmsUpdateBannerInput!): CmsCreateBannerResponse!
-  cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
+  cmsUpdateNewsletterCompetition(
+    input: CmsUpdateNewsletterCompetitionInput!
+  ): CmsUpdateNewsletterCompetitionResponse!
   initBankIDVerify: InitBankIDVerifyResponse!
   resetUserIdentity(userId: String!): Boolean!
-  inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
+  inviteOrganizationMember(
+    input: InviteOrganizationMemberInput!
+  ): OrganizationInvite!
   acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
-  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
+  updateOrganizationMemberRole(
+    input: UpdateOrganizationMemberRoleInput!
+  ): OrganizationMembership!
   createInternalAdDraft: Product!
   removeInternalAdDraft(productId: String!): Boolean!
   removeInternalAdImportBatch(batchId: String!): Boolean!
   publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
-  makeInternalAdPublic(productId: String!): Product!
+  setInternalAdPublicAvailability(
+    productId: String!
+    publiclyAvailable: Boolean!
+  ): Product!
   reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
   cancelInternalAdReservation(reservationId: String!): InternalAdReservation!
   markInternalAdSold(input: MarkInternalAdSoldInput!): Product!
-  createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!): CreateInternalAdImportBatchResponse!
+  createInternalAdImportBatch(
+    input: CreateInternalAdImportBatchInput!
+  ): CreateInternalAdImportBatchResponse!
   startInternalAdImportBatch(batchId: String!): InternalAdImportBatch!
 }
 

@@ -627,7 +627,11 @@ export class InternalAdsService {
     return savedProducts;
   }
 
-  async makeInternalAdPublic(currentUserId: string, productId: string) {
+  async setInternalAdPublicAvailability(
+    currentUserId: string,
+    productId: string,
+    publiclyAvailable: boolean,
+  ) {
     const product = await this.internalAd(currentUserId, productId);
     const context = await this.getOrganizationContext(currentUserId);
     const canManage =
@@ -640,7 +644,7 @@ export class InternalAdsService {
       throw BadUserInputException('Product is not published');
     }
 
-    product.publiclyAvailable = true;
+    product.publiclyAvailable = publiclyAvailable;
     return this.productRepository.save(product);
   }
 

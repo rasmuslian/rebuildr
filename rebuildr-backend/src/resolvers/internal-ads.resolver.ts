@@ -261,11 +261,16 @@ export class InternalAdsResolver {
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
-  async makeInternalAdPublic(
+  async setInternalAdPublicAvailability(
     @CurrentUser() user: AuthedUserType,
     @Args('productId') productId: string,
+    @Args('publiclyAvailable') publiclyAvailable: boolean,
   ) {
-    return this.internalAdsService.makeInternalAdPublic(user.id, productId);
+    return this.internalAdsService.setInternalAdPublicAvailability(
+      user.id,
+      productId,
+      publiclyAvailable,
+    );
   }
 
   @Mutation(() => InternalAdReservation)

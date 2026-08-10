@@ -74,6 +74,7 @@ const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
 interface FindProductsQueryOptions {
   excludeProductIds?: string[];
   ignoreTransportation?: boolean;
+  includeOwnInternalAds?: boolean;
   searchRankThreshold?: number;
 }
 
@@ -674,14 +675,19 @@ export class ProductService {
         : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
     );
     qb.andWhere(
-      `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true)`,
+      options.includeOwnInternalAds
+        ? `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."createdByUserId" = :sellerId))`
+        : `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR ${productAlias}."publiclyAvailable" = true)`,
     );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
     if (input.sellerId) {
-      qb.andWhere(`${productAlias}."sellerId" = :sellerId`, {
-        sellerId: input.sellerId,
-      });
+      qb.andWhere(
+        options.includeOwnInternalAds
+          ? `(${productAlias}."sellerId" = :sellerId OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."createdByUserId" = :sellerId))`
+          : `${productAlias}."sellerId" = :sellerId`,
+        { sellerId: input.sellerId },
+      );
     }
 
     if (input.projectId) {
@@ -844,7 +850,12 @@ export class ProductService {
       }
     }
 
-    this.basicFindProductsInputQueryBuilder(input, query, 'p', options);
+    this.basicFindProductsInputQueryBuilder(input, query, 'p', {
+      ...options,
+      includeOwnInternalAds:
+        options.includeOwnInternalAds ??
+        (!!currentUserId && input.sellerId === currentUserId),
+    });
 
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
@@ -1098,7 +1109,10 @@ export class ProductService {
     if (!product) {
       throw BadUserInputException();
     }
-    if (product.sellerId !== currentUserId) {
+    const canManageInternalProduct =
+      product.visibility === ProductVisibility.INTERNAL &&
+      (await this.canManageInternalProduct(product, currentUserId));
+    if (product.sellerId !== currentUserId && !canManageInternalProduct) {
       throw ForbiddenException();
     }
     const canDelete = this.canDelete(product);

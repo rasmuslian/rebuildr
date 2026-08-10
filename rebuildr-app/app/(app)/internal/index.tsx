@@ -59,6 +59,7 @@ export default function InternalAdsPage() {
   const { isDesktop } = useScreenType();
   const params = useLocalSearchParams<{
     action?: string;
+    productId?: string;
     t?: string;
   }>();
   const searchContext = useSearchContext();
@@ -147,6 +148,14 @@ export default function InternalAdsPage() {
     handledCreateAction.current = params.t;
     onCreateInternalAd();
   }, [onCreateInternalAd, params.action, params.t]);
+
+  useEffect(() => {
+    if (params.action !== "edit" || !params.productId || !params.t) return;
+    if (handledCreateAction.current === params.t) return;
+    handledCreateAction.current = params.t;
+    setEditorProductId(params.productId);
+    setShowEditor(true);
+  }, [params.action, params.productId, params.t]);
 
   const batch = batchData?.internalAdImportBatch;
   const importedProducts = batch?.products ?? [];
