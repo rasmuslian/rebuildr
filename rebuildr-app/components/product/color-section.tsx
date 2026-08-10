@@ -3,17 +3,22 @@ import { SelectInput } from "@components/forms/selectInput";
 import { TextInput } from "@components/forms/textInput";
 import { Label } from "@components/typography/text";
 import { colorTypes, ColorTypesType } from "@constants/product-color-types";
-import { primitives } from "@constants/colors";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
+  selectBackgroundColor: string;
   color?: string;
   type: ColorTypeEnum;
   onChange: (color: string, type: ColorTypeEnum) => void;
 };
 
-export const ColorSection = ({ color: _color, type, onChange }: Props) => {
+export const ColorSection = ({
+  selectBackgroundColor,
+  color: _color,
+  type,
+  onChange,
+}: Props) => {
   const [color, setColor] = useState(_color ?? "");
   const selectedColor = color ?? "";
 
@@ -48,7 +53,7 @@ export const ColorSection = ({ color: _color, type, onChange }: Props) => {
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
-            backgroundColor={primitives.accent100}
+            backgroundColor={selectBackgroundColor}
             value={type}
             options={Object.keys(colorTypes).map((o) => ({
               label: colorTypes[o as ColorTypesType].text,

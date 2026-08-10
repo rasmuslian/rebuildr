@@ -105,11 +105,6 @@ export const Transportation = ({
   return (
     <View style={{ gap: 24, marginTop: 24 }}>
       <ProjectChips product={product} update={update} />
-      <AvailabilitySection
-        product={product}
-        update={update}
-        error={badFields?.["availability"]}
-      />
       <Display size="small">Leverans</Display>
       <View style={{ gap: 16, paddingBottom: 16 }}>
         <Suspense fallback={<LoadingSpinner />}>

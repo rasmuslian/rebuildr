@@ -207,6 +207,7 @@ type Props = {
   visible: boolean;
   inline?: boolean;
   compact?: boolean;
+  importMode?: boolean;
   loading?: boolean;
   internalMode?: boolean;
   onHide: () => void;
@@ -221,6 +222,7 @@ export const UpsertProduct = ({
   visible,
   inline = false,
   compact = false,
+  importMode = false,
   loading,
   internalMode = false,
   onHide,
@@ -1134,6 +1136,7 @@ export const UpsertProduct = ({
             nextLabel={inline ? "Spara" : undefined}
             onDelete={inline ? onDelete : undefined}
             compact={compact}
+            importMode={importMode}
           />
         );
       case "transportation":

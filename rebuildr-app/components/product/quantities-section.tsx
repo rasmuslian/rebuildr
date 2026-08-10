@@ -9,7 +9,6 @@ import { TextInput } from "@components/forms/textInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Body, Label } from "@components/typography/text";
 import { quantities } from "@constants/quantities";
-import { primitives } from "@constants/colors";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
@@ -25,6 +24,7 @@ const RECOMMENDED_QUANTITIES_QUERY = gql`
 
 type Props = {
   compact?: boolean;
+  selectBackgroundColor: string;
   categoryId: string;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;
@@ -40,6 +40,7 @@ type Props = {
 
 export const QuantitiesSection = ({
   compact = false,
+  selectBackgroundColor,
   categoryId,
   primaryQuantity: _primaryQuantity,
   primaryUnit: _primaryUnit,
@@ -181,7 +182,7 @@ export const QuantitiesSection = ({
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
-            backgroundColor={primitives.accent100}
+            backgroundColor={selectBackgroundColor}
             value={
               primaryUnit ??
               data.category.primaryQuantityUnit ??
@@ -222,7 +223,7 @@ export const QuantitiesSection = ({
             </View>
             <View style={{ flex: 1 }}>
               <SelectInput
-                backgroundColor={primitives.accent100}
+                backgroundColor={selectBackgroundColor}
                 value={
                   secondaryUnit ??
                   data.category.secondaryQuantityUnit ??

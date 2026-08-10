@@ -736,6 +736,7 @@ const ImportProductRow = ({
             visible
             inline
             compact
+            importMode
             internalMode
             onDelete={() => onDiscard(product.id)}
             onHide={() => setExpanded(false)}

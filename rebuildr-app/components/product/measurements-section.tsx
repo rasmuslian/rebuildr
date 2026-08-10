@@ -11,7 +11,6 @@ import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Label } from "@components/typography/text";
 import { measurements, MeasurementsObjectType } from "@constants/measurements";
 import { View } from "react-native";
-import { primitives } from "@constants/colors";
 
 const MEASUREMENTS_SECTION = gql`
   query MeasurementsSection($input: CategoryInput!) {
@@ -24,6 +23,7 @@ const MEASUREMENTS_SECTION = gql`
 
 type Props = {
   compact?: boolean;
+  selectBackgroundColor: string;
   categoryId: string;
   value: MeasurementsObjectType;
   onChange: (
@@ -34,6 +34,7 @@ type Props = {
 };
 export const MeasurementsSection = ({
   compact = false,
+  selectBackgroundColor,
   categoryId,
   value,
   onChange,
@@ -66,6 +67,7 @@ export const MeasurementsSection = ({
               initialValue={value[measurement]?.value ?? 0}
               unit={value[measurement]?.unit}
               compact={compact}
+              selectBackgroundColor={selectBackgroundColor}
             />
           </View>
         ))}
@@ -76,6 +78,7 @@ export const MeasurementsSection = ({
 
 type MeasurementProps = {
   compact?: boolean;
+  selectBackgroundColor: string;
   onChange: (value: number, unit: MeasurementUnitEnum) => void;
   type: MeasurementTypeEnum;
   initialValue: number;
@@ -83,6 +86,7 @@ type MeasurementProps = {
 };
 const Measurement = ({
   compact = false,
+  selectBackgroundColor,
   onChange,
   type,
   initialValue,
@@ -117,7 +121,7 @@ const Measurement = ({
       </View>
       <View style={{ flex: 1 }}>
         <SelectInput
-          backgroundColor={compact ? primitives.accent100 : undefined}
+          backgroundColor={selectBackgroundColor}
           value={unit}
           options={Object.keys(options).map((o) => ({
             label: options[o as MeasurementUnitEnum]?.name ?? "MISSING UNIT",

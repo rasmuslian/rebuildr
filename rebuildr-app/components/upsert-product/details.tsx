@@ -43,6 +43,7 @@ type Props = {
   nextLabel?: string;
   onDelete?: () => void;
   compact?: boolean;
+  importMode?: boolean;
 };
 
 export const Details = ({
@@ -57,6 +58,7 @@ export const Details = ({
   nextLabel,
   onDelete,
   compact = false,
+  importMode = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
@@ -101,6 +103,9 @@ export const Details = ({
   const categoryId = product.categoryIds?.[1];
   const showContinue =
     rootCategoryId && categoryId && (internalMode || product.brandId);
+  const selectBackgroundColor = importMode
+    ? primitives.accent100
+    : primitives.neutrals100;
 
   return (
     <View
@@ -251,6 +256,7 @@ export const Details = ({
           )}
           <QuantitiesSection
             compact={compact}
+            selectBackgroundColor={selectBackgroundColor}
             categoryId={categoryId}
             primaryQuantity={product.primaryQuantity}
             primaryUnit={product.primaryUnit}
@@ -339,6 +345,7 @@ export const Details = ({
               <View style={{ zIndex: 2 }}>
                 <MeasurementsSection
                   compact={compact}
+                  selectBackgroundColor={selectBackgroundColor}
                   categoryId={product.categoryIds[1]}
                   value={{
                     THICKNESS:
@@ -402,6 +409,7 @@ export const Details = ({
                 }}
               >
                 <ColorSection
+                  selectBackgroundColor={selectBackgroundColor}
                   color={product.color}
                   type={product.colorType}
                   onChange={(color, type) => update({ color, colorType: type })}
@@ -423,16 +431,14 @@ export const Details = ({
       {showContinue && (
         <View
           style={[
-            {
-              backgroundColor:
-                compact && isDesktop ? colors.background.neutral : undefined,
-            },
             isDesktop && {
+              backgroundColor: primitives.neutrals100,
               position: "sticky",
               bottom: 0,
               left: 0,
               right: 0,
               zIndex: 10,
+              paddingBottom: 32,
               marginHorizontal: compact ? -12 : 0,
             },
           ]}
