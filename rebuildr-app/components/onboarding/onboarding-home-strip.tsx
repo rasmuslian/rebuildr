@@ -7,30 +7,39 @@ import { Icon } from "@icons/icon";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useOnboarding } from "@hooks/use-onboarding";
-import {
-  ChecklistStep,
-  useOnboardingChecklist,
-} from "@hooks/use-onboarding-checklist";
+import { useOnboardingChecklist } from "@hooks/use-onboarding-checklist";
 import { OnboardingCelebration } from "./onboarding-celebration";
 
-const ProgressBar = ({ steps }: { steps: ChecklistStep[] }) => {
+// One continuous fill rather than one segment per step: the steps can be done
+// in any order, and a segmented bar leaves a gap in the middle that reads as a
+// rendering fault instead of progress.
+const ProgressBar = ({
+  completed,
+  total,
+}: {
+  completed: number;
+  total: number;
+}) => {
   const colors = useThemeColor();
 
   return (
-    <View style={{ flexDirection: "row", gap: 4, width: 84 }}>
-      {steps.map((step) => (
-        <View
-          key={step.key}
-          style={{
-            flex: 1,
-            height: 4,
-            borderRadius: borderRadius.full,
-            backgroundColor: step.done
-              ? primitives.primary700
-              : colors.buttons.tonal.enabled,
-          }}
-        />
-      ))}
+    <View
+      style={{
+        width: 84,
+        height: 4,
+        borderRadius: borderRadius.full,
+        backgroundColor: colors.buttons.tonal.enabled,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          width: `${total === 0 ? 0 : (completed / total) * 100}%`,
+          height: "100%",
+          borderRadius: borderRadius.full,
+          backgroundColor: primitives.primary700,
+        }}
+      />
     </View>
   );
 };
@@ -99,7 +108,7 @@ export const OnboardingHomeStrip = () => {
             {nextStep.description}
           </Body>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <ProgressBar steps={steps} />
+            <ProgressBar completed={completedCount} total={steps.length} />
             <Label size="small" color="secondary">
               {completedCount} av {steps.length} klart
             </Label>
