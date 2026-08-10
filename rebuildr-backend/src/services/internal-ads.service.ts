@@ -504,34 +504,66 @@ export class InternalAdsService {
     currentUserId: string,
     input: { productId: string; quantity?: number },
   ) {
-    const product = await this.internalAd(currentUserId, input.productId);
-    if (product.status !== ProductStatus.PUBLISHED) {
-      throw BadUserInputException('Product is not available');
-    }
-    if (product.soldByQuantity && (!input.quantity || input.quantity <= 0)) {
-      throw BadUserInputException('Quantity is required');
-    }
-    const activeReservations = await this.activeReservations(product.id);
-    if (!product.soldByQuantity && activeReservations.length) {
-      throw BadUserInputException('Product is already reserved');
-    }
-    if (product.soldByQuantity) {
-      const reservedQuantity = activeReservations.reduce(
-        (sum, reservation) => sum + (reservation.quantity ?? 0),
-        0,
-      );
-      if (reservedQuantity + input.quantity > product.primaryQuantity) {
-        throw BadUserInputException('Not enough quantity available');
+    // Check organization access before taking the product lock.
+    const accessibleProduct = await this.internalAd(
+      currentUserId,
+      input.productId,
+    );
+    const reservation = await this.dataSource.transaction(async (manager) => {
+      // Serializing reservations on the product row prevents two simultaneous
+      // partial reservations from claiming the same remaining quantity.
+      const product = await manager.findOne(Product, {
+        where: { id: accessibleProduct.id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!product || product.status !== ProductStatus.PUBLISHED) {
+        throw BadUserInputException('Product is not available');
       }
-    }
-    const reservation = this.reservationRepository.create({
-      productId: product.id,
-      reservedByUserId: currentUserId,
-      quantity: product.soldByQuantity ? input.quantity : null,
+      const requestedQuantity = input.quantity ?? 0;
+      if (
+        product.soldByQuantity &&
+        (!Number.isInteger(requestedQuantity) || requestedQuantity <= 0)
+      ) {
+        throw BadUserInputException('Quantity is required');
+      }
+
+      const activeReservations = await manager.find(InternalAdReservation, {
+        where: {
+          productId: product.id,
+          canceledAt: IsNull(),
+          soldAt: IsNull(),
+        },
+      });
+      if (!product.soldByQuantity && activeReservations.length) {
+        throw BadUserInputException('Product is already reserved');
+      }
+      if (product.soldByQuantity) {
+        const reservedQuantity = activeReservations.reduce(
+          (sum, activeReservation) => sum + (activeReservation.quantity ?? 0),
+          0,
+        );
+        if (
+          reservedQuantity + requestedQuantity >
+          (product.primaryQuantity ?? 0)
+        ) {
+          throw BadUserInputException('Not enough quantity available');
+        }
+      }
+
+      return manager.save(
+        manager.create(InternalAdReservation, {
+          productId: product.id,
+          reservedByUserId: currentUserId,
+          quantity: product.soldByQuantity ? input.quantity : null,
+        }),
+      );
     });
-    const saved = await this.reservationRepository.save(reservation);
-    await this.notifyInternalAdEvent(product, currentUserId, 'reserverats');
-    return saved;
+    await this.notifyInternalAdEvent(
+      accessibleProduct,
+      currentUserId,
+      'reserverats',
+    );
+    return reservation;
   }
 
   async cancelReservation(currentUserId: string, reservationId: string) {

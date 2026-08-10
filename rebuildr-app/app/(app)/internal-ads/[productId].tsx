@@ -21,7 +21,6 @@ import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Divider } from "@components/dividers/divider";
-import { TextInput } from "@components/forms/textInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { Header } from "@components/navigation/headers/header";
 import TopBar from "@components/navigation/top-bar/top-bar";
@@ -31,6 +30,7 @@ import { AllImagesPopupContent } from "@components/preview-product/all-images-po
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
+import { QuantityStepper } from "@components/preview-product/quantity-stepper";
 import {
   SCREEN_TOP_MARGIN,
   ScreenLayout,
@@ -47,14 +47,14 @@ import { quantities } from "@constants/quantities";
 import { useScreenType } from "@hooks/useScreenType";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 
 export default function InternalAdDetailPage() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const { isDesktop } = useScreenType();
   const { height: screenHeight } = useWindowDimensions();
-  const [quantity, setQuantity] = useState("1");
+  const [quantity, setQuantity] = useState(1);
   const [rightColumnWidth, setRightColumnWidth] = useState(0);
   const [showImagePopup, setShowImagePopup] = useState(false);
 
@@ -95,11 +95,11 @@ export default function InternalAdDetailPage() {
     : activeReservations.length
       ? 0
       : 1;
-  const requestedQuantity = parseInt(quantity, 10);
-  const isRequestedQuantityValid =
-    Number.isInteger(requestedQuantity) &&
-    requestedQuantity > 0 &&
-    requestedQuantity <= availableQuantity;
+  useEffect(() => {
+    if (product?.soldByQuantity && quantity > availableQuantity) {
+      setQuantity(Math.max(1, availableQuantity));
+    }
+  }, [availableQuantity, product?.soldByQuantity, quantity]);
   const isAdmin =
     data?.internalAdsOrganizationContext?.role ===
     OrganizationMemberRoleEnum.Admin;
@@ -111,7 +111,7 @@ export default function InternalAdDetailPage() {
       variables: {
         input: {
           productId: product.id,
-          quantity: product.soldByQuantity ? requestedQuantity : undefined,
+          quantity: product.soldByQuantity ? quantity : undefined,
         },
       },
     });
@@ -155,7 +155,6 @@ export default function InternalAdDetailPage() {
       availableQuantity={availableQuantity}
       quantity={quantity}
       setQuantity={setQuantity}
-      isRequestedQuantityValid={isRequestedQuantityValid}
       reserving={reserving}
       onReserve={onReserve}
       showReserveButton={isDesktop}
@@ -193,16 +192,19 @@ export default function InternalAdDetailPage() {
         markingSold={markingSold}
         onCancel={onCancel}
         onMarkSold={onMarkSold}
+        unit={product.primaryUnit ?? undefined}
       />
 
-      {canMarkSold && product.status !== ProductStatusEnum.Sold && (
-        <Button
-          label="Markera hela annonsen som såld"
-          type="tonal"
-          onPress={() => onMarkSold()}
-          loading={markingSold}
-        />
-      )}
+      {canMarkSold &&
+        product.soldByQuantity &&
+        product.status !== ProductStatusEnum.Sold && (
+          <Button
+            label="Markera hela annonsen som såld"
+            type="tonal"
+            onPress={() => onMarkSold()}
+            loading={markingSold}
+          />
+        )}
     </>
   );
 
@@ -222,10 +224,7 @@ export default function InternalAdDetailPage() {
               label="Reservera"
               onPress={onReserve}
               loading={reserving}
-              disabled={
-                availableQuantity <= 0 ||
-                (product.soldByQuantity && !isRequestedQuantityValid)
-              }
+              disabled={availableQuantity <= 0}
             />
           ) : undefined
         }
@@ -331,9 +330,8 @@ type InternalAdContentProps = {
   product: InternalAd;
   activeReservations: InternalReservation[];
   availableQuantity: number;
-  quantity: string;
-  setQuantity: (quantity: string) => void;
-  isRequestedQuantityValid: boolean;
+  quantity: number;
+  setQuantity: (quantity: number) => void;
   reserving: boolean;
   onReserve: () => Promise<void>;
   showReserveButton: boolean;
@@ -345,7 +343,6 @@ const InternalAdContent = ({
   availableQuantity,
   quantity,
   setQuantity,
-  isRequestedQuantityValid,
   reserving,
   onReserve,
   showReserveButton,
@@ -431,11 +428,11 @@ const InternalAdContent = ({
       {product.status !== ProductStatusEnum.Sold && (
         <View style={{ gap: 8 }}>
           {product.soldByQuantity && (
-            <TextInput
-              inputType="numeric"
+            <QuantityStepper
               value={quantity}
               onChange={setQuantity}
-              placeholder="Antal att reservera"
+              max={availableQuantity}
+              unit={product.primaryUnit ?? undefined}
             />
           )}
           {showReserveButton && (
@@ -443,10 +440,7 @@ const InternalAdContent = ({
               label="Reservera"
               onPress={onReserve}
               loading={reserving}
-              disabled={
-                availableQuantity <= 0 ||
-                (product.soldByQuantity && !isRequestedQuantityValid)
-              }
+              disabled={availableQuantity <= 0}
             />
           )}
         </View>
@@ -509,6 +503,7 @@ type ReservationsProps = {
   markingSold: boolean;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
+  unit?: InternalAd["primaryUnit"];
 };
 
 const Reservations = ({
@@ -518,6 +513,7 @@ const Reservations = ({
   markingSold,
   onCancel,
   onMarkSold,
+  unit,
 }: ReservationsProps) => (
   <View style={{ gap: 12 }}>
     <Headline size="small">Reservationer</Headline>
@@ -535,7 +531,9 @@ const Reservations = ({
               {reservation.reservedByUser.name ??
                 reservation.reservedByUser.username ??
                 reservation.reservedByUser.email}
-              {reservation.quantity ? ` · ${reservation.quantity}` : ""}
+              {reservation.quantity
+                ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
+                : ""}
             </Body>
             <Label size="medium">
               {new Date(reservation.reservedAt).toLocaleDateString("sv-SE")}
