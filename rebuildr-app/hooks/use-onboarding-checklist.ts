@@ -10,9 +10,9 @@ export type ChecklistStep = {
   title: string;
   description: string;
   done: boolean;
-  // Trust-building but never blocking. Optional steps stay on the account
-  // screen and out of the home feed, which is reserved for the steps that
-  // actually stand between the user and a completed sale.
+  // Trust-building but never blocking, so the feed nudge lets the user retire
+  // this one on its own. Required steps have no such escape — they stay until
+  // they are genuinely done.
   optional?: boolean;
   onPress: () => void;
 };
@@ -89,6 +89,5 @@ export const useOnboardingChecklist = () => {
     justCompleted,
     dismissCelebration: () => setJustCompleted(false),
     nextStep: steps.find((step) => !step.done),
-    nextRequiredStep: steps.find((step) => !step.done && !step.optional),
   };
 };

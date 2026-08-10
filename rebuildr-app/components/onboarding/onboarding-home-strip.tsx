@@ -9,8 +9,9 @@ import { useOnboarding } from "@hooks/use-onboarding";
 import { useOnboardingChecklist } from "@hooks/use-onboarding-checklist";
 import { OnboardingCelebration } from "./onboarding-celebration";
 
-// Compact companion to the account screen's full checklist: the feed shows at
-// most one step, only ever a required one, and can be dismissed for good.
+// Compact companion to the account screen's full checklist: the feed shows one
+// step at a time. Required steps stay until they are actually done; optional
+// ones carry an X that retires that single step for good.
 export const OnboardingHomeStrip = () => {
   const {
     isLoggedIn,
@@ -19,9 +20,8 @@ export const OnboardingHomeStrip = () => {
     completedCount,
     justCompleted,
     dismissCelebration,
-    nextRequiredStep,
   } = useOnboardingChecklist();
-  const { isReady, hasDismissedStrip, dismissStrip } = useOnboarding();
+  const { isReady, dismissedSteps, dismissStep } = useOnboarding();
   const colors = useThemeColor();
 
   if (!isLoggedIn || loading || !isReady) return null;
@@ -34,7 +34,11 @@ export const OnboardingHomeStrip = () => {
     );
   }
 
-  if (hasDismissedStrip || !nextRequiredStep) return null;
+  const nextStep = steps.find(
+    (step) => !step.done && !dismissedSteps.includes(step.key),
+  );
+
+  if (!nextStep) return null;
 
   return (
     <View
@@ -49,7 +53,7 @@ export const OnboardingHomeStrip = () => {
       }}
     >
       <Pressable
-        onPress={nextRequiredStep.onPress}
+        onPress={nextStep.onPress}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -61,14 +65,20 @@ export const OnboardingHomeStrip = () => {
           <Check selected={false} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Title size="small">{nextRequiredStep.title}</Title>
+          <Title size="small">{nextStep.title}</Title>
           <Body size="medium" color="secondary">
             Kom igång på RebuildR • {completedCount} av {steps.length} klart
           </Body>
         </View>
         <Icon icon="chevronRight" color="secondary" size={18} />
       </Pressable>
-      <Button icon="X" type="text" onPress={() => dismissStrip()} />
+      {nextStep.optional && (
+        <Button
+          icon="X"
+          type="text"
+          onPress={() => dismissStep(nextStep.key)}
+        />
+      )}
     </View>
   );
 };
