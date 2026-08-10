@@ -106,6 +106,7 @@ const InternalSearchResults = () => {
     id: product.id,
     title: product.title,
     price: product.price,
+    hidePrice: true,
     condition: product.condition,
     imageUri: product.primaryImage?.url,
     quantity: product.primaryQuantity,

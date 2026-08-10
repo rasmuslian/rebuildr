@@ -318,6 +318,7 @@ export default function InternalAdsPage() {
         id: product.id,
         title: product.title,
         price: product.price,
+        hidePrice: true,
         imageUri: product.primaryImage?.url,
         quantity: product.primaryQuantity,
         quantityUnit: product.primaryUnit,
