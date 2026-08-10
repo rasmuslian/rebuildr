@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import LogoIconLight from "@assets/svgs/logo-icon-light.svg";
@@ -84,8 +85,24 @@ const WelcomeContent = () => (
   </View>
 );
 
-const WelcomeFooter = ({ onExplore }: { onExplore: () => void }) => (
-  <Button label="Börja utforska" onPress={onExplore} />
+const WelcomeFooter = ({
+  onExplore,
+  onReadGuide,
+}: {
+  onExplore: () => void;
+  onReadGuide: () => void;
+}) => (
+  <View style={{ gap: 12 }}>
+    <Button label="Börja utforska" onPress={onExplore} />
+    <Body
+      size="medium"
+      isLink
+      onPress={onReadGuide}
+      style={{ textAlign: "center" }}
+    >
+      Läs mer om hur det funkar
+    </Body>
+  </View>
 );
 
 export const OnboardingWelcome = () => {
@@ -106,6 +123,11 @@ export const OnboardingWelcome = () => {
     markWelcomeSeen();
   };
 
+  const readGuide = () => {
+    dismiss();
+    router.navigate("/article/saa-funkar-det");
+  };
+
   if (!isReady) return null;
 
   if (isDesktop) {
@@ -116,7 +138,7 @@ export const OnboardingWelcome = () => {
         type="partial"
         footer={
           <View style={{ padding: 24, paddingTop: 0 }}>
-            <WelcomeFooter onExplore={dismiss} />
+            <WelcomeFooter onExplore={dismiss} onReadGuide={readGuide} />
           </View>
         }
       >
@@ -150,7 +172,7 @@ export const OnboardingWelcome = () => {
           <Button icon="X" type="text" onPress={dismiss} />
         </View>
       }
-      footer={<WelcomeFooter onExplore={dismiss} />}
+      footer={<WelcomeFooter onExplore={dismiss} onReadGuide={readGuide} />}
     >
       <View style={{ marginTop: 8 }}>
         <WelcomeContent />

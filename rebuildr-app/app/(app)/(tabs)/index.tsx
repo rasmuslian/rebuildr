@@ -20,6 +20,7 @@ import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
 import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
 import { isWeb, screenGrowStyle, WEB_STICKY } from "@constants/layout";
+import { OnboardingHomeStrip } from "@components/onboarding/onboarding-home-strip";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -108,6 +109,7 @@ export default function Landing() {
         paddingTop: isDesktop ? 44 : 16,
       }}
     >
+      <OnboardingHomeStrip />
       <RootCategoriesHorizontal />
       <NewArrivals />
       <NearYou />

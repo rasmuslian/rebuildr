@@ -3,16 +3,30 @@ import { Body, Headline } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useOnboardingChecklist } from "@hooks/use-onboarding-checklist";
+import { OnboardingCelebration } from "./onboarding-celebration";
 import { OnboardingChecklistRows } from "./onboarding-checklist-rows";
 
 export const OnboardingChecklistCard = () => {
-  const { isLoggedIn, loading, steps, completedCount, allDone } =
-    useOnboardingChecklist();
+  const {
+    isLoggedIn,
+    loading,
+    steps,
+    completedCount,
+    allDone,
+    justCompleted,
+    dismissCelebration,
+  } = useOnboardingChecklist();
   const colors = useThemeColor();
+
+  if (!isLoggedIn || loading) return null;
+
+  if (justCompleted) {
+    return <OnboardingCelebration onDismiss={dismissCelebration} />;
+  }
 
   // Derived purely from server data: the card disappears for good once every
   // step is done, with no extra persisted flag.
-  if (!isLoggedIn || loading || allDone) return null;
+  if (allDone) return null;
 
   return (
     <View

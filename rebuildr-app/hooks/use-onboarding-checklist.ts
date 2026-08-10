@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useUser } from "@hooks/useUser";
 
@@ -53,6 +54,25 @@ export const useOnboardingChecklist = () => {
   ];
 
   const completedCount = steps.filter((step) => step.done).length;
+  const allDone = completedCount === steps.length;
+
+  // The celebration only fires for a completion that happens while the user is
+  // here — an already-activated account arriving with allDone from the server
+  // sees nothing.
+  const wasIncomplete = useRef(false);
+  const [justCompleted, setJustCompleted] = useState(false);
+
+  useEffect(() => {
+    if (loading || !isLoggedIn) return;
+    if (!allDone) {
+      wasIncomplete.current = true;
+      return;
+    }
+    if (wasIncomplete.current) {
+      wasIncomplete.current = false;
+      setJustCompleted(true);
+    }
+  }, [allDone, loading, isLoggedIn]);
 
   return {
     isLoggedIn,
@@ -60,6 +80,9 @@ export const useOnboardingChecklist = () => {
     refetch,
     steps,
     completedCount,
-    allDone: completedCount === steps.length,
+    allDone,
+    justCompleted,
+    dismissCelebration: () => setJustCompleted(false),
+    nextStep: steps.find((step) => !step.done),
   };
 };
