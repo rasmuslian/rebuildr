@@ -206,9 +206,12 @@ export const BottomSheet = ({
               ]}
             >
               {renderHeader()}
-              <View style={[!screenHeight && { flex: 1 }, containerStyle]}>
-                {children}
-              </View>
+              {/* no forced flex here: a dynamically sized sheet must hug its
+                  content — a flex-stretched wrapper distorts the intrinsic
+                  height the dynamic sizing measures on web, so sheets end up
+                  taller than their content. Callers that want to fill pass it
+                  via containerStyle. */}
+              <View style={[containerStyle]}>{children}</View>
               {footer && !isStickyFooter && (
                 <View
                   style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}
