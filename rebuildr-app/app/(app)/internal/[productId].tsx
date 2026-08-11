@@ -258,7 +258,7 @@ export default function InternalAdDetailPage() {
   if (loading) return <LoadingSpinner />;
   if (!product) {
     return (
-      <ScreenLayout headerComponent={<InternalAdsTopBar />}>
+      <ScreenLayout headerComponent={<InternalAdsTopBar />} headerFullWidth>
         <Display size="small">Annonsen finns inte</Display>
       </ScreenLayout>
     );
@@ -301,6 +301,7 @@ export default function InternalAdDetailPage() {
     return (
       <ScreenLayout
         headerComponent={<InternalAdsTopBar />}
+        headerFullWidth
         footerBorder={product.status !== ProductStatusEnum.Sold}
         footerComponent={
           product.status !== ProductStatusEnum.Sold ? (
@@ -352,7 +353,11 @@ export default function InternalAdDetailPage() {
 
   return (
     <>
-      <ScreenLayout desktopFooter headerComponent={<InternalAdsTopBar />}>
+      <ScreenLayout
+        desktopFooter
+        headerComponent={<InternalAdsTopBar />}
+        headerFullWidth
+      >
         <View style={{ gap: 48 }}>
           <View
             style={{

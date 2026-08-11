@@ -24,6 +24,7 @@ interface PageProps extends PropsWithChildren {
   desktopFooter?: boolean;
   headerComponent?: React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
+  headerFullWidth?: boolean;
   loading?: boolean;
   onContentSizeChange?: "scrollToBottom" | "nothing";
   contentHorizontalPadding?: number;
@@ -47,6 +48,7 @@ export const ScreenLayout = ({
   desktopFooter,
   headerComponent,
   headerStyle,
+  headerFullWidth = false,
   loading,
   onContentSizeChange = "nothing",
   contentHorizontalPadding,
@@ -90,9 +92,10 @@ export const ScreenLayout = ({
                 top: 0,
                 zIndex: 20,
                 backgroundColor: colors.background.neutral,
-                paddingHorizontal: isDesktop
-                  ? undefined
-                  : horizontalPadding.mobile,
+                paddingHorizontal:
+                  isDesktop || headerFullWidth
+                    ? undefined
+                    : horizontalPadding.mobile,
               },
               headerStyle,
             ]}
@@ -157,9 +160,10 @@ export const ScreenLayout = ({
         <View
           style={[
             {
-              paddingHorizontal: isDesktop
-                ? undefined
-                : horizontalPadding.mobile,
+              paddingHorizontal:
+                isDesktop || headerFullWidth
+                  ? undefined
+                  : horizontalPadding.mobile,
             },
             headerStyle,
           ]}
