@@ -162,7 +162,7 @@ export const OrganizationMembers = ({ onBack }: Props) => {
           />
         </View>
 
-        <View style={{ gap: 6 }}>
+        <View style={{ gap: 6, zIndex: 1, elevation: 1 }}>
           <Label size="medium">Roll</Label>
           <SelectInput
             value={inviteRole}
@@ -233,11 +233,12 @@ export const OrganizationMembers = ({ onBack }: Props) => {
                 <View
                   style={{
                     flexDirection: "row",
-                    flexWrap: "wrap",
                     gap: 8,
+                    width: "100%",
                   }}
                 >
                   <Button
+                    style={{ flex: 1, minWidth: 0 }}
                     label={
                       member.role === OrganizationMemberRoleEnum.Admin
                         ? "Gör till medlem"
@@ -264,6 +265,7 @@ export const OrganizationMembers = ({ onBack }: Props) => {
                     }
                   />
                   <Button
+                    style={{ flex: 1, minWidth: 0 }}
                     label="Ta bort"
                     type="outlined"
                     onPress={() =>
@@ -332,11 +334,12 @@ export const OrganizationMembers = ({ onBack }: Props) => {
                 <View
                   style={{
                     flexDirection: "row",
-                    flexWrap: "wrap",
                     gap: 8,
+                    width: "100%",
                   }}
                 >
                   <Button
+                    style={{ flex: 1, minWidth: 0 }}
                     label="Skicka igen"
                     type="tonal"
                     onPress={() =>
@@ -350,6 +353,7 @@ export const OrganizationMembers = ({ onBack }: Props) => {
                     }
                   />
                   <Button
+                    style={{ flex: 1, minWidth: 0 }}
                     label="Återkalla"
                     type="outlined"
                     onPress={() =>
