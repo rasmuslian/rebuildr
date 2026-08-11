@@ -516,6 +516,16 @@ export default function InternalAdsPage() {
                       offset: Math.ceil(activeProducts.length / PAGE_SIZE),
                       limit: PAGE_SIZE,
                     },
+                    updateQuery: (previous, { fetchMoreResult }) => ({
+                      ...previous,
+                      internalAds: {
+                        ...fetchMoreResult.internalAds,
+                        products: [
+                          ...previous.internalAds.products,
+                          ...fetchMoreResult.internalAds.products,
+                        ],
+                      },
+                    }),
                   }),
               }}
             />
