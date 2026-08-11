@@ -10,6 +10,8 @@ export const PROFILE = gql`
       numberOfSoldProducts
       numberOfPublishedProducts
       rating
+      reviewCount
+      createdAt
       projects {
         id
         title

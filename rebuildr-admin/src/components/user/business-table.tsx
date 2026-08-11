@@ -1,34 +1,64 @@
 "use client";
 
+import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Divider, Modal, Popconfirm, Switch, Table, Tag } from "antd";
+import { ColumnsType } from "antd/es/table";
+import { CreditsafeCheckStatusEnum, User } from "gql/graphql";
+import { debounce } from "lodash";
 import React, { useCallback } from "react";
-import { Table, Divider, Button, Tag, Popconfirm, Switch } from "antd";
 import { useState } from "@/hooks/use-state";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { listPendingBusinesses } from "@/queries/user/list-pending-businesses";
 import { approveBusiness } from "@/queries/user/approve-business";
 import { updateUser } from "@/queries/user/update-user";
-import { User } from "gql/graphql";
-import { ColumnsType } from "antd/es/table";
-import { CheckOutlined } from "@ant-design/icons";
-import { debounce } from "lodash";
 import SearchField from "@components/search-field";
 
 type StateType = {
   searchString: string;
   pageSize: number;
   page: number;
+  viewingCreditsafeData?: string;
 };
 
 const initialState: StateType = {
   searchString: "",
   pageSize: 10,
   page: 1,
+  viewingCreditsafeData: undefined,
+};
+
+const creditsafeStatusTag: Record<
+  CreditsafeCheckStatusEnum,
+  { color: string; label: string }
+> = {
+  [CreditsafeCheckStatusEnum.NotChecked]: {
+    color: "default",
+    label: "Ej kontrollerad",
+  },
+  [CreditsafeCheckStatusEnum.Matched]: { color: "green", label: "Matchad" },
+  [CreditsafeCheckStatusEnum.NoMatch]: {
+    color: "orange",
+    label: "Ingen match",
+  },
+  [CreditsafeCheckStatusEnum.CompanyError]: {
+    color: "red",
+    label: "Företagsfel",
+  },
+};
+
+const formatCreditsafeData = (data?: string) => {
+  if (!data) return "";
+  try {
+    return JSON.stringify(JSON.parse(data), null, 2);
+  } catch {
+    return data;
+  }
 };
 
 const BusinessTable = () => {
   const [state, setState] = useState(initialState);
-  const { pageSize, page, searchString } = state;
+  const { pageSize, page, searchString, viewingCreditsafeData } = state;
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -96,6 +126,32 @@ const BusinessTable = () => {
           <Tag color="green">Godkänd</Tag>
         ) : (
           <Tag color="orange">Väntar</Tag>
+        ),
+    },
+    {
+      title: "Creditsafe",
+      key: "creditsafeCheckStatus",
+      width: "160px",
+      render: (_, { creditsafeCheckStatus }) => {
+        const tag = creditsafeStatusTag[creditsafeCheckStatus];
+        return <Tag color={tag.color}>{tag.label}</Tag>;
+      },
+    },
+    {
+      title: "Creditsafe-data",
+      key: "creditsafeData",
+      width: "140px",
+      render: (_, { creditsafeData }) =>
+        creditsafeData ? (
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => setState({ viewingCreditsafeData: creditsafeData })}
+          >
+            Visa
+          </Button>
+        ) : (
+          "—"
         ),
     },
     {
@@ -173,6 +229,18 @@ const BusinessTable = () => {
           onShowSizeChange: (_, size) => setState({ pageSize: size }),
         }}
       />
+
+      <Modal
+        title="Creditsafe-data"
+        open={!!viewingCreditsafeData}
+        onCancel={() => setState({ viewingCreditsafeData: undefined })}
+        footer={false}
+        width={720}
+      >
+        <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap text-xs">
+          {formatCreditsafeData(viewingCreditsafeData)}
+        </pre>
+      </Modal>
     </div>
   );
 };

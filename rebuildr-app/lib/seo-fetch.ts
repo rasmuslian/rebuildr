@@ -36,6 +36,8 @@ export type ArticleSummary = {
   slug: string;
   title: string;
   body: string;
+  isInternal: boolean;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -46,21 +48,61 @@ const LIST_ARTICLES = /* GraphQL */ `
         slug
         title
         body
+        isInternal
+        createdAt
         updatedAt
       }
     }
   }
 `;
 
+// CMS bodies store Swedish characters as HTML entities (&auml; etc). These must
+// be DECODED (not stripped) or meta descriptions read "S kerhet p RebuildR".
+const NAMED_ENTITIES: Record<string, string> = {
+  aring: "å",
+  auml: "ä",
+  ouml: "ö",
+  Aring: "Å",
+  Auml: "Ä",
+  Ouml: "Ö",
+  eacute: "é",
+  Eacute: "É",
+  egrave: "è",
+  uuml: "ü",
+  amp: "&",
+  quot: '"',
+  apos: "'",
+  lt: "<",
+  gt: ">",
+  nbsp: " ",
+  ndash: "–",
+  mdash: "—",
+  hellip: "…",
+  rsquo: "'",
+  lsquo: "'",
+  rdquo: "”",
+  ldquo: "“",
+};
+
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+      String.fromCodePoint(parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(
+      /&([a-z]+);/gi,
+      (match, name: string) => NAMED_ENTITIES[name] ?? match,
+    );
+}
+
 /**
- * Strips HTML tags and collapses whitespace, then truncates to ~300 chars on a
- * word boundary. Used to server-render a real text excerpt + meta description
- * for articles so non-JS AI crawlers see actual content.
+ * Strips HTML tags, decodes entities and collapses whitespace, then truncates
+ * to ~300 chars on a word boundary. Used to server-render a real text excerpt +
+ * meta description for articles so non-JS AI crawlers see actual content.
  */
 export function htmlToExcerpt(html: string, maxLength = 300): string {
-  const text = (html ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, " ")
+  const text = decodeEntities((html ?? "").replace(/<[^>]*>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
   if (text.length <= maxLength) return text;

@@ -215,9 +215,8 @@ const detailsErrorFields = [
   "title",
   "description",
   "primary",
-  "availability",
 ];
-const transportaionErrorFields = ["delivery"];
+const transportaionErrorFields = ["delivery", "availability"];
 
 type Props = {
   productId?: string;
@@ -422,8 +421,10 @@ export const UpsertProduct = ({
 
   //Find the first step that contains errors
   const firstStepWithErrors = (errorFields: FieldErrorsType) => {
-    const errorInDetails = Object.keys(errorFields).some((key) =>
-      detailsErrorFields.some((field) => field === key),
+    const errorInDetails = Object.keys(errorFields).some(
+      (key) =>
+        detailsErrorFields.some((field) => field === key) ||
+        (internalMode && key === "availability"),
     );
     if (errorInDetails) {
       setStep("details");
@@ -924,11 +925,14 @@ export const UpsertProduct = ({
   };
   const onNextTransportation = () => {
     const result = onVerifyTransportation(product, true);
-    update().then(() => {
-      if (result) {
-        setStep("preview");
-      }
-    });
+    if (!result) return;
+    //the save must happen, but navigation shouldn't wait for it: the CO2
+    //figure in the preview is computed backend-side from the saved weight and
+    //category, and the mutation response refreshes the cached value when it
+    //lands. A failed save surfaces through the mutation's error state on the
+    //preview footer.
+    update().catch((e) => Sentry.captureException(e));
+    setStep("preview");
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;
@@ -1247,6 +1251,7 @@ export const UpsertProduct = ({
         )}
         <VerifyMeBottomSheet
           show={showVerifyMe}
+          context="publish"
           onDismiss={() => setShowVerifyMe(false)}
           onResult={async () => {
             setShowVerifyMe(false);
@@ -1269,6 +1274,7 @@ export const UpsertProduct = ({
       header={header}
       footer={isInitializing ? undefined : renderFooter()}
       isStickyFooter
+      resetScrollKey={step}
     >
       <View style={{ marginBottom: 32 }}>
         {isInitializing ? (
@@ -1290,6 +1296,7 @@ export const UpsertProduct = ({
       )}
       <VerifyMeBottomSheet
         show={showVerifyMe}
+        context="publish"
         onDismiss={() => setShowVerifyMe(false)}
         onResult={async () => {
           setShowVerifyMe(false);

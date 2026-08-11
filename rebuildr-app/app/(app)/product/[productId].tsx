@@ -53,7 +53,17 @@ export default function Product() {
     },
   });
 
-  if (loading) return <LoadingSpinner />;
+  // Product pages are client-rendered (volatile listings) and intentionally
+  // kept out of the index. The static [productId].html template renders during
+  // loading, so emit noindex here too — otherwise crawlers would index an empty
+  // shell. Also kept out of the sitemap (see scripts/generate-sitemap.ts).
+  if (loading)
+    return (
+      <>
+        <RebuildrHead noindex />
+        <LoadingSpinner />
+      </>
+    );
   if (error || !data) {
     return <CustomNotFound />;
   }
@@ -85,6 +95,7 @@ export default function Product() {
         description={product.description ?? undefined}
         image={product.images[0]?.url}
         isProductPage
+        noindex
       />
 
       {isDesktop ? (

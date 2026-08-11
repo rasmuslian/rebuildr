@@ -13,6 +13,8 @@ const query = `
         organizationApprovedAt
         internalAdsAccess
         createdAt
+        creditsafeCheckStatus
+        creditsafeData
       }
       total
     }

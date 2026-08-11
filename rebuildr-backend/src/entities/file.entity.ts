@@ -12,6 +12,7 @@ import { Product } from './product.entity';
 import { Category } from './category.entity';
 import { User } from './user.entity';
 import { Message } from './message.entity';
+import { AterbyggarenMessage } from './aterbyggaren-message.entity';
 import { FileSourceEnum } from '../constants/enums';
 
 @Entity()
@@ -48,6 +49,12 @@ export class File {
   @Column({ type: Boolean, default: false })
   private: boolean;
 
+  // Internal column (not exposed in GraphQL): set by ImageVariantService once
+  // WebP size variants exist in Spaces. The url(width) resolver uses it to
+  // return variant vs original — clients never need to know the URL scheme.
+  @Column({ type: Boolean, default: false })
+  hasVariants: boolean;
+
   @Column({ type: 'enum', enum: FileSourceEnum, default: FileSourceEnum.APP })
   source: FileSourceEnum;
 
@@ -62,4 +69,16 @@ export class File {
     nullable: true,
   })
   messageDocument?: Message;
+
+  @ManyToOne(() => AterbyggarenMessage, (message) => message.images, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  aterbyggarenMessageImage?: AterbyggarenMessage;
+
+  @ManyToOne(() => AterbyggarenMessage, (message) => message.documents, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  aterbyggarenMessageDocument?: AterbyggarenMessage;
 }

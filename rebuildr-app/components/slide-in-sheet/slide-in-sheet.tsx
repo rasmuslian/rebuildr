@@ -22,6 +22,8 @@ import {
 import { Pressable } from "react-native-gesture-handler";
 import { Portal } from "@gorhom/portal";
 import { usePathname } from "expo-router";
+import { isWeb, WEB_FIXED } from "@constants/layout";
+import { useBodyScrollLock } from "@hooks/useBodyScrollLock";
 
 type Props = {
   open: boolean;
@@ -32,6 +34,7 @@ type Props = {
   footer?: ReactElement;
   bottomMargin?: number;
   contentWaitOnAnimation?: boolean;
+  backgroundColor?: string;
 } & PropsWithChildren;
 
 export const SlideInSheet = ({
@@ -44,6 +47,7 @@ export const SlideInSheet = ({
   footer,
   bottomMargin = 20,
   contentWaitOnAnimation,
+  backgroundColor,
 }: Props) => {
   const [showContent, setShowContent] = useState(!contentWaitOnAnimation);
   const key = useMemo(() => `slide-in-sheet-${Math.random().toString(8)}`, []);
@@ -58,6 +62,11 @@ export const SlideInSheet = ({
   const [displayState, setDisplayState] = useState<"none" | "flex">("none");
   const initialRef = useRef(true);
   const pathname = usePathname();
+
+  const sheetBackgroundColor = backgroundColor ?? colors.background.neutral;
+
+  // Lock background scroll while the sheet is open (web).
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (initialRef.current) {
@@ -103,7 +112,8 @@ export const SlideInSheet = ({
       <Animated.View
         style={[
           {
-            position: "absolute",
+            // Web: anchor to the viewport (fixed), not the tall document.
+            position: isWeb ? WEB_FIXED : "absolute",
             overflow: "hidden",
             top: 0,
             left: 0,
@@ -147,7 +157,7 @@ export const SlideInSheet = ({
                 right: 0,
                 bottom: 0,
                 width,
-                backgroundColor: colors.background.neutral,
+                backgroundColor: sheetBackgroundColor,
                 elevation: 5,
                 paddingBottom: bottomMargin,
               },

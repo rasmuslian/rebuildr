@@ -231,7 +231,10 @@ export class ProjectResolver {
     @Args('input') input: CmsCreateProjectInput,
     @CurrentUser() _user: AuthedUserType,
   ): Promise<Project> {
-    return this.projectService.cmsCreateProject(input, input.userId ?? _user.id);
+    return this.projectService.cmsCreateProject(
+      input,
+      input.userId ?? _user.id,
+    );
   }
 
   @Mutation(() => Project)

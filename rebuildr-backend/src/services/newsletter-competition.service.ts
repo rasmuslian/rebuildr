@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NewsletterCompetition } from 'src/entities/newsletter-competition.entity';
-import {
-  CmsUpdateNewsletterCompetitionInput,
-} from 'src/resolvers/newsletter-competition.resolver';
+import { CmsUpdateNewsletterCompetitionInput } from 'src/resolvers/newsletter-competition.resolver';
 import { FileService } from './file.service';
 import { BadUserInputException } from 'src/exceptions';
 

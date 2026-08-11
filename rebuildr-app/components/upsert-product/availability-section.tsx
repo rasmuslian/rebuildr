@@ -16,6 +16,11 @@ type Props = {
   error?: string;
 };
 
+/**
+ * "Tillgänglighet" step section: choose whether the listing is available now
+ * (default) or "Snart till salu" with an exact start date and an optional end
+ * date after which the ad is automatically taken down.
+ */
 export const AvailabilitySection = ({ product, update, error }: Props) => {
   const isUpcoming = product.availability === ProductAvailabilityEnum.Upcoming;
 
@@ -30,6 +35,7 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
   const setUpcoming = () =>
     update({
       availability: ProductAvailabilityEnum.Upcoming,
+      // New listings always use an exact date.
       availabilityPrecision: ProductAvailabilityPrecisionEnum.Exact,
     });
 
@@ -37,6 +43,7 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
     <View style={{ gap: 24 }}>
       <Display size="small">Tillgänglighet</Display>
       <View style={{ gap: 16 }}>
+        {/* Segmented choice styled to match the "Leverans" toggles. */}
         <View style={{ flexDirection: "row", gap: 8 }}>
           <SegmentOption
             label="Tillgänglig nu"
@@ -98,6 +105,8 @@ const SegmentOption = ({
   selected: boolean;
   onPress: () => void;
 }) => (
+  // Selected = purple to match the delivery toggles; calendar/badge stay green
+  // (a deliberate split, so don't "unify" this to green).
   <Pressable
     onPress={onPress}
     style={(state) => {

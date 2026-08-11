@@ -33,7 +33,9 @@ export const dataSource = (async () => {
   const configService = app.get(ConfigService);
 
   const isCompiled = __filename.includes('/dist/');
-  const migrations = isCompiled ? './dist/migration/*.js' : './migration/*{.ts,.js}';
+  const migrations = isCompiled
+    ? './dist/migration/*.js'
+    : './migration/*{.ts,.js}';
 
   return new DataSource({
     ...dbConfig(configService),

@@ -12,14 +12,25 @@ import { Purchase, SupportedPaymentMethod } from 'src/entities/purchase.entity';
 import { idFromObject } from 'src/utility/stripe/utils';
 import { addCountryCode, isValidPhonenumber } from 'src/utility/phone-number';
 import * as Sentry from '@sentry/nestjs';
-import { SCBAPI } from 'src/apis/scb.api';
-import { IFetchBusinessResponse } from 'src/apis/types/scb/types';
+import { OrganizationService } from './organization.service';
 import { SellerAccount } from 'src/resolvers/user.resolver';
 import { registerEnumType } from '@nestjs/graphql';
 
 const paymentCapabilities: (keyof Stripe.AccountCreateParams.Capabilities)[] = [
   'card_payments',
 ];
+
+// Maps Creditsafe's companyType.code (Swedish legal form) to Stripe's
+// company.structure.
+const creditsafeCompanyStructureMap: Record<
+  string,
+  Stripe.AccountCreateParams.Company.Structure
+> = {
+  AB: 'private_corporation',
+  HB: 'private_partnership',
+  KB: 'private_partnership',
+  EF: 'sole_proprietorship',
+};
 
 export enum SellerAccountCapabilityEnum {
   PAYMENT = 'PAYMENT',
@@ -39,7 +50,7 @@ export class StripeService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
-    private scbAPI: SCBAPI,
+    private organizationService: OrganizationService,
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (!secretKey) {
@@ -211,19 +222,14 @@ export class StripeService {
     }
 
     //Prefill data
-    let scbData: IFetchBusinessResponse[number] | undefined;
-    try {
-      const businessData = await this.scbAPI.fetchBusiness(
+    const organizationData =
+      await this.organizationService.lookupOrganizationNumber(
         organizationUser.organizationNumber,
       );
-      scbData = businessData[0];
-    } catch (e) {
-      this.logger.error(
-        'createConnectedAccountOrganization: Could not find business data',
-        {
-          e,
-          orgainzationUserId: organizationUser.id,
-        },
+    if (!organizationData) {
+      this.logger.warn(
+        'createConnectedAccountOrganization: No Creditsafe business data, falling back to user-provided details',
+        { organizationUserId: organizationUser.id },
       );
     }
 
@@ -233,21 +239,26 @@ export class StripeService {
       const accountBusiness = await this.stripe.accounts.create({
         business_type: 'company',
         company: {
-          structure: 'private_corporation',
-          name: scbData?.Företagsnamn ?? organizationUser.username,
+          structure:
+            (organizationData?.companyTypeCode &&
+              creditsafeCompanyStructureMap[
+                organizationData.companyTypeCode
+              ]) ||
+            'private_corporation',
+          name: organizationData?.name ?? organizationUser.username,
           address: {
-            line1: scbData?.PostAdress ?? organizationUser.address,
-            postal_code: scbData?.PostNr ?? organizationUser.postCode,
-            city: scbData?.PostOrt ?? organizationUser.city,
+            line1: organizationData?.address ?? organizationUser.address,
+            postal_code: organizationData?.zipCode ?? organizationUser.postCode,
+            city: organizationData?.city ?? organizationUser.city,
             country: 'SE',
           },
           phone: validPhoneNumber
-            ? addCountryCode(scbData?.Telefon ?? organizationUser.phoneNumber)
+            ? addCountryCode(organizationUser.phoneNumber)
             : undefined,
           tax_id: organizationUser.organizationNumber ?? undefined,
         },
         business_profile: {
-          name: scbData?.Företagsnamn ?? organizationUser.username,
+          name: organizationData?.name ?? organizationUser.username,
         },
         email: organizationUser.email,
         controller: {
@@ -484,8 +495,14 @@ export class StripeService {
 
   async refundPayment(paymentIntentId: string, refundUserId?: string) {
     try {
+      // Destination charges transfer funds to the seller at payment time, so a
+      // refund must pull those funds back and return the platform fee —
+      // otherwise the buyer refund is drawn from the platform balance while
+      // the seller keeps the transfer.
       return await this.stripe.refunds.create({
         payment_intent: paymentIntentId,
+        reverse_transfer: true,
+        refund_application_fee: true,
         metadata: refundUserId ? { refundedBy: refundUserId } : undefined,
       });
     } catch (e) {
@@ -498,6 +515,20 @@ export class StripeService {
     const payment = await this.retrievePayment(paymentIntentId);
     const payoutAmount = payment.amount - payment.application_fee_amount;
     return payoutAmount;
+  }
+
+  //https://docs.stripe.com/connect/account-balances
+  async getBalance(connectedAccountId: string) {
+    const balance = await this.stripe.balance.retrieve({
+      stripeAccount: connectedAccountId,
+    });
+    const sum = (amounts: { amount: number }[]) =>
+      amounts.reduce((total, entry) => total + entry.amount, 0);
+
+    return {
+      available: sum(balance.available) / 100,
+      pending: sum(balance.pending) / 100,
+    };
   }
 
   //Fund become available for payout on a 3-day rolling basis after transfer to connected account

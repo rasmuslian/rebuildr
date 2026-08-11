@@ -19,6 +19,12 @@ import { initializeApollo } from "@/apollo/config";
 import { createServerApolloClient } from "@/apollo/server-client";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from "react-native-safe-area-context";
+import { screenGrowStyle } from "@constants/layout";
+import { ScrollBehavior } from "@components/scroll-behavior/scroll-behavior";
 import { LoginModalContext } from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -105,28 +111,34 @@ const RootLayout = () => {
         <LocationProvider>
           <SellProductProvider>
             <EditProductProdiver>
-              <GestureHandlerRootView>
-                <PortalProvider>
-                  <BuyModalProvider>
-                    <BottomSheetModalProvider>
-                      <ScreenDimensionsProvider>
-                        <SearchProvider>
-                          <ReRouteHandler>
-                            <Slot />
-                            <CookieConsent />
-                            <HamburgerMenu />
-                            <LoginModalView />
-                            <SellProduct />
-                            <EditProduct />
-                            <SearchDropdown />
-                            <BuyModal />
-                            <PortalHost name="OverlayProvider" />
-                          </ReRouteHandler>
-                        </SearchProvider>
-                      </ScreenDimensionsProvider>
-                    </BottomSheetModalProvider>
-                  </BuyModalProvider>
-                </PortalProvider>
+              <GestureHandlerRootView style={screenGrowStyle}>
+                <SafeAreaProvider
+                  initialMetrics={initialWindowMetrics}
+                  style={screenGrowStyle}
+                >
+                  <PortalProvider>
+                    <BuyModalProvider>
+                      <BottomSheetModalProvider>
+                        <ScreenDimensionsProvider>
+                          <SearchProvider>
+                            <ReRouteHandler>
+                              <ScrollBehavior />
+                              <Slot />
+                              <CookieConsent />
+                              <HamburgerMenu />
+                              <LoginModalView />
+                              <SellProduct />
+                              <EditProduct />
+                              <SearchDropdown />
+                              <BuyModal />
+                              <PortalHost name="OverlayProvider" />
+                            </ReRouteHandler>
+                          </SearchProvider>
+                        </ScreenDimensionsProvider>
+                      </BottomSheetModalProvider>
+                    </BuyModalProvider>
+                  </PortalProvider>
+                </SafeAreaProvider>
               </GestureHandlerRootView>
             </EditProductProdiver>
           </SellProductProvider>

@@ -8,9 +8,11 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Identity } from 'src/entities/identity.entity';
-import { User } from 'src/entities/user.entity';
+import { User, UserType } from 'src/entities/user.entity';
 import { ForbiddenException } from 'src/exceptions';
 import { CollectBankIDVerifyResponse } from 'src/resolvers/bankid.resolver';
+import { CreditsafeService } from 'src/services/creditsafe.service';
+import { UserService } from 'src/services/user.service';
 
 export enum BankIDVerifyStatusEnum {
   pending = 'pending',
@@ -37,6 +39,8 @@ export class BankIDService {
     private userRepository: Repository<User>,
     @Inject(CACHE_MANAGER) private cache: Cache,
     @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
+    private creditsafeService: CreditsafeService,
+    private userService: UserService,
   ) {
     this.client = new BankIdClientV6(
       process.env.BANKID_ENV === 'production'
@@ -106,6 +110,7 @@ export class BankIDService {
         });
       }
       await this.linkIdentity(userId, personalNumber, name);
+      await this.evaluateBusinessSignupIfNeeded(userId, personalNumber);
       return {
         status: BankIDVerifyStatusEnum.complete,
         qrData: null,
@@ -183,5 +188,40 @@ export class BankIDService {
     await this.identityRepository.save(identity);
 
     await this.userRepository.update(userId, { identityId: identity.id });
+  }
+
+  private async evaluateBusinessSignupIfNeeded(
+    userId: string,
+    personalNumber: string,
+  ) {
+    try {
+      const user = await this.userRepository.findOneBy({ id: userId });
+      if (
+        !user ||
+        user.type !== UserType.BUSINESS ||
+        !user.organizationNumber ||
+        user.organizationApprovedAt
+      ) {
+        return;
+      }
+
+      const evaluation = await this.creditsafeService.evaluateBusinessSignup(
+        user.organizationNumber,
+        personalNumber,
+      );
+
+      await this.userRepository.update(userId, {
+        creditsafeData: evaluation as unknown as JSON,
+      });
+
+      if (evaluation.approved) {
+        await this.userService.approveBusinessAccount(userId, false);
+      }
+    } catch (e) {
+      this.logger.error('BankID collect: Creditsafe signup evaluation failed', {
+        e,
+        userId,
+      });
+    }
   }
 }

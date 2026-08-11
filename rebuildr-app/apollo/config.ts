@@ -2,41 +2,30 @@ import {
   ApolloClient,
   createHttpLink,
   from,
-  gql,
   InMemoryCache,
-  makeVar,
   Observable,
 } from "@apollo/client";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
-import { initialFilterProduct } from "@context/filter-product-context";
 import * as Sentry from "@sentry/react-native";
 
-const GET_NEW_TOKENS = gql`
-  mutation GetNewTokens($input: GetNewTokensInput!) {
-    getNewTokens(input: $input) {
-      accessToken
-      refreshToken
-    }
-  }
-`;
+import { isLoggedInVar } from "@/apollo/state";
+import { getStoredAccessToken, renewStoredAuthTokens } from "@/lib/auth-tokens";
 
-export const isLoggedInVar = makeVar(false);
-export const showHamburgerMenuVar = makeVar(false);
-export const productFilterVar = makeVar(initialFilterProduct);
-export const internalProductFilterVar = makeVar(initialFilterProduct);
+export {
+  internalProductFilterVar,
+  isLoggedInVar,
+  productFilterVar,
+  showHamburgerMenuVar,
+} from "@/apollo/state";
 
 export const initializeApollo = async () => {
-  let refreshPromise: Promise<string> | null = null;
-  let client: ApolloClient<any>;
-
   const httpLink = createHttpLink({
     uri: process.env.EXPO_PUBLIC_API_URL + "/graphql",
   });
 
   const authLink = setContext(async (_, { headers }) => {
-    const token = await AsyncStorage.getItem("access_token");
+    const token = await getStoredAccessToken();
 
     return {
       headers: {
@@ -57,55 +46,12 @@ export const initializeApollo = async () => {
     });
   };
 
-  const renewTokens = async (client: ApolloClient<any>) => {
-    if (refreshPromise) return refreshPromise;
-
-    refreshPromise = new Promise(async (resolve, reject) => {
-      try {
-        const refreshToken = await AsyncStorage.getItem("refresh_token");
-        const accessToken = await AsyncStorage.getItem("access_token");
-
-        if (!refreshToken || !accessToken) {
-          throw new Error("Missing tokens");
-        }
-
-        const { data } = await client.mutate({
-          mutation: GET_NEW_TOKENS,
-          variables: { input: { refreshToken, accessToken } },
-        });
-
-        const newTokens = data?.getNewTokens;
-
-        if (!newTokens?.accessToken || !newTokens?.refreshToken) {
-          throw new Error("Invalid token response");
-        }
-
-        await AsyncStorage.multiSet([
-          ["access_token", newTokens.accessToken],
-          ["refresh_token", newTokens.refreshToken],
-        ]);
-
-        resolve(newTokens.accessToken);
-      } catch (err) {
-        Sentry.captureException(err);
-        await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
-        isLoggedInVar(false);
-
-        reject(err);
-      } finally {
-        refreshPromise = null;
-      }
-    });
-
-    return refreshPromise;
-  };
-
   const errorLink = onError(
     ({ graphQLErrors, networkError, operation, forward }) => {
       if (graphQLErrors) {
         for (const err of graphQLErrors) {
           if (err.extensions?.code === "UNAUTHENTICATED") {
-            return createObservable(renewTokens(client)).flatMap(
+            return createObservable(renewStoredAuthTokens()).flatMap(
               (newAccessToken) => {
                 if (!newAccessToken) return forward(operation);
                 const oldHeaders = operation.getContext().headers;
@@ -115,7 +61,6 @@ export const initializeApollo = async () => {
                     authorization: `Bearer ${newAccessToken}`,
                   },
                 });
-
                 return forward(operation);
               },
             );
@@ -134,10 +79,10 @@ export const initializeApollo = async () => {
     },
   );
 
-  const accessToken = await AsyncStorage.getItem("access_token");
+  const accessToken = await getStoredAccessToken();
   isLoggedInVar(!!accessToken);
 
-  client = new ApolloClient({
+  const client = new ApolloClient({
     link: from([errorLink, authLink, httpLink]),
     cache: new InMemoryCache(),
   });

@@ -128,6 +128,8 @@ export const TextInput = ({ onChange, onBlur, ...props }: Props) => {
             paddingLeft: 16,
             paddingRight: 12,
             paddingBottom: 16,
+
+            backgroundColor: colors.background.neutral,
           },
           props.style,
         ]}

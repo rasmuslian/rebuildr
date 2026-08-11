@@ -10,7 +10,7 @@ import { LoginModalContext } from "@context/loginModalContext";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
 import { GetMeQuery, TabLayoutQuery } from "@/gql/graphql";
-import { TAB_LAYOUT } from "@/app/(app)/(tabs)/_layout";
+import { TAB_LAYOUT } from "@/queries";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
 import { horizontalPadding } from "@constants/sizes";

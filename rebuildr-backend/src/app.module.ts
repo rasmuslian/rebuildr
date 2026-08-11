@@ -115,6 +115,7 @@ import { ProductSubscriber } from './subscribers/product.subscriber';
 import { ProjectSubscriber } from './subscribers/project.subscriber';
 import { StripeResolver } from './resolvers/stripe.resolver';
 import { S3Service } from './services/s3.service';
+import { ImageVariantService } from './services/image-variant.service';
 import { MailResolver } from './resolvers/mail.resolver';
 import { Partner } from './entities/partner.entity';
 import { PartnerLoader } from './dataloaders/partner.loader';
@@ -129,7 +130,6 @@ import { PageContent } from './entities/page-content.entity';
 import { PageContentService } from './services/page-content.service';
 import { PageContentResolver } from './resolvers/page-content.resolver';
 import { AIService } from './services/ai.service';
-import { SCBAPI } from './apis/scb.api';
 import { Banner } from './entities/banner.entity';
 import { BannerService } from './services/banner.service';
 import { BannerResolver } from './resolvers/banner.resolver';
@@ -143,10 +143,10 @@ import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
 import { StatisticsResolver } from './resolvers/statistics.resolver';
 import { StatisticsService } from './services/statistics.service';
-import { BygghjalpenChat } from './entities/bygghjalpen-chat.entity';
-import { BygghjalpenMessage } from './entities/bygghjalpen-message.entity';
-import { BygghjalpenController } from './controllers/bygghjalpen.controller';
-import { BygghjalpenService } from './services/bygghjalpen.service';
+import { AterbyggarenChat } from './entities/aterbyggaren-chat.entity';
+import { AterbyggarenMessage } from './entities/aterbyggaren-message.entity';
+import { AterbyggarenController } from './controllers/aterbyggaren.controller';
+import { AterbyggarenService } from './services/aterbyggaren.service';
 import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
@@ -162,6 +162,8 @@ import { OrganizationMembership } from './entities/organization-membership.entit
 import { OrganizationInvite } from './entities/organization-invite.entity';
 import { InternalAdReservation } from './entities/internal-ad-reservation.entity';
 import { InternalAdImportBatch } from './entities/internal-ad-import-batch.entity';
+import { CreditsafeAPI } from './apis/creditsafe.api';
+import { CreditsafeService } from './services/creditsafe.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -221,8 +223,8 @@ export interface RequestType {
       PageContent,
       Banner,
       NewsletterCompetition,
-      BygghjalpenChat,
-      BygghjalpenMessage,
+      AterbyggarenChat,
+      AterbyggarenMessage,
       Identity,
       OrganizationMembership,
       OrganizationInvite,
@@ -309,7 +311,7 @@ export interface RequestType {
     CacheModule.register(),
     ScheduleModule.forRoot(),
   ],
-  controllers: [StripWebhookController, BygghjalpenController],
+  controllers: [StripWebhookController, AterbyggarenController],
   providers: [
     {
       provide: APP_FILTER,
@@ -378,12 +380,12 @@ export interface RequestType {
     ProjectSubscriber,
     StripeResolver,
     S3Service,
+    ImageVariantService,
     PartnerService,
     PartnerResolver,
     CO2FactorService,
     CO2FactorResolver,
     BoverketAPI,
-    SCBAPI,
     PageContentService,
     PageContentResolver,
     AIService,
@@ -393,7 +395,7 @@ export interface RequestType {
     NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
-    BygghjalpenService,
+    AterbyggarenService,
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
@@ -402,6 +404,8 @@ export interface RequestType {
     OrganizationMembershipResolver,
     InternalAdReservationResolver,
     InternalAdImportBatchResolver,
+    CreditsafeAPI,
+    CreditsafeService,
   ],
 })
 export class AppModule {}

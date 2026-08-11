@@ -231,11 +231,13 @@ type User {
   purchases: [Purchase!]!
   sales: [Purchase!]!
   rating: Float
+  reviewCount: Int!
   likedProducts(offset: Int, limit: Int): ProductsResponse
   likedProjects: [Project!]
   location: LocationResponse
   reviewed: [Review!]!
   payoutAccount: PayoutAccount
+  balance: StripeBalance
   recommendedProducts(input: RecommendedProductsInput!, limit: Int, offset: Int): [Product!]!
   totalCO2Savings: Float!
   totalCO2SavingsBuyer: Float!
@@ -243,6 +245,8 @@ type User {
   numberOfCompletedPurchases: Int!
   sellerAccount: SellerAccount
   isVerified: Boolean!
+  creditsafeCheckStatus: CreditsafeCheckStatusEnum!
+  creditsafeData: String
 }
 
 enum UserRoleEnum {
@@ -269,6 +273,13 @@ input RecommendedProductsInput {
 enum ProductsRecommendationSourceEnum {
   LIKES
   SEARCH_HISTORY
+}
+
+enum CreditsafeCheckStatusEnum {
+  NOT_CHECKED
+  MATCHED
+  NO_MATCH
+  COMPANY_ERROR
 }
 
 type Conversation {
@@ -311,7 +322,7 @@ type File {
   id: ID!
   name: String
   mimeType: String!
-  url: String!
+  url(width: Int): String!
 }
 
 type Brand {
@@ -624,6 +635,7 @@ type Article {
   title: String!
   slug: String!
   body: String!
+  isInternal: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -824,6 +836,11 @@ type PayoutAccount {
   bankName: String
 }
 
+type StripeBalance {
+  available: Float!
+  pending: Float!
+}
+
 type OnboardSellerAccountResponse {
   user: User!
   clientSecret: String!
@@ -982,6 +999,73 @@ type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
+type CmsRevenueStatisticsDataPoint {
+  date: String!
+  total: Float!
+}
+
+type CmsRevenueStatisticsResponse {
+  data: [CmsRevenueStatisticsDataPoint!]!
+}
+
+type CmsAverageOrderValueStatisticsDataPoint {
+  date: String!
+  average: Float!
+}
+
+type CmsAverageOrderValueStatisticsResponse {
+  data: [CmsAverageOrderValueStatisticsDataPoint!]!
+}
+
+type CmsActiveListingsByCategoryDataPoint {
+  category: String!
+  count: Int!
+}
+
+type CmsActiveListingsByCategoryResponse {
+  data: [CmsActiveListingsByCategoryDataPoint!]!
+}
+
+type CmsCo2SavingsStatisticsDataPoint {
+  date: String!
+  total: Float!
+}
+
+type CmsCo2SavingsStatisticsResponse {
+  data: [CmsCo2SavingsStatisticsDataPoint!]!
+}
+
+type CmsRepeatBuyerRateStatisticsDataPoint {
+  date: String!
+  total: Int!
+  repeat: Int!
+  percent: Float!
+}
+
+type CmsRepeatBuyerRateStatisticsResponse {
+  data: [CmsRepeatBuyerRateStatisticsDataPoint!]!
+}
+
+type CmsPurchaseFailureRateStatisticsDataPoint {
+  date: String!
+  total: Int!
+  failed: Int!
+  percent: Float!
+}
+
+type CmsPurchaseFailureRateStatisticsResponse {
+  data: [CmsPurchaseFailureRateStatisticsDataPoint!]!
+}
+
+type CmsAverageTimeToPublishStatisticsDataPoint {
+  date: String!
+  averageDays: Float!
+}
+
+type CmsAverageTimeToPublishStatisticsResponse {
+  data: [CmsAverageTimeToPublishStatisticsDataPoint!]!
+}
+
 type InitBankIDVerifyResponse {
   orderRef: String!
   autoStartToken: String!
@@ -1089,6 +1173,13 @@ type Query {
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
+  cmsRevenueStatistics(input: CmsRevenueStatisticsInput): CmsRevenueStatisticsResponse!
+  cmsAverageOrderValueStatistics(input: CmsAverageOrderValueStatisticsInput): CmsAverageOrderValueStatisticsResponse!
+  cmsActiveListingsByCategoryStatistics: CmsActiveListingsByCategoryResponse!
+  cmsCo2SavingsStatistics(input: CmsCo2SavingsStatisticsInput): CmsCo2SavingsStatisticsResponse!
+  cmsRepeatBuyerRateStatistics(input: CmsRepeatBuyerRateStatisticsInput): CmsRepeatBuyerRateStatisticsResponse!
+  cmsPurchaseFailureRateStatistics(input: CmsPurchaseFailureRateStatisticsInput): CmsPurchaseFailureRateStatisticsResponse!
+  cmsAverageTimeToPublishStatistics(input: CmsAverageTimeToPublishStatisticsInput): CmsAverageTimeToPublishStatisticsResponse!
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
   internalAdsOrganizationContext: InternalAdsOrganizationContext
   internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
@@ -1401,6 +1492,30 @@ input CmsInternalAdsInput {
   page: Int
   pageSize: Int
   searchString: String
+}
+
+input CmsRevenueStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsAverageOrderValueStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsCo2SavingsStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsRepeatBuyerRateStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPurchaseFailureRateStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsAverageTimeToPublishStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
 }
 
 type Mutation {
