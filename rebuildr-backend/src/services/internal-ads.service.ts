@@ -519,17 +519,25 @@ export class InternalAdsService {
       if (!title) throw BadUserInputException('Project title is required');
       project.title = title;
     }
-    if (input.description !== undefined) project.description = input.description;
+    if (input.description !== undefined)
+      project.description = input.description;
     return this.projectRepository.save(project);
   }
 
   async deleteInternalProject(currentUserId: string, projectId: string) {
     const project = await this.internalProject(currentUserId, projectId);
-    await this.productRepository.update(
-      { projectId: project.id },
-      { projectId: null, noProject: true },
-    );
-    await this.projectRepository.remove(project);
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.getRepository(Product).update(
+        {
+          projectId: project.id,
+          internalOrganizationId: project.internalOrganizationId,
+        },
+        { projectId: null, noProject: true },
+      );
+      await manager.getRepository(Project).remove(project);
+    });
+
     return true;
   }
 

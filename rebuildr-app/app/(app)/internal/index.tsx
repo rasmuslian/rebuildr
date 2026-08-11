@@ -78,23 +78,6 @@ export default function InternalAdsPage() {
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
 
-  useFocusEffect(
-    useCallback(() => {
-      searchContext.setSearchState({
-        dropdownVisible: false,
-        internalSearchData: undefined,
-        searchString: undefined,
-        completedSearchString: undefined,
-        searchScope: "internal",
-      });
-      if (typeof document === "undefined") return;
-      document.body.style.backgroundColor = primitives.accent100;
-      return () => {
-        document.body.style.backgroundColor = "";
-      };
-    }, [primitives.accent100, searchContext.setSearchState]),
-  );
-
   const { data, loading, refetch, fetchMore } = useQuery<
     InternalAdsPageQuery,
     InternalAdsPageQueryVariables
@@ -107,9 +90,30 @@ export default function InternalAdsPage() {
     fetchPolicy: "cache-and-network",
   });
 
-  const { data: projectsData } = useQuery<any>(INTERNAL_PROJECTS, {
-    variables: { input: {}, limit: 4, offset: 0 },
-  });
+  const { data: projectsData, refetch: refetchProjects } = useQuery<any>(
+    INTERNAL_PROJECTS,
+    {
+      variables: { input: {}, limit: 4, offset: 0 },
+    },
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      searchContext.setSearchState({
+        dropdownVisible: false,
+        internalSearchData: undefined,
+        searchString: undefined,
+        completedSearchString: undefined,
+        searchScope: "internal",
+      });
+      refetchProjects().catch(() => undefined);
+      if (typeof document === "undefined") return;
+      document.body.style.backgroundColor = primitives.accent100;
+      return () => {
+        document.body.style.backgroundColor = "";
+      };
+    }, [primitives.accent100, refetchProjects, searchContext.setSearchState]),
+  );
 
   const { data: batchData, refetch: refetchBatch } = useQuery<
     InternalAdImportBatchQuery,

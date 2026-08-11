@@ -11,7 +11,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import {
   DELETE_INTERNAL_PROJECT,
@@ -23,6 +23,7 @@ export default function InternalProjectPage() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const { isDesktop } = useScreenType();
   const [editing, setEditing] = useState(false);
+  const [deleteError, setDeleteError] = useState<string>();
   const { data, loading, refetch } = useQuery<any>(INTERNAL_PROJECT, {
     variables: { projectId },
     skip: !projectId,
@@ -31,22 +32,17 @@ export default function InternalProjectPage() {
   const [remove, { loading: removing }] = useMutation(DELETE_INTERNAL_PROJECT);
   const project = data?.internalProject;
 
-  const onDelete = () => {
-    Alert.alert(
-      "Radera projekt?",
-      "Annonserna tas bort från projektet, men finns kvar i Internlagret.",
-      [
-        { text: "Avbryt", style: "cancel" },
-        {
-          text: "Radera",
-          style: "destructive",
-          onPress: async () => {
-            await remove({ variables: { projectId } });
-            router.replace("/internal/projects");
-          },
-        },
-      ],
-    );
+  const onDelete = async () => {
+    setDeleteError(undefined);
+
+    try {
+      await remove({ variables: { projectId } });
+      router.replace("/internal/projects");
+      return true;
+    } catch {
+      setDeleteError("Projektet kunde inte raderas. Försök igen.");
+      return false;
+    }
   };
 
   if (loading) {
@@ -158,6 +154,7 @@ export default function InternalProjectPage() {
         open={editing}
         onClose={() => setEditing(false)}
         onDelete={onDelete}
+        deleteError={deleteError}
         removing={removing}
         onUpdated={async () => {
           setEditing(false);
@@ -173,11 +170,13 @@ function EditInternalProjectSheet({
   open,
   onClose,
   onDelete,
+  deleteError,
   removing,
   onUpdated,
 }: any) {
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description ?? "");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [update, { loading }] = useMutation(UPDATE_INTERNAL_PROJECT);
 
   useEffect(() => {
@@ -186,49 +185,82 @@ function EditInternalProjectSheet({
   }, [project.description, project.title]);
 
   return (
-    <SlideInSheet open={open} onClose={onClose} title="Redigera projekt">
-      <View style={{ gap: 24 }}>
-        <View style={{ gap: 8 }}>
-          <Label size="medium">Projektnamn</Label>
-          <TextInput value={title} onChange={setTitle} />
+    <SlideInSheet
+      open={open}
+      onClose={() => {
+        setConfirmingDelete(false);
+        onClose();
+      }}
+      title={confirmingDelete ? "Radera projekt" : "Redigera projekt"}
+    >
+      {confirmingDelete ? (
+        <View style={{ gap: 24 }}>
+          <Body size="medium" color="secondary">
+            Annonserna tas bort från projektet, men finns kvar i Internlagret.
+          </Body>
+          {!!deleteError && <Body color="error">{deleteError}</Body>}
+          <View style={{ gap: 12 }}>
+            <Button
+              label="Ja, radera projektet"
+              type="danger"
+              loading={removing}
+              onPress={async () => {
+                const deleted = await onDelete();
+                if (!deleted) return;
+                setConfirmingDelete(false);
+              }}
+            />
+            <Button
+              label="Avbryt"
+              type="outlined"
+              disabled={removing}
+              onPress={() => setConfirmingDelete(false)}
+            />
+          </View>
         </View>
-        <View style={{ gap: 8 }}>
-          <Label size="medium">Beskrivning</Label>
-          <TextInput
-            value={description}
-            onChange={setDescription}
-            placeholder="Beskriv projektet (valfritt)"
-            multiline
-            style={{ height: 144 }}
-          />
-        </View>
-        <View style={{ gap: 12 }}>
-          <Button
-            label="Spara ändringar"
-            loading={loading}
-            disabled={!title.trim()}
-            onPress={async () => {
-              await update({
-                variables: {
-                  input: {
-                    id: project.id,
-                    title: title.trim(),
-                    description: description.trim(),
+      ) : (
+        <View style={{ gap: 24 }}>
+          <View style={{ gap: 8 }}>
+            <Label size="medium">Projektnamn</Label>
+            <TextInput value={title} onChange={setTitle} />
+          </View>
+          <View style={{ gap: 8 }}>
+            <Label size="medium">Beskrivning</Label>
+            <TextInput
+              value={description}
+              onChange={setDescription}
+              placeholder="Beskriv projektet (valfritt)"
+              multiline
+              style={{ height: 144 }}
+            />
+          </View>
+          <View style={{ gap: 12 }}>
+            <Button
+              label="Spara ändringar"
+              loading={loading}
+              disabled={!title.trim()}
+              onPress={async () => {
+                await update({
+                  variables: {
+                    input: {
+                      id: project.id,
+                      title: title.trim(),
+                      description: description.trim(),
+                    },
                   },
-                },
-              });
-              await onUpdated();
-            }}
-          />
-          <Button
-            label="Radera projekt"
-            icon="trash"
-            type="outlined"
-            loading={removing}
-            onPress={onDelete}
-          />
+                });
+                await onUpdated();
+              }}
+            />
+            <Button
+              label="Radera projekt"
+              icon="trash"
+              type="outlined"
+              onPress={() => setConfirmingDelete(true)}
+            />
+          </View>
         </View>
-      </View>
+      )}
     </SlideInSheet>
   );
 }
