@@ -1484,16 +1484,6 @@ input CmsPurchaseStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
 
-input InternalProjectsInput {
-  searchString: String
-}
-
-input CmsInternalAdsInput {
-  page: Int
-  pageSize: Int
-  searchString: String
-}
-
 input CmsRevenueStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
@@ -1516,6 +1506,16 @@ input CmsPurchaseFailureRateStatisticsInput {
 
 input CmsAverageTimeToPublishStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input InternalProjectsInput {
+  searchString: String
+}
+
+input CmsInternalAdsInput {
+  page: Int
+  pageSize: Int
+  searchString: String
 }
 
 type Mutation {

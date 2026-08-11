@@ -555,7 +555,7 @@ export class InternalAdsService {
     product.address = context.organization.address;
     product.addressLocation = context.organization.addressLocation;
     product.pickupEnabled = true;
-    product.internalValidationIssues = this.validateInternalProduct(product, 0);
+    product.internalValidationIssues = this.validateInternalProduct(product);
     return this.productRepository.save(product);
   }
 
@@ -816,10 +816,7 @@ export class InternalAdsService {
     const invalidProducts = products
       .map((product) => ({
         product,
-        issues: this.validateInternalProduct(
-          product,
-          product.images?.length ?? 0,
-        ),
+        issues: this.validateInternalProduct(product),
       }))
       .filter(({ issues }) => issues.length > 0);
     if (invalidProducts.length) {
@@ -1094,7 +1091,7 @@ export class InternalAdsService {
   async importBatch(currentUserId: string, batchId: string) {
     const batch = await this.findBatchForUser(currentUserId, batchId);
     const productsWithUpdatedValidation = batch.products.filter((product) => {
-      const issues = this.validateInternalProduct(product, 0);
+      const issues = this.validateInternalProduct(product);
       if (
         issues.length === product.internalValidationIssues.length &&
         issues.every(
