@@ -89,11 +89,21 @@ export class UserLoader {
   private soldProductsLoader() {
     return new DataLoader<string, Product[]>(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          sellerId: In(userIds),
-          status: ProductStatus.SOLD,
-          visibility: ProductVisibility.PUBLIC,
-        },
+        where: [
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.SOLD,
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
+          },
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.SOLD,
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
       });
 
       const productsMap = userIds.map((userId) =>
@@ -106,14 +116,21 @@ export class UserLoader {
   private publishedProductsLoader() {
     return new DataLoader(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          seller: {
-            id: In(userIds),
+        where: [
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
           },
-          status: ProductStatus.PUBLISHED,
-          visibility: ProductVisibility.PUBLIC,
-          deletedAt: IsNull(),
-        },
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
       });
 
       const productsMap = userIds.map((userId) =>
@@ -126,14 +143,21 @@ export class UserLoader {
   private productsLoader() {
     return new DataLoader(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          seller: {
-            id: In(userIds),
+        where: [
+          {
+            sellerId: In(userIds),
+            status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
           },
-          status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
-          visibility: ProductVisibility.PUBLIC,
-          deletedAt: IsNull(),
-        },
+          {
+            sellerId: In(userIds),
+            status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
         order: { status: 'ASC', createdAt: 'DESC' },
       });
 
