@@ -4,7 +4,6 @@ import {
   File as GqlFile,
   ProductStatusEnum,
   UpsertProductQuery,
-  UpsertProductQueryVariables,
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
   UpsertProductPublishInternalAdDraftsMutation,
@@ -95,6 +94,25 @@ export const ANALYZE_PRODUCT_IMAGE = gql`
 export const UPSERT_PRODUCT = gql`
   query UpsertProduct($input: GetProductInput!) {
     product(input: $input) {
+      ...UpsertProductProductFragment
+    }
+    me {
+      id
+      isVerified
+      sellerAccount {
+        canReceivePayment
+      }
+    }
+  }
+  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
+
+// Internal ads must be fetched through internalAd, which verifies that the
+// current user belongs to the owning organization. The public product query
+// intentionally rejects private internal ads.
+export const UPSERT_INTERNAL_PRODUCT = gql`
+  query UpsertInternalProduct($productId: String!) {
+    internalAd(productId: $productId) {
       ...UpsertProductProductFragment
     }
     me {
@@ -249,16 +267,20 @@ export const UpsertProduct = ({
   const [showVerifyMe, setShowVerifyMe] = useState(false);
 
   const {
-    data,
+    data: queryData,
     loading: productLoading,
     refetch,
-  } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
-    UPSERT_PRODUCT,
-    {
-      variables: { input: { id: productId ?? "" } },
-      skip: !productId,
-    },
-  );
+  } = useQuery(internalMode ? UPSERT_INTERNAL_PRODUCT : UPSERT_PRODUCT, {
+    variables: internalMode
+      ? { productId: productId ?? "" }
+      : { input: { id: productId ?? "" } },
+    skip: !productId,
+  });
+  const data = (
+    internalMode && queryData
+      ? { ...queryData, product: queryData.internalAd }
+      : queryData
+  ) as UpsertProductQuery | undefined;
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -1151,6 +1173,7 @@ export const UpsertProduct = ({
             updateProgress={(progress) => setTransportationProgress(progress)}
             onBack={() => setStep("details")}
             badFields={fieldErrors}
+            internalMode={internalMode}
           />
         );
       case "preview":

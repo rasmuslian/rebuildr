@@ -51,18 +51,25 @@ export class Project {
   @Column({ nullable: true })
   contactPhone?: string;
 
-  @Field(() => String)
-  @Column()
-  address: string;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  address?: string;
 
   @Column('geometry', {
     spatialFeatureType: 'Point',
     srid: 4326,
+    nullable: true,
   })
-  addressLocation: Point;
+  addressLocation?: Point;
 
   @Column()
   userId: string;
+
+  /** NULL denotes an ordinary marketplace project; set for Internlagret projects. */
+  @Column({ nullable: true })
+  internalOrganizationId?: string;
+  @ManyToOne(() => User, { nullable: true })
+  internalOrganization?: User;
   @ManyToOne(() => User, (u) => u.projects)
   user: User;
 
@@ -79,10 +86,13 @@ export class Project {
   @JoinTable()
   likedBy: User[];
 
-  @Column()
-  mapPinId: string;
+  @Column({ nullable: true })
+  mapPinId?: string;
 
-  @OneToOne(() => MapPin, (mapPin) => mapPin.project, { cascade: true })
+  @OneToOne(() => MapPin, (mapPin) => mapPin.project, {
+    cascade: true,
+    nullable: true,
+  })
   @JoinColumn()
   mapPin: MapPin;
 

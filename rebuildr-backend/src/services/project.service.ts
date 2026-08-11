@@ -11,7 +11,7 @@ import {
   UpdateProjectInput,
   DeleteProjectInput,
 } from 'src/resolvers/project.resolver';
-import { DataSource, Point, Repository, ILike } from 'typeorm';
+import { DataSource, Point, Repository, ILike, IsNull } from 'typeorm';
 import { GeocodingService } from './geocoding.service';
 import {
   BadUserInputException,
@@ -38,12 +38,13 @@ export class ProjectService {
 
   async findOne(input: GetProjectInput) {
     return await this.projectRepository.findOne({
-      where: { id: input.id },
+      where: { id: input.id, internalOrganizationId: IsNull() },
     });
   }
 
   async findMany(input: { userId?: string; likedByUserIds?: string[] }) {
     const query = this.projectRepository.createQueryBuilder('project');
+    query.andWhere('project."internalOrganizationId" IS NULL');
 
     if (input.userId) {
       query.andWhere('project.userId = :userId', { userId: input.userId });
@@ -218,7 +219,7 @@ export class ProjectService {
   ) {
     const [project, user] = await Promise.all([
       await this.projectRepository.findOne({
-        where: { id: projectId },
+        where: { id: projectId, internalOrganizationId: IsNull() },
         relations: { likedBy: true },
       }),
       await this.userRepository.findOneBy({ id: userId }),

@@ -59,12 +59,13 @@ export class ProjectLoader {
         .createQueryBuilder('p');
 
       query
+        .innerJoin(Project, 'project', 'project.id = p."projectId"')
         .where('p."projectId" IN (:...projectIds)', { projectIds })
         .andWhere('p.status NOT IN (:...excludedStatuses)', {
           excludedStatuses: [ProductStatus.DELETED, ProductStatus.DRAFT],
         })
         .andWhere(
-          '(p.visibility = :publicVisibility OR (p.visibility = :internalVisibility AND p."publiclyAvailable" = true))',
+          '((project."internalOrganizationId" IS NULL AND (p.visibility = :publicVisibility OR (p.visibility = :internalVisibility AND p."publiclyAvailable" = true))) OR (project."internalOrganizationId" IS NOT NULL AND p.visibility = :internalVisibility))',
           {
             publicVisibility: ProductVisibility.PUBLIC,
             internalVisibility: ProductVisibility.INTERNAL,

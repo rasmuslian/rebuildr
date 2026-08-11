@@ -27,10 +27,12 @@ import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
+import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { Search } from "@components/search/search";
+import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label, Title } from "@components/typography/text";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
@@ -41,6 +43,7 @@ import { useSearchContext } from "@context/search-context";
 import { useDocumentHandler } from "@hooks/use-document-handler";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { INTERNAL_PROJECTS } from "@/queries/internal-projects";
 import { Icon } from "@icons/icon";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -102,6 +105,10 @@ export default function InternalAdsPage() {
       offset: 0,
     },
     fetchPolicy: "cache-and-network",
+  });
+
+  const { data: projectsData } = useQuery<any>(INTERNAL_PROJECTS, {
+    variables: { input: {}, limit: 4, offset: 0 },
   });
 
   const { data: batchData, refetch: refetchBatch } = useQuery<
@@ -442,8 +449,52 @@ export default function InternalAdsPage() {
             paddingBottom: 32,
             paddingTop: isDesktop ? 44 : 16,
             minHeight: 420,
+            width: "100%",
+            maxWidth: 1590,
+            alignSelf: "center",
           }}
         >
+          {hasAccess && (
+            <View style={{ gap: 16, marginBottom: isDesktop ? 48 : 32 }}>
+              <SectionHeader
+                onPress={() => router.navigate("/internal/projects")}
+                buttonTitle={isDesktop ? "Visa alla" : undefined}
+              >
+                Interna projekt
+              </SectionHeader>
+              {(projectsData?.internalProjects.projects ?? []).length ? (
+                <InternalProjectGrid
+                  projects={projectsData.internalProjects.projects}
+                  onProjectPress={(projectId) =>
+                    router.navigate({
+                      pathname: "/internal/projects/[projectId]",
+                      params: { projectId },
+                    } as any)
+                  }
+                />
+              ) : (
+                <View style={{ gap: 8, maxWidth: 560 }}>
+                  <Body size="medium" color="secondary">
+                    Samla interna annonser som hör till samma projekt.
+                  </Body>
+                  <Button
+                    label="Skapa projekt"
+                    type="outlined"
+                    onPress={() =>
+                      router.navigate({
+                        pathname: "/internal/projects",
+                        params: {
+                          action: "create",
+                          t: Date.now().toString(),
+                        },
+                      })
+                    }
+                    style={{ alignSelf: "flex-start", marginTop: 8 }}
+                  />
+                </View>
+              )}
+            </View>
+          )}
           {loading && !data ? (
             <LoadingSpinner />
           ) : !hasAccess ? (
@@ -539,6 +590,7 @@ export default function InternalAdsPage() {
 
       {editorProductId && (
         <UpsertProduct
+          key={editorProductId}
           productId={editorProductId}
           mode="edit"
           visible={showEditor}

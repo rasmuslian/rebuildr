@@ -30,6 +30,7 @@ import { AdditionalInfoSection } from "@components/product/additional-info-secti
 import { CO2Section } from "@components/product/co2-section";
 import { primitives } from "@constants/colors";
 import { AvailabilitySection } from "./availability-section";
+import { ProjectChips } from "./project-chips";
 
 type Props = {
   product: ProductFields;
@@ -307,11 +308,14 @@ export const Details = ({
             }}
           />
           {internalMode && (
-            <AvailabilitySection
-              product={product}
-              update={update}
-              error={badFields?.["availability"]}
-            />
+            <>
+              <ProjectChips product={product} update={update} internalMode />
+              <AvailabilitySection
+                product={product}
+                update={update}
+                error={badFields?.["availability"]}
+              />
+            </>
           )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>
             <View

@@ -321,6 +321,18 @@ export class UserLoader {
     });
   }
 
+  private projectsLoader() {
+    return new DataLoader<string, Project[]>(async (userIds) => {
+      const projects = await this.dataSource.getRepository(Project).find({
+        where: { userId: In([...userIds]), internalOrganizationId: IsNull() },
+        order: { createdAt: 'DESC' },
+      });
+      return userIds.map((userId) =>
+        projects.filter((project) => project.userId === userId),
+      );
+    });
+  }
+
   private numberOfCompletedPurchases() {
     return new DataLoader<string, number>(async (userIds) => {
       const counts: { userId: string; count: string }[] = await this.dataSource
@@ -341,10 +353,7 @@ export class UserLoader {
   createLoaders(): IUserLoaders {
     return {
       getUserLoader: this.getUserLoader(),
-      projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
-        'projects',
-        User,
-      ),
+      projectsLoader: this.projectsLoader(),
       getSearchResultsLoader: (input: GetSearchResultsInput) =>
         this.getSearchResultsLoader(input),
       soldProductsLoader: this.soldProductsLoader(),

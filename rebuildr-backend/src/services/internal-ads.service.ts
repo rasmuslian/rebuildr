@@ -36,6 +36,7 @@ import {
   ProductVisibility,
 } from 'src/entities/product.entity';
 import { MapPinTypeEnum } from 'src/entities/map-pin.entity';
+import { Project } from 'src/entities/project.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
   BadFieldsInputException,
@@ -99,6 +100,8 @@ export class InternalAdsService {
     private userRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @InjectRepository(File)
@@ -437,6 +440,97 @@ export class InternalAdsService {
       throw BadUserInputException(
         'Användaren är redan medlem i en annan organisation',
       );
+  }
+
+  async internalProjects(
+    currentUserId: string,
+    input: { searchString?: string },
+    limit = 20,
+    offset = 0,
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const query = this.projectRepository
+      .createQueryBuilder('project')
+      .where('project."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .orderBy('project."createdAt"', 'DESC')
+      .take(Math.min(limit, 40))
+      .skip(offset * limit);
+    if (input.searchString?.trim()) {
+      query.andWhere(
+        '(project.title ILIKE :search OR project.description ILIKE :search)',
+        { search: `%${input.searchString.trim()}%` },
+      );
+    }
+    const [projects, total] = await query.getManyAndCount();
+    return { projects, total };
+  }
+
+  async internalProject(currentUserId: string, projectId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const project = await this.projectRepository.findOneBy({
+      id: projectId,
+      internalOrganizationId: context.organization.id,
+    });
+    if (!project) throw NotFoundException('Internal project not found');
+    return project;
+  }
+
+  async internalProjectProducts(currentUserId: string, projectId: string) {
+    const project = await this.internalProject(currentUserId, projectId);
+    return this.productRepository.find({
+      where: {
+        projectId: project.id,
+        visibility: ProductVisibility.INTERNAL,
+        internalOrganizationId: project.internalOrganizationId,
+        status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+        hiddenReason: IsNull(),
+      },
+      relations: { images: true },
+      order: { status: 'ASC', createdAt: 'DESC' },
+    });
+  }
+
+  async createInternalProject(
+    currentUserId: string,
+    input: { title: string; description?: string },
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const title = input.title.trim();
+    if (!title) throw BadUserInputException('Project title is required');
+    return this.projectRepository.save(
+      this.projectRepository.create({
+        title,
+        description: input.description?.trim() || null,
+        userId: context.organization.id,
+        internalOrganizationId: context.organization.id,
+      }),
+    );
+  }
+
+  async updateInternalProject(
+    currentUserId: string,
+    input: { id: string; title?: string; description?: string },
+  ) {
+    const project = await this.internalProject(currentUserId, input.id);
+    if (input.title !== undefined) {
+      const title = input.title.trim();
+      if (!title) throw BadUserInputException('Project title is required');
+      project.title = title;
+    }
+    if (input.description !== undefined) project.description = input.description;
+    return this.projectRepository.save(project);
+  }
+
+  async deleteInternalProject(currentUserId: string, projectId: string) {
+    const project = await this.internalProject(currentUserId, projectId);
+    await this.productRepository.update(
+      { projectId: project.id },
+      { projectId: null, noProject: true },
+    );
+    await this.projectRepository.remove(project);
+    return true;
   }
 
   async createInternalDraft(currentUserId: string) {

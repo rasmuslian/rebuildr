@@ -130,11 +130,11 @@ type Project {
   contactName: String
   contactEmail: String
   contactPhone: String
-  address: String!
+  address: String
   showDetailsOnMap: Boolean!
   likedByMe: Boolean
-  location: LocationResponse!
-  approximatePlace: ApproximatePlaceResponse!
+  location: LocationResponse
+  approximatePlace: ApproximatePlaceResponse
   products(searchString: String): [Product!]!
   projectPicture: File
   user: User!
@@ -1014,6 +1014,11 @@ type CreateInternalAdImportBatchResponse {
   uploadUrls: [String!]!
 }
 
+type PaginatedInternalProjectsResponse {
+  projects: [Project!]!
+  total: Int!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -1086,6 +1091,8 @@ type Query {
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
   internalAdsOrganizationContext: InternalAdsOrganizationContext
+  internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
+  internalProject(projectId: ID!): Project!
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
   relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
@@ -1386,6 +1393,10 @@ input CmsPurchaseStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
 }
 
+input InternalProjectsInput {
+  searchString: String
+}
+
 input CmsInternalAdsInput {
   page: Int
   pageSize: Int
@@ -1474,6 +1485,9 @@ type Mutation {
   cmsUpdateNewsletterCompetition(input: CmsUpdateNewsletterCompetitionInput!): CmsUpdateNewsletterCompetitionResponse!
   initBankIDVerify: InitBankIDVerifyResponse!
   resetUserIdentity(userId: String!): Boolean!
+  createInternalProject(input: CreateInternalProjectInput!): Project!
+  updateInternalProject(input: UpdateInternalProjectInput!): Project!
+  deleteInternalProject(projectId: ID!): Boolean!
   inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
   acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
   updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
@@ -2018,6 +2032,17 @@ input CmsUpdateNewsletterCompetitionInput {
   bodyText: String!
   nextDrawDate: DateTime!
   productImage: FileInputType
+}
+
+input CreateInternalProjectInput {
+  title: String!
+  description: String
+}
+
+input UpdateInternalProjectInput {
+  title: String!
+  description: String
+  id: ID!
 }
 
 input InviteOrganizationMemberInput {

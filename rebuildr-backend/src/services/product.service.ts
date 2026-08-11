@@ -71,6 +71,7 @@ import { ConversationService } from './conversation.service';
 import { SearchEnrichmentService } from './search-enrichment.service';
 import { Brand } from 'src/entities/brand.entity';
 import { OrganizationMemberRole } from 'src/entities/organization-membership.entity';
+import { Project } from 'src/entities/project.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
@@ -94,6 +95,8 @@ export class ProductService {
     private userRepository: Repository<User>,
     @InjectRepository(Brand)
     private brandRepository: Repository<Brand>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private conversationService: ConversationService,
@@ -387,6 +390,17 @@ export class ProductService {
       product.projectId = input.projectId;
       if (!input.projectId) {
         product.project = null;
+      }
+    }
+
+    if (input.projectId) {
+      const project = await this.projectRepository.findOneBy({ id: input.projectId });
+      if (!project) throw BadUserInputException('Project not found');
+      const isInternalProduct = product.visibility === ProductVisibility.INTERNAL;
+      const matchingInternalProject =
+        project.internalOrganizationId === product.internalOrganizationId;
+      if (isInternalProduct !== !!project.internalOrganizationId || !matchingInternalProject) {
+        throw ForbiddenException('Project does not belong to this product context');
       }
     }
 
@@ -1161,6 +1175,12 @@ export class ProductService {
   }
 
   async address(product: Product) {
+    // Internal projects intentionally have no address. Internal ads retain the
+    // organization/product address and must not be resolved through the public
+    // ProjectService (which correctly hides internal projects).
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      return product.address;
+    }
     if (product.projectId) {
       const project = await this.projectService.findOne({
         id: product.projectId,
@@ -1173,6 +1193,13 @@ export class ProductService {
     return product.address;
   }
   async location(product: Product) {
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      if (!product.addressLocation) return null;
+      return {
+        lat: product.addressLocation.coordinates[0],
+        lng: product.addressLocation.coordinates[1],
+      };
+    }
     if (product.projectId) {
       const project = await this.projectService.findOne({
         id: product.projectId,

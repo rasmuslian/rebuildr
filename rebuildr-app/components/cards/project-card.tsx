@@ -26,15 +26,27 @@ type Props = {
   project: ProjectCardProject;
   /** When provided, shows an edit (pencil) affordance on the card. */
   onEdit?: () => void;
+  onPress?: () => void;
+  showOwner?: boolean;
 };
 
-export const ProjectCard = ({ showHeart, project, onEdit }: Props) => {
+export const ProjectCard = ({
+  showHeart,
+  project,
+  onEdit,
+  onPress,
+  showOwner = true,
+}: Props) => {
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
 
   return (
     <Pressable
       onPress={() => {
+        if (onPress) {
+          onPress();
+          return;
+        }
         router.navigate({
           pathname: "/(app)/project/[projectId]",
           params: { projectId: project.id },
@@ -117,23 +129,25 @@ export const ProjectCard = ({ showHeart, project, onEdit }: Props) => {
         <View
           style={{
             flexDirection: "row",
-            gap: 16,
+            gap: showOwner ? 16 : 0,
             alignItems: "center",
           }}
         >
-          <Avatar
-            imageUrl={project.user.profilePicture?.url}
-            placeholder="PROJECT"
-          />
-          <View style={{ gap: 2 }}>
+          {showOwner && (
+            <Avatar
+              imageUrl={project.user.profilePicture?.url}
+              placeholder="PROJECT"
+            />
+          )}
+          <View style={{ gap: 2, flex: 1 }}>
             <Label size="large">{project.title}</Label>
-            <Body size="small">
+            <Body size="small" color="secondary">
               {
                 project.products.filter(
                   (p) => p.status === ProductStatusEnum.Published,
                 ).length
               }{" "}
-              annonser till salu
+              {showOwner ? "annonser till salu" : "interna annonser"}
             </Body>
           </View>
         </View>

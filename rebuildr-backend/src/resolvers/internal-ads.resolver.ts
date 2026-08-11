@@ -28,6 +28,7 @@ import {
   OrganizationMembership,
 } from 'src/entities/organization-membership.entity';
 import { Product } from 'src/entities/product.entity';
+import { Project } from 'src/entities/project.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import {
@@ -134,6 +135,36 @@ class CreateInternalAdImportBatchInput {
 }
 
 @InputType()
+class InternalProjectsInput {
+  @Field({ nullable: true })
+  searchString?: string;
+}
+
+@InputType()
+class CreateInternalProjectInput {
+  @Field()
+  title: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+class UpdateInternalProjectInput extends CreateInternalProjectInput {
+  @Field(() => ID)
+  id: string;
+}
+
+@ObjectType()
+class PaginatedInternalProjectsResponse {
+  @Field(() => [Project])
+  projects: Project[];
+
+  @Field(() => Int)
+  total: number;
+}
+
+@InputType()
 class CmsInternalAdsInput {
   @Field(() => Int, { nullable: true })
   page?: number;
@@ -153,6 +184,53 @@ export class InternalAdsResolver {
   @UseGuards(GqlAuthGuard)
   async internalAdsOrganizationContext(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.getOptionalOrganizationContext(user.id);
+  }
+
+  @Query(() => PaginatedInternalProjectsResponse)
+  @UseGuards(GqlAuthGuard)
+  async internalProjects(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: InternalProjectsInput,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+    @Args('offset', { nullable: true, type: () => Int }) offset?: number,
+  ) {
+    return this.internalAdsService.internalProjects(user.id, input, limit, offset);
+  }
+
+  @Query(() => Project)
+  @UseGuards(GqlAuthGuard)
+  async internalProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('projectId', { type: () => ID }) projectId: string,
+  ) {
+    return this.internalAdsService.internalProject(user.id, projectId);
+  }
+
+  @Mutation(() => Project)
+  @UseGuards(GqlAuthGuard)
+  async createInternalProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: CreateInternalProjectInput,
+  ) {
+    return this.internalAdsService.createInternalProject(user.id, input);
+  }
+
+  @Mutation(() => Project)
+  @UseGuards(GqlAuthGuard)
+  async updateInternalProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: UpdateInternalProjectInput,
+  ) {
+    return this.internalAdsService.updateInternalProject(user.id, input);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async deleteInternalProject(
+    @CurrentUser() user: AuthedUserType,
+    @Args('projectId', { type: () => ID }) projectId: string,
+  ) {
+    return this.internalAdsService.deleteInternalProject(user.id, projectId);
   }
 
   @Query(() => PaginatedProductsResponse)

@@ -19,6 +19,7 @@ type Props = {
   nextIsDisabled: boolean;
   badFields?: { [key: string]: string };
   updateProgress: (progress: number) => void;
+  internalMode?: boolean;
 };
 
 export const Transportation = ({
@@ -29,6 +30,7 @@ export const Transportation = ({
   nextIsDisabled,
   badFields,
   updateProgress,
+  internalMode = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [addressEditLock, setAddressEditLock] = useState(false);
@@ -104,7 +106,11 @@ export const Transportation = ({
 
   return (
     <View style={{ gap: 24, marginTop: 24 }}>
-      <ProjectChips product={product} update={update} />
+      <ProjectChips
+        product={product}
+        update={update}
+        internalMode={internalMode}
+      />
       <Display size="small">Leverans</Display>
       <View style={{ gap: 16, paddingBottom: 16 }}>
         <Suspense fallback={<LoadingSpinner />}>

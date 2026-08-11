@@ -99,6 +99,9 @@ export const Preview = ({ product, dbProductId, internalMode }: Props) => {
     skip: !product.categoryIds?.[1],
   });
 
+  // Private internal ads are intentionally unavailable through product().
+  // This lookup is only used for the optional CO₂ summary, so skip it for
+  // internal mode rather than querying the public marketplace endpoint.
   const { data: productData } = useQuery<
     PreviewProductUpsertQuery,
     PreviewProductUpsertQueryVariables
@@ -106,6 +109,7 @@ export const Preview = ({ product, dbProductId, internalMode }: Props) => {
     variables: {
       input: { id: dbProductId },
     },
+    skip: internalMode,
   });
   const { data: brandData } = useQuery<
     ProductBottomSheetPreviewBrandQuery,

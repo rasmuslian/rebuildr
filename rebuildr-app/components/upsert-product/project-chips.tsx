@@ -4,25 +4,31 @@ import { CreateProjectInline } from "@components/project/create-project-inline";
 import { Body, Display, Headline } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
+import { router } from "expo-router";
 import { View } from "react-native";
-import {
-  ProductBottomSheetProjectGetProjectQuery,
-  ProductBottomSheetProjectGetProjectQueryVariables,
-  ProductBottomSheetProjectMyProjectsQuery,
-} from "@/gql/graphql";
 import { ProductFields } from "./types";
 
 const PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS = gql`
-  query ProductBottomSheetProjectMyProjects {
-    myProjects {
+  query ProductBottomSheetProjectMyProjects($internalMode: Boolean!) {
+    myProjects @skip(if: $internalMode) {
       id
       title
+    }
+    internalProjects(input: {}) @include(if: $internalMode) {
+      projects {
+        id
+        title
+      }
     }
   }
 `;
 const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
-  query ProductBottomSheetProjectGetProject($input: GetProjectInput!) {
-    getProject(input: $input) {
+  query ProductBottomSheetProjectGetProject(
+    $input: GetProjectInput!
+    $projectId: ID!
+    $internalMode: Boolean!
+  ) {
+    getProject(input: $input) @skip(if: $internalMode) {
       id
       title
       contactName
@@ -39,6 +45,10 @@ const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
         address
       }
     }
+    internalProject(projectId: $projectId) @include(if: $internalMode) {
+      id
+      title
+    }
   }
 `;
 
@@ -47,9 +57,14 @@ export const NEW_PROJECT_ID = "NEW_PROJECT_ID";
 type Props = {
   product: ProductFields;
   update: (product: Partial<ProductFields>) => void;
+  internalMode?: boolean;
 };
 
-export const ProjectChips = ({ product, update }: Props) => {
+export const ProjectChips = ({
+  product,
+  update,
+  internalMode = false,
+}: Props) => {
   const [showCreate, setShowCreate] = useState(false);
   const colors = useThemeColor();
 
@@ -61,38 +76,42 @@ export const ProjectChips = ({ product, update }: Props) => {
     paddingHorizontal: 8,
   };
 
-  const { data, refetch } = useQuery<ProductBottomSheetProjectMyProjectsQuery>(
+  const { data, refetch } = useQuery<any>(
     PRODUCT_BOTTOM_SHEET_PROJECT_MY_PROJECTS,
+    { variables: { internalMode } },
   );
-  const [getProject] = useLazyQuery<
-    ProductBottomSheetProjectGetProjectQuery,
-    ProductBottomSheetProjectGetProjectQueryVariables
-  >(PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT);
+  const [getProject] = useLazyQuery<any>(
+    PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT,
+  );
 
   //only shown to users who already have projects (one-tap reuse + address
   //autofill). Everyone else gets their first project via the post-publish
   //suggestion ("N annonser på samma adress — samla dem i ett projekt?"),
   //which carries the explanation at the moment it makes sense.
-  const myProjects = data?.myProjects ?? [];
-  if (!myProjects.length) {
-    return null;
-  }
-
+  const myProjects = internalMode
+    ? ((data as any)?.internalProjects?.projects ?? [])
+    : (data?.myProjects ?? []);
   const selectedId =
     product.project?.id !== NEW_PROJECT_ID ? product.project?.id : undefined;
 
   const onSelect = async (id: string) => {
     const { data: projectData } = await getProject({
-      variables: { input: { id } },
+      variables: { input: { id }, projectId: id, internalMode },
     });
-    const project = projectData?.getProject;
+    const project = internalMode
+      ? (projectData as any)?.internalProject
+      : projectData?.getProject;
     if (!project) return;
     update({
       noProject: false,
       project: { id },
-      address: project.address,
-      location: project.location,
-      approximatePlace: project.approximatePlace,
+      ...(internalMode
+        ? {}
+        : {
+            address: project.address,
+            location: project.location,
+            approximatePlace: project.approximatePlace,
+          }),
     });
   };
 
@@ -111,8 +130,9 @@ export const ProjectChips = ({ product, update }: Props) => {
       <Display size="small">Projekt</Display>
       <Headline size="small">Hör annonsen till ett projekt?</Headline>
       <Body size="medium">
-        Valfritt — adressen fylls i automatiskt och köpare ser fler annonser
-        från samma projekt.
+        {internalMode
+          ? "Valfritt — samla annonser som hör till samma interna projekt."
+          : "Valfritt — adressen fylls i automatiskt och köpare ser fler annonser från samma projekt."}
       </Body>
       <View
         style={{
@@ -122,7 +142,7 @@ export const ProjectChips = ({ product, update }: Props) => {
           marginTop: 8,
         }}
       >
-        {myProjects.map((p) => (
+        {myProjects.map((p: { id: string; title: string }) => (
           <FilterChip
             key={p.id}
             label={p.title}
@@ -133,14 +153,36 @@ export const ProjectChips = ({ product, update }: Props) => {
             }
           />
         ))}
-        <FilterChip
-          label="+ Nytt projekt"
-          selected={showCreate}
-          style={showCreate ? undefined : unselectedChipStyle}
-          onPress={() => setShowCreate(!showCreate)}
-        />
+        {!internalMode && (
+          <FilterChip
+            label="+ Nytt projekt"
+            selected={showCreate}
+            style={showCreate ? undefined : unselectedChipStyle}
+            onPress={() => setShowCreate(!showCreate)}
+          />
+        )}
       </View>
-      {showCreate && (
+      {internalMode && !myProjects.length && (
+        <View style={{ gap: 8, marginTop: 4 }}>
+          <Body size="small" color="secondary">
+            Du har inga interna projekt ännu.
+          </Body>
+          <Body
+            size="small"
+            color="link"
+            isLink
+            onPress={() =>
+              router.navigate({
+                pathname: "/internal/projects",
+                params: { action: "create", t: Date.now().toString() },
+              })
+            }
+          >
+            Skapa ett internt projekt
+          </Body>
+        </View>
+      )}
+      {!internalMode && showCreate && (
         <View style={{ marginTop: 8 }}>
           <CreateProjectInline
             onCreate={onProjectCreated}

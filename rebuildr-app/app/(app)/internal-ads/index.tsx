@@ -541,6 +541,7 @@ export default function InternalAdsPage() {
 
       {editorProductId && (
         <UpsertProduct
+          key={editorProductId}
           productId={editorProductId}
           mode="edit"
           visible={showEditor}
