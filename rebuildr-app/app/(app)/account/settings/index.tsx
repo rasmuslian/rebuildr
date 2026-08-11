@@ -1,7 +1,4 @@
-import {
-  SettingsQuery,
-  UserType,
-} from "@/gql/graphql";
+import { SettingsQuery, UserType } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { AccountState } from "@components/account/account-wrapper.desktop";
 import { LinkEntry } from "@components/account/link-entry";
@@ -84,7 +81,7 @@ export default function Settings({ onBack, onNavigation }: Props) {
         )}
       </View>
       <Divider />
-<LinkEntry
+      <LinkEntry
         label="Radera ditt RebuildRkonto"
         body="Ta bort ditt konto och all tillhörande data."
         link={onNavigation ? undefined : "/account/settings/delete-account"}
@@ -93,4 +90,3 @@ export default function Settings({ onBack, onNavigation }: Props) {
     </ScreenLayout>
   );
 }
-

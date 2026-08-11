@@ -8,16 +8,13 @@ import { ImageStyle, TextStyle, ViewStyle } from "react-native";
 type RNStyles = ViewStyle | TextStyle | ImageStyle;
 
 type BasicStyle<T> = {
-  // eslint-disable-next-line no-unused-vars
   [P in keyof T]: RNStyles;
 };
 export type ResponsiveStyle<T> = {
-  // eslint-disable-next-line no-unused-vars
   [P in keyof T]: RNStyles & ResponsiveStyleType;
 };
 
 export type ResponsiveStyleType = {
-  // eslint-disable-next-line no-unused-vars
   [key in keyof MediaBreakPoints]?: RNStyles;
 };
 

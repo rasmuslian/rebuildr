@@ -24,20 +24,17 @@ export const NewArrivals = () => {
   const { data, refetch } = useQuery<
     AdRowSectionQuery,
     AdRowSectionQueryVariables
-  >(
-    AD_ROW_SECTION,
-    {
-      variables: {
-        input: {
-          excludeOwnProducts: true,
-          orderBy: OrderProductsEnum.Latest,
-        },
-        limit: isDesktop ? 4 : 10,
-        offset: 0,
-        isLoggedIn,
+  >(AD_ROW_SECTION, {
+    variables: {
+      input: {
+        excludeOwnProducts: true,
+        orderBy: OrderProductsEnum.Latest,
       },
+      limit: isDesktop ? 4 : 10,
+      offset: 0,
+      isLoggedIn,
     },
-  );
+  });
 
   useFocusEffect(
     useCallback(() => {

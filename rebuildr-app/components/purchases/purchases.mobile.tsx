@@ -6,10 +6,9 @@ import { PurchasesList } from "./purchases-list";
 
 type Props = {
   myPurchases: AccountPurchasesQuery["myPurchases"];
-}
+};
 
 export const PurchasesMobile = ({ myPurchases }: Props) => {
-
   return (
     <ScreenLayout headerComponent={<Header title="Dina köp" />}>
       <Display size="small" style={{ marginBottom: 24 }}>

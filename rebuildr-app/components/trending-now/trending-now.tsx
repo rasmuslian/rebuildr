@@ -4,7 +4,7 @@ import { AdGrid } from "@components/ad/ad-grid";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { router } from "expo-router";
-import { View, useWindowDimensions } from "react-native";
+import { View } from "react-native";
 import { useUser } from "@hooks/useUser";
 import {
   Category,
@@ -63,7 +63,6 @@ const TRENDING_NOW_QUERY = gql`
 `;
 
 export const TrendingNow = () => {
-  const { width: screenWidth } = useWindowDimensions();
   const { onToggleProductHeart } = useLikeProduct();
   const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();

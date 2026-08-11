@@ -20,7 +20,6 @@ import { TextInput } from "@components/forms/textInput";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Label } from "@components/typography/text";
-import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";

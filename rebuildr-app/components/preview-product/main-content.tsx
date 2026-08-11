@@ -19,7 +19,6 @@ import { measurements } from "@constants/measurements";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { formatPrice } from "@/utils/formattings";
 import { ProductFields } from "@components/upsert-product/types";
-import { SectionHeader } from "@components/sections/section-header";
 import { Breadcrumbs } from "./breadcrumbs";
 import { colorTypes } from "@constants/product-color-types";
 import { ncsToRgb } from "@/utils/color/ncsToRgb";

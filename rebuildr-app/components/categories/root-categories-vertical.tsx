@@ -9,7 +9,6 @@ import {
   RootCategoriesQueryVariables,
 } from "@/gql/graphql";
 import { ROOT_CATEGORIES } from "@/queries";
-import { useFilterProduct } from "@hooks/useFilterProduct";
 import { Avatar } from "@components/avatar/avatar";
 import { Icon } from "@icons/icon";
 
@@ -21,7 +20,6 @@ type Props = {
 };
 
 export function RootCategoriesVertical({ onNavigate }: Props) {
-  const { filterBuilder } = useFilterProduct();
   const { data } = useQuery<RootCategoriesQuery, RootCategoriesQueryVariables>(
     ROOT_CATEGORIES,
     {

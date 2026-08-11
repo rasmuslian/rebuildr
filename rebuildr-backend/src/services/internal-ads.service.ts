@@ -42,7 +42,6 @@ import {
   BadFieldsInputException,
   BadUserInputException,
   ForbiddenException,
-  InternalServerException,
   NotFoundException,
 } from 'src/exceptions';
 import { FileInputType } from 'src/resolvers/file.resolver';
@@ -68,13 +67,13 @@ import { MailService } from './mail.service';
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
 
-export type OrganizationContext = {
+export interface OrganizationContext {
   organization: User;
   role: OrganizationMemberRole;
   isOrganizationAccount: boolean;
-};
+}
 
-type ImportDraft = {
+interface ImportDraft {
   title?: string | null;
   description?: string | null;
   additionalInfo?: string | null;
@@ -89,7 +88,7 @@ type ImportDraft = {
   color?: string | null;
   sourceImageFileNames?: string[] | null;
   warnings?: string[] | null;
-};
+}
 
 @Injectable()
 export class InternalAdsService {
@@ -1298,16 +1297,13 @@ export class InternalAdsService {
       if (matchedImages.length) {
         await this.fileRepository.save(matchedImages);
       }
-      const issues = this.validateInternalProduct(
-        savedProduct,
-        matchedImages.length,
-      );
+      const issues = this.validateInternalProduct(savedProduct);
       savedProduct.internalValidationIssues = issues;
       await this.productRepository.save(savedProduct);
     }
   }
 
-  private validateInternalProduct(product: Product, imageCount: number) {
+  private validateInternalProduct(product: Product) {
     const issues: string[] = [];
     if (!product.title?.trim()) issues.push('Titel saknas');
     if (!product.description?.trim()) issues.push('Beskrivning saknas');

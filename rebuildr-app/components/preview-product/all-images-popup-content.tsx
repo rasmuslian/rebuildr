@@ -20,7 +20,7 @@ export const AllImagesPopupContent = ({ images }: Props) => {
       }}
     >
       {images.map((image, i) => (
-        <DynamicImage uri={image.url} key={i}/>
+        <DynamicImage uri={image.url} key={i} />
       ))}
       <View style={{ height: 8 }} />
     </ScrollView>
