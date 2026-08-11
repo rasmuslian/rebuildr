@@ -21,7 +21,7 @@ registerEnumType(OrganizationInviteStatus, {
 });
 
 @Entity()
-@Unique(['token'])
+@Unique(['tokenHash'])
 @ObjectType()
 export class OrganizationInvite {
   @Field(() => ID)
@@ -32,8 +32,8 @@ export class OrganizationInvite {
   @Column()
   email: string;
 
-  @Column()
-  token: string;
+  @Column({ unique: true })
+  tokenHash: string;
 
   @Field()
   @Column()
@@ -48,6 +48,7 @@ export class OrganizationInvite {
   @Column()
   invitedByUserId: string;
 
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.id)
   invitedByUser: User;
 
@@ -79,6 +80,10 @@ export class OrganizationInvite {
   @Field(() => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
   acceptedAt?: Date;
+
+  @Field(() => Date)
+  @Column({ type: 'timestamptz' })
+  expiresAt: Date;
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })

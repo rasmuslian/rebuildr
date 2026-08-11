@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import * as XLSX from 'xlsx';
 import * as crypto from 'crypto';
+import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { maximumProductPrice } from 'src/constants/pricing';
 import { Category } from 'src/entities/category.entity';
@@ -123,7 +124,9 @@ export class InternalAdsService {
       throw BadUserInputException('Invalid user');
     }
 
-    if (user.type === UserType.BUSINESS && user.internalAdsAccess) {
+    // internalAdsAccess identifies the organization/owner account. Some legacy
+    // organization accounts predate the BUSINESS type and must retain admin access.
+    if (user.internalAdsAccess) {
       return {
         organization: user,
         role: OrganizationMemberRole.ADMIN,
@@ -182,13 +185,27 @@ export class InternalAdsService {
   async invites(currentUserId: string) {
     const context = await this.getOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
-    return this.inviteRepository.find({
-      where: {
-        organizationId: context.organization.id,
-        status: OrganizationInviteStatus.PENDING,
-      },
-      order: { createdAt: 'DESC' },
-    });
+    return this.inviteRepository
+      .find({
+        where: {
+          organizationId: context.organization.id,
+          status: OrganizationInviteStatus.PENDING,
+        },
+        relations: { invitedByUser: true },
+        order: { createdAt: 'DESC' },
+      })
+      .then((invites) =>
+        invites.filter((invite) => invite.expiresAt > new Date()),
+      );
+  }
+
+  async organizationInvite(token: string) {
+    const invite = await this.findActiveInvite(token);
+    return {
+      organizationName:
+        invite.organization.name ?? invite.organization.username ?? 'RebuildR',
+      expiresAt: invite.expiresAt,
+    };
   }
 
   async inviteMember(
@@ -197,104 +214,122 @@ export class InternalAdsService {
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
-
-    const email = input.email.toLowerCase().trim();
-    const existingUser = await this.userRepository.findOneBy({ email });
-    if (existingUser) {
-      const alreadyMember = await this.membershipRepository.existsBy({
-        organizationId: context.organization.id,
-        userId: existingUser.id,
-      });
-      if (alreadyMember) {
-        throw BadUserInputException('User is already a member');
-      }
+    const parsedEmail = z.string().email().safeParse(input.email);
+    if (!parsedEmail.success) {
+      throw BadFieldsInputException([
+        { name: 'email', message: 'Ange en giltig e-postadress' },
+      ]);
     }
+    const email = parsedEmail.data.toLowerCase().trim();
+    await this.assertInviteeCanJoin(context.organization.id, email);
 
-    const invite = this.inviteRepository.create({
-      email,
+    const previous = await this.inviteRepository.findOneBy({
       organizationId: context.organization.id,
-      invitedByUserId: currentUserId,
-      role: input.role,
-      token: crypto.randomBytes(32).toString('hex'),
+      email,
       status: OrganizationInviteStatus.PENDING,
     });
-    const savedInvite = await this.inviteRepository.save(invite);
-    await this.mailService.sendOrganizationInviteEmail({
-      email,
-      organizationName:
-        context.organization.name ??
-        context.organization.username ??
-        'RebuildR',
-      token: savedInvite.token,
-    });
-    return savedInvite;
+    if (previous) previous.status = OrganizationInviteStatus.REVOKED;
+    if (previous) await this.inviteRepository.save(previous);
+    return this.createAndSendInvite(context, currentUserId, email, input.role);
   }
 
-  async acceptInvite(input: {
-    token: string;
-    username?: string;
-    password?: string;
-  }) {
-    const invite = await this.inviteRepository.findOne({
-      where: { token: input.token, status: OrganizationInviteStatus.PENDING },
-      relations: { organization: true },
+  async resendInvite(currentUserId: string, inviteId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    await this.assertOrganizationAdmin(context);
+    const invite = await this.inviteRepository.findOneBy({
+      id: inviteId,
+      organizationId: context.organization.id,
+      status: OrganizationInviteStatus.PENDING,
     });
-    if (!invite) {
+    if (!invite || invite.expiresAt <= new Date())
       throw NotFoundException('Invite not found');
-    }
+    invite.status = OrganizationInviteStatus.REVOKED;
+    await this.inviteRepository.save(invite);
+    return this.createAndSendInvite(
+      context,
+      currentUserId,
+      invite.email,
+      invite.role,
+    );
+  }
 
-    let user = await this.userRepository.findOneBy({ email: invite.email });
-    if (!user) {
-      if (!input.username || !input.password) {
+  async revokeInvite(currentUserId: string, inviteId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    await this.assertOrganizationAdmin(context);
+    const invite = await this.inviteRepository.findOneBy({
+      id: inviteId,
+      organizationId: context.organization.id,
+      status: OrganizationInviteStatus.PENDING,
+    });
+    if (!invite) throw NotFoundException('Invite not found');
+    invite.status = OrganizationInviteStatus.REVOKED;
+    return this.inviteRepository.save(invite);
+  }
+
+  async acceptInvite(
+    input: { token: string; username?: string; password?: string },
+    currentUserId?: string,
+  ) {
+    const invite = await this.findActiveInvite(input.token);
+    let user = currentUserId
+      ? await this.userRepository.findOneBy({ id: currentUserId })
+      : null;
+    if (user) {
+      if (user.email?.toLowerCase() !== invite.email)
+        throw ForbiddenException(
+          'Logga in med e-postadressen som fick inbjudan',
+        );
+    } else {
+      const existingUser = await this.userRepository.findOneBy({
+        email: invite.email,
+      });
+      if (existingUser)
+        throw ForbiddenException('Logga in för att acceptera inbjudan');
+      if (!input.username || !input.password)
         throw BadFieldsInputException([
           { name: 'username', message: 'Användarnamn krävs' },
           { name: 'password', message: 'Lösenord krävs' },
         ]);
-      }
-      const usernameTaken = await this.userRepository.existsBy({
-        username: input.username,
-      });
-      if (usernameTaken) {
+      if (await this.userRepository.existsBy({ username: input.username }))
         throw BadFieldsInputException([
           {
             name: 'username',
-            message: 'Username taken',
+            message: 'Användarnamnet är upptaget',
             type: 'VALUE_TAKEN',
           },
         ]);
-      }
       user = this.userRepository.create({
         email: invite.email,
         username: input.username,
         password: await bcrypt.hash(input.password, 10),
         emailVerifiedAt: new Date(),
-        type: UserType.BUSINESS,
+        type: UserType.PERSONAL,
       });
-    } else {
-      user.type = UserType.BUSINESS;
-      user.emailVerifiedAt = user.emailVerifiedAt ?? new Date();
-      if (input.username && !user.username) {
-        user.username = input.username;
-      }
-      if (input.password && !user.password) {
-        user.password = await bcrypt.hash(input.password, 10);
-      }
     }
-
-    const savedUser = await this.userRepository.save(user);
-    await this.membershipRepository.upsert(
-      {
+    await this.assertInviteeCanJoin(
+      invite.organizationId,
+      invite.email,
+      user.id,
+    );
+    return this.dataSource.transaction(async (manager) => {
+      const savedUser = await manager.getRepository(User).save(user);
+      const result = await manager.getRepository(OrganizationInvite).update(
+        { id: invite.id, status: OrganizationInviteStatus.PENDING },
+        {
+          status: OrganizationInviteStatus.ACCEPTED,
+          acceptedAt: new Date(),
+          acceptedByUserId: savedUser.id,
+        },
+      );
+      if (!result.affected)
+        throw BadUserInputException('Inbjudan har redan använts');
+      await manager.getRepository(OrganizationMembership).insert({
         organizationId: invite.organizationId,
         userId: savedUser.id,
         role: invite.role,
-      },
-      ['organizationId', 'userId'],
-    );
-    invite.status = OrganizationInviteStatus.ACCEPTED;
-    invite.acceptedAt = new Date();
-    invite.acceptedByUserId = savedUser.id;
-    await this.inviteRepository.save(invite);
-    return savedUser;
+      });
+      return savedUser;
+    });
   }
 
   async updateMemberRole(
@@ -303,15 +338,105 @@ export class InternalAdsService {
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
+    if (input.userId === currentUserId)
+      throw BadUserInputException('Du kan inte ändra din egen roll');
     const membership = await this.membershipRepository.findOne({
       where: { organizationId: context.organization.id, userId: input.userId },
       relations: { user: true },
     });
-    if (!membership) {
-      throw NotFoundException('Member not found');
-    }
+    if (!membership) throw NotFoundException('Member not found');
     membership.role = input.role;
     return this.membershipRepository.save(membership);
+  }
+
+  async removeMember(currentUserId: string, userId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    await this.assertOrganizationAdmin(context);
+    if (userId === currentUserId)
+      throw BadUserInputException('Du kan inte ta bort dig själv');
+    const result = await this.membershipRepository.delete({
+      organizationId: context.organization.id,
+      userId,
+    });
+    if (!result.affected) throw NotFoundException('Member not found');
+    return true;
+  }
+
+  private async createAndSendInvite(
+    context: OrganizationContext,
+    invitedByUserId: string,
+    email: string,
+    role: OrganizationMemberRole,
+  ) {
+    const token = crypto.randomBytes(32).toString('hex');
+    const invite = await this.inviteRepository.save(
+      this.inviteRepository.create({
+        email,
+        organizationId: context.organization.id,
+        invitedByUserId,
+        role,
+        tokenHash: this.hashToken(token),
+        status: OrganizationInviteStatus.PENDING,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      }),
+    );
+    try {
+      await this.mailService.sendOrganizationInviteEmail({
+        email,
+        organizationName:
+          context.organization.name ??
+          context.organization.username ??
+          'RebuildR',
+        token,
+      });
+      return invite;
+    } catch (error) {
+      await this.inviteRepository.update(invite.id, {
+        status: OrganizationInviteStatus.REVOKED,
+      });
+      throw error;
+    }
+  }
+
+  private async findActiveInvite(token: string) {
+    const invite = await this.inviteRepository.findOne({
+      where: {
+        tokenHash: this.hashToken(token),
+        status: OrganizationInviteStatus.PENDING,
+      },
+      relations: { organization: true },
+    });
+    if (!invite || invite.expiresAt <= new Date())
+      throw NotFoundException('Inbjudan är ogiltig eller har löpt ut');
+    return invite;
+  }
+
+  private hashToken(token: string) {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  private async assertInviteeCanJoin(
+    organizationId: string,
+    email: string,
+    userId?: string,
+  ) {
+    const user = userId
+      ? await this.userRepository.findOneBy({ id: userId })
+      : await this.userRepository.findOneBy({ email });
+    if (!user) return;
+    if (user.id === organizationId || user.type === UserType.BUSINESS)
+      throw BadUserInputException(
+        'Företagskonton kan inte bjudas in som medlemmar',
+      );
+    const membership = await this.membershipRepository.findOneBy({
+      userId: user.id,
+    });
+    if (membership?.organizationId === organizationId)
+      throw BadUserInputException('Användaren är redan medlem');
+    if (membership)
+      throw BadUserInputException(
+        'Användaren är redan medlem i en annan organisation',
+      );
   }
 
   async createInternalDraft(currentUserId: string) {
@@ -1380,7 +1505,10 @@ ${categoryList}
   }
 
   private async assertOrganizationAdmin(context: OrganizationContext) {
-    if (context.role !== OrganizationMemberRole.ADMIN) {
+    if (
+      !context.isOrganizationAccount &&
+      context.role !== OrganizationMemberRole.ADMIN
+    ) {
       throw ForbiddenException('Organization admin required');
     }
   }

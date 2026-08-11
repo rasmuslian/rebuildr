@@ -20,7 +20,8 @@
           align="center"
         >
           {{organizationName}} har bjudit in dig att hantera och reservera
-          interna annonser hos RebuildR.
+          interna annonser hos RebuildR. Inbjudan är personlig och giltig i sju
+          dagar.
         </mj-text>
         <mj-button
           href="{{inviteUrl}}"
@@ -31,6 +32,16 @@
         >
           Acceptera inbjudan
         </mj-button>
+        <mj-text
+          font-size="13px"
+          font-family="Roboto"
+          color="#555555"
+          line-height="1.5"
+        >
+          Medlemsrollen ger åtkomst till Internlagret. Administratörer kan även
+          bjuda in och hantera kollegor. Om knappen inte fungerar, öppna denna
+          länk: {{inviteUrl}}
+        </mj-text>
       </mj-column>
     </mj-section>
   </mj-body>

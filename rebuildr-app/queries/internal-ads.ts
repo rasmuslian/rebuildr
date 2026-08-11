@@ -205,15 +205,17 @@ export const ORGANIZATION_MEMBERS_PAGE = gql`
         username
       }
       role
+      isOrganizationAccount
     }
     organizationMembers {
       id
       role
+      createdAt
+      userEmail
       user {
         id
         name
         username
-        email
       }
     }
     organizationInvites {
@@ -222,6 +224,45 @@ export const ORGANIZATION_MEMBERS_PAGE = gql`
       role
       status
       createdAt
+      expiresAt
+      invitedByUser {
+        name
+        username
+      }
+    }
+  }
+`;
+
+export const RESEND_ORGANIZATION_INVITE = gql`
+  mutation ResendOrganizationInvite($input: OrganizationInviteIdInput!) {
+    resendOrganizationInvite(input: $input) {
+      id
+      expiresAt
+      createdAt
+    }
+  }
+`;
+
+export const REVOKE_ORGANIZATION_INVITE = gql`
+  mutation RevokeOrganizationInvite($input: OrganizationInviteIdInput!) {
+    revokeOrganizationInvite(input: $input) {
+      id
+      status
+    }
+  }
+`;
+
+export const REMOVE_ORGANIZATION_MEMBER = gql`
+  mutation RemoveOrganizationMember($input: RemoveOrganizationMemberInput!) {
+    removeOrganizationMember(input: $input)
+  }
+`;
+
+export const ORGANIZATION_INVITE = gql`
+  query OrganizationInvite($token: String!) {
+    organizationInvite(token: $token) {
+      organizationName
+      expiresAt
     }
   }
 `;
@@ -233,11 +274,11 @@ export const UPDATE_ORGANIZATION_MEMBER_ROLE = gql`
     updateOrganizationMemberRole(input: $input) {
       id
       role
+      userEmail
       user {
         id
         name
         username
-        email
       }
     }
   }
@@ -398,6 +439,7 @@ export const INTERNAL_ADS_MENU_CONTEXT = gql`
   query InternalAdsMenuContext {
     internalAdsOrganizationContext {
       role
+      isOrganizationAccount
       organization {
         id
       }

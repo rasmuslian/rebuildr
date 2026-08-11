@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
+  Context,
   Field,
   ID,
   InputType,
@@ -13,6 +14,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
+import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -45,6 +47,15 @@ class InternalAdsOrganizationContext {
 
   @Field()
   isOrganizationAccount: boolean;
+}
+
+@ObjectType()
+class OrganizationInvitePreview {
+  @Field()
+  organizationName: string;
+
+  @Field(() => Date)
+  expiresAt: Date;
 }
 
 @ObjectType()
@@ -84,6 +95,18 @@ class UpdateOrganizationMemberRoleInput {
 
   @Field(() => OrganizationMemberRole)
   role: OrganizationMemberRole;
+}
+
+@InputType()
+class OrganizationInviteIdInput {
+  @Field(() => ID)
+  inviteId: string;
+}
+
+@InputType()
+class RemoveOrganizationMemberInput {
+  @Field(() => ID)
+  userId: string;
 }
 
 @InputType()
@@ -189,6 +212,11 @@ export class InternalAdsResolver {
     return this.internalAdsService.myInternalDrafts(user.id, batchId);
   }
 
+  @Query(() => OrganizationInvitePreview, { nullable: true })
+  async organizationInvite(@Args('token') token: string) {
+    return this.internalAdsService.organizationInvite(token);
+  }
+
   @Query(() => [OrganizationMembership])
   @UseGuards(GqlAuthGuard)
   async organizationMembers(@CurrentUser() user: AuthedUserType) {
@@ -211,10 +239,26 @@ export class InternalAdsResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(GqlOptionalAuthGuard)
   async acceptOrganizationInvite(
     @Args('input') input: AcceptOrganizationInviteInput,
+    @Context('req') req: { user?: AuthedUserType },
+    @CurrentUser() user?: AuthedUserType,
   ) {
-    return this.internalAdsService.acceptInvite(input);
+    const acceptedUser = await this.internalAdsService.acceptInvite(
+      input,
+      user?.id,
+    );
+
+    // The mutation returns the invited user's protected email so the app can
+    // log a newly created account in. Treat that user as authenticated for the
+    // response fields after the invite token and password have been accepted.
+    req.user = {
+      id: acceptedUser.id,
+      email: acceptedUser.email,
+      role: acceptedUser.role,
+    };
+    return acceptedUser;
   }
 
   @Mutation(() => OrganizationMembership)
@@ -224,6 +268,33 @@ export class InternalAdsResolver {
     @Args('input') input: UpdateOrganizationMemberRoleInput,
   ) {
     return this.internalAdsService.updateMemberRole(user.id, input);
+  }
+
+  @Mutation(() => OrganizationInvite)
+  @UseGuards(GqlAuthGuard)
+  async resendOrganizationInvite(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: OrganizationInviteIdInput,
+  ) {
+    return this.internalAdsService.resendInvite(user.id, input.inviteId);
+  }
+
+  @Mutation(() => OrganizationInvite)
+  @UseGuards(GqlAuthGuard)
+  async revokeOrganizationInvite(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: OrganizationInviteIdInput,
+  ) {
+    return this.internalAdsService.revokeInvite(user.id, input.inviteId);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async removeOrganizationMember(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: RemoveOrganizationMemberInput,
+  ) {
+    return this.internalAdsService.removeMember(user.id, input.userId);
   }
 
   @Mutation(() => Product)
@@ -342,6 +413,11 @@ export class OrganizationMembershipResolver {
   @ResolveField(() => User)
   user(@Parent() membership: OrganizationMembership) {
     return membership.user;
+  }
+
+  @ResolveField(() => String, { nullable: true })
+  userEmail(@Parent() membership: OrganizationMembership) {
+    return membership.user.email;
   }
 
   @ResolveField(() => User)

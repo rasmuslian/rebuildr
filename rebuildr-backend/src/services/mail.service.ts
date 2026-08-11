@@ -67,14 +67,13 @@ const internalAdEventTemplate = fs.readFileSync(
   'utf8',
 );
 
-const MAILGUN_DOMAIN = 'rebuildr.se';
-
 @Injectable()
 export class MailService {
   private mailgun: Interfaces.IMailgunClient;
   private from: string;
   private baseUrl: string;
   private baseContext = {};
+  private mailgunDomain: string;
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -90,6 +89,7 @@ export class MailService {
       url: 'https://api.eu.mailgun.net',
     });
     this.baseUrl = process.env.WEB_BASE_URL;
+    this.mailgunDomain = process.env.MAILGUN_DOMAIN ?? 'rebuildr.se';
     this.from = 'RebuildR <noreply@rebuildr.se>';
   }
 
@@ -122,7 +122,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -147,7 +147,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -173,7 +173,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -212,7 +212,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -249,7 +249,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -277,7 +277,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -305,7 +305,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -329,7 +329,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -361,7 +361,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -387,7 +387,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -411,7 +411,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -440,7 +440,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -472,7 +472,7 @@ export class MailService {
       html,
     };
     try {
-      await this.mailgun.messages.create(MAILGUN_DOMAIN, data);
+      await this.mailgun.messages.create(this.mailgunDomain, data);
     } catch (e) {
       this.logger.error('error sending mail', { e });
       throw InternalServerException();
@@ -557,6 +557,14 @@ export class MailService {
     }
     if (template === 'welcomeIndividual') {
       await this.sendWelcomeIndividualEmail({ email: user.email });
+      return true;
+    }
+    if (template === 'organizationInvite') {
+      await this.sendOrganizationInviteEmail({
+        email: user.email,
+        organizationName: 'Testföretaget AB',
+        token: 'test-invite-token',
+      });
       return true;
     }
 

@@ -71,9 +71,11 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
     useQuery<InternalAdsMenuContextQuery>(INTERNAL_ADS_MENU_CONTEXT);
   const { logout, loading: logoutLoading } = useLogout();
   const me = data?.me;
+  const organizationContext =
+    internalAdsContextData?.internalAdsOrganizationContext;
   const isOrganizationAdmin =
-    internalAdsContextData?.internalAdsOrganizationContext?.role ===
-    OrganizationMemberRoleEnum.Admin;
+    organizationContext?.isOrganizationAccount ||
+    organizationContext?.role === OrganizationMemberRoleEnum.Admin;
 
   const handleLogout = async () => {
     await logout();

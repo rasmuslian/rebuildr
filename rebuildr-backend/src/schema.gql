@@ -171,6 +171,7 @@ type OrganizationMembership {
   createdAt: DateTime!
   updatedAt: DateTime!
   user: User!
+  userEmail: String
   organization: User!
 }
 
@@ -184,10 +185,12 @@ type OrganizationInvite {
   email: String!
   organizationId: String!
   invitedByUserId: String!
+  invitedByUser: User!
   role: OrganizationMemberRoleEnum!
   status: OrganizationInviteStatusEnum!
   acceptedByUserId: String
   acceptedAt: DateTime
+  expiresAt: DateTime!
   createdAt: DateTime!
 }
 
@@ -1001,6 +1004,11 @@ type InternalAdsOrganizationContext {
   isOrganizationAccount: Boolean!
 }
 
+type OrganizationInvitePreview {
+  organizationName: String!
+  expiresAt: DateTime!
+}
+
 type CreateInternalAdImportBatchResponse {
   batch: InternalAdImportBatch!
   uploadUrls: [String!]!
@@ -1083,6 +1091,7 @@ type Query {
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
   internalAd(productId: String!): Product!
   internalAdDrafts(batchId: String): [Product!]!
+  organizationInvite(token: String!): OrganizationInvitePreview
   organizationMembers: [OrganizationMembership!]!
   organizationInvites: [OrganizationInvite!]!
   internalAdImportBatch(batchId: String!): InternalAdImportBatch!
@@ -1468,6 +1477,9 @@ type Mutation {
   inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
   acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
   updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
+  resendOrganizationInvite(input: OrganizationInviteIdInput!): OrganizationInvite!
+  revokeOrganizationInvite(input: OrganizationInviteIdInput!): OrganizationInvite!
+  removeOrganizationMember(input: RemoveOrganizationMemberInput!): Boolean!
   createInternalAdDraft: Product!
   removeInternalAdDraft(productId: String!): Boolean!
   removeInternalAdImportBatch(batchId: String!): Boolean!
@@ -2022,6 +2034,14 @@ input AcceptOrganizationInviteInput {
 input UpdateOrganizationMemberRoleInput {
   userId: String!
   role: OrganizationMemberRoleEnum!
+}
+
+input OrganizationInviteIdInput {
+  inviteId: ID!
+}
+
+input RemoveOrganizationMemberInput {
+  userId: ID!
 }
 
 input ReserveInternalAdInput {
