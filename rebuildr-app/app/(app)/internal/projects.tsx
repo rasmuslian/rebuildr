@@ -4,8 +4,6 @@ import { TextInput } from "@components/forms/textInput";
 import { InternalPageLayout } from "@components/internal/internal-page-layout";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Search } from "@components/search/search";
-import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label } from "@components/typography/text";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,17 +20,20 @@ const PAGE_SIZE = 24;
 
 export default function InternalProjectsPage() {
   const params = useLocalSearchParams<{ action?: string; t?: string }>();
-  const handledAction = useRef<string>();
+  const handledAction = useRef<string | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchString, setSearchString] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const { data, loading, refetch, fetchMore } = useQuery<any>(
+  const { data, previousData, loading, refetch, fetchMore } = useQuery<any>(
     INTERNAL_PROJECTS,
     {
       variables: { input: { searchString }, limit: PAGE_SIZE, offset: 0 },
     },
   );
-  const projects = data?.internalProjects.projects ?? [];
-  const total = data?.internalProjects.total ?? 0;
+  const visibleProjects =
+    data?.internalProjects ?? previousData?.internalProjects;
+  const projects = visibleProjects?.projects ?? [];
+  const total = visibleProjects?.total ?? 0;
   const onSearch = useDebounceCallback(setSearchString, 300);
 
   useEffect(() => {
@@ -43,47 +44,53 @@ export default function InternalProjectsPage() {
   }, [params.action, params.t]);
 
   return (
-    <InternalPageLayout>
+    <InternalPageLayout contentMaxWidth={1590}>
       <View style={{ gap: 32 }}>
-        <View style={{ gap: 8 }}>
-          <Body size="medium" color="secondary">
-            Internlagret
-          </Body>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 16,
-            }}
-          >
-            <View style={{ gap: 8, flex: 1 }}>
-              <Headline size="small" heading={1}>
-                Interna projekt
-              </Headline>
-              <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
-                Samla interna annonser som hör till samma projekt.
-              </Body>
-            </View>
-            <Button
-              label="Nytt projekt"
-              icon="plus"
-              onPress={() => setShowCreate(true)}
-            />
+        <Button
+          icon="arrowLeft"
+          label="Tillbaka"
+          type="text"
+          onPress={() => router.navigate("/internal")}
+          style={{ alignSelf: "flex-start" }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
+          <View style={{ gap: 8, flex: 1 }}>
+            <Headline size="small" heading={1}>
+              Interna projekt
+            </Headline>
+            <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
+              Samla interna annonser som hör till samma projekt.
+            </Body>
           </View>
+          <Button
+            label="Nytt projekt"
+            icon="plus"
+            onPress={() => setShowCreate(true)}
+          />
         </View>
 
-        <Search
-          placeholder="Sök bland projekt"
-          onChange={onSearch}
-          style={{ maxWidth: 633 }}
-        />
+        <View style={{ maxWidth: 633 }}>
+          <TextInput
+            value={searchQuery}
+            placeholder="Sök på projektnamn eller beskrivning"
+            onChange={(value) => {
+              setSearchQuery(value);
+              onSearch(value);
+            }}
+          />
+        </View>
 
-        {loading && !data ? (
+        {loading && !visibleProjects ? (
           <LoadingSpinner />
         ) : projects.length ? (
-          <View style={{ gap: 16 }}>
-            <SectionHeader>Interna projekt</SectionHeader>
+          <View>
             <InternalProjectGrid
               projects={projects}
               onProjectPress={(projectId) =>
