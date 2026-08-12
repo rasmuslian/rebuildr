@@ -1,18 +1,24 @@
 import {
   BottomSheetModal,
+  BottomSheetModalProvider,
   BottomSheetScrollView,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import {
+  createContext,
   PropsWithChildren,
+  useContext,
   useRef,
   ReactElement,
   useMemo,
   useEffect,
 } from "react";
-import { Platform, Pressable, View, ViewStyle } from "react-native";
+import { Pressable, View, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { isWeb, WEB_FIXED } from "@constants/layout";
+import { useDocumentScrollLock } from "@hooks/useDocumentScrollLock";
+import { SheetPortal } from "./sheet-portal";
 import { Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Button } from "@components/buttons/button";
@@ -23,6 +29,12 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+//true once a sheet has opened its viewport-fixed box on web. A sheet rendered
+//inside another sheet reads this and skips its own box, so it shares the outer
+//sheet's provider — nesting two boxes (each with its own provider portaled to
+//body) leaves the inner modal unable to present.
+const SheetBoxContext = createContext(false);
 
 type Props = PropsWithChildren<{
   title?: string;
@@ -62,35 +74,22 @@ export const BottomSheet = ({
   resetScrollKey,
 }: Props) => {
   const safeArea = useSafeAreaInsets();
+  const insideSheetBox = useContext(SheetBoxContext);
   const innerRef = useRef<BottomSheetModal>(
     null,
   ) as React.RefObject<BottomSheetModalMethods>;
   const scrollRef =
     useRef<React.ComponentRef<typeof BottomSheetScrollView>>(null);
-  const contentRef = useRef<View>(null);
   const colors = useThemeColor();
   const sheetBackgroundColor = backgroundColor ?? colors.background.neutral;
   const topBorderRadius = useSharedValue(28);
 
+  //a sheet that owns the whole screen needs a shell that is exactly one screen
+  //tall to measure itself against
+  useDocumentScrollLock(open && !!screenHeight);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-    //on web the forwarded scroll ref never gets populated, so the scrollTo
-    //above is a no-op there. A View ref IS the DOM node on web — walk up from
-    //the content to the scrollable ancestor and reset it directly.
-    if (Platform.OS === "web") {
-      //stop at the first scrollable ancestor whether or not it currently
-      //overflows — that one is the sheet's own scroll container, and walking
-      //past it would reset a scroll container outside the sheet
-      let node = contentRef.current as unknown as HTMLElement | null;
-      while (node?.parentElement) {
-        node = node.parentElement;
-        const overflowY = getComputedStyle(node).overflowY;
-        if (overflowY === "auto" || overflowY === "scroll") {
-          node.scrollTop = 0;
-          break;
-        }
-      }
-    }
   }, [resetScrollKey]);
 
   useEffect(() => {
@@ -154,7 +153,7 @@ export const BottomSheet = ({
     );
   };
 
-  return (
+  const sheet = (
     <BottomSheetModal
       stackBehavior={stackBehavior}
       ref={innerRef}
@@ -229,9 +228,7 @@ export const BottomSheet = ({
                   height the dynamic sizing measures on web, so sheets end up
                   taller than their content. Callers that want to fill pass it
                   via containerStyle. */}
-              <View ref={contentRef} style={[containerStyle]}>
-                {children}
-              </View>
+              <View style={[containerStyle]}>{children}</View>
               {footer && !isStickyFooter && (
                 <View
                   style={{ paddingHorizontal: noPaddingHorizontal ? 0 : 16 }}
@@ -272,4 +269,40 @@ export const BottomSheet = ({
       )}
     </BottomSheetModal>
   );
+
+  //A modal presents into the nearest provider, and that provider's host is what
+  //the sheet measures its height and position from. The app-root host sits in
+  //the app shell, which grows with the page so the document can scroll and the
+  //browser chrome can collapse — measured against a long page a sheet ends up
+  //several screens tall, or rests far below the fold. Its own provider inside a
+  //viewport-fixed box (portaled to body so page chrome can't paint over it)
+  //gives it a one-screen container to measure against.
+  //
+  //But a sheet opened from inside another sheet must NOT box itself: two nested
+  //boxes each portal their own provider to body, and the inner modal then never
+  //presents. Such a sheet shares the outer box's provider instead — same
+  //viewport-fixed host, and one shared provider keeps stacking and dismiss
+  //working across the two.
+  if (isWeb && !insideSheetBox) {
+    return (
+      <SheetPortal>
+        <View
+          style={{
+            position: WEB_FIXED,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 100,
+          }}
+        >
+          <BottomSheetModalProvider>
+            <SheetBoxContext.Provider value>{sheet}</SheetBoxContext.Provider>
+          </BottomSheetModalProvider>
+        </View>
+      </SheetPortal>
+    );
+  }
+
+  return sheet;
 };
