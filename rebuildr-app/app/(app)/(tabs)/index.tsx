@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import TopBar from "@components/navigation/top-bar/top-bar";
 import Hero from "@components/hero/hero";
 import Footer from "@components/navigation/footer";
-import { View, Animated, ScrollView } from "react-native";
+import { View, Animated, ScrollView, ViewStyle } from "react-native";
 import { useScrollToTop } from "@react-navigation/native";
 import Head from "expo-router/head";
 import { TrendingNow } from "@components/trending-now/trending-now";
@@ -19,7 +19,12 @@ import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
 import { useFocusEffect } from "expo-router";
 import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
-import { isWeb, screenGrowStyle, WEB_STICKY } from "@constants/layout";
+import {
+  isWeb,
+  MAX_CONTENT_WIDTH,
+  screenGrowStyle,
+  WEB_STICKY,
+} from "@constants/layout";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -98,15 +103,23 @@ export default function Landing() {
     </View>
   );
 
+  // Cap and center the feed on wide screens so it doesn't sprawl edge to edge.
+  const contentWidthCap: ViewStyle | undefined = isDesktop
+    ? { maxWidth: MAX_CONTENT_WIDTH, alignSelf: "center", width: "100%" }
+    : undefined;
+
   const content = (
     <View
-      style={{
-        backgroundColor: colors.background.neutral,
-        flexGrow: 1,
-        paddingHorizontal: isDesktop ? 75 : 16,
-        paddingBottom: 32,
-        paddingTop: isDesktop ? 44 : 16,
-      }}
+      style={[
+        {
+          backgroundColor: colors.background.neutral,
+          flexGrow: 1,
+          paddingHorizontal: isDesktop ? 75 : 16,
+          paddingBottom: 32,
+          paddingTop: isDesktop ? 44 : 16,
+        },
+        contentWidthCap,
+      ]}
     >
       <RootCategoriesHorizontal />
       <NewArrivals />
