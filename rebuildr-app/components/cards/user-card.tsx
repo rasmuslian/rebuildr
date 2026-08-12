@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Body, Title } from "@components/typography/text";
+import { Body, Label, Title } from "@components/typography/text";
 import { Icon } from "@icons/icon";
 import { Badge } from "@components/badges/badge";
 import { UserType } from "@/gql/graphql";
@@ -13,6 +13,8 @@ type Props = {
   numberOfPublishedProducts: number;
   numberOfSoldProducts: number;
   rating?: number | null;
+  reviewCount?: number;
+  memberSinceYear?: number;
 };
 
 export const UserCard = ({
@@ -22,6 +24,8 @@ export const UserCard = ({
   numberOfPublishedProducts,
   numberOfSoldProducts,
   rating,
+  reviewCount,
+  memberSinceYear,
 }: Props) => {
   const isBusiness = userType ? userType === UserType.Business : false;
   return (
@@ -49,7 +53,10 @@ export const UserCard = ({
           {typeof rating === "number" && (
             <>
               <Icon icon="star" size={10} />
-              <Body size="small">{formatRating(rating)}</Body>
+              <Body size="small">
+                {formatRating(rating)}
+                {typeof reviewCount === "number" && ` · ${reviewCount} omdömen`}
+              </Body>
             </>
           )}
           {isBusiness && (
@@ -58,6 +65,20 @@ export const UserCard = ({
             </View>
           )}
         </View>
+        {memberSinceYear && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              marginTop: 4,
+            }}
+          >
+            <Label size="small" color="secondary">
+              Medlem sedan {memberSinceYear}
+            </Label>
+          </View>
+        )}
       </View>
     </View>
   );

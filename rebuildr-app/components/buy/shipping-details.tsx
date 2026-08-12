@@ -47,7 +47,7 @@ export const ShippingDetails = ({
   servicePointId,
   onBack,
 }: Props) => {
-  const { submitShipping } = useSubmitSummary({ quantity });
+  const { submitShipping, verifyMeSheet } = useSubmitSummary({ quantity });
   const [name, setName] = useState<string>(initialData.me.name ?? "");
   const [phoneNumber, setPhoneNumber] = useState<string>(
     initialData.me.phoneNumber ?? "",
@@ -160,6 +160,7 @@ export const ShippingDetails = ({
         }}
         bottomText="Säljaren skickar varan inom 7 dagar."
       />
+      {verifyMeSheet}
     </View>
   );
 };

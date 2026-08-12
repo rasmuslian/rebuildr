@@ -26,6 +26,7 @@ export interface IUserLoaders {
   ) => DataLoader<string, SearchResult[]>;
   profilePictureLoader: DataLoader<string, File>;
   ratingLoader: DataLoader<string, number>;
+  reviewCountLoader: DataLoader<string, number>;
   reviewedLoader: DataLoader<string, Review[]>;
   totalCO2SavingsBuyer: DataLoader<string, number>;
   totalCO2SavingsSeller: DataLoader<string, number>;
@@ -162,6 +163,21 @@ export class UserLoader {
       });
 
       return rating;
+    });
+  }
+
+  private reviewCountLoader() {
+    return new DataLoader(async (userIds) => {
+      const reviews = await this.dataSource.getRepository(Review).find({
+        where: {
+          reviewee: { id: In(userIds) },
+        },
+      });
+
+      return userIds.map(
+        (userId) =>
+          reviews.filter((review) => review.revieweeId === userId).length,
+      );
     });
   }
 
@@ -348,6 +364,7 @@ export class UserLoader {
         User,
       ),
       ratingLoader: this.ratingLoader(),
+      reviewCountLoader: this.reviewCountLoader(),
       purchasesLoader: this.dataloaderService.targetByParentIdLoader<
         Purchase[]
       >('purchases', User),

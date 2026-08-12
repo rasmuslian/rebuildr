@@ -93,7 +93,7 @@ type ProductCardSource = {
   seller: {
     id: string;
     type: UserType;
-    rating: number | null | undefined;
+    rating?: number | null;
   };
 };
 
@@ -494,7 +494,6 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
           </Body>
         </View>
         <AdGridSection
-          desktopColumnNumber={isDesktop ? 2 : undefined}
           products={relatedProducts.map((product) =>
             mapProductToAd(product, relatedData?.me?.id ?? data?.me?.id),
           )}

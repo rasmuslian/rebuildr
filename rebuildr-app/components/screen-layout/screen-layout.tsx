@@ -2,10 +2,23 @@ import { dividerStyles } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { horizontalPadding } from "@constants/sizes";
+import {
+  isWeb,
+  MAX_CONTENT_WIDTH,
+  screenGrowStyle,
+  WEB_STICKY,
+} from "@constants/layout";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
-import React, { PropsWithChildren, useRef } from "react";
-import { ScrollView, StyleProp, View, ViewStyle } from "react-native";
+import React, { PropsWithChildren, useRef, useState } from "react";
+import {
+  ScrollView,
+  StyleProp,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface PageProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
@@ -19,6 +32,9 @@ interface PageProps extends PropsWithChildren {
   loading?: boolean;
   onContentSizeChange?: "scrollToBottom" | "nothing";
   contentHorizontalPadding?: number;
+  // Web only. "document" (default) scrolls the page so the browser chrome
+  // collapses; "contained" keeps a fixed-height inner scroll (chat/maps).
+  scrollMode?: "document" | "contained";
 }
 
 export const SCREEN_TOP_MARGIN = 24;
@@ -39,10 +55,15 @@ export const ScreenLayout = ({
   loading,
   onContentSizeChange = "nothing",
   contentHorizontalPadding,
+  scrollMode = "document",
 }: PageProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
+  const windowHeight = useWindowDimensions().height;
+  const [footerHeight, setFooterHeight] = useState(0);
+
   const paddingHorizontal =
     contentHorizontalPadding !== undefined
       ? contentHorizontalPadding
@@ -51,10 +72,95 @@ export const ScreenLayout = ({
         : horizontalPadding.mobile;
 
   const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
+
+  // Cap the content column and center it on wide screens so it doesn't sprawl.
+  const contentWidthCap: ViewStyle | null = isDesktop
+    ? { maxWidth: MAX_CONTENT_WIDTH, alignSelf: "center", width: "100%" }
+    : null;
+
+  // Chat-style screens must keep an inner scroll area so they can scroll to the
+  // bottom; everything else scrolls the document on web.
+  const effectiveMode =
+    onContentSizeChange === "scrollToBottom" ? "contained" : scrollMode;
+  const documentScroll = isWeb && effectiveMode === "document";
+
+  if (documentScroll) {
+    return (
+      <View
+        style={[
+          screenGrowStyle,
+          { backgroundColor: colors.background.neutral },
+        ]}
+      >
+        {headerComponent && (
+          <View
+            style={[
+              {
+                position: WEB_STICKY,
+                top: 0,
+                zIndex: 20,
+                backgroundColor: colors.background.neutral,
+                paddingHorizontal: isDesktop
+                  ? undefined
+                  : horizontalPadding.mobile,
+              },
+              headerStyle,
+            ]}
+          >
+            {headerComponent}
+          </View>
+        )}
+
+        <View
+          style={[
+            {
+              flexGrow: 1,
+              backgroundColor: colors.background.neutral,
+              paddingHorizontal,
+              marginTop: SCREEN_TOP_MARGIN,
+              marginBottom: SCREEN_BOTTOM_MARGIN,
+              paddingBottom: footerHeight,
+            },
+            contentWidthCap,
+            style,
+          ]}
+        >
+          {loading ? <LoadingSpinner /> : children}
+        </View>
+
+        {desktopFooter && isDesktop && <Footer />}
+
+        {footerComponent && (
+          <View
+            onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
+            style={[
+              {
+                position: WEB_STICKY,
+                bottom: 0,
+                zIndex: 10,
+                backgroundColor: colors.background.neutral,
+                paddingHorizontal,
+                paddingTop: 8,
+                paddingBottom: footerBottomMargin + insets.bottom,
+              },
+              contentWidthCap,
+              footerBorder && dividerStyles(colors).topDivider,
+              footerStyle,
+            ]}
+          >
+            {footerComponent}
+          </View>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
-        flex: 1,
+        // Native: fill the screen. Contained web: pin to the viewport so the
+        // inner ScrollView (not the document) scrolls.
+        ...(isWeb ? { height: windowHeight } : { flex: 1 }),
         justifyContent: "space-between",
         backgroundColor: colors.background.neutral,
       }}
@@ -93,6 +199,7 @@ export const ScreenLayout = ({
               marginBottom: SCREEN_BOTTOM_MARGIN,
               marginTop: SCREEN_TOP_MARGIN,
             },
+            contentWidthCap,
             style,
           ]}
         >
@@ -105,6 +212,7 @@ export const ScreenLayout = ({
         <View
           style={[
             { paddingHorizontal, marginBottom: footerBottomMargin },
+            contentWidthCap,
             footerBorder && dividerStyles(colors).topDivider,
             footerStyle,
           ]}

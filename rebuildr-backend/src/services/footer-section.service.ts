@@ -54,10 +54,7 @@ export class FooterSectionService {
 
     try {
       await this.footerSectionRepository.save(footerSection);
-      await this.footerSectionEntryService.syncEntries(
-        input.id,
-        input.entries,
-      );
+      await this.footerSectionEntryService.syncEntries(input.id, input.entries);
 
       return footerSection;
     } catch (error) {

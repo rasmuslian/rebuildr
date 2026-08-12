@@ -102,6 +102,8 @@ export default function Profile() {
                 numberOfPublishedProducts={user.numberOfPublishedProducts}
                 numberOfSoldProducts={user.numberOfSoldProducts}
                 rating={user.rating}
+                reviewCount={user.reviewCount}
+                memberSinceYear={new Date(user.createdAt).getFullYear()}
               />
 
               <CollapsableText
@@ -203,6 +205,8 @@ export default function Profile() {
           numberOfPublishedProducts={user.numberOfPublishedProducts}
           numberOfSoldProducts={user.numberOfSoldProducts}
           rating={user.rating}
+          reviewCount={user.reviewCount}
+          memberSinceYear={new Date(user.createdAt).getFullYear()}
         />
 
         <CollapsableText

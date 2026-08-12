@@ -217,9 +217,12 @@ export const AterbyggarenPromptBox = React.forwardRef<
               lineHeight: COMPACT_INPUT_LINE_HEIGHT,
               maxHeight: compact ? 132 : undefined,
               outlineColor: "transparent",
+              outlineOffset: 0,
+              outlineStyle: "none",
               outlineWidth: 0,
               padding: 0,
               textAlignVertical: "top",
+              WebkitTapHighlightColor: "transparent",
             }}
           />
         </View>

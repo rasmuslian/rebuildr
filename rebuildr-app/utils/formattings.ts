@@ -10,7 +10,7 @@ export const formatPostCode = (postCode: string) => {
   return [...first, " ", ...second].join("");
 };
 
-export const formatPrice = (price?: number) => {
+export const formatPrice = (price?: number, fractions = 0) => {
   if (price === undefined) {
     return "";
   }
@@ -18,7 +18,7 @@ export const formatPrice = (price?: number) => {
   return new Intl.NumberFormat("sv-SE", {
     style: "currency",
     currency: "SEK",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: fractions,
   }).format(price);
 };
 

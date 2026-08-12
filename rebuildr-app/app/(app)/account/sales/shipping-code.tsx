@@ -43,7 +43,10 @@ export default function ShippingCode() {
               icon: "upload",
               onPress: () => {
                 if (data.purchase.qrCodeUrl) {
-                  shareUrl(data.purchase.qrCodeUrl);
+                  shareUrl(data.purchase.qrCodeUrl, {
+                    dialogTitle: "Dela din QR-kod",
+                    copiedMessage: "QR-kod kopierad!",
+                  });
                 }
               },
             },

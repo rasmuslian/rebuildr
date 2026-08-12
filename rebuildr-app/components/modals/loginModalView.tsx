@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useRef,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import React, { useCallback, useContext, useState } from "react";
 import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
 import ForgotPassword from "@components/login/forgotPassword";
@@ -29,10 +22,12 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Header } from "@components/navigation/headers/header";
+import { Logo } from "@components/logo/logo";
 import { Platform, View } from "react-native";
 import { GTMTagEnum } from "@constants/google-tag-manager";
 import { WelcomeRegistrationModal } from "@components/modals/welcome-registration-modal";
 import { useSellProductContext } from "@context/sell-product-context";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 const LOGIN = gql`
   mutation Login($input: LoginInput!) {
@@ -85,6 +80,7 @@ const LoginModalView = () => {
   const [login, { loading }] = useMutation(LOGIN);
   const { logout } = useLogout();
   const [resetPassword] = useMutation(RESET_PASSWORD);
+  const colors = useThemeColor();
 
   const reset = () => {
     setState("email");
@@ -138,9 +134,6 @@ const LoginModalView = () => {
     RegisterUserMutationVariables
   >(REGISTER_USER);
 
-  const fullScreenIndex = 2;
-  const sheetRef = useRef<BottomSheetModal>(null);
-
   const handleClosePress = useCallback(() => {
     switch (state) {
       case "email":
@@ -184,7 +177,6 @@ const LoginModalView = () => {
       onCompleted: () => {
         trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
         setState("verify");
-        sheetRef.current?.snapToIndex(fullScreenIndex);
       },
     });
   };
@@ -202,7 +194,6 @@ const LoginModalView = () => {
       onCompleted: () => {
         trackEvent(GTMTagEnum.SIGN_UP, { method: "email" });
         setState("verify");
-        sheetRef.current?.snapToIndex(fullScreenIndex);
       },
     });
   };
@@ -226,14 +217,6 @@ const LoginModalView = () => {
   const onVerifiedSuccess = (id: string) => {
     setState(isBusinessRegistration ? "bankid" : "details");
   };
-
-  useEffect(() => {
-    if (visible) {
-      sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
-  }, [visible]);
 
   const viewChildren = [
     state === "email" && (
@@ -349,16 +332,28 @@ const LoginModalView = () => {
       title={getTitle()}
       open={visible}
       onClose={handleClosePress}
-      style={{ flex: 1 }}
+      backgroundColor={colors.background.secondary}
+      style={{ flexGrow: 1 }}
+      footer={
+        <View style={{ alignItems: "center", paddingBottom: 32 }}>
+          <Logo width={120} height={24} customColor={colors.logo.vector} />
+        </View>
+      }
     >
       {viewChildren}
     </SlideInSheet>
   ) : (
     <BottomSheet
       name="login"
-      scrollable={["verify", "bankid", "details", "business"].includes(state)}
-      screenHeight={["verify", "bankid", "details", "business"].includes(state)}
-      containerStyle={{ flex: 1 }}
+      footer={
+        <View style={{ alignItems: "center", paddingBottom: 32 }}>
+          <Logo width={120} height={24} customColor={colors.logo.vector} />
+        </View>
+      }
+      scrollable
+      screenHeight
+      containerStyle={{ flexGrow: 1 }}
+      backgroundColor={colors.background.secondary}
       header={
         <Header
           title={getTitle()}
@@ -377,9 +372,7 @@ const LoginModalView = () => {
       open={visible}
       onDismiss={handleClosePress}
     >
-      <View style={{ marginTop: 24, marginBottom: 12, flex: 1 }}>
-        {viewChildren}
-      </View>
+      <View style={{ marginTop: 24, marginBottom: 56 }}>{viewChildren}</View>
     </BottomSheet>
   );
 

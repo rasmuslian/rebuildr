@@ -19,9 +19,7 @@ import { AuthedUserType, authThrottleConfig } from 'src/auth/constants';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { GqlThrottlerGuard } from 'src/guards/gql-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
-import {
-  BusinessPendingApprovalException,
-} from 'src/exceptions';
+import { BusinessPendingApprovalException } from 'src/exceptions';
 import { UserType } from 'src/entities/user.entity';
 
 @InputType()
@@ -249,5 +247,4 @@ export class AuthResolver {
   async newPassword(@Args('input') input: NewPasswordInput) {
     return await this.authService.newPassword(input);
   }
-
 }
