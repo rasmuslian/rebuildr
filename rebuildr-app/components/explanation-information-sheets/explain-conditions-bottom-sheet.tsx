@@ -17,8 +17,15 @@ export const ExplainConditionsBottomSheet = ({ show, onDismiss }: Props) => {
   const content = (
     <View
       style={[
-        { justifyContent: "space-between", flex: 1, marginBottom: 16 },
-        isDesktop && { marginBottom: 0 },
+        { marginBottom: 16 },
+        //space-between + flex only fill the fixed-height desktop popup. On
+        //mobile the sheet is dynamically sized, so flex: 1 would stretch this
+        //to the full window and space-between would push the buttons far down.
+        isDesktop && {
+          justifyContent: "space-between",
+          flex: 1,
+          marginBottom: 0,
+        },
       ]}
     >
       <View style={{ gap: 24, marginVertical: 24 }}>

@@ -16,8 +16,15 @@ export const ExplainReviewsBottomSheet = ({ show, onDismiss }: Props) => {
   const content = (
     <View
       style={[
-        { justifyContent: "space-between", flex: 1, marginBottom: 16 },
-        isDesktop && { marginBottom: 0 },
+        { marginBottom: 16 },
+        //space-between + flex only fill the fixed-height desktop popup. On
+        //mobile the sheet is dynamically sized, so flex: 1 would stretch this
+        //to the full window and space-between would push the buttons far down.
+        isDesktop && {
+          justifyContent: "space-between",
+          flex: 1,
+          marginBottom: 0,
+        },
       ]}
     >
       <View style={{ gap: 24 }}>
@@ -29,8 +36,8 @@ export const ExplainReviewsBottomSheet = ({ show, onDismiss }: Props) => {
           </Body>
           <Body size="medium">
             När en affär är genomförd är det obligatoriskt för både köpare och
-            säljare att lämna ett omdöme. Det är en del av att avsluta affären
-            – men du kan vara lugn, det är enkelt och tar bara några sekunder.
+            säljare att lämna ett omdöme. Det är en del av att avsluta affären –
+            men du kan vara lugn, det är enkelt och tar bara några sekunder.
           </Body>
         </View>
         <View style={{ gap: 8 }}>
@@ -71,15 +78,15 @@ export const ExplainReviewsBottomSheet = ({ show, onDismiss }: Props) => {
             <Body size="medium">• stärka kvaliteten på plattformen</Body>
           </View>
           <Body size="medium">
-            Omdömen är därför en viktig del av hur RebuildR fungerar – inte
-            bara en funktion.
+            Omdömen är därför en viktig del av hur RebuildR fungerar – inte bara
+            en funktion.
           </Body>
         </View>
         <View style={{ gap: 8 }}>
           <Headline size="small">Kort sagt:</Headline>
           <Body size="medium">
-            Alla lämnar omdöme. Det går snabbt. Och det gör hela
-            marknadsplatsen bättre och tryggare för alla.
+            Alla lämnar omdöme. Det går snabbt. Och det gör hela marknadsplatsen
+            bättre och tryggare för alla.
           </Body>
         </View>
       </View>
