@@ -46,8 +46,9 @@ import { useWindowDimensions, View } from "react-native";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 import { useMarkProductAvailable } from "@hooks/product/use-mark-product-available";
-import { useWebShare } from "@hooks/use-web-share";
 import { Body } from "@components/typography/text";
+import { SITE_URL } from "@/lib/site-url";
+import { shareUrl } from "@/utils/share-url";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -103,7 +104,6 @@ export const ProductDesktop = ({
   const { onToggleProductHeart } = useLikeProduct();
   const { setVisible } = useContext(LoginModalContext);
   const { isLoggedIn } = useUser();
-  const { isAvailable: isWebShareAvailable, share } = useWebShare();
   const [showReportSheet, setShowReportSheet] = useState(false);
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<number | undefined>(
@@ -186,14 +186,17 @@ export const ProductDesktop = ({
     });
   }
 
-  if (isWebShareAvailable) {
-    ctas.push({
-      label: "Dela",
-      icon: "upload",
-      iconPosition: "right",
-      onPress: share,
-    });
-  }
+  ctas.push({
+    label: "Dela",
+    icon: "upload",
+    iconPosition: "right",
+    onPress: () =>
+      shareUrl(`${SITE_URL}/product/${product.id}`, {
+        dialogTitle: "Dela annons",
+        copiedMessage: "Länk till annonsen kopierad!",
+        title: product.title,
+      }),
+  });
 
   return (
     <>

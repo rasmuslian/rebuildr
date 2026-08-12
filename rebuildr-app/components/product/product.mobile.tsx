@@ -30,8 +30,9 @@ import { BuyersProtection } from "@components/buyers-protection/buyers-protectio
 import { CreateProductLabelModal } from "@components/modals/create-product-label-modal";
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
-import { useWebShare } from "@hooks/use-web-share";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { SITE_URL } from "@/lib/site-url";
+import { shareUrl } from "@/utils/share-url";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 import { ReportProduct } from "@components/report/report-product";
@@ -101,7 +102,6 @@ export const ProductMobile = ({
   );
   const { onToggleProductHeart } = useLikeProduct();
   const { isLoggedIn } = useUser();
-  const { isAvailable: isWebShareAvailable, share } = useWebShare();
   const [showRemoveProductsSheet, setShowRemoveProductsSheet] = useState(false);
   const [showCreateProductLabel, setShowCreateProductLabel] = useState(false);
   const { productId } = useLocalSearchParams<{ productId: string }>();
@@ -145,12 +145,15 @@ export const ProductMobile = ({
     });
   }
 
-  if (isWebShareAvailable) {
-    ctas.push({
-      icon: "upload",
-      onPress: share,
-    });
-  }
+  ctas.push({
+    icon: "upload",
+    onPress: () =>
+      shareUrl(`${SITE_URL}/product/${product.id}`, {
+        dialogTitle: "Dela annons",
+        copiedMessage: "Länk till annonsen kopierad!",
+        title: product.title,
+      }),
+  });
 
   if (!isMyProduct && isLoggedIn) {
     ctas.push({

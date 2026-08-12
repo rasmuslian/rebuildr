@@ -27,7 +27,10 @@ export const ShippingCodeContent = ({
   const onPressShare = async () => {
     const url = qrCodeUrl;
     if (!url) return;
-    shareUrl(url);
+    shareUrl(url, {
+      dialogTitle: "Dela din QR-kod",
+      copiedMessage: "QR-kod kopierad!",
+    });
   };
 
   return (
