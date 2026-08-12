@@ -93,7 +93,7 @@ type ProductCardSource = {
   seller: {
     id: string;
     type: UserType;
-    rating: number;
+    rating: number | null | undefined;
   };
 };
 
