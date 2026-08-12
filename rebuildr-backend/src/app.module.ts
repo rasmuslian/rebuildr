@@ -153,6 +153,7 @@ import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
 import { CreditsafeAPI } from './apis/creditsafe.api';
 import { CreditsafeService } from './services/creditsafe.service';
+import { CategoryImageService } from './services/category-image.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -313,6 +314,7 @@ export interface RequestType {
     ProductService,
     CategoryResolver,
     CategoryService,
+    CategoryImageService,
     MessageResolver,
     MessageService,
     ConversationResolver,

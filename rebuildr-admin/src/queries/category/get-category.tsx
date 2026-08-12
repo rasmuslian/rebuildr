@@ -13,6 +13,8 @@ const query = `
       measurements
       searchAliases
       parentId
+      imageGenerationStatus
+      imageGenerationError
       image {
         id
         name

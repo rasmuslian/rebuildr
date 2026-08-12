@@ -20,6 +20,15 @@ import {
 import { Brand } from './brand.entity';
 import { CO2Factor } from './co2-factor.entity';
 
+export enum CategoryImageGenerationStatusEnum {
+  PENDING = 'PENDING',
+  GENERATED = 'GENERATED',
+  FAILED = 'FAILED',
+}
+registerEnumType(CategoryImageGenerationStatusEnum, {
+  name: 'CategoryImageGenerationStatusEnum',
+});
+
 enum CategoryIconEnum {
   MATERIAL = 'MATERIAL',
   WOOD = 'WOOD',
@@ -91,6 +100,17 @@ export class Category {
   @OneToOne(() => File, (file) => file.category, { nullable: true })
   @JoinColumn()
   image?: File;
+
+  @Field(() => CategoryImageGenerationStatusEnum)
+  @Column('enum', {
+    enum: CategoryImageGenerationStatusEnum,
+    default: CategoryImageGenerationStatusEnum.PENDING,
+  })
+  imageGenerationStatus?: CategoryImageGenerationStatusEnum;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  imageGenerationError?: string;
 
   @Field(() => CategoryIconEnum, { nullable: true })
   @Column('enum', { enum: CategoryIconEnum, nullable: true })
