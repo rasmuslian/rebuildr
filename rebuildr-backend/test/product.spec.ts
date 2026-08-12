@@ -692,6 +692,12 @@ describe('Product', () => {
         neLat: 59.5,
         neLng: 18.9,
       });
+      // Matches on the public map pin location (same source as the map pins),
+      // not the exact address, and falls back to the project's pin.
+      const sql = call?.[0] as string;
+      expect(sql).toContain('map_pin');
+      expect(sql).toContain('"mapPinId"');
+      expect(sql).not.toContain('addressLocation');
     });
 
     it('does not add an envelope filter when no boundingBox is supplied', async () => {

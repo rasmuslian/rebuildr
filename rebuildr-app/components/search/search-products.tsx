@@ -673,9 +673,12 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
                     shadowRadius: 10,
                   }}
                 >
-                  {/* Presentational — the outer Pressable owns the toggle, so
-                      the Check must not also handle the press (double-toggle). */}
-                  <Check selected={mapState.searchOnMove} />
+                  {/* Presentational and click-through: Check is a Pressable of
+                      its own, so it would swallow presses on the box itself.
+                      The outer Pressable owns the toggle for the whole row. */}
+                  <View pointerEvents="none">
+                    <Check selected={mapState.searchOnMove} />
+                  </View>
                   <Body size="small">Sök när jag flyttar kartan</Body>
                 </Pressable>
               </View>
