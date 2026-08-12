@@ -8,12 +8,13 @@ import UserLocationMarker from "@components/maps/user-location-marker";
 import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
 import { useDebounceCallback } from "usehooks-ts";
 import { useMapContext } from "@context/map-context";
-import { View, Pressable } from "react-native";
+import { View, Pressable, useWindowDimensions } from "react-native";
 import { Check } from "@components/controls/check";
 import { Label, Body } from "@components/typography/text";
 import { Divider } from "@components/dividers/divider";
 import { Icon } from "@icons/icon";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { useScreenType } from "@hooks/useScreenType";
 import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
 import { Image } from "expo-image";
 
@@ -86,7 +87,7 @@ const EventController = () => {
       ) {
         return;
       }
-      setState({ activePin: undefined });
+      setState({ activePin: undefined, selectedProductId: undefined });
     },
     moveend: () => boundDebounce(),
     zoomend: () => zoomDebounce(),
@@ -108,6 +109,44 @@ const EventController = () => {
 
     boundDebounce();
   }, [state.center]);
+
+  // When auto-search is on, keep the applied search area in sync with the
+  // viewport so the results list follows every pan/zoom.
+  useEffect(() => {
+    if (state.searchOnMove && state.bounds) {
+      setState({ searchArea: state.bounds });
+    }
+  }, [state.bounds, state.searchOnMove]);
+
+  // Zoom out on request (e.g. the empty-results state). Reset after consuming
+  // so it can't re-fire if the map remounts.
+  useEffect(() => {
+    if (state.zoomOutSignal > 0) {
+      map.whenReady(() => {
+        map.setZoom(map.getZoom() - 2, { animate: false });
+      });
+      setState({ zoomOutSignal: 0 });
+    }
+  }, [state.zoomOutSignal]);
+
+  // Frame a requested region (e.g. the user + their nearest hit on "Nära mig").
+  // animate:false is deliberate — Leaflet's zoom-animation path can throw
+  // "_leaflet_pos of undefined" on large jumps while markers re-render. Clear
+  // after consuming so a remount doesn't yank the viewport back to it.
+  useEffect(() => {
+    if (!state.fitBounds) return;
+    const { northEast, southWest } = state.fitBounds;
+    map.whenReady(() => {
+      map.fitBounds(
+        [
+          [northEast.lat, northEast.lng],
+          [southWest.lat, southWest.lng],
+        ],
+        { padding: [60, 60], maxZoom: 14, animate: false },
+      );
+    });
+    setState({ fitBounds: undefined });
+  }, [state.fitBounds]);
 
   return null;
 };
@@ -309,10 +348,34 @@ const MapInformationController = () => {
   );
 };
 
+const POPUP_COMPACT_WIDTH = 163;
+const POPUP_ROOMY_WIDTH = 288;
+// Keep the compact size on laptops (it felt right there) and only grow toward
+// the roomy size on large monitors. Tune the breakpoints if your screens differ.
+const POPUP_GROW_START = 1500;
+const POPUP_GROW_END = 1920;
+
 const ActivePinController = () => {
   const { state } = useMapContext();
+  const { isDesktop } = useScreenType();
+  const { width: windowWidth } = useWindowDimensions();
   const activePin = state.activePin;
   if (!activePin) return null;
+
+  const growth = Math.max(
+    0,
+    Math.min(
+      1,
+      (windowWidth - POPUP_GROW_START) / (POPUP_GROW_END - POPUP_GROW_START),
+    ),
+  );
+  const width = isDesktop
+    ? Math.round(
+        POPUP_COMPACT_WIDTH +
+          growth * (POPUP_ROOMY_WIDTH - POPUP_COMPACT_WIDTH),
+      )
+    : POPUP_COMPACT_WIDTH;
+  const roomy = width >= 240;
 
   return (
     <View
@@ -321,10 +384,10 @@ const ActivePinController = () => {
         position: "absolute",
         right: 16,
         bottom: 16,
-        width: 163,
+        width,
         backgroundColor: "white",
-        paddingHorizontal: 8,
-        paddingVertical: 10,
+        paddingHorizontal: roomy ? 12 : 8,
+        paddingVertical: roomy ? 12 : 10,
         borderRadius: 18,
         shadowColor: "#000",
         shadowOpacity: 0.2,
