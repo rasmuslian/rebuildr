@@ -47,6 +47,8 @@ import { PrintProductLabelPortal } from "@components/product-label/print-product
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 import { useMarkProductAvailable } from "@hooks/product/use-mark-product-available";
 import { Body } from "@components/typography/text";
+import { SITE_URL } from "@/lib/site-url";
+import { shareUrl } from "@/utils/share-url";
 
 type Props = {
   product: ProductViewQuery["product"];
@@ -183,6 +185,18 @@ export const ProductDesktop = ({
       },
     });
   }
+
+  ctas.push({
+    label: "Dela",
+    icon: "upload",
+    iconPosition: "right",
+    onPress: () =>
+      shareUrl(`${SITE_URL}/product/${product.id}`, {
+        dialogTitle: "Dela annons",
+        copiedMessage: "Länk till annonsen kopierad!",
+        title: product.title,
+      }),
+  });
 
   return (
     <>

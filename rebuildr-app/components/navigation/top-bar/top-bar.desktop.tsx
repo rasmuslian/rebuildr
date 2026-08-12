@@ -14,6 +14,7 @@ import { TAB_LAYOUT } from "@/queries";
 import { Badge } from "@components/badges/badge";
 import { Divider } from "@components/dividers/divider";
 import { horizontalPadding } from "@constants/sizes";
+import { MAX_CONTENT_WIDTH } from "@constants/layout";
 import { Avatar } from "@components/avatar/avatar";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { SearchBar } from "@components/search/search-bar";
@@ -109,129 +110,149 @@ export default function TopBarDesktop({
       <View
         style={{
           width: "100%",
-          paddingHorizontal: horizontalPadding.desktop,
           backgroundColor:
             theme === "light" ? colors.background.neutral : colors.logo.vector,
-          justifyContent: "space-between",
-          alignItems: "center",
-          display: "flex",
-          flexDirection: "row",
           height: 72,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
-          <Pressable
-            onPress={() => {
-              filterBuilder.reset().apply();
-              searchContext.reset();
-              router.navigate("/");
-            }}
-          >
-            <Logo
-              width={118}
-              height={24}
-              customColor={theme === "light" ? colors.logo.vector : undefined}
-            />
-          </Pressable>
-          <Animated.View
-            style={{
-              opacity: searchOpacity,
-            }}
-          >
-            <SearchBar
-              visible={showSearchBar}
-              searchOnSubmit
-              placeholder="Vad letar du efter?"
-              style={{
-                borderBottomWidth: 0,
-                width: 320,
-              }}
-              backgroundColor={colors.background.neutral}
-              borderStyle={
-                theme === "light"
-                  ? { borderColor: colors.dividers.neutral, borderWidth: 1 }
-                  : undefined
-              }
-            />
-          </Animated.View>
-        </View>
         <View
           style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 16,
+            width: "100%",
+            maxWidth: MAX_CONTENT_WIDTH,
+            alignSelf: "center",
+            height: "100%",
+            paddingHorizontal: horizontalPadding.desktop,
+            justifyContent: "space-between",
             alignItems: "center",
+            flexDirection: "row",
           }}
         >
-          <View style={{ flexDirection: "row" }}>
-            {isLoggedIn &&
-              icons.map(
-                ({ icon, onPress, badgeNumber, avatarUrl, active }, index) => (
-                  <Pressable key={index} onPress={onPress}>
-                    <View
-                      style={{
-                        position: "relative",
-                        height: 40,
-                        width: 40,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor:
-                          theme === "light" && active
-                            ? colors.buttons.tonal.enabled
-                            : undefined,
-                        borderRadius: 12,
-                      }}
-                    >
-                      {icon ? (
-                        <Icon
-                          icon={icon}
-                          size={18}
-                          color={
-                            theme === "dark" ? "primaryLight" : "primaryDark"
-                          }
-                        />
-                      ) : (
-                        <Avatar imageUrl={avatarUrl} size={18} />
-                      )}
-                      {!!badgeNumber && (
-                        <View
-                          style={{ position: "absolute", right: 2, top: 2 }}
-                        >
-                          <Badge text={badgeNumber.toString()} theme={theme} />
-                        </View>
-                      )}
-                    </View>
-                  </Pressable>
-                ),
-              )}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
+            <Pressable
+              onPress={() => {
+                filterBuilder.reset().apply();
+                searchContext.reset();
+                router.navigate("/");
+              }}
+            >
+              <Logo
+                width={118}
+                height={24}
+                customColor={theme === "light" ? colors.logo.vector : undefined}
+              />
+            </Pressable>
+            <Animated.View
+              style={{
+                opacity: searchOpacity,
+              }}
+            >
+              <SearchBar
+                visible={showSearchBar}
+                searchOnSubmit
+                placeholder="Vad letar du efter?"
+                style={{
+                  borderBottomWidth: 0,
+                  width: 320,
+                }}
+                backgroundColor={colors.background.neutral}
+                borderStyle={
+                  theme === "light"
+                    ? { borderColor: colors.dividers.neutral, borderWidth: 1 }
+                    : undefined
+                }
+              />
+            </Animated.View>
           </View>
-          <Button
-            type={theme === "dark" ? "outlinedStroke" : "tonal"}
-            theme={theme}
-            onPress={() => showHamburgerMenuVar(true)}
-            icon="categories"
-            label="Kategorier"
-          />
-          {isLoggedIn ? (
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              {isLoggedIn &&
+                icons.map(
+                  (
+                    { icon, onPress, badgeNumber, avatarUrl, active },
+                    index,
+                  ) => (
+                    <Pressable key={index} onPress={onPress}>
+                      <View
+                        style={{
+                          position: "relative",
+                          height: 40,
+                          width: 40,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor:
+                            theme === "light" && active
+                              ? colors.buttons.tonal.enabled
+                              : undefined,
+                          borderRadius: 12,
+                        }}
+                      >
+                        {icon ? (
+                          <Icon
+                            icon={icon}
+                            size={22}
+                            color={
+                              theme === "dark" ? "primaryLight" : "primaryDark"
+                            }
+                          />
+                        ) : (
+                          <Avatar imageUrl={avatarUrl} size={24} />
+                        )}
+                        {!!badgeNumber && (
+                          <View
+                            style={{ position: "absolute", right: 2, top: 2 }}
+                          >
+                            <Badge
+                              text={badgeNumber.toString()}
+                              theme={theme}
+                            />
+                          </View>
+                        )}
+                      </View>
+                    </Pressable>
+                  ),
+                )}
+            </View>
             <Button
-              type="filled"
-              onPress={() => setSellProductVisible(true)}
-              label="Ny annons"
+              type={theme === "dark" ? "outlinedStroke" : "tonal"}
               theme={theme}
+              onPress={() => showHamburgerMenuVar(true)}
+              icon="categories"
+              label="Kategorier"
             />
-          ) : (
-            <Button
-              type="filled"
-              onPress={() => setLoginVisible(true)}
-              label="Logga in/Skapa konto"
-              theme={theme}
-            />
-          )}
+            {isLoggedIn ? (
+              <Button
+                type="filled"
+                onPress={() => setSellProductVisible(true)}
+                label="Ny annons"
+                theme={theme}
+              />
+            ) : (
+              <Button
+                type="filled"
+                onPress={() => setLoginVisible(true)}
+                label="Logga in/Skapa konto"
+                theme={theme}
+              />
+            )}
+          </View>
         </View>
       </View>
       {theme === "light" && (
         <View
-          style={{ marginTop: -1, marginHorizontal: horizontalPadding.desktop }}
+          style={{
+            marginTop: -1,
+            width: "100%",
+            maxWidth: MAX_CONTENT_WIDTH,
+            alignSelf: "center",
+            paddingHorizontal: horizontalPadding.desktop,
+          }}
         >
           <Divider />
         </View>
