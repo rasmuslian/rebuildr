@@ -123,6 +123,99 @@ export class CmsCreateCategoryResponse {
   imagePutUrl?: string;
 }
 
+@InputType()
+export class CmsCategoryImportRowInput extends CmsBaseCategoryInput {
+  @Field(() => String)
+  clientId: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => String, { nullable: true })
+  parentClientId?: string;
+
+  @Field(() => Boolean, { defaultValue: false })
+  inSelection = false;
+
+  @Field(() => Boolean, { defaultValue: false })
+  inSeason = false;
+
+  @Field(() => [MeasurementTypeEnum], { defaultValue: [] })
+  measurements: MeasurementTypeEnum[] = [];
+}
+
+@InputType()
+export class CmsAnalyzeCategoryImportInput {
+  @Field(() => [String])
+  rows: string[];
+}
+
+@ObjectType()
+export class CmsCategoryImportSuggestion {
+  @Field(() => String)
+  clientId: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => String, { nullable: true })
+  parentId?: string;
+
+  @Field(() => String, { nullable: true })
+  parentClientId?: string;
+
+  @Field(() => [String])
+  searchAliases: string[];
+
+  @Field(() => [MeasurementTypeEnum])
+  measurements: MeasurementTypeEnum[];
+
+  @Field(() => Boolean)
+  inSelection: boolean;
+
+  @Field(() => Boolean)
+  inSeason: boolean;
+}
+
+@ObjectType()
+export class CmsAnalyzeCategoryImportResponse {
+  @Field(() => [CmsCategoryImportSuggestion])
+  suggestions: CmsCategoryImportSuggestion[];
+
+  @Field(() => [String])
+  excluded: string[];
+}
+
+@InputType()
+export class CmsCreateCategoriesInput {
+  @Field(() => [CmsCategoryImportRowInput])
+  categories: CmsCategoryImportRowInput[];
+}
+
+@ObjectType()
+export class CmsCategoryImportResult {
+  @Field(() => String)
+  clientId: string;
+
+  @Field(() => Category, { nullable: true })
+  category?: Category;
+
+  @Field(() => String, { nullable: true })
+  skippedReason?: string;
+}
+
+@ObjectType()
+export class CmsCreateCategoriesResponse {
+  @Field(() => [CmsCategoryImportResult])
+  results: CmsCategoryImportResult[];
+}
+
 @ObjectType()
 export class CmsUpdateCategoryResponse {
   @Field(() => Category)
@@ -190,6 +283,31 @@ export class CategoryResolver {
     @Args('input') input: CmsCreateCategoryInput,
   ): Promise<CmsCreateCategoryResponse> {
     return this.categoryService.createCategory(input);
+  }
+
+  @Mutation(() => CmsAnalyzeCategoryImportResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsAnalyzeCategoryImport(
+    @Args('input') input: CmsAnalyzeCategoryImportInput,
+  ): Promise<CmsAnalyzeCategoryImportResponse> {
+    return this.categoryService.analyzeImport(input);
+  }
+
+  @Mutation(() => CmsCreateCategoriesResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsCreateCategories(
+    @Args('input') input: CmsCreateCategoriesInput,
+  ): Promise<CmsCreateCategoriesResponse> {
+    return this.categoryService.createCategories(input);
+  }
+
+  @Mutation(() => Category)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsRegenerateCategoryImage(@Args('id') id: string): Promise<Category> {
+    return this.categoryService.regenerateImage(id);
   }
 
   @Mutation(() => CmsUpdateCategoryResponse)

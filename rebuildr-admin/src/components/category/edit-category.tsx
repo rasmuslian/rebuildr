@@ -1,7 +1,7 @@
 "use client";
 
 import { Category, CmsUpdateCategoryInput } from "gql/graphql";
-import React from "react";
+import React, { useState } from "react";
 import CategoryForm from "./category-form";
 import { useForm } from "react-hook-form";
 import { CategorySchema, CategorySchemaType } from "@/schema/category-schema";
@@ -16,7 +16,8 @@ import {
   getUploadFiles,
   uploadFiles,
 } from "@utils/file-utils";
-import { App } from "antd";
+import { Alert, App } from "antd";
+import { regenerateCategoryImage } from "@/queries/category/regenerate-category-image";
 
 type Props = {
   category: Category;
@@ -30,6 +31,7 @@ const EditCategory = ({ category }: Props) => {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<CategorySchemaType>({
     resolver: zodResolver(CategorySchema),
     defaultValues: {
@@ -43,6 +45,24 @@ const EditCategory = ({ category }: Props) => {
       brandIds: category.brands.map((brand) => brand.id),
       searchAliases: category.searchAliases ?? [],
     },
+  });
+
+  const [imageGenerationFailed, setImageGenerationFailed] = useState(
+    category.imageGenerationStatus === "FAILED",
+  );
+
+  const { mutate: retryImage, isPending: isRetryingImage } = useMutation({
+    mutationFn: () => regenerateCategoryImage(category.id),
+    onSuccess: async (updatedCategory) => {
+      if (updatedCategory?.image) {
+        setValue("image", getUploadFiles([updatedCategory.image]));
+      }
+      setImageGenerationFailed(false);
+      notification.success({ message: "En ny kategoribild har skapats." });
+      await revalidate(`${routes.EDIT_CATEGORY}/${category.id}`);
+    },
+    onError: () =>
+      notification.error({ message: "Kategoribilden kunde inte genereras." }),
   });
 
   const { mutateAsync, isPending } = useMutation({
@@ -82,15 +102,29 @@ const EditCategory = ({ category }: Props) => {
   };
 
   return (
-    <CategoryForm
-      title="Redigera Kategori"
-      control={control}
-      errors={errors}
-      isPending={isPending}
-      handleSubmit={handleSubmit}
-      onSubmit={onSubmit}
-      submitLabel="Spara"
-    />
+    <>
+      {imageGenerationFailed && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Kategoribilden kunde inte genereras"
+          description={
+            category.imageGenerationError ??
+            "Ladda upp en egen bild eller försök igen."
+          }
+        />
+      )}
+      <CategoryForm
+        title="Redigera Kategori"
+        control={control}
+        errors={errors}
+        isPending={isPending || isRetryingImage}
+        handleSubmit={handleSubmit}
+        onSubmit={onSubmit}
+        onGenerateImage={() => retryImage()}
+        submitLabel="Spara"
+      />
+    </>
   );
 };
 

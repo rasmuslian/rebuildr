@@ -62,7 +62,12 @@ export class ImageVariantService {
   }
 
   async generate(file: File): Promise<void> {
-    const ext = file.mimeType.split('/')[1];
+    const ext =
+      file.mimeType === 'image/jpeg' &&
+      file.name?.startsWith('kategori-') &&
+      file.name.endsWith('.jpg')
+        ? 'jpg'
+        : file.mimeType.split('/')[1];
     const key = `${file.id}.${ext}`;
     try {
       const url = await this.s3Service.getUrl(key); // public CDN url
