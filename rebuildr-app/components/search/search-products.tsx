@@ -45,6 +45,7 @@ import MapThumbnail from "@components/maps/map-thumbnail";
 import { useLocationContext } from "@context/location-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { getItem, setItem } from "@/utils/async-storage";
+import { pendingMapSearchAreaVar } from "@/apollo/state";
 import { dividerStyles } from "@components/dividers/divider";
 import { useThemeColor } from "@hooks/useThemeColor";
 
@@ -112,6 +113,12 @@ type RelatedSearchProductsQueryVariables = {
   offset?: number;
   isLoggedIn: boolean;
   distanceFrom?: { lat: number; lng: number };
+};
+
+// Frames the whole country (clamped by the map's minZoom).
+const SWEDEN_BOUNDS: Bounds = {
+  northEast: { lat: 69.1, lng: 24.2 },
+  southWest: { lat: 55.3, lng: 11.0 },
 };
 
 const boundsMatch = (a?: Bounds, b?: Bounds) => {
@@ -183,6 +190,16 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
     };
   }, []);
 
+  // Pick up an area handed over from the full-screen map (mobile flow), which
+  // runs its own map provider on a separate route.
+  useEffect(() => {
+    const handedOverArea = pendingMapSearchAreaVar();
+    if (handedOverArea) {
+      setMapState({ searchArea: handedOverArea, fitBounds: handedOverArea });
+      pendingMapSearchAreaVar(undefined);
+    }
+  }, []);
+
   const transportationLocation =
     state.transportationOptions.location ?? userLocation;
 
@@ -240,11 +257,32 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
       : undefined,
   };
 
-  // Sort the list by distance; the map is framed on the user + their nearest
-  // hit once the reloaded list arrives (see the effect below).
+  // "Near me" is only truly in effect without a map area — an area is a
+  // competing way of choosing where to look, and sorting a handful of equally
+  // close ads by distance would look like nothing happened.
+  const nearMeActive = sortByDistance && !areaSearch;
+
+  // Toggles "near me": turning it on releases any map area and sorts by
+  // distance (the map is framed on the user + their nearest hit by the effect
+  // below); pressing it again returns to the default ordering.
   const onPressNearMe = () => {
+    if (nearMeActive) {
+      filterBuilder.setOrdering(OrderProductsEnum.BestMatch).apply();
+      return;
+    }
+
     filterBuilder.setOrdering(OrderProductsEnum.Distance).apply();
+    setMapState({ searchArea: undefined, searchOnMove: false });
     setState({ pendingNearMe: true });
+  };
+
+  // Drop the map-area restriction and show the whole country again.
+  const onClearSearchArea = () => {
+    setMapState({
+      searchArea: undefined,
+      searchOnMove: false,
+      fitBounds: SWEDEN_BOUNDS,
+    });
   };
 
   // Feed the filter to the map provider so pins match the list.
@@ -379,14 +417,7 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
           <Button
             label="Sök i hela Sverige"
             onPress={() => {
-              setMapState({
-                searchArea: undefined,
-                // Frame the whole country (clamped by the map's minZoom).
-                fitBounds: {
-                  northEast: { lat: 69.1, lng: 24.2 },
-                  southWest: { lat: 55.3, lng: 11.0 },
-                },
-              });
+              onClearSearchArea();
               filterBuilder.setOrdering(OrderProductsEnum.BestMatch).apply();
             }}
           />
@@ -565,13 +596,21 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
               >
                 <Body size="medium" style={{ flex: 1 }} color="secondary">
                   {data?.products.total ?? 0}{" "}
-                  {data?.products.total === 1 ? "träff" : "träffar"}:
+                  {data?.products.total === 1 ? "träff" : "träffar"}
+                  {areaSearch ? " i kartområdet:" : ":"}
                 </Body>
+                {areaSearch && (
+                  <Button
+                    label="Visa alla"
+                    type="tonal"
+                    onPress={onClearSearchArea}
+                  />
+                )}
                 <Button
                   label="Nära mig"
                   icon="navigation"
                   onPress={onPressNearMe}
-                  type={sortByDistance ? "filled" : "tonal"}
+                  type={nearMeActive ? "filled" : "tonal"}
                 />
                 <Button
                   label={state.transportationLabel}
@@ -773,8 +812,16 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
             >
               <Body size="medium" style={{ flex: 1 }} color="secondary">
                 {data?.products.total ?? 0}{" "}
-                {data?.products.total === 1 ? "träff" : "träffar"}:
+                {data?.products.total === 1 ? "träff" : "träffar"}
+                {areaSearch ? " i kartområdet:" : ":"}
               </Body>
+              {areaSearch && (
+                <Button
+                  label="Visa alla"
+                  type="tonal"
+                  onPress={onClearSearchArea}
+                />
+              )}
               <View>
                 <Button
                   icon="filterList2"
@@ -793,7 +840,7 @@ function SearchProductsContent({ title, showDistance = false }: Props) {
                 label="Nära mig"
                 icon="navigation"
                 onPress={onPressNearMe}
-                type={sortByDistance ? "filled" : "tonal"}
+                type={nearMeActive ? "filled" : "tonal"}
               />
               <Button
                 label={state.transportationLabel}
