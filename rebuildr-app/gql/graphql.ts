@@ -2849,7 +2849,7 @@ export type CreateMessageMutation = { __typename?: 'Mutation', createMessage: { 
 export type GetMeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: string, username?: string | null, type: UserType, description?: string | null, numberOfSoldProducts: number, numberOfPublishedProducts: number, rating?: number | null, isVerified: boolean, profilePicture?: { __typename?: 'File', id: string, url: string } | null } };
+export type GetMeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: string, username?: string | null, type: UserType, description?: string | null, numberOfSoldProducts: number, numberOfPublishedProducts: number, rating?: number | null, isVerified: boolean, sellerAccount?: { __typename?: 'SellerAccount', canReceivePayment: boolean } | null, profilePicture?: { __typename?: 'File', id: string, url: string } | null } };
 
 export type MarkProductAvailableMutationVariables = Exact<{
   input: UpdateProductInput;
