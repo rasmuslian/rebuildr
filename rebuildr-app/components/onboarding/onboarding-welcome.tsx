@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 import LogoIconLight from "@assets/svgs/logo-icon-light.svg";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Button } from "@components/buttons/button";
@@ -63,12 +63,16 @@ const WelcomeRow = ({
   </View>
 );
 
-const WelcomeContent = () => (
-  <View style={{ paddingBottom: 24 }}>
-    <View style={{ alignItems: "center", marginBottom: 20 }}>
-      <Image source={LogoIconLight} style={{ width: 88, height: 88 }} />
-    </View>
-    <View style={{ gap: 10, marginBottom: 28 }}>
+// On a short window the logo is the first thing to go: the three rows are what
+// the sheet is for, and they should not need scrolling to be seen.
+const WelcomeContent = ({ compact }: { compact?: boolean }) => (
+  <View style={{ paddingBottom: compact ? 12 : 24 }}>
+    {!compact && (
+      <View style={{ alignItems: "center", marginBottom: 20 }}>
+        <Image source={LogoIconLight} style={{ width: 88, height: 88 }} />
+      </View>
+    )}
+    <View style={{ gap: compact ? 6 : 10, marginBottom: compact ? 20 : 28 }}>
       <Display size="small" style={{ textAlign: "center" }}>
         Välkommen till RebuildR
       </Display>
@@ -76,7 +80,7 @@ const WelcomeContent = () => (
         Sveriges marknadsplats för återbrukat byggmaterial & verktyg.
       </Body>
     </View>
-    <View style={{ gap: 20 }}>
+    <View style={{ gap: compact ? 14 : 20 }}>
       {WELCOME_ROWS.map((row) => (
         <WelcomeRow key={row.title} {...row} />
       ))}
@@ -108,6 +112,7 @@ export const OnboardingWelcome = () => {
   const { isReady, hasSeenWelcome, markWelcomeSeen } = useOnboarding();
   const { isReady: cookiesReady, hasAnswered } = useCookies();
   const { isDesktop } = useScreenType();
+  const { height } = useWindowDimensions();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -145,7 +150,15 @@ export const OnboardingWelcome = () => {
           <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
             <Button icon="X" type="text" onPress={dismiss} />
           </View>
-          <WelcomeContent />
+          {/* A short desktop window (laptop with browser chrome) would other-
+              wise push the last rows past the bottom of the card, where they
+              are clipped with no way to reach them. */}
+          <ScrollView
+            style={{ maxHeight: Math.max(220, height - 240) }}
+            showsVerticalScrollIndicator={false}
+          >
+            <WelcomeContent compact={height < 760} />
+          </ScrollView>
         </View>
       </Popup>
     );
