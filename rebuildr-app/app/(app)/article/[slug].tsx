@@ -117,8 +117,13 @@ export default function ArticlePage() {
       <>
         {head}
         <ScreenLayout headerComponent={<TopBar theme="light" />}>
-          <View style={{ width: 720, alignSelf: "center", gap: 24 }}>
-            <Header showBackButton title={title} headingLevel={1} />
+          {/* No container `gap` here: block spacing comes solely from each
+              block's own marginBottom (same model as mobile), so paragraphs sit
+              ~1 line-height apart instead of gap+margin stacking to ~48px. */}
+          <View style={{ width: 720, alignSelf: "center" }}>
+            <View style={{ marginBottom: 24 }}>
+              <Header showBackButton title={title} headingLevel={1} />
+            </View>
             {articleContent}
           </View>
         </ScreenLayout>

@@ -31,6 +31,8 @@ import { CreateProductLabelModal } from "@components/modals/create-product-label
 import { usePersistedState } from "@hooks/use-persisted-state";
 import { useUser } from "@hooks/useUser";
 import { PrintProductLabelPortal } from "@components/product-label/print-product-label-portal";
+import { SITE_URL } from "@/lib/site-url";
+import { shareUrl } from "@/utils/share-url";
 import { usePrintProductLabel } from "@hooks/product/use-print-product-label";
 
 import { ReportProduct } from "@components/report/report-product";
@@ -142,6 +144,16 @@ export const ProductMobile = ({
       },
     });
   }
+
+  ctas.push({
+    icon: "upload",
+    onPress: () =>
+      shareUrl(`${SITE_URL}/product/${product.id}`, {
+        dialogTitle: "Dela annons",
+        copiedMessage: "Länk till annonsen kopierad!",
+        title: product.title,
+      }),
+  });
 
   if (!isMyProduct && isLoggedIn) {
     ctas.push({

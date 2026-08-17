@@ -10,13 +10,14 @@ type Props = {
   projectsInput?: ProjectsInput;
 };
 
-export default function InteractiveMap({
-  style,
-  initialCenter,
-  productsInput,
-  projectsInput,
-}: Props) {
-  const [Map, setMap] = useState<React.ComponentType<Props> | null>(null);
+/**
+ * The map canvas alone — lazily loads the web-only leaflet client and assumes a
+ * MapProvider already exists in an ancestor. Use this when the surrounding UI
+ * needs to share the map state (bounds, search area, selection); otherwise use
+ * the default InteractiveMap which brings its own provider.
+ */
+export function MapCanvas({ style }: { style?: StyleProp<ViewStyle> }) {
+  const [Map, setMap] = useState<React.ComponentType | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -29,15 +30,24 @@ export default function InteractiveMap({
 
   return (
     <View style={[{ overflow: "hidden", height: 624 }, style]}>
-      {Map && (
-        <MapProvider
-          initialCenter={initialCenter}
-          productsInput={productsInput}
-          projectsInput={projectsInput}
-        >
-          <Map />
-        </MapProvider>
-      )}
+      {Map && <Map />}
     </View>
+  );
+}
+
+export default function InteractiveMap({
+  style,
+  initialCenter,
+  productsInput,
+  projectsInput,
+}: Props) {
+  return (
+    <MapProvider
+      initialCenter={initialCenter}
+      productsInput={productsInput}
+      projectsInput={projectsInput}
+    >
+      <MapCanvas style={style} />
+    </MapProvider>
   );
 }
