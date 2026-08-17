@@ -7,16 +7,18 @@ type Props = {
   data: AdRowSectionQuery;
   onPress: () => void;
   title: string;
+  buttonTitle?: string;
   onToggleProductHeart: (args: {
     productId: string;
     likedByMe: boolean;
   }) => void;
 };
 
-export const AdRowSectionMobile = ({
+export const AdRowSectionCarousel = ({
   data,
   onPress,
   title,
+  buttonTitle,
   onToggleProductHeart,
 }: Props) => {
   if (!data || data.products.products.length < 1) return null;
@@ -25,6 +27,7 @@ export const AdRowSectionMobile = ({
     <View style={{ paddingTop: 16, paddingBottom: 24 }}>
       <HoriztalListSection
         title={title}
+        buttonTitle={buttonTitle}
         data={data?.products.products ?? []}
         onPress={() => onPress()}
         keyExtractor={(item) => item.id}

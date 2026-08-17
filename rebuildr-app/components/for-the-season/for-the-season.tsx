@@ -1,6 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { router } from "expo-router";
-import { View, ScrollView, useWindowDimensions } from "react-native";
+import { View, ScrollView } from "react-native";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
 import Placeholder from "@assets/images/placeholder.png";
 import { SectionHeader } from "@components/sections/section-header";
@@ -25,11 +25,8 @@ const FOR_THE_SEASON_CATEGORIES = gql`
   }
 `;
 
-const CATEGORY_WIDTH = 225;
-
 export const ForTheSeason = () => {
   const { isDesktop } = useScreenType();
-  const { width: screenWidth } = useWindowDimensions();
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -46,10 +43,6 @@ export const ForTheSeason = () => {
 
   const categories = data?.categories ?? [];
   if (categories.length < 1) return null;
-
-  const nrOfCategoriesShown = isDesktop
-    ? (screenWidth / CATEGORY_WIDTH) * 2
-    : categories.length;
 
   type categoryType = ForTheSeasonCategoriesQuery["categories"][0];
 
@@ -107,9 +100,10 @@ export const ForTheSeason = () => {
           flexWrap: "wrap",
         }}
       >
-        {sortedByWidth.slice(0, nrOfCategoriesShown).map((category, index) => (
+        {sortedByWidth.map((category) => (
           <ImageQuickLink
-            key={index}
+            key={category.id}
+            accessibilityRole="link"
             onPress={() => {
               router.navigate({
                 pathname: "/search/products/[categoryId]",
