@@ -25,6 +25,7 @@ type Props = {
   control: Control<CategorySchemaType>;
   submitLabel: string;
   isPending: boolean;
+  onGenerateImage?: (formValues: CategorySchemaType) => void;
 };
 
 const CategoryForm = ({
@@ -35,6 +36,7 @@ const CategoryForm = ({
   control,
   submitLabel,
   isPending,
+  onGenerateImage,
 }: Props) => {
   return (
     <AdminForm title={title} type="raised" onSubmit={handleSubmit(onSubmit)}>
@@ -53,7 +55,17 @@ const CategoryForm = ({
         name="image"
         render={({ field: { value, onChange } }) => (
           <FormField label="Bild" error={errors.image?.message}>
-            <UploadImage files={value} setFiles={onChange} />
+            <div className="flex flex-col items-start gap-3">
+              <UploadImage files={value} setFiles={onChange} />
+              {onGenerateImage && (
+                <Button
+                  loading={isPending}
+                  onClick={handleSubmit(onGenerateImage)}
+                >
+                  Generera bild med AI
+                </Button>
+              )}
+            </div>
           </FormField>
         )}
       />

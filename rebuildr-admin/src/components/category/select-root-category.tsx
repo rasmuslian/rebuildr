@@ -11,9 +11,14 @@ import { OrderCategoriesEnum } from "gql/graphql";
 type Props = {
   value?: string;
   onChange: (categoryId?: string) => void;
+  additionalOptions?: { label: string; value: string }[];
 };
 
-const SelectRootCategory = ({ value, onChange }: Props) => {
+const SelectRootCategory = ({
+  value,
+  onChange,
+  additionalOptions = [],
+}: Props) => {
   const { data: categories = [], isLoading } = useQuery({
     queryKey: [queryKeys.LIST_ROOT_CATEGORIES],
     queryFn: () =>
@@ -21,16 +26,19 @@ const SelectRootCategory = ({ value, onChange }: Props) => {
   });
 
   const options: SelectProps["options"] = useMemo(
-    () =>
-      categories.map((category) => ({
+    () => [
+      ...categories.map((category) => ({
         label: category.name,
         value: category.id,
       })),
-    [categories],
+      ...additionalOptions,
+    ],
+    [additionalOptions, categories],
   );
 
   return (
     <Select
+      allowClear
       showSearch
       loading={isLoading}
       optionFilterProp="label"
