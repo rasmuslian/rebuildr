@@ -19,16 +19,15 @@ export default function HeroDesktop({
   const colors = useThemeColor();
 
   return (
-    <ImageBackground
-      source={require("@assets/images/main-background.png")}
-      resizeMode="cover"
+    <View
       style={{
-        backgroundColor: colors.logo.vector,
         width: "100%",
         overflow: "hidden",
       }}
     >
-      <View
+      <ImageBackground
+        source={require("@assets/images/main-background.png")}
+        resizeMode="cover"
         style={{
           width: "100%",
           maxWidth: MAX_CONTENT_WIDTH,
@@ -56,7 +55,7 @@ export default function HeroDesktop({
           visible={showSearchBar}
           searchOnSubmit
         />
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </View>
   );
 }

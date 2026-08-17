@@ -196,13 +196,13 @@ export default function TopBarDesktop({
                         {icon ? (
                           <Icon
                             icon={icon}
-                            size={22}
+                            size={26}
                             color={
                               theme === "dark" ? "primaryLight" : "primaryDark"
                             }
                           />
                         ) : (
-                          <Avatar imageUrl={avatarUrl} size={24} />
+                          <Avatar imageUrl={avatarUrl} size={30} />
                         )}
                         {!!badgeNumber && (
                           <View
