@@ -343,6 +343,9 @@ export default function InternalAdsPage() {
         status: product.status,
         overlayText:
           product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
+        imageBadgeText: product.publiclyAvailable
+          ? "Externt publicerad"
+          : undefined,
         onPress: () =>
           router.navigate({
             pathname: "/internal/[productId]",

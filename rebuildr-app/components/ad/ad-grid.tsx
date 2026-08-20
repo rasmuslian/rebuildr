@@ -16,12 +16,28 @@ import { meterToKilometer } from "@/utils/conversions";
 import { trackEvent } from "@/utils/analytics";
 import { GTMTagEnum } from "@constants/google-tag-manager";
 
+const ImageBadge = ({ text }: { text: string }) => (
+  <View
+    style={{
+      paddingVertical: 2,
+      paddingHorizontal: 8,
+      borderRadius: borderRadius.full,
+      backgroundColor: primitives.primary700,
+    }}
+  >
+    <Label size="medium" color="primaryLight">
+      {text}
+    </Label>
+  </View>
+);
+
 type Props = {
   id: string;
   imageUri?: string;
   heart?: boolean;
   onHeartPress?: () => void;
   overlayText?: string;
+  imageBadgeText?: string;
   disabled?: boolean;
   liked?: boolean;
   status?: ProductStatusEnum;
@@ -36,6 +52,7 @@ export const AdGrid = ({
   heart,
   onHeartPress,
   overlayText: _overlayText,
+  imageBadgeText,
   disabled,
   liked,
   status,
@@ -92,21 +109,17 @@ export const AdGrid = ({
           style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
-        {upcoming && !overlayText && (
+        {(upcoming || imageBadgeText) && (
           <View
             style={{
               position: "absolute",
               bottom: 8,
               left: 8,
-              paddingVertical: 2,
-              paddingHorizontal: 8,
-              borderRadius: borderRadius.full,
-              backgroundColor: primitives.primary700,
+              gap: 4,
             }}
           >
-            <Label size="medium" color="primaryLight">
-              {UPCOMING_LABEL}
-            </Label>
+            {upcoming && !overlayText && <ImageBadge text={UPCOMING_LABEL} />}
+            {!!imageBadgeText && <ImageBadge text={imageBadgeText} />}
           </View>
         )}
       </View>

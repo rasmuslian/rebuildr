@@ -355,7 +355,11 @@ export default function InternalAdsPage() {
     return () => window.removeEventListener("scroll", updateTopBarSearch);
   }, [introHeight]);
 
-  const getAdGridProducts = (products: typeof activeProducts) =>
+  const getAdGridProducts = (
+    products: Array<
+      (typeof activeProducts)[number] | (typeof availableNowProducts)[number]
+    >,
+  ) =>
     products.slice(0, maxVisibleProducts).map((product) => ({
       id: product.id,
       title: product.title,
@@ -370,6 +374,10 @@ export default function InternalAdsPage() {
       upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
       overlayText:
         product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
+      imageBadgeText:
+        "publiclyAvailable" in product && product.publiclyAvailable
+          ? "Externt publicerad"
+          : undefined,
       onPress: () =>
         router.navigate({
           pathname: "/internal/[productId]",

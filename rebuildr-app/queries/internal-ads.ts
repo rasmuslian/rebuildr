@@ -9,6 +9,7 @@ export const INTERNAL_AD_CARD_FIELDS = gql`
     price
     status
     availability
+    publiclyAvailable
     estimatedAvailableAt
     availabilityPrecision
     primaryQuantity
@@ -67,6 +68,7 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         price
         status
         availability
+        publiclyAvailable
         primaryQuantity
         primaryUnit
         condition
@@ -127,6 +129,7 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         price
         status
         availability
+        publiclyAvailable
         primaryQuantity
         primaryUnit
         condition
