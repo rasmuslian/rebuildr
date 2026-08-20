@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
+import { EditPickup } from "@components/upsert-product/edit-pickup";
 import { InternalPageLayout } from "@components/internal/internal-page-layout";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -160,19 +161,23 @@ export function CreateInternalProjectSheet({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState<{ lat: number; lng: number }>();
   const [create, { loading }] = useMutation(CREATE_INTERNAL_PROJECT);
 
   const onCreate = async () => {
+    if (!location) return;
     await create({
       variables: {
         input: {
           title: title.trim(),
           description: description.trim() || undefined,
+          location,
         },
       },
     });
     setTitle("");
     setDescription("");
+    setLocation(undefined);
     await onCreated();
   };
 
@@ -197,13 +202,63 @@ export function CreateInternalProjectSheet({
             style={{ height: 144 }}
           />
         </View>
+        <ProjectLocationPicker location={location} onSave={setLocation} />
         <Button
           label="Skapa projekt"
           loading={loading}
-          disabled={!title.trim()}
+          disabled={!title.trim() || !location}
           onPress={onCreate}
         />
       </View>
     </SlideInSheet>
+  );
+}
+
+export function ProjectLocationPicker({
+  address,
+  location,
+  onSave,
+}: {
+  address?: string;
+  location?: { lat: number; lng: number };
+  onSave: (location: { lat: number; lng: number }) => void;
+}) {
+  const [editing, setEditing] = useState(!location);
+
+  useEffect(() => {
+    if (location) setEditing(false);
+  }, [location]);
+
+  if (!editing && location) {
+    return (
+      <View style={{ gap: 8 }}>
+        <View style={{ gap: 4 }}>
+          <Label size="medium">Plats</Label>
+          <Body size="medium" color="secondary">
+            {address ?? "Plats vald på kartan"}
+          </Body>
+        </View>
+        <Button
+          label="Ändra plats"
+          type="outlined"
+          onPress={() => setEditing(true)}
+          style={{ alignSelf: "flex-start" }}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <EditPickup
+      address={address}
+      location={location}
+      onSave={(lat, lng) => {
+        onSave({ lat, lng });
+        setEditing(false);
+      }}
+      title="Plats"
+      addressDescription="Välj projektets plats så att dess annonser blir enklare att hitta i Återbanken."
+      saveLabel="Spara plats"
+    />
   );
 }

@@ -14,6 +14,9 @@ type Props = {
   location?: { lat: number; lng: number };
   onSave: (lat: number, lng: number) => void;
   isLoading?: boolean;
+  title?: string;
+  addressDescription?: string;
+  saveLabel?: string;
 };
 
 export const EditPickup = ({
@@ -21,6 +24,10 @@ export const EditPickup = ({
   location: _location,
   onSave,
   isLoading,
+  title = "Plats för avhämtning",
+  addressDescription =
+    "Köparen ser inte din exakta adress, bara ett ungefärligt område på kartan. Din adress visas först när ett köp har genomförts.",
+  saveLabel = "Spara adress",
 }: Props) => {
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
@@ -64,7 +71,7 @@ export const EditPickup = ({
 
   return (
     <View style={{ gap: 24 }}>
-      <Title size="medium">Plats för avhämtning</Title>
+      <Title size="medium">{title}</Title>
       <View style={{ gap: 14 }}>
         <Form
           fields={[
@@ -73,8 +80,7 @@ export const EditPickup = ({
               onChange: onUpdateAddress,
               value: address,
               heading: "Adress",
-              description:
-                "Köparen ser inte din exakta adress, bara ett ungefärligt område på kartan. Din adress visas först när ett köp har genomförts.",
+              description: addressDescription,
             },
           ]}
         />
@@ -116,7 +122,7 @@ export const EditPickup = ({
         </View>
       </View>
       <Button
-        label="Spara adress"
+        label={saveLabel}
         onPress={onSaveAddress}
         disabled={!address}
         loading={isLoading}

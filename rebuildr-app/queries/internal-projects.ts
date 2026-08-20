@@ -5,6 +5,11 @@ export const INTERNAL_PROJECT_CARD_FIELDS = gql`
     id
     title
     description
+    address
+    location {
+      lat
+      lng
+    }
     projectPicture {
       id
       url
@@ -73,6 +78,11 @@ export const CREATE_INTERNAL_PROJECT = gql`
       id
       title
       description
+      address
+      location {
+        lat
+        lng
+      }
     }
   }
 `;
@@ -82,6 +92,11 @@ export const UPDATE_INTERNAL_PROJECT = gql`
       id
       title
       description
+      address
+      location {
+        lat
+        lng
+      }
     }
   }
 `;

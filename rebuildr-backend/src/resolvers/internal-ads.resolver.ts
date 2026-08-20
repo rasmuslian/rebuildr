@@ -36,6 +36,7 @@ import {
   PaginatedProductsResponse,
 } from 'src/resolvers/product.resolver';
 import { InternalAdsService } from 'src/services/internal-ads.service';
+import { LocationInputType } from './geocoding.resolver';
 import { MapPinGroupsInput, MapPinGroupsResponse } from './map-pin.resolver';
 
 @ObjectType()
@@ -147,12 +148,24 @@ class CreateInternalProjectInput {
 
   @Field({ nullable: true })
   description?: string;
+
+  @Field(() => LocationInputType)
+  location: LocationInputType;
 }
 
 @InputType()
-class UpdateInternalProjectInput extends CreateInternalProjectInput {
+class UpdateInternalProjectInput {
   @Field(() => ID)
   id: string;
+
+  @Field()
+  title: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 }
 
 @ObjectType()

@@ -62,6 +62,7 @@ import {
 import { Logger } from 'winston';
 import { BrandService } from './brand.service';
 import { FileService } from './file.service';
+import { GeocodingService } from './geocoding.service';
 import { MailService } from './mail.service';
 
 const GEMINI_TIMEOUT_MS = 120_000;
@@ -115,6 +116,7 @@ export class InternalAdsService {
     private importBatchRepository: Repository<InternalAdImportBatch>,
     private fileService: FileService,
     private brandService: BrandService,
+    private geocodingService: GeocodingService,
     private mailService: MailService,
     private dataSource: DataSource,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -492,15 +494,27 @@ export class InternalAdsService {
 
   async createInternalProject(
     currentUserId: string,
-    input: { title: string; description?: string },
+    input: {
+      title: string;
+      description?: string;
+      location: { lat: number; lng: number };
+    },
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     const title = input.title.trim();
     if (!title) throw BadUserInputException('Project title is required');
+    const { exact } = await this.geocodingService.exactAndApproximatePlace(
+      input.location,
+    );
     return this.projectRepository.save(
       this.projectRepository.create({
         title,
         description: input.description?.trim() || null,
+        address: exact.address,
+        addressLocation: {
+          type: 'Point',
+          coordinates: [input.location.lat, input.location.lng],
+        },
         userId: context.organization.id,
         internalOrganizationId: context.organization.id,
       }),
@@ -509,7 +523,12 @@ export class InternalAdsService {
 
   async updateInternalProject(
     currentUserId: string,
-    input: { id: string; title?: string; description?: string },
+    input: {
+      id: string;
+      title?: string;
+      description?: string;
+      location?: { lat: number; lng: number };
+    },
   ) {
     const project = await this.internalProject(currentUserId, input.id);
     if (input.title !== undefined) {
@@ -519,6 +538,19 @@ export class InternalAdsService {
     }
     if (input.description !== undefined)
       project.description = input.description;
+    if (input.location) {
+      const { exact } = await this.geocodingService.exactAndApproximatePlace(
+        input.location,
+      );
+      project.address = exact.address;
+      project.addressLocation = {
+        type: 'Point',
+        coordinates: [input.location.lat, input.location.lng],
+      };
+    }
+    if (!project.address || !project.addressLocation) {
+      throw BadUserInputException('Internal project missing location');
+    }
     return this.projectRepository.save(project);
   }
 
@@ -641,9 +673,8 @@ export class InternalAdsService {
     const cellSize = this.internalMapCellSize(input.zoom);
     const query = this.productRepository
       .createQueryBuilder('p')
-      .innerJoin('p.mapPin', 'mapPin')
-      .select('ST_X(ST_Centroid(ST_Collect(mapPin.location)))', 'latitude')
-      .addSelect('ST_Y(ST_Centroid(ST_Collect(mapPin.location)))', 'longitude')
+      .select('ST_X(ST_Centroid(ST_Collect(p."addressLocation")))', 'latitude')
+      .addSelect('ST_Y(ST_Centroid(ST_Collect(p."addressLocation")))', 'longitude')
       .addSelect('ARRAY_AGG(p.id)', 'productIds')
       .addSelect('ARRAY_AGG(p.price ORDER BY p.price)', 'prices')
       .where('p.visibility = :visibility', {
@@ -656,8 +687,9 @@ export class InternalAdsService {
         statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
       })
       .andWhere('p."hiddenReason" IS NULL')
+      .andWhere('p."addressLocation" IS NOT NULL')
       .andWhere(
-        'mapPin.location && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)',
+        'p."addressLocation" && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)',
         {
           swLat: input.southWest.lat,
           swLng: input.southWest.lng,
@@ -665,7 +697,7 @@ export class InternalAdsService {
           neLng: input.northEast.lng,
         },
       )
-      .groupBy('ST_SnapToGrid(mapPin.location, :cellSize)')
+      .groupBy('ST_SnapToGrid(p."addressLocation", :cellSize)')
       .setParameter('cellSize', cellSize);
 
     if (input.productsInput) {
@@ -1307,6 +1339,8 @@ export class InternalAdsService {
     if (!product.primaryQuantity || !product.primaryUnit)
       issues.push('Mängd saknas');
     if (!product.condition) issues.push('Skick saknas');
+    if (!product.address || !product.addressLocation)
+      issues.push('Plats saknas');
     return issues;
   }
 

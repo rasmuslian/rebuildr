@@ -424,7 +424,7 @@ export const UpsertProduct = ({
     const errorInDetails = Object.keys(errorFields).some(
       (key) =>
         detailsErrorFields.some((field) => field === key) ||
-        (internalMode && key === "availability"),
+        (internalMode && ["availability", "location"].includes(key)),
     );
     if (errorInDetails) {
       setStep("details");
@@ -784,7 +784,7 @@ export const UpsertProduct = ({
       return 0;
     }
 
-    const totalMandatories = internalMode ? 6 : 7;
+    const totalMandatories = internalMode ? 7 : 7;
     let obligatories = internalMode ? 1 : 0;
     if (product.images?.length) {
       obligatories += 1;
@@ -805,6 +805,9 @@ export const UpsertProduct = ({
       obligatories += 1;
     }
     if (product.brandId) {
+      obligatories += 1;
+    }
+    if (internalMode && product.location) {
       obligatories += 1;
     }
 
@@ -945,6 +948,7 @@ export const UpsertProduct = ({
     delete badFields["title"];
     delete badFields["description"];
     delete badFields["primary"];
+    delete badFields["location"];
     if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
@@ -961,6 +965,9 @@ export const UpsertProduct = ({
     }
     if (!_product.description) {
       badFields["description"] = "Saknar Beskrivning";
+    }
+    if (internalMode && !_product.location) {
+      badFields["location"] = "Välj en plats för annonsen";
     }
     if (
       _product.primaryQuantity !== undefined &&

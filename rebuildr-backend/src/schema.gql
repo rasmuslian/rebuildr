@@ -2154,12 +2154,14 @@ input CmsUpdateNewsletterCompetitionInput {
 input CreateInternalProjectInput {
   title: String!
   description: String
+  location: LocationInputType!
 }
 
 input UpdateInternalProjectInput {
+  id: ID!
   title: String!
   description: String
-  id: ID!
+  location: LocationInputType
 }
 
 input InviteOrganizationMemberInput {

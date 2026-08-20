@@ -13,6 +13,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
+import { ProjectLocationPicker } from "../projects";
+
 import {
   DELETE_INTERNAL_PROJECT,
   INTERNAL_PROJECT,
@@ -176,12 +178,16 @@ function EditInternalProjectSheet({
 }: any) {
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description ?? "");
+  const [location, setLocation] = useState<
+    { lat: number; lng: number } | undefined
+  >(project.location ?? undefined);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [update, { loading }] = useMutation(UPDATE_INTERNAL_PROJECT);
 
   useEffect(() => {
     setTitle(project.title);
     setDescription(project.description ?? "");
+    setLocation(project.location ?? undefined);
   }, [project.description, project.title]);
 
   return (
@@ -234,18 +240,25 @@ function EditInternalProjectSheet({
               style={{ height: 144 }}
             />
           </View>
+          <ProjectLocationPicker
+            address={project.address ?? undefined}
+            location={location}
+            onSave={setLocation}
+          />
           <View style={{ gap: 12 }}>
             <Button
               label="Spara ändringar"
               loading={loading}
-              disabled={!title.trim()}
+              disabled={!title.trim() || !location}
               onPress={async () => {
+                if (!location) return;
                 await update({
                   variables: {
                     input: {
                       id: project.id,
                       title: title.trim(),
                       description: description.trim(),
+                      location,
                     },
                   },
                 });
