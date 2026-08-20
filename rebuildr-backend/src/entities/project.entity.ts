@@ -65,7 +65,7 @@ export class Project {
   @Column()
   userId: string;
 
-  /** NULL denotes an ordinary marketplace project; set for Internlagret projects. */
+  /** NULL denotes an ordinary marketplace project; set for Återbanken projects. */
   @Column({ nullable: true })
   internalOrganizationId?: string;
   @ManyToOne(() => User, { nullable: true })

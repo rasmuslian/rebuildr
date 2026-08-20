@@ -303,7 +303,7 @@ export const OrganizationMembers = ({ onBack }: Props) => {
                     onPress={() =>
                       Alert.alert(
                         "Ta bort medlem?",
-                        "Medlemmen förlorar åtkomst till Internlagret.",
+                        "Medlemmen förlorar åtkomst till Återbanken.",
                         [
                           { text: "Avbryt", style: "cancel" },
                           {

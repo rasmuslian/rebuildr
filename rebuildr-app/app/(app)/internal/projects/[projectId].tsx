@@ -118,7 +118,7 @@ export default function InternalProjectPage() {
                 </Body>
               )}
               <Body size="medium" color="secondary">
-                {project.products.length} interna annonser
+                {project.products.length} annonser
               </Body>
             </View>
 
@@ -143,7 +143,7 @@ export default function InternalProjectPage() {
             <Headline size="small">Annonser i projektet</Headline>
             <Body size="medium" color="secondary">
               Projektet har inga annonser ännu. Välj projektet nästa gång du
-              skapar eller redigerar en intern annons.
+              skapar eller redigerar en annons.
             </Body>
           </View>
         )}
@@ -196,7 +196,7 @@ function EditInternalProjectSheet({
       {confirmingDelete ? (
         <View style={{ gap: 24 }}>
           <Body size="medium" color="secondary">
-            Annonserna tas bort från projektet, men finns kvar i Internlagret.
+            Annonserna tas bort från projektet, men finns kvar i Återbanken.
           </Body>
           {!!deleteError && <Body color="error">{deleteError}</Body>}
           <View style={{ gap: 12 }}>

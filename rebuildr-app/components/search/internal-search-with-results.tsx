@@ -121,7 +121,7 @@ export const InternalSearchWithResults = ({
 
       {!!products.length && (
         <View style={sectionStyle(1)}>
-          <Title size="medium">Interna annonser</Title>
+          <Title size="medium">Annonser</Title>
           <View style={{ gap: 12 }}>
             {products.map((product) => (
               <Pressable
@@ -157,7 +157,7 @@ export const InternalSearchWithResults = ({
                     <Body size="small" color="secondary">
                       {product.category?.name ??
                         product.brand?.name ??
-                        "Intern annons"}
+                        "Annons"}
                     </Body>
                   </View>
                   <Icon icon="chevronRight" size={18} />

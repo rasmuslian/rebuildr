@@ -63,10 +63,10 @@ export default function InternalProjectsPage() {
         >
           <View style={{ gap: 8, flex: 1 }}>
             <Headline size="small" heading={1}>
-              Interna projekt
+              Projekt
             </Headline>
             <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
-              Samla interna annonser som hör till samma projekt.
+              Samla annonser som hör till samma projekt.
             </Body>
           </View>
           <Button
@@ -118,12 +118,12 @@ export default function InternalProjectsPage() {
         ) : (
           <View style={{ gap: 8, maxWidth: 560 }}>
             <Label size="large">
-              {searchString ? "Inga sökträffar" : "Inga interna projekt ännu"}
+              {searchString ? "Inga sökträffar" : "Inga projekt ännu"}
             </Label>
             <Body size="medium" color="secondary">
               {searchString
                 ? "Prova ett annat sökord."
-                : "Skapa ett projekt för att samla interna annonser."}
+                : "Skapa ett projekt för att samla annonser."}
             </Body>
             {!searchString && (
               <Button

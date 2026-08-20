@@ -127,13 +127,13 @@ const InternalTopBarDesktop = ({
           <Pressable accessibilityRole="link" onPress={goInternalHome}>
             <Logo width={118} height={24} customColor={colors.logo.vector} />
           </Pressable>
-          <Label size="large">Internlagret</Label>
+          <Label size="large">Återbanken</Label>
           {showActions && showSearchBar && (
             <SearchBar
               backgroundColor="transparent"
               searchOnSubmit
               searchScope="internal"
-              placeholder="Sök i internlagret"
+              placeholder="Sök i Återbanken"
               style={{ borderBottomWidth: 0, width: 320 }}
               borderStyle={{
                 borderColor: colors.dividers.neutral,
@@ -152,7 +152,7 @@ const InternalTopBarDesktop = ({
             style={{ backgroundColor: primitives.neutrals100 }}
           />
           {showActions && (
-            <Button label="Ny intern annons" onPress={createInternalAd} />
+            <Button label="Ny annons" onPress={createInternalAd} />
           )}
         </View>
       </View>
@@ -197,7 +197,7 @@ const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
               style={{ alignItems: "center", flexDirection: "row", gap: 8 }}
             >
               <Logo width={70} height={14} customColor={colors.logo.vector} />
-              <Label size="small">Internlagret</Label>
+              <Label size="small">Återbanken</Label>
             </View>
           </Pressable>
           <View style={{ flexDirection: "row" }}>
@@ -210,7 +210,7 @@ const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
                 />
                 <MobileAction
                   icon="newListing"
-                  label="Ny intern annons"
+                  label="Ny annons"
                   onPress={createInternalAd}
                 />
               </>
@@ -268,12 +268,12 @@ const InternalMenu = ({
   onGoMarketplace: () => void;
   showInternalLinks: boolean;
 }) => (
-  <SlideInSheet open={open} onClose={onClose} title="Internlagret">
+  <SlideInSheet open={open} onClose={onClose} title="Återbanken">
     <View style={{ gap: 8 }}>
       {showInternalLinks && (
         <>
           <InternalMenuEntry
-            label="Interna projekt"
+            label="Projekt"
             href="/internal/projects"
             onClose={onClose}
           />
@@ -286,7 +286,7 @@ const InternalMenu = ({
       )}
       <View style={{ marginTop: 16 }}>
         <Button
-          label="Gå till externa marknadsplatsen"
+          label="Till externa marknadsplatsen"
           type="outlined"
           onPress={() => {
             onClose();

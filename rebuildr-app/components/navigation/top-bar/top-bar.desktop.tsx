@@ -164,7 +164,7 @@ export default function TopBarDesktop({
               searchScope={searchScope}
               placeholder={
                 searchScope === "internal"
-                  ? "Sök i internlagret"
+                  ? "Sök i Återbanken"
                   : "Vad letar du efter?"
               }
               style={{

@@ -636,7 +636,7 @@ const InternalAdContent = ({
     <View style={{ gap: 24 }}>
       <View style={{ gap: 8 }}>
         <Body size="medium" color="secondary">
-          Internlagret
+          Återbanken
         </Body>
         <Breadcrumbs
           parentCategory={product.category?.parent}

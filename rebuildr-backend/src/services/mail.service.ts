@@ -435,8 +435,8 @@ export class MailService {
     const data = {
       to: input.email,
       from: this.from,
-      subject: `${input.organizationName} har bjudit in dig till Internlagret`,
-      text: `${input.organizationName} har bjudit in dig till Internlagret.`,
+      subject: `${input.organizationName} har bjudit in dig till Återbanken`,
+      text: `${input.organizationName} har bjudit in dig till Återbanken.`,
       html,
     };
     try {
@@ -467,7 +467,7 @@ export class MailService {
     const data = {
       to: input.email,
       from: this.from,
-      subject: `Internlagret: ${input.productTitle}`,
+      subject: `Återbanken: ${input.productTitle}`,
       text: `${input.actorName} har ${input.action} ${input.productTitle}.`,
       html,
     };

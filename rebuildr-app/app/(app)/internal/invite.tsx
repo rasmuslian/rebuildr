@@ -150,7 +150,7 @@ export default function InternalAdsInvitePage() {
         >
           <View style={{ gap: 6 }}>
             <Label size="medium" color="secondary">
-              Internlagret
+              Återbanken
             </Label>
             <Display size="small" heading={1}>
               Acceptera inbjudan
@@ -182,7 +182,7 @@ export default function InternalAdsInvitePage() {
                 </Body>
               </View>
               <Button
-                label={isLoggedIn ? "Öppna Internlagret" : "Logga in"}
+                label={isLoggedIn ? "Öppna Återbanken" : "Logga in"}
                 onPress={() => router.replace("/internal")}
               />
             </View>

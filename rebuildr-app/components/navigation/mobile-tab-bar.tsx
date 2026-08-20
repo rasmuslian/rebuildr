@@ -72,7 +72,7 @@ export function MobileTabBar({
       highlight: isHighlighted("categories"),
     },
     {
-      name: isInternalAdsRoute ? "Ny intern annons" : "Ny annons",
+      name: isInternalAdsRoute ? "Ny annons" : "Ny annons",
       icon: "newListing",
       onPress: () => {
         if (!isLoggedIn) {

@@ -272,7 +272,7 @@ const InternalSearchResults = () => {
           !isDesktop ? (
             <SearchBar
               onPressArrow={() => router.back()}
-              placeholder="Sök i internlagret"
+              placeholder="Sök i Återbanken"
               searchScope="internal"
               searchOnSubmit
             />

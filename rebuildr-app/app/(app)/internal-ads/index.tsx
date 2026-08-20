@@ -386,7 +386,7 @@ export default function InternalAdsPage() {
                     borderColor: colors.buttons.outlinedStroke.enabled,
                     borderWidth: 1,
                   }}
-                  placeholder="Sök i internlagret"
+                  placeholder="Sök i Återbanken"
                   searchScope="internal"
                   searchOnSubmit
                   onSubmitSearch={(text) => setSearchString(text)}
@@ -395,7 +395,7 @@ export default function InternalAdsPage() {
                   style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}
                 >
                   <Button
-                    label="Ny intern annons"
+                    label="Ny annons"
                     onPress={onCreateInternalAd}
                     loading={creatingDraft}
                     theme="light"
@@ -432,9 +432,7 @@ export default function InternalAdsPage() {
           ) : activeProducts.length ? (
             <AdGridSection
               header={
-                searchString
-                  ? `Resultat för "${searchString}"`
-                  : "Interna annonser"
+                searchString ? `Resultat för "${searchString}"` : "Annonser"
               }
               products={adGridProducts}
               pagination={{
@@ -452,14 +450,12 @@ export default function InternalAdsPage() {
           ) : (
             <View style={{ gap: 8, maxWidth: 560 }}>
               <Title size="large">
-                {searchString
-                  ? "Inga interna annonser hittades"
-                  : "Inga interna annonser ännu"}
+                {searchString ? "Inga annonser hittades" : "Inga annonser ännu"}
               </Title>
               <Body size="medium" color="secondary">
                 {searchString
                   ? "Prova en annan sökning eller rensa sökfältet."
-                  : "Skapa en intern annons eller importera flera annonser från filer."}
+                  : "Skapa en annons eller importera flera annonser från filer."}
               </Body>
             </View>
           )}
@@ -550,10 +546,10 @@ export default function InternalAdsPage() {
 
 const AccessEmptyState = () => (
   <View style={{ gap: 12, maxWidth: 640 }}>
-    <Title size="large">Du saknar tillgång till Internlagret</Title>
+    <Title size="large">Du saknar tillgång till Återbanken</Title>
     <Body size="large" color="secondary">
-      Be en organisationsadmin eller RebuildR-admin att aktivera internlagret
-      för ert företagskonto.
+      Be en organisationsadmin eller RebuildR-admin att aktivera Återbanken för
+      ert företagskonto.
     </Body>
   </View>
 );

@@ -131,7 +131,7 @@ export const ProjectChips = ({
       <Headline size="small">Hör annonsen till ett projekt?</Headline>
       <Body size="medium">
         {internalMode
-          ? "Valfritt — samla annonser som hör till samma interna projekt."
+          ? "Valfritt — samla annonser som hör till samma projekt."
           : "Valfritt — adressen fylls i automatiskt och köpare ser fler annonser från samma projekt."}
       </Body>
       <View
@@ -165,7 +165,7 @@ export const ProjectChips = ({
       {internalMode && !myProjects.length && (
         <View style={{ gap: 8, marginTop: 4 }}>
           <Body size="small" color="secondary">
-            Du har inga interna projekt ännu.
+            Du har inga projekt ännu.
           </Body>
           <Body
             size="small"
@@ -178,7 +178,7 @@ export const ProjectChips = ({
               })
             }
           >
-            Skapa ett internt projekt
+            Skapa ett projekt
           </Body>
         </View>
       )}

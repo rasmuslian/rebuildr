@@ -249,7 +249,7 @@ export const Details = ({
                   onChangeText: (internalReferenceNumber) =>
                     update({ internalReferenceNumber }),
                   heading: "Internt id/referensnummer",
-                  description: "Valfritt. Visas bara för interna annonser.",
+                  description: "Valfritt. Visas bara i Återbanken.",
                   placeholder: "Till exempel INV-12345",
                 },
               ]}

@@ -147,7 +147,7 @@ export const ProjectCard = ({
                   (p) => p.status === ProductStatusEnum.Published,
                 ).length
               }{" "}
-              {showOwner ? "annonser till salu" : "interna annonser"}
+              {showOwner ? "annonser till salu" : "annonser"}
             </Body>
           </View>
         </View>

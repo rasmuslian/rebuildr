@@ -1127,14 +1127,14 @@ export const UpsertProduct = ({
       title={
         mode === "edit"
           ? internalMode
-            ? "Redigera intern annons"
+            ? "Redigera annons"
             : "Redigera annons"
           : step === "preview"
             ? internalMode
-              ? "Förhandsgranska intern annons"
+              ? "Förhandsgranska annons"
               : "Förhandsgranska annons"
             : internalMode
-              ? "Ny intern annons"
+              ? "Ny annons"
               : "Ny annons"
       }
     />
