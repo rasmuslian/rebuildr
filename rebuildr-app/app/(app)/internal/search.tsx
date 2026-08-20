@@ -1,6 +1,7 @@
 import {
   InternalAdsPageQuery,
   InternalAdsPageQueryVariables,
+  ProductAvailabilityEnum,
   ProductStatusEnum,
   RelatedInternalAdsQuery,
   RelatedInternalAdsQueryVariables,
@@ -26,6 +27,7 @@ import {
 import { SearchBar } from "@components/search/search-bar";
 import { Body, Display, Headline } from "@components/typography/text";
 import { primitives } from "@constants/colors";
+import { isWeb } from "@constants/layout";
 import { borderRadius } from "@constants/sizes";
 import { FilterProductScopeProvider } from "@context/filter-product-scope-context";
 import { useSearchContext } from "@context/search-context";
@@ -38,6 +40,22 @@ import { Pressable, View, useWindowDimensions } from "react-native";
 
 const PAGE_SIZE = 20;
 
+const getSectionTitle = (
+  availability?: ProductAvailabilityEnum,
+  publiclyAvailable?: boolean,
+) => {
+  if (availability === ProductAvailabilityEnum.Available) {
+    return "Tillgänglig nu";
+  }
+  if (availability === ProductAvailabilityEnum.Upcoming) {
+    return "Kommande";
+  }
+  if (publiclyAvailable) {
+    return "Externt publicerat";
+  }
+  return "Senast inkomna";
+};
+
 export default function InternalSearchPage() {
   return (
     <FilterProductScopeProvider scope="internal">
@@ -47,8 +65,22 @@ export default function InternalSearchPage() {
 }
 
 const InternalSearchResults = () => {
-  const { q } = useLocalSearchParams<{ q?: string }>();
+  const { q, availability, publiclyAvailable } = useLocalSearchParams<{
+    q?: string;
+    availability?: ProductAvailabilityEnum;
+    publiclyAvailable?: string;
+  }>();
   const query = q ?? "";
+  const selectedAvailability =
+    availability === ProductAvailabilityEnum.Available ||
+    availability === ProductAvailabilityEnum.Upcoming
+      ? availability
+      : undefined;
+  const selectedPubliclyAvailable =
+    publiclyAvailable === "true" ? true : undefined;
+  const sectionTitle = !query
+    ? getSectionTitle(selectedAvailability, selectedPubliclyAvailable)
+    : undefined;
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { height: screenHeight } = useWindowDimensions();
@@ -68,8 +100,19 @@ const InternalSearchResults = () => {
     });
   }, [query, searchContext.setSearchState]);
 
+  useEffect(() => {
+    if (!isWeb || typeof window === "undefined") return;
+
+    const animationFrameId = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [availability, publiclyAvailable, query]);
+
   const input = {
     ...toProductsQueryInput(),
+    availability: selectedAvailability,
+    publiclyAvailable: selectedPubliclyAvailable,
     searchString: query,
   };
   const { data, loading, fetchMore } = useQuery<
@@ -81,7 +124,10 @@ const InternalSearchResults = () => {
   });
   const exactProducts = data?.internalAds.products ?? [];
   const exactResultsLoaded =
-    !!data && !loading && exactProducts.length >= data.internalAds.total;
+    !!query &&
+    !!data &&
+    !loading &&
+    exactProducts.length >= data.internalAds.total;
   const {
     data: relatedData,
     loading: relatedLoading,
@@ -123,20 +169,28 @@ const InternalSearchResults = () => {
 
   const results = (
     <>
-      <View
-        style={{
-          alignItems: isDesktop ? "flex-start" : "center",
-          flexDirection: "row",
-          justifyContent: isDesktop ? "flex-start" : "center",
-          marginBottom: 24,
-        }}
-      >
-        <Display size="small">“</Display>
-        <Display size="small" numberOfLines={1} ellipsizeMode="tail">
-          {query}
-        </Display>
-        <Display size="small">“</Display>
-      </View>
+      {!!query ? (
+        <View
+          style={{
+            alignItems: isDesktop ? "flex-start" : "center",
+            flexDirection: "row",
+            justifyContent: isDesktop ? "flex-start" : "center",
+            marginBottom: 24,
+          }}
+        >
+          <Display size="small">“</Display>
+          <Display size="small" numberOfLines={1} ellipsizeMode="tail">
+            {query}
+          </Display>
+          <Display size="small">“</Display>
+        </View>
+      ) : (
+        <View style={{ marginBottom: 24 }}>
+          <Display size="small" heading={1}>
+            {sectionTitle}
+          </Display>
+        </View>
+      )}
 
       {!isDesktop && (
         <Pressable onPress={() => setShowMobileMap((visible) => !visible)}>

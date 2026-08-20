@@ -532,7 +532,7 @@ export default function InternalAdsPage() {
                   header="Tillgänglig nu"
                   onHeaderPress={() =>
                     router.navigate({
-                      pathname: "/internal-ads",
+                      pathname: "/internal/search",
                       params: {
                         availability: ProductAvailabilityEnum.Available,
                       },
@@ -546,7 +546,7 @@ export default function InternalAdsPage() {
                   header="Kommande"
                   onHeaderPress={() =>
                     router.navigate({
-                      pathname: "/internal-ads",
+                      pathname: "/internal/search",
                       params: {
                         availability: ProductAvailabilityEnum.Upcoming,
                       },
@@ -560,7 +560,7 @@ export default function InternalAdsPage() {
                   header="Externt publicerat"
                   onHeaderPress={() =>
                     router.navigate({
-                      pathname: "/internal-ads",
+                      pathname: "/internal/search",
                       params: { publiclyAvailable: "true" },
                     })
                   }
@@ -569,7 +569,7 @@ export default function InternalAdsPage() {
               )}
               <AdGridSection
                 header="Senast inkomna"
-                onHeaderPress={() => router.navigate("/internal-ads")}
+                onHeaderPress={() => router.navigate("/internal/search")}
                 products={adGridProducts}
               />
             </View>
