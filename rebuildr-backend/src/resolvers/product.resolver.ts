@@ -276,6 +276,12 @@ export class ProductsInput {
   @Field(() => [ProductConditionEnum], { nullable: true })
   conditions?: ProductConditionEnum[];
 
+  @Field(() => ProductAvailabilityEnum, { nullable: true })
+  availability?: ProductAvailabilityEnum;
+
+  @Field({ nullable: true })
+  publiclyAvailable?: boolean;
+
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
 

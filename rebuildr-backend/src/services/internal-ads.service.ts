@@ -1438,6 +1438,16 @@ ${categoryList}
         conditions: input.conditions,
       });
     }
+    if (input.availability) {
+      query.andWhere('p.availability = :availability', {
+        availability: input.availability,
+      });
+    }
+    if (input.publiclyAvailable !== undefined) {
+      query.andWhere('p."publiclyAvailable" = :publiclyAvailable', {
+        publiclyAvailable: input.publiclyAvailable,
+      });
+    }
     if (input.brandIds?.length) {
       query.andWhere('p."brandId" IN (:...brandIds)', {
         brandIds: input.brandIds,

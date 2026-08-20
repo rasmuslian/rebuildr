@@ -53,6 +53,92 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
   ${INTERNAL_AD_CARD_FIELDS}
 `;
 
+export const INTERNAL_ADS_HOME_QUERY = gql`
+  query InternalAdsHome($limit: Int) {
+    internalAdsOrganizationContext {
+      organization {
+        id
+      }
+    }
+    internalAds(input: {}, limit: $limit, offset: 0) {
+      products {
+        id
+        title
+        price
+        status
+        availability
+        primaryQuantity
+        primaryUnit
+        condition
+        soldByQuantity
+        primaryImage {
+          url
+        }
+      }
+    }
+    availableNow: internalAds(
+      input: { availability: AVAILABLE }
+      limit: $limit
+      offset: 0
+    ) {
+      products {
+        id
+        title
+        price
+        status
+        availability
+        primaryQuantity
+        primaryUnit
+        condition
+        soldByQuantity
+        primaryImage {
+          url
+        }
+      }
+    }
+    upcoming: internalAds(
+      input: { availability: UPCOMING }
+      limit: $limit
+      offset: 0
+    ) {
+      products {
+        id
+        title
+        price
+        status
+        availability
+        primaryQuantity
+        primaryUnit
+        condition
+        soldByQuantity
+        primaryImage {
+          url
+        }
+      }
+    }
+    externallyPublished: internalAds(
+      input: { publiclyAvailable: true }
+      limit: $limit
+      offset: 0
+    ) {
+      products {
+        id
+        title
+        price
+        status
+        availability
+        primaryQuantity
+        primaryUnit
+        condition
+        soldByQuantity
+        primaryImage {
+          url
+        }
+      }
+    }
+  }
+`;
+
 export const INTERNAL_ADS_SEARCH = gql`
   query InternalAdsSearch($input: ProductsInput!) {
     internalAds(input: $input, limit: 5, offset: 0) {

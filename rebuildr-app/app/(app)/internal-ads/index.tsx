@@ -7,6 +7,7 @@ import {
   InternalAdImportBatchStatusEnum,
   InternalAdsPageQuery,
   InternalAdsPageQueryVariables,
+  ProductAvailabilityEnum,
   ProductStatusEnum,
   PublishInternalAdDraftsMutation,
   PublishInternalAdDraftsMutationVariables,
@@ -61,6 +62,8 @@ export default function InternalAdsPage() {
     q?: string;
     action?: string;
     t?: string;
+    availability?: ProductAvailabilityEnum;
+    publiclyAvailable?: string;
   }>();
   const searchContext = useSearchContext();
   const [searchString, setSearchString] = useState(params.q ?? "");
@@ -99,7 +102,12 @@ export default function InternalAdsPage() {
     InternalAdsPageQueryVariables
   >(INTERNAL_ADS_PAGE_QUERY, {
     variables: {
-      input: { searchString: searchString || undefined },
+      input: {
+        searchString: searchString || undefined,
+        availability: params.availability,
+        publiclyAvailable:
+          params.publiclyAvailable === "true" ? true : undefined,
+      },
       limit: PAGE_SIZE,
       offset: 0,
     },

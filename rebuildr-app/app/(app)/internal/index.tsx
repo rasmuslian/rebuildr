@@ -5,8 +5,8 @@ import {
   InternalAdImportBatchQuery,
   InternalAdImportBatchQueryVariables,
   InternalAdImportBatchStatusEnum,
-  InternalAdsPageQuery,
-  InternalAdsPageQueryVariables,
+  InternalAdsHomeQuery,
+  InternalAdsHomeQueryVariables,
   ProductAvailabilityEnum,
   ProductStatusEnum,
   PublishInternalAdDraftsMutation,
@@ -16,7 +16,7 @@ import {
   CREATE_INTERNAL_AD_DRAFT,
   CREATE_INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_AD_IMPORT_BATCH,
-  INTERNAL_ADS_PAGE_QUERY,
+  INTERNAL_ADS_HOME_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
   REMOVE_INTERNAL_AD_IMPORT_BATCH,
@@ -48,7 +48,7 @@ import { INTERNAL_PROJECTS } from "@/queries/internal-projects";
 import { Icon } from "@icons/icon";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   ImageBackground,
@@ -57,7 +57,7 @@ import {
   View,
 } from "react-native";
 
-const PAGE_SIZE = 24;
+const SECTION_PAGE_SIZE = 10;
 
 export default function InternalAdsPage() {
   const colors = useThemeColor();
@@ -81,14 +81,12 @@ export default function InternalAdsPage() {
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
 
-  const { data, loading, refetch, fetchMore } = useQuery<
-    InternalAdsPageQuery,
-    InternalAdsPageQueryVariables
-  >(INTERNAL_ADS_PAGE_QUERY, {
+  const { data, loading, refetch } = useQuery<
+    InternalAdsHomeQuery,
+    InternalAdsHomeQueryVariables
+  >(INTERNAL_ADS_HOME_QUERY, {
     variables: {
-      input: {},
-      limit: PAGE_SIZE,
-      offset: 0,
+      limit: SECTION_PAGE_SIZE,
     },
     fetchPolicy: "cache-and-network",
   });
@@ -333,7 +331,10 @@ export default function InternalAdsPage() {
   };
 
   const activeProducts = data?.internalAds.products ?? [];
-  const total = data?.internalAds.total ?? 0;
+  const availableNowProducts = data?.availableNow.products ?? [];
+  const upcomingProducts = data?.upcoming.products ?? [];
+  const externallyPublishedProducts = data?.externallyPublished.products ?? [];
+  const maxVisibleProducts = isDesktop ? 4 : SECTION_PAGE_SIZE;
   const hasAccess = !!data?.internalAdsOrganizationContext;
   const hasImport =
     (!discardingImport && !!batch) ||
@@ -354,30 +355,28 @@ export default function InternalAdsPage() {
     return () => window.removeEventListener("scroll", updateTopBarSearch);
   }, [introHeight]);
 
-  const adGridProducts = useMemo(
-    () =>
-      activeProducts.map((product) => ({
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        hidePrice: true,
-        imageUri: product.primaryImage?.url,
-        quantity: product.primaryQuantity,
-        quantityUnit: product.primaryUnit,
-        condition: product.condition,
-        soldByQuantity: product.soldByQuantity,
-        status: product.status,
-        upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
-        overlayText:
-          product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
-        onPress: () =>
-          router.navigate({
-            pathname: "/internal/[productId]",
-            params: { productId: product.id },
-          }),
-      })),
-    [activeProducts],
-  );
+  const getAdGridProducts = (products: typeof activeProducts) =>
+    products.slice(0, maxVisibleProducts).map((product) => ({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      hidePrice: true,
+      imageUri: product.primaryImage?.url,
+      quantity: product.primaryQuantity,
+      quantityUnit: product.primaryUnit,
+      condition: product.condition,
+      soldByQuantity: product.soldByQuantity,
+      status: product.status,
+      upcoming: product.availability === ProductAvailabilityEnum.Upcoming,
+      overlayText:
+        product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
+      onPress: () =>
+        router.navigate({
+          pathname: "/internal/[productId]",
+          params: { productId: product.id },
+        }),
+    }));
+  const adGridProducts = getAdGridProducts(activeProducts);
   return (
     <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
       <InternalTopBar
@@ -519,31 +518,53 @@ export default function InternalAdsPage() {
           ) : !hasAccess ? (
             <AccessEmptyState />
           ) : activeProducts.length ? (
-            <AdGridSection
-              header="Annonser"
-              products={adGridProducts}
-              pagination={{
-                total,
-                loading,
-                onShowMore: () =>
-                  fetchMore({
-                    variables: {
-                      offset: Math.ceil(activeProducts.length / PAGE_SIZE),
-                      limit: PAGE_SIZE,
-                    },
-                    updateQuery: (previous, { fetchMoreResult }) => ({
-                      ...previous,
-                      internalAds: {
-                        ...fetchMoreResult.internalAds,
-                        products: [
-                          ...previous.internalAds.products,
-                          ...fetchMoreResult.internalAds.products,
-                        ],
+            <View style={{ gap: 48 }}>
+              {!!availableNowProducts.length && (
+                <AdGridSection
+                  header="Tillgänglig nu"
+                  onHeaderPress={() =>
+                    router.navigate({
+                      pathname: "/internal-ads",
+                      params: {
+                        availability: ProductAvailabilityEnum.Available,
                       },
-                    }),
-                  }),
-              }}
-            />
+                    })
+                  }
+                  products={getAdGridProducts(availableNowProducts)}
+                />
+              )}
+              {!!upcomingProducts.length && (
+                <AdGridSection
+                  header="Kommande"
+                  onHeaderPress={() =>
+                    router.navigate({
+                      pathname: "/internal-ads",
+                      params: {
+                        availability: ProductAvailabilityEnum.Upcoming,
+                      },
+                    })
+                  }
+                  products={getAdGridProducts(upcomingProducts)}
+                />
+              )}
+              {!!externallyPublishedProducts.length && (
+                <AdGridSection
+                  header="Externt publicerat"
+                  onHeaderPress={() =>
+                    router.navigate({
+                      pathname: "/internal-ads",
+                      params: { publiclyAvailable: "true" },
+                    })
+                  }
+                  products={getAdGridProducts(externallyPublishedProducts)}
+                />
+              )}
+              <AdGridSection
+                header="Senast inkomna"
+                onHeaderPress={() => router.navigate("/internal-ads")}
+                products={adGridProducts}
+              />
+            </View>
           ) : (
             <View style={{ gap: 8, maxWidth: 560 }}>
               <Title size="large">Inga annonser ännu</Title>

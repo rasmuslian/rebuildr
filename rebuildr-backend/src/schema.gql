@@ -1247,6 +1247,8 @@ input ProductsInput {
   maxPrice: Float
   giveaway: Boolean
   conditions: [ProductConditionEnum!]
+  availability: ProductAvailabilityEnum
+  publiclyAvailable: Boolean
   orderBy: OrderProductsEnum
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
