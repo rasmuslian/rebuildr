@@ -25,3 +25,8 @@ export const GRID_CARD = {
   minColumns: 2,
   maxColumns: 6,
 };
+
+// Single-row product sections divide the row evenly, so the count is fixed rather
+// than derived from width. Fetch limits must match it or the row ends up with gaps
+// or an orphaned wrap.
+export const DESKTOP_ROW_COLUMNS = 5;
