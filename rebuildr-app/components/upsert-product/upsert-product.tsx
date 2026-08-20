@@ -704,7 +704,7 @@ export const UpsertProduct = ({
   //mirrors the effect's guards so the analysis state is visible from the very
   //first render after an image is added — without this the category pickers
   //flash until the effect has run and update() has saved
-  const shouldAutoAnalyzeImages = mode === "create" || internalMode;
+  const shouldAutoAnalyzeImages = mode === "create" && !internalMode;
   const willAutoAnalyze =
     shouldAutoAnalyzeImages &&
     initialized &&

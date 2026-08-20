@@ -60,6 +60,7 @@ import {
   SelectQueryBuilder,
 } from 'typeorm';
 import { Logger } from 'winston';
+import { AIService } from './ai.service';
 import { BrandService } from './brand.service';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
@@ -115,6 +116,7 @@ export class InternalAdsService {
     @InjectRepository(InternalAdImportBatch)
     private importBatchRepository: Repository<InternalAdImportBatch>,
     private fileService: FileService,
+    private aiService: AIService,
     private brandService: BrandService,
     private geocodingService: GeocodingService,
     private mailService: MailService,
@@ -875,6 +877,7 @@ export class InternalAdsService {
       product.internalAdImportBatchId = null;
     });
     const savedProducts = await this.productRepository.save(products);
+    savedProducts.forEach((product) => this.queuePriceSuggestion(product.id));
     if (batchIds.length) {
       await this.importBatchRepository.update(batchIds, {
         status: InternalAdImportBatchStatus.PUBLISHED,
@@ -1329,6 +1332,17 @@ export class InternalAdsService {
       savedProduct.internalValidationIssues = issues;
       await this.productRepository.save(savedProduct);
     }
+  }
+
+  private queuePriceSuggestion(productId: string) {
+    setImmediate(() => {
+      void this.aiService.suggestProductPrice(productId).catch((error) => {
+        this.logger.error('Internal ad price suggestion failed', {
+          error: error instanceof Error ? error.message : error,
+          productId,
+        });
+      });
+    });
   }
 
   private validateInternalProduct(product: Product) {

@@ -50,6 +50,110 @@ export class AIService {
     this.gemini = new GoogleGenAI({});
   }
 
+  async suggestProductPrice(productId: string): Promise<void> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: { images: true },
+    });
+    if (!product?.images.length) {
+      throw BadUserInputException(
+        'Product must have images for price analysis',
+      );
+    }
+
+    let imageParts: Part[];
+    try {
+      imageParts = await Promise.all(
+        product.images.map(async (image) => {
+          const imageUrl = await this.fileService.getUrl(image);
+          const response = await fetch(imageUrl, {
+            signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS),
+          });
+          if (!response.ok) {
+            throw new Error(
+              `S3 returned ${response.status} for image ${image.id}`,
+            );
+          }
+          return {
+            inlineData: {
+              data: Buffer.from(await response.arrayBuffer()).toString(
+                'base64',
+              ),
+              mimeType: image.mimeType || 'image/jpeg',
+            },
+            mediaResolution: {
+              level: PartMediaResolutionLevel.MEDIA_RESOLUTION_MEDIUM,
+            },
+          };
+        }),
+      );
+    } catch (error) {
+      this.logger.error('Failed to fetch product images for price suggestion', {
+        error: error instanceof Error ? error.message : error,
+        productId,
+      });
+      throw InternalServerException('Failed to fetch product images');
+    }
+
+    let result: string | undefined;
+    try {
+      const response = await this.callGeminiWithRetry({
+        model: 'gemini-3-flash-preview',
+        config: {
+          responseMimeType: 'application/json',
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        },
+        contents: [
+          {
+            parts: [
+              ...imageParts,
+              {
+                text: `You estimate prices for RebuildR, a Swedish marketplace for reclaimed building materials. Analyze all provided images together and return ONLY valid JSON with these fields:
+{
+  "priceSuggestionMin": "Lower bound of a realistic asking-price range in SEK as an integer for the TOTAL visible listed quantity. Be conservative: reclaimed materials typically sell for 20–50% of new price.",
+  "priceSuggestionMax": "Upper bound of the same range in SEK as an integer, greater than or equal to priceSuggestionMin."
+}
+If an estimate is impossible, return null for both fields.`,
+              },
+            ],
+          },
+        ],
+      });
+      result = response.text;
+    } catch (error) {
+      this.logger.error('Gemini price suggestion failed', {
+        error: error instanceof Error ? error.message : error,
+        productId,
+      });
+      throw InternalServerException('AI service is temporarily unavailable');
+    }
+
+    try {
+      const parsed = JSON.parse(result ?? '') as Record<string, unknown>;
+      const parseSek = (value: unknown): number | null => {
+        const number =
+          typeof value === 'string' ? parseInt(value, 10) : Number(value);
+        return Number.isFinite(number) && number >= 0
+          ? Math.round(number)
+          : null;
+      };
+      const min = parseSek(parsed.priceSuggestionMin);
+      const max = parseSek(parsed.priceSuggestionMax);
+      await this.productRepository.update(productId, {
+        priceSuggestionMin:
+          min !== null && max !== null ? Math.min(min, max) : null,
+        priceSuggestionMax:
+          min !== null && max !== null ? Math.max(min, max) : null,
+      });
+    } catch (error) {
+      this.logger.error('Failed to save AI price suggestion', {
+        error: error instanceof Error ? error.message : error,
+        productId,
+      });
+      throw InternalServerException('AI returned an invalid price suggestion');
+    }
+  }
+
   async analyzeProductImages(
     input: AnalyzeProductImagesInput,
   ): Promise<Product> {
