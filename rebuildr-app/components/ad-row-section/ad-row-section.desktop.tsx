@@ -1,6 +1,7 @@
 import { AdGrid } from "@components/ad/ad-grid";
 import { View } from "react-native";
 import { SectionHeader } from "@components/sections/section-header";
+import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
 import {
   AdRowSectionQuery,
   Product,
@@ -56,8 +57,11 @@ export const AdRowSectionDesktop = ({
 }: Props) => {
   if (!products || products.length < 1) return null;
 
-  if (products.length < 4) {
-    products = [...products, ...Array(4 - products.length).fill(null)];
+  if (products.length < DESKTOP_ROW_COLUMNS) {
+    products = [
+      ...products,
+      ...Array(DESKTOP_ROW_COLUMNS - products.length).fill(null),
+    ];
   }
 
   return (

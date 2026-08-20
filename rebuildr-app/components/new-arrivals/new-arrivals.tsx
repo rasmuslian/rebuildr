@@ -14,6 +14,7 @@ import {
 } from "@components/ad-row-section/ad-row-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { permanentSection } from "@constants/permanent-sections";
+import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
 
 export const NewArrivals = () => {
   const { filterBuilder } = useFilterProduct();
@@ -28,7 +29,7 @@ export const NewArrivals = () => {
           excludeOwnProducts: true,
           orderBy: OrderProductsEnum.Latest,
         },
-        limit: isDesktop ? 4 : 10,
+        limit: isDesktop ? DESKTOP_ROW_COLUMNS : 10,
         offset: 0,
         isLoggedIn,
       },
