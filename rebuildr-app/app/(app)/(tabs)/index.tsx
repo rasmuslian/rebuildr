@@ -25,6 +25,7 @@ import {
   screenGrowStyle,
   WEB_STICKY,
 } from "@constants/layout";
+import { OnboardingHomeStrip } from "@components/onboarding/onboarding-home-strip";
 
 export default function Landing() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -121,6 +122,7 @@ export default function Landing() {
         contentWidthCap,
       ]}
     >
+      <OnboardingHomeStrip />
       <RootCategoriesHorizontal />
       <NewArrivals />
       <NearYou />

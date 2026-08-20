@@ -6,6 +6,11 @@ import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
 import { Popup } from "@components/popup/popup";
 import { Header } from "@components/navigation/headers/header";
 import { Body, Display, Title } from "@components/typography/text";
+import { OnboardingChecklistRows } from "@components/onboarding/onboarding-checklist-rows";
+import {
+  ChecklistStep,
+  useOnboardingChecklist,
+} from "@hooks/use-onboarding-checklist";
 import { useScreenType } from "@hooks/useScreenType";
 
 type Props = {
@@ -53,67 +58,48 @@ const WelcomeFooter = ({
   </>
 );
 
-const WelcomeSteps = () => (
-  <>
-    <View style={{ gap: 4 }}>
-      <Title size="small" style={{ textAlign: "center" }}>
-        Lägg upp din första annons.
-      </Title>
-      <Body size="medium" style={{ textAlign: "center" }}>
-        När profilen är klar är du redo att börja sälja.
-      </Body>
-    </View>
-    <View style={{ gap: 4 }}>
-      <Title size="small" style={{ textAlign: "center" }}>
-        Komplettera din profil.
-      </Title>
-      <Body size="medium" style={{ textAlign: "center" }}>
-        Lägg till en profilbild och en kort presentation — det ökar tryggheten
-        och dina chanser att sälja.
-      </Body>
-    </View>
-    <View style={{ gap: 4 }}>
-      <Title size="small" style={{ textAlign: "center" }}>
-        Aktivera utbetalningar.
-      </Title>
-      <Body size="medium" style={{ textAlign: "center" }}>
-        Registrera ditt utbetalningskonto hos vår betalpartner Stripe så är du
-        redo att få betalt när du sålt en vara.
-      </Body>
-    </View>
-  </>
-);
+type StepsProps = {
+  steps: ChecklistStep[];
+  onBeforePress: () => void;
+};
 
-const WelcomeContent = () => (
+const WelcomeContent = ({ steps, onBeforePress }: StepsProps) => (
   <View style={{ paddingBottom: 8, flex: 1 }}>
     <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
       <Image source={LogoIconLight} style={{ width: 127, height: 127 }} />
     </View>
-    <View style={{ gap: 16 }}>
-      <Display size="small" style={{ textAlign: "center" }}>
-        Välkommen till RebuildR!
-      </Display>
-      <Title size="medium" style={{ textAlign: "center" }}>
-        Ditt konto är klart — så här kommer du igång.
-      </Title>
-      <WelcomeSteps />
+    <View style={{ gap: 24 }}>
+      <View style={{ gap: 8 }}>
+        <Display size="small" style={{ textAlign: "center" }}>
+          Välkommen till RebuildR!
+        </Display>
+        <Title size="medium" style={{ textAlign: "center" }}>
+          Ditt konto är klart — så här kommer du igång.
+        </Title>
+      </View>
+      <OnboardingChecklistRows steps={steps} onBeforePress={onBeforePress} />
     </View>
   </View>
 );
 
-const BusinessApprovedWelcomeContent = () => (
+const BusinessApprovedWelcomeContent = ({
+  steps,
+  onBeforePress,
+}: StepsProps) => (
   <View style={{ paddingBottom: 8, flex: 1 }}>
     <View style={{ alignItems: "center", marginBottom: 24, marginTop: 16 }}>
       <Image source={LogoIconLight} style={{ width: 127, height: 127 }} />
     </View>
-    <View style={{ gap: 16 }}>
-      <Display size="small" style={{ textAlign: "center" }}>
-        Företagskontot är godkänt!
-      </Display>
-      <Title size="medium" style={{ textAlign: "center" }}>
-        Ditt konto är klart — så här kommer du igång.
-      </Title>
-      <WelcomeSteps />
+    <View style={{ gap: 24 }}>
+      <View style={{ gap: 8 }}>
+        <Display size="small" style={{ textAlign: "center" }}>
+          Företagskontot är godkänt!
+        </Display>
+        <Title size="medium" style={{ textAlign: "center" }}>
+          Ditt konto är klart — så här kommer du igång.
+        </Title>
+      </View>
+      <OnboardingChecklistRows steps={steps} onBeforePress={onBeforePress} />
     </View>
   </View>
 );
@@ -150,6 +136,7 @@ export const WelcomeRegistrationModal = ({
   isApproved,
 }: Props) => {
   const { isDesktop } = useScreenType();
+  const { steps } = useOnboardingChecklist();
 
   const isPendingBusiness = isBusiness && !isApproved;
 
@@ -157,9 +144,9 @@ export const WelcomeRegistrationModal = ({
     ? "Skapa ditt nya företagkonto"
     : "Välkommen till RebuildR!";
   const content = !isBusiness ? (
-    <WelcomeContent />
+    <WelcomeContent steps={steps} onBeforePress={onClose} />
   ) : isApproved ? (
-    <BusinessApprovedWelcomeContent />
+    <BusinessApprovedWelcomeContent steps={steps} onBeforePress={onClose} />
   ) : (
     <BusinessPendingWelcomeContent />
   );
