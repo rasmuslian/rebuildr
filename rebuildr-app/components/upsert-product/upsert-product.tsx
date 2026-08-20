@@ -227,6 +227,7 @@ type Props = {
   importMode?: boolean;
   loading?: boolean;
   internalMode?: boolean;
+  isNewInternalAd?: boolean;
   onHide: () => void;
   onDelete?: () => void;
   onInlineDraftSave?: (save: Promise<boolean | undefined>) => void;
@@ -242,6 +243,7 @@ export const UpsertProduct = ({
   importMode = false,
   loading,
   internalMode = false,
+  isNewInternalAd = false,
   onHide,
   onDelete,
   onInlineDraftSave,
@@ -1133,8 +1135,8 @@ export const UpsertProduct = ({
       onClose={onDismissSheet}
       title={
         mode === "edit"
-          ? internalMode
-            ? "Redigera annons"
+          ? isNewInternalAd
+            ? "Skapa annons"
             : "Redigera annons"
           : step === "preview"
             ? internalMode
@@ -1272,8 +1274,20 @@ export const UpsertProduct = ({
 
   return (
     <BottomSheet
-      title={mode === "edit" ? "Redigera annons" : "Ny annons"}
-      name={mode === "edit" ? "Redigera annons" : "Ny annons"}
+      title={
+        isNewInternalAd
+          ? "Skapa annons"
+          : mode === "edit"
+            ? "Redigera annons"
+            : "Ny annons"
+      }
+      name={
+        isNewInternalAd
+          ? "Skapa annons"
+          : mode === "edit"
+            ? "Redigera annons"
+            : "Ny annons"
+      }
       scrollable
       screenHeight
       open={visible}

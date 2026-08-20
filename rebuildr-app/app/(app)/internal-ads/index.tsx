@@ -541,6 +541,7 @@ export default function InternalAdsPage() {
           mode="edit"
           visible={showEditor}
           internalMode
+          isNewInternalAd
           onHide={() => setShowEditor(false)}
           onPublished={async () => {
             setShowEditor(false);

@@ -70,6 +70,7 @@ export default function InternalAdsPage() {
   const searchContext = useSearchContext();
   const [editorProductId, setEditorProductId] = useState<string>();
   const [showEditor, setShowEditor] = useState(false);
+  const [isNewInternalAd, setIsNewInternalAd] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileType[]>([]);
   const [activeBatchId, setActiveBatchId] = useState<string>();
@@ -152,6 +153,7 @@ export default function InternalAdsPage() {
     const productId = result.data?.createInternalAdDraft.id;
     if (!productId) return;
     setEditorProductId(productId);
+    setIsNewInternalAd(true);
     setShowEditor(true);
   }, [createDraft]);
 
@@ -167,6 +169,7 @@ export default function InternalAdsPage() {
     if (handledCreateAction.current === params.t) return;
     handledCreateAction.current = params.t;
     setEditorProductId(params.productId);
+    setIsNewInternalAd(false);
     setShowEditor(true);
   }, [params.action, params.productId, params.t]);
 
@@ -652,6 +655,7 @@ export default function InternalAdsPage() {
           mode="edit"
           visible={showEditor}
           internalMode
+          isNewInternalAd={isNewInternalAd}
           onHide={() => setShowEditor(false)}
           onPublished={async () => {
             setShowEditor(false);
