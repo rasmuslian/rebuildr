@@ -10,9 +10,6 @@ import { useOnboarding } from "@hooks/use-onboarding";
 import { useOnboardingChecklist } from "@hooks/use-onboarding-checklist";
 import { OnboardingCelebration } from "./onboarding-celebration";
 
-// One continuous fill rather than one segment per step: the steps can be done
-// in any order, and a segmented bar leaves a gap in the middle that reads as a
-// rendering fault instead of progress.
 const ProgressBar = ({
   completed,
   total,
