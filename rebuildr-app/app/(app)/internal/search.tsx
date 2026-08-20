@@ -18,7 +18,7 @@ import { FilterBottomSheet } from "@components/filter-product/filter-bottom-shee
 import { FilterSlideSheet } from "@components/filter-product/filter-slide-sheet";
 import InteractiveMap from "@components/maps/interactive-map";
 import MapThumbnail from "@components/maps/map-thumbnail";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import {
   SCREEN_TOP_MARGIN,
   ScreenLayout,
@@ -266,23 +266,7 @@ const InternalSearchResults = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {isDesktop && (
-        <TopBar
-          theme="light"
-          searchScope="internal"
-          sellButtonLabel="Ny intern annons"
-          onSellButtonPress={() =>
-            router.navigate({
-              pathname: "/internal",
-              params: { action: "create", t: Date.now().toString() },
-            })
-          }
-          backgroundColor={primitives.accent100}
-          foregroundColor={colors.logo.vector}
-          showBottomBorder={false}
-          categoriesButtonBackgroundColor={primitives.neutrals100}
-        />
-      )}
+      <InternalTopBar />
       <ScreenLayout
         headerComponent={
           !isDesktop ? (

@@ -218,6 +218,11 @@ export const ORGANIZATION_MEMBERS_PAGE = gql`
         username
       }
     }
+  }
+`;
+
+export const ORGANIZATION_INVITES = gql`
+  query OrganizationInvites {
     organizationInvites {
       id
       email

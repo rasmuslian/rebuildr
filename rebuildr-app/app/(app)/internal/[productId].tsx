@@ -27,7 +27,7 @@ import { TextInput } from "@components/forms/textInput";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { Popup } from "@components/popup/popup";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { AllImages } from "@components/preview-product/all-images";
@@ -573,27 +573,7 @@ const toPublicTransportFields = (
     shippingPrices: product.shippingPrices,
   }) as ProductFields;
 
-const InternalAdsTopBar = () => {
-  const colors = useThemeColor();
-
-  return (
-    <TopBar
-      theme="light"
-      showSearchBar={false}
-      sellButtonLabel="Ny intern annons"
-      onSellButtonPress={() =>
-        router.navigate({
-          pathname: "/internal",
-          params: { action: "create", t: Date.now().toString() },
-        })
-      }
-      backgroundColor={primitives.accent100}
-      foregroundColor={colors.logo.vector}
-      showBottomBorder={false}
-      categoriesButtonBackgroundColor={primitives.neutrals100}
-    />
-  );
-};
+const InternalAdsTopBar = () => <InternalTopBar />;
 
 type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]>;
 type InternalReservation = InternalAd["internalReservations"][number];

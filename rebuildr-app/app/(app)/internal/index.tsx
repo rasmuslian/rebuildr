@@ -30,7 +30,7 @@ import { Button } from "@components/buttons/button";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { Search } from "@components/search/search";
 import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
@@ -38,6 +38,7 @@ import { Body, Headline, Label, Title } from "@components/typography/text";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
 import { FileType } from "@components/upsert-product/types";
 import { primitives } from "@constants/colors";
+import { isWeb } from "@constants/layout";
 import { borderRadius } from "@constants/sizes";
 import { useSearchContext } from "@context/search-context";
 import { useDocumentHandler } from "@hooks/use-document-handler";
@@ -74,6 +75,8 @@ export default function InternalAdsPage() {
   const [activeBatchId, setActiveBatchId] = useState<string>();
   const [pollBatch, setPollBatch] = useState(false);
   const [publishRequested, setPublishRequested] = useState(false);
+  const [showTopBarSearch, setShowTopBarSearch] = useState(false);
+  const [introHeight, setIntroHeight] = useState(0);
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
@@ -339,6 +342,18 @@ export default function InternalAdsPage() {
     startingBatch;
   const visibleBatch = discardingImport ? undefined : batch;
 
+  useEffect(() => {
+    if (!isWeb || !introHeight || typeof window === "undefined") return;
+
+    const updateTopBarSearch = () => {
+      setShowTopBarSearch(window.scrollY > introHeight - 72);
+    };
+
+    window.addEventListener("scroll", updateTopBarSearch, { passive: true });
+    updateTopBarSearch();
+    return () => window.removeEventListener("scroll", updateTopBarSearch);
+  }, [introHeight]);
+
   const adGridProducts = useMemo(
     () =>
       activeProducts.map((product) => ({
@@ -365,22 +380,28 @@ export default function InternalAdsPage() {
   );
   return (
     <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-      <TopBar
-        theme="light"
-        showSearchBar={false}
-        sellButtonLabel="Ny intern annons"
-        onSellButtonPress={onCreateInternalAd}
-        backgroundColor={primitives.accent100}
-        foregroundColor={colors.logo.vector}
-        showBottomBorder={false}
-        categoriesButtonBackgroundColor={primitives.neutrals100}
+      <InternalTopBar
+        home
+        showSearchBar={showTopBarSearch}
+        onCreateAd={onCreateInternalAd}
       />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          if (!isWeb && introHeight) {
+            setShowTopBarSearch(
+              event.nativeEvent.contentOffset.y > introHeight - 72,
+            );
+          }
+        }}
+      >
         <ImageBackground
           source={MainBackground}
           resizeMode="cover"
           imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
+          onLayout={(event) => setIntroHeight(event.nativeEvent.layout.height)}
           style={{
             backgroundColor: primitives.accent100,
             overflow: "hidden",
@@ -396,12 +417,6 @@ export default function InternalAdsPage() {
             }}
           >
             <View style={{ gap: 10, maxWidth: 780 }}>
-              {/* <Label size="large" color="secondary">
-                {organizationName}
-              </Label> */}
-              <Headline size={isDesktop ? "medium" : "small"} heading={1}>
-                Internlagret
-              </Headline>
               <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
                 Material, verktyg och resurser som bara cirkulerar inom er
                 organisation.

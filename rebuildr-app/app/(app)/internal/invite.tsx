@@ -17,7 +17,7 @@ import { gql, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Divider } from "@components/dividers/divider";
 import { TextInput } from "@components/forms/textInput";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { Body, Display, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
@@ -134,7 +134,7 @@ export default function InternalAdsInvitePage() {
 
   return (
     <View style={{ flex: 1 }}>
-      <TopBar theme="light" showSearchBar={false} />
+      <InternalTopBar showActions={false} />
       <ScreenLayout style={{}}>
         <View
           style={{

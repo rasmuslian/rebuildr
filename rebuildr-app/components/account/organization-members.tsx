@@ -14,6 +14,7 @@ import {
 } from "@/gql/graphql";
 import {
   INVITE_ORGANIZATION_MEMBER,
+  ORGANIZATION_INVITES,
   ORGANIZATION_MEMBERS_PAGE,
   REMOVE_ORGANIZATION_MEMBER,
   RESEND_ORGANIZATION_INVITE,
@@ -74,8 +75,11 @@ export const OrganizationMembers = ({ onBack }: Props) => {
   const isAdmin =
     context?.isOrganizationAccount ||
     context?.role === OrganizationMemberRoleEnum.Admin;
+  const { data: invitesData, refetch: refetchInvites } = useQuery<
+    Pick<OrganizationMembersPageQuery, "organizationInvites">
+  >(ORGANIZATION_INVITES, { skip: !isAdmin });
   const refresh = async (message: string) => {
-    await refetch();
+    await Promise.all([refetch(), refetchInvites()]);
     setFeedback(message);
   };
   const run = async (action: () => Promise<unknown>, message: string) => {
@@ -107,12 +111,40 @@ export const OrganizationMembers = ({ onBack }: Props) => {
   if (loading && !data) return <LoadingSpinner />;
   if (!isAdmin) {
     return (
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: 24, width: "100%" }}>
         {onBack && <Button icon="arrowLeft" type="text" onPress={onBack} />}
-        <Title size="large">Organisationsmedlemmar</Title>
-        <Body size="medium" color="secondary">
-          Den här sidan är bara tillgänglig för organisationsadmins.
-        </Body>
+        <View style={{ gap: 4 }}>
+          <Title size="large">Organisationsmedlemmar</Title>
+          <Body size="medium" color="secondary">
+            {organizationName}
+          </Body>
+        </View>
+        <View style={{ gap: 16 }}>
+          <Label size="large">
+            Medlemmar ({data?.organizationMembers.length ?? 0})
+          </Label>
+          {data?.organizationMembers.length ? (
+            data.organizationMembers.map((member, index) => (
+              <View key={member.id} style={{ gap: 12 }}>
+                {index > 0 && <Divider />}
+                <View style={{ gap: 2 }}>
+                  <Label size="large">
+                    {member.user.name ?? member.user.username ?? "Medlem"}
+                  </Label>
+                  {member.userEmail && (
+                    <Body size="small" color="secondary">
+                      {member.userEmail}
+                    </Body>
+                  )}
+                </View>
+              </View>
+            ))
+          ) : (
+            <Body size="small" color="secondary">
+              Inga kollegor har lagts till ännu.
+            </Body>
+          )}
+        </View>
       </View>
     );
   }
@@ -308,15 +340,15 @@ export const OrganizationMembers = ({ onBack }: Props) => {
       <View style={{ gap: 16 }}>
         <View style={{ gap: 4 }}>
           <Label size="large">
-            Väntande ({data?.organizationInvites.length ?? 0})
+            Väntande ({invitesData?.organizationInvites.length ?? 0})
           </Label>
           <Body size="small" color="secondary">
             Inbjudningar som ännu inte har accepterats.
           </Body>
         </View>
 
-        {data?.organizationInvites.length ? (
-          data.organizationInvites.map((invite, index) => (
+        {invitesData?.organizationInvites.length ? (
+          invitesData.organizationInvites.map((invite, index) => (
             <View key={invite.id} style={{ gap: 14 }}>
               {index > 0 && <Divider />}
               <View style={{ gap: 12, minWidth: 0 }}>

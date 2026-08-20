@@ -1,9 +1,7 @@
 import Footer from "@components/navigation/footer";
-import TopBar from "@components/navigation/top-bar/top-bar";
-import { primitives } from "@constants/colors";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { router } from "expo-router";
 import { PropsWithChildren } from "react";
 import { ScrollView, View } from "react-native";
 
@@ -20,21 +18,7 @@ export const InternalPageLayout = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background.neutral }}>
-      <TopBar
-        theme="light"
-        showSearchBar={false}
-        sellButtonLabel="Ny intern annons"
-        onSellButtonPress={() =>
-          router.navigate({
-            pathname: "/internal",
-            params: { action: "create", t: Date.now().toString() },
-          })
-        }
-        backgroundColor={primitives.accent100}
-        foregroundColor={colors.logo.vector}
-        showBottomBorder={false}
-        categoriesButtonBackgroundColor={primitives.neutrals100}
-      />
+      <InternalTopBar />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View
           style={{

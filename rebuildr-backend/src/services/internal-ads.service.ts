@@ -176,7 +176,6 @@ export class InternalAdsService {
 
   async members(currentUserId: string) {
     const context = await this.getOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
     return this.membershipRepository.find({
       where: { organizationId: context.organization.id },
       relations: { user: true },
@@ -1393,8 +1392,7 @@ ${categoryList}
       .replace(/```$/i, '')
       .trim();
     const parsed = JSON.parse(cleaned) as
-      | { products?: ImportDraft[] }
-      | ImportDraft[];
+      { products?: ImportDraft[] } | ImportDraft[];
     const products = Array.isArray(parsed) ? parsed : parsed.products;
     if (!products?.length) {
       throw new Error('AI returned no products');

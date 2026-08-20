@@ -28,7 +28,7 @@ import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
-import TopBar from "@components/navigation/top-bar/top-bar";
+import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { Search } from "@components/search/search";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label, Title } from "@components/typography/text";
@@ -346,16 +346,7 @@ export default function InternalAdsPage() {
 
   return (
     <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-      <TopBar
-        theme="light"
-        showSearchBar={false}
-        sellButtonLabel="Ny intern annons"
-        onSellButtonPress={onCreateInternalAd}
-        backgroundColor={primitives.accent100}
-        foregroundColor={colors.logo.vector}
-        showBottomBorder={false}
-        categoriesButtonBackgroundColor={primitives.neutrals100}
-      />
+      <InternalTopBar home onCreateAd={onCreateInternalAd} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <ImageBackground
@@ -380,9 +371,6 @@ export default function InternalAdsPage() {
               {/* <Label size="large" color="secondary">
                 {organizationName}
               </Label> */}
-              <Headline size={isDesktop ? "medium" : "small"} heading={1}>
-                Internlagret
-              </Headline>
               <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
                 Material, verktyg och resurser som bara cirkulerar inom er
                 organisation.
