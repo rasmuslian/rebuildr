@@ -101,7 +101,8 @@ export class UserService {
       query.andWhereExists(
         this.projectRepository
           .createQueryBuilder('p')
-          .where('p."userId" = u.id'),
+          .where('p."userId" = u.id')
+          .andWhere('p."internalOrganizationId" IS NULL'),
       );
     }
     if (input.type) {

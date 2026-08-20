@@ -319,6 +319,7 @@ export class MapPinService {
     if (limit !== undefined) {
       projectsPart.limit(limit);
     }
+    projectsPart.andWhere('project."internalOrganizationId" IS NULL');
     if (projectsInput) {
       if (projectsInput.ids) {
         projectsPart.andWhere('project.id IN (:...projectIds)', {
