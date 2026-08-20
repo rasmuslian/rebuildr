@@ -2,8 +2,7 @@ import { gql } from "@apollo/client";
 import { useLikeProduct } from "@hooks/useLikeProduct";
 import { AdRowSectionQuery } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
-import { AdRowSectionMobile } from "./ad-row-section.mobile";
-import { AdRowSectionDesktop } from "./ad-row-section.desktop";
+import { AdRowSectionCarousel } from "./ad-row-section-carousel";
 
 export const AD_ROW_SECTION = gql`
   query AdRowSection(
@@ -57,21 +56,11 @@ export const AdRowSection = ({ data, onPress, title }: Props) => {
 
   if (!data || data.products.products.length < 1) return null;
 
-  if (isDesktop) {
-    return (
-      <AdRowSectionDesktop
-        products={data.products.products}
-        me={data.me}
-        title={title}
-        onPress={onPress}
-        onToggleProductHeart={onToggleProductHeart}
-      />
-    );
-  }
   return (
-    <AdRowSectionMobile
+    <AdRowSectionCarousel
       data={data}
       title={title}
+      buttonTitle={isDesktop ? "Visa alla" : undefined}
       onPress={onPress}
       onToggleProductHeart={onToggleProductHeart}
     />
