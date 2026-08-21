@@ -410,6 +410,7 @@ export const INTERNAL_AD_DETAIL = gql`
       soldByQuantity
       internalValidationIssues
       createdByUserId
+      createdByUserEmail
       createdByUser {
         id
         name
@@ -471,11 +472,11 @@ export const INTERNAL_AD_DETAIL = gql`
         canceledAt
         soldAt
         reservedByUserId
+        reservedByUserEmail
         reservedByUser {
           id
           name
           username
-          email
         }
       }
     }

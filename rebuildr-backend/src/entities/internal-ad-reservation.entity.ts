@@ -33,6 +33,9 @@ export class InternalAdReservation {
   @ManyToOne(() => User, (user) => user.id)
   reservedByUser: User;
 
+  @Field({ nullable: true })
+  reservedByUserEmail?: string;
+
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   quantity?: number;

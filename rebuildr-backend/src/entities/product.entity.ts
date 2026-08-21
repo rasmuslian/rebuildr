@@ -409,6 +409,9 @@ export class Product {
   })
   createdByUser?: User;
 
+  @Field({ nullable: true })
+  createdByUserEmail?: string;
+
   @Field(() => [String])
   @Column('text', { array: true, default: [] })
   internalValidationIssues: string[];

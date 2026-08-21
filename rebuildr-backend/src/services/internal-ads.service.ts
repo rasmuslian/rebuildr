@@ -796,6 +796,10 @@ export class InternalAdsService {
     if (!product) {
       throw NotFoundException('Internal ad not found');
     }
+    product.createdByUserEmail = product.createdByUser?.email;
+    product.internalReservations?.forEach((reservation) => {
+      reservation.reservedByUserEmail = reservation.reservedByUser?.email;
+    });
     return product;
   }
 

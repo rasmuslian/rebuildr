@@ -842,13 +842,14 @@ const InternalAdContent = ({
           )}
           <Detail label="Skick" value={conditions[product.condition].name} />
           {!!product.createdByUser && (
-            <Detail
+            <ContactDetail
               label="Upplagd av"
-              value={
+              name={
                 product.createdByUser.name ??
                 product.createdByUser.username ??
                 "Kollega"
               }
+              email={product.createdByUserEmail ?? undefined}
             />
           )}
           {!!product.additionalInfo && (
@@ -967,14 +968,30 @@ const Reservations = ({
                 gap: 12,
               }}
             >
-              <Body size="medium">
-                {reservation.reservedByUser.name ??
-                  reservation.reservedByUser.username ??
-                  reservation.reservedByUser.email}
-                {reservation.quantity
-                  ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
-                  : ""}
-              </Body>
+              <View style={{ gap: 2 }}>
+                <Body size="medium">
+                  {reservation.reservedByUser.name ??
+                    reservation.reservedByUser.username ??
+                    "Kollega"}
+                  {reservation.quantity
+                    ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
+                    : ""}
+                </Body>
+                {!!reservation.reservedByUserEmail && (
+                  <Pressable
+                    accessibilityRole="link"
+                    onPress={() =>
+                      Linking.openURL(
+                        `mailto:${reservation.reservedByUserEmail}`,
+                      )
+                    }
+                  >
+                    <Body size="small" isLink>
+                      {reservation.reservedByUserEmail}
+                    </Body>
+                  </Pressable>
+                )}
+              </View>
               <Label size="medium">
                 {new Date(reservation.reservedAt).toLocaleDateString("sv-SE")}
               </Label>
@@ -1035,5 +1052,30 @@ const Detail = ({ label, value }: DetailProps) => (
   <View style={{ gap: 4 }}>
     <Label size="medium">{label}</Label>
     <Body size="medium">{value}</Body>
+  </View>
+);
+
+const ContactDetail = ({
+  label,
+  name,
+  email,
+}: {
+  label: string;
+  name: string;
+  email?: string;
+}) => (
+  <View style={{ gap: 4 }}>
+    <Label size="medium">{label}</Label>
+    <Body size="medium">{name}</Body>
+    {!!email && (
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => Linking.openURL(`mailto:${email}`)}
+      >
+        <Body size="medium" isLink>
+          {email}
+        </Body>
+      </Pressable>
+    )}
   </View>
 );

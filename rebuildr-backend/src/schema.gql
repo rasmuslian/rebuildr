@@ -439,6 +439,7 @@ type InternalAdReservation {
   id: ID!
   productId: String!
   reservedByUserId: String!
+  reservedByUserEmail: String
   quantity: Int
   reservedAt: DateTime!
   canceledAt: DateTime
@@ -495,6 +496,7 @@ type Product {
   internalOrganizationId: String
   createdByUserId: String
   createdByUser: User
+  createdByUserEmail: String
   internalValidationIssues: [String!]!
   distanceFromPosition: Float
   pickupEnabled: Boolean!
