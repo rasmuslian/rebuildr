@@ -1092,6 +1092,14 @@ type InternalAdsOrganizationContext {
   canReceivePayout: Boolean!
 }
 
+type InternalAdsStatistics {
+  co2Saved: Float!
+  potentialCo2Savings: Float!
+  estimatedMarketValue: Float!
+  totalAds: Int!
+  externallyPublishedAds: Int!
+}
+
 type OrganizationInvitePreview {
   organizationName: String!
   expiresAt: DateTime!
@@ -1188,6 +1196,7 @@ type Query {
   internalAdsOrganizationContext: InternalAdsOrganizationContext
   internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
   internalProject(projectId: ID!): Project!
+  internalAdsStatistics: InternalAdsStatistics!
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
   relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!

@@ -63,6 +63,13 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         id
       }
     }
+    internalAdsStatistics {
+      co2Saved
+      potentialCo2Savings
+      estimatedMarketValue
+      totalAds
+      externallyPublishedAds
+    }
     internalAds(input: {}, limit: $limit, offset: 0) {
       products {
         id

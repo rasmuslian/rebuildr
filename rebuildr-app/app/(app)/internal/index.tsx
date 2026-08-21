@@ -28,6 +28,7 @@ import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
+import { InternalStatisticsSection } from "@components/internal/internal-statistics-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
@@ -483,6 +484,13 @@ export default function InternalAdsPage() {
             alignSelf: "center",
           }}
         >
+          {hasAccess && data?.internalAdsStatistics && (
+            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
+              <InternalStatisticsSection
+                statistics={data.internalAdsStatistics}
+              />
+            </View>
+          )}
           {hasAccess && (
             <View style={{ gap: 16, marginBottom: isDesktop ? 48 : 32 }}>
               <SectionHeader

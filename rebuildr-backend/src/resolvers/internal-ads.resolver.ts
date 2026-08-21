@@ -55,6 +55,24 @@ class InternalAdsOrganizationContext {
 }
 
 @ObjectType()
+class InternalAdsStatistics {
+  @Field()
+  co2Saved: number;
+
+  @Field()
+  potentialCo2Savings: number;
+
+  @Field()
+  estimatedMarketValue: number;
+
+  @Field(() => Int)
+  totalAds: number;
+
+  @Field(() => Int)
+  externallyPublishedAds: number;
+}
+
+@ObjectType()
 class OrganizationInvitePreview {
   @Field()
   organizationName: string;
@@ -252,6 +270,12 @@ export class InternalAdsResolver {
     @Args('projectId', { type: () => ID }) projectId: string,
   ) {
     return this.internalAdsService.deleteInternalProject(user.id, projectId);
+  }
+
+  @Query(() => InternalAdsStatistics)
+  @UseGuards(GqlAuthGuard)
+  async internalAdsStatistics(@CurrentUser() user: AuthedUserType) {
+    return this.internalAdsService.internalAdsStatistics(user.id);
   }
 
   @Query(() => PaginatedProductsResponse)

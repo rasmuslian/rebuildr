@@ -655,6 +655,93 @@ export class InternalAdsService {
     return { products, total };
   }
 
+  async internalAdsStatistics(currentUserId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const quantityFactor = `CASE
+      WHEN p."soldByQuantity" = TRUE THEN COALESCE(p."primaryQuantity", 0)
+      ELSE 1
+    END`;
+    const soldQuantity = `COALESCE((
+      SELECT SUM(reservation.quantity)
+      FROM "internal_ad_reservation" reservation
+      WHERE reservation."productId" = p.id
+        AND reservation."soldAt" IS NOT NULL
+        AND reservation."canceledAt" IS NULL
+    ), 0)`;
+
+    const statistics = await this.productRepository
+      .createQueryBuilder('p')
+      .select('COUNT(p.id)', 'totalAds')
+      .addSelect(
+        `COUNT(p.id) FILTER (
+          WHERE p.status = :publishedStatus
+            AND p."publiclyAvailable" = TRUE
+        )`,
+        'externallyPublishedAds',
+      )
+      .addSelect(
+        `COALESCE(SUM(CASE
+          WHEN p.status = :publishedStatus
+            THEN CAST(p.price AS NUMERIC) * (${quantityFactor})
+          ELSE 0
+        END), 0)`,
+        'estimatedMarketValue',
+      )
+      .addSelect(
+        `COALESCE(SUM(CASE
+          WHEN p.status = :publishedStatus
+            THEN COALESCE(p."co2SavingSeller", 0) * (${quantityFactor})
+          ELSE 0
+        END), 0)`,
+        'potentialCo2Savings',
+      )
+      .addSelect(
+        `COALESCE(SUM(CASE
+          WHEN p."soldByQuantity" = FALSE AND p.status = :soldStatus
+            THEN COALESCE(p."co2SavingSeller", 0)
+          WHEN p."soldByQuantity" = TRUE
+            THEN COALESCE(p."co2SavingSeller", 0) * (
+              (${soldQuantity}) + CASE
+                WHEN p.status = :soldStatus
+                  THEN COALESCE(p."primaryQuantity", 0)
+                ELSE 0
+              END
+            )
+          ELSE 0
+        END), 0)`,
+        'co2Saved',
+      )
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL')
+      .setParameters({
+        publishedStatus: ProductStatus.PUBLISHED,
+        soldStatus: ProductStatus.SOLD,
+      })
+      .getRawOne<{
+        co2Saved: string | number | null;
+        potentialCo2Savings: string | number | null;
+        estimatedMarketValue: string | number | null;
+        totalAds: string | number | null;
+        externallyPublishedAds: string | number | null;
+      }>();
+
+    return {
+      co2Saved: Number(statistics?.co2Saved ?? 0),
+      potentialCo2Savings: Number(statistics?.potentialCo2Savings ?? 0),
+      estimatedMarketValue: Number(statistics?.estimatedMarketValue ?? 0),
+      totalAds: Number(statistics?.totalAds ?? 0),
+      externallyPublishedAds: Number(statistics?.externallyPublishedAds ?? 0),
+    };
+  }
+
   async relatedInternalAds(
     currentUserId: string,
     input: ProductsInput,
