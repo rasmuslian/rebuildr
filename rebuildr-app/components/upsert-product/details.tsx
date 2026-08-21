@@ -42,6 +42,7 @@ type Props = {
   onClearLocationError: () => void;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
+  loading?: boolean;
   internalMode?: boolean;
   nextLabel?: string;
   onDelete?: () => void;
@@ -58,6 +59,7 @@ export const Details = ({
   onClearLocationError,
   imageAnalyzeLoading,
   imageAnalyzeError,
+  loading = false,
   internalMode,
   nextLabel,
   onDelete,
@@ -479,6 +481,7 @@ export const Details = ({
                 label={nextLabel ?? "Fortsätt"}
                 type={compact && onDelete ? "tonal" : undefined}
                 onPress={onNext}
+                loading={loading}
                 style={{
                   width: onDelete ? undefined : "100%",
                   flex: onDelete ? 1 : undefined,

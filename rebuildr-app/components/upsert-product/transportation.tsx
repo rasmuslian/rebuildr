@@ -17,6 +17,7 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
   nextIsDisabled: boolean;
+  loading?: boolean;
   badFields?: { [key: string]: string };
   updateProgress: (progress: number) => void;
   internalMode?: boolean;
@@ -28,6 +29,7 @@ export const Transportation = ({
   onNext,
   onBack,
   nextIsDisabled,
+  loading = false,
   badFields,
   updateProgress,
   internalMode = false,
@@ -168,7 +170,7 @@ export const Transportation = ({
           onPress={() => onNext()}
           style={{ flex: 1 }}
           disabled={!canContinue() || nextIsDisabled}
-          loading={false}
+          loading={loading}
         />
       </View>
     </View>

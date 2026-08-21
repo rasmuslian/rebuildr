@@ -259,6 +259,7 @@ export const UpsertProduct = ({
     "details" | "transportation" | "preview" | "onboarding"
   >("details");
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
 
@@ -443,7 +444,7 @@ export const UpsertProduct = ({
   };
 
   const update = async (status?: ProductStatusEnum) => {
-    if (!data || updateDraftLoading) {
+    if (!data || updatingProduct || uploadingMedia || publishingInternal) {
       return;
     }
     const addFiles = (newFiles?: FileType[], currentFiles?: GqlFile[]) => {
@@ -751,18 +752,21 @@ export const UpsertProduct = ({
   ]);
 
   const onSave = async (published: boolean) => {
-    const result = await update(
-      published && !internalMode ? ProductStatusEnum.Published : undefined,
-    );
-    if (result) {
+    if (actionLoading) return;
+
+    setActionLoading(true);
+    try {
+      const result = await update(
+        published && !internalMode ? ProductStatusEnum.Published : undefined,
+      );
+      if (!result) return;
+
       if (published) {
         if (internalMode && data?.product.id) {
           const publishResult = await publishInternalDrafts({
             variables: { productIds: [data.product.id] },
           });
-          if (publishResult.errors) {
-            return;
-          }
+          if (publishResult.errors) return;
         }
         trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         const publishedData: PublishedProductData = {
@@ -780,6 +784,8 @@ export const UpsertProduct = ({
       } else {
         onClose();
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -909,37 +915,40 @@ export const UpsertProduct = ({
     onVerifyTransportation(newProduct);
     setProduct(newProduct);
   };
-  const onNextDetails = () => {
+  const onNextDetails = async () => {
     const result = onVerifyDetails(product);
-    if (result) {
-      if (internalMode) {
-        if (!onVerifyTransportation(product, true)) return;
-        const save = update();
-        if (inline) {
-          onPublished();
-          onInlineDraftSave?.(save);
-          return;
-        }
-        save.then((saved) => {
-          if (saved) {
-            setStep("preview");
-          }
-        });
+    if (!result || actionLoading) return;
+
+    if (internalMode) {
+      if (!onVerifyTransportation(product, true)) return;
+      setActionLoading(true);
+      const save = update().finally(() => setActionLoading(false));
+      if (inline) {
+        onPublished();
+        onInlineDraftSave?.(save);
         return;
       }
-      setStep("transportation");
+      if (await save) {
+        setStep("preview");
+      }
+      return;
     }
+    setStep("transportation");
   };
-  const onNextTransportation = () => {
+  const onNextTransportation = async () => {
     const result = onVerifyTransportation(product, true);
-    if (!result) return;
-    //the save must happen, but navigation shouldn't wait for it: the CO2
-    //figure in the preview is computed backend-side from the saved weight and
-    //category, and the mutation response refreshes the cached value when it
-    //lands. A failed save surfaces through the mutation's error state on the
-    //preview footer.
-    update().catch((e) => Sentry.captureException(e));
-    setStep("preview");
+    if (!result || actionLoading) return;
+
+    // Wait for the save before showing the preview, so the user receives
+    // clear feedback and the preview can use the latest server-side values.
+    setActionLoading(true);
+    try {
+      if (await update()) {
+        setStep("preview");
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;
@@ -1091,7 +1100,7 @@ export const UpsertProduct = ({
 
   const showFooter = step === "preview";
   const updateDraftLoading =
-    updatingProduct || uploadingMedia || publishingInternal;
+    actionLoading || updatingProduct || uploadingMedia || publishingInternal;
   const isInitializing = loading || productLoading || !data || !initialized;
 
   const renderFooter = () => {
@@ -1118,6 +1127,7 @@ export const UpsertProduct = ({
               label="Redigera"
               type="tonal"
               onPress={() => setStep("details")}
+              disabled={updateDraftLoading || createSellerAccountLoading}
               style={{ flex: 1 }}
             />
             <Button
@@ -1181,6 +1191,7 @@ export const UpsertProduct = ({
               imageAnalyzeLoading || analyzePending || willAutoAnalyze
             }
             imageAnalyzeError={!!imageAnalyzeError}
+            loading={actionLoading}
             internalMode={internalMode}
             nextLabel={inline ? "Spara" : undefined}
             onDelete={inline ? onDelete : undefined}
@@ -1197,6 +1208,7 @@ export const UpsertProduct = ({
             nextIsDisabled={
               !transportationProgress || transportationProgress < 100
             }
+            loading={actionLoading}
             updateProgress={(progress) => setTransportationProgress(progress)}
             onBack={() => setStep("details")}
             badFields={fieldErrors}
