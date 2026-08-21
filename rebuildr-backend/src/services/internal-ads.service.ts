@@ -65,6 +65,7 @@ import { BrandService } from './brand.service';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MailService } from './mail.service';
+import { StripeService } from './stripe.service';
 
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
@@ -73,6 +74,7 @@ export interface OrganizationContext {
   organization: User;
   role: OrganizationMemberRole;
   isOrganizationAccount: boolean;
+  canReceivePayout?: boolean;
 }
 
 interface ImportDraft {
@@ -120,11 +122,14 @@ export class InternalAdsService {
     private brandService: BrandService,
     private geocodingService: GeocodingService,
     private mailService: MailService,
+    private stripeService: StripeService,
     private dataSource: DataSource,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
+  async getManagementOrganizationContext(
+    userId: string,
+  ): Promise<OrganizationContext> {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) {
       throw BadUserInputException('Invalid user');
@@ -159,12 +164,39 @@ export class InternalAdsService {
     };
   }
 
+  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
+    const context = await this.getManagementOrganizationContext(userId);
+    if (context.isOrganizationAccount) {
+      throw ForbiddenException(
+        'Log in as an organization member to use internal ads',
+      );
+    }
+    return context;
+  }
+
   async getOptionalOrganizationContext(userId?: string) {
     if (!userId) return null;
     try {
-      return await this.getOrganizationContext(userId);
+      const context = await this.getManagementOrganizationContext(userId);
+      return {
+        ...context,
+        canReceivePayout: await this.organizationCanReceivePayout(
+          context.organization,
+        ),
+      };
     } catch {
       return null;
+    }
+  }
+
+  private async organizationCanReceivePayout(organization: User) {
+    if (!organization.connectedAccountId) return false;
+    try {
+      return await this.stripeService.accountCanReceivePayout(
+        organization.connectedAccountId,
+      );
+    } catch {
+      return false;
     }
   }
 
@@ -179,7 +211,7 @@ export class InternalAdsService {
   }
 
   async members(currentUserId: string) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     return this.membershipRepository.find({
       where: { organizationId: context.organization.id },
       relations: { user: true },
@@ -188,7 +220,7 @@ export class InternalAdsService {
   }
 
   async invites(currentUserId: string) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     return this.inviteRepository
       .find({
@@ -217,7 +249,7 @@ export class InternalAdsService {
     currentUserId: string,
     input: { email: string; role: OrganizationMemberRole },
   ) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     const parsedEmail = z.string().email().safeParse(input.email);
     if (!parsedEmail.success) {
@@ -239,7 +271,7 @@ export class InternalAdsService {
   }
 
   async resendInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     const invite = await this.inviteRepository.findOneBy({
       id: inviteId,
@@ -259,7 +291,7 @@ export class InternalAdsService {
   }
 
   async revokeInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     const invite = await this.inviteRepository.findOneBy({
       id: inviteId,
@@ -341,7 +373,7 @@ export class InternalAdsService {
     currentUserId: string,
     input: { userId: string; role: OrganizationMemberRole },
   ) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     if (input.userId === currentUserId)
       throw BadUserInputException('Du kan inte ändra din egen roll');
@@ -355,7 +387,7 @@ export class InternalAdsService {
   }
 
   async removeMember(currentUserId: string, userId: string) {
-    const context = await this.getOrganizationContext(currentUserId);
+    const context = await this.getManagementOrganizationContext(currentUserId);
     await this.assertOrganizationAdmin(context);
     if (userId === currentUserId)
       throw BadUserInputException('Du kan inte ta bort dig själv');
@@ -676,7 +708,10 @@ export class InternalAdsService {
     const query = this.productRepository
       .createQueryBuilder('p')
       .select('ST_X(ST_Centroid(ST_Collect(p."addressLocation")))', 'latitude')
-      .addSelect('ST_Y(ST_Centroid(ST_Collect(p."addressLocation")))', 'longitude')
+      .addSelect(
+        'ST_Y(ST_Centroid(ST_Collect(p."addressLocation")))',
+        'longitude',
+      )
       .addSelect('ARRAY_AGG(p.id)', 'productIds')
       .addSelect('ARRAY_AGG(p.price ORDER BY p.price)', 'prices')
       .where('p.visibility = :visibility', {
@@ -905,6 +940,11 @@ export class InternalAdsService {
       throw BadUserInputException('Product is not published');
     }
     if (publiclyAvailable) {
+      if (!(await this.organizationCanReceivePayout(context.organization))) {
+        throw BadUserInputException(
+          'Organization payout account must be able to receive payouts',
+        );
+      }
       this.assertPublicTransportation(product);
     }
     if (publiclyAvailable && !product.publicPriceConfirmed) {
@@ -1440,7 +1480,8 @@ ${categoryList}
       .replace(/```$/i, '')
       .trim();
     const parsed = JSON.parse(cleaned) as
-      { products?: ImportDraft[] } | ImportDraft[];
+      | { products?: ImportDraft[] }
+      | ImportDraft[];
     const products = Array.isArray(parsed) ? parsed : parsed.products;
     if (!products?.length) {
       throw new Error('AI returned no products');

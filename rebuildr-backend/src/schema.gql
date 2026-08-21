@@ -494,6 +494,7 @@ type Product {
   publicPriceConfirmed: Boolean!
   internalOrganizationId: String
   createdByUserId: String
+  createdByUser: User
   internalValidationIssues: [String!]!
   distanceFromPosition: Float
   pickupEnabled: Boolean!
@@ -1086,6 +1087,7 @@ type InternalAdsOrganizationContext {
   organization: User!
   role: OrganizationMemberRoleEnum!
   isOrganizationAccount: Boolean!
+  canReceivePayout: Boolean!
 }
 
 type OrganizationInvitePreview {

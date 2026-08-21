@@ -43,6 +43,7 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
       }
       role
       isOrganizationAccount
+      canReceivePayout
     }
     internalAds(input: $input, limit: $limit, offset: $offset) {
       products {
@@ -57,6 +58,7 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
 export const INTERNAL_ADS_HOME_QUERY = gql`
   query InternalAdsHome($limit: Int) {
     internalAdsOrganizationContext {
+      canReceivePayout
       organization {
         id
       }
@@ -384,6 +386,7 @@ export const INTERNAL_AD_DETAIL = gql`
   query InternalAdDetail($productId: String!) {
     internalAdsOrganizationContext {
       role
+      canReceivePayout
       organization {
         id
         name
@@ -407,6 +410,11 @@ export const INTERNAL_AD_DETAIL = gql`
       soldByQuantity
       internalValidationIssues
       createdByUserId
+      createdByUser {
+        id
+        name
+        username
+      }
       price
       priceSuggestionMin
       priceSuggestionMax
@@ -538,6 +546,7 @@ export const INTERNAL_ADS_MENU_CONTEXT = gql`
     internalAdsOrganizationContext {
       role
       isOrganizationAccount
+      canReceivePayout
       organization {
         id
       }

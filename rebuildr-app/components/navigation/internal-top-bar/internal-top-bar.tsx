@@ -1,3 +1,6 @@
+import { InternalAdsMenuContextQuery } from "@/gql/graphql";
+import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
+import { useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { Logo } from "@components/logo/logo";
 import { SearchBar } from "@components/search/search-bar";
@@ -31,6 +34,13 @@ export const InternalTopBar = ({
   onCreateAd,
 }: Props) => {
   const { isDesktop } = useScreenType();
+  const { data } = useQuery<InternalAdsMenuContextQuery>(
+    INTERNAL_ADS_MENU_CONTEXT,
+    { fetchPolicy: "cache-and-network" },
+  );
+  const isOrganizationAccount =
+    data?.internalAdsOrganizationContext?.isOrganizationAccount ?? false;
+  const canUseInternalAds = showActions && !isOrganizationAccount;
 
   return (
     <View
@@ -39,15 +49,17 @@ export const InternalTopBar = ({
       {isDesktop ? (
         <InternalTopBarDesktop
           home={home}
-          showActions={showActions}
+          showActions={canUseInternalAds}
           showSearchBar={showSearchBar}
           onCreateAd={onCreateAd}
+          isOrganizationAccount={isOrganizationAccount}
         />
       ) : (
         <InternalTopBarMobile
           home={home}
-          showActions={showActions}
+          showActions={canUseInternalAds}
           onCreateAd={onCreateAd}
+          isOrganizationAccount={isOrganizationAccount}
         />
       )}
     </View>
@@ -100,7 +112,8 @@ const InternalTopBarDesktop = ({
   showActions,
   showSearchBar,
   onCreateAd,
-}: Props) => {
+  isOrganizationAccount,
+}: Props & { isOrganizationAccount: boolean }) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
@@ -161,12 +174,18 @@ const InternalTopBarDesktop = ({
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
         showInternalLinks={showActions}
+        showMemberManagement={isOrganizationAccount}
       />
     </>
   );
 };
 
-const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
+const InternalTopBarMobile = ({
+  home,
+  showActions,
+  onCreateAd,
+  isOrganizationAccount,
+}: Props & { isOrganizationAccount: boolean }) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
@@ -228,6 +247,7 @@ const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
         showInternalLinks={showActions}
+        showMemberManagement={isOrganizationAccount}
       />
     </>
   );
@@ -262,11 +282,13 @@ const InternalMenu = ({
   onClose,
   onGoMarketplace,
   showInternalLinks,
+  showMemberManagement,
 }: {
   open: boolean;
   onClose: () => void;
   onGoMarketplace: () => void;
   showInternalLinks: boolean;
+  showMemberManagement: boolean;
 }) => (
   <SlideInSheet open={open} onClose={onClose} title="Återbanken">
     <View style={{ gap: 8 }}>
@@ -283,6 +305,13 @@ const InternalMenu = ({
             onClose={onClose}
           />
         </>
+      )}
+      {showMemberManagement && (
+        <InternalMenuEntry
+          label="Organisationsmedlemmar"
+          href="/internal/members"
+          onClose={onClose}
+        />
       )}
       <View style={{ marginTop: 16 }}>
         <Button
@@ -312,7 +341,7 @@ const InternalMenuEntry = ({
     accessibilityRole="link"
     onPress={() => {
       onClose();
-      router.navigate(href);
+      router.push(href);
     }}
     style={{ paddingVertical: 12 }}
   >

@@ -223,8 +223,9 @@ export class ProductService {
 
     if (
       currentUserRole !== UserRoleEnum.ADMIN &&
-      currentUserId !== product.sellerId &&
-      !canManageInternalProduct
+      (product.visibility === ProductVisibility.INTERNAL
+        ? !canManageInternalProduct
+        : currentUserId !== product.sellerId)
     ) {
       logger.error('User does not have permission to update product', {
         currentUserId,
@@ -394,13 +395,21 @@ export class ProductService {
     }
 
     if (input.projectId) {
-      const project = await this.projectRepository.findOneBy({ id: input.projectId });
+      const project = await this.projectRepository.findOneBy({
+        id: input.projectId,
+      });
       if (!project) throw BadUserInputException('Project not found');
-      const isInternalProduct = product.visibility === ProductVisibility.INTERNAL;
+      const isInternalProduct =
+        product.visibility === ProductVisibility.INTERNAL;
       const matchingInternalProject =
         project.internalOrganizationId === product.internalOrganizationId;
-      if (isInternalProduct !== !!project.internalOrganizationId || !matchingInternalProject) {
-        throw ForbiddenException('Project does not belong to this product context');
+      if (
+        isInternalProduct !== !!project.internalOrganizationId ||
+        !matchingInternalProject
+      ) {
+        throw ForbiddenException(
+          'Project does not belong to this product context',
+        );
       }
     }
 
@@ -474,7 +483,8 @@ export class ProductService {
     if (input.location) {
       //only re-geocode when the coordinates changed (or there's no address yet)
       //— the address is resent unchanged every save; skips a Google round-trip
-      const [currentLat, currentLng] = product.addressLocation?.coordinates ?? [];
+      const [currentLat, currentLng] =
+        product.addressLocation?.coordinates ?? [];
       const locationChanged =
         currentLat !== input.location.lat || currentLng !== input.location.lng;
       if (locationChanged || !product.address) {
@@ -1066,15 +1076,19 @@ export class ProductService {
   }
 
   private async canManageInternalProduct(product: Product, userId: string) {
-    if (
-      product.createdByUserId === userId ||
-      product.internalOrganizationId === userId
-    ) {
-      return true;
-    }
     const result = await this.dataSource.query(
-      `SELECT 1 FROM organization_membership WHERE "organizationId" = $1 AND "userId" = $2 AND role = $3 LIMIT 1`,
-      [product.internalOrganizationId, userId, OrganizationMemberRole.ADMIN],
+      `SELECT 1
+       FROM organization_membership
+       WHERE "organizationId" = $1
+         AND "userId" = $2
+         AND (role = $3 OR $4 = $2)
+       LIMIT 1`,
+      [
+        product.internalOrganizationId,
+        userId,
+        OrganizationMemberRole.ADMIN,
+        product.createdByUserId,
+      ],
     );
     return result.length > 0;
   }
@@ -1141,7 +1155,11 @@ export class ProductService {
     const canManageInternalProduct =
       product.visibility === ProductVisibility.INTERNAL &&
       (await this.canManageInternalProduct(product, currentUserId));
-    if (product.sellerId !== currentUserId && !canManageInternalProduct) {
+    if (
+      product.visibility === ProductVisibility.INTERNAL
+        ? !canManageInternalProduct
+        : product.sellerId !== currentUserId
+    ) {
       throw ForbiddenException();
     }
     const canDelete = this.canDelete(product);

@@ -49,6 +49,9 @@ class InternalAdsOrganizationContext {
 
   @Field()
   isOrganizationAccount: boolean;
+
+  @Field()
+  canReceivePayout: boolean;
 }
 
 @ObjectType()
@@ -207,7 +210,12 @@ export class InternalAdsResolver {
     @Args('limit', { nullable: true, type: () => Int }) limit?: number,
     @Args('offset', { nullable: true, type: () => Int }) offset?: number,
   ) {
-    return this.internalAdsService.internalProjects(user.id, input, limit, offset);
+    return this.internalAdsService.internalProjects(
+      user.id,
+      input,
+      limit,
+      offset,
+    );
   }
 
   @Query(() => Project)

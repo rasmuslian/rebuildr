@@ -402,6 +402,8 @@ export class Product {
   @Field({ nullable: true })
   @Column({ nullable: true })
   createdByUserId?: string;
+
+  @Field(() => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.createdInternalProducts, {
     nullable: true,
   })

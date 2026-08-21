@@ -141,6 +141,8 @@ export default function InternalAdDetailPage() {
     data?.internalAdsOrganizationContext?.role ===
     OrganizationMemberRoleEnum.Admin;
   const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
+  const canPublishExternally =
+    data?.internalAdsOrganizationContext?.canReceivePayout ?? false;
 
   const updatePublicAvailability = async (price?: number) => {
     if (!product) return;
@@ -290,6 +292,7 @@ export default function InternalAdDetailPage() {
       canceling={canceling}
       markingSold={markingSold}
       makingPublic={makingPublic}
+      canPublishExternally={canPublishExternally}
       currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
       onSetPublicAvailability={onSetPublicAvailability}
@@ -628,6 +631,7 @@ type InternalAdContentProps = {
   canceling: boolean;
   markingSold: boolean;
   makingPublic: boolean;
+  canPublishExternally: boolean;
   currentUserId: string;
   canMarkSold: boolean;
   onSetPublicAvailability: () => Promise<void>;
@@ -649,6 +653,7 @@ const InternalAdContent = ({
   canceling,
   markingSold,
   makingPublic,
+  canPublishExternally,
   currentUserId,
   canMarkSold,
   onSetPublicAvailability,
@@ -794,6 +799,7 @@ const InternalAdContent = ({
       {canMarkSold && product.status !== ProductStatusEnum.Sold && (
         <PublicAvailabilityCard
           publiclyAvailable={product.publiclyAvailable}
+          canPublishExternally={canPublishExternally}
           loading={makingPublic}
           onPress={onSetPublicAvailability}
         />
@@ -835,6 +841,16 @@ const InternalAdContent = ({
             />
           )}
           <Detail label="Skick" value={conditions[product.condition].name} />
+          {!!product.createdByUser && (
+            <Detail
+              label="Upplagd av"
+              value={
+                product.createdByUser.name ??
+                product.createdByUser.username ??
+                "Kollega"
+              }
+            />
+          )}
           {!!product.additionalInfo && (
             <View style={{ gap: 4 }}>
               <Label size="medium">Bra att veta</Label>
@@ -868,12 +884,14 @@ const InternalAdContent = ({
 
 type PublicAvailabilityCardProps = {
   publiclyAvailable: boolean;
+  canPublishExternally: boolean;
   loading: boolean;
   onPress: () => Promise<void>;
 };
 
 const PublicAvailabilityCard = ({
   publiclyAvailable,
+  canPublishExternally,
   loading,
   onPress,
 }: PublicAvailabilityCardProps) => (
@@ -891,16 +909,24 @@ const PublicAvailabilityCard = ({
         Gör annonsen synlig för alla på RebuildR, utanför ert interna lager.
       </Body>
     </View>
-    <Button
-      label={
-        publiclyAvailable
-          ? "Avpublicera externt"
-          : "Publicera externt på RebuildR"
-      }
-      type={publiclyAvailable ? "outlined" : "filled"}
-      onPress={onPress}
-      loading={loading}
-    />
+    {publiclyAvailable ? (
+      <Button
+        label="Avpublicera externt"
+        type="outlined"
+        onPress={onPress}
+        loading={loading}
+      />
+    ) : canPublishExternally ? (
+      <Button
+        label="Publicera externt på RebuildR"
+        onPress={onPress}
+        loading={loading}
+      />
+    ) : (
+      <Body size="medium" color="secondary">
+        Admin måste lägga till utbetalningskonto. Kontakta din admin.
+      </Body>
+    )}
   </View>
 );
 
