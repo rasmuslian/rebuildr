@@ -290,23 +290,20 @@ export class ProjectResolver {
     });
   }
 
-  @ResolveField(() => LocationResponse, { nullable: true })
+  @ResolveField(() => LocationResponse)
   async location(@Parent() project: Project) {
-    if (!project.addressLocation) return null;
     return {
       lat: project.addressLocation.coordinates[0],
       lng: project.addressLocation.coordinates[1],
     };
   }
 
-  @ResolveField(() => ApproximatePlaceResponse, { nullable: true })
+  @ResolveField(() => ApproximatePlaceResponse)
   async approximatePlace(
     @Parent() project: Project,
     @Context('projectLoaders') projectLoaders: IProjectLoaders,
   ) {
-    if (!project.mapPinId) return null;
     const mapPin = await projectLoaders.mapPinLoader.load(project.id);
-    if (!mapPin) return null;
     return {
       address: mapPin.address,
       lat: mapPin.location.coordinates[0],

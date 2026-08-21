@@ -1,11 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { MapPin } from 'src/entities/map-pin.entity';
-import {
-  Product,
-  ProductStatus,
-  ProductVisibility,
-} from 'src/entities/product.entity';
+import { Product, ProductStatus } from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
 import { GeocodingService } from 'src/services/geocoding.service';
 import { MapPinService } from 'src/services/map-pin.service';
@@ -35,9 +31,6 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
 
   // Lifecycle hooks
   async afterInsert(event: InsertEvent<Product>) {
-    // Internal ads deliberately have neither a public project pin nor a map pin.
-    if (event.entity.visibility === ProductVisibility.INTERNAL) return;
-
     if (event.entity.projectId) {
       const project = await event.manager.findOne(Project, {
         where: { id: event.entity.projectId },
@@ -51,15 +44,6 @@ export class ProductSubscriber implements EntitySubscriberInterface<Product> {
 
   async afterUpdate(event: UpdateEvent<Product>) {
     if (!event.entity || !event.databaseEntity) {
-      return;
-    }
-
-    // An internal project has no location/map pin. Do not try to inherit one
-    // when an internal ad is assigned to it.
-    if (
-      event.entity.visibility === ProductVisibility.INTERNAL ||
-      event.databaseEntity.visibility === ProductVisibility.INTERNAL
-    ) {
       return;
     }
 

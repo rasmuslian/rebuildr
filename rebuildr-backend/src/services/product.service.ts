@@ -1230,14 +1230,8 @@ export class ProductService {
   }
 
   async address(product: Product) {
-    // Internal projects intentionally have no address. Internal ads retain the
-    // organization/product address and must not be resolved through the public
-    // ProjectService (which correctly hides internal projects).
-    if (product.visibility === ProductVisibility.INTERNAL) {
-      return product.address;
-    }
     if (product.projectId) {
-      const project = await this.projectService.findOne({
+      const project = await this.projectRepository.findOneBy({
         id: product.projectId,
       });
       if (!project) {
@@ -1248,15 +1242,8 @@ export class ProductService {
     return product.address;
   }
   async location(product: Product) {
-    if (product.visibility === ProductVisibility.INTERNAL) {
-      if (!product.addressLocation) return null;
-      return {
-        lat: product.addressLocation.coordinates[0],
-        lng: product.addressLocation.coordinates[1],
-      };
-    }
     if (product.projectId) {
-      const project = await this.projectService.findOne({
+      const project = await this.projectRepository.findOneBy({
         id: product.projectId,
       });
       if (!project) {

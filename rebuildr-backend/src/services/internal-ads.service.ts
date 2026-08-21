@@ -35,7 +35,7 @@ import {
   ProductStatus,
   ProductVisibility,
 } from 'src/entities/product.entity';
-import { MapPinTypeEnum } from 'src/entities/map-pin.entity';
+import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
@@ -537,9 +537,8 @@ export class InternalAdsService {
     const context = await this.getOrganizationContext(currentUserId);
     const title = input.title.trim();
     if (!title) throw BadUserInputException('Project title is required');
-    const { exact } = await this.geocodingService.exactAndApproximatePlace(
-      input.location,
-    );
+    const { exact, approximate } =
+      await this.geocodingService.exactAndApproximatePlace(input.location);
     return this.projectRepository.save(
       this.projectRepository.create({
         title,
@@ -549,6 +548,13 @@ export class InternalAdsService {
           type: 'Point',
           coordinates: [input.location.lat, input.location.lng],
         },
+        mapPin: new MapPin({
+          address: approximate.address,
+          location: {
+            type: 'Point',
+            coordinates: [approximate.lat, approximate.lng],
+          },
+        }),
         userId: context.organization.id,
         internalOrganizationId: context.organization.id,
       }),
@@ -581,9 +587,6 @@ export class InternalAdsService {
         type: 'Point',
         coordinates: [input.location.lat, input.location.lng],
       };
-    }
-    if (!project.address || !project.addressLocation) {
-      throw BadUserInputException('Internal project missing location');
     }
     return this.projectRepository.save(project);
   }

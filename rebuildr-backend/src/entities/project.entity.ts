@@ -51,9 +51,9 @@ export class Project {
   @Column({ nullable: true })
   contactPhone?: string;
 
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
-  address?: string;
+  @Field(() => String)
+  @Column()
+  address: string;
 
   @Column('geometry', {
     spatialFeatureType: 'Point',
@@ -85,13 +85,10 @@ export class Project {
   @JoinTable()
   likedBy: User[];
 
-  @Column({ nullable: true })
-  mapPinId?: string;
+  @Column()
+  mapPinId: string;
 
-  @OneToOne(() => MapPin, (mapPin) => mapPin.project, {
-    cascade: true,
-    nullable: true,
-  })
+  @OneToOne(() => MapPin, (mapPin) => mapPin.project, { cascade: true })
   @JoinColumn()
   mapPin: MapPin;
 

@@ -130,11 +130,11 @@ type Project {
   contactName: String
   contactEmail: String
   contactPhone: String
-  address: String
+  address: String!
   showDetailsOnMap: Boolean!
   likedByMe: Boolean
-  location: LocationResponse
-  approximatePlace: ApproximatePlaceResponse
+  location: LocationResponse!
+  approximatePlace: ApproximatePlaceResponse!
   products(searchString: String): [Product!]!
   projectPicture: File
   user: User!
