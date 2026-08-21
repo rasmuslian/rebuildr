@@ -14,9 +14,6 @@ export class AddInternalProjects1782900000000 implements MigrationInterface {
       `ALTER TABLE "project" ALTER COLUMN "address" DROP NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "project" ALTER COLUMN "addressLocation" DROP NOT NULL`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "project" ALTER COLUMN "mapPinId" DROP NOT NULL`,
     );
     await queryRunner.query(

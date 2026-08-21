@@ -58,9 +58,8 @@ export class Project {
   @Column('geometry', {
     spatialFeatureType: 'Point',
     srid: 4326,
-    nullable: true,
   })
-  addressLocation?: Point;
+  addressLocation: Point;
 
   @Column()
   userId: string;
