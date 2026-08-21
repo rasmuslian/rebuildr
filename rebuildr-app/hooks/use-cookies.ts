@@ -1,10 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { makeVar, useReactiveVar } from "@apollo/client";
+import { useEffect } from "react";
 import { Platform } from "react-native";
 
 type ConsentStatus = "granted" | "denied" | null;
 
 const STORAGE_KEY = "gtmConsent";
+
+// Shared across every useCookies() consumer: answering the prompt in the
+// consent sheet must be visible immediately to others that wait on it (the
+// onboarding welcome). Plain useState kept each caller's copy stale until the
+// next reload, so the welcome never appeared in the same session as the prompt.
+const consentVar = makeVar<ConsentStatus>(null);
+const isReadyVar = makeVar(false);
+let hydrationStarted = false;
 
 declare const gtag: (...args: unknown[]) => void;
 
@@ -26,26 +35,28 @@ const deleteGACookies = () => {
 };
 
 export const useCookies = () => {
-  const [isReady, setIsReady] = useState(false);
-  const [consentStatus, setConsentStatus] = useState<ConsentStatus>(null);
+  const consentStatus = useReactiveVar(consentVar);
+  const isReady = useReactiveVar(isReadyVar);
 
   useEffect(() => {
+    if (hydrationStarted) return;
+    hydrationStarted = true;
     AsyncStorage.getItem(STORAGE_KEY).then((value) => {
-      if (value === "true") setConsentStatus("granted");
-      else if (value === "false") setConsentStatus("denied");
-      setIsReady(true);
+      if (value === "true") consentVar("granted");
+      else if (value === "false") consentVar("denied");
+      isReadyVar(true);
     });
   }, []);
 
   const acceptCookies = async () => {
     await AsyncStorage.setItem(STORAGE_KEY, "true");
-    setConsentStatus("granted");
+    consentVar("granted");
     updateGtmConsent("granted");
   };
 
   const declineCookies = async () => {
     await AsyncStorage.setItem(STORAGE_KEY, "false");
-    setConsentStatus("denied");
+    consentVar("denied");
     updateGtmConsent("denied");
     deleteGACookies();
   };

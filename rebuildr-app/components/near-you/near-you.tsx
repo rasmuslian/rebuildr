@@ -7,7 +7,6 @@ import {
   AdRowSectionQueryVariables,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
-import { useScreenType } from "@hooks/useScreenType";
 import {
   AD_ROW_SECTION,
   AdRowSection,
@@ -19,7 +18,6 @@ import { permanentSection } from "@constants/permanent-sections";
 export const NearYou = () => {
   const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
-  const { isDesktop } = useScreenType();
   const { userCoords } = useLocationContext();
 
   const { data } = useQuery<AdRowSectionQuery, AdRowSectionQueryVariables>(
@@ -34,7 +32,7 @@ export const NearYou = () => {
             lng: userCoords.longitude,
           },
         },
-        limit: isDesktop ? 4 : 10,
+        limit: 10,
         offset: 0,
         isLoggedIn,
         distanceFrom: userCoords

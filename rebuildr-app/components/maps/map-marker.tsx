@@ -30,16 +30,26 @@ export default function MapMarker({ mapPinGroup }: Props) {
 
   const productIds = mapPinGroup.productIds;
 
+  // Highlight the pin when its popup is open, or when a matching list card is
+  // hovered/selected — so cards and pins point at each other.
+  const isHighlighted =
+    state.activePin?.location === mapPinGroup.location ||
+    (!!state.hoveredProductId && productIds.includes(state.hoveredProductId)) ||
+    (!!state.selectedProductId && productIds.includes(state.selectedProductId));
+
   const icon = useMemo(() => {
     return createMarkerIcon({
-      iconSource: getMarkerSvg(
-        mapPinGroup.type,
-        state.activePin?.location === mapPinGroup.location,
-      ).uri,
+      iconSource: getMarkerSvg(mapPinGroup.type, isHighlighted).uri,
       priceLabel: state.showPrice ? priceLabel : undefined,
       total: productIds.length > 1 ? productIds.length : undefined,
     });
-  }, [priceLabel, state.showPrice, productIds, state.activePin]);
+  }, [
+    priceLabel,
+    state.showPrice,
+    productIds,
+    isHighlighted,
+    mapPinGroup.type,
+  ]);
 
   return (
     <Marker
@@ -57,6 +67,7 @@ export default function MapMarker({ mapPinGroup }: Props) {
                   <ActiveMarkerPopup mapPinGroup={mapPinGroup} />
                 ),
             },
+            selectedProductId: productIds[0],
           });
         },
       }}

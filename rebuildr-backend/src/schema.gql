@@ -358,6 +358,8 @@ type Category {
   parentId: String
   inSelection: Boolean!
   inSeason: Boolean!
+  imageGenerationStatus: CategoryImageGenerationStatusEnum!
+  imageGenerationError: String
   icon: CategoryIconEnum
   primaryQuantityUnit: QuantityUnitEnum
   secondaryQuantityUnit: QuantityUnitEnum
@@ -369,6 +371,12 @@ type Category {
   brands: [Brand!]!
   parent: Category
   co2Factor: CO2Factor
+}
+
+enum CategoryImageGenerationStatusEnum {
+  PENDING
+  GENERATED
+  FAILED
 }
 
 enum CategoryIconEnum {
@@ -893,6 +901,33 @@ type CmsCreateCategoryResponse {
   imagePutUrl: String
 }
 
+type CmsCategoryImportSuggestion {
+  clientId: String!
+  name: String!
+  description: String!
+  parentId: String
+  parentClientId: String
+  searchAliases: [String!]!
+  measurements: [MeasurementTypeEnum!]!
+  inSelection: Boolean!
+  inSeason: Boolean!
+}
+
+type CmsAnalyzeCategoryImportResponse {
+  suggestions: [CmsCategoryImportSuggestion!]!
+  excluded: [String!]!
+}
+
+type CmsCategoryImportResult {
+  clientId: String!
+  category: Category
+  skippedReason: String
+}
+
+type CmsCreateCategoriesResponse {
+  results: [CmsCategoryImportResult!]!
+}
+
 type CmsUpdateCategoryResponse {
   category: Category!
   imagePutUrl: String
@@ -1289,6 +1324,7 @@ input ProductsInput {
   address: String
   location: LocationInputType
   distance: Float
+  boundingBox: BoundingBoxInput
   pickup: Boolean
   shipping: Boolean
   delivery: Boolean
@@ -1306,6 +1342,11 @@ input ProductsInput {
   likedByUserIds: [ID!]
   excludeOwnProducts: Boolean
   onlyPublished: Boolean
+}
+
+input BoundingBoxInput {
+  northEast: LocationInputType!
+  southWest: LocationInputType!
 }
 
 enum OrderProductsEnum {
@@ -1605,6 +1646,9 @@ type Mutation {
   deleteDraft(input: RemoveProductInput!): Boolean!
   analyzeProductImages(input: AnalyzeProductImagesInput!): Product!
   cmsCreateCategory(input: CmsCreateCategoryInput!): CmsCreateCategoryResponse!
+  cmsAnalyzeCategoryImport(input: CmsAnalyzeCategoryImportInput!): CmsAnalyzeCategoryImportResponse!
+  cmsCreateCategories(input: CmsCreateCategoriesInput!): CmsCreateCategoriesResponse!
+  cmsRegenerateCategoryImage(id: String!): Category!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
@@ -1929,6 +1973,29 @@ input CmsCreateCategoryInput {
   name: String!
   description: String!
   measurements: [MeasurementTypeEnum!]!
+}
+
+input CmsAnalyzeCategoryImportInput {
+  rows: [String!]!
+}
+
+input CmsCreateCategoriesInput {
+  categories: [CmsCategoryImportRowInput!]!
+}
+
+input CmsCategoryImportRowInput {
+  image: FileInputType
+  parentId: String
+  brandIds: [String!]
+  co2FactorId: String
+  searchAliases: [String!]
+  clientId: String!
+  name: String!
+  description: String!
+  parentClientId: String
+  inSelection: Boolean! = false
+  inSeason: Boolean! = false
+  measurements: [MeasurementTypeEnum!]! = []
 }
 
 input CmsUpdateCategoryInput {

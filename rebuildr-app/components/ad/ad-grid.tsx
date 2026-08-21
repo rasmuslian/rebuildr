@@ -44,6 +44,9 @@ type Props = {
   distance?: number | null;
   onPress?: () => void;
   upcoming?: boolean;
+  highlighted?: boolean;
+  onHoverIn?: () => void;
+  onHoverOut?: () => void;
 } & ComponentProps<typeof AdDescription>;
 
 export const AdGrid = ({
@@ -59,6 +62,9 @@ export const AdGrid = ({
   distance,
   onPress,
   upcoming,
+  highlighted,
+  onHoverIn,
+  onHoverOut,
   title,
   price,
   ...adDescriptionProps
@@ -92,6 +98,8 @@ export const AdGrid = ({
           params: { productId: id },
         });
       }}
+      onHoverIn={onHoverIn}
+      onHoverOut={onHoverOut}
       disabled={disabled}
     >
       <View>
@@ -106,7 +114,12 @@ export const AdGrid = ({
               ? `${title} – återbrukat byggmaterial på RebuildR`
               : "Produktbild på återbrukat byggmaterial"
           }
-          style={{ aspectRatio: 1, borderRadius: borderRadius.medium }}
+          style={{
+            aspectRatio: 1,
+            borderRadius: borderRadius.medium,
+            borderWidth: highlighted ? 3 : 0,
+            borderColor: primitives.primary700,
+          }}
         />
         {!!overlayText && <ProductImageOverlay text={overlayText} />}
         {(upcoming || imageBadgeText) && (

@@ -167,6 +167,7 @@ import { CreditsafeService } from './services/creditsafe.service';
 import { CmsAdImportBatch } from './entities/cms-ad-import-batch.entity';
 import { CmsAdImportResolver } from './resolvers/cms-ad-import.resolver';
 import { CmsAdImportService } from './services/cms-ad-import.service';
+import { CategoryImageService } from './services/category-image.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -332,6 +333,7 @@ export interface RequestType {
     ProductService,
     CategoryResolver,
     CategoryService,
+    CategoryImageService,
     MessageResolver,
     MessageService,
     ConversationResolver,

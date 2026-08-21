@@ -1,28 +1,30 @@
-import { Logo } from "@components/logo/logo";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Pressable, View, Animated } from "react-native";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
-import { showHamburgerMenuVar } from "@/apollo/config";
-import { Icon, IconType } from "@icons/icon";
-import { Button } from "@components/buttons/button";
-import { useContext, useEffect, useRef, useState } from "react";
-import { LoginModalContext } from "@context/loginModalContext";
-import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Animated, Pressable, View } from "react-native";
+
+import { showHamburgerMenuVar } from "@/apollo/config";
 import { GetMeQuery, TabLayoutQuery } from "@/gql/graphql";
 import { TAB_LAYOUT } from "@/queries";
-import { Badge } from "@components/badges/badge";
-import { Divider } from "@components/dividers/divider";
-import { horizontalPadding } from "@constants/sizes";
-import { Avatar } from "@components/avatar/avatar";
-import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { SearchBar } from "@components/search/search-bar";
 import {
   AccountState,
   AccountWrapperDesktop,
 } from "@components/account/account-wrapper.desktop";
-import { useFilterProduct } from "@hooks/useFilterProduct";
+import { Avatar } from "@components/avatar/avatar";
+import { Badge } from "@components/badges/badge";
+import { Button } from "@components/buttons/button";
+import { Divider } from "@components/dividers/divider";
+import { Icon, IconType } from "@icons/icon";
+import { Logo } from "@components/logo/logo";
+import { SearchBar } from "@components/search/search-bar";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { horizontalPadding } from "@constants/sizes";
+import { LoginModalContext } from "@context/loginModalContext";
 import { useSearchContext } from "@context/search-context";
+import { useSellProductContext } from "@context/sell-product-context";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { MAX_CONTENT_WIDTH } from "@constants/layout";
 
 type Props = {
   isLoggedIn: boolean;
@@ -123,145 +125,160 @@ export default function TopBarDesktop({
       <View
         style={{
           width: "100%",
-          paddingHorizontal: horizontalPadding.desktop,
           backgroundColor:
             backgroundColor ??
             (theme === "light"
               ? colors.background.neutral
               : colors.logo.vector),
-          justifyContent: "space-between",
-          alignItems: "center",
-          display: "flex",
-          flexDirection: "row",
           height: 72,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
-          <Pressable
-            onPress={() => {
-              filterBuilder.reset().apply();
-              searchContext.reset();
-              router.navigate("/");
-            }}
-          >
-            <Logo
-              width={118}
-              height={24}
-              customColor={
-                foregroundColor ??
-                (theme === "light" ? colors.logo.vector : undefined)
-              }
-            />
-          </Pressable>
-          <Animated.View
-            style={{
-              opacity: searchOpacity,
-            }}
-          >
-            <SearchBar
-              visible={showSearchBar}
-              searchOnSubmit
-              searchScope={searchScope}
-              placeholder={
-                searchScope === "internal"
-                  ? "Sök i Återbanken"
-                  : "Vad letar du efter?"
-              }
-              style={{
-                borderBottomWidth: 0,
-                width: 320,
+        <View
+          style={{
+            width: "100%",
+            maxWidth: MAX_CONTENT_WIDTH,
+            alignSelf: "center",
+            height: "100%",
+            paddingHorizontal: horizontalPadding.desktop,
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: "row",
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 32 }}>
+            <Pressable
+              onPress={() => {
+                filterBuilder.reset().apply();
+                searchContext.reset();
+                router.navigate("/");
               }}
-              backgroundColor={colors.background.neutral}
-              borderStyle={
-                theme === "light"
-                  ? { borderColor: colors.dividers.neutral, borderWidth: 1 }
+            >
+              <Logo
+                width={118}
+                height={24}
+                customColor={
+                  foregroundColor ??
+                  (theme === "light" ? colors.logo.vector : undefined)
+                }
+              />
+            </Pressable>
+            <Animated.View style={{ opacity: searchOpacity }}>
+              <SearchBar
+                visible={showSearchBar}
+                searchOnSubmit
+                searchScope={searchScope}
+                placeholder={
+                  searchScope === "internal"
+                    ? "Sök i Återbanken"
+                    : "Vad letar du efter?"
+                }
+                style={{ borderBottomWidth: 0, width: 320 }}
+                backgroundColor={colors.background.neutral}
+                borderStyle={
+                  theme === "light"
+                    ? { borderColor: colors.dividers.neutral, borderWidth: 1 }
+                    : undefined
+                }
+              />
+            </Animated.View>
+          </View>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              {isLoggedIn &&
+                icons.map(
+                  (
+                    { icon, onPress, badgeNumber, avatarUrl, active },
+                    index,
+                  ) => (
+                    <Pressable key={index} onPress={onPress}>
+                      <View
+                        style={{
+                          position: "relative",
+                          height: 40,
+                          width: 40,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor:
+                            theme === "light" && active
+                              ? colors.buttons.tonal.enabled
+                              : undefined,
+                          borderRadius: 12,
+                        }}
+                      >
+                        {icon ? (
+                          <Icon
+                            icon={icon}
+                            size={26}
+                            color={
+                              theme === "dark" ? "primaryLight" : "primaryDark"
+                            }
+                          />
+                        ) : (
+                          <Avatar imageUrl={avatarUrl} size={30} />
+                        )}
+                        {!!badgeNumber && (
+                          <View
+                            style={{ position: "absolute", right: 2, top: 2 }}
+                          >
+                            <Badge
+                              text={badgeNumber.toString()}
+                              theme={theme}
+                            />
+                          </View>
+                        )}
+                      </View>
+                    </Pressable>
+                  ),
+                )}
+            </View>
+            <Button
+              type={theme === "dark" ? "outlinedStroke" : "tonal"}
+              theme={theme}
+              onPress={() => showHamburgerMenuVar(true)}
+              icon="categories"
+              label="Kategorier"
+              style={
+                categoriesButtonBackgroundColor
+                  ? { backgroundColor: categoriesButtonBackgroundColor }
                   : undefined
               }
             />
-          </Animated.View>
-        </View>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 16,
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flexDirection: "row" }}>
-            {isLoggedIn &&
-              icons.map(
-                ({ icon, onPress, badgeNumber, avatarUrl, active }, index) => (
-                  <Pressable key={index} onPress={onPress}>
-                    <View
-                      style={{
-                        position: "relative",
-                        height: 40,
-                        width: 40,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor:
-                          theme === "light" && active
-                            ? colors.buttons.tonal.enabled
-                            : undefined,
-                        borderRadius: 12,
-                      }}
-                    >
-                      {icon ? (
-                        <Icon
-                          icon={icon}
-                          size={18}
-                          color={
-                            theme === "dark" ? "primaryLight" : "primaryDark"
-                          }
-                        />
-                      ) : (
-                        <Avatar imageUrl={avatarUrl} size={18} />
-                      )}
-                      {!!badgeNumber && (
-                        <View
-                          style={{ position: "absolute", right: 2, top: 2 }}
-                        >
-                          <Badge text={badgeNumber.toString()} theme={theme} />
-                        </View>
-                      )}
-                    </View>
-                  </Pressable>
-                ),
-              )}
+            {isLoggedIn ? (
+              <Button
+                type="filled"
+                onPress={
+                  onSellButtonPress ?? (() => setSellProductVisible(true))
+                }
+                label={sellButtonLabel ?? "Ny annons"}
+                theme={theme}
+              />
+            ) : (
+              <Button
+                type="filled"
+                onPress={() => setLoginVisible(true)}
+                label="Logga in/Skapa konto"
+                theme={theme}
+              />
+            )}
           </View>
-          <Button
-            type={theme === "dark" ? "outlinedStroke" : "tonal"}
-            theme={theme}
-            onPress={() => showHamburgerMenuVar(true)}
-            icon="categories"
-            label="Kategorier"
-            style={
-              categoriesButtonBackgroundColor
-                ? { backgroundColor: categoriesButtonBackgroundColor }
-                : undefined
-            }
-          />
-          {isLoggedIn ? (
-            <Button
-              type="filled"
-              onPress={onSellButtonPress ?? (() => setSellProductVisible(true))}
-              label={sellButtonLabel ?? "Ny annons"}
-              theme={theme}
-            />
-          ) : (
-            <Button
-              type="filled"
-              onPress={() => setLoginVisible(true)}
-              label="Logga in/Skapa konto"
-              theme={theme}
-            />
-          )}
         </View>
       </View>
       {theme === "light" && showBottomBorder && (
         <View
-          style={{ marginTop: -1, marginHorizontal: horizontalPadding.desktop }}
+          style={{
+            marginTop: -1,
+            width: "100%",
+            maxWidth: MAX_CONTENT_WIDTH,
+            alignSelf: "center",
+            paddingHorizontal: horizontalPadding.desktop,
+          }}
         >
           <Divider />
         </View>

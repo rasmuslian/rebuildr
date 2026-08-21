@@ -11,3 +11,22 @@ export const screenGrowStyle: ViewStyle = isWeb
 // react-native-web supports these; RN's core types don't. Web only.
 export const WEB_FIXED = "fixed" as unknown as ViewStyle["position"];
 export const WEB_STICKY = "sticky" as unknown as ViewStyle["position"];
+
+// Wide screens have no natural bound, so cap the main content column and center it.
+// Without this, full-bleed layouts stretch fixed-column grids until product images
+// balloon on 2K/4K monitors.
+export const MAX_CONTENT_WIDTH = 1600;
+
+// Product grids size columns from a target card width instead of a fixed count, so
+// cards stay ~targetWidth wide and more of them appear as the screen widens.
+export const GRID_CARD = {
+  targetWidth: 240,
+  gap: 24,
+  minColumns: 2,
+  maxColumns: 6,
+};
+
+// Single-row product sections divide the row evenly, so the count is fixed rather
+// than derived from width. Fetch limits must match it or the row ends up with gaps
+// or an orphaned wrap.
+export const DESKTOP_ROW_COLUMNS = 5;

@@ -3,7 +3,7 @@
 import { CmsCreateCategoryInput } from "gql/graphql";
 import React from "react";
 import CategoryForm from "./category-form";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { CategorySchema, CategorySchemaType } from "@/schema/category-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -35,6 +35,8 @@ const CreateCategory = () => {
     },
   });
 
+  const image = useWatch({ control, name: "image" });
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (input: CmsCreateCategoryInput) => {
       const response = await createCategory(input);
@@ -47,7 +49,6 @@ const CreateCategory = () => {
         description: "Kategorin har skapats.",
       });
       await revalidate(`${routes.LIST_CATEGORY}`);
-      router.push(routes.LIST_CATEGORY);
     },
     onError: () => {
       notification.error({
@@ -68,6 +69,7 @@ const CreateCategory = () => {
     if (response.imagePutUrl) {
       await uploadFiles([response.imagePutUrl], formData.image);
     }
+    router.push(`${routes.EDIT_CATEGORY}/${response.category.id}`);
   };
 
   return (
@@ -78,7 +80,7 @@ const CreateCategory = () => {
       isPending={isPending}
       handleSubmit={handleSubmit}
       onSubmit={onSubmit}
-      submitLabel="Skapa"
+      submitLabel={image?.length ? "Skapa" : "Skapa och generera bild med AI"}
     />
   );
 };

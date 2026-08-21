@@ -3,6 +3,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { Headline } from "@components/typography/text";
 import React from "react";
 import { Search } from "@components/search/search";
+import { MAX_CONTENT_WIDTH } from "@constants/layout";
 
 type Props = {
   headline: string;
@@ -18,17 +19,19 @@ export default function HeroDesktop({
   const colors = useThemeColor();
 
   return (
-    <ImageBackground
-      source={require("@assets/images/main-background.png")}
-      resizeMode="cover"
+    <View
       style={{
-        backgroundColor: colors.logo.vector,
         width: "100%",
         overflow: "hidden",
       }}
     >
-      <View
+      <ImageBackground
+        source={require("@assets/images/main-background.png")}
+        resizeMode="cover"
         style={{
+          width: "100%",
+          maxWidth: MAX_CONTENT_WIDTH,
+          alignSelf: "center",
           paddingVertical: 48,
           paddingHorizontal: 75,
           display: "flex",
@@ -52,7 +55,7 @@ export default function HeroDesktop({
           visible={showSearchBar}
           searchOnSubmit
         />
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </View>
   );
 }

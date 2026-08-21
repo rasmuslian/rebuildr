@@ -164,6 +164,7 @@ import { fetchSession } from "@lib/session";
 - Only comment the non-obvious **why** — a hidden constraint, a workaround, a subtle invariant. Never restate what the code does.
 - Do not reference specific files, services, or paths from another part of the codebase (e.g. a frontend comment should not point at a backend file). One side's implementation changing shouldn't make the other side's comment wrong or stale.
 - Do not write comments as if answering a prompt or explaining a change to a reviewer (e.g. "added this to fix X" or "changed to support Y"). A comment should read as a fact about the code, not a narration of how it came to be.
+- Do not justify a choice by contrasting it with an alternative or rejected implementation (e.g. "one continuous fill rather than one segment per step", "X, not Y"). This only makes sense to a reader who already knows what it's being compared against, which is the same problem as narrating a change. If the code is self-explanatory from its own names and types, delete the comment rather than softening it into comparative language.
 
 ### Error Handling
 

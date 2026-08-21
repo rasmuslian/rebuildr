@@ -134,6 +134,7 @@ export const HamburgerMenu = () => {
             />
           )}
           <Entry title="Företagsförsäljning" link="/hubs" />
+          <Entry title="Så funkar det" link="/article/saa-funkar-det" />
         </View>
       )}
       <View style={{ marginTop: isDesktop ? 48 : 24 }}>

@@ -222,6 +222,15 @@ export class UpdateProductResponse {
 }
 
 @InputType()
+export class BoundingBoxInput {
+  @Field(() => LocationInputType)
+  northEast: LocationInputType;
+
+  @Field(() => LocationInputType)
+  southWest: LocationInputType;
+}
+
+@InputType()
 export class ProductsInput {
   @Field({ nullable: true })
   sellerId?: string;
@@ -240,6 +249,10 @@ export class ProductsInput {
 
   @Field({ nullable: true })
   distance?: number;
+
+  //Restrict results to products whose location falls within the map viewport
+  @Field(() => BoundingBoxInput, { nullable: true })
+  boundingBox?: BoundingBoxInput;
 
   //------Transortation inputs-------
   @Field({ nullable: true })

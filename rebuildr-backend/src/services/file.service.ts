@@ -67,7 +67,7 @@ export class FileService {
     //S3 objects are stored with the file extension in the key (see
     //uploadFile: `${id}.${ext}`) — deleting by bare id never matched
     const keys = files.map(
-      (file) => `${file.id}.${file.mimeType.split('/')[1]}`,
+      (file) => `${file.id}.${this.getStorageExtension(file)}`,
     );
 
     try {
@@ -105,9 +105,21 @@ export class FileService {
         VARIANT_WIDTHS[VARIANT_WIDTHS.length - 1];
       return await this.s3Service.getUrl(`${file.id}_${variantWidth}.webp`);
     }
-    const fileExtension = file.mimeType.split('/')[1];
-    const key = file.id + '.' + fileExtension;
+    const key = file.id + '.' + this.getStorageExtension(file);
     return await this.s3Service.getUrl(key, file.private);
+  }
+
+  private getStorageExtension(file: File) {
+    // Early AI category images used `.jpg` while their MIME type was
+    // image/jpeg. Keep them readable while new images use the MIME subtype.
+    if (
+      file.mimeType === 'image/jpeg' &&
+      file.name?.startsWith('kategori-') &&
+      file.name.endsWith('.jpg')
+    ) {
+      return 'jpg';
+    }
+    return file.mimeType.split('/')[1];
   }
 
   async cmsCreateFiles(

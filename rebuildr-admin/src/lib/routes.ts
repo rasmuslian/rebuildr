@@ -30,6 +30,7 @@ export enum routes {
   LIST_CATEGORY = "/admin/category",
   EDIT_CATEGORY = "/admin/category/edit",
   CREATE_CATEGORY = "/admin/category/create",
+  IMPORT_CATEGORY = "/admin/category/import",
   CATEGORY_CO2 = "/admin/category/co2",
 
   LIST_USER = "/admin/user",

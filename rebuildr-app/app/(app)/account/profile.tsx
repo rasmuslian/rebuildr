@@ -25,11 +25,16 @@ import { CO2Summary } from "@components/profile/co2-summary";
 
 export default function Profile() {
   const [tab, setTab] = useState<"products" | "reviewed" | "co2">("products");
-  const [editMode, setEditMode] = useState(false);
 
   const { isDesktop } = useScreenType();
   const { isLoggedIn } = useUser();
-  const { userId } = useLocalSearchParams<{ userId: string }>();
+  const { userId, edit } = useLocalSearchParams<{
+    userId: string;
+    edit?: string;
+  }>();
+  // Lets the onboarding checklist land straight in the edit form instead of
+  // dropping the user on the profile with the form one tap away.
+  const [editMode, setEditMode] = useState(edit === "true");
   const [userCardKey, setUserCardKey] = useState(
     `user-card-${Date.now().toString()}`,
   );

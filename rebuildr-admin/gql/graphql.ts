@@ -148,6 +148,8 @@ export type Category = {
   icon?: Maybe<CategoryIconEnum>;
   id: Scalars['ID']['output'];
   image?: Maybe<File>;
+  imageGenerationError?: Maybe<Scalars['String']['output']>;
+  imageGenerationStatus: CategoryImageGenerationStatusEnum;
   inSeason: Scalars['Boolean']['output'];
   inSelection: Scalars['Boolean']['output'];
   measurements: Array<MeasurementTypeEnum>;
@@ -159,6 +161,12 @@ export type Category = {
   searchAliases: Array<Scalars['String']['output']>;
   secondaryQuantityUnit?: Maybe<QuantityUnitEnum>;
 };
+
+export enum CategoryImageGenerationStatusEnum {
+  Failed = 'FAILED',
+  Generated = 'GENERATED',
+  Pending = 'PENDING'
+}
 
 export enum CategoryIconEnum {
   Door = 'DOOR',

@@ -686,6 +686,99 @@ describe('Product', () => {
       ),
     ).rejects.toBeDefined();
   });
+
+  describe('findAll bounding box', () => {
+    type QueryBuilderStub = Record<string, jest.Mock>;
+
+    // Chainable QueryBuilder stub — every builder method returns the stub so
+    // findAll/basicFindProductsInputQueryBuilder can run without a real DB.
+    const buildQueryBuilderStub = (): QueryBuilderStub => {
+      const qb: QueryBuilderStub = {};
+      const chainable = [
+        'addCommonTableExpression',
+        'andWhere',
+        'innerJoin',
+        'leftJoin',
+        'addSelect',
+        'setParameter',
+        'addOrderBy',
+        'limit',
+        'offset',
+      ];
+      for (const method of chainable) {
+        qb[method] = jest.fn(() => qb);
+      }
+      qb.getManyAndCount = jest.fn().mockResolvedValue([[], 0]);
+      return qb;
+    };
+
+    const envelopeCallOf = (qb: QueryBuilderStub) =>
+      qb.andWhere.mock.calls.find(
+        (call) =>
+          typeof call[0] === 'string' && call[0].includes('ST_MakeEnvelope'),
+      );
+
+    const useStub = () => {
+      const qb = buildQueryBuilderStub();
+      const productRepo = module.get<Repository<Product>>(
+        getRepositoryToken(Product),
+      ) as unknown as { createQueryBuilder: jest.Mock };
+      productRepo.createQueryBuilder = jest.fn(() => qb);
+      return qb;
+    };
+
+    it('restricts results to the viewport envelope with [lat, lng] param order', async () => {
+      const qb = useStub();
+
+      await productService.findAll({
+        boundingBox: {
+          southWest: { lat: 59.0, lng: 18.0 },
+          northEast: { lat: 59.5, lng: 18.9 },
+        },
+      });
+
+      const call = envelopeCallOf(qb);
+      expect(call).toBeDefined();
+      // ST_MakeEnvelope(xmin, ymin, xmax, ymax): Points are stored [lat, lng],
+      // so lat is the x argument and lng the y argument.
+      expect(call?.[1]).toEqual({
+        swLat: 59.0,
+        swLng: 18.0,
+        neLat: 59.5,
+        neLng: 18.9,
+      });
+      // Matches on the public map pin location (same source as the map pins),
+      // not the exact address, and falls back to the project's pin.
+      const sql = call?.[0] as string;
+      expect(sql).toContain('map_pin');
+      expect(sql).toContain('"mapPinId"');
+      expect(sql).not.toContain('addressLocation');
+    });
+
+    it('does not add an envelope filter when no boundingBox is supplied', async () => {
+      const qb = useStub();
+
+      await productService.findAll({});
+
+      expect(envelopeCallOf(qb)).toBeUndefined();
+    });
+
+    it('relatedProducts ignores an incoming boundingBox', async () => {
+      const qb = useStub();
+
+      await productService.relatedProducts(
+        {
+          boundingBox: {
+            southWest: { lat: 1, lng: 2 },
+            northEast: { lat: 3, lng: 4 },
+          },
+        },
+        [],
+      );
+
+      expect(envelopeCallOf(qb)).toBeUndefined();
+    });
+  });
 });
 
 const getFixtures = () => {

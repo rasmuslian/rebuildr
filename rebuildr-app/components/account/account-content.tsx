@@ -9,8 +9,10 @@ import { router, useFocusEffect } from "expo-router";
 import { gql, useQuery } from "@apollo/client";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { EditProfile } from "@components/profile/edit-profile";
+import { OnboardingChecklistCard } from "@components/onboarding/onboarding-checklist-card";
 import { isPurchaseDone } from "@/utils/purchases/purchases";
 import { useLogout } from "@hooks/useLogout";
+import { useOnboarding } from "@hooks/use-onboarding";
 
 export const MY_ACCOUNT = gql`
   query MyAccount {
@@ -63,6 +65,7 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
   const [editMode, setEditMode] = useState(false);
   const { data, refetch } = useQuery<MyAccountQuery>(MY_ACCOUNT);
   const { logout, loading: logoutLoading } = useLogout();
+  const { resetWelcome } = useOnboarding();
   const me = data?.me;
 
   const handleLogout = async () => {
@@ -87,6 +90,7 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
 
   return (
     <View style={{ gap: 24 }}>
+      <OnboardingChecklistCard />
       <UserCard
         userType={me.type}
         profilePictureUrl={me.profilePicture?.url}
@@ -165,6 +169,13 @@ export default function AccountContent({ onNavigation, onClose }: Props) {
         type="outlined"
         loading={logoutLoading}
       />
+      {__DEV__ && (
+        <Button
+          label="Återställ välkomst (dev) — ladda om appen efteråt"
+          type="text"
+          onPress={() => resetWelcome()}
+        />
+      )}
     </View>
   );
 }

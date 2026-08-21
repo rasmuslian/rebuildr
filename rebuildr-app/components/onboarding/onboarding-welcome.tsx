@@ -1,0 +1,192 @@
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { ScrollView, useWindowDimensions, View } from "react-native";
+import LogoIconLight from "@assets/svgs/logo-icon-light.svg";
+import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
+import { Button } from "@components/buttons/button";
+import { Popup } from "@components/popup/popup";
+import { Body, Display, Title } from "@components/typography/text";
+import { primitives } from "@constants/colors";
+import { borderRadius } from "@constants/sizes";
+import { Icon, IconType } from "@icons/icon";
+import { useCookies } from "@hooks/use-cookies";
+import { useOnboarding } from "@hooks/use-onboarding";
+import { useScreenType } from "@hooks/useScreenType";
+
+const WELCOME_ROWS: { icon: IconType; title: string; body: string }[] = [
+  {
+    icon: "search",
+    title: "Hitta fynd nära dig",
+    body: "Bläddra bland begagnat byggmaterial och verktyg till bra pris.",
+  },
+  {
+    icon: "magic",
+    title: "Sälj enkelt",
+    body: "Lägg till foton, så skriver vår AI annonsen åt dig.",
+  },
+  {
+    icon: "message",
+    title: "Fråga Återbyggaren",
+    body: "Få hjälp att räkna ut vad ditt projekt behöver.",
+  },
+];
+
+const WelcomeRow = ({
+  icon,
+  title,
+  body,
+}: {
+  icon: IconType;
+  title: string;
+  body: string;
+}) => (
+  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <View
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: borderRadius.full,
+        backgroundColor: primitives.primary200,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Icon icon={icon} color="primaryDark" size={20} />
+    </View>
+    <View style={{ flex: 1, gap: 2 }}>
+      <Title size="small">{title}</Title>
+      <Body size="medium" color="secondary">
+        {body}
+      </Body>
+    </View>
+  </View>
+);
+
+// On a short window the logo is the first thing to go: the three rows are what
+// the sheet is for, and they should not need scrolling to be seen.
+const WelcomeContent = ({ compact }: { compact?: boolean }) => (
+  <View style={{ paddingBottom: compact ? 12 : 24 }}>
+    {!compact && (
+      <View style={{ alignItems: "center", marginBottom: 20 }}>
+        <Image source={LogoIconLight} style={{ width: 88, height: 88 }} />
+      </View>
+    )}
+    <View style={{ gap: compact ? 6 : 10, marginBottom: compact ? 20 : 28 }}>
+      <Display size="small" style={{ textAlign: "center" }}>
+        Välkommen till RebuildR
+      </Display>
+      <Body size="large" color="secondary" style={{ textAlign: "center" }}>
+        Sveriges marknadsplats för återbrukat byggmaterial & verktyg.
+      </Body>
+    </View>
+    <View style={{ gap: compact ? 14 : 20 }}>
+      {WELCOME_ROWS.map((row) => (
+        <WelcomeRow key={row.title} {...row} />
+      ))}
+    </View>
+  </View>
+);
+
+const WelcomeFooter = ({
+  onExplore,
+  onReadGuide,
+}: {
+  onExplore: () => void;
+  onReadGuide: () => void;
+}) => (
+  <View style={{ gap: 12 }}>
+    <Button label="Börja utforska" onPress={onExplore} />
+    <Body
+      size="medium"
+      isLink
+      onPress={onReadGuide}
+      style={{ textAlign: "center" }}
+    >
+      Läs mer om hur det funkar
+    </Body>
+  </View>
+);
+
+export const OnboardingWelcome = () => {
+  const { isReady, hasSeenWelcome, markWelcomeSeen } = useOnboarding();
+  const { isReady: cookiesReady, hasAnswered } = useCookies();
+  const { isDesktop } = useScreenType();
+  const { height } = useWindowDimensions();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (!isReady || !cookiesReady) return;
+    // Only surface once the cookie prompt is resolved so two sheets never
+    // stack on the very first open.
+    setShow(!hasSeenWelcome && hasAnswered);
+  }, [isReady, cookiesReady, hasSeenWelcome, hasAnswered]);
+
+  const dismiss = () => {
+    setShow(false);
+    markWelcomeSeen();
+  };
+
+  const readGuide = () => {
+    dismiss();
+    router.navigate("/article/saa-funkar-det");
+  };
+
+  if (!isReady) return null;
+
+  if (isDesktop) {
+    return (
+      <Popup
+        open={show}
+        onClose={dismiss}
+        type="partial"
+        footer={
+          <View style={{ paddingHorizontal: 32, paddingBottom: 32 }}>
+            <WelcomeFooter onExplore={dismiss} onReadGuide={readGuide} />
+          </View>
+        }
+      >
+        <View style={{ paddingHorizontal: 32, paddingTop: 16 }}>
+          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+            <Button icon="X" type="text" onPress={dismiss} />
+          </View>
+          {/* A short desktop window (laptop with browser chrome) would other-
+              wise push the last rows past the bottom of the card, where they
+              are clipped with no way to reach them. */}
+          <ScrollView
+            style={{ maxHeight: Math.max(220, height - 240) }}
+            showsVerticalScrollIndicator={false}
+          >
+            <WelcomeContent compact={height < 760} />
+          </ScrollView>
+        </View>
+      </Popup>
+    );
+  }
+
+  return (
+    <BottomSheet
+      name="onboarding-welcome"
+      open={show}
+      onDismiss={dismiss}
+      scrollable
+      isStickyFooter
+      header={
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            paddingTop: 8,
+          }}
+        >
+          <Button icon="X" type="text" onPress={dismiss} />
+        </View>
+      }
+      footer={<WelcomeFooter onExplore={dismiss} onReadGuide={readGuide} />}
+    >
+      <View style={{ marginTop: 8 }}>
+        <WelcomeContent />
+      </View>
+    </BottomSheet>
+  );
+};

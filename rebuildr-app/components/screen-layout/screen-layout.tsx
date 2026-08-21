@@ -2,7 +2,12 @@ import { dividerStyles } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { horizontalPadding } from "@constants/sizes";
-import { isWeb, screenGrowStyle, WEB_STICKY } from "@constants/layout";
+import {
+  isWeb,
+  MAX_CONTENT_WIDTH,
+  screenGrowStyle,
+  WEB_STICKY,
+} from "@constants/layout";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import React, { PropsWithChildren, useRef, useState } from "react";
@@ -70,6 +75,11 @@ export const ScreenLayout = ({
 
   const footerBottomMargin = _footerBottomMargin === "default" ? 32 : 16;
 
+  // Cap the content column and center it on wide screens so it doesn't sprawl.
+  const contentWidthCap: ViewStyle | null = isDesktop
+    ? { maxWidth: MAX_CONTENT_WIDTH, alignSelf: "center", width: "100%" }
+    : null;
+
   // Chat-style screens must keep an inner scroll area so they can scroll to the
   // bottom; everything else scrolls the document on web.
   const effectiveMode =
@@ -114,6 +124,7 @@ export const ScreenLayout = ({
               marginBottom: SCREEN_BOTTOM_MARGIN,
               paddingBottom: footerHeight,
             },
+            contentWidthCap,
             style,
           ]}
         >
@@ -135,6 +146,7 @@ export const ScreenLayout = ({
                 paddingTop: 8,
                 paddingBottom: footerBottomMargin + insets.bottom,
               },
+              contentWidthCap,
               footerBorder && dividerStyles(colors).topDivider,
               footerStyle,
             ]}
@@ -191,6 +203,7 @@ export const ScreenLayout = ({
               marginBottom: SCREEN_BOTTOM_MARGIN,
               marginTop: SCREEN_TOP_MARGIN,
             },
+            contentWidthCap,
             style,
           ]}
         >
@@ -203,6 +216,7 @@ export const ScreenLayout = ({
         <View
           style={[
             { paddingHorizontal, marginBottom: footerBottomMargin },
+            contentWidthCap,
             footerBorder && dividerStyles(colors).topDivider,
             footerStyle,
           ]}

@@ -904,6 +904,35 @@ export class ProductService {
 
     this.basicFindProductsInputQueryBuilder(input, query, 'p', options);
 
+    //Restrict results to the map viewport. Matches on the public map pin
+    //location — the same source the map pins are drawn from — so the list and
+    //the pins agree, and an exact address can't be narrowed down by shrinking
+    //the viewport. Products whose pin isn't synced yet drop out, just as they
+    //are absent from the map. ST_MakeEnvelope takes (xmin, ymin, xmax, ymax);
+    //Points are stored [lat, lng] here, so the southWest/northEast lat/lng map
+    //to that order the same way map pins do.
+    if (input.boundingBox) {
+      //If product has a project, use the project's pin
+      const product_map_pin_location = `
+        (SELECT mp.location FROM map_pin mp WHERE mp.id =
+          CASE
+            WHEN p."projectId" IS NOT NULL THEN (SELECT pj."mapPinId" FROM project pj WHERE pj.id = p."projectId")
+            ELSE p."mapPinId"
+          END
+        )
+      `;
+
+      query.andWhere(
+        `${product_map_pin_location} && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
+        {
+          swLat: input.boundingBox.southWest.lat,
+          swLng: input.boundingBox.southWest.lng,
+          neLat: input.boundingBox.northEast.lat,
+          neLng: input.boundingBox.northEast.lng,
+        },
+      );
+    }
+
     //If address or location are included, use them to calculate
     //an origin point for filtering and ordering
     let origin: Point;
@@ -1030,6 +1059,7 @@ export class ProductService {
       orderBy: OrderProductsEnum.BEST_MATCH,
       distance: undefined,
       location: undefined,
+      boundingBox: undefined,
       pickup: undefined,
       shipping: undefined,
       delivery: undefined,

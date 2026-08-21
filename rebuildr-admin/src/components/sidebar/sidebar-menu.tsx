@@ -87,6 +87,7 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Kategorier", "/category", <InboxOutlined />, [
       getItem("Skapa kategori", routes.CREATE_CATEGORY),
+      getItem("Importera kategorier", routes.IMPORT_CATEGORY),
       getItem("Visa alla kategorier", routes.LIST_CATEGORY),
       getItem("CO2", routes.CATEGORY_CO2),
     ]),

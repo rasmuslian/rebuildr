@@ -78,7 +78,7 @@ export const TrendingNow = () => {
         selectionCategories: true,
         excludeOwnProducts: true,
       },
-      limit: isDesktop ? 6 : 10,
+      limit: 10,
       offset: 0,
       isLoggedIn,
     },
@@ -98,10 +98,12 @@ export const TrendingNow = () => {
 
   return (
     <View style={{ gap: 16, paddingTop: 16 }}>
-      {isLoggedIn && !isDesktop ? (
+      {isLoggedIn || isDesktop ? (
         <HoriztalListSection
           title={permanentSection.trendingNow.title}
+          buttonTitle={isDesktop ? "Visa alla" : undefined}
           data={products}
+          keyExtractor={(item) => item.id}
           onPress={onPress}
           renderItem={({ item }) => {
             return (
