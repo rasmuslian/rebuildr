@@ -1,13 +1,13 @@
 import { ProductStatus, ProductVisibility } from 'src/entities/product.entity';
 import { InternalAdsService } from 'src/services/internal-ads.service';
 
-type RawStatistics = {
+interface RawStatistics {
   co2Saved: string | number | null;
   potentialCo2Savings: string | number | null;
   estimatedMarketValue: string | number | null;
   totalAds: string | number | null;
   externallyPublishedAds: string | number | null;
-};
+}
 
 const createService = (rawStatistics?: Partial<RawStatistics>) => {
   const addSelect = jest.fn();

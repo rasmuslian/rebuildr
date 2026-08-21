@@ -1,5 +1,5 @@
 import { GoogleGenAI, Part, ThinkingLevel } from '@google/genai';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as XLSX from 'xlsx';
 import { QuantityUnitEnum } from 'src/constants/enums';
