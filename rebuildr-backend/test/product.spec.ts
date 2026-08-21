@@ -21,7 +21,7 @@ import { ModuleMocker, MockMetadata } from 'jest-mock';
 import { UpdateProductInput } from 'src/resolvers/product.resolver';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { File } from 'src/entities/file.entity';
-import { Category } from 'src/entities/category.entity';
+import { Category, CategoryTypeEnum } from 'src/entities/category.entity';
 import { Purchase, PurchaseStatusEnum } from 'src/entities/purchase.entity';
 import {
   ShippingPrice,
@@ -827,6 +827,7 @@ const getFixtures = () => {
     id: 'category',
     name: 'category',
     description: 'category',
+    categoryType: CategoryTypeEnum.STANDARD,
     orderIndex: 0,
     parent: new Category(),
     parentId: 'parentId',

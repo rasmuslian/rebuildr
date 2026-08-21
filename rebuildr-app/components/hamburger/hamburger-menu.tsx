@@ -35,6 +35,11 @@ const HAMBURGER_MENU = gql`
         url
       }
     }
+    rootCategories {
+      id
+      name
+      categoryType
+    }
   }
 `;
 
@@ -81,6 +86,9 @@ export const HamburgerMenu = () => {
   const seasonalCategories = data?.categories.filter((c) => c.inSeason) ?? [];
   const trendingCategories =
     data?.categories.filter((c) => c.inSelection) ?? [];
+  const giveawayCategory = data?.rootCategories.find(
+    (category) => category.categoryType === "GIVEAWAY",
+  );
 
   return (
     <SlideInSheet
@@ -114,6 +122,18 @@ export const HamburgerMenu = () => {
                   .reset()
                   .setOrdering(OrderProductsEnum.Distance)
                   .apply()
+              }
+            />
+          )}
+          {giveawayCategory && (
+            <Entry
+              title={giveawayCategory.name}
+              link={`/search/products/${giveawayCategory.id}` as Href}
+              onPress={() =>
+                router.navigate({
+                  pathname: "/search/products/[categoryId]",
+                  params: { categoryId: giveawayCategory.id },
+                })
               }
             />
           )}

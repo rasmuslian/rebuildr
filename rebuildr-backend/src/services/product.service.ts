@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import dayjs from 'dayjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Category } from 'src/entities/category.entity';
+import { Category, CategoryTypeEnum } from 'src/entities/category.entity';
 import {
   Product,
   ProductAvailabilityEnum,
@@ -375,6 +375,11 @@ export class ProductService {
         });
         if (!category) {
           throw BadUserInputException('Category not found');
+        }
+        if (category.categoryType === CategoryTypeEnum.GIVEAWAY) {
+          throw BadUserInputException(
+            'Giveaway category cannot be used as a product category',
+          );
         }
         product.categoryId = category.id;
         product.category = category;
@@ -811,24 +816,37 @@ export class ProductService {
     }
 
     //Include products based on category criterias
-    if (
+    if (input.categoryIds && !input.categoryIds.length) {
+      qb.andWhere('FALSE');
+    } else if (
       input.categoryIds ||
       input.selectionCategories ||
       input.seasonalCategories
     ) {
-      qb.innerJoin('category', 'c', `${productAlias}."categoryId" = c.id`);
-
       if (input.categoryIds?.length) {
+        qb.leftJoin('category', 'c', `${productAlias}."categoryId" = c.id`);
         qb.andWhere(
-          '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
-          {
-            categoryIds: input.categoryIds,
-          },
+          `(
+            (${productAlias}."isGiveaway" = TRUE AND EXISTS (
+              SELECT 1 FROM category giveaway_category
+              WHERE giveaway_category.id IN (:...categoryIds)
+                AND giveaway_category."categoryType" = 'GIVEAWAY'
+            ))
+            OR (
+              c."categoryType" = 'STANDARD'
+              AND (c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))
+            )
+          )`,
+          { categoryIds: input.categoryIds },
         );
-      } else if (input.selectionCategories) {
+      } else {
+        qb.innerJoin('category', 'c', `${productAlias}."categoryId" = c.id`);
+      }
+
+      if (!input.categoryIds?.length && input.selectionCategories) {
         qb.leftJoin('category', 'parent', 'parent.id = c."parentId"');
         qb.andWhere('(c."inSelection" OR parent."inSelection")');
-      } else {
+      } else if (!input.categoryIds?.length) {
         qb.leftJoin('category', 'parent', 'parent.id = c."parentId"');
         qb.andWhere('(c."inSeason" OR parent."inSeason")');
       }
@@ -1577,6 +1595,15 @@ export class ProductService {
         ...rest
       } = input;
 
+      const category = await this.categoryRepository.findOneBy({
+        id: input.categoryId,
+      });
+      if (category?.categoryType === CategoryTypeEnum.GIVEAWAY) {
+        throw BadUserInputException(
+          'Giveaway category cannot be used as a product category',
+        );
+      }
+
       const seller = await this.userRepository.findOne({
         where: { id: sellerId },
       });
@@ -1651,6 +1678,15 @@ export class ProductService {
     if (!product) throw NotFoundException('Product not found');
 
     try {
+      const category = await this.categoryRepository.findOneBy({
+        id: input.categoryId,
+      });
+      if (category?.categoryType === CategoryTypeEnum.GIVEAWAY) {
+        throw BadUserInputException(
+          'Giveaway category cannot be used as a product category',
+        );
+      }
+
       const {
         measurement,
         removeImages,

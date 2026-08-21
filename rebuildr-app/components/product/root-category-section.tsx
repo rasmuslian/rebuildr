@@ -1,6 +1,8 @@
 import {
+  CategoryTypeEnum,
   OrderCategoriesEnum,
   RootCategorySectionQuery,
+  RootCategorySectionQueryVariables,
   RootCategorySelectedCategoryQuery,
   RootCategorySelectedCategoryQueryVariables,
 } from "@/gql/graphql";
@@ -14,10 +16,11 @@ import { Image } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
 
 const ROOT_CATEGORY_SECTION = gql`
-  query RootCategorySection {
-    rootCategories {
+  query RootCategorySection($input: RootCategoriesInput) {
+    rootCategories(input: $input) {
       id
       name
+      categoryType
       description
       image {
         id
@@ -56,7 +59,10 @@ export const RootCategorySection = ({
   onChange,
 }: Props) => {
   const colors = useThemeColor();
-  const { data } = useQuery<RootCategorySectionQuery>(ROOT_CATEGORY_SECTION, {
+  const { data } = useQuery<
+    RootCategorySectionQuery,
+    RootCategorySectionQueryVariables
+  >(ROOT_CATEGORY_SECTION, {
     skip: !!selectedId,
     variables: {
       input: {
@@ -125,32 +131,36 @@ export const RootCategorySection = ({
         Vad ska du sälja?
       </Title>
       <View style={{ gap: compact ? 8 : 16 }}>
-        {data?.rootCategories.map((c, i) => {
-          return (
-            <View
-              key={i}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: compact ? 8 : 16,
-              }}
-            >
-              <Image
-                source={{ uri: c.image?.url ?? placeholder.uri }}
+        {data?.rootCategories
+          .filter(
+            (category) => category.categoryType !== CategoryTypeEnum.Giveaway,
+          )
+          .map((c) => {
+            return (
+              <View
+                key={c.id}
                 style={{
-                  width: compact ? 28 : 60,
-                  height: compact ? 28 : 60,
-                  borderRadius: 100,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: compact ? 8 : 16,
                 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Body size="medium">{c.name}</Body>
+              >
+                <Image
+                  source={{ uri: c.image?.url ?? placeholder.uri }}
+                  style={{
+                    width: compact ? 28 : 60,
+                    height: compact ? 28 : 60,
+                    borderRadius: 100,
+                  }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Body size="medium">{c.name}</Body>
+                </View>
+                <Button label="Välj" onPress={() => onSelect(c.id)} />
               </View>
-              <Button label="Välj" onPress={() => onSelect(c.id)} />
-            </View>
-          );
-        })}
+            );
+          })}
       </View>
     </View>
   );

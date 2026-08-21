@@ -142,6 +142,7 @@ export type Category = {
   ancestorIds: Array<Scalars['String']['output']>;
   brands: Array<Brand>;
   children: Array<Category>;
+  categoryType: CategoryTypeEnum;
   co2Factor?: Maybe<Co2Factor>;
   description: Scalars['String']['output'];
   hasChildren: Scalars['Boolean']['output'];
@@ -166,6 +167,11 @@ export enum CategoryImageGenerationStatusEnum {
   Failed = 'FAILED',
   Generated = 'GENERATED',
   Pending = 'PENDING'
+}
+
+export enum CategoryTypeEnum {
+  Giveaway = 'GIVEAWAY',
+  Standard = 'STANDARD'
 }
 
 export enum CategoryIconEnum {
@@ -623,6 +629,10 @@ export type CmsUpdateBrandInput = {
 export type CmsUpdateCo2Factor = {
   disposalCoefficient?: InputMaybe<Scalars['Float']['input']>;
   id: Scalars['String']['input'];
+};
+
+export type CmsUpdateGiveawayCategoryImageInput = {
+  image: FileInputType;
 };
 
 export type CmsUpdateCategoriesInput = {
@@ -1293,6 +1303,7 @@ export type Mutation = {
   cmsUpdateCO2Factor: Co2Factor;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
+  cmsUpdateGiveawayCategoryImage: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
   cmsUpdateNewsletterCompetition: CmsUpdateNewsletterCompetitionResponse;
   cmsUpdatePartner: CmsCreatePartnerResponse;

@@ -22,7 +22,10 @@ const SelectCategory = ({ value, onChange }: Props) => {
   });
 
   const treeData = useMemo(
-    () => convertCategoryToTreeData(categories),
+    () =>
+      convertCategoryToTreeData(
+        categories?.filter((category) => category.categoryType !== "GIVEAWAY"),
+      ),
     [categories],
   );
 

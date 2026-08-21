@@ -14,8 +14,12 @@ import {
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { useLocationContext } from "@context/location-context";
 import { permanentSection } from "@constants/permanent-sections";
+import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
+import { useScreenType } from "@hooks/useScreenType";
 
 export const NearYou = () => {
+  const { isDesktop } = useScreenType();
+
   const { filterBuilder } = useFilterProduct();
   const { isLoggedIn } = useUser();
   const { userCoords } = useLocationContext();
@@ -32,7 +36,7 @@ export const NearYou = () => {
             lng: userCoords.longitude,
           },
         },
-        limit: 10,
+        limit: isDesktop ? DESKTOP_ROW_COLUMNS : 10,
         offset: 0,
         isLoggedIn,
         distanceFrom: userCoords

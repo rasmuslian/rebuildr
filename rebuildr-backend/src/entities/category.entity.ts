@@ -29,6 +29,12 @@ registerEnumType(CategoryImageGenerationStatusEnum, {
   name: 'CategoryImageGenerationStatusEnum',
 });
 
+export enum CategoryTypeEnum {
+  STANDARD = 'STANDARD',
+  GIVEAWAY = 'GIVEAWAY',
+}
+registerEnumType(CategoryTypeEnum, { name: 'CategoryTypeEnum' });
+
 enum CategoryIconEnum {
   MATERIAL = 'MATERIAL',
   WOOD = 'WOOD',
@@ -62,6 +68,15 @@ export class Category {
   @Field()
   @Column()
   description: string;
+
+  @Field(() => CategoryTypeEnum)
+  @Column({
+    type: 'enum',
+    enum: CategoryTypeEnum,
+    enumName: 'category_type_enum',
+    default: CategoryTypeEnum.STANDARD,
+  })
+  categoryType: CategoryTypeEnum;
 
   @Field(() => [String])
   @Column('text', { array: true, default: [] })

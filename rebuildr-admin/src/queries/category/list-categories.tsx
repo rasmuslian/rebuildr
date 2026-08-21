@@ -6,11 +6,13 @@ const query = `
     rootCategories(input: $input) {
       id
       name
+      categoryType
       hasChildren
       orderIndex
       children {
         id
         name
+        categoryType
         hasChildren
         orderIndex
       }
