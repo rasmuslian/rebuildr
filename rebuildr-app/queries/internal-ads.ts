@@ -89,6 +89,7 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         price
         status
         availability
+        publiclyAvailable
         primaryQuantity
         primaryUnit
         condition
@@ -109,6 +110,7 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         price
         status
         availability
+        publiclyAvailable
         primaryQuantity
         primaryUnit
         condition

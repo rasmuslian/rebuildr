@@ -159,6 +159,9 @@ const InternalSearchResults = () => {
     quantityUnit: product.primaryUnit,
     soldByQuantity: product.soldByQuantity,
     status: product.status,
+    imageBadgeText: product.publiclyAvailable
+      ? "Externt publicerad"
+      : undefined,
     overlayText: product.status === ProductStatusEnum.Sold ? "Såld" : undefined,
     onPress: () =>
       router.navigate({
