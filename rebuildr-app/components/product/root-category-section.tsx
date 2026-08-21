@@ -18,6 +18,7 @@ const ROOT_CATEGORY_SECTION = gql`
     rootCategories {
       id
       name
+      categoryType
       description
       image {
         id
@@ -119,28 +120,30 @@ export const RootCategorySection = ({
         Vad ska du sälja?
       </Display>
       <View style={{ gap: 16 }}>
-        {data?.rootCategories.map((c, i) => {
-          return (
-            <View
-              key={i}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 16,
-              }}
-            >
-              <Image
-                source={{ uri: c.image?.url ?? placeholder.uri }}
-                style={{ width: 60, height: 60, borderRadius: 100 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Title size="medium">{c.name}</Title>
+        {data?.rootCategories
+          .filter((category) => category.categoryType !== "GIVEAWAY")
+          .map((c, i) => {
+            return (
+              <View
+                key={i}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 16,
+                }}
+              >
+                <Image
+                  source={{ uri: c.image?.url ?? placeholder.uri }}
+                  style={{ width: 60, height: 60, borderRadius: 100 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Title size="medium">{c.name}</Title>
+                </View>
+                <Button label="Välj" onPress={() => onSelect(c.id)} />
               </View>
-              <Button label="Välj" onPress={() => onSelect(c.id)} />
-            </View>
-          );
-        })}
+            );
+          })}
       </View>
     </View>
   );

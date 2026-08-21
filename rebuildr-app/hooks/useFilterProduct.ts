@@ -47,10 +47,18 @@ export const useFilterProduct = () => {
   };
 
   const toProductsQueryInput = () => {
+    const categoryIds = [
+      ...(filter.rootCategoryIds ?? []),
+      ...(filter.categoryIds ?? []),
+    ];
+
     return {
       searchString: filter.searchString,
       orderBy: filter.sorting,
-      categoryIds: filter.categoryIds ?? filter.rootCategoryIds ?? undefined,
+      categoryIds:
+        filter.rootCategoryIds !== undefined || filter.categoryIds !== undefined
+          ? categoryIds
+          : undefined,
       brandIds: filter.brandIds,
       conditions: filter.conditions,
       minPrice: filter.price?.[0],

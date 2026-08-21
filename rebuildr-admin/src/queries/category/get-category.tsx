@@ -6,6 +6,7 @@ const query = `
     category(input: $input) {
       id
       name
+      categoryType
       description
       hasChildren
       inSeason

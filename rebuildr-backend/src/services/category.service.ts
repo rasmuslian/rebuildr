@@ -5,6 +5,7 @@ import { CategoryTree } from 'src/entities/category-tree.entity';
 import {
   Category,
   CategoryImageGenerationStatusEnum,
+  CategoryTypeEnum,
 } from 'src/entities/category.entity';
 import { Brand } from 'src/entities/brand.entity';
 import { Event, EventType } from 'src/entities/event.entity';
@@ -30,6 +31,7 @@ import { FileService } from './file.service';
 import { SearchEnrichmentService } from './search-enrichment.service';
 import { MeasurementTypeEnum } from 'src/constants/enums';
 import { CategoryImageService } from './category-image.service';
+import { FileInputType } from 'src/resolvers/file.resolver';
 
 const categoryImportSchema = z.object({
   categories: z.array(
@@ -157,6 +159,11 @@ export class CategoryService {
     if (!category) {
       throw NotFoundException(`Category not found`);
     }
+    if (category.categoryType === CategoryTypeEnum.GIVEAWAY) {
+      throw BadUserInputException(
+        'Giveaway category can only be updated through its image settings',
+      );
+    }
 
     try {
       const brands = input.brandIds
@@ -167,6 +174,9 @@ export class CategoryService {
         : category.parentId
           ? await this.categoryRepository.findOneBy({ id: category.parentId })
           : null;
+      if (parentCategory?.categoryType === CategoryTypeEnum.GIVEAWAY) {
+        throw BadUserInputException('Giveaway category cannot have children');
+      }
 
       Object.assign<Category, Partial<Category>>(category, {
         inSeason:
@@ -214,6 +224,45 @@ export class CategoryService {
     }
   }
 
+  async updateGiveawayCategoryImage(
+    imageInput: FileInputType,
+  ): Promise<CmsUpdateCategoryResponse> {
+    const category = await this.categoryRepository.findOne({
+      where: { categoryType: CategoryTypeEnum.GIVEAWAY },
+      relations: { image: true },
+    });
+    if (!category) {
+      throw NotFoundException('Giveaway category not found');
+    }
+
+    try {
+      const image = await this.fileService.createFile(imageInput);
+      const previousImage = category.image;
+
+      if (previousImage) {
+        category.image = null;
+        category.imageId = undefined;
+        await this.categoryRepository.save(category);
+        await this.fileService.deleteFiles([previousImage]);
+      }
+
+      category.image = image;
+      category.imageGenerationStatus =
+        CategoryImageGenerationStatusEnum.GENERATED;
+      category.imageGenerationError = null;
+      await this.categoryRepository.save(category);
+
+      return {
+        category,
+        imagePutUrl: await this.fileService.uploadFile(image, true),
+      };
+    } catch (error) {
+      throw BadUserInputException(
+        'Failed to update giveaway category image: ' + error,
+      );
+    }
+  }
+
   async createCategory(
     input: CmsCreateCategoryInput,
   ): Promise<CmsCreateCategoryResponse> {
@@ -223,6 +272,9 @@ export class CategoryService {
       const parentCategory = input.parentId
         ? await this.categoryRepository.findOneBy({ id: input.parentId })
         : null;
+      if (parentCategory?.categoryType === CategoryTypeEnum.GIVEAWAY) {
+        throw BadUserInputException('Giveaway category cannot have children');
+      }
 
       const brands = input.brandIds
         ? await this.brandRepository.findBy({ id: In(input.brandIds) })
