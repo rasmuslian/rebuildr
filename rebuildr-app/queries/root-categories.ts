@@ -5,6 +5,7 @@ export const ROOT_CATEGORIES = gql`
     rootCategories(input: $input) {
       id
       name
+      categoryType
       image {
         id
         url

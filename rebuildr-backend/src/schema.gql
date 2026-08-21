@@ -315,6 +315,7 @@ type Category {
   id: ID!
   name: String!
   description: String!
+  categoryType: CategoryTypeEnum!
   searchAliases: [String!]!
   orderIndex: Int!
   parentId: String
@@ -333,6 +334,11 @@ type Category {
   brands: [Brand!]!
   parent: Category
   co2Factor: CO2Factor
+}
+
+enum CategoryTypeEnum {
+  STANDARD
+  GIVEAWAY
 }
 
 enum CategoryImageGenerationStatusEnum {
@@ -1466,6 +1472,7 @@ type Mutation {
   cmsCreateCategories(input: CmsCreateCategoriesInput!): CmsCreateCategoriesResponse!
   cmsRegenerateCategoryImage(id: String!): Category!
   cmsUpdateCategory(input: CmsUpdateCategoryInput!): CmsUpdateCategoryResponse!
+  cmsUpdateGiveawayCategoryImage(input: CmsUpdateGiveawayCategoryImageInput!): CmsUpdateCategoryResponse!
   cmsUpdateCategoriesOrder(input: CmsUpdateCategoriesInput!): Boolean!
   createMessage(input: CreateMessageInput!): Message!
   markConversationAsRead(input: MarkAsReadInput!): Conversation!
@@ -1800,6 +1807,10 @@ input CmsUpdateCategoryInput {
   name: String
   description: String
   measurements: [MeasurementTypeEnum!]
+}
+
+input CmsUpdateGiveawayCategoryImageInput {
+  image: FileInputType!
 }
 
 input CmsUpdateCategoriesInput {

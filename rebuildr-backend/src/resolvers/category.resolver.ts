@@ -97,6 +97,12 @@ export class CmsUpdateCategoryInput extends CmsBaseCategoryInput {
 }
 
 @InputType()
+export class CmsUpdateGiveawayCategoryImageInput {
+  @Field(() => FileInputType)
+  image: FileInputType;
+}
+
+@InputType()
 export class CmsCreateCategoryInput extends CmsBaseCategoryInput {
   @Field(() => Boolean)
   inSelection: boolean;
@@ -317,6 +323,15 @@ export class CategoryResolver {
     @Args('input') input: CmsUpdateCategoryInput,
   ): Promise<CmsUpdateCategoryResponse> {
     return this.categoryService.updateCategory(input);
+  }
+
+  @Mutation(() => CmsUpdateCategoryResponse)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
+  cmsUpdateGiveawayCategoryImage(
+    @Args('input') input: CmsUpdateGiveawayCategoryImageInput,
+  ): Promise<CmsUpdateCategoryResponse> {
+    return this.categoryService.updateGiveawayCategoryImage(input.image);
   }
 
   @Mutation(() => Boolean)

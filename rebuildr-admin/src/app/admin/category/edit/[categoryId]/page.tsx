@@ -2,6 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { getCategory } from "@/queries/category/get-category";
 import EditCategory from "@/components/category/edit-category";
+import EditGiveawayCategory from "@/components/category/edit-giveaway-category";
 
 type Props = {
   params: Promise<{ categoryId: string }>;
@@ -14,7 +15,11 @@ const EditCategoryPage = async ({ params }: Props) => {
 
   return (
     <div className="flex max-w-screen-lg flex-col gap-5">
-      <EditCategory category={category} />
+      {category.categoryType === "GIVEAWAY" ? (
+        <EditGiveawayCategory category={category} />
+      ) : (
+        <EditCategory category={category} />
+      )}
     </div>
   );
 };
