@@ -33,7 +33,7 @@ const EditProject = ({ project }: Props) => {
       title: project.title,
       description: project.description ?? "",
       shortText: project.shortText ?? "",
-      address: project.address,
+      address: project.address ?? "",
       showDetailsOnMap: project.showDetailsOnMap,
       contact: {
         name: project.contactName ?? "",

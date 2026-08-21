@@ -49,5 +49,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm i
+      - name: 🕵️ Type checking
+        run: npm run type-check
       - name: Linting
         run: npm run lint
