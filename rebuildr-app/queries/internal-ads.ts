@@ -70,6 +70,15 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
       totalAds
       externallyPublishedAds
     }
+    internalAdsCategories {
+      category {
+        id
+        name
+        image {
+          url
+        }
+      }
+    }
     internalAds(input: {}, limit: $limit, offset: 0) {
       products {
         id

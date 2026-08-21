@@ -19,6 +19,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
+import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import { InternalAdImportBatch } from 'src/entities/internal-ad-import-batch.entity';
 import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
@@ -70,6 +71,15 @@ class InternalAdsStatistics {
 
   @Field(() => Int)
   externallyPublishedAds: number;
+}
+
+@ObjectType()
+class InternalAdsCategory {
+  @Field(() => Category)
+  category: Category;
+
+  @Field(() => Int)
+  adCount: number;
 }
 
 @ObjectType()
@@ -276,6 +286,12 @@ export class InternalAdsResolver {
   @UseGuards(GqlAuthGuard)
   async internalAdsStatistics(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.internalAdsStatistics(user.id);
+  }
+
+  @Query(() => [InternalAdsCategory])
+  @UseGuards(GqlAuthGuard)
+  async internalAdsCategories(@CurrentUser() user: AuthedUserType) {
+    return this.internalAdsService.internalAdsCategories(user.id);
   }
 
   @Query(() => PaginatedProductsResponse)

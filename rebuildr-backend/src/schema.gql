@@ -1100,6 +1100,11 @@ type InternalAdsStatistics {
   externallyPublishedAds: Int!
 }
 
+type InternalAdsCategory {
+  category: Category!
+  adCount: Int!
+}
+
 type OrganizationInvitePreview {
   organizationName: String!
   expiresAt: DateTime!
@@ -1197,6 +1202,7 @@ type Query {
   internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
   internalProject(projectId: ID!): Project!
   internalAdsStatistics: InternalAdsStatistics!
+  internalAdsCategories: [InternalAdsCategory!]!
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
   relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!

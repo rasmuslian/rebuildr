@@ -27,6 +27,7 @@ import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
+import { InternalCategoryGrid } from "@components/internal/internal-category-grid";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { InternalStatisticsSection } from "@components/internal/internal-statistics-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -60,6 +61,16 @@ import {
 
 const SECTION_PAGE_SIZE = 10;
 
+type InternalAdsHomeData = InternalAdsHomeQuery & {
+  internalAdsCategories: Array<{
+    category: {
+      id: string;
+      name: string;
+      image?: { url: string } | null;
+    };
+  }>;
+};
+
 export default function InternalAdsPage() {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -84,7 +95,7 @@ export default function InternalAdsPage() {
   const { pickDocuments } = useDocumentHandler();
 
   const { data, loading, refetch } = useQuery<
-    InternalAdsHomeQuery,
+    InternalAdsHomeData,
     InternalAdsHomeQueryVariables
   >(INTERNAL_ADS_HOME_QUERY, {
     variables: {
@@ -530,6 +541,11 @@ export default function InternalAdsPage() {
                   />
                 </View>
               )}
+            </View>
+          )}
+          {hasAccess && !!data?.internalAdsCategories.length && (
+            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
+              <InternalCategoryGrid categories={data.internalAdsCategories} />
             </View>
           )}
           {loading && !data ? (

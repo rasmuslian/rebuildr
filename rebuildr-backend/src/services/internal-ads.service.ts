@@ -655,6 +655,54 @@ export class InternalAdsService {
     return { products, total };
   }
 
+  async internalAdsCategories(currentUserId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const categoryCounts = await this.productRepository
+      .createQueryBuilder('p')
+      .innerJoin(Category, 'c', 'p."categoryId" = c.id')
+      .select('COALESCE(c."parentId", c.id)', 'categoryId')
+      .addSelect('COUNT(p.id)', 'adCount')
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL')
+      .groupBy('COALESCE(c."parentId", c.id)')
+      .orderBy('COUNT(p.id)', 'DESC')
+      .addOrderBy('COALESCE(c."parentId", c.id)', 'ASC')
+      .getRawMany<{ categoryId: string; adCount: string }>();
+
+    const categories = await this.categoryRepository.find({
+      where: { parentId: IsNull() },
+      relations: { image: true },
+      order: { orderIndex: 'ASC' },
+    });
+    const categoriesById = new Map(
+      categories.map((category) => [category.id, category]),
+    );
+    const categoriesWithAds = categoryCounts.flatMap(
+      ({ categoryId, adCount }) => {
+        const category = categoriesById.get(categoryId);
+        return category ? [{ category, adCount: Number(adCount) }] : [];
+      },
+    );
+    const categoryIdsWithAds = new Set(
+      categoriesWithAds.map(({ category }) => category.id),
+    );
+
+    return [
+      ...categoriesWithAds,
+      ...categories
+        .filter((category) => !categoryIdsWithAds.has(category.id))
+        .map((category) => ({ category, adCount: 0 })),
+    ];
+  }
+
   async internalAdsStatistics(currentUserId: string) {
     const context = await this.getOrganizationContext(currentUserId);
     const quantityFactor = `CASE
