@@ -2,6 +2,7 @@ import { HoriztalListSection } from "@components/sections/horizontal-list-sectio
 import { AdGrid } from "@components/ad/ad-grid";
 import { View } from "react-native";
 import { AdRowSectionQuery, ProductAvailabilityEnum } from "@/gql/graphql";
+import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
 
 type Props = {
   data: AdRowSectionQuery;
@@ -57,6 +58,7 @@ export const AdRowSectionCarousel = ({
           );
         }}
         visibleItems={3}
+        visibleItemsDesktop={DESKTOP_ROW_COLUMNS}
       />
     </View>
   );
