@@ -258,7 +258,7 @@ function EditInternalProjectSheet({
                       id: project.id,
                       title: title.trim(),
                       description: description.trim(),
-                      location,
+                      location: { lat: location.lat, lng: location.lng },
                     },
                   },
                 });
