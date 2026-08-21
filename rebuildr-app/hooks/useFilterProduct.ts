@@ -1,31 +1,39 @@
-import { productFilterVar } from "@/apollo/config";
+import { internalProductFilterVar, productFilterVar } from "@/apollo/config";
 import {
   Category,
   OrderProductsEnum,
   ProductConditionEnum,
 } from "@/gql/graphql";
 import { getItem, setItem } from "@/utils/async-storage";
-import { useReactiveVar } from "@apollo/client";
+import { ReactiveVar, useReactiveVar } from "@apollo/client";
 import { useEffect } from "react";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
+import { useFilterProductScope } from "@context/filter-product-scope-context";
 
 const PRODUCT_FILTER_STORAGE_KEY = "product-filter";
 
 let hasHydratedProductFilter = false;
 
 export const useFilterProduct = () => {
-  const filter = useReactiveVar(productFilterVar);
-  const filterBuilder = new FilterBuilder(filter);
+  const scope = useFilterProductScope();
+  const filterVar =
+    scope === "internal" ? internalProductFilterVar : productFilterVar;
+  const filter = useReactiveVar(filterVar);
+  const filterBuilder = new FilterBuilder(
+    filter,
+    filterVar,
+    scope === "public",
+  );
 
   useEffect(() => {
-    if (hasHydratedProductFilter) {
+    if (scope !== "public" || hasHydratedProductFilter) {
       return;
     }
 
     hasHydratedProductFilter = true;
 
     hydrateProductFilter().catch(() => undefined);
-  }, []);
+  }, [scope]);
 
   const nrOfAppliedFilters = () => {
     let acc = 0;
@@ -78,8 +86,17 @@ export const useFilterProduct = () => {
 
 class FilterBuilder {
   private filter: Filter;
-  constructor(filter?: Filter) {
+  private filterVar: ReactiveVar<Filter>;
+  private persist: boolean;
+
+  constructor(
+    filter: Filter | undefined,
+    filterVar: ReactiveVar<Filter>,
+    persist: boolean,
+  ) {
     this.filter = filter ?? initialFilterProduct;
+    this.filterVar = filterVar;
+    this.persist = persist;
   }
 
   private separateRootAndCategories = (
@@ -105,8 +122,10 @@ class FilterBuilder {
   apply() {
     const nextFilter = { ...this.filter };
 
-    this.filter = productFilterVar(nextFilter);
-    setItem(PRODUCT_FILTER_STORAGE_KEY, nextFilter).catch(() => undefined);
+    this.filter = this.filterVar(nextFilter);
+    if (this.persist) {
+      setItem(PRODUCT_FILTER_STORAGE_KEY, nextFilter).catch(() => undefined);
+    }
   }
 
   setOrdering(sorting: OrderProductsEnum) {

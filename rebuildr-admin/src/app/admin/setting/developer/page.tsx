@@ -291,6 +291,15 @@ const DeveloperSetting = () => {
           >
             Välkommen (privatperson)
           </Button>
+          <Button
+            style={{ width: 300 }}
+            onClick={() =>
+              sendEmailTemplate({ template: "organizationInvite" })
+            }
+            disabled={isSendingEmailTemplate}
+          >
+            Organisationsinbjudan
+          </Button>
         </div>
       </div>
     </div>

@@ -4,8 +4,8 @@ import {
 } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Headline, Title } from "@components/typography/text";
-import placeholder from "@assets/images/placeholder-product.png";
+import { Body, Title } from "@components/typography/text";
+import placeholder from "@assets/images/category-placeholder.jpeg";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Image } from "expo-image";
 import { View } from "react-native";
@@ -28,11 +28,16 @@ const CATEGORY_SUMMARY_ROW = gql`
 `;
 
 type Props = {
+  compact?: boolean;
   categoryId: string;
   onChange: () => void;
 };
 
-export const CategorySummaryRow = ({ categoryId, onChange }: Props) => {
+export const CategorySummaryRow = ({
+  compact = false,
+  categoryId,
+  onChange,
+}: Props) => {
   const colors = useThemeColor();
   const { data } = useQuery<
     CategorySummaryRowQuery,
@@ -47,32 +52,39 @@ export const CategorySummaryRow = ({ categoryId, onChange }: Props) => {
   return (
     <View
       style={{
-        borderBottomWidth: 1,
+        borderBottomWidth: compact ? 0 : 1,
         borderColor: colors.dividers.neutral,
-        paddingBottom: 16,
+        paddingBottom: compact ? 0 : 16,
       }}
     >
-      <Headline size="small" style={{ marginBottom: 12 }}>
+      <Title size="medium" style={{ marginBottom: compact ? 6 : 12 }}>
         Kategori
-      </Headline>
+      </Title>
       <View
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: 16,
+          gap: compact ? 8 : 16,
         }}
       >
         <Image
-          source={{ uri: category.image?.url ?? placeholder.uri }}
-          style={{ width: 44, height: 44, borderRadius: 100 }}
+          source={
+            category.image?.url ? { uri: category.image.url } : placeholder
+          }
+          style={{
+            width: compact ? 28 : 44,
+            height: compact ? 28 : 44,
+            borderRadius: 100,
+            backgroundColor: colors.background.secondary,
+          }}
         />
         <View style={{ flex: 1 }}>
-          <Title size="medium">
+          <Body size="medium">
             {category.parent
               ? `${category.parent.name} › ${category.name}`
               : category.name}
-          </Title>
+          </Body>
         </View>
         <Button label="Ändra" type="tonal" onPress={onChange} />
       </View>

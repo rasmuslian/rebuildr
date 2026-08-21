@@ -1,0 +1,48 @@
+<mjml>
+  <mj-body background-color="#F5EFFF">
+    <mj-section background-color="#ffffff" padding="32px 24px">
+      <mj-column>
+        <mj-image src="{{logo}}" alt="RebuildR" width="160px" />
+        <mj-text
+          font-size="22px"
+          font-family="Roboto"
+          color="#1E1E1E"
+          font-weight="600"
+          align="center"
+        >
+          Du är inbjuden till Internlagret
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          font-family="Roboto"
+          color="#323232"
+          line-height="1.5"
+          align="center"
+        >
+          {{organizationName}} har bjudit in dig att hantera och reservera
+          interna annonser hos RebuildR. Inbjudan är personlig och giltig i sju
+          dagar.
+        </mj-text>
+        <mj-button
+          href="{{inviteUrl}}"
+          background-color="#863CFF"
+          color="#ffffff"
+          border-radius="8px"
+          font-family="Roboto"
+        >
+          Acceptera inbjudan
+        </mj-button>
+        <mj-text
+          font-size="13px"
+          font-family="Roboto"
+          color="#555555"
+          line-height="1.5"
+        >
+          Medlemsrollen ger åtkomst till Internlagret. Administratörer kan även
+          bjuda in och hantera kollegor. Om knappen inte fungerar, öppna denna
+          länk: {{inviteUrl}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

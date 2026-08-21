@@ -1,3 +1,4 @@
+import { Body, Display, Headline, Title } from "@components/typography/text";
 import {
   BrandSectionQuery,
   BrandSectionQueryVariables,
@@ -11,7 +12,6 @@ import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { SearchInput } from "@components/forms/searchInput";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Body, Display, Headline } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { useState } from "react";
 import { View } from "react-native";
@@ -169,9 +169,9 @@ export const BrandSection = ({
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 24 }}>
+      <Title size="medium" style={{ marginBottom: 24 }}>
         Välj ett varumärke
-      </Display>
+      </Title>
       <SearchInput
         value={searchString}
         onChange={onChangeSearchString}

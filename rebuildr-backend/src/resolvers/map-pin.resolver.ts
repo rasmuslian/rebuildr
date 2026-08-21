@@ -48,7 +48,7 @@ export class MapPinGroupsResponse {
 }
 
 @InputType()
-class PointInput {
+export class PointInput {
   @Field()
   lat: number;
 
@@ -57,7 +57,7 @@ class PointInput {
 }
 
 @InputType()
-class MapPinGroupsInput {
+export class MapPinGroupsInput {
   @Field(() => PointInput)
   southWest: PointInput;
 

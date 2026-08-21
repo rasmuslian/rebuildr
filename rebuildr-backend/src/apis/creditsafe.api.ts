@@ -76,10 +76,9 @@ export class CreditsafeAPI {
     }
   }
   /**
-   * 
-   * With one request you can receive the parameters
-needed to build your own credit report
-    * @param searchNumber Personal number or organization number (up to 12 digits)
+   * With one request you can receive the parameters needed to build your own
+   * credit report.
+   * @param searchNumber Personal number or organization number (up to 12 digits)
    */
   async getData(
     searchnumber: string,

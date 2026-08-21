@@ -95,6 +95,9 @@ export class UpdateProductInput {
   additionalInfo?: string;
 
   @Field(() => String, { nullable: true })
+  internalReferenceNumber?: string | null;
+
+  @Field(() => String, { nullable: true })
   categoryId?: string | null;
 
   @Field(() => String, { nullable: true })
@@ -285,6 +288,12 @@ export class ProductsInput {
 
   @Field(() => [ProductConditionEnum], { nullable: true })
   conditions?: ProductConditionEnum[];
+
+  @Field(() => ProductAvailabilityEnum, { nullable: true })
+  availability?: ProductAvailabilityEnum;
+
+  @Field({ nullable: true })
+  publiclyAvailable?: boolean;
 
   @Field(() => OrderProductsEnum, { nullable: true })
   orderBy?: OrderProductsEnum;
@@ -720,6 +729,7 @@ export class ProductResolver {
     @Context('productLoaders') productLoaders: IProductLoaders,
   ) {
     const product = await productLoaders.getProduct.load(input.productId);
+    this.productService.assertMarketplaceProduct(product);
     if (!product.pickupEnabled) {
       return null;
     }
@@ -752,6 +762,8 @@ export class ProductResolver {
   }
 
   @Query(() => Product)
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles([UserRoleEnum.ADMIN])
   async cmsGetProduct(@Args('productId') productId: string): Promise<Product> {
     return this.productService.cmsGetProduct(productId);
   }

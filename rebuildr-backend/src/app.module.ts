@@ -151,8 +151,22 @@ import { BankIDResolver } from './resolvers/bankid.resolver';
 import { BankIDService } from './services/bankid.service';
 import { Identity } from './entities/identity.entity';
 import { SearchEnrichmentService } from './services/search-enrichment.service';
+import { InternalAdsService } from './services/internal-ads.service';
+import {
+  InternalAdImportBatchResolver,
+  InternalAdReservationResolver,
+  InternalAdsResolver,
+  OrganizationMembershipResolver,
+} from './resolvers/internal-ads.resolver';
+import { OrganizationMembership } from './entities/organization-membership.entity';
+import { OrganizationInvite } from './entities/organization-invite.entity';
+import { InternalAdReservation } from './entities/internal-ad-reservation.entity';
+import { InternalAdImportBatch } from './entities/internal-ad-import-batch.entity';
 import { CreditsafeAPI } from './apis/creditsafe.api';
 import { CreditsafeService } from './services/creditsafe.service';
+import { CmsAdImportBatch } from './entities/cms-ad-import-batch.entity';
+import { CmsAdImportResolver } from './resolvers/cms-ad-import.resolver';
+import { CmsAdImportService } from './services/cms-ad-import.service';
 import { CategoryImageService } from './services/category-image.service';
 
 export interface RequestType {
@@ -216,6 +230,11 @@ export interface RequestType {
       AterbyggarenChat,
       AterbyggarenMessage,
       Identity,
+      OrganizationMembership,
+      OrganizationInvite,
+      InternalAdReservation,
+      InternalAdImportBatch,
+      CmsAdImportBatch,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -386,6 +405,13 @@ export interface RequestType {
     BankIDResolver,
     BankIDService,
     SearchEnrichmentService,
+    InternalAdsService,
+    CmsAdImportService,
+    InternalAdsResolver,
+    OrganizationMembershipResolver,
+    InternalAdReservationResolver,
+    InternalAdImportBatchResolver,
+    CmsAdImportResolver,
     CreditsafeAPI,
     CreditsafeService,
   ],

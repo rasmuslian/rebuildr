@@ -7,12 +7,18 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
+  selectBackgroundColor: string;
   color?: string;
   type: ColorTypeEnum;
   onChange: (color: string, type: ColorTypeEnum) => void;
 };
 
-export const ColorSection = ({ color: _color, type, onChange }: Props) => {
+export const ColorSection = ({
+  selectBackgroundColor,
+  color: _color,
+  type,
+  onChange,
+}: Props) => {
   const [color, setColor] = useState(_color ?? "");
   const selectedColor = color ?? "";
 
@@ -47,6 +53,7 @@ export const ColorSection = ({ color: _color, type, onChange }: Props) => {
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
+            backgroundColor={selectBackgroundColor}
             value={type}
             options={Object.keys(colorTypes).map((o) => ({
               label: colorTypes[o as ColorTypesType].text,

@@ -74,6 +74,7 @@ const SidebarMenu = () => {
     { type: "divider" },
     getItem("Produkter", "/product", <ProductOutlined />, [
       getItem("Skapa product", routes.CREATE_PRODUCT),
+      getItem("Importera produkter", routes.IMPORT_PRODUCTS),
       getItem("Visa alla produkter", routes.LIST_PRODUCT),
     ]),
 
@@ -109,7 +110,11 @@ const SidebarMenu = () => {
     ]),
 
     { type: "divider" },
-    getItem("Nyhetsbrev & tävling", routes.NEWSLETTER_COMPETITION, <MailOutlined />),
+    getItem(
+      "Nyhetsbrev & tävling",
+      routes.NEWSLETTER_COMPETITION,
+      <MailOutlined />,
+    ),
 
     { type: "divider" },
     getItem("Köp", routes.LIST_PURCHASE, <ShoppingCartOutlined />),

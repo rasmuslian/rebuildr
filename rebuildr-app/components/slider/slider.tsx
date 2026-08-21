@@ -2,7 +2,7 @@ import { useWindowDimensions } from "react-native";
 import { ContinuousSlider, ContinuousSliderProps } from "./continuous-slider";
 import { DoubleSlider, DoubleSliderProps } from "./double-slider";
 
-type Props<T> =
+type Props =
   | {
       type: "continuous";
       parentWidth?: number;
@@ -14,7 +14,7 @@ type Props<T> =
       sliderProps: DoubleSliderProps;
     };
 
-export const Slider = <T,>({ type, sliderProps, parentWidth }: Props<T>) => {
+export const Slider = ({ type, sliderProps, parentWidth }: Props) => {
   const { width: screenWidth } = useWindowDimensions();
   const maxWidth = parentWidth ?? screenWidth - 48;
   const width = sliderProps.width

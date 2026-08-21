@@ -6,6 +6,7 @@ const query = `
     cmsUpdateUser(input: $input) {
       id
       username
+      internalAdsAccess
     }
   }
 `;

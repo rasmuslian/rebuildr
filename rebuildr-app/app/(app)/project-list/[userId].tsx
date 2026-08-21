@@ -129,11 +129,7 @@ export default function ProjectsPage() {
           >
             <SectionHeader>{title}</SectionHeader>
             {isOwnList && (
-              <Button
-                label="Skapa projekt"
-                icon="plus"
-                onPress={onCreate}
-              />
+              <Button label="Skapa projekt" icon="plus" onPress={onCreate} />
             )}
           </View>
           <ProjectsList
@@ -151,9 +147,7 @@ export default function ProjectsPage() {
       headerComponent={
         <Header
           title={title}
-          ctas={
-            isOwnList ? [{ icon: "plus", onPress: onCreate }] : undefined
-          }
+          ctas={isOwnList ? [{ icon: "plus", onPress: onCreate }] : undefined}
         />
       }
       loading={loading}

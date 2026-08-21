@@ -23,6 +23,7 @@ type Props = {
     location?: string | null;
   };
   price?: number;
+  hidePrice?: boolean;
   soldByQuantity?: boolean;
 };
 
@@ -33,6 +34,7 @@ export const AdDescription = ({
   condition,
   account,
   price,
+  hidePrice,
   soldByQuantity,
 }: Props) => {
   const quantityUnit = _quantityUnit ?? QuantityUnitEnum.Amount;
@@ -68,10 +70,12 @@ export const AdDescription = ({
           </Body>
         </View>
       )}
-      <Label size="large">
-        {formatPrice(price)}
-        {soldByQuantity ? `/${quantities[quantityUnit].singular}` : ""}
-      </Label>
+      {!hidePrice && (
+        <Label size="large">
+          {formatPrice(price)}
+          {soldByQuantity ? `/${quantities[quantityUnit].singular}` : ""}
+        </Label>
+      )}
     </View>
   );
 };

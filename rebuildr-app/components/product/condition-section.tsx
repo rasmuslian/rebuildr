@@ -10,11 +10,13 @@ import { StepSlider } from "@components/slider/step-slider";
 import { ExplainConditionsBottomSheet } from "@components/explanation-information-sheets/explain-conditions-bottom-sheet";
 
 type Props = {
+  compact?: boolean;
   condition: ProductConditionEnum;
   onSelect: (condition: ProductConditionEnum) => void;
 };
 
 export const ConditionSection = ({
+  compact = false,
   condition: _condition = ProductConditionEnum.Good,
   onSelect,
 }: Props) => {
@@ -34,38 +36,46 @@ export const ConditionSection = ({
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 24 }}>
-        Skick
-      </Display>
-      <View style={{ gap: 4, marginBottom: 16 }}>
-        <Body size="medium">
-          Att ange rätt skick är viktigt för både dig och köparen. Det skapar
-          förtroende och underlättar försäljningen. Läs vår{" "}
-          <Body
-            size="medium"
-            onPress={() => {
-              setShowExplanation(true);
+      {compact ? (
+        <Label size="small">Skick: {conditions[condition].name}</Label>
+      ) : (
+        <>
+          <Display size="small" style={{ marginBottom: 24 }}>
+            Skick
+          </Display>
+          <View style={{ gap: 4, marginBottom: 16 }}>
+            <Body size="medium">
+              Att ange rätt skick är viktigt för både dig och köparen. Det
+              skapar förtroende och underlättar försäljningen. Läs vår{" "}
+              <Body
+                size="medium"
+                onPress={() => {
+                  setShowExplanation(true);
+                }}
+              >
+                guide här.
+              </Body>
+            </Body>
+          </View>
+        </>
+      )}
+      <View style={{ gap: compact ? 8 : 24, marginTop: compact ? 8 : 0 }}>
+        {!compact && (
+          <View
+            style={{
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.medium,
+              padding: 16,
+              gap: 4,
+              height: 100,
             }}
           >
-            guide här.
-          </Body>
-        </Body>
-      </View>
-      <View style={{ gap: 24 }}>
-        <View
-          style={{
-            backgroundColor: colors.background.secondary,
-            borderRadius: borderRadius.medium,
-            padding: 16,
-            gap: 4,
-            height: 100,
-          }}
-        >
-          <Label size="medium">{conditions[condition].name}</Label>
-          <Body size="small" color="secondary">
-            {conditions[condition].description}
-          </Body>
-        </View>
+            <Label size="medium">{conditions[condition].name}</Label>
+            <Body size="small" color="secondary">
+              {conditions[condition].description}
+            </Body>
+          </View>
+        )}
 
         <StepSlider
           values={values()}
@@ -75,10 +85,12 @@ export const ConditionSection = ({
           compareFunction={(v1, v2) => v1 === v2}
         />
       </View>
-      <ExplainConditionsBottomSheet
-        show={showExplanation}
-        onDismiss={() => setShowExplanation(false)}
-      />
+      {!compact && (
+        <ExplainConditionsBottomSheet
+          show={showExplanation}
+          onDismiss={() => setShowExplanation(false)}
+        />
+      )}
     </View>
   );
 };

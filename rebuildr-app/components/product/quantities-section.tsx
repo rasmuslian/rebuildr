@@ -23,6 +23,8 @@ const RECOMMENDED_QUANTITIES_QUERY = gql`
 `;
 
 type Props = {
+  compact?: boolean;
+  selectBackgroundColor: string;
   categoryId: string;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;
@@ -37,6 +39,8 @@ type Props = {
 };
 
 export const QuantitiesSection = ({
+  compact = false,
+  selectBackgroundColor,
   categoryId,
   primaryQuantity: _primaryQuantity,
   primaryUnit: _primaryUnit,
@@ -145,17 +149,24 @@ export const QuantitiesSection = ({
   return (
     <View style={{ zIndex: 10 }}>
       <View style={{ gap: 4, flex: 1 }}>
-        <Label size="medium">Mängd och enhet*</Label>
-        <View>
-          <Body size="medium">
-            Hur säljer du varan? Välj enhet och hur många/mycket du har
-          </Body>
-        </View>
+        <Label size={compact ? "small" : "medium"}>Mängd och enhet*</Label>
+        {!compact && (
+          <View>
+            <Body size="medium">
+              Hur säljer du varan? Välj enhet och hur många/mycket du har
+            </Body>
+          </View>
+        )}
       </View>
       <View
-        style={{ flexDirection: "row", gap: 16, zIndex: 10, marginTop: 16 }}
+        style={{
+          flexDirection: "row",
+          gap: compact ? 8 : 16,
+          zIndex: 10,
+          marginTop: compact ? 8 : 16,
+        }}
       >
-        <View style={{ minWidth: 213 }}>
+        <View style={{ minWidth: compact ? 100 : 213 }}>
           <TextInput
             placeholder={primaryQuantity}
             value={primaryQuantity !== "0" ? primaryQuantity : undefined}
@@ -171,6 +182,7 @@ export const QuantitiesSection = ({
         </View>
         <View style={{ flex: 1 }}>
           <SelectInput
+            backgroundColor={selectBackgroundColor}
             value={
               primaryUnit ??
               data.category.primaryQuantityUnit ??
@@ -188,14 +200,19 @@ export const QuantitiesSection = ({
         </View>
       </View>
       {!!data.category.secondaryQuantityUnit && (
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: compact ? 12 : 24 }}>
           <View style={{ gap: 4, flex: 1 }}>
             <Label size="medium">Ytterligare enhet</Label>
           </View>
           <View
-            style={{ flexDirection: "row", marginTop: 16, gap: 16, zIndex: 9 }}
+            style={{
+              flexDirection: "row",
+              marginTop: compact ? 8 : 16,
+              gap: compact ? 8 : 16,
+              zIndex: 9,
+            }}
           >
-            <View style={{ minWidth: 213 }}>
+            <View style={{ minWidth: compact ? 100 : 213 }}>
               <TextInput
                 placeholder={secondaryQuantity}
                 value={
@@ -206,6 +223,7 @@ export const QuantitiesSection = ({
             </View>
             <View style={{ flex: 1 }}>
               <SelectInput
+                backgroundColor={selectBackgroundColor}
                 value={
                   secondaryUnit ??
                   data.category.secondaryQuantityUnit ??

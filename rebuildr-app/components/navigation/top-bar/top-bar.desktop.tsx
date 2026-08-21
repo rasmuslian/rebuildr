@@ -1,29 +1,30 @@
-import { Logo } from "@components/logo/logo";
-import { useThemeColor } from "@hooks/useThemeColor";
-import { Pressable, View, Animated } from "react-native";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
-import { showHamburgerMenuVar } from "@/apollo/config";
-import { Icon, IconType } from "@icons/icon";
-import { Button } from "@components/buttons/button";
-import { useContext, useEffect, useRef, useState } from "react";
-import { LoginModalContext } from "@context/loginModalContext";
-import { useSellProductContext } from "@context/sell-product-context";
 import { useQuery } from "@apollo/client";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Animated, Pressable, View } from "react-native";
+
+import { showHamburgerMenuVar } from "@/apollo/config";
 import { GetMeQuery, TabLayoutQuery } from "@/gql/graphql";
 import { TAB_LAYOUT } from "@/queries";
-import { Badge } from "@components/badges/badge";
-import { Divider } from "@components/dividers/divider";
-import { horizontalPadding } from "@constants/sizes";
-import { MAX_CONTENT_WIDTH } from "@constants/layout";
-import { Avatar } from "@components/avatar/avatar";
-import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { SearchBar } from "@components/search/search-bar";
 import {
   AccountState,
   AccountWrapperDesktop,
 } from "@components/account/account-wrapper.desktop";
-import { useFilterProduct } from "@hooks/useFilterProduct";
+import { Avatar } from "@components/avatar/avatar";
+import { Badge } from "@components/badges/badge";
+import { Button } from "@components/buttons/button";
+import { Divider } from "@components/dividers/divider";
+import { Icon, IconType } from "@icons/icon";
+import { Logo } from "@components/logo/logo";
+import { SearchBar } from "@components/search/search-bar";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { horizontalPadding } from "@constants/sizes";
+import { LoginModalContext } from "@context/loginModalContext";
 import { useSearchContext } from "@context/search-context";
+import { useSellProductContext } from "@context/sell-product-context";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { useThemeColor } from "@hooks/useThemeColor";
+import { MAX_CONTENT_WIDTH } from "@constants/layout";
 
 type Props = {
   isLoggedIn: boolean;
@@ -31,6 +32,13 @@ type Props = {
   showSearchBar?: boolean;
   animateSearchBar?: boolean;
   me?: GetMeQuery["me"];
+  sellButtonLabel?: string;
+  onSellButtonPress?: () => void;
+  backgroundColor?: string;
+  foregroundColor?: string;
+  showBottomBorder?: boolean;
+  categoriesButtonBackgroundColor?: string;
+  searchScope?: "public" | "internal";
 };
 
 export default function TopBarDesktop({
@@ -39,6 +47,13 @@ export default function TopBarDesktop({
   showSearchBar = true,
   animateSearchBar = false,
   me,
+  sellButtonLabel,
+  onSellButtonPress,
+  backgroundColor,
+  foregroundColor,
+  showBottomBorder = true,
+  categoriesButtonBackgroundColor,
+  searchScope = "public",
 }: Props) {
   const searchContext = useSearchContext();
   const { filterBuilder } = useFilterProduct();
@@ -111,7 +126,10 @@ export default function TopBarDesktop({
         style={{
           width: "100%",
           backgroundColor:
-            theme === "light" ? colors.background.neutral : colors.logo.vector,
+            backgroundColor ??
+            (theme === "light"
+              ? colors.background.neutral
+              : colors.logo.vector),
           height: 72,
         }}
       >
@@ -138,22 +156,23 @@ export default function TopBarDesktop({
               <Logo
                 width={118}
                 height={24}
-                customColor={theme === "light" ? colors.logo.vector : undefined}
+                customColor={
+                  foregroundColor ??
+                  (theme === "light" ? colors.logo.vector : undefined)
+                }
               />
             </Pressable>
-            <Animated.View
-              style={{
-                opacity: searchOpacity,
-              }}
-            >
+            <Animated.View style={{ opacity: searchOpacity }}>
               <SearchBar
                 visible={showSearchBar}
                 searchOnSubmit
-                placeholder="Vad letar du efter?"
-                style={{
-                  borderBottomWidth: 0,
-                  width: 320,
-                }}
+                searchScope={searchScope}
+                placeholder={
+                  searchScope === "internal"
+                    ? "Sök i Återbanken"
+                    : "Vad letar du efter?"
+                }
+                style={{ borderBottomWidth: 0, width: 320 }}
                 backgroundColor={colors.background.neutral}
                 borderStyle={
                   theme === "light"
@@ -225,12 +244,19 @@ export default function TopBarDesktop({
               onPress={() => showHamburgerMenuVar(true)}
               icon="categories"
               label="Kategorier"
+              style={
+                categoriesButtonBackgroundColor
+                  ? { backgroundColor: categoriesButtonBackgroundColor }
+                  : undefined
+              }
             />
             {isLoggedIn ? (
               <Button
                 type="filled"
-                onPress={() => setSellProductVisible(true)}
-                label="Ny annons"
+                onPress={
+                  onSellButtonPress ?? (() => setSellProductVisible(true))
+                }
+                label={sellButtonLabel ?? "Ny annons"}
                 theme={theme}
               />
             ) : (
@@ -244,7 +270,7 @@ export default function TopBarDesktop({
           </View>
         </View>
       </View>
-      {theme === "light" && (
+      {theme === "light" && showBottomBorder && (
         <View
           style={{
             marginTop: -1,

@@ -264,6 +264,9 @@ export class CmsListUsersInput {
 
   @Field({ nullable: true })
   pendingApproval?: boolean;
+
+  @Field({ nullable: true })
+  businessOnly?: boolean;
 }
 
 @ObjectType()
@@ -302,6 +305,9 @@ export class CmsUpdateUsersInput {
 
   @Field({ nullable: true })
   websiteUrl?: string;
+
+  @Field({ nullable: true })
+  internalAdsAccess?: boolean;
 }
 
 @ObjectType()

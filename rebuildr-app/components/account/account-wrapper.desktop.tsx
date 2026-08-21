@@ -10,6 +10,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import DeleteAccount from "@/app/(app)/account/settings/delete-account";
 import User from "@/app/(app)/account/settings/user";
 import Settings from "@/app/(app)/account/settings";
+import { OrganizationMembers } from "./organization-members";
 
 export type AccountState = {
   page:
@@ -19,7 +20,8 @@ export type AccountState = {
     | "payout-add"
     | "notifications"
     | "delete-account"
-    | "user";
+    | "user"
+    | "organization-members";
   params?: Record<string, string | number>;
 };
 
@@ -101,6 +103,12 @@ export const AccountWrapperDesktop = ({
         <User
           onBack={() => setState({ page: "settings", params: {} })}
           initialSection={state.params?.initialSection as string | undefined}
+        />
+      );
+    case "organization-members":
+      return (
+        <OrganizationMembers
+          onBack={() => setState({ page: "index", params: {} })}
         />
       );
     default:

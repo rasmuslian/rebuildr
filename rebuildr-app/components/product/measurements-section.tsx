@@ -22,6 +22,8 @@ const MEASUREMENTS_SECTION = gql`
 `;
 
 type Props = {
+  compact?: boolean;
+  selectBackgroundColor: string;
   categoryId: string;
   value: MeasurementsObjectType;
   onChange: (
@@ -30,7 +32,13 @@ type Props = {
     unit: MeasurementUnitEnum,
   ) => void;
 };
-export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
+export const MeasurementsSection = ({
+  compact = false,
+  selectBackgroundColor,
+  categoryId,
+  value,
+  onChange,
+}: Props) => {
   const { data } = useQuery<
     MeasurementsSectionQuery,
     MeasurementsSectionQueryVariables
@@ -43,11 +51,14 @@ export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
   }
   return (
     <View style={{ zIndex: 1 }}>
-      <Label size="medium" style={{ marginBottom: 20 }}>
+      <Label
+        size={compact ? "small" : "medium"}
+        style={{ marginBottom: compact ? 8 : 20 }}
+      >
         Ange mått
       </Label>
 
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: compact ? 8 : 16 }}>
         {data.category.measurements.map((measurement, i, arr) => (
           <View key={i} style={{ zIndex: arr.length - i }}>
             <Measurement
@@ -55,6 +66,8 @@ export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
               type={measurement}
               initialValue={value[measurement]?.value ?? 0}
               unit={value[measurement]?.unit}
+              compact={compact}
+              selectBackgroundColor={selectBackgroundColor}
             />
           </View>
         ))}
@@ -64,12 +77,16 @@ export const MeasurementsSection = ({ categoryId, value, onChange }: Props) => {
 };
 
 type MeasurementProps = {
+  compact?: boolean;
+  selectBackgroundColor: string;
   onChange: (value: number, unit: MeasurementUnitEnum) => void;
   type: MeasurementTypeEnum;
   initialValue: number;
   unit?: MeasurementUnitEnum;
 };
 const Measurement = ({
+  compact = false,
+  selectBackgroundColor,
   onChange,
   type,
   initialValue,
@@ -83,12 +100,14 @@ const Measurement = ({
       style={{
         flexDirection: "row",
         justifyContent: "space-between",
-        gap: 16,
+        gap: compact ? 8 : 16,
         alignItems: "flex-end",
       }}
     >
-      <View style={{ minWidth: 213, gap: 4 }}>
-        <Label size="medium">{measurements[type].name}</Label>
+      <View style={{ minWidth: compact ? 100 : 213, gap: 4 }}>
+        <Label size={compact ? "small" : "medium"}>
+          {measurements[type].name}
+        </Label>
         <TextInput
           placeholder={initialValue.toString()}
           value={
@@ -102,6 +121,7 @@ const Measurement = ({
       </View>
       <View style={{ flex: 1 }}>
         <SelectInput
+          backgroundColor={selectBackgroundColor}
           value={unit}
           options={Object.keys(options).map((o) => ({
             label: options[o as MeasurementUnitEnum]?.name ?? "MISSING UNIT",

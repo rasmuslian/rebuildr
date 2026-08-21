@@ -11,10 +11,13 @@ import {
   MapPinGroupsQuery,
   MapPinGroupsQueryVariables,
   ProjectsInput,
+  InternalAdMapPinGroupsQuery,
+  InternalAdMapPinGroupsQueryVariables,
 } from "@/gql/graphql";
 import { useReducerState } from "@hooks/useReducerState";
 import { useQuery } from "@apollo/client";
 import { MAP_PIN_GROUPS } from "@/queries";
+import { INTERNAL_AD_MAP_PIN_GROUPS } from "@/queries/internal-ads";
 import { LatLngExpression } from "leaflet";
 import { useLocationContext } from "@context/location-context";
 import { defaultCenter } from "@constants/map";
@@ -50,6 +53,7 @@ type StateType = {
     location: LatLngExpression;
     popup: React.ReactNode;
   };
+  searchScope: "public" | "internal";
 };
 
 const initialState: StateType = {
@@ -68,6 +72,7 @@ const initialState: StateType = {
   fitBounds: undefined,
   mapPinGroups: [],
   activePin: undefined,
+  searchScope: "public",
 };
 
 type ContextType = {
@@ -81,6 +86,7 @@ type Props = {
   initialCenter?: LatLngExpression;
   productsInput?: ProductsInput;
   projectsInput?: ProjectsInput;
+  searchScope?: "public" | "internal";
 } & PropsWithChildren;
 
 export const MapProvider = ({
@@ -88,8 +94,12 @@ export const MapProvider = ({
   initialCenter,
   productsInput,
   projectsInput,
+  searchScope = "public",
 }: Props) => {
-  const [state, setState] = useReducerState<StateType>(initialState);
+  const [state, setState] = useReducerState<StateType>({
+    ...initialState,
+    searchScope,
+  });
   const { userCoords } = useLocationContext();
 
   // Prefer filters set through context (e.g. by the search UI that hoists this
@@ -109,11 +119,31 @@ export const MapProvider = ({
           },
         }
       : undefined,
-    skip: !state.bounds,
+    skip: !state.bounds || searchScope === "internal",
     onCompleted: (data) => {
       setState({ mapPinGroups: data.mapPinGroups.mapPinGroups });
     },
   });
+
+  useQuery<InternalAdMapPinGroupsQuery, InternalAdMapPinGroupsQueryVariables>(
+    INTERNAL_AD_MAP_PIN_GROUPS,
+    {
+      variables: state.bounds
+        ? {
+            input: {
+              northEast: state.bounds.northEast,
+              southWest: state.bounds.southWest,
+              zoom: state.zoom,
+              productsInput,
+            },
+          }
+        : undefined,
+      skip: !state.bounds || searchScope !== "internal",
+      onCompleted: (data) => {
+        setState({ mapPinGroups: data.internalAdMapPinGroups.mapPinGroups });
+      },
+    },
+  );
 
   useEffect(() => {
     if (userCoords) {

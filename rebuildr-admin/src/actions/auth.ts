@@ -83,7 +83,13 @@ export const refreshToken = async (): Promise<RefreshTokenResponseType> => {
       return { success: true, accessToken: response.accessToken };
     } catch (error) {
       console.error(error);
-      session.destroy();
+      try {
+        session.destroy();
+      } catch (sessionError) {
+        // A refresh can also run during server rendering, where Next.js does
+        // not permit response-cookie mutations.
+        console.error(sessionError);
+      }
       return { success: false };
     }
   }

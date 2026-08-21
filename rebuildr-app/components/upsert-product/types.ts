@@ -37,6 +37,7 @@ export type ProductFields = {
   title?: string;
   description?: string;
   additionalInfo?: string;
+  internalReferenceNumber?: string;
   price?: number;
   primaryQuantity?: number;
   primaryUnit?: QuantityUnitEnum;

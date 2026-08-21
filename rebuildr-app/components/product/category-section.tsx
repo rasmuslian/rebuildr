@@ -6,7 +6,7 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { Body, Display, Headline, Title } from "@components/typography/text";
+import { Body, Title } from "@components/typography/text";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { View } from "react-native";
 import { Image } from "expo-image";
@@ -42,6 +42,7 @@ const CATEGORY_SECTION_SELECTED_CATEGORY = gql`
 `;
 
 type Props = {
+  compact?: boolean;
   parentId: string;
   onSelect: (id: string) => void;
   selectedId?: string;
@@ -49,6 +50,7 @@ type Props = {
 };
 
 export const CategorySection = ({
+  compact = false,
   parentId,
   onSelect,
   selectedId,
@@ -77,30 +79,34 @@ export const CategorySection = ({
     return (
       <View
         style={{
-          borderBottomWidth: 1,
+          borderBottomWidth: compact ? 0 : 1,
           borderColor: colors.dividers.neutral,
-          paddingBottom: 16,
+          paddingBottom: compact ? 0 : 16,
         }}
       >
-        <Headline size="small" style={{ marginBottom: 12 }}>
+        <Title size="medium" style={{ marginBottom: compact ? 6 : 12 }}>
           Välj en kategori
-        </Headline>
+        </Title>
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 16,
+            gap: compact ? 8 : 16,
           }}
         >
           <Image
             source={{
               uri: selectedData.category.image?.url ?? placeholder.uri,
             }}
-            style={{ width: 60, height: 60, borderRadius: 100 }}
+            style={{
+              width: compact ? 28 : 60,
+              height: compact ? 28 : 60,
+              borderRadius: 100,
+            }}
           />
           <View style={{ flex: 1 }}>
-            <Title size="medium">{selectedData.category.name}</Title>
+            <Body size="medium">{selectedData.category.name}</Body>
           </View>
           <Button label="Ändra" type="tonal" onPress={onChange} />
         </View>
@@ -110,19 +116,24 @@ export const CategorySection = ({
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 16 }}>
+      <Title size="medium" style={{ marginBottom: compact ? 8 : 16 }}>
         Välj en kategori
-      </Display>
-      <Body size="large">
-        Osäker på vilken kategori du ska välja? Läs mer i vår{" "}
-        <Body
-          size="large"
-          link={{ pathname: "/article/[slug]", params: { slug: "kategorier" } }}
-        >
-          Hjälpguide för kategorival.
+      </Title>
+      {!compact && (
+        <Body size="large">
+          Osäker på vilken kategori du ska välja? Läs mer i vår{" "}
+          <Body
+            size="large"
+            link={{
+              pathname: "/article/[slug]",
+              params: { slug: "kategorier" },
+            }}
+          >
+            Hjälpguide för kategorival.
+          </Body>
         </Body>
-      </Body>
-      <View style={{ marginTop: 24, gap: 16 }}>
+      )}
+      <View style={{ marginTop: compact ? 8 : 24, gap: compact ? 8 : 16 }}>
         {data?.category.children.map((c, i) => (
           <View
             key={i}

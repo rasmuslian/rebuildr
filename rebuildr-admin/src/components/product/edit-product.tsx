@@ -25,9 +25,11 @@ import { omit } from "lodash";
 
 type Props = {
   product: Product;
+  inline?: boolean;
+  onSaved?: () => void | Promise<void>;
 };
 
-const EditProduct = ({ product }: Props) => {
+const EditProduct = ({ product, inline = false, onSaved }: Props) => {
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -85,7 +87,7 @@ const EditProduct = ({ product }: Props) => {
       soldByQuantity: product.soldByQuantity ?? false,
       sellerId: product.sellerId,
       project: {
-        hasProject: !product.noProject,
+        hasProject: !!product.project?.id,
         projectId: product.project?.id,
         address: product.address ?? undefined,
       },
@@ -124,6 +126,10 @@ const EditProduct = ({ product }: Props) => {
         message: "Hurra!",
         description: "Produkten har uppdaterats.",
       });
+      if (inline) {
+        await onSaved?.();
+        return;
+      }
       await revalidate(`${routes.EDIT_PRODUCT}/${product.id}`);
       router.push(routes.LIST_PRODUCT);
     },
@@ -190,7 +196,7 @@ const EditProduct = ({ product }: Props) => {
 
   return (
     <ProductForm
-      title="Redigera produkt"
+      title={inline ? product.title : "Redigera produkt"}
       control={control}
       errors={errors}
       handleSubmit={handleSubmit}

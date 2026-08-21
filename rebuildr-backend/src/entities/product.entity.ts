@@ -27,6 +27,9 @@ import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
 import { Conversation } from './conversation.entity';
+import { CmsAdImportBatch } from './cms-ad-import-batch.entity';
+import { InternalAdImportBatch } from './internal-ad-import-batch.entity';
+import { InternalAdReservation } from './internal-ad-reservation.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -44,6 +47,12 @@ export enum ProductStatus {
   DELETED = 'DELETED',
 }
 registerEnumType(ProductStatus, { name: 'ProductStatusEnum' });
+
+export enum ProductVisibility {
+  PUBLIC = 'PUBLIC',
+  INTERNAL = 'INTERNAL',
+}
+registerEnumType(ProductVisibility, { name: 'ProductVisibilityEnum' });
 
 export enum MeasurementUnitEnum {
   M = 'M',
@@ -102,6 +111,10 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   additionalInfo?: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  internalReferenceNumber?: string;
 
   @Field(() => [String])
   @Column('text', { array: true, default: [] })
@@ -362,6 +375,48 @@ export class Product {
   @Column({ nullable: true, type: 'timestamptz' })
   availableUntil?: Date | null;
 
+  @Field(() => ProductVisibility)
+  @Column({
+    type: 'enum',
+    enum: ProductVisibility,
+    enumName: 'product_visibility_enum',
+    default: ProductVisibility.PUBLIC,
+  })
+  visibility: ProductVisibility;
+
+  /** An internal listing may additionally be shown in the public marketplace. */
+  @Field(() => Boolean)
+  @Column({ default: false })
+  publiclyAvailable: boolean;
+
+  /** Records that a seller has explicitly confirmed the public price, including 0 kr. */
+  @Field(() => Boolean)
+  @Column({ default: false })
+  publicPriceConfirmed: boolean;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  internalOrganizationId?: string;
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  internalOrganization?: User;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  createdByUserId?: string;
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, (user) => user.createdInternalProducts, {
+    nullable: true,
+  })
+  createdByUser?: User;
+
+  @Field({ nullable: true })
+  createdByUserEmail?: string;
+
+  @Field(() => [String])
+  @Column('text', { array: true, default: [] })
+  internalValidationIssues: string[];
+
   @Column({ nullable: true })
   brandId?: string;
   @ManyToOne(() => Brand, (brand) => brand.id, { nullable: true })
@@ -400,6 +455,10 @@ export class Product {
 
   @OneToMany(() => Purchase, (p) => p.product)
   purchases: Purchase[];
+
+  @Field(() => [InternalAdReservation])
+  @OneToMany(() => InternalAdReservation, (reservation) => reservation.product)
+  internalReservations: InternalAdReservation[];
 
   @OneToMany(() => Conversation, (conversation) => conversation.product)
   conversations: Conversation[];
@@ -447,6 +506,24 @@ export class Product {
 
   @Column({ nullable: true })
   publishedAt?: Date;
+
+  @Column({ nullable: true })
+  internalAdImportBatchId?: string;
+  @ManyToOne(() => InternalAdImportBatch, (batch) => batch.products, {
+    nullable: true,
+  })
+  internalAdImportBatch?: InternalAdImportBatch;
+
+  @Column({ nullable: true })
+  cmsAdImportBatchId?: string;
+  @ManyToOne(() => CmsAdImportBatch, (batch) => batch.products, {
+    nullable: true,
+  })
+  cmsAdImportBatch?: CmsAdImportBatch;
+
+  @Field(() => [String])
+  @Column({ type: 'text', array: true, default: () => "'{}'" })
+  cmsImportValidationIssues: string[];
 
   //--------------Life cycle logic----------------
   private _previousStatus?: ProductStatus;

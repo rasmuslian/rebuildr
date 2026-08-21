@@ -12,17 +12,25 @@ import { Avatar } from "@components/avatar/avatar";
 type Props = {
   isLoggedIn: boolean;
   me?: GetMeQuery["me"];
+  backgroundColor?: string;
+  foregroundColor?: string;
 };
 
-export default function TopBarMobile({ isLoggedIn, me }: Props) {
+export default function TopBarMobile({
+  isLoggedIn,
+  me,
+  backgroundColor,
+  foregroundColor,
+}: Props) {
   const colors = useThemeColor();
   const { setVisible } = useContext(LoginModalContext);
+  const iconColor = foregroundColor ?? colors.logo.background;
   return (
     <View
       style={{
         width: "100%",
         paddingHorizontal: 16,
-        backgroundColor: colors.logo.vector,
+        backgroundColor: backgroundColor ?? colors.logo.vector,
         justifyContent: "space-between",
         alignItems: "center",
         display: "flex",
@@ -31,7 +39,7 @@ export default function TopBarMobile({ isLoggedIn, me }: Props) {
       }}
     >
       <Pressable onPress={() => router.navigate("/")}>
-        <Logo width={89} height={18} />
+        <Logo width={89} height={18} customColor={foregroundColor} />
       </Pressable>
 
       <View style={{ display: "flex", flexDirection: "row" }}>
@@ -44,12 +52,7 @@ export default function TopBarMobile({ isLoggedIn, me }: Props) {
             }
           }}
         >
-          <Icon
-            icon="heart2"
-            customColor={colors.logo.background}
-            width={18}
-            height={18}
-          />
+          <Icon icon="heart2" customColor={iconColor} width={18} height={18} />
         </ActionButton>
 
         <ActionButton
@@ -64,19 +67,14 @@ export default function TopBarMobile({ isLoggedIn, me }: Props) {
           {me ? (
             <Avatar imageUrl={me?.profilePicture?.url} size={24} />
           ) : (
-            <Icon
-              icon="user"
-              customColor={colors.logo.background}
-              width={18}
-              height={18}
-            />
+            <Icon icon="user" customColor={iconColor} width={18} height={18} />
           )}
         </ActionButton>
 
         <ActionButton onPress={() => showHamburgerMenuVar(true)}>
           <Icon
             icon="hamburger"
-            customColor={colors.logo.background}
+            customColor={iconColor}
             width={18}
             height={18}
           />

@@ -3,8 +3,8 @@ import { Divider } from "@components/dividers/divider";
 import { Body, Title } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useThemeColor } from "@hooks/useThemeColor";
-import { PropsWithChildren, ReactElement, ReactNode } from "react";
-import { View, ViewStyle } from "react-native";
+import { PropsWithChildren, ReactNode } from "react";
+import { View } from "react-native";
 
 type ToggleCardProps = {
   title: string;

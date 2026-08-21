@@ -52,7 +52,7 @@ export const MY_ACCOUNT = gql`
 `;
 
 type AccountState = {
-  page: "index" | "settings";
+  page: "index" | "settings" | "organization-members";
   params?: Record<string, string | number>;
 };
 

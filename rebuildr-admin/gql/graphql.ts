@@ -21,6 +21,12 @@ export type AbortPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
 
+export type AcceptOrganizationInviteInput = {
+  password?: InputMaybe<Scalars['String']['input']>;
+  token: Scalars['String']['input'];
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type AcceptPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
@@ -45,6 +51,7 @@ export type Article = {
   body: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  isInternal: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
@@ -198,8 +205,64 @@ export enum ChatActionEnum {
   Report = 'REPORT'
 }
 
+export type CmsActiveListingsByCategoryDataPoint = {
+  __typename?: 'CmsActiveListingsByCategoryDataPoint';
+  category: Scalars['String']['output'];
+  count: Scalars['Int']['output'];
+};
+
+export type CmsActiveListingsByCategoryResponse = {
+  __typename?: 'CmsActiveListingsByCategoryResponse';
+  data: Array<CmsActiveListingsByCategoryDataPoint>;
+};
+
+export type CmsAverageOrderValueStatisticsDataPoint = {
+  __typename?: 'CmsAverageOrderValueStatisticsDataPoint';
+  average: Scalars['Float']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsAverageOrderValueStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsAverageOrderValueStatisticsResponse = {
+  __typename?: 'CmsAverageOrderValueStatisticsResponse';
+  data: Array<CmsAverageOrderValueStatisticsDataPoint>;
+};
+
+export type CmsAverageTimeToPublishStatisticsDataPoint = {
+  __typename?: 'CmsAverageTimeToPublishStatisticsDataPoint';
+  averageDays: Scalars['Float']['output'];
+  date: Scalars['String']['output'];
+};
+
+export type CmsAverageTimeToPublishStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsAverageTimeToPublishStatisticsResponse = {
+  __typename?: 'CmsAverageTimeToPublishStatisticsResponse';
+  data: Array<CmsAverageTimeToPublishStatisticsDataPoint>;
+};
+
 export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
+};
+
+export type CmsCo2SavingsStatisticsDataPoint = {
+  __typename?: 'CmsCo2SavingsStatisticsDataPoint';
+  date: Scalars['String']['output'];
+  total: Scalars['Float']['output'];
+};
+
+export type CmsCo2SavingsStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsCo2SavingsStatisticsResponse = {
+  __typename?: 'CmsCo2SavingsStatisticsResponse';
+  data: Array<CmsCo2SavingsStatisticsDataPoint>;
 };
 
 export type CmsCreateArticleInput = {
@@ -330,6 +393,12 @@ export type CmsDeletePartnerInput = {
   id: Scalars['String']['input'];
 };
 
+export type CmsInternalAdsInput = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CmsListFilesInput = {
   fileType: FileType;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -381,6 +450,7 @@ export type CmsListPurchasesResponse = {
 };
 
 export type CmsListUsersInput = {
+  businessOnly?: InputMaybe<Scalars['Boolean']['input']>;
   canSell?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -426,6 +496,23 @@ export type CmsProductStatisticsResponse = {
   data: Array<CmsProductStatisticsDataPoint>;
 };
 
+export type CmsPurchaseFailureRateStatisticsDataPoint = {
+  __typename?: 'CmsPurchaseFailureRateStatisticsDataPoint';
+  date: Scalars['String']['output'];
+  failed: Scalars['Int']['output'];
+  percent: Scalars['Float']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type CmsPurchaseFailureRateStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsPurchaseFailureRateStatisticsResponse = {
+  __typename?: 'CmsPurchaseFailureRateStatisticsResponse';
+  data: Array<CmsPurchaseFailureRateStatisticsDataPoint>;
+};
+
 export type CmsPurchaseStatisticsDataPoint = {
   __typename?: 'CmsPurchaseStatisticsDataPoint';
   count: Scalars['Int']['output'];
@@ -456,9 +543,41 @@ export type CmsRefundPurchaseInput = {
   purchaseId: Scalars['String']['input'];
 };
 
+export type CmsRepeatBuyerRateStatisticsDataPoint = {
+  __typename?: 'CmsRepeatBuyerRateStatisticsDataPoint';
+  date: Scalars['String']['output'];
+  percent: Scalars['Float']['output'];
+  repeat: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type CmsRepeatBuyerRateStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsRepeatBuyerRateStatisticsResponse = {
+  __typename?: 'CmsRepeatBuyerRateStatisticsResponse';
+  data: Array<CmsRepeatBuyerRateStatisticsDataPoint>;
+};
+
 export type CmsResolveReportPurchaseInput = {
   reportPurchaseId: Scalars['String']['input'];
   resolution: ReportPurchaseResolutionEnum;
+};
+
+export type CmsRevenueStatisticsDataPoint = {
+  __typename?: 'CmsRevenueStatisticsDataPoint';
+  date: Scalars['String']['output'];
+  total: Scalars['Float']['output'];
+};
+
+export type CmsRevenueStatisticsInput = {
+  groupBy?: InputMaybe<CmsProductStatisticsGroupByEnum>;
+};
+
+export type CmsRevenueStatisticsResponse = {
+  __typename?: 'CmsRevenueStatisticsResponse';
+  data: Array<CmsRevenueStatisticsDataPoint>;
 };
 
 export type CmsSearchEnrichmentBackfillStatus = {
@@ -632,6 +751,7 @@ export type CmsUpdateUsersInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  internalAdsAccess?: InputMaybe<Scalars['Boolean']['input']>;
   isFeatured?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
@@ -685,6 +805,21 @@ export type Conversation = {
 export type CreateBrandByUserInput = {
   categoryId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+};
+
+export type CreateInternalAdImportBatchInput = {
+  files: Array<FileInputType>;
+};
+
+export type CreateInternalAdImportBatchResponse = {
+  __typename?: 'CreateInternalAdImportBatchResponse';
+  batch: InternalAdImportBatch;
+  uploadUrls: Array<Scalars['String']['output']>;
+};
+
+export type CreateInternalProjectInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
 };
 
 export type CreateMessageInput = {
@@ -762,6 +897,11 @@ export type File = {
   mimeType: Scalars['String']['output'];
   name?: Maybe<Scalars['String']['output']>;
   url: Scalars['String']['output'];
+};
+
+
+export type FileUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type FileInputType = {
@@ -895,6 +1035,57 @@ export type InitBankIdVerifyResponse = {
   orderRef: Scalars['String']['output'];
 };
 
+export type InternalAdImportBatch = {
+  __typename?: 'InternalAdImportBatch';
+  createdAt: Scalars['DateTime']['output'];
+  createdByUserId: Scalars['String']['output'];
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  files: Array<File>;
+  id: Scalars['ID']['output'];
+  organizationId: Scalars['String']['output'];
+  products: Array<Product>;
+  progress: Scalars['Int']['output'];
+  status: InternalAdImportBatchStatusEnum;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export enum InternalAdImportBatchStatusEnum {
+  Failed = 'FAILED',
+  Processing = 'PROCESSING',
+  Published = 'PUBLISHED',
+  Queued = 'QUEUED',
+  Ready = 'READY',
+  Uploading = 'UPLOADING'
+}
+
+export type InternalAdReservation = {
+  __typename?: 'InternalAdReservation';
+  canceledAt?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['ID']['output'];
+  productId: Scalars['String']['output'];
+  quantity?: Maybe<Scalars['Int']['output']>;
+  reservedAt: Scalars['DateTime']['output'];
+  reservedByUser: User;
+  reservedByUserId: Scalars['String']['output'];
+  soldAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type InternalAdsOrganizationContext = {
+  __typename?: 'InternalAdsOrganizationContext';
+  isOrganizationAccount: Scalars['Boolean']['output'];
+  organization: User;
+  role: OrganizationMemberRoleEnum;
+};
+
+export type InternalProjectsInput = {
+  searchString?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type InviteOrganizationMemberInput = {
+  email: Scalars['String']['input'];
+  role: OrganizationMemberRoleEnum;
+};
+
 export type LatestPurchaseInput = {
   otherUserId: Scalars['String']['input'];
   productId: Scalars['String']['input'];
@@ -1007,6 +1198,11 @@ export type MarkAsReadInput = {
   conversationId: Scalars['String']['input'];
 };
 
+export type MarkInternalAdSoldInput = {
+  productId: Scalars['String']['input'];
+  reservationId?: InputMaybe<Scalars['ID']['input']>;
+};
+
 export type MarkPurchaseAsDeliveredInput = {
   purchaseId: Scalars['String']['input'];
 };
@@ -1068,10 +1264,12 @@ export enum MessageTypeEnum {
 export type Mutation = {
   __typename?: 'Mutation';
   abortPurchase: Purchase;
+  acceptOrganizationInvite: User;
   acceptPurchase: Purchase;
   addPayoutAccount: User;
   analyzeProductImages: Product;
   approveBusinessAccount: User;
+  cancelInternalAdReservation: InternalAdReservation;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
   cmsBackfillSearchEnrichment: CmsSearchEnrichmentBackfillStatus;
@@ -1114,6 +1312,9 @@ export type Mutation = {
   cmsUpdateUser: User;
   createBrandByUser: Brand;
   createDraftProduct: Product;
+  createInternalAdDraft: Product;
+  createInternalAdImportBatch: CreateInternalAdImportBatchResponse;
+  createInternalProject: Project;
   createMessage: Message;
   createProject: Project;
   createReportProduct: ReportProduct;
@@ -1123,27 +1324,41 @@ export type Mutation = {
   deleteAccount: User;
   deleteConnectedAccount: Scalars['Boolean']['output'];
   deleteDraft: Scalars['Boolean']['output'];
+  deleteInternalProject: Scalars['Boolean']['output'];
   deleteProject: Scalars['Boolean']['output'];
   finalizeUser: User;
   getNewTokens: GetNewTokensResponse;
   initBankIDVerify: InitBankIdVerifyResponse;
+  inviteOrganizationMember: OrganizationInvite;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   markConversationAsRead: Conversation;
+  markInternalAdSold: Product;
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
   onboardSellerAccount: OnboardSellerAccountResponse;
+  publishInternalAdDrafts: Array<Product>;
   purchaseProduct: PurchaseProductResponse;
   registerUser: RegisterUserResponse;
+  removeInternalAdDraft: Scalars['Boolean']['output'];
+  removeInternalAdImportBatch: Scalars['Boolean']['output'];
+  removeOrganizationMember: Scalars['Boolean']['output'];
   removeProduct: Product;
+  resendOrganizationInvite: OrganizationInvite;
   resendVerificationMail: ResendVerificationMailResponse;
+  reserveInternalAd: InternalAdReservation;
   resetPassword: ResetPasswordResponse;
   resetUserIdentity: Scalars['Boolean']['output'];
+  revokeOrganizationInvite: OrganizationInvite;
+  setInternalAdPublicAvailability: Product;
   setLikeProduct: Product;
   setLikeProject: Project;
   signupNewsLetter: Scalars['Boolean']['output'];
+  startInternalAdImportBatch: InternalAdImportBatch;
   syncApproximateLocations: Scalars['Boolean']['output'];
   syncCO2Factors: Scalars['Boolean']['output'];
+  updateInternalProject: Project;
+  updateOrganizationMemberRole: OrganizationMembership;
   updatePageContent: PageContent;
   updateProduct: UpdateProductResponse;
   updateProject: UpdateProjectResponse;
@@ -1154,6 +1369,11 @@ export type Mutation = {
 
 export type MutationAbortPurchaseArgs = {
   input: AbortPurchaseInput;
+};
+
+
+export type MutationAcceptOrganizationInviteArgs = {
+  input: AcceptOrganizationInviteInput;
 };
 
 
@@ -1174,6 +1394,11 @@ export type MutationAnalyzeProductImagesArgs = {
 
 export type MutationApproveBusinessAccountArgs = {
   userId: Scalars['String']['input'];
+};
+
+
+export type MutationCancelInternalAdReservationArgs = {
+  reservationId: Scalars['String']['input'];
 };
 
 
@@ -1368,6 +1593,16 @@ export type MutationCreateBrandByUserArgs = {
 };
 
 
+export type MutationCreateInternalAdImportBatchArgs = {
+  input: CreateInternalAdImportBatchInput;
+};
+
+
+export type MutationCreateInternalProjectArgs = {
+  input: CreateInternalProjectInput;
+};
+
+
 export type MutationCreateMessageArgs = {
   input: CreateMessageInput;
 };
@@ -1403,6 +1638,11 @@ export type MutationDeleteDraftArgs = {
 };
 
 
+export type MutationDeleteInternalProjectArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteProjectArgs = {
   input: DeleteProjectInput;
 };
@@ -1415,6 +1655,11 @@ export type MutationFinalizeUserArgs = {
 
 export type MutationGetNewTokensArgs = {
   input: GetNewTokensInput;
+};
+
+
+export type MutationInviteOrganizationMemberArgs = {
+  input: InviteOrganizationMemberInput;
 };
 
 
@@ -1433,6 +1678,11 @@ export type MutationMarkConversationAsReadArgs = {
 };
 
 
+export type MutationMarkInternalAdSoldArgs = {
+  input: MarkInternalAdSoldInput;
+};
+
+
 export type MutationMarkPurchaseAsDeliveredArgs = {
   input: MarkPurchaseAsDeliveredInput;
 };
@@ -1448,6 +1698,11 @@ export type MutationOnboardSellerAccountArgs = {
 };
 
 
+export type MutationPublishInternalAdDraftsArgs = {
+  productIds: Array<Scalars['ID']['input']>;
+};
+
+
 export type MutationPurchaseProductArgs = {
   input: PurchaseProductInput;
 };
@@ -1458,13 +1713,38 @@ export type MutationRegisterUserArgs = {
 };
 
 
+export type MutationRemoveInternalAdDraftArgs = {
+  productId: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveInternalAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveOrganizationMemberArgs = {
+  input: RemoveOrganizationMemberInput;
+};
+
+
 export type MutationRemoveProductArgs = {
   input: RemoveProductInput;
 };
 
 
+export type MutationResendOrganizationInviteArgs = {
+  input: OrganizationInviteIdInput;
+};
+
+
 export type MutationResendVerificationMailArgs = {
   input: ResendVerificationMailInput;
+};
+
+
+export type MutationReserveInternalAdArgs = {
+  input: ReserveInternalAdInput;
 };
 
 
@@ -1475,6 +1755,18 @@ export type MutationResetPasswordArgs = {
 
 export type MutationResetUserIdentityArgs = {
   userId: Scalars['String']['input'];
+};
+
+
+export type MutationRevokeOrganizationInviteArgs = {
+  input: OrganizationInviteIdInput;
+};
+
+
+export type MutationSetInternalAdPublicAvailabilityArgs = {
+  price?: InputMaybe<Scalars['Float']['input']>;
+  productId: Scalars['String']['input'];
+  publiclyAvailable: Scalars['Boolean']['input'];
 };
 
 
@@ -1490,6 +1782,21 @@ export type MutationSetLikeProjectArgs = {
 
 export type MutationSignupNewsLetterArgs = {
   input: SignupNewsLetterInput;
+};
+
+
+export type MutationStartInternalAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateInternalProjectArgs = {
+  input: UpdateInternalProjectInput;
+};
+
+
+export type MutationUpdateOrganizationMemberRoleArgs = {
+  input: UpdateOrganizationMemberRoleInput;
 };
 
 
@@ -1579,6 +1886,37 @@ export enum OrderUsersEnum {
   Alphabetical = 'ALPHABETICAL'
 }
 
+export type OrganizationInvite = {
+  __typename?: 'OrganizationInvite';
+  acceptedAt?: Maybe<Scalars['DateTime']['output']>;
+  acceptedByUserId?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  invitedByUser: User;
+  invitedByUserId: Scalars['String']['output'];
+  organizationId: Scalars['String']['output'];
+  role: OrganizationMemberRoleEnum;
+  status: OrganizationInviteStatusEnum;
+};
+
+export type OrganizationInviteIdInput = {
+  inviteId: Scalars['ID']['input'];
+};
+
+export type OrganizationInvitePreview = {
+  __typename?: 'OrganizationInvitePreview';
+  expiresAt: Scalars['DateTime']['output'];
+  organizationName: Scalars['String']['output'];
+};
+
+export enum OrganizationInviteStatusEnum {
+  Accepted = 'ACCEPTED',
+  Pending = 'PENDING',
+  Revoked = 'REVOKED'
+}
+
 export type OrganizationLookupResponse = {
   __typename?: 'OrganizationLookupResponse';
   address: Scalars['String']['output'];
@@ -1586,6 +1924,24 @@ export type OrganizationLookupResponse = {
   city: Scalars['String']['output'];
   name: Scalars['String']['output'];
   zipCode: Scalars['String']['output'];
+};
+
+export enum OrganizationMemberRoleEnum {
+  Admin = 'ADMIN',
+  Member = 'MEMBER'
+}
+
+export type OrganizationMembership = {
+  __typename?: 'OrganizationMembership';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  organization: User;
+  organizationId: Scalars['String']['output'];
+  role: OrganizationMemberRoleEnum;
+  updatedAt: Scalars['DateTime']['output'];
+  user: User;
+  userEmail?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['String']['output'];
 };
 
 export type PageContent = {
@@ -1601,6 +1957,12 @@ export enum PageEnum {
   Contract = 'CONTRACT',
   Partner = 'PARTNER'
 }
+
+export type PaginatedInternalProjectsResponse = {
+  __typename?: 'PaginatedInternalProjectsResponse';
+  projects: Array<Project>;
+  total: Scalars['Int']['output'];
+};
 
 export type PaginatedProductsResponse = {
   __typename?: 'PaginatedProductsResponse';
@@ -1645,6 +2007,9 @@ export type Product = {
   additionalInfo?: Maybe<Scalars['String']['output']>;
   address?: Maybe<Scalars['String']['output']>;
   approximatePlace?: Maybe<ApproximatePlaceResponse>;
+  availability: ProductAvailabilityEnum;
+  availabilityPrecision?: Maybe<ProductAvailabilityPrecisionEnum>;
+  availableUntil?: Maybe<Scalars['DateTime']['output']>;
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
@@ -1654,6 +2019,7 @@ export type Product = {
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
   createdAt: Scalars['DateTime']['output'];
+  createdByUserId?: Maybe<Scalars['String']['output']>;
   deliveryEnabled: Scalars['Boolean']['output'];
   deliveryPrice?: Maybe<Scalars['Float']['output']>;
   deliveryRadius?: Maybe<Scalars['Float']['output']>;
@@ -1663,12 +2029,17 @@ export type Product = {
   distanceFromLocation?: Maybe<Scalars['Float']['output']>;
   distanceFromPosition?: Maybe<Scalars['Float']['output']>;
   documents: Array<File>;
+  estimatedAvailableAt?: Maybe<Scalars['DateTime']['output']>;
   hasOngoingPurchase: Scalars['Boolean']['output'];
   height?: Maybe<Scalars['Float']['output']>;
   heightUnit: MeasurementUnitEnum;
   hiddenReason?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   images: Array<File>;
+  internalOrganizationId?: Maybe<Scalars['String']['output']>;
+  internalReferenceNumber?: Maybe<Scalars['String']['output']>;
+  internalReservations: Array<InternalAdReservation>;
+  internalValidationIssues: Array<Scalars['String']['output']>;
   isGiveaway: Scalars['Boolean']['output'];
   length?: Maybe<Scalars['Float']['output']>;
   lengthUnit: MeasurementUnitEnum;
@@ -1684,6 +2055,8 @@ export type Product = {
   primaryQuantity?: Maybe<Scalars['Float']['output']>;
   primaryUnit?: Maybe<QuantityUnitEnum>;
   project?: Maybe<Project>;
+  publicPriceConfirmed: Scalars['Boolean']['output'];
+  publiclyAvailable: Scalars['Boolean']['output'];
   reportProducts: Array<ReportProduct>;
   searchAliases: Array<Scalars['String']['output']>;
   searchDocument?: Maybe<Scalars['String']['output']>;
@@ -1701,6 +2074,7 @@ export type Product = {
   thicknessUnit: MeasurementUnitEnum;
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+  visibility: ProductVisibilityEnum;
   weight?: Maybe<Scalars['Float']['output']>;
   weightUnit: MeasurementUnitEnum;
   width?: Maybe<Scalars['Float']['output']>;
@@ -1728,6 +2102,18 @@ export type ProductSimilarProductsArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export enum ProductAvailabilityEnum {
+  Available = 'AVAILABLE',
+  Upcoming = 'UPCOMING'
+}
+
+export enum ProductAvailabilityPrecisionEnum {
+  Exact = 'EXACT',
+  Month = 'MONTH',
+  Quarter = 'QUARTER',
+  Unknown = 'UNKNOWN'
+}
+
 export enum ProductConditionEnum {
   Bad = 'BAD',
   Good = 'GOOD',
@@ -1747,6 +2133,11 @@ export enum ProductStatusEnum {
   Draft = 'DRAFT',
   Published = 'PUBLISHED',
   Sold = 'SOLD'
+}
+
+export enum ProductVisibilityEnum {
+  Internal = 'INTERNAL',
+  Public = 'PUBLIC'
 }
 
 export type ProductsInput = {
@@ -1788,15 +2179,15 @@ export type ProductsResponse = {
 
 export type Project = {
   __typename?: 'Project';
-  address: Scalars['String']['output'];
-  approximatePlace: ApproximatePlaceResponse;
+  address?: Maybe<Scalars['String']['output']>;
+  approximatePlace?: Maybe<ApproximatePlaceResponse>;
   contactEmail?: Maybe<Scalars['String']['output']>;
   contactName?: Maybe<Scalars['String']['output']>;
   contactPhone?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   likedByMe?: Maybe<Scalars['Boolean']['output']>;
-  location: LocationResponse;
+  location?: Maybe<LocationResponse>;
   products: Array<Product>;
   projectPicture?: Maybe<File>;
   shortText?: Maybe<Scalars['String']['output']>;
@@ -1918,10 +2309,15 @@ export type Query = {
   brands: Array<Brand>;
   categories: Array<Category>;
   category: Category;
+  cmsActiveListingsByCategoryStatistics: CmsActiveListingsByCategoryResponse;
+  cmsAverageOrderValueStatistics: CmsAverageOrderValueStatisticsResponse;
+  cmsAverageTimeToPublishStatistics: CmsAverageTimeToPublishStatisticsResponse;
   cmsBannerById: Banner;
+  cmsCo2SavingsStatistics: CmsCo2SavingsStatisticsResponse;
   cmsGetProduct: Product;
   cmsGetUser: User;
   cmsGetUserProjects: Array<Project>;
+  cmsInternalAds: PaginatedProductsResponse;
   cmsListBanners: Array<Banner>;
   cmsListChatActions: Array<ChatActionEnum>;
   cmsListFiles: CmsListFilesResponse;
@@ -1930,7 +2326,10 @@ export type Query = {
   cmsListUsers: CmsListUsersResponse;
   cmsPreviewSystemMessage: Scalars['String']['output'];
   cmsProductStatistics: CmsProductStatisticsResponse;
+  cmsPurchaseFailureRateStatistics: CmsPurchaseFailureRateStatisticsResponse;
   cmsPurchaseStatistics: CmsPurchaseStatisticsResponse;
+  cmsRepeatBuyerRateStatistics: CmsRepeatBuyerRateStatisticsResponse;
+  cmsRevenueStatistics: CmsRevenueStatisticsResponse;
   cmsSearchEnrichmentBackfillStatus: CmsSearchEnrichmentBackfillStatus;
   cmsUserStatistics: CmsUserStatisticsResponse;
   co2Factors: Array<Co2Factor>;
@@ -1951,6 +2350,14 @@ export type Query = {
   getShippingOptions: Array<ShippingOptionResponse>;
   getShippingPrice: ShippingPrice;
   getUnreadConversationsCount: Scalars['Int']['output'];
+  internalAd: Product;
+  internalAdDrafts: Array<Product>;
+  internalAdImportBatch: InternalAdImportBatch;
+  internalAdMapPinGroups: MapPinGroupsResponse;
+  internalAds: PaginatedProductsResponse;
+  internalAdsOrganizationContext?: Maybe<InternalAdsOrganizationContext>;
+  internalProject: Project;
+  internalProjects: PaginatedInternalProjectsResponse;
   latestPurchase?: Maybe<Purchase>;
   listArticles: ListArticlesResponse;
   listBrands: ListBrandsResponse;
@@ -1966,6 +2373,9 @@ export type Query = {
   myPurchases: Array<Purchase>;
   nearbyServicePoints: Array<ServicePointResponse>;
   newsletterCompetition: NewsletterCompetition;
+  organizationInvite?: Maybe<OrganizationInvitePreview>;
+  organizationInvites: Array<OrganizationInvite>;
+  organizationMembers: Array<OrganizationMembership>;
   pageContentById: PageContent;
   pageContentByPage: PageContent;
   partners: Array<Partner>;
@@ -1973,6 +2383,7 @@ export type Query = {
   product: Product;
   products: ProductsResponse;
   purchase: Purchase;
+  relatedInternalAds: PaginatedProductsResponse;
   relatedProducts: ProductsResponse;
   rootCategories: Array<Category>;
   searchSuggestions: Array<SearchSuggestion>;
@@ -2018,8 +2429,23 @@ export type QueryCategoryArgs = {
 };
 
 
+export type QueryCmsAverageOrderValueStatisticsArgs = {
+  input?: InputMaybe<CmsAverageOrderValueStatisticsInput>;
+};
+
+
+export type QueryCmsAverageTimeToPublishStatisticsArgs = {
+  input?: InputMaybe<CmsAverageTimeToPublishStatisticsInput>;
+};
+
+
 export type QueryCmsBannerByIdArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryCmsCo2SavingsStatisticsArgs = {
+  input?: InputMaybe<CmsCo2SavingsStatisticsInput>;
 };
 
 
@@ -2035,6 +2461,11 @@ export type QueryCmsGetUserArgs = {
 
 export type QueryCmsGetUserProjectsArgs = {
   sellerId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCmsInternalAdsArgs = {
+  input: CmsInternalAdsInput;
 };
 
 
@@ -2068,8 +2499,23 @@ export type QueryCmsProductStatisticsArgs = {
 };
 
 
+export type QueryCmsPurchaseFailureRateStatisticsArgs = {
+  input?: InputMaybe<CmsPurchaseFailureRateStatisticsInput>;
+};
+
+
 export type QueryCmsPurchaseStatisticsArgs = {
   input?: InputMaybe<CmsPurchaseStatisticsInput>;
+};
+
+
+export type QueryCmsRepeatBuyerRateStatisticsArgs = {
+  input?: InputMaybe<CmsRepeatBuyerRateStatisticsInput>;
+};
+
+
+export type QueryCmsRevenueStatisticsArgs = {
+  input?: InputMaybe<CmsRevenueStatisticsInput>;
 };
 
 
@@ -2138,6 +2584,45 @@ export type QueryGetShippingPriceArgs = {
 };
 
 
+export type QueryInternalAdArgs = {
+  productId: Scalars['String']['input'];
+};
+
+
+export type QueryInternalAdDraftsArgs = {
+  batchId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryInternalAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
+};
+
+
+export type QueryInternalAdMapPinGroupsArgs = {
+  input: MapPinGroupsInput;
+};
+
+
+export type QueryInternalAdsArgs = {
+  input: ProductsInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryInternalProjectArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryInternalProjectsArgs = {
+  input: InternalProjectsInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryLatestPurchaseArgs = {
   input: LatestPurchaseInput;
 };
@@ -2195,6 +2680,11 @@ export type QueryNearbyServicePointsArgs = {
 };
 
 
+export type QueryOrganizationInviteArgs = {
+  token: Scalars['String']['input'];
+};
+
+
 export type QueryPageContentByIdArgs = {
   id: Scalars['String']['input'];
 };
@@ -2224,6 +2714,14 @@ export type QueryProductsArgs = {
 
 export type QueryPurchaseArgs = {
   input: GetPurchaseInput;
+};
+
+
+export type QueryRelatedInternalAdsArgs = {
+  excludeProductIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  input: ProductsInput;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2287,6 +2785,10 @@ export type RegisterUserResponse = {
   id: Scalars['String']['output'];
 };
 
+export type RemoveOrganizationMemberInput = {
+  userId: Scalars['ID']['input'];
+};
+
 export type RemoveProductInput = {
   id: Scalars['String']['input'];
 };
@@ -2339,6 +2841,11 @@ export type ResendVerificationMailInput = {
 export type ResendVerificationMailResponse = {
   __typename?: 'ResendVerificationMailResponse';
   message: Scalars['String']['output'];
+};
+
+export type ReserveInternalAdInput = {
+  productId: Scalars['String']['input'];
+  quantity?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type ResetPasswordInput = {
@@ -2446,6 +2953,12 @@ export type SignupNewsLetterInput = {
   lastName?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type StripeBalance = {
+  __typename?: 'StripeBalance';
+  available: Scalars['Float']['output'];
+  pending: Scalars['Float']['output'];
+};
+
 export enum SystemMessageRoleEnum {
   Buyer = 'BUYER',
   Seller = 'SELLER'
@@ -2472,6 +2985,17 @@ export enum TransportationEnum {
   Shipping = 'SHIPPING'
 }
 
+export type UpdateInternalProjectInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type UpdateOrganizationMemberRoleInput = {
+  role: OrganizationMemberRoleEnum;
+  userId: Scalars['String']['input'];
+};
+
 export type UpdatePageContentInput = {
   heroHtml: Scalars['String']['input'];
   id: Scalars['String']['input'];
@@ -2481,6 +3005,9 @@ export type UpdateProductInput = {
   addDocuments?: InputMaybe<Array<FileInputType>>;
   addImages?: InputMaybe<Array<FileInputType>>;
   additionalInfo?: InputMaybe<Scalars['String']['input']>;
+  availability?: InputMaybe<ProductAvailabilityEnum>;
+  availabilityPrecision?: InputMaybe<ProductAvailabilityPrecisionEnum>;
+  availableUntil?: InputMaybe<Scalars['DateTime']['input']>;
   brandId?: InputMaybe<Scalars['String']['input']>;
   categoryId?: InputMaybe<Scalars['String']['input']>;
   color?: InputMaybe<Scalars['String']['input']>;
@@ -2492,9 +3019,11 @@ export type UpdateProductInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   diameter?: InputMaybe<Scalars['Float']['input']>;
   diameterUnit?: InputMaybe<MeasurementUnitEnum>;
+  estimatedAvailableAt?: InputMaybe<Scalars['DateTime']['input']>;
   height?: InputMaybe<Scalars['Float']['input']>;
   heightUnit?: InputMaybe<MeasurementUnitEnum>;
   id: Scalars['String']['input'];
+  internalReferenceNumber?: InputMaybe<Scalars['String']['input']>;
   isGiveAway?: InputMaybe<Scalars['Boolean']['input']>;
   length?: InputMaybe<Scalars['Float']['input']>;
   lengthUnit?: InputMaybe<MeasurementUnitEnum>;
@@ -2573,6 +3102,7 @@ export type UpdateUserResponse = {
 export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
+  balance?: Maybe<StripeBalance>;
   city?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   creditsafeCheckStatus: CreditsafeCheckStatusEnum;
@@ -2580,6 +3110,7 @@ export type User = {
   description?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  internalAdsAccess: Scalars['Boolean']['output'];
   isFeatured: Scalars['Boolean']['output'];
   isVerified: Scalars['Boolean']['output'];
   likedProducts?: Maybe<ProductsResponse>;
@@ -2603,6 +3134,7 @@ export type User = {
   rating?: Maybe<Scalars['Float']['output']>;
   recommendedProducts: Array<Product>;
   registrationStatus: RegisterStatusEnum;
+  reviewCount: Scalars['Int']['output'];
   reviewed: Array<Review>;
   role: UserRoleEnum;
   sales: Array<Purchase>;

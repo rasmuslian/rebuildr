@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
@@ -61,8 +65,12 @@ export class MapPinService {
         .leftJoinAndSelect(
           'project.products',
           'product',
-          'product.status = :status',
-          { status: ProductStatus.PUBLISHED },
+          'product.status = :status AND (product.visibility = :visibility OR (product.visibility = :internalVisibility AND product."publiclyAvailable" = true))',
+          {
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.PUBLIC,
+            internalVisibility: ProductVisibility.INTERNAL,
+          },
         )
         .leftJoinAndSelect('map_pin', 'mp', 'product."mapPinId" = mp.id')
         .where('project.addressLocation IS NOT NULL')
@@ -197,6 +205,13 @@ export class MapPinService {
         .andWhere('product.status = :status', {
           status: ProductStatus.PUBLISHED,
         })
+        .andWhere(
+          '(product.visibility = :visibility OR (product.visibility = :internalVisibility AND product."publiclyAvailable" = true))',
+          {
+            visibility: ProductVisibility.PUBLIC,
+            internalVisibility: ProductVisibility.INTERNAL,
+          },
+        )
         .andWhere('product.addressLocation IS NOT NULL')
         .limit(batchSize)
         .offset(offset)
@@ -287,13 +302,13 @@ export class MapPinService {
     if (limit !== undefined) {
       productPart.limit(limit);
     }
-    if (productsInput) {
-      this.productService.basicFindProductsInputQueryBuilder(
-        productsInput,
-        productPart,
-        'product',
-      );
-    }
+    // The public map is a marketplace surface. Always apply the public-product
+    // boundary, even when the caller does not provide any product filters.
+    this.productService.basicFindProductsInputQueryBuilder(
+      productsInput ?? {},
+      productPart,
+      'product',
+    );
     const [innerProductSql, innerProductParams] =
       productPart.getQueryAndParameters();
 
@@ -304,6 +319,7 @@ export class MapPinService {
     if (limit !== undefined) {
       projectsPart.limit(limit);
     }
+    projectsPart.andWhere('project."internalOrganizationId" IS NULL');
     if (projectsInput) {
       if (projectsInput.ids) {
         projectsPart.andWhere('project.id IN (:...projectIds)', {

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 type Props = {
+  compact?: boolean;
   product: ProductFields;
   titleError?: string;
   descriptionError?: string;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export const DescriptionSection = ({
+  compact = false,
   product,
   titleError,
   descriptionError,
@@ -39,11 +41,13 @@ export const DescriptionSection = ({
 
   return (
     <View>
-      <Display size="small" style={{ marginBottom: 24 }}>
-        Beskriv din produkt
-      </Display>
+      {!compact && (
+        <Display size="small" style={{ marginBottom: 24 }}>
+          Beskriv din produkt
+        </Display>
+      )}
       <Form
-        style={{ gap: 24 }}
+        style={{ gap: compact ? 12 : 24 }}
         fields={[
           {
             type: "text",
@@ -59,16 +63,19 @@ export const DescriptionSection = ({
             onChangeText: (t) => onChangeDescription(t.slice(0, 5000)),
             heading: "Beskrivning*",
             multiline: true,
-            placeholder:
-              "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
-            style: { height: 172 },
+            placeholder: compact
+              ? "Beskrivning"
+              : "Beskriv produkten tydligt och detaljerat för att ge bättre köparinformation och en smidigare process",
+            style: { height: compact ? 92 : 172 },
             error: descriptionError,
           },
         ]}
       />
-      <Body size="small" color="secondary" style={{ marginTop: 12 }}>
-        {product.description?.length ?? 0} av 5000 tecken
-      </Body>
+      {!compact && (
+        <Body size="small" color="secondary" style={{ marginTop: 12 }}>
+          {product.description?.length ?? 0} av 5000 tecken
+        </Body>
+      )}
     </View>
   );
 };

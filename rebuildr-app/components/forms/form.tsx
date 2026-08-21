@@ -10,13 +10,11 @@ import { CheckboxInput, Props as CheckboxInputProps } from "./checkboxInput";
 import { ReactNode } from "react";
 
 const fullSize = 3;
-const twoThirds = 2;
-const oneThirds = 1;
 export type BaseFieldProps = {
   heading?: string;
   description?: string | ReactNode;
   helperText?: string;
-  horizontalSize?: typeof oneThirds | typeof twoThirds | typeof fullSize;
+  horizontalSize?: 1 | 2 | typeof fullSize;
   error?: string | boolean;
 };
 

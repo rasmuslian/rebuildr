@@ -1,16 +1,17 @@
 "use client";
 
+import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Divider, Modal, Popconfirm, Switch, Table, Tag } from "antd";
+import { ColumnsType } from "antd/es/table";
+import { CreditsafeCheckStatusEnum, User } from "gql/graphql";
+import { debounce } from "lodash";
 import React, { useCallback } from "react";
-import { Table, Divider, Button, Tag, Popconfirm, Modal } from "antd";
 import { useState } from "@/hooks/use-state";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { listPendingBusinesses } from "@/queries/user/list-pending-businesses";
 import { approveBusiness } from "@/queries/user/approve-business";
-import { CreditsafeCheckStatusEnum, User } from "gql/graphql";
-import { ColumnsType } from "antd/es/table";
-import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
-import { debounce } from "lodash";
+import { updateUser } from "@/queries/user/update-user";
 import SearchField from "@components/search-field";
 
 type StateType = {
@@ -74,6 +75,21 @@ const BusinessTable = () => {
       });
     },
   });
+
+  const { mutate: updateInternalAdsAccess, isPending: updatingAccess } =
+    useMutation({
+      mutationFn: (user: User) =>
+        updateUser({
+          id: user.id,
+          role: user.role,
+          internalAdsAccess: !user.internalAdsAccess,
+        }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: [queryKeys.LIST_PENDING_BUSINESSES],
+        });
+      },
+    });
 
   const onSearchStringChange = useCallback(
     debounce((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +163,20 @@ const BusinessTable = () => {
         val ? new Date(val).toLocaleDateString("sv-SE") : "—",
     },
     {
+      title: "Internlagret",
+      key: "internalAdsAccess",
+      width: "150px",
+      render: (_, user) => (
+        <Switch
+          checked={!!user.internalAdsAccess}
+          loading={updatingAccess}
+          checkedChildren="På"
+          unCheckedChildren="Av"
+          onChange={() => updateInternalAdsAccess(user)}
+        />
+      ),
+    },
+    {
       title: "Åtgärd",
       key: "action",
       width: "120px",
@@ -175,10 +205,10 @@ const BusinessTable = () => {
 
   return (
     <div className="flex flex-col gap-5">
-      <Divider orientation="left">Företag som väntar på godkännande</Divider>
+      <Divider orientation="left">Företagskonton</Divider>
 
       <SearchField
-        placeholder="Sök på email eller organisationsnummer"
+        placeholder="Sök på namn, email eller organisationsnummer"
         defaultValue={searchString}
         onChange={onSearchStringChange}
       />

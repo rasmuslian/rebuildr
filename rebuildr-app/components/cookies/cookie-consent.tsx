@@ -58,7 +58,7 @@ export const CookieConsent = () => {
         Vi använder cookies
       </Title>
       <Body size="large">
-        Vi använder cookies RebuildR använder cookies för att förbättra din
+        Vi använder cookies RebuildR använder cookies för att förbättra din
         upplevelse, analysera trafik och visa relevant innehåll. Du väljer själv
         vad du tillåter.{" "}
       </Body>

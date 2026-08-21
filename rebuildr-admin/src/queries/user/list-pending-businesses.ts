@@ -8,8 +8,10 @@ const query = `
         id
         email
         username
+        role
         organizationNumber
         organizationApprovedAt
+        internalAdsAccess
         createdAt
         creditsafeCheckStatus
         creditsafeData
@@ -28,7 +30,7 @@ export const listPendingBusinesses = async (input: {
     GraphQLResponse<{ cmsListUsers: CmsListUsersResponse }>
   >("/", {
     query,
-    variables: { input: { ...input, pendingApproval: true } },
+    variables: { input: { ...input, businessOnly: true } },
   });
 
   return {

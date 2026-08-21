@@ -11,7 +11,7 @@ import { Icon } from "@icons/icon";
 import { textStyles } from "@components/typography/typeface";
 import { Pressable } from "react-native-gesture-handler";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchContext } from "@context/search-context";
+import { SearchScope, useSearchContext } from "@context/search-context";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
 import { useFilterProduct } from "@hooks/useFilterProduct";
@@ -27,6 +27,8 @@ type Props = {
   backgroundColor?: string;
   borderStyle?: ViewStyle;
   searchOnSubmit?: boolean;
+  searchScope?: SearchScope;
+  onSubmitSearch?: (text: string) => void;
 } & Omit<TextInputProps, "onChange" | "style">;
 
 export const Search = ({
@@ -38,6 +40,8 @@ export const Search = ({
   backgroundColor,
   borderStyle,
   searchOnSubmit = false,
+  searchScope = "public",
+  onSubmitSearch,
   ...rest
 }: Props) => {
   const { filterBuilder } = useFilterProduct();
@@ -138,21 +142,39 @@ export const Search = ({
   ]);
 
   const onChangeText = (text: string) => {
-    setSearchState({ searchString: text });
+    setSearchState({ searchString: text, searchScope });
 
     if (onChange) {
       onChange(text);
     } else {
-      search(text);
+      search(text, searchScope);
     }
   };
 
   const onSubmit = (event: TextInputSubmitEditingEvent) => {
     const { text } = event.nativeEvent;
 
+    if (searchScope === "internal") {
+      setSearchState({ dropdownVisible: false, searchScope });
+      onSubmitSearch?.(text);
+      router.navigate({ pathname: "/internal/search", params: { q: text } });
+      return;
+    }
+
     filterBuilder.setSearchString(text).apply();
     setSearchState({ dropdownVisible: false });
     router.navigate("/search/products");
+  };
+
+  const onInputFocus = (
+    event: Parameters<NonNullable<Props["onFocus"]>>[0],
+  ) => {
+    setSearchState({ searchScope });
+    if (onFocus) {
+      onFocus(event);
+      return;
+    }
+    openDropdown();
   };
 
   return (
@@ -186,7 +208,7 @@ export const Search = ({
         {...rest}
         ref={textInputRef}
         onChangeText={onChangeText}
-        onFocus={onFocus ?? openDropdown}
+        onFocus={onInputFocus}
         onSubmitEditing={searchOnSubmit ? onSubmit : undefined}
         placeholderTextColor={colors.text.secondary}
         value={searchState.searchString ?? ""}

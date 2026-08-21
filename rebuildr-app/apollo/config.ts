@@ -13,6 +13,7 @@ import { isLoggedInVar } from "@/apollo/state";
 import { getStoredAccessToken, renewStoredAuthTokens } from "@/lib/auth-tokens";
 
 export {
+  internalProductFilterVar,
   isLoggedInVar,
   productFilterVar,
   showHamburgerMenuVar,

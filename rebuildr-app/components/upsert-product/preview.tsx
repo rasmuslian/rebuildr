@@ -67,9 +67,10 @@ const PREVIEW_PRODUCT_UPSERT = gql`
 type Props = {
   product: ProductFields;
   dbProductId: string;
+  internalMode?: boolean;
 };
 
-export const Preview = ({ product, dbProductId }: Props) => {
+export const Preview = ({ product, dbProductId, internalMode }: Props) => {
   const { isDesktop } = useScreenType();
   const [width, setWidth] = useState<number | undefined>(undefined);
   const [showAllImagesPopup, setShowAllImagesPopup] = useState(false);
@@ -98,6 +99,9 @@ export const Preview = ({ product, dbProductId }: Props) => {
     skip: !product.categoryIds?.[1],
   });
 
+  // Private internal ads are intentionally unavailable through product().
+  // This lookup is only used for the optional CO₂ summary, so skip it for
+  // internal mode rather than querying the public marketplace endpoint.
   const { data: productData } = useQuery<
     PreviewProductUpsertQuery,
     PreviewProductUpsertQueryVariables
@@ -105,6 +109,7 @@ export const Preview = ({ product, dbProductId }: Props) => {
     variables: {
       input: { id: dbProductId },
     },
+    skip: internalMode,
   });
   const { data: brandData } = useQuery<
     ProductBottomSheetPreviewBrandQuery,
@@ -158,6 +163,7 @@ export const Preview = ({ product, dbProductId }: Props) => {
         }
         myAddress={data.me.address}
         sellerIsMe
+        hidePrice={internalMode}
       />
       <Divider />
       <AllImages

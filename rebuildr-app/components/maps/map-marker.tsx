@@ -6,6 +6,7 @@ import { MapPinGroupsQuery } from "@/gql/graphql";
 import { createMarkerIcon } from "./create-marker-icon";
 import { getMarkerSvg } from "@/utils/map-pin/get-marker-svg";
 import { ActiveMarkerPopup } from "./active-marker-popup";
+import { InternalActiveMarkerPopup } from "./internal-active-marker-popup";
 
 type Props = {
   mapPinGroup: MapPinGroupsQuery["mapPinGroups"]["mapPinGroups"][number];
@@ -59,7 +60,12 @@ export default function MapMarker({ mapPinGroup }: Props) {
           setState({
             activePin: {
               location: mapPinGroup.location,
-              popup: <ActiveMarkerPopup mapPinGroup={mapPinGroup} />,
+              popup:
+                state.searchScope === "internal" ? (
+                  <InternalActiveMarkerPopup mapPinGroup={mapPinGroup} />
+                ) : (
+                  <ActiveMarkerPopup mapPinGroup={mapPinGroup} />
+                ),
             },
             selectedProductId: productIds[0],
           });

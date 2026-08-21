@@ -31,7 +31,10 @@ export const PreviewPickup = ({
   onChangeAddress,
   canChangeAddress,
 }: Props) => {
-  const approximateAddress = product.approximatePlace?.address;
+  // Internal ads do not have map pins, so use the saved pickup location while
+  // configuring the external publication.
+  const approximateAddress =
+    product.approximatePlace?.address ?? product.address;
 
   const [getProject, { data }] = useLazyQuery<
     ProductBottomSheetPreviewPickupQuery,
@@ -51,7 +54,9 @@ export const PreviewPickup = ({
   const address = product.address;
   const location = product.approximatePlace
     ? [product.approximatePlace.lat, product.approximatePlace.lng]
-    : undefined;
+    : product.location
+      ? [product.location.lat, product.location.lng]
+      : undefined;
   if (!approximateAddress || !address || !location) {
     console.error("No address found");
     return <LoadingSpinner />;

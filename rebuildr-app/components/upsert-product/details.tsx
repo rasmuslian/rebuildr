@@ -1,5 +1,6 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Toggle } from "@components/controls/toggle";
+import { Form } from "@components/forms/form";
 import { BrandSection } from "@components/product/brand-section";
 import { CategorySection } from "@components/product/category-section";
 import { ConditionSection } from "@components/product/condition-section";
@@ -11,7 +12,7 @@ import { PriceSection } from "@components/product/price-section";
 import { QuantitiesSection } from "@components/product/quantities-section";
 import { RootCategorySection } from "@components/product/root-category-section";
 import { CategorySummaryRow } from "@components/product/category-summary-row";
-import { Title, Body, Label } from "@components/typography/text";
+import { Body, Label, Title } from "@components/typography/text";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
 import { AnalyzeProgress } from "./analyze-progress";
@@ -27,6 +28,10 @@ import {
 } from "@/gql/graphql";
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
+import { primitives } from "@constants/colors";
+import { AvailabilitySection } from "./availability-section";
+import { InternalLocation } from "./internal-location";
+import { ProjectChips } from "./project-chips";
 
 type Props = {
   product: ProductFields;
@@ -34,8 +39,15 @@ type Props = {
   onNext: () => void;
   badFields?: { [key: string]: string };
   onAnalyzeImages: () => Promise<void>;
+  onClearLocationError: () => void;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
+  loading?: boolean;
+  internalMode?: boolean;
+  nextLabel?: string;
+  onDelete?: () => void;
+  compact?: boolean;
+  importMode?: boolean;
 };
 
 export const Details = ({
@@ -44,8 +56,15 @@ export const Details = ({
   onNext,
   badFields,
   onAnalyzeImages,
+  onClearLocationError,
   imageAnalyzeLoading,
   imageAnalyzeError,
+  loading = false,
+  internalMode,
+  nextLabel,
+  onDelete,
+  compact = false,
+  importMode = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
@@ -72,6 +91,7 @@ export const Details = ({
   }, [imageAnalyzeLoading, imageAnalyzeError]);
 
   const [showDetails, setShowDetails] = useState(() => {
+    if (compact) return false;
     const measurementSet = (
       ["thickness", "height", "width", "length", "diameter"] as const
     ).some((measurementKey) => !!product[measurementKey]);
@@ -84,36 +104,40 @@ export const Details = ({
       !!product.additionalInfo
     );
   });
-
   const hasImages = !!product.images?.length;
   const rootCategoryId = product.categoryIds?.[0];
   const categoryId = product.categoryIds?.[1];
-  const showContinue = rootCategoryId && categoryId && product.brandId;
+  const showContinue =
+    rootCategoryId && categoryId && (internalMode || product.brandId);
+  const selectBackgroundColor = importMode
+    ? primitives.accent100
+    : primitives.neutrals100;
 
   return (
     <View
       style={{
-        gap: 24,
-        marginTop: 24,
+        gap: compact ? 12 : 24,
+        marginTop: compact ? 12 : 24,
         paddingBottom: isDesktop && !showContinue ? 32 : 0,
       }}
     >
-      <View style={{ gap: 8 }}>
+      {!compact && (
         <Body size="large">
           Börja med bilderna, så ger AI förslag på din annons. Ändra fritt innan
           du publicerar.
         </Body>
-        <ImageSection
-          images={product.images ?? []}
-          imageError={badFields?.["images"]}
-          onUpdateImages={(images) => {
-            update({ ...product, images });
-          }}
-        />
-      </View>
+      )}
+      <ImageSection
+        compact={compact}
+        images={product.images ?? []}
+        imageError={badFields?.["images"]}
+        onUpdateImages={(images) => {
+          update({ ...product, images });
+        }}
+      />
       {/* Start minimal: nothing else until the first image is added */}
       {hasImages && imageAnalyzeLoading && <AnalyzeProgress />}
-      {hasSuggestions && !imageAnalyzeLoading && (
+      {!compact && hasSuggestions && !imageAnalyzeLoading && (
         <View
           style={{
             backgroundColor: colors.buttons.tonal.enabled,
@@ -134,38 +158,43 @@ export const Details = ({
           )}
         </View>
       )}
-      {imageAnalyzeError && !imageAnalyzeLoading && !hasSuggestions && (
-        <View
-          style={{
-            backgroundColor: colors.buttons.tonal.enabled,
-            borderRadius: borderRadius.medium,
-            padding: 16,
-            gap: 8,
-          }}
-        >
-          <Label size="medium">AI-förslaget misslyckades</Label>
-          <Body size="small" color="secondary">
-            Fyll i fälten manuellt, eller{" "}
-            <Body size="small" isLink onPress={() => onAnalyzeImages()}>
-              försök igen
+      {!compact &&
+        imageAnalyzeError &&
+        !imageAnalyzeLoading &&
+        !hasSuggestions && (
+          <View
+            style={{
+              backgroundColor: colors.buttons.tonal.enabled,
+              borderRadius: borderRadius.medium,
+              padding: 16,
+              gap: 8,
+            }}
+          >
+            <Label size="medium">AI-förslaget misslyckades</Label>
+            <Body size="small" color="secondary">
+              Fyll i fälten manuellt, eller{" "}
+              <Body size="small" isLink onPress={() => onAnalyzeImages()}>
+                försök igen
+              </Body>
+              .
             </Body>
-            .
-          </Body>
-        </View>
-      )}
+          </View>
+        )}
       {/* Category: one compact row when chosen (the normal case after AI),
           full pickers only while choosing — and never while the AI is still
           analyzing (it usually picks the category itself) */}
-      {hasImages &&
+      {(hasImages || compact) &&
         !imageAnalyzeLoading &&
         (categoryId ? (
           <CategorySummaryRow
+            compact={compact}
             categoryId={categoryId}
             onChange={() => update({ ...product, categoryIds: [] })}
           />
         ) : (
           <>
             <RootCategorySection
+              compact={compact}
               onSelect={(id) => {
                 update({ ...product, categoryIds: [id] });
               }}
@@ -176,6 +205,7 @@ export const Details = ({
             />
             {rootCategoryId && (
               <CategorySection
+                compact={compact}
                 parentId={rootCategoryId}
                 onSelect={(id) =>
                   update({
@@ -190,29 +220,49 @@ export const Details = ({
             )}
           </>
         ))}
-      {hasImages && categoryId && (
+      {(hasImages || compact) && categoryId && (
         <>
-          <PriceSection
-            price={product.price}
-            minimumPrice={product.minimumPrice ?? 0}
-            priceError={badFields?.["price"]}
-            isGiveaway={!!product.isGiveaway}
-            onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
-            soldByQuantity={!!product.soldByQuantity}
-            onUpdateSoldByQuantity={(soldByQuantity) =>
-              update({ soldByQuantity, price: undefined })
-            }
-            priceSuggestionMin={product.priceSuggestionMin}
-            priceSuggestionMax={product.priceSuggestionMax}
-          />
+          {!internalMode && (
+            <PriceSection
+              price={product.price}
+              minimumPrice={product.minimumPrice ?? 0}
+              priceError={badFields?.["price"]}
+              isGiveaway={!!product.isGiveaway}
+              onUpdate={(isGiveaway, price) => update({ isGiveaway, price })}
+              soldByQuantity={!!product.soldByQuantity}
+              onUpdateSoldByQuantity={(soldByQuantity) =>
+                update({ soldByQuantity, price: undefined })
+              }
+              priceSuggestionMin={product.priceSuggestionMin}
+              priceSuggestionMax={product.priceSuggestionMax}
+            />
+          )}
           <DescriptionSection
+            compact={compact}
             product={product}
             titleError={badFields?.["title"]}
             descriptionError={badFields?.["description"]}
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
           />
+          {internalMode && (
+            <Form
+              fields={[
+                {
+                  type: "text",
+                  value: product.internalReferenceNumber ?? "",
+                  onChangeText: (internalReferenceNumber) =>
+                    update({ internalReferenceNumber }),
+                  heading: "Internt id/referensnummer",
+                  description: "Valfritt. Visas bara i Återbanken.",
+                  placeholder: "Till exempel INV-12345",
+                },
+              ]}
+            />
+          )}
           <QuantitiesSection
+            compact={compact}
+            selectBackgroundColor={selectBackgroundColor}
             categoryId={categoryId}
             primaryQuantity={product.primaryQuantity}
             primaryUnit={product.primaryUnit}
@@ -241,36 +291,76 @@ export const Details = ({
               })
             }
           />
+          <ConditionSection
+            compact={compact}
+            condition={product.condition}
+            onSelect={(condition) => update({ condition })}
+          />
+          <BrandSection
+            categoryId={categoryId}
+            onSelect={(brandId) => update({ brandId })}
+            brandId={product.brandId}
+          />
+        </>
+      )}
+      {(hasImages || compact) && categoryId && (
+        <>
           <CO2Section
+            compact={compact}
             product={product}
             onChange={(w) => {
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Title size="medium">Lägg till fler produktdetaljer</Title>
-              <Body size="medium">
-                Lägg till specifik info avseende mått, färg, dokument eller bra
-                för köpare att veta
-              </Body>
+          {internalMode && (
+            <>
+              <InternalLocation
+                product={product}
+                update={update}
+                onSaveStart={onClearLocationError}
+                error={product.location ? undefined : badFields?.["location"]}
+              />
+              <ProjectChips product={product} update={update} internalMode />
+              <AvailabilitySection
+                product={product}
+                update={update}
+                error={badFields?.["availability"]}
+              />
+            </>
+          )}
+          <Pressable onPress={() => setShowDetails(!showDetails)}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 8,
+                paddingVertical: compact ? 4 : 0,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Title size={compact ? "small" : "medium"}>
+                  Lägg till fler produktdetaljer
+                </Title>
+                {!compact && (
+                  <Body size="medium">
+                    Lägg till specifik info avseende mått, färg, dokument eller
+                    bra för köpare att veta
+                  </Body>
+                )}
+              </View>
+              <Toggle
+                value={showDetails}
+                onPress={() => setShowDetails(!showDetails)}
+              />
             </View>
-            <Toggle
-              value={showDetails}
-              onPress={() => setShowDetails(!showDetails)}
-            />
-          </View>
+          </Pressable>
           {showDetails && product.categoryIds?.[1] && (
             <>
               <View style={{ zIndex: 2 }}>
                 <MeasurementsSection
+                  compact={compact}
+                  selectBackgroundColor={selectBackgroundColor}
                   categoryId={product.categoryIds[1]}
                   value={{
                     THICKNESS:
@@ -334,6 +424,7 @@ export const Details = ({
                 }}
               >
                 <ColorSection
+                  selectBackgroundColor={selectBackgroundColor}
                   color={product.color}
                   type={product.colorType}
                   onChange={(color, type) => update({ color, colorType: type })}
@@ -344,49 +435,82 @@ export const Details = ({
                 onChange={(additionalInfo) => update({ additionalInfo })}
               />
               <DocumentSection
+                compact={compact}
                 documents={product.documents ?? []}
                 onUpdateFiles={(files) => update({ documents: files })}
               />
             </>
           )}
-          <ConditionSection
-            condition={product.condition}
-            onSelect={(condition) => update({ condition })}
-          />
-          <BrandSection
-            categoryId={categoryId}
-            onSelect={(brandId) => update({ brandId })}
-            brandId={product.brandId}
-          />
         </>
       )}
       {showContinue && (
         <View
           style={[
-            { gap: 6 },
             isDesktop && {
+              backgroundColor: primitives.neutrals100,
               position: "sticky",
               bottom: 0,
               left: 0,
               right: 0,
               zIndex: 10,
-              backgroundColor: "white",
               paddingBottom: 32,
+              marginHorizontal: compact ? -12 : 0,
             },
           ]}
         >
-          <Button label="Fortsätt" onPress={onNext} style={{ marginTop: 24 }} />
-          {badFields && !!Object.keys(badFields).length && (
-            <View style={{ gap: 4 }}>
-              {Object.keys(badFields).map((bf, i) => {
-                return (
-                  <Body key={i} color="error" size="small">
-                    {badFields[bf]}
-                  </Body>
-                );
-              })}
+          <View
+            style={{
+              gap: 6,
+              backgroundColor: compact ? primitives.accent100 : undefined,
+              paddingHorizontal: compact ? 12 : 0,
+              paddingTop: compact ? 12 : 0,
+              paddingBottom: compact ? 12 : 32,
+              borderBottomLeftRadius: compact ? borderRadius.medium : 0,
+              borderBottomRightRadius: compact ? borderRadius.medium : 0,
+              overflow: "hidden",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: onDelete ? "row" : "column",
+                gap: 12,
+                marginTop: compact ? 0 : 24,
+              }}
+            >
+              <Button
+                label={nextLabel ?? "Fortsätt"}
+                type={compact && onDelete ? "tonal" : undefined}
+                onPress={onNext}
+                loading={loading}
+                style={{
+                  width: onDelete ? undefined : "100%",
+                  flex: onDelete ? 1 : undefined,
+                  ...(compact && onDelete
+                    ? { backgroundColor: primitives.accent200 }
+                    : {}),
+                }}
+              />
+              {onDelete && (
+                <Button
+                  label="Ta bort"
+                  type="outlined"
+                  onPress={onDelete}
+                  style={{ flex: 1 }}
+                />
+              )}
             </View>
-          )}
+            {badFields && !!Object.keys(badFields).length && (
+              <View style={{ gap: 4 }}>
+                {Object.keys(badFields).map((bf, i) => {
+                  return (
+                    <Body key={i} color="error" size="small">
+                      {badFields[bf]}
+                    </Body>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </View>
       )}
     </View>

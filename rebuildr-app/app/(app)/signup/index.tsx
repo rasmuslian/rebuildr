@@ -411,8 +411,7 @@ export default function CompetitionPage() {
                   color="secondary"
                   style={{ textAlign: "center", color: primitives.primary300 }}
                 >
-                  Värde:{" "}
-                  {competition?.productValue ?? ""}
+                  Värde: {competition?.productValue ?? ""}
                 </Title>
               </View>
             </View>
@@ -521,8 +520,7 @@ export default function CompetitionPage() {
                   color: primitives.primary300,
                 }}
               >
-                Värde:{" "}
-                {competition?.productValue ?? ""}
+                Värde: {competition?.productValue ?? ""}
               </Title>
             </View>
           </View>

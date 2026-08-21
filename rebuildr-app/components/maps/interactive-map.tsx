@@ -8,6 +8,7 @@ type Props = {
   initialCenter?: { lat: number; lng: number };
   productsInput?: ProductsInput;
   projectsInput?: ProjectsInput;
+  searchScope?: "public" | "internal";
 };
 
 /**
@@ -40,12 +41,14 @@ export default function InteractiveMap({
   initialCenter,
   productsInput,
   projectsInput,
+  searchScope,
 }: Props) {
   return (
     <MapProvider
       initialCenter={initialCenter}
       productsInput={productsInput}
       projectsInput={projectsInput}
+      searchScope={searchScope}
     >
       <MapCanvas style={style} />
     </MapProvider>

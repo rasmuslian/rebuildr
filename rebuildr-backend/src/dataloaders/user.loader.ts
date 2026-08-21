@@ -6,7 +6,11 @@ import { GetSearchResultsInput } from 'src/resolvers/search-result.resolver';
 import { SearchResult } from 'src/entities/search-result.entity';
 import { DataSource, In, IsNull } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  Product,
+  ProductStatus,
+  ProductVisibility,
+} from 'src/entities/product.entity';
 import { Purchase } from 'src/entities/purchase.entity';
 import { File } from 'src/entities/file.entity';
 import { Review } from 'src/entities/review.entity';
@@ -86,10 +90,21 @@ export class UserLoader {
   private soldProductsLoader() {
     return new DataLoader<string, Product[]>(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          sellerId: In(userIds),
-          status: ProductStatus.SOLD,
-        },
+        where: [
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.SOLD,
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
+          },
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.SOLD,
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
       });
 
       const productsMap = userIds.map((userId) =>
@@ -102,13 +117,21 @@ export class UserLoader {
   private publishedProductsLoader() {
     return new DataLoader(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          seller: {
-            id: In(userIds),
+        where: [
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
           },
-          status: ProductStatus.PUBLISHED,
-          deletedAt: IsNull(),
-        },
+          {
+            sellerId: In(userIds),
+            status: ProductStatus.PUBLISHED,
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
       });
 
       const productsMap = userIds.map((userId) =>
@@ -121,13 +144,21 @@ export class UserLoader {
   private productsLoader() {
     return new DataLoader(async (userIds) => {
       const products = await this.dataSource.getRepository(Product).find({
-        where: {
-          seller: {
-            id: In(userIds),
+        where: [
+          {
+            sellerId: In(userIds),
+            status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+            visibility: ProductVisibility.PUBLIC,
+            deletedAt: IsNull(),
           },
-          status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
-          deletedAt: IsNull(),
-        },
+          {
+            sellerId: In(userIds),
+            status: In([ProductStatus.PUBLISHED, ProductStatus.SOLD]),
+            visibility: ProductVisibility.INTERNAL,
+            publiclyAvailable: true,
+            deletedAt: IsNull(),
+          },
+        ],
         order: { status: 'ASC', createdAt: 'DESC' },
       });
 
@@ -330,6 +361,18 @@ export class UserLoader {
     });
   }
 
+  private projectsLoader() {
+    return new DataLoader<string, Project[]>(async (userIds) => {
+      const projects = await this.dataSource.getRepository(Project).find({
+        where: { userId: In([...userIds]), internalOrganizationId: IsNull() },
+        order: { createdAt: 'DESC' },
+      });
+      return userIds.map((userId) =>
+        projects.filter((project) => project.userId === userId),
+      );
+    });
+  }
+
   private numberOfCompletedPurchases() {
     return new DataLoader<string, number>(async (userIds) => {
       const counts: { userId: string; count: string }[] = await this.dataSource
@@ -350,10 +393,7 @@ export class UserLoader {
   createLoaders(): IUserLoaders {
     return {
       getUserLoader: this.getUserLoader(),
-      projectsLoader: this.dataloaderService.targetByParentIdLoader<Project[]>(
-        'projects',
-        User,
-      ),
+      projectsLoader: this.projectsLoader(),
       getSearchResultsLoader: (input: GetSearchResultsInput) =>
         this.getSearchResultsLoader(input),
       soldProductsLoader: this.soldProductsLoader(),

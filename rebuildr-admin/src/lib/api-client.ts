@@ -39,7 +39,11 @@ apiClient.interceptors.response.use(
       (err) => err.extensions?.code === "UNAUTHENTICATED",
     );
 
-    if (isUnauthenticated && !originalRequest._retry) {
+    if (
+      isUnauthenticated &&
+      !originalRequest._retry &&
+      typeof window !== "undefined"
+    ) {
       originalRequest._retry = true;
       try {
         const { success, accessToken } = await refreshToken();

@@ -45,6 +45,7 @@ export function MobileTabBar({
   const { data } = useQuery<TabLayoutQuery>(TAB_LAYOUT);
 
   const isHighlighted = (href: string) => pathName.split("/")[1] === href;
+  const isInternalAdsRoute = pathName.startsWith("/internal");
 
   const goHome = () => {
     if (isHighlighted("")) {
@@ -71,11 +72,16 @@ export function MobileTabBar({
       highlight: isHighlighted("categories"),
     },
     {
-      name: "Ny annons",
+      name: isInternalAdsRoute ? "Ny annons" : "Ny annons",
       icon: "newListing",
       onPress: () => {
         if (!isLoggedIn) {
           setLoginVisible(true);
+        } else if (isInternalAdsRoute) {
+          router.navigate({
+            pathname: "/internal",
+            params: { action: "create", t: Date.now().toString() },
+          });
         } else {
           setSellProductVisible(true);
         }

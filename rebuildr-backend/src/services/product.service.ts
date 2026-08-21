@@ -7,6 +7,7 @@ import {
   Product,
   ProductAvailabilityEnum,
   ProductStatus,
+  ProductVisibility,
 } from 'src/entities/product.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import {
@@ -69,6 +70,8 @@ import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
 import { SearchEnrichmentService } from './search-enrichment.service';
 import { Brand } from 'src/entities/brand.entity';
+import { OrganizationMemberRole } from 'src/entities/organization-membership.entity';
+import { Project } from 'src/entities/project.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
 const RELATED_PRODUCT_SEARCH_RANK_THRESHOLD = 0.05;
@@ -79,11 +82,6 @@ interface FindProductsQueryOptions {
   searchRankThreshold?: number;
 }
 
-/**
- * hiddenReason sentinel set by the auto-expiry job when a listing passes its
- * optional availableUntil date. Reuses the existing `hiddenReason IS NULL`
- * filters so expired ads drop out of search and listings everywhere.
- */
 export const AD_EXPIRED_HIDDEN_REASON = 'AD_EXPIRED';
 
 @Injectable()
@@ -97,6 +95,8 @@ export class ProductService {
     private userRepository: Repository<User>,
     @InjectRepository(Brand)
     private brandRepository: Repository<Brand>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     private geocodingService: GeocodingService,
     private fileService: FileService,
     private conversationService: ConversationService,
@@ -123,6 +123,7 @@ export class ProductService {
       where: {
         sellerId: currentUserId,
         status: ProductStatus.DRAFT,
+        visibility: ProductVisibility.PUBLIC,
       },
       order: { createdAt: 'DESC' },
     });
@@ -138,6 +139,7 @@ export class ProductService {
       where: {
         sellerId: seller.id,
         status: ProductStatus.DRAFT,
+        visibility: ProductVisibility.PUBLIC,
       },
     });
 
@@ -148,6 +150,7 @@ export class ProductService {
     product.title = '';
     product.price = 0;
     product.status = ProductStatus.DRAFT;
+    product.visibility = ProductVisibility.PUBLIC;
     product.seller = seller;
     product.address = seller.address;
     product.addressLocation = seller.addressLocation;
@@ -210,9 +213,19 @@ export class ProductService {
       },
     });
 
+    if (!product) {
+      throw BadUserInputException();
+    }
+
+    const canManageInternalProduct =
+      product.visibility === ProductVisibility.INTERNAL &&
+      (await this.canManageInternalProduct(product, currentUserId));
+
     if (
       currentUserRole !== UserRoleEnum.ADMIN &&
-      currentUserId !== product.sellerId
+      (product.visibility === ProductVisibility.INTERNAL
+        ? !canManageInternalProduct
+        : currentUserId !== product.sellerId)
     ) {
       logger.error('User does not have permission to update product', {
         currentUserId,
@@ -314,6 +327,12 @@ export class ProductService {
     if (input.additionalInfo !== undefined) {
       product.additionalInfo = input.additionalInfo;
     }
+    if (
+      product.visibility === ProductVisibility.INTERNAL &&
+      input.internalReferenceNumber !== undefined
+    ) {
+      product.internalReferenceNumber = input.internalReferenceNumber;
+    }
     if (convertedPrice !== undefined) {
       product.price = convertedPrice;
       product.isGiveaway = convertedPrice <= 0;
@@ -377,6 +396,25 @@ export class ProductService {
       product.projectId = input.projectId;
       if (!input.projectId) {
         product.project = null;
+      }
+    }
+
+    if (input.projectId) {
+      const project = await this.projectRepository.findOneBy({
+        id: input.projectId,
+      });
+      if (!project) throw BadUserInputException('Project not found');
+      const isInternalProduct =
+        product.visibility === ProductVisibility.INTERNAL;
+      const matchingInternalProject =
+        project.internalOrganizationId === product.internalOrganizationId;
+      if (
+        isInternalProduct !== !!project.internalOrganizationId ||
+        !matchingInternalProject
+      ) {
+        throw ForbiddenException(
+          'Project does not belong to this product context',
+        );
       }
     }
 
@@ -489,7 +527,9 @@ export class ProductService {
 
     //By this point we can validate the product, but only if it is to be published
     if (product.status === ProductStatus.PUBLISHED) {
-      await this.assertCanPublish(product.sellerId);
+      if (product.visibility !== ProductVisibility.INTERNAL) {
+        await this.assertCanPublish(product.sellerId);
+      }
 
       const parseResult = z
         .object({
@@ -543,7 +583,11 @@ export class ProductService {
         throw BadUserInputException('Product must have at least one image');
       }
 
-      if (!product.isGiveaway && product.price < minimumProductPrice) {
+      if (
+        product.visibility !== ProductVisibility.INTERNAL &&
+        !product.isGiveaway &&
+        product.price < minimumProductPrice
+      ) {
         logger.error({
           message: 'Too low price',
           price: product.price,
@@ -552,7 +596,11 @@ export class ProductService {
 
         throw BadUserInputException('Too low price');
       }
-      if (!product.isGiveaway && product.price > maximumProductPrice) {
+      if (
+        product.visibility !== ProductVisibility.INTERNAL &&
+        !product.isGiveaway &&
+        product.price > maximumProductPrice
+      ) {
         logger.error({
           message: 'Too high price',
           price: product.price,
@@ -566,28 +614,34 @@ export class ProductService {
         throw BadUserInputException('Product must specify quantity');
       }
 
-      //Transportation
-      if (
-        !product.pickupEnabled &&
-        !product.shippingPrices.length &&
-        !product.deliveryEnabled
-      ) {
-        logger.error('Product must have a transportation option', {
-          product,
-        });
-        throw BadUserInputException(
-          'Product must have a transportation option',
-        );
-      }
-      if (product.pickupEnabled || product.deliveryEnabled) {
+      // Internal ads are reserved within an organization and do not use the
+      // public pickup/shipping/delivery flow. In particular, an organization
+      // may not have an address set, so do not block internal-ad edits on the
+      // public transportation requirements.
+      if (product.visibility !== ProductVisibility.INTERNAL) {
         if (
-          (!product.address || !product.addressLocation) &&
-          !product.projectId
+          !product.pickupEnabled &&
+          !product.shippingPrices.length &&
+          !product.deliveryEnabled
         ) {
-          logger.error('Product must have an adress for pickup and delivery', {
+          logger.error('Product must have a transportation option', {
             product,
           });
-          throw BadUserInputException('Product missing address');
+          throw BadUserInputException(
+            'Product must have a transportation option',
+          );
+        }
+        if (product.pickupEnabled || product.deliveryEnabled) {
+          if (
+            (!product.address || !product.addressLocation) &&
+            !product.projectId
+          ) {
+            logger.error(
+              'Product must have an adress for pickup and delivery',
+              { product },
+            );
+            throw BadUserInputException('Product missing address');
+          }
         }
       }
     }
@@ -677,6 +731,13 @@ export class ProductService {
       input.onlyPublished
         ? `${productAlias}.status = 'PUBLISHED'`
         : `(${productAlias}.status = 'PUBLISHED' OR ${productAlias}.status = 'SOLD')`,
+    );
+    // Generic marketplace queries must never expose a private internal ad.
+    // Internal ads are queried exclusively through InternalAdsService, which
+    // applies organization membership checks. The explicit public opt-in is
+    // the only exception.
+    qb.andWhere(
+      `(${productAlias}.visibility = '${ProductVisibility.PUBLIC}' OR (${productAlias}.visibility = '${ProductVisibility.INTERNAL}' AND ${productAlias}."publiclyAvailable" = true))`,
     );
     qb.andWhere(`${productAlias}."hiddenReason" IS NULL`);
 
@@ -923,7 +984,10 @@ export class ProductService {
         `;
 
         query.andWhere(
-          `st_distancesphere(${product_address_location}, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(${product_address_location}))) <= :distance`,
+          `(
+            (${product_address_location} IS NOT NULL AND st_distancesphere(${product_address_location}, ST_SetSRID(ST_GeomFromGeoJSON(:origin), ST_SRID(${product_address_location}))) <= :distance)
+            OR (p.visibility = '${ProductVisibility.INTERNAL}' AND p."publiclyAvailable" = true)
+          )`,
           { origin, distance },
         );
       }
@@ -1043,8 +1107,38 @@ export class ProductService {
         throw BadUserInputException();
       }
     }
+    // Even an authorized organization member must use the internal-ad query.
+    // This prevents private ads from rendering on ordinary product routes.
+    this.assertMarketplaceProduct(product);
 
     return product;
+  }
+
+  assertMarketplaceProduct(product: Product) {
+    if (
+      product.visibility === ProductVisibility.INTERNAL &&
+      !product.publiclyAvailable
+    ) {
+      throw NotFoundException('Product not found');
+    }
+  }
+
+  private async canManageInternalProduct(product: Product, userId: string) {
+    const result = await this.dataSource.query(
+      `SELECT 1
+       FROM organization_membership
+       WHERE "organizationId" = $1
+         AND "userId" = $2
+         AND (role = $3 OR $4 = $2)
+       LIMIT 1`,
+      [
+        product.internalOrganizationId,
+        userId,
+        OrganizationMemberRole.ADMIN,
+        product.createdByUserId,
+      ],
+    );
+    return result.length > 0;
   }
 
   async isLikedBy(productId: string, userId?: string) {
@@ -1071,6 +1165,7 @@ export class ProductService {
     if (!product || !user) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     //If trying to like and not already liking, add user
     if (
@@ -1105,7 +1200,14 @@ export class ProductService {
     if (!product) {
       throw BadUserInputException();
     }
-    if (product.sellerId !== currentUserId) {
+    const canManageInternalProduct =
+      product.visibility === ProductVisibility.INTERNAL &&
+      (await this.canManageInternalProduct(product, currentUserId));
+    if (
+      product.visibility === ProductVisibility.INTERNAL
+        ? !canManageInternalProduct
+        : product.sellerId !== currentUserId
+    ) {
       throw ForbiddenException();
     }
     const canDelete = this.canDelete(product);
@@ -1131,8 +1233,11 @@ export class ProductService {
     if (!draft) {
       throw BadUserInputException();
     }
-    if (draft.status !== ProductStatus.DRAFT) {
-      throw BadUserInputException('Product is not draft');
+    if (
+      draft.status !== ProductStatus.DRAFT ||
+      draft.visibility !== ProductVisibility.PUBLIC
+    ) {
+      throw BadUserInputException('Product is not a public draft');
     }
     if (draft.sellerId !== currentUserId) {
       throw ForbiddenException();
@@ -1144,7 +1249,7 @@ export class ProductService {
 
   async address(product: Product) {
     if (product.projectId) {
-      const project = await this.projectService.findOne({
+      const project = await this.projectRepository.findOneBy({
         id: product.projectId,
       });
       if (!project) {
@@ -1156,7 +1261,7 @@ export class ProductService {
   }
   async location(product: Product) {
     if (product.projectId) {
-      const project = await this.projectService.findOne({
+      const project = await this.projectRepository.findOneBy({
         id: product.projectId,
       });
       if (!project) {
@@ -1231,6 +1336,7 @@ export class ProductService {
     if (!product || !input.postCode) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     return await Promise.all(
       product.shippingPrices.map(async (_shippingPrice) => {
@@ -1264,6 +1370,7 @@ export class ProductService {
     if (!product) {
       throw BadUserInputException();
     }
+    this.assertMarketplaceProduct(product);
 
     if (!product.deliveryEnabled) {
       return null;
@@ -1332,6 +1439,9 @@ export class ProductService {
 
         query.andWhere(`p."hiddenReason" IS NULL`);
         query.andWhere(`(p.status = 'PUBLISHED' OR p.status = 'SOLD')`);
+        query.andWhere('p.visibility = :visibility', {
+          visibility: ProductVisibility.PUBLIC,
+        });
         query.andWhere(
           '(c.id IN (:...categoryIds) OR c."parentId" IN (:...categoryIds))',
           { categoryIds },
@@ -1396,6 +1506,9 @@ export class ProductService {
       )
       .where('p.id != :similarToProductId', { similarToProductId })
       .andWhere(`p.status = '${ProductStatus.PUBLISHED}'`)
+      .andWhere('p.visibility = :visibility', {
+        visibility: ProductVisibility.PUBLIC,
+      })
       .andWhere('p."hiddenReason" IS NULL');
     query.addOrderBy('p.publishedAt', 'DESC');
 
@@ -1426,22 +1539,26 @@ export class ProductService {
       where: [
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           title: ILike(`%${searchString}%`),
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           seller: {
             username: ILike(`%${searchString}%`),
           },
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           seller: {
             email: ILike(`%${searchString}%`),
           },
         },
         {
           status: Not(ProductStatus.DRAFT),
+          visibility: ProductVisibility.PUBLIC,
           category: {
             name: ILike(`%${searchString}%`),
           },

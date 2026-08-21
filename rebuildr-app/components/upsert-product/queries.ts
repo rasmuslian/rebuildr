@@ -6,6 +6,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     title
     description
     additionalInfo
+    internalReferenceNumber
     price
     isGiveaway
     soldByQuantity
@@ -34,6 +35,7 @@ export const UPSERT_PRODUCT_PRODUCT_FRAGMENT = gql`
     availability
     estimatedAvailableAt
     availabilityPrecision
+    availableUntil
     availableUntil
     co2SavingSeller
     images {

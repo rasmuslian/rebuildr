@@ -1,17 +1,18 @@
 import {
+  ProductAvailabilityEnum,
   ProductConditionEnum,
   File as GqlFile,
   ProductStatusEnum,
   UpsertProductQuery,
-  UpsertProductQueryVariables,
   UpsertProductUpdateProductMutation,
   UpsertProductUpdateProductMutationVariables,
+  UpsertProductPublishInternalAdDraftsMutation,
+  UpsertProductPublishInternalAdDraftsMutationVariables,
   MeasurementUnitEnum,
   ColorTypeEnum,
   AnalyzeProductImagesMutation,
   AnalyzeProductImagesMutationVariables,
   CreateSellerAccountMutation,
-  ProductAvailabilityEnum,
 } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { BottomSheet } from "@components/bottom-sheet/bottom-sheet";
@@ -106,6 +107,25 @@ export const UPSERT_PRODUCT = gql`
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
 `;
 
+// Internal ads must be fetched through internalAd, which verifies that the
+// current user belongs to the owning organization. The public product query
+// intentionally rejects private internal ads.
+export const UPSERT_INTERNAL_PRODUCT = gql`
+  query UpsertInternalProduct($productId: String!) {
+    internalAd(productId: $productId) {
+      ...UpsertProductProductFragment
+    }
+    me {
+      id
+      isVerified
+      sellerAccount {
+        canReceivePayment
+      }
+    }
+  }
+  ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
+
 const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
   mutation UpsertProductUpdateProduct($input: UpdateProductInput!) {
     updateProduct(input: $input) {
@@ -117,6 +137,16 @@ const UPSERT_PRODUCT_UPDATE_PRODUCT = gql`
     }
   }
   ${UPSERT_PRODUCT_PRODUCT_FRAGMENT}
+`;
+
+const UPSERT_PRODUCT_PUBLISH_INTERNAL_AD_DRAFTS = gql`
+  mutation UpsertProductPublishInternalAdDrafts($productIds: [ID!]!) {
+    publishInternalAdDrafts(productIds: $productIds) {
+      id
+      status
+      internalValidationIssues
+    }
+  }
 `;
 
 const CREATE_SELLER_ACCOUNT = gql`
@@ -133,6 +163,7 @@ export const initialProduct: ProductFields = {
   title: undefined,
   description: undefined,
   additionalInfo: undefined,
+  internalReferenceNumber: undefined,
   price: undefined,
   primaryQuantity: undefined,
   primaryUnit: undefined,
@@ -191,8 +222,16 @@ type Props = {
   productId?: string;
   mode: "create" | "edit";
   visible: boolean;
+  inline?: boolean;
+  compact?: boolean;
+  importMode?: boolean;
   loading?: boolean;
+  internalMode?: boolean;
+  isNewInternalAd?: boolean;
   onHide: () => void;
+  onDelete?: () => void;
+  onInlineDraftSave?: (save: Promise<boolean | undefined>) => void;
+  onInternalLocationSaveStart?: () => void;
   onPublished: (product?: PublishedProductData) => void;
 };
 
@@ -200,8 +239,16 @@ export const UpsertProduct = ({
   productId,
   mode,
   visible,
+  inline = false,
+  compact = false,
+  importMode = false,
   loading,
+  internalMode = false,
+  isNewInternalAd = false,
   onHide,
+  onDelete,
+  onInlineDraftSave,
+  onInternalLocationSaveStart,
   onPublished,
 }: Props) => {
   const { isDesktop } = useScreenType();
@@ -212,6 +259,7 @@ export const UpsertProduct = ({
     "details" | "transportation" | "preview" | "onboarding"
   >("details");
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
 
@@ -223,20 +271,31 @@ export const UpsertProduct = ({
   const [showVerifyMe, setShowVerifyMe] = useState(false);
 
   const {
-    data,
+    data: queryData,
     loading: productLoading,
     refetch,
-  } = useQuery<UpsertProductQuery, UpsertProductQueryVariables>(
-    UPSERT_PRODUCT,
-    {
-      variables: { input: { id: productId ?? "" } },
-      skip: !productId,
-    },
-  );
+  } = useQuery(internalMode ? UPSERT_INTERNAL_PRODUCT : UPSERT_PRODUCT, {
+    variables: internalMode
+      ? { productId: productId ?? "" }
+      : { input: { id: productId ?? "" } },
+    skip: !productId,
+  });
+  const data = (
+    internalMode && queryData
+      ? { ...queryData, product: queryData.internalAd }
+      : queryData
+  ) as UpsertProductQuery | undefined;
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
   >(UPSERT_PRODUCT_UPDATE_PRODUCT, { refetchQueries: [GET_PROJECT] });
+  const [
+    publishInternalDrafts,
+    { loading: publishingInternal, error: publishInternalError },
+  ] = useMutation<
+    UpsertProductPublishInternalAdDraftsMutation,
+    UpsertProductPublishInternalAdDraftsMutationVariables
+  >(UPSERT_PRODUCT_PUBLISH_INTERNAL_AD_DRAFTS);
   const [
     analyzeImages,
     { loading: imageAnalyzeLoading, error: imageAnalyzeError },
@@ -290,7 +349,9 @@ export const UpsertProduct = ({
         title: dbProduct?.title || undefined,
         description: dbProduct?.description ?? undefined,
         additionalInfo: dbProduct?.additionalInfo ?? undefined,
-        price: dbProduct?.price || undefined,
+        internalReferenceNumber:
+          dbProduct?.internalReferenceNumber ?? undefined,
+        price: internalMode ? 0 : dbProduct?.price || undefined,
         primaryQuantity: dbProduct?.primaryQuantity ?? undefined,
         primaryUnit: dbProduct?.primaryUnit ?? undefined,
         secondaryQuantity: dbProduct?.secondaryQuantity ?? undefined,
@@ -307,7 +368,7 @@ export const UpsertProduct = ({
         diameterUnit: dbProduct?.diameterUnit ?? undefined,
         weight: dbProduct?.weight ?? undefined,
         weightUnit: dbProduct?.weightUnit ?? undefined,
-        isGiveaway: dbProduct?.isGiveaway,
+        isGiveaway: internalMode ? true : dbProduct?.isGiveaway,
         soldByQuantity: dbProduct?.soldByQuantity ?? undefined,
         priceSuggestionMin: dbProduct?.priceSuggestionMin ?? undefined,
         priceSuggestionMax: dbProduct?.priceSuggestionMax ?? undefined,
@@ -357,7 +418,7 @@ export const UpsertProduct = ({
       }
       setInitialized(true);
     };
-    if (data?.product) {
+    if (data?.product && !initialized) {
       //convert to productState
       productToState(data.product);
     }
@@ -365,8 +426,10 @@ export const UpsertProduct = ({
 
   //Find the first step that contains errors
   const firstStepWithErrors = (errorFields: FieldErrorsType) => {
-    const errorInDetails = Object.keys(errorFields).some((key) =>
-      detailsErrorFields.some((field) => field === key),
+    const errorInDetails = Object.keys(errorFields).some(
+      (key) =>
+        detailsErrorFields.some((field) => field === key) ||
+        (internalMode && ["availability", "location"].includes(key)),
     );
     if (errorInDetails) {
       setStep("details");
@@ -381,7 +444,7 @@ export const UpsertProduct = ({
   };
 
   const update = async (status?: ProductStatusEnum) => {
-    if (!data || updateDraftLoading) {
+    if (!data || updatingProduct || uploadingMedia || publishingInternal) {
       return;
     }
     const addFiles = (newFiles?: FileType[], currentFiles?: GqlFile[]) => {
@@ -417,7 +480,10 @@ export const UpsertProduct = ({
           title: product.title,
           description: product.description,
           additionalInfo: product.additionalInfo,
-          price: product.price,
+          internalReferenceNumber: internalMode
+            ? product.internalReferenceNumber
+            : undefined,
+          price: internalMode ? undefined : product.price,
           primaryQuantity: product.primaryQuantity,
           primaryUnit: product.primaryUnit,
           secondaryQuantity: product.secondaryQuantity ?? null,
@@ -434,7 +500,7 @@ export const UpsertProduct = ({
           diameterUnit: product.diameterUnit,
           weight: product.weight,
           weightUnit: product.weightUnit,
-          isGiveAway: product.isGiveaway,
+          isGiveAway: internalMode ? undefined : product.isGiveaway,
           soldByQuantity: product.soldByQuantity,
           //only send null (= remove category) when the db product actually
           //has a category to remove — a fresh photo-first draft has none yet
@@ -464,14 +530,16 @@ export const UpsertProduct = ({
           noProject: product.noProject,
 
           //transportation
-          pickupEnabled: product.pickupEnabled,
+          pickupEnabled: internalMode ? true : product.pickupEnabled,
           location: product.location
             ? { lat: product.location.lat, lng: product.location.lng }
             : undefined,
-          shippingPriceIds: product.shippingPrices.map((sp) => sp.id),
+          shippingPriceIds: internalMode
+            ? []
+            : product.shippingPrices.map((sp) => sp.id),
           deliveryRadius: product.deliveryRadius,
           deliveryPrice: product.deliveryPrice,
-          deliveryEnabled: product.deliveryEnabled,
+          deliveryEnabled: internalMode ? false : product.deliveryEnabled,
 
           status,
           availability: product.availability,
@@ -573,7 +641,52 @@ export const UpsertProduct = ({
       const saved = await update();
       if (!saved) return;
 
-      await analyzeImages({ variables: { input: { productId } } });
+      const analysis = await analyzeImages({
+        variables: { input: { productId } },
+      });
+      const analyzedProduct = analysis.data?.analyzeProductImages;
+      if (!analyzedProduct) return;
+
+      // The form is intentionally initialized only once, so cache updates from
+      // the mutation cannot replace the locally edited fields. Apply the AI
+      // result explicitly instead. This is especially important for internal
+      // ads, which use edit mode even when a fresh draft has just been created.
+      setProduct((currentProduct) => ({
+        ...currentProduct,
+        categoryIds: analyzedProduct.category
+          ? [
+              ...analyzedProduct.category.ancestorIds,
+              analyzedProduct.category.id,
+            ]
+          : currentProduct.categoryIds,
+        title: analyzedProduct.title ?? undefined,
+        description: analyzedProduct.description ?? undefined,
+        additionalInfo: analyzedProduct.additionalInfo ?? undefined,
+        priceSuggestionMin: analyzedProduct.priceSuggestionMin ?? undefined,
+        priceSuggestionMax: analyzedProduct.priceSuggestionMax ?? undefined,
+        primaryQuantity: analyzedProduct.primaryQuantity ?? undefined,
+        primaryUnit: analyzedProduct.primaryUnit ?? undefined,
+        secondaryQuantity: analyzedProduct.secondaryQuantity ?? undefined,
+        secondaryUnit: analyzedProduct.secondaryUnit ?? undefined,
+        height: analyzedProduct.height ?? undefined,
+        heightUnit: analyzedProduct.heightUnit ?? currentProduct.heightUnit,
+        width: analyzedProduct.width ?? undefined,
+        widthUnit: analyzedProduct.widthUnit ?? currentProduct.widthUnit,
+        length: analyzedProduct.length ?? undefined,
+        lengthUnit: analyzedProduct.lengthUnit ?? currentProduct.lengthUnit,
+        thickness: analyzedProduct.thickness ?? undefined,
+        thicknessUnit:
+          analyzedProduct.thicknessUnit ?? currentProduct.thicknessUnit,
+        diameter: analyzedProduct.diameter ?? undefined,
+        diameterUnit:
+          analyzedProduct.diameterUnit ?? currentProduct.diameterUnit,
+        weight: analyzedProduct.weight ?? undefined,
+        weightUnit: analyzedProduct.weightUnit ?? currentProduct.weightUnit,
+        color: analyzedProduct.color ?? undefined,
+        colorType: analyzedProduct.colorType ?? currentProduct.colorType,
+        condition: analyzedProduct.condition ?? currentProduct.condition,
+        brandId: analyzedProduct.brand?.id ?? undefined,
+      }));
     } finally {
       setAnalyzePending(false);
     }
@@ -588,18 +701,21 @@ export const UpsertProduct = ({
   //debounce so a burst of added images coalesces into ONE analysis over the
   //whole set — fewer AI calls (= fewer transient failures) and it matches the
   //"re-run on all images" intent better than one call per image
-  const reanalyzeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reanalyzeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   //mirrors the effect's guards so the analysis state is visible from the very
   //first render after an image is added — without this the category pickers
   //flash until the effect has run and update() has saved
+  const shouldAutoAnalyzeImages = mode === "create" || internalMode;
   const willAutoAnalyze =
-    mode === "create" &&
+    shouldAutoAnalyzeImages &&
     initialized &&
     imageCount > analyzedImageCount.current &&
     !imageAnalyzeLoading &&
     !analyzePending;
   useEffect(() => {
-    if (mode !== "create" || !initialized) {
+    if (!shouldAutoAnalyzeImages || !initialized) {
       return;
     }
     if (imageCount === 0) {
@@ -627,14 +743,31 @@ export const UpsertProduct = ({
       });
     }, 700);
     return () => clearTimeout(reanalyzeTimer.current);
-  }, [imageCount, initialized, imageAnalyzeLoading, analyzePending]);
+  }, [
+    imageCount,
+    initialized,
+    imageAnalyzeLoading,
+    analyzePending,
+    shouldAutoAnalyzeImages,
+  ]);
 
   const onSave = async (published: boolean) => {
-    const result = await update(
-      published ? ProductStatusEnum.Published : undefined,
-    );
-    if (result) {
+    if (actionLoading) return;
+
+    setActionLoading(true);
+    try {
+      const result = await update(
+        published && !internalMode ? ProductStatusEnum.Published : undefined,
+      );
+      if (!result) return;
+
       if (published) {
+        if (internalMode && data?.product.id) {
+          const publishResult = await publishInternalDrafts({
+            variables: { productIds: [data.product.id] },
+          });
+          if (publishResult.errors) return;
+        }
         trackEvent(GTMTagEnum.PUBLISH_PRODUCT, { mode });
         const publishedData: PublishedProductData = {
           productId: data?.product.id,
@@ -651,6 +784,8 @@ export const UpsertProduct = ({
       } else {
         onClose();
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -659,8 +794,8 @@ export const UpsertProduct = ({
       return 0;
     }
 
-    const totalMandatories = 7;
-    let obligatories = 0;
+    const totalMandatories = internalMode ? 7 : 7;
+    let obligatories = internalMode ? 1 : 0;
     if (product.images?.length) {
       obligatories += 1;
     }
@@ -680,6 +815,9 @@ export const UpsertProduct = ({
       obligatories += 1;
     }
     if (product.brandId) {
+      obligatories += 1;
+    }
+    if (internalMode && product.location) {
       obligatories += 1;
     }
 
@@ -777,22 +915,40 @@ export const UpsertProduct = ({
     onVerifyTransportation(newProduct);
     setProduct(newProduct);
   };
-  const onNextDetails = () => {
+  const onNextDetails = async () => {
     const result = onVerifyDetails(product);
-    if (result) {
-      setStep("transportation");
+    if (!result || actionLoading) return;
+
+    if (internalMode) {
+      if (!onVerifyTransportation(product, true)) return;
+      setActionLoading(true);
+      const save = update().finally(() => setActionLoading(false));
+      if (inline) {
+        onPublished();
+        onInlineDraftSave?.(save);
+        return;
+      }
+      if (await save) {
+        setStep("preview");
+      }
+      return;
     }
+    setStep("transportation");
   };
-  const onNextTransportation = () => {
+  const onNextTransportation = async () => {
     const result = onVerifyTransportation(product, true);
-    if (!result) return;
-    //the save must happen, but navigation shouldn't wait for it: the CO2
-    //figure in the preview is computed backend-side from the saved weight and
-    //category, and the mutation response refreshes the cached value when it
-    //lands. A failed save surfaces through the mutation's error state on the
-    //preview footer.
-    update().catch((e) => Sentry.captureException(e));
-    setStep("preview");
+    if (!result || actionLoading) return;
+
+    // Wait for the save before showing the preview, so the user receives
+    // clear feedback and the preview can use the latest server-side values.
+    setActionLoading(true);
+    try {
+      if (await update()) {
+        setStep("preview");
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
   const onVerifyDetails = (p?: ProductFields) => {
     if (!data) return;
@@ -805,10 +961,11 @@ export const UpsertProduct = ({
     delete badFields["title"];
     delete badFields["description"];
     delete badFields["primary"];
+    delete badFields["location"];
     if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
-    if (!_product.isGiveaway) {
+    if (!internalMode && !_product.isGiveaway) {
       if (_product.price === undefined) {
         badFields["price"] = `Ange pris (0 kr = bortskänkes)`;
       } else if (_product.price < data.product.minimumPrice) {
@@ -821,6 +978,9 @@ export const UpsertProduct = ({
     }
     if (!_product.description) {
       badFields["description"] = "Saknar Beskrivning";
+    }
+    if (internalMode && !_product.location) {
+      badFields["location"] = "Välj en plats för annonsen";
     }
     if (
       _product.primaryQuantity !== undefined &&
@@ -852,6 +1012,9 @@ export const UpsertProduct = ({
 
     delete badFields["delivery"];
     delete badFields["availability"];
+    // Location is validated with the ad details. Keeping its previous error
+    // here makes this separate validation step reject a newly saved location.
+    delete badFields["location"];
     if (
       _product.isGiveaway &&
       _product.deliveryEnabled &&
@@ -888,6 +1051,11 @@ export const UpsertProduct = ({
   const onVerifyPreview = async (freshData?: typeof data) => {
     const d = freshData ?? data;
     if (!d) return;
+
+    if (internalMode) {
+      onSave(true);
+      return;
+    }
 
     if (!d.me.isVerified) {
       setShowVerifyMe(true);
@@ -931,7 +1099,8 @@ export const UpsertProduct = ({
   };
 
   const showFooter = step === "preview";
-  const updateDraftLoading = updatingProduct || uploadingMedia;
+  const updateDraftLoading =
+    actionLoading || updatingProduct || uploadingMedia || publishingInternal;
   const isInitializing = loading || productLoading || !data || !initialized;
 
   const renderFooter = () => {
@@ -943,7 +1112,7 @@ export const UpsertProduct = ({
             gap: 6,
           }}
         >
-          {error && (
+          {(error || publishInternalError) && (
             <Body size="small" color="error">
               Något gick fel, vänligen gå tillbaka och se över alla fält
             </Body>
@@ -958,6 +1127,7 @@ export const UpsertProduct = ({
               label="Redigera"
               type="tonal"
               onPress={() => setStep("details")}
+              disabled={updateDraftLoading || createSellerAccountLoading}
               style={{ flex: 1 }}
             />
             <Button
@@ -980,10 +1150,16 @@ export const UpsertProduct = ({
       onClose={onDismissSheet}
       title={
         mode === "edit"
-          ? "Redigera annons"
+          ? isNewInternalAd
+            ? "Skapa annons"
+            : "Redigera annons"
           : step === "preview"
-            ? "Förhandsgranska annons"
-            : "Ny annons"
+            ? internalMode
+              ? "Förhandsgranska annons"
+              : "Förhandsgranska annons"
+            : internalMode
+              ? "Ny annons"
+              : "Ny annons"
       }
     />
   );
@@ -1002,10 +1178,25 @@ export const UpsertProduct = ({
             onNext={onNextDetails}
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
+            onClearLocationError={() => {
+              onInternalLocationSaveStart?.();
+              setFieldErrors((current) => {
+                if (!current?.location) return current;
+                const remainingErrors = { ...current };
+                delete remainingErrors.location;
+                return remainingErrors;
+              });
+            }}
             imageAnalyzeLoading={
               imageAnalyzeLoading || analyzePending || willAutoAnalyze
             }
             imageAnalyzeError={!!imageAnalyzeError}
+            loading={actionLoading}
+            internalMode={internalMode}
+            nextLabel={inline ? "Spara" : undefined}
+            onDelete={inline ? onDelete : undefined}
+            compact={compact}
+            importMode={importMode}
           />
         );
       case "transportation":
@@ -1017,13 +1208,21 @@ export const UpsertProduct = ({
             nextIsDisabled={
               !transportationProgress || transportationProgress < 100
             }
+            loading={actionLoading}
             updateProgress={(progress) => setTransportationProgress(progress)}
             onBack={() => setStep("details")}
             badFields={fieldErrors}
+            internalMode={internalMode}
           />
         );
       case "preview":
-        return <Preview product={product} dbProductId={data.product.id} />;
+        return (
+          <Preview
+            product={product}
+            dbProductId={data.product.id}
+            internalMode={internalMode}
+          />
+        );
       case "onboarding":
         return (
           <SellerOnboardingHandler
@@ -1037,6 +1236,14 @@ export const UpsertProduct = ({
     }
     return null;
   };
+
+  if (inline) {
+    return isInitializing ? (
+      <LoadingSpinner style={{ marginTop: 24 }} />
+    ) : (
+      <View>{viewChildren()}</View>
+    );
+  }
 
   if (isDesktop) {
     return (
@@ -1093,8 +1300,20 @@ export const UpsertProduct = ({
 
   return (
     <BottomSheet
-      title={mode === "edit" ? "Redigera annons" : "Ny annons"}
-      name={mode === "edit" ? "Redigera annons" : "Ny annons"}
+      title={
+        isNewInternalAd
+          ? "Skapa annons"
+          : mode === "edit"
+            ? "Redigera annons"
+            : "Ny annons"
+      }
+      name={
+        isNewInternalAd
+          ? "Skapa annons"
+          : mode === "edit"
+            ? "Redigera annons"
+            : "Ny annons"
+      }
       scrollable
       screenHeight
       open={visible}
