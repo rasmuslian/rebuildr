@@ -231,6 +231,7 @@ type Props = {
   onHide: () => void;
   onDelete?: () => void;
   onInlineDraftSave?: (save: Promise<boolean | undefined>) => void;
+  onInternalLocationSaveStart?: () => void;
   onPublished: (product?: PublishedProductData) => void;
 };
 
@@ -247,6 +248,7 @@ export const UpsertProduct = ({
   onHide,
   onDelete,
   onInlineDraftSave,
+  onInternalLocationSaveStart,
   onPublished,
 }: Props) => {
   const { isDesktop } = useScreenType();
@@ -1166,6 +1168,15 @@ export const UpsertProduct = ({
             onNext={onNextDetails}
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
+            onClearLocationError={() => {
+              onInternalLocationSaveStart?.();
+              setFieldErrors((current) => {
+                if (!current?.location) return current;
+                const remainingErrors = { ...current };
+                delete remainingErrors.location;
+                return remainingErrors;
+              });
+            }}
             imageAnalyzeLoading={
               imageAnalyzeLoading || analyzePending || willAutoAnalyze
             }

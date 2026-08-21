@@ -687,6 +687,13 @@ const ImportProductRow = ({
   onDraftSave: ImportPanelProps["onDraftSave"];
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [validationIssues, setValidationIssues] = useState(
+    product.internalValidationIssues,
+  );
+
+  useEffect(() => {
+    setValidationIssues(product.internalValidationIssues);
+  }, [product.internalValidationIssues]);
 
   return (
     <View
@@ -719,12 +726,10 @@ const ImportProductRow = ({
           <Body size="medium">{product.title || "Namnlös annons"}</Body>
           <Body
             size="small"
-            color={
-              product.internalValidationIssues.length ? "error" : "secondary"
-            }
+            color={validationIssues.length ? "error" : "secondary"}
           >
-            {product.internalValidationIssues.length
-              ? product.internalValidationIssues.join(", ")
+            {validationIssues.length
+              ? validationIssues.join(", ")
               : "Klar att skapa"}
           </Body>
         </View>
@@ -744,6 +749,11 @@ const ImportProductRow = ({
             onDelete={() => onDiscard(product.id)}
             onHide={() => setExpanded(false)}
             onInlineDraftSave={onDraftSave}
+            onInternalLocationSaveStart={() =>
+              setValidationIssues((issues) =>
+                issues.filter((issue) => issue !== "Plats saknas"),
+              )
+            }
             onPublished={() => {
               setExpanded(false);
             }}

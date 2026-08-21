@@ -15,26 +15,39 @@ import { ProductFields } from "./types";
 type Props = {
   product: ProductFields;
   update: (product: Partial<ProductFields>) => void;
+  onSaveStart?: () => void;
   error?: string;
 };
 
-export const InternalLocation = ({ product, update, error }: Props) => {
+export const InternalLocation = ({
+  product,
+  update,
+  onSaveStart,
+  error,
+}: Props) => {
   const [editing, setEditing] = useState(!product.address);
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
   const [getPlace, { loading }] = useLazyQuery<
     ExactAndApproximatePlaceQuery,
     ExactAndApproximatePlaceQueryVariables
   >(EXACT_AND_APPROXIMATE_PLACE);
 
   const onSave = async (lat: number, lng: number) => {
-    const { data } = await getPlace({ variables: { input: { lat, lng } } });
-    const place = data?.exactAndApproximatePlace;
-    if (!place) return;
-    update({
-      location: { lat: place.exact.lat, lng: place.exact.lng },
-      address: place.exact.address,
-      approximatePlace: place.approximate,
-    });
-    setEditing(false);
+    onSaveStart?.();
+    setIsSavingLocation(true);
+    try {
+      const { data } = await getPlace({ variables: { input: { lat, lng } } });
+      const place = data?.exactAndApproximatePlace;
+      if (!place) return;
+      update({
+        location: { lat: place.exact.lat, lng: place.exact.lng },
+        address: place.exact.address,
+        approximatePlace: place.approximate,
+      });
+      setEditing(false);
+    } finally {
+      setIsSavingLocation(false);
+    }
   };
 
   return (
@@ -65,7 +78,7 @@ export const InternalLocation = ({ product, update, error }: Props) => {
           saveLabel="Spara plats"
         />
       )}
-      {!!error && <Body color="error">{error}</Body>}
+      {!!error && !isSavingLocation && <Body color="error">{error}</Body>}
     </View>
   );
 };

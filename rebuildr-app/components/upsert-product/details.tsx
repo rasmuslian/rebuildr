@@ -39,6 +39,7 @@ type Props = {
   onNext: () => void;
   badFields?: { [key: string]: string };
   onAnalyzeImages: () => Promise<void>;
+  onClearLocationError: () => void;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
   internalMode?: boolean;
@@ -54,6 +55,7 @@ export const Details = ({
   onNext,
   badFields,
   onAnalyzeImages,
+  onClearLocationError,
   imageAnalyzeLoading,
   imageAnalyzeError,
   internalMode,
@@ -313,7 +315,8 @@ export const Details = ({
               <InternalLocation
                 product={product}
                 update={update}
-                error={badFields?.["location"]}
+                onSaveStart={onClearLocationError}
+                error={product.location ? undefined : badFields?.["location"]}
               />
               <ProjectChips product={product} update={update} internalMode />
               <AvailabilitySection
