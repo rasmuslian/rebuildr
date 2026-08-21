@@ -27,7 +27,9 @@ const EditGiveawayCategory = ({ category }: { category: Category }) => {
     mutationFn: updateGiveawayCategoryImage,
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     const image = getFileInputTypes(files)[0];
     if (!image) {
       notification.error({ message: "Välj en bild först." });

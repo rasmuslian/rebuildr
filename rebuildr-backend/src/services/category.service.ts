@@ -236,10 +236,17 @@ export class CategoryService {
     }
 
     try {
-      if (category.image) {
-        await this.fileService.deleteFiles([category.image]);
+      const image = await this.fileService.createFile(imageInput);
+      const previousImage = category.image;
+
+      if (previousImage) {
+        category.image = null;
+        category.imageId = undefined;
+        await this.categoryRepository.save(category);
+        await this.fileService.deleteFiles([previousImage]);
       }
-      category.image = await this.fileService.createFile(imageInput);
+
+      category.image = image;
       category.imageGenerationStatus =
         CategoryImageGenerationStatusEnum.GENERATED;
       category.imageGenerationError = null;
@@ -247,7 +254,7 @@ export class CategoryService {
 
       return {
         category,
-        imagePutUrl: await this.fileService.uploadFile(category.image, true),
+        imagePutUrl: await this.fileService.uploadFile(image, true),
       };
     } catch (error) {
       throw BadUserInputException(
