@@ -27,6 +27,7 @@ import { ShippingPrice } from './shipping-price.entity';
 import { ReportProduct } from './report-product.entity';
 import { MapPin } from './map-pin.entity';
 import { Conversation } from './conversation.entity';
+import { CmsAdImportBatch } from './cms-ad-import-batch.entity';
 import { InternalAdImportBatch } from './internal-ad-import-batch.entity';
 import { InternalAdReservation } from './internal-ad-reservation.entity';
 
@@ -512,6 +513,17 @@ export class Product {
     nullable: true,
   })
   internalAdImportBatch?: InternalAdImportBatch;
+
+  @Column({ nullable: true })
+  cmsAdImportBatchId?: string;
+  @ManyToOne(() => CmsAdImportBatch, (batch) => batch.products, {
+    nullable: true,
+  })
+  cmsAdImportBatch?: CmsAdImportBatch;
+
+  @Field(() => [String])
+  @Column({ type: 'text', array: true, default: () => "'{}'" })
+  cmsImportValidationIssues: string[];
 
   //--------------Life cycle logic----------------
   private _previousStatus?: ProductStatus;

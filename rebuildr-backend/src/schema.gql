@@ -413,6 +413,33 @@ enum MeasurementTypeEnum {
   WEIGHT
 }
 
+type CmsAdImportBatch {
+  id: ID!
+  sellerId: String!
+  defaultAddress: String
+  defaultPickupEnabled: Boolean!
+  defaultDeliveryEnabled: Boolean!
+  defaultDeliveryRadius: Float
+  defaultDeliveryPrice: Float
+  defaultShippingPriceId: String
+  createdByUserId: String!
+  status: CmsAdImportBatchStatusEnum!
+  progress: Int!
+  errorMessage: String
+  products: [Product!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum CmsAdImportBatchStatusEnum {
+  UPLOADING
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+  PUBLISHED
+}
+
 type InternalAdImportBatch {
   id: ID!
   organizationId: String!
@@ -506,6 +533,7 @@ type Product {
   noProject: Boolean
   co2SavingBuyer: Float
   co2SavingSeller: Float
+  cmsImportValidationIssues: [String!]!
   category: Category
   seller: User!
   primaryImage: File
@@ -1120,6 +1148,11 @@ type PaginatedInternalProjectsResponse {
   total: Int!
 }
 
+type CreateCmsAdImportBatchResponse {
+  batch: CmsAdImportBatch!
+  uploadUrls: [String!]!
+}
+
 type Query {
   usernameIsValid(username: String!): Boolean!
   me: User!
@@ -1213,6 +1246,7 @@ type Query {
   organizationInvites: [OrganizationInvite!]!
   internalAdImportBatch(batchId: String!): InternalAdImportBatch!
   cmsInternalAds(input: CmsInternalAdsInput!): PaginatedProductsResponse!
+  cmsAdImportBatch(batchId: String!): CmsAdImportBatch!
 }
 
 input UserExistsInput {
@@ -1640,6 +1674,11 @@ type Mutation {
   markInternalAdSold(input: MarkInternalAdSoldInput!): Product!
   createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!): CreateInternalAdImportBatchResponse!
   startInternalAdImportBatch(batchId: String!): InternalAdImportBatch!
+  createCmsAdImportBatch(input: CreateCmsAdImportBatchInput!): CreateCmsAdImportBatchResponse!
+  startCmsAdImportBatch(batchId: String!): CmsAdImportBatch!
+  removeCmsAdImportBatch(batchId: String!): Boolean!
+  removeCmsImportedAdDraft(batchId: String!, productId: String!): Boolean!
+  publishCmsImportedAds(batchId: String!, productIds: [String!]!): [Product!]!
 }
 
 input RegisterUserInput {
@@ -2219,4 +2258,19 @@ input MarkInternalAdSoldInput {
 
 input CreateInternalAdImportBatchInput {
   files: [FileInputType!]!
+}
+
+input CreateCmsAdImportBatchInput {
+  sellerId: String!
+  files: [FileInputType!]!
+  deliveryDefaults: CmsAdImportDeliveryDefaultsInput
+}
+
+input CmsAdImportDeliveryDefaultsInput {
+  address: String
+  pickupEnabled: Boolean
+  deliveryEnabled: Boolean
+  deliveryRadius: Float
+  deliveryPrice: Float
+  shippingPriceId: String
 }

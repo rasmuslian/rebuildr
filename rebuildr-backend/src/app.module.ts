@@ -164,6 +164,9 @@ import { InternalAdReservation } from './entities/internal-ad-reservation.entity
 import { InternalAdImportBatch } from './entities/internal-ad-import-batch.entity';
 import { CreditsafeAPI } from './apis/creditsafe.api';
 import { CreditsafeService } from './services/creditsafe.service';
+import { CmsAdImportBatch } from './entities/cms-ad-import-batch.entity';
+import { CmsAdImportResolver } from './resolvers/cms-ad-import.resolver';
+import { CmsAdImportService } from './services/cms-ad-import.service';
 
 export interface RequestType {
   user?: AuthedUserType;
@@ -230,6 +233,7 @@ export interface RequestType {
       OrganizationInvite,
       InternalAdReservation,
       InternalAdImportBatch,
+      CmsAdImportBatch,
     ]),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -400,10 +404,12 @@ export interface RequestType {
     BankIDService,
     SearchEnrichmentService,
     InternalAdsService,
+    CmsAdImportService,
     InternalAdsResolver,
     OrganizationMembershipResolver,
     InternalAdReservationResolver,
     InternalAdImportBatchResolver,
+    CmsAdImportResolver,
     CreditsafeAPI,
     CreditsafeService,
   ],

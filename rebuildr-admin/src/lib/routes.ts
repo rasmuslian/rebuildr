@@ -9,6 +9,7 @@ export enum routes {
 
   LIST_PRODUCT = "/admin/product",
   CREATE_PRODUCT = "/admin/product/create",
+  IMPORT_PRODUCTS = "/admin/product/import",
   EDIT_PRODUCT = "/admin/product/edit",
 
   LIST_PROJECT = "/admin/project",
