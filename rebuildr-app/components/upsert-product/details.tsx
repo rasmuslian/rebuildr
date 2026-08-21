@@ -117,7 +117,7 @@ export const Details = ({
         paddingBottom: isDesktop && !showContinue ? 32 : 0,
       }}
     >
-      {!compact && !internalMode && (
+      {!compact && (
         <Body size="large">
           Börja med bilderna, så ger AI förslag på din annons. Ändra fritt innan
           du publicerar.
@@ -132,8 +132,8 @@ export const Details = ({
         }}
       />
       {/* Start minimal: nothing else until the first image is added */}
-      {!internalMode && hasImages && imageAnalyzeLoading && <AnalyzeProgress />}
-      {!internalMode && !compact && hasSuggestions && !imageAnalyzeLoading && (
+      {hasImages && imageAnalyzeLoading && <AnalyzeProgress />}
+      {!compact && hasSuggestions && !imageAnalyzeLoading && (
         <View
           style={{
             backgroundColor: colors.buttons.tonal.enabled,
@@ -154,8 +154,7 @@ export const Details = ({
           )}
         </View>
       )}
-      {!internalMode &&
-        !compact &&
+      {!compact &&
         imageAnalyzeError &&
         !imageAnalyzeLoading &&
         !hasSuggestions && (

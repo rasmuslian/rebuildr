@@ -85,6 +85,7 @@ export default function InternalAdDetailPage() {
   const [showPublicPricePrompt, setShowPublicPricePrompt] = useState(false);
   const [publicPrice, setPublicPrice] = useState("");
   const [publicPriceError, setPublicPriceError] = useState<string>();
+  const [publicPublishError, setPublicPublishError] = useState<string>();
   const [publicTransport, setPublicTransport] = useState<ProductFields>();
 
   const { data, loading, refetch } = useQuery<
@@ -157,13 +158,23 @@ export default function InternalAdDetailPage() {
     if (!product) return;
     if (!product.publiclyAvailable) {
       setPublicTransport(toPublicTransportFields(product));
+      const suggestedPrice =
+        product.priceSuggestionMin !== null &&
+        product.priceSuggestionMin !== undefined &&
+        product.priceSuggestionMax !== null &&
+        product.priceSuggestionMax !== undefined
+          ? Math.round(
+              (product.priceSuggestionMin + product.priceSuggestionMax) / 2,
+            )
+          : product.price;
       setPublicPrice(
         (product.publicPriceConfirmed
           ? product.price / 100
-          : product.price
+          : suggestedPrice
         ).toString(),
       );
       setPublicPriceError(undefined);
+      setPublicPublishError(undefined);
       setShowPublicPricePrompt(true);
       return;
     }
@@ -173,9 +184,10 @@ export default function InternalAdDetailPage() {
   const onConfirmPublicPrice = async () => {
     if (!/^\d+$/.test(publicPrice)) {
       setPublicPriceError("Ange ett pris på minst 0 kr.");
+      setPublicPublishError(undefined);
       return;
     }
-    if (!publicTransport) return;
+    if (!product || !publicTransport) return;
     const hasTransport =
       publicTransport.pickupEnabled ||
       publicTransport.deliveryEnabled ||
@@ -186,33 +198,36 @@ export default function InternalAdDetailPage() {
       !hasTransport ||
       (needsAddress && (!publicTransport.address || !publicTransport.location))
     ) {
-      setPublicPriceError(
+      setPublicPublishError(
         "Välj minst ett fraktalternativ och ange adress för avhämtning eller hemtransport.",
       );
       return;
     }
     setPublicPriceError(undefined);
+    setPublicPublishError(undefined);
     try {
-      await updatePublicTransport({
-        variables: {
-          input: {
-            id: product?.id,
-            pickupEnabled: publicTransport.pickupEnabled,
-            deliveryEnabled: publicTransport.deliveryEnabled,
-            deliveryPrice: publicTransport.deliveryPrice,
-            deliveryRadius: publicTransport.deliveryRadius,
-            location: publicTransport.location,
-            shippingPriceIds: publicTransport.shippingPrices.map(
-              (price) => price.id,
-            ),
+      if (hasPublicTransportChanges(product, publicTransport)) {
+        await updatePublicTransport({
+          variables: {
+            input: {
+              id: product.id,
+              pickupEnabled: publicTransport.pickupEnabled,
+              deliveryEnabled: publicTransport.deliveryEnabled,
+              deliveryPrice: publicTransport.deliveryPrice,
+              deliveryRadius: publicTransport.deliveryRadius,
+              location: publicTransport.location,
+              shippingPriceIds: publicTransport.shippingPrices.map(
+                (price) => price.id,
+              ),
+            },
           },
-        },
-      });
+        });
+      }
       await updatePublicAvailability(Number(publicPrice));
       setShowPublicPricePrompt(false);
     } catch {
       // Keep the sheet open so the user can correct missing transport details.
-      setPublicPriceError(
+      setPublicPublishError(
         "Kunde inte publicera annonsen. Kontrollera pris och fraktalternativ.",
       );
     }
@@ -338,7 +353,8 @@ export default function InternalAdDetailPage() {
           open={showPublicPricePrompt}
           price={publicPrice}
           transport={publicTransport}
-          error={publicPriceError}
+          priceError={publicPriceError}
+          error={publicPublishError}
           loading={makingPublic || savingPublicTransport}
           onChange={setPublicPrice}
           onTransportChange={(transport) => setPublicTransport(transport)}
@@ -432,7 +448,8 @@ export default function InternalAdDetailPage() {
         open={showPublicPricePrompt}
         price={publicPrice}
         transport={publicTransport}
-        error={publicPriceError}
+        priceError={publicPriceError}
+        error={publicPublishError}
         loading={makingPublic || savingPublicTransport}
         onChange={setPublicPrice}
         onTransportChange={(transport) => setPublicTransport(transport)}
@@ -447,6 +464,7 @@ type PublicPricePromptProps = {
   open: boolean;
   price: string;
   transport?: ProductFields;
+  priceError?: string;
   error?: string;
   loading: boolean;
   onChange: (price: string) => void;
@@ -459,6 +477,7 @@ const PublicPricePrompt = ({
   open,
   price,
   transport,
+  priceError,
   error,
   loading,
   onChange,
@@ -519,7 +538,7 @@ const PublicPricePrompt = ({
             value={price}
             onChange={onChange}
             placeholder="0"
-            error={!!error}
+            error={!!priceError}
           />
         </View>
         {transport && (
@@ -549,6 +568,11 @@ const PublicPricePrompt = ({
             </View>
           </Suspense>
         )}
+        {!!priceError && (
+          <Body size="small" color="error">
+            {priceError}
+          </Body>
+        )}
         {!!error && (
           <Body size="small" color="error">
             {error}
@@ -570,8 +594,24 @@ const toPublicTransportFields = (
     deliveryEnabled: product.deliveryEnabled,
     deliveryRadius: product.deliveryRadius ?? undefined,
     deliveryPrice: product.deliveryPrice ?? undefined,
-    shippingPrices: product.shippingPrices,
+    shippingPrices: product.shippingPrices ?? [],
   }) as ProductFields;
+
+const hasPublicTransportChanges = (
+  product: NonNullable<InternalAdDetailQuery["internalAd"]>,
+  transport: ProductFields,
+) =>
+  product.pickupEnabled !== transport.pickupEnabled ||
+  product.deliveryEnabled !== transport.deliveryEnabled ||
+  (product.deliveryPrice ?? undefined) !== transport.deliveryPrice ||
+  (product.deliveryRadius ?? undefined) !== transport.deliveryRadius ||
+  product.location?.lat !== transport.location?.lat ||
+  product.location?.lng !== transport.location?.lng ||
+  (product.shippingPrices ?? []).length !== transport.shippingPrices.length ||
+  (product.shippingPrices ?? []).some(
+    (shippingPrice) =>
+      !transport.shippingPrices.some((item) => item.id === shippingPrice.id),
+  );
 
 const InternalAdsTopBar = () => <InternalTopBar />;
 

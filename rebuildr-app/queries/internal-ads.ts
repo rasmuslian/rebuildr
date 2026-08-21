@@ -406,6 +406,8 @@ export const INTERNAL_AD_DETAIL = gql`
       internalValidationIssues
       createdByUserId
       price
+      priceSuggestionMin
+      priceSuggestionMax
       publiclyAvailable
       publicPriceConfirmed
       images {
