@@ -8,16 +8,29 @@ import { getItem, setItem } from "@/utils/async-storage";
 import { ReactiveVar, useReactiveVar } from "@apollo/client";
 import { useEffect } from "react";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
-import { useFilterProductScope } from "@context/filter-product-scope-context";
+import {
+  FilterProductScope,
+  isOwnFilterScope,
+  useFilterProductScope,
+} from "@context/filter-product-scope-context";
 
 const PRODUCT_FILTER_STORAGE_KEY = "product-filter";
 
 let hasHydratedProductFilter = false;
 
-export const useFilterProduct = () => {
-  const scope = useFilterProductScope();
+type Options = {
+  // For controls that act on the app-wide listing even while rendered inside a
+  // scoped one, such as a search that navigates to the global results page.
+  global?: boolean;
+};
+
+export const useFilterProduct = ({ global }: Options = {}) => {
+  const contextScope = useFilterProductScope();
+  const scope: FilterProductScope = global ? "public" : contextScope;
+  const ownScope = isOwnFilterScope(scope) ? scope : undefined;
   const filterVar =
-    scope === "internal" ? internalProductFilterVar : productFilterVar;
+    ownScope?.filterVar ??
+    (scope === "internal" ? internalProductFilterVar : productFilterVar);
   const filter = useReactiveVar(filterVar);
   const filterBuilder = new FilterBuilder(
     filter,

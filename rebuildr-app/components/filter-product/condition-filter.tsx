@@ -6,13 +6,19 @@ import { conditions } from "@constants/conditions";
 import { Pressable } from "react-native-gesture-handler";
 import { Check } from "@components/controls/check";
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import { FilterCount } from "./filter-count";
+import { useProductFacets } from "@hooks/useProductFacets";
 
 export const ConditionFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
+  const facets = useProductFacets();
+  // Inside a project, only what the project actually holds is worth listing.
   const values = () => {
-    return Object.values(ProductConditionEnum).map(
-      (c) => c,
-    ) as ProductConditionEnum[];
+    return (
+      Object.values(ProductConditionEnum) as ProductConditionEnum[]
+    ).filter(
+      (condition) => !facets.enabled || facets.conditionCount(condition) > 0,
+    );
   };
   return (
     <FilterSection
@@ -43,7 +49,16 @@ export const ConditionFilter = () => {
               }}
             >
               <View style={{ gap: 4, flex: 1 }}>
-                <Label size="medium">{conditions[condition].name}</Label>
+                <View style={{ flexDirection: "row" }}>
+                  <Label size="medium">{conditions[condition].name}</Label>
+                  <FilterCount
+                    count={
+                      facets.enabled
+                        ? facets.conditionCount(condition)
+                        : undefined
+                    }
+                  />
+                </View>
                 <Body size="medium">{conditions[condition].description}</Body>
               </View>
               <Check

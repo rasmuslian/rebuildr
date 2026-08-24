@@ -6,6 +6,8 @@ import { View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Body } from "@components/typography/text";
 import { Check } from "@components/controls/check";
+import { FilterCount } from "./filter-count";
+import { useProductFacets } from "@hooks/useProductFacets";
 
 const ROOT_CATEGORY_FILTER = gql`
   query RootCategoryFilter {
@@ -21,9 +23,15 @@ const ROOT_CATEGORY_FILTER = gql`
 
 export const RootCategoryFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
+  const facets = useProductFacets();
   const { data } = useQuery<RootCategoryFilterQuery>(ROOT_CATEGORY_FILTER);
 
-  const selectedCategories = data?.rootCategories.filter((category) =>
+  // Inside a project, only what the project actually holds is worth listing.
+  const categories = data?.rootCategories.filter(
+    (category) => !facets.enabled || facets.categoryCount(category.id) > 0,
+  );
+
+  const selectedCategories = categories?.filter((category) =>
     filter.rootCategoryIds?.some((id) => id === category.id),
   );
 
@@ -57,7 +65,7 @@ export const RootCategoryFilter = () => {
             <Check selected={filter.rootCategoryIds === undefined} />
           </View>
         </Pressable>
-        {data?.rootCategories.map((category, i) => (
+        {categories?.map((category, i) => (
           <Pressable
             key={i}
             onPress={() => {
@@ -71,7 +79,16 @@ export const RootCategoryFilter = () => {
                 alignItems: "center",
               }}
             >
-              <Body size="medium">{category.name}</Body>
+              <View style={{ flexDirection: "row" }}>
+                <Body size="medium">{category.name}</Body>
+                <FilterCount
+                  count={
+                    facets.enabled
+                      ? facets.categoryCount(category.id)
+                      : undefined
+                  }
+                />
+              </View>
               <Check
                 disabled={!filter.rootCategoryIds}
                 selected={

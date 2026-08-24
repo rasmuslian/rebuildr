@@ -4,24 +4,15 @@ import { useQuery } from "@apollo/client";
 import {
   GetProjectQuery,
   GetProjectQueryVariables,
-  ProductAvailabilityEnum,
   UserType,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
-import {
-  Display,
-  Label,
-  Body,
-  Title,
-  Headline,
-} from "@components/typography/text";
+import { Display, Label, Body, Headline } from "@components/typography/text";
 import { View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Avatar } from "@components/avatar/avatar";
 import { CompanyBadge } from "@components/badges/company-badge";
 import { Divider } from "@components/dividers/divider";
-import { AdGrid } from "@components/ad/ad-grid";
-import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useLikeProject } from "@hooks/useLikeProject";
 import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -32,11 +23,11 @@ import { Popup } from "@components/popup/popup";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { EditProject } from "./edit-project";
+import { ProjectProducts } from "./project-products";
 import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 import InteractiveMap from "@components/maps/interactive-map";
 
 export const ProjectDesktop = () => {
-  const { onToggleProductHeart } = useLikeProduct();
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
@@ -46,7 +37,7 @@ export const ProjectDesktop = () => {
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
     {
-      variables: { input: { id: projectId }, searchString: "", isLoggedIn },
+      variables: { input: { id: projectId }, isLoggedIn },
       onError: () => router.navigate("/"),
       skip: !projectId,
     },
@@ -56,7 +47,6 @@ export const ProjectDesktop = () => {
   const me = data?.me;
   const numberOfProducts = project?.products.length ?? 0;
   const user = project?.user;
-  const products = project?.products ?? [];
   const isMyProject = user && user.id === me?.id;
 
   const contactName = project?.contactName;
@@ -180,57 +170,12 @@ export const ProjectDesktop = () => {
             </View>
           </View>
           <Divider />
-          <View>
-            <Title size="medium">Annonser i projektet</Title>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              marginHorizontal: -8,
-            }}
-          >
-            {products.map((product) => {
-              return (
-                <View
-                  style={{
-                    flexBasis: "25%",
-                    paddingHorizontal: 8,
-                    paddingBottom: 16,
-                  }}
-                  key={product.id}
-                >
-                  <AdGrid
-                    id={product.id}
-                    imageUri={product.primaryImage?.url}
-                    liked={!!product.likedByMe}
-                    heart={project?.user.id !== me?.id}
-                    quantity={product.primaryQuantity}
-                    quantityUnit={product.primaryUnit}
-                    condition={product.condition}
-                    account={{
-                      rating: user?.rating,
-                      type: user?.type,
-                      location: product.approximatePlace?.address,
-                    }}
-                    title={product.title}
-                    price={product.price}
-                    soldByQuantity={product.soldByQuantity}
-                    status={product.status}
-                    upcoming={
-                      product.availability === ProductAvailabilityEnum.Upcoming
-                    }
-                    onHeartPress={() => {
-                      onToggleProductHeart({
-                        productId: product.id,
-                        likedByMe: !!product.likedByMe,
-                      });
-                    }}
-                  />
-                </View>
-              );
-            })}
-          </View>
+          <ProjectProducts
+            projectId={projectId}
+            header="Annonser i projektet"
+            user={user}
+            meId={me?.id}
+          />
         </View>
       )}
       <SlideInSheet

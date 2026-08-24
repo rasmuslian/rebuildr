@@ -1,4 +1,9 @@
 import { useFilterProduct } from "@hooks/useFilterProduct";
+import {
+  FilterProductScopeProvider,
+  isOwnFilterScope,
+  useFilterProductScope,
+} from "@context/filter-product-scope-context";
 import { View } from "react-native";
 import { FilterProduct } from "./filter-product";
 import { Button } from "@components/buttons/button";
@@ -11,6 +16,17 @@ type Props = {
 
 export const FilterBottomSheet = ({ open, onClose }: Props) => {
   const { filterBuilder } = useFilterProduct();
+  const scope = useFilterProductScope();
+
+  // The sheet body is portalled out of this subtree, so the scope has to be
+  // handed to it again or the controls would drive the global filter instead.
+  const filterProduct = isOwnFilterScope(scope) ? (
+    <FilterProductScopeProvider scope={scope}>
+      <FilterProduct />
+    </FilterProductScopeProvider>
+  ) : (
+    <FilterProduct />
+  );
 
   return (
     <BottomSheet
@@ -37,7 +53,7 @@ export const FilterBottomSheet = ({ open, onClose }: Props) => {
         </View>
       }
     >
-      <FilterProduct />
+      {filterProduct}
     </BottomSheet>
   );
 };

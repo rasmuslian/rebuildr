@@ -4,6 +4,8 @@ import { Fragment, useState } from "react";
 import { View } from "react-native";
 import { Body } from "@components/typography/text";
 import { Check } from "@components/controls/check";
+import { FilterCount } from "./filter-count";
+import { useProductFacets } from "@hooks/useProductFacets";
 import { Divider } from "@components/dividers/divider";
 import { gql, useQuery } from "@apollo/client";
 import { Brand, BrandFilterQuery, BrandTypeEnum } from "@/gql/graphql";
@@ -28,6 +30,7 @@ type BrandByLetter = {
 export const BrandFilter = () => {
   const [searchString, setSearchString] = useState("");
   const { filter, filterBuilder } = useFilterProduct();
+  const facets = useProductFacets();
 
   const { data } = useQuery<BrandFilterQuery>(BRAND_FILTER);
 
@@ -35,10 +38,15 @@ export const BrandFilter = () => {
     return <LoadingSpinner />;
   }
 
-  const regularBrands = data.brands.filter(
+  // Inside a project, only what the project actually holds is worth listing.
+  const brands = data.brands.filter(
+    (brand) => !facets.enabled || facets.brandCount(brand.id) > 0,
+  );
+
+  const regularBrands = brands.filter(
     (brand) => brand.type === BrandTypeEnum.Regular,
   );
-  const otherBrands = data.brands.filter(
+  const otherBrands = brands.filter(
     (brand) => brand.type === BrandTypeEnum.Other,
   );
 
@@ -101,7 +109,14 @@ export const BrandFilter = () => {
                   marginVertical: 8,
                 }}
               >
-                <Body size="medium">Okänt varumärke</Body>
+                <View style={{ flexDirection: "row" }}>
+                  <Body size="medium">Okänt varumärke</Body>
+                  <FilterCount
+                    count={
+                      facets.enabled ? facets.brandCount(brand.id) : undefined
+                    }
+                  />
+                </View>
                 <Check
                   selected={
                     filter.brandIds
@@ -149,7 +164,16 @@ export const BrandFilter = () => {
                           marginVertical: 8,
                         }}
                       >
-                        <Body size="medium">{brand.name}</Body>
+                        <View style={{ flexDirection: "row" }}>
+                          <Body size="medium">{brand.name}</Body>
+                          <FilterCount
+                            count={
+                              facets.enabled
+                                ? facets.brandCount(brand.id)
+                                : undefined
+                            }
+                          />
+                        </View>
                         <Check
                           selected={
                             filter.brandIds
