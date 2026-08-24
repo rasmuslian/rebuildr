@@ -1,5 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { router } from "expo-router";
+import { useState } from "react";
 import { View, ScrollView } from "react-native";
 import { ImageQuickLink } from "@components/buttons/imageQuickLink";
 import Placeholder from "@assets/images/placeholder.png";
@@ -10,6 +11,7 @@ import {
 } from "@/gql/graphql";
 import { useScreenType } from "@hooks/useScreenType";
 import { permanentSection } from "@constants/permanent-sections";
+import { buildSeasonLayout, MAX_CHIP_WIDTH } from "./season-layout";
 
 const FOR_THE_SEASON_CATEGORIES = gql`
   query ForTheSeasonCategories($input: CategoriesInput!) {
@@ -27,6 +29,7 @@ const FOR_THE_SEASON_CATEGORIES = gql`
 
 export const ForTheSeason = () => {
   const { isDesktop } = useScreenType();
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const { data } = useQuery<
     ForTheSeasonCategoriesQuery,
@@ -39,47 +42,28 @@ export const ForTheSeason = () => {
     },
   });
 
-  const screenTypeGap = isDesktop ? 12 : 8;
-
   const categories = data?.categories ?? [];
   if (categories.length < 1) return null;
 
+  const { rows, chipSize, gap, widestRowWidth, fitsWithoutScroll } =
+    buildSeasonLayout({ categories, containerWidth, isDesktop });
+
   type categoryType = ForTheSeasonCategoriesQuery["categories"][0];
 
-  const equallyDividedByWidth = categories.reduce(
-    (acc: categoryType[][], curr) => {
-      const firstHalf = acc[0].reduce((a, c) => a + c.name.length, 0);
-      const secondHalf = acc[1].reduce((a, c) => a + c.name.length, 0);
-      if (firstHalf > secondHalf) {
-        return [[...acc[0]], [...acc[1], curr]];
-      }
-      return [[...acc[0], curr], [...acc[1]]];
-    },
-    [[], []],
-  );
-  const sortedByWidth = [
-    ...equallyDividedByWidth[0],
-    ...equallyDividedByWidth[1],
-  ];
-  const rowOneWidth = equallyDividedByWidth[0].reduce(
-    (acc, curr) => acc + curr.name.length,
-    0,
-  );
-  const rowTwoWidth = equallyDividedByWidth[1].reduce(
-    (acc, curr) => acc + curr.name.length,
-    0,
-  );
-  const widestWidth = rowOneWidth > rowTwoWidth ? rowOneWidth : rowTwoWidth;
-  const chipWidthExcludingName = 16 + 16 + 40;
-  const rowWidth =
-    8 * widestWidth +
-    (chipWidthExcludingName + screenTypeGap) *
-      (widestWidth === rowOneWidth
-        ? equallyDividedByWidth[0].length
-        : equallyDividedByWidth[1].length);
+  const navigateToCategory = (category: categoryType) => {
+    router.navigate({
+      pathname: "/search/products/[categoryId]",
+      params: {
+        categoryId: category.id,
+      },
+    });
+  };
 
   return (
-    <View style={{ paddingVertical: 16, gap: 16 }}>
+    <View
+      style={{ paddingVertical: 16, gap: 16 }}
+      onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
+    >
       <SectionHeader
         onPress={() => {
           router.navigate("/search/in-season");
@@ -88,35 +72,49 @@ export const ForTheSeason = () => {
       >
         {permanentSection.forTheSeason.title}
       </SectionHeader>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -16 }}
-        contentContainerStyle={{
-          flexDirection: "row",
-          paddingHorizontal: 16,
-          gap: screenTypeGap,
-          width: isDesktop ? "100%" : rowWidth + 80,
-          flexWrap: "wrap",
-        }}
-      >
-        {sortedByWidth.map((category) => (
-          <ImageQuickLink
-            key={category.id}
-            accessibilityRole="link"
-            onPress={() => {
-              router.navigate({
-                pathname: "/search/products/[categoryId]",
-                params: {
-                  categoryId: category.id,
-                },
-              });
-            }}
-            source={category.image ? category.image.url : Placeholder.uri}
-            label={category.name}
-          />
-        ))}
-      </ScrollView>
+      {fitsWithoutScroll ? (
+        <View style={{ gap }}>
+          {rows.map((row, index) => (
+            <View key={index} style={{ flexDirection: "row", gap }}>
+              {row.map((category) => (
+                <ImageQuickLink
+                  key={category.id}
+                  accessibilityRole="link"
+                  onPress={() => navigateToCategory(category)}
+                  source={category.image ? category.image.url : Placeholder.uri}
+                  label={category.name}
+                  size={chipSize}
+                  style={{ flexGrow: 1, maxWidth: MAX_CHIP_WIDTH }}
+                />
+              ))}
+            </View>
+          ))}
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -16 }}
+          contentContainerStyle={{
+            flexDirection: "row",
+            paddingHorizontal: 16,
+            gap,
+            width: widestRowWidth + 80,
+            flexWrap: "wrap",
+          }}
+        >
+          {rows.flat().map((category) => (
+            <ImageQuickLink
+              key={category.id}
+              accessibilityRole="link"
+              onPress={() => navigateToCategory(category)}
+              source={category.image ? category.image.url : Placeholder.uri}
+              label={category.name}
+              size={chipSize}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
