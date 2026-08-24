@@ -14,6 +14,8 @@ const envSchema = z.object({
   SPACES_SECRET: z.string().min(1),
   MAILGUN_API_KEY: z.string().min(1),
   MAILGUN_DOMAIN: z.string().min(1).default('rebuildr.se'),
+  GA4_PROPERTY_ID: z.string().optional(),
+  GA4_SERVICE_ACCOUNT_KEY: z.string().optional(),
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
     .default('development'),

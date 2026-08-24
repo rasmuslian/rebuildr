@@ -2,9 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,34 +13,34 @@ import {
 
 import {
   axisProps,
-  barProps,
   CHART_COLORS,
   CHART_MARGIN,
   formatChartDate,
   gridProps,
   GroupBy,
+  lineProps,
   tooltipFormatter,
   tooltipProps,
 } from "@/components/statistics/chart-theme";
-import { formatNumber } from "@/components/statistics/format";
-import { getProductStatistics } from "@/queries/product/product-statistics";
+import { formatPercent } from "@/components/statistics/format";
 import ChartCard from "@/components/ui/chart-card";
+import { getRepeatBuyerRate } from "@/queries/statistics/repeat-buyer-rate";
 
-interface ProductStatisticsChartProps {
+interface RepeatBuyerRateChartProps {
   from: string;
   to: string;
   groupBy: GroupBy;
 }
 
-const ProductStatisticsChart = ({
+const RepeatBuyerRateChart = ({
   from,
   to,
   groupBy,
-}: ProductStatisticsChartProps) => {
+}: RepeatBuyerRateChartProps) => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["product-statistics", groupBy, from, to],
+    queryKey: ["repeat-buyer-rate", groupBy, from, to],
     queryFn: () =>
-      getProductStatistics(
+      getRepeatBuyerRate(
         groupBy.toLowerCase() as "day" | "week" | "month",
         from,
         to,
@@ -50,30 +50,37 @@ const ProductStatisticsChart = ({
   const chartData =
     data?.data.map((point) => ({
       date: formatChartDate(point.date, groupBy),
-      count: point.count,
+      percent: Number(point.percent.toFixed(1)),
     })) ?? [];
 
   return (
     <ChartCard
-      title="Annonser skapade över tid"
+      title="Andel återkommande köpare"
+      subtitle="Andel av köpen som gjordes av en tidigare köpare"
+      hint="Ett köp räknas som återkommande om köparen har genomfört minst ett köp tidigare. Högre andel = starkare lojalitet."
       loading={isLoading}
       error={isError}
       isEmpty={!chartData.length}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={CHART_MARGIN}>
+        <LineChart data={chartData} margin={CHART_MARGIN}>
           <CartesianGrid {...gridProps} />
           <XAxis dataKey="date" {...axisProps} />
-          <YAxis allowDecimals={false} {...axisProps} width={48} />
+          <YAxis
+            {...axisProps}
+            width={48}
+            domain={[0, 100]}
+            tickFormatter={(value: number) => `${value} %`}
+          />
           <Tooltip
             {...tooltipProps}
-            formatter={tooltipFormatter(formatNumber, "Annonser")}
+            formatter={tooltipFormatter(formatPercent, "Återkommande")}
           />
-          <Bar dataKey="count" fill={CHART_COLORS.primary} {...barProps} />
-        </BarChart>
+          <Line dataKey="percent" stroke={CHART_COLORS.primary} {...lineProps} />
+        </LineChart>
       </ResponsiveContainer>
     </ChartCard>
   );
 };
 
-export default ProductStatisticsChart;
+export default RepeatBuyerRateChart;

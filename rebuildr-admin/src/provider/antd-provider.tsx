@@ -36,6 +36,16 @@ const AntdProvider = ({ children }: PropsWithChildren) => {
           Spin: {
             colorPrimary: colors.accent_500,
           },
+          Card: {
+            borderRadiusLG: 12,
+          },
+          Table: {
+            headerBg: colors.ghost,
+            headerColor: colors.neutrals_600,
+          },
+          Tabs: {
+            titleFontSize: 15,
+          },
         },
       }}
     >

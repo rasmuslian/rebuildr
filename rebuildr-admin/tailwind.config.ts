@@ -71,7 +71,21 @@ const config: Config = {
         ...colors,
         success: colors.primary_900,
         error: colors.semantic_error_600,
-        gray: colors.neutrals_600,
+        //A scale, not a single value: `gray` used to be a flat string, which
+        //made every gray-100..900 utility (and Tailwind's default border
+        //color) resolve to nothing.
+        gray: {
+          DEFAULT: colors.neutrals_600,
+          100: colors.neutrals_100,
+          200: colors.neutrals_200,
+          300: colors.neutrals_300,
+          400: colors.neutrals_400,
+          500: colors.neutrals_500,
+          600: colors.neutrals_600,
+          700: colors.neutrals_700,
+          800: colors.neutrals_800,
+          900: colors.neutrals_900,
+        },
       },
       fontSize: {
         "display-large": ["45px", { lineHeight: "52px", fontWeight: "600" }],
