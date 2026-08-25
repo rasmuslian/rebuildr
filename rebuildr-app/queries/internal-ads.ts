@@ -222,8 +222,12 @@ export const INTERNAL_AD_MAP_POPUP = gql`
 `;
 
 export const CREATE_INTERNAL_AD_DRAFT = gql`
-  mutation CreateInternalAdDraft($organizationMemberId: ID!) {
-    createInternalAdDraft(organizationMemberId: $organizationMemberId) { id }
+  mutation CreateInternalAdDraft { createInternalAdDraft { id } }
+`;
+
+export const SET_INTERNAL_AD_RESPONSIBLE_MEMBER = gql`
+  mutation SetInternalAdResponsibleMember($productId: ID!, $organizationMemberId: ID!) {
+    setInternalAdResponsibleMember(productId: $productId, organizationMemberId: $organizationMemberId) { id }
   }
 `;
 

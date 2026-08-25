@@ -344,9 +344,22 @@ export class InternalAdsResolver {
   @UseGuards(GqlAuthGuard)
   async createInternalAdDraft(
     @CurrentUser() user: AuthedUserType,
+  ) {
+    return this.internalAdsService.createInternalDraft(user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async setInternalAdResponsibleMember(
+    @CurrentUser() user: AuthedUserType,
+    @Args('productId', { type: () => ID }) productId: string,
     @Args('organizationMemberId', { type: () => ID }) organizationMemberId: string,
   ) {
-    return this.internalAdsService.createInternalDraft(user.id, organizationMemberId);
+    return this.internalAdsService.setInternalAdResponsibleMember(
+      user.id,
+      productId,
+      organizationMemberId,
+    );
   }
 
   @Mutation(() => Boolean)

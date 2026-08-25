@@ -350,9 +350,8 @@ export class InternalAdsService {
     return true;
   }
 
-  async createInternalDraft(currentUserId: string, memberId: string) {
+  async createInternalDraft(currentUserId: string) {
     const context = await this.getOrganizationContext(currentUserId);
-    const member = await this.findOrganizationMember(context.organization.id, memberId);
     const product = new Product();
     product.title = '';
     product.price = 0;
@@ -362,13 +361,26 @@ export class InternalAdsService {
     product.internalOrganizationId = context.organization.id;
     product.seller = context.organization;
     product.sellerId = context.organization.id;
-    product.createdByOrganizationMemberId = member.id;
-    product.createdByOrganizationMemberName = member.name;
-    product.createdByOrganizationMemberEmail = member.email;
     product.address = context.organization.address;
     product.addressLocation = context.organization.addressLocation;
     product.pickupEnabled = true;
     product.internalValidationIssues = this.validateInternalProduct(product);
+    return this.productRepository.save(product);
+  }
+
+  async setInternalAdResponsibleMember(
+    currentUserId: string,
+    productId: string,
+    organizationMemberId: string,
+  ) {
+    const product = await this.internalAd(currentUserId, productId);
+    const member = await this.findOrganizationMember(
+      product.internalOrganizationId!,
+      organizationMemberId,
+    );
+    product.createdByOrganizationMemberId = member.id;
+    product.createdByOrganizationMemberName = member.name;
+    product.createdByOrganizationMemberEmail = member.email;
     return this.productRepository.save(product);
   }
 
@@ -767,7 +779,12 @@ export class InternalAdsService {
     const invalidProducts = products
       .map((product) => ({
         product,
-        issues: this.validateInternalProduct(product),
+        issues: [
+          ...this.validateInternalProduct(product),
+          ...(product.createdByOrganizationMemberId
+            ? []
+            : ['Välj vem som lagt upp annonsen']),
+        ],
       }))
       .filter(({ issues }) => issues.length > 0);
     if (invalidProducts.length) {

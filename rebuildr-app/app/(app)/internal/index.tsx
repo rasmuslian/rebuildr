@@ -53,7 +53,6 @@ import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   ImageBackground,
   Pressable,
@@ -165,25 +164,13 @@ export default function InternalAdsPage() {
   const batchCreation = useRef<ReturnType<typeof createBatch> | null>(null);
 
   const onCreateInternalAd = useCallback(async () => {
-    const members = membersData?.organizationMembers ?? [];
-    if (!members.length) {
-      router.navigate("/internal/members");
-      return;
-    }
-    const createForMember = async (organizationMemberId: string) => {
-      const result = await createDraft({ variables: { organizationMemberId } });
-      const productId = result.data?.createInternalAdDraft.id;
-      if (!productId) return;
-      setEditorProductId(productId);
-      setIsNewInternalAd(true);
-      setShowEditor(true);
-    };
-    if (members.length === 1) return createForMember(members[0].id);
-    Alert.alert("Vem lägger upp annonsen?", undefined, members.map((member) => ({
-      text: member.name,
-      onPress: () => createForMember(member.id),
-    })));
-  }, [createDraft, membersData?.organizationMembers]);
+    const result = await createDraft();
+    const productId = result.data?.createInternalAdDraft.id;
+    if (!productId) return;
+    setEditorProductId(productId);
+    setIsNewInternalAd(true);
+    setShowEditor(true);
+  }, [createDraft]);
 
   useEffect(() => {
     if (params.action !== "create" || !params.t) return;
@@ -709,6 +696,7 @@ export default function InternalAdsPage() {
           visible={showEditor}
           internalMode
           isNewInternalAd={isNewInternalAd}
+          organizationMembers={membersData?.organizationMembers ?? []}
           onHide={() => setShowEditor(false)}
           onPublished={async () => {
             setShowEditor(false);

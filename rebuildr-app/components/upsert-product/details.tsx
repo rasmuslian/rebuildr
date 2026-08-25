@@ -1,6 +1,7 @@
 import { Pressable, View } from "react-native";
 import { Toggle } from "@components/controls/toggle";
 import { Form } from "@components/forms/form";
+import { SelectInput } from "@components/forms/selectInput";
 import { BrandSection } from "@components/product/brand-section";
 import { CategorySection } from "@components/product/category-section";
 import { ConditionSection } from "@components/product/condition-section";
@@ -48,6 +49,9 @@ type Props = {
   onDelete?: () => void;
   compact?: boolean;
   importMode?: boolean;
+  organizationMembers?: { id: string; name: string }[];
+  organizationMemberId?: string;
+  onOrganizationMemberSelect?: (id: string) => void;
 };
 
 export const Details = ({
@@ -65,6 +69,9 @@ export const Details = ({
   onDelete,
   compact = false,
   importMode = false,
+  organizationMembers = [],
+  organizationMemberId,
+  onOrganizationMemberSelect,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
@@ -326,6 +333,26 @@ export const Details = ({
                 update={update}
                 error={badFields?.["availability"]}
               />
+              {!!onOrganizationMemberSelect && (
+                <View style={{ gap: 6 }}>
+                  <Label size="medium">Vem lägger upp annonsen?</Label>
+                  <SelectInput
+                    value={organizationMemberId}
+                    options={organizationMembers.map((member) => ({
+                      value: member.id,
+                      label: member.name,
+                    }))}
+                    onSelect={onOrganizationMemberSelect}
+                    placeholder="Välj person"
+                    error={!!badFields?.["organizationMember"]}
+                  />
+                  {!!badFields?.["organizationMember"] && (
+                    <Body size="small" color="error">
+                      {badFields.organizationMember}
+                    </Body>
+                  )}
+                </View>
+              )}
             </>
           )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>

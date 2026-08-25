@@ -1677,7 +1677,8 @@ type Mutation {
   createOrganizationMember(input: CreateOrganizationMemberInput!): OrganizationMember!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): OrganizationMember!
   removeOrganizationMember(memberId: ID!): Boolean!
-  createInternalAdDraft(organizationMemberId: ID!): Product!
+  createInternalAdDraft: Product!
+  setInternalAdResponsibleMember(productId: ID!, organizationMemberId: ID!): Product!
   removeInternalAdDraft(productId: String!): Boolean!
   removeInternalAdImportBatch(batchId: String!): Boolean!
   publishInternalAdDrafts(productIds: [ID!]!): [Product!]!

@@ -293,11 +293,6 @@ const InternalMenu = ({
             href="/internal/projects"
             onClose={onClose}
           />
-          <InternalMenuEntry
-            label="Organisationsmedlemmar"
-            href="/internal/members"
-            onClose={onClose}
-          />
         </>
       )}
       {showMemberManagement && (

@@ -40,6 +40,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Details } from "./details";
 import { GET_PROJECT } from "@/queries";
+import { SET_INTERNAL_AD_RESPONSIBLE_MEMBER } from "@/queries/internal-ads";
 import { GTMTagEnum } from "@constants/google-tag-manager";
 import { VerifyMeBottomSheet } from "@components/verify-me/verify-me-bottomsheet";
 
@@ -228,6 +229,7 @@ type Props = {
   loading?: boolean;
   internalMode?: boolean;
   isNewInternalAd?: boolean;
+  organizationMembers?: { id: string; name: string; email: string }[];
   onHide: () => void;
   onDelete?: () => void;
   onInlineDraftSave?: (save: Promise<boolean | undefined>) => void;
@@ -245,6 +247,7 @@ export const UpsertProduct = ({
   loading,
   internalMode = false,
   isNewInternalAd = false,
+  organizationMembers = [],
   onHide,
   onDelete,
   onInlineDraftSave,
@@ -262,6 +265,7 @@ export const UpsertProduct = ({
   const [actionLoading, setActionLoading] = useState(false);
   const [showHandleDraft, setShowHandleDraft] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsType>();
+  const [organizationMemberId, setOrganizationMemberId] = useState<string>();
 
   //progress
   const [transportationProgress, setTransportationProgress] = useState<
@@ -285,6 +289,7 @@ export const UpsertProduct = ({
       ? { ...queryData, product: queryData.internalAd }
       : queryData
   ) as UpsertProductQuery | undefined;
+  const [setResponsibleMember] = useMutation(SET_INTERNAL_AD_RESPONSIBLE_MEMBER);
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -962,6 +967,7 @@ export const UpsertProduct = ({
     delete badFields["description"];
     delete badFields["primary"];
     delete badFields["location"];
+    delete badFields["organizationMember"];
     if (_product.images && !_product.images.length) {
       badFields["images"] = "Måste bifoga minst en bild";
     }
@@ -981,6 +987,10 @@ export const UpsertProduct = ({
     }
     if (internalMode && !_product.location) {
       badFields["location"] = "Välj en plats för annonsen";
+    }
+    if (internalMode && isNewInternalAd && !organizationMemberId) {
+      badFields["organizationMember"] =
+        "Välj vem som lägger upp annonsen";
     }
     if (
       _product.primaryQuantity !== undefined &&
@@ -1052,7 +1062,18 @@ export const UpsertProduct = ({
     const d = freshData ?? data;
     if (!d) return;
 
-    if (internalMode) {
+    if (internalMode && isNewInternalAd) {
+      if (!organizationMemberId) {
+        setFieldErrors((current) => ({
+          ...current,
+          organizationMember: "Välj vem som lägger upp annonsen",
+        }));
+        setStep("details");
+        return;
+      }
+      await setResponsibleMember({
+        variables: { productId: d.product.id, organizationMemberId },
+      });
       onSave(true);
       return;
     }
@@ -1197,6 +1218,23 @@ export const UpsertProduct = ({
             onDelete={inline ? onDelete : undefined}
             compact={compact}
             importMode={importMode}
+            organizationMembers={
+              internalMode && isNewInternalAd ? organizationMembers : undefined
+            }
+            organizationMemberId={organizationMemberId}
+            onOrganizationMemberSelect={
+              internalMode && isNewInternalAd
+                ? (id) => {
+                    setOrganizationMemberId(id);
+                    setFieldErrors((current) => {
+                      if (!current?.organizationMember) return current;
+                      const remaining = { ...current };
+                      delete remaining.organizationMember;
+                      return remaining;
+                    });
+                  }
+                : undefined
+            }
           />
         );
       case "transportation":
