@@ -31,6 +31,9 @@ const CreateBanner = () => {
       title: "",
       presetBackground: "REBUILDR",
       backgroundImage: [],
+      logo: [],
+      placements: ["STANDARD"],
+      ctaText: "",
       destinationType: "none",
       url: "",
       showFrom: dayjs(),
@@ -61,13 +64,18 @@ const CreateBanner = () => {
   });
 
   const buildInput = (formData: BannerSchemaType): CmsCreateBannerInput => ({
-    label: formData.label,
+    label: formData.label || null,
     title: formData.title,
-    presetBackground: formData.presetBackground as CmsCreateBannerInput["presetBackground"],
-    backgroundImage:
-      formData.backgroundImage?.length
-        ? getFileInputTypes(formData.backgroundImage)[0]
-        : undefined,
+    presetBackground:
+      formData.presetBackground as CmsCreateBannerInput["presetBackground"],
+    backgroundImage: formData.backgroundImage?.length
+      ? getFileInputTypes(formData.backgroundImage)[0]
+      : undefined,
+    logo: formData.logo?.length
+      ? getFileInputTypes(formData.logo)[0]
+      : undefined,
+    placements: formData.placements as CmsCreateBannerInput["placements"],
+    ctaText: formData.ctaText || undefined,
     url: formData.destinationType === "url" ? formData.url : undefined,
     action:
       formData.destinationType === "action"
@@ -82,6 +90,9 @@ const CreateBanner = () => {
 
     if (response?.imagePutUrl) {
       await uploadFiles([response.imagePutUrl], formData.backgroundImage ?? []);
+    }
+    if (response?.logoPutUrl) {
+      await uploadFiles([response.logoPutUrl], formData.logo ?? []);
     }
   };
 

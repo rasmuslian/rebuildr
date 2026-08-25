@@ -10,6 +10,13 @@ const query = `
       url
       action
       presetBackground
+      placements
+      ctaText
+      logo {
+        id
+        url
+        name
+      }
       backgroundImage {
         id
         url

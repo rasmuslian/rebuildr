@@ -10,6 +10,11 @@ const query = `
       url
       action
       presetBackground
+      placements
+      logo {
+        id
+        url
+      }
       backgroundImage {
         id
         url

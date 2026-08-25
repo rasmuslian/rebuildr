@@ -31,6 +31,12 @@ const presetBackgroundOptions = [
 
 const actionOptions = [{ label: "Sälj", value: "SELL" }];
 
+const placementOptions = [
+  { label: "Standard", value: "STANDARD" },
+  { label: "Slutbanner", value: "END" },
+  { label: "Produkt inline", value: "PRODUCT_INLINE" },
+];
+
 const BannerForm = ({
   title,
   onSubmit,
@@ -41,6 +47,10 @@ const BannerForm = ({
   isPending,
 }: Props) => {
   const destinationType = useWatch({ control, name: "destinationType" });
+  const placements = useWatch({ control, name: "placements" });
+  const hasCtaPlacement = placements?.some((placement) =>
+    ["END", "PRODUCT_INLINE"].includes(placement),
+  );
 
   return (
     <AdminForm title={title} type="raised" onSubmit={handleSubmit(onSubmit)}>
@@ -48,7 +58,7 @@ const BannerForm = ({
         control={control}
         name="label"
         render={({ field }) => (
-          <FormField label="Label" error={errors.label?.message} required>
+          <FormField label="Label" error={errors.label?.message}>
             <Input {...field} placeholder="T.ex. RebuildR hub" />
           </FormField>
         )}
@@ -60,6 +70,25 @@ const BannerForm = ({
         render={({ field }) => (
           <FormField label="Titel" error={errors.title?.message} required>
             <Input {...field} placeholder="T.ex. Hitta en hub nära dig" />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="placements"
+        render={({ field }) => (
+          <FormField
+            label="Placeringar"
+            error={errors.placements?.message}
+            required
+          >
+            <Select
+              {...field}
+              mode="multiple"
+              options={placementOptions}
+              placeholder="Välj var bannern ska visas"
+            />
           </FormField>
         )}
       />
@@ -94,6 +123,28 @@ const BannerForm = ({
           </FormField>
         )}
       />
+
+      <Controller
+        control={control}
+        name="logo"
+        render={({ field: { value, onChange } }) => (
+          <FormField label="Logotyp" error={errors.logo?.message}>
+            <UploadImage files={value} setFiles={onChange} crop={false} />
+          </FormField>
+        )}
+      />
+
+      {hasCtaPlacement && (
+        <Controller
+          control={control}
+          name="ctaText"
+          render={({ field }) => (
+            <FormField label="CTA-text" error={errors.ctaText?.message}>
+              <Input {...field} placeholder="T.ex. Läs mer" />
+            </FormField>
+          )}
+        />
+      )}
 
       <Controller
         control={control}
@@ -141,7 +192,11 @@ const BannerForm = ({
         control={control}
         name="showFrom"
         render={({ field }) => (
-          <FormField label="Visa från" error={errors.showFrom?.message as string} required>
+          <FormField
+            label="Visa från"
+            error={errors.showFrom?.message as string}
+            required
+          >
             <DatePicker {...field} style={{ width: "100%" }} />
           </FormField>
         )}
@@ -156,7 +211,11 @@ const BannerForm = ({
             error={errors.showTo?.message as string}
             description="Lämna tomt för att visa tills vidare"
           >
-            <DatePicker {...field} value={field.value ?? null} style={{ width: "100%" }} />
+            <DatePicker
+              {...field}
+              value={field.value ?? null}
+              style={{ width: "100%" }}
+            />
           </FormField>
         )}
       />

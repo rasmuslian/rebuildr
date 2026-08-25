@@ -41,6 +41,10 @@ const BANNERS = gql`
       id
       label
       title
+      logo {
+        id
+        url
+      }
       presetBackground
       backgroundImage {
         id
@@ -194,7 +198,7 @@ const presetBackgroundImages: Partial<
   [BannerPresetBackground.Metallic]: require("@assets/images/banner-metallic.webp"),
 };
 
-const getBannerImageSource = (
+export const getBannerImageSource = (
   banner: BannerProps["banner"],
 ): ImageSource | null => {
   if (banner.backgroundImage?.url) {
@@ -234,6 +238,19 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
             }}
           />
         )}
+        {banner.logo?.url && (
+          <Image
+            source={{ uri: banner.logo.url }}
+            contentFit="contain"
+            style={{
+              position: "absolute",
+              top: 16,
+              right: insetForArrows ? 72 : 24,
+              width: 64,
+              height: 40,
+            }}
+          />
+        )}
         <View
           style={{
             paddingVertical: 32,
@@ -242,12 +259,14 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
             gap: 12,
           }}
         >
-          <BannerPrompt
-            size={isDesktop ? "medium" : "small"}
-            style={{ color: colors.logo.background }}
-          >
-            {banner.label}
-          </BannerPrompt>
+          {!!banner.label && (
+            <BannerPrompt
+              size={isDesktop ? "medium" : "small"}
+              style={{ color: colors.logo.background }}
+            >
+              {banner.label}
+            </BannerPrompt>
+          )}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
             <BannerTitle
               size={isDesktop ? "medium" : "small"}
@@ -270,7 +289,7 @@ type BannerWrapperProps = {
   banner: BannersQuery["banners"][number];
 } & PropsWithChildren;
 
-const BannerWrapper = ({ banner, children }: BannerWrapperProps) => {
+export const BannerWrapper = ({ banner, children }: BannerWrapperProps) => {
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
   const { isLoggedIn } = useUser();

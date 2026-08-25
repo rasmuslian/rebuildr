@@ -1,8 +1,14 @@
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { AdGrid } from "@components/ad/ad-grid";
+import { ProductInlineBannerSlot } from "@components/banners/product-inline-banner";
 import { View } from "react-native";
 import { AdRowSectionQuery, ProductAvailabilityEnum } from "@/gql/graphql";
 import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
+
+type Product = AdRowSectionQuery["products"]["products"][number];
+type RowItem = Product | { id: "product-inline-banner"; isInlineBanner: true };
+
+const INLINE_BANNER_AFTER_PRODUCT_INDEX = 1;
 
 type Props = {
   data: AdRowSectionQuery;
@@ -13,6 +19,7 @@ type Props = {
     productId: string;
     likedByMe: boolean;
   }) => void;
+  showInlineBanner?: boolean;
 };
 
 export const AdRowSectionCarousel = ({
@@ -21,18 +28,34 @@ export const AdRowSectionCarousel = ({
   title,
   buttonTitle,
   onToggleProductHeart,
+  showInlineBanner = false,
 }: Props) => {
   if (!data || data.products.products.length < 1) return null;
+
+  const inlineBannerAfterIndex = Math.min(
+    INLINE_BANNER_AFTER_PRODUCT_INDEX,
+    data.products.products.length - 1,
+  );
+  const items: RowItem[] = data.products.products.flatMap((product, index) => {
+    if (!showInlineBanner || index !== inlineBannerAfterIndex) {
+      return [product];
+    }
+    return [product, { id: "product-inline-banner", isInlineBanner: true }];
+  });
 
   return (
     <View style={{ paddingTop: 16, paddingBottom: 24 }}>
       <HoriztalListSection
         title={title}
         buttonTitle={buttonTitle}
-        data={data?.products.products ?? []}
+        data={items}
         onPress={() => onPress()}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
+          if ("isInlineBanner" in item) {
+            return <ProductInlineBannerSlot />;
+          }
+
           return (
             <AdGrid
               id={item.id}

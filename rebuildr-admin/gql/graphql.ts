@@ -68,8 +68,11 @@ export type Banner = {
   action?: Maybe<BannerActionEnum>;
   backgroundImage?: Maybe<File>;
   createdAt: Scalars['DateTime']['output'];
+  ctaText?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  label: Scalars['String']['output'];
+  label?: Maybe<Scalars['String']['output']>;
+  logo?: Maybe<File>;
+  placements: Array<BannerPlacementEnum>;
   presetBackground: BannerPresetBackground;
   showFrom: Scalars['DateTime']['output'];
   showTo?: Maybe<Scalars['DateTime']['output']>;
@@ -82,11 +85,22 @@ export enum BannerActionEnum {
   Sell = 'SELL'
 }
 
+export enum BannerPlacementEnum {
+  End = 'END',
+  ProductInline = 'PRODUCT_INLINE',
+  Standard = 'STANDARD'
+}
+
 export enum BannerPresetBackground {
   Metallic = 'METALLIC',
   Rebuildr = 'REBUILDR',
   Wood = 'WOOD'
 }
+
+export type BoundingBoxInput = {
+  northEast: LocationInputType;
+  southWest: LocationInputType;
+};
 
 export type Brand = {
   __typename?: 'Brand';
@@ -141,8 +155,8 @@ export type Category = {
   __typename?: 'Category';
   ancestorIds: Array<Scalars['String']['output']>;
   brands: Array<Brand>;
-  children: Array<Category>;
   categoryType: CategoryTypeEnum;
+  children: Array<Category>;
   co2Factor?: Maybe<Co2Factor>;
   description: Scalars['String']['output'];
   hasChildren: Scalars['Boolean']['output'];
@@ -163,17 +177,6 @@ export type Category = {
   secondaryQuantityUnit?: Maybe<QuantityUnitEnum>;
 };
 
-export enum CategoryImageGenerationStatusEnum {
-  Failed = 'FAILED',
-  Generated = 'GENERATED',
-  Pending = 'PENDING'
-}
-
-export enum CategoryTypeEnum {
-  Giveaway = 'GIVEAWAY',
-  Standard = 'STANDARD'
-}
-
 export enum CategoryIconEnum {
   Door = 'DOOR',
   Electrical = 'ELECTRICAL',
@@ -192,9 +195,20 @@ export enum CategoryIconEnum {
   Workplace = 'WORKPLACE'
 }
 
+export enum CategoryImageGenerationStatusEnum {
+  Failed = 'FAILED',
+  Generated = 'GENERATED',
+  Pending = 'PENDING'
+}
+
 export type CategoryInput = {
   id: Scalars['String']['input'];
 };
+
+export enum CategoryTypeEnum {
+  Giveaway = 'GIVEAWAY',
+  Standard = 'STANDARD'
+}
 
 export enum ChatActionEnum {
   Abort = 'ABORT',
@@ -214,6 +228,53 @@ export type CmsActiveListingsByCategoryDataPoint = {
 export type CmsActiveListingsByCategoryResponse = {
   __typename?: 'CmsActiveListingsByCategoryResponse';
   data: Array<CmsActiveListingsByCategoryDataPoint>;
+};
+
+export type CmsAdImportBatch = {
+  __typename?: 'CmsAdImportBatch';
+  createdAt: Scalars['DateTime']['output'];
+  createdByUserId: Scalars['String']['output'];
+  defaultAddress?: Maybe<Scalars['String']['output']>;
+  defaultDeliveryEnabled: Scalars['Boolean']['output'];
+  defaultDeliveryPrice?: Maybe<Scalars['Float']['output']>;
+  defaultDeliveryRadius?: Maybe<Scalars['Float']['output']>;
+  defaultPickupEnabled: Scalars['Boolean']['output'];
+  defaultShippingPriceId?: Maybe<Scalars['String']['output']>;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  products: Array<Product>;
+  progress: Scalars['Int']['output'];
+  sellerId: Scalars['String']['output'];
+  status: CmsAdImportBatchStatusEnum;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export enum CmsAdImportBatchStatusEnum {
+  Failed = 'FAILED',
+  Processing = 'PROCESSING',
+  Published = 'PUBLISHED',
+  Queued = 'QUEUED',
+  Ready = 'READY',
+  Uploading = 'UPLOADING'
+}
+
+export type CmsAdImportDeliveryDefaultsInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  deliveryEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  deliveryPrice?: InputMaybe<Scalars['Float']['input']>;
+  deliveryRadius?: InputMaybe<Scalars['Float']['input']>;
+  pickupEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  shippingPriceId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CmsAnalyzeCategoryImportInput = {
+  rows: Array<Scalars['String']['input']>;
+};
+
+export type CmsAnalyzeCategoryImportResponse = {
+  __typename?: 'CmsAnalyzeCategoryImportResponse';
+  excluded: Array<Scalars['String']['output']>;
+  suggestions: Array<CmsCategoryImportSuggestion>;
 };
 
 export type CmsAverageOrderValueStatisticsDataPoint = {
@@ -250,6 +311,41 @@ export type CmsBrandIdInput = {
   id: Scalars['String']['input'];
 };
 
+export type CmsCategoryImportResult = {
+  __typename?: 'CmsCategoryImportResult';
+  category?: Maybe<Category>;
+  clientId: Scalars['String']['output'];
+  skippedReason?: Maybe<Scalars['String']['output']>;
+};
+
+export type CmsCategoryImportRowInput = {
+  brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  clientId: Scalars['String']['input'];
+  co2FactorId?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  image?: InputMaybe<FileInputType>;
+  inSeason?: Scalars['Boolean']['input'];
+  inSelection?: Scalars['Boolean']['input'];
+  measurements?: Array<MeasurementTypeEnum>;
+  name: Scalars['String']['input'];
+  parentClientId?: InputMaybe<Scalars['String']['input']>;
+  parentId?: InputMaybe<Scalars['String']['input']>;
+  searchAliases?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type CmsCategoryImportSuggestion = {
+  __typename?: 'CmsCategoryImportSuggestion';
+  clientId: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  inSeason: Scalars['Boolean']['output'];
+  inSelection: Scalars['Boolean']['output'];
+  measurements: Array<MeasurementTypeEnum>;
+  name: Scalars['String']['output'];
+  parentClientId?: Maybe<Scalars['String']['output']>;
+  parentId?: Maybe<Scalars['String']['output']>;
+  searchAliases: Array<Scalars['String']['output']>;
+};
+
 export type CmsCo2SavingsStatisticsDataPoint = {
   __typename?: 'CmsCo2SavingsStatisticsDataPoint';
   date: Scalars['String']['output'];
@@ -273,7 +369,10 @@ export type CmsCreateArticleInput = {
 export type CmsCreateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
   backgroundImage?: InputMaybe<FileInputType>;
-  label: Scalars['String']['input'];
+  ctaText?: InputMaybe<Scalars['String']['input']>;
+  label?: InputMaybe<Scalars['String']['input']>;
+  logo?: InputMaybe<FileInputType>;
+  placements: Array<BannerPlacementEnum>;
   presetBackground?: InputMaybe<BannerPresetBackground>;
   showFrom: Scalars['DateTime']['input'];
   showTo?: InputMaybe<Scalars['DateTime']['input']>;
@@ -285,10 +384,20 @@ export type CmsCreateBannerResponse = {
   __typename?: 'CmsCreateBannerResponse';
   banner: Banner;
   imagePutUrl?: Maybe<Scalars['String']['output']>;
+  logoPutUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type CmsCreateBrandInput = {
   name: Scalars['String']['input'];
+};
+
+export type CmsCreateCategoriesInput = {
+  categories: Array<CmsCategoryImportRowInput>;
+};
+
+export type CmsCreateCategoriesResponse = {
+  __typename?: 'CmsCreateCategoriesResponse';
+  results: Array<CmsCategoryImportResult>;
 };
 
 export type CmsCreateCategoryInput = {
@@ -612,8 +721,11 @@ export type CmsUpdateArticleInput = {
 export type CmsUpdateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
   backgroundImage?: InputMaybe<FileInputType>;
+  ctaText?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
-  label: Scalars['String']['input'];
+  label?: InputMaybe<Scalars['String']['input']>;
+  logo?: InputMaybe<FileInputType>;
+  placements: Array<BannerPlacementEnum>;
   presetBackground?: InputMaybe<BannerPresetBackground>;
   showFrom: Scalars['DateTime']['input'];
   showTo?: InputMaybe<Scalars['DateTime']['input']>;
@@ -629,10 +741,6 @@ export type CmsUpdateBrandInput = {
 export type CmsUpdateCo2Factor = {
   disposalCoefficient?: InputMaybe<Scalars['Float']['input']>;
   id: Scalars['String']['input'];
-};
-
-export type CmsUpdateGiveawayCategoryImageInput = {
-  image: FileInputType;
 };
 
 export type CmsUpdateCategoriesInput = {
@@ -669,6 +777,10 @@ export type CmsUpdateFooterSectionInput = {
   id: Scalars['String']['input'];
   orderIndex: Scalars['Float']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CmsUpdateGiveawayCategoryImageInput = {
+  image: FileInputType;
 };
 
 export type CmsUpdateNewsletterCompetitionInput = {
@@ -807,6 +919,18 @@ export type CreateBrandByUserInput = {
   name: Scalars['String']['input'];
 };
 
+export type CreateCmsAdImportBatchInput = {
+  deliveryDefaults?: InputMaybe<CmsAdImportDeliveryDefaultsInput>;
+  files: Array<FileInputType>;
+  sellerId: Scalars['String']['input'];
+};
+
+export type CreateCmsAdImportBatchResponse = {
+  __typename?: 'CreateCmsAdImportBatchResponse';
+  batch: CmsAdImportBatch;
+  uploadUrls: Array<Scalars['String']['output']>;
+};
+
 export type CreateInternalAdImportBatchInput = {
   files: Array<FileInputType>;
 };
@@ -819,6 +943,7 @@ export type CreateInternalAdImportBatchResponse = {
 
 export type CreateInternalProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  location: LocationInputType;
   title: Scalars['String']['input'];
 };
 
@@ -1066,15 +1191,32 @@ export type InternalAdReservation = {
   quantity?: Maybe<Scalars['Int']['output']>;
   reservedAt: Scalars['DateTime']['output'];
   reservedByUser: User;
+  reservedByUserEmail?: Maybe<Scalars['String']['output']>;
   reservedByUserId: Scalars['String']['output'];
   soldAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
+export type InternalAdsCategory = {
+  __typename?: 'InternalAdsCategory';
+  adCount: Scalars['Int']['output'];
+  category: Category;
+};
+
 export type InternalAdsOrganizationContext = {
   __typename?: 'InternalAdsOrganizationContext';
+  canReceivePayout: Scalars['Boolean']['output'];
   isOrganizationAccount: Scalars['Boolean']['output'];
   organization: User;
   role: OrganizationMemberRoleEnum;
+};
+
+export type InternalAdsStatistics = {
+  __typename?: 'InternalAdsStatistics';
+  co2Saved: Scalars['Float']['output'];
+  estimatedMarketValue: Scalars['Float']['output'];
+  externallyPublishedAds: Scalars['Int']['output'];
+  potentialCo2Savings: Scalars['Float']['output'];
+  totalAds: Scalars['Int']['output'];
 };
 
 export type InternalProjectsInput = {
@@ -1272,10 +1414,12 @@ export type Mutation = {
   cancelInternalAdReservation: InternalAdReservation;
   cancelPurchase: Purchase;
   clearSearchHistory: Scalars['Boolean']['output'];
+  cmsAnalyzeCategoryImport: CmsAnalyzeCategoryImportResponse;
   cmsBackfillSearchEnrichment: CmsSearchEnrichmentBackfillStatus;
   cmsCreateArticle: Article;
   cmsCreateBanner: CmsCreateBannerResponse;
   cmsCreateBrand: Brand;
+  cmsCreateCategories: CmsCreateCategoriesResponse;
   cmsCreateCategory: CmsCreateCategoryResponse;
   cmsCreateFiles: CmsCreateFilesResponse;
   cmsCreateFooterSection: FooterSection;
@@ -1294,6 +1438,7 @@ export type Mutation = {
   cmsLogin: LoginResponse;
   cmsReassignBrand: CmsReassignBrandResponse;
   cmsRefundPurchase: Purchase;
+  cmsRegenerateCategoryImage: Category;
   cmsResolveReportPurchase: ReportPurchase;
   cmsTestTemplate: Scalars['Boolean']['output'];
   cmsUnhideProduct: Product;
@@ -1303,14 +1448,15 @@ export type Mutation = {
   cmsUpdateCO2Factor: Co2Factor;
   cmsUpdateCategoriesOrder: Scalars['Boolean']['output'];
   cmsUpdateCategory: CmsUpdateCategoryResponse;
-  cmsUpdateGiveawayCategoryImage: CmsUpdateCategoryResponse;
   cmsUpdateFooterSection: FooterSection;
+  cmsUpdateGiveawayCategoryImage: CmsUpdateCategoryResponse;
   cmsUpdateNewsletterCompetition: CmsUpdateNewsletterCompetitionResponse;
   cmsUpdatePartner: CmsCreatePartnerResponse;
   cmsUpdateProduct: CmsUpdateProductResponse;
   cmsUpdateProject: Project;
   cmsUpdateUser: User;
   createBrandByUser: Brand;
+  createCmsAdImportBatch: CreateCmsAdImportBatchResponse;
   createDraftProduct: Product;
   createInternalAdDraft: Product;
   createInternalAdImportBatch: CreateInternalAdImportBatchResponse;
@@ -1337,9 +1483,12 @@ export type Mutation = {
   markPurchaseAsDelivered: Purchase;
   newPassword: LoginResponse;
   onboardSellerAccount: OnboardSellerAccountResponse;
+  publishCmsImportedAds: Array<Product>;
   publishInternalAdDrafts: Array<Product>;
   purchaseProduct: PurchaseProductResponse;
   registerUser: RegisterUserResponse;
+  removeCmsAdImportBatch: Scalars['Boolean']['output'];
+  removeCmsImportedAdDraft: Scalars['Boolean']['output'];
   removeInternalAdDraft: Scalars['Boolean']['output'];
   removeInternalAdImportBatch: Scalars['Boolean']['output'];
   removeOrganizationMember: Scalars['Boolean']['output'];
@@ -1354,6 +1503,7 @@ export type Mutation = {
   setLikeProduct: Product;
   setLikeProject: Project;
   signupNewsLetter: Scalars['Boolean']['output'];
+  startCmsAdImportBatch: CmsAdImportBatch;
   startInternalAdImportBatch: InternalAdImportBatch;
   syncApproximateLocations: Scalars['Boolean']['output'];
   syncCO2Factors: Scalars['Boolean']['output'];
@@ -1407,6 +1557,11 @@ export type MutationCancelPurchaseArgs = {
 };
 
 
+export type MutationCmsAnalyzeCategoryImportArgs = {
+  input: CmsAnalyzeCategoryImportInput;
+};
+
+
 export type MutationCmsCreateArticleArgs = {
   input: CmsCreateArticleInput;
 };
@@ -1419,6 +1574,11 @@ export type MutationCmsCreateBannerArgs = {
 
 export type MutationCmsCreateBrandArgs = {
   input: CmsCreateBrandInput;
+};
+
+
+export type MutationCmsCreateCategoriesArgs = {
+  input: CmsCreateCategoriesInput;
 };
 
 
@@ -1513,6 +1673,11 @@ export type MutationCmsRefundPurchaseArgs = {
 };
 
 
+export type MutationCmsRegenerateCategoryImageArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationCmsResolveReportPurchaseArgs = {
   input: CmsResolveReportPurchaseInput;
 };
@@ -1563,6 +1728,11 @@ export type MutationCmsUpdateFooterSectionArgs = {
 };
 
 
+export type MutationCmsUpdateGiveawayCategoryImageArgs = {
+  input: CmsUpdateGiveawayCategoryImageInput;
+};
+
+
 export type MutationCmsUpdateNewsletterCompetitionArgs = {
   input: CmsUpdateNewsletterCompetitionInput;
 };
@@ -1590,6 +1760,11 @@ export type MutationCmsUpdateUserArgs = {
 
 export type MutationCreateBrandByUserArgs = {
   input: CreateBrandByUserInput;
+};
+
+
+export type MutationCreateCmsAdImportBatchArgs = {
+  input: CreateCmsAdImportBatchInput;
 };
 
 
@@ -1698,6 +1873,12 @@ export type MutationOnboardSellerAccountArgs = {
 };
 
 
+export type MutationPublishCmsImportedAdsArgs = {
+  batchId: Scalars['String']['input'];
+  productIds: Array<Scalars['String']['input']>;
+};
+
+
 export type MutationPublishInternalAdDraftsArgs = {
   productIds: Array<Scalars['ID']['input']>;
 };
@@ -1710,6 +1891,17 @@ export type MutationPurchaseProductArgs = {
 
 export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
+};
+
+
+export type MutationRemoveCmsAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveCmsImportedAdDraftArgs = {
+  batchId: Scalars['String']['input'];
+  productId: Scalars['String']['input'];
 };
 
 
@@ -1782,6 +1974,11 @@ export type MutationSetLikeProjectArgs = {
 
 export type MutationSignupNewsLetterArgs = {
   input: SignupNewsLetterInput;
+};
+
+
+export type MutationStartCmsAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
 };
 
 
@@ -2013,12 +2210,15 @@ export type Product = {
   brand?: Maybe<Brand>;
   canDelete: Scalars['Boolean']['output'];
   category?: Maybe<Category>;
+  cmsImportValidationIssues: Array<Scalars['String']['output']>;
   co2SavingBuyer?: Maybe<Scalars['Float']['output']>;
   co2SavingSeller?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   colorType: ColorTypeEnum;
   condition: ProductConditionEnum;
   createdAt: Scalars['DateTime']['output'];
+  createdByUser?: Maybe<User>;
+  createdByUserEmail?: Maybe<Scalars['String']['output']>;
   createdByUserId?: Maybe<Scalars['String']['output']>;
   deliveryEnabled: Scalars['Boolean']['output'];
   deliveryPrice?: Maybe<Scalars['Float']['output']>;
@@ -2142,6 +2342,8 @@ export enum ProductVisibilityEnum {
 
 export type ProductsInput = {
   address?: InputMaybe<Scalars['String']['input']>;
+  availability?: InputMaybe<ProductAvailabilityEnum>;
+  boundingBox?: InputMaybe<BoundingBoxInput>;
   brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
   categoryIds?: InputMaybe<Array<Scalars['String']['input']>>;
   conditions?: InputMaybe<Array<ProductConditionEnum>>;
@@ -2157,6 +2359,7 @@ export type ProductsInput = {
   orderBy?: InputMaybe<OrderProductsEnum>;
   pickup?: InputMaybe<Scalars['Boolean']['input']>;
   projectId?: InputMaybe<Scalars['String']['input']>;
+  publiclyAvailable?: InputMaybe<Scalars['Boolean']['input']>;
   searchString?: InputMaybe<Scalars['String']['input']>;
   seasonalCategories?: InputMaybe<Scalars['Boolean']['input']>;
   selectionCategories?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2179,15 +2382,15 @@ export type ProductsResponse = {
 
 export type Project = {
   __typename?: 'Project';
-  address?: Maybe<Scalars['String']['output']>;
-  approximatePlace?: Maybe<ApproximatePlaceResponse>;
+  address: Scalars['String']['output'];
+  approximatePlace: ApproximatePlaceResponse;
   contactEmail?: Maybe<Scalars['String']['output']>;
   contactName?: Maybe<Scalars['String']['output']>;
   contactPhone?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   likedByMe?: Maybe<Scalars['Boolean']['output']>;
-  location?: Maybe<LocationResponse>;
+  location: LocationResponse;
   products: Array<Product>;
   projectPicture?: Maybe<File>;
   shortText?: Maybe<Scalars['String']['output']>;
@@ -2310,6 +2513,7 @@ export type Query = {
   categories: Array<Category>;
   category: Category;
   cmsActiveListingsByCategoryStatistics: CmsActiveListingsByCategoryResponse;
+  cmsAdImportBatch: CmsAdImportBatch;
   cmsAverageOrderValueStatistics: CmsAverageOrderValueStatisticsResponse;
   cmsAverageTimeToPublishStatistics: CmsAverageTimeToPublishStatisticsResponse;
   cmsBannerById: Banner;
@@ -2355,7 +2559,9 @@ export type Query = {
   internalAdImportBatch: InternalAdImportBatch;
   internalAdMapPinGroups: MapPinGroupsResponse;
   internalAds: PaginatedProductsResponse;
+  internalAdsCategories: Array<InternalAdsCategory>;
   internalAdsOrganizationContext?: Maybe<InternalAdsOrganizationContext>;
+  internalAdsStatistics: InternalAdsStatistics;
   internalProject: Project;
   internalProjects: PaginatedInternalProjectsResponse;
   latestPurchase?: Maybe<Purchase>;
@@ -2409,6 +2615,11 @@ export type QueryArticleBySlugArgs = {
 };
 
 
+export type QueryBannersArgs = {
+  placement?: InputMaybe<BannerPlacementEnum>;
+};
+
+
 export type QueryBrandArgs = {
   id: Scalars['String']['input'];
 };
@@ -2426,6 +2637,11 @@ export type QueryCategoriesArgs = {
 
 export type QueryCategoryArgs = {
   input: CategoryInput;
+};
+
+
+export type QueryCmsAdImportBatchArgs = {
+  batchId: Scalars['String']['input'];
 };
 
 
@@ -2988,6 +3204,7 @@ export enum TransportationEnum {
 export type UpdateInternalProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
+  location?: InputMaybe<LocationInputType>;
   title: Scalars['String']['input'];
 };
 

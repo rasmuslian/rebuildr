@@ -14,6 +14,7 @@ import { UseGuards } from '@nestjs/common';
 import {
   Banner,
   BannerActionEnum,
+  BannerPlacementEnum,
   BannerPresetBackground,
 } from 'src/entities/banner.entity';
 import { BannerService } from 'src/services/banner.service';
@@ -27,8 +28,8 @@ import { IBannerLoaders } from 'src/dataloaders/banner.loader';
 
 @InputType()
 export class CmsCreateBannerInput {
-  @Field()
-  label: string;
+  @Field({ nullable: true })
+  label?: string;
 
   @Field()
   title: string;
@@ -44,6 +45,15 @@ export class CmsCreateBannerInput {
 
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;
+
+  @Field(() => FileInputType, { nullable: true })
+  logo?: FileInputType;
+
+  @Field(() => [BannerPlacementEnum])
+  placements: BannerPlacementEnum[];
+
+  @Field({ nullable: true })
+  ctaText?: string;
 
   @Field(() => Date)
   showFrom: Date;
@@ -57,8 +67,8 @@ export class CmsUpdateBannerInput {
   @Field()
   id: string;
 
-  @Field()
-  label: string;
+  @Field({ nullable: true })
+  label?: string;
 
   @Field()
   title: string;
@@ -74,6 +84,15 @@ export class CmsUpdateBannerInput {
 
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;
+
+  @Field(() => FileInputType, { nullable: true })
+  logo?: FileInputType;
+
+  @Field(() => [BannerPlacementEnum])
+  placements: BannerPlacementEnum[];
+
+  @Field({ nullable: true })
+  ctaText?: string;
 
   @Field(() => Date)
   showFrom: Date;
@@ -89,6 +108,9 @@ export class CmsCreateBannerResponse {
 
   @Field(() => String, { nullable: true })
   imagePutUrl?: string;
+
+  @Field(() => String, { nullable: true })
+  logoPutUrl?: string;
 }
 
 @Resolver(() => Banner)
@@ -96,8 +118,14 @@ export class BannerResolver {
   constructor(private bannerService: BannerService) {}
 
   @Query(() => [Banner])
-  async banners() {
-    return this.bannerService.getBanners();
+  async banners(
+    @Args('placement', {
+      type: () => BannerPlacementEnum,
+      nullable: true,
+    })
+    placement?: BannerPlacementEnum,
+  ) {
+    return this.bannerService.getBanners(placement);
   }
 
   @Query(() => [Banner])
@@ -136,5 +164,13 @@ export class BannerResolver {
     @Context('bannerLoaders') bannerLoaders: IBannerLoaders,
   ) {
     return await bannerLoaders.backgroundImageLoader.load(banner.id);
+  }
+
+  @ResolveField(() => File, { nullable: true })
+  async logo(
+    @Parent() banner: Banner,
+    @Context('bannerLoaders') bannerLoaders: IBannerLoaders,
+  ) {
+    return await bannerLoaders.logoLoader.load(banner.id);
   }
 }

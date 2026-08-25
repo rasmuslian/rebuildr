@@ -41,7 +41,7 @@ const EditBanner = ({ banner }: Props) => {
   } = useForm<BannerSchemaType>({
     resolver: zodResolver(BannerSchema),
     defaultValues: {
-      label: banner.label,
+      label: banner.label ?? "",
       title: banner.title,
       presetBackground:
         (banner.presetBackground as BannerSchemaType["presetBackground"]) ??
@@ -49,6 +49,9 @@ const EditBanner = ({ banner }: Props) => {
       backgroundImage: banner.backgroundImage
         ? getUploadFiles([banner.backgroundImage])
         : [],
+      logo: banner.logo ? getUploadFiles([banner.logo]) : [],
+      placements: banner.placements as BannerSchemaType["placements"],
+      ctaText: banner.ctaText ?? "",
       destinationType: getDestinationType(banner),
       url: banner.url ?? "",
       action: (banner.action as BannerSchemaType["action"]) ?? undefined,
@@ -83,13 +86,16 @@ const EditBanner = ({ banner }: Props) => {
     const backgroundImageInput = getFileInputTypes(
       formData.backgroundImage ?? [],
     )[0];
+    const logoInput = getFileInputTypes(formData.logo ?? [])[0];
 
     const input: CmsUpdateBannerInput = {
       id: banner.id,
-      label: formData.label,
+      label: formData.label || null,
       title: formData.title,
       presetBackground:
         formData.presetBackground as CmsUpdateBannerInput["presetBackground"],
+      placements: formData.placements as CmsUpdateBannerInput["placements"],
+      ctaText: formData.ctaText || undefined,
       url: formData.destinationType === "url" ? formData.url : undefined,
       action:
         formData.destinationType === "action"
@@ -97,13 +103,19 @@ const EditBanner = ({ banner }: Props) => {
           : undefined,
       showFrom: formData.showFrom.toDate(),
       showTo: formData.showTo ? formData.showTo.toDate() : undefined,
-      ...(backgroundImageInput ? { backgroundImage: backgroundImageInput } : {}),
+      ...(backgroundImageInput
+        ? { backgroundImage: backgroundImageInput }
+        : {}),
+      ...(logoInput ? { logo: logoInput } : {}),
     };
 
     const response = await mutateAsync(input);
 
     if (response?.imagePutUrl && backgroundImageInput) {
       await uploadFiles([response.imagePutUrl], formData.backgroundImage ?? []);
+    }
+    if (response?.logoPutUrl && logoInput) {
+      await uploadFiles([response.logoPutUrl], formData.logo ?? []);
     }
   };
 
