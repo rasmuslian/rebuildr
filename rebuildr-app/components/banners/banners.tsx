@@ -175,6 +175,7 @@ export function Banners() {
                 banner={item}
                 height={bannerHeight}
                 insetForArrows={hasArrows}
+                onLogoLoad={() => setBannerHeight(0)}
               />
             </View>
           )}
@@ -208,6 +209,7 @@ type BannerProps = {
   banner: BannersQuery["banners"][number];
   height?: number;
   insetForArrows?: boolean;
+  onLogoLoad?: () => void;
 };
 
 const presetBackgroundImages: Partial<
@@ -245,9 +247,10 @@ export const getBannerImageSource = (
 type BannerLogoProps = {
   url: string;
   width: number;
+  onLoad?: () => void;
 };
 
-export const BannerLogo = ({ url, width }: BannerLogoProps) => {
+export const BannerLogo = ({ url, width, onLoad }: BannerLogoProps) => {
   const [aspectRatio, setAspectRatio] = useState(2);
 
   return (
@@ -259,13 +262,19 @@ export const BannerLogo = ({ url, width }: BannerLogoProps) => {
         if (imageWidth && imageHeight) {
           setAspectRatio(imageWidth / imageHeight);
         }
+        onLoad?.();
       }}
       style={{ width, aspectRatio }}
     />
   );
 };
 
-const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
+const Banner = ({
+  banner,
+  height,
+  insetForArrows,
+  onLogoLoad,
+}: BannerProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const BannerPrompt = isDesktop ? Headline : Title;
@@ -308,7 +317,11 @@ const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
         >
           {banner.logo?.url && (
             <View style={{ alignItems: "flex-end" }}>
-              <BannerLogo url={banner.logo.url} width={isDesktop ? 144 : 128} />
+              <BannerLogo
+                url={banner.logo.url}
+                width={isDesktop ? 144 : 128}
+                onLoad={onLogoLoad}
+              />
             </View>
           )}
           {!!banner.label && (
