@@ -24,15 +24,21 @@ const query = `
 
 export const getProductStatistics = async (
   groupBy: ProductStatisticsGroupBy = "month",
+  from?: string,
+  to?: string,
 ): Promise<ProductStatisticsResponse> => {
   const response = await apiClient.post<
     GraphQLResponse<{ cmsProductStatistics: ProductStatisticsResponse }>
   >("/", {
     query,
-    variables: { input: { groupBy: groupBy.toUpperCase() as Uppercase<ProductStatisticsGroupBy> } },
+    variables: {
+      input: {
+        groupBy: groupBy.toUpperCase() as Uppercase<ProductStatisticsGroupBy>,
+        from,
+        to,
+      },
+    },
   });
 
-  return (
-    response.data.data?.cmsProductStatistics ?? { data: [] }
-  );
+  return response.data.data?.cmsProductStatistics ?? { data: [] };
 };

@@ -24,13 +24,19 @@ const userStatisticsQuery = `
 
 export const getUserStatistics = async (
   groupBy: StatisticsGroupBy = "month",
+  from?: string,
+  to?: string,
 ): Promise<StatisticsResponse> => {
   const response = await apiClient.post<
     GraphQLResponse<{ cmsUserStatistics: StatisticsResponse }>
   >("/", {
     query: userStatisticsQuery,
     variables: {
-      input: { groupBy: groupBy.toUpperCase() as Uppercase<StatisticsGroupBy> },
+      input: {
+        groupBy: groupBy.toUpperCase() as Uppercase<StatisticsGroupBy>,
+        from,
+        to,
+      },
     },
   });
 
