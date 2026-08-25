@@ -46,6 +46,28 @@ describe('AterbyggarenService', () => {
     } as unknown as Awaited<ReturnType<typeof generateText>>);
   });
 
+  it('requires project confirmation before creating a material list', () => {
+    const service = createService({ messages: [] });
+    const systemPrompt = Reflect.get(service, 'systemPrompt') as string;
+
+    expect(systemPrompt).toContain('Innan du skapar en Materiallista');
+    expect(systemPrompt).toContain(
+      'Skapa aldrig en Materiallista eller taggen <rebuildr-material-list> i samma svar som den första projektbeskrivningen',
+    );
+    expect(systemPrompt).toContain(
+      'Skapa Materiallistan först efter att användaren uttryckligen har bekräftat projektsammanfattningen',
+    );
+  });
+
+  it('does not allow references to external marketplaces or competitors', () => {
+    const service = createService({ messages: [] });
+    const systemPrompt = Reflect.get(service, 'systemPrompt') as string;
+
+    expect(systemPrompt).toContain(
+      'Nämn, rekommendera eller hänvisa inte till externa marknadsplatser eller konkurrenter',
+    );
+  });
+
   it('excludes incomplete previous turns from the next model context', async () => {
     const messages = [
       createMessage(
