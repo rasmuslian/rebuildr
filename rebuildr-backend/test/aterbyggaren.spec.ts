@@ -46,6 +46,30 @@ describe('AterbyggarenService', () => {
     } as unknown as Awaited<ReturnType<typeof generateText>>);
   });
 
+  it('requires project confirmation before creating a material list', () => {
+    const service = createService({ messages: [] });
+    const systemPrompt = Reflect.get(service, 'systemPrompt') as string;
+
+    expect(systemPrompt).toContain('Innan du skapar en Materiallista');
+    expect(systemPrompt).toContain(
+      'Skapa aldrig en Materiallista eller taggen <rebuildr-material-list> i samma svar som den första projektbeskrivningen',
+    );
+    expect(systemPrompt).toContain(
+      'Skapa Materiallistan först efter att användaren uttryckligen har bekräftat projektsammanfattningen',
+    );
+    expect(systemPrompt).toContain('nyprisSek::återbruksprisSek');
+    expect(systemPrompt).toContain('Klimatkvittots A1-A3-metodik');
+  });
+
+  it('does not allow references to external marketplaces or competitors', () => {
+    const service = createService({ messages: [] });
+    const systemPrompt = Reflect.get(service, 'systemPrompt') as string;
+
+    expect(systemPrompt).toContain(
+      'Nämn, rekommendera eller hänvisa inte till externa marknadsplatser eller konkurrenter',
+    );
+  });
+
   it('excludes incomplete previous turns from the next model context', async () => {
     const messages = [
       createMessage(
@@ -181,6 +205,33 @@ describe('AterbyggarenService', () => {
     expect(response.write).toHaveBeenCalledWith(
       expect.stringContaining('"title":"Planera gipsvägg"'),
     );
+  });
+
+  it('renders an empty product display for an LLM-generated no-results tag', () => {
+    const service = createService({ messages: [] });
+    const extractProductDisplays = Reflect.get(
+      service,
+      'extractProductDisplays',
+    ) as (
+      content: string,
+      products: Map<string, unknown>,
+    ) => unknown[];
+    const product = createProduct({ id: 'product-trall' });
+    const content = [
+      '<rebuildr-products ids="product-trall" />',
+      '<rebuildr-products ids="" empty="true" />',
+    ].join('\n');
+
+    expect(
+      extractProductDisplays.call(
+        service,
+        content,
+        new Map([[product.id, product]]),
+      ),
+    ).toEqual([
+      { type: 'products', products: [product] },
+      { type: 'products', products: [] },
+    ]);
   });
 
   it('searches products through the shared ranked product search', async () => {

@@ -98,11 +98,22 @@ type MaterialListItem = {
   id: string;
   label: string;
   query: string;
+  amount?: number;
+  unit?: string;
+  newPriceSek?: number;
+  reusePriceSek?: number;
+  newCo2eKg?: number;
+  reuseCo2eKg?: number;
 };
 
 type MaterialListDisplay = {
   title: string;
   items: MaterialListItem[];
+};
+
+type MaterialListTotals = {
+  climateSavingsKg: number;
+  priceSavingsSek: number;
 };
 
 type StreamEvent = {
@@ -308,11 +319,15 @@ export default function AterbyggarenChatPage() {
     );
   }, [activeChatId, activeChatTitle, chats]);
 
-  useEffect(() => {
+  const scrollToLatestMessage = useCallback(() => {
     requestAnimationFrame(() =>
       scrollRef.current?.scrollToEnd({ animated: true }),
     );
-  }, [messages]);
+  }, []);
+
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [messages, scrollToLatestMessage]);
 
   const loadMessages = useCallback(
     async (chatId: string) => {
@@ -361,7 +376,12 @@ export default function AterbyggarenChatPage() {
             : attachments;
       const message = (overrideMessage ?? input).trim();
       const sentContent = message || "Analysera bifogade filer.";
-      if ((!message && !selectedAttachments.length) || streaming || loadingChat)
+      if (
+        (!message && !selectedAttachments.length) ||
+        streaming ||
+        loadingChat ||
+        activeStreamRef.current
+      )
         return;
 
       setInput("");
@@ -622,6 +642,10 @@ export default function AterbyggarenChatPage() {
     },
     [sendMessage],
   );
+  const latestMaterialListMessageId = useMemo(
+    () => getLatestMaterialListMessageId(messages),
+    [messages],
+  );
 
   return (
     <>
@@ -691,6 +715,7 @@ export default function AterbyggarenChatPage() {
                   paddingBottom: isDesktop ? 24 : 20,
                   paddingTop: 32,
                 }}
+                onContentSizeChange={scrollToLatestMessage}
               >
                 <View
                   style={{
@@ -712,6 +737,9 @@ export default function AterbyggarenChatPage() {
                       <MessageBubble
                         key={message.id}
                         message={message}
+                        materialListsAreCurrent={
+                          message.id === latestMaterialListMessageId
+                        }
                         onSearchMaterials={sendMaterialSearch}
                       />
                     ))
@@ -865,9 +893,11 @@ const QuestionChip = ({
 };
 
 const MessageBubble = ({
+  materialListsAreCurrent,
   message,
   onSearchMaterials,
 }: {
+  materialListsAreCurrent: boolean;
   message: ChatMessage;
   onSearchMaterials: (items: MaterialListItem[]) => void;
 }) => {
@@ -898,9 +928,28 @@ const MessageBubble = ({
             width: "100%",
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View
+            accessibilityLabel="Återbyggaren tänker"
+            accessibilityRole="progressbar"
+            style={{
+              alignItems: "center",
+              backgroundColor: primitives.neutrals100,
+              borderColor: primitives.neutrals300,
+              borderRadius: 10,
+              borderWidth: 1,
+              flexDirection: "row",
+              gap: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+            }}
+          >
             <InlineThinkingSpinner />
-            <Body color="secondary">Tänker...</Body>
+            <View style={{ gap: 2 }}>
+              <Label size="medium">Återbyggaren tänker…</Label>
+              <Body size="small" color="secondary">
+                Tar fram ett svar åt dig
+              </Body>
+            </View>
           </View>
         </View>
       ) : isUser ? (
@@ -938,6 +987,7 @@ const MessageBubble = ({
                 <MaterialListCard
                   key={`${message.id}-materials-${index}`}
                   display={part.display}
+                  isCurrent={materialListsAreCurrent}
                   onSearch={onSearchMaterials}
                 />
               );
@@ -945,7 +995,7 @@ const MessageBubble = ({
 
             const productDisplay =
               message.productDisplays?.[productDisplayIndex++];
-            if (!productDisplay?.products.length) return null;
+            if (!productDisplay) return null;
             return (
               <ChatProductDisplay
                 key={`${message.id}-products-${index}`}
@@ -953,10 +1003,11 @@ const MessageBubble = ({
               />
             );
           })}
-          {contentParts.every((part) => part.type !== "productDisplay") &&
-            message.productDisplays?.map((display, index) => (
+          {message.productDisplays
+            ?.slice(productDisplayIndex)
+            .map((display, index) => (
               <ChatProductDisplay
-                key={`${message.id}-fallback-products-${index}`}
+                key={`${message.id}-fallback-products-${productDisplayIndex + index}`}
                 display={display}
               />
             ))}
@@ -1615,18 +1666,83 @@ const parseMaterialListAttributes = (
   const items = rawItems
     .split("|")
     .map((rawItem, index) => {
-      const [label, query] = rawItem.split("::").map((part) => part.trim());
-      if (!label) return undefined;
+      const [
+        rawLabel,
+        rawQuery,
+        rawAmount,
+        rawUnit,
+        rawNewPriceSek,
+        rawReusePriceSek,
+        rawNewCo2eKg,
+        rawReuseCo2eKg,
+      ] = rawItem.split("::").map((part) => part.trim());
+      if (!rawLabel) return undefined;
+
       return {
-        id: `${index}-${label}`,
-        label,
-        query: query || label,
+        id: `${index}-${rawLabel}`,
+        label: rawLabel,
+        query: rawQuery || rawLabel,
+        amount: parseNonNegativeNumber(rawAmount),
+        unit: rawUnit || undefined,
+        newPriceSek: parseNonNegativeNumber(rawNewPriceSek),
+        reusePriceSek: parseNonNegativeNumber(rawReusePriceSek),
+        newCo2eKg: parseNonNegativeNumber(rawNewCo2eKg),
+        reuseCo2eKg: parseNonNegativeNumber(rawReuseCo2eKg),
       };
     })
-    .filter((item): item is MaterialListItem => !!item);
+    .filter((item) => !!item) as MaterialListItem[];
 
   if (!items.length) return undefined;
   return { title, items };
+};
+
+const parseNonNegativeNumber = (value?: string) => {
+  if (!value) return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : undefined;
+};
+
+const getMaterialListTotals = (
+  items: MaterialListItem[],
+): MaterialListTotals | undefined => {
+  if (
+    !items.length ||
+    items.some(
+      (item) =>
+        item.newPriceSek === undefined ||
+        item.reusePriceSek === undefined ||
+        item.newCo2eKg === undefined ||
+        item.reuseCo2eKg === undefined,
+    )
+  ) {
+    return undefined;
+  }
+
+  return items.reduce<MaterialListTotals>(
+    (totals, item) => ({
+      climateSavingsKg:
+        totals.climateSavingsKg + item.newCo2eKg! - item.reuseCo2eKg!,
+      priceSavingsSek:
+        totals.priceSavingsSek + item.newPriceSek! - item.reusePriceSek!,
+    }),
+    { climateSavingsKg: 0, priceSavingsSek: 0 },
+  );
+};
+
+const getLatestMaterialListMessageId = (messages: ChatMessage[]) => {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (
+      message.role === "assistant" &&
+      parseAssistantContent(message.content).some(
+        (part) => part.type === "materialList",
+      )
+    ) {
+      return message.id;
+    }
+  }
+
+  return undefined;
 };
 
 const readTagAttribute = (attributes: string, name: string) => {
@@ -1636,28 +1752,40 @@ const readTagAttribute = (attributes: string, name: string) => {
 
 const MaterialListCard = ({
   display,
+  isCurrent,
   onSearch,
 }: {
   display: MaterialListDisplay;
+  isCurrent: boolean;
   onSearch: (items: MaterialListItem[]) => void;
 }) => {
   const [selectedIds, setSelectedIds] = useState(
     () => new Set(display.items.map((item) => item.id)),
   );
+  const [expanded, setExpanded] = useState(false);
   const selectedItems = display.items.filter((item) =>
     selectedIds.has(item.id),
   );
+  const visibleItems = expanded ? display.items : display.items.slice(0, 6);
+  const totals = getMaterialListTotals(display.items);
+  const allSelected = selectedIds.size === display.items.length;
+  const partiallySelected = selectedIds.size > 0 && !allSelected;
 
   const toggleItem = (itemId: string) => {
+    if (!isCurrent) return;
     setSelectedIds((current) => {
       const next = new Set(current);
-      if (next.has(itemId)) {
-        next.delete(itemId);
-      } else {
-        next.add(itemId);
-      }
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
       return next;
     });
+  };
+
+  const toggleAll = () => {
+    if (!isCurrent) return;
+    setSelectedIds(
+      allSelected ? new Set() : new Set(display.items.map((item) => item.id)),
+    );
   };
 
   return (
@@ -1669,15 +1797,33 @@ const MaterialListCard = ({
         borderRadius: 12,
         borderWidth: 1,
         maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+        opacity: isCurrent ? 1 : 0.52,
         overflow: "hidden",
         width: "100%",
       }}
     >
-      <View style={{ gap: 4, padding: 16 }}>
-        <Title size="small">{display.title}</Title>
-        <Body size="small" color="secondary">
-          {display.items.length} delar • välj vad du vill söka efter
-        </Body>
+      <View style={{ gap: 8, padding: 16 }}>
+        <View style={{ alignItems: "center", flexDirection: "row", gap: 12 }}>
+          <MaterialCheckbox
+            accessibilityLabel={allSelected ? "Avmarkera alla" : "Markera alla"}
+            disabled={!isCurrent}
+            indeterminate={partiallySelected}
+            selected={allSelected}
+            onPress={toggleAll}
+          />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Title size="small">{display.title}</Title>
+            <Body size="small" color="secondary">
+              {display.items.length} delar • välj vad du vill söka efter
+            </Body>
+          </View>
+        </View>
+        {!isCurrent && (
+          <Body size="small" color="secondary">
+            Ersatt av en nyare materiallista
+          </Body>
+        )}
+        {totals && <MaterialListSummary totals={totals} />}
       </View>
       <View
         style={{
@@ -1687,63 +1833,135 @@ const MaterialListCard = ({
           padding: 16,
         }}
       >
-        {display.items.map((item) => {
+        {visibleItems.map((item) => {
           const selected = selectedIds.has(item.id);
           return (
             <Pressable
               key={item.id}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected, disabled: !isCurrent }}
+              disabled={!isCurrent}
               onPress={() => toggleItem(item.id)}
               style={{ alignItems: "center", flexDirection: "row", gap: 12 }}
             >
-              <View
-                style={{
-                  alignItems: "center",
-                  backgroundColor: selected
-                    ? primitives.accent500
-                    : primitives.neutrals100,
-                  borderColor: selected
-                    ? primitives.accent500
-                    : primitives.neutrals400,
-                  borderRadius: 6,
-                  borderWidth: 2,
-                  height: 28,
-                  justifyContent: "center",
-                  width: 28,
-                }}
-              >
-                {selected && (
-                  <Icon icon="check" color="primaryLight" size={16} />
+              <MaterialCheckbox disabled={!isCurrent} selected={selected} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Label size="medium">{item.label}</Label>
+                {item.amount !== undefined && item.unit && (
+                  <Body size="small" color="secondary">
+                    {item.amount} {item.unit}
+                  </Body>
                 )}
               </View>
-              <Label size="medium" style={{ flex: 1 }}>
-                {item.label}
-              </Label>
             </Pressable>
           );
         })}
+        {display.items.length > 6 && (
+          <Pressable
+            disabled={!isCurrent}
+            onPress={() => setExpanded((current) => !current)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          >
+            <Label color="link" size="medium">
+              {expanded ? "Visa färre" : `Visa alla (${display.items.length})`}
+            </Label>
+          </Pressable>
+        )}
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 12,
-          padding: 16,
-          paddingTop: 0,
-        }}
-      >
+      <View style={{ padding: 16, paddingTop: 0 }}>
         <MaterialSearchButton
-          disabled={!selectedItems.length}
-          label="Sök markerade"
+          disabled={!isCurrent || !selectedItems.length}
+          label={`Sök markerade (${selectedItems.length})`}
           primary
           onPress={() => onSearch(selectedItems)}
-        />
-        <MaterialSearchButton
-          label="Sök alla"
-          onPress={() => onSearch(display.items)}
         />
       </View>
     </View>
   );
 };
+
+const MaterialCheckbox = ({
+  accessibilityLabel,
+  disabled = false,
+  indeterminate = false,
+  selected = false,
+  onPress,
+}: {
+  accessibilityLabel?: string;
+  disabled?: boolean;
+  indeterminate?: boolean;
+  selected?: boolean;
+  onPress?: () => void;
+}) => {
+  const checked = selected || indeterminate;
+  const checkbox = (
+    <View
+      style={{
+        alignItems: "center",
+        backgroundColor: checked
+          ? primitives.accent500
+          : primitives.neutrals100,
+        borderColor: checked ? primitives.accent500 : primitives.neutrals400,
+        borderRadius: 6,
+        borderWidth: 2,
+        height: 28,
+        justifyContent: "center",
+        width: 28,
+      }}
+    >
+      {selected && <Icon icon="check" color="primaryLight" size={16} />}
+      {indeterminate && (
+        <View
+          style={{
+            backgroundColor: primitives.primary100,
+            borderRadius: 1,
+            height: 2,
+            width: 12,
+          }}
+        />
+      )}
+    </View>
+  );
+
+  if (!onPress) return checkbox;
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected, disabled }}
+      disabled={disabled}
+      onPress={onPress}
+    >
+      {checkbox}
+    </Pressable>
+  );
+};
+
+const MaterialListSummary = ({ totals }: { totals: MaterialListTotals }) => {
+  return (
+    <View
+      style={{
+        backgroundColor: primitives.secondary100,
+        borderRadius: 8,
+        gap: 6,
+        padding: 12,
+      }}
+    >
+      <Body size="small" color="secondary">
+        Uppskattad prisbesparing: {formatPrice(totals.priceSavingsSek)}
+      </Body>
+      <Body size="small" color="secondary">
+        Sparad klimatpåverkan: {formatCo2e(totals.climateSavingsKg)} kg CO₂e
+      </Body>
+    </View>
+  );
+};
+
+const formatCo2e = (value: number) =>
+  new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  }).format(value);
 
 const MaterialSearchButton = ({
   disabled = false,
@@ -1784,6 +2002,29 @@ const MaterialSearchButton = ({
 const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
   const { isDesktop } = useScreenType();
   const products = display.products.slice(0, 8);
+
+  if (!products.length) {
+    return (
+      <View
+        style={{
+          alignSelf: "center",
+          backgroundColor: primitives.neutrals100,
+          borderColor: primitives.neutrals300,
+          borderRadius: 12,
+          borderWidth: 1,
+          maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          width: "100%",
+        }}
+      >
+        <Label size="medium">Inga resultat</Label>
+        <Body color="secondary" size="small">
+          Det finns inga annonser som matchar sökningen just nu.
+        </Body>
+      </View>
+    );
+  }
 
   if (isDesktop) {
     return (

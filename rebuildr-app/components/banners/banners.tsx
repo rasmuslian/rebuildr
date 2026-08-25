@@ -7,8 +7,9 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import { Image, ImageSource } from "expo-image";
+import { Image, ImageLoadEventData, ImageSource } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { Title, Headline, Display } from "@components/typography/text";
 import { Icon } from "@icons/icon";
@@ -26,6 +27,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { gql, useQuery } from "@apollo/client";
 import {
   BannerActionEnum,
+  BannerForegroundColor,
   BannerPresetBackground,
   BannersQuery,
 } from "@/gql/graphql";
@@ -41,7 +43,12 @@ const BANNERS = gql`
       id
       label
       title
+      logo {
+        id
+        url
+      }
       presetBackground
+      foregroundColor
       backgroundImage {
         id
         url
@@ -69,6 +76,7 @@ export function Banners() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [bannerHeight, setBannerHeight] = useState(0);
 
   const bannerCount = data?.banners.length ?? 0;
   const hasArrows = isDesktop && bannerCount > 1;
@@ -125,6 +133,10 @@ export function Banners() {
     });
   }, [step]);
 
+  useEffect(() => {
+    setBannerHeight(0);
+  }, [bannerCount, isDesktop, itemWidth]);
+
   if (!data || loading) {
     return <LoadingSpinner />;
   }
@@ -147,12 +159,24 @@ export function Banners() {
         <FlatList
           ref={listRef}
           data={data.banners}
+          initialNumToRender={bannerCount}
+          removeClippedSubviews={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View
+              onLayout={(event) =>
+                setBannerHeight((currentHeight) =>
+                  Math.max(currentHeight, event.nativeEvent.layout.height),
+                )
+              }
               style={{ width: itemWidth, borderRadius: borderRadius.medium }}
             >
-              <Banner banner={item} insetForArrows={hasArrows} />
+              <Banner
+                banner={item}
+                height={bannerHeight}
+                insetForArrows={hasArrows}
+                onLogoLoad={() => setBannerHeight(0)}
+              />
             </View>
           )}
           horizontal
@@ -183,7 +207,9 @@ export function Banners() {
 
 type BannerProps = {
   banner: BannersQuery["banners"][number];
+  height?: number;
   insetForArrows?: boolean;
+  onLogoLoad?: () => void;
 };
 
 const presetBackgroundImages: Partial<
@@ -194,7 +220,22 @@ const presetBackgroundImages: Partial<
   [BannerPresetBackground.Metallic]: require("@assets/images/banner-metallic.webp"),
 };
 
-const getBannerImageSource = (
+export const getBannerForegroundColor = (
+  foregroundColor: BannerForegroundColor,
+) => {
+  switch (foregroundColor) {
+    case BannerForegroundColor.LogoBackground:
+      return primitives.secondary200;
+    case BannerForegroundColor.LogoVector:
+      return primitives.primary800;
+    case BannerForegroundColor.White:
+      return primitives.neutrals100;
+    case BannerForegroundColor.Charcoal:
+      return primitives.neutrals900;
+  }
+};
+
+export const getBannerImageSource = (
   banner: BannerProps["banner"],
 ): ImageSource | null => {
   if (banner.backgroundImage?.url) {
@@ -203,21 +244,62 @@ const getBannerImageSource = (
   return presetBackgroundImages[banner.presetBackground] ?? null;
 };
 
-const Banner = ({ banner, insetForArrows }: BannerProps) => {
+type BannerLogoProps = {
+  url: string;
+  width: number;
+  roundUpHeight?: boolean;
+  onLoad?: () => void;
+};
+
+export const BannerLogo = ({
+  url,
+  width,
+  roundUpHeight = false,
+  onLoad,
+}: BannerLogoProps) => {
+  const [aspectRatio, setAspectRatio] = useState(2);
+
+  return (
+    <Image
+      source={{ uri: url }}
+      contentFit="contain"
+      onLoad={(event: ImageLoadEventData) => {
+        const { width: imageWidth, height: imageHeight } = event.source;
+        if (imageWidth && imageHeight) {
+          setAspectRatio(imageWidth / imageHeight);
+        }
+        onLoad?.();
+      }}
+      style={
+        roundUpHeight
+          ? { width, height: Math.ceil(width / aspectRatio) }
+          : { width, aspectRatio }
+      }
+    />
+  );
+};
+
+const Banner = ({
+  banner,
+  height,
+  insetForArrows,
+  onLogoLoad,
+}: BannerProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const BannerPrompt = isDesktop ? Headline : Title;
   const BannerTitle = isDesktop ? Display : Headline;
+  const horizontalPadding = insetForArrows ? 72 : isDesktop ? 32 : 24;
   const imageSource = getBannerImageSource(banner);
+  const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
 
   return (
     <BannerWrapper banner={banner}>
       <View
         style={{
-          backgroundColor: colors.logo.vector,
+          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
           width: "100%",
-          aspectRatio: isDesktop ? undefined : 3,
-          overflow: "hidden",
+          minHeight: height || undefined,
           borderRadius: borderRadius.medium,
         }}
       >
@@ -231,33 +313,52 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
               left: 0,
               right: 0,
               bottom: 0,
+              borderRadius: borderRadius.medium,
             }}
           />
         )}
         <View
           style={{
-            paddingVertical: 32,
-            paddingHorizontal: insetForArrows ? 72 : 24,
+            paddingVertical: isDesktop ? 32 : 24,
+            paddingHorizontal: horizontalPadding,
             flexDirection: "column",
-            gap: 12,
+            gap: isDesktop ? 16 : 12,
           }}
         >
-          <BannerPrompt
-            size={isDesktop ? "medium" : "small"}
-            style={{ color: colors.logo.background }}
+          {banner.logo?.url && (
+            <View style={{ alignItems: "flex-end" }}>
+              <BannerLogo
+                url={banner.logo.url}
+                width={isDesktop ? 144 : 128}
+                roundUpHeight={isDesktop}
+                onLoad={onLogoLoad}
+              />
+            </View>
+          )}
+          {!!banner.label && (
+            <BannerPrompt
+              size={isDesktop ? "medium" : "small"}
+              style={{ color: foregroundColor }}
+            >
+              {banner.label}
+            </BannerPrompt>
+          )}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: isDesktop ? 16 : 12,
+            }}
           >
-            {banner.label}
-          </BannerPrompt>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
             <BannerTitle
               size={isDesktop ? "medium" : "small"}
               color="primaryLight"
-              style={{ color: colors.logo.background }}
+              style={{ color: foregroundColor }}
             >
               {banner.title}
             </BannerTitle>
             {(banner.url || banner.action) && (
-              <Icon icon="chevronRight" customColor={colors.logo.background} />
+              <Icon icon="chevronRight" customColor={foregroundColor} />
             )}
           </View>
         </View>
@@ -270,7 +371,7 @@ type BannerWrapperProps = {
   banner: BannersQuery["banners"][number];
 } & PropsWithChildren;
 
-const BannerWrapper = ({ banner, children }: BannerWrapperProps) => {
+export const BannerWrapper = ({ banner, children }: BannerWrapperProps) => {
   const { setVisible: setLoginVisible } = useContext(LoginModalContext);
   const { setVisible: setSellProductVisible } = useSellProductContext();
   const { isLoggedIn } = useUser();

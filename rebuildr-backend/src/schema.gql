@@ -632,12 +632,16 @@ type Banner {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground!
+  foregroundColor: BannerForegroundColor!
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   backgroundImage: File
+  logo: File
   showFrom: DateTime!
   showTo: DateTime
 }
@@ -650,6 +654,19 @@ enum BannerPresetBackground {
   REBUILDR
   WOOD
   METALLIC
+}
+
+enum BannerForegroundColor {
+  LOGO_BACKGROUND
+  LOGO_VECTOR
+  WHITE
+  CHARCOAL
+}
+
+enum BannerPlacementEnum {
+  STANDARD
+  END
+  PRODUCT_INLINE
 }
 
 type FooterSection {
@@ -1025,6 +1042,7 @@ type ListPageContentResponse {
 type CmsCreateBannerResponse {
   banner: Banner!
   imagePutUrl: String
+  logoPutUrl: String
 }
 
 type NewsletterCompetition {
@@ -1257,7 +1275,7 @@ type Query {
   pageContentById(id: String!): PageContent!
   pageContentByPage(page: String!): PageContent!
   listPageContents(input: ListPageContentInput!): ListPageContentResponse!
-  banners: [Banner!]!
+  banners(placement: BannerPlacementEnum): [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
   newsletterCompetition: NewsletterCompetition!
@@ -2256,24 +2274,32 @@ input UpdatePageContentInput {
 }
 
 input CmsCreateBannerInput {
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
+  logo: FileInputType
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   showFrom: DateTime!
   showTo: DateTime
 }
 
 input CmsUpdateBannerInput {
   id: String!
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
+  logo: FileInputType
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   showFrom: DateTime!
   showTo: DateTime
 }

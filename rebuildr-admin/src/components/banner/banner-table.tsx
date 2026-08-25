@@ -57,6 +57,19 @@ const BannerTable = () => {
       ellipsis: true,
     },
     {
+      title: "Placeringar",
+      dataIndex: "placements",
+      key: "placements",
+      width: "190px",
+      render: (placements: string[]) => (
+        <div className="flex flex-wrap gap-1">
+          {placements.map((placement) => (
+            <Tag key={placement}>{placement}</Tag>
+          ))}
+        </div>
+      ),
+    },
+    {
       title: "URL / Action",
       key: "destination",
       width: "200px",

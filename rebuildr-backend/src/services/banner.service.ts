@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Banner } from 'src/entities/banner.entity';
+import { Banner, BannerPlacementEnum } from 'src/entities/banner.entity';
 import {
   CmsCreateBannerInput,
   CmsUpdateBannerInput,
@@ -16,15 +16,19 @@ export class BannerService {
     private fileService: FileService,
   ) {}
 
-  async getBanners() {
+  async getBanners(placement = BannerPlacementEnum.STANDARD) {
     const now = new Date();
-    return this.bannerRepository
+    const query = this.bannerRepository
       .createQueryBuilder('banner')
       .where('banner.showFrom <= :now', { now })
       .andWhere('(banner.showTo IS NULL OR banner.showTo >= :now)', { now })
-      .orderBy('RANDOM()')
-      .limit(3)
-      .getMany();
+      .andWhere(':placement = ANY(banner.placements)', { placement })
+      .orderBy('RANDOM()');
+
+    if (placement === BannerPlacementEnum.STANDARD) query.limit(3);
+    if (placement === BannerPlacementEnum.PRODUCT_INLINE) query.limit(1);
+
+    return query.getMany();
   }
 
   async findAll(): Promise<Banner[]> {
@@ -36,7 +40,7 @@ export class BannerService {
   async findOne(id: string): Promise<Banner> {
     const banner = await this.bannerRepository.findOne({
       where: { id },
-      relations: { backgroundImage: true },
+      relations: { backgroundImage: true, logo: true },
     });
     if (!banner) throw NotFoundException('Banner not found');
     return banner;
@@ -52,6 +56,9 @@ export class BannerService {
         url: input.url,
         action: input.action,
         presetBackground: input.presetBackground,
+        foregroundColor: input.foregroundColor,
+        placements: input.placements,
+        ctaText: input.ctaText,
         showFrom: input.showFrom,
         showTo: input.showTo,
       });
@@ -61,14 +68,19 @@ export class BannerService {
           input.backgroundImage,
         );
       }
+      if (input.logo)
+        banner.logo = await this.fileService.createFile(input.logo);
 
       await this.bannerRepository.save(banner);
 
       const imagePutUrl = banner.backgroundImage
         ? await this.fileService.uploadFile(banner.backgroundImage, true)
         : null;
+      const logoPutUrl = banner.logo
+        ? await this.fileService.uploadFile(banner.logo, true)
+        : null;
 
-      return { banner, imagePutUrl };
+      return { banner, imagePutUrl, logoPutUrl };
     } catch (error) {
       throw BadUserInputException('Failed to create banner: ' + error);
     }
@@ -84,6 +96,9 @@ export class BannerService {
         url: input.url,
         action: input.action,
         presetBackground: input.presetBackground,
+        foregroundColor: input.foregroundColor,
+        placements: input.placements,
+        ctaText: input.ctaText,
         showFrom: input.showFrom,
         showTo: input.showTo,
       });
@@ -93,14 +108,19 @@ export class BannerService {
           input.backgroundImage,
         );
       }
+      if (input.logo)
+        banner.logo = await this.fileService.createFile(input.logo);
 
       await this.bannerRepository.save(banner);
 
       const imagePutUrl = input.backgroundImage
         ? await this.fileService.uploadFile(banner.backgroundImage, true)
         : null;
+      const logoPutUrl = input.logo
+        ? await this.fileService.uploadFile(banner.logo, true)
+        : null;
 
-      return { banner, imagePutUrl };
+      return { banner, imagePutUrl, logoPutUrl };
     } catch (error) {
       throw BadUserInputException('Failed to update banner: ' + error);
     }

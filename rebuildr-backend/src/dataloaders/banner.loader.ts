@@ -6,6 +6,7 @@ import { File } from 'src/entities/file.entity';
 
 export interface IBannerLoaders {
   backgroundImageLoader: DataLoader<string, File | undefined>;
+  logoLoader: DataLoader<string, File | undefined>;
 }
 
 @Injectable()
@@ -17,6 +18,9 @@ export class BannerLoader {
       backgroundImageLoader: this.dataloaderService.targetByParentIdLoader<
         File | undefined
       >('backgroundImage', Banner),
+      logoLoader: this.dataloaderService.targetByParentIdLoader<
+        File | undefined
+      >('logo', Banner),
     };
   }
 }
