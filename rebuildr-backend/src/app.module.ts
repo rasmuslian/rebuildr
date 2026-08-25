@@ -156,10 +156,8 @@ import {
   InternalAdImportBatchResolver,
   InternalAdReservationResolver,
   InternalAdsResolver,
-  OrganizationMembershipResolver,
 } from './resolvers/internal-ads.resolver';
-import { OrganizationMembership } from './entities/organization-membership.entity';
-import { OrganizationInvite } from './entities/organization-invite.entity';
+import { OrganizationMember } from './entities/organization-member.entity';
 import { InternalAdReservation } from './entities/internal-ad-reservation.entity';
 import { InternalAdImportBatch } from './entities/internal-ad-import-batch.entity';
 import { CreditsafeAPI } from './apis/creditsafe.api';
@@ -230,8 +228,7 @@ export interface RequestType {
       AterbyggarenChat,
       AterbyggarenMessage,
       Identity,
-      OrganizationMembership,
-      OrganizationInvite,
+      OrganizationMember,
       InternalAdReservation,
       InternalAdImportBatch,
       CmsAdImportBatch,
@@ -408,7 +405,6 @@ export interface RequestType {
     InternalAdsService,
     CmsAdImportService,
     InternalAdsResolver,
-    OrganizationMembershipResolver,
     InternalAdReservationResolver,
     InternalAdImportBatchResolver,
     CmsAdImportResolver,

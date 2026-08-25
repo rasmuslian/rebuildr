@@ -5,7 +5,6 @@ import {
   InternalAdDetailQueryVariables,
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
-  OrganizationMemberRoleEnum,
   ProductAvailabilityEnum,
   ProductStatusEnum,
   ReserveInternalAdMutation,
@@ -24,6 +23,7 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
 import { FilterChip } from "@components/chips/filterChip";
 import { TextInput } from "@components/forms/textInput";
+import { SelectInput } from "@components/forms/selectInput";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -64,6 +64,8 @@ import { Pickup } from "@components/upsert-product/pickup";
 import { Shipping } from "@components/upsert-product/shipping";
 import { ProductFields } from "@components/upsert-product/types";
 
+const ORGANIZATION_MEMBERS = gql` query OrganizationMembersForReservation { organizationMembers { id name email } } `;
+
 const UPDATE_PUBLIC_TRANSPORT = gql`
   mutation UpdateInternalAdPublicTransport($input: UpdateProductInput!) {
     updateProduct(input: $input) {
@@ -87,18 +89,14 @@ export default function InternalAdDetailPage() {
   const [publicPriceError, setPublicPriceError] = useState<string>();
   const [publicPublishError, setPublicPublishError] = useState<string>();
   const [publicTransport, setPublicTransport] = useState<ProductFields>();
+  const [reservationMemberId, setReservationMemberId] = useState<string>();
+  const { data: membersData } = useQuery<{ organizationMembers: { id: string; name: string; email: string }[] }>(ORGANIZATION_MEMBERS);
 
-  const { data, loading, refetch } = useQuery<
-    InternalAdDetailQuery,
-    InternalAdDetailQueryVariables
-  >(INTERNAL_AD_DETAIL, {
+  const { data, loading, refetch } = useQuery<any>(INTERNAL_AD_DETAIL, {
     variables: { productId },
   });
 
-  const [reserveInternalAd, { loading: reserving }] = useMutation<
-    ReserveInternalAdMutation,
-    ReserveInternalAdMutationVariables
-  >(RESERVE_INTERNAL_AD);
+  const [reserveInternalAd, { loading: reserving }] = useMutation(RESERVE_INTERNAL_AD);
   const [cancelReservation, { loading: canceling }] = useMutation<
     CancelInternalAdReservationMutation,
     CancelInternalAdReservationMutationVariables
@@ -119,12 +117,12 @@ export default function InternalAdDetailPage() {
   const activeReservations = useMemo(
     () =>
       product?.internalReservations.filter(
-        (reservation) => !reservation.canceledAt && !reservation.soldAt,
+        (reservation: any) => !reservation.canceledAt && !reservation.soldAt,
       ) ?? [],
     [product?.internalReservations],
   );
   const reservedQuantity = activeReservations.reduce(
-    (sum, reservation) => sum + (reservation.quantity ?? 0),
+    (sum: number, reservation: any) => sum + (reservation.quantity ?? 0),
     0,
   );
   const availableQuantity = product?.soldByQuantity
@@ -137,10 +135,7 @@ export default function InternalAdDetailPage() {
       setQuantity(Math.max(1, availableQuantity));
     }
   }, [availableQuantity, product?.soldByQuantity, quantity]);
-  const isAdmin =
-    data?.internalAdsOrganizationContext?.role ===
-    OrganizationMemberRoleEnum.Admin;
-  const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
+  const canMarkSold = true;
   const canPublishExternally =
     data?.internalAdsOrganizationContext?.canReceivePayout ?? false;
 
@@ -253,6 +248,7 @@ export default function InternalAdDetailPage() {
         input: {
           productId: product.id,
           quantity: product.soldByQuantity ? quantity : undefined,
+          organizationMemberId: reservationMemberId,
         },
       },
     });
@@ -302,6 +298,9 @@ export default function InternalAdDetailPage() {
       onCancel={onCancel}
       onMarkSold={onMarkSold}
       showReserveButton={isDesktop}
+      reservationMemberId={reservationMemberId}
+      setReservationMemberId={setReservationMemberId}
+      members={membersData?.organizationMembers ?? []}
     />
   );
 
@@ -327,7 +326,7 @@ export default function InternalAdDetailPage() {
               label="Reservera"
               onPress={onReserve}
               loading={reserving}
-              disabled={availableQuantity <= 0}
+              disabled={availableQuantity <= 0 || !reservationMemberId}
             />
           ) : undefined
         }
@@ -619,7 +618,7 @@ const hasPublicTransportChanges = (
 const InternalAdsTopBar = () => <InternalTopBar />;
 
 type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]>;
-type InternalReservation = InternalAd["internalReservations"][number];
+type InternalReservation = any;
 
 type InternalAdContentProps = {
   product: InternalAd;
@@ -641,6 +640,9 @@ type InternalAdContentProps = {
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
   showReserveButton: boolean;
+  reservationMemberId?: string;
+  setReservationMemberId: (id: string) => void;
+  members: { id: string; name: string; email: string }[];
 };
 
 const InternalAdContent = ({
@@ -663,6 +665,9 @@ const InternalAdContent = ({
   onCancel,
   onMarkSold,
   showReserveButton,
+  reservationMemberId,
+  setReservationMemberId,
+  members,
 }: InternalAdContentProps) => {
   // Older cached listings may not have availability yet; treat them as
   // available so the rollout remains backwards compatible.
@@ -774,12 +779,18 @@ const InternalAdContent = ({
               unit={product.primaryUnit ?? undefined}
             />
           )}
+          <SelectInput
+            value={reservationMemberId}
+            options={members.map((member) => ({ value: member.id, label: member.name }))}
+            onSelect={setReservationMemberId}
+            placeholder="Välj vem som reserverar"
+          />
           {showReserveButton && (
             <Button
               label="Reservera"
               onPress={onReserve}
               loading={reserving}
-              disabled={availableQuantity <= 0}
+              disabled={availableQuantity <= 0 || !reservationMemberId}
             />
           )}
         </View>
@@ -841,15 +852,11 @@ const InternalAdContent = ({
             />
           )}
           <Detail label="Skick" value={conditions[product.condition].name} />
-          {!!product.createdByUser && (
+          {!!(product as any).createdByOrganizationMemberName && (
             <ContactDetail
               label="Upplagd av"
-              name={
-                product.createdByUser.name ??
-                product.createdByUser.username ??
-                "Kollega"
-              }
-              email={product.createdByUserEmail ?? undefined}
+              name={(product as any).createdByOrganizationMemberName}
+              email={(product as any).createdByOrganizationMemberEmail ?? undefined}
             />
           )}
           {!!product.additionalInfo && (
@@ -957,7 +964,7 @@ const Reservations = ({
     {reservations.length ? (
       reservations.map((reservation) => {
         const canCancel =
-          reservation.reservedByUserId === currentUserId || canMarkSold;
+          canMarkSold;
 
         return (
           <View key={reservation.id} style={{ gap: 8 }}>
@@ -970,24 +977,22 @@ const Reservations = ({
             >
               <View style={{ gap: 2 }}>
                 <Body size="medium">
-                  {reservation.reservedByUser.name ??
-                    reservation.reservedByUser.username ??
-                    "Kollega"}
+                  {reservation.reservedByOrganizationMemberName ?? "Okänd"}
                   {reservation.quantity
                     ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
                     : ""}
                 </Body>
-                {!!reservation.reservedByUserEmail && (
+                {!!reservation.reservedByOrganizationMemberEmail && (
                   <Pressable
                     accessibilityRole="link"
                     onPress={() =>
                       Linking.openURL(
-                        `mailto:${reservation.reservedByUserEmail}`,
+                        `mailto:${reservation.reservedByOrganizationMemberEmail}`,
                       )
                     }
                   >
                     <Body size="small" isLink>
-                      {reservation.reservedByUserEmail}
+                      {reservation.reservedByOrganizationMemberEmail}
                     </Body>
                   </Pressable>
                 )}

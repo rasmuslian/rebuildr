@@ -38,9 +38,7 @@ export const InternalTopBar = ({
     INTERNAL_ADS_MENU_CONTEXT,
     { fetchPolicy: "cache-and-network" },
   );
-  const isOrganizationAccount =
-    data?.internalAdsOrganizationContext?.isOrganizationAccount ?? false;
-  const canUseInternalAds = showActions && !isOrganizationAccount;
+  const canUseInternalAds = showActions && !!data?.internalAdsOrganizationContext;
 
   return (
     <View
@@ -52,14 +50,12 @@ export const InternalTopBar = ({
           showActions={canUseInternalAds}
           showSearchBar={showSearchBar}
           onCreateAd={onCreateAd}
-          isOrganizationAccount={isOrganizationAccount}
         />
       ) : (
         <InternalTopBarMobile
           home={home}
           showActions={canUseInternalAds}
           onCreateAd={onCreateAd}
-          isOrganizationAccount={isOrganizationAccount}
         />
       )}
     </View>
@@ -112,8 +108,7 @@ const InternalTopBarDesktop = ({
   showActions,
   showSearchBar,
   onCreateAd,
-  isOrganizationAccount,
-}: Props & { isOrganizationAccount: boolean }) => {
+}: Props) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
@@ -173,8 +168,8 @@ const InternalTopBarDesktop = ({
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
-        showInternalLinks={showActions}
-        showMemberManagement={isOrganizationAccount}
+        showInternalLinks={!!showActions}
+        showMemberManagement={!!showActions}
       />
     </>
   );
@@ -184,8 +179,7 @@ const InternalTopBarMobile = ({
   home,
   showActions,
   onCreateAd,
-  isOrganizationAccount,
-}: Props & { isOrganizationAccount: boolean }) => {
+}: Props) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
@@ -246,8 +240,8 @@ const InternalTopBarMobile = ({
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
-        showInternalLinks={showActions}
-        showMemberManagement={isOrganizationAccount}
+        showInternalLinks={!!showActions}
+        showMemberManagement={!!showActions}
       />
     </>
   );

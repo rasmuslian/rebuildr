@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 
 import { File } from './file.entity';
+import { OrganizationMember } from './organization-member.entity';
 import { Product } from './product.entity';
 import { User } from './user.entity';
 
@@ -41,12 +42,12 @@ export class InternalAdImportBatch {
   @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   organization: User;
 
-  @Field()
-  @Column()
-  createdByUserId: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  organizationMemberId?: string;
 
-  @ManyToOne(() => User, (user) => user.id)
-  createdByUser: User;
+  @ManyToOne(() => OrganizationMember, { nullable: true, onDelete: 'SET NULL' })
+  organizationMember?: OrganizationMember;
 
   @Field(() => InternalAdImportBatchStatus)
   @Column({

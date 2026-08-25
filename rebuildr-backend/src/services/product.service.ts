@@ -70,7 +70,6 @@ import { ShippingPriceService } from './shipping-price.service';
 import { ConversationService } from './conversation.service';
 import { SearchEnrichmentService } from './search-enrichment.service';
 import { Brand } from 'src/entities/brand.entity';
-import { OrganizationMemberRole } from 'src/entities/organization-membership.entity';
 import { Project } from 'src/entities/project.entity';
 
 export const PRODUCT_SEARCH_RANK_THRESHOLD = 0.25;
@@ -1124,21 +1123,11 @@ export class ProductService {
   }
 
   private async canManageInternalProduct(product: Product, userId: string) {
-    const result = await this.dataSource.query(
-      `SELECT 1
-       FROM organization_membership
-       WHERE "organizationId" = $1
-         AND "userId" = $2
-         AND (role = $3 OR $4 = $2)
-       LIMIT 1`,
-      [
-        product.internalOrganizationId,
-        userId,
-        OrganizationMemberRole.ADMIN,
-        product.createdByUserId,
-      ],
-    );
-    return result.length > 0;
+    const organization = await this.userRepository.findOneBy({
+      id: userId,
+      internalAdsAccess: true,
+    });
+    return organization?.id === product.internalOrganizationId;
   }
 
   async isLikedBy(productId: string, userId?: string) {

@@ -6,9 +6,7 @@ import {
 } from '@google/genai';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
 import * as XLSX from 'xlsx';
-import * as crypto from 'crypto';
 import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { maximumProductPrice } from 'src/constants/pricing';
@@ -19,14 +17,7 @@ import {
   InternalAdImportBatchStatus,
 } from 'src/entities/internal-ad-import-batch.entity';
 import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
-import {
-  OrganizationInvite,
-  OrganizationInviteStatus,
-} from 'src/entities/organization-invite.entity';
-import {
-  OrganizationMemberRole,
-  OrganizationMembership,
-} from 'src/entities/organization-membership.entity';
+import { OrganizationMember } from 'src/entities/organization-member.entity';
 import {
   ColorTypeEnum,
   MeasurementUnitEnum,
@@ -72,9 +63,9 @@ const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
 
 export interface OrganizationContext {
   organization: User;
-  role: OrganizationMemberRole;
-  isOrganizationAccount: boolean;
   canReceivePayout?: boolean;
+  role?: string;
+  isOrganizationAccount?: boolean;
 }
 
 interface ImportDraft {
@@ -109,10 +100,8 @@ export class InternalAdsService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(File)
     private fileRepository: Repository<File>,
-    @InjectRepository(OrganizationMembership)
-    private membershipRepository: Repository<OrganizationMembership>,
-    @InjectRepository(OrganizationInvite)
-    private inviteRepository: Repository<OrganizationInvite>,
+    @InjectRepository(OrganizationMember)
+    private organizationMemberRepository: Repository<OrganizationMember>,
     @InjectRepository(InternalAdReservation)
     private reservationRepository: Repository<InternalAdReservation>,
     @InjectRepository(InternalAdImportBatch)
@@ -127,57 +116,19 @@ export class InternalAdsService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  async getManagementOrganizationContext(
-    userId: string,
-  ): Promise<OrganizationContext> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (!user) {
-      throw BadUserInputException('Invalid user');
-    }
-
-    // internalAdsAccess identifies the organization/owner account. Some legacy
-    // organization accounts predate the BUSINESS type and must retain admin access.
-    if (user.internalAdsAccess) {
-      return {
-        organization: user,
-        role: OrganizationMemberRole.ADMIN,
-        isOrganizationAccount: true,
-      };
-    }
-
-    const membership = await this.membershipRepository.findOne({
-      where: {
-        userId,
-        organization: { internalAdsAccess: true },
-      },
-      relations: { organization: true },
-      order: { createdAt: 'ASC' },
-    });
-    if (!membership) {
+  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
+    const organization = await this.userRepository.findOneBy({ id: userId });
+    if (!organization) throw BadUserInputException('Invalid user');
+    if (!organization.internalAdsAccess) {
       throw ForbiddenException('No access to internal ads');
     }
-
-    return {
-      organization: membership.organization,
-      role: membership.role,
-      isOrganizationAccount: false,
-    };
-  }
-
-  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
-    const context = await this.getManagementOrganizationContext(userId);
-    if (context.isOrganizationAccount) {
-      throw ForbiddenException(
-        'Log in as an organization member to use internal ads',
-      );
-    }
-    return context;
+    return { organization };
   }
 
   async getOptionalOrganizationContext(userId?: string) {
     if (!userId) return null;
     try {
-      const context = await this.getManagementOrganizationContext(userId);
+      const context = await this.getOrganizationContext(userId);
       return {
         ...context,
         canReceivePayout: await this.organizationCanReceivePayout(
@@ -204,276 +155,67 @@ export class InternalAdsService {
     if (product.visibility !== ProductVisibility.INTERNAL) return;
     const context = await this.getOrganizationContext(userId);
     if (context.organization.id !== product.internalOrganizationId) {
-      throw ForbiddenException(
-        'Internal product belongs to another organization',
-      );
+      throw ForbiddenException('Internal product belongs to another organization');
     }
   }
 
   async members(currentUserId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    return this.membershipRepository.find({
+    const context = await this.getOrganizationContext(currentUserId);
+    return this.organizationMemberRepository.find({
       where: { organizationId: context.organization.id },
-      relations: { user: true },
       order: { createdAt: 'ASC' },
     });
   }
 
-  async invites(currentUserId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    return this.inviteRepository
-      .find({
-        where: {
-          organizationId: context.organization.id,
-          status: OrganizationInviteStatus.PENDING,
-        },
-        relations: { invitedByUser: true },
-        order: { createdAt: 'DESC' },
-      })
-      .then((invites) =>
-        invites.filter((invite) => invite.expiresAt > new Date()),
-      );
-  }
-
-  async organizationInvite(token: string) {
-    const invite = await this.findActiveInvite(token);
-    return {
-      organizationName:
-        invite.organization.name ?? invite.organization.username ?? 'RebuildR',
-      expiresAt: invite.expiresAt,
-    };
-  }
-
-  async inviteMember(
-    currentUserId: string,
-    input: { email: string; role: OrganizationMemberRole },
-  ) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const parsedEmail = z.string().email().safeParse(input.email);
-    if (!parsedEmail.success) {
+  async createMember(currentUserId: string, input: { name: string; email: string }) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const name = input.name.trim();
+    const parsedEmail = z.string().email().safeParse(input.email.trim());
+    if (!name || !parsedEmail.success) {
       throw BadFieldsInputException([
-        { name: 'email', message: 'Ange en giltig e-postadress' },
+        ...(!name ? [{ name: 'name', message: 'Ange ett namn' }] : []),
+        ...(!parsedEmail.success ? [{ name: 'email', message: 'Ange en giltig e-postadress' }] : []),
       ]);
     }
-    const email = parsedEmail.data.toLowerCase().trim();
-    await this.assertInviteeCanJoin(context.organization.id, email);
-
-    const previous = await this.inviteRepository.findOneBy({
+    return this.organizationMemberRepository.save(this.organizationMemberRepository.create({
       organizationId: context.organization.id,
-      email,
-      status: OrganizationInviteStatus.PENDING,
-    });
-    if (previous) previous.status = OrganizationInviteStatus.REVOKED;
-    if (previous) await this.inviteRepository.save(previous);
-    return this.createAndSendInvite(context, currentUserId, email, input.role);
+      name,
+      email: parsedEmail.data.toLowerCase(),
+    }));
   }
 
-  async resendInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const invite = await this.inviteRepository.findOneBy({
-      id: inviteId,
+  async updateMember(currentUserId: string, input: { id: string; name: string; email: string }) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const member = await this.organizationMemberRepository.findOneBy({
+      id: input.id,
       organizationId: context.organization.id,
-      status: OrganizationInviteStatus.PENDING,
     });
-    if (!invite || invite.expiresAt <= new Date())
-      throw NotFoundException('Invite not found');
-    invite.status = OrganizationInviteStatus.REVOKED;
-    await this.inviteRepository.save(invite);
-    return this.createAndSendInvite(
-      context,
-      currentUserId,
-      invite.email,
-      invite.role,
-    );
+    if (!member) throw NotFoundException('Organization member not found');
+    const name = input.name.trim();
+    const parsedEmail = z.string().email().safeParse(input.email.trim());
+    if (!name || !parsedEmail.success) throw BadUserInputException('Invalid member');
+    member.name = name;
+    member.email = parsedEmail.data.toLowerCase();
+    return this.organizationMemberRepository.save(member);
   }
 
-  async revokeInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const invite = await this.inviteRepository.findOneBy({
-      id: inviteId,
+  async removeMember(currentUserId: string, memberId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const result = await this.organizationMemberRepository.delete({
+      id: memberId,
       organizationId: context.organization.id,
-      status: OrganizationInviteStatus.PENDING,
     });
-    if (!invite) throw NotFoundException('Invite not found');
-    invite.status = OrganizationInviteStatus.REVOKED;
-    return this.inviteRepository.save(invite);
-  }
-
-  async acceptInvite(
-    input: { token: string; username?: string; password?: string },
-    currentUserId?: string,
-  ) {
-    const invite = await this.findActiveInvite(input.token);
-    let user = currentUserId
-      ? await this.userRepository.findOneBy({ id: currentUserId })
-      : null;
-    if (user) {
-      if (user.email?.toLowerCase() !== invite.email)
-        throw ForbiddenException(
-          'Logga in med e-postadressen som fick inbjudan',
-        );
-    } else {
-      const existingUser = await this.userRepository.findOneBy({
-        email: invite.email,
-      });
-      if (existingUser)
-        throw ForbiddenException('Logga in för att acceptera inbjudan');
-      if (!input.username || !input.password)
-        throw BadFieldsInputException([
-          { name: 'username', message: 'Användarnamn krävs' },
-          { name: 'password', message: 'Lösenord krävs' },
-        ]);
-      if (await this.userRepository.existsBy({ username: input.username }))
-        throw BadFieldsInputException([
-          {
-            name: 'username',
-            message: 'Användarnamnet är upptaget',
-            type: 'VALUE_TAKEN',
-          },
-        ]);
-      user = this.userRepository.create({
-        email: invite.email,
-        username: input.username,
-        password: await bcrypt.hash(input.password, 10),
-        emailVerifiedAt: new Date(),
-        type: UserType.PERSONAL,
-      });
-    }
-    await this.assertInviteeCanJoin(
-      invite.organizationId,
-      invite.email,
-      user.id,
-    );
-    return this.dataSource.transaction(async (manager) => {
-      const savedUser = await manager.getRepository(User).save(user);
-      const result = await manager.getRepository(OrganizationInvite).update(
-        { id: invite.id, status: OrganizationInviteStatus.PENDING },
-        {
-          status: OrganizationInviteStatus.ACCEPTED,
-          acceptedAt: new Date(),
-          acceptedByUserId: savedUser.id,
-        },
-      );
-      if (!result.affected)
-        throw BadUserInputException('Inbjudan har redan använts');
-      await manager.getRepository(OrganizationMembership).insert({
-        organizationId: invite.organizationId,
-        userId: savedUser.id,
-        role: invite.role,
-      });
-      return savedUser;
-    });
-  }
-
-  async updateMemberRole(
-    currentUserId: string,
-    input: { userId: string; role: OrganizationMemberRole },
-  ) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    if (input.userId === currentUserId)
-      throw BadUserInputException('Du kan inte ändra din egen roll');
-    const membership = await this.membershipRepository.findOne({
-      where: { organizationId: context.organization.id, userId: input.userId },
-      relations: { user: true },
-    });
-    if (!membership) throw NotFoundException('Member not found');
-    membership.role = input.role;
-    return this.membershipRepository.save(membership);
-  }
-
-  async removeMember(currentUserId: string, userId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    if (userId === currentUserId)
-      throw BadUserInputException('Du kan inte ta bort dig själv');
-    const result = await this.membershipRepository.delete({
-      organizationId: context.organization.id,
-      userId,
-    });
-    if (!result.affected) throw NotFoundException('Member not found');
+    if (!result.affected) throw NotFoundException('Organization member not found');
     return true;
   }
 
-  private async createAndSendInvite(
-    context: OrganizationContext,
-    invitedByUserId: string,
-    email: string,
-    role: OrganizationMemberRole,
-  ) {
-    const token = crypto.randomBytes(32).toString('hex');
-    const invite = await this.inviteRepository.save(
-      this.inviteRepository.create({
-        email,
-        organizationId: context.organization.id,
-        invitedByUserId,
-        role,
-        tokenHash: this.hashToken(token),
-        status: OrganizationInviteStatus.PENDING,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      }),
-    );
-    try {
-      await this.mailService.sendOrganizationInviteEmail({
-        email,
-        organizationName:
-          context.organization.name ??
-          context.organization.username ??
-          'RebuildR',
-        token,
-      });
-      return invite;
-    } catch (error) {
-      await this.inviteRepository.update(invite.id, {
-        status: OrganizationInviteStatus.REVOKED,
-      });
-      throw error;
-    }
-  }
-
-  private async findActiveInvite(token: string) {
-    const invite = await this.inviteRepository.findOne({
-      where: {
-        tokenHash: this.hashToken(token),
-        status: OrganizationInviteStatus.PENDING,
-      },
-      relations: { organization: true },
+  private async findOrganizationMember(organizationId: string, memberId: string) {
+    const member = await this.organizationMemberRepository.findOneBy({
+      id: memberId,
+      organizationId,
     });
-    if (!invite || invite.expiresAt <= new Date())
-      throw NotFoundException('Inbjudan är ogiltig eller har löpt ut');
-    return invite;
-  }
-
-  private hashToken(token: string) {
-    return crypto.createHash('sha256').update(token).digest('hex');
-  }
-
-  private async assertInviteeCanJoin(
-    organizationId: string,
-    email: string,
-    userId?: string,
-  ) {
-    const user = userId
-      ? await this.userRepository.findOneBy({ id: userId })
-      : await this.userRepository.findOneBy({ email });
-    if (!user) return;
-    if (user.id === organizationId || user.type === UserType.BUSINESS)
-      throw BadUserInputException(
-        'Företagskonton kan inte bjudas in som medlemmar',
-      );
-    const membership = await this.membershipRepository.findOneBy({
-      userId: user.id,
-    });
-    if (membership?.organizationId === organizationId)
-      throw BadUserInputException('Användaren är redan medlem');
-    if (membership)
-      throw BadUserInputException(
-        'Användaren är redan medlem i en annan organisation',
-      );
+    if (!member) throw BadUserInputException('Invalid organization member');
+    return member;
   }
 
   async internalProjects(
@@ -608,8 +350,9 @@ export class InternalAdsService {
     return true;
   }
 
-  async createInternalDraft(currentUserId: string) {
+  async createInternalDraft(currentUserId: string, memberId: string) {
     const context = await this.getOrganizationContext(currentUserId);
+    const member = await this.findOrganizationMember(context.organization.id, memberId);
     const product = new Product();
     product.title = '';
     product.price = 0;
@@ -619,7 +362,9 @@ export class InternalAdsService {
     product.internalOrganizationId = context.organization.id;
     product.seller = context.organization;
     product.sellerId = context.organization.id;
-    product.createdByUserId = currentUserId;
+    product.createdByOrganizationMemberId = member.id;
+    product.createdByOrganizationMemberName = member.name;
+    product.createdByOrganizationMemberEmail = member.email;
     product.address = context.organization.address;
     product.addressLocation = context.organization.addressLocation;
     product.pickupEnabled = true;
@@ -926,19 +671,15 @@ export class InternalAdsService {
       },
       relations: {
         seller: true,
-        createdByUser: true,
-        internalReservations: { reservedByUser: true },
+        createdByOrganizationMember: true,
+        internalReservations: { reservedByOrganizationMember: true },
         shippingPrices: true,
       },
     });
     if (!product) {
       throw NotFoundException('Internal ad not found');
     }
-    product.createdByUserEmail = product.createdByUser?.email;
-    product.internalReservations?.forEach((reservation) => {
-      reservation.reservedByUserEmail = reservation.reservedByUser?.email;
-    });
-    return product;
+        return product;
   }
 
   async myInternalDrafts(currentUserId: string, batchId?: string) {
@@ -1072,12 +813,6 @@ export class InternalAdsService {
   ) {
     const product = await this.internalAd(currentUserId, productId);
     const context = await this.getOrganizationContext(currentUserId);
-    const canManage =
-      product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canManage) {
-      throw ForbiddenException();
-    }
     if (product.status !== ProductStatus.PUBLISHED) {
       throw BadUserInputException('Product is not published');
     }
@@ -1135,12 +870,16 @@ export class InternalAdsService {
 
   async reserveInternalAd(
     currentUserId: string,
-    input: { productId: string; quantity?: number },
+    input: { productId: string; quantity?: number; organizationMemberId: string },
   ) {
     // Check organization access before taking the product lock.
     const accessibleProduct = await this.internalAd(
       currentUserId,
       input.productId,
+    );
+    const member = await this.findOrganizationMember(
+      accessibleProduct.internalOrganizationId!,
+      input.organizationMemberId,
     );
     const reservation = await this.dataSource.transaction(async (manager) => {
       // Serializing reservations on the product row prevents two simultaneous
@@ -1186,16 +925,13 @@ export class InternalAdsService {
       return manager.save(
         manager.create(InternalAdReservation, {
           productId: product.id,
-          reservedByUserId: currentUserId,
+          reservedByOrganizationMemberId: member.id,
+          reservedByOrganizationMemberName: member.name,
+          reservedByOrganizationMemberEmail: member.email,
           quantity: product.soldByQuantity ? input.quantity : null,
         }),
       );
     });
-    await this.notifyInternalAdEvent(
-      accessibleProduct,
-      currentUserId,
-      'reserverats',
-    );
     return reservation;
   }
 
@@ -1213,13 +949,6 @@ export class InternalAdsService {
     ) {
       throw ForbiddenException();
     }
-    const canCancel =
-      reservation.reservedByUserId === currentUserId ||
-      reservation.product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canCancel) {
-      throw ForbiddenException();
-    }
     reservation.canceledAt = new Date();
     return this.reservationRepository.save(reservation);
   }
@@ -1230,12 +959,6 @@ export class InternalAdsService {
   ) {
     const product = await this.internalAd(currentUserId, input.productId);
     const context = await this.getOrganizationContext(currentUserId);
-    const canMarkSold =
-      product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canMarkSold) {
-      throw ForbiddenException();
-    }
 
     if (input.reservationId && product.soldByQuantity) {
       const reservation = await this.reservationRepository.findOneBy({
@@ -1265,20 +988,16 @@ export class InternalAdsService {
       }
     }
     const saved = await this.productRepository.save(product);
-    await this.notifyInternalAdEvent(
-      product,
-      currentUserId,
-      'markerats som såld',
-    );
     return saved;
   }
 
-  async createImportBatch(currentUserId: string, files: FileInputType[]) {
+  async createImportBatch(currentUserId: string, files: FileInputType[], memberId: string) {
     const context = await this.getOrganizationContext(currentUserId);
+    const member = await this.findOrganizationMember(context.organization.id, memberId);
     const dbFiles = await this.fileService.createFiles(files, true);
     const batch = this.importBatchRepository.create({
       organizationId: context.organization.id,
-      createdByUserId: currentUserId,
+      organizationMemberId: member.id,
       status: InternalAdImportBatchStatus.UPLOADING,
       progress: 0,
       files: dbFiles,
@@ -1334,8 +1053,7 @@ export class InternalAdsService {
     const query = this.productRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.seller', 'seller')
-      .leftJoinAndSelect('p.createdByUser', 'createdByUser')
-      .where('p.visibility = :visibility', {
+            .where('p.visibility = :visibility', {
         visibility: ProductVisibility.INTERNAL,
       });
     if (searchString) {
@@ -1355,7 +1073,7 @@ export class InternalAdsService {
   private async processImportBatch(batchId: string) {
     const batch = await this.importBatchRepository.findOne({
       where: { id: batchId },
-      relations: { files: true, organization: true },
+      relations: { files: true, organization: true, organizationMember: true },
     });
     if (!batch) return;
     try {
@@ -1456,7 +1174,9 @@ export class InternalAdsService {
         visibility: ProductVisibility.INTERNAL,
         internalOrganizationId: batch.organizationId,
         sellerId: batch.organizationId,
-        createdByUserId: batch.createdByUserId,
+        createdByOrganizationMemberId: batch.organizationMemberId,
+        createdByOrganizationMemberName: batch.organizationMember.name,
+        createdByOrganizationMemberEmail: batch.organizationMember.email,
         internalAdImportBatchId: batch.id,
         condition: this.validCondition(draft.condition),
         color: draft.color?.trim() ?? null,
@@ -1820,7 +1540,7 @@ ${categoryList}
   private async activeReservations(productId: string) {
     return this.reservationRepository.find({
       where: { productId, canceledAt: IsNull(), soldAt: IsNull() },
-      relations: { reservedByUser: true },
+      relations: { reservedByOrganizationMember: true },
       order: { reservedAt: 'ASC' },
     });
   }
@@ -1838,34 +1558,4 @@ ${categoryList}
     return batch;
   }
 
-  private async assertOrganizationAdmin(context: OrganizationContext) {
-    if (
-      !context.isOrganizationAccount &&
-      context.role !== OrganizationMemberRole.ADMIN
-    ) {
-      throw ForbiddenException('Organization admin required');
-    }
-  }
-
-  private async notifyInternalAdEvent(
-    product: Product,
-    actorId: string,
-    action: string,
-  ) {
-    const [actor, creator, organization] = await Promise.all([
-      this.userRepository.findOneBy({ id: actorId }),
-      product.createdByUserId
-        ? this.userRepository.findOneBy({ id: product.createdByUserId })
-        : null,
-      this.userRepository.findOneBy({ id: product.internalOrganizationId }),
-    ]);
-    const receiverEmail = creator?.email ?? organization?.email;
-    if (!receiverEmail || actor?.id === creator?.id) return;
-    await this.mailService.sendInternalAdEventEmail({
-      email: receiverEmail,
-      productTitle: product.title,
-      actorName: actor?.name ?? actor?.username ?? actor?.email ?? 'En kollega',
-      action,
-    });
-  }
 }

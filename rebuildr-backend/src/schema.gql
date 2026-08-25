@@ -163,41 +163,13 @@ enum ReportProductTypeEnum {
   OTHER
 }
 
-type OrganizationMembership {
+type OrganizationMember {
   id: ID!
   organizationId: String!
-  userId: String!
-  role: OrganizationMemberRoleEnum!
+  name: String!
+  email: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  user: User!
-  userEmail: String
-  organization: User!
-}
-
-enum OrganizationMemberRoleEnum {
-  ADMIN
-  MEMBER
-}
-
-type OrganizationInvite {
-  id: ID!
-  email: String!
-  organizationId: String!
-  invitedByUserId: String!
-  invitedByUser: User!
-  role: OrganizationMemberRoleEnum!
-  status: OrganizationInviteStatusEnum!
-  acceptedByUserId: String
-  acceptedAt: DateTime
-  expiresAt: DateTime!
-  createdAt: DateTime!
-}
-
-enum OrganizationInviteStatusEnum {
-  PENDING
-  ACCEPTED
-  REVOKED
 }
 
 type User {
@@ -457,7 +429,7 @@ enum CmsAdImportBatchStatusEnum {
 type InternalAdImportBatch {
   id: ID!
   organizationId: String!
-  createdByUserId: String!
+  organizationMemberId: String
   status: InternalAdImportBatchStatusEnum!
   progress: Int!
   errorMessage: String
@@ -479,13 +451,14 @@ enum InternalAdImportBatchStatusEnum {
 type InternalAdReservation {
   id: ID!
   productId: String!
-  reservedByUserId: String!
-  reservedByUserEmail: String
+  reservedByOrganizationMemberId: String
+  reservedByOrganizationMember: OrganizationMember
+  reservedByOrganizationMemberName: String
+  reservedByOrganizationMemberEmail: String
   quantity: Int
   reservedAt: DateTime!
   canceledAt: DateTime
   soldAt: DateTime
-  reservedByUser: User!
 }
 
 type Product {
@@ -535,9 +508,10 @@ type Product {
   publiclyAvailable: Boolean!
   publicPriceConfirmed: Boolean!
   internalOrganizationId: String
-  createdByUserId: String
-  createdByUser: User
-  createdByUserEmail: String
+  createdByOrganizationMemberId: String
+  createdByOrganizationMember: OrganizationMember
+  createdByOrganizationMemberName: String
+  createdByOrganizationMemberEmail: String
   internalValidationIssues: [String!]!
   distanceFromPosition: Float
   pickupEnabled: Boolean!
@@ -1156,8 +1130,6 @@ enum BankIDVerifyStatus {
 
 type InternalAdsOrganizationContext {
   organization: User!
-  role: OrganizationMemberRoleEnum!
-  isOrganizationAccount: Boolean!
   canReceivePayout: Boolean!
 }
 
@@ -1172,11 +1144,6 @@ type InternalAdsStatistics {
 type InternalAdsCategory {
   category: Category!
   adCount: Int!
-}
-
-type OrganizationInvitePreview {
-  organizationName: String!
-  expiresAt: DateTime!
 }
 
 type CreateInternalAdImportBatchResponse {
@@ -1282,9 +1249,7 @@ type Query {
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
   internalAd(productId: String!): Product!
   internalAdDrafts(batchId: String): [Product!]!
-  organizationInvite(token: String!): OrganizationInvitePreview
-  organizationMembers: [OrganizationMembership!]!
-  organizationInvites: [OrganizationInvite!]!
+  organizationMembers: [OrganizationMember!]!
   internalAdImportBatch(batchId: String!): InternalAdImportBatch!
   cmsInternalAds(input: CmsInternalAdsInput!): PaginatedProductsResponse!
   cmsAdImportBatch(batchId: String!): CmsAdImportBatch!
@@ -1709,13 +1674,10 @@ type Mutation {
   createInternalProject(input: CreateInternalProjectInput!): Project!
   updateInternalProject(input: UpdateInternalProjectInput!): Project!
   deleteInternalProject(projectId: ID!): Boolean!
-  inviteOrganizationMember(input: InviteOrganizationMemberInput!): OrganizationInvite!
-  acceptOrganizationInvite(input: AcceptOrganizationInviteInput!): User!
-  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): OrganizationMembership!
-  resendOrganizationInvite(input: OrganizationInviteIdInput!): OrganizationInvite!
-  revokeOrganizationInvite(input: OrganizationInviteIdInput!): OrganizationInvite!
-  removeOrganizationMember(input: RemoveOrganizationMemberInput!): Boolean!
-  createInternalAdDraft: Product!
+  createOrganizationMember(input: CreateOrganizationMemberInput!): OrganizationMember!
+  updateOrganizationMember(input: UpdateOrganizationMemberInput!): OrganizationMember!
+  removeOrganizationMember(memberId: ID!): Boolean!
+  createInternalAdDraft(organizationMemberId: ID!): Product!
   removeInternalAdDraft(productId: String!): Boolean!
   removeInternalAdImportBatch(batchId: String!): Boolean!
   publishInternalAdDrafts(productIds: [ID!]!): [Product!]!
@@ -1723,7 +1685,7 @@ type Mutation {
   reserveInternalAd(input: ReserveInternalAdInput!): InternalAdReservation!
   cancelInternalAdReservation(reservationId: String!): InternalAdReservation!
   markInternalAdSold(input: MarkInternalAdSoldInput!): Product!
-  createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!): CreateInternalAdImportBatchResponse!
+  createInternalAdImportBatch(input: CreateInternalAdImportBatchInput!, organizationMemberId: ID!): CreateInternalAdImportBatchResponse!
   startInternalAdImportBatch(batchId: String!): InternalAdImportBatch!
   createCmsAdImportBatch(input: CreateCmsAdImportBatchInput!): CreateCmsAdImportBatchResponse!
   startCmsAdImportBatch(batchId: String!): CmsAdImportBatch!
@@ -2300,33 +2262,21 @@ input UpdateInternalProjectInput {
   location: LocationInputType
 }
 
-input InviteOrganizationMemberInput {
+input CreateOrganizationMemberInput {
+  name: String!
   email: String!
-  role: OrganizationMemberRoleEnum!
 }
 
-input AcceptOrganizationInviteInput {
-  token: String!
-  username: String
-  password: String
-}
-
-input UpdateOrganizationMemberRoleInput {
-  userId: String!
-  role: OrganizationMemberRoleEnum!
-}
-
-input OrganizationInviteIdInput {
-  inviteId: ID!
-}
-
-input RemoveOrganizationMemberInput {
-  userId: ID!
+input UpdateOrganizationMemberInput {
+  name: String!
+  email: String!
+  id: ID!
 }
 
 input ReserveInternalAdInput {
   productId: String!
   quantity: Int
+  organizationMemberId: ID!
 }
 
 input MarkInternalAdSoldInput {

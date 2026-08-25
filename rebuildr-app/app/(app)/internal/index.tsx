@@ -22,11 +22,12 @@ import {
   REMOVE_INTERNAL_AD_IMPORT_BATCH,
   START_INTERNAL_AD_IMPORT_BATCH,
 } from "@/queries/internal-ads";
-import { useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
+import { SelectInput } from "@components/forms/selectInput";
 import { InternalCategoryGrid } from "@components/internal/internal-category-grid";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
 import { InternalStatisticsSection } from "@components/internal/internal-statistics-section";
@@ -52,6 +53,7 @@ import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   ImageBackground,
   Pressable,
@@ -60,6 +62,9 @@ import {
 } from "react-native";
 
 const SECTION_PAGE_SIZE = 10;
+const ORGANIZATION_MEMBERS = gql`
+  query OrganizationMembersForActions { organizationMembers { id name email } }
+`;
 
 type InternalAdsHomeData = InternalAdsHomeQuery & {
   internalAdsCategories: Array<{
@@ -89,6 +94,7 @@ export default function InternalAdsPage() {
   const [pollBatch, setPollBatch] = useState(false);
   const [publishRequested, setPublishRequested] = useState(false);
   const [showTopBarSearch, setShowTopBarSearch] = useState(false);
+  const [importMemberId, setImportMemberId] = useState<string>();
   const [introHeight, setIntroHeight] = useState(0);
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
@@ -103,6 +109,8 @@ export default function InternalAdsPage() {
     },
     fetchPolicy: "cache-and-network",
   });
+
+  const { data: membersData } = useQuery<{ organizationMembers: { id: string; name: string; email: string }[] }>(ORGANIZATION_MEMBERS);
 
   const { data: projectsData, refetch: refetchProjects } = useQuery<any>(
     INTERNAL_PROJECTS,
@@ -138,18 +146,14 @@ export default function InternalAdsPage() {
     pollInterval: pollBatch ? 3000 : 0,
   });
 
-  const [createDraft, { loading: creatingDraft }] =
-    useMutation<CreateInternalAdDraftMutation>(CREATE_INTERNAL_AD_DRAFT);
+  const [createDraft, { loading: creatingDraft }] = useMutation(CREATE_INTERNAL_AD_DRAFT);
   const [publishImported, { loading: publishingImported }] = useMutation<
     PublishInternalAdDraftsMutation,
     PublishInternalAdDraftsMutationVariables
   >(PUBLISH_INTERNAL_AD_DRAFTS);
   const [removeDraft] = useMutation(REMOVE_INTERNAL_AD_DRAFT);
   const [removeImportBatch] = useMutation(REMOVE_INTERNAL_AD_IMPORT_BATCH);
-  const [createBatch, { loading: creatingBatch }] = useMutation<
-    CreateInternalAdImportBatchMutation,
-    CreateInternalAdImportBatchMutationVariables
-  >(CREATE_INTERNAL_AD_IMPORT_BATCH);
+  const [createBatch, { loading: creatingBatch }] = useMutation(CREATE_INTERNAL_AD_IMPORT_BATCH);
   const [startBatch, { loading: startingBatch }] = useMutation(
     START_INTERNAL_AD_IMPORT_BATCH,
   );
@@ -161,13 +165,25 @@ export default function InternalAdsPage() {
   const batchCreation = useRef<ReturnType<typeof createBatch> | null>(null);
 
   const onCreateInternalAd = useCallback(async () => {
-    const result = await createDraft();
-    const productId = result.data?.createInternalAdDraft.id;
-    if (!productId) return;
-    setEditorProductId(productId);
-    setIsNewInternalAd(true);
-    setShowEditor(true);
-  }, [createDraft]);
+    const members = membersData?.organizationMembers ?? [];
+    if (!members.length) {
+      router.navigate("/internal/members");
+      return;
+    }
+    const createForMember = async (organizationMemberId: string) => {
+      const result = await createDraft({ variables: { organizationMemberId } });
+      const productId = result.data?.createInternalAdDraft.id;
+      if (!productId) return;
+      setEditorProductId(productId);
+      setIsNewInternalAd(true);
+      setShowEditor(true);
+    };
+    if (members.length === 1) return createForMember(members[0].id);
+    Alert.alert("Vem lägger upp annonsen?", undefined, members.map((member) => ({
+      text: member.name,
+      onPress: () => createForMember(member.id),
+    })));
+  }, [createDraft, membersData?.organizationMembers]);
 
   useEffect(() => {
     if (params.action !== "create" || !params.t) return;
@@ -220,7 +236,7 @@ export default function InternalAdsPage() {
   };
 
   const onStartImport = async () => {
-    if (!selectedFiles.length) return;
+    if (!selectedFiles.length || !importMemberId) return;
     const generation = ++importGeneration.current;
     setUploadingImport(true);
     const controller = new AbortController();
@@ -233,6 +249,7 @@ export default function InternalAdsPage() {
             name: file.name,
           })),
         },
+        organizationMemberId: importMemberId,
       },
     });
     batchCreation.current = creation;
@@ -246,7 +263,7 @@ export default function InternalAdsPage() {
         return;
       }
       await Promise.all(
-        response.uploadUrls.map((uploadUrl, index) =>
+        response.uploadUrls.map((uploadUrl: string, index: number) =>
           fetch(uploadUrl, {
             method: "PUT",
             headers: { "Content-Type": selectedFiles[index].mimeType },
@@ -655,11 +672,23 @@ export default function InternalAdsPage() {
               label="Starta import"
               onPress={onStartImport}
               loading={creatingBatch || startingBatch}
-              disabled={!selectedFiles.length}
+              disabled={!selectedFiles.length || !importMemberId}
             />
           )
         }
       >
+        {!hasImport && (
+          <View style={{ gap: 6 }}>
+            <Label size="medium">Vem lägger upp annonserna?</Label>
+            <SelectInput
+              value={importMemberId}
+              options={(membersData?.organizationMembers ?? []).map((member) => ({ value: member.id, label: member.name }))}
+              onSelect={setImportMemberId}
+              placeholder="Välj person"
+            />
+            {!membersData?.organizationMembers.length && <Body size="small" color="secondary">Lägg först till en person under Organisationsmedlemmar.</Body>}
+          </View>
+        )}
         <ImportPanel
           files={selectedFiles}
           batch={visibleBatch}
