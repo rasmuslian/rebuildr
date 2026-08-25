@@ -29,32 +29,41 @@ export default function HeroDesktop({
         source={require("@assets/images/main-background.png")}
         resizeMode="cover"
         style={{
+          backgroundColor: colors.logo.vector,
           width: "100%",
-          maxWidth: MAX_CONTENT_WIDTH,
-          alignSelf: "center",
           paddingVertical: 48,
-          paddingHorizontal: 75,
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <Headline
-          size="medium"
-          heading={1}
+        {/* The band bleeds to the window edges; only its contents align with
+            the feed column below. */}
+        <View
           style={{
-            color: colors.logo.background,
-            paddingBottom: 24,
+            width: "100%",
+            maxWidth: MAX_CONTENT_WIDTH,
+            alignSelf: "center",
+            paddingHorizontal: 75,
           }}
         >
-          {headline}
-        </Headline>
+          <Headline
+            size="medium"
+            heading={1}
+            style={{
+              color: colors.logo.background,
+              paddingBottom: 24,
+            }}
+          >
+            {headline}
+          </Headline>
 
-        <Search
-          style={{ width: 633 }}
-          placeholder={searchBar}
-          visible={showSearchBar}
-          searchOnSubmit
-        />
+          <Search
+            style={{ width: 633 }}
+            placeholder={searchBar}
+            visible={showSearchBar}
+            searchOnSubmit
+          />
+        </View>
       </ImageBackground>
     </View>
   );

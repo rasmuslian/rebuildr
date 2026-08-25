@@ -154,8 +154,13 @@ export default function Landing() {
       </Head>
 
       {isWeb ? (
+        // Hero, feed and footer are all capped and centred, so the page
+        // background is what shows beside them on wide screens.
         <View
-          style={[screenGrowStyle, { backgroundColor: colors.logo.vector }]}
+          style={[
+            screenGrowStyle,
+            { backgroundColor: colors.background.neutral },
+          ]}
         >
           <View
             style={{
