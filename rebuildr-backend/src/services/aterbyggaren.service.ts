@@ -43,6 +43,7 @@ const MAX_ATTACHMENT_COUNT = 4;
 const MAX_CONTEXT_MESSAGES = 16;
 const MAX_CONTEXT_LOOKBACK_MESSAGES = MAX_CONTEXT_MESSAGES * 4;
 const MAX_OUTPUT_TOKENS = 3_200;
+const MAX_MODEL_STEPS = 16;
 const MAX_TITLE_LENGTH = 46;
 const TITLE_GENERATION_TIMEOUT_MS = 4_000;
 const STREAM_ERROR_MESSAGE =
@@ -177,9 +178,20 @@ Nytt arbetsflöde för projektfrågor:
 Marknadsplatser:
 - Nämn, rekommendera eller hänvisa inte till externa marknadsplatser eller konkurrenter. Håll i stället råd om att hitta material till RebuildR. Om användaren frågar om en extern tjänst, besvara sakfrågan utan att upprepa eller rekommendera tjänstens namn.
 
-När användaren uttryckligen ber dig söka, hitta, kontrollera tillgänglighet eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Det gäller även uppföljningar som börjar med "Sök på RebuildR efter dessa material från materiallistan". Vid flera materialtyper: sök separat för varje relevant typ, gruppera resultatet under korta rubriker som "Trall", "Skruv" och "Stolpar", och skriv produktkortstaggen direkt efter respektive rubrik.
+När användaren uttryckligen ber dig söka, hitta, kontrollera tillgänglighet eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Det gäller även uppföljningar som börjar med "Sök på RebuildR efter dessa material från materiallistan". Vid flera materialtyper: sök separat för varje relevant typ.
 
-När searchPublicProducts returnerar produkter och du vill visa en eller flera av dem som riktiga produktkort, skriv en egen rad med exakt format <rebuildr-products ids="id1,id2,id3" />. Använd bara id:n som verktyget nyss returnerade. Välj bara de mest relevanta produkterna, och visa gärna en enda produkt om bara en träff är riktigt bra. Skriv inte produktkortet själv i text.
+Visa searchPublicProducts oavsett om den returnerar produkter eller inte (om den är tom sätter vi empty="true" och så visas det snyggt i en komponent för användaren) och du vill visa en eller flera av dem som riktiga produktkort, skriv en egen rad med exakt format <rebuildr-products ids="id1,id2,id3" />, eller <rebuildr-products ids="" empty="true" />. Använd bara id:n som verktyget nyss returnerade. Välj bara de mest relevanta produkterna, och visa gärna en enda produkt om bara en träff är riktigt bra. Skriv inte produktkortet själv i text.
+Eftersom vi har komponenter som visar produkter och "Inga träffar" snyggt, skriv inte i stil med "Resultat för:" relaterat till varje sökning utan ha endast en rubrik för vad som sökts på, sen komponenten under. Men du bör såklart summera överlag och guidea användaren.
+Det optimala är i stil med (under är ett exempel på hur du stilistiskt kan skriva):
+"Trall (tryckimpregnerat)
+<rebuildr-products ids="id1,id2,id3" />
+
+Trallskruv (rostfri A2)
+<rebuildr-products ids="" empty="true" />
+
+Stolpar (90 mm tryckimpregnerat)
+<rebuildr-products ids="id4,id5" />
+"
 
 Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det gör svaret mer lättläst.`;
 
@@ -317,6 +329,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
     let assistantSaved = false;
     let titleGeneration: Promise<void> | undefined;
     const searchableProductsById = new Map<string, PublicProductSearchResult>();
+    const productDisplays: AterbyggarenProductDisplay[] = [];
 
     try {
       savedUserMessage = await this.messageRepository.save({
@@ -349,7 +362,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         abortSignal: abortController.signal,
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         temperature: 0.35,
-        stopWhen: stepCountIs(4),
+        stopWhen: stepCountIs(MAX_MODEL_STEPS),
         tools: {
           searchPublicProducts: tool({
             description:
@@ -388,6 +401,8 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
               products.forEach((product) => {
                 searchableProductsById.set(product.id, product);
               });
+              productDisplays.push({ type: 'products', products });
+              this.writeEvent(response, 'productDisplays', productDisplays);
               return products;
             },
           }),
@@ -409,20 +424,18 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
         this.writeEvent(response, 'delta', finishNoticeMarkdown);
       }
 
-      const productDisplays = this.extractProductDisplays(
-        assistantMessage,
-        searchableProductsById,
-      );
-      if (productDisplays.length > 0) {
-        this.writeEvent(response, 'productDisplays', productDisplays);
-      }
+      const savedProductDisplays = productDisplays.length
+        ? productDisplays
+        : this.extractProductDisplays(assistantMessage, searchableProductsById);
 
       await this.messageRepository.save({
         chatId: chat.id,
         role: AterbyggarenMessageRole.ASSISTANT,
         status: messageStatus,
         content: assistantMessage,
-        productDisplays: productDisplays.length ? productDisplays : null,
+        productDisplays: savedProductDisplays.length
+          ? savedProductDisplays
+          : null,
       });
       assistantSaved = true;
       await this.chatRepository.update(chat.id, { updatedAt: new Date() });
@@ -1045,7 +1058,7 @@ ${userMessage}
         .filter((product): product is PublicProductSearchResult => !!product)
         .slice(0, 8);
 
-      if (products.length > 0) {
+      if (products.length > 0 || match[0].includes('empty="true"')) {
         displays.push({ type: 'products', products });
       }
     }

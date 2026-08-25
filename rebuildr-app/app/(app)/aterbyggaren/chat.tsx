@@ -995,7 +995,7 @@ const MessageBubble = ({
 
             const productDisplay =
               message.productDisplays?.[productDisplayIndex++];
-            if (!productDisplay?.products.length) return null;
+            if (!productDisplay) return null;
             return (
               <ChatProductDisplay
                 key={`${message.id}-products-${index}`}
@@ -1003,10 +1003,11 @@ const MessageBubble = ({
               />
             );
           })}
-          {contentParts.every((part) => part.type !== "productDisplay") &&
-            message.productDisplays?.map((display, index) => (
+          {message.productDisplays
+            ?.slice(productDisplayIndex)
+            .map((display, index) => (
               <ChatProductDisplay
-                key={`${message.id}-fallback-products-${index}`}
+                key={`${message.id}-fallback-products-${productDisplayIndex + index}`}
                 display={display}
               />
             ))}
@@ -2001,6 +2002,29 @@ const MaterialSearchButton = ({
 const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
   const { isDesktop } = useScreenType();
   const products = display.products.slice(0, 8);
+
+  if (!products.length) {
+    return (
+      <View
+        style={{
+          alignSelf: "center",
+          backgroundColor: primitives.neutrals100,
+          borderColor: primitives.neutrals300,
+          borderRadius: 12,
+          borderWidth: 1,
+          maxWidth: CHAT_LAYOUT_MAX_WIDTH,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          width: "100%",
+        }}
+      >
+        <Label size="medium">Inga resultat</Label>
+        <Body color="secondary" size="small">
+          Det finns inga annonser som matchar sökningen just nu.
+        </Body>
+      </View>
+    );
+  }
 
   if (isDesktop) {
     return (
