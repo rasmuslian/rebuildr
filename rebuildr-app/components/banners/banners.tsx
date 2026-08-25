@@ -308,7 +308,7 @@ const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
         >
           {banner.logo?.url && (
             <View style={{ alignItems: "flex-end" }}>
-              <BannerLogo url={banner.logo.url} width={isDesktop ? 88 : 80} />
+              <BannerLogo url={banner.logo.url} width={isDesktop ? 144 : 128} />
             </View>
           )}
           {!!banner.label && (

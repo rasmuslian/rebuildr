@@ -217,7 +217,7 @@ const EndBanner = ({ banner, height, insetForArrows }: EndBannerProps) => {
           }}
         >
           {banner.logo?.url && (
-            <BannerLogo url={banner.logo.url} width={isDesktop ? 120 : 112} />
+            <BannerLogo url={banner.logo.url} width={isDesktop ? 192 : 176} />
           )}
           <BannerTitle
             size={isDesktop ? "medium" : "large"}
