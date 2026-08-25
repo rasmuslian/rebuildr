@@ -12,6 +12,7 @@ import {
 
 import { EndBannersQuery } from "@/gql/graphql";
 import {
+  BannerLogo,
   BannerWrapper,
   getBannerForegroundColor,
   getBannerImageSource,
@@ -19,7 +20,7 @@ import {
 import { Button } from "@components/buttons/button";
 import { CarouselArrows } from "@components/carousel/carousel-arrows";
 import { CarouselDots } from "@components/carousel/carousel-dots";
-import { Display } from "@components/typography/text";
+import { Display, Headline } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
@@ -62,6 +63,7 @@ export function EndBanners() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hovered, setHovered] = useState(false);
+  const [bannerHeight, setBannerHeight] = useState(0);
 
   const banners = data?.banners ?? [];
   const bannerCount = banners.length;
@@ -111,6 +113,10 @@ export function EndBanners() {
     });
   }, [step]);
 
+  useEffect(() => {
+    setBannerHeight(0);
+  }, [bannerCount, isDesktop, itemWidth]);
+
   if (!bannerCount) return null;
 
   return (
@@ -123,10 +129,23 @@ export function EndBanners() {
         <FlatList
           ref={listRef}
           data={banners}
+          initialNumToRender={bannerCount}
+          removeClippedSubviews={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={{ width: itemWidth }}>
-              <EndBanner banner={item} insetForArrows={hasArrows} />
+            <View
+              onLayout={(event) =>
+                setBannerHeight((currentHeight) =>
+                  Math.max(currentHeight, event.nativeEvent.layout.height),
+                )
+              }
+              style={{ width: itemWidth }}
+            >
+              <EndBanner
+                banner={item}
+                height={bannerHeight}
+                insetForArrows={hasArrows}
+              />
             </View>
           )}
           horizontal
@@ -157,22 +176,25 @@ export function EndBanners() {
 
 type EndBannerProps = {
   banner: EndBannersQuery["banners"][number];
+  height?: number;
   insetForArrows: boolean;
 };
 
-const EndBanner = ({ banner, insetForArrows }: EndBannerProps) => {
+const EndBanner = ({ banner, height, insetForArrows }: EndBannerProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const imageSource = getBannerImageSource(banner);
   const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
-  const hasCta = !!banner.ctaText && !!(banner.url || banner.action);
+  const hasCta = !!(banner.url || banner.action);
+  const ctaText = banner.ctaText?.trim() || "Läs mer";
+  const BannerTitle = isDesktop ? Display : Headline;
 
   return (
     <BannerWrapper banner={banner}>
       <View
         style={{
           width: "100%",
-          minHeight: isDesktop ? 300 : 260,
+          minHeight: Math.max(height ?? 0, isDesktop ? 300 : 260),
           overflow: "hidden",
           borderRadius: borderRadius.medium,
           backgroundColor: colors.logo.vector,
@@ -189,31 +211,27 @@ const EndBanner = ({ banner, insetForArrows }: EndBannerProps) => {
         <View
           style={{
             paddingVertical: isDesktop ? 48 : 32,
-            paddingHorizontal: insetForArrows ? 72 : 24,
-            gap: 16,
+            paddingHorizontal: insetForArrows ? 72 : isDesktop ? 48 : 24,
+            gap: isDesktop ? 24 : 20,
             maxWidth: 800,
           }}
         >
           {banner.logo?.url && (
-            <Image
-              source={{ uri: banner.logo.url }}
-              contentFit="contain"
-              style={{ width: 96, height: 56 }}
-            />
+            <BannerLogo url={banner.logo.url} width={isDesktop ? 112 : 104} />
           )}
-          <Display
-            size={isDesktop ? "medium" : "small"}
+          <BannerTitle
+            size={isDesktop ? "medium" : "large"}
             style={{ color: foregroundColor }}
           >
             {banner.title}
-          </Display>
+          </BannerTitle>
           {hasCta && (
             <Button
-              label={banner.ctaText!}
+              label={ctaText}
               theme="dark"
               type="outlined"
               foregroundColor={foregroundColor}
-              style={{ alignSelf: "flex-start" }}
+              style={{ alignSelf: "flex-start", paddingHorizontal: 16 }}
             />
           )}
         </View>

@@ -7,7 +7,7 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import { Image, ImageSource } from "expo-image";
+import { Image, ImageLoadEventData, ImageSource } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
@@ -76,6 +76,7 @@ export function Banners() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [bannerHeight, setBannerHeight] = useState(0);
 
   const bannerCount = data?.banners.length ?? 0;
   const hasArrows = isDesktop && bannerCount > 1;
@@ -132,6 +133,10 @@ export function Banners() {
     });
   }, [step]);
 
+  useEffect(() => {
+    setBannerHeight(0);
+  }, [bannerCount, isDesktop, itemWidth]);
+
   if (!data || loading) {
     return <LoadingSpinner />;
   }
@@ -154,12 +159,23 @@ export function Banners() {
         <FlatList
           ref={listRef}
           data={data.banners}
+          initialNumToRender={bannerCount}
+          removeClippedSubviews={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View
+              onLayout={(event) =>
+                setBannerHeight((currentHeight) =>
+                  Math.max(currentHeight, event.nativeEvent.layout.height),
+                )
+              }
               style={{ width: itemWidth, borderRadius: borderRadius.medium }}
             >
-              <Banner banner={item} insetForArrows={hasArrows} />
+              <Banner
+                banner={item}
+                height={bannerHeight}
+                insetForArrows={hasArrows}
+              />
             </View>
           )}
           horizontal
@@ -190,6 +206,7 @@ export function Banners() {
 
 type BannerProps = {
   banner: BannersQuery["banners"][number];
+  height?: number;
   insetForArrows?: boolean;
 };
 
@@ -225,11 +242,35 @@ export const getBannerImageSource = (
   return presetBackgroundImages[banner.presetBackground] ?? null;
 };
 
-const Banner = ({ banner, insetForArrows }: BannerProps) => {
+type BannerLogoProps = {
+  url: string;
+  width: number;
+};
+
+export const BannerLogo = ({ url, width }: BannerLogoProps) => {
+  const [aspectRatio, setAspectRatio] = useState(2);
+
+  return (
+    <Image
+      source={{ uri: url }}
+      contentFit="contain"
+      onLoad={(event: ImageLoadEventData) => {
+        const { width: imageWidth, height: imageHeight } = event.source;
+        if (imageWidth && imageHeight) {
+          setAspectRatio(imageWidth / imageHeight);
+        }
+      }}
+      style={{ width, aspectRatio }}
+    />
+  );
+};
+
+const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const BannerPrompt = isDesktop ? Headline : Title;
   const BannerTitle = isDesktop ? Display : Headline;
+  const horizontalPadding = insetForArrows ? 72 : isDesktop ? 32 : 24;
   const imageSource = getBannerImageSource(banner);
   const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
 
@@ -239,7 +280,7 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
         style={{
           backgroundColor: colors.logo.vector,
           width: "100%",
-          aspectRatio: isDesktop ? undefined : 3,
+          minHeight: Math.max(height ?? 0, isDesktop ? 0 : 168),
           overflow: "hidden",
           borderRadius: borderRadius.medium,
         }}
@@ -257,27 +298,19 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
             }}
           />
         )}
-        {banner.logo?.url && (
-          <Image
-            source={{ uri: banner.logo.url }}
-            contentFit="contain"
-            style={{
-              position: "absolute",
-              top: 16,
-              right: insetForArrows ? 72 : 24,
-              width: 64,
-              height: 40,
-            }}
-          />
-        )}
         <View
           style={{
-            paddingVertical: 32,
-            paddingHorizontal: insetForArrows ? 72 : 24,
+            paddingVertical: isDesktop ? 32 : 24,
+            paddingHorizontal: horizontalPadding,
             flexDirection: "column",
-            gap: 12,
+            gap: isDesktop ? 16 : 12,
           }}
         >
+          {banner.logo?.url && (
+            <View style={{ alignItems: "flex-end" }}>
+              <BannerLogo url={banner.logo.url} width={isDesktop ? 80 : 72} />
+            </View>
+          )}
           {!!banner.label && (
             <BannerPrompt
               size={isDesktop ? "medium" : "small"}
@@ -286,7 +319,13 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
               {banner.label}
             </BannerPrompt>
           )}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: isDesktop ? 16 : 12,
+            }}
+          >
             <BannerTitle
               size={isDesktop ? "medium" : "small"}
               color="primaryLight"

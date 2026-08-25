@@ -1,10 +1,11 @@
 import { gql, useQuery } from "@apollo/client";
 import { Image } from "expo-image";
 import React, { PropsWithChildren, createContext, useContext } from "react";
-import { View } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 
 import { ProductInlineBannersQuery } from "@/gql/graphql";
 import {
+  BannerLogo,
   BannerWrapper,
   getBannerForegroundColor,
   getBannerImageSource,
@@ -15,6 +16,8 @@ import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
+
+const MOBILE_PRODUCT_CARD_CONTENT_HEIGHT = 70;
 
 const PRODUCT_INLINE_BANNERS = gql`
   query ProductInlineBanners {
@@ -60,22 +63,25 @@ export function ProductInlineBannerSlot() {
   const context = useContext(InlineBannerContext);
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
+  const { width: screenWidth } = useWindowDimensions();
   if (!context?.banner) return null;
 
   const { banner } = context;
   const imageSource = getBannerImageSource(banner);
   const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
+  const mobileProductCardHeight =
+    (screenWidth - 32) * 0.4 + MOBILE_PRODUCT_CARD_CONTENT_HEIGHT;
 
   return (
     <BannerWrapper banner={banner}>
       <View
         style={{
           aspectRatio: isDesktop ? 0.78 : undefined,
-          minHeight: isDesktop ? undefined : 184,
+          minHeight: isDesktop ? undefined : mobileProductCardHeight,
           borderRadius: borderRadius.medium,
           overflow: "hidden",
           backgroundColor: colors.logo.vector,
-          padding: isDesktop ? 16 : 12,
+          padding: isDesktop ? 20 : 16,
         }}
       >
         {imageSource && (
@@ -85,16 +91,9 @@ export function ProductInlineBannerSlot() {
             style={{ position: "absolute", inset: 0 }}
           />
         )}
-        <View style={{ flex: 1, gap: isDesktop ? 12 : 8 }}>
+        <View style={{ flex: 1, gap: isDesktop ? 16 : 12 }}>
           {banner.logo?.url && (
-            <Image
-              source={{ uri: banner.logo.url }}
-              contentFit="contain"
-              style={{
-                width: isDesktop ? 72 : 56,
-                height: isDesktop ? 44 : 32,
-              }}
-            />
+            <BannerLogo url={banner.logo.url} width={isDesktop ? 80 : 64} />
           )}
           <Headline
             size="small"
@@ -111,7 +110,7 @@ export function ProductInlineBannerSlot() {
                 alignSelf: "flex-end",
                 alignItems: "center",
                 flexDirection: "row",
-                gap: isDesktop ? 8 : 6,
+                gap: isDesktop ? 10 : 8,
                 marginTop: "auto",
                 maxWidth: "100%",
               }}
