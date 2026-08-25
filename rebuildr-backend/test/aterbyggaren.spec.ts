@@ -57,6 +57,8 @@ describe('AterbyggarenService', () => {
     expect(systemPrompt).toContain(
       'Skapa Materiallistan först efter att användaren uttryckligen har bekräftat projektsammanfattningen',
     );
+    expect(systemPrompt).toContain('nyprisSek::återbruksprisSek');
+    expect(systemPrompt).toContain('Klimatkvittots A1-A3-metodik');
   });
 
   it('does not allow references to external marketplaces or competitors', () => {
