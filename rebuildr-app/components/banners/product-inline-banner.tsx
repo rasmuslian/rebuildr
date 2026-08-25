@@ -91,19 +91,21 @@ export function ProductInlineBannerSlot() {
             style={{ position: "absolute", inset: 0 }}
           />
         )}
-        <View style={{ flex: 1, gap: isDesktop ? 16 : 12 }}>
+        <View style={{ flex: 1 }}>
           {banner.logo?.url && (
             <BannerLogo url={banner.logo.url} width={isDesktop ? 136 : 112} />
           )}
-          <Headline
-            size="small"
-            style={[
-              { color: foregroundColor },
-              !isDesktop && { fontSize: 16, lineHeight: 22 },
-            ]}
-          >
-            {banner.title}
-          </Headline>
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Headline
+              size="small"
+              style={[
+                { color: foregroundColor },
+                !isDesktop && { fontSize: 16, lineHeight: 22 },
+              ]}
+            >
+              {banner.title}
+            </Headline>
+          </View>
           {!!banner.ctaText && !!(banner.url || banner.action) && (
             <View
               style={{
