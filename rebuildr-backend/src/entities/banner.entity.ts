@@ -19,6 +19,13 @@ export enum BannerPresetBackground {
   METALLIC = 'METALLIC',
 }
 
+export enum BannerForegroundColor {
+  LOGO_BACKGROUND = 'LOGO_BACKGROUND',
+  LOGO_VECTOR = 'LOGO_VECTOR',
+  WHITE = 'WHITE',
+  CHARCOAL = 'CHARCOAL',
+}
+
 export enum BannerPlacementEnum {
   STANDARD = 'STANDARD',
   END = 'END',
@@ -27,6 +34,7 @@ export enum BannerPlacementEnum {
 
 registerEnumType(BannerActionEnum, { name: 'BannerActionEnum' });
 registerEnumType(BannerPresetBackground, { name: 'BannerPresetBackground' });
+registerEnumType(BannerForegroundColor, { name: 'BannerForegroundColor' });
 registerEnumType(BannerPlacementEnum, { name: 'BannerPlacementEnum' });
 
 @Entity()
@@ -66,6 +74,13 @@ export class Banner {
     default: BannerPresetBackground.REBUILDR,
   })
   presetBackground: BannerPresetBackground;
+
+  @Field(() => BannerForegroundColor)
+  @Column('enum', {
+    enum: BannerForegroundColor,
+    default: BannerForegroundColor.LOGO_BACKGROUND,
+  })
+  foregroundColor: BannerForegroundColor;
 
   @Field(() => [BannerPlacementEnum])
   @Column('enum', {

@@ -13,6 +13,7 @@ import {
 import { EndBannersQuery } from "@/gql/graphql";
 import {
   BannerWrapper,
+  getBannerForegroundColor,
   getBannerImageSource,
 } from "@components/banners/banners";
 import { Button } from "@components/buttons/button";
@@ -32,6 +33,7 @@ const END_BANNERS = gql`
       url
       action
       presetBackground
+      foregroundColor
       backgroundImage {
         id
         url
@@ -162,6 +164,7 @@ const EndBanner = ({ banner, insetForArrows }: EndBannerProps) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const imageSource = getBannerImageSource(banner);
+  const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
   const hasCta = !!banner.ctaText && !!(banner.url || banner.action);
 
   return (
@@ -200,7 +203,7 @@ const EndBanner = ({ banner, insetForArrows }: EndBannerProps) => {
           )}
           <Display
             size={isDesktop ? "medium" : "small"}
-            style={{ color: colors.logo.background }}
+            style={{ color: foregroundColor }}
           >
             {banner.title}
           </Display>
@@ -209,6 +212,7 @@ const EndBanner = ({ banner, insetForArrows }: EndBannerProps) => {
               label={banner.ctaText!}
               theme="dark"
               type="outlined"
+              foregroundColor={foregroundColor}
               style={{ alignSelf: "flex-start" }}
             />
           )}

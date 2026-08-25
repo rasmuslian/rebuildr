@@ -30,6 +30,7 @@ const CreateBanner = () => {
       label: "",
       title: "",
       presetBackground: "REBUILDR",
+      foregroundColor: "LOGO_BACKGROUND",
       backgroundImage: [],
       logo: [],
       placements: ["STANDARD"],
@@ -68,6 +69,8 @@ const CreateBanner = () => {
     title: formData.title,
     presetBackground:
       formData.presetBackground as CmsCreateBannerInput["presetBackground"],
+    foregroundColor:
+      formData.foregroundColor as CmsCreateBannerInput["foregroundColor"],
     backgroundImage: formData.backgroundImage?.length
       ? getFileInputTypes(formData.backgroundImage)[0]
       : undefined,

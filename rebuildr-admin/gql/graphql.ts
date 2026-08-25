@@ -69,6 +69,7 @@ export type Banner = {
   backgroundImage?: Maybe<File>;
   createdAt: Scalars['DateTime']['output'];
   ctaText?: Maybe<Scalars['String']['output']>;
+  foregroundColor: BannerForegroundColor;
   id: Scalars['ID']['output'];
   label?: Maybe<Scalars['String']['output']>;
   logo?: Maybe<File>;
@@ -83,6 +84,13 @@ export type Banner = {
 
 export enum BannerActionEnum {
   Sell = 'SELL'
+}
+
+export enum BannerForegroundColor {
+  Charcoal = 'CHARCOAL',
+  LogoBackground = 'LOGO_BACKGROUND',
+  LogoVector = 'LOGO_VECTOR',
+  White = 'WHITE'
 }
 
 export enum BannerPlacementEnum {
@@ -370,6 +378,7 @@ export type CmsCreateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
   backgroundImage?: InputMaybe<FileInputType>;
   ctaText?: InputMaybe<Scalars['String']['input']>;
+  foregroundColor?: InputMaybe<BannerForegroundColor>;
   label?: InputMaybe<Scalars['String']['input']>;
   logo?: InputMaybe<FileInputType>;
   placements: Array<BannerPlacementEnum>;
@@ -722,6 +731,7 @@ export type CmsUpdateBannerInput = {
   action?: InputMaybe<BannerActionEnum>;
   backgroundImage?: InputMaybe<FileInputType>;
   ctaText?: InputMaybe<Scalars['String']['input']>;
+  foregroundColor?: InputMaybe<BannerForegroundColor>;
   id: Scalars['String']['input'];
   label?: InputMaybe<Scalars['String']['input']>;
   logo?: InputMaybe<FileInputType>;

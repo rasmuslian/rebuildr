@@ -10,6 +10,7 @@ const query = `
       url
       action
       presetBackground
+      foregroundColor
       placements
       ctaText
       logo {

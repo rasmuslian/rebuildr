@@ -46,6 +46,9 @@ const EditBanner = ({ banner }: Props) => {
       presetBackground:
         (banner.presetBackground as BannerSchemaType["presetBackground"]) ??
         "REBUILDR",
+      foregroundColor:
+        (banner.foregroundColor as BannerSchemaType["foregroundColor"]) ??
+        "LOGO_BACKGROUND",
       backgroundImage: banner.backgroundImage
         ? getUploadFiles([banner.backgroundImage])
         : [],
@@ -94,6 +97,8 @@ const EditBanner = ({ banner }: Props) => {
       title: formData.title,
       presetBackground:
         formData.presetBackground as CmsUpdateBannerInput["presetBackground"],
+      foregroundColor:
+        formData.foregroundColor as CmsUpdateBannerInput["foregroundColor"],
       placements: formData.placements as CmsUpdateBannerInput["placements"],
       ctaText: formData.ctaText || undefined,
       url: formData.destinationType === "url" ? formData.url : undefined,

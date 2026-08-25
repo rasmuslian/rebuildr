@@ -8,6 +8,12 @@ export const BannerSchema = z
     label: z.string().optional(),
     title: z.string().min(1, "Titel kan inte vara tom"),
     presetBackground: z.enum(["REBUILDR", "WOOD", "METALLIC"]).optional(),
+    foregroundColor: z.enum([
+      "LOGO_BACKGROUND",
+      "LOGO_VECTOR",
+      "WHITE",
+      "CHARCOAL",
+    ]),
     backgroundImage: z.array(z.custom<UploadFile>()),
     logo: z.array(z.custom<UploadFile>()),
     placements: z

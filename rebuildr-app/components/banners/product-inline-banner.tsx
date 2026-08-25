@@ -6,6 +6,7 @@ import { View } from "react-native";
 import { ProductInlineBannersQuery } from "@/gql/graphql";
 import {
   BannerWrapper,
+  getBannerForegroundColor,
   getBannerImageSource,
 } from "@components/banners/banners";
 import { Icon } from "@components/icons/icon";
@@ -24,6 +25,7 @@ const PRODUCT_INLINE_BANNERS = gql`
       url
       action
       presetBackground
+      foregroundColor
       backgroundImage {
         id
         url
@@ -62,6 +64,7 @@ export function ProductInlineBannerSlot() {
 
   const { banner } = context;
   const imageSource = getBannerImageSource(banner);
+  const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
 
   return (
     <BannerWrapper banner={banner}>
@@ -96,7 +99,7 @@ export function ProductInlineBannerSlot() {
           <Headline
             size="small"
             style={[
-              { color: colors.logo.background },
+              { color: foregroundColor },
               !isDesktop && { fontSize: 16, lineHeight: 22 },
             ]}
           >
@@ -117,7 +120,7 @@ export function ProductInlineBannerSlot() {
                 size={isDesktop ? "large" : "medium"}
                 numberOfLines={2}
                 style={{
-                  color: colors.logo.background,
+                  color: foregroundColor,
                   flexShrink: 1,
                   textAlign: "right",
                 }}
@@ -136,7 +139,7 @@ export function ProductInlineBannerSlot() {
               >
                 <Icon
                   icon="arrowRight"
-                  customColor={primitives.neutrals100}
+                  customColor={colors.background.secondary}
                   size={isDesktop ? 18 : 16}
                 />
               </View>

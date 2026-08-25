@@ -14,6 +14,7 @@ import { UseGuards } from '@nestjs/common';
 import {
   Banner,
   BannerActionEnum,
+  BannerForegroundColor,
   BannerPlacementEnum,
   BannerPresetBackground,
 } from 'src/entities/banner.entity';
@@ -42,6 +43,9 @@ export class CmsCreateBannerInput {
 
   @Field(() => BannerPresetBackground, { nullable: true })
   presetBackground?: BannerPresetBackground;
+
+  @Field(() => BannerForegroundColor, { nullable: true })
+  foregroundColor?: BannerForegroundColor;
 
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;
@@ -81,6 +85,9 @@ export class CmsUpdateBannerInput {
 
   @Field(() => BannerPresetBackground, { nullable: true })
   presetBackground?: BannerPresetBackground;
+
+  @Field(() => BannerForegroundColor, { nullable: true })
+  foregroundColor?: BannerForegroundColor;
 
   @Field(() => FileInputType, { nullable: true })
   backgroundImage?: FileInputType;

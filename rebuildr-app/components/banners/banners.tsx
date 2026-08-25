@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Image, ImageSource } from "expo-image";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { Title, Headline, Display } from "@components/typography/text";
 import { Icon } from "@icons/icon";
@@ -26,6 +27,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { gql, useQuery } from "@apollo/client";
 import {
   BannerActionEnum,
+  BannerForegroundColor,
   BannerPresetBackground,
   BannersQuery,
 } from "@/gql/graphql";
@@ -46,6 +48,7 @@ const BANNERS = gql`
         url
       }
       presetBackground
+      foregroundColor
       backgroundImage {
         id
         url
@@ -198,6 +201,21 @@ const presetBackgroundImages: Partial<
   [BannerPresetBackground.Metallic]: require("@assets/images/banner-metallic.webp"),
 };
 
+export const getBannerForegroundColor = (
+  foregroundColor: BannerForegroundColor,
+) => {
+  switch (foregroundColor) {
+    case BannerForegroundColor.LogoBackground:
+      return primitives.secondary200;
+    case BannerForegroundColor.LogoVector:
+      return primitives.primary800;
+    case BannerForegroundColor.White:
+      return primitives.neutrals100;
+    case BannerForegroundColor.Charcoal:
+      return primitives.neutrals900;
+  }
+};
+
 export const getBannerImageSource = (
   banner: BannerProps["banner"],
 ): ImageSource | null => {
@@ -213,6 +231,7 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
   const BannerPrompt = isDesktop ? Headline : Title;
   const BannerTitle = isDesktop ? Display : Headline;
   const imageSource = getBannerImageSource(banner);
+  const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
 
   return (
     <BannerWrapper banner={banner}>
@@ -262,7 +281,7 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
           {!!banner.label && (
             <BannerPrompt
               size={isDesktop ? "medium" : "small"}
-              style={{ color: colors.logo.background }}
+              style={{ color: foregroundColor }}
             >
               {banner.label}
             </BannerPrompt>
@@ -271,12 +290,12 @@ const Banner = ({ banner, insetForArrows }: BannerProps) => {
             <BannerTitle
               size={isDesktop ? "medium" : "small"}
               color="primaryLight"
-              style={{ color: colors.logo.background }}
+              style={{ color: foregroundColor }}
             >
               {banner.title}
             </BannerTitle>
             {(banner.url || banner.action) && (
-              <Icon icon="chevronRight" customColor={colors.logo.background} />
+              <Icon icon="chevronRight" customColor={foregroundColor} />
             )}
           </View>
         </View>

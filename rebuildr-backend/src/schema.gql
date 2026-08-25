@@ -637,6 +637,7 @@ type Banner {
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground!
+  foregroundColor: BannerForegroundColor!
   placements: [BannerPlacementEnum!]!
   ctaText: String
   backgroundImage: File
@@ -653,6 +654,13 @@ enum BannerPresetBackground {
   REBUILDR
   WOOD
   METALLIC
+}
+
+enum BannerForegroundColor {
+  LOGO_BACKGROUND
+  LOGO_VECTOR
+  WHITE
+  CHARCOAL
 }
 
 enum BannerPlacementEnum {
@@ -2271,6 +2279,7 @@ input CmsCreateBannerInput {
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
   logo: FileInputType
   placements: [BannerPlacementEnum!]!
@@ -2286,6 +2295,7 @@ input CmsUpdateBannerInput {
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
   logo: FileInputType
   placements: [BannerPlacementEnum!]!

@@ -15,6 +15,7 @@ export type ButtonProps = {
   label?: string;
   loading?: boolean;
   theme?: "light" | "dark";
+  foregroundColor?: string;
   showShadow?: boolean;
 } & PressableProps;
 
@@ -27,6 +28,7 @@ export const Button = ({
   loading,
   icon,
   theme = "light",
+  foregroundColor,
   showShadow = false,
   ...rest
 }: ButtonProps) => {
@@ -126,7 +128,8 @@ export const Button = ({
           <Label
             size="large"
             style={{
-              color: disabled ? colors.text.disabled : typeColors[type].text,
+              color:
+                disabled ? colors.text.disabled : foregroundColor ?? typeColors[type].text,
               paddingHorizontal: 8,
               flexShrink: 1,
             }}
@@ -176,7 +179,8 @@ export const Button = ({
           type === "outlined" && {
             borderWidth: 1,
             paddingHorizontal: 7,
-            borderColor: colors.buttons.outlinedStroke[buttonState],
+            borderColor:
+              foregroundColor ?? colors.buttons.outlinedStroke[buttonState],
           },
           showShadow && {
             boxShadow: "0px 4px 16px 0px rgba(0, 0, 0, 0.15)",

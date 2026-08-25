@@ -31,6 +31,29 @@ const presetBackgroundOptions = [
 
 const actionOptions = [{ label: "Sälj", value: "SELL" }];
 
+const foregroundColorOptions = [
+  { label: "Logotyp bakgrund", value: "LOGO_BACKGROUND", color: "#F8F1E3" },
+  { label: "Logotyp vektor", value: "LOGO_VECTOR", color: "#00493E" },
+  { label: "Vit", value: "WHITE", color: "#FFFFFF" },
+  { label: "Mörkgrå", value: "CHARCOAL", color: "#1E1E1E" },
+].map(({ label, value, color }) => ({
+  value,
+  label: (
+    <span style={{ alignItems: "center", display: "flex", gap: 8 }}>
+      <span
+        style={{
+          backgroundColor: color,
+          border: "1px solid #AEAEAE",
+          borderRadius: "50%",
+          height: 16,
+          width: 16,
+        }}
+      />
+      {label}
+    </span>
+  ),
+}));
+
 const placementOptions = [
   { label: "Standard", value: "STANDARD" },
   { label: "Slutbanner", value: "END" },
@@ -105,6 +128,24 @@ const BannerForm = ({
               {...field}
               options={presetBackgroundOptions}
               placeholder="Välj bakgrund"
+            />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="foregroundColor"
+        render={({ field }) => (
+          <FormField
+            label="Textfärg"
+            error={errors.foregroundColor?.message}
+            required
+          >
+            <Select
+              {...field}
+              options={foregroundColorOptions}
+              placeholder="Välj textfärg"
             />
           </FormField>
         )}
