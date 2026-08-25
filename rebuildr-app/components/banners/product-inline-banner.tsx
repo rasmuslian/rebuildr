@@ -93,7 +93,7 @@ export function ProductInlineBannerSlot() {
         )}
         <View style={{ flex: 1, gap: isDesktop ? 16 : 12 }}>
           {banner.logo?.url && (
-            <BannerLogo url={banner.logo.url} width={isDesktop ? 80 : 64} />
+            <BannerLogo url={banner.logo.url} width={isDesktop ? 88 : 72} />
           )}
           <Headline
             size="small"

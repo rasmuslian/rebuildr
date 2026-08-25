@@ -280,7 +280,7 @@ const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
         style={{
           backgroundColor: colors.logo.vector,
           width: "100%",
-          minHeight: Math.max(height ?? 0, isDesktop ? 0 : 168),
+          minHeight: height || undefined,
           overflow: "hidden",
           borderRadius: borderRadius.medium,
         }}
@@ -308,7 +308,7 @@ const Banner = ({ banner, height, insetForArrows }: BannerProps) => {
         >
           {banner.logo?.url && (
             <View style={{ alignItems: "flex-end" }}>
-              <BannerLogo url={banner.logo.url} width={isDesktop ? 80 : 72} />
+              <BannerLogo url={banner.logo.url} width={isDesktop ? 88 : 80} />
             </View>
           )}
           {!!banner.label && (
