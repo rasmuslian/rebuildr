@@ -79,8 +79,7 @@ export function ProductInlineBannerSlot() {
           aspectRatio: isDesktop ? 0.78 : undefined,
           minHeight: isDesktop ? undefined : mobileProductCardHeight,
           borderRadius: borderRadius.medium,
-          overflow: "hidden",
-          backgroundColor: colors.logo.vector,
+          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
           padding: isDesktop ? 20 : 16,
         }}
       >
@@ -88,7 +87,11 @@ export function ProductInlineBannerSlot() {
           <Image
             source={imageSource}
             contentFit="cover"
-            style={{ position: "absolute", inset: 0 }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: borderRadius.medium,
+            }}
           />
         )}
         <View style={{ flex: 1 }}>

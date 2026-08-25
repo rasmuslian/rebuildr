@@ -195,9 +195,8 @@ const EndBanner = ({ banner, height, insetForArrows }: EndBannerProps) => {
         style={{
           width: "100%",
           minHeight: Math.max(height ?? 0, isDesktop ? 300 : 260),
-          overflow: "hidden",
           borderRadius: borderRadius.medium,
-          backgroundColor: colors.logo.vector,
+          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
           justifyContent: "center",
         }}
       >
@@ -205,7 +204,11 @@ const EndBanner = ({ banner, height, insetForArrows }: EndBannerProps) => {
           <Image
             source={imageSource}
             contentFit="cover"
-            style={{ position: "absolute", inset: 0 }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: borderRadius.medium,
+            }}
           />
         )}
         <View

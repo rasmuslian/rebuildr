@@ -287,10 +287,9 @@ const Banner = ({
     <BannerWrapper banner={banner}>
       <View
         style={{
-          backgroundColor: colors.logo.vector,
+          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
           width: "100%",
           minHeight: height || undefined,
-          overflow: "hidden",
           borderRadius: borderRadius.medium,
         }}
       >
@@ -304,6 +303,7 @@ const Banner = ({
               left: 0,
               right: 0,
               bottom: 0,
+              borderRadius: borderRadius.medium,
             }}
           />
         )}
