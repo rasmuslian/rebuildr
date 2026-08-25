@@ -247,10 +247,16 @@ export const getBannerImageSource = (
 type BannerLogoProps = {
   url: string;
   width: number;
+  roundUpHeight?: boolean;
   onLoad?: () => void;
 };
 
-export const BannerLogo = ({ url, width, onLoad }: BannerLogoProps) => {
+export const BannerLogo = ({
+  url,
+  width,
+  roundUpHeight = false,
+  onLoad,
+}: BannerLogoProps) => {
   const [aspectRatio, setAspectRatio] = useState(2);
 
   return (
@@ -264,7 +270,11 @@ export const BannerLogo = ({ url, width, onLoad }: BannerLogoProps) => {
         }
         onLoad?.();
       }}
-      style={{ width, aspectRatio }}
+      style={
+        roundUpHeight
+          ? { width, height: Math.ceil(width / aspectRatio) }
+          : { width, aspectRatio }
+      }
     />
   );
 };
@@ -320,6 +330,7 @@ const Banner = ({
               <BannerLogo
                 url={banner.logo.url}
                 width={isDesktop ? 144 : 128}
+                roundUpHeight={isDesktop}
                 onLoad={onLogoLoad}
               />
             </View>
