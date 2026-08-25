@@ -14,10 +14,12 @@ import { Radio } from "@components/controls/radio";
 export const SortingFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
   const scope = useFilterProductScope();
-  const hideDistance = isOwnFilterScope(scope) && !!scope.hideDistanceSorting;
+  const sortingOptions = isOwnFilterScope(scope)
+    ? scope.sortingOptions
+    : undefined;
 
   const orderKeys = (Object.keys(orderProducts) as OrderProductsEnum[]).filter(
-    (orderKey) => !hideDistance || orderKey !== OrderProductsEnum.Distance,
+    (orderKey) => !sortingOptions || sortingOptions.includes(orderKey),
   );
 
   return (
