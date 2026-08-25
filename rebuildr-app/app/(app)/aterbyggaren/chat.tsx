@@ -308,11 +308,15 @@ export default function AterbyggarenChatPage() {
     );
   }, [activeChatId, activeChatTitle, chats]);
 
-  useEffect(() => {
+  const scrollToLatestMessage = useCallback(() => {
     requestAnimationFrame(() =>
       scrollRef.current?.scrollToEnd({ animated: true }),
     );
-  }, [messages]);
+  }, []);
+
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [messages, scrollToLatestMessage]);
 
   const loadMessages = useCallback(
     async (chatId: string) => {
@@ -361,7 +365,12 @@ export default function AterbyggarenChatPage() {
             : attachments;
       const message = (overrideMessage ?? input).trim();
       const sentContent = message || "Analysera bifogade filer.";
-      if ((!message && !selectedAttachments.length) || streaming || loadingChat)
+      if (
+        (!message && !selectedAttachments.length) ||
+        streaming ||
+        loadingChat ||
+        activeStreamRef.current
+      )
         return;
 
       setInput("");
@@ -691,6 +700,7 @@ export default function AterbyggarenChatPage() {
                   paddingBottom: isDesktop ? 24 : 20,
                   paddingTop: 32,
                 }}
+                onContentSizeChange={scrollToLatestMessage}
               >
                 <View
                   style={{
