@@ -37,7 +37,13 @@ import { InternalTopBar } from "@components/navigation/internal-top-bar/internal
 import { Search } from "@components/search/search";
 import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Body, Headline, Label, Title } from "@components/typography/text";
+import {
+  Body,
+  Display,
+  Headline,
+  Label,
+  Title,
+} from "@components/typography/text";
 import { InternalLocation } from "@components/upsert-product/internal-location";
 import { ProjectChips } from "@components/upsert-product/project-chips";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
@@ -64,7 +70,13 @@ import {
 
 const SECTION_PAGE_SIZE = 10;
 const ORGANIZATION_MEMBERS = gql`
-  query OrganizationMembersForActions { organizationMembers { id name email } }
+  query OrganizationMembersForActions {
+    organizationMembers {
+      id
+      name
+      email
+    }
+  }
 `;
 
 type InternalAdsHomeData = InternalAdsHomeQuery & {
@@ -114,7 +126,9 @@ export default function InternalAdsPage() {
     fetchPolicy: "cache-and-network",
   });
 
-  const { data: membersData } = useQuery<{ organizationMembers: { id: string; name: string; email: string }[] }>(ORGANIZATION_MEMBERS);
+  const { data: membersData } = useQuery<{
+    organizationMembers: { id: string; name: string; email: string }[];
+  }>(ORGANIZATION_MEMBERS);
 
   const { data: projectsData, refetch: refetchProjects } = useQuery<any>(
     INTERNAL_PROJECTS,
@@ -150,14 +164,18 @@ export default function InternalAdsPage() {
     pollInterval: pollBatch ? 3000 : 0,
   });
 
-  const [createDraft, { loading: creatingDraft }] = useMutation(CREATE_INTERNAL_AD_DRAFT);
+  const [createDraft, { loading: creatingDraft }] = useMutation(
+    CREATE_INTERNAL_AD_DRAFT,
+  );
   const [publishImported, { loading: publishingImported }] = useMutation<
     PublishInternalAdDraftsMutation,
     PublishInternalAdDraftsMutationVariables
   >(PUBLISH_INTERNAL_AD_DRAFTS);
   const [removeDraft] = useMutation(REMOVE_INTERNAL_AD_DRAFT);
   const [removeImportBatch] = useMutation(REMOVE_INTERNAL_AD_IMPORT_BATCH);
-  const [createBatch, { loading: creatingBatch }] = useMutation(CREATE_INTERNAL_AD_IMPORT_BATCH);
+  const [createBatch, { loading: creatingBatch }] = useMutation(
+    CREATE_INTERNAL_AD_IMPORT_BATCH,
+  );
   const [startBatch, { loading: startingBatch }] = useMutation(
     START_INTERNAL_AD_IMPORT_BATCH,
   );
@@ -671,23 +689,25 @@ export default function InternalAdsPage() {
               />
             </View>
           ) : (
-            <Button
-              label="Starta import"
-              onPress={onStartImport}
-              loading={creatingBatch || startingBatch}
-              disabled={
-                !selectedFiles.length ||
-                !importMemberId ||
-                (!importPlacement.project && !importPlacement.location)
-              }
-            />
+            <View style={{ paddingTop: 60 }}>
+              <Button
+                label="Starta import"
+                onPress={onStartImport}
+                loading={creatingBatch || startingBatch}
+                disabled={
+                  !selectedFiles.length ||
+                  !importMemberId ||
+                  (!importPlacement.project && !importPlacement.location)
+                }
+              />
+            </View>
           )
         }
       >
         {!hasImport && (
           <View style={{ gap: 24 }}>
             <View style={{ gap: 6 }}>
-              <Label size="medium">Vem lägger upp annonserna?</Label>
+              <Display size="small">Vem lägger upp annonserna?</Display>
               <SelectInput
                 value={importMemberId}
                 options={(membersData?.organizationMembers ?? []).map(
@@ -797,35 +817,33 @@ const ImportPanel = ({
   return (
     <View style={{ gap: 24 }}>
       {!batch && !importStarted && (
-        <Pressable onPress={onPickFiles}>
-          <View
-            style={{
-              borderRadius: borderRadius.medium,
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              borderStyle: "dashed",
-              borderColor: colors.buttons.outlinedStroke.enabled,
-              borderWidth: 1,
-              gap: 16,
-            }}
-          >
+        <View style={{ gap: 8 }}>
+          <Display size="small">Ladda upp filer</Display>
+          <Pressable onPress={onPickFiles}>
             <View
               style={{
-                width: 60,
-                height: 60,
-                backgroundColor: colors.card.message,
-                borderRadius: 38,
+                borderRadius: borderRadius.medium,
                 alignItems: "center",
                 justifyContent: "center",
+                padding: 16,
+                borderStyle: "dashed",
+                borderColor: colors.buttons.outlinedStroke.enabled,
+                borderWidth: 1,
+                gap: 16,
               }}
             >
-              <Icon icon="upload" />
-            </View>
-            <View style={{ gap: 4 }}>
-              <Title size="medium" style={{ textAlign: "center" }}>
-                Ladda upp filer
-              </Title>
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  backgroundColor: colors.card.message,
+                  borderRadius: 38,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon icon="upload" />
+              </View>
               <Body
                 size="small"
                 color="secondary"
@@ -834,8 +852,8 @@ const ImportPanel = ({
                 Bilder, dokument och listor kan laddas upp tillsammans.
               </Body>
             </View>
-          </View>
-        </Pressable>
+          </Pressable>
+        </View>
       )}
 
       {!!files.length && !importStarted && (
