@@ -865,7 +865,7 @@ const InternalAdContent = ({
         onMarkSold={onMarkSold}
         unit={product.primaryUnit ?? undefined}
         reservationControls={
-          product.status !== ProductStatusEnum.Sold ? (
+          product.status !== ProductStatusEnum.Sold && availableQuantity > 0 ? (
             <View style={{ gap: 8, zIndex: 100 }}>
               {product.soldByQuantity && (
                 <QuantityStepper
