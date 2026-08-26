@@ -49,8 +49,8 @@ import { ProjectChips } from "@components/upsert-product/project-chips";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
 import { FileType, ProductFields } from "@components/upsert-product/types";
 import { primitives } from "@constants/colors";
-import { isWeb } from "@constants/layout";
-import { borderRadius } from "@constants/sizes";
+import { isWeb, MAX_CONTENT_WIDTH, screenGrowStyle } from "@constants/layout";
+import { borderRadius, horizontalPadding } from "@constants/sizes";
 import { useSearchContext } from "@context/search-context";
 import { useDocumentHandler } from "@hooks/use-document-handler";
 import { useScreenType } from "@hooks/useScreenType";
@@ -438,99 +438,94 @@ export default function InternalAdsPage() {
         }),
     }));
   const adGridProducts = getAdGridProducts(activeProducts);
-  return (
-    <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-      <InternalTopBar
-        home
-        showSearchBar={showTopBarSearch}
-        onCreateAd={onCreateInternalAd}
-      />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={(event) => {
-          if (!isWeb && introHeight) {
-            setShowTopBarSearch(
-              event.nativeEvent.contentOffset.y > introHeight - 72,
-            );
-          }
+  const content = (
+    <>
+      <ImageBackground
+        source={MainBackground}
+        resizeMode="cover"
+        imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
+        onLayout={(event) => setIntroHeight(event.nativeEvent.layout.height)}
+        style={{
+          backgroundColor: primitives.accent100,
+          overflow: "hidden",
+          width: "100%",
         }}
       >
-        <ImageBackground
-          source={MainBackground}
-          resizeMode="cover"
-          imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
-          onLayout={(event) => setIntroHeight(event.nativeEvent.layout.height)}
+        <View
           style={{
-            backgroundColor: primitives.accent100,
-            overflow: "hidden",
+            alignSelf: "center",
+            gap: 24,
+            maxWidth: MAX_CONTENT_WIDTH,
+            paddingBottom: isDesktop ? 56 : 28,
+            paddingHorizontal: isDesktop
+              ? horizontalPadding.desktop
+              : horizontalPadding.mobile,
+            paddingTop: isDesktop ? 48 : 24,
             width: "100%",
           }}
         >
-          <View
-            style={{
-              paddingHorizontal: isDesktop ? 75 : 16,
-              paddingTop: isDesktop ? 48 : 24,
-              paddingBottom: isDesktop ? 56 : 28,
-              gap: 24,
-            }}
-          >
-            <View style={{ gap: 10, maxWidth: 780 }}>
-              <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
-                Material, verktyg och resurser som bara cirkulerar inom er
-                organisation.
-              </Body>
-            </View>
-
-            {hasAccess && (
-              <View style={{ gap: 16 }}>
-                <Search
-                  style={{ width: isDesktop ? 633 : undefined }}
-                  backgroundColor={primitives.neutrals100}
-                  borderStyle={{
-                    borderColor: colors.buttons.outlinedStroke.enabled,
-                    borderWidth: 1,
-                  }}
-                  placeholder="Sök i Återbanken"
-                  searchScope="internal"
-                  searchOnSubmit
-                />
-                <View
-                  style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}
-                >
-                  <Button
-                    label="Ny annons"
-                    onPress={onCreateInternalAd}
-                    loading={creatingDraft}
-                    theme="light"
-                  />
-                  <Button
-                    label="Importera annonser"
-                    icon="upload"
-                    type="outlined"
-                    theme="light"
-                    onPress={() => setShowImport(true)}
-                    style={{
-                      backgroundColor: primitives.neutrals100,
-                    }}
-                  />
-                </View>
-              </View>
-            )}
+          <View style={{ gap: 10, maxWidth: 780 }}>
+            <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
+              Material, verktyg och resurser som bara cirkulerar inom er
+              organisation.
+            </Body>
           </View>
-        </ImageBackground>
 
+          {hasAccess && (
+            <View style={{ gap: 16 }}>
+              <Search
+                style={{ width: isDesktop ? 633 : undefined }}
+                backgroundColor={primitives.neutrals100}
+                borderStyle={{
+                  borderColor: colors.buttons.outlinedStroke.enabled,
+                  borderWidth: 1,
+                }}
+                placeholder="Sök i Återbanken"
+                searchScope="internal"
+                searchOnSubmit
+              />
+              <View style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}>
+                <Button
+                  label="Ny annons"
+                  onPress={onCreateInternalAd}
+                  loading={creatingDraft}
+                  theme="light"
+                />
+                <Button
+                  label="Importera annonser"
+                  icon="upload"
+                  type="outlined"
+                  theme="light"
+                  onPress={() => setShowImport(true)}
+                  style={{
+                    backgroundColor: primitives.neutrals100,
+                  }}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </ImageBackground>
+
+      <View
+        style={{
+          backgroundColor: colors.background.neutral,
+          flexGrow: 1,
+          width: "100%",
+        }}
+      >
         <View
           style={{
-            backgroundColor: colors.background.neutral,
-            paddingHorizontal: isDesktop ? 75 : 16,
-            paddingBottom: 32,
-            paddingTop: isDesktop ? 44 : 16,
-            minHeight: 420,
-            width: "100%",
-            maxWidth: 1590,
             alignSelf: "center",
+            flexGrow: 1,
+            maxWidth: MAX_CONTENT_WIDTH,
+            minHeight: 420,
+            paddingBottom: 32,
+            paddingHorizontal: isDesktop
+              ? horizontalPadding.desktop
+              : horizontalPadding.mobile,
+            paddingTop: isDesktop ? 44 : 16,
+            width: "100%",
           }}
         >
           {hasAccess && data?.internalAdsStatistics && (
@@ -647,9 +642,43 @@ export default function InternalAdsPage() {
             </View>
           )}
         </View>
+      </View>
 
-        <Footer />
-      </ScrollView>
+      <Footer />
+    </>
+  );
+
+  return (
+    <View
+      style={[
+        isWeb ? screenGrowStyle : { flex: 1 },
+        { backgroundColor: primitives.accent100 },
+      ]}
+    >
+      <InternalTopBar
+        home
+        showSearchBar={showTopBarSearch}
+        onCreateAd={onCreateInternalAd}
+      />
+
+      {isWeb ? (
+        content
+      ) : (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={(event) => {
+            if (introHeight) {
+              setShowTopBarSearch(
+                event.nativeEvent.contentOffset.y > introHeight - 72,
+              );
+            }
+          }}
+        >
+          {content}
+        </ScrollView>
+      )}
 
       <SlideInSheet
         open={showImport}
