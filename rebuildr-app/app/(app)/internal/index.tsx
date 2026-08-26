@@ -716,10 +716,23 @@ export default function InternalAdsPage() {
         />
         {!hasImport && (
           <View style={{ gap: 24 }}>
+            <View style={{ gap: 6 }}>
+              <Display size="small">Vem lägger upp annonserna?</Display>
+              <SelectInput
+                value={importMemberId}
+                options={(membersData?.organizationMembers ?? []).map(
+                  (member) => ({ value: member.id, label: member.name }),
+                )}
+                onSelect={setImportMemberId}
+                placeholder="Välj person"
+              />
+              {!membersData?.organizationMembers.length && (
+                <Body size="small" color="secondary">
+                  Lägg först till en person under Organisationsmedlemmar.
+                </Body>
+              )}
+            </View>
             <View style={{ gap: 12 }}>
-              <Body size="medium">
-                Välj ett projekt eller en plats för alla annonser i importen.
-              </Body>
               <ProjectChips
                 product={importPlacement}
                 update={(partial) =>
@@ -737,22 +750,6 @@ export default function InternalAdsPage() {
                     }))
                   }
                 />
-              )}
-            </View>
-            <View style={{ gap: 6 }}>
-              <Display size="small">Vem lägger upp annonserna?</Display>
-              <SelectInput
-                value={importMemberId}
-                options={(membersData?.organizationMembers ?? []).map(
-                  (member) => ({ value: member.id, label: member.name }),
-                )}
-                onSelect={setImportMemberId}
-                placeholder="Välj person"
-              />
-              {!membersData?.organizationMembers.length && (
-                <Body size="small" color="secondary">
-                  Lägg först till en person under Organisationsmedlemmar.
-                </Body>
               )}
             </View>
           </View>
