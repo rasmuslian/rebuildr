@@ -48,6 +48,16 @@ const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
     internalProject(projectId: $projectId) @include(if: $internalMode) {
       id
       title
+      address
+      location {
+        lat
+        lng
+      }
+      approximatePlace {
+        lat
+        lng
+        address
+      }
     }
   }
 `;
@@ -105,13 +115,9 @@ export const ProjectChips = ({
     update({
       noProject: false,
       project: { id },
-      ...(internalMode
-        ? {}
-        : {
-            address: project.address,
-            location: project.location,
-            approximatePlace: project.approximatePlace,
-          }),
+      address: project.address,
+      location: project.location,
+      approximatePlace: project.approximatePlace,
     });
   };
 

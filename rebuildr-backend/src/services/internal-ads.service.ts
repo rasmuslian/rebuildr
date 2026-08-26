@@ -1272,7 +1272,7 @@ export class InternalAdsService {
     if (!product.primaryQuantity || !product.primaryUnit)
       issues.push('Mängd saknas');
     if (!product.condition) issues.push('Skick saknas');
-    if (!product.address || !product.addressLocation)
+    if (!product.projectId && (!product.address || !product.addressLocation))
       issues.push('Plats saknas');
     return issues;
   }

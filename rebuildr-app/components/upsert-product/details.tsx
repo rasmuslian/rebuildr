@@ -30,9 +30,6 @@ import {
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
 import { primitives } from "@constants/colors";
-import { AvailabilitySection } from "./availability-section";
-import { InternalLocation } from "./internal-location";
-import { ProjectChips } from "./project-chips";
 
 type Props = {
   product: ProductFields;
@@ -40,7 +37,6 @@ type Props = {
   onNext: () => void;
   badFields?: { [key: string]: string };
   onAnalyzeImages: () => Promise<void>;
-  onClearLocationError: () => void;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
   loading?: boolean;
@@ -60,7 +56,6 @@ export const Details = ({
   onNext,
   badFields,
   onAnalyzeImages,
-  onClearLocationError,
   imageAnalyzeLoading,
   imageAnalyzeError,
   loading = false,
@@ -319,41 +314,25 @@ export const Details = ({
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
-          {internalMode && (
-            <>
-              <InternalLocation
-                product={product}
-                update={update}
-                onSaveStart={onClearLocationError}
-                error={product.location ? undefined : badFields?.["location"]}
+          {internalMode && !!onOrganizationMemberSelect && (
+            <View style={{ gap: 6 }}>
+              <Label size="medium">Vem lägger upp annonsen?</Label>
+              <SelectInput
+                value={organizationMemberId}
+                options={organizationMembers.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                }))}
+                onSelect={onOrganizationMemberSelect}
+                placeholder="Välj person"
+                error={!!badFields?.["organizationMember"]}
               />
-              <ProjectChips product={product} update={update} internalMode />
-              <AvailabilitySection
-                product={product}
-                update={update}
-                error={badFields?.["availability"]}
-              />
-              {!!onOrganizationMemberSelect && (
-                <View style={{ gap: 6 }}>
-                  <Label size="medium">Vem lägger upp annonsen?</Label>
-                  <SelectInput
-                    value={organizationMemberId}
-                    options={organizationMembers.map((member) => ({
-                      value: member.id,
-                      label: member.name,
-                    }))}
-                    onSelect={onOrganizationMemberSelect}
-                    placeholder="Välj person"
-                    error={!!badFields?.["organizationMember"]}
-                  />
-                  {!!badFields?.["organizationMember"] && (
-                    <Body size="small" color="error">
-                      {badFields.organizationMember}
-                    </Body>
-                  )}
-                </View>
+              {!!badFields?.["organizationMember"] && (
+                <Body size="small" color="error">
+                  {badFields.organizationMember}
+                </Body>
               )}
-            </>
+            </View>
           )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>
             <View

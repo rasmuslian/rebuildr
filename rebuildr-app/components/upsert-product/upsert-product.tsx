@@ -217,7 +217,7 @@ const detailsErrorFields = [
   "description",
   "primary",
 ];
-const transportaionErrorFields = ["delivery", "availability"];
+const transportaionErrorFields = ["delivery", "availability", "location"];
 
 type Props = {
   productId?: string;
@@ -289,7 +289,9 @@ export const UpsertProduct = ({
       ? { ...queryData, product: queryData.internalAd }
       : queryData
   ) as UpsertProductQuery | undefined;
-  const [setResponsibleMember] = useMutation(SET_INTERNAL_AD_RESPONSIBLE_MEMBER);
+  const [setResponsibleMember] = useMutation(
+    SET_INTERNAL_AD_RESPONSIBLE_MEMBER,
+  );
   const [updateProduct, { loading: updatingProduct, error }] = useMutation<
     UpsertProductUpdateProductMutation,
     UpsertProductUpdateProductMutationVariables
@@ -431,10 +433,8 @@ export const UpsertProduct = ({
 
   //Find the first step that contains errors
   const firstStepWithErrors = (errorFields: FieldErrorsType) => {
-    const errorInDetails = Object.keys(errorFields).some(
-      (key) =>
-        detailsErrorFields.some((field) => field === key) ||
-        (internalMode && ["availability", "location"].includes(key)),
+    const errorInDetails = Object.keys(errorFields).some((key) =>
+      detailsErrorFields.some((field) => field === key),
     );
     if (errorInDetails) {
       setStep("details");
@@ -822,10 +822,6 @@ export const UpsertProduct = ({
     if (product.brandId) {
       obligatories += 1;
     }
-    if (internalMode && product.location) {
-      obligatories += 1;
-    }
-
     return Math.round((obligatories / totalMandatories) * 100);
   };
 
@@ -924,20 +920,6 @@ export const UpsertProduct = ({
     const result = onVerifyDetails(product);
     if (!result || actionLoading) return;
 
-    if (internalMode) {
-      if (!onVerifyTransportation(product, true)) return;
-      setActionLoading(true);
-      const save = update().finally(() => setActionLoading(false));
-      if (inline) {
-        onPublished();
-        onInlineDraftSave?.(save);
-        return;
-      }
-      if (await save) {
-        setStep("preview");
-      }
-      return;
-    }
     setStep("transportation");
   };
   const onNextTransportation = async () => {
@@ -947,12 +929,14 @@ export const UpsertProduct = ({
     // Wait for the save before showing the preview, so the user receives
     // clear feedback and the preview can use the latest server-side values.
     setActionLoading(true);
-    try {
-      if (await update()) {
-        setStep("preview");
-      }
-    } finally {
-      setActionLoading(false);
+    const save = update().finally(() => setActionLoading(false));
+    if (inline) {
+      onPublished();
+      onInlineDraftSave?.(save);
+      return;
+    }
+    if (await save) {
+      setStep("preview");
     }
   };
   const onVerifyDetails = (p?: ProductFields) => {
@@ -985,16 +969,13 @@ export const UpsertProduct = ({
     if (!_product.description) {
       badFields["description"] = "Saknar Beskrivning";
     }
-    if (internalMode && !_product.location) {
-      badFields["location"] = "Välj en plats för annonsen";
-    }
     if (internalMode && isNewInternalAd && !organizationMemberId) {
-      badFields["organizationMember"] =
-        "Välj vem som lägger upp annonsen";
+      badFields["organizationMember"] = "Välj vem som lägger upp annonsen";
     }
     if (
-      _product.primaryQuantity !== undefined &&
-      _product.primaryQuantity <= 0
+      _product.primaryQuantity === undefined ||
+      _product.primaryQuantity <= 0 ||
+      !_product.primaryUnit
     ) {
       badFields["primary"] = "Mängd och enhet måste vara minst 1";
     }
@@ -1034,6 +1015,14 @@ export const UpsertProduct = ({
     ) {
       badFields["delivery"] =
         `Vid bortskänkes måste priset för hemleverans vara minst ${data.product.minimumPrice}kr eller gratis`;
+    }
+    if (
+      enforceAvailability &&
+      internalMode &&
+      !_product.project &&
+      !_product.location
+    ) {
+      badFields["location"] = "Välj en plats för annonsen";
     }
     if (
       enforceAvailability &&
@@ -1119,49 +1108,74 @@ export const UpsertProduct = ({
     onPublished(publishedData);
   };
 
-  const showFooter = step === "preview";
+  const showFooter =
+    step === "preview" ||
+    (step === "transportation" && internalMode && !inline);
   const updateDraftLoading =
     actionLoading || updatingProduct || uploadingMedia || publishingInternal;
   const isInitializing = loading || productLoading || !data || !initialized;
 
   const renderFooter = () => {
-    if (showFooter && !isInitializing) {
+    if (!showFooter || isInitializing) return undefined;
+
+    if (step === "transportation") {
+      const locationIsValid = !!product.project || !!product.location;
       return (
-        <View
-          style={{
-            paddingTop: 24,
-            gap: 6,
-          }}
-        >
-          {(error || publishInternalError) && (
-            <Body size="small" color="error">
-              Något gick fel, vänligen gå tillbaka och se över alla fält
-            </Body>
-          )}
-          <View
-            style={{
-              gap: 8,
-              flexDirection: "row",
-            }}
-          >
-            <Button
-              label="Redigera"
-              type="tonal"
-              onPress={() => setStep("details")}
-              disabled={updateDraftLoading || createSellerAccountLoading}
-              style={{ flex: 1 }}
-            />
-            <Button
-              label="Publicera"
-              onPress={() => onVerifyPreview()}
-              style={{ flex: 1 }}
-              loading={updateDraftLoading || createSellerAccountLoading}
-            />
-          </View>
+        <View style={{ paddingTop: 24, flexDirection: "row", gap: 8 }}>
+          <Button
+            icon="arrowLeft"
+            label="Tillbaka"
+            onPress={() => setStep("details")}
+          />
+          <Button
+            label="Förhandsgranska"
+            onPress={onNextTransportation}
+            style={{ flex: 1 }}
+            disabled={
+              !locationIsValid ||
+              !transportationProgress ||
+              transportationProgress < 100
+            }
+            loading={actionLoading}
+          />
         </View>
       );
     }
-    return undefined;
+
+    return (
+      <View
+        style={{
+          paddingTop: 24,
+          gap: 6,
+        }}
+      >
+        {(error || publishInternalError) && (
+          <Body size="small" color="error">
+            Något gick fel, vänligen gå tillbaka och se över alla fält
+          </Body>
+        )}
+        <View
+          style={{
+            gap: 8,
+            flexDirection: "row",
+          }}
+        >
+          <Button
+            label="Redigera"
+            type="tonal"
+            onPress={() => setStep("details")}
+            disabled={updateDraftLoading || createSellerAccountLoading}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label="Publicera"
+            onPress={() => onVerifyPreview()}
+            style={{ flex: 1 }}
+            loading={updateDraftLoading || createSellerAccountLoading}
+          />
+        </View>
+      </View>
+    );
   };
 
   const header = (
@@ -1199,22 +1213,12 @@ export const UpsertProduct = ({
             onNext={onNextDetails}
             badFields={fieldErrors}
             onAnalyzeImages={onAnalyzeImages}
-            onClearLocationError={() => {
-              onInternalLocationSaveStart?.();
-              setFieldErrors((current) => {
-                if (!current?.location) return current;
-                const remainingErrors = { ...current };
-                delete remainingErrors.location;
-                return remainingErrors;
-              });
-            }}
             imageAnalyzeLoading={
               imageAnalyzeLoading || analyzePending || willAutoAnalyze
             }
             imageAnalyzeError={!!imageAnalyzeError}
             loading={actionLoading}
             internalMode={internalMode}
-            nextLabel={inline ? "Spara" : undefined}
             onDelete={inline ? onDelete : undefined}
             compact={compact}
             importMode={importMode}
@@ -1251,6 +1255,17 @@ export const UpsertProduct = ({
             onBack={() => setStep("details")}
             badFields={fieldErrors}
             internalMode={internalMode}
+            nextLabel={inline ? "Spara" : undefined}
+            onInternalLocationSaveStart={() => {
+              onInternalLocationSaveStart?.();
+              setFieldErrors((current) => {
+                if (!current?.location) return current;
+                const remainingErrors = { ...current };
+                delete remainingErrors.location;
+                return remainingErrors;
+              });
+            }}
+            hideActions={internalMode && !inline}
           />
         );
       case "preview":
@@ -1286,7 +1301,12 @@ export const UpsertProduct = ({
   if (isDesktop) {
     return (
       <>
-        <SlideInSheet open={visible} bottomMargin={0} onClose={onDismissSheet}>
+        <SlideInSheet
+          open={visible}
+          bottomMargin={0}
+          onClose={onDismissSheet}
+          footer={isInitializing ? undefined : renderFooter()}
+        >
           <View>{header}</View>
           <View>
             {isInitializing ? (
@@ -1295,21 +1315,6 @@ export const UpsertProduct = ({
               viewChildren()
             )}
           </View>
-          {showFooter && !isInitializing && (
-            <View
-              style={{
-                position: "sticky",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10,
-                backgroundColor: "white",
-                paddingBottom: 32,
-              }}
-            >
-              {renderFooter()}
-            </View>
-          )}
         </SlideInSheet>
         {data && (
           <HandleDraft
