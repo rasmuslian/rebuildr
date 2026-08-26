@@ -354,6 +354,7 @@ export const INTERNAL_AD_DETAIL = gql`
       weightUnit
       color
       colorType
+      co2SavingSeller
       soldByQuantity
       internalValidationIssues
       createdByOrganizationMemberId

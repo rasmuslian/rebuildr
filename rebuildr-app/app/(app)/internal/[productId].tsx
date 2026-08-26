@@ -35,6 +35,7 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
+import { CO2Savings } from "@components/preview-product/CO2-savings";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
 import { PickupPosition } from "@components/preview-product/pickup-position";
@@ -66,7 +67,7 @@ import { formatNumber } from "@/utils/formattings";
 import dayjs from "dayjs";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import { Delivery } from "@components/upsert-product/delivery";
 import { Pickup } from "@components/upsert-product/pickup";
@@ -312,37 +313,33 @@ export default function InternalAdDetailPage() {
       markingSold={markingSold}
       makingPublic={makingPublic}
       canPublishExternally={canPublishExternally}
-      currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
       onSetPublicAvailability={onSetPublicAvailability}
       onReserve={onReserve}
       onCancel={onCancel}
       onMarkSold={onMarkSold}
-      showReserveButton={isDesktop}
       reservationMemberId={reservationMemberId}
       setReservationMemberId={setReservationMemberId}
       members={membersData?.organizationMembers ?? []}
     />
   );
 
-  const pickupLocation =
-    product.location ??
-    (product.approximatePlace
-      ? {
-          lat: product.approximatePlace.lat,
-          lng: product.approximatePlace.lng,
-        }
-      : undefined);
-  const secondaryContent =
-    product.approximatePlace?.address && pickupLocation ? (
-      <>
-        <Divider />
-        <PickupPosition
-          address={product.approximatePlace.address}
-          location={pickupLocation}
-        />
-      </>
-    ) : null;
+  const secondaryContent = (
+    <>
+      {product.address && product.location && (
+        <>
+          <Divider />
+          <PickupPosition
+            address={product.address}
+            location={product.location}
+            showApproximateDisclaimer={false}
+          />
+        </>
+      )}
+      <Divider />
+      <CO2Savings co2SavingSeller={product.co2SavingSeller} />
+    </>
+  );
   const managementContent = (
     <InternalAdManagement
       product={product}
@@ -357,17 +354,6 @@ export default function InternalAdDetailPage() {
       <ScreenLayout
         headerComponent={<InternalAdsTopBar />}
         headerFullWidth
-        footerBorder={product.status !== ProductStatusEnum.Sold}
-        footerComponent={
-          product.status !== ProductStatusEnum.Sold ? (
-            <Button
-              label="Reservera"
-              onPress={onReserve}
-              loading={reserving}
-              disabled={availableQuantity <= 0 || !reservationMemberId}
-            />
-          ) : undefined
-        }
         style={{ gap: 24, marginTop: 8 }}
       >
         <ImageCarousel
@@ -673,6 +659,7 @@ type InternalAdDetailFields = {
   weightUnit: MeasurementUnitEnum;
   color?: string | null;
   colorType: ColorTypeEnum;
+  co2SavingSeller?: number | null;
 };
 type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]> &
   InternalAdDetailFields;
@@ -692,13 +679,11 @@ type InternalAdContentProps = {
   markingSold: boolean;
   makingPublic: boolean;
   canPublishExternally: boolean;
-  currentUserId: string;
   canMarkSold: boolean;
   onSetPublicAvailability: () => Promise<void>;
   onReserve: () => Promise<void>;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
-  showReserveButton: boolean;
   reservationMemberId?: string;
   setReservationMemberId: (id: string) => void;
   members: { id: string; name: string; email: string }[];
@@ -715,13 +700,11 @@ const InternalAdContent = ({
   markingSold,
   makingPublic,
   canPublishExternally,
-  currentUserId,
   canMarkSold,
   onSetPublicAvailability,
   onReserve,
   onCancel,
   onMarkSold,
-  showReserveButton,
   reservationMemberId,
   setReservationMemberId,
   members,
@@ -766,7 +749,7 @@ const InternalAdContent = ({
             : "Tillgänglig";
 
   return (
-    <View style={{ gap: 24 }}>
+    <View style={{ gap: 24, position: "relative", zIndex: 1000 }}>
       <Breadcrumbs
         parentCategory={product.category?.parent}
         category={product.category}
@@ -871,48 +854,50 @@ const InternalAdContent = ({
         )}
       </View>
 
-      {product.status !== ProductStatusEnum.Sold && (
-        <View style={{ gap: 8 }}>
-          {product.soldByQuantity && (
-            <QuantityStepper
-              value={quantity}
-              onChange={setQuantity}
-              max={availableQuantity}
-              unit={product.primaryUnit ?? undefined}
-            />
-          )}
-          <SelectInput
-            value={reservationMemberId}
-            searchable
-            searchPlaceholder="Sök person"
-            options={members.map((member) => ({
-              value: member.id,
-              label: member.name,
-            }))}
-            onSelect={setReservationMemberId}
-            placeholder="Välj vem som reserverar"
-          />
-          {showReserveButton && (
-            <Button
-              label="Reservera"
-              onPress={onReserve}
-              loading={reserving}
-              disabled={availableQuantity <= 0 || !reservationMemberId}
-            />
-          )}
-        </View>
-      )}
+      <Divider />
 
       <Reservations
         reservations={activeReservations}
-        currentUserId={currentUserId}
         canMarkSold={canMarkSold}
         canceling={canceling}
         markingSold={markingSold}
         onCancel={onCancel}
         onMarkSold={onMarkSold}
         unit={product.primaryUnit ?? undefined}
+        reservationControls={
+          product.status !== ProductStatusEnum.Sold ? (
+            <View style={{ gap: 8, zIndex: 100 }}>
+              {product.soldByQuantity && (
+                <QuantityStepper
+                  value={quantity}
+                  onChange={setQuantity}
+                  max={availableQuantity}
+                  unit={product.primaryUnit ?? undefined}
+                />
+              )}
+              <SelectInput
+                value={reservationMemberId}
+                searchable
+                searchPlaceholder="Sök person"
+                options={members.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                }))}
+                onSelect={setReservationMemberId}
+                placeholder="Välj vem som reserverar"
+              />
+              <Button
+                label="Reservera"
+                onPress={onReserve}
+                loading={reserving}
+                disabled={availableQuantity <= 0 || !reservationMemberId}
+              />
+            </View>
+          ) : undefined
+        }
       />
+
+      <Divider />
 
       {canMarkSold && product.status !== ProductStatusEnum.Sold && (
         <PublicAvailabilityCard
@@ -934,7 +919,7 @@ const InternalAdContent = ({
           />
         )}
 
-      <Divider />
+      {canMarkSold && product.status !== ProductStatusEnum.Sold && <Divider />}
 
       <View>
         <Headline size="small">Specifikation</Headline>
@@ -1163,7 +1148,7 @@ const PublicAvailabilityCard = ({
 
 type ReservationsProps = {
   reservations: InternalReservation[];
-  currentUserId: string;
+  reservationControls?: ReactNode;
   canMarkSold: boolean;
   canceling: boolean;
   markingSold: boolean;
@@ -1174,7 +1159,7 @@ type ReservationsProps = {
 
 const Reservations = ({
   reservations,
-  currentUserId,
+  reservationControls,
   canMarkSold,
   canceling,
   markingSold,
@@ -1182,8 +1167,9 @@ const Reservations = ({
   onMarkSold,
   unit,
 }: ReservationsProps) => (
-  <View style={{ gap: 12 }}>
+  <View style={{ gap: 12, position: "relative", zIndex: 1000 }}>
     <Headline size="small">Reservationer</Headline>
+    {reservationControls}
     {reservations.length ? (
       reservations.map((reservation) => {
         const canCancel = canMarkSold;
