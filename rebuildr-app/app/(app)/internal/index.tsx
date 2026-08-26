@@ -540,6 +540,11 @@ export default function InternalAdsPage() {
               />
             </View>
           )}
+          {hasAccess && !!data?.internalAdsCategories.length && (
+            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
+              <InternalCategoryGrid categories={data.internalAdsCategories} />
+            </View>
+          )}
           {hasAccess && (
             <View style={{ gap: 16, marginBottom: isDesktop ? 48 : 32 }}>
               <SectionHeader
@@ -579,11 +584,6 @@ export default function InternalAdsPage() {
                   />
                 </View>
               )}
-            </View>
-          )}
-          {hasAccess && !!data?.internalAdsCategories.length && (
-            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
-              <InternalCategoryGrid categories={data.internalAdsCategories} />
             </View>
           )}
           {loading && !data ? (
