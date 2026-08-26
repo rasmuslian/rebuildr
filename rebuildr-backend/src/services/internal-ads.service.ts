@@ -36,6 +36,7 @@ import {
   NotFoundException,
 } from 'src/exceptions';
 import { FileInputType } from 'src/resolvers/file.resolver';
+import { LocationInputType } from 'src/resolvers/geocoding.resolver';
 import { MapPinGroupsInput } from 'src/resolvers/map-pin.resolver';
 import {
   OrderProductsEnum,
@@ -47,6 +48,7 @@ import {
   In,
   IsNull,
   Not,
+  Point,
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
@@ -1008,13 +1010,49 @@ export class InternalAdsService {
     return saved;
   }
 
-  async createImportBatch(currentUserId: string, files: FileInputType[], memberId: string) {
+  async createImportBatch(
+    currentUserId: string,
+    input: {
+      files: FileInputType[];
+      projectId?: string;
+      location?: LocationInputType;
+    },
+    memberId: string,
+  ) {
     const context = await this.getOrganizationContext(currentUserId);
-    const member = await this.findOrganizationMember(context.organization.id, memberId);
-    const dbFiles = await this.fileService.createFiles(files, true);
+    const member = await this.findOrganizationMember(
+      context.organization.id,
+      memberId,
+    );
+    if (!!input.projectId === !!input.location) {
+      throw BadUserInputException('Choose either a project or a location');
+    }
+
+    let project: Project | undefined;
+    let address: string;
+    let addressLocation: Point;
+    if (input.projectId) {
+      project = await this.internalProject(currentUserId, input.projectId);
+      address = project.address;
+      addressLocation = project.addressLocation;
+    } else {
+      const { exact } = await this.geocodingService.exactAndApproximatePlace(
+        input.location,
+      );
+      address = exact.address;
+      addressLocation = {
+        type: 'Point',
+        coordinates: [exact.lat, exact.lng],
+      };
+    }
+
+    const dbFiles = await this.fileService.createFiles(input.files, true);
     const batch = this.importBatchRepository.create({
       organizationId: context.organization.id,
       organizationMemberId: member.id,
+      projectId: project?.id,
+      address,
+      addressLocation,
       status: InternalAdImportBatchStatus.UPLOADING,
       progress: 0,
       files: dbFiles,
@@ -1195,6 +1233,10 @@ export class InternalAdsService {
         createdByOrganizationMemberName: batch.organizationMember.name,
         createdByOrganizationMemberEmail: batch.organizationMember.email,
         internalAdImportBatchId: batch.id,
+        projectId: batch.projectId,
+        noProject: !batch.projectId,
+        address: batch.address,
+        addressLocation: batch.addressLocation,
         condition: this.validCondition(draft.condition),
         color: draft.color?.trim() ?? null,
         colorType: draft.color ? ColorTypeEnum.FREE_TEXT : ColorTypeEnum.NCS,

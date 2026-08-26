@@ -64,9 +64,14 @@ const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
 
 export const NEW_PROJECT_ID = "NEW_PROJECT_ID";
 
+type ProjectFields = Pick<
+  ProductFields,
+  "address" | "approximatePlace" | "location" | "noProject" | "project"
+>;
+
 type Props = {
-  product: ProductFields;
-  update: (product: Partial<ProductFields>) => void;
+  product: ProjectFields;
+  update: (product: Partial<ProjectFields>) => void;
   internalMode?: boolean;
 };
 

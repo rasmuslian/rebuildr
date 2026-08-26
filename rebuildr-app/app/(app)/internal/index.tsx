@@ -38,8 +38,10 @@ import { Search } from "@components/search/search";
 import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label, Title } from "@components/typography/text";
+import { InternalLocation } from "@components/upsert-product/internal-location";
+import { ProjectChips } from "@components/upsert-product/project-chips";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
-import { FileType } from "@components/upsert-product/types";
+import { FileType, ProductFields } from "@components/upsert-product/types";
 import { primitives } from "@constants/colors";
 import { isWeb } from "@constants/layout";
 import { borderRadius } from "@constants/sizes";
@@ -94,6 +96,9 @@ export default function InternalAdsPage() {
   const [publishRequested, setPublishRequested] = useState(false);
   const [showTopBarSearch, setShowTopBarSearch] = useState(false);
   const [importMemberId, setImportMemberId] = useState<string>();
+  const [importPlacement, setImportPlacement] = useState<
+    Partial<ProductFields>
+  >({});
   const [introHeight, setIntroHeight] = useState(0);
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
@@ -223,7 +228,12 @@ export default function InternalAdsPage() {
   };
 
   const onStartImport = async () => {
-    if (!selectedFiles.length || !importMemberId) return;
+    if (
+      !selectedFiles.length ||
+      !importMemberId ||
+      (!importPlacement.project && !importPlacement.location)
+    )
+      return;
     const generation = ++importGeneration.current;
     setUploadingImport(true);
     const controller = new AbortController();
@@ -235,6 +245,10 @@ export default function InternalAdsPage() {
             mimeType: file.mimeType,
             name: file.name,
           })),
+          projectId: importPlacement.project?.id,
+          location: importPlacement.project
+            ? undefined
+            : importPlacement.location,
         },
         organizationMemberId: importMemberId,
       },
@@ -283,6 +297,7 @@ export default function InternalAdsPage() {
     setActiveBatchId(undefined);
     importBatchId.current = undefined;
     setSelectedFiles([]);
+    setImportPlacement({});
     setShowImport(false);
 
     (async () => {
@@ -323,6 +338,7 @@ export default function InternalAdsPage() {
         setActiveBatchId(undefined);
         importBatchId.current = undefined;
         setSelectedFiles([]);
+        setImportPlacement({});
         setShowImport(false);
       }
     } finally {
@@ -659,21 +675,56 @@ export default function InternalAdsPage() {
               label="Starta import"
               onPress={onStartImport}
               loading={creatingBatch || startingBatch}
-              disabled={!selectedFiles.length || !importMemberId}
+              disabled={
+                !selectedFiles.length ||
+                !importMemberId ||
+                (!importPlacement.project && !importPlacement.location)
+              }
             />
           )
         }
       >
         {!hasImport && (
-          <View style={{ gap: 6 }}>
-            <Label size="medium">Vem lägger upp annonserna?</Label>
-            <SelectInput
-              value={importMemberId}
-              options={(membersData?.organizationMembers ?? []).map((member) => ({ value: member.id, label: member.name }))}
-              onSelect={setImportMemberId}
-              placeholder="Välj person"
-            />
-            {!membersData?.organizationMembers.length && <Body size="small" color="secondary">Lägg först till en person under Organisationsmedlemmar.</Body>}
+          <View style={{ gap: 24 }}>
+            <View style={{ gap: 6 }}>
+              <Label size="medium">Vem lägger upp annonserna?</Label>
+              <SelectInput
+                value={importMemberId}
+                options={(membersData?.organizationMembers ?? []).map(
+                  (member) => ({ value: member.id, label: member.name }),
+                )}
+                onSelect={setImportMemberId}
+                placeholder="Välj person"
+              />
+              {!membersData?.organizationMembers.length && (
+                <Body size="small" color="secondary">
+                  Lägg först till en person under Organisationsmedlemmar.
+                </Body>
+              )}
+            </View>
+            <View style={{ gap: 12 }}>
+              <Body size="medium">
+                Välj ett projekt eller en plats för alla annonser i importen.
+              </Body>
+              <ProjectChips
+                product={importPlacement}
+                update={(partial) =>
+                  setImportPlacement((current) => ({ ...current, ...partial }))
+                }
+                internalMode
+              />
+              {!importPlacement.project && (
+                <InternalLocation
+                  product={importPlacement}
+                  update={(partial) =>
+                    setImportPlacement((current) => ({
+                      ...current,
+                      ...partial,
+                    }))
+                  }
+                />
+              )}
+            </View>
           </View>
         )}
         <ImportPanel

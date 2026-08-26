@@ -7,6 +7,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  Point,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,6 +15,7 @@ import {
 import { File } from './file.entity';
 import { OrganizationMember } from './organization-member.entity';
 import { Product } from './product.entity';
+import { Project } from './project.entity';
 import { User } from './user.entity';
 
 export enum InternalAdImportBatchStatus {
@@ -48,6 +50,22 @@ export class InternalAdImportBatch {
 
   @ManyToOne(() => OrganizationMember, { nullable: true, onDelete: 'SET NULL' })
   organizationMember?: OrganizationMember;
+
+  @Column({ nullable: true })
+  projectId?: string;
+
+  @ManyToOne(() => Project, { nullable: true, onDelete: 'SET NULL' })
+  project?: Project;
+
+  @Column({ nullable: true })
+  address?: string;
+
+  @Column('geometry', {
+    nullable: true,
+    spatialFeatureType: 'Point',
+    srid: 4326,
+  })
+  addressLocation?: Point;
 
   @Field(() => InternalAdImportBatchStatus)
   @Column({

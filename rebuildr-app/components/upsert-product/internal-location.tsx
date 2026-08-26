@@ -12,9 +12,14 @@ import { EditPickup } from "./edit-pickup";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 import { ProductFields } from "./types";
 
+type LocationFields = Pick<
+  ProductFields,
+  "address" | "approximatePlace" | "location"
+>;
+
 type Props = {
-  product: ProductFields;
-  update: (product: Partial<ProductFields>) => void;
+  product: LocationFields;
+  update: (product: Partial<LocationFields>) => void;
   onSaveStart?: () => void;
   error?: string;
 };

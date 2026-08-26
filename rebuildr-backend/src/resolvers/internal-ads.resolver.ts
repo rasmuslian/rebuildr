@@ -120,6 +120,12 @@ class MarkInternalAdSoldInput {
 class CreateInternalAdImportBatchInput {
   @Field(() => [FileInputType])
   files: FileInputType[];
+
+  @Field(() => ID, { nullable: true })
+  projectId?: string;
+
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 }
 
 @InputType()
@@ -439,7 +445,11 @@ export class InternalAdsResolver {
     @Args('input') input: CreateInternalAdImportBatchInput,
     @Args('organizationMemberId', { type: () => ID }) organizationMemberId: string,
   ) {
-    return this.internalAdsService.createImportBatch(user.id, input.files, organizationMemberId);
+    return this.internalAdsService.createImportBatch(
+      user.id,
+      input,
+      organizationMemberId,
+    );
   }
 
   @Mutation(() => InternalAdImportBatch)

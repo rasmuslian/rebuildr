@@ -2287,6 +2287,8 @@ input MarkInternalAdSoldInput {
 
 input CreateInternalAdImportBatchInput {
   files: [FileInputType!]!
+  projectId: ID
+  location: LocationInputType
 }
 
 input CreateCmsAdImportBatchInput {
