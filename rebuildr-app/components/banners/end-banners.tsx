@@ -196,7 +196,7 @@ const EndBanner = ({ banner, height, insetForArrows }: EndBannerProps) => {
           width: "100%",
           minHeight: Math.max(height ?? 0, isDesktop ? 300 : 260),
           borderRadius: borderRadius.medium,
-          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
+          backgroundColor: colors.logo.vector,
           justifyContent: "center",
         }}
       >

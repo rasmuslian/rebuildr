@@ -59,14 +59,16 @@ export function ProductInlineBannerProvider({ children }: PropsWithChildren) {
   );
 }
 
+export function useProductInlineBanner() {
+  return useContext(InlineBannerContext)?.banner;
+}
+
 export function ProductInlineBannerSlot() {
-  const context = useContext(InlineBannerContext);
+  const banner = useProductInlineBanner();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
-  if (!context?.banner) return null;
-
-  const { banner } = context;
+  if (!banner) return null;
   const imageSource = getBannerImageSource(banner);
   const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
   const mobileProductCardHeight =
@@ -79,7 +81,7 @@ export function ProductInlineBannerSlot() {
           aspectRatio: isDesktop ? 0.78 : undefined,
           minHeight: isDesktop ? undefined : mobileProductCardHeight,
           borderRadius: borderRadius.medium,
-          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
+          backgroundColor: colors.logo.vector,
           padding: isDesktop ? 20 : 16,
         }}
       >
