@@ -1,30 +1,35 @@
 import { useMutation, useQuery } from "@apollo/client";
-import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
-import { Button } from "@components/buttons/button";
-import { TextInput } from "@components/forms/textInput";
-import { InternalPageLayout } from "@components/internal/internal-page-layout";
-import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
-import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Body, Headline, Label } from "@components/typography/text";
-import { borderRadius } from "@constants/sizes";
-import { useScreenType } from "@hooks/useScreenType";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
-import { ProjectLocationPicker } from "../projects";
-
+import { MapPinTypeEnum } from "@/gql/graphql";
 import {
   DELETE_INTERNAL_PROJECT,
   INTERNAL_PROJECT,
   UPDATE_INTERNAL_PROJECT,
 } from "@/queries/internal-projects";
+import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
+import { Button } from "@components/buttons/button";
+import { TextInput } from "@components/forms/textInput";
+import { InternalPageLayout } from "@components/internal/internal-page-layout";
+import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
+import Map from "@components/maps/map";
+import MapThumbnail from "@components/maps/map-thumbnail";
+import { Popup } from "@components/popup/popup";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { Body, Headline, Label } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import { useScreenType } from "@hooks/useScreenType";
+
+import { ProjectLocationPicker } from "../projects";
 
 export default function InternalProjectPage() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const { isDesktop } = useScreenType();
   const [editing, setEditing] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [deleteError, setDeleteError] = useState<string>();
   const { data, loading, refetch } = useQuery<any>(INTERNAL_PROJECT, {
     variables: { projectId },
@@ -95,6 +100,17 @@ export default function InternalProjectPage() {
             }
           >
             <View style={{ flex: 1, gap: 16 }}>
+              {project.projectPicture?.url && (
+                <Image
+                  source={{ uri: project.projectPicture.url }}
+                  style={{
+                    width: "100%",
+                    height: isDesktop ? 240 : 220,
+                    borderRadius: borderRadius.medium,
+                  }}
+                  contentFit="cover"
+                />
+              )}
               <View
                 style={{
                   flexDirection: "row",
@@ -119,22 +135,33 @@ export default function InternalProjectPage() {
                   {project.description}
                 </Body>
               )}
+              {!!project.address && (
+                <View>
+                  <Label size="medium">Adress</Label>
+                  <Body size="medium">{project.address}</Body>
+                </View>
+              )}
               <Body size="medium" color="secondary">
                 {project.products.length} annonser
               </Body>
             </View>
 
-            {project.projectPicture?.url && (
-              <Image
-                source={{ uri: project.projectPicture.url }}
-                style={{
-                  flex: 1,
-                  minHeight: isDesktop ? 240 : 220,
-                  borderRadius: borderRadius.medium,
-                }}
-                contentFit="cover"
+            <Pressable style={{ flex: 1 }} onPress={() => setShowMap(true)}>
+              <MapThumbnail
+                coords={[project.location.lat, project.location.lng]}
+                markerType={MapPinTypeEnum.Project}
+                style={{ height: isDesktop ? 400 : 240 }}
+                cta={
+                  <Button
+                    label="Visa på karta"
+                    type="text"
+                    icon="map"
+                    style={{ backgroundColor: "white" }}
+                    onPress={() => setShowMap(true)}
+                  />
+                }
               />
-            )}
+            </Pressable>
           </View>
         </View>
 
@@ -163,6 +190,30 @@ export default function InternalProjectPage() {
           await refetch();
         }}
       />
+
+      <Popup open={showMap} onClose={() => setShowMap(false)} type="full">
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <View
+            style={{
+              padding: isDesktop ? 24 : 16,
+              width: isDesktop ? "70%" : "100%",
+              maxWidth: 1200,
+            }}
+          >
+            <Headline size="small" style={{ marginBottom: 16 }}>
+              Plats för {project.title}
+            </Headline>
+            <Body size="medium" style={{ marginBottom: 24 }}>
+              {project.address}
+            </Body>
+            <Map
+              lat={project.location.lat}
+              lng={project.location.lng}
+              height={isDesktop ? 700 : 500}
+            />
+          </View>
+        </View>
+      </Popup>
     </InternalPageLayout>
   );
 }
