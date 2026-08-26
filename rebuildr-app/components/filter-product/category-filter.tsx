@@ -9,6 +9,8 @@ import { FilterSection } from "./filter-section";
 import { View } from "react-native";
 import { Body } from "@components/typography/text";
 import { Check } from "@components/controls/check";
+import { FilterCount } from "./filter-count";
+import { useProductFacets } from "@hooks/useProductFacets";
 import { Pressable } from "react-native-gesture-handler";
 
 const CATEGORY_FILTER = gql`
@@ -23,6 +25,7 @@ const CATEGORY_FILTER = gql`
 
 export const CategoryFilter = () => {
   const { filter, filterBuilder } = useFilterProduct();
+  const facets = useProductFacets();
   const { data } = useQuery<CategoryFilterQuery, CategoryFilterQueryVariables>(
     CATEGORY_FILTER,
     {
@@ -34,11 +37,20 @@ export const CategoryFilter = () => {
     return <LoadingSpinner />;
   }
 
-  const selectedCategories = data?.getCategories.filter((category) =>
+  // Inside a project, list only what the project actually holds, and only real
+  // subcategories: with no category picked the query also returns the roots,
+  // which belong in the section above.
+  const categories = data.getCategories.filter(
+    (category) =>
+      !facets.enabled ||
+      (!!category.parentId && facets.categoryCount(category.id) > 0),
+  );
+
+  const selectedCategories = categories.filter((category) =>
     filter.categoryIds?.some((id) => id === category.id),
   );
 
-  const allCategoriesSelected = data.getCategories.every((c) =>
+  const allCategoriesSelected = categories.every((c) =>
     selectedCategories.find((selectedCategory) => selectedCategory.id === c.id),
   );
 
@@ -72,7 +84,7 @@ export const CategoryFilter = () => {
             <Check selected={!filter.categoryIds} />
           </View>
         </Pressable>
-        {data?.getCategories.map((category, i) => (
+        {categories.map((category, i) => (
           <Pressable
             key={i}
             onPress={() => {
@@ -86,7 +98,16 @@ export const CategoryFilter = () => {
                 alignItems: "center",
               }}
             >
-              <Body size="medium">{category.name}</Body>
+              <View style={{ flexDirection: "row" }}>
+                <Body size="medium">{category.name}</Body>
+                <FilterCount
+                  count={
+                    facets.enabled
+                      ? facets.categoryCount(category.id)
+                      : undefined
+                  }
+                />
+              </View>
               <Check
                 disabled={!filter.categoryIds}
                 selected={

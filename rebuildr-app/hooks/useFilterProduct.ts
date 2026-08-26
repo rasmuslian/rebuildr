@@ -8,21 +8,38 @@ import { getItem, setItem } from "@/utils/async-storage";
 import { ReactiveVar, useReactiveVar } from "@apollo/client";
 import { useEffect } from "react";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
-import { useFilterProductScope } from "@context/filter-product-scope-context";
+import {
+  FilterProductScope,
+  isOwnFilterScope,
+  useFilterProductScope,
+} from "@context/filter-product-scope-context";
 
 const PRODUCT_FILTER_STORAGE_KEY = "product-filter";
 
 let hasHydratedProductFilter = false;
 
-export const useFilterProduct = () => {
-  const scope = useFilterProductScope();
+type Options = {
+  // For controls that act on the app-wide listing even while rendered inside a
+  // scoped one, such as a search that navigates to the global results page.
+  global?: boolean;
+};
+
+export const useFilterProduct = ({ global }: Options = {}) => {
+  const contextScope = useFilterProductScope();
+  const scope: FilterProductScope = global ? "public" : contextScope;
+  const ownScope = isOwnFilterScope(scope) ? scope : undefined;
   const filterVar =
-    scope === "internal" ? internalProductFilterVar : productFilterVar;
+    ownScope?.filterVar ??
+    (scope === "internal" ? internalProductFilterVar : productFilterVar);
   const filter = useReactiveVar(filterVar);
+  // A scoped listing can start from something other than the app-wide default,
+  // so resetting and counting applied filters both measure against its own.
+  const initialFilter = ownScope?.initialFilter ?? initialFilterProduct;
   const filterBuilder = new FilterBuilder(
     filter,
     filterVar,
     scope === "public",
+    initialFilter,
   );
 
   useEffect(() => {
@@ -37,13 +54,12 @@ export const useFilterProduct = () => {
 
   const nrOfAppliedFilters = () => {
     let acc = 0;
-    acc += filter.brandIds !== initialFilterProduct.brandIds ? 1 : 0;
-    acc +=
-      filter.rootCategoryIds !== initialFilterProduct.rootCategoryIds ? 1 : 0;
-    acc += filter.categoryIds !== initialFilterProduct.categoryIds ? 1 : 0;
-    acc += filter.conditions !== initialFilterProduct.conditions ? 1 : 0;
+    acc += filter.brandIds !== initialFilter.brandIds ? 1 : 0;
+    acc += filter.rootCategoryIds !== initialFilter.rootCategoryIds ? 1 : 0;
+    acc += filter.categoryIds !== initialFilter.categoryIds ? 1 : 0;
+    acc += filter.conditions !== initialFilter.conditions ? 1 : 0;
 
-    if (filter.sorting !== initialFilterProduct.sorting) {
+    if (filter.sorting !== initialFilter.sorting) {
       acc += 1;
     }
 
@@ -88,15 +104,18 @@ class FilterBuilder {
   private filter: Filter;
   private filterVar: ReactiveVar<Filter>;
   private persist: boolean;
+  private initialFilter: Filter;
 
   constructor(
     filter: Filter | undefined,
     filterVar: ReactiveVar<Filter>,
     persist: boolean,
+    initialFilter: Filter,
   ) {
-    this.filter = filter ?? initialFilterProduct;
+    this.filter = filter ?? initialFilter;
     this.filterVar = filterVar;
     this.persist = persist;
+    this.initialFilter = initialFilter;
   }
 
   private separateRootAndCategories = (
@@ -115,7 +134,7 @@ class FilterBuilder {
   };
 
   reset() {
-    this.filter = initialFilterProduct;
+    this.filter = this.initialFilter;
     return this;
   }
 

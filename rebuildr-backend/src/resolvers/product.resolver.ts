@@ -318,6 +318,30 @@ export class PaginatedProductsResponse {
 }
 
 @ObjectType()
+export class ProductFacetCount {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => Int)
+  count: number;
+}
+
+@ObjectType()
+export class ProductFacetsResponse {
+  @Field(() => [ProductFacetCount])
+  categories: ProductFacetCount[];
+
+  @Field(() => [ProductFacetCount])
+  rootCategories: ProductFacetCount[];
+
+  @Field(() => [ProductFacetCount])
+  brands: ProductFacetCount[];
+
+  @Field(() => [ProductFacetCount])
+  conditions: ProductFacetCount[];
+}
+
+@ObjectType()
 export class ProductsResponse extends PaginatedProductsResponse {
   @Field(() => LocationResponse, {
     nullable: true,
@@ -690,6 +714,12 @@ export class ProductResolver {
     @CurrentUser() user?: AuthedUserType,
   ) {
     return this.productService.findAll({ ...input }, limit, offset, user?.id);
+  }
+
+  @Query(() => ProductFacetsResponse)
+  @UseGuards(GqlOptionalAuthGuard)
+  async productFacets(@Args('input') input: ProductsInput) {
+    return await this.productService.productFacets({ ...input });
   }
 
   @Query(() => ProductsResponse)

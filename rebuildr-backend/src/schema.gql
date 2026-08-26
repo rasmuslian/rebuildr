@@ -805,6 +805,18 @@ type PaginatedProductsResponse {
   total: Int!
 }
 
+type ProductFacetCount {
+  id: ID!
+  count: Int!
+}
+
+type ProductFacetsResponse {
+  categories: [ProductFacetCount!]!
+  rootCategories: [ProductFacetCount!]!
+  brands: [ProductFacetCount!]!
+  conditions: [ProductFacetCount!]!
+}
+
 type ProductsResponse {
   products: [Product!]!
   total: Int!
@@ -1310,6 +1322,7 @@ type Query {
   cmsListUsers(input: CmsListUsersInput!): CmsListUsersResponse!
   product(input: GetProductInput!): Product!
   products(input: ProductsInput!, offset: Int, limit: Int): ProductsResponse!
+  productFacets(input: ProductsInput!): ProductFacetsResponse!
   relatedProducts(input: ProductsInput!, excludeProductIds: [ID!], offset: Int, limit: Int): ProductsResponse!
   getDraftedProduct: Product
   getOrCreateDraftProduct: Product!
