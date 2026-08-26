@@ -23,6 +23,10 @@ import {
 } from "@/queries/internal-ads";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
+import {
+  ProjectCard,
+  ProjectCardProject,
+} from "@components/cards/project-card";
 import { FilterChip } from "@components/chips/filterChip";
 import { TextInput } from "@components/forms/textInput";
 import { SelectInput } from "@components/forms/selectInput";
@@ -61,6 +65,7 @@ import { quantities } from "@constants/quantities";
 import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { Icon } from "@icons/icon";
 import { ncsToRgb } from "@/utils/color/ncsToRgb";
 import { swedishColorToHex } from "@/utils/color/swedish-colors";
 import { formatNumber } from "@/utils/formattings";
@@ -338,6 +343,12 @@ export default function InternalAdDetailPage() {
       )}
       <Divider />
       <CO2Savings co2SavingSeller={product.co2SavingSeller} />
+      {!!product.project && (
+        <>
+          <Divider />
+          <InternalProjectSection project={product.project} />
+        </>
+      )}
     </>
   );
   const managementContent = (
@@ -660,6 +671,7 @@ type InternalAdDetailFields = {
   color?: string | null;
   colorType: ColorTypeEnum;
   co2SavingSeller?: number | null;
+  project?: ProjectCardProject | null;
 };
 type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]> &
   InternalAdDetailFields;
@@ -754,6 +766,8 @@ const InternalAdContent = ({
         parentCategory={product.category?.parent}
         category={product.category}
       />
+
+      {!!product.project && <InternalProjectCard project={product.project} />}
 
       <View>
         <Title size="large" heading={1}>
@@ -1043,6 +1057,67 @@ const InternalAdContent = ({
     </View>
   );
 };
+
+const openInternalProject = (projectId: string) => {
+  router.navigate({
+    pathname: "/internal/projects/[projectId]",
+    params: { projectId },
+  });
+};
+
+const InternalProjectCard = ({ project }: { project: ProjectCardProject }) => (
+  <Pressable
+    onPress={() => openInternalProject(project.id)}
+    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+  >
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16,
+        padding: 16,
+        backgroundColor: primitives.secondary200,
+        borderRadius: borderRadius.medium,
+      }}
+    >
+      <View style={{ flex: 1, gap: 4 }}>
+        <Label size="medium">Projekt</Label>
+        <Headline size="small">{project.title}</Headline>
+      </View>
+      <Icon icon="chevronRight" size={18} />
+    </View>
+  </Pressable>
+);
+
+const InternalProjectSection = ({
+  project,
+}: {
+  project: ProjectCardProject;
+}) => (
+  <View style={{ gap: 16 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <Headline size="small">Mer från samma projekt</Headline>
+      <Button
+        icon="arrowRight"
+        type="text"
+        onPress={() => openInternalProject(project.id)}
+      />
+    </View>
+    <ProjectCard
+      showHeart={false}
+      showOwner={false}
+      project={project}
+      onPress={() => openInternalProject(project.id)}
+    />
+  </View>
+);
 
 type InternalAdManagementProps = {
   product: InternalAd;

@@ -389,6 +389,26 @@ export const INTERNAL_AD_DETAIL = gql`
           name
         }
       }
+      project {
+        id
+        title
+        projectPicture {
+          url
+        }
+        user {
+          id
+          profilePicture {
+            url
+          }
+        }
+        products {
+          id
+          status
+          primaryImage {
+            url
+          }
+        }
+      }
       address
       location {
         lat
