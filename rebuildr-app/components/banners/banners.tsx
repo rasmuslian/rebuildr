@@ -297,7 +297,7 @@ const Banner = ({
     <BannerWrapper banner={banner}>
       <View
         style={{
-          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
+          backgroundColor: colors.logo.vector,
           width: "100%",
           minHeight: height || undefined,
           borderRadius: borderRadius.medium,

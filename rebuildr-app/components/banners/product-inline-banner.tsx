@@ -81,7 +81,7 @@ export function ProductInlineBannerSlot() {
           aspectRatio: isDesktop ? 0.78 : undefined,
           minHeight: isDesktop ? undefined : mobileProductCardHeight,
           borderRadius: borderRadius.medium,
-          backgroundColor: imageSource ? "transparent" : colors.logo.vector,
+          backgroundColor: colors.logo.vector,
           padding: isDesktop ? 20 : 16,
         }}
       >
