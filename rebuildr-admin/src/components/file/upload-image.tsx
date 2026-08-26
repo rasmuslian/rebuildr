@@ -10,6 +10,7 @@ type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 type Props = {
   aspect?: number;
   aspectSlider?: boolean;
+  crop?: boolean;
   files: UploadFile[];
   setFiles: (fileList: UploadFile[]) => void;
   allowedFileNumber?: number;
@@ -27,6 +28,7 @@ const getBase64 = (file: FileType): Promise<string> => {
 const UploadImage = ({
   aspect = 1,
   aspectSlider = false,
+  crop = true,
   files = [],
   setFiles,
   allowedFileNumber = 1,
@@ -49,15 +51,27 @@ const UploadImage = ({
 
   return (
     <Fragment>
-      <ImgCrop
-        key={aspect}
-        aspect={aspect}
-        aspectSlider={aspectSlider}
-        maxAspect={10}
-        modalTitle="Beskär bild"
-        modalWidth={800}
-        showGrid
-      >
+      {crop ? (
+        <ImgCrop
+          key={aspect}
+          aspect={aspect}
+          aspectSlider={aspectSlider}
+          maxAspect={10}
+          modalTitle="Beskär bild"
+          modalWidth={800}
+          showGrid
+        >
+          <Upload
+            accept=".jpeg, .jpg, .webp, .png"
+            listType="picture-card"
+            fileList={files}
+            onPreview={handlePreview}
+            onChange={handleChange}
+          >
+            {canSelectMore && <PlusOutlined />}
+          </Upload>
+        </ImgCrop>
+      ) : (
         <Upload
           accept=".jpeg, .jpg, .webp, .png"
           listType="picture-card"
@@ -67,7 +81,7 @@ const UploadImage = ({
         >
           {canSelectMore && <PlusOutlined />}
         </Upload>
-      </ImgCrop>
+      )}
 
       {previewImage && (
         <Image

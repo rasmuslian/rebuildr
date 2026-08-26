@@ -48,9 +48,15 @@ type Props = {
   data: AdRowSectionQuery;
   onPress: () => void;
   title: string;
+  showInlineBanner?: boolean;
 };
 
-export const AdRowSection = ({ data, onPress, title }: Props) => {
+export const AdRowSection = ({
+  data,
+  onPress,
+  title,
+  showInlineBanner,
+}: Props) => {
   const { onToggleProductHeart } = useLikeProduct();
   const { isDesktop } = useScreenType();
 
@@ -63,6 +69,7 @@ export const AdRowSection = ({ data, onPress, title }: Props) => {
       buttonTitle={isDesktop ? "Visa alla" : undefined}
       onPress={onPress}
       onToggleProductHeart={onToggleProductHeart}
+      showInlineBanner={showInlineBanner}
     />
   );
 };

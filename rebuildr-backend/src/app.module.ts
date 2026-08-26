@@ -143,6 +143,8 @@ import { ConversationResolver } from './resolvers/conversation.resolver';
 import { ConversationService } from './services/conversation.service';
 import { StatisticsResolver } from './resolvers/statistics.resolver';
 import { StatisticsService } from './services/statistics.service';
+import { GoogleAnalyticsService } from './services/google-analytics.service';
+import { StatisticsInsightsService } from './services/statistics/statistics-insights.service';
 import { AterbyggarenChat } from './entities/aterbyggaren-chat.entity';
 import { AterbyggarenMessage } from './entities/aterbyggaren-message.entity';
 import { AterbyggarenController } from './controllers/aterbyggaren.controller';
@@ -401,6 +403,8 @@ export interface RequestType {
     NewsletterCompetitionResolver,
     StatisticsResolver,
     StatisticsService,
+    GoogleAnalyticsService,
+    StatisticsInsightsService,
     AterbyggarenService,
     BankIDResolver,
     BankIDService,

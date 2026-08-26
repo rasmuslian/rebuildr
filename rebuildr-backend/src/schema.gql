@@ -632,12 +632,16 @@ type Banner {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground!
+  foregroundColor: BannerForegroundColor!
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   backgroundImage: File
+  logo: File
   showFrom: DateTime!
   showTo: DateTime
 }
@@ -650,6 +654,19 @@ enum BannerPresetBackground {
   REBUILDR
   WOOD
   METALLIC
+}
+
+enum BannerForegroundColor {
+  LOGO_BACKGROUND
+  LOGO_VECTOR
+  WHITE
+  CHARCOAL
+}
+
+enum BannerPlacementEnum {
+  STANDARD
+  END
+  PRODUCT_INLINE
 }
 
 type FooterSection {
@@ -1037,6 +1054,7 @@ type ListPageContentResponse {
 type CmsCreateBannerResponse {
   banner: Banner!
   imagePutUrl: String
+  logoPutUrl: String
 }
 
 type NewsletterCompetition {
@@ -1077,77 +1095,164 @@ type CmsUserStatisticsResponse {
 type CmsPurchaseStatisticsDataPoint {
   date: String!
   count: Int!
+  gmvSek: Float
 }
 
 type CmsPurchaseStatisticsResponse {
   data: [CmsPurchaseStatisticsDataPoint!]!
 }
 
-type CmsRevenueStatisticsDataPoint {
+type CmsCo2SavingsDataPoint {
   date: String!
-  total: Float!
+  co2Kg: Float!
 }
 
-type CmsRevenueStatisticsResponse {
-  data: [CmsRevenueStatisticsDataPoint!]!
+type CmsCo2SavingsResponse {
+  data: [CmsCo2SavingsDataPoint!]!
 }
 
-type CmsAverageOrderValueStatisticsDataPoint {
-  date: String!
-  average: Float!
-}
-
-type CmsAverageOrderValueStatisticsResponse {
-  data: [CmsAverageOrderValueStatisticsDataPoint!]!
-}
-
-type CmsActiveListingsByCategoryDataPoint {
-  category: String!
-  count: Int!
-}
-
-type CmsActiveListingsByCategoryResponse {
-  data: [CmsActiveListingsByCategoryDataPoint!]!
-}
-
-type CmsCo2SavingsStatisticsDataPoint {
-  date: String!
-  total: Float!
-}
-
-type CmsCo2SavingsStatisticsResponse {
-  data: [CmsCo2SavingsStatisticsDataPoint!]!
-}
-
-type CmsRepeatBuyerRateStatisticsDataPoint {
+type CmsRepeatBuyerRateDataPoint {
   date: String!
   total: Int!
   repeat: Int!
   percent: Float!
 }
 
-type CmsRepeatBuyerRateStatisticsResponse {
-  data: [CmsRepeatBuyerRateStatisticsDataPoint!]!
+type CmsRepeatBuyerRateResponse {
+  data: [CmsRepeatBuyerRateDataPoint!]!
 }
 
-type CmsPurchaseFailureRateStatisticsDataPoint {
+type CmsPurchaseFailureRateDataPoint {
   date: String!
   total: Int!
   failed: Int!
   percent: Float!
 }
 
-type CmsPurchaseFailureRateStatisticsResponse {
-  data: [CmsPurchaseFailureRateStatisticsDataPoint!]!
+type CmsPurchaseFailureRateResponse {
+  data: [CmsPurchaseFailureRateDataPoint!]!
 }
 
-type CmsAverageTimeToPublishStatisticsDataPoint {
+type CmsKpiValue {
+  value: Float!
+  previousValue: Float
+  changePercent: Float
+}
+
+type CmsKpiSummaryResponse {
+  listingsPublished: CmsKpiValue!
+  salesCount: CmsKpiValue!
+  listingsSold: CmsKpiValue!
+  upcomingListingsCreated: CmsKpiValue!
+  activeUsers: CmsKpiValue!
+  newUsers: CmsKpiValue!
+  totalSalesSek: CmsKpiValue!
+  avgOrderValueSek: CmsKpiValue!
+  avgItemPriceSek: CmsKpiValue!
+  co2SavedKg: CmsKpiValue!
+  activeListingsNow: CmsKpiValue!
+  newBusinessUsers: CmsKpiValue!
+  messagesSent: CmsKpiValue!
+}
+
+type CmsTopCategoryEntry {
+  categoryId: ID!
+  categoryName: String!
+  salesSek: Float!
+  salesCount: Int!
+  listingCount: Int!
+}
+
+type CmsTopCategoriesResponse {
+  bySales: [CmsTopCategoryEntry!]!
+  byListings: [CmsTopCategoryEntry!]!
+}
+
+type CmsTopProductEntry {
+  productId: ID!
+  title: String
+  status: String
+  viewCount: Int!
+}
+
+type CmsTopSearchTermEntry {
+  term: String!
+  count: Int!
+}
+
+type CmsTrafficEntry {
+  name: String!
+  sessions: Int!
+}
+
+type CmsTrafficStatsResponse {
+  sessions: Int!
+  totalUsers: Int!
+  pageViews: Int!
+  topSources: [CmsTrafficEntry!]!
+  topLandingPages: [CmsTrafficEntry!]!
+  topCities: [CmsTrafficEntry!]!
+}
+
+type CmsUsersByCityEntry {
+  city: String!
+  count: Int!
+}
+
+type CmsUsersByCityResponse {
+  cities: [CmsUsersByCityEntry!]!
+  unknownCount: Int!
+}
+
+type CmsTimeToSellDataPoint {
   date: String!
-  averageDays: Float!
+  medianDays: Float!
+  p25Days: Float!
+  p75Days: Float!
+  count: Int!
 }
 
-type CmsAverageTimeToPublishStatisticsResponse {
-  data: [CmsAverageTimeToPublishStatisticsDataPoint!]!
+type CmsTimeToSellResponse {
+  data: [CmsTimeToSellDataPoint!]!
+}
+
+type CmsBreakdownEntry {
+  method: String!
+  count: Int!
+  gmvSek: Float!
+}
+
+type CmsPurchaseBreakdownsResponse {
+  transport: [CmsBreakdownEntry!]!
+  payment: [CmsBreakdownEntry!]!
+}
+
+type CmsReviewDistributionEntry {
+  stars: Int!
+  count: Int!
+}
+
+type CmsReviewSeriesPoint {
+  date: String!
+  avgStars: Float!
+  count: Int!
+}
+
+type CmsReviewStatsResponse {
+  average: Float!
+  count: Int!
+  distribution: [CmsReviewDistributionEntry!]!
+  series: [CmsReviewSeriesPoint!]!
+}
+
+type CmsPriceBucket {
+  fromSek: Float!
+  toSek: Float
+  count: Int!
+}
+
+type CmsPriceDistributionResponse {
+  buckets: [CmsPriceBucket!]!
 }
 
 type InitBankIDVerifyResponse {
@@ -1270,20 +1375,26 @@ type Query {
   pageContentById(id: String!): PageContent!
   pageContentByPage(page: String!): PageContent!
   listPageContents(input: ListPageContentInput!): ListPageContentResponse!
-  banners: [Banner!]!
+  banners(placement: BannerPlacementEnum): [Banner!]!
   cmsListBanners: [Banner!]!
   cmsBannerById(id: String!): Banner!
   newsletterCompetition: NewsletterCompetition!
+  cmsTimeToSell(input: CmsTimeToSellInput!): CmsTimeToSellResponse!
+  cmsPurchaseBreakdowns(input: CmsPurchaseBreakdownsInput!): CmsPurchaseBreakdownsResponse!
+  cmsReviewStats(input: CmsReviewStatsInput!): CmsReviewStatsResponse!
+  cmsPriceDistribution(input: CmsPriceDistributionInput!): CmsPriceDistributionResponse!
   cmsProductStatistics(input: CmsProductStatisticsInput): CmsProductStatisticsResponse!
   cmsUserStatistics(input: CmsUserStatisticsInput): CmsUserStatisticsResponse!
   cmsPurchaseStatistics(input: CmsPurchaseStatisticsInput): CmsPurchaseStatisticsResponse!
-  cmsRevenueStatistics(input: CmsRevenueStatisticsInput): CmsRevenueStatisticsResponse!
-  cmsAverageOrderValueStatistics(input: CmsAverageOrderValueStatisticsInput): CmsAverageOrderValueStatisticsResponse!
-  cmsActiveListingsByCategoryStatistics: CmsActiveListingsByCategoryResponse!
-  cmsCo2SavingsStatistics(input: CmsCo2SavingsStatisticsInput): CmsCo2SavingsStatisticsResponse!
-  cmsRepeatBuyerRateStatistics(input: CmsRepeatBuyerRateStatisticsInput): CmsRepeatBuyerRateStatisticsResponse!
-  cmsPurchaseFailureRateStatistics(input: CmsPurchaseFailureRateStatisticsInput): CmsPurchaseFailureRateStatisticsResponse!
-  cmsAverageTimeToPublishStatistics(input: CmsAverageTimeToPublishStatisticsInput): CmsAverageTimeToPublishStatisticsResponse!
+  cmsCo2SavingsStatistics(input: CmsCo2SavingsInput): CmsCo2SavingsResponse!
+  cmsRepeatBuyerRateStatistics(input: CmsRepeatBuyerRateInput): CmsRepeatBuyerRateResponse!
+  cmsPurchaseFailureRateStatistics(input: CmsPurchaseFailureRateInput): CmsPurchaseFailureRateResponse!
+  cmsKpiSummary(input: CmsKpiSummaryInput!): CmsKpiSummaryResponse!
+  cmsTopCategories(input: CmsTopCategoriesInput!): CmsTopCategoriesResponse!
+  cmsTopProducts(input: CmsTopProductsInput!): [CmsTopProductEntry!]!
+  cmsTopSearchTerms(input: CmsTopSearchTermsInput!): [CmsTopSearchTermEntry!]!
+  cmsUsersByCity: CmsUsersByCityResponse!
+  cmsTrafficStats(input: CmsTrafficStatsInput!): CmsTrafficStatsResponse
   collectBankIDVerify(orderRef: String!): CollectBankIDVerifyResponse!
   internalAdsOrganizationContext: InternalAdsOrganizationContext
   internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
@@ -1581,8 +1692,11 @@ input ListPageContentInput {
   pageSize: Int
 }
 
-input CmsProductStatisticsInput {
+input CmsTimeToSellInput {
+  from: String!
+  to: String!
   groupBy: CmsProductStatisticsGroupByEnum
+  categoryId: ID
 }
 
 enum CmsProductStatisticsGroupByEnum {
@@ -1591,36 +1705,86 @@ enum CmsProductStatisticsGroupByEnum {
   MONTH
 }
 
+input CmsPurchaseBreakdownsInput {
+  from: String!
+  to: String!
+}
+
+input CmsReviewStatsInput {
+  from: String!
+  to: String!
+  groupBy: CmsProductStatisticsGroupByEnum
+}
+
+input CmsPriceDistributionInput {
+  from: String!
+  to: String!
+  categoryId: ID
+  condition: String
+}
+
+input CmsProductStatisticsInput {
+  groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
+}
+
 input CmsUserStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
 }
 
 input CmsPurchaseStatisticsInput {
   groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
 }
 
-input CmsRevenueStatisticsInput {
+input CmsCo2SavingsInput {
   groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
 }
 
-input CmsAverageOrderValueStatisticsInput {
+input CmsRepeatBuyerRateInput {
   groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
 }
 
-input CmsCo2SavingsStatisticsInput {
+input CmsPurchaseFailureRateInput {
   groupBy: CmsProductStatisticsGroupByEnum
+  from: String
+  to: String
 }
 
-input CmsRepeatBuyerRateStatisticsInput {
-  groupBy: CmsProductStatisticsGroupByEnum
+input CmsKpiSummaryInput {
+  from: String!
+  to: String!
 }
 
-input CmsPurchaseFailureRateStatisticsInput {
-  groupBy: CmsProductStatisticsGroupByEnum
+input CmsTopCategoriesInput {
+  from: String!
+  to: String!
+  limit: Int
 }
 
-input CmsAverageTimeToPublishStatisticsInput {
-  groupBy: CmsProductStatisticsGroupByEnum
+input CmsTopProductsInput {
+  from: String!
+  to: String!
+  limit: Int
+}
+
+input CmsTopSearchTermsInput {
+  from: String!
+  to: String!
+  limit: Int
+}
+
+input CmsTrafficStatsInput {
+  from: String!
+  to: String!
 }
 
 input InternalProjectsInput {
@@ -2269,24 +2433,32 @@ input UpdatePageContentInput {
 }
 
 input CmsCreateBannerInput {
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
+  logo: FileInputType
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   showFrom: DateTime!
   showTo: DateTime
 }
 
 input CmsUpdateBannerInput {
   id: String!
-  label: String!
+  label: String
   title: String!
   url: String
   action: BannerActionEnum
   presetBackground: BannerPresetBackground
+  foregroundColor: BannerForegroundColor
   backgroundImage: FileInputType
+  logo: FileInputType
+  placements: [BannerPlacementEnum!]!
+  ctaText: String
   showFrom: DateTime!
   showTo: DateTime
 }

@@ -226,7 +226,7 @@ const formatChatTimestamp = (value: string) => {
   if (diffHours < 24) return `${Math.max(diffHours, 1)}h`;
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays} dagar`;
+  if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? "dag" : "dagar"}`;
 
   return date.toISOString().slice(0, 10);
 };

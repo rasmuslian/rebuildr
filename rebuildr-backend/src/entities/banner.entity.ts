@@ -19,8 +19,23 @@ export enum BannerPresetBackground {
   METALLIC = 'METALLIC',
 }
 
+export enum BannerForegroundColor {
+  LOGO_BACKGROUND = 'LOGO_BACKGROUND',
+  LOGO_VECTOR = 'LOGO_VECTOR',
+  WHITE = 'WHITE',
+  CHARCOAL = 'CHARCOAL',
+}
+
+export enum BannerPlacementEnum {
+  STANDARD = 'STANDARD',
+  END = 'END',
+  PRODUCT_INLINE = 'PRODUCT_INLINE',
+}
+
 registerEnumType(BannerActionEnum, { name: 'BannerActionEnum' });
 registerEnumType(BannerPresetBackground, { name: 'BannerPresetBackground' });
+registerEnumType(BannerForegroundColor, { name: 'BannerForegroundColor' });
+registerEnumType(BannerPlacementEnum, { name: 'BannerPlacementEnum' });
 
 @Entity()
 @ObjectType()
@@ -37,9 +52,9 @@ export class Banner {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field()
-  @Column()
-  label: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  label?: string;
 
   @Field()
   @Column()
@@ -60,10 +75,34 @@ export class Banner {
   })
   presetBackground: BannerPresetBackground;
 
+  @Field(() => BannerForegroundColor)
+  @Column('enum', {
+    enum: BannerForegroundColor,
+    default: BannerForegroundColor.LOGO_BACKGROUND,
+  })
+  foregroundColor: BannerForegroundColor;
+
+  @Field(() => [BannerPlacementEnum])
+  @Column('enum', {
+    enum: BannerPlacementEnum,
+    array: true,
+    default: [BannerPlacementEnum.STANDARD],
+  })
+  placements: BannerPlacementEnum[];
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  ctaText?: string;
+
   @Field(() => File, { nullable: true })
   @OneToOne(() => File, (f) => f.id, { nullable: true })
   @JoinColumn()
   backgroundImage?: File;
+
+  @Field(() => File, { nullable: true })
+  @OneToOne(() => File, (f) => f.id, { nullable: true })
+  @JoinColumn()
+  logo?: File;
 
   @Field(() => Date)
   @Column()

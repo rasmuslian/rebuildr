@@ -17,6 +17,8 @@ import { NearYou } from "@components/near-you/near-you";
 import { useSearchContext } from "@context/search-context";
 import RebuildrHead from "@components/meta-data/rebuildr-head";
 import { Banners } from "@components/banners/banners";
+import { EndBanners } from "@components/banners/end-banners";
+import { ProductInlineBannerProvider } from "@components/banners/product-inline-banner";
 import { useFocusEffect } from "expo-router";
 import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
 import {
@@ -110,35 +112,38 @@ export default function Landing() {
     : undefined;
 
   const content = (
-    <View
-      style={[
-        {
-          backgroundColor: colors.background.neutral,
-          flexGrow: 1,
-          paddingHorizontal: isDesktop ? 75 : 16,
-          paddingBottom: 32,
-          paddingTop: isDesktop ? 44 : 16,
-        },
-        contentWidthCap,
-      ]}
-    >
-      <OnboardingHomeStrip />
-      <RootCategoriesHorizontal />
-      <NewArrivals />
-      <NearYou />
-      <ForTheSeason />
-      <Banners />
-      <TrendingNow />
-      <RecommendedProducts
-        title="Du kanske också gillar"
-        source={ProductsRecommendationSourceEnum.Likes}
-      />
+    <ProductInlineBannerProvider>
+      <View
+        style={[
+          {
+            backgroundColor: colors.background.neutral,
+            flexGrow: 1,
+            paddingHorizontal: isDesktop ? 75 : 16,
+            paddingBottom: 32,
+            paddingTop: isDesktop ? 44 : 16,
+          },
+          contentWidthCap,
+        ]}
+      >
+        <OnboardingHomeStrip />
+        <RootCategoriesHorizontal />
+        <NewArrivals />
+        <NearYou />
+        <ForTheSeason />
+        <Banners />
+        <TrendingNow />
+        <RecommendedProducts
+          title="Du kanske också gillar"
+          source={ProductsRecommendationSourceEnum.Likes}
+        />
 
-      <RecommendedProducts
-        title="Nytt från din senaste sökning"
-        source={ProductsRecommendationSourceEnum.SearchHistory}
-      />
-    </View>
+        <RecommendedProducts
+          title="Nytt från din senaste sökning"
+          source={ProductsRecommendationSourceEnum.SearchHistory}
+        />
+        <EndBanners />
+      </View>
+    </ProductInlineBannerProvider>
   );
 
   return (
@@ -149,8 +154,13 @@ export default function Landing() {
       </Head>
 
       {isWeb ? (
+        // Hero, feed and footer are all capped and centred, so the page
+        // background is what shows beside them on wide screens.
         <View
-          style={[screenGrowStyle, { backgroundColor: colors.logo.vector }]}
+          style={[
+            screenGrowStyle,
+            { backgroundColor: colors.background.neutral },
+          ]}
         >
           <View
             style={{

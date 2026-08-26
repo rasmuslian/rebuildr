@@ -1,5 +1,15 @@
 import apiClient from "@/lib/api-client";
-import { StatisticsGroupBy, StatisticsResponse } from "./user-statistics";
+import { StatisticsGroupBy } from "./user-statistics";
+
+export interface PurchaseStatisticsDataPoint {
+  date: string;
+  count: number;
+  gmvSek: number | null;
+}
+
+export interface PurchaseStatisticsResponse {
+  data: PurchaseStatisticsDataPoint[];
+}
 
 const purchaseStatisticsQuery = `
   query CmsPurchaseStatistics($input: CmsPurchaseStatisticsInput) {
@@ -7,6 +17,7 @@ const purchaseStatisticsQuery = `
       data {
         date
         count
+        gmvSek
       }
     }
   }
@@ -14,13 +25,19 @@ const purchaseStatisticsQuery = `
 
 export const getPurchaseStatistics = async (
   groupBy: StatisticsGroupBy = "month",
-): Promise<StatisticsResponse> => {
+  from?: string,
+  to?: string,
+): Promise<PurchaseStatisticsResponse> => {
   const response = await apiClient.post<
-    GraphQLResponse<{ cmsPurchaseStatistics: StatisticsResponse }>
+    GraphQLResponse<{ cmsPurchaseStatistics: PurchaseStatisticsResponse }>
   >("/", {
     query: purchaseStatisticsQuery,
     variables: {
-      input: { groupBy: groupBy.toUpperCase() as Uppercase<StatisticsGroupBy> },
+      input: {
+        groupBy: groupBy.toUpperCase() as Uppercase<StatisticsGroupBy>,
+        from,
+        to,
+      },
     },
   });
 

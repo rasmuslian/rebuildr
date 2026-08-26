@@ -1,86 +1,78 @@
 "use client";
 
-import React, { useState } from "react";
-import { Segmented, Spin } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
+
 import {
-  getProductStatistics,
-  ProductStatisticsGroupBy,
-} from "@/queries/product/product-statistics";
+  axisProps,
+  barProps,
+  CHART_COLORS,
+  CHART_MARGIN,
+  formatChartDate,
+  gridProps,
+  GroupBy,
+  tooltipFormatter,
+  tooltipProps,
+} from "@/components/statistics/chart-theme";
+import { formatNumber } from "@/components/statistics/format";
+import { getProductStatistics } from "@/queries/product/product-statistics";
+import ChartCard from "@/components/ui/chart-card";
 
-const GROUP_BY_OPTIONS: { label: string; value: ProductStatisticsGroupBy }[] = [
-  { label: "Dag", value: "day" },
-  { label: "Vecka", value: "week" },
-  { label: "Månad", value: "month" },
-];
+interface ProductStatisticsChartProps {
+  from: string;
+  to: string;
+  groupBy: GroupBy;
+}
 
-const formatDate = (date: string, groupBy: ProductStatisticsGroupBy) => {
-  const d = new Date(date);
-  if (groupBy === "day") {
-    return d.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
-  }
-  if (groupBy === "week") {
-    return d.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
-  }
-  return d.toLocaleDateString("sv-SE", { year: "numeric", month: "short" });
-};
-
-const ProductStatisticsChart = () => {
-  const [groupBy, setGroupBy] = useState<ProductStatisticsGroupBy>("month");
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["product-statistics", groupBy],
-    queryFn: () => getProductStatistics(groupBy),
+const ProductStatisticsChart = ({
+  from,
+  to,
+  groupBy,
+}: ProductStatisticsChartProps) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["product-statistics", groupBy, from, to],
+    queryFn: () =>
+      getProductStatistics(
+        groupBy.toLowerCase() as "day" | "week" | "month",
+        from,
+        to,
+      ),
   });
 
   const chartData =
     data?.data.map((point) => ({
-      date: formatDate(point.date, groupBy),
+      date: formatChartDate(point.date, groupBy),
       count: point.count,
     })) ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h4 className="m-0 text-base font-medium">Annonser skapade över tid</h4>
-        <Segmented
-          options={GROUP_BY_OPTIONS}
-          value={groupBy}
-          onChange={(value) => setGroupBy(value as ProductStatisticsGroupBy)}
-        />
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-80 items-center justify-center">
-          <Spin />
-        </div>
-      ) : (
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-            <Tooltip
-              formatter={(value) => [value, "Produkter"]}
-              labelStyle={{ fontWeight: 600 }}
-            />
-            <Bar dataKey="count" fill="#1677ff" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      )}
-    </div>
+    <ChartCard
+      title="Annonser skapade över tid"
+      loading={isLoading}
+      error={isError}
+      isEmpty={!chartData.length}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={CHART_MARGIN}>
+          <CartesianGrid {...gridProps} />
+          <XAxis dataKey="date" {...axisProps} />
+          <YAxis allowDecimals={false} {...axisProps} width={48} />
+          <Tooltip
+            {...tooltipProps}
+            formatter={tooltipFormatter(formatNumber, "Annonser")}
+          />
+          <Bar dataKey="count" fill={CHART_COLORS.primary} {...barProps} />
+        </BarChart>
+      </ResponsiveContainer>
+    </ChartCard>
   );
 };
 
