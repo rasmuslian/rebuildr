@@ -100,6 +100,15 @@ export const UPDATE_INTERNAL_PROJECT = gql`
     }
   }
 `;
+export const SET_INTERNAL_PROJECT_PICTURE = gql`
+  mutation SetInternalProjectPicture(
+    $projectId: ID!
+    $picture: FileInputType!
+  ) {
+    setInternalProjectPicture(projectId: $projectId, picture: $picture)
+  }
+`;
+
 export const DELETE_INTERNAL_PROJECT = gql`
   mutation DeleteInternalProject($projectId: ID!) {
     deleteInternalProject(projectId: $projectId)

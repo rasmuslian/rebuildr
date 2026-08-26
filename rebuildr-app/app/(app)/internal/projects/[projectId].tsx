@@ -8,6 +8,7 @@ import { MapPinTypeEnum } from "@/gql/graphql";
 import {
   DELETE_INTERNAL_PROJECT,
   INTERNAL_PROJECT,
+  SET_INTERNAL_PROJECT_PICTURE,
   UPDATE_INTERNAL_PROJECT,
 } from "@/queries/internal-projects";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
@@ -21,6 +22,7 @@ import { Popup } from "@components/popup/popup";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
+import { useImageHandler } from "@hooks/use-image-handler";
 import { useScreenType } from "@hooks/useScreenType";
 
 import { ProjectLocationPicker } from "../projects";
@@ -233,13 +235,29 @@ function EditInternalProjectSheet({
     { lat: number; lng: number } | undefined
   >(project.location ?? undefined);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [pickedPicture, setPickedPicture] = useState<{
+    uri: string;
+    mimeType: string;
+    file: File;
+    name?: string | null;
+  }>();
+  const { pickImage } = useImageHandler();
   const [update, { loading }] = useMutation(UPDATE_INTERNAL_PROJECT);
+  const [setProjectPicture, { loading: uploadingPicture }] = useMutation(
+    SET_INTERNAL_PROJECT_PICTURE,
+  );
+
+  const onPickPicture = async () => {
+    const image = await pickImage();
+    if (image) setPickedPicture(image);
+  };
 
   useEffect(() => {
     setTitle(project.title);
     setDescription(project.description ?? "");
     setLocation(project.location ?? undefined);
-  }, [project.description, project.title]);
+    setPickedPicture(undefined);
+  }, [project.description, project.location, project.title]);
 
   return (
     <SlideInSheet
@@ -278,6 +296,33 @@ function EditInternalProjectSheet({
       ) : (
         <View style={{ gap: 24 }}>
           <View style={{ gap: 8 }}>
+            <Label size="medium">Omslagsbild</Label>
+            {(pickedPicture?.uri || project.projectPicture?.url) && (
+              <Image
+                source={{
+                  uri: pickedPicture?.uri ?? project.projectPicture?.url,
+                }}
+                style={{
+                  width: "100%",
+                  height: 180,
+                  borderRadius: borderRadius.medium,
+                }}
+                contentFit="cover"
+              />
+            )}
+            <Button
+              label={
+                pickedPicture?.uri || project.projectPicture?.url
+                  ? "Byt omslagsbild"
+                  : "Lägg till omslagsbild"
+              }
+              type="tonal"
+              icon="addImage"
+              onPress={onPickPicture}
+              disabled={loading || uploadingPicture}
+            />
+          </View>
+          <View style={{ gap: 8 }}>
             <Label size="medium">Projektnamn</Label>
             <TextInput value={title} onChange={setTitle} />
           </View>
@@ -299,7 +344,7 @@ function EditInternalProjectSheet({
           <View style={{ gap: 12 }}>
             <Button
               label="Spara ändringar"
-              loading={loading}
+              loading={loading || uploadingPicture}
               disabled={!title.trim() || !location}
               onPress={async () => {
                 if (!location) return;
@@ -313,6 +358,28 @@ function EditInternalProjectSheet({
                     },
                   },
                 });
+                if (pickedPicture) {
+                  const pictureResult = await setProjectPicture({
+                    variables: {
+                      projectId: project.id,
+                      picture: {
+                        mimeType: pickedPicture.mimeType,
+                        name: pickedPicture.name,
+                      },
+                    },
+                  });
+                  const putUrl = pictureResult.data?.setInternalProjectPicture;
+                  if (putUrl) {
+                    await fetch(putUrl, {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": pickedPicture.mimeType,
+                        "x-amz-acl": "public-read",
+                      },
+                      body: pickedPicture.file,
+                    });
+                  }
+                }
                 await onUpdated();
               }}
             />

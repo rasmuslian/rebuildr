@@ -379,9 +379,44 @@ export class InternalAdsService {
     return this.projectRepository.save(project);
   }
 
-  async deleteInternalProject(currentUserId: string, projectId: string) {
-    const project = await this.internalProject(currentUserId, projectId);
+  async setInternalProjectPicture(
+    currentUserId: string,
+    projectId: string,
+    picture: FileInputType,
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        internalOrganizationId: context.organization.id,
+      },
+      relations: { projectPicture: true },
+    });
+    if (!project) throw NotFoundException('Internal project not found');
 
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
+    project.projectPicture = await this.fileService.createFile(picture);
+    await this.projectRepository.save(project);
+
+    return this.fileService.uploadFile(project.projectPicture, true);
+  }
+
+  async deleteInternalProject(currentUserId: string, projectId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        internalOrganizationId: context.organization.id,
+      },
+      relations: { projectPicture: true },
+    });
+    if (!project) throw NotFoundException('Internal project not found');
+
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
     await this.dataSource.transaction(async (manager) => {
       await manager.getRepository(Product).update(
         {

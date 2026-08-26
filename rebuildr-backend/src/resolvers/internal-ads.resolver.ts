@@ -235,6 +235,20 @@ export class InternalAdsResolver {
     return this.internalAdsService.updateInternalProject(user.id, input);
   }
 
+  @Mutation(() => String)
+  @UseGuards(GqlAuthGuard)
+  async setInternalProjectPicture(
+    @CurrentUser() user: AuthedUserType,
+    @Args('projectId', { type: () => ID }) projectId: string,
+    @Args('picture') picture: FileInputType,
+  ) {
+    return this.internalAdsService.setInternalProjectPicture(
+      user.id,
+      projectId,
+      picture,
+    );
+  }
+
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
   async deleteInternalProject(

@@ -136,6 +136,59 @@ describe('InternalAdsService.internalAdMapPinGroups', () => {
   });
 });
 
+describe('InternalAdsService.setInternalProjectPicture', () => {
+  it('replaces the cover image and returns a public upload URL', async () => {
+    const oldPicture = { id: 'old-picture' };
+    const newPicture = { id: 'new-picture' };
+    const project = {
+      id: 'project-a',
+      internalOrganizationId: 'organization-a',
+      projectPicture: oldPicture,
+    };
+    const projectRepository = {
+      findOne: jest.fn().mockResolvedValue(project),
+      save: jest.fn().mockImplementation((value) => value),
+    };
+    const fileService = {
+      deleteFiles: jest.fn().mockResolvedValue(undefined),
+      createFile: jest.fn().mockResolvedValue(newPicture),
+      uploadFile: jest.fn().mockResolvedValue('https://upload.example'),
+    };
+    const service = Object.create(
+      InternalAdsService.prototype,
+    ) as InternalAdsService;
+    Object.assign(service, { projectRepository, fileService });
+    jest.spyOn(service, 'getOrganizationContext').mockResolvedValue({
+      organization: { id: 'organization-a' } as never,
+    });
+
+    await expect(
+      service.setInternalProjectPicture('user-a', 'project-a', {
+        mimeType: 'image/jpeg',
+        name: 'cover.jpg',
+      }),
+    ).resolves.toBe('https://upload.example');
+
+    expect(projectRepository.findOne).toHaveBeenCalledWith({
+      where: {
+        id: 'project-a',
+        internalOrganizationId: 'organization-a',
+      },
+      relations: { projectPicture: true },
+    });
+    expect(fileService.deleteFiles).toHaveBeenCalledWith([oldPicture]);
+    expect(fileService.createFile).toHaveBeenCalledWith({
+      mimeType: 'image/jpeg',
+      name: 'cover.jpg',
+    });
+    expect(projectRepository.save).toHaveBeenCalledWith({
+      ...project,
+      projectPicture: newPicture,
+    });
+    expect(fileService.uploadFile).toHaveBeenCalledWith(newPicture, true);
+  });
+});
+
 describe('InternalAdsService.internalAdsStatistics', () => {
   it('returns zeroes for an organization without ads', async () => {
     const { service } = createService({
