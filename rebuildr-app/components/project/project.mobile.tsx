@@ -1,23 +1,20 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScreenLayout } from "@components/screen-layout/screen-layout";
 import { useQuery } from "@apollo/client";
 import {
   GetProjectQuery,
   GetProjectQueryVariables,
-  ProductAvailabilityEnum,
   UserType,
 } from "@/gql/graphql";
 import { useUser } from "@hooks/useUser";
 import { SearchBar } from "@components/search/search-bar";
 import { Display, Label, Body } from "@components/typography/text";
-import { View, useWindowDimensions, Animated, Pressable } from "react-native";
+import { View, Animated, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Avatar } from "@components/avatar/avatar";
 import { CompanyBadge } from "@components/badges/company-badge";
 import { Divider } from "@components/dividers/divider";
-import { AdGrid } from "@components/ad/ad-grid";
-import { useLikeProduct } from "@hooks/useLikeProduct";
 import { useLikeProject } from "@hooks/useLikeProject";
 import { Button, ButtonProps } from "@components/buttons/button";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -28,15 +25,16 @@ import MapThumbnail from "@components/maps/map-thumbnail";
 import { MapPinProjectType } from "@/utils/map-pin/map-pin-project-type";
 import InteractiveMap from "@components/maps/interactive-map";
 import { DeleteProjectButton } from "./delete-project-button";
+import { ProjectProducts } from "./project-products";
+import { useFilterProduct } from "@hooks/useFilterProduct";
+import { useSearchContext } from "@context/search-context";
 
 export const ProjectMobile = () => {
-  const { width: screenWidth } = useWindowDimensions();
-  const width = (screenWidth - 48) / 2;
-  const { onToggleProductHeart } = useLikeProduct();
   const { onToggleProjectHeart } = useLikeProject();
+  const { filter, filterBuilder } = useFilterProduct();
+  const { setSearchState } = useSearchContext();
   const { isLoggedIn } = useUser();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
-  const [searchString, setSearchString] = useState("");
   const [contactExpanded, setContactExpanded] = useState(false);
   const contactAnimation = useRef(new Animated.Value(0)).current;
   const contactRef = useRef(0);
@@ -45,7 +43,7 @@ export const ProjectMobile = () => {
   const { data, loading } = useQuery<GetProjectQuery, GetProjectQueryVariables>(
     GET_PROJECT,
     {
-      variables: { input: { id: projectId }, searchString, isLoggedIn },
+      variables: { input: { id: projectId }, isLoggedIn },
       onError: () => router.navigate("/"),
       skip: !projectId,
     },
@@ -55,7 +53,6 @@ export const ProjectMobile = () => {
   const me = data?.me;
   const numberOfProducts = project?.products.length ?? 0;
   const user = project?.user;
-  const products = project?.products ?? [];
   const isMyProject = user && user.id === me?.id;
 
   const contactName = project?.contactName;
@@ -80,9 +77,30 @@ export const ProjectMobile = () => {
     });
   }
 
-  const onSearch = useDebounceCallback((value) => {
-    setSearchString(value);
-  }, 400);
+  const [searchString, setSearchString] = useState("");
+  const onSearch = useDebounceCallback(setSearchString, 400);
+
+  // Applied from an effect rather than inside the debounce, so a filter picked
+  // in the sheet while the text is still settling is not overwritten by a
+  // builder that was captured before it.
+  useEffect(() => {
+    if (searchString === (filter.searchString ?? "")) {
+      return;
+    }
+
+    filterBuilder.setSearchString(searchString).apply();
+  }, [searchString]);
+
+  // Clearing the filter drops its text too, so the field it came from has to
+  // follow or it would show a term that is no longer narrowing anything.
+  useEffect(() => {
+    if (filter.searchString || !searchString) {
+      return;
+    }
+
+    setSearchString("");
+    setSearchState({ searchString: "" });
+  }, [filter.searchString]);
 
   return (
     <ScreenLayout
@@ -251,48 +269,7 @@ export const ProjectMobile = () => {
 
           <Divider />
 
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 16,
-              flexWrap: "wrap",
-              paddingBottom: 16,
-            }}
-          >
-            {products.map((product) => {
-              return (
-                <View style={{ width }} key={product.id}>
-                  <AdGrid
-                    id={product.id}
-                    imageUri={product.primaryImage?.url}
-                    liked={!!product.likedByMe}
-                    heart={project?.user.id !== me?.id}
-                    quantity={product.primaryQuantity}
-                    quantityUnit={product.primaryUnit}
-                    condition={product.condition}
-                    account={{
-                      rating: user?.rating,
-                      type: user?.type,
-                      location: product.approximatePlace?.address,
-                    }}
-                    title={product.title}
-                    price={product.price}
-                    soldByQuantity={product.soldByQuantity}
-                    status={product.status}
-                    upcoming={
-                      product.availability === ProductAvailabilityEnum.Upcoming
-                    }
-                    onHeartPress={() => {
-                      onToggleProductHeart({
-                        productId: product.id,
-                        likedByMe: !!product.likedByMe,
-                      });
-                    }}
-                  />
-                </View>
-              );
-            })}
-          </View>
+          <ProjectProducts projectId={projectId} user={user} meId={me?.id} />
         </View>
       )}
 

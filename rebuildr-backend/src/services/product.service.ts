@@ -902,6 +902,59 @@ export class ProductService {
     return qb;
   }
 
+  // Counts describe the set the listing starts from, so the facet selections
+  // themselves are dropped. Keeping them would make every unpicked option read
+  // zero as soon as one was ticked.
+  async productFacets(input: ProductsInput) {
+    const facetInput: ProductsInput = {
+      projectId: input.projectId,
+      sellerId: input.sellerId,
+      searchString: input.searchString,
+      onlyPublished: input.onlyPublished,
+    };
+
+    const countBy = async (column: string) => {
+      const query = this.productRepository.createQueryBuilder('p');
+      this.basicFindProductsInputQueryBuilder(facetInput, query, 'p');
+
+      const rows = await query
+        .select(column, 'id')
+        .addSelect('COUNT(DISTINCT p.id)', 'count')
+        .andWhere(`${column} IS NOT NULL`)
+        .groupBy(column)
+        .getRawMany<{ id: string; count: string }>();
+
+      return rows.map((row) => ({ id: row.id, count: Number(row.count) }));
+    };
+
+    // A root's tally rolls up its children, so the same category reads the same
+    // number whether it is listed as a category or as a subcategory.
+    const countByRootCategory = async () => {
+      const query = this.productRepository.createQueryBuilder('p');
+      this.basicFindProductsInputQueryBuilder(facetInput, query, 'p');
+
+      const rootId = 'COALESCE(fc."parentId", fc.id)';
+      const rows = await query
+        .leftJoin('category', 'fc', 'fc.id = p."categoryId"')
+        .select(rootId, 'id')
+        .addSelect('COUNT(DISTINCT p.id)', 'count')
+        .andWhere('fc.id IS NOT NULL')
+        .groupBy(rootId)
+        .getRawMany<{ id: string; count: string }>();
+
+      return rows.map((row) => ({ id: row.id, count: Number(row.count) }));
+    };
+
+    const [categories, rootCategories, brands, conditions] = await Promise.all([
+      countBy('p."categoryId"'),
+      countByRootCategory(),
+      countBy('p."brandId"'),
+      countBy('p.condition'),
+    ]);
+
+    return { categories, rootCategories, brands, conditions };
+  }
+
   async findAll(
     input: ProductsInput,
     _limit?: number,

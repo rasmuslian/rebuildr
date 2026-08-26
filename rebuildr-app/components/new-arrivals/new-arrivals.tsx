@@ -44,6 +44,7 @@ export const NewArrivals = () => {
     <AdRowSection
       data={data}
       title={permanentSection.newArrivals.title}
+      showInlineBanner
       onPress={() => {
         filterBuilder.reset().setOrdering(OrderProductsEnum.Latest).apply();
         router.navigate({ pathname: "/search/products/new-arrivals" });

@@ -44,7 +44,7 @@ export const Search = ({
   onSubmitSearch,
   ...rest
 }: Props) => {
-  const { filterBuilder } = useFilterProduct();
+  const { filterBuilder } = useFilterProduct({ global: true });
   const { searchState, setSearchState, search } = useSearchContext();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();

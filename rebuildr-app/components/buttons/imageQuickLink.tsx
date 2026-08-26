@@ -7,7 +7,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Label } from "@text/text";
+import { Body } from "@text/text";
 import { useState } from "react";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius, strokeWidth } from "@constants/sizes";
@@ -15,12 +15,14 @@ import { borderRadius, strokeWidth } from "@constants/sizes";
 export type ImageQuickLinkProps = {
   source: ImageSourcePropType;
   label: string;
+  size?: number;
 } & PressableProps;
 
 export const ImageQuickLink = ({
   source,
   label,
   disabled,
+  size = 40,
   ...rest
 }: ImageQuickLinkProps) => {
   const [hovered, setHovered] = useState(false);
@@ -54,7 +56,7 @@ export const ImageQuickLink = ({
             borderRadius: borderRadius.small,
             borderWidth: strokeWidth.regular,
             borderColor: colors.buttons.imageQuickLinkStroke[buttonState],
-            height: 40,
+            height: size,
           },
           rest.style as StyleProp<ViewStyle>,
         ];
@@ -64,21 +66,21 @@ export const ImageQuickLink = ({
         source={source}
         style={{
           height: "100%",
-          width: 40,
+          width: size,
           borderTopLeftRadius: borderRadius.small,
           borderBottomLeftRadius: borderRadius.small,
           opacity: disabled ? 0.5 : 1,
         }}
       />
       <View>
-        <Label
+        <Body
           size="large"
           style={{
             color: disabled ? colors.text.disabled : colors.text.primaryDark,
           }}
         >
           {label}
-        </Label>
+        </Body>
       </View>
     </Pressable>
   );

@@ -80,10 +80,7 @@ export const AdGridSection = ({
             style={[
               { paddingBottom: 16 },
               isDesktop
-                ? {
-                    paddingHorizontal: 12,
-                    flexBasis: `${100 / columns}%`,
-                  }
+                ? { paddingHorizontal: 12, flexBasis: `${100 / columns}%` }
                 : { width },
             ]}
             key={product.id}

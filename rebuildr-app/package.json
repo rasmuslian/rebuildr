@@ -12,7 +12,8 @@
     "postinstall": "patch-package",
     "generate-sitemap": "tsx scripts/generate-sitemap.ts",
     "build:web": "op run --env-file=\".env.local.1p\" -- bash -c 'tsx scripts/generate-sitemap.ts && expo export -p web'",
-    "build:web:ci": "tsx scripts/generate-sitemap.ts && expo export -p web"
+    "build:web:ci": "tsx scripts/generate-sitemap.ts && expo export -p web",
+    "test": "tsx --test \"components/**/*.test.ts\""
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",

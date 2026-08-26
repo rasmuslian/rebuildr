@@ -1,11 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_PROJECT = gql`
-  query GetProject(
-    $input: GetProjectInput!
-    $searchString: String
-    $isLoggedIn: Boolean!
-  ) {
+  query GetProject($input: GetProjectInput!, $isLoggedIn: Boolean!) {
     getProject(input: $input) {
       id
       title
@@ -34,28 +30,10 @@ export const GET_PROJECT = gql`
           url
         }
       }
-      products(searchString: $searchString) {
+      # Only for the unfiltered "n annonser i projektet" count; the list itself
+      # is fetched separately so it can be sorted and filtered.
+      products {
         id
-        title
-        status
-        availability
-        likedByMe
-        primaryQuantity
-        primaryUnit
-        condition
-        price
-        soldByQuantity
-        primaryImage {
-          id
-          url
-        }
-        category {
-          id
-          name
-        }
-        approximatePlace {
-          address
-        }
       }
     }
     me @include(if: $isLoggedIn) {

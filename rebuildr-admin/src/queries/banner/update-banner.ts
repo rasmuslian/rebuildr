@@ -5,6 +5,7 @@ const query = `
   mutation CmsUpdateBanner($input: CmsUpdateBannerInput!) {
     cmsUpdateBanner(input: $input) {
       imagePutUrl
+      logoPutUrl
       banner {
         id
         label
