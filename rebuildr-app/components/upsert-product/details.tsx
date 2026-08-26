@@ -247,21 +247,6 @@ export const Details = ({
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
           />
-          {internalMode && (
-            <Form
-              fields={[
-                {
-                  type: "text",
-                  value: product.internalReferenceNumber ?? "",
-                  onChangeText: (internalReferenceNumber) =>
-                    update({ internalReferenceNumber }),
-                  heading: "Internt id/referensnummer",
-                  description: "Valfritt. Visas bara i Återbanken.",
-                  placeholder: "Till exempel INV-12345",
-                },
-              ]}
-            />
-          )}
           <QuantitiesSection
             compact={compact}
             selectBackgroundColor={selectBackgroundColor}
@@ -293,6 +278,45 @@ export const Details = ({
               })
             }
           />
+          {internalMode && (
+            <Form
+              fields={[
+                {
+                  type: "text",
+                  value: product.internalReferenceNumber ?? "",
+                  onChangeText: (internalReferenceNumber) =>
+                    update({ internalReferenceNumber }),
+                  heading: "Internt id/referensnummer",
+                  description: "Valfritt. Visas bara i Återbanken.",
+                  placeholder: "Till exempel INV-12345",
+                },
+              ]}
+            />
+          )}
+          {internalMode && !!onOrganizationMemberSelect && (
+            <View style={{ zIndex: 100 }}>
+              <Title size="medium" style={{ marginBottom: 24 }}>
+                Vem lägger upp annonsen?
+              </Title>
+              <SelectInput
+                value={organizationMemberId}
+                searchable
+                searchPlaceholder="Sök person"
+                options={organizationMembers.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                }))}
+                onSelect={onOrganizationMemberSelect}
+                placeholder="Välj person"
+                error={!!badFields?.["organizationMember"]}
+              />
+              {!!badFields?.["organizationMember"] && (
+                <Body size="small" color="error" style={{ marginTop: 6 }}>
+                  {badFields.organizationMember}
+                </Body>
+              )}
+            </View>
+          )}
           <ConditionSection
             compact={compact}
             condition={product.condition}
@@ -314,26 +338,6 @@ export const Details = ({
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
-          {internalMode && !!onOrganizationMemberSelect && (
-            <View style={{ gap: 6 }}>
-              <Label size="medium">Vem lägger upp annonsen?</Label>
-              <SelectInput
-                value={organizationMemberId}
-                options={organizationMembers.map((member) => ({
-                  value: member.id,
-                  label: member.name,
-                }))}
-                onSelect={onOrganizationMemberSelect}
-                placeholder="Välj person"
-                error={!!badFields?.["organizationMember"]}
-              />
-              {!!badFields?.["organizationMember"] && (
-                <Body size="small" color="error">
-                  {badFields.organizationMember}
-                </Body>
-              )}
-            </View>
-          )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>
             <View
               style={{
@@ -458,9 +462,10 @@ export const Details = ({
               bottom: 0,
               left: 0,
               right: 0,
-              zIndex: 10,
+              zIndex: 1000,
               paddingBottom: 32,
-              marginHorizontal: compact ? -12 : 0,
+              marginHorizontal: compact ? -12 : -(isDesktop ? 48 : 16),
+              paddingHorizontal: compact ? 12 : isDesktop ? 48 : 16,
             },
           ]}
         >

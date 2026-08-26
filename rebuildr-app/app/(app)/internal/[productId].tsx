@@ -64,7 +64,15 @@ import { Pickup } from "@components/upsert-product/pickup";
 import { Shipping } from "@components/upsert-product/shipping";
 import { ProductFields } from "@components/upsert-product/types";
 
-const ORGANIZATION_MEMBERS = gql` query OrganizationMembersForReservation { organizationMembers { id name email } } `;
+const ORGANIZATION_MEMBERS = gql`
+  query OrganizationMembersForReservation {
+    organizationMembers {
+      id
+      name
+      email
+    }
+  }
+`;
 
 const UPDATE_PUBLIC_TRANSPORT = gql`
   mutation UpdateInternalAdPublicTransport($input: UpdateProductInput!) {
@@ -90,13 +98,16 @@ export default function InternalAdDetailPage() {
   const [publicPublishError, setPublicPublishError] = useState<string>();
   const [publicTransport, setPublicTransport] = useState<ProductFields>();
   const [reservationMemberId, setReservationMemberId] = useState<string>();
-  const { data: membersData } = useQuery<{ organizationMembers: { id: string; name: string; email: string }[] }>(ORGANIZATION_MEMBERS);
+  const { data: membersData } = useQuery<{
+    organizationMembers: { id: string; name: string; email: string }[];
+  }>(ORGANIZATION_MEMBERS);
 
   const { data, loading, refetch } = useQuery<any>(INTERNAL_AD_DETAIL, {
     variables: { productId },
   });
 
-  const [reserveInternalAd, { loading: reserving }] = useMutation(RESERVE_INTERNAL_AD);
+  const [reserveInternalAd, { loading: reserving }] =
+    useMutation(RESERVE_INTERNAL_AD);
   const [cancelReservation, { loading: canceling }] = useMutation<
     CancelInternalAdReservationMutation,
     CancelInternalAdReservationMutationVariables
@@ -781,7 +792,12 @@ const InternalAdContent = ({
           )}
           <SelectInput
             value={reservationMemberId}
-            options={members.map((member) => ({ value: member.id, label: member.name }))}
+            searchable
+            searchPlaceholder="Sök person"
+            options={members.map((member) => ({
+              value: member.id,
+              label: member.name,
+            }))}
             onSelect={setReservationMemberId}
             placeholder="Välj vem som reserverar"
           />
@@ -856,7 +872,9 @@ const InternalAdContent = ({
             <ContactDetail
               label="Upplagd av"
               name={(product as any).createdByOrganizationMemberName}
-              email={(product as any).createdByOrganizationMemberEmail ?? undefined}
+              email={
+                (product as any).createdByOrganizationMemberEmail ?? undefined
+              }
             />
           )}
           {!!product.additionalInfo && (
@@ -963,8 +981,7 @@ const Reservations = ({
     <Headline size="small">Reservationer</Headline>
     {reservations.length ? (
       reservations.map((reservation) => {
-        const canCancel =
-          canMarkSold;
+        const canCancel = canMarkSold;
 
         return (
           <View key={reservation.id} style={{ gap: 8 }}>

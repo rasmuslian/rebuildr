@@ -716,10 +716,12 @@ export default function InternalAdsPage() {
         />
         {!hasImport && (
           <View style={{ gap: 24 }}>
-            <View style={{ gap: 6 }}>
+            <View style={{ gap: 6, zIndex: 100 }}>
               <Display size="small">Vem lägger upp annonserna?</Display>
               <SelectInput
                 value={importMemberId}
+                searchable
+                searchPlaceholder="Sök person"
                 options={(membersData?.organizationMembers ?? []).map(
                   (member) => ({ value: member.id, label: member.name }),
                 )}
