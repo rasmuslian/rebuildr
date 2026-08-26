@@ -59,14 +59,16 @@ export function ProductInlineBannerProvider({ children }: PropsWithChildren) {
   );
 }
 
+export function useProductInlineBanner() {
+  return useContext(InlineBannerContext)?.banner;
+}
+
 export function ProductInlineBannerSlot() {
-  const context = useContext(InlineBannerContext);
+  const banner = useProductInlineBanner();
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
   const { width: screenWidth } = useWindowDimensions();
-  if (!context?.banner) return null;
-
-  const { banner } = context;
+  if (!banner) return null;
   const imageSource = getBannerImageSource(banner);
   const foregroundColor = getBannerForegroundColor(banner.foregroundColor);
   const mobileProductCardHeight =

@@ -1,6 +1,9 @@
 import { HoriztalListSection } from "@components/sections/horizontal-list-section";
 import { AdGrid } from "@components/ad/ad-grid";
-import { ProductInlineBannerSlot } from "@components/banners/product-inline-banner";
+import {
+  ProductInlineBannerSlot,
+  useProductInlineBanner,
+} from "@components/banners/product-inline-banner";
 import { View } from "react-native";
 import { AdRowSectionQuery, ProductAvailabilityEnum } from "@/gql/graphql";
 import { DESKTOP_ROW_COLUMNS } from "@constants/layout";
@@ -30,6 +33,8 @@ export const AdRowSectionCarousel = ({
   onToggleProductHeart,
   showInlineBanner = false,
 }: Props) => {
+  const inlineBanner = useProductInlineBanner();
+
   if (!data || data.products.products.length < 1) return null;
 
   const inlineBannerAfterIndex = Math.min(
@@ -37,7 +42,11 @@ export const AdRowSectionCarousel = ({
     data.products.products.length - 1,
   );
   const items: RowItem[] = data.products.products.flatMap((product, index) => {
-    if (!showInlineBanner || index !== inlineBannerAfterIndex) {
+    if (
+      !showInlineBanner ||
+      !inlineBanner ||
+      index !== inlineBannerAfterIndex
+    ) {
       return [product];
     }
     return [product, { id: "product-inline-banner", isInlineBanner: true }];
