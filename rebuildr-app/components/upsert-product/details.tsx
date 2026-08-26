@@ -112,9 +112,7 @@ export const Details = ({
   const categoryId = product.categoryIds?.[1];
   const showContinue =
     rootCategoryId && categoryId && (internalMode || product.brandId);
-  const selectBackgroundColor = importMode
-    ? primitives.accent100
-    : primitives.neutrals100;
+  const selectBackgroundColor = primitives.neutrals100;
 
   return (
     <View
@@ -334,6 +332,9 @@ export const Details = ({
         <>
           <CO2Section
             compact={compact}
+            inputBackgroundColor={
+              importMode ? primitives.neutrals100 : primitives.accent100
+            }
             product={product}
             onChange={(w) => {
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });

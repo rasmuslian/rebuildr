@@ -10,11 +10,17 @@ import { View } from "react-native";
 
 type Props = {
   compact?: boolean;
+  inputBackgroundColor?: string;
   product: ProductFields;
   onChange: (value: number) => void;
 };
 
-export const CO2Section = ({ compact = false, product, onChange }: Props) => {
+export const CO2Section = ({
+  compact = false,
+  inputBackgroundColor = primitives.accent100,
+  product,
+  onChange,
+}: Props) => {
   const deriveWeight = () => {
     if (product.soldByQuantity && product.primaryUnit === QuantityUnitEnum.Kg) {
       return 1;
@@ -85,7 +91,7 @@ export const CO2Section = ({ compact = false, product, onChange }: Props) => {
             placeholder: weight.toString(),
             value: weight !== 0 ? weight.toString() : "",
             onChange: (v) => onChangeWeight(v),
-            style: { backgroundColor: primitives.accent100 },
+            style: { backgroundColor: inputBackgroundColor },
             disabled: product.primaryUnit === QuantityUnitEnum.Kg,
           },
         ]}
