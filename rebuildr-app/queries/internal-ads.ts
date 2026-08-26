@@ -326,6 +326,7 @@ export const INTERNAL_AD_DETAIL = gql`
     }
     internalAd(productId: $productId) {
       id
+      createdAt
       title
       description
       additionalInfo
@@ -339,6 +340,20 @@ export const INTERNAL_AD_DETAIL = gql`
       primaryUnit
       secondaryQuantity
       secondaryUnit
+      height
+      heightUnit
+      width
+      widthUnit
+      length
+      lengthUnit
+      thickness
+      thicknessUnit
+      diameter
+      diameterUnit
+      weight
+      weightUnit
+      color
+      colorType
       soldByQuantity
       internalValidationIssues
       createdByOrganizationMemberId

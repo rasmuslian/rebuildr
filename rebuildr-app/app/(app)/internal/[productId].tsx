@@ -1,10 +1,12 @@
 import {
   CancelInternalAdReservationMutation,
   CancelInternalAdReservationMutationVariables,
+  ColorTypeEnum,
   InternalAdDetailQuery,
   InternalAdDetailQueryVariables,
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
+  MeasurementUnitEnum,
   ProductAvailabilityEnum,
   ProductStatusEnum,
   ReserveInternalAdMutation,
@@ -35,6 +37,7 @@ import { AllImagesPopupContent } from "@components/preview-product/all-images-po
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
+import { PickupPosition } from "@components/preview-product/pickup-position";
 import { QuantityStepper } from "@components/preview-product/quantity-stepper";
 import { AvailabilityBadge } from "@components/product/availability-badge";
 import RemoveProduct from "@components/preview-product/remove-product";
@@ -51,10 +54,16 @@ import {
 } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
+import { measurements } from "@constants/measurements";
+import { colorTypes } from "@constants/product-color-types";
 import { quantities } from "@constants/quantities";
-import { borderRadius } from "@constants/sizes";
+import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { ncsToRgb } from "@/utils/color/ncsToRgb";
+import { swedishColorToHex } from "@/utils/color/swedish-colors";
+import { formatNumber } from "@/utils/formattings";
+import dayjs from "dayjs";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -102,7 +111,10 @@ export default function InternalAdDetailPage() {
     organizationMembers: { id: string; name: string; email: string }[];
   }>(ORGANIZATION_MEMBERS);
 
-  const { data, loading, refetch } = useQuery<any>(INTERNAL_AD_DETAIL, {
+  const { data, loading, refetch } = useQuery<
+    InternalAdDetailData,
+    InternalAdDetailQueryVariables
+  >(INTERNAL_AD_DETAIL, {
     variables: { productId },
   });
 
@@ -303,8 +315,6 @@ export default function InternalAdDetailPage() {
       currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
       onSetPublicAvailability={onSetPublicAvailability}
-      onEdit={onEdit}
-      onRemove={() => setShowRemoveProduct(true)}
       onReserve={onReserve}
       onCancel={onCancel}
       onMarkSold={onMarkSold}
@@ -315,15 +325,32 @@ export default function InternalAdDetailPage() {
     />
   );
 
-  const secondaryContent = product.approximatePlace?.address ? (
-    <>
-      <Divider />
-      <View style={{ gap: 8 }}>
-        <Headline size="small">Plats för avhämtning</Headline>
-        <Body size="medium">{product.approximatePlace.address}</Body>
-      </View>
-    </>
-  ) : null;
+  const pickupLocation =
+    product.location ??
+    (product.approximatePlace
+      ? {
+          lat: product.approximatePlace.lat,
+          lng: product.approximatePlace.lng,
+        }
+      : undefined);
+  const secondaryContent =
+    product.approximatePlace?.address && pickupLocation ? (
+      <>
+        <Divider />
+        <PickupPosition
+          address={product.approximatePlace.address}
+          location={pickupLocation}
+        />
+      </>
+    ) : null;
+  const managementContent = (
+    <InternalAdManagement
+      product={product}
+      canManage={canMarkSold}
+      onEdit={onEdit}
+      onRemove={() => setShowRemoveProduct(true)}
+    />
+  );
 
   if (!isDesktop) {
     return (
@@ -356,6 +383,7 @@ export default function InternalAdDetailPage() {
           </>
         )}
         {secondaryContent}
+        {managementContent}
         <RemoveProduct
           productId={product.id}
           show={showRemoveProduct}
@@ -440,6 +468,7 @@ export default function InternalAdDetailPage() {
                 />
               )}
               {secondaryContent}
+              {managementContent}
             </View>
           </View>
         </View>
@@ -628,7 +657,28 @@ const hasPublicTransportChanges = (
 
 const InternalAdsTopBar = () => <InternalTopBar />;
 
-type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]>;
+type InternalAdDetailFields = {
+  createdAt: string;
+  height?: number | null;
+  heightUnit: MeasurementUnitEnum;
+  width?: number | null;
+  widthUnit: MeasurementUnitEnum;
+  length?: number | null;
+  lengthUnit: MeasurementUnitEnum;
+  thickness?: number | null;
+  thicknessUnit: MeasurementUnitEnum;
+  diameter?: number | null;
+  diameterUnit: MeasurementUnitEnum;
+  weight?: number | null;
+  weightUnit: MeasurementUnitEnum;
+  color?: string | null;
+  colorType: ColorTypeEnum;
+};
+type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]> &
+  InternalAdDetailFields;
+type InternalAdDetailData = Omit<InternalAdDetailQuery, "internalAd"> & {
+  internalAd: InternalAd;
+};
 type InternalReservation = any;
 
 type InternalAdContentProps = {
@@ -645,8 +695,6 @@ type InternalAdContentProps = {
   currentUserId: string;
   canMarkSold: boolean;
   onSetPublicAvailability: () => Promise<void>;
-  onEdit: () => void;
-  onRemove: () => void;
   onReserve: () => Promise<void>;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
@@ -670,8 +718,6 @@ const InternalAdContent = ({
   currentUserId,
   canMarkSold,
   onSetPublicAvailability,
-  onEdit,
-  onRemove,
   onReserve,
   onCancel,
   onMarkSold,
@@ -680,6 +726,32 @@ const InternalAdContent = ({
   setReservationMemberId,
   members,
 }: InternalAdContentProps) => {
+  const colors = useThemeColor();
+  const showMeasurements =
+    Boolean(product.width) ||
+    Boolean(product.height) ||
+    Boolean(product.thickness) ||
+    Boolean(product.diameter) ||
+    Boolean(product.length) ||
+    Boolean(product.weight);
+  const marketPrice =
+    product.priceSuggestionMin !== null &&
+    product.priceSuggestionMin !== undefined &&
+    product.priceSuggestionMax !== null &&
+    product.priceSuggestionMax !== undefined
+      ? Math.round(
+          (product.priceSuggestionMin + product.priceSuggestionMax) / 2,
+        )
+      : undefined;
+  const colorValue = product.color
+    ? product.colorType === ColorTypeEnum.FreeText
+      ? (swedishColorToHex(product.color) ?? "#FFFFFF")
+      : (() => {
+          const rgb = ncsToRgb(product.color);
+          return rgb ? `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` : "#FFFFFF";
+        })()
+    : undefined;
+
   // Older cached listings may not have availability yet; treat them as
   // available so the rollout remains backwards compatible.
   const stockStatus =
@@ -695,15 +767,10 @@ const InternalAdContent = ({
 
   return (
     <View style={{ gap: 24 }}>
-      <View style={{ gap: 8 }}>
-        <Body size="medium" color="secondary">
-          Återbanken
-        </Body>
-        <Breadcrumbs
-          parentCategory={product.category?.parent}
-          category={product.category}
-        />
-      </View>
+      <Breadcrumbs
+        parentCategory={product.category?.parent}
+        category={product.category}
+      />
 
       <View>
         <Title size="large" heading={1}>
@@ -734,18 +801,6 @@ const InternalAdContent = ({
           )}
       </View>
 
-      {canMarkSold && (
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <Button
-            label="Ta bort"
-            type="tonal"
-            onPress={onRemove}
-            style={{ flex: 1 }}
-          />
-          <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
-        </View>
-      )}
-
       <Divider />
 
       <View style={{ gap: 16 }}>
@@ -768,6 +823,42 @@ const InternalAdContent = ({
           />
           {!!product.brand?.name && (
             <ProductChip text="Varumärke" boldText={product.brand.name} />
+          )}
+          {!!product.thickness && (
+            <ProductChip
+              text={measurements.THICKNESS.name}
+              boldText={`${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
+            />
+          )}
+          {!!product.height && (
+            <ProductChip
+              text={measurements.HEIGHT.name}
+              boldText={`${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
+            />
+          )}
+          {!!product.width && (
+            <ProductChip
+              text={measurements.WIDTH.name}
+              boldText={`${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
+            />
+          )}
+          {!!product.length && (
+            <ProductChip
+              text={measurements.LENGTH.name}
+              boldText={`${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
+            />
+          )}
+          {!!product.diameter && (
+            <ProductChip
+              text={measurements.DIAMETER.name}
+              boldText={`${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
+            />
+          )}
+          {!!product.weight && (
+            <ProductChip
+              text={measurements.WEIGHT.name}
+              boldText={`${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
+            />
           )}
         </View>
 
@@ -868,13 +959,73 @@ const InternalAdContent = ({
             />
           )}
           <Detail label="Skick" value={conditions[product.condition].name} />
-          {!!(product as any).createdByOrganizationMemberName && (
-            <ContactDetail
-              label="Upplagd av"
-              name={(product as any).createdByOrganizationMemberName}
-              email={
-                (product as any).createdByOrganizationMemberEmail ?? undefined
-              }
+          {showMeasurements && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Mått</Label>
+              {!!product.thickness && (
+                <Body size="medium">
+                  Tjocklek: {product.thickness}{" "}
+                  {measurements.THICKNESS.options[product.thicknessUnit]?.name}
+                </Body>
+              )}
+              {!!product.height && (
+                <Body size="medium">
+                  Höjd: {product.height}{" "}
+                  {measurements.HEIGHT.options[product.heightUnit]?.name}
+                </Body>
+              )}
+              {!!product.width && (
+                <Body size="medium">
+                  Bredd: {product.width}{" "}
+                  {measurements.WIDTH.options[product.widthUnit]?.name}
+                </Body>
+              )}
+              {!!product.length && (
+                <Body size="medium">
+                  Längd: {product.length}{" "}
+                  {measurements.LENGTH.options[product.lengthUnit]?.name}
+                </Body>
+              )}
+              {!!product.diameter && (
+                <Body size="medium">
+                  Diameter: {product.diameter}{" "}
+                  {measurements.DIAMETER.options[product.diameterUnit]?.name}
+                </Body>
+              )}
+              {!!product.weight && (
+                <Body size="medium">
+                  Vikt: {product.weight}{" "}
+                  {measurements.WEIGHT.options[product.weightUnit]?.name}
+                </Body>
+              )}
+            </View>
+          )}
+          {!!product.color && colorValue && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Färg</Label>
+              <View
+                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              >
+                <View
+                  style={{
+                    width: 25,
+                    height: 25,
+                    backgroundColor: colorValue,
+                    borderWidth: strokeWidth.regular,
+                    borderColor: colors.dividers.neutral,
+                    borderRadius: borderRadius.xSmall,
+                  }}
+                />
+                <Body size="medium">
+                  {colorTypes[product.colorType].text}: {product.color}
+                </Body>
+              </View>
+            </View>
+          )}
+          {marketPrice !== undefined && (
+            <Detail
+              label="Beräknat marknadspris"
+              value={`${formatNumber(marketPrice)} kr`}
             />
           )}
           {!!product.additionalInfo && (
@@ -907,6 +1058,60 @@ const InternalAdContent = ({
     </View>
   );
 };
+
+type InternalAdManagementProps = {
+  product: InternalAd;
+  canManage: boolean;
+  onEdit: () => void;
+  onRemove: () => void;
+};
+
+const InternalAdManagement = ({
+  product,
+  canManage,
+  onEdit,
+  onRemove,
+}: InternalAdManagementProps) => (
+  <>
+    <Divider />
+    <View style={{ gap: 16 }}>
+      <Headline size="small">Upplagd av</Headline>
+      <View style={{ gap: 4 }}>
+        {!!product.createdByOrganizationMemberName && (
+          <Body size="medium">{product.createdByOrganizationMemberName}</Body>
+        )}
+        {!!product.createdByOrganizationMemberEmail && (
+          <Pressable
+            accessibilityRole="link"
+            onPress={() =>
+              Linking.openURL(
+                `mailto:${product.createdByOrganizationMemberEmail}`,
+              )
+            }
+          >
+            <Body size="medium" isLink>
+              {product.createdByOrganizationMemberEmail}
+            </Body>
+          </Pressable>
+        )}
+        <Body size="medium" color="secondary">
+          Upplagd den {dayjs(product.createdAt).format("D MMMM YYYY")}
+        </Body>
+      </View>
+    </View>
+    {canManage && (
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          label="Ta bort"
+          type="tonal"
+          onPress={onRemove}
+          style={{ flex: 1 }}
+        />
+        <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
+      </View>
+    )}
+  </>
+);
 
 type PublicAvailabilityCardProps = {
   publiclyAvailable: boolean;
@@ -1074,30 +1279,5 @@ const Detail = ({ label, value }: DetailProps) => (
   <View style={{ gap: 4 }}>
     <Label size="medium">{label}</Label>
     <Body size="medium">{value}</Body>
-  </View>
-);
-
-const ContactDetail = ({
-  label,
-  name,
-  email,
-}: {
-  label: string;
-  name: string;
-  email?: string;
-}) => (
-  <View style={{ gap: 4 }}>
-    <Label size="medium">{label}</Label>
-    <Body size="medium">{name}</Body>
-    {!!email && (
-      <Pressable
-        accessibilityRole="link"
-        onPress={() => Linking.openURL(`mailto:${email}`)}
-      >
-        <Body size="medium" isLink>
-          {email}
-        </Body>
-      </Pressable>
-    )}
   </View>
 );
