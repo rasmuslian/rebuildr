@@ -63,6 +63,49 @@ import { StripeService } from './stripe.service';
 
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
+const BULK_IMPORT_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    products: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          additionalInfo: { type: ['string', 'null'] },
+          internalReferenceNumber: { type: ['string', 'null'] },
+          brand: { type: 'string' },
+          categoryId: { type: ['string', 'null'] },
+          condition: { type: 'string' },
+          primaryQuantification: { type: 'string' },
+          secondaryQuantification: { type: ['string', 'null'] },
+          dimensions: {
+            type: 'object',
+            additionalProperties: { type: 'string' },
+          },
+          weight: {
+            type: 'number',
+            minimum: 0.1,
+            description: 'Total listing weight in kg, at least 0.1.',
+          },
+          color: { type: ['string', 'null'] },
+          sourceImageFileNames: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+          warnings: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        required: ['weight'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['products'],
+} as const;
 
 export interface OrganizationContext {
   organization: User;
@@ -1145,6 +1188,7 @@ export class InternalAdsService {
         model: 'gemini-3-flash-preview',
         config: {
           responseMimeType: 'application/json',
+          responseJsonSchema: BULK_IMPORT_RESPONSE_SCHEMA,
           thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           httpOptions: { timeout: GEMINI_TIMEOUT_MS },
         },
@@ -1265,8 +1309,9 @@ export class InternalAdsService {
         product.primaryUnit = QuantityUnitEnum.AMOUNT;
       }
       this.applyDimensions(product, draft.dimensions);
-      if (draft.weight) {
-        product.weight = Math.round(Number(draft.weight));
+      const importedWeight = Number(draft.weight);
+      if (Number.isFinite(importedWeight) && importedWeight >= 0.1) {
+        product.weight = Math.round(importedWeight * 10) / 10;
         product.weightUnit = MeasurementUnitEnum.KG;
       }
       if (draft.brand && draft.brand.toLowerCase() !== 'okänt') {
@@ -1388,7 +1433,7 @@ Return ONLY valid JSON with this shape:
   ]
 }
 
-Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification and condition. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
+Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification, condition and weight. Weight is the TOTAL listing weight in kg used for CO₂ savings. Use an exact stated weight when available; otherwise make a conservative positive estimate with at most one decimal from the material, dimensions and quantity. Never return null, a value below 0.1 or omit weight. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
 
 Set internalReferenceNumber only when the source explicitly identifies a product reference, inventory number, article number, asset ID, item number, or similarly labelled identifier tied to that product. Do not use row numbers, arbitrary codes, dimensions, quantities, invoice/order numbers, file names, or any unlabelled value that merely looks like an ID. When uncertain, return null.
 

@@ -52,9 +52,10 @@ export const CO2Section = ({
   ]);
 
   const onChangeWeight = (v: string) => {
-    const toInt = parseInt(v, 10);
-    onChange(toInt);
-    setWeight(toInt);
+    const parsedWeight = Number(v.replace(",", "."));
+    const nextWeight = Number.isFinite(parsedWeight) ? parsedWeight : 0;
+    onChange(nextWeight);
+    setWeight(nextWeight);
   };
 
   const unit = product.primaryUnit
