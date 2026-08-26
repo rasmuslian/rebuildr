@@ -472,9 +472,9 @@ export const Details = ({
               left: 0,
               right: 0,
               zIndex: 1000,
-              paddingBottom: 32,
+              paddingBottom: compact ? 0 : 32,
               marginHorizontal: compact ? -12 : -(isDesktop ? 48 : 16),
-              paddingHorizontal: compact ? 12 : isDesktop ? 48 : 16,
+              paddingHorizontal: compact ? 0 : isDesktop ? 48 : 16,
             },
           ]}
         >
@@ -482,7 +482,7 @@ export const Details = ({
             style={{
               gap: 6,
               backgroundColor: compact ? primitives.accent100 : undefined,
-              paddingHorizontal: compact ? 12 : 0,
+              paddingHorizontal: 0,
               paddingTop: compact ? 12 : 0,
               paddingBottom: compact ? 12 : 32,
               borderBottomLeftRadius: compact ? borderRadius.medium : 0,
@@ -495,6 +495,7 @@ export const Details = ({
                 flexDirection: onDelete ? "row" : "column",
                 gap: 12,
                 marginTop: compact ? 0 : 24,
+                marginHorizontal: compact ? 12 : 0,
               }}
             >
               <Button
@@ -520,7 +521,12 @@ export const Details = ({
               )}
             </View>
             {badFields && !!Object.keys(badFields).length && (
-              <View style={{ gap: 4 }}>
+              <View
+                style={{
+                  gap: 4,
+                  marginHorizontal: compact ? 12 : 0,
+                }}
+              >
                 {Object.keys(badFields).map((bf, i) => {
                   return (
                     <Body key={i} color="error" size="small">
