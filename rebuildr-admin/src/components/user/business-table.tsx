@@ -163,7 +163,7 @@ const BusinessTable = () => {
         val ? new Date(val).toLocaleDateString("sv-SE") : "—",
     },
     {
-      title: "Internlagret",
+      title: "Återbanken",
       key: "internalAdsAccess",
       width: "150px",
       render: (_, user) => (
