@@ -25,6 +25,7 @@ type Props = {
   nextLabel?: string;
   onInternalLocationSaveStart?: () => void;
   hideActions?: boolean;
+  hideAvailability?: boolean;
 };
 
 export const Transportation = ({
@@ -40,6 +41,7 @@ export const Transportation = ({
   nextLabel,
   onInternalLocationSaveStart,
   hideActions = false,
+  hideAvailability = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [addressEditLock, setAddressEditLock] = useState(false);
@@ -170,11 +172,13 @@ export const Transportation = ({
           </View>
         </>
       )}
-      <AvailabilitySection
-        product={product}
-        update={update}
-        error={badFields?.["availability"]}
-      />
+      {!hideAvailability && (
+        <AvailabilitySection
+          product={product}
+          update={update}
+          error={badFields?.["availability"]}
+        />
+      )}
       {!hideActions && (
         <View
           style={[

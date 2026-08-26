@@ -17,6 +17,7 @@ import { Body, Label, Title } from "@components/typography/text";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
 import { AnalyzeProgress } from "./analyze-progress";
+import { AvailabilitySection } from "./availability-section";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
 import { ProductFields } from "./types";
@@ -452,6 +453,14 @@ export const Details = ({
             </>
           )}
         </>
+      )}
+      {importMode && (
+        <AvailabilitySection
+          product={product}
+          update={update}
+          error={badFields?.["availability"]}
+          compact
+        />
       )}
       {showContinue && (
         <View

@@ -207,6 +207,7 @@ export const initialProduct: ProductFields = {
   deliveryEnabled: false,
 
   status: ProductStatusEnum.Draft,
+  availability: ProductAvailabilityEnum.Available,
 };
 
 type FieldErrorsType = { [key in string]: string };
@@ -920,6 +921,30 @@ export const UpsertProduct = ({
     const result = onVerifyDetails(product);
     if (!result || actionLoading) return;
 
+    if (importMode) {
+      let availabilityError: string | undefined;
+      if (
+        product.availability === ProductAvailabilityEnum.Upcoming &&
+        !product.estimatedAvailableAt
+      ) {
+        availabilityError = "Välj när varan blir tillgänglig";
+      } else if (
+        product.availability === ProductAvailabilityEnum.Upcoming &&
+        product.availableUntil &&
+        new Date(product.availableUntil) <=
+          new Date(product.estimatedAvailableAt as string)
+      ) {
+        availabilityError = "Slutdatum måste vara efter startdatum";
+      }
+      if (availabilityError) {
+        setFieldErrors((current) => ({
+          ...current,
+          availability: availabilityError,
+        }));
+        return;
+      }
+    }
+
     setStep("transportation");
   };
   const onNextTransportation = async () => {
@@ -1266,6 +1291,7 @@ export const UpsertProduct = ({
               });
             }}
             hideActions={internalMode && !inline}
+            hideAvailability={importMode}
           />
         );
       case "preview":
