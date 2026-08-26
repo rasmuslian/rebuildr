@@ -646,28 +646,40 @@ export class InternalAdsService {
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     const cellSize = this.internalMapCellSize(input.zoom);
+    const pinLocation =
+      'COALESCE("projectMapPin".location, p."addressLocation")';
+    const standaloneGrid = `CASE WHEN project.id IS NULL THEN ST_SnapToGrid(${pinLocation}, :cellSize) END`;
     const query = this.productRepository
       .createQueryBuilder('p')
-      .select('ST_X(ST_Centroid(ST_Collect(p."addressLocation")))', 'latitude')
-      .addSelect(
-        'ST_Y(ST_Centroid(ST_Collect(p."addressLocation")))',
-        'longitude',
+      .leftJoin(
+        Project,
+        'project',
+        'project.id = p."projectId" AND project."internalOrganizationId" = :organizationId',
       )
+      .leftJoin(
+        MapPin,
+        'projectMapPin',
+        '"projectMapPin".id = project."mapPinId"',
+      )
+      .select(`ST_X(ST_Centroid(ST_Collect(${pinLocation})))`, 'latitude')
+      .addSelect(`ST_Y(ST_Centroid(ST_Collect(${pinLocation})))`, 'longitude')
       .addSelect('ARRAY_AGG(p.id)', 'productIds')
       .addSelect('ARRAY_AGG(p.price ORDER BY p.price)', 'prices')
+      .addSelect('project.id', 'projectId')
       .where('p.visibility = :visibility', {
         visibility: ProductVisibility.INTERNAL,
       })
       .andWhere('p."internalOrganizationId" = :organizationId', {
         organizationId: context.organization.id,
       })
+      .andWhere('(p."projectId" IS NULL OR project.id IS NOT NULL)')
       .andWhere('p.status IN (:...statuses)', {
         statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
       })
       .andWhere('p."hiddenReason" IS NULL')
-      .andWhere('p."addressLocation" IS NOT NULL')
+      .andWhere(`${pinLocation} IS NOT NULL`)
       .andWhere(
-        'p."addressLocation" && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)',
+        `${pinLocation} && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
         {
           swLat: input.southWest.lat,
           swLng: input.southWest.lng,
@@ -675,7 +687,8 @@ export class InternalAdsService {
           neLng: input.northEast.lng,
         },
       )
-      .groupBy('ST_SnapToGrid(p."addressLocation", :cellSize)')
+      .groupBy('project.id')
+      .addGroupBy(standaloneGrid)
       .setParameter('cellSize', cellSize);
 
     if (input.productsInput) {
@@ -704,6 +717,7 @@ export class InternalAdsService {
       latitude: number;
       longitude: number;
       productIds: string[];
+      projectId: string | null;
       prices: number[];
     }[] = await query.getRawMany();
 
@@ -711,8 +725,10 @@ export class InternalAdsService {
       mapPinGroups: groups.map((group) => ({
         location: { lat: group.latitude, lng: group.longitude },
         productIds: group.productIds,
-        projectId: null,
-        type: MapPinTypeEnum.PRODUCT,
+        projectId: group.projectId,
+        type: group.projectId
+          ? MapPinTypeEnum.PROJECT
+          : MapPinTypeEnum.PRODUCT,
         prices: group.prices.map((price) => price / 100),
       })),
       total: groups.length,

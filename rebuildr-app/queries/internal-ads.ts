@@ -221,6 +221,27 @@ export const INTERNAL_AD_MAP_POPUP = gql`
   ${INTERNAL_AD_CARD_FIELDS}
 `;
 
+export const INTERNAL_PROJECT_MAP_POPUP = gql`
+  query InternalProjectMapPopup($projectId: ID!) {
+    internalProject(projectId: $projectId) {
+      id
+      title
+      description
+      projectPicture {
+        id
+        url
+      }
+      user {
+        id
+        profilePicture {
+          id
+          url
+        }
+      }
+    }
+  }
+`;
+
 export const CREATE_INTERNAL_AD_DRAFT = gql`
   mutation CreateInternalAdDraft { createInternalAdDraft { id } }
 `;
