@@ -220,6 +220,10 @@ export class Product {
   @Field({ nullable: true })
   @Column({ nullable: true })
   primaryQuantity?: number;
+
+  @Column({ nullable: true, type: 'float' })
+  initialPrimaryQuantity?: number | null;
+
   @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',

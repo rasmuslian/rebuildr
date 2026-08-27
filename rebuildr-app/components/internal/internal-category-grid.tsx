@@ -46,9 +46,9 @@ export function InternalCategoryGrid({ categories }: Props) {
             <TouchableOpacity
               key={category.id}
               style={{
-                width: isDesktop ? 100 : 80,
+                width: isDesktop ? 112 : 88,
                 alignItems: "center",
-                gap: isDesktop ? 14 : 12,
+                gap: isDesktop ? 12 : 10,
               }}
               onPress={() => {
                 internalProductFilterVar({
@@ -60,7 +60,7 @@ export function InternalCategoryGrid({ categories }: Props) {
             >
               <Avatar
                 imageUrl={category.image?.url}
-                size={isDesktop ? 88 : 60}
+                size={isDesktop ? 96 : 72}
                 placeholder="CATEGORY"
               />
               <Label

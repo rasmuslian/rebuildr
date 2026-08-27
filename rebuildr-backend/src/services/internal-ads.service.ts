@@ -5,11 +5,13 @@ import {
   ThinkingLevel,
 } from '@google/genai';
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as XLSX from 'xlsx';
 import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
-import { maximumProductPrice } from 'src/constants/pricing';
+import { maximumProductPrice, provisionBase } from 'src/constants/pricing';
+import { EnvironmentVariables } from 'src/config';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import {
@@ -29,6 +31,7 @@ import {
 } from 'src/entities/product.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
+import { Purchase } from 'src/entities/purchase.entity';
 import { User, UserType } from 'src/entities/user.entity';
 import {
   BadFieldsInputException,
@@ -45,15 +48,20 @@ import {
 } from 'src/resolvers/product.resolver';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import {
+  And,
   DataSource,
   In,
   IsNull,
+  LessThan,
+  MoreThanOrEqual,
   Not,
   Point,
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
 import { Logger } from 'winston';
+import { allocateProductReportingValues } from 'src/utils/aterbanken-reporting';
+import { resolveRange } from './statistics/statistics-shared';
 import { AIService } from './ai.service';
 import { BrandService } from './brand.service';
 import { FileService } from './file.service';
@@ -63,6 +71,23 @@ import { StripeService } from './stripe.service';
 
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
+const PETROL_CAR_CO2_KG_PER_KM = 0.125;
+
+type InternalDashboardSourceRow = {
+  type: 'INTERNAL_REUSE' | 'EXTERNAL_SALE';
+  eventId: string;
+  productId: string;
+  productTitle: string;
+  internalReferenceNumber?: string | null;
+  occurredAt: Date;
+  quantity: number;
+  weight: number;
+  buyerCo2: number;
+  sellerCo2: number;
+  grossValueOre: number;
+  netValueOre: number;
+  calculationBasis: 'SNAPSHOT' | 'CURRENT_PRODUCT_FALLBACK';
+};
 const BULK_IMPORT_RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -159,6 +184,7 @@ export class InternalAdsService {
     private mailService: MailService,
     private stripeService: StripeService,
     private dataSource: DataSource,
+    private configService: ConfigService<EnvironmentVariables>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -201,7 +227,9 @@ export class InternalAdsService {
     if (product.visibility !== ProductVisibility.INTERNAL) return;
     const context = await this.getOrganizationContext(userId);
     if (context.organization.id !== product.internalOrganizationId) {
-      throw ForbiddenException('Internal product belongs to another organization');
+      throw ForbiddenException(
+        'Internal product belongs to another organization',
+      );
     }
   }
 
@@ -213,24 +241,34 @@ export class InternalAdsService {
     });
   }
 
-  async createMember(currentUserId: string, input: { name: string; email: string }) {
+  async createMember(
+    currentUserId: string,
+    input: { name: string; email: string },
+  ) {
     const context = await this.getOrganizationContext(currentUserId);
     const name = input.name.trim();
     const parsedEmail = z.string().email().safeParse(input.email.trim());
     if (!name || !parsedEmail.success) {
       throw BadFieldsInputException([
         ...(!name ? [{ name: 'name', message: 'Ange ett namn' }] : []),
-        ...(!parsedEmail.success ? [{ name: 'email', message: 'Ange en giltig e-postadress' }] : []),
+        ...(!parsedEmail.success
+          ? [{ name: 'email', message: 'Ange en giltig e-postadress' }]
+          : []),
       ]);
     }
-    return this.organizationMemberRepository.save(this.organizationMemberRepository.create({
-      organizationId: context.organization.id,
-      name,
-      email: parsedEmail.data.toLowerCase(),
-    }));
+    return this.organizationMemberRepository.save(
+      this.organizationMemberRepository.create({
+        organizationId: context.organization.id,
+        name,
+        email: parsedEmail.data.toLowerCase(),
+      }),
+    );
   }
 
-  async updateMember(currentUserId: string, input: { id: string; name: string; email: string }) {
+  async updateMember(
+    currentUserId: string,
+    input: { id: string; name: string; email: string },
+  ) {
     const context = await this.getOrganizationContext(currentUserId);
     const member = await this.organizationMemberRepository.findOneBy({
       id: input.id,
@@ -239,7 +277,8 @@ export class InternalAdsService {
     if (!member) throw NotFoundException('Organization member not found');
     const name = input.name.trim();
     const parsedEmail = z.string().email().safeParse(input.email.trim());
-    if (!name || !parsedEmail.success) throw BadUserInputException('Invalid member');
+    if (!name || !parsedEmail.success)
+      throw BadUserInputException('Invalid member');
     member.name = name;
     member.email = parsedEmail.data.toLowerCase();
     return this.organizationMemberRepository.save(member);
@@ -251,11 +290,15 @@ export class InternalAdsService {
       id: memberId,
       organizationId: context.organization.id,
     });
-    if (!result.affected) throw NotFoundException('Organization member not found');
+    if (!result.affected)
+      throw NotFoundException('Organization member not found');
     return true;
   }
 
-  private async findOrganizationMember(organizationId: string, memberId: string) {
+  private async findOrganizationMember(
+    organizationId: string,
+    memberId: string,
+  ) {
     const member = await this.organizationMemberRepository.findOneBy({
       id: memberId,
       organizationId,
@@ -631,6 +674,294 @@ export class InternalAdsService {
     };
   }
 
+  async internalAdsDashboard(
+    currentUserId: string,
+    input: { from?: string; to?: string } = {},
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const range = resolveRange(input.from, input.to);
+    const organizationId = context.organization.id;
+    const soldAt = range
+      ? And(MoreThanOrEqual(range.start), LessThan(range.end))
+      : Not(IsNull());
+    const paymentAcceptedAt = range
+      ? And(MoreThanOrEqual(range.start), LessThan(range.end))
+      : Not(IsNull());
+
+    const [internalSales, externalSales, currentProducts, activeReservations] =
+      await Promise.all([
+        this.reservationRepository.find({
+          where: {
+            soldAt,
+            canceledAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+          order: { soldAt: 'ASC' },
+        }),
+        this.dataSource.getRepository(Purchase).find({
+          where: {
+            paymentAcceptedAt,
+            failedAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+          order: { paymentAcceptedAt: 'ASC' },
+        }),
+        this.productRepository.find({
+          where: {
+            visibility: ProductVisibility.INTERNAL,
+            internalOrganizationId: organizationId,
+            status: ProductStatus.PUBLISHED,
+            hiddenReason: IsNull(),
+          },
+        }),
+        this.reservationRepository.find({
+          where: {
+            canceledAt: IsNull(),
+            soldAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              status: ProductStatus.PUBLISHED,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+        }),
+      ]);
+
+    const internalRows: InternalDashboardSourceRow[] = internalSales.map(
+      (reservation) => {
+        const fallback = allocateProductReportingValues(
+          reservation.product,
+          reservation.quantity,
+        );
+        const usesFallback =
+          reservation.weightAtSale === null ||
+          reservation.weightAtSale === undefined ||
+          reservation.co2SavingBuyerAtSale === null ||
+          reservation.co2SavingBuyerAtSale === undefined ||
+          reservation.co2SavingSellerAtSale === null ||
+          reservation.co2SavingSellerAtSale === undefined ||
+          reservation.marketValueAtSale === null ||
+          reservation.marketValueAtSale === undefined;
+        const marketValue =
+          reservation.marketValueAtSale ?? fallback.marketValue;
+
+        return {
+          type: 'INTERNAL_REUSE',
+          eventId: reservation.id,
+          productId: reservation.product.id,
+          productTitle: reservation.product.title,
+          internalReferenceNumber: reservation.product.internalReferenceNumber,
+          occurredAt: reservation.soldAt!,
+          quantity: reservation.product.soldByQuantity
+            ? reservation.quantity ?? 0
+            : 1,
+          weight: reservation.weightAtSale ?? fallback.weight,
+          buyerCo2: reservation.co2SavingBuyerAtSale ?? fallback.co2SavingBuyer,
+          sellerCo2:
+            reservation.co2SavingSellerAtSale ?? fallback.co2SavingSeller,
+          grossValueOre: marketValue,
+          netValueOre: marketValue,
+          calculationBasis: usesFallback
+            ? 'CURRENT_PRODUCT_FALLBACK'
+            : 'SNAPSHOT',
+        };
+      },
+    );
+    const externalRows: InternalDashboardSourceRow[] = externalSales.map(
+      (purchase) => {
+        const fallback = allocateProductReportingValues(
+          purchase.product,
+          purchase.purchasedQuantity,
+        );
+        const unitPrice = purchase.priceAtPurchase ?? purchase.product.price;
+        const quantity = purchase.product.soldByQuantity
+          ? purchase.purchasedQuantity ?? 0
+          : 1;
+        const grossValueOre = unitPrice * quantity;
+        const usesFallback =
+          purchase.priceAtPurchase === null ||
+          purchase.priceAtPurchase === undefined ||
+          purchase.weightAtPurchase === null ||
+          purchase.weightAtPurchase === undefined ||
+          purchase.co2SavingSellerAtPurchase === null ||
+          purchase.co2SavingSellerAtPurchase === undefined;
+
+        return {
+          type: 'EXTERNAL_SALE',
+          eventId: purchase.id,
+          productId: purchase.product.id,
+          productTitle: purchase.product.title,
+          internalReferenceNumber: purchase.product.internalReferenceNumber,
+          occurredAt: purchase.paymentAcceptedAt!,
+          quantity,
+          weight: purchase.weightAtPurchase ?? fallback.weight,
+          buyerCo2: 0,
+          sellerCo2:
+            purchase.co2SavingSellerAtPurchase ?? fallback.co2SavingSeller,
+          grossValueOre,
+          netValueOre: Math.round(grossValueOre * (1 - provisionBase)),
+          calculationBasis: usesFallback
+            ? 'CURRENT_PRODUCT_FALLBACK'
+            : 'SNAPSHOT',
+        };
+      },
+    );
+    const currentValues = currentProducts.map((product) => ({
+      product,
+      values: allocateProductReportingValues(product, product.primaryQuantity),
+    }));
+    const sum = (
+      rows: InternalDashboardSourceRow[],
+      getValue: (row: InternalDashboardSourceRow) => number,
+    ) => rows.reduce((total, row) => total + getValue(row), 0);
+    const internalReuseCo2 = sum(
+      internalRows,
+      (row) => row.buyerCo2 + row.sellerCo2,
+    );
+    const externalSalesCo2 = sum(externalRows, (row) => row.sellerCo2);
+    const realizedCo2 = internalReuseCo2 + externalSalesCo2;
+    const internalReuseValue = sum(internalRows, (row) => row.netValueOre);
+    const externalSalesNetValue = sum(externalRows, (row) => row.netValueOre);
+    const disposalCostSekPerKg = this.configService.get(
+      'ATERBANKEN_DISPOSAL_COST_SEK_PER_KG',
+      { infer: true },
+    );
+
+    return {
+      from: input.from ?? null,
+      to: input.to ?? null,
+      disposalCostSekPerKg,
+      climate: {
+        realizedCo2,
+        internalReuseCo2,
+        externalSalesCo2,
+        potentialCo2Savings: currentValues.reduce(
+          (total, item) =>
+            total + item.values.co2SavingBuyer + item.values.co2SavingSeller,
+          0,
+        ),
+        petrolCarKilometers: realizedCo2 / PETROL_CAR_CO2_KG_PER_KM,
+      },
+      economic: {
+        realizedValue: internalReuseValue + externalSalesNetValue,
+        internalReuseValue,
+        externalSalesNetValue,
+        currentInventoryValue: currentValues.reduce(
+          (total, item) => total + item.values.marketValue,
+          0,
+        ),
+        avoidedDisposalCost: Math.round(
+          sum(internalRows, (row) => row.weight) * disposalCostSekPerKg * 100,
+        ),
+      },
+      current: {
+        totalAds: currentProducts.length,
+        availableWeight: currentValues.reduce(
+          (total, item) => total + item.values.weight,
+          0,
+        ),
+        activeProjects: new Set(
+          currentProducts
+            .map((product) => product.projectId)
+            .filter((projectId): projectId is string => !!projectId),
+        ).size,
+        externallyPublishedAds: currentProducts.filter(
+          (product) => product.publiclyAvailable,
+        ).length,
+        reservedArticles: activeReservations.reduce(
+          (total, reservation) =>
+            total +
+            (reservation.product.soldByQuantity
+              ? reservation.quantity ?? 0
+              : 1),
+          0,
+        ),
+      },
+      sourceRows: [...internalRows, ...externalRows].sort(
+        (left, right) => left.occurredAt.getTime() - right.occurredAt.getTime(),
+      ),
+    };
+  }
+
+  async internalAdsDashboardCsv(
+    currentUserId: string,
+    input: { from?: string; to?: string } = {},
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const dashboard = await this.internalAdsDashboard(currentUserId, input);
+    const escape = (value: unknown) => {
+      const text = String(value ?? '');
+      return /[;"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const line = (...values: unknown[]) => values.map(escape).join(';');
+    const lines = [
+      line('Återbanken underlag'),
+      line('Organisation', context.organization.name),
+      line('Från', dashboard.from ?? 'Hela tiden'),
+      line('Till', dashboard.to ?? 'Hela tiden'),
+      line('Avfallskostnad SEK/kg', dashboard.disposalCostSekPerKg),
+      line('Interna helaffärer utan reservation', 'Exkluderas'),
+      '',
+      line('Mått', 'Värde'),
+      line('Realiserad klimatnytta kg CO2e', dashboard.climate.realizedCo2),
+      line('Internt återbruk kg CO2e', dashboard.climate.internalReuseCo2),
+      line('Extern försäljning kg CO2e', dashboard.climate.externalSalesCo2),
+      line('Realiserat ekonomiskt värde öre', dashboard.economic.realizedValue),
+      line('Internt återbruk värde öre', dashboard.economic.internalReuseValue),
+      line(
+        'Extern nettoförsäljning öre',
+        dashboard.economic.externalSalesNetValue,
+      ),
+      '',
+      line(
+        'Typ',
+        'Händelse-id',
+        'Produkt-id',
+        'Referens',
+        'Titel',
+        'Datum',
+        'Mängd',
+        'Vikt kg',
+        'Köpar-CO2e kg',
+        'Säljar-CO2e kg',
+        'Bruttovärde öre',
+        'Nettovärde öre',
+        'Beräkningsunderlag',
+      ),
+      ...dashboard.sourceRows.map((row) =>
+        line(
+          row.type,
+          row.eventId,
+          row.productId,
+          row.internalReferenceNumber,
+          row.productTitle,
+          row.occurredAt.toISOString(),
+          row.quantity,
+          row.weight,
+          row.buyerCo2,
+          row.sellerCo2,
+          row.grossValueOre,
+          row.netValueOre,
+          row.calculationBasis,
+        ),
+      ),
+    ];
+
+    return `\uFEFF${lines.join('\n')}`;
+  }
+
   async relatedInternalAds(
     currentUserId: string,
     input: ProductsInput,
@@ -761,9 +1092,7 @@ export class InternalAdsService {
         location: { lat: group.latitude, lng: group.longitude },
         productIds: group.productIds,
         projectId: group.projectId,
-        type: group.projectId
-          ? MapPinTypeEnum.PROJECT
-          : MapPinTypeEnum.PRODUCT,
+        type: group.projectId ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
         prices: group.prices.map((price) => price / 100),
       })),
       total: groups.length,
@@ -788,7 +1117,7 @@ export class InternalAdsService {
     if (!product) {
       throw NotFoundException('Internal ad not found');
     }
-        return product;
+    return product;
   }
 
   async myInternalDrafts(currentUserId: string, batchId?: string) {
@@ -905,6 +1234,9 @@ export class InternalAdsService {
       product.status = ProductStatus.PUBLISHED;
       product.price = 0;
       product.isGiveaway = true;
+      product.initialPrimaryQuantity = product.soldByQuantity
+        ? product.primaryQuantity
+        : 1;
       product.internalValidationIssues = [];
       product.internalAdImportBatchId = null;
     });
@@ -984,7 +1316,11 @@ export class InternalAdsService {
 
   async reserveInternalAd(
     currentUserId: string,
-    input: { productId: string; quantity?: number; organizationMemberId: string },
+    input: {
+      productId: string;
+      quantity?: number;
+      organizationMemberId: string;
+    },
   ) {
     // Check organization access before taking the product lock.
     const accessibleProduct = await this.internalAd(
@@ -1082,6 +1418,14 @@ export class InternalAdsService {
       if (!reservation || reservation.canceledAt || reservation.soldAt) {
         throw BadUserInputException('Invalid reservation');
       }
+      const values = allocateProductReportingValues(
+        product,
+        reservation.quantity,
+      );
+      reservation.weightAtSale = values.weight;
+      reservation.co2SavingBuyerAtSale = values.co2SavingBuyer;
+      reservation.co2SavingSellerAtSale = values.co2SavingSeller;
+      reservation.marketValueAtSale = values.marketValue;
       product.primaryQuantity = Math.max(
         0,
         (product.primaryQuantity ?? 0) - (reservation.quantity ?? 0),
@@ -1095,6 +1439,14 @@ export class InternalAdsService {
       product.status = ProductStatus.SOLD;
       const reservations = await this.activeReservations(product.id);
       reservations.forEach((reservation) => {
+        const values = allocateProductReportingValues(
+          product,
+          reservation.quantity,
+        );
+        reservation.weightAtSale = values.weight;
+        reservation.co2SavingBuyerAtSale = values.co2SavingBuyer;
+        reservation.co2SavingSellerAtSale = values.co2SavingSeller;
+        reservation.marketValueAtSale = values.marketValue;
         reservation.soldAt = new Date();
       });
       if (reservations.length) {
@@ -1203,7 +1555,7 @@ export class InternalAdsService {
     const query = this.productRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.seller', 'seller')
-            .where('p.visibility = :visibility', {
+      .where('p.visibility = :visibility', {
         visibility: ProductVisibility.INTERNAL,
       });
     if (searchString) {
@@ -1714,5 +2066,4 @@ ${categoryList}
     }
     return batch;
   }
-
 }

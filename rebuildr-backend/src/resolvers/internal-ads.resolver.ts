@@ -3,6 +3,7 @@ import {
   Args,
   Context,
   Field,
+  Float,
   ID,
   InputType,
   Int,
@@ -60,6 +61,90 @@ class InternalAdsStatistics {
 
   @Field(() => Int)
   externallyPublishedAds: number;
+}
+
+@InputType()
+class InternalAdsDashboardInput {
+  @Field({ nullable: true })
+  from?: string;
+
+  @Field({ nullable: true })
+  to?: string;
+}
+
+@ObjectType()
+class InternalAdsClimateReceipt {
+  @Field(() => Float)
+  realizedCo2: number;
+
+  @Field(() => Float)
+  internalReuseCo2: number;
+
+  @Field(() => Float)
+  externalSalesCo2: number;
+
+  @Field(() => Float)
+  potentialCo2Savings: number;
+
+  @Field(() => Float)
+  petrolCarKilometers: number;
+}
+
+@ObjectType()
+class InternalAdsEconomicReceipt {
+  @Field(() => Float)
+  realizedValue: number;
+
+  @Field(() => Float)
+  internalReuseValue: number;
+
+  @Field(() => Float)
+  externalSalesNetValue: number;
+
+  @Field(() => Float)
+  currentInventoryValue: number;
+
+  @Field(() => Float)
+  avoidedDisposalCost: number;
+}
+
+@ObjectType()
+class InternalAdsCurrentStatistics {
+  @Field(() => Int)
+  totalAds: number;
+
+  @Field(() => Float)
+  availableWeight: number;
+
+  @Field(() => Int)
+  activeProjects: number;
+
+  @Field(() => Int)
+  externallyPublishedAds: number;
+
+  @Field(() => Float)
+  reservedArticles: number;
+}
+
+@ObjectType()
+class InternalAdsDashboard {
+  @Field({ nullable: true })
+  from?: string;
+
+  @Field({ nullable: true })
+  to?: string;
+
+  @Field(() => Float)
+  disposalCostSekPerKg: number;
+
+  @Field(() => InternalAdsClimateReceipt)
+  climate: InternalAdsClimateReceipt;
+
+  @Field(() => InternalAdsEconomicReceipt)
+  economic: InternalAdsEconomicReceipt;
+
+  @Field(() => InternalAdsCurrentStatistics)
+  current: InternalAdsCurrentStatistics;
 }
 
 @ObjectType()
@@ -264,6 +349,24 @@ export class InternalAdsResolver {
     return this.internalAdsService.internalAdsStatistics(user.id);
   }
 
+  @Query(() => InternalAdsDashboard)
+  @UseGuards(GqlAuthGuard)
+  async internalAdsDashboard(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: InternalAdsDashboardInput,
+  ) {
+    return this.internalAdsService.internalAdsDashboard(user.id, input);
+  }
+
+  @Query(() => String)
+  @UseGuards(GqlAuthGuard)
+  async internalAdsDashboardCsv(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: InternalAdsDashboardInput,
+  ) {
+    return this.internalAdsService.internalAdsDashboardCsv(user.id, input);
+  }
+
   @Query(() => [InternalAdsCategory])
   @UseGuards(GqlAuthGuard)
   async internalAdsCategories(@CurrentUser() user: AuthedUserType) {
@@ -362,9 +465,7 @@ export class InternalAdsResolver {
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
-  async createInternalAdDraft(
-    @CurrentUser() user: AuthedUserType,
-  ) {
+  async createInternalAdDraft(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.createInternalDraft(user.id);
   }
 
@@ -373,7 +474,8 @@ export class InternalAdsResolver {
   async setInternalAdResponsibleMember(
     @CurrentUser() user: AuthedUserType,
     @Args('productId', { type: () => ID }) productId: string,
-    @Args('organizationMemberId', { type: () => ID }) organizationMemberId: string,
+    @Args('organizationMemberId', { type: () => ID })
+    organizationMemberId: string,
   ) {
     return this.internalAdsService.setInternalAdResponsibleMember(
       user.id,
@@ -457,7 +559,8 @@ export class InternalAdsResolver {
   async createInternalAdImportBatch(
     @CurrentUser() user: AuthedUserType,
     @Args('input') input: CreateInternalAdImportBatchInput,
-    @Args('organizationMemberId', { type: () => ID }) organizationMemberId: string,
+    @Args('organizationMemberId', { type: () => ID })
+    organizationMemberId: string,
   ) {
     return this.internalAdsService.createImportBatch(
       user.id,

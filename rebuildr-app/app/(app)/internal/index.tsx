@@ -5,6 +5,9 @@ import {
   InternalAdImportBatchQuery,
   InternalAdImportBatchQueryVariables,
   InternalAdImportBatchStatusEnum,
+  InternalAdsDashboardCsvQuery,
+  InternalAdsDashboardCsvQueryVariables,
+  InternalAdsDashboardInput,
   InternalAdsHomeQuery,
   InternalAdsHomeQueryVariables,
   ProductAvailabilityEnum,
@@ -16,13 +19,14 @@ import {
   CREATE_INTERNAL_AD_DRAFT,
   CREATE_INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_AD_IMPORT_BATCH,
+  INTERNAL_ADS_DASHBOARD_CSV,
   INTERNAL_ADS_HOME_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
   REMOVE_INTERNAL_AD_IMPORT_BATCH,
   START_INTERNAL_AD_IMPORT_BATCH,
 } from "@/queries/internal-ads";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
@@ -30,7 +34,10 @@ import { Button } from "@components/buttons/button";
 import { SelectInput } from "@components/forms/selectInput";
 import { InternalCategoryGrid } from "@components/internal/internal-category-grid";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
-import { InternalStatisticsSection } from "@components/internal/internal-statistics-section";
+import {
+  InternalDashboardPreset,
+  InternalStatisticsSection,
+} from "@components/internal/internal-statistics-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
@@ -57,6 +64,8 @@ import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { INTERNAL_PROJECTS } from "@/queries/internal-projects";
 import { Icon } from "@icons/icon";
+import { downloadCsv } from "@/utils/download-csv";
+import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -69,6 +78,22 @@ import {
 } from "react-native";
 
 const SECTION_PAGE_SIZE = 10;
+const getDashboardInput = (
+  preset: InternalDashboardPreset,
+): InternalAdsDashboardInput => {
+  if (preset === "ALL") return {};
+  const today = dayjs();
+  const from =
+    preset === "MONTH"
+      ? today.startOf("month")
+      : preset === "QUARTER"
+        ? today.month(Math.floor(today.month() / 3) * 3).startOf("month")
+        : today.startOf("year");
+  return {
+    from: from.format("YYYY-MM-DD"),
+    to: today.format("YYYY-MM-DD"),
+  };
+};
 const ORGANIZATION_MEMBERS = gql`
   query OrganizationMembersForActions {
     organizationMembers {
@@ -106,15 +131,18 @@ export default function InternalAdsPage() {
   const [activeBatchId, setActiveBatchId] = useState<string>();
   const [pollBatch, setPollBatch] = useState(false);
   const [publishRequested, setPublishRequested] = useState(false);
-  const [showTopBarSearch, setShowTopBarSearch] = useState(false);
+  const [dashboardPreset, setDashboardPreset] =
+    useState<InternalDashboardPreset>("YEAR");
+  const [dashboardDownloadError, setDashboardDownloadError] =
+    useState<string>();
   const [importMemberId, setImportMemberId] = useState<string>();
   const [importPlacement, setImportPlacement] = useState<
     Partial<ProductFields>
   >({});
-  const [introHeight, setIntroHeight] = useState(0);
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
+  const dashboardInput = getDashboardInput(dashboardPreset);
 
   const { data, loading, refetch } = useQuery<
     InternalAdsHomeData,
@@ -122,9 +150,34 @@ export default function InternalAdsPage() {
   >(INTERNAL_ADS_HOME_QUERY, {
     variables: {
       limit: SECTION_PAGE_SIZE,
+      dashboardInput,
     },
     fetchPolicy: "cache-and-network",
   });
+
+  const [loadDashboardCsv, { loading: downloadingDashboard }] = useLazyQuery<
+    InternalAdsDashboardCsvQuery,
+    InternalAdsDashboardCsvQueryVariables
+  >(INTERNAL_ADS_DASHBOARD_CSV, { fetchPolicy: "network-only" });
+
+  const onDownloadDashboard = async () => {
+    setDashboardDownloadError(undefined);
+    try {
+      const result = await loadDashboardCsv({
+        variables: { input: dashboardInput },
+      });
+      const csv = result.data?.internalAdsDashboardCsv;
+      if (!csv) throw new Error("Missing CSV");
+      const organizationName =
+        data?.internalAdsOrganizationContext?.organization.name ?? "aterbanken";
+      await downloadCsv(
+        csv,
+        `${organizationName}-${dashboardPreset.toLowerCase()}-${dayjs().format("YYYY-MM-DD")}.csv`,
+      );
+    } catch {
+      setDashboardDownloadError("Underlaget kunde inte laddas ner.");
+    }
+  };
 
   const { data: membersData } = useQuery<{
     organizationMembers: { id: string; name: string; email: string }[];
@@ -148,11 +201,11 @@ export default function InternalAdsPage() {
       });
       refetchProjects().catch(() => undefined);
       if (typeof document === "undefined") return;
-      document.body.style.backgroundColor = primitives.accent100;
+      document.body.style.backgroundColor = primitives.neutrals100;
       return () => {
         document.body.style.backgroundColor = "";
       };
-    }, [primitives.accent100, refetchProjects, searchContext.setSearchState]),
+    }, [refetchProjects, searchContext.setSearchState]),
   );
 
   const { data: batchData, refetch: refetchBatch } = useQuery<
@@ -396,18 +449,6 @@ export default function InternalAdsPage() {
     startingBatch;
   const visibleBatch = discardingImport ? undefined : batch;
 
-  useEffect(() => {
-    if (!isWeb || !introHeight || typeof window === "undefined") return;
-
-    const updateTopBarSearch = () => {
-      setShowTopBarSearch(window.scrollY > introHeight - 72);
-    };
-
-    window.addEventListener("scroll", updateTopBarSearch, { passive: true });
-    updateTopBarSearch();
-    return () => window.removeEventListener("scroll", updateTopBarSearch);
-  }, [introHeight]);
-
   const getAdGridProducts = (
     products: Array<
       (typeof activeProducts)[number] | (typeof availableNowProducts)[number]
@@ -443,10 +484,9 @@ export default function InternalAdsPage() {
       <ImageBackground
         source={MainBackground}
         resizeMode="cover"
-        imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
-        onLayout={(event) => setIntroHeight(event.nativeEvent.layout.height)}
+        imageStyle={{ opacity: 0.28, tintColor: primitives.primary700 }}
         style={{
-          backgroundColor: primitives.accent100,
+          backgroundColor: primitives.primary100,
           overflow: "hidden",
           width: "100%",
         }}
@@ -454,21 +494,25 @@ export default function InternalAdsPage() {
         <View
           style={{
             alignSelf: "center",
-            gap: 24,
+            gap: isDesktop ? 32 : 24,
             maxWidth: MAX_CONTENT_WIDTH,
-            paddingBottom: isDesktop ? 56 : 28,
+            paddingBottom: isDesktop ? 64 : 36,
             paddingHorizontal: isDesktop
               ? horizontalPadding.desktop
               : horizontalPadding.mobile,
-            paddingTop: isDesktop ? 48 : 24,
+            paddingTop: isDesktop ? 64 : 36,
             width: "100%",
           }}
         >
-          <View style={{ gap: 10, maxWidth: 780 }}>
-            <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
+          <View style={{ maxWidth: 820 }}>
+            <Headline
+              size={isDesktop ? "large" : "medium"}
+              heading={1}
+              style={{ maxWidth: 780 }}
+            >
               Material, verktyg och resurser som bara cirkulerar inom er
               organisation.
-            </Body>
+            </Headline>
           </View>
 
           {hasAccess && (
@@ -480,7 +524,7 @@ export default function InternalAdsPage() {
                   borderColor: colors.buttons.outlinedStroke.enabled,
                   borderWidth: 1,
                 }}
-                placeholder="Sök i Återbanken"
+                placeholder="Vad letar du efter?"
                 searchScope="internal"
                 searchOnSubmit
               />
@@ -528,10 +572,15 @@ export default function InternalAdsPage() {
             width: "100%",
           }}
         >
-          {hasAccess && data?.internalAdsStatistics && (
+          {hasAccess && data?.internalAdsDashboard && (
             <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
               <InternalStatisticsSection
-                statistics={data.internalAdsStatistics}
+                statistics={data.internalAdsDashboard}
+                preset={dashboardPreset}
+                onPresetChange={setDashboardPreset}
+                onDownload={onDownloadDashboard}
+                downloading={downloadingDashboard}
+                downloadError={dashboardDownloadError}
               />
             </View>
           )}
@@ -550,6 +599,7 @@ export default function InternalAdsPage() {
               </SectionHeader>
               {(projectsData?.internalProjects.projects ?? []).length ? (
                 <InternalProjectGrid
+                  landing
                   projects={projectsData.internalProjects.projects}
                   onProjectPress={(projectId) =>
                     router.navigate({
@@ -652,14 +702,10 @@ export default function InternalAdsPage() {
     <View
       style={[
         isWeb ? screenGrowStyle : { flex: 1 },
-        { backgroundColor: primitives.accent100 },
+        { backgroundColor: primitives.neutrals100 },
       ]}
     >
-      <InternalTopBar
-        home
-        showSearchBar={showTopBarSearch}
-        onCreateAd={onCreateInternalAd}
-      />
+      <InternalTopBar home onCreateAd={onCreateInternalAd} />
 
       {isWeb ? (
         content
@@ -667,14 +713,6 @@ export default function InternalAdsPage() {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScroll={(event) => {
-            if (introHeight) {
-              setShowTopBarSearch(
-                event.nativeEvent.contentOffset.y > introHeight - 72,
-              );
-            }
-          }}
         >
           {content}
         </ScrollView>

@@ -1258,6 +1258,39 @@ type InternalAdsStatistics {
   externallyPublishedAds: Int!
 }
 
+type InternalAdsClimateReceipt {
+  realizedCo2: Float!
+  internalReuseCo2: Float!
+  externalSalesCo2: Float!
+  potentialCo2Savings: Float!
+  petrolCarKilometers: Float!
+}
+
+type InternalAdsEconomicReceipt {
+  realizedValue: Float!
+  internalReuseValue: Float!
+  externalSalesNetValue: Float!
+  currentInventoryValue: Float!
+  avoidedDisposalCost: Float!
+}
+
+type InternalAdsCurrentStatistics {
+  totalAds: Int!
+  availableWeight: Float!
+  activeProjects: Int!
+  externallyPublishedAds: Int!
+  reservedArticles: Float!
+}
+
+type InternalAdsDashboard {
+  from: String
+  to: String
+  disposalCostSekPerKg: Float!
+  climate: InternalAdsClimateReceipt!
+  economic: InternalAdsEconomicReceipt!
+  current: InternalAdsCurrentStatistics!
+}
+
 type InternalAdsCategory {
   category: Category!
   adCount: Int!
@@ -1367,6 +1400,8 @@ type Query {
   internalProjects(input: InternalProjectsInput!, limit: Int, offset: Int): PaginatedInternalProjectsResponse!
   internalProject(projectId: ID!): Project!
   internalAdsStatistics: InternalAdsStatistics!
+  internalAdsDashboard(input: InternalAdsDashboardInput!): InternalAdsDashboard!
+  internalAdsDashboardCsv(input: InternalAdsDashboardInput!): String!
   internalAdsCategories: [InternalAdsCategory!]!
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
   relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
@@ -1754,6 +1789,11 @@ input CmsTrafficStatsInput {
 
 input InternalProjectsInput {
   searchString: String
+}
+
+input InternalAdsDashboardInput {
+  from: String
+  to: String
 }
 
 input CmsInternalAdsInput {

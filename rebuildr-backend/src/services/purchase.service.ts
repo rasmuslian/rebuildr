@@ -3,6 +3,7 @@ import {
   Product,
   ProductAvailabilityEnum,
   ProductStatus,
+  ProductVisibility,
 } from 'src/entities/product.entity';
 import {
   Purchase,
@@ -55,6 +56,7 @@ import { idFromObject } from 'src/utility/stripe/utils';
 import { ShippingPriceService } from './shipping-price.service';
 import { ShippingPrice } from 'src/entities/shipping-price.entity';
 import { MailService } from './mail.service';
+import { allocateProductReportingValues } from 'src/utils/aterbanken-reporting';
 
 @Injectable()
 export class PurchaseService {
@@ -411,6 +413,18 @@ export class PurchaseService {
     }
 
     purchase.purchasedQuantity = input.purchasedQuantity;
+    purchase.priceAtPurchase = product.price;
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      product.initialPrimaryQuantity ??= product.soldByQuantity
+        ? product.primaryQuantity
+        : 1;
+      const reportingValues = allocateProductReportingValues(
+        product,
+        input.purchasedQuantity,
+      );
+      purchase.weightAtPurchase = reportingValues.weight;
+      purchase.co2SavingSellerAtPurchase = reportingValues.co2SavingSeller;
+    }
     purchase.toServicePointId = input.servicePointId;
     purchase.deliverToAddress = input.deliverToAddress;
     purchase.deliverToLocation = deliverToPoint;

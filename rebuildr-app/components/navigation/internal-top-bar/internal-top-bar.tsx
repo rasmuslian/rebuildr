@@ -1,14 +1,14 @@
 import { InternalAdsMenuContextQuery } from "@/gql/graphql";
 import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
 import { useQuery } from "@apollo/client";
+import AterbankenLogotype from "@assets/images/aterbanken-logotype.png";
 import { Button } from "@components/buttons/button";
-import { Logo } from "@components/logo/logo";
 import { SearchBar } from "@components/search/search-bar";
+import { Label } from "@components/typography/text";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { primitives } from "@constants/colors";
 import { isWeb, MAX_CONTENT_WIDTH, WEB_STICKY } from "@constants/layout";
 import { horizontalPadding } from "@constants/sizes";
-import { Label } from "@components/typography/text";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
@@ -16,6 +16,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useUser } from "@hooks/useUser";
 import { Icon } from "@icons/icon";
 import { router } from "expo-router";
+import { Image } from "expo-image";
 import { useContext, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -120,12 +121,10 @@ const InternalTopBarDesktop = ({
     <>
       <View
         style={{
-          backgroundColor: home
-            ? primitives.accent100
-            : colors.background.neutral,
+          backgroundColor: colors.background.neutral,
           borderBottomColor: colors.dividers.neutral,
           borderBottomWidth: home ? 0 : 1,
-          height: 72,
+          height: 64,
           width: "100%",
         }}
       >
@@ -143,16 +142,19 @@ const InternalTopBarDesktop = ({
         >
           <View style={{ alignItems: "center", flexDirection: "row", gap: 20 }}>
             <Pressable accessibilityRole="link" onPress={goInternalHome}>
-              <Logo width={118} height={24} customColor={colors.logo.vector} />
+              <Image
+                source={AterbankenLogotype}
+                contentFit="contain"
+                style={{ width: 145, height: 25 }}
+              />
             </Pressable>
-            <Label size="large">Återbanken</Label>
             {showActions && showSearchBar && (
               <SearchBar
                 backgroundColor="transparent"
                 searchOnSubmit
                 searchScope="internal"
-                placeholder="Sök i Återbanken"
-                style={{ borderBottomWidth: 0, width: 320 }}
+                placeholder="Vad letar du efter?"
+                style={{ borderBottomWidth: 0, width: 360 }}
                 borderStyle={{
                   borderColor: colors.dividers.neutral,
                   borderWidth: 1,
@@ -186,19 +188,16 @@ const InternalTopBarDesktop = ({
   );
 };
 
-const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
+const InternalTopBarMobile = ({ home, showActions }: Props) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
-  const createInternalAd = useCreateInternalAd(onCreateAd);
 
   return (
     <>
       <View
         style={{
-          backgroundColor: home
-            ? primitives.accent100
-            : colors.background.neutral,
+          backgroundColor: colors.background.neutral,
           borderBottomColor: colors.dividers.neutral,
           borderBottomWidth: home ? 0 : 1,
         }}
@@ -216,27 +215,19 @@ const InternalTopBarMobile = ({ home, showActions, onCreateAd }: Props) => {
           }}
         >
           <Pressable accessibilityRole="link" onPress={goInternalHome}>
-            <View
-              style={{ alignItems: "center", flexDirection: "row", gap: 8 }}
-            >
-              <Logo width={70} height={14} customColor={colors.logo.vector} />
-              <Label size="small">Återbanken</Label>
-            </View>
+            <Image
+              source={AterbankenLogotype}
+              contentFit="contain"
+              style={{ width: 123, height: 21 }}
+            />
           </Pressable>
           <View style={{ flexDirection: "row" }}>
             {showActions && (
-              <>
-                <MobileAction
-                  icon="search"
-                  label="Sök"
-                  onPress={() => router.navigate("/internal/search")}
-                />
-                <MobileAction
-                  icon="newListing"
-                  label="Ny annons"
-                  onPress={createInternalAd}
-                />
-              </>
+              <MobileAction
+                icon="search"
+                label="Sök"
+                onPress={() => router.navigate("/internal/search")}
+              />
             )}
             <MobileAction
               icon="hamburger"

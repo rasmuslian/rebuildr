@@ -231,6 +231,15 @@ export class Purchase {
   @Column({ nullable: true })
   purchasedQuantity?: number;
 
+  @Column({ nullable: true, type: 'int' })
+  priceAtPurchase?: number | null;
+
+  @Column({ nullable: true, type: 'float' })
+  weightAtPurchase?: number | null;
+
+  @Column({ nullable: true, type: 'float' })
+  co2SavingSellerAtPurchase?: number | null;
+
   @OneToOne(() => ReportPurchase, (rp) => rp.purchase, { nullable: true })
   reportPurchase?: ReportPurchase;
 }

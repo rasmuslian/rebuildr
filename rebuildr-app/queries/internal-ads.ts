@@ -54,19 +54,41 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
 `;
 
 export const INTERNAL_ADS_HOME_QUERY = gql`
-  query InternalAdsHome($limit: Int) {
+  query InternalAdsHome(
+    $limit: Int
+    $dashboardInput: InternalAdsDashboardInput!
+  ) {
     internalAdsOrganizationContext {
       canReceivePayout
       organization {
         id
+        name
       }
     }
-    internalAdsStatistics {
-      co2Saved
-      potentialCo2Savings
-      estimatedMarketValue
-      totalAds
-      externallyPublishedAds
+    internalAdsDashboard(input: $dashboardInput) {
+      from
+      to
+      climate {
+        realizedCo2
+        internalReuseCo2
+        externalSalesCo2
+        potentialCo2Savings
+        petrolCarKilometers
+      }
+      economic {
+        realizedValue
+        internalReuseValue
+        externalSalesNetValue
+        currentInventoryValue
+        avoidedDisposalCost
+      }
+      current {
+        totalAds
+        availableWeight
+        activeProjects
+        externallyPublishedAds
+        reservedArticles
+      }
     }
     internalAdsCategories {
       category {
@@ -160,6 +182,12 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
   }
 `;
 
+export const INTERNAL_ADS_DASHBOARD_CSV = gql`
+  query InternalAdsDashboardCsv($input: InternalAdsDashboardInput!) {
+    internalAdsDashboardCsv(input: $input)
+  }
+`;
+
 export const INTERNAL_ADS_SEARCH = gql`
   query InternalAdsSearch($input: ProductsInput!) {
     internalAds(input: $input, limit: 5, offset: 0) {
@@ -243,12 +271,24 @@ export const INTERNAL_PROJECT_MAP_POPUP = gql`
 `;
 
 export const CREATE_INTERNAL_AD_DRAFT = gql`
-  mutation CreateInternalAdDraft { createInternalAdDraft { id } }
+  mutation CreateInternalAdDraft {
+    createInternalAdDraft {
+      id
+    }
+  }
 `;
 
 export const SET_INTERNAL_AD_RESPONSIBLE_MEMBER = gql`
-  mutation SetInternalAdResponsibleMember($productId: ID!, $organizationMemberId: ID!) {
-    setInternalAdResponsibleMember(productId: $productId, organizationMemberId: $organizationMemberId) { id }
+  mutation SetInternalAdResponsibleMember(
+    $productId: ID!
+    $organizationMemberId: ID!
+  ) {
+    setInternalAdResponsibleMember(
+      productId: $productId
+      organizationMemberId: $organizationMemberId
+    ) {
+      id
+    }
   }
 `;
 
@@ -278,7 +318,10 @@ export const CREATE_INTERNAL_AD_IMPORT_BATCH = gql`
     $input: CreateInternalAdImportBatchInput!
     $organizationMemberId: ID!
   ) {
-    createInternalAdImportBatch(input: $input, organizationMemberId: $organizationMemberId) {
+    createInternalAdImportBatch(
+      input: $input
+      organizationMemberId: $organizationMemberId
+    ) {
       uploadUrls
       batch {
         id
