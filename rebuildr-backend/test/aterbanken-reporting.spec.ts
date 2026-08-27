@@ -113,7 +113,6 @@ const createDashboardService = () => {
     dataSource: {
       getRepository: jest.fn().mockReturnValue(purchaseRepository),
     },
-    configService: { get: jest.fn().mockReturnValue(5) },
   });
   jest.spyOn(service, 'getOrganizationContext').mockResolvedValue({
     organization: { id: 'organization-a', name: 'Återbanken AB' } as never,
@@ -161,7 +160,7 @@ describe('InternalAdsService.internalAdsDashboard', () => {
       internalReuseValue: 10_000,
       externalSalesNetValue: 1_800,
       currentInventoryValue: 15_000,
-      avoidedDisposalCost: 5_000,
+      avoidedDisposalCost: 7_500,
     });
     expect(dashboard.current).toEqual({
       totalAds: 1,
@@ -170,6 +169,40 @@ describe('InternalAdsService.internalAdsDashboard', () => {
       externallyPublishedAds: 1,
       reservedArticles: 1,
     });
+  });
+
+  it('records a reporting event when an ad is sold without a reservation', async () => {
+    const service = Object.create(
+      InternalAdsService.prototype,
+    ) as InternalAdsService;
+    const product = reportingProduct({
+      soldByQuantity: false,
+      primaryQuantity: 1,
+    });
+    const reservationRepository = {
+      create: jest.fn((value) => value),
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    Object.assign(service, {
+      reservationRepository,
+      productRepository: { save: jest.fn().mockResolvedValue(product) },
+    });
+    jest.spyOn(service, 'internalAd').mockResolvedValue(product as never);
+
+    await service.markInternalAdSold('user-a', { productId: product.id });
+
+    expect(reservationRepository.save).toHaveBeenCalledWith([
+      expect.objectContaining({
+        productId: product.id,
+        quantity: null,
+        weightAtSale: 100,
+        co2SavingBuyerAtSale: 50,
+        co2SavingSellerAtSale: 10,
+        marketValueAtSale: 15_000,
+        soldAt: expect.any(Date),
+      }),
+    ]);
   });
 
   it('exports a formatted workbook with values from the selected interval', async () => {

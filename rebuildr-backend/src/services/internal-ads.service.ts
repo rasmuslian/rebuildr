@@ -5,14 +5,12 @@ import {
   ThinkingLevel,
 } from '@google/genai';
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Workbook, Worksheet } from 'exceljs';
 import * as XLSX from 'xlsx';
 import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
 import { maximumProductPrice, provisionBase } from 'src/constants/pricing';
-import { EnvironmentVariables } from 'src/config';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import {
@@ -65,11 +63,13 @@ import { allocateProductReportingValues } from 'src/utils/aterbanken-reporting';
 import { resolveRange } from './statistics/statistics-shared';
 import { AIService } from './ai.service';
 import { BrandService } from './brand.service';
+import { CO2FactorService } from './co2-factor.service';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MailService } from './mail.service';
 import { StripeService } from './stripe.service';
 
+const DISPOSAL_COST_SEK_PER_KG = 2.5;
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
 const PETROL_CAR_CO2_KG_PER_KM = 0.125;
@@ -181,11 +181,11 @@ export class InternalAdsService {
     private fileService: FileService,
     private aiService: AIService,
     private brandService: BrandService,
+    private co2FactorService: CO2FactorService,
     private geocodingService: GeocodingService,
     private mailService: MailService,
     private stripeService: StripeService,
     private dataSource: DataSource,
-    private configService: ConfigService<EnvironmentVariables>,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -835,15 +835,11 @@ export class InternalAdsService {
     const realizedCo2 = internalReuseCo2 + externalSalesCo2;
     const internalReuseValue = sum(internalRows, (row) => row.netValueOre);
     const externalSalesNetValue = sum(externalRows, (row) => row.netValueOre);
-    const disposalCostSekPerKg = this.configService.get(
-      'ATERBANKEN_DISPOSAL_COST_SEK_PER_KG',
-      { infer: true },
-    );
 
     return {
       from: input.from ?? null,
       to: input.to ?? null,
-      disposalCostSekPerKg,
+      disposalCostSekPerKg: DISPOSAL_COST_SEK_PER_KG,
       climate: {
         realizedCo2,
         internalReuseCo2,
@@ -864,7 +860,9 @@ export class InternalAdsService {
           0,
         ),
         avoidedDisposalCost: Math.round(
-          sum(internalRows, (row) => row.weight) * disposalCostSekPerKg * 100,
+          sum([...internalRows, ...externalRows], (row) => row.weight) *
+            DISPOSAL_COST_SEK_PER_KG *
+            100,
         ),
       },
       current: {
@@ -1361,16 +1359,33 @@ export class InternalAdsService {
           .filter(Boolean),
       ),
     ];
-    products.forEach((product) => {
-      product.status = ProductStatus.PUBLISHED;
-      product.price = 0;
-      product.isGiveaway = true;
-      product.initialPrimaryQuantity = product.soldByQuantity
-        ? product.primaryQuantity
-        : 1;
-      product.internalValidationIssues = [];
-      product.internalAdImportBatchId = null;
-    });
+    await Promise.all(
+      products.map(async (product) => {
+        product.status = ProductStatus.PUBLISHED;
+        product.price = 0;
+        product.isGiveaway = true;
+        product.initialPrimaryQuantity = product.soldByQuantity
+          ? product.primaryQuantity
+          : 1;
+        product.internalValidationIssues = [];
+        product.internalAdImportBatchId = null;
+
+        try {
+          const co2Factor = await this.co2FactorService.getCO2Factor({
+            categoryId: product.categoryId,
+          });
+          product.co2SavingBuyer =
+            (product.weight ?? 0) * co2Factor.productionCoefficient;
+          product.co2SavingSeller =
+            (product.weight ?? 0) * co2Factor.disposalCoefficient;
+        } catch {
+          this.logger.warn('CO2 factor missing for internal ad', {
+            categoryId: product.categoryId,
+            productId: product.id,
+          });
+        }
+      }),
+    );
     const savedProducts = await this.productRepository.save(products);
     savedProducts.forEach((product) => this.queuePriceSuggestion(product.id));
     if (batchIds.length) {
@@ -1539,7 +1554,6 @@ export class InternalAdsService {
     input: { productId: string; reservationId?: string },
   ) {
     const product = await this.internalAd(currentUserId, input.productId);
-    const context = await this.getOrganizationContext(currentUserId);
 
     if (input.reservationId && product.soldByQuantity) {
       const reservation = await this.reservationRepository.findOneBy({
@@ -1580,6 +1594,33 @@ export class InternalAdsService {
         reservation.marketValueAtSale = values.marketValue;
         reservation.soldAt = new Date();
       });
+      const reservedQuantity = reservations.reduce(
+        (total, reservation) =>
+          total + (product.soldByQuantity ? reservation.quantity ?? 0 : 1),
+        0,
+      );
+      const unreservedQuantity = product.soldByQuantity
+        ? Math.max(0, (product.primaryQuantity ?? 0) - reservedQuantity)
+        : reservations.length
+          ? 0
+          : 1;
+      if (unreservedQuantity > 0) {
+        const values = allocateProductReportingValues(
+          product,
+          product.soldByQuantity ? unreservedQuantity : null,
+        );
+        reservations.push(
+          this.reservationRepository.create({
+            productId: product.id,
+            quantity: product.soldByQuantity ? unreservedQuantity : null,
+            soldAt: new Date(),
+            weightAtSale: values.weight,
+            co2SavingBuyerAtSale: values.co2SavingBuyer,
+            co2SavingSellerAtSale: values.co2SavingSeller,
+            marketValueAtSale: values.marketValue,
+          }),
+        );
+      }
       if (reservations.length) {
         await this.reservationRepository.save(reservations);
       }

@@ -27,10 +27,6 @@ const envSchema = z.object({
   ADMIN_ENV: z.string().optional(),
   CREDITSAFE_USERNAME: z.string().optional(),
   CREDITSAFE_PASSWORD: z.string().optional(),
-  ATERBANKEN_DISPOSAL_COST_SEK_PER_KG: z.coerce
-    .number()
-    .nonnegative()
-    .default(0),
 });
 export type EnvironmentVariables = z.infer<typeof envSchema>;
 
