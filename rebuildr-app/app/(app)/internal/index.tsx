@@ -8,6 +8,8 @@ import {
   InternalAdsDashboardCsvQuery,
   InternalAdsDashboardCsvQueryVariables,
   InternalAdsDashboardInput,
+  InternalAdsDashboardQuery,
+  InternalAdsDashboardQueryVariables,
   InternalAdsHomeQuery,
   InternalAdsHomeQueryVariables,
   ProductAvailabilityEnum,
@@ -20,6 +22,7 @@ import {
   CREATE_INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_ADS_DASHBOARD_CSV,
+  INTERNAL_ADS_DASHBOARD_QUERY,
   INTERNAL_ADS_HOME_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
@@ -68,7 +71,7 @@ import { downloadCsv } from "@/utils/download-csv";
 import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   ImageBackground,
@@ -133,6 +136,10 @@ export default function InternalAdsPage() {
   const [publishRequested, setPublishRequested] = useState(false);
   const [dashboardPreset, setDashboardPreset] =
     useState<InternalDashboardPreset>("YEAR");
+  const [displayedDashboardPreset, setDisplayedDashboardPreset] =
+    useState<InternalDashboardPreset>("YEAR");
+  const [displayedDashboard, setDisplayedDashboard] =
+    useState<InternalAdsDashboardQuery["internalAdsDashboard"]>();
   const [dashboardDownloadError, setDashboardDownloadError] =
     useState<string>();
   const [importMemberId, setImportMemberId] = useState<string>();
@@ -142,18 +149,37 @@ export default function InternalAdsPage() {
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
-  const dashboardInput = getDashboardInput(dashboardPreset);
+  const dashboardInput = useMemo(
+    () => getDashboardInput(dashboardPreset),
+    [dashboardPreset],
+  );
 
   const { data, loading, refetch } = useQuery<
     InternalAdsHomeData,
     InternalAdsHomeQueryVariables
   >(INTERNAL_ADS_HOME_QUERY, {
-    variables: {
-      limit: SECTION_PAGE_SIZE,
-      dashboardInput,
-    },
+    variables: { limit: SECTION_PAGE_SIZE },
     fetchPolicy: "cache-and-network",
   });
+  const { data: dashboardData, refetch: refetchDashboard } = useQuery<
+    InternalAdsDashboardQuery,
+    InternalAdsDashboardQueryVariables
+  >(INTERNAL_ADS_DASHBOARD_QUERY, {
+    variables: { input: dashboardInput },
+    fetchPolicy: "cache-and-network",
+  });
+
+  useEffect(() => {
+    const dashboard = dashboardData?.internalAdsDashboard;
+    if (
+      !dashboard ||
+      dashboard.from !== (dashboardInput.from ?? null) ||
+      dashboard.to !== (dashboardInput.to ?? null)
+    )
+      return;
+    setDisplayedDashboard(dashboard);
+    setDisplayedDashboardPreset(dashboardPreset);
+  }, [dashboardData, dashboardInput, dashboardPreset]);
 
   const [loadDashboardCsv, { loading: downloadingDashboard }] = useLazyQuery<
     InternalAdsDashboardCsvQuery,
@@ -403,7 +429,7 @@ export default function InternalAdsPage() {
       if (!productIds.length) return;
       const hasRemainingDrafts = productIds.length < products.length;
       await publishImported({ variables: { productIds } });
-      await Promise.all([refetch(), refetchBatch()]);
+      await Promise.all([refetch(), refetchDashboard(), refetchBatch()]);
       if (!hasRemainingDrafts) {
         setPollBatch(false);
         setActiveBatchId(undefined);
@@ -571,11 +597,12 @@ export default function InternalAdsPage() {
             width: "100%",
           }}
         >
-          {hasAccess && data?.internalAdsDashboard && (
+          {hasAccess && displayedDashboard && (
             <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
               <InternalStatisticsSection
-                statistics={data.internalAdsDashboard}
-                preset={dashboardPreset}
+                statistics={displayedDashboard}
+                preset={displayedDashboardPreset}
+                selectedPreset={dashboardPreset}
                 onPresetChange={setDashboardPreset}
                 onDownload={onDownloadDashboard}
                 downloading={downloadingDashboard}

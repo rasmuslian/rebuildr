@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { View } from "react-native";
 
-import { InternalAdsHomeQuery } from "@/gql/graphql";
+import { InternalAdsDashboardQuery } from "@/gql/graphql";
 import { formatCO2, formatNumber, formatPrice } from "@/utils/formattings";
 import { Button } from "@components/buttons/button";
 import { SelectInput } from "@components/forms/selectInput";
@@ -14,8 +14,9 @@ import { useThemeColor } from "@hooks/useThemeColor";
 export type InternalDashboardPreset = "MONTH" | "QUARTER" | "YEAR" | "ALL";
 
 type Props = {
-  statistics: InternalAdsHomeQuery["internalAdsDashboard"];
+  statistics: InternalAdsDashboardQuery["internalAdsDashboard"];
   preset: InternalDashboardPreset;
+  selectedPreset: InternalDashboardPreset;
   onPresetChange: (preset: InternalDashboardPreset) => void;
   onDownload: () => void;
   downloading?: boolean;
@@ -134,6 +135,7 @@ const Divider = ({ color }: { color: string }) => (
 export const InternalStatisticsSection = ({
   statistics,
   preset,
+  selectedPreset,
   onPresetChange,
   onDownload,
   downloading,
@@ -195,7 +197,7 @@ export const InternalStatisticsSection = ({
         >
           <View style={{ flex: isDesktop ? undefined : 1, width: 150 }}>
             <SelectInput
-              value={preset}
+              value={selectedPreset}
               options={PRESET_OPTIONS}
               onSelect={onPresetChange}
             />

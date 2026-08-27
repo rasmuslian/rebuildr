@@ -54,40 +54,12 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
 `;
 
 export const INTERNAL_ADS_HOME_QUERY = gql`
-  query InternalAdsHome(
-    $limit: Int
-    $dashboardInput: InternalAdsDashboardInput!
-  ) {
+  query InternalAdsHome($limit: Int) {
     internalAdsOrganizationContext {
       canReceivePayout
       organization {
         id
         name
-      }
-    }
-    internalAdsDashboard(input: $dashboardInput) {
-      from
-      to
-      climate {
-        realizedCo2
-        internalReuseCo2
-        externalSalesCo2
-        potentialCo2Savings
-        petrolCarKilometers
-      }
-      economic {
-        realizedValue
-        internalReuseValue
-        externalSalesNetValue
-        currentInventoryValue
-        avoidedDisposalCost
-      }
-      current {
-        totalAds
-        availableWeight
-        activeProjects
-        externallyPublishedAds
-        reservedArticles
       }
     }
     internalAdsCategories {
@@ -177,6 +149,36 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
         primaryImage {
           url
         }
+      }
+    }
+  }
+`;
+
+export const INTERNAL_ADS_DASHBOARD_QUERY = gql`
+  query InternalAdsDashboard($input: InternalAdsDashboardInput!) {
+    internalAdsDashboard(input: $input) {
+      from
+      to
+      climate {
+        realizedCo2
+        internalReuseCo2
+        externalSalesCo2
+        potentialCo2Savings
+        petrolCarKilometers
+      }
+      economic {
+        realizedValue
+        internalReuseValue
+        externalSalesNetValue
+        currentInventoryValue
+        avoidedDisposalCost
+      }
+      current {
+        totalAds
+        availableWeight
+        activeProjects
+        externallyPublishedAds
+        reservedArticles
       }
     }
   }

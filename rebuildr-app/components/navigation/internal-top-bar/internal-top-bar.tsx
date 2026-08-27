@@ -303,7 +303,7 @@ const InternalMenu = ({
       )}
       <View style={{ marginTop: 16 }}>
         <Button
-          label="Till externa marknadsplatsen"
+          label="Gå tillbaka till Rebuildr.se"
           type="outlined"
           onPress={() => {
             onClose();
