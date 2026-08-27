@@ -11,6 +11,7 @@ import {
   RootCategoriesVertical,
   RootCategoriesVerticalCategory,
 } from "@components/categories/root-categories-vertical";
+import { Divider } from "@components/dividers/divider";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Headline } from "@components/typography/text";
 import { permanentSection } from "@constants/permanent-sections";
@@ -89,76 +90,87 @@ export const HamburgerMenu = () => {
   const giveawayCategory = data?.rootCategories.find(
     (category) => category.categoryType === "GIVEAWAY",
   );
+  const entries: EntryProps[] = [
+    ...(internalAdsContextData?.internalAdsOrganizationContext
+      ? [{ title: "Återbanken", link: "/internal" as Href }]
+      : []),
+    {
+      title: permanentSection.newArrivals.title,
+      link: "/search/products/new-arrivals",
+      onPress: () =>
+        filterBuilder.reset().setOrdering(OrderProductsEnum.Latest).apply(),
+    },
+    ...(status?.granted
+      ? [
+          {
+            title: permanentSection.nearYou.title,
+            link: "/search/products/near-you" as Href,
+            onPress: () =>
+              filterBuilder
+                .reset()
+                .setOrdering(OrderProductsEnum.Distance)
+                .apply(),
+          },
+        ]
+      : []),
+    ...(giveawayCategory
+      ? [
+          {
+            title: giveawayCategory.name,
+            link: `/search/products/${giveawayCategory.id}` as Href,
+            onPress: () =>
+              router.navigate({
+                pathname: "/search/products/[categoryId]",
+                params: { categoryId: giveawayCategory.id },
+              }),
+          },
+        ]
+      : []),
+    ...(seasonalCategories.length > 0
+      ? [
+          {
+            title: permanentSection.forTheSeason.title,
+            link: "/search/in-season" as Href,
+            onPress: () => router.navigate("/search/in-season"),
+          },
+        ]
+      : []),
+    ...(trendingCategories.length > 0
+      ? [
+          {
+            title: permanentSection.trendingNow.title,
+            link: "/search/products/trending-now" as Href,
+            onPress: () =>
+              filterBuilder.reset().setCategories(trendingCategories).apply(),
+          },
+        ]
+      : []),
+    { title: "Företagsförsäljning", link: "/hubs" },
+    { title: "Så funkar det", link: "/article/saa-funkar-det" },
+    { title: "Återbyggaren", link: "/aterbyggaren" },
+  ];
 
   return (
     <SlideInSheet
       open={!!showHamburgerMenu}
       onClose={onClose}
       onBack={category ? () => setCategory(undefined) : undefined}
-      title={category ? category.name : "Kategorier"}
+      title={category ? category.name : "Meny"}
       style={{ gap: 24 }}
     >
       {!category && (
-        <View style={{ gap: 14 }}>
-          {internalAdsContextData?.internalAdsOrganizationContext && (
-            <Entry title="Återbanken" link="/internal" />
-          )}
-          <Entry
-            title={permanentSection.newArrivals.title}
-            link="/search/products/new-arrivals"
-            onPress={() =>
-              filterBuilder
-                .reset()
-                .setOrdering(OrderProductsEnum.Latest)
-                .apply()
-            }
-          />
-          {status?.granted && (
-            <Entry
-              title={permanentSection.nearYou.title}
-              link="/search/products/near-you"
-              onPress={() =>
-                filterBuilder
-                  .reset()
-                  .setOrdering(OrderProductsEnum.Distance)
-                  .apply()
-              }
-            />
-          )}
-          {giveawayCategory && (
-            <Entry
-              title={giveawayCategory.name}
-              link={`/search/products/${giveawayCategory.id}` as Href}
-              onPress={() =>
-                router.navigate({
-                  pathname: "/search/products/[categoryId]",
-                  params: { categoryId: giveawayCategory.id },
-                })
-              }
-            />
-          )}
-          {seasonalCategories.length > 0 && (
-            <Entry
-              title={permanentSection.forTheSeason.title}
-              link="/search/in-season"
-              onPress={() => router.navigate("/search/in-season")}
-            />
-          )}
-          {trendingCategories.length > 0 && (
-            <Entry
-              title={permanentSection.trendingNow.title}
-              link="/search/products/trending-now"
-              onPress={() =>
-                filterBuilder.reset().setCategories(trendingCategories).apply()
-              }
-            />
-          )}
-          <Entry title="Företagsförsäljning" link="/hubs" />
-          <Entry title="Så funkar det" link="/article/saa-funkar-det" />
-          <Entry title="Återbyggaren" link="/aterbyggaren" />
+        <View>
+          {entries.map((entry, index) => (
+            <View key={entry.title}>
+              <Entry {...entry} />
+              {index < entries.length - 1 && <Divider />}
+            </View>
+          ))}
         </View>
       )}
-      <View style={{ marginTop: isDesktop ? 48 : 24 }}>
+      <View style={{ marginTop: isDesktop ? 48 : 24, gap: 24 }}>
+        <Divider />
+        <Headline size="small">Kategorier</Headline>
         <RootCategoriesVertical onNavigate={isDesktop ? onClose : undefined} />
       </View>
     </SlideInSheet>
@@ -173,7 +185,7 @@ type EntryProps = {
 
 const Entry = ({ title, link, onPress }: EntryProps) => {
   return (
-    <View style={{ marginVertical: 6 }}>
+    <View style={{ paddingVertical: 10 }}>
       <Pressable onPress={onPress}>
         <Link href={link}>
           <Headline size="small">{title}</Headline>
