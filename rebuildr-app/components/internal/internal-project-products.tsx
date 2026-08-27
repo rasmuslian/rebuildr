@@ -73,7 +73,7 @@ export const InternalProjectProducts = ({ projectId }: Props) => {
 
   return (
     <View style={{ gap: 16 }}>
-      <Title size="medium">Annonser i projektet</Title>
+      {isDesktop && <Title size="medium">Annonser i projektet</Title>}
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Body size="medium" color="secondary">

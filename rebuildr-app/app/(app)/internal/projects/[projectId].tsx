@@ -107,7 +107,12 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
   if (!project) return null;
 
   return (
-    <InternalPageLayout contentMaxWidth={1590}>
+    <InternalPageLayout
+      contentMaxWidth={1590}
+      mobileFooterComponent={
+        <Button label="Redigera" onPress={() => setEditing(true)} />
+      }
+    >
       <View style={{ gap: 24 }}>
         <View style={{ gap: 24 }}>
           <Button
@@ -118,48 +123,95 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
             style={{ alignSelf: "flex-start" }}
           />
 
-          <View
-            style={
-              isDesktop
-                ? { flexDirection: "row", gap: 48, alignItems: "stretch" }
-                : { gap: 24 }
-            }
-          >
-            <View style={{ flex: 1, gap: 16 }}>
+          {isDesktop ? (
+            <View
+              style={{ flexDirection: "row", gap: 48, alignItems: "stretch" }}
+            >
+              <View style={{ flex: 1, gap: 16 }}>
+                {project.projectPicture?.url && (
+                  <Image
+                    source={{ uri: project.projectPicture.url }}
+                    style={{
+                      width: "100%",
+                      height: 240,
+                      borderRadius: borderRadius.medium,
+                    }}
+                    contentFit="cover"
+                  />
+                )}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 16,
+                  }}
+                >
+                  <Display size="small" heading={1} style={{ flex: 1 }}>
+                    {project.title}
+                  </Display>
+                  <Button
+                    accessibilityLabel="Redigera"
+                    icon="edit"
+                    type="text"
+                    onPress={() => setEditing(true)}
+                  />
+                </View>
+                {!!project.description && (
+                  <Body size="medium">{project.description}</Body>
+                )}
+                {!!project.address && (
+                  <View>
+                    <Label size="medium">Adress</Label>
+                    <Body size="medium">{project.address}</Body>
+                  </View>
+                )}
+              </View>
+
+              <Pressable style={{ flex: 1 }} onPress={() => setShowMap(true)}>
+                <MapThumbnail
+                  coords={[project.location.lat, project.location.lng]}
+                  markerType={MapPinTypeEnum.Project}
+                  style={{ height: 400 }}
+                />
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ gap: 24 }}>
               {project.projectPicture?.url && (
                 <Image
                   source={{ uri: project.projectPicture.url }}
                   style={{
                     width: "100%",
-                    height: isDesktop ? 240 : 220,
+                    height: 200,
                     borderRadius: borderRadius.medium,
                   }}
                   contentFit="cover"
                 />
               )}
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 16,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Display size="small" heading={1} style={{ flex: 1 }}>
-                  {project.title}
-                </Display>
-                <Button
-                  accessibilityLabel="Redigera"
-                  icon="edit"
-                  type="text"
-                  onPress={() => setEditing(true)}
+
+              <Display size="small" heading={1}>
+                {project.title}
+              </Display>
+
+              <Pressable onPress={() => setShowMap(true)}>
+                <MapThumbnail
+                  coords={[project.location.lat, project.location.lng]}
+                  markerType={MapPinTypeEnum.Project}
+                  cta={
+                    <Button
+                      label="Visa på karta"
+                      type="text"
+                      icon="map"
+                      style={{ backgroundColor: "white" }}
+                      onPress={() => setShowMap(true)}
+                    />
+                  }
                 />
-              </View>
+              </Pressable>
+
               {!!project.description && (
-                <Body size="large" color="secondary">
-                  {project.description}
-                </Body>
+                <Body size="medium">{project.description}</Body>
               )}
               {!!project.address && (
                 <View>
@@ -168,24 +220,7 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
                 </View>
               )}
             </View>
-
-            <Pressable style={{ flex: 1 }} onPress={() => setShowMap(true)}>
-              <MapThumbnail
-                coords={[project.location.lat, project.location.lng]}
-                markerType={MapPinTypeEnum.Project}
-                style={{ height: isDesktop ? 400 : 240 }}
-                cta={
-                  <Button
-                    label="Visa på karta"
-                    type="text"
-                    icon="map"
-                    style={{ backgroundColor: "white" }}
-                    onPress={() => setShowMap(true)}
-                  />
-                }
-              />
-            </Pressable>
-          </View>
+          )}
         </View>
 
         <Divider />
