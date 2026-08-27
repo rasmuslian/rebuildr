@@ -1,20 +1,20 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { makeVar, useMutation, useQuery } from "@apollo/client";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
-import { MapPinTypeEnum } from "@/gql/graphql";
+import { MapPinTypeEnum, OrderProductsEnum } from "@/gql/graphql";
 import {
   DELETE_INTERNAL_PROJECT,
   INTERNAL_PROJECT,
   SET_INTERNAL_PROJECT_PICTURE,
   UPDATE_INTERNAL_PROJECT,
 } from "@/queries/internal-projects";
-import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
 import { InternalPageLayout } from "@components/internal/internal-page-layout";
+import { InternalProjectProducts } from "@components/internal/internal-project-products";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Map from "@components/maps/map";
 import MapThumbnail from "@components/maps/map-thumbnail";
@@ -22,13 +22,55 @@ import { Popup } from "@components/popup/popup";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
+import { Filter, initialFilterProduct } from "@context/filter-product-context";
+import {
+  FilterProductScopeProvider,
+  OwnFilterScope,
+} from "@context/filter-product-scope-context";
 import { useImageHandler } from "@hooks/use-image-handler";
 import { useScreenType } from "@hooks/useScreenType";
 
 import { ProjectLocationPicker } from "../projects";
 
+const PROJECT_SORTING_OPTIONS = [
+  OrderProductsEnum.Latest,
+  OrderProductsEnum.Oldest,
+  OrderProductsEnum.PriceDesc,
+  OrderProductsEnum.PriceAsc,
+];
+
 export default function InternalProjectPage() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
+  const scopeRef = useRef<
+    { projectId: string; scope: OwnFilterScope } | undefined
+  >(undefined);
+
+  if (scopeRef.current?.projectId !== projectId) {
+    const initialFilter: Filter = {
+      ...initialFilterProduct,
+      sorting: OrderProductsEnum.Latest,
+    };
+
+    scopeRef.current = {
+      projectId,
+      scope: {
+        filterVar: makeVar<Filter>(initialFilter),
+        initialFilter,
+        sortingOptions: PROJECT_SORTING_OPTIONS,
+        facetProjectId: projectId,
+        internalFacets: true,
+      },
+    };
+  }
+
+  return (
+    <FilterProductScopeProvider scope={scopeRef.current.scope}>
+      <InternalProjectContent projectId={projectId} />
+    </FilterProductScopeProvider>
+  );
+}
+
+function InternalProjectContent({ projectId }: { projectId: string }) {
   const { isDesktop } = useScreenType();
   const [editing, setEditing] = useState(false);
   const [showMap, setShowMap] = useState(false);
@@ -62,25 +104,6 @@ export default function InternalProjectPage() {
     );
   }
   if (!project) return null;
-
-  const products = project.products.map((product: any) => ({
-    id: product.id,
-    title: product.title,
-    imageUri: product.primaryImage?.url,
-    quantity: product.primaryQuantity,
-    quantityUnit: product.primaryUnit,
-    condition: product.condition,
-    price: product.price,
-    hidePrice: true,
-    soldByQuantity: product.soldByQuantity,
-    status: product.status,
-    heart: false,
-    onPress: () =>
-      router.navigate({
-        pathname: "/internal/[productId]",
-        params: { productId: product.id },
-      }),
-  }));
 
   return (
     <InternalPageLayout contentMaxWidth={1590}>
@@ -143,9 +166,6 @@ export default function InternalProjectPage() {
                   <Body size="medium">{project.address}</Body>
                 </View>
               )}
-              <Body size="medium" color="secondary">
-                {project.products.length} annonser
-              </Body>
             </View>
 
             <Pressable style={{ flex: 1 }} onPress={() => setShowMap(true)}>
@@ -167,17 +187,7 @@ export default function InternalProjectPage() {
           </View>
         </View>
 
-        {products.length ? (
-          <AdGridSection header="Annonser i projektet" products={products} />
-        ) : (
-          <View style={{ gap: 8, maxWidth: 560 }}>
-            <Headline size="small">Annonser i projektet</Headline>
-            <Body size="medium" color="secondary">
-              Projektet har inga annonser ännu. Välj projektet nästa gång du
-              skapar eller redigerar en annons.
-            </Body>
-          </View>
-        )}
+        <InternalProjectProducts projectId={projectId} />
       </View>
 
       <EditInternalProjectSheet

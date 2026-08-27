@@ -540,6 +540,64 @@ export class InternalAdsService {
     return { products, total };
   }
 
+  async internalProductFacets(currentUserId: string, input: ProductsInput) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const query = this.productRepository
+      .createQueryBuilder('p')
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL');
+
+    this.applyInternalProductFilters(query, {
+      projectId: input.projectId,
+      searchString: input.searchString,
+    });
+
+    const countBy = async (column: string) => {
+      const rows = await query
+        .clone()
+        .select(column, 'id')
+        .addSelect('COUNT(DISTINCT p.id)', 'count')
+        .andWhere(`${column} IS NOT NULL`)
+        .groupBy(column)
+        .getRawMany<{ id: string; count: string }>();
+
+      return rows.map((row) => ({ id: row.id, count: Number(row.count) }));
+    };
+
+    const rootCategories = await query
+      .clone()
+      .leftJoin('category', 'c', 'c.id = p."categoryId"')
+      .select('COALESCE(c."parentId", c.id)', 'id')
+      .addSelect('COUNT(DISTINCT p.id)', 'count')
+      .andWhere('c.id IS NOT NULL')
+      .groupBy('COALESCE(c."parentId", c.id)')
+      .getRawMany<{ id: string; count: string }>();
+
+    const [categories, brands, conditions] = await Promise.all([
+      countBy('p."categoryId"'),
+      countBy('p."brandId"'),
+      countBy('p.condition'),
+    ]);
+
+    return {
+      categories,
+      rootCategories: rootCategories.map((row) => ({
+        id: row.id,
+        count: Number(row.count),
+      })),
+      brands,
+      conditions,
+    };
+  }
+
   async internalAdsCategories(currentUserId: string) {
     const context = await this.getOrganizationContext(currentUserId);
     const categoryCounts = await this.productRepository
@@ -2050,6 +2108,11 @@ ${categoryList}
     query: SelectQueryBuilder<Product>,
     input: ProductsInput,
   ) {
+    if (input.projectId) {
+      query.andWhere('p."projectId" = :projectId', {
+        projectId: input.projectId,
+      });
+    }
     if (input.searchString) {
       query.andWhere(
         '(p.title ILIKE :search OR p.description ILIKE :search OR p."searchDocument" ILIKE :search)',

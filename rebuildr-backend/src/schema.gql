@@ -1404,6 +1404,7 @@ type Query {
   internalAdsDashboardXlsx(input: InternalAdsDashboardInput!): String!
   internalAdsCategories: [InternalAdsCategory!]!
   internalAds(input: ProductsInput!, limit: Int, offset: Int): PaginatedProductsResponse!
+  internalProductFacets(input: ProductsInput!): ProductFacetsResponse!
   relatedInternalAds(input: ProductsInput!, excludeProductIds: [ID!], limit: Int, offset: Int): PaginatedProductsResponse!
   internalAdMapPinGroups(input: MapPinGroupsInput!): MapPinGroupsResponse!
   internalAd(productId: String!): Product!

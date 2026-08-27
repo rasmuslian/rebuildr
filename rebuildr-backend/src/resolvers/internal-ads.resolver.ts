@@ -29,8 +29,9 @@ import { Project } from 'src/entities/project.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import {
-  ProductsInput,
   PaginatedProductsResponse,
+  ProductFacetsResponse,
+  ProductsInput,
 } from 'src/resolvers/product.resolver';
 import { InternalAdsService } from 'src/services/internal-ads.service';
 import { LocationInputType } from './geocoding.resolver';
@@ -382,6 +383,15 @@ export class InternalAdsResolver {
     @Args('offset', { nullable: true, type: () => Int }) offset?: number,
   ) {
     return this.internalAdsService.internalAds(user.id, input, limit, offset);
+  }
+
+  @Query(() => ProductFacetsResponse)
+  @UseGuards(GqlAuthGuard)
+  async internalProductFacets(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: ProductsInput,
+  ) {
+    return this.internalAdsService.internalProductFacets(user.id, input);
   }
 
   @Query(() => PaginatedProductsResponse)
