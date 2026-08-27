@@ -12,6 +12,7 @@ import {
   UPDATE_INTERNAL_PROJECT,
 } from "@/queries/internal-projects";
 import { Button } from "@components/buttons/button";
+import { Divider } from "@components/dividers/divider";
 import { TextInput } from "@components/forms/textInput";
 import { InternalPageLayout } from "@components/internal/internal-page-layout";
 import { InternalProjectProducts } from "@components/internal/internal-project-products";
@@ -20,7 +21,7 @@ import Map from "@components/maps/map";
 import MapThumbnail from "@components/maps/map-thumbnail";
 import { Popup } from "@components/popup/popup";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Body, Headline, Label } from "@components/typography/text";
+import { Body, Display, Headline, Label } from "@components/typography/text";
 import { borderRadius } from "@constants/sizes";
 import { Filter, initialFilterProduct } from "@context/filter-product-context";
 import {
@@ -107,7 +108,7 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
 
   return (
     <InternalPageLayout contentMaxWidth={1590}>
-      <View style={{ gap: isDesktop ? 48 : 32 }}>
+      <View style={{ gap: 24 }}>
         <View style={{ gap: 24 }}>
           <Button
             icon="arrowLeft"
@@ -145,13 +146,13 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
                   flexWrap: "wrap",
                 }}
               >
-                <Headline size="small" heading={1} style={{ flex: 1 }}>
+                <Display size="small" heading={1} style={{ flex: 1 }}>
                   {project.title}
-                </Headline>
+                </Display>
                 <Button
-                  label="Redigera"
+                  accessibilityLabel="Redigera"
                   icon="edit"
-                  type="outlined"
+                  type="text"
                   onPress={() => setEditing(true)}
                 />
               </View>
@@ -186,6 +187,8 @@ function InternalProjectContent({ projectId }: { projectId: string }) {
             </Pressable>
           </View>
         </View>
+
+        <Divider />
 
         <InternalProjectProducts projectId={projectId} />
       </View>

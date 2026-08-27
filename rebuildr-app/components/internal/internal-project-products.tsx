@@ -13,7 +13,7 @@ import { Badge } from "@components/badges/badge";
 import { Button } from "@components/buttons/button";
 import { FilterBottomSheet } from "@components/filter-product/filter-bottom-sheet";
 import { FilterSlideSheet } from "@components/filter-product/filter-slide-sheet";
-import { Body, Headline } from "@components/typography/text";
+import { Body, Title } from "@components/typography/text";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
 import { router } from "expo-router";
@@ -73,7 +73,7 @@ export const InternalProjectProducts = ({ projectId }: Props) => {
 
   return (
     <View style={{ gap: 16 }}>
-      <Headline size="small">Annonser i projektet</Headline>
+      <Title size="medium">Annonser i projektet</Title>
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Body size="medium" color="secondary">
