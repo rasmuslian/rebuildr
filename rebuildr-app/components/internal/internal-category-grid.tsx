@@ -3,6 +3,7 @@ import { initialFilterProduct } from "@context/filter-product-context";
 import { Avatar } from "@components/avatar/avatar";
 import { CarouselArrows } from "@components/carousel/carousel-arrows";
 import { useCarouselScroll } from "@components/carousel/use-carousel-scroll";
+import { Divider } from "@components/dividers/divider";
 import { SectionHeader } from "@components/sections/section-header";
 import { Label } from "@components/typography/text";
 import { useScreenType } from "@hooks/useScreenType";
@@ -10,13 +11,13 @@ import { router } from "expo-router";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 
 type Props = {
-  categories: Array<{
+  categories: {
     category: {
       id: string;
       name: string;
       image?: { url: string } | null;
     };
-  }>;
+  }[];
 };
 
 export function InternalCategoryGrid({ categories }: Props) {
@@ -79,6 +80,11 @@ export function InternalCategoryGrid({ categories }: Props) {
           onNext={() => scrollBy(1)}
         />
       </View>
+      {isDesktop && (
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+          <Divider />
+        </View>
+      )}
     </View>
   );
 }

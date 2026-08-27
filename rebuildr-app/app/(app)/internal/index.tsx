@@ -484,9 +484,9 @@ export default function InternalAdsPage() {
       <ImageBackground
         source={MainBackground}
         resizeMode="cover"
-        imageStyle={{ opacity: 0.28, tintColor: primitives.primary700 }}
+        imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
         style={{
-          backgroundColor: primitives.primary100,
+          backgroundColor: primitives.accent100,
           overflow: "hidden",
           width: "100%",
         }}
@@ -541,9 +541,6 @@ export default function InternalAdsPage() {
                   type="outlined"
                   theme="light"
                   onPress={() => setShowImport(true)}
-                  style={{
-                    backgroundColor: primitives.neutrals100,
-                  }}
                 />
               </View>
             </View>

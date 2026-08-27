@@ -32,10 +32,12 @@ const ReceiptMetric = ({
   label,
   value,
   description,
+  emphasized = false,
 }: {
   label?: string;
   value: string;
   description?: string;
+  emphasized?: boolean;
 }) => (
   <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
     {!!label && (
@@ -48,6 +50,12 @@ const ReceiptMetric = ({
       adjustsFontSizeToFit
       minimumFontScale={0.72}
       numberOfLines={1}
+      style={{
+        color: primitives.primary700,
+        fontSize: emphasized ? 32 : undefined,
+        fontWeight: emphasized ? 600 : undefined,
+        lineHeight: emphasized ? 40 : undefined,
+      }}
     >
       {value}
     </Title>
@@ -151,12 +159,22 @@ export const InternalStatisticsSection = ({
           flexDirection: isDesktop ? "row" : "column",
           justifyContent: "space-between",
           gap: 12,
+          position: "relative",
+          zIndex: 1000,
+          elevation: 30,
         }}
       >
         <Headline size="small" heading={2}>
           Ert återbruk i siffror
         </Headline>
-        <View style={{ flexDirection: "row", gap: 12 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 12,
+            position: "relative",
+            zIndex: 1000,
+          }}
+        >
           <View style={{ flex: isDesktop ? undefined : 1, width: 150 }}>
             <SelectInput
               value={preset}
@@ -195,6 +213,7 @@ export const InternalStatisticsSection = ({
           <ReceiptMetric
             label="Realiserad klimatnytta"
             value={co2(statistics.climate.realizedCo2)}
+            emphasized
           />
           <View
             style={{ flexDirection: isDesktop ? "row" : "column", gap: 18 }}
@@ -231,6 +250,7 @@ export const InternalStatisticsSection = ({
           <ReceiptMetric
             label="Realiserat värde"
             value={money(statistics.economic.realizedValue)}
+            emphasized
           />
           <View
             style={{ flexDirection: isDesktop ? "row" : "column", gap: 18 }}
@@ -270,8 +290,10 @@ export const InternalStatisticsSection = ({
       >
         <View
           style={{
+            alignItems: isDesktop ? "center" : undefined,
             borderBottomColor: primitives.neutrals300,
             borderBottomWidth: isDesktop ? 0 : 1,
+            justifyContent: isDesktop ? "center" : undefined,
             paddingBottom: isDesktop ? 0 : 12,
             paddingRight: isDesktop ? 24 : 0,
           }}
@@ -290,7 +312,9 @@ export const InternalStatisticsSection = ({
               paddingTop: isDesktop ? 0 : index === 0 ? 14 : 10,
             }}
           >
-            <Title size="large">{kpi.value}</Title>
+            <Title size="large" style={{ color: primitives.primary700 }}>
+              {kpi.value}
+            </Title>
             <Body size="small" color="secondary">
               {kpi.label}
             </Body>

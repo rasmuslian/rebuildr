@@ -6,7 +6,6 @@ import { Button } from "@components/buttons/button";
 import { SearchBar } from "@components/search/search-bar";
 import { Label } from "@components/typography/text";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { primitives } from "@constants/colors";
 import { isWeb, MAX_CONTENT_WIDTH, WEB_STICKY } from "@constants/layout";
 import { horizontalPadding } from "@constants/sizes";
 import { LoginModalContext } from "@context/loginModalContext";
@@ -166,10 +165,9 @@ const InternalTopBarDesktop = ({
             <Button
               label="Meny"
               icon="hamburger"
-              type="outlined"
+              type="tonal"
               theme="light"
               onPress={() => setMenuOpen(true)}
-              style={{ backgroundColor: primitives.neutrals100 }}
             />
             {showActions && (
               <Button label="Ny annons" onPress={createInternalAd} />
