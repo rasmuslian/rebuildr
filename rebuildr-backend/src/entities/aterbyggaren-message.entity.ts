@@ -14,6 +14,18 @@ export interface AterbyggarenDisplayedProduct {
   id: string;
   title: string;
   description?: string;
+  additionalInfo?: string;
+  primaryQuantity?: number;
+  primaryUnit?: string;
+  secondaryQuantity?: number;
+  secondaryUnit?: string;
+  height?: { value: number; unit: string };
+  width?: { value: number; unit: string };
+  length?: { value: number; unit: string };
+  weight?: { value: number; unit: string };
+  area?: string;
+  distanceKm?: number;
+  publishedAt?: Date;
   price: number;
   isGiveaway: boolean;
   condition: string;

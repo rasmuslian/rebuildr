@@ -29,7 +29,11 @@ import {
   AterbyggarenMessageStatus,
 } from 'src/entities/aterbyggaren-message.entity';
 import { File } from 'src/entities/file.entity';
-import { Product, ProductStatus } from 'src/entities/product.entity';
+import {
+  MeasurementUnitEnum,
+  Product,
+  ProductStatus,
+} from 'src/entities/product.entity';
 import {
   OrderProductsEnum,
   ProductsInput,
@@ -91,6 +95,7 @@ interface SendMessageInput {
   chatId?: string;
   message: string;
   guestId?: string;
+  location?: { lat: number; lng: number };
 }
 
 interface PrepareAttachmentsInput {
@@ -131,15 +136,37 @@ interface SearchPublicProductsInput {
   onlyGiveaways?: boolean;
 }
 
+interface SearchLocation {
+  lat: number;
+  lng: number;
+}
+
+interface ProductMeasurement {
+  unit: MeasurementUnitEnum;
+  value: number;
+}
+
 interface PublicProductSearchResult {
   id: string;
   title: string;
   description?: string;
+  additionalInfo?: string;
   price: number;
   isGiveaway: boolean;
   condition: Product['condition'];
   category?: string;
   brand?: string;
+  primaryQuantity?: number;
+  primaryUnit?: string;
+  secondaryQuantity?: number;
+  secondaryUnit?: string;
+  height?: ProductMeasurement;
+  width?: ProductMeasurement;
+  length?: ProductMeasurement;
+  weight?: ProductMeasurement;
+  area?: string;
+  distanceKm?: number;
+  publishedAt?: Date;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   likedByMe?: boolean | null;
@@ -160,6 +187,17 @@ Du är Återbyggaren, RebuildRs svenska AI-assistent för bygg, renovering, åte
 
 Svara alltid på svenska. Var praktisk, lugn, tydlig och konkret. Hjälp användaren att bryta ner projekt i steg, material, verktyg, risker och nästa rimliga beslut.
 
+RebuildR i korthet:
+- RebuildR är en svensk marknadsplats för att köpa, sälja och omfördela återbrukat byggmaterial, verktyg, överskott, returer och andra byggrelaterade produkter med fortsatt användningsvärde. Den används av privatpersoner, företag och organisationer.
+- Material kan hittas via smart sök och kartsök/Nära mig; annonser kan erbjuda avhämtning, PostNord-frakt eller säljarens utkörning. Aktuella alternativ och annonsdata avgör alltid vad som gäller. Bortskänkes visas både i sin vanliga kategori och samlat.
+- Det är gratis att skapa konto och publicera annonser; RebuildR tar 10 % provision vid genomförd försäljning. Säljaren ska svara köparen i plattformens chatt inom 24 timmar efter köp, annars avbryts köpet och köparen återbetalas. Efter godkänd affär går beloppet, efter provision, till Ditt saldo för valfri utbetalning till bankkonto. Båda parter lämnar omdöme efter affären.
+- Handel sker mellan konton; BankID används för verifiering inför affärer och Stripe Connect hanterar betalning och utbetalning. Vid väsentlig avvikelse från annonsen omfattar köparskyddet normalt 24 timmar efter fysisk överlämning och 48 timmar efter frakt. RebuildR pausar då betalningen och granskar underlag. Dessa tidsfrister begränsar inte tvingande konsumenträtt.
+- Företag kontrolleras mot Creditsafe och företrädaren verifieras med BankID; konton med tydliga riskindikatorer kan granskas manuellt. Företag kan ha egen säljyta och använda Återbanken®: en intern marknadsplats för att inventera, söka, reservera och flytta eget material mellan projekt innan överskott publiceras externt.
+- Projekt samlar relaterade annonser från exempelvis en renovering, rivning eller lagerutrensning och återanvänder plats och grunduppgifter. RebuildR-hubbar är fysiska noder som kan ta emot, inventera, annonsera, lagra och lämna ut material.
+- Tillåtna annonser gäller faktiska, byggrelaterade varor som säljaren har och som beskrivs sanningsenligt med bilder av objektet. Tjänster, farliga eller olagliga varor, vilseledande annonser och att föra affären utanför plattformen är inte tillåtet. Företag som säljer på distans till konsumenter ska erbjuda 14 dagars ångerrätt; privatköp omfattas inte av den regeln.
+- Efter en slutförd affär visar Klimatkvittot separata uppskattningar: köparen undviken nyproduktion (A1–A3) och säljaren undviken deponi/avfallshantering (C2–C4). Beräkningen använder materialtyp, vikt, EN 15978, Boverkets klimatdatabas och relevanta IVL-underlag. Det är avoided emissions, inte formell Scope 1–3-redovisning eller en verifierad EPD.
+- För konto-, betalnings-, tvist- eller regelärenden som du inte säkert kan reda ut: hänvisa till support@rebuildr.org. Partnerskap och hubbar: partner@rebuildr.org.
+
 Viktiga gränser:
 - Uppmana användaren att anlita eller rådfråga behörig fackperson vid el, VVS, bärande konstruktioner, taksäkerhet, brandskydd, asbest, mögel, farliga material, tillstånd och arbeten där fel kan orsaka personskada eller stora skador.
 - Gissa inte om lagkrav eller dimensionering. Säg när något behöver kontrolleras lokalt eller av sakkunnig.
@@ -167,31 +205,35 @@ Viktiga gränser:
 - Du får bara använda verktyg för att läsa publikt synliga produktannonser.
 
 Nytt arbetsflöde för projektfrågor:
-- Innan du skapar en Materiallista måste du föra en kort projektdialog. Sammanfatta först din förståelse av projektet och be användaren bekräfta den. Fråga också efter de uppgifter som saknas för en användbar lista, till exempel omfattning, mått, utförande och förutsättningar. Skapa aldrig en Materiallista eller taggen <rebuildr-material-list> i samma svar som den första projektbeskrivningen, även om användaren har lämnat mått.
-- Skapa Materiallistan först efter att användaren uttryckligen har bekräftat projektsammanfattningen. Gissa rimliga standardmått och mängder endast om användaren då godkänner ett första utkast eller saknade uppgifter fortfarande är oväsentliga; säg i så fall att listan är ett första utkast.
+- Extrahera alltid det användaren redan har uppgett. Ställ högst två frågor per tur, och bara när svaret väsentligt ändrar materiallistan eller behövs för säkerheten.
+- När underlaget räcker, skapa Materiallistan direkt — även i första svaret. Gör annars ett första utkast med tydliga antaganden och synligt spillpåslag. Ställ aldrig en separat bekräftelsefråga; materiallistan är underlaget användaren kan ändra.
+- Tolka aldrig otydliga mått tyst. Fråga till exempel vad "en sten bred" betyder när det avgör mängden.
+- Orden "sök", "visa", "hitta" och frågor om tillgänglighet betyder att du ska söka i samma tur. "Ge mig listan" betyder att du ska skapa listan i samma tur.
 - Efter materiallistan ska du lägga en egen rad med exakt format <rebuildr-material-list title="Rubrik" items="Etikett::sökfras::mängd::enhet::nyprisSek::återbruksprisSek::nyCo2eKg::återbruksCo2eKg|Etikett::sökfras::mängd::enhet::nyprisSek::återbruksprisSek::nyCo2eKg::återbruksCo2eKg" />.
 - Varje materialrad måste ha alla åtta fält i ordningen ovan. Mängd, priser och CO2e ska vara icke-negativa tal med punkt som decimalavskiljare. Enhet är exempelvis m2, m eller st. Etikett och sökfras får inte innehålla tecknen | eller ::.
 - Beräkna nypris och återbrukspris som rimliga svenska planeringsuppskattningar för den angivna mängden. Beräkna nyCo2eKg och återbruksCo2eKg enligt Klimatkvittots A1-A3-metodik; klimatbesparingen är nyCo2eKg minus återbruksCo2eKg. Siffrorna är uppskattningar, inte offerter eller verifierade EPD:er.
+- Håll löptexten under cirka 120 ord utöver komponenter, men avsluta alltid svaret naturligt och komplett. Svara först och lägg korta förbehåll sist. Inled inte rutinmässigt med utrop, "Absolut" eller "Vad roligt". Skriv aldrig om att du söker just nu; verktyget och resultatkorten visar sökningen.
 - Exempel: <rebuildr-material-list title="Klassisk altan med trall" items="Trall 28 mm::trall 28 mm::30::m2::13500::6750::510::45|Trallskruv::trallskruv::300::st::900::450::12::1" />.
 - Skriv inte att du redan har sökt RebuildR i detta första steg. UI:t låter användaren välja vilka material som ska sökas efteråt.
 
 Marknadsplatser:
 - Nämn, rekommendera eller hänvisa inte till externa marknadsplatser eller konkurrenter. Håll i stället råd om att hitta material till RebuildR. Om användaren frågar om en extern tjänst, besvara sakfrågan utan att upprepa eller rekommendera tjänstens namn.
 
-När användaren uttryckligen ber dig söka, hitta, kontrollera tillgänglighet eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Det gäller även uppföljningar som börjar med "Sök på RebuildR efter dessa material från materiallistan". Vid flera materialtyper: sök separat för varje relevant typ.
+När användaren uttryckligen ber dig söka, hitta, kontrollera tillgänglighet eller frågar om RebuildR har en viss produkt, måste du anropa searchPublicProducts innan du svarar om tillgänglighet. Vid flera materialtyper: sök separat för varje relevant typ. Använd kategori och högst två kärnord i sökfrasen; lägg aldrig mått, färg, hängning eller antal i fritextsökningen.
+
+Annonsuppgifter:
+- Uppge antal, mått, område, avstånd, pris och leveranssätt endast när de finns i verktygssvaret. Om ett fält saknas, skriv "annonsen anger inte …". Gissa aldrig annonsuppgifter.
+- Visa aldrig produkt-id:n eller råa komponenttaggar i löptext. Produktkortet visar verifierade annonsdata.
+- När användaren tydligt väljer en tidigare visad annons ska du anropa getPublicProduct innan du ger annonsanknutna råd.
 
 Visa searchPublicProducts oavsett om den returnerar produkter eller inte (om den är tom sätter vi empty="true" och så visas det snyggt i en komponent för användaren) och du vill visa en eller flera av dem som riktiga produktkort, skriv en egen rad med exakt format <rebuildr-products ids="id1,id2,id3" />, eller <rebuildr-products ids="" empty="true" />. Använd bara id:n som verktyget nyss returnerade. Välj bara de mest relevanta produkterna, och visa gärna en enda produkt om bara en träff är riktigt bra. Skriv inte produktkortet själv i text.
-Eftersom vi har komponenter som visar produkter och "Inga träffar" snyggt, skriv inte i stil med "Resultat för:" relaterat till varje sökning utan ha endast en rubrik för vad som sökts på, sen komponenten under. Men du bör såklart summera överlag och guidea användaren.
-Det optimala är i stil med (under är ett exempel på hur du stilistiskt kan skriva):
-"Trall (tryckimpregnerat)
-<rebuildr-products ids="id1,id2,id3" />
+Vid en sökfråga ska du anropa sökverktyget innan du skriver någon användarsynlig text. Efter verktygssvaret får du skriva högst en kort introduktionsmening före produktkortet, och ingen löptext som beskriver enskilda annonser efter kortet. Skriv aldrig samma introduktion två gånger.
 
-Trallskruv (rostfri A2)
-<rebuildr-products ids="" empty="true" />
+Produktkorten visar titel och annonsuppgifter. Upprepa därför aldrig en produkttitel, annonsrubrik, annonsbeskrivning, skick eller åtgärdsråd från en enskild annons i löptexten före eller efter ett produktkort. Skriv inte "Söker nu", "Resultat för", "Här är två fönster" eller separata rubriker per annons. Vid en enda sökning räcker en kort introduktion följd direkt av komponenten. Vid flera materialslag får du använda en kort materialrubrik direkt före respektive komponent.
 
-Stolpar (90 mm tryckimpregnerat)
-<rebuildr-products ids="id4,id5" />
-"
+Beskriv aldrig verktygsanrop, sökfel, tekniska begränsningar, omförsök eller ändrad sökstrategi för användaren. Skriv alltså inte att du "inte kunde hämta", "försöker igen", har sänkt antal eller att sökningen misslyckades. Om en sökning saknar träffar, visa bara komponenten för inga resultat och erbjud sedan ett kort nästa steg. Om den har träffar, presentera resultaten direkt utan processbeskrivning.
+
+När verktygssvaret innehåller distanceKm har sökningen använt användarens plats. Säg då aldrig att du inte kan filtrera på användarens plats; säg i stället kort att avstånd visas på korten. När distanceKm saknas, påstå inte att sökningen är platsbaserad.
 
 Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det gör svaret mer lättläst.`;
 
@@ -301,6 +343,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       return;
     }
     const attachments = await this.getStreamAttachments(attachmentRefs.items);
+    const searchLocation = this.normalizeSearchLocation(input.location);
 
     const { chat, created } = await this.getOrCreateChat({
       chatId: input.chatId,
@@ -397,6 +440,7 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
               const products = await this.safeSearchPublicProducts(
                 toolInput as SearchPublicProductsInput,
                 owner.user?.id,
+                searchLocation,
               );
               products.forEach((product) => {
                 searchableProductsById.set(product.id, product);
@@ -404,6 +448,21 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
               productDisplays.push({ type: 'products', products });
               this.writeEvent(response, 'productDisplays', productDisplays);
               return products;
+            },
+          }),
+          getPublicProduct: tool({
+            description:
+              'Hämta fullständiga publika uppgifter för en annons som redan har visats i denna chatt. Använd när användaren väljer en annons för kontroll inför köp.',
+            inputSchema: z.object({ id: z.string().uuid() }),
+            execute: async ({ id }) => {
+              if (!searchableProductsById.has(id)) return null;
+              const product = await this.getPublicProduct(
+                id,
+                owner.user?.id,
+                searchLocation,
+              );
+              if (product) searchableProductsById.set(product.id, product);
+              return product;
             },
           }),
         },
@@ -493,6 +552,21 @@ Formatera gärna med Markdown, korta rubriker, punktlistor och tabeller när det
       await titleGeneration;
       request.off('close', abortStream);
     }
+  }
+
+  private normalizeSearchLocation(location?: SearchLocation) {
+    if (!location) return undefined;
+    if (
+      !Number.isFinite(location.lat) ||
+      !Number.isFinite(location.lng) ||
+      location.lat < -90 ||
+      location.lat > 90 ||
+      location.lng < -180 ||
+      location.lng > 180
+    ) {
+      return undefined;
+    }
+    return location;
   }
 
   private async getOrCreateChat({
@@ -875,9 +949,10 @@ ${userMessage}
   private async safeSearchPublicProducts(
     input: SearchPublicProductsInput,
     userId?: string,
+    location?: SearchLocation,
   ) {
     try {
-      return await this.searchPublicProducts(input, userId);
+      return await this.searchPublicProducts(input, userId, location);
     } catch (error) {
       this.logger.warn(
         `Aterbyggaren product search failed for query "${input.query}"`,
@@ -890,6 +965,7 @@ ${userMessage}
   private async searchPublicProducts(
     input: SearchPublicProductsInput,
     userId?: string,
+    location?: SearchLocation,
   ): Promise<PublicProductSearchResult[]> {
     const searchString = input.query.trim();
     if (!searchString) return [];
@@ -901,6 +977,7 @@ ${userMessage}
       onlyPublished: true,
       maxPrice: input.maxPrice,
       giveaway: input.onlyGiveaways ? true : undefined,
+      location,
     };
     const exactProductsResult = await this.productService.findAll(
       productsInput,
@@ -930,28 +1007,13 @@ ${userMessage}
     );
 
     return Promise.all(
-      productsWithRelations.map(async (product) => {
-        const primaryImage = product.images?.[0];
-        const imageUrl = primaryImage
-          ? await this.getPublicProductImageUrl(primaryImage)
-          : undefined;
-
-        return {
-          id: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price / 100,
-          isGiveaway: product.isGiveaway,
-          condition: product.condition,
-          category: product.category?.name,
-          brand: product.brand?.name,
-          pickupEnabled: product.pickupEnabled,
-          deliveryEnabled: product.deliveryEnabled,
-          likedByMe: likedProductIds?.has(product.id) ?? null,
-          url: `/product/${product.id}`,
-          imageUrl,
-        };
-      }),
+      productsWithRelations.map((product) =>
+        this.toPublicProductSearchResult(
+          product,
+          likedProductIds?.has(product.id) ?? null,
+          location,
+        ),
+      ),
     );
   }
 
@@ -966,7 +1028,13 @@ ${userMessage}
         hiddenReason: IsNull(),
         deletedAt: IsNull(),
       },
-      relations: { images: true, category: true, brand: true },
+      relations: {
+        images: true,
+        category: true,
+        brand: true,
+        mapPin: true,
+        project: { mapPin: true },
+      },
     });
     const productsById = new Map(
       productsWithRelations.map((product) => [product.id, product]),
@@ -975,6 +1043,89 @@ ${userMessage}
     return products
       .map((product) => productsById.get(product.id))
       .filter((product): product is Product => !!product);
+  }
+
+  private async getPublicProduct(
+    id: string,
+    userId?: string,
+    location?: SearchLocation,
+  ): Promise<PublicProductSearchResult | null> {
+    const products = await this.loadPublicProductRelations([{ id } as Product]);
+    const product = products[0];
+    if (!product) return null;
+    const likedProductIds = await this.getLikedProductIds([id], userId);
+    return this.toPublicProductSearchResult(
+      product,
+      likedProductIds?.has(id) ?? null,
+      location,
+    );
+  }
+
+  private async toPublicProductSearchResult(
+    product: Product,
+    likedByMe: boolean | null,
+    location?: SearchLocation,
+  ): Promise<PublicProductSearchResult> {
+    const primaryImage = product.images?.[0];
+    const imageUrl = primaryImage
+      ? await this.getPublicProductImageUrl(primaryImage)
+      : undefined;
+    const mapPin = product.mapPin ?? product.project?.mapPin;
+    const pinLocation = mapPin?.location?.coordinates;
+    const distanceKm =
+      location && pinLocation
+        ? Math.round(
+            this.distanceKm(location, {
+              lat: pinLocation[0],
+              lng: pinLocation[1],
+            }) * 10,
+          ) / 10
+        : undefined;
+    const measurement = (
+      value: number | undefined,
+      unit: MeasurementUnitEnum,
+    ): ProductMeasurement | undefined =>
+      value === undefined ? undefined : { value, unit };
+
+    return {
+      id: product.id,
+      title: product.title,
+      description: product.description,
+      additionalInfo: product.additionalInfo,
+      price: product.price / 100,
+      isGiveaway: product.isGiveaway,
+      condition: product.condition,
+      category: product.category?.name,
+      brand: product.brand?.name,
+      primaryQuantity: product.primaryQuantity,
+      primaryUnit: product.primaryUnit,
+      secondaryQuantity: product.secondaryQuantity,
+      secondaryUnit: product.secondaryUnit,
+      height: measurement(product.height, product.heightUnit),
+      width: measurement(product.width, product.widthUnit),
+      length: measurement(product.length, product.lengthUnit),
+      weight: measurement(product.weight, product.weightUnit),
+      area: mapPin?.address,
+      distanceKm,
+      publishedAt: product.publishedAt,
+      pickupEnabled: product.pickupEnabled,
+      deliveryEnabled: product.deliveryEnabled,
+      likedByMe,
+      url: `/product/${product.id}`,
+      imageUrl,
+    };
+  }
+
+  private distanceKm(first: SearchLocation, second: SearchLocation) {
+    const radians = (value: number) => (value * Math.PI) / 180;
+    const latitudeDelta = radians(second.lat - first.lat);
+    const longitudeDelta = radians(second.lng - first.lng);
+    const value =
+      Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(radians(first.lat)) *
+        Math.cos(radians(second.lat)) *
+        Math.sin(longitudeDelta / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
   }
 
   private async getLikedProductIds(productIds: string[], userId?: string) {

@@ -46,17 +46,13 @@ describe('AterbyggarenService', () => {
     } as unknown as Awaited<ReturnType<typeof generateText>>);
   });
 
-  it('requires project confirmation before creating a material list', () => {
+  it('creates a material-list draft without requiring a confirmation ritual', () => {
     const service = createService({ messages: [] });
     const systemPrompt = Reflect.get(service, 'systemPrompt') as string;
 
-    expect(systemPrompt).toContain('Innan du skapar en Materiallista');
-    expect(systemPrompt).toContain(
-      'Skapa aldrig en Materiallista eller taggen <rebuildr-material-list> i samma svar som den första projektbeskrivningen',
-    );
-    expect(systemPrompt).toContain(
-      'Skapa Materiallistan först efter att användaren uttryckligen har bekräftat projektsammanfattningen',
-    );
+    expect(systemPrompt).toContain('Ställ högst två frågor per tur');
+    expect(systemPrompt).toContain('skapa Materiallistan direkt');
+    expect(systemPrompt).toContain('Ställ aldrig en separat bekräftelsefråga');
     expect(systemPrompt).toContain('nyprisSek::återbruksprisSek');
     expect(systemPrompt).toContain('Klimatkvittots A1-A3-metodik');
   });
@@ -212,10 +208,7 @@ describe('AterbyggarenService', () => {
     const extractProductDisplays = Reflect.get(
       service,
       'extractProductDisplays',
-    ) as (
-      content: string,
-      products: Map<string, unknown>,
-    ) => unknown[];
+    ) as (content: string, products: Map<string, unknown>) => unknown[];
     const product = createProduct({ id: 'product-trall' });
     const content = [
       '<rebuildr-products ids="product-trall" />',
@@ -322,7 +315,13 @@ describe('AterbyggarenService', () => {
     );
     expect(productRepository.find).toHaveBeenCalledWith(
       expect.objectContaining({
-        relations: { images: true, category: true, brand: true },
+        relations: {
+          images: true,
+          category: true,
+          brand: true,
+          mapPin: true,
+          project: { mapPin: true },
+        },
         where: expect.objectContaining({ status: ProductStatus.PUBLISHED }),
       }),
     );
