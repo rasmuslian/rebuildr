@@ -124,6 +124,7 @@ describe('InternalAdsService.internalAdsDashboard', () => {
   it('uses a half-open timestamp range for the selected calendar days', async () => {
     const service = createDashboardService();
     const range = resolveRange('2026-03-01', '2026-03-31');
+    if (!range) throw new Error('Expected a valid date range');
 
     await service.internalAdsDashboard('user-a', {
       from: '2026-03-01',
@@ -138,7 +139,7 @@ describe('InternalAdsService.internalAdsDashboard', () => {
     expect(reservationRepository.find).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          soldAt: And(MoreThanOrEqual(range!.start), LessThan(range!.end)),
+          soldAt: And(MoreThanOrEqual(range.start), LessThan(range.end)),
         }),
       }),
     );

@@ -31,7 +31,7 @@ import {
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
 import { Purchase } from 'src/entities/purchase.entity';
-import { User, UserType } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import {
   BadFieldsInputException,
   BadUserInputException,
@@ -74,7 +74,7 @@ const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
 const PETROL_CAR_CO2_KG_PER_KM = 0.125;
 
-type InternalDashboardSourceRow = {
+export interface InternalDashboardSourceRow {
   type: 'INTERNAL_REUSE' | 'EXTERNAL_SALE';
   eventId: string;
   productId: string;
@@ -88,7 +88,7 @@ type InternalDashboardSourceRow = {
   grossValueOre: number;
   netValueOre: number;
   calculationBasis: 'SNAPSHOT' | 'CURRENT_PRODUCT_FALLBACK';
-};
+}
 const BULK_IMPORT_RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -499,8 +499,10 @@ export class InternalAdsService {
     organizationMemberId: string,
   ) {
     const product = await this.internalAd(currentUserId, productId);
+    const organizationId = product.internalOrganizationId;
+    if (!organizationId) throw NotFoundException('Internal ad not found');
     const member = await this.findOrganizationMember(
-      product.internalOrganizationId!,
+      organizationId,
       organizationMemberId,
     );
     product.createdByOrganizationMemberId = member.id;
@@ -798,8 +800,12 @@ export class InternalAdsService {
         }),
       ]);
 
-    const internalRows: InternalDashboardSourceRow[] = internalSales.map(
-      (reservation) => {
+    const internalRows: InternalDashboardSourceRow[] = internalSales
+      .filter(
+        (reservation): reservation is typeof reservation & { soldAt: Date } =>
+          !!reservation.soldAt,
+      )
+      .map((reservation) => {
         const fallback = allocateProductReportingValues(
           reservation.product,
           reservation.quantity,
@@ -822,7 +828,7 @@ export class InternalAdsService {
           productId: reservation.product.id,
           productTitle: reservation.product.title,
           internalReferenceNumber: reservation.product.internalReferenceNumber,
-          occurredAt: reservation.soldAt!,
+          occurredAt: reservation.soldAt,
           quantity: reservation.product.soldByQuantity
             ? reservation.quantity ?? 0
             : 1,
@@ -836,10 +842,13 @@ export class InternalAdsService {
             ? 'CURRENT_PRODUCT_FALLBACK'
             : 'SNAPSHOT',
         };
-      },
-    );
-    const externalRows: InternalDashboardSourceRow[] = externalSales.map(
-      (purchase) => {
+      });
+    const externalRows: InternalDashboardSourceRow[] = externalSales
+      .filter(
+        (purchase): purchase is typeof purchase & { paymentAcceptedAt: Date } =>
+          !!purchase.paymentAcceptedAt,
+      )
+      .map((purchase) => {
         const fallback = allocateProductReportingValues(
           purchase.product,
           purchase.purchasedQuantity,
@@ -863,7 +872,7 @@ export class InternalAdsService {
           productId: purchase.product.id,
           productTitle: purchase.product.title,
           internalReferenceNumber: purchase.product.internalReferenceNumber,
-          occurredAt: purchase.paymentAcceptedAt!,
+          occurredAt: purchase.paymentAcceptedAt,
           quantity,
           weight: purchase.weightAtPurchase ?? fallback.weight,
           buyerCo2: 0,
@@ -875,8 +884,7 @@ export class InternalAdsService {
             ? 'CURRENT_PRODUCT_FALLBACK'
             : 'SNAPSHOT',
         };
-      },
-    );
+      });
     const currentValues = currentProducts.map((product) => ({
       product,
       values: allocateProductReportingValues(product, product.primaryQuantity),
@@ -1531,8 +1539,11 @@ export class InternalAdsService {
       currentUserId,
       input.productId,
     );
+    const organizationId = accessibleProduct.internalOrganizationId;
+    if (!organizationId)
+      throw BadUserInputException('Product is not available');
     const member = await this.findOrganizationMember(
-      accessibleProduct.internalOrganizationId!,
+      organizationId,
       input.organizationMemberId,
     );
     const reservation = await this.dataSource.transaction(async (manager) => {
