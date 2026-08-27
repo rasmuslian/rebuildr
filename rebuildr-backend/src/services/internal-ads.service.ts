@@ -6,12 +6,11 @@ import {
 } from '@google/genai';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
+import { Workbook, Worksheet } from 'exceljs';
 import * as XLSX from 'xlsx';
-import * as crypto from 'crypto';
 import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
-import { maximumProductPrice } from 'src/constants/pricing';
+import { maximumProductPrice, provisionBase } from 'src/constants/pricing';
 import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import {
@@ -19,25 +18,20 @@ import {
   InternalAdImportBatchStatus,
 } from 'src/entities/internal-ad-import-batch.entity';
 import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
-import {
-  OrganizationInvite,
-  OrganizationInviteStatus,
-} from 'src/entities/organization-invite.entity';
-import {
-  OrganizationMemberRole,
-  OrganizationMembership,
-} from 'src/entities/organization-membership.entity';
+import { OrganizationMember } from 'src/entities/organization-member.entity';
 import {
   ColorTypeEnum,
   MeasurementUnitEnum,
   Product,
+  ProductAvailabilityEnum,
   ProductConditionEnum,
   ProductStatus,
   ProductVisibility,
 } from 'src/entities/product.entity';
 import { MapPin, MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { Project } from 'src/entities/project.entity';
-import { User, UserType } from 'src/entities/user.entity';
+import { Purchase } from 'src/entities/purchase.entity';
+import { User } from 'src/entities/user.entity';
 import {
   BadFieldsInputException,
   BadUserInputException,
@@ -45,6 +39,7 @@ import {
   NotFoundException,
 } from 'src/exceptions';
 import { FileInputType } from 'src/resolvers/file.resolver';
+import { LocationInputType } from 'src/resolvers/geocoding.resolver';
 import { MapPinGroupsInput } from 'src/resolvers/map-pin.resolver';
 import {
   OrderProductsEnum,
@@ -52,29 +47,97 @@ import {
 } from 'src/resolvers/product.resolver';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import {
+  And,
   DataSource,
   In,
   IsNull,
+  LessThan,
+  MoreThanOrEqual,
   Not,
+  Point,
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
 import { Logger } from 'winston';
+import { allocateProductReportingValues } from 'src/utils/aterbanken-reporting';
+import { resolveRange } from './statistics/statistics-shared';
 import { AIService } from './ai.service';
 import { BrandService } from './brand.service';
+import { CO2FactorService } from './co2-factor.service';
 import { FileService } from './file.service';
 import { GeocodingService } from './geocoding.service';
 import { MailService } from './mail.service';
 import { StripeService } from './stripe.service';
 
+const DISPOSAL_COST_SEK_PER_KG = 2.5;
 const GEMINI_TIMEOUT_MS = 120_000;
 const IMPORT_FILE_FETCH_TIMEOUT_MS = 20_000;
+const PETROL_CAR_CO2_KG_PER_KM = 0.125;
+
+export interface InternalDashboardSourceRow {
+  type: 'INTERNAL_REUSE' | 'EXTERNAL_SALE';
+  eventId: string;
+  productId: string;
+  productTitle: string;
+  internalReferenceNumber?: string | null;
+  occurredAt: Date;
+  quantity: number;
+  weight: number;
+  buyerCo2: number;
+  sellerCo2: number;
+  grossValueOre: number;
+  netValueOre: number;
+  calculationBasis: 'SNAPSHOT' | 'CURRENT_PRODUCT_FALLBACK';
+}
+const BULK_IMPORT_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    products: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          additionalInfo: { type: ['string', 'null'] },
+          internalReferenceNumber: { type: ['string', 'null'] },
+          brand: { type: 'string' },
+          categoryId: { type: ['string', 'null'] },
+          condition: { type: 'string' },
+          primaryQuantification: { type: 'string' },
+          secondaryQuantification: { type: ['string', 'null'] },
+          dimensions: {
+            type: 'object',
+            additionalProperties: { type: 'string' },
+          },
+          weight: {
+            type: 'number',
+            minimum: 0.1,
+            description: 'Total listing weight in kg, at least 0.1.',
+          },
+          color: { type: ['string', 'null'] },
+          sourceImageFileNames: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+          warnings: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        required: ['weight'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['products'],
+} as const;
 
 export interface OrganizationContext {
   organization: User;
-  role: OrganizationMemberRole;
-  isOrganizationAccount: boolean;
   canReceivePayout?: boolean;
+  role?: string;
+  isOrganizationAccount?: boolean;
 }
 
 interface ImportDraft {
@@ -109,10 +172,8 @@ export class InternalAdsService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(File)
     private fileRepository: Repository<File>,
-    @InjectRepository(OrganizationMembership)
-    private membershipRepository: Repository<OrganizationMembership>,
-    @InjectRepository(OrganizationInvite)
-    private inviteRepository: Repository<OrganizationInvite>,
+    @InjectRepository(OrganizationMember)
+    private organizationMemberRepository: Repository<OrganizationMember>,
     @InjectRepository(InternalAdReservation)
     private reservationRepository: Repository<InternalAdReservation>,
     @InjectRepository(InternalAdImportBatch)
@@ -120,6 +181,7 @@ export class InternalAdsService {
     private fileService: FileService,
     private aiService: AIService,
     private brandService: BrandService,
+    private co2FactorService: CO2FactorService,
     private geocodingService: GeocodingService,
     private mailService: MailService,
     private stripeService: StripeService,
@@ -127,57 +189,19 @@ export class InternalAdsService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  async getManagementOrganizationContext(
-    userId: string,
-  ): Promise<OrganizationContext> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (!user) {
-      throw BadUserInputException('Invalid user');
-    }
-
-    // internalAdsAccess identifies the organization/owner account. Some legacy
-    // organization accounts predate the BUSINESS type and must retain admin access.
-    if (user.internalAdsAccess) {
-      return {
-        organization: user,
-        role: OrganizationMemberRole.ADMIN,
-        isOrganizationAccount: true,
-      };
-    }
-
-    const membership = await this.membershipRepository.findOne({
-      where: {
-        userId,
-        organization: { internalAdsAccess: true },
-      },
-      relations: { organization: true },
-      order: { createdAt: 'ASC' },
-    });
-    if (!membership) {
+  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
+    const organization = await this.userRepository.findOneBy({ id: userId });
+    if (!organization) throw BadUserInputException('Invalid user');
+    if (!organization.internalAdsAccess) {
       throw ForbiddenException('No access to internal ads');
     }
-
-    return {
-      organization: membership.organization,
-      role: membership.role,
-      isOrganizationAccount: false,
-    };
-  }
-
-  async getOrganizationContext(userId: string): Promise<OrganizationContext> {
-    const context = await this.getManagementOrganizationContext(userId);
-    if (context.isOrganizationAccount) {
-      throw ForbiddenException(
-        'Log in as an organization member to use internal ads',
-      );
-    }
-    return context;
+    return { organization };
   }
 
   async getOptionalOrganizationContext(userId?: string) {
     if (!userId) return null;
     try {
-      const context = await this.getManagementOrganizationContext(userId);
+      const context = await this.getOrganizationContext(userId);
       return {
         ...context,
         canReceivePayout: await this.organizationCanReceivePayout(
@@ -211,269 +235,77 @@ export class InternalAdsService {
   }
 
   async members(currentUserId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    return this.membershipRepository.find({
+    const context = await this.getOrganizationContext(currentUserId);
+    return this.organizationMemberRepository.find({
       where: { organizationId: context.organization.id },
-      relations: { user: true },
       order: { createdAt: 'ASC' },
     });
   }
 
-  async invites(currentUserId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    return this.inviteRepository
-      .find({
-        where: {
-          organizationId: context.organization.id,
-          status: OrganizationInviteStatus.PENDING,
-        },
-        relations: { invitedByUser: true },
-        order: { createdAt: 'DESC' },
-      })
-      .then((invites) =>
-        invites.filter((invite) => invite.expiresAt > new Date()),
-      );
-  }
-
-  async organizationInvite(token: string) {
-    const invite = await this.findActiveInvite(token);
-    return {
-      organizationName:
-        invite.organization.name ?? invite.organization.username ?? 'RebuildR',
-      expiresAt: invite.expiresAt,
-    };
-  }
-
-  async inviteMember(
+  async createMember(
     currentUserId: string,
-    input: { email: string; role: OrganizationMemberRole },
+    input: { name: string; email: string },
   ) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const parsedEmail = z.string().email().safeParse(input.email);
-    if (!parsedEmail.success) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const name = input.name.trim();
+    const parsedEmail = z.string().email().safeParse(input.email.trim());
+    if (!name || !parsedEmail.success) {
       throw BadFieldsInputException([
-        { name: 'email', message: 'Ange en giltig e-postadress' },
+        ...(!name ? [{ name: 'name', message: 'Ange ett namn' }] : []),
+        ...(!parsedEmail.success
+          ? [{ name: 'email', message: 'Ange en giltig e-postadress' }]
+          : []),
       ]);
     }
-    const email = parsedEmail.data.toLowerCase().trim();
-    await this.assertInviteeCanJoin(context.organization.id, email);
-
-    const previous = await this.inviteRepository.findOneBy({
-      organizationId: context.organization.id,
-      email,
-      status: OrganizationInviteStatus.PENDING,
-    });
-    if (previous) previous.status = OrganizationInviteStatus.REVOKED;
-    if (previous) await this.inviteRepository.save(previous);
-    return this.createAndSendInvite(context, currentUserId, email, input.role);
-  }
-
-  async resendInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const invite = await this.inviteRepository.findOneBy({
-      id: inviteId,
-      organizationId: context.organization.id,
-      status: OrganizationInviteStatus.PENDING,
-    });
-    if (!invite || invite.expiresAt <= new Date())
-      throw NotFoundException('Invite not found');
-    invite.status = OrganizationInviteStatus.REVOKED;
-    await this.inviteRepository.save(invite);
-    return this.createAndSendInvite(
-      context,
-      currentUserId,
-      invite.email,
-      invite.role,
+    return this.organizationMemberRepository.save(
+      this.organizationMemberRepository.create({
+        organizationId: context.organization.id,
+        name,
+        email: parsedEmail.data.toLowerCase(),
+      }),
     );
   }
 
-  async revokeInvite(currentUserId: string, inviteId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    const invite = await this.inviteRepository.findOneBy({
-      id: inviteId,
-      organizationId: context.organization.id,
-      status: OrganizationInviteStatus.PENDING,
-    });
-    if (!invite) throw NotFoundException('Invite not found');
-    invite.status = OrganizationInviteStatus.REVOKED;
-    return this.inviteRepository.save(invite);
-  }
-
-  async acceptInvite(
-    input: { token: string; username?: string; password?: string },
-    currentUserId?: string,
-  ) {
-    const invite = await this.findActiveInvite(input.token);
-    let user = currentUserId
-      ? await this.userRepository.findOneBy({ id: currentUserId })
-      : null;
-    if (user) {
-      if (user.email?.toLowerCase() !== invite.email)
-        throw ForbiddenException(
-          'Logga in med e-postadressen som fick inbjudan',
-        );
-    } else {
-      const existingUser = await this.userRepository.findOneBy({
-        email: invite.email,
-      });
-      if (existingUser)
-        throw ForbiddenException('Logga in för att acceptera inbjudan');
-      if (!input.username || !input.password)
-        throw BadFieldsInputException([
-          { name: 'username', message: 'Användarnamn krävs' },
-          { name: 'password', message: 'Lösenord krävs' },
-        ]);
-      if (await this.userRepository.existsBy({ username: input.username }))
-        throw BadFieldsInputException([
-          {
-            name: 'username',
-            message: 'Användarnamnet är upptaget',
-            type: 'VALUE_TAKEN',
-          },
-        ]);
-      user = this.userRepository.create({
-        email: invite.email,
-        username: input.username,
-        password: await bcrypt.hash(input.password, 10),
-        emailVerifiedAt: new Date(),
-        type: UserType.PERSONAL,
-      });
-    }
-    await this.assertInviteeCanJoin(
-      invite.organizationId,
-      invite.email,
-      user.id,
-    );
-    return this.dataSource.transaction(async (manager) => {
-      const savedUser = await manager.getRepository(User).save(user);
-      const result = await manager.getRepository(OrganizationInvite).update(
-        { id: invite.id, status: OrganizationInviteStatus.PENDING },
-        {
-          status: OrganizationInviteStatus.ACCEPTED,
-          acceptedAt: new Date(),
-          acceptedByUserId: savedUser.id,
-        },
-      );
-      if (!result.affected)
-        throw BadUserInputException('Inbjudan har redan använts');
-      await manager.getRepository(OrganizationMembership).insert({
-        organizationId: invite.organizationId,
-        userId: savedUser.id,
-        role: invite.role,
-      });
-      return savedUser;
-    });
-  }
-
-  async updateMemberRole(
+  async updateMember(
     currentUserId: string,
-    input: { userId: string; role: OrganizationMemberRole },
+    input: { id: string; name: string; email: string },
   ) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    if (input.userId === currentUserId)
-      throw BadUserInputException('Du kan inte ändra din egen roll');
-    const membership = await this.membershipRepository.findOne({
-      where: { organizationId: context.organization.id, userId: input.userId },
-      relations: { user: true },
+    const context = await this.getOrganizationContext(currentUserId);
+    const member = await this.organizationMemberRepository.findOneBy({
+      id: input.id,
+      organizationId: context.organization.id,
     });
-    if (!membership) throw NotFoundException('Member not found');
-    membership.role = input.role;
-    return this.membershipRepository.save(membership);
+    if (!member) throw NotFoundException('Organization member not found');
+    const name = input.name.trim();
+    const parsedEmail = z.string().email().safeParse(input.email.trim());
+    if (!name || !parsedEmail.success)
+      throw BadUserInputException('Invalid member');
+    member.name = name;
+    member.email = parsedEmail.data.toLowerCase();
+    return this.organizationMemberRepository.save(member);
   }
 
-  async removeMember(currentUserId: string, userId: string) {
-    const context = await this.getManagementOrganizationContext(currentUserId);
-    await this.assertOrganizationAdmin(context);
-    if (userId === currentUserId)
-      throw BadUserInputException('Du kan inte ta bort dig själv');
-    const result = await this.membershipRepository.delete({
+  async removeMember(currentUserId: string, memberId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const result = await this.organizationMemberRepository.delete({
+      id: memberId,
       organizationId: context.organization.id,
-      userId,
     });
-    if (!result.affected) throw NotFoundException('Member not found');
+    if (!result.affected)
+      throw NotFoundException('Organization member not found');
     return true;
   }
 
-  private async createAndSendInvite(
-    context: OrganizationContext,
-    invitedByUserId: string,
-    email: string,
-    role: OrganizationMemberRole,
-  ) {
-    const token = crypto.randomBytes(32).toString('hex');
-    const invite = await this.inviteRepository.save(
-      this.inviteRepository.create({
-        email,
-        organizationId: context.organization.id,
-        invitedByUserId,
-        role,
-        tokenHash: this.hashToken(token),
-        status: OrganizationInviteStatus.PENDING,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      }),
-    );
-    try {
-      await this.mailService.sendOrganizationInviteEmail({
-        email,
-        organizationName:
-          context.organization.name ??
-          context.organization.username ??
-          'RebuildR',
-        token,
-      });
-      return invite;
-    } catch (error) {
-      await this.inviteRepository.update(invite.id, {
-        status: OrganizationInviteStatus.REVOKED,
-      });
-      throw error;
-    }
-  }
-
-  private async findActiveInvite(token: string) {
-    const invite = await this.inviteRepository.findOne({
-      where: {
-        tokenHash: this.hashToken(token),
-        status: OrganizationInviteStatus.PENDING,
-      },
-      relations: { organization: true },
-    });
-    if (!invite || invite.expiresAt <= new Date())
-      throw NotFoundException('Inbjudan är ogiltig eller har löpt ut');
-    return invite;
-  }
-
-  private hashToken(token: string) {
-    return crypto.createHash('sha256').update(token).digest('hex');
-  }
-
-  private async assertInviteeCanJoin(
+  private async findOrganizationMember(
     organizationId: string,
-    email: string,
-    userId?: string,
+    memberId: string,
   ) {
-    const user = userId
-      ? await this.userRepository.findOneBy({ id: userId })
-      : await this.userRepository.findOneBy({ email });
-    if (!user) return;
-    if (user.id === organizationId || user.type === UserType.BUSINESS)
-      throw BadUserInputException(
-        'Företagskonton kan inte bjudas in som medlemmar',
-      );
-    const membership = await this.membershipRepository.findOneBy({
-      userId: user.id,
+    const member = await this.organizationMemberRepository.findOneBy({
+      id: memberId,
+      organizationId,
     });
-    if (membership?.organizationId === organizationId)
-      throw BadUserInputException('Användaren är redan medlem');
-    if (membership)
-      throw BadUserInputException(
-        'Användaren är redan medlem i en annan organisation',
-      );
+    if (!member) throw BadUserInputException('Invalid organization member');
+    return member;
   }
 
   async internalProjects(
@@ -591,9 +423,44 @@ export class InternalAdsService {
     return this.projectRepository.save(project);
   }
 
-  async deleteInternalProject(currentUserId: string, projectId: string) {
-    const project = await this.internalProject(currentUserId, projectId);
+  async setInternalProjectPicture(
+    currentUserId: string,
+    projectId: string,
+    picture: FileInputType,
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        internalOrganizationId: context.organization.id,
+      },
+      relations: { projectPicture: true },
+    });
+    if (!project) throw NotFoundException('Internal project not found');
 
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
+    project.projectPicture = await this.fileService.createFile(picture);
+    await this.projectRepository.save(project);
+
+    return this.fileService.uploadFile(project.projectPicture, true);
+  }
+
+  async deleteInternalProject(currentUserId: string, projectId: string) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        internalOrganizationId: context.organization.id,
+      },
+      relations: { projectPicture: true },
+    });
+    if (!project) throw NotFoundException('Internal project not found');
+
+    if (project.projectPicture) {
+      await this.fileService.deleteFiles([project.projectPicture]);
+    }
     await this.dataSource.transaction(async (manager) => {
       await manager.getRepository(Product).update(
         {
@@ -619,11 +486,26 @@ export class InternalAdsService {
     product.internalOrganizationId = context.organization.id;
     product.seller = context.organization;
     product.sellerId = context.organization.id;
-    product.createdByUserId = currentUserId;
     product.address = context.organization.address;
     product.addressLocation = context.organization.addressLocation;
     product.pickupEnabled = true;
     product.internalValidationIssues = this.validateInternalProduct(product);
+    return this.productRepository.save(product);
+  }
+
+  async setInternalAdResponsibleMember(
+    currentUserId: string,
+    productId: string,
+    organizationMemberId: string,
+  ) {
+    const product = await this.internalAd(currentUserId, productId);
+    const organizationId = product.internalOrganizationId;
+    if (!organizationId) throw NotFoundException('Internal ad not found');
+    const member = await this.findOrganizationMember(
+      organizationId,
+      organizationMemberId,
+    );
+    product.createdByOrganizationMemberId = member.id;
     return this.productRepository.save(product);
   }
 
@@ -656,6 +538,64 @@ export class InternalAdsService {
 
     const [products, total] = await query.getManyAndCount();
     return { products, total };
+  }
+
+  async internalProductFacets(currentUserId: string, input: ProductsInput) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const query = this.productRepository
+      .createQueryBuilder('p')
+      .where('p.visibility = :visibility', {
+        visibility: ProductVisibility.INTERNAL,
+      })
+      .andWhere('p."internalOrganizationId" = :organizationId', {
+        organizationId: context.organization.id,
+      })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
+      })
+      .andWhere('p."hiddenReason" IS NULL');
+
+    this.applyInternalProductFilters(query, {
+      projectId: input.projectId,
+      searchString: input.searchString,
+    });
+
+    const countBy = async (column: string) => {
+      const rows = await query
+        .clone()
+        .select(column, 'id')
+        .addSelect('COUNT(DISTINCT p.id)', 'count')
+        .andWhere(`${column} IS NOT NULL`)
+        .groupBy(column)
+        .getRawMany<{ id: string; count: string }>();
+
+      return rows.map((row) => ({ id: row.id, count: Number(row.count) }));
+    };
+
+    const rootCategories = await query
+      .clone()
+      .leftJoin('category', 'c', 'c.id = p."categoryId"')
+      .select('COALESCE(c."parentId", c.id)', 'id')
+      .addSelect('COUNT(DISTINCT p.id)', 'count')
+      .andWhere('c.id IS NOT NULL')
+      .groupBy('COALESCE(c."parentId", c.id)')
+      .getRawMany<{ id: string; count: string }>();
+
+    const [categories, brands, conditions] = await Promise.all([
+      countBy('p."categoryId"'),
+      countBy('p."brandId"'),
+      countBy('p.condition'),
+    ]);
+
+    return {
+      categories,
+      rootCategories: rootCategories.map((row) => ({
+        id: row.id,
+        count: Number(row.count),
+      })),
+      brands,
+      conditions,
+    };
   }
 
   async internalAdsCategories(currentUserId: string) {
@@ -793,6 +733,416 @@ export class InternalAdsService {
     };
   }
 
+  async internalAdsDashboard(
+    currentUserId: string,
+    input: { from?: string; to?: string } = {},
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const range = resolveRange(input.from, input.to);
+    const organizationId = context.organization.id;
+    const soldAt = range
+      ? And(MoreThanOrEqual(range.start), LessThan(range.end))
+      : Not(IsNull());
+    const paymentAcceptedAt = range
+      ? And(MoreThanOrEqual(range.start), LessThan(range.end))
+      : Not(IsNull());
+
+    const [internalSales, externalSales, currentProducts, activeReservations] =
+      await Promise.all([
+        this.reservationRepository.find({
+          where: {
+            soldAt,
+            canceledAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+          order: { soldAt: 'ASC' },
+        }),
+        this.dataSource.getRepository(Purchase).find({
+          where: {
+            paymentAcceptedAt,
+            failedAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+          order: { paymentAcceptedAt: 'ASC' },
+        }),
+        this.productRepository.find({
+          where: {
+            visibility: ProductVisibility.INTERNAL,
+            internalOrganizationId: organizationId,
+            status: ProductStatus.PUBLISHED,
+            hiddenReason: IsNull(),
+          },
+        }),
+        this.reservationRepository.find({
+          where: {
+            canceledAt: IsNull(),
+            soldAt: IsNull(),
+            product: {
+              visibility: ProductVisibility.INTERNAL,
+              internalOrganizationId: organizationId,
+              status: ProductStatus.PUBLISHED,
+              hiddenReason: IsNull(),
+            },
+          },
+          relations: { product: true },
+        }),
+      ]);
+
+    const internalRows: InternalDashboardSourceRow[] = internalSales
+      .filter(
+        (reservation): reservation is typeof reservation & { soldAt: Date } =>
+          !!reservation.soldAt,
+      )
+      .map((reservation) => {
+        const fallback = allocateProductReportingValues(
+          reservation.product,
+          reservation.quantity,
+        );
+        const usesFallback =
+          reservation.weightAtSale === null ||
+          reservation.weightAtSale === undefined ||
+          reservation.co2SavingBuyerAtSale === null ||
+          reservation.co2SavingBuyerAtSale === undefined ||
+          reservation.co2SavingSellerAtSale === null ||
+          reservation.co2SavingSellerAtSale === undefined ||
+          reservation.marketValueAtSale === null ||
+          reservation.marketValueAtSale === undefined;
+        const marketValue =
+          reservation.marketValueAtSale ?? fallback.marketValue;
+
+        return {
+          type: 'INTERNAL_REUSE',
+          eventId: reservation.id,
+          productId: reservation.product.id,
+          productTitle: reservation.product.title,
+          internalReferenceNumber: reservation.product.internalReferenceNumber,
+          occurredAt: reservation.soldAt,
+          quantity: reservation.product.soldByQuantity
+            ? reservation.quantity ?? 0
+            : 1,
+          weight: reservation.weightAtSale ?? fallback.weight,
+          buyerCo2: reservation.co2SavingBuyerAtSale ?? fallback.co2SavingBuyer,
+          sellerCo2:
+            reservation.co2SavingSellerAtSale ?? fallback.co2SavingSeller,
+          grossValueOre: marketValue,
+          netValueOre: marketValue,
+          calculationBasis: usesFallback
+            ? 'CURRENT_PRODUCT_FALLBACK'
+            : 'SNAPSHOT',
+        };
+      });
+    const externalRows: InternalDashboardSourceRow[] = externalSales
+      .filter(
+        (purchase): purchase is typeof purchase & { paymentAcceptedAt: Date } =>
+          !!purchase.paymentAcceptedAt,
+      )
+      .map((purchase) => {
+        const fallback = allocateProductReportingValues(
+          purchase.product,
+          purchase.purchasedQuantity,
+        );
+        const quantity = purchase.product.soldByQuantity
+          ? purchase.purchasedQuantity ?? 0
+          : 1;
+        const grossValueOre = purchase.product.price * quantity;
+        return {
+          type: 'EXTERNAL_SALE',
+          eventId: purchase.id,
+          productId: purchase.product.id,
+          productTitle: purchase.product.title,
+          internalReferenceNumber: purchase.product.internalReferenceNumber,
+          occurredAt: purchase.paymentAcceptedAt,
+          quantity,
+          weight: fallback.weight,
+          buyerCo2: 0,
+          sellerCo2: fallback.co2SavingSeller,
+          grossValueOre,
+          netValueOre: Math.round(grossValueOre * (1 - provisionBase)),
+          calculationBasis: 'CURRENT_PRODUCT_FALLBACK',
+        };
+      });
+    const currentValues = currentProducts.map((product) => ({
+      product,
+      values: allocateProductReportingValues(product, product.primaryQuantity),
+    }));
+    const sum = (
+      rows: InternalDashboardSourceRow[],
+      getValue: (row: InternalDashboardSourceRow) => number,
+    ) => rows.reduce((total, row) => total + getValue(row), 0);
+    const internalReuseCo2 = sum(
+      internalRows,
+      (row) => row.buyerCo2 + row.sellerCo2,
+    );
+    const externalSalesCo2 = sum(externalRows, (row) => row.sellerCo2);
+    const realizedCo2 = internalReuseCo2 + externalSalesCo2;
+    const internalReuseValue = sum(internalRows, (row) => row.netValueOre);
+    const externalSalesNetValue = sum(externalRows, (row) => row.netValueOre);
+
+    return {
+      from: input.from ?? null,
+      to: input.to ?? null,
+      disposalCostSekPerKg: DISPOSAL_COST_SEK_PER_KG,
+      climate: {
+        realizedCo2,
+        internalReuseCo2,
+        externalSalesCo2,
+        potentialCo2Savings: currentValues.reduce(
+          (total, item) =>
+            total + item.values.co2SavingBuyer + item.values.co2SavingSeller,
+          0,
+        ),
+        petrolCarKilometers: realizedCo2 / PETROL_CAR_CO2_KG_PER_KM,
+      },
+      economic: {
+        realizedValue: internalReuseValue + externalSalesNetValue,
+        internalReuseValue,
+        externalSalesNetValue,
+        currentInventoryValue: currentValues.reduce(
+          (total, item) => total + item.values.marketValue,
+          0,
+        ),
+        avoidedDisposalCost: Math.round(
+          sum([...internalRows, ...externalRows], (row) => row.weight) *
+            DISPOSAL_COST_SEK_PER_KG *
+            100,
+        ),
+      },
+      current: {
+        totalAds: currentProducts.length,
+        availableWeight: currentValues.reduce(
+          (total, item) => total + item.values.weight,
+          0,
+        ),
+        activeProjects: new Set(
+          currentProducts
+            .map((product) => product.projectId)
+            .filter((projectId): projectId is string => !!projectId),
+        ).size,
+        externallyPublishedAds: currentProducts.filter(
+          (product) => product.publiclyAvailable,
+        ).length,
+        reservedArticles: activeReservations.reduce(
+          (total, reservation) =>
+            total +
+            (reservation.product.soldByQuantity
+              ? reservation.quantity ?? 0
+              : 1),
+          0,
+        ),
+      },
+      sourceRows: [...internalRows, ...externalRows].sort(
+        (left, right) => left.occurredAt.getTime() - right.occurredAt.getTime(),
+      ),
+    };
+  }
+
+  async internalAdsDashboardXlsx(
+    currentUserId: string,
+    input: { from?: string; to?: string } = {},
+  ) {
+    const context = await this.getOrganizationContext(currentUserId);
+    const dashboard = await this.internalAdsDashboard(currentUserId, input);
+    const workbook = new Workbook();
+    workbook.creator = 'RebuildR';
+    workbook.created = new Date();
+
+    const overview = workbook.addWorksheet('Översikt', {
+      views: [{ state: 'frozen', ySplit: 8 }],
+      properties: { tabColor: { argb: 'FF275D50' } },
+    });
+    overview.columns = [{ width: 43 }, { width: 20 }, { width: 18 }];
+    overview.mergeCells('A1:C1');
+    overview.getCell('A1').value = 'Återbanken – rapportunderlag';
+    overview.getCell('A1').font = {
+      bold: true,
+      color: { argb: 'FFFFFFFF' },
+      size: 18,
+    };
+    overview.getCell('A1').fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF275D50' },
+    };
+    overview.getCell('A1').alignment = { vertical: 'middle' };
+    overview.getRow(1).height = 34;
+    overview.addRows([
+      ['Organisation', context.organization.name],
+      [
+        'Valt tidsintervall',
+        this.formatDashboardRange(dashboard.from, dashboard.to),
+      ],
+      ['Exporterad', new Date()],
+      ['Avfallskostnad', dashboard.disposalCostSekPerKg, 'SEK/kg'],
+      ['Interna helaffärer utan reservation', 'Exkluderas'],
+      [],
+      ['Mått', 'Värde', 'Enhet'],
+      ['Realiserad klimatnytta', dashboard.climate.realizedCo2, 'kg CO2e'],
+      ['Internt återbruk', dashboard.climate.internalReuseCo2, 'kg CO2e'],
+      ['Extern försäljning', dashboard.climate.externalSalesCo2, 'kg CO2e'],
+      [
+        'Möjlig klimatnytta i aktuellt lager',
+        dashboard.climate.potentialCo2Savings,
+        'kg CO2e',
+      ],
+      [
+        'Motsvarande körsträcka med bensinbil',
+        dashboard.climate.petrolCarKilometers,
+        'km',
+      ],
+      [],
+      [
+        'Realiserat ekonomiskt värde',
+        dashboard.economic.realizedValue / 100,
+        'SEK',
+      ],
+      ['Internt återbruk', dashboard.economic.internalReuseValue / 100, 'SEK'],
+      [
+        'Extern nettoförsäljning',
+        dashboard.economic.externalSalesNetValue / 100,
+        'SEK',
+      ],
+      [
+        'Värde i aktuellt lager',
+        dashboard.economic.currentInventoryValue / 100,
+        'SEK',
+      ],
+      [
+        'Undvikna avfallskostnader',
+        dashboard.economic.avoidedDisposalCost / 100,
+        'SEK',
+      ],
+      [],
+      ['Aktuella annonser', dashboard.current.totalAds, 'st'],
+      ['Tillgänglig vikt', dashboard.current.availableWeight, 'kg'],
+      ['Aktiva projekt', dashboard.current.activeProjects, 'st'],
+      [
+        'Externt publicerade annonser',
+        dashboard.current.externallyPublishedAds,
+        'st',
+      ],
+      ['Reserverade artiklar', dashboard.current.reservedArticles, 'st'],
+    ]);
+    overview.getCell('B4').numFmt = 'yyyy-mm-dd hh:mm';
+    this.styleDashboardHeader(overview, 8, 3);
+    for (let row = 9; row <= overview.rowCount; row += 1) {
+      if (typeof overview.getCell(row, 2).value === 'number') {
+        overview.getCell(row, 2).numFmt = '#,##0.00';
+      }
+    }
+
+    const events = workbook.addWorksheet('Händelser', {
+      views: [{ state: 'frozen', ySplit: 3 }],
+      properties: { tabColor: { argb: 'FFE3A83B' } },
+    });
+    events.mergeCells('A1:M1');
+    events.getCell('A1').value =
+      `Händelser – ${this.formatDashboardRange(dashboard.from, dashboard.to)}`;
+    events.getCell('A1').font = { bold: true, size: 15 };
+    events.getRow(1).height = 28;
+    events.addRow([]);
+    events.addRow([
+      'Typ',
+      'Händelse-id',
+      'Produkt-id',
+      'Referens',
+      'Titel',
+      'Datum',
+      'Mängd',
+      'Vikt (kg)',
+      'Köpar-CO2e (kg)',
+      'Säljar-CO2e (kg)',
+      'Bruttovärde (SEK)',
+      'Nettovärde (SEK)',
+      'Beräkningsunderlag',
+    ]);
+    for (const row of dashboard.sourceRows) {
+      events.addRow([
+        row.type,
+        row.eventId,
+        row.productId,
+        row.internalReferenceNumber,
+        row.productTitle,
+        row.occurredAt,
+        row.quantity,
+        row.weight,
+        row.buyerCo2,
+        row.sellerCo2,
+        row.grossValueOre / 100,
+        row.netValueOre / 100,
+        row.calculationBasis,
+      ]);
+    }
+    events.columns = [
+      { width: 19 },
+      { width: 38 },
+      { width: 38 },
+      { width: 18 },
+      { width: 34 },
+      { width: 19 },
+      { width: 12 },
+      { width: 14 },
+      { width: 18 },
+      { width: 18 },
+      { width: 20 },
+      { width: 20 },
+      { width: 48 },
+    ];
+    this.styleDashboardHeader(events, 3, 13);
+    events.autoFilter = { from: 'A3', to: 'M3' };
+    for (let row = 4; row <= events.rowCount; row += 1) {
+      events.getCell(row, 6).numFmt = 'yyyy-mm-dd hh:mm';
+      for (let column = 7; column <= 12; column += 1) {
+        events.getCell(row, column).numFmt = '#,##0.00';
+      }
+      if (row % 2 === 0) {
+        events.getRow(row).eachCell((cell) => {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF3F6F5' },
+          };
+        });
+      }
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer).toString('base64');
+  }
+
+  private formatDashboardRange(from?: string | null, to?: string | null) {
+    if (!from && !to) return 'Hela tiden';
+    return `${from ?? 'Första händelsen'} – ${to ?? 'Idag'}`;
+  }
+
+  private styleDashboardHeader(
+    worksheet: Worksheet,
+    rowNumber: number,
+    columnCount: number,
+  ) {
+    const row = worksheet.getRow(rowNumber);
+    row.height = 24;
+    for (let column = 1; column <= columnCount; column += 1) {
+      const cell = row.getCell(column);
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF397568' },
+      };
+      cell.alignment = { vertical: 'middle' };
+    }
+  }
+
   async relatedInternalAds(
     currentUserId: string,
     input: ProductsInput,
@@ -843,28 +1193,40 @@ export class InternalAdsService {
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     const cellSize = this.internalMapCellSize(input.zoom);
+    const pinLocation =
+      'COALESCE("projectMapPin".location, p."addressLocation")';
+    const standaloneGrid = `CASE WHEN project.id IS NULL THEN ST_SnapToGrid(${pinLocation}, :cellSize) END`;
     const query = this.productRepository
       .createQueryBuilder('p')
-      .select('ST_X(ST_Centroid(ST_Collect(p."addressLocation")))', 'latitude')
-      .addSelect(
-        'ST_Y(ST_Centroid(ST_Collect(p."addressLocation")))',
-        'longitude',
+      .leftJoin(
+        Project,
+        'project',
+        'project.id = p."projectId" AND project."internalOrganizationId" = :organizationId',
       )
+      .leftJoin(
+        MapPin,
+        'projectMapPin',
+        '"projectMapPin".id = project."mapPinId"',
+      )
+      .select(`ST_X(ST_Centroid(ST_Collect(${pinLocation})))`, 'latitude')
+      .addSelect(`ST_Y(ST_Centroid(ST_Collect(${pinLocation})))`, 'longitude')
       .addSelect('ARRAY_AGG(p.id)', 'productIds')
       .addSelect('ARRAY_AGG(p.price ORDER BY p.price)', 'prices')
+      .addSelect('project.id', 'projectId')
       .where('p.visibility = :visibility', {
         visibility: ProductVisibility.INTERNAL,
       })
       .andWhere('p."internalOrganizationId" = :organizationId', {
         organizationId: context.organization.id,
       })
+      .andWhere('(p."projectId" IS NULL OR project.id IS NOT NULL)')
       .andWhere('p.status IN (:...statuses)', {
         statuses: [ProductStatus.PUBLISHED, ProductStatus.SOLD],
       })
       .andWhere('p."hiddenReason" IS NULL')
-      .andWhere('p."addressLocation" IS NOT NULL')
+      .andWhere(`${pinLocation} IS NOT NULL`)
       .andWhere(
-        'p."addressLocation" && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)',
+        `${pinLocation} && ST_MakeEnvelope(:swLat, :swLng, :neLat, :neLng, 4326)`,
         {
           swLat: input.southWest.lat,
           swLng: input.southWest.lng,
@@ -872,7 +1234,8 @@ export class InternalAdsService {
           neLng: input.northEast.lng,
         },
       )
-      .groupBy('ST_SnapToGrid(p."addressLocation", :cellSize)')
+      .groupBy('project.id')
+      .addGroupBy(standaloneGrid)
       .setParameter('cellSize', cellSize);
 
     if (input.productsInput) {
@@ -901,6 +1264,7 @@ export class InternalAdsService {
       latitude: number;
       longitude: number;
       productIds: string[];
+      projectId: string | null;
       prices: number[];
     }[] = await query.getRawMany();
 
@@ -908,8 +1272,8 @@ export class InternalAdsService {
       mapPinGroups: groups.map((group) => ({
         location: { lat: group.latitude, lng: group.longitude },
         productIds: group.productIds,
-        projectId: null,
-        type: MapPinTypeEnum.PRODUCT,
+        projectId: group.projectId,
+        type: group.projectId ? MapPinTypeEnum.PROJECT : MapPinTypeEnum.PRODUCT,
         prices: group.prices.map((price) => price / 100),
       })),
       total: groups.length,
@@ -926,18 +1290,14 @@ export class InternalAdsService {
       },
       relations: {
         seller: true,
-        createdByUser: true,
-        internalReservations: { reservedByUser: true },
+        createdByOrganizationMember: true,
+        internalReservations: { reservedByOrganizationMember: true },
         shippingPrices: true,
       },
     });
     if (!product) {
       throw NotFoundException('Internal ad not found');
     }
-    product.createdByUserEmail = product.createdByUser?.email;
-    product.internalReservations?.forEach((reservation) => {
-      reservation.reservedByUserEmail = reservation.reservedByUser?.email;
-    });
     return product;
   }
 
@@ -1026,7 +1386,12 @@ export class InternalAdsService {
     const invalidProducts = products
       .map((product) => ({
         product,
-        issues: this.validateInternalProduct(product),
+        issues: [
+          ...this.validateInternalProduct(product),
+          ...(product.createdByOrganizationMemberId
+            ? []
+            : ['Välj vem som lagt upp annonsen']),
+        ],
       }))
       .filter(({ issues }) => issues.length > 0);
     if (invalidProducts.length) {
@@ -1046,13 +1411,33 @@ export class InternalAdsService {
           .filter(Boolean),
       ),
     ];
-    products.forEach((product) => {
-      product.status = ProductStatus.PUBLISHED;
-      product.price = 0;
-      product.isGiveaway = true;
-      product.internalValidationIssues = [];
-      product.internalAdImportBatchId = null;
-    });
+    await Promise.all(
+      products.map(async (product) => {
+        product.status = ProductStatus.PUBLISHED;
+        product.price = 0;
+        product.isGiveaway = true;
+        product.initialPrimaryQuantity = product.soldByQuantity
+          ? product.primaryQuantity
+          : 1;
+        product.internalValidationIssues = [];
+        product.internalAdImportBatchId = null;
+
+        try {
+          const co2Factor = await this.co2FactorService.getCO2Factor({
+            categoryId: product.categoryId,
+          });
+          product.co2SavingBuyer =
+            (product.weight ?? 0) * co2Factor.productionCoefficient;
+          product.co2SavingSeller =
+            (product.weight ?? 0) * co2Factor.disposalCoefficient;
+        } catch {
+          this.logger.warn('CO2 factor missing for internal ad', {
+            categoryId: product.categoryId,
+            productId: product.id,
+          });
+        }
+      }),
+    );
     const savedProducts = await this.productRepository.save(products);
     savedProducts.forEach((product) => this.queuePriceSuggestion(product.id));
     if (batchIds.length) {
@@ -1072,12 +1457,6 @@ export class InternalAdsService {
   ) {
     const product = await this.internalAd(currentUserId, productId);
     const context = await this.getOrganizationContext(currentUserId);
-    const canManage =
-      product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canManage) {
-      throw ForbiddenException();
-    }
     if (product.status !== ProductStatus.PUBLISHED) {
       throw BadUserInputException('Product is not published');
     }
@@ -1135,12 +1514,23 @@ export class InternalAdsService {
 
   async reserveInternalAd(
     currentUserId: string,
-    input: { productId: string; quantity?: number },
+    input: {
+      productId: string;
+      quantity?: number;
+      organizationMemberId: string;
+    },
   ) {
     // Check organization access before taking the product lock.
     const accessibleProduct = await this.internalAd(
       currentUserId,
       input.productId,
+    );
+    const organizationId = accessibleProduct.internalOrganizationId;
+    if (!organizationId)
+      throw BadUserInputException('Product is not available');
+    const member = await this.findOrganizationMember(
+      organizationId,
+      input.organizationMemberId,
     );
     const reservation = await this.dataSource.transaction(async (manager) => {
       // Serializing reservations on the product row prevents two simultaneous
@@ -1186,16 +1576,13 @@ export class InternalAdsService {
       return manager.save(
         manager.create(InternalAdReservation, {
           productId: product.id,
-          reservedByUserId: currentUserId,
+          reservedByOrganizationMemberId: member.id,
+          reservedByOrganizationMemberName: member.name,
+          reservedByOrganizationMemberEmail: member.email,
           quantity: product.soldByQuantity ? input.quantity : null,
         }),
       );
     });
-    await this.notifyInternalAdEvent(
-      accessibleProduct,
-      currentUserId,
-      'reserverats',
-    );
     return reservation;
   }
 
@@ -1213,13 +1600,6 @@ export class InternalAdsService {
     ) {
       throw ForbiddenException();
     }
-    const canCancel =
-      reservation.reservedByUserId === currentUserId ||
-      reservation.product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canCancel) {
-      throw ForbiddenException();
-    }
     reservation.canceledAt = new Date();
     return this.reservationRepository.save(reservation);
   }
@@ -1229,13 +1609,6 @@ export class InternalAdsService {
     input: { productId: string; reservationId?: string },
   ) {
     const product = await this.internalAd(currentUserId, input.productId);
-    const context = await this.getOrganizationContext(currentUserId);
-    const canMarkSold =
-      product.createdByUserId === currentUserId ||
-      context.role === OrganizationMemberRole.ADMIN;
-    if (!canMarkSold) {
-      throw ForbiddenException();
-    }
 
     if (input.reservationId && product.soldByQuantity) {
       const reservation = await this.reservationRepository.findOneBy({
@@ -1245,6 +1618,14 @@ export class InternalAdsService {
       if (!reservation || reservation.canceledAt || reservation.soldAt) {
         throw BadUserInputException('Invalid reservation');
       }
+      const values = allocateProductReportingValues(
+        product,
+        reservation.quantity,
+      );
+      reservation.weightAtSale = values.weight;
+      reservation.co2SavingBuyerAtSale = values.co2SavingBuyer;
+      reservation.co2SavingSellerAtSale = values.co2SavingSeller;
+      reservation.marketValueAtSale = values.marketValue;
       product.primaryQuantity = Math.max(
         0,
         (product.primaryQuantity ?? 0) - (reservation.quantity ?? 0),
@@ -1258,27 +1639,94 @@ export class InternalAdsService {
       product.status = ProductStatus.SOLD;
       const reservations = await this.activeReservations(product.id);
       reservations.forEach((reservation) => {
+        const values = allocateProductReportingValues(
+          product,
+          reservation.quantity,
+        );
+        reservation.weightAtSale = values.weight;
+        reservation.co2SavingBuyerAtSale = values.co2SavingBuyer;
+        reservation.co2SavingSellerAtSale = values.co2SavingSeller;
+        reservation.marketValueAtSale = values.marketValue;
         reservation.soldAt = new Date();
       });
+      const reservedQuantity = reservations.reduce(
+        (total, reservation) =>
+          total + (product.soldByQuantity ? reservation.quantity ?? 0 : 1),
+        0,
+      );
+      const unreservedQuantity = product.soldByQuantity
+        ? Math.max(0, (product.primaryQuantity ?? 0) - reservedQuantity)
+        : reservations.length
+          ? 0
+          : 1;
+      if (unreservedQuantity > 0) {
+        const values = allocateProductReportingValues(
+          product,
+          product.soldByQuantity ? unreservedQuantity : null,
+        );
+        reservations.push(
+          this.reservationRepository.create({
+            productId: product.id,
+            quantity: product.soldByQuantity ? unreservedQuantity : null,
+            soldAt: new Date(),
+            weightAtSale: values.weight,
+            co2SavingBuyerAtSale: values.co2SavingBuyer,
+            co2SavingSellerAtSale: values.co2SavingSeller,
+            marketValueAtSale: values.marketValue,
+          }),
+        );
+      }
       if (reservations.length) {
         await this.reservationRepository.save(reservations);
       }
     }
     const saved = await this.productRepository.save(product);
-    await this.notifyInternalAdEvent(
-      product,
-      currentUserId,
-      'markerats som såld',
-    );
     return saved;
   }
 
-  async createImportBatch(currentUserId: string, files: FileInputType[]) {
+  async createImportBatch(
+    currentUserId: string,
+    input: {
+      files: FileInputType[];
+      projectId?: string;
+      location?: LocationInputType;
+    },
+    memberId: string,
+  ) {
     const context = await this.getOrganizationContext(currentUserId);
-    const dbFiles = await this.fileService.createFiles(files, true);
+    const member = await this.findOrganizationMember(
+      context.organization.id,
+      memberId,
+    );
+    if (!!input.projectId === !!input.location) {
+      throw BadUserInputException('Choose either a project or a location');
+    }
+
+    let project: Project | undefined;
+    let address: string;
+    let addressLocation: Point;
+    if (input.projectId) {
+      project = await this.internalProject(currentUserId, input.projectId);
+      address = project.address;
+      addressLocation = project.addressLocation;
+    } else {
+      const { exact } = await this.geocodingService.exactAndApproximatePlace(
+        input.location,
+      );
+      address = exact.address;
+      addressLocation = {
+        type: 'Point',
+        coordinates: [exact.lat, exact.lng],
+      };
+    }
+
+    const dbFiles = await this.fileService.createFiles(input.files, true);
     const batch = this.importBatchRepository.create({
       organizationId: context.organization.id,
-      createdByUserId: currentUserId,
+      organizationMemberId: member.id,
+      projectId: project?.id,
+      address,
+      addressLocation,
       status: InternalAdImportBatchStatus.UPLOADING,
       progress: 0,
       files: dbFiles,
@@ -1334,7 +1782,6 @@ export class InternalAdsService {
     const query = this.productRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.seller', 'seller')
-      .leftJoinAndSelect('p.createdByUser', 'createdByUser')
       .where('p.visibility = :visibility', {
         visibility: ProductVisibility.INTERNAL,
       });
@@ -1355,7 +1802,7 @@ export class InternalAdsService {
   private async processImportBatch(batchId: string) {
     const batch = await this.importBatchRepository.findOne({
       where: { id: batchId },
-      relations: { files: true, organization: true },
+      relations: { files: true, organization: true, organizationMember: true },
     });
     if (!batch) return;
     try {
@@ -1371,6 +1818,7 @@ export class InternalAdsService {
         model: 'gemini-3-flash-preview',
         config: {
           responseMimeType: 'application/json',
+          responseJsonSchema: BULK_IMPORT_RESPONSE_SCHEMA,
           thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           httpOptions: { timeout: GEMINI_TIMEOUT_MS },
         },
@@ -1453,11 +1901,16 @@ export class InternalAdsService {
         price: 0,
         isGiveaway: true,
         status: ProductStatus.DRAFT,
+        availability: ProductAvailabilityEnum.AVAILABLE,
         visibility: ProductVisibility.INTERNAL,
         internalOrganizationId: batch.organizationId,
         sellerId: batch.organizationId,
-        createdByUserId: batch.createdByUserId,
+        createdByOrganizationMemberId: batch.organizationMemberId,
         internalAdImportBatchId: batch.id,
+        projectId: batch.projectId,
+        noProject: !batch.projectId,
+        address: batch.address,
+        addressLocation: batch.addressLocation,
         condition: this.validCondition(draft.condition),
         color: draft.color?.trim() ?? null,
         colorType: draft.color ? ColorTypeEnum.FREE_TEXT : ColorTypeEnum.NCS,
@@ -1484,8 +1937,9 @@ export class InternalAdsService {
         product.primaryUnit = QuantityUnitEnum.AMOUNT;
       }
       this.applyDimensions(product, draft.dimensions);
-      if (draft.weight) {
-        product.weight = Math.round(Number(draft.weight));
+      const importedWeight = Number(draft.weight);
+      if (Number.isFinite(importedWeight) && importedWeight >= 0.1) {
+        product.weight = Math.round(importedWeight * 10) / 10;
         product.weightUnit = MeasurementUnitEnum.KG;
       }
       if (draft.brand && draft.brand.toLowerCase() !== 'okänt') {
@@ -1535,7 +1989,7 @@ export class InternalAdsService {
     if (!product.primaryQuantity || !product.primaryUnit)
       issues.push('Mängd saknas');
     if (!product.condition) issues.push('Skick saknas');
-    if (!product.address || !product.addressLocation)
+    if (!product.projectId && (!product.address || !product.addressLocation))
       issues.push('Plats saknas');
     return issues;
   }
@@ -1607,7 +2061,7 @@ Return ONLY valid JSON with this shape:
   ]
 }
 
-Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification and condition. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
+Always provide a reviewable suggestion for required fields: title, description, categoryId, primaryQuantification, condition and weight. Weight is the TOTAL listing weight in kg used for CO₂ savings. Use an exact stated weight when available; otherwise make a conservative positive estimate with at most one decimal from the material, dimensions and quantity. Never return null, a value below 0.1 or omit weight. When the source is unclear, use a neutral Swedish suggestion such as "Material från import", a factual description that says the source needs review, the closest category, and "1,AMOUNT" for quantity. Do not invent exact measurements or brands; use null for those optional fields. Keep warnings for useful review notes, not missing optional data.
 
 Set internalReferenceNumber only when the source explicitly identifies a product reference, inventory number, article number, asset ID, item number, or similarly labelled identifier tied to that product. Do not use row numbers, arbitrary codes, dimensions, quantities, invoice/order numbers, file names, or any unlabelled value that merely looks like an ID. When uncertain, return null.
 
@@ -1649,6 +2103,11 @@ ${categoryList}
     query: SelectQueryBuilder<Product>,
     input: ProductsInput,
   ) {
+    if (input.projectId) {
+      query.andWhere('p."projectId" = :projectId', {
+        projectId: input.projectId,
+      });
+    }
     if (input.searchString) {
       query.andWhere(
         '(p.title ILIKE :search OR p.description ILIKE :search OR p."searchDocument" ILIKE :search)',
@@ -1820,7 +2279,7 @@ ${categoryList}
   private async activeReservations(productId: string) {
     return this.reservationRepository.find({
       where: { productId, canceledAt: IsNull(), soldAt: IsNull() },
-      relations: { reservedByUser: true },
+      relations: { reservedByOrganizationMember: true },
       order: { reservedAt: 'ASC' },
     });
   }
@@ -1836,36 +2295,5 @@ ${categoryList}
       throw NotFoundException('Import batch not found');
     }
     return batch;
-  }
-
-  private async assertOrganizationAdmin(context: OrganizationContext) {
-    if (
-      !context.isOrganizationAccount &&
-      context.role !== OrganizationMemberRole.ADMIN
-    ) {
-      throw ForbiddenException('Organization admin required');
-    }
-  }
-
-  private async notifyInternalAdEvent(
-    product: Product,
-    actorId: string,
-    action: string,
-  ) {
-    const [actor, creator, organization] = await Promise.all([
-      this.userRepository.findOneBy({ id: actorId }),
-      product.createdByUserId
-        ? this.userRepository.findOneBy({ id: product.createdByUserId })
-        : null,
-      this.userRepository.findOneBy({ id: product.internalOrganizationId }),
-    ]);
-    const receiverEmail = creator?.email ?? organization?.email;
-    if (!receiverEmail || actor?.id === creator?.id) return;
-    await this.mailService.sendInternalAdEventEmail({
-      email: receiverEmail,
-      productTitle: product.title,
-      actorName: actor?.name ?? actor?.username ?? actor?.email ?? 'En kollega',
-      action,
-    });
   }
 }

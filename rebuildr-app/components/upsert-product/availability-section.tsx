@@ -14,6 +14,7 @@ type Props = {
   product: ProductFields;
   update: (product: Partial<ProductFields>) => void;
   error?: string;
+  compact?: boolean;
 };
 
 /**
@@ -21,7 +22,12 @@ type Props = {
  * (default) or "Snart till salu" with an exact start date and an optional end
  * date after which the ad is automatically taken down.
  */
-export const AvailabilitySection = ({ product, update, error }: Props) => {
+export const AvailabilitySection = ({
+  product,
+  update,
+  error,
+  compact = false,
+}: Props) => {
   const isUpcoming = product.availability === ProductAvailabilityEnum.Upcoming;
 
   const setAvailableNow = () =>
@@ -40,9 +46,13 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
     });
 
   return (
-    <View style={{ gap: 24 }}>
-      <Display size="small">Tillgänglighet</Display>
-      <View style={{ gap: 16 }}>
+    <View style={{ gap: compact ? 12 : 24 }}>
+      {compact ? (
+        <Label size="large">Tillgänglighet</Label>
+      ) : (
+        <Display size="small">Tillgänglighet</Display>
+      )}
+      <View style={{ gap: compact ? 12 : 16 }}>
         {/* Segmented choice styled to match the "Leverans" toggles. */}
         <View style={{ flexDirection: "row", gap: 8 }}>
           <SegmentOption
@@ -84,11 +94,13 @@ export const AvailabilitySection = ({ product, update, error }: Props) => {
               }
               onClear={() => update({ availableUntil: null })}
             />
-            <Body size="small" color="secondary">
-              Annonsen syns direkt, märkt “Snart till salu”, men går att köpa
-              först från startdatumet. Slutdatum är valfritt – då tas annonsen
-              bort automatiskt.
-            </Body>
+            {!compact && (
+              <Body size="small" color="secondary">
+                Annonsen syns direkt, märkt “Snart till salu”, men går att köpa
+                först från startdatumet. Slutdatum är valfritt – då tas annonsen
+                bort automatiskt.
+              </Body>
+            )}
           </View>
         )}
       </View>

@@ -41,8 +41,6 @@ export const INTERNAL_ADS_PAGE_QUERY = gql`
         username
         internalAdsAccess
       }
-      role
-      isOrganizationAccount
       canReceivePayout
     }
     internalAds(input: $input, limit: $limit, offset: $offset) {
@@ -61,14 +59,8 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
       canReceivePayout
       organization {
         id
+        name
       }
-    }
-    internalAdsStatistics {
-      co2Saved
-      potentialCo2Savings
-      estimatedMarketValue
-      totalAds
-      externallyPublishedAds
     }
     internalAdsCategories {
       category {
@@ -162,6 +154,42 @@ export const INTERNAL_ADS_HOME_QUERY = gql`
   }
 `;
 
+export const INTERNAL_ADS_DASHBOARD_QUERY = gql`
+  query InternalAdsDashboard($input: InternalAdsDashboardInput!) {
+    internalAdsDashboard(input: $input) {
+      from
+      to
+      climate {
+        realizedCo2
+        internalReuseCo2
+        externalSalesCo2
+        potentialCo2Savings
+        petrolCarKilometers
+      }
+      economic {
+        realizedValue
+        internalReuseValue
+        externalSalesNetValue
+        currentInventoryValue
+        avoidedDisposalCost
+      }
+      current {
+        totalAds
+        availableWeight
+        activeProjects
+        externallyPublishedAds
+        reservedArticles
+      }
+    }
+  }
+`;
+
+export const INTERNAL_ADS_DASHBOARD_XLSX = gql`
+  query InternalAdsDashboardXlsx($input: InternalAdsDashboardInput!) {
+    internalAdsDashboardXlsx(input: $input)
+  }
+`;
+
 export const INTERNAL_ADS_SEARCH = gql`
   query InternalAdsSearch($input: ProductsInput!) {
     internalAds(input: $input, limit: 5, offset: 0) {
@@ -223,9 +251,44 @@ export const INTERNAL_AD_MAP_POPUP = gql`
   ${INTERNAL_AD_CARD_FIELDS}
 `;
 
+export const INTERNAL_PROJECT_MAP_POPUP = gql`
+  query InternalProjectMapPopup($projectId: ID!) {
+    internalProject(projectId: $projectId) {
+      id
+      title
+      description
+      projectPicture {
+        id
+        url
+      }
+      user {
+        id
+        profilePicture {
+          id
+          url
+        }
+      }
+    }
+  }
+`;
+
 export const CREATE_INTERNAL_AD_DRAFT = gql`
   mutation CreateInternalAdDraft {
     createInternalAdDraft {
+      id
+    }
+  }
+`;
+
+export const SET_INTERNAL_AD_RESPONSIBLE_MEMBER = gql`
+  mutation SetInternalAdResponsibleMember(
+    $productId: ID!
+    $organizationMemberId: ID!
+  ) {
+    setInternalAdResponsibleMember(
+      productId: $productId
+      organizationMemberId: $organizationMemberId
+    ) {
       id
     }
   }
@@ -255,8 +318,12 @@ export const PUBLISH_INTERNAL_AD_DRAFTS = gql`
 export const CREATE_INTERNAL_AD_IMPORT_BATCH = gql`
   mutation CreateInternalAdImportBatch(
     $input: CreateInternalAdImportBatchInput!
+    $organizationMemberId: ID!
   ) {
-    createInternalAdImportBatch(input: $input) {
+    createInternalAdImportBatch(
+      input: $input
+      organizationMemberId: $organizationMemberId
+    ) {
       uploadUrls
       batch {
         id
@@ -293,115 +360,9 @@ export const INTERNAL_AD_IMPORT_BATCH = gql`
   ${INTERNAL_AD_CARD_FIELDS}
 `;
 
-export const INVITE_ORGANIZATION_MEMBER = gql`
-  mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
-    inviteOrganizationMember(input: $input) {
-      id
-      email
-      role
-      status
-      createdAt
-    }
-  }
-`;
-
-export const ORGANIZATION_MEMBERS_PAGE = gql`
-  query OrganizationMembersPage {
-    internalAdsOrganizationContext {
-      organization {
-        id
-        name
-        username
-      }
-      role
-      isOrganizationAccount
-    }
-    organizationMembers {
-      id
-      role
-      createdAt
-      userEmail
-      user {
-        id
-        name
-        username
-      }
-    }
-  }
-`;
-
-export const ORGANIZATION_INVITES = gql`
-  query OrganizationInvites {
-    organizationInvites {
-      id
-      email
-      role
-      status
-      createdAt
-      expiresAt
-      invitedByUser {
-        name
-        username
-      }
-    }
-  }
-`;
-
-export const RESEND_ORGANIZATION_INVITE = gql`
-  mutation ResendOrganizationInvite($input: OrganizationInviteIdInput!) {
-    resendOrganizationInvite(input: $input) {
-      id
-      expiresAt
-      createdAt
-    }
-  }
-`;
-
-export const REVOKE_ORGANIZATION_INVITE = gql`
-  mutation RevokeOrganizationInvite($input: OrganizationInviteIdInput!) {
-    revokeOrganizationInvite(input: $input) {
-      id
-      status
-    }
-  }
-`;
-
-export const REMOVE_ORGANIZATION_MEMBER = gql`
-  mutation RemoveOrganizationMember($input: RemoveOrganizationMemberInput!) {
-    removeOrganizationMember(input: $input)
-  }
-`;
-
-export const ORGANIZATION_INVITE = gql`
-  query OrganizationInvite($token: String!) {
-    organizationInvite(token: $token) {
-      organizationName
-      expiresAt
-    }
-  }
-`;
-
-export const UPDATE_ORGANIZATION_MEMBER_ROLE = gql`
-  mutation UpdateOrganizationMemberRole(
-    $input: UpdateOrganizationMemberRoleInput!
-  ) {
-    updateOrganizationMemberRole(input: $input) {
-      id
-      role
-      userEmail
-      user {
-        id
-        name
-        username
-      }
-    }
-  }
-`;
-
 export const INTERNAL_AD_DETAIL = gql`
   query InternalAdDetail($productId: String!) {
     internalAdsOrganizationContext {
-      role
       canReceivePayout
       organization {
         id
@@ -410,6 +371,7 @@ export const INTERNAL_AD_DETAIL = gql`
     }
     internalAd(productId: $productId) {
       id
+      createdAt
       title
       description
       additionalInfo
@@ -423,14 +385,27 @@ export const INTERNAL_AD_DETAIL = gql`
       primaryUnit
       secondaryQuantity
       secondaryUnit
+      height
+      heightUnit
+      width
+      widthUnit
+      length
+      lengthUnit
+      thickness
+      thicknessUnit
+      diameter
+      diameterUnit
+      weight
+      weightUnit
+      color
+      colorType
+      co2SavingSeller
       soldByQuantity
       internalValidationIssues
-      createdByUserId
-      createdByUserEmail
-      createdByUser {
-        id
+      createdByOrganizationMemberId
+      createdByOrganizationMember {
         name
-        username
+        email
       }
       price
       priceSuggestionMin
@@ -461,6 +436,26 @@ export const INTERNAL_AD_DETAIL = gql`
           name
         }
       }
+      project {
+        id
+        title
+        projectPicture {
+          url
+        }
+        user {
+          id
+          profilePicture {
+            url
+          }
+        }
+        products {
+          id
+          status
+          primaryImage {
+            url
+          }
+        }
+      }
       address
       location {
         lat
@@ -487,13 +482,9 @@ export const INTERNAL_AD_DETAIL = gql`
         reservedAt
         canceledAt
         soldAt
-        reservedByUserId
-        reservedByUserEmail
-        reservedByUser {
-          id
-          name
-          username
-        }
+        reservedByOrganizationMemberId
+        reservedByOrganizationMemberName
+        reservedByOrganizationMemberEmail
       }
     }
     me {
@@ -548,21 +539,9 @@ export const MARK_INTERNAL_AD_SOLD = gql`
   }
 `;
 
-export const ACCEPT_ORGANIZATION_INVITE = gql`
-  mutation AcceptOrganizationInvite($input: AcceptOrganizationInviteInput!) {
-    acceptOrganizationInvite(input: $input) {
-      id
-      username
-      email
-    }
-  }
-`;
-
 export const INTERNAL_ADS_MENU_CONTEXT = gql`
   query InternalAdsMenuContext {
     internalAdsOrganizationContext {
-      role
-      isOrganizationAccount
       canReceivePayout
       organization {
         id

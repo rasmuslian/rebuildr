@@ -5,6 +5,11 @@ import {
   InternalAdImportBatchQuery,
   InternalAdImportBatchQueryVariables,
   InternalAdImportBatchStatusEnum,
+  InternalAdsDashboardXlsxQuery,
+  InternalAdsDashboardXlsxQueryVariables,
+  InternalAdsDashboardInput,
+  InternalAdsDashboardQuery,
+  InternalAdsDashboardQueryVariables,
   InternalAdsHomeQuery,
   InternalAdsHomeQueryVariables,
   ProductAvailabilityEnum,
@@ -16,50 +21,85 @@ import {
   CREATE_INTERNAL_AD_DRAFT,
   CREATE_INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_AD_IMPORT_BATCH,
+  INTERNAL_ADS_DASHBOARD_QUERY,
+  INTERNAL_ADS_DASHBOARD_XLSX,
   INTERNAL_ADS_HOME_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
   REMOVE_INTERNAL_AD_IMPORT_BATCH,
   START_INTERNAL_AD_IMPORT_BATCH,
 } from "@/queries/internal-ads";
-import { useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import MainBackground from "@assets/images/main-background.png";
 import PlaceholderProduct from "@assets/images/placeholder-product.png";
 import { AdGridSection } from "@components/ad-grid-section/ad-grid-section";
 import { Button } from "@components/buttons/button";
+import { SelectInput } from "@components/forms/selectInput";
 import { InternalCategoryGrid } from "@components/internal/internal-category-grid";
 import { InternalProjectGrid } from "@components/internal/internal-project-grid";
-import { InternalStatisticsSection } from "@components/internal/internal-statistics-section";
+import {
+  InternalDashboardPreset,
+  InternalStatisticsSection,
+} from "@components/internal/internal-statistics-section";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import Footer from "@components/navigation/footer";
 import { InternalTopBar } from "@components/navigation/internal-top-bar/internal-top-bar";
 import { Search } from "@components/search/search";
 import { SectionHeader } from "@components/sections/section-header";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Body, Headline, Label, Title } from "@components/typography/text";
+import {
+  Body,
+  Display,
+  Headline,
+  Label,
+  Title,
+} from "@components/typography/text";
+import { InternalLocation } from "@components/upsert-product/internal-location";
+import { ProjectChips } from "@components/upsert-product/project-chips";
 import { UpsertProduct } from "@components/upsert-product/upsert-product";
-import { FileType } from "@components/upsert-product/types";
+import { FileType, ProductFields } from "@components/upsert-product/types";
 import { primitives } from "@constants/colors";
-import { isWeb } from "@constants/layout";
-import { borderRadius } from "@constants/sizes";
+import { isWeb, MAX_CONTENT_WIDTH, screenGrowStyle } from "@constants/layout";
+import { borderRadius, horizontalPadding } from "@constants/sizes";
 import { useSearchContext } from "@context/search-context";
 import { useDocumentHandler } from "@hooks/use-document-handler";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { INTERNAL_PROJECTS } from "@/queries/internal-projects";
 import { Icon } from "@icons/icon";
+import { downloadXlsx } from "@/utils/download-xlsx";
+import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  ImageBackground,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, ImageBackground, Pressable, View } from "react-native";
 
 const SECTION_PAGE_SIZE = 10;
+const getDashboardInput = (
+  preset: InternalDashboardPreset,
+): InternalAdsDashboardInput => {
+  if (preset === "ALL") return {};
+  const today = dayjs();
+  const from =
+    preset === "MONTH"
+      ? today.startOf("month")
+      : preset === "QUARTER"
+        ? today.month(Math.floor(today.month() / 3) * 3).startOf("month")
+        : today.startOf("year");
+  return {
+    from: from.format("YYYY-MM-DD"),
+    to: today.format("YYYY-MM-DD"),
+  };
+};
+const ORGANIZATION_MEMBERS = gql`
+  query OrganizationMembersForActions {
+    organizationMembers {
+      id
+      name
+      email
+    }
+  }
+`;
 
 type InternalAdsHomeData = InternalAdsHomeQuery & {
   internalAdsCategories: Array<{
@@ -80,6 +120,9 @@ export default function InternalAdsPage() {
     t?: string;
   }>();
   const searchContext = useSearchContext();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [heroHeight, setHeroHeight] = useState(0);
+  const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
   const [editorProductId, setEditorProductId] = useState<string>();
   const [showEditor, setShowEditor] = useState(false);
   const [isNewInternalAd, setIsNewInternalAd] = useState(false);
@@ -88,21 +131,80 @@ export default function InternalAdsPage() {
   const [activeBatchId, setActiveBatchId] = useState<string>();
   const [pollBatch, setPollBatch] = useState(false);
   const [publishRequested, setPublishRequested] = useState(false);
-  const [showTopBarSearch, setShowTopBarSearch] = useState(false);
-  const [introHeight, setIntroHeight] = useState(0);
+  const [dashboardPreset, setDashboardPreset] =
+    useState<InternalDashboardPreset>("YEAR");
+  const [displayedDashboardPreset, setDisplayedDashboardPreset] =
+    useState<InternalDashboardPreset>("YEAR");
+  const [displayedDashboard, setDisplayedDashboard] =
+    useState<InternalAdsDashboardQuery["internalAdsDashboard"]>();
+  const [dashboardDownloadError, setDashboardDownloadError] =
+    useState<string>();
+  const [importMemberId, setImportMemberId] = useState<string>();
+  const [importPlacement, setImportPlacement] = useState<
+    Partial<ProductFields>
+  >({});
   const handledCreateAction = useRef<string | undefined>(undefined);
   const importedDraftSaves = useRef(new Set<Promise<boolean | undefined>>());
   const { pickDocuments } = useDocumentHandler();
+  const dashboardInput = useMemo(
+    () => getDashboardInput(dashboardPreset),
+    [dashboardPreset],
+  );
 
   const { data, loading, refetch } = useQuery<
     InternalAdsHomeData,
     InternalAdsHomeQueryVariables
   >(INTERNAL_ADS_HOME_QUERY, {
-    variables: {
-      limit: SECTION_PAGE_SIZE,
-    },
+    variables: { limit: SECTION_PAGE_SIZE },
     fetchPolicy: "cache-and-network",
   });
+  const { data: dashboardData, refetch: refetchDashboard } = useQuery<
+    InternalAdsDashboardQuery,
+    InternalAdsDashboardQueryVariables
+  >(INTERNAL_ADS_DASHBOARD_QUERY, {
+    variables: { input: dashboardInput },
+    fetchPolicy: "cache-and-network",
+  });
+
+  useEffect(() => {
+    const dashboard = dashboardData?.internalAdsDashboard;
+    if (
+      !dashboard ||
+      dashboard.from !== (dashboardInput.from ?? null) ||
+      dashboard.to !== (dashboardInput.to ?? null)
+    )
+      return;
+    setDisplayedDashboard(dashboard);
+    setDisplayedDashboardPreset(dashboardPreset);
+  }, [dashboardData, dashboardInput, dashboardPreset]);
+
+  const [loadDashboardXlsx, { loading: downloadingDashboard }] = useLazyQuery<
+    InternalAdsDashboardXlsxQuery,
+    InternalAdsDashboardXlsxQueryVariables
+  >(INTERNAL_ADS_DASHBOARD_XLSX, { fetchPolicy: "network-only" });
+
+  const onDownloadDashboard = async () => {
+    setDashboardDownloadError(undefined);
+    try {
+      const result = await loadDashboardXlsx({
+        variables: { input: dashboardInput },
+      });
+      const xlsx = result.data?.internalAdsDashboardXlsx;
+      if (!xlsx) throw new Error("Missing XLSX");
+      const organizationName =
+        data?.internalAdsOrganizationContext?.organization.name ?? "aterbanken";
+      await downloadXlsx(
+        xlsx,
+        `${organizationName}-${dashboardPreset.toLowerCase()}-${dayjs().format("YYYY-MM-DD")}.xlsx`,
+      );
+    } catch {
+      setDashboardDownloadError("Underlaget kunde inte laddas ner.");
+    }
+  };
+
+  const { data: membersData } = useQuery<{
+    organizationMembers: { id: string; name: string; email: string }[];
+  }>(ORGANIZATION_MEMBERS);
 
   const { data: projectsData, refetch: refetchProjects } = useQuery<any>(
     INTERNAL_PROJECTS,
@@ -110,6 +212,24 @@ export default function InternalAdsPage() {
       variables: { input: {}, limit: 4, offset: 0 },
     },
   );
+
+  useEffect(() => {
+    if (!isWeb || typeof window === "undefined") return;
+    const onScroll = () => scrollY.setValue(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [scrollY]);
+
+  useEffect(() => {
+    if (heroHeight === 0) return;
+
+    const listener = scrollY.addListener(({ value }) => {
+      setShowSearchBarTopBar(value > heroHeight - 48);
+    });
+
+    return () => scrollY.removeListener(listener);
+  }, [heroHeight, scrollY]);
 
   useFocusEffect(
     useCallback(() => {
@@ -122,11 +242,11 @@ export default function InternalAdsPage() {
       });
       refetchProjects().catch(() => undefined);
       if (typeof document === "undefined") return;
-      document.body.style.backgroundColor = primitives.accent100;
+      document.body.style.backgroundColor = primitives.neutrals100;
       return () => {
         document.body.style.backgroundColor = "";
       };
-    }, [primitives.accent100, refetchProjects, searchContext.setSearchState]),
+    }, [refetchProjects, searchContext.setSearchState]),
   );
 
   const { data: batchData, refetch: refetchBatch } = useQuery<
@@ -138,18 +258,18 @@ export default function InternalAdsPage() {
     pollInterval: pollBatch ? 3000 : 0,
   });
 
-  const [createDraft, { loading: creatingDraft }] =
-    useMutation<CreateInternalAdDraftMutation>(CREATE_INTERNAL_AD_DRAFT);
+  const [createDraft, { loading: creatingDraft }] = useMutation(
+    CREATE_INTERNAL_AD_DRAFT,
+  );
   const [publishImported, { loading: publishingImported }] = useMutation<
     PublishInternalAdDraftsMutation,
     PublishInternalAdDraftsMutationVariables
   >(PUBLISH_INTERNAL_AD_DRAFTS);
   const [removeDraft] = useMutation(REMOVE_INTERNAL_AD_DRAFT);
   const [removeImportBatch] = useMutation(REMOVE_INTERNAL_AD_IMPORT_BATCH);
-  const [createBatch, { loading: creatingBatch }] = useMutation<
-    CreateInternalAdImportBatchMutation,
-    CreateInternalAdImportBatchMutationVariables
-  >(CREATE_INTERNAL_AD_IMPORT_BATCH);
+  const [createBatch, { loading: creatingBatch }] = useMutation(
+    CREATE_INTERNAL_AD_IMPORT_BATCH,
+  );
   const [startBatch, { loading: startingBatch }] = useMutation(
     START_INTERNAL_AD_IMPORT_BATCH,
   );
@@ -220,7 +340,12 @@ export default function InternalAdsPage() {
   };
 
   const onStartImport = async () => {
-    if (!selectedFiles.length) return;
+    if (
+      !selectedFiles.length ||
+      !importMemberId ||
+      (!importPlacement.project && !importPlacement.location)
+    )
+      return;
     const generation = ++importGeneration.current;
     setUploadingImport(true);
     const controller = new AbortController();
@@ -232,7 +357,12 @@ export default function InternalAdsPage() {
             mimeType: file.mimeType,
             name: file.name,
           })),
+          projectId: importPlacement.project?.id,
+          location: importPlacement.project
+            ? undefined
+            : importPlacement.location,
         },
+        organizationMemberId: importMemberId,
       },
     });
     batchCreation.current = creation;
@@ -246,7 +376,7 @@ export default function InternalAdsPage() {
         return;
       }
       await Promise.all(
-        response.uploadUrls.map((uploadUrl, index) =>
+        response.uploadUrls.map((uploadUrl: string, index: number) =>
           fetch(uploadUrl, {
             method: "PUT",
             headers: { "Content-Type": selectedFiles[index].mimeType },
@@ -279,6 +409,7 @@ export default function InternalAdsPage() {
     setActiveBatchId(undefined);
     importBatchId.current = undefined;
     setSelectedFiles([]);
+    setImportPlacement({});
     setShowImport(false);
 
     (async () => {
@@ -313,12 +444,13 @@ export default function InternalAdsPage() {
       if (!productIds.length) return;
       const hasRemainingDrafts = productIds.length < products.length;
       await publishImported({ variables: { productIds } });
-      await Promise.all([refetch(), refetchBatch()]);
+      await Promise.all([refetch(), refetchDashboard(), refetchBatch()]);
       if (!hasRemainingDrafts) {
         setPollBatch(false);
         setActiveBatchId(undefined);
         importBatchId.current = undefined;
         setSelectedFiles([]);
+        setImportPlacement({});
         setShowImport(false);
       }
     } finally {
@@ -358,18 +490,6 @@ export default function InternalAdsPage() {
     startingBatch;
   const visibleBatch = discardingImport ? undefined : batch;
 
-  useEffect(() => {
-    if (!isWeb || !introHeight || typeof window === "undefined") return;
-
-    const updateTopBarSearch = () => {
-      setShowTopBarSearch(window.scrollY > introHeight - 72);
-    };
-
-    window.addEventListener("scroll", updateTopBarSearch, { passive: true });
-    updateTopBarSearch();
-    return () => window.removeEventListener("scroll", updateTopBarSearch);
-  }, [introHeight]);
-
   const getAdGridProducts = (
     products: Array<
       (typeof activeProducts)[number] | (typeof availableNowProducts)[number]
@@ -400,106 +520,115 @@ export default function InternalAdsPage() {
         }),
     }));
   const adGridProducts = getAdGridProducts(activeProducts);
-  return (
-    <View style={{ flex: 1, backgroundColor: primitives.accent100 }}>
-      <InternalTopBar
-        home
-        showSearchBar={showTopBarSearch}
-        onCreateAd={onCreateInternalAd}
-      />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={(event) => {
-          if (!isWeb && introHeight) {
-            setShowTopBarSearch(
-              event.nativeEvent.contentOffset.y > introHeight - 72,
-            );
-          }
+  const content = (
+    <>
+      <ImageBackground
+        source={MainBackground}
+        resizeMode="cover"
+        imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
+        style={{
+          backgroundColor: primitives.accent100,
+          overflow: "hidden",
+          width: "100%",
         }}
+        onLayout={(event) => setHeroHeight(event.nativeEvent.layout.height)}
       >
-        <ImageBackground
-          source={MainBackground}
-          resizeMode="cover"
-          imageStyle={{ opacity: 0.6, tintColor: primitives.accent900 }}
-          onLayout={(event) => setIntroHeight(event.nativeEvent.layout.height)}
-          style={{
-            backgroundColor: primitives.accent100,
-            overflow: "hidden",
-            width: "100%",
-          }}
-        >
-          <View
-            style={{
-              paddingHorizontal: isDesktop ? 75 : 16,
-              paddingTop: isDesktop ? 48 : 24,
-              paddingBottom: isDesktop ? 56 : 28,
-              gap: 24,
-            }}
-          >
-            <View style={{ gap: 10, maxWidth: 780 }}>
-              <Body size="large" color="secondary" style={{ maxWidth: 680 }}>
-                Material, verktyg och resurser som bara cirkulerar inom er
-                organisation.
-              </Body>
-            </View>
-
-            {hasAccess && (
-              <View style={{ gap: 16 }}>
-                <Search
-                  style={{ width: isDesktop ? 633 : undefined }}
-                  backgroundColor={primitives.neutrals100}
-                  borderStyle={{
-                    borderColor: colors.buttons.outlinedStroke.enabled,
-                    borderWidth: 1,
-                  }}
-                  placeholder="Sök i Återbanken"
-                  searchScope="internal"
-                  searchOnSubmit
-                />
-                <View
-                  style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}
-                >
-                  <Button
-                    label="Ny annons"
-                    onPress={onCreateInternalAd}
-                    loading={creatingDraft}
-                    theme="light"
-                  />
-                  <Button
-                    label="Importera annonser"
-                    icon="upload"
-                    type="outlined"
-                    theme="light"
-                    onPress={() => setShowImport(true)}
-                    style={{
-                      backgroundColor: primitives.neutrals100,
-                    }}
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-        </ImageBackground>
-
         <View
           style={{
-            backgroundColor: colors.background.neutral,
-            paddingHorizontal: isDesktop ? 75 : 16,
-            paddingBottom: 32,
-            paddingTop: isDesktop ? 44 : 16,
-            minHeight: 420,
-            width: "100%",
-            maxWidth: 1590,
             alignSelf: "center",
+            gap: isDesktop ? 32 : 24,
+            maxWidth: MAX_CONTENT_WIDTH,
+            paddingBottom: isDesktop ? 64 : 36,
+            paddingHorizontal: isDesktop
+              ? horizontalPadding.desktop
+              : horizontalPadding.mobile,
+            paddingTop: isDesktop ? 64 : 36,
+            width: "100%",
           }}
         >
-          {hasAccess && data?.internalAdsStatistics && (
+          <View style={{ maxWidth: 820 }}>
+            <Headline
+              size={isDesktop ? "large" : "medium"}
+              heading={1}
+              style={{ maxWidth: 780 }}
+            >
+              Material, verktyg och resurser som bara cirkulerar inom er
+              organisation.
+            </Headline>
+          </View>
+
+          {hasAccess && (
+            <View style={{ gap: 16 }}>
+              <Search
+                style={{ width: isDesktop ? 633 : undefined }}
+                backgroundColor={primitives.neutrals100}
+                borderStyle={{
+                  borderColor: colors.buttons.outlinedStroke.enabled,
+                  borderWidth: 1,
+                }}
+                placeholder="Vad letar du efter?"
+                searchScope="internal"
+                searchOnSubmit
+              />
+              <View style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}>
+                <Button
+                  label="Ny annons"
+                  onPress={onCreateInternalAd}
+                  loading={creatingDraft}
+                  theme="light"
+                  style={isDesktop ? undefined : { flex: 1, minWidth: 0 }}
+                />
+                <Button
+                  label="Importera annonser"
+                  icon="upload"
+                  type="outlined"
+                  theme="light"
+                  onPress={() => setShowImport(true)}
+                  style={isDesktop ? undefined : { flex: 2, minWidth: 0 }}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </ImageBackground>
+
+      <View
+        style={{
+          backgroundColor: colors.background.neutral,
+          flexGrow: 1,
+          width: "100%",
+        }}
+      >
+        <View
+          style={{
+            alignSelf: "center",
+            flexGrow: 1,
+            maxWidth: MAX_CONTENT_WIDTH,
+            minHeight: 420,
+            paddingBottom: 32,
+            paddingHorizontal: isDesktop
+              ? horizontalPadding.desktop
+              : horizontalPadding.mobile,
+            paddingTop: isDesktop ? 44 : 16,
+            width: "100%",
+          }}
+        >
+          {hasAccess && displayedDashboard && (
             <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
               <InternalStatisticsSection
-                statistics={data.internalAdsStatistics}
+                statistics={displayedDashboard}
+                preset={displayedDashboardPreset}
+                selectedPreset={dashboardPreset}
+                onPresetChange={setDashboardPreset}
+                onDownload={onDownloadDashboard}
+                downloading={downloadingDashboard}
+                downloadError={dashboardDownloadError}
               />
+            </View>
+          )}
+          {hasAccess && !!data?.internalAdsCategories.length && (
+            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
+              <InternalCategoryGrid categories={data.internalAdsCategories} />
             </View>
           )}
           {hasAccess && (
@@ -512,6 +641,7 @@ export default function InternalAdsPage() {
               </SectionHeader>
               {(projectsData?.internalProjects.projects ?? []).length ? (
                 <InternalProjectGrid
+                  landing
                   projects={projectsData.internalProjects.projects}
                   onProjectPress={(projectId) =>
                     router.navigate({
@@ -541,11 +671,6 @@ export default function InternalAdsPage() {
                   />
                 </View>
               )}
-            </View>
-          )}
-          {hasAccess && !!data?.internalAdsCategories.length && (
-            <View style={{ marginBottom: isDesktop ? 48 : 32 }}>
-              <InternalCategoryGrid categories={data.internalAdsCategories} />
             </View>
           )}
           {loading && !data ? (
@@ -609,9 +734,40 @@ export default function InternalAdsPage() {
             </View>
           )}
         </View>
+      </View>
 
-        <Footer />
-      </ScrollView>
+      <Footer />
+    </>
+  );
+
+  return (
+    <View
+      style={[
+        isWeb ? screenGrowStyle : { flex: 1 },
+        { backgroundColor: primitives.neutrals100 },
+      ]}
+    >
+      <InternalTopBar
+        home
+        showSearchBar={showSearchBarTopBar}
+        onCreateAd={onCreateInternalAd}
+      />
+
+      {isWeb ? (
+        content
+      ) : (
+        <Animated.ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          scrollEventThrottle={8}
+          showsVerticalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true },
+          )}
+        >
+          {content}
+        </Animated.ScrollView>
+      )}
 
       <SlideInSheet
         open={showImport}
@@ -651,12 +807,18 @@ export default function InternalAdsPage() {
               />
             </View>
           ) : (
-            <Button
-              label="Starta import"
-              onPress={onStartImport}
-              loading={creatingBatch || startingBatch}
-              disabled={!selectedFiles.length}
-            />
+            <View style={{ paddingTop: 60 }}>
+              <Button
+                label="Starta import"
+                onPress={onStartImport}
+                loading={creatingBatch || startingBatch}
+                disabled={
+                  !selectedFiles.length ||
+                  !importMemberId ||
+                  (!importPlacement.project && !importPlacement.location)
+                }
+              />
+            </View>
           )
         }
       >
@@ -670,6 +832,48 @@ export default function InternalAdsPage() {
           onDiscardProduct={onDiscardImportedProduct}
           onDraftSave={onImportedDraftSave}
         />
+        {!hasImport && (
+          <View style={{ gap: 24 }}>
+            <View style={{ gap: 6, zIndex: 100 }}>
+              <Display size="small">Vem lägger upp annonserna?</Display>
+              <SelectInput
+                value={importMemberId}
+                searchable
+                searchPlaceholder="Sök person"
+                options={(membersData?.organizationMembers ?? []).map(
+                  (member) => ({ value: member.id, label: member.name }),
+                )}
+                onSelect={setImportMemberId}
+                placeholder="Välj person"
+              />
+              {!membersData?.organizationMembers.length && (
+                <Body size="small" color="secondary">
+                  Lägg först till en person under Organisationsmedlemmar.
+                </Body>
+              )}
+            </View>
+            <View style={{ gap: 12 }}>
+              <ProjectChips
+                product={importPlacement}
+                update={(partial) =>
+                  setImportPlacement((current) => ({ ...current, ...partial }))
+                }
+                internalMode
+              />
+              {!importPlacement.project && (
+                <InternalLocation
+                  product={importPlacement}
+                  update={(partial) =>
+                    setImportPlacement((current) => ({
+                      ...current,
+                      ...partial,
+                    }))
+                  }
+                />
+              )}
+            </View>
+          </View>
+        )}
       </SlideInSheet>
 
       {editorProductId && (
@@ -680,6 +884,7 @@ export default function InternalAdsPage() {
           visible={showEditor}
           internalMode
           isNewInternalAd={isNewInternalAd}
+          organizationMembers={membersData?.organizationMembers ?? []}
           onHide={() => setShowEditor(false)}
           onPublished={async () => {
             setShowEditor(false);
@@ -729,35 +934,33 @@ const ImportPanel = ({
   return (
     <View style={{ gap: 24 }}>
       {!batch && !importStarted && (
-        <Pressable onPress={onPickFiles}>
-          <View
-            style={{
-              borderRadius: borderRadius.medium,
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              borderStyle: "dashed",
-              borderColor: colors.buttons.outlinedStroke.enabled,
-              borderWidth: 1,
-              gap: 16,
-            }}
-          >
+        <View style={{ gap: 8 }}>
+          <Display size="small">Ladda upp filer</Display>
+          <Pressable onPress={onPickFiles}>
             <View
               style={{
-                width: 60,
-                height: 60,
-                backgroundColor: colors.card.message,
-                borderRadius: 38,
+                borderRadius: borderRadius.medium,
                 alignItems: "center",
                 justifyContent: "center",
+                padding: 16,
+                borderStyle: "dashed",
+                borderColor: colors.buttons.outlinedStroke.enabled,
+                borderWidth: 1,
+                gap: 16,
               }}
             >
-              <Icon icon="upload" />
-            </View>
-            <View style={{ gap: 4 }}>
-              <Title size="medium" style={{ textAlign: "center" }}>
-                Ladda upp filer
-              </Title>
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  backgroundColor: colors.card.message,
+                  borderRadius: 38,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon icon="upload" />
+              </View>
               <Body
                 size="small"
                 color="secondary"
@@ -766,8 +969,8 @@ const ImportPanel = ({
                 Bilder, dokument och listor kan laddas upp tillsammans.
               </Body>
             </View>
-          </View>
-        </Pressable>
+          </Pressable>
+        </View>
       )}
 
       {!!files.length && !importStarted && (

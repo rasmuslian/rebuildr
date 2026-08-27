@@ -1,13 +1,13 @@
 import { InternalAdsMenuContextQuery } from "@/gql/graphql";
 import { INTERNAL_ADS_MENU_CONTEXT } from "@/queries/internal-ads";
 import { useQuery } from "@apollo/client";
+import AterbankenLogotype from "@assets/images/aterbanken-logotype.png";
 import { Button } from "@components/buttons/button";
-import { Logo } from "@components/logo/logo";
 import { SearchBar } from "@components/search/search-bar";
-import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { primitives } from "@constants/colors";
-import { isWeb, WEB_STICKY } from "@constants/layout";
 import { Label } from "@components/typography/text";
+import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
+import { isWeb, MAX_CONTENT_WIDTH, WEB_STICKY } from "@constants/layout";
+import { horizontalPadding } from "@constants/sizes";
 import { LoginModalContext } from "@context/loginModalContext";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
@@ -15,6 +15,7 @@ import { useThemeColor } from "@hooks/useThemeColor";
 import { useUser } from "@hooks/useUser";
 import { Icon } from "@icons/icon";
 import { router } from "expo-router";
+import { Image } from "expo-image";
 import { useContext, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -38,9 +39,8 @@ export const InternalTopBar = ({
     INTERNAL_ADS_MENU_CONTEXT,
     { fetchPolicy: "cache-and-network" },
   );
-  const isOrganizationAccount =
-    data?.internalAdsOrganizationContext?.isOrganizationAccount ?? false;
-  const canUseInternalAds = showActions && !isOrganizationAccount;
+  const canUseInternalAds =
+    showActions && !!data?.internalAdsOrganizationContext;
 
   return (
     <View
@@ -52,14 +52,12 @@ export const InternalTopBar = ({
           showActions={canUseInternalAds}
           showSearchBar={showSearchBar}
           onCreateAd={onCreateAd}
-          isOrganizationAccount={isOrganizationAccount}
         />
       ) : (
         <InternalTopBarMobile
           home={home}
           showActions={canUseInternalAds}
           onCreateAd={onCreateAd}
-          isOrganizationAccount={isOrganizationAccount}
         />
       )}
     </View>
@@ -112,8 +110,7 @@ const InternalTopBarDesktop = ({
   showActions,
   showSearchBar,
   onCreateAd,
-  isOrganizationAccount,
-}: Props & { isOrganizationAccount: boolean }) => {
+}: Props) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
@@ -123,81 +120,82 @@ const InternalTopBarDesktop = ({
     <>
       <View
         style={{
-          alignItems: "center",
-          backgroundColor: home
-            ? primitives.accent100
-            : colors.background.neutral,
+          backgroundColor: colors.background.neutral,
           borderBottomColor: colors.dividers.neutral,
           borderBottomWidth: home ? 0 : 1,
-          flexDirection: "row",
-          height: 72,
-          justifyContent: "space-between",
-          paddingHorizontal: 75,
+          height: 64,
           width: "100%",
         }}
       >
-        <View style={{ alignItems: "center", flexDirection: "row", gap: 20 }}>
-          <Pressable accessibilityRole="link" onPress={goInternalHome}>
-            <Logo width={118} height={24} customColor={colors.logo.vector} />
-          </Pressable>
-          <Label size="large">Återbanken</Label>
-          {showActions && showSearchBar && (
-            <SearchBar
-              backgroundColor="transparent"
-              searchOnSubmit
-              searchScope="internal"
-              placeholder="Sök i Återbanken"
-              style={{ borderBottomWidth: 0, width: 320 }}
-              borderStyle={{
-                borderColor: colors.dividers.neutral,
-                borderWidth: 1,
-              }}
+        <View
+          style={{
+            alignItems: "center",
+            alignSelf: "center",
+            flexDirection: "row",
+            height: "100%",
+            justifyContent: "space-between",
+            maxWidth: MAX_CONTENT_WIDTH,
+            paddingHorizontal: horizontalPadding.desktop,
+            width: "100%",
+          }}
+        >
+          <View style={{ alignItems: "center", flexDirection: "row", gap: 20 }}>
+            <Pressable accessibilityRole="link" onPress={goInternalHome}>
+              <Image
+                source={AterbankenLogotype}
+                contentFit="contain"
+                style={{ width: 145, height: 25 }}
+              />
+            </Pressable>
+            {showActions && showSearchBar && (
+              <SearchBar
+                backgroundColor="transparent"
+                searchOnSubmit
+                searchScope="internal"
+                placeholder="Vad letar du efter?"
+                style={{ borderBottomWidth: 0, width: 360 }}
+                borderStyle={{
+                  borderColor: colors.dividers.neutral,
+                  borderWidth: 1,
+                }}
+              />
+            )}
+          </View>
+          <View style={{ alignItems: "center", flexDirection: "row", gap: 12 }}>
+            <Button
+              label="Meny"
+              icon="hamburger"
+              type="tonal"
+              theme="light"
+              onPress={() => setMenuOpen(true)}
             />
-          )}
-        </View>
-        <View style={{ alignItems: "center", flexDirection: "row", gap: 12 }}>
-          <Button
-            label="Meny"
-            icon="hamburger"
-            type="outlined"
-            theme="light"
-            onPress={() => setMenuOpen(true)}
-            style={{ backgroundColor: primitives.neutrals100 }}
-          />
-          {showActions && (
-            <Button label="Ny annons" onPress={createInternalAd} />
-          )}
+            {showActions && (
+              <Button label="Ny annons" onPress={createInternalAd} />
+            )}
+          </View>
         </View>
       </View>
       <InternalMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
-        showInternalLinks={showActions}
-        showMemberManagement={isOrganizationAccount}
+        showInternalLinks={!!showActions}
+        showMemberManagement={!!showActions}
       />
     </>
   );
 };
 
-const InternalTopBarMobile = ({
-  home,
-  showActions,
-  onCreateAd,
-  isOrganizationAccount,
-}: Props & { isOrganizationAccount: boolean }) => {
+const InternalTopBarMobile = ({ home, showActions }: Props) => {
   const colors = useThemeColor();
   const [menuOpen, setMenuOpen] = useState(false);
   const { goInternalHome, goMarketplace } = useInternalNavigation();
-  const createInternalAd = useCreateInternalAd(onCreateAd);
 
   return (
     <>
       <View
         style={{
-          backgroundColor: home
-            ? primitives.accent100
-            : colors.background.neutral,
+          backgroundColor: colors.background.neutral,
           borderBottomColor: colors.dividers.neutral,
           borderBottomWidth: home ? 0 : 1,
         }}
@@ -205,34 +203,29 @@ const InternalTopBarMobile = ({
         <View
           style={{
             alignItems: "center",
+            alignSelf: "center",
             flexDirection: "row",
             height: 56,
             justifyContent: "space-between",
-            paddingHorizontal: 16,
+            maxWidth: MAX_CONTENT_WIDTH,
+            paddingHorizontal: horizontalPadding.mobile,
+            width: "100%",
           }}
         >
           <Pressable accessibilityRole="link" onPress={goInternalHome}>
-            <View
-              style={{ alignItems: "center", flexDirection: "row", gap: 8 }}
-            >
-              <Logo width={70} height={14} customColor={colors.logo.vector} />
-              <Label size="small">Återbanken</Label>
-            </View>
+            <Image
+              source={AterbankenLogotype}
+              contentFit="contain"
+              style={{ width: 123, height: 21 }}
+            />
           </Pressable>
           <View style={{ flexDirection: "row" }}>
             {showActions && (
-              <>
-                <MobileAction
-                  icon="search"
-                  label="Sök"
-                  onPress={() => router.navigate("/internal/search")}
-                />
-                <MobileAction
-                  icon="newListing"
-                  label="Ny annons"
-                  onPress={createInternalAd}
-                />
-              </>
+              <MobileAction
+                icon="search"
+                label="Sök"
+                onPress={() => router.navigate("/internal/search")}
+              />
             )}
             <MobileAction
               icon="hamburger"
@@ -246,8 +239,8 @@ const InternalTopBarMobile = ({
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onGoMarketplace={goMarketplace}
-        showInternalLinks={showActions}
-        showMemberManagement={isOrganizationAccount}
+        showInternalLinks={!!showActions}
+        showMemberManagement={!!showActions}
       />
     </>
   );
@@ -299,11 +292,6 @@ const InternalMenu = ({
             href="/internal/projects"
             onClose={onClose}
           />
-          <InternalMenuEntry
-            label="Organisationsmedlemmar"
-            href="/internal/members"
-            onClose={onClose}
-          />
         </>
       )}
       {showMemberManagement && (
@@ -315,7 +303,7 @@ const InternalMenu = ({
       )}
       <View style={{ marginTop: 16 }}>
         <Button
-          label="Till externa marknadsplatsen"
+          label="Gå tillbaka till Rebuildr.se"
           type="outlined"
           onPress={() => {
             onClose();

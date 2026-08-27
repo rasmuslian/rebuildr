@@ -17,6 +17,7 @@ type Props = {
   title?: string;
   addressDescription?: string;
   saveLabel?: string;
+  hideTitle?: boolean;
 };
 
 export const EditPickup = ({
@@ -25,9 +26,9 @@ export const EditPickup = ({
   onSave,
   isLoading,
   title = "Plats för avhämtning",
-  addressDescription =
-    "Köparen ser inte din exakta adress, bara ett ungefärligt område på kartan. Din adress visas först när ett köp har genomförts.",
+  addressDescription = "Köparen ser inte din exakta adress, bara ett ungefärligt område på kartan. Din adress visas först när ett köp har genomförts.",
   saveLabel = "Spara adress",
+  hideTitle = false,
 }: Props) => {
   const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
   const [isMyLocation, setIsMyLocation] = useState(false);
@@ -71,7 +72,7 @@ export const EditPickup = ({
 
   return (
     <View style={{ gap: 24 }}>
-      <Title size="medium">{title}</Title>
+      {!hideTitle && <Title size="medium">{title}</Title>}
       <View style={{ gap: 14 }}>
         <Form
           fields={[

@@ -26,6 +26,33 @@ const IMAGE_FETCH_TIMEOUT_MS = 10_000;
 const GEMINI_TIMEOUT_MS = 60_000;
 const GEMINI_RETRY_DELAY_MS = 1_500;
 const LEAF_CATEGORIES_TTL_MS = 10 * 60 * 1000;
+const PRODUCT_ANALYSIS_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' },
+    description: { type: 'string' },
+    additionalInfo: { type: ['string', 'null'] },
+    brand: { type: 'string' },
+    condition: { type: 'string' },
+    primaryQuantification: { type: 'string' },
+    secondaryQuantification: { type: ['string', 'null'] },
+    dimensions: {
+      type: 'object',
+      additionalProperties: { type: 'string' },
+    },
+    weight: {
+      type: 'number',
+      minimum: 0.1,
+      description: 'Total product weight in kg, at least 0.1.',
+    },
+    color: { type: ['string', 'null'] },
+    categoryId: { type: ['string', 'null'] },
+    priceSuggestionMin: { type: ['number', 'null'] },
+    priceSuggestionMax: { type: ['number', 'null'] },
+  },
+  required: ['weight'],
+  additionalProperties: false,
+} as const;
 
 @Injectable()
 export class AIService {
@@ -223,6 +250,7 @@ If an estimate is impossible, return null for both fields.`,
       model: 'gemini-3-flash-preview',
       config: {
         responseMimeType: 'application/json' as const,
+        responseJsonSchema: PRODUCT_ANALYSIS_RESPONSE_SCHEMA,
         //Gemini 3 thinks dynamically by default, which can add seconds; this
         //task (structured extraction) doesn't need deep reasoning
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -297,7 +325,7 @@ If an estimate is impossible, return null for both fields.`,
                 height: "1,${MeasurementUnitEnum.MM}",
                 width: "2,${MeasurementUnitEnum.MM}"
               },
-              "weight": "Estimated weight of the product in kg as an integer. If impossible to estimate, return null.",
+              "weight": "Total estimated weight of the listed product(s) in kg as a positive number, with at most one decimal. This value is used to calculate CO₂ savings, so it is REQUIRED and must never be null. Use an exact stated weight when visible; otherwise make a conservative estimate from the material, dimensions and quantity. Return at least 0.1.",
               "color": "ONLY if the product has a painted, coated or color-significant surface where color is relevant — such as painted
               panels, tiles, metal sheets, doors, windows, radiators, plasterboard. If color is
               irrelevant for this product type, return null.",
@@ -379,10 +407,13 @@ If an estimate is impossible, return null for both fields.`,
       priceSuggestionMax,
     } = parsed;
 
-    // Assign text fields
-    product.title = title as string;
-    product.description = description as string;
-    product.additionalInfo = additionalInfo as string;
+    // Preserve existing fields if the model unexpectedly omits an optional
+    // suggestion despite the response schema.
+    if (typeof title === 'string') product.title = title;
+    if (typeof description === 'string') product.description = description;
+    if (typeof additionalInfo === 'string' || additionalInfo === null) {
+      product.additionalInfo = additionalInfo as string;
+    }
 
     // Category suggestion — only accept ids that exist in the leaf list we
     // sent (guards against hallucinated ids; mirrors the publish-time check
@@ -474,7 +505,15 @@ If an estimate is impossible, return null for both fields.`,
       }
     }
 
-    product.weight = weight as number;
+    // Preserve a previous valid value during re-analysis when the structured
+    // response unexpectedly fails validation.
+    const parsedWeight =
+      typeof weight === 'string' ? Number(weight.replace(',', '.')) : weight;
+    const normalizedWeight =
+      typeof parsedWeight === 'number' && Number.isFinite(parsedWeight)
+        ? Math.max(0.1, Math.round(parsedWeight * 10) / 10)
+        : undefined;
+    product.weight = normalizedWeight ?? product.weight;
     product.weightUnit = MeasurementUnitEnum.KG;
 
     product.color = color as string;

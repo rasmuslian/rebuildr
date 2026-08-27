@@ -1,8 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import {
   Args,
-  Context,
   Field,
+  Float,
   ID,
   InputType,
   Int,
@@ -14,7 +14,6 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { GqlOptionalAuthGuard } from 'src/auth/gql-optional-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthedUserType } from 'src/auth/constants';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -23,18 +22,15 @@ import { Category } from 'src/entities/category.entity';
 import { File } from 'src/entities/file.entity';
 import { InternalAdImportBatch } from 'src/entities/internal-ad-import-batch.entity';
 import { InternalAdReservation } from 'src/entities/internal-ad-reservation.entity';
-import { OrganizationInvite } from 'src/entities/organization-invite.entity';
-import {
-  OrganizationMemberRole,
-  OrganizationMembership,
-} from 'src/entities/organization-membership.entity';
+import { OrganizationMember } from 'src/entities/organization-member.entity';
 import { Product } from 'src/entities/product.entity';
 import { Project } from 'src/entities/project.entity';
 import { User, UserRoleEnum } from 'src/entities/user.entity';
 import { FileInputType } from 'src/resolvers/file.resolver';
 import {
-  ProductsInput,
   PaginatedProductsResponse,
+  ProductFacetsResponse,
+  ProductsInput,
 } from 'src/resolvers/product.resolver';
 import { InternalAdsService } from 'src/services/internal-ads.service';
 import { LocationInputType } from './geocoding.resolver';
@@ -44,12 +40,6 @@ import { MapPinGroupsInput, MapPinGroupsResponse } from './map-pin.resolver';
 class InternalAdsOrganizationContext {
   @Field(() => User)
   organization: User;
-
-  @Field(() => OrganizationMemberRole)
-  role: OrganizationMemberRole;
-
-  @Field()
-  isOrganizationAccount: boolean;
 
   @Field()
   canReceivePayout: boolean;
@@ -73,6 +63,90 @@ class InternalAdsStatistics {
   externallyPublishedAds: number;
 }
 
+@InputType()
+class InternalAdsDashboardInput {
+  @Field({ nullable: true })
+  from?: string;
+
+  @Field({ nullable: true })
+  to?: string;
+}
+
+@ObjectType()
+class InternalAdsClimateReceipt {
+  @Field(() => Float)
+  realizedCo2: number;
+
+  @Field(() => Float)
+  internalReuseCo2: number;
+
+  @Field(() => Float)
+  externalSalesCo2: number;
+
+  @Field(() => Float)
+  potentialCo2Savings: number;
+
+  @Field(() => Float)
+  petrolCarKilometers: number;
+}
+
+@ObjectType()
+class InternalAdsEconomicReceipt {
+  @Field(() => Float)
+  realizedValue: number;
+
+  @Field(() => Float)
+  internalReuseValue: number;
+
+  @Field(() => Float)
+  externalSalesNetValue: number;
+
+  @Field(() => Float)
+  currentInventoryValue: number;
+
+  @Field(() => Float)
+  avoidedDisposalCost: number;
+}
+
+@ObjectType()
+class InternalAdsCurrentStatistics {
+  @Field(() => Int)
+  totalAds: number;
+
+  @Field(() => Float)
+  availableWeight: number;
+
+  @Field(() => Int)
+  activeProjects: number;
+
+  @Field(() => Int)
+  externallyPublishedAds: number;
+
+  @Field(() => Float)
+  reservedArticles: number;
+}
+
+@ObjectType()
+class InternalAdsDashboard {
+  @Field({ nullable: true })
+  from?: string;
+
+  @Field({ nullable: true })
+  to?: string;
+
+  @Field(() => Float)
+  disposalCostSekPerKg: number;
+
+  @Field(() => InternalAdsClimateReceipt)
+  climate: InternalAdsClimateReceipt;
+
+  @Field(() => InternalAdsEconomicReceipt)
+  economic: InternalAdsEconomicReceipt;
+
+  @Field(() => InternalAdsCurrentStatistics)
+  current: InternalAdsCurrentStatistics;
+}
+
 @ObjectType()
 class InternalAdsCategory {
   @Field(() => Category)
@@ -82,13 +156,19 @@ class InternalAdsCategory {
   adCount: number;
 }
 
-@ObjectType()
-class OrganizationInvitePreview {
+@InputType()
+class CreateOrganizationMemberInput {
   @Field()
-  organizationName: string;
+  name: string;
 
-  @Field(() => Date)
-  expiresAt: Date;
+  @Field()
+  email: string;
+}
+
+@InputType()
+class UpdateOrganizationMemberInput extends CreateOrganizationMemberInput {
+  @Field(() => ID)
+  id: string;
 }
 
 @ObjectType()
@@ -101,54 +181,15 @@ class CreateInternalAdImportBatchResponse {
 }
 
 @InputType()
-class InviteOrganizationMemberInput {
-  @Field()
-  email: string;
-
-  @Field(() => OrganizationMemberRole)
-  role: OrganizationMemberRole;
-}
-
-@InputType()
-class AcceptOrganizationInviteInput {
-  @Field()
-  token: string;
-
-  @Field({ nullable: true })
-  username?: string;
-
-  @Field({ nullable: true })
-  password?: string;
-}
-
-@InputType()
-class UpdateOrganizationMemberRoleInput {
-  @Field()
-  userId: string;
-
-  @Field(() => OrganizationMemberRole)
-  role: OrganizationMemberRole;
-}
-
-@InputType()
-class OrganizationInviteIdInput {
-  @Field(() => ID)
-  inviteId: string;
-}
-
-@InputType()
-class RemoveOrganizationMemberInput {
-  @Field(() => ID)
-  userId: string;
-}
-
-@InputType()
 class ReserveInternalAdInput {
   @Field()
   productId: string;
 
   @Field(() => Int, { nullable: true })
   quantity?: number;
+
+  @Field(() => ID)
+  organizationMemberId: string;
 }
 
 @InputType()
@@ -164,6 +205,12 @@ class MarkInternalAdSoldInput {
 class CreateInternalAdImportBatchInput {
   @Field(() => [FileInputType])
   files: FileInputType[];
+
+  @Field(() => ID, { nullable: true })
+  projectId?: string;
+
+  @Field(() => LocationInputType, { nullable: true })
+  location?: LocationInputType;
 }
 
 @InputType()
@@ -273,6 +320,20 @@ export class InternalAdsResolver {
     return this.internalAdsService.updateInternalProject(user.id, input);
   }
 
+  @Mutation(() => String)
+  @UseGuards(GqlAuthGuard)
+  async setInternalProjectPicture(
+    @CurrentUser() user: AuthedUserType,
+    @Args('projectId', { type: () => ID }) projectId: string,
+    @Args('picture') picture: FileInputType,
+  ) {
+    return this.internalAdsService.setInternalProjectPicture(
+      user.id,
+      projectId,
+      picture,
+    );
+  }
+
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
   async deleteInternalProject(
@@ -286,6 +347,24 @@ export class InternalAdsResolver {
   @UseGuards(GqlAuthGuard)
   async internalAdsStatistics(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.internalAdsStatistics(user.id);
+  }
+
+  @Query(() => InternalAdsDashboard)
+  @UseGuards(GqlAuthGuard)
+  async internalAdsDashboard(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: InternalAdsDashboardInput,
+  ) {
+    return this.internalAdsService.internalAdsDashboard(user.id, input);
+  }
+
+  @Query(() => String)
+  @UseGuards(GqlAuthGuard)
+  async internalAdsDashboardXlsx(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: InternalAdsDashboardInput,
+  ) {
+    return this.internalAdsService.internalAdsDashboardXlsx(user.id, input);
   }
 
   @Query(() => [InternalAdsCategory])
@@ -303,6 +382,15 @@ export class InternalAdsResolver {
     @Args('offset', { nullable: true, type: () => Int }) offset?: number,
   ) {
     return this.internalAdsService.internalAds(user.id, input, limit, offset);
+  }
+
+  @Query(() => ProductFacetsResponse)
+  @UseGuards(GqlAuthGuard)
+  async internalProductFacets(
+    @CurrentUser() user: AuthedUserType,
+    @Args('input') input: ProductsInput,
+  ) {
+    return this.internalAdsService.internalProductFacets(user.id, input);
   }
 
   @Query(() => PaginatedProductsResponse)
@@ -351,95 +439,58 @@ export class InternalAdsResolver {
     return this.internalAdsService.myInternalDrafts(user.id, batchId);
   }
 
-  @Query(() => OrganizationInvitePreview, { nullable: true })
-  async organizationInvite(@Args('token') token: string) {
-    return this.internalAdsService.organizationInvite(token);
-  }
-
-  @Query(() => [OrganizationMembership])
+  @Query(() => [OrganizationMember])
   @UseGuards(GqlAuthGuard)
   async organizationMembers(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.members(user.id);
   }
 
-  @Query(() => [OrganizationInvite])
+  @Mutation(() => OrganizationMember)
   @UseGuards(GqlAuthGuard)
-  async organizationInvites(@CurrentUser() user: AuthedUserType) {
-    return this.internalAdsService.invites(user.id);
-  }
-
-  @Mutation(() => OrganizationInvite)
-  @UseGuards(GqlAuthGuard)
-  async inviteOrganizationMember(
+  async createOrganizationMember(
     @CurrentUser() user: AuthedUserType,
-    @Args('input') input: InviteOrganizationMemberInput,
+    @Args('input') input: CreateOrganizationMemberInput,
   ) {
-    return this.internalAdsService.inviteMember(user.id, input);
+    return this.internalAdsService.createMember(user.id, input);
   }
 
-  @Mutation(() => User)
-  @UseGuards(GqlOptionalAuthGuard)
-  async acceptOrganizationInvite(
-    @Args('input') input: AcceptOrganizationInviteInput,
-    @Context('req') req: { user?: AuthedUserType },
-    @CurrentUser() user?: AuthedUserType,
-  ) {
-    const acceptedUser = await this.internalAdsService.acceptInvite(
-      input,
-      user?.id,
-    );
-
-    // The mutation returns the invited user's protected email so the app can
-    // log a newly created account in. Treat that user as authenticated for the
-    // response fields after the invite token and password have been accepted.
-    req.user = {
-      id: acceptedUser.id,
-      email: acceptedUser.email,
-      role: acceptedUser.role,
-    };
-    return acceptedUser;
-  }
-
-  @Mutation(() => OrganizationMembership)
+  @Mutation(() => OrganizationMember)
   @UseGuards(GqlAuthGuard)
-  async updateOrganizationMemberRole(
+  async updateOrganizationMember(
     @CurrentUser() user: AuthedUserType,
-    @Args('input') input: UpdateOrganizationMemberRoleInput,
+    @Args('input') input: UpdateOrganizationMemberInput,
   ) {
-    return this.internalAdsService.updateMemberRole(user.id, input);
-  }
-
-  @Mutation(() => OrganizationInvite)
-  @UseGuards(GqlAuthGuard)
-  async resendOrganizationInvite(
-    @CurrentUser() user: AuthedUserType,
-    @Args('input') input: OrganizationInviteIdInput,
-  ) {
-    return this.internalAdsService.resendInvite(user.id, input.inviteId);
-  }
-
-  @Mutation(() => OrganizationInvite)
-  @UseGuards(GqlAuthGuard)
-  async revokeOrganizationInvite(
-    @CurrentUser() user: AuthedUserType,
-    @Args('input') input: OrganizationInviteIdInput,
-  ) {
-    return this.internalAdsService.revokeInvite(user.id, input.inviteId);
+    return this.internalAdsService.updateMember(user.id, input);
   }
 
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
   async removeOrganizationMember(
     @CurrentUser() user: AuthedUserType,
-    @Args('input') input: RemoveOrganizationMemberInput,
+    @Args('memberId', { type: () => ID }) memberId: string,
   ) {
-    return this.internalAdsService.removeMember(user.id, input.userId);
+    return this.internalAdsService.removeMember(user.id, memberId);
   }
 
   @Mutation(() => Product)
   @UseGuards(GqlAuthGuard)
   async createInternalAdDraft(@CurrentUser() user: AuthedUserType) {
     return this.internalAdsService.createInternalDraft(user.id);
+  }
+
+  @Mutation(() => Product)
+  @UseGuards(GqlAuthGuard)
+  async setInternalAdResponsibleMember(
+    @CurrentUser() user: AuthedUserType,
+    @Args('productId', { type: () => ID }) productId: string,
+    @Args('organizationMemberId', { type: () => ID })
+    organizationMemberId: string,
+  ) {
+    return this.internalAdsService.setInternalAdResponsibleMember(
+      user.id,
+      productId,
+      organizationMemberId,
+    );
   }
 
   @Mutation(() => Boolean)
@@ -517,8 +568,14 @@ export class InternalAdsResolver {
   async createInternalAdImportBatch(
     @CurrentUser() user: AuthedUserType,
     @Args('input') input: CreateInternalAdImportBatchInput,
+    @Args('organizationMemberId', { type: () => ID })
+    organizationMemberId: string,
   ) {
-    return this.internalAdsService.createImportBatch(user.id, input.files);
+    return this.internalAdsService.createImportBatch(
+      user.id,
+      input,
+      organizationMemberId,
+    );
   }
 
   @Mutation(() => InternalAdImportBatch)
@@ -547,29 +604,11 @@ export class InternalAdsResolver {
   }
 }
 
-@Resolver(() => OrganizationMembership)
-export class OrganizationMembershipResolver {
-  @ResolveField(() => User)
-  user(@Parent() membership: OrganizationMembership) {
-    return membership.user;
-  }
-
-  @ResolveField(() => String, { nullable: true })
-  userEmail(@Parent() membership: OrganizationMembership) {
-    return membership.user.email;
-  }
-
-  @ResolveField(() => User)
-  organization(@Parent() membership: OrganizationMembership) {
-    return membership.organization;
-  }
-}
-
 @Resolver(() => InternalAdReservation)
 export class InternalAdReservationResolver {
-  @ResolveField(() => User)
-  reservedByUser(@Parent() reservation: InternalAdReservation) {
-    return reservation.reservedByUser;
+  @ResolveField(() => OrganizationMember, { nullable: true })
+  reservedByOrganizationMember(@Parent() reservation: InternalAdReservation) {
+    return reservation.reservedByOrganizationMember;
   }
 }
 

@@ -8,6 +8,7 @@ import { Shipping } from "./shipping";
 import { Delivery } from "./delivery";
 import { ProjectChips } from "./project-chips";
 import { AvailabilitySection } from "./availability-section";
+import { InternalLocation } from "./internal-location";
 import { ProductFields } from "./types";
 import { useScreenType } from "@hooks/useScreenType";
 
@@ -21,6 +22,10 @@ type Props = {
   badFields?: { [key: string]: string };
   updateProgress: (progress: number) => void;
   internalMode?: boolean;
+  nextLabel?: string;
+  onInternalLocationSaveStart?: () => void;
+  hideActions?: boolean;
+  hideAvailability?: boolean;
 };
 
 export const Transportation = ({
@@ -33,6 +38,10 @@ export const Transportation = ({
   badFields,
   updateProgress,
   internalMode = false,
+  nextLabel,
+  onInternalLocationSaveStart,
+  hideActions = false,
+  hideAvailability = false,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const [addressEditLock, setAddressEditLock] = useState(false);
@@ -51,8 +60,14 @@ export const Transportation = ({
     product.deliveryPrice,
     shippingSelected,
     addressEditLock,
+    product.location,
+    product.project,
   ]);
   const progress = () => {
+    if (internalMode) {
+      return product.project || product.location ? 100 : 0;
+    }
+
     const address = product.address;
     let nrMethodsChosen = 0;
     let progress = 0;
@@ -77,6 +92,10 @@ export const Transportation = ({
   };
 
   const canContinue = () => {
+    if (internalMode) {
+      return !!product.project || !!product.location;
+    }
+
     if (addressEditLock) {
       return false;
     }
@@ -113,66 +132,83 @@ export const Transportation = ({
         update={update}
         internalMode={internalMode}
       />
-      <Display size="small">Leverans</Display>
-      <View style={{ gap: 16, paddingBottom: 16 }}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Pickup
+      {internalMode ? (
+        !product.project && (
+          <InternalLocation
             product={product}
             update={update}
-            canEdit={!addressEditLock}
-            onEditing={() => setAddressEditLock(true)}
-            onEditComplete={() => setAddressEditLock(false)}
+            onSaveStart={onInternalLocationSaveStart}
+            error={product.location ? undefined : badFields?.["location"]}
           />
-          <Shipping
-            product={product}
-            update={update}
-            onShippingValid={(valid) => setShippingValid(valid)}
-            shippingSelected={shippingSelected}
-            onShippingSelected={(selected) => setShippingSelected(selected)}
-          />
-          <Delivery
-            product={product}
-            update={update}
-            canEdit={!addressEditLock}
-            onEditing={() => setAddressEditLock(true)}
-            onEditComplete={() => setAddressEditLock(false)}
-            error={badFields?.["delivery"]}
-          />
-        </Suspense>
-      </View>
-      <AvailabilitySection
-        product={product}
-        update={update}
-        error={badFields?.["availability"]}
-      />
-      <View
-        style={[
-          {
-            paddingTop: 24,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          },
-          isDesktop && {
-            position: "sticky",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            backgroundColor: "white",
-            paddingBottom: 32,
-          },
-        ]}
-      >
-        <Button icon="arrowLeft" label="Tillbaka" onPress={() => onBack()} />
-        <Button
-          label="Förhandsgranska"
-          onPress={() => onNext()}
-          style={{ flex: 1 }}
-          disabled={!canContinue() || nextIsDisabled}
-          loading={loading}
+        )
+      ) : (
+        <>
+          <Display size="small">Leverans</Display>
+          <View style={{ gap: 16, paddingBottom: 16 }}>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Pickup
+                product={product}
+                update={update}
+                canEdit={!addressEditLock}
+                onEditing={() => setAddressEditLock(true)}
+                onEditComplete={() => setAddressEditLock(false)}
+              />
+              <Shipping
+                product={product}
+                update={update}
+                onShippingValid={(valid) => setShippingValid(valid)}
+                shippingSelected={shippingSelected}
+                onShippingSelected={(selected) => setShippingSelected(selected)}
+              />
+              <Delivery
+                product={product}
+                update={update}
+                canEdit={!addressEditLock}
+                onEditing={() => setAddressEditLock(true)}
+                onEditComplete={() => setAddressEditLock(false)}
+                error={badFields?.["delivery"]}
+              />
+            </Suspense>
+          </View>
+        </>
+      )}
+      {!hideAvailability && (
+        <AvailabilitySection
+          product={product}
+          update={update}
+          error={badFields?.["availability"]}
         />
-      </View>
+      )}
+      {!hideActions && (
+        <View
+          style={[
+            {
+              paddingTop: 24,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            },
+            isDesktop && {
+              position: "sticky",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              backgroundColor: "white",
+              paddingBottom: 32,
+            },
+          ]}
+        >
+          <Button icon="arrowLeft" label="Tillbaka" onPress={() => onBack()} />
+          <Button
+            label={nextLabel ?? "Förhandsgranska"}
+            onPress={() => onNext()}
+            style={{ flex: 1 }}
+            disabled={!canContinue() || nextIsDisabled}
+            loading={loading}
+          />
+        </View>
+      )}
     </View>
   );
 };

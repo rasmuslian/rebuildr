@@ -49,10 +49,15 @@ export const Calendar = ({ value, onChange, minDate }: Props) => {
   // dayjs day(): 0 = Sunday. Shift so Monday = 0 for a Mon-first grid.
   const leadingBlanks = (startOfMonth.day() + 6) % 7;
 
+  const days = Array.from({ length: daysInMonth }, (_, i) =>
+    startOfMonth.add(i, "day"),
+  );
   const cells: (dayjs.Dayjs | null)[] = [
     ...Array.from({ length: leadingBlanks }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) =>
-      startOfMonth.add(i, "day"),
+    ...days,
+    ...Array.from(
+      { length: 6 * WEEKDAYS.length - leadingBlanks - days.length },
+      () => null,
     ),
   ];
 
@@ -106,7 +111,12 @@ export const Calendar = ({ value, onChange, minDate }: Props) => {
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
         {cells.map((day, i) => {
           if (!day) {
-            return <View key={`blank-${i}`} style={{ width: `${100 / 7}%` }} />;
+            return (
+              <View
+                key={`blank-${i}`}
+                style={{ width: `${100 / 7}%`, height: 44 }}
+              />
+            );
           }
           const isSelected = !!selected && day.isSame(selected, "day");
           const isToday = day.isSame(today, "day");

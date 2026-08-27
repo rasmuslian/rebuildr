@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client";
 
+import { INTERNAL_AD_CARD_FIELDS } from "./internal-ads";
+
 export const INTERNAL_PROJECT_CARD_FIELDS = gql`
   fragment InternalProjectCardFields on Project {
     id
@@ -72,6 +74,45 @@ export const INTERNAL_PROJECT = gql`
   ${INTERNAL_PROJECT_CARD_FIELDS}
 `;
 
+export const INTERNAL_PROJECT_PRODUCTS = gql`
+  query InternalProjectProducts(
+    $input: ProductsInput!
+    $limit: Int
+    $offset: Int
+  ) {
+    internalAds(input: $input, limit: $limit, offset: $offset) {
+      products {
+        ...InternalAdCardFields
+      }
+      total
+    }
+  }
+  ${INTERNAL_AD_CARD_FIELDS}
+`;
+
+export const INTERNAL_PRODUCT_FACETS = gql`
+  query InternalProductFacets($input: ProductsInput!) {
+    productFacets: internalProductFacets(input: $input) {
+      categories {
+        id
+        count
+      }
+      rootCategories {
+        id
+        count
+      }
+      brands {
+        id
+        count
+      }
+      conditions {
+        id
+        count
+      }
+    }
+  }
+`;
+
 export const CREATE_INTERNAL_PROJECT = gql`
   mutation CreateInternalProject($input: CreateInternalProjectInput!) {
     createInternalProject(input: $input) {
@@ -100,6 +141,15 @@ export const UPDATE_INTERNAL_PROJECT = gql`
     }
   }
 `;
+export const SET_INTERNAL_PROJECT_PICTURE = gql`
+  mutation SetInternalProjectPicture(
+    $projectId: ID!
+    $picture: FileInputType!
+  ) {
+    setInternalProjectPicture(projectId: $projectId, picture: $picture)
+  }
+`;
+
 export const DELETE_INTERNAL_PROJECT = gql`
   mutation DeleteInternalProject($projectId: ID!) {
     deleteInternalProject(projectId: $projectId)

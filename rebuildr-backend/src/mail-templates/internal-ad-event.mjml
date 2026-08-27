@@ -10,7 +10,7 @@
           font-weight="600"
           align="center"
         >
-          Uppdatering i Internlagret
+          Uppdatering i Återbanken
         </mj-text>
         <mj-text
           font-size="16px"
@@ -28,7 +28,7 @@
           border-radius="8px"
           font-family="Roboto"
         >
-          Öppna Internlagret
+          Öppna Återbanken
         </mj-button>
       </mj-column>
     </mj-section>

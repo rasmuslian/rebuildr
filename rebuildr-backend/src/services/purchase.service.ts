@@ -3,6 +3,7 @@ import {
   Product,
   ProductAvailabilityEnum,
   ProductStatus,
+  ProductVisibility,
 } from 'src/entities/product.entity';
 import {
   Purchase,
@@ -411,6 +412,11 @@ export class PurchaseService {
     }
 
     purchase.purchasedQuantity = input.purchasedQuantity;
+    if (product.visibility === ProductVisibility.INTERNAL) {
+      product.initialPrimaryQuantity ??= product.soldByQuantity
+        ? product.primaryQuantity
+        : 1;
+    }
     purchase.toServicePointId = input.servicePointId;
     purchase.deliverToAddress = input.deliverToAddress;
     purchase.deliverToLocation = deliverToPoint;

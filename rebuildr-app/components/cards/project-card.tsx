@@ -28,6 +28,7 @@ type Props = {
   onEdit?: () => void;
   onPress?: () => void;
   showOwner?: boolean;
+  compact?: boolean;
 };
 
 export const ProjectCard = ({
@@ -36,6 +37,7 @@ export const ProjectCard = ({
   onEdit,
   onPress,
   showOwner = true,
+  compact = false,
 }: Props) => {
   const { onToggleProjectHeart } = useLikeProject();
   const { isLoggedIn } = useUser();
@@ -53,7 +55,7 @@ export const ProjectCard = ({
         });
       }}
     >
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: compact ? 12 : 16 }}>
         <View
           style={{
             flexDirection: "row",
@@ -140,7 +142,7 @@ export const ProjectCard = ({
             />
           )}
           <View style={{ gap: 2, flex: 1 }}>
-            <Label size="large">{project.title}</Label>
+            <Label size={compact ? "medium" : "large"}>{project.title}</Label>
             <Body size="small" color="secondary">
               {
                 project.products.filter(

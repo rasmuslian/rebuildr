@@ -8,10 +8,17 @@ import { View } from "react-native";
 type Props = {
   projects: ProjectCardProject[];
   onProjectPress: (projectId: string) => void;
+  landing?: boolean;
 };
 
-export const InternalProjectGrid = ({ projects, onProjectPress }: Props) => {
+export const InternalProjectGrid = ({
+  projects,
+  onProjectPress,
+  landing = false,
+}: Props) => {
   const { isDesktop } = useScreenType();
+  const visibleProjects =
+    landing && !isDesktop ? projects.slice(0, 1) : projects;
 
   return (
     <View
@@ -21,7 +28,7 @@ export const InternalProjectGrid = ({ projects, onProjectPress }: Props) => {
           : { gap: 24 }
       }
     >
-      {projects.map((project) => (
+      {visibleProjects.map((project) => (
         <View
           key={project.id}
           style={
@@ -36,6 +43,7 @@ export const InternalProjectGrid = ({ projects, onProjectPress }: Props) => {
           }
         >
           <ProjectCard
+            compact={landing}
             showHeart={false}
             showOwner={false}
             project={project}
