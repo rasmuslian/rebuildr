@@ -184,9 +184,9 @@ export const INTERNAL_ADS_DASHBOARD_QUERY = gql`
   }
 `;
 
-export const INTERNAL_ADS_DASHBOARD_CSV = gql`
-  query InternalAdsDashboardCsv($input: InternalAdsDashboardInput!) {
-    internalAdsDashboardCsv(input: $input)
+export const INTERNAL_ADS_DASHBOARD_XLSX = gql`
+  query InternalAdsDashboardXlsx($input: InternalAdsDashboardInput!) {
+    internalAdsDashboardXlsx(input: $input)
   }
 `;
 

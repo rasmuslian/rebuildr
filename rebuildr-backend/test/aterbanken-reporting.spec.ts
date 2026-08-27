@@ -1,3 +1,5 @@
+import { Workbook } from 'exceljs';
+
 import { ProductVisibility } from 'src/entities/product.entity';
 import { InternalAdsService } from 'src/services/internal-ads.service';
 import { resolveRange } from 'src/services/statistics/statistics-shared';
@@ -170,12 +172,22 @@ describe('InternalAdsService.internalAdsDashboard', () => {
     });
   });
 
-  it('exports the same totals and safely quotes source text', async () => {
+  it('exports a formatted workbook with values from the selected interval', async () => {
     const service = createDashboardService();
-    const csv = await service.internalAdsDashboardCsv('user-a');
+    const xlsx = await service.internalAdsDashboardXlsx('user-a', {
+      from: '2026-03-01',
+      to: '2026-03-31',
+    });
+    const workbook = new Workbook();
+    await workbook.xlsx.load(Buffer.from(xlsx, 'base64'));
 
-    expect(csv).toContain('Realiserad klimatnytta kg CO2e;32');
-    expect(csv).toContain('Realiserat ekonomiskt värde öre;11800');
-    expect(csv).toContain('INTERNAL_REUSE;reservation-a');
+    const overview = workbook.getWorksheet('Översikt');
+    const events = workbook.getWorksheet('Händelser');
+    expect(overview?.getCell('B3').value).toBe('2026-03-01 – 2026-03-31');
+    expect(overview?.getCell('B9').value).toBe(32);
+    expect(overview?.getCell('B15').value).toBe(118);
+    expect(events?.getCell('A4').value).toBe('INTERNAL_REUSE');
+    expect(events?.getCell('B4').value).toBe('reservation-a');
+    expect(events?.autoFilter).toBe('A3:M3');
   });
 });

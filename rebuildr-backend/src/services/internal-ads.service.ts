@@ -7,6 +7,7 @@ import {
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Workbook, Worksheet } from 'exceljs';
 import * as XLSX from 'xlsx';
 import * as z from 'zod';
 import { QuantityUnitEnum } from 'src/constants/enums';
@@ -895,71 +896,201 @@ export class InternalAdsService {
     };
   }
 
-  async internalAdsDashboardCsv(
+  async internalAdsDashboardXlsx(
     currentUserId: string,
     input: { from?: string; to?: string } = {},
   ) {
     const context = await this.getOrganizationContext(currentUserId);
     const dashboard = await this.internalAdsDashboard(currentUserId, input);
-    const escape = (value: unknown) => {
-      const text = String(value ?? '');
-      return /[;"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-    };
-    const line = (...values: unknown[]) => values.map(escape).join(';');
-    const lines = [
-      line('Återbanken underlag'),
-      line('Organisation', context.organization.name),
-      line('Från', dashboard.from ?? 'Hela tiden'),
-      line('Till', dashboard.to ?? 'Hela tiden'),
-      line('Avfallskostnad SEK/kg', dashboard.disposalCostSekPerKg),
-      line('Interna helaffärer utan reservation', 'Exkluderas'),
-      '',
-      line('Mått', 'Värde'),
-      line('Realiserad klimatnytta kg CO2e', dashboard.climate.realizedCo2),
-      line('Internt återbruk kg CO2e', dashboard.climate.internalReuseCo2),
-      line('Extern försäljning kg CO2e', dashboard.climate.externalSalesCo2),
-      line('Realiserat ekonomiskt värde öre', dashboard.economic.realizedValue),
-      line('Internt återbruk värde öre', dashboard.economic.internalReuseValue),
-      line(
-        'Extern nettoförsäljning öre',
-        dashboard.economic.externalSalesNetValue,
-      ),
-      '',
-      line(
-        'Typ',
-        'Händelse-id',
-        'Produkt-id',
-        'Referens',
-        'Titel',
-        'Datum',
-        'Mängd',
-        'Vikt kg',
-        'Köpar-CO2e kg',
-        'Säljar-CO2e kg',
-        'Bruttovärde öre',
-        'Nettovärde öre',
-        'Beräkningsunderlag',
-      ),
-      ...dashboard.sourceRows.map((row) =>
-        line(
-          row.type,
-          row.eventId,
-          row.productId,
-          row.internalReferenceNumber,
-          row.productTitle,
-          row.occurredAt.toISOString(),
-          row.quantity,
-          row.weight,
-          row.buyerCo2,
-          row.sellerCo2,
-          row.grossValueOre,
-          row.netValueOre,
-          row.calculationBasis,
-        ),
-      ),
-    ];
+    const workbook = new Workbook();
+    workbook.creator = 'RebuildR';
+    workbook.created = new Date();
 
-    return `\uFEFF${lines.join('\n')}`;
+    const overview = workbook.addWorksheet('Översikt', {
+      views: [{ state: 'frozen', ySplit: 8 }],
+      properties: { tabColor: { argb: 'FF275D50' } },
+    });
+    overview.columns = [{ width: 43 }, { width: 20 }, { width: 18 }];
+    overview.mergeCells('A1:C1');
+    overview.getCell('A1').value = 'Återbanken – rapportunderlag';
+    overview.getCell('A1').font = {
+      bold: true,
+      color: { argb: 'FFFFFFFF' },
+      size: 18,
+    };
+    overview.getCell('A1').fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF275D50' },
+    };
+    overview.getCell('A1').alignment = { vertical: 'middle' };
+    overview.getRow(1).height = 34;
+    overview.addRows([
+      ['Organisation', context.organization.name],
+      [
+        'Valt tidsintervall',
+        this.formatDashboardRange(dashboard.from, dashboard.to),
+      ],
+      ['Exporterad', new Date()],
+      ['Avfallskostnad', dashboard.disposalCostSekPerKg, 'SEK/kg'],
+      ['Interna helaffärer utan reservation', 'Exkluderas'],
+      [],
+      ['Mått', 'Värde', 'Enhet'],
+      ['Realiserad klimatnytta', dashboard.climate.realizedCo2, 'kg CO2e'],
+      ['Internt återbruk', dashboard.climate.internalReuseCo2, 'kg CO2e'],
+      ['Extern försäljning', dashboard.climate.externalSalesCo2, 'kg CO2e'],
+      [
+        'Möjlig klimatnytta i aktuellt lager',
+        dashboard.climate.potentialCo2Savings,
+        'kg CO2e',
+      ],
+      [
+        'Motsvarande körsträcka med bensinbil',
+        dashboard.climate.petrolCarKilometers,
+        'km',
+      ],
+      [],
+      [
+        'Realiserat ekonomiskt värde',
+        dashboard.economic.realizedValue / 100,
+        'SEK',
+      ],
+      ['Internt återbruk', dashboard.economic.internalReuseValue / 100, 'SEK'],
+      [
+        'Extern nettoförsäljning',
+        dashboard.economic.externalSalesNetValue / 100,
+        'SEK',
+      ],
+      [
+        'Värde i aktuellt lager',
+        dashboard.economic.currentInventoryValue / 100,
+        'SEK',
+      ],
+      [
+        'Undvikna avfallskostnader',
+        dashboard.economic.avoidedDisposalCost / 100,
+        'SEK',
+      ],
+      [],
+      ['Aktuella annonser', dashboard.current.totalAds, 'st'],
+      ['Tillgänglig vikt', dashboard.current.availableWeight, 'kg'],
+      ['Aktiva projekt', dashboard.current.activeProjects, 'st'],
+      [
+        'Externt publicerade annonser',
+        dashboard.current.externallyPublishedAds,
+        'st',
+      ],
+      ['Reserverade artiklar', dashboard.current.reservedArticles, 'st'],
+    ]);
+    overview.getCell('B4').numFmt = 'yyyy-mm-dd hh:mm';
+    this.styleDashboardHeader(overview, 8, 3);
+    for (let row = 9; row <= overview.rowCount; row += 1) {
+      if (typeof overview.getCell(row, 2).value === 'number') {
+        overview.getCell(row, 2).numFmt = '#,##0.00';
+      }
+    }
+
+    const events = workbook.addWorksheet('Händelser', {
+      views: [{ state: 'frozen', ySplit: 3 }],
+      properties: { tabColor: { argb: 'FFE3A83B' } },
+    });
+    events.mergeCells('A1:M1');
+    events.getCell('A1').value =
+      `Händelser – ${this.formatDashboardRange(dashboard.from, dashboard.to)}`;
+    events.getCell('A1').font = { bold: true, size: 15 };
+    events.getRow(1).height = 28;
+    events.addRow([]);
+    events.addRow([
+      'Typ',
+      'Händelse-id',
+      'Produkt-id',
+      'Referens',
+      'Titel',
+      'Datum',
+      'Mängd',
+      'Vikt (kg)',
+      'Köpar-CO2e (kg)',
+      'Säljar-CO2e (kg)',
+      'Bruttovärde (SEK)',
+      'Nettovärde (SEK)',
+      'Beräkningsunderlag',
+    ]);
+    for (const row of dashboard.sourceRows) {
+      events.addRow([
+        row.type,
+        row.eventId,
+        row.productId,
+        row.internalReferenceNumber,
+        row.productTitle,
+        row.occurredAt,
+        row.quantity,
+        row.weight,
+        row.buyerCo2,
+        row.sellerCo2,
+        row.grossValueOre / 100,
+        row.netValueOre / 100,
+        row.calculationBasis,
+      ]);
+    }
+    events.columns = [
+      { width: 19 },
+      { width: 38 },
+      { width: 38 },
+      { width: 18 },
+      { width: 34 },
+      { width: 19 },
+      { width: 12 },
+      { width: 14 },
+      { width: 18 },
+      { width: 18 },
+      { width: 20 },
+      { width: 20 },
+      { width: 48 },
+    ];
+    this.styleDashboardHeader(events, 3, 13);
+    events.autoFilter = { from: 'A3', to: 'M3' };
+    for (let row = 4; row <= events.rowCount; row += 1) {
+      events.getCell(row, 6).numFmt = 'yyyy-mm-dd hh:mm';
+      for (let column = 7; column <= 12; column += 1) {
+        events.getCell(row, column).numFmt = '#,##0.00';
+      }
+      if (row % 2 === 0) {
+        events.getRow(row).eachCell((cell) => {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF3F6F5' },
+          };
+        });
+      }
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer).toString('base64');
+  }
+
+  private formatDashboardRange(from?: string | null, to?: string | null) {
+    if (!from && !to) return 'Hela tiden';
+    return `${from ?? 'Första händelsen'} – ${to ?? 'Idag'}`;
+  }
+
+  private styleDashboardHeader(
+    worksheet: Worksheet,
+    rowNumber: number,
+    columnCount: number,
+  ) {
+    const row = worksheet.getRow(rowNumber);
+    row.height = 24;
+    for (let column = 1; column <= columnCount; column += 1) {
+      const cell = row.getCell(column);
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF397568' },
+      };
+      cell.alignment = { vertical: 'middle' };
+    }
   }
 
   async relatedInternalAds(

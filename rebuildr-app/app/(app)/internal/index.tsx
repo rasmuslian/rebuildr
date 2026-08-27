@@ -5,8 +5,8 @@ import {
   InternalAdImportBatchQuery,
   InternalAdImportBatchQueryVariables,
   InternalAdImportBatchStatusEnum,
-  InternalAdsDashboardCsvQuery,
-  InternalAdsDashboardCsvQueryVariables,
+  InternalAdsDashboardXlsxQuery,
+  InternalAdsDashboardXlsxQueryVariables,
   InternalAdsDashboardInput,
   InternalAdsDashboardQuery,
   InternalAdsDashboardQueryVariables,
@@ -21,8 +21,8 @@ import {
   CREATE_INTERNAL_AD_DRAFT,
   CREATE_INTERNAL_AD_IMPORT_BATCH,
   INTERNAL_AD_IMPORT_BATCH,
-  INTERNAL_ADS_DASHBOARD_CSV,
   INTERNAL_ADS_DASHBOARD_QUERY,
+  INTERNAL_ADS_DASHBOARD_XLSX,
   INTERNAL_ADS_HOME_QUERY,
   PUBLISH_INTERNAL_AD_DRAFTS,
   REMOVE_INTERNAL_AD_DRAFT,
@@ -67,7 +67,7 @@ import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { INTERNAL_PROJECTS } from "@/queries/internal-projects";
 import { Icon } from "@icons/icon";
-import { downloadCsv } from "@/utils/download-csv";
+import { downloadXlsx } from "@/utils/download-xlsx";
 import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -181,24 +181,24 @@ export default function InternalAdsPage() {
     setDisplayedDashboardPreset(dashboardPreset);
   }, [dashboardData, dashboardInput, dashboardPreset]);
 
-  const [loadDashboardCsv, { loading: downloadingDashboard }] = useLazyQuery<
-    InternalAdsDashboardCsvQuery,
-    InternalAdsDashboardCsvQueryVariables
-  >(INTERNAL_ADS_DASHBOARD_CSV, { fetchPolicy: "network-only" });
+  const [loadDashboardXlsx, { loading: downloadingDashboard }] = useLazyQuery<
+    InternalAdsDashboardXlsxQuery,
+    InternalAdsDashboardXlsxQueryVariables
+  >(INTERNAL_ADS_DASHBOARD_XLSX, { fetchPolicy: "network-only" });
 
   const onDownloadDashboard = async () => {
     setDashboardDownloadError(undefined);
     try {
-      const result = await loadDashboardCsv({
+      const result = await loadDashboardXlsx({
         variables: { input: dashboardInput },
       });
-      const csv = result.data?.internalAdsDashboardCsv;
-      if (!csv) throw new Error("Missing CSV");
+      const xlsx = result.data?.internalAdsDashboardXlsx;
+      if (!xlsx) throw new Error("Missing XLSX");
       const organizationName =
         data?.internalAdsOrganizationContext?.organization.name ?? "aterbanken";
-      await downloadCsv(
-        csv,
-        `${organizationName}-${dashboardPreset.toLowerCase()}-${dayjs().format("YYYY-MM-DD")}.csv`,
+      await downloadXlsx(
+        xlsx,
+        `${organizationName}-${dashboardPreset.toLowerCase()}-${dayjs().format("YYYY-MM-DD")}.xlsx`,
       );
     } catch {
       setDashboardDownloadError("Underlaget kunde inte laddas ner.");

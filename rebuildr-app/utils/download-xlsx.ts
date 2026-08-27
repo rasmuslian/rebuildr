@@ -2,6 +2,9 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 
+const XLSX_MIME_TYPE =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 const safeFileName = (fileName: string) =>
   fileName
     .normalize("NFD")
@@ -10,11 +13,15 @@ const safeFileName = (fileName: string) =>
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
 
-export const downloadCsv = async (csv: string, fileName: string) => {
+export const downloadXlsx = async (base64: string, fileName: string) => {
   const normalizedFileName = safeFileName(fileName);
 
   if (Platform.OS === "web") {
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, (character) =>
+      character.charCodeAt(0),
+    );
+    const blob = new Blob([bytes], { type: XLSX_MIME_TYPE });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -27,15 +34,15 @@ export const downloadCsv = async (csv: string, fileName: string) => {
   }
 
   if (!FileSystem.cacheDirectory || !(await Sharing.isAvailableAsync())) {
-    throw new Error("CSV sharing is not available");
+    throw new Error("XLSX sharing is not available");
   }
   const uri = `${FileSystem.cacheDirectory}${normalizedFileName}`;
-  await FileSystem.writeAsStringAsync(uri, csv, {
-    encoding: FileSystem.EncodingType.UTF8,
+  await FileSystem.writeAsStringAsync(uri, base64, {
+    encoding: FileSystem.EncodingType.Base64,
   });
   await Sharing.shareAsync(uri, {
     dialogTitle: "Ladda ner underlag",
-    mimeType: "text/csv",
-    UTI: "public.comma-separated-values-text",
+    mimeType: XLSX_MIME_TYPE,
+    UTI: "org.openxmlformats.spreadsheetml.sheet",
   });
 };

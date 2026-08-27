@@ -360,11 +360,11 @@ export class InternalAdsResolver {
 
   @Query(() => String)
   @UseGuards(GqlAuthGuard)
-  async internalAdsDashboardCsv(
+  async internalAdsDashboardXlsx(
     @CurrentUser() user: AuthedUserType,
     @Args('input') input: InternalAdsDashboardInput,
   ) {
-    return this.internalAdsService.internalAdsDashboardCsv(user.id, input);
+    return this.internalAdsService.internalAdsDashboardXlsx(user.id, input);
   }
 
   @Query(() => [InternalAdsCategory])
