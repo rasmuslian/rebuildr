@@ -198,8 +198,8 @@ export const InternalStatisticsSection = ({
             />
           </View>
           <Button
-            label={isDesktop ? "Ladda ner underlag" : undefined}
-            icon="download"
+            label="Ladda ner underlag"
+            icon={isDesktop ? "download" : undefined}
             type="outlined"
             loading={downloading}
             accessibilityLabel="Ladda ner underlag"
