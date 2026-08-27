@@ -134,19 +134,15 @@ export class StatisticsService {
       SELECT
         COUNT(*) FILTER (WHERE "publishedAt" >= $1 AND "publishedAt" < $2 AND "status" != 'DELETED')::int AS "listingsPublished",
         COUNT(*) FILTER (WHERE "publishedAt" >= $3 AND "publishedAt" < $1 AND "status" != 'DELETED')::int AS "listingsPublishedPrev",
-        COUNT(*) FILTER (WHERE "publishedAsUpcomingAt" >= $5 AND "publishedAsUpcomingAt" < $6)::int AS "upcomingListingsCreated",
-        COUNT(*) FILTER (WHERE "publishedAsUpcomingAt" >= $4 AND "publishedAsUpcomingAt" < $5)::int AS "upcomingListingsCreatedPrev",
+        --Derived from the live availability flag: the activation cron flips
+        --UPCOMING -> AVAILABLE when the date passes, so this counts listings
+        --published in the period that are still upcoming.
+        COUNT(*) FILTER (WHERE "availability" = 'UPCOMING' AND "publishedAt" >= $1 AND "publishedAt" < $2 AND "status" != 'DELETED')::int AS "upcomingListingsCreated",
+        COUNT(*) FILTER (WHERE "availability" = 'UPCOMING' AND "publishedAt" >= $3 AND "publishedAt" < $1 AND "status" != 'DELETED')::int AS "upcomingListingsCreatedPrev",
         COUNT(*) FILTER (WHERE "status" = 'PUBLISHED')::int AS "activeListingsNow"
       FROM "product"
       `,
-      [
-        range.startNaive,
-        range.endNaive,
-        range.prevStartNaive,
-        range.prevStart,
-        range.start,
-        range.end,
-      ],
+      [range.startNaive, range.endNaive, range.prevStartNaive],
     );
   }
 
