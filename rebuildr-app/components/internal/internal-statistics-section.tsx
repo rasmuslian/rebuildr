@@ -235,7 +235,7 @@ export const InternalStatisticsSection = ({
           >
             <ReceiptMetric
               value={co2(statistics.climate.internalReuseCo2)}
-              description="Internt återbruk – hela nyttan, ni är både säljare och köpare"
+              description="Internt återbruk – när ni är både säljare och köpare"
             />
             <ReceiptMetric
               value={co2(statistics.climate.externalSalesCo2)}
