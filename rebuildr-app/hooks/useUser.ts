@@ -13,8 +13,8 @@ const GET_ME = gql`
       numberOfPublishedProducts
       rating
       isVerified
-      sellerAccount {
-        canReceivePayment
+      payoutAccount {
+        type
       }
       profilePicture {
         id

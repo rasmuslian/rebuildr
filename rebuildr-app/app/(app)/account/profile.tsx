@@ -1,7 +1,7 @@
 import { ProfileQuery, ProfileQueryVariables } from "@/gql/graphql";
 import { useQuery } from "@apollo/client";
-import { useLocalSearchParams, useFocusEffect } from "expo-router";
-import { useState, useCallback } from "react";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useState, useCallback, useEffect } from "react";
 import { useScreenType } from "@hooks/useScreenType";
 import { useUser } from "@hooks/useUser";
 import { PROFILE } from "queries";
@@ -35,6 +35,19 @@ export default function Profile() {
   // Lets the onboarding checklist land straight in the edit form instead of
   // dropping the user on the profile with the form one tap away.
   const [editMode, setEditMode] = useState(edit === "true");
+
+  // Arriving here from the checklist while this screen is already mounted does
+  // not remount it, so the initial state above never re-runs.
+  useEffect(() => {
+    if (edit === "true") setEditMode(true);
+  }, [edit]);
+
+  // Drop the param on close, otherwise it stays in the URL and a later press
+  // cannot re-trigger the effect above.
+  const closeEdit = () => {
+    setEditMode(false);
+    if (edit) router.setParams({ edit: undefined });
+  };
   const [userCardKey, setUserCardKey] = useState(
     `user-card-${Date.now().toString()}`,
   );
@@ -73,11 +86,9 @@ export default function Profile() {
     return (
       <ScreenLayout
         style={{ gap: 24, marginTop: 24 }}
-        headerComponent={
-          <Header title="Redigera profil" onBack={() => setEditMode(false)} />
-        }
+        headerComponent={<Header title="Redigera profil" onBack={closeEdit} />}
       >
-        <EditProfile onEditCompleted={() => setEditMode(false)} />
+        <EditProfile onEditCompleted={closeEdit} />
       </ScreenLayout>
     );
   }
@@ -181,11 +192,11 @@ export default function Profile() {
         <SlideInSheet
           open={editMode}
           title="Redigera profil"
-          onClose={() => setEditMode(false)}
+          onClose={closeEdit}
         >
           <EditProfile
             onEditCompleted={() => {
-              setEditMode(false);
+              closeEdit();
               setUserCardKey(`user-card-${Date.now().toString()}`);
               setTopBarKey(`top-bar-${Date.now().toString()}`);
             }}
