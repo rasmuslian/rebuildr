@@ -43,12 +43,10 @@ export const SALE_PREDICATE = (alias = 'pu') =>
   `${alias}."paymentAcceptedAt" IS NOT NULL AND ${alias}."failedAt" IS NULL`;
 
 /**
- * Order value in SEK. Prices live in öre, and the snapshot taken at purchase
- * time wins over the product's current price so history cannot drift when a
- * seller edits the listing afterwards.
+ * Order value in SEK. Prices live in öre.
  */
 export const GMV_EXPR = (purchase = 'pu', product = 'pr') =>
-  `COALESCE(${purchase}."priceAtPurchase", ${product}."price") * COALESCE(${purchase}."purchasedQuantity", 1)`;
+  `${product}."price" * COALESCE(${purchase}."purchasedQuantity", 1)`;
 
 /**
  * Matches a product against a category and all of its descendants, mirroring

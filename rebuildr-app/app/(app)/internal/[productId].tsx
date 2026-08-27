@@ -9,8 +9,6 @@ import {
   MeasurementUnitEnum,
   ProductAvailabilityEnum,
   ProductStatusEnum,
-  ReserveInternalAdMutation,
-  ReserveInternalAdMutationVariables,
   SetInternalAdPublicAvailabilityMutation,
   SetInternalAdPublicAvailabilityMutationVariables,
 } from "@/gql/graphql";
@@ -1137,20 +1135,20 @@ const InternalAdManagement = ({
     <View style={{ gap: 16 }}>
       <Headline size="small">Upplagd av</Headline>
       <View style={{ gap: 4 }}>
-        {!!product.createdByOrganizationMemberName && (
-          <Body size="medium">{product.createdByOrganizationMemberName}</Body>
+        {!!product.createdByOrganizationMember?.name && (
+          <Body size="medium">{product.createdByOrganizationMember.name}</Body>
         )}
-        {!!product.createdByOrganizationMemberEmail && (
+        {!!product.createdByOrganizationMember?.email && (
           <Pressable
             accessibilityRole="link"
             onPress={() =>
               Linking.openURL(
-                `mailto:${product.createdByOrganizationMemberEmail}`,
+                `mailto:${product.createdByOrganizationMember.email}`,
               )
             }
           >
             <Body size="medium" isLink>
-              {product.createdByOrganizationMemberEmail}
+              {product.createdByOrganizationMember.email}
             </Body>
           </Pressable>
         )}

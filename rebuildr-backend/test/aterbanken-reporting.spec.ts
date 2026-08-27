@@ -57,7 +57,10 @@ const createDashboardService = () => {
     id: 'internal-product',
     soldByQuantity: false,
   });
-  const externalProduct = reportingProduct({ id: 'external-product' });
+  const externalProduct = reportingProduct({
+    id: 'external-product',
+    price: 1_000,
+  });
   const currentProduct = reportingProduct({
     id: 'current-product',
     title: 'Fönster',
@@ -95,9 +98,6 @@ const createDashboardService = () => {
         id: 'purchase-a',
         paymentAcceptedAt: new Date('2026-03-11T10:00:00Z'),
         purchasedQuantity: 2,
-        priceAtPurchase: 1_000,
-        weightAtPurchase: 20,
-        co2SavingSellerAtPurchase: 10,
         product: externalProduct,
       },
     ]),
@@ -150,9 +150,9 @@ describe('InternalAdsService.internalAdsDashboard', () => {
       await createDashboardService().internalAdsDashboard('user-a');
 
     expect(dashboard.climate).toEqual({
-      realizedCo2: 32,
+      realizedCo2: 24,
       internalReuseCo2: 22,
-      externalSalesCo2: 10,
+      externalSalesCo2: 2,
       potentialCo2Savings: 105,
       petrolCarKilometers: 256,
     });

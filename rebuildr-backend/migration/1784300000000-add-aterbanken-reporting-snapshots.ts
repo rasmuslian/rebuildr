@@ -21,15 +21,6 @@ export class AddAterbankenReportingSnapshots1784300000000
     await queryRunner.query(
       `ALTER TABLE "internal_ad_reservation" ADD "marketValueAtSale" integer`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "purchase" ADD "priceAtPurchase" integer`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "purchase" ADD "weightAtPurchase" double precision`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "purchase" ADD "co2SavingSellerAtPurchase" double precision`,
-    );
     await queryRunner.query(`
       UPDATE "product" product
       SET "initialPrimaryQuantity" = CASE
@@ -57,15 +48,6 @@ export class AddAterbankenReportingSnapshots1784300000000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "purchase" DROP COLUMN "co2SavingSellerAtPurchase"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "purchase" DROP COLUMN "weightAtPurchase"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "purchase" DROP COLUMN "priceAtPurchase"`,
-    );
     await queryRunner.query(
       `ALTER TABLE "internal_ad_reservation" DROP COLUMN "marketValueAtSale"`,
     );

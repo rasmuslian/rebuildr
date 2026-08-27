@@ -506,8 +506,6 @@ export class InternalAdsService {
       organizationMemberId,
     );
     product.createdByOrganizationMemberId = member.id;
-    product.createdByOrganizationMemberName = member.name;
-    product.createdByOrganizationMemberEmail = member.email;
     return this.productRepository.save(product);
   }
 
@@ -853,19 +851,10 @@ export class InternalAdsService {
           purchase.product,
           purchase.purchasedQuantity,
         );
-        const unitPrice = purchase.priceAtPurchase ?? purchase.product.price;
         const quantity = purchase.product.soldByQuantity
           ? purchase.purchasedQuantity ?? 0
           : 1;
-        const grossValueOre = unitPrice * quantity;
-        const usesFallback =
-          purchase.priceAtPurchase === null ||
-          purchase.priceAtPurchase === undefined ||
-          purchase.weightAtPurchase === null ||
-          purchase.weightAtPurchase === undefined ||
-          purchase.co2SavingSellerAtPurchase === null ||
-          purchase.co2SavingSellerAtPurchase === undefined;
-
+        const grossValueOre = purchase.product.price * quantity;
         return {
           type: 'EXTERNAL_SALE',
           eventId: purchase.id,
@@ -874,15 +863,12 @@ export class InternalAdsService {
           internalReferenceNumber: purchase.product.internalReferenceNumber,
           occurredAt: purchase.paymentAcceptedAt,
           quantity,
-          weight: purchase.weightAtPurchase ?? fallback.weight,
+          weight: fallback.weight,
           buyerCo2: 0,
-          sellerCo2:
-            purchase.co2SavingSellerAtPurchase ?? fallback.co2SavingSeller,
+          sellerCo2: fallback.co2SavingSeller,
           grossValueOre,
           netValueOre: Math.round(grossValueOre * (1 - provisionBase)),
-          calculationBasis: usesFallback
-            ? 'CURRENT_PRODUCT_FALLBACK'
-            : 'SNAPSHOT',
+          calculationBasis: 'CURRENT_PRODUCT_FALLBACK',
         };
       });
     const currentValues = currentProducts.map((product) => ({
@@ -1920,8 +1906,6 @@ export class InternalAdsService {
         internalOrganizationId: batch.organizationId,
         sellerId: batch.organizationId,
         createdByOrganizationMemberId: batch.organizationMemberId,
-        createdByOrganizationMemberName: batch.organizationMember.name,
-        createdByOrganizationMemberEmail: batch.organizationMember.email,
         internalAdImportBatchId: batch.id,
         projectId: batch.projectId,
         noProject: !batch.projectId,

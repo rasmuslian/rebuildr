@@ -10,8 +10,6 @@ export class SimplifyOrganizationMembers1784100000000
     await queryRunner.query(`ALTER TABLE "organization_member" ADD CONSTRAINT "FK_organization_member_organization" FOREIGN KEY ("organizationId") REFERENCES "user"("id") ON DELETE CASCADE`);
 
     await queryRunner.query(`ALTER TABLE "product" ADD "createdByOrganizationMemberId" uuid`);
-    await queryRunner.query(`ALTER TABLE "product" ADD "createdByOrganizationMemberName" character varying`);
-    await queryRunner.query(`ALTER TABLE "product" ADD "createdByOrganizationMemberEmail" character varying`);
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" ADD "reservedByOrganizationMemberId" uuid`);
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" ADD "reservedByOrganizationMemberName" character varying`);
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" ADD "reservedByOrganizationMemberEmail" character varying`);
@@ -46,8 +44,6 @@ export class SimplifyOrganizationMembers1784100000000
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" DROP COLUMN IF EXISTS "reservedByOrganizationMemberEmail"`);
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" DROP COLUMN IF EXISTS "reservedByOrganizationMemberName"`);
     await queryRunner.query(`ALTER TABLE "internal_ad_reservation" DROP COLUMN IF EXISTS "reservedByOrganizationMemberId"`);
-    await queryRunner.query(`ALTER TABLE "product" DROP COLUMN IF EXISTS "createdByOrganizationMemberEmail"`);
-    await queryRunner.query(`ALTER TABLE "product" DROP COLUMN IF EXISTS "createdByOrganizationMemberName"`);
     await queryRunner.query(`ALTER TABLE "product" DROP COLUMN IF EXISTS "createdByOrganizationMemberId"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "organization_member"`);
   }

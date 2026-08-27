@@ -413,14 +413,6 @@ export class Product {
   @ManyToOne(() => OrganizationMember, { nullable: true, onDelete: 'SET NULL' })
   createdByOrganizationMember?: OrganizationMember;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  createdByOrganizationMemberName?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  createdByOrganizationMemberEmail?: string;
-
   @Field(() => [String])
   @Column('text', { array: true, default: [] })
   internalValidationIssues: string[];

@@ -510,8 +510,6 @@ type Product {
   internalOrganizationId: String
   createdByOrganizationMemberId: String
   createdByOrganizationMember: OrganizationMember
-  createdByOrganizationMemberName: String
-  createdByOrganizationMemberEmail: String
   internalValidationIssues: [String!]!
   distanceFromPosition: Float
   pickupEnabled: Boolean!

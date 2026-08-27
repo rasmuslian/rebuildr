@@ -403,8 +403,10 @@ export const INTERNAL_AD_DETAIL = gql`
       soldByQuantity
       internalValidationIssues
       createdByOrganizationMemberId
-      createdByOrganizationMemberName
-      createdByOrganizationMemberEmail
+      createdByOrganizationMember {
+        name
+        email
+      }
       price
       priceSuggestionMin
       priceSuggestionMax

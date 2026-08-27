@@ -168,7 +168,7 @@ export class StatisticsService {
       co2KgPrev: number;
     }[]
   > {
-    const value = `COALESCE(pu."priceAtPurchase", pr."price") * COALESCE(pu."purchasedQuantity", 1)`;
+    const value = `pr."price" * COALESCE(pu."purchasedQuantity", 1)`;
     //Matches the per-user CO2 loader: quantity only multiplies for
     //soldByQuantity products, so dashboard totals reconcile with profiles.
     const co2 = `CASE WHEN pr."soldByQuantity" THEN COALESCE(pu."purchasedQuantity", 1) * pr."co2SavingBuyer" ELSE pr."co2SavingBuyer" END`;
@@ -277,7 +277,7 @@ export class StatisticsService {
       this.purchaseRepository.query(
         `
         SELECT root."id" AS "categoryId", root."name" AS "categoryName",
-          (COALESCE(SUM(COALESCE(pu."priceAtPurchase", pr."price") * COALESCE(pu."purchasedQuantity", 1)), 0) / 100.0)::float AS "salesSek",
+          (COALESCE(SUM(pr."price" * COALESCE(pu."purchasedQuantity", 1)), 0) / 100.0)::float AS "salesSek",
           COUNT(*)::int AS "salesCount"
         FROM "purchase" pu
         JOIN "product" pr ON pr."id" = pu."productId"
@@ -509,7 +509,7 @@ export class StatisticsService {
       .select(expr, 'date')
       .addSelect('COUNT(*)::int', 'count')
       .addSelect(
-        `(COALESCE(SUM(COALESCE(pu."priceAtPurchase", pr."price") * COALESCE(pu."purchasedQuantity", 1)), 0) / 100.0)::float`,
+        `(COALESCE(SUM(pr."price" * COALESCE(pu."purchasedQuantity", 1)), 0) / 100.0)::float`,
         'gmvSek',
       )
       .where('pu."paymentAcceptedAt" IS NOT NULL')
