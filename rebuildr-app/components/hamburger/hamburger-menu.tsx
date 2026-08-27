@@ -13,7 +13,7 @@ import {
 } from "@components/categories/root-categories-vertical";
 import { Divider } from "@components/dividers/divider";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
-import { Headline } from "@components/typography/text";
+import { Headline, Title } from "@components/typography/text";
 import { permanentSection } from "@constants/permanent-sections";
 import { useFilterProduct } from "@hooks/useFilterProduct";
 import { useScreenType } from "@hooks/useScreenType";
@@ -170,7 +170,7 @@ export const HamburgerMenu = () => {
       )}
       <View style={{ marginTop: isDesktop ? 48 : 24, gap: 24 }}>
         <Divider />
-        <Headline size="small">Kategorier</Headline>
+        <Title size="medium">Kategorier</Title>
         <RootCategoriesVertical onNavigate={isDesktop ? onClose : undefined} />
       </View>
     </SlideInSheet>
