@@ -72,13 +72,7 @@ import dayjs from "dayjs";
 import { Image } from "expo-image";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Animated,
-  ImageBackground,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { Animated, ImageBackground, Pressable, View } from "react-native";
 
 const SECTION_PAGE_SIZE = 10;
 const getDashboardInput = (
@@ -126,6 +120,9 @@ export default function InternalAdsPage() {
     t?: string;
   }>();
   const searchContext = useSearchContext();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [heroHeight, setHeroHeight] = useState(0);
+  const [showSearchBarTopBar, setShowSearchBarTopBar] = useState(false);
   const [editorProductId, setEditorProductId] = useState<string>();
   const [showEditor, setShowEditor] = useState(false);
   const [isNewInternalAd, setIsNewInternalAd] = useState(false);
@@ -215,6 +212,24 @@ export default function InternalAdsPage() {
       variables: { input: {}, limit: 4, offset: 0 },
     },
   );
+
+  useEffect(() => {
+    if (!isWeb || typeof window === "undefined") return;
+    const onScroll = () => scrollY.setValue(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [scrollY]);
+
+  useEffect(() => {
+    if (heroHeight === 0) return;
+
+    const listener = scrollY.addListener(({ value }) => {
+      setShowSearchBarTopBar(value > heroHeight - 48);
+    });
+
+    return () => scrollY.removeListener(listener);
+  }, [heroHeight, scrollY]);
 
   useFocusEffect(
     useCallback(() => {
@@ -516,6 +531,7 @@ export default function InternalAdsPage() {
           overflow: "hidden",
           width: "100%",
         }}
+        onLayout={(event) => setHeroHeight(event.nativeEvent.layout.height)}
       >
         <View
           style={{
@@ -731,17 +747,26 @@ export default function InternalAdsPage() {
         { backgroundColor: primitives.neutrals100 },
       ]}
     >
-      <InternalTopBar home onCreateAd={onCreateInternalAd} />
+      <InternalTopBar
+        home
+        showSearchBar={showSearchBarTopBar}
+        onCreateAd={onCreateInternalAd}
+      />
 
       {isWeb ? (
         content
       ) : (
-        <ScrollView
+        <Animated.ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
+          scrollEventThrottle={8}
           showsVerticalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true },
+          )}
         >
           {content}
-        </ScrollView>
+        </Animated.ScrollView>
       )}
 
       <SlideInSheet
