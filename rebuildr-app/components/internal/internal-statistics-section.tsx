@@ -84,15 +84,17 @@ const ReceiptCard = ({
   children: ReactNode;
 }) => {
   const colors = useThemeColor();
+  const { isDesktop } = useScreenType();
+  const dividerColor =
+    backgroundColor === primitives.primary100
+      ? primitives.primary300
+      : primitives.secondary500;
 
   return (
     <View
       style={{
         backgroundColor,
-        borderColor:
-          backgroundColor === primitives.primary100
-            ? primitives.primary300
-            : primitives.secondary500,
+        borderColor: dividerColor,
         borderRadius: borderRadius.medium,
         borderWidth: 1,
         flex: 1,
@@ -119,6 +121,7 @@ const ReceiptCard = ({
           {rangeLabel}
         </Body>
       </View>
+      {!isDesktop && <Divider color={dividerColor} />}
       {children}
     </View>
   );

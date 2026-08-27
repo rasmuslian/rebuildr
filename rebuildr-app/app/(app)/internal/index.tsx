@@ -534,6 +534,7 @@ export default function InternalAdsPage() {
                   onPress={onCreateInternalAd}
                   loading={creatingDraft}
                   theme="light"
+                  style={isDesktop ? undefined : { flex: 1, minWidth: 0 }}
                 />
                 <Button
                   label="Importera annonser"
@@ -541,6 +542,7 @@ export default function InternalAdsPage() {
                   type="outlined"
                   theme="light"
                   onPress={() => setShowImport(true)}
+                  style={isDesktop ? undefined : { flex: 2, minWidth: 0 }}
                 />
               </View>
             </View>
