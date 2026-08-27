@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSellProductContext } from "@context/sell-product-context";
 import { useUser } from "@hooks/useUser";
 
@@ -22,15 +22,23 @@ export const useOnboardingChecklist = () => {
   const { isLoggedIn, me, loading, refetch } = useUser();
   const { setVisible } = useSellProductContext();
 
-  const hasListing = (me?.numberOfPublishedProducts ?? 0) > 0;
+  // Sold listings still count: numberOfPublishedProducts drops back to zero when
+  // the only listing sells, which would otherwise ask a working seller to post
+  // their first listing again.
+  const hasListing =
+    (me?.numberOfPublishedProducts ?? 0) + (me?.numberOfSoldProducts ?? 0) > 0;
   const hasProfile = !!me?.profilePicture && !!me?.description;
-  const canReceivePayment = !!me?.sellerAccount?.canReceivePayment;
+  // A connected bank account, not Stripe's charges_enabled: the latter is set by
+  // the sell flow's onboarding, which never collects a bank account, so the step
+  // would tick before the seller can actually be paid.
+  const hasPayoutAccount = !!me?.payoutAccount;
 
   const steps: ChecklistStep[] = [
     {
       key: "listing",
       title: "Lägg upp din första annons",
-      description: "Lägg till foton, så skriver vår AI annonsen åt dig.",
+      description:
+        "Lägg till foton, så skriver och skapar vår AI annonsen åt dig.",
       cta: "Lägg upp annons",
       done: hasListing,
       onPress: () => setVisible(true),
@@ -57,7 +65,7 @@ export const useOnboardingChecklist = () => {
       description:
         "Koppla ditt utbetalningskonto så du kan få betalt när du sålt.",
       cta: "Aktivera utbetalningar",
-      done: canReceivePayment,
+      done: hasPayoutAccount,
       onPress: () => router.navigate("/account/settings/payout"),
     },
   ];
@@ -68,6 +76,14 @@ export const useOnboardingChecklist = () => {
   // The celebration only fires for a completion that happens while the user is
   // here — an already-activated account arriving with allDone from the server
   // sees nothing.
+  // Publishing a listing or connecting a bank account happens on other screens
+  // and does not touch this query's cache, so the answer is re-read on focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn) refetch();
+    }, [isLoggedIn]),
+  );
+
   const wasIncomplete = useRef(false);
   const [justCompleted, setJustCompleted] = useState(false);
 

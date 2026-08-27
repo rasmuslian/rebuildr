@@ -75,6 +75,14 @@ export default function TopBarDesktop({
     }
   }, [params.account, isLoggedIn]);
 
+  // The panel is opened from an `account` query param. Leaving it behind means
+  // re-navigating to the same page never changes the param, so the panel would
+  // refuse to reopen.
+  const closeAccount = () => {
+    setOpenAccount(false);
+    if (params.account) router.setParams({ account: undefined });
+  };
+
   useEffect(() => {
     if (params.category === "all") {
       showHamburgerMenuVar(true);
@@ -283,9 +291,9 @@ export default function TopBarDesktop({
           <Divider />
         </View>
       )}
-      <SlideInSheet open={!!openAccount} onClose={() => setOpenAccount(false)}>
+      <SlideInSheet open={!!openAccount} onClose={closeAccount}>
         <AccountWrapperDesktop
-          onClose={() => setOpenAccount(false)}
+          onClose={closeAccount}
           initialPage={openAccount}
         />
       </SlideInSheet>
