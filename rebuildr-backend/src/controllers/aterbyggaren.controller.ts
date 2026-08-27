@@ -27,6 +27,7 @@ interface StreamBody {
   chatId?: string;
   message: string;
   guestId?: string;
+  location?: { lat: number; lng: number };
 }
 
 interface PrepareAttachmentsBody {
