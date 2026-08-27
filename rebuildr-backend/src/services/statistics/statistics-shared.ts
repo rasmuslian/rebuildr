@@ -43,7 +43,9 @@ export const SALE_PREDICATE = (alias = 'pu') =>
   `${alias}."paymentAcceptedAt" IS NOT NULL AND ${alias}."failedAt" IS NULL`;
 
 /**
- * Order value in SEK. Prices live in öre.
+ * Order value in SEK. Prices live in öre. Uses the product's current price;
+ * the seller edit path already blocks price changes once a purchase exists,
+ * so it cannot drift after a sale.
  */
 export const GMV_EXPR = (purchase = 'pu', product = 'pr') =>
   `${product}."price" * COALESCE(${purchase}."purchasedQuantity", 1)`;
