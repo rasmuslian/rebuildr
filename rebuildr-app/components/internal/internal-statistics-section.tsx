@@ -9,6 +9,7 @@ import { Body, Headline, Label, Title } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { borderRadius } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
+import { useThemeColor } from "@hooks/useThemeColor";
 
 export type InternalDashboardPreset = "MONTH" | "QUARTER" | "YEAR" | "ALL";
 
@@ -38,34 +39,38 @@ const ReceiptMetric = ({
   value: string;
   description?: string;
   emphasized?: boolean;
-}) => (
-  <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
-    {!!label && (
-      <Body size="small" color="secondary">
-        {label}
-      </Body>
-    )}
-    <Title
-      size="large"
-      adjustsFontSizeToFit
-      minimumFontScale={0.72}
-      numberOfLines={1}
-      style={{
-        color: primitives.primary700,
-        fontSize: emphasized ? 32 : undefined,
-        fontWeight: emphasized ? 600 : undefined,
-        lineHeight: emphasized ? 40 : undefined,
-      }}
-    >
-      {value}
-    </Title>
-    {!!description && (
-      <Body size="small" color="secondary">
-        {description}
-      </Body>
-    )}
-  </View>
-);
+}) => {
+  const colors = useThemeColor();
+
+  return (
+    <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
+      {!!label && (
+        <Body size="small" color="secondary">
+          {label}
+        </Body>
+      )}
+      <Title
+        size="large"
+        adjustsFontSizeToFit
+        minimumFontScale={0.72}
+        numberOfLines={1}
+        style={{
+          color: colors.logo.vector,
+          fontSize: emphasized ? 36 : undefined,
+          fontWeight: emphasized ? 600 : undefined,
+          lineHeight: emphasized ? 52 : undefined,
+        }}
+      >
+        {value}
+      </Title>
+      {!!description && (
+        <Body size="small" color="secondary">
+          {description}
+        </Body>
+      )}
+    </View>
+  );
+};
 
 const ReceiptCard = ({
   title,
@@ -77,38 +82,47 @@ const ReceiptCard = ({
   rangeLabel: string;
   backgroundColor: string;
   children: ReactNode;
-}) => (
-  <View
-    style={{
-      backgroundColor,
-      borderColor:
-        backgroundColor === primitives.primary100
-          ? primitives.primary300
-          : primitives.secondary500,
-      borderRadius: borderRadius.medium,
-      borderWidth: 1,
-      flex: 1,
-      gap: 16,
-      minWidth: 0,
-      padding: 20,
-    }}
-  >
+}) => {
+  const colors = useThemeColor();
+
+  return (
     <View
       style={{
-        alignItems: "center",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        gap: 12,
+        backgroundColor,
+        borderColor:
+          backgroundColor === primitives.primary100
+            ? primitives.primary300
+            : primitives.secondary500,
+        borderRadius: borderRadius.medium,
+        borderWidth: 1,
+        flex: 1,
+        gap: 16,
+        minWidth: 0,
+        padding: 20,
       }}
     >
-      <Label size="large">{title}</Label>
-      <Body size="small" color="secondary">
-        {rangeLabel}
-      </Body>
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <Label
+          size="large"
+          style={{ color: colors.logo.vector, fontSize: 16, lineHeight: 24 }}
+        >
+          {title}
+        </Label>
+        <Body size="small" color="secondary">
+          {rangeLabel}
+        </Body>
+      </View>
+      {children}
     </View>
-    {children}
-  </View>
-);
+  );
+};
 
 const Divider = ({ color }: { color: string }) => (
   <View style={{ height: 1, backgroundColor: color }} />
@@ -123,6 +137,7 @@ export const InternalStatisticsSection = ({
   downloadError,
 }: Props) => {
   const { isDesktop } = useScreenType();
+  const colors = useThemeColor();
   const rangeLabel =
     PRESET_OPTIONS.find((option) => option.value === preset)?.label ?? "";
   const money = (value: number) => formatPrice(value / 100);
@@ -298,7 +313,12 @@ export const InternalStatisticsSection = ({
             paddingRight: isDesktop ? 24 : 0,
           }}
         >
-          <Label size="large">I Återbanken just nu</Label>
+          <Label
+            size="large"
+            style={{ color: colors.logo.vector, fontSize: 16, lineHeight: 24 }}
+          >
+            I Återbanken just nu
+          </Label>
         </View>
         {kpis.map((kpi, index) => (
           <View
@@ -312,7 +332,7 @@ export const InternalStatisticsSection = ({
               paddingTop: isDesktop ? 0 : index === 0 ? 14 : 10,
             }}
           >
-            <Title size="large" style={{ color: primitives.primary700 }}>
+            <Title size="large" style={{ color: colors.logo.vector }}>
               {kpi.value}
             </Title>
             <Body size="small" color="secondary">
