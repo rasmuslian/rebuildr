@@ -1,3 +1,4 @@
+import { MapPinTypeEnum } from 'src/entities/map-pin.entity';
 import { ProductStatus, ProductVisibility } from 'src/entities/product.entity';
 import { InternalAdsService } from 'src/services/internal-ads.service';
 
@@ -44,6 +45,149 @@ const createService = (rawStatistics?: Partial<RawStatistics>) => {
 
   return { service, queryBuilder };
 };
+
+describe('InternalAdsService.internalAdMapPinGroups', () => {
+  it('groups matching internal ads by project without crossing the organization boundary', async () => {
+    const getRawMany = jest.fn().mockResolvedValue([
+      {
+        latitude: 59.3,
+        longitude: 18.1,
+        productIds: ['project-product'],
+        projectId: 'project-a',
+        prices: [10000],
+      },
+      {
+        latitude: 59.4,
+        longitude: 18.2,
+        productIds: ['standalone-product'],
+        projectId: null,
+        prices: [20000],
+      },
+    ]);
+    const queryBuilder = {
+      leftJoin: jest.fn(),
+      select: jest.fn(),
+      addSelect: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      groupBy: jest.fn(),
+      addGroupBy: jest.fn(),
+      setParameter: jest.fn(),
+      getRawMany,
+    };
+    Object.values(queryBuilder).forEach((mock) => {
+      if (mock !== getRawMany) mock.mockReturnValue(queryBuilder);
+    });
+
+    const service = Object.create(
+      InternalAdsService.prototype,
+    ) as InternalAdsService;
+    Object.assign(service, {
+      productRepository: {
+        createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      },
+    });
+    jest.spyOn(service, 'getOrganizationContext').mockResolvedValue({
+      organization: { id: 'organization-a' } as never,
+    });
+
+    await expect(
+      service.internalAdMapPinGroups('user-a', {
+        southWest: { lat: 59, lng: 18 },
+        northEast: { lat: 60, lng: 19 },
+        zoom: 12,
+      }),
+    ).resolves.toEqual({
+      mapPinGroups: [
+        {
+          location: { lat: 59.3, lng: 18.1 },
+          productIds: ['project-product'],
+          projectId: 'project-a',
+          type: MapPinTypeEnum.PROJECT,
+          prices: [100],
+        },
+        {
+          location: { lat: 59.4, lng: 18.2 },
+          productIds: ['standalone-product'],
+          projectId: null,
+          type: MapPinTypeEnum.PRODUCT,
+          prices: [200],
+        },
+      ],
+      total: 2,
+    });
+
+    expect(queryBuilder.where).toHaveBeenCalledWith(
+      'p.visibility = :visibility',
+      { visibility: ProductVisibility.INTERNAL },
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+      'p."internalOrganizationId" = :organizationId',
+      { organizationId: 'organization-a' },
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+      '(p."projectId" IS NULL OR project.id IS NOT NULL)',
+    );
+    expect(queryBuilder.addSelect).toHaveBeenCalledWith(
+      'project.id',
+      'projectId',
+    );
+    expect(queryBuilder.groupBy).toHaveBeenCalledWith('project.id');
+  });
+});
+
+describe('InternalAdsService.setInternalProjectPicture', () => {
+  it('replaces the cover image and returns a public upload URL', async () => {
+    const oldPicture = { id: 'old-picture' };
+    const newPicture = { id: 'new-picture' };
+    const project = {
+      id: 'project-a',
+      internalOrganizationId: 'organization-a',
+      projectPicture: oldPicture,
+    };
+    const projectRepository = {
+      findOne: jest.fn().mockResolvedValue(project),
+      save: jest.fn().mockImplementation((value) => value),
+    };
+    const fileService = {
+      deleteFiles: jest.fn().mockResolvedValue(undefined),
+      createFile: jest.fn().mockResolvedValue(newPicture),
+      uploadFile: jest.fn().mockResolvedValue('https://upload.example'),
+    };
+    const service = Object.create(
+      InternalAdsService.prototype,
+    ) as InternalAdsService;
+    Object.assign(service, { projectRepository, fileService });
+    jest.spyOn(service, 'getOrganizationContext').mockResolvedValue({
+      organization: { id: 'organization-a' } as never,
+    });
+
+    await expect(
+      service.setInternalProjectPicture('user-a', 'project-a', {
+        mimeType: 'image/jpeg',
+        name: 'cover.jpg',
+      }),
+    ).resolves.toBe('https://upload.example');
+
+    expect(projectRepository.findOne).toHaveBeenCalledWith({
+      where: {
+        id: 'project-a',
+        internalOrganizationId: 'organization-a',
+      },
+      relations: { projectPicture: true },
+    });
+    expect(fileService.deleteFiles).toHaveBeenCalledWith([oldPicture]);
+    expect(fileService.createFile).toHaveBeenCalledWith({
+      mimeType: 'image/jpeg',
+      name: 'cover.jpg',
+    });
+    expect(projectRepository.save).toHaveBeenCalledWith({
+      ...project,
+      projectPicture: newPicture,
+    });
+    expect(fileService.uploadFile).toHaveBeenCalledWith(newPicture, true);
+  });
+});
 
 describe('InternalAdsService.internalAdsStatistics', () => {
   it('returns zeroes for an organization without ads', async () => {

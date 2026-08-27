@@ -16,6 +16,7 @@ export type OwnFilterScope = {
   // Set to count how many ads each category, brand and condition has within the
   // project. Left out, the filter lists show no counts.
   facetProjectId?: string;
+  internalFacets?: boolean;
 };
 
 export type FilterProductScope = "public" | "internal" | OwnFilterScope;

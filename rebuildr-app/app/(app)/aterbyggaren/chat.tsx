@@ -2,6 +2,7 @@ import { useReactiveVar } from "@apollo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import Head from "expo-router/head";
+import * as Location from "expo-location";
 import React, {
   useCallback,
   useEffect,
@@ -73,15 +74,27 @@ type ChatMessage = {
   productDisplays?: ProductDisplay[] | null;
 };
 
+type ProductMeasurement = { value: number; unit: string };
+
 type DisplayedProduct = {
   id: string;
   title: string;
   description?: string;
+  additionalInfo?: string;
   price: number;
   isGiveaway: boolean;
   condition: ProductConditionEnum;
   category?: string;
   brand?: string;
+  primaryQuantity?: number;
+  primaryUnit?: string;
+  height?: ProductMeasurement;
+  width?: ProductMeasurement;
+  length?: ProductMeasurement;
+  weight?: ProductMeasurement;
+  area?: string;
+  distanceKm?: number;
+  publishedAt?: string;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   likedByMe?: boolean | null;
@@ -146,6 +159,25 @@ const markdownFadeParser = MarkdownIt({ typographer: true });
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
+const getSearchLocation = async (requestPermission = false) => {
+  try {
+    const permission = requestPermission
+      ? await Location.requestForegroundPermissionsAsync()
+      : await Location.getForegroundPermissionsAsync();
+    if (permission.status !== "granted") return undefined;
+    const position = await Location.getLastKnownPositionAsync({
+      maxAge: 15 * 60 * 1000,
+    });
+    if (!position) return undefined;
+    return {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    };
+  } catch {
+    return undefined;
+  }
+};
+
 const getGuestId = async () => {
   const existingGuestId = await AsyncStorage.getItem(GUEST_ID_KEY);
   if (existingGuestId) return existingGuestId;
@@ -207,6 +239,7 @@ export default function AterbyggarenChatPage() {
   const [loadingChat, setLoadingChat] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string>();
+  const [retryMessage, setRetryMessage] = useState<string>();
   const [topBarHeight, setTopBarHeight] = useState(0);
   if (isDesktop || windowHeight > stableMobileWindowHeightRef.current) {
     stableMobileWindowHeightRef.current = windowHeight;
@@ -276,9 +309,16 @@ export default function AterbyggarenChatPage() {
   useFocusEffect(
     useCallback(() => {
       if (typeof document === "undefined") return;
+      const previousBodyBackground = document.body.style.backgroundColor;
+      const previousBodyOverflow = document.body.style.overflow;
+      const previousDocumentOverflow = document.documentElement.style.overflow;
       document.body.style.backgroundColor = primitives.secondary100;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       return () => {
-        document.body.style.backgroundColor = "";
+        document.body.style.backgroundColor = previousBodyBackground;
+        document.body.style.overflow = previousBodyOverflow;
+        document.documentElement.style.overflow = previousDocumentOverflow;
       };
     }, []),
   );
@@ -388,6 +428,7 @@ export default function AterbyggarenChatPage() {
       setAttachments([]);
       setStreaming(true);
       setError(undefined);
+      setRetryMessage(undefined);
       focusChatInput();
 
       const abortController = new AbortController();
@@ -440,7 +481,12 @@ export default function AterbyggarenChatPage() {
       ]);
 
       try {
-        const guestId = isLoggedIn ? undefined : await getGuestId();
+        const [guestId, location] = await Promise.all([
+          isLoggedIn ? undefined : getGuestId(),
+          getSearchLocation(
+            /\b(nära mig|nära oss|i närheten)\b/i.test(sentContent),
+          ),
+        ]);
         const createStreamResponse = async () => {
           const authHeaders = await getAuthHeaders();
           return fetch(`${apiUrl}/aterbyggaren/chat/stream`, {
@@ -454,6 +500,7 @@ export default function AterbyggarenChatPage() {
               chatId: requestChatId,
               message: sentContent,
               guestId,
+              location,
             }),
             signal: abortController.signal,
           });
@@ -509,6 +556,7 @@ export default function AterbyggarenChatPage() {
             const chat = streamEvent.data as ChatSummary;
             setActiveChatId(chat.id);
             setActiveChatTitle(chat.title);
+            router.setParams({ chatId: chat.id });
           }
 
           if (streamEvent.event === "title") {
@@ -570,6 +618,7 @@ export default function AterbyggarenChatPage() {
 
         const messageText = e instanceof Error ? e.message : undefined;
         setError(messageText ?? "Något gick fel. Försök igen.");
+        setRetryMessage(sentContent);
         setMessages((current) =>
           current.filter((item) => item.id !== assistantId),
         );
@@ -659,10 +708,15 @@ export default function AterbyggarenChatPage() {
 
       <View
         style={{
-          flex: 1,
           backgroundColor: primitives.secondary100,
+          bottom: Platform.OS === "web" ? 0 : undefined,
+          flex: 1,
           height: pageWindowHeight,
+          left: Platform.OS === "web" ? 0 : undefined,
           overflow: "hidden",
+          position: Platform.OS === "web" ? "fixed" : "relative",
+          right: Platform.OS === "web" ? 0 : undefined,
+          top: Platform.OS === "web" ? 0 : undefined,
         }}
       >
         <View onLayout={handleTopBarLayout}>
@@ -749,10 +803,25 @@ export default function AterbyggarenChatPage() {
             )}
 
             {error && (
-              <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                <Body size="small" color="error">
+              <View
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: 12,
+                  paddingHorizontal: 16,
+                  paddingTop: 8,
+                }}
+              >
+                <Body size="small" color="error" style={{ flex: 1 }}>
                   {error}
                 </Body>
+                {retryMessage && (
+                  <Pressable onPress={() => sendMessage(retryMessage)}>
+                    <Label color="link" size="small">
+                      Försök igen
+                    </Label>
+                  </Pressable>
+                )}
               </View>
             )}
 
@@ -828,6 +897,11 @@ const EmptyState = ({
         width: "100%",
       }}
     >
+      <Body color="secondary">
+        Hej! Jag hjälper dig planera projektet, räkna fram en mängdlista och
+        hitta återbrukat material på RebuildR. Jag ger inte råd om el, VVS eller
+        bärande konstruktion.
+      </Body>
       <Label size="small" color="secondary">
         Exempel på frågor till Återbyggaren:
       </Label>
@@ -2070,6 +2144,22 @@ const ChatProductDisplay = ({ display }: { display: ProductDisplay }) => {
   );
 };
 
+const formatQuantityUnit = (unit: string) => {
+  const labels: Record<string, string> = {
+    AMOUNT: "st",
+    BAGS: "säckar",
+    BOARDS: "brädor",
+    KG: "kg",
+    M: "m",
+    M2: "m²",
+    M3: "m³",
+    PACKAGES: "paket",
+    PLATES: "skivor",
+    ROLLS: "rullar",
+  };
+  return labels[unit] ?? unit.toLowerCase();
+};
+
 const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
   const colors = useThemeColor();
   const { isDesktop } = useScreenType();
@@ -2088,6 +2178,16 @@ const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
     : product.deliveryEnabled
       ? "Leverans"
       : undefined;
+  const quantity =
+    product.primaryQuantity !== undefined && product.primaryUnit
+      ? `${product.primaryQuantity} ${formatQuantityUnit(product.primaryUnit)}`
+      : undefined;
+  const location = [
+    product.area,
+    product.distanceKm === undefined ? undefined : `${product.distanceKm} km`,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   useEffect(() => {
     setLiked(!!product.likedByMe);
@@ -2168,6 +2268,16 @@ const ChatProductCard = ({ product }: { product: DisplayedProduct }) => {
               </Body>
             )}
           </View>
+          {quantity && (
+            <Body size="small" color="secondary" numberOfLines={1}>
+              {quantity}
+            </Body>
+          )}
+          {location && (
+            <Body size="small" color="secondary" numberOfLines={1}>
+              {location}
+            </Body>
+          )}
         </View>
         <View style={{ gap: isDesktop ? 8 : 6, marginTop: "auto" }}>
           <Label size={isDesktop ? "medium" : "large"}>

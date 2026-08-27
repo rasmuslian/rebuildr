@@ -250,8 +250,8 @@ export default function TopBarDesktop({
               type={theme === "dark" ? "outlinedStroke" : "tonal"}
               theme={theme}
               onPress={() => showHamburgerMenuVar(true)}
-              icon="categories"
-              label="Kategorier"
+              icon="hamburger"
+              label="Meny"
               style={
                 categoriesButtonBackgroundColor
                   ? { backgroundColor: categoriesButtonBackgroundColor }

@@ -1,4 +1,6 @@
 import { useMutation, useQuery } from "@apollo/client";
+import { Image } from "expo-image";
+
 import { Button } from "@components/buttons/button";
 import { TextInput } from "@components/forms/textInput";
 import { EditPickup } from "@components/upsert-product/edit-pickup";
@@ -7,6 +9,8 @@ import { InternalProjectGrid } from "@components/internal/internal-project-grid"
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
 import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { Body, Headline, Label } from "@components/typography/text";
+import { borderRadius } from "@constants/sizes";
+import { useImageHandler } from "@hooks/use-image-handler";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
@@ -15,6 +19,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import {
   CREATE_INTERNAL_PROJECT,
   INTERNAL_PROJECTS,
+  SET_INTERNAL_PROJECT_PICTURE,
 } from "@/queries/internal-projects";
 
 const PAGE_SIZE = 24;
@@ -162,11 +167,26 @@ export function CreateInternalProjectSheet({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState<{ lat: number; lng: number }>();
+  const [pickedPicture, setPickedPicture] = useState<{
+    uri: string;
+    mimeType: string;
+    file: File;
+    name?: string | null;
+  }>();
+  const { pickImage } = useImageHandler();
   const [create, { loading }] = useMutation(CREATE_INTERNAL_PROJECT);
+  const [setProjectPicture, { loading: uploadingPicture }] = useMutation(
+    SET_INTERNAL_PROJECT_PICTURE,
+  );
+
+  const onPickPicture = async () => {
+    const image = await pickImage();
+    if (image) setPickedPicture(image);
+  };
 
   const onCreate = async () => {
     if (!location) return;
-    await create({
+    const result = await create({
       variables: {
         input: {
           title: title.trim(),
@@ -175,15 +195,60 @@ export function CreateInternalProjectSheet({
         },
       },
     });
+    const projectId = result.data?.createInternalProject.id;
+    if (projectId && pickedPicture) {
+      const pictureResult = await setProjectPicture({
+        variables: {
+          projectId,
+          picture: {
+            mimeType: pickedPicture.mimeType,
+            name: pickedPicture.name,
+          },
+        },
+      });
+      const putUrl = pictureResult.data?.setInternalProjectPicture;
+      if (putUrl) {
+        await fetch(putUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": pickedPicture.mimeType,
+            "x-amz-acl": "public-read",
+          },
+          body: pickedPicture.file,
+        });
+      }
+    }
     setTitle("");
     setDescription("");
     setLocation(undefined);
+    setPickedPicture(undefined);
     await onCreated();
   };
 
   return (
     <SlideInSheet open={open} onClose={onClose} title="Nytt projekt">
       <View style={{ gap: 24 }}>
+        <View style={{ gap: 8 }}>
+          <Label size="medium">Omslagsbild</Label>
+          {!!pickedPicture && (
+            <Image
+              source={{ uri: pickedPicture.uri }}
+              style={{
+                width: "100%",
+                height: 180,
+                borderRadius: borderRadius.medium,
+              }}
+              contentFit="cover"
+            />
+          )}
+          <Button
+            label={pickedPicture ? "Byt omslagsbild" : "Lägg till omslagsbild"}
+            type="tonal"
+            icon="addImage"
+            onPress={onPickPicture}
+            disabled={loading || uploadingPicture}
+          />
+        </View>
         <View style={{ gap: 8 }}>
           <Label size="medium">Projektnamn</Label>
           <TextInput
@@ -205,7 +270,7 @@ export function CreateInternalProjectSheet({
         <ProjectLocationPicker location={location} onSave={setLocation} />
         <Button
           label="Skapa projekt"
-          loading={loading}
+          loading={loading || uploadingPicture}
           disabled={!title.trim() || !location}
           onPress={onCreate}
         />

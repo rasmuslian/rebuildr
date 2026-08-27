@@ -10,7 +10,7 @@
           font-weight="600"
           align="center"
         >
-          Du är inbjuden till Internlagret
+          Du är inbjuden till Återbanken
         </mj-text>
         <mj-text
           font-size="16px"
@@ -38,7 +38,7 @@
           color="#555555"
           line-height="1.5"
         >
-          Medlemsrollen ger åtkomst till Internlagret. Administratörer kan även
+          Medlemsrollen ger åtkomst till Återbanken. Administratörer kan även
           bjuda in och hantera kollegor. Om knappen inte fungerar, öppna denna
           länk: {{inviteUrl}}
         </mj-text>

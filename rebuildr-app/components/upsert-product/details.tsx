@@ -1,6 +1,7 @@
 import { Pressable, View } from "react-native";
 import { Toggle } from "@components/controls/toggle";
 import { Form } from "@components/forms/form";
+import { SelectInput } from "@components/forms/selectInput";
 import { BrandSection } from "@components/product/brand-section";
 import { CategorySection } from "@components/product/category-section";
 import { ConditionSection } from "@components/product/condition-section";
@@ -16,6 +17,7 @@ import { Body, Label, Title } from "@components/typography/text";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@components/buttons/button";
 import { AnalyzeProgress } from "./analyze-progress";
+import { AvailabilitySection } from "./availability-section";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { borderRadius } from "@constants/sizes";
 import { ProductFields } from "./types";
@@ -29,9 +31,6 @@ import {
 import { AdditionalInfoSection } from "@components/product/additional-info-section";
 import { CO2Section } from "@components/product/co2-section";
 import { primitives } from "@constants/colors";
-import { AvailabilitySection } from "./availability-section";
-import { InternalLocation } from "./internal-location";
-import { ProjectChips } from "./project-chips";
 
 type Props = {
   product: ProductFields;
@@ -39,7 +38,6 @@ type Props = {
   onNext: () => void;
   badFields?: { [key: string]: string };
   onAnalyzeImages: () => Promise<void>;
-  onClearLocationError: () => void;
   imageAnalyzeLoading: boolean;
   imageAnalyzeError?: boolean;
   loading?: boolean;
@@ -48,6 +46,9 @@ type Props = {
   onDelete?: () => void;
   compact?: boolean;
   importMode?: boolean;
+  organizationMembers?: { id: string; name: string }[];
+  organizationMemberId?: string;
+  onOrganizationMemberSelect?: (id: string) => void;
 };
 
 export const Details = ({
@@ -56,7 +57,6 @@ export const Details = ({
   onNext,
   badFields,
   onAnalyzeImages,
-  onClearLocationError,
   imageAnalyzeLoading,
   imageAnalyzeError,
   loading = false,
@@ -65,6 +65,9 @@ export const Details = ({
   onDelete,
   compact = false,
   importMode = false,
+  organizationMembers = [],
+  organizationMemberId,
+  onOrganizationMemberSelect,
 }: Props) => {
   const { isDesktop } = useScreenType();
   const colors = useThemeColor();
@@ -109,9 +112,7 @@ export const Details = ({
   const categoryId = product.categoryIds?.[1];
   const showContinue =
     rootCategoryId && categoryId && (internalMode || product.brandId);
-  const selectBackgroundColor = importMode
-    ? primitives.accent100
-    : primitives.neutrals100;
+  const selectBackgroundColor = primitives.neutrals100;
 
   return (
     <View
@@ -245,21 +246,6 @@ export const Details = ({
             onChangeTitle={(title) => update({ title })}
             onChangeDescription={(description) => update({ description })}
           />
-          {internalMode && (
-            <Form
-              fields={[
-                {
-                  type: "text",
-                  value: product.internalReferenceNumber ?? "",
-                  onChangeText: (internalReferenceNumber) =>
-                    update({ internalReferenceNumber }),
-                  heading: "Internt id/referensnummer",
-                  description: "Valfritt. Visas bara i Återbanken.",
-                  placeholder: "Till exempel INV-12345",
-                },
-              ]}
-            />
-          )}
           <QuantitiesSection
             compact={compact}
             selectBackgroundColor={selectBackgroundColor}
@@ -291,6 +277,45 @@ export const Details = ({
               })
             }
           />
+          {internalMode && (
+            <Form
+              fields={[
+                {
+                  type: "text",
+                  value: product.internalReferenceNumber ?? "",
+                  onChangeText: (internalReferenceNumber) =>
+                    update({ internalReferenceNumber }),
+                  heading: "Internt id/referensnummer",
+                  description: "Valfritt. Visas bara i Återbanken.",
+                  placeholder: "Till exempel INV-12345",
+                },
+              ]}
+            />
+          )}
+          {internalMode && !!onOrganizationMemberSelect && (
+            <View style={{ zIndex: 100 }}>
+              <Title size="medium" style={{ marginBottom: 24 }}>
+                Vem lägger upp annonsen?
+              </Title>
+              <SelectInput
+                value={organizationMemberId}
+                searchable
+                searchPlaceholder="Sök person"
+                options={organizationMembers.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                }))}
+                onSelect={onOrganizationMemberSelect}
+                placeholder="Välj person"
+                error={!!badFields?.["organizationMember"]}
+              />
+              {!!badFields?.["organizationMember"] && (
+                <Body size="small" color="error" style={{ marginTop: 6 }}>
+                  {badFields.organizationMember}
+                </Body>
+              )}
+            </View>
+          )}
           <ConditionSection
             compact={compact}
             condition={product.condition}
@@ -307,27 +332,14 @@ export const Details = ({
         <>
           <CO2Section
             compact={compact}
+            inputBackgroundColor={
+              importMode ? primitives.neutrals100 : primitives.accent100
+            }
             product={product}
             onChange={(w) => {
               update({ weight: w, weightUnit: MeasurementUnitEnum.Kg });
             }}
           />
-          {internalMode && (
-            <>
-              <InternalLocation
-                product={product}
-                update={update}
-                onSaveStart={onClearLocationError}
-                error={product.location ? undefined : badFields?.["location"]}
-              />
-              <ProjectChips product={product} update={update} internalMode />
-              <AvailabilitySection
-                product={product}
-                update={update}
-                error={badFields?.["availability"]}
-              />
-            </>
-          )}
           <Pressable onPress={() => setShowDetails(!showDetails)}>
             <View
               style={{
@@ -443,6 +455,14 @@ export const Details = ({
           )}
         </>
       )}
+      {importMode && (
+        <AvailabilitySection
+          product={product}
+          update={update}
+          error={badFields?.["availability"]}
+          compact
+        />
+      )}
       {showContinue && (
         <View
           style={[
@@ -452,9 +472,10 @@ export const Details = ({
               bottom: 0,
               left: 0,
               right: 0,
-              zIndex: 10,
-              paddingBottom: 32,
-              marginHorizontal: compact ? -12 : 0,
+              zIndex: 1000,
+              paddingBottom: compact ? 0 : 32,
+              marginHorizontal: compact ? -12 : -(isDesktop ? 48 : 16),
+              paddingHorizontal: compact ? 0 : isDesktop ? 48 : 16,
             },
           ]}
         >
@@ -462,7 +483,7 @@ export const Details = ({
             style={{
               gap: 6,
               backgroundColor: compact ? primitives.accent100 : undefined,
-              paddingHorizontal: compact ? 12 : 0,
+              paddingHorizontal: 0,
               paddingTop: compact ? 12 : 0,
               paddingBottom: compact ? 12 : 32,
               borderBottomLeftRadius: compact ? borderRadius.medium : 0,
@@ -475,6 +496,7 @@ export const Details = ({
                 flexDirection: onDelete ? "row" : "column",
                 gap: 12,
                 marginTop: compact ? 0 : 24,
+                marginHorizontal: compact ? 12 : 0,
               }}
             >
               <Button
@@ -500,7 +522,12 @@ export const Details = ({
               )}
             </View>
             {badFields && !!Object.keys(badFields).length && (
-              <View style={{ gap: 4 }}>
+              <View
+                style={{
+                  gap: 4,
+                  marginHorizontal: compact ? 12 : 0,
+                }}
+              >
                 {Object.keys(badFields).map((bf, i) => {
                   return (
                     <Body key={i} color="error" size="small">

@@ -4,7 +4,7 @@ import {
 } from "@/gql/graphql";
 import { useLazyQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
-import { Body } from "@components/typography/text";
+import { Body, Display } from "@components/typography/text";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -12,9 +12,14 @@ import { EditPickup } from "./edit-pickup";
 import { EXACT_AND_APPROXIMATE_PLACE } from "./queries";
 import { ProductFields } from "./types";
 
+type LocationFields = Pick<
+  ProductFields,
+  "address" | "approximatePlace" | "location"
+>;
+
 type Props = {
-  product: ProductFields;
-  update: (product: Partial<ProductFields>) => void;
+  product: LocationFields;
+  update: (product: Partial<LocationFields>) => void;
   onSaveStart?: () => void;
   error?: string;
 };
@@ -52,14 +57,12 @@ export const InternalLocation = ({
 
   return (
     <View style={{ gap: 12 }}>
+      <Display size="small">Plats</Display>
       {!editing && product.address ? (
         <>
-          <View style={{ gap: 4 }}>
-            <Body size="medium">Plats</Body>
-            <Body size="medium" color="secondary">
-              {product.address}
-            </Body>
-          </View>
+          <Body size="medium" color="secondary">
+            {product.address}
+          </Body>
           <Button
             label="Ändra plats"
             type="outlined"
@@ -74,6 +77,7 @@ export const InternalLocation = ({
           onSave={onSave}
           isLoading={loading}
           title="Plats"
+          hideTitle
           addressDescription="Välj var materialet finns så att annonserna kan hittas på Återbankens karta."
           saveLabel="Spara plats"
         />

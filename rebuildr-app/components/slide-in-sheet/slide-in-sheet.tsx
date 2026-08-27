@@ -184,7 +184,10 @@ export const SlideInSheet = ({
               <View
                 style={{
                   paddingHorizontal: isDesktop ? 48 : 16,
-                  marginBottom: 32,
+                  paddingBottom: 32,
+                  backgroundColor: sheetBackgroundColor,
+                  position: "relative",
+                  zIndex: 1000,
                 }}
               >
                 {footer}

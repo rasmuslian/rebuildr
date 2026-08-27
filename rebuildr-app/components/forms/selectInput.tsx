@@ -1,3 +1,4 @@
+import { SearchInput } from "@components/forms/searchInput";
 import { Body } from "@components/typography/text";
 import { TextTokens } from "@constants/colors";
 import { borderRadius, strokeWidth } from "@constants/sizes";
@@ -5,7 +6,7 @@ import { useOutsidePress } from "@hooks/useOutsidePress";
 import { useThemeColor } from "@hooks/useThemeColor";
 import { Icon } from "@icons/icon";
 import { ReactElement, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 export type Props<T> = {
   value?: T;
@@ -14,6 +15,8 @@ export type Props<T> = {
   placeholder?: string;
   error?: boolean;
   backgroundColor?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
   dropdown?: (collapseDropdown: () => void) => ReactElement;
   options: { value: T; label: string; disabled?: boolean }[];
   onSelect: (value: T) => void;
@@ -24,14 +27,23 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
   const [hovered, setHovered] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionHover, setOptionHover] = useState<number | undefined>();
+  const [search, setSearch] = useState("");
   const ref = useRef<View | null>(null);
-  useOutsidePress(ref, () => {
+  const closeOptions = () => {
     setShowOptions(false);
-  });
+    setSearch("");
+    setOptionHover(undefined);
+  };
+  useOutsidePress(ref, closeOptions);
   const colors = useThemeColor();
 
   const value = props.options.find((o) => o.value === props.value)?.label;
   const saved = !focused && !!props.value;
+  const visibleOptions = search
+    ? props.options.filter((option) =>
+        option.label.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
+      )
+    : props.options;
 
   const getBorderColor = () => {
     if (props.disabled) {
@@ -69,13 +81,20 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
     return "secondary";
   };
 
-  const onPressOption = (optionIndex: number) => {
-    setShowOptions(false);
-    props.onSelect(props.options[optionIndex].value);
+  const onPressOption = (option: Props<T>["options"][number]) => {
+    closeOptions();
+    props.onSelect(option.value);
   };
 
   return (
-    <View style={{ zIndex: 10 }} ref={ref}>
+    <View
+      style={{
+        position: "relative",
+        zIndex: showOptions ? 1000 : 1,
+        elevation: showOptions ? 20 : 0,
+      }}
+      ref={ref}
+    >
       <Pressable
         onHoverIn={() => setHovered(true)}
         onHoverOut={() => setHovered(false)}
@@ -95,7 +114,11 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
           alignItems: "center",
           borderColor: getBorderColor(),
         }}
-        onPress={() => setShowOptions(!showOptions)}
+        onPress={() => {
+          if (props.disabled) return;
+          if (showOptions) closeOptions();
+          else setShowOptions(true);
+        }}
       >
         <Body size="medium" color={getTextColor()}>
           {value || props.placeholder}
@@ -103,56 +126,82 @@ export const SelectInput = <T,>({ ...props }: Props<T>) => {
         <Icon icon="chevronDown" size={12} />
       </Pressable>
       {showOptions && (
-        <View style={{ position: "relative", zIndex: 10 }}>
-          <View
-            style={{
-              backgroundColor:
-                props.backgroundColor ?? colors.background.neutral,
-              alignSelf: "flex-end",
-              width: "100%",
-              paddingHorizontal: 16,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              position: "absolute",
-              top: 4,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.4,
-              shadowRadius: 60,
-            }}
+        <View
+          style={{
+            backgroundColor: props.backgroundColor ?? colors.background.neutral,
+            width: "100%",
+            padding: 8,
+            borderRadius: borderRadius.medium,
+            borderWidth: strokeWidth.regular,
+            borderColor: colors.textField.enabled,
+            position: "absolute",
+            top: 48,
+            left: 0,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.2,
+            shadowRadius: 24,
+            elevation: 20,
+          }}
+        >
+          {props.searchable && (
+            <View style={{ marginBottom: 8 }}>
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder={props.searchPlaceholder ?? "Sök"}
+              />
+            </View>
+          )}
+          <ScrollView
+            style={{ maxHeight: 240 }}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
           >
-            {props.options.map((option, i) => (
-              <Pressable
-                onHoverIn={() => setOptionHover(i)}
-                onPress={() => (!option.disabled ? onPressOption(i) : null)}
-                key={i}
-              >
-                <View
-                  style={[
-                    {
-                      paddingVertical: 13,
-                      borderBottomWidth: 1,
-                      borderColor: colors.dividers.primary,
-                      borderStyle: "solid",
-                    },
-                    i === props.options.length - 1 && { borderBottomWidth: 0 },
-                  ]}
+            {visibleOptions.length ? (
+              visibleOptions.map((option, i) => (
+                <Pressable
+                  onHoverIn={() => setOptionHover(i)}
+                  onHoverOut={() => setOptionHover(undefined)}
+                  onPress={() =>
+                    !option.disabled ? onPressOption(option) : null
+                  }
+                  key={`${String(option.value)}-${i}`}
                 >
-                  <Body
-                    color={
-                      option.disabled
-                        ? "disabled"
-                        : i === optionHover
-                          ? "primaryDark"
-                          : "secondary"
-                    }
+                  <View
+                    style={[
+                      {
+                        paddingHorizontal: 8,
+                        paddingVertical: 12,
+                        borderBottomWidth: 1,
+                        borderColor: colors.dividers.primary,
+                        borderStyle: "solid",
+                      },
+                      i === visibleOptions.length - 1 && {
+                        borderBottomWidth: 0,
+                      },
+                    ]}
                   >
-                    {option.label}
-                  </Body>
-                </View>
-              </Pressable>
-            ))}
-          </View>
+                    <Body
+                      color={
+                        option.disabled
+                          ? "disabled"
+                          : i === optionHover
+                            ? "primaryDark"
+                            : "secondary"
+                      }
+                    >
+                      {option.label}
+                    </Body>
+                  </View>
+                </Pressable>
+              ))
+            ) : (
+              <View style={{ paddingHorizontal: 8, paddingVertical: 12 }}>
+                <Body color="secondary">Inga träffar</Body>
+              </View>
+            )}
+          </ScrollView>
         </View>
       )}
     </View>

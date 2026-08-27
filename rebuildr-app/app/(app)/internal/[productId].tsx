@@ -1,15 +1,14 @@
 import {
   CancelInternalAdReservationMutation,
   CancelInternalAdReservationMutationVariables,
+  ColorTypeEnum,
   InternalAdDetailQuery,
   InternalAdDetailQueryVariables,
   MarkInternalAdSoldMutation,
   MarkInternalAdSoldMutationVariables,
-  OrganizationMemberRoleEnum,
+  MeasurementUnitEnum,
   ProductAvailabilityEnum,
   ProductStatusEnum,
-  ReserveInternalAdMutation,
-  ReserveInternalAdMutationVariables,
   SetInternalAdPublicAvailabilityMutation,
   SetInternalAdPublicAvailabilityMutationVariables,
 } from "@/gql/graphql";
@@ -22,8 +21,13 @@ import {
 } from "@/queries/internal-ads";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button } from "@components/buttons/button";
+import {
+  ProjectCard,
+  ProjectCardProject,
+} from "@components/cards/project-card";
 import { FilterChip } from "@components/chips/filterChip";
 import { TextInput } from "@components/forms/textInput";
+import { SelectInput } from "@components/forms/selectInput";
 import { CollapsableText } from "@components/collapsable-text/collapsable-text";
 import { Divider } from "@components/dividers/divider";
 import { LoadingSpinner } from "@components/loading-spinner/loading-spinner";
@@ -33,8 +37,10 @@ import { SlideInSheet } from "@components/slide-in-sheet/slide-in-sheet";
 import { AllImages } from "@components/preview-product/all-images";
 import { AllImagesPopupContent } from "@components/preview-product/all-images-popup-content";
 import { Breadcrumbs } from "@components/preview-product/breadcrumbs";
+import { CO2Savings } from "@components/preview-product/CO2-savings";
 import { ImageCarousel } from "@components/preview-product/image-carousel";
 import { ImageGallery } from "@components/preview-product/image-gallery";
+import { PickupPosition } from "@components/preview-product/pickup-position";
 import { QuantityStepper } from "@components/preview-product/quantity-stepper";
 import { AvailabilityBadge } from "@components/product/availability-badge";
 import RemoveProduct from "@components/preview-product/remove-product";
@@ -51,18 +57,35 @@ import {
 } from "@components/typography/text";
 import { primitives } from "@constants/colors";
 import { conditions } from "@constants/conditions";
+import { measurements } from "@constants/measurements";
+import { colorTypes } from "@constants/product-color-types";
 import { quantities } from "@constants/quantities";
-import { borderRadius } from "@constants/sizes";
+import { borderRadius, strokeWidth } from "@constants/sizes";
 import { useScreenType } from "@hooks/useScreenType";
 import { useThemeColor } from "@hooks/useThemeColor";
+import { Icon } from "@icons/icon";
+import { ncsToRgb } from "@/utils/color/ncsToRgb";
+import { swedishColorToHex } from "@/utils/color/swedish-colors";
+import { formatNumber } from "@/utils/formattings";
+import dayjs from "dayjs";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import { Delivery } from "@components/upsert-product/delivery";
 import { Pickup } from "@components/upsert-product/pickup";
 import { Shipping } from "@components/upsert-product/shipping";
 import { ProductFields } from "@components/upsert-product/types";
+
+const ORGANIZATION_MEMBERS = gql`
+  query OrganizationMembersForReservation {
+    organizationMembers {
+      id
+      name
+      email
+    }
+  }
+`;
 
 const UPDATE_PUBLIC_TRANSPORT = gql`
   mutation UpdateInternalAdPublicTransport($input: UpdateProductInput!) {
@@ -87,18 +110,20 @@ export default function InternalAdDetailPage() {
   const [publicPriceError, setPublicPriceError] = useState<string>();
   const [publicPublishError, setPublicPublishError] = useState<string>();
   const [publicTransport, setPublicTransport] = useState<ProductFields>();
+  const [reservationMemberId, setReservationMemberId] = useState<string>();
+  const { data: membersData } = useQuery<{
+    organizationMembers: { id: string; name: string; email: string }[];
+  }>(ORGANIZATION_MEMBERS);
 
   const { data, loading, refetch } = useQuery<
-    InternalAdDetailQuery,
+    InternalAdDetailData,
     InternalAdDetailQueryVariables
   >(INTERNAL_AD_DETAIL, {
     variables: { productId },
   });
 
-  const [reserveInternalAd, { loading: reserving }] = useMutation<
-    ReserveInternalAdMutation,
-    ReserveInternalAdMutationVariables
-  >(RESERVE_INTERNAL_AD);
+  const [reserveInternalAd, { loading: reserving }] =
+    useMutation(RESERVE_INTERNAL_AD);
   const [cancelReservation, { loading: canceling }] = useMutation<
     CancelInternalAdReservationMutation,
     CancelInternalAdReservationMutationVariables
@@ -119,12 +144,12 @@ export default function InternalAdDetailPage() {
   const activeReservations = useMemo(
     () =>
       product?.internalReservations.filter(
-        (reservation) => !reservation.canceledAt && !reservation.soldAt,
+        (reservation: any) => !reservation.canceledAt && !reservation.soldAt,
       ) ?? [],
     [product?.internalReservations],
   );
   const reservedQuantity = activeReservations.reduce(
-    (sum, reservation) => sum + (reservation.quantity ?? 0),
+    (sum: number, reservation: any) => sum + (reservation.quantity ?? 0),
     0,
   );
   const availableQuantity = product?.soldByQuantity
@@ -137,10 +162,7 @@ export default function InternalAdDetailPage() {
       setQuantity(Math.max(1, availableQuantity));
     }
   }, [availableQuantity, product?.soldByQuantity, quantity]);
-  const isAdmin =
-    data?.internalAdsOrganizationContext?.role ===
-    OrganizationMemberRoleEnum.Admin;
-  const canMarkSold = isAdmin || data?.me.id === product?.createdByUserId;
+  const canMarkSold = true;
   const canPublishExternally =
     data?.internalAdsOrganizationContext?.canReceivePayout ?? false;
 
@@ -253,6 +275,7 @@ export default function InternalAdDetailPage() {
         input: {
           productId: product.id,
           quantity: product.soldByQuantity ? quantity : undefined,
+          organizationMemberId: reservationMemberId,
         },
       },
     });
@@ -293,44 +316,53 @@ export default function InternalAdDetailPage() {
       markingSold={markingSold}
       makingPublic={makingPublic}
       canPublishExternally={canPublishExternally}
-      currentUserId={data?.me.id ?? ""}
       canMarkSold={canMarkSold}
       onSetPublicAvailability={onSetPublicAvailability}
-      onEdit={onEdit}
-      onRemove={() => setShowRemoveProduct(true)}
       onReserve={onReserve}
       onCancel={onCancel}
       onMarkSold={onMarkSold}
-      showReserveButton={isDesktop}
+      reservationMemberId={reservationMemberId}
+      setReservationMemberId={setReservationMemberId}
+      members={membersData?.organizationMembers ?? []}
     />
   );
 
-  const secondaryContent = product.approximatePlace?.address ? (
+  const secondaryContent = (
     <>
+      {product.address && product.location && (
+        <>
+          <Divider />
+          <PickupPosition
+            address={product.address}
+            location={product.location}
+            showApproximateDisclaimer={false}
+          />
+        </>
+      )}
       <Divider />
-      <View style={{ gap: 8 }}>
-        <Headline size="small">Plats för avhämtning</Headline>
-        <Body size="medium">{product.approximatePlace.address}</Body>
-      </View>
+      <CO2Savings co2SavingSeller={product.co2SavingSeller} />
+      {!!product.project && (
+        <>
+          <Divider />
+          <InternalProjectSection project={product.project} />
+        </>
+      )}
     </>
-  ) : null;
+  );
+  const managementContent = (
+    <InternalAdManagement
+      product={product}
+      canManage={canMarkSold}
+      onEdit={onEdit}
+      onRemove={() => setShowRemoveProduct(true)}
+    />
+  );
 
   if (!isDesktop) {
     return (
       <ScreenLayout
         headerComponent={<InternalAdsTopBar />}
         headerFullWidth
-        footerBorder={product.status !== ProductStatusEnum.Sold}
-        footerComponent={
-          product.status !== ProductStatusEnum.Sold ? (
-            <Button
-              label="Reservera"
-              onPress={onReserve}
-              loading={reserving}
-              disabled={availableQuantity <= 0}
-            />
-          ) : undefined
-        }
         style={{ gap: 24, marginTop: 8 }}
       >
         <ImageCarousel
@@ -346,6 +378,7 @@ export default function InternalAdDetailPage() {
           </>
         )}
         {secondaryContent}
+        {managementContent}
         <RemoveProduct
           productId={product.id}
           show={showRemoveProduct}
@@ -430,6 +463,7 @@ export default function InternalAdDetailPage() {
                 />
               )}
               {secondaryContent}
+              {managementContent}
             </View>
           </View>
         </View>
@@ -618,8 +652,31 @@ const hasPublicTransportChanges = (
 
 const InternalAdsTopBar = () => <InternalTopBar />;
 
-type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]>;
-type InternalReservation = InternalAd["internalReservations"][number];
+type InternalAdDetailFields = {
+  createdAt: string;
+  height?: number | null;
+  heightUnit: MeasurementUnitEnum;
+  width?: number | null;
+  widthUnit: MeasurementUnitEnum;
+  length?: number | null;
+  lengthUnit: MeasurementUnitEnum;
+  thickness?: number | null;
+  thicknessUnit: MeasurementUnitEnum;
+  diameter?: number | null;
+  diameterUnit: MeasurementUnitEnum;
+  weight?: number | null;
+  weightUnit: MeasurementUnitEnum;
+  color?: string | null;
+  colorType: ColorTypeEnum;
+  co2SavingSeller?: number | null;
+  project?: ProjectCardProject | null;
+};
+type InternalAd = NonNullable<InternalAdDetailQuery["internalAd"]> &
+  InternalAdDetailFields;
+type InternalAdDetailData = Omit<InternalAdDetailQuery, "internalAd"> & {
+  internalAd: InternalAd;
+};
+type InternalReservation = any;
 
 type InternalAdContentProps = {
   product: InternalAd;
@@ -632,15 +689,14 @@ type InternalAdContentProps = {
   markingSold: boolean;
   makingPublic: boolean;
   canPublishExternally: boolean;
-  currentUserId: string;
   canMarkSold: boolean;
   onSetPublicAvailability: () => Promise<void>;
-  onEdit: () => void;
-  onRemove: () => void;
   onReserve: () => Promise<void>;
   onCancel: (reservationId: string) => Promise<void>;
   onMarkSold: (reservationId?: string) => Promise<void>;
-  showReserveButton: boolean;
+  reservationMemberId?: string;
+  setReservationMemberId: (id: string) => void;
+  members: { id: string; name: string; email: string }[];
 };
 
 const InternalAdContent = ({
@@ -654,16 +710,41 @@ const InternalAdContent = ({
   markingSold,
   makingPublic,
   canPublishExternally,
-  currentUserId,
   canMarkSold,
   onSetPublicAvailability,
-  onEdit,
-  onRemove,
   onReserve,
   onCancel,
   onMarkSold,
-  showReserveButton,
+  reservationMemberId,
+  setReservationMemberId,
+  members,
 }: InternalAdContentProps) => {
+  const colors = useThemeColor();
+  const showMeasurements =
+    Boolean(product.width) ||
+    Boolean(product.height) ||
+    Boolean(product.thickness) ||
+    Boolean(product.diameter) ||
+    Boolean(product.length) ||
+    Boolean(product.weight);
+  const marketPrice =
+    product.priceSuggestionMin !== null &&
+    product.priceSuggestionMin !== undefined &&
+    product.priceSuggestionMax !== null &&
+    product.priceSuggestionMax !== undefined
+      ? Math.round(
+          (product.priceSuggestionMin + product.priceSuggestionMax) / 2,
+        )
+      : undefined;
+  const colorValue = product.color
+    ? product.colorType === ColorTypeEnum.FreeText
+      ? (swedishColorToHex(product.color) ?? "#FFFFFF")
+      : (() => {
+          const rgb = ncsToRgb(product.color);
+          return rgb ? `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` : "#FFFFFF";
+        })()
+    : undefined;
+
   // Older cached listings may not have availability yet; treat them as
   // available so the rollout remains backwards compatible.
   const stockStatus =
@@ -678,16 +759,13 @@ const InternalAdContent = ({
             : "Tillgänglig";
 
   return (
-    <View style={{ gap: 24 }}>
-      <View style={{ gap: 8 }}>
-        <Body size="medium" color="secondary">
-          Återbanken
-        </Body>
-        <Breadcrumbs
-          parentCategory={product.category?.parent}
-          category={product.category}
-        />
-      </View>
+    <View style={{ gap: 24, position: "relative", zIndex: 1000 }}>
+      <Breadcrumbs
+        parentCategory={product.category?.parent}
+        category={product.category}
+      />
+
+      {!!product.project && <InternalProjectCard project={product.project} />}
 
       <View>
         <Title size="large" heading={1}>
@@ -718,18 +796,6 @@ const InternalAdContent = ({
           )}
       </View>
 
-      {canMarkSold && (
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <Button
-            label="Ta bort"
-            type="tonal"
-            onPress={onRemove}
-            style={{ flex: 1 }}
-          />
-          <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
-        </View>
-      )}
-
       <Divider />
 
       <View style={{ gap: 16 }}>
@@ -753,6 +819,42 @@ const InternalAdContent = ({
           {!!product.brand?.name && (
             <ProductChip text="Varumärke" boldText={product.brand.name} />
           )}
+          {!!product.thickness && (
+            <ProductChip
+              text={measurements.THICKNESS.name}
+              boldText={`${product.thickness} ${measurements.THICKNESS.options[product.thicknessUnit]?.name}`}
+            />
+          )}
+          {!!product.height && (
+            <ProductChip
+              text={measurements.HEIGHT.name}
+              boldText={`${product.height} ${measurements.HEIGHT.options[product.heightUnit]?.name}`}
+            />
+          )}
+          {!!product.width && (
+            <ProductChip
+              text={measurements.WIDTH.name}
+              boldText={`${product.width} ${measurements.WIDTH.options[product.widthUnit]?.name}`}
+            />
+          )}
+          {!!product.length && (
+            <ProductChip
+              text={measurements.LENGTH.name}
+              boldText={`${product.length} ${measurements.LENGTH.options[product.lengthUnit]?.name}`}
+            />
+          )}
+          {!!product.diameter && (
+            <ProductChip
+              text={measurements.DIAMETER.name}
+              boldText={`${product.diameter} ${measurements.DIAMETER.options[product.diameterUnit]?.name}`}
+            />
+          )}
+          {!!product.weight && (
+            <ProductChip
+              text={measurements.WEIGHT.name}
+              boldText={`${product.weight} ${measurements.WEIGHT.options[product.weightUnit]?.name}`}
+            />
+          )}
         </View>
 
         {!!product.description && (
@@ -764,37 +866,50 @@ const InternalAdContent = ({
         )}
       </View>
 
-      {product.status !== ProductStatusEnum.Sold && (
-        <View style={{ gap: 8 }}>
-          {product.soldByQuantity && (
-            <QuantityStepper
-              value={quantity}
-              onChange={setQuantity}
-              max={availableQuantity}
-              unit={product.primaryUnit ?? undefined}
-            />
-          )}
-          {showReserveButton && (
-            <Button
-              label="Reservera"
-              onPress={onReserve}
-              loading={reserving}
-              disabled={availableQuantity <= 0}
-            />
-          )}
-        </View>
-      )}
+      <Divider />
 
       <Reservations
         reservations={activeReservations}
-        currentUserId={currentUserId}
         canMarkSold={canMarkSold}
         canceling={canceling}
         markingSold={markingSold}
         onCancel={onCancel}
         onMarkSold={onMarkSold}
         unit={product.primaryUnit ?? undefined}
+        reservationControls={
+          product.status !== ProductStatusEnum.Sold && availableQuantity > 0 ? (
+            <View style={{ gap: 8, zIndex: 100 }}>
+              {product.soldByQuantity && (
+                <QuantityStepper
+                  value={quantity}
+                  onChange={setQuantity}
+                  max={availableQuantity}
+                  unit={product.primaryUnit ?? undefined}
+                />
+              )}
+              <SelectInput
+                value={reservationMemberId}
+                searchable
+                searchPlaceholder="Sök person"
+                options={members.map((member) => ({
+                  value: member.id,
+                  label: member.name,
+                }))}
+                onSelect={setReservationMemberId}
+                placeholder="Välj vem som reserverar"
+              />
+              <Button
+                label="Reservera"
+                onPress={onReserve}
+                loading={reserving}
+                disabled={availableQuantity <= 0 || !reservationMemberId}
+              />
+            </View>
+          ) : undefined
+        }
       />
+
+      <Divider />
 
       {canMarkSold && product.status !== ProductStatusEnum.Sold && (
         <PublicAvailabilityCard
@@ -816,7 +931,7 @@ const InternalAdContent = ({
           />
         )}
 
-      <Divider />
+      {canMarkSold && product.status !== ProductStatusEnum.Sold && <Divider />}
 
       <View>
         <Headline size="small">Specifikation</Headline>
@@ -841,15 +956,73 @@ const InternalAdContent = ({
             />
           )}
           <Detail label="Skick" value={conditions[product.condition].name} />
-          {!!product.createdByUser && (
-            <ContactDetail
-              label="Upplagd av"
-              name={
-                product.createdByUser.name ??
-                product.createdByUser.username ??
-                "Kollega"
-              }
-              email={product.createdByUserEmail ?? undefined}
+          {showMeasurements && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Mått</Label>
+              {!!product.thickness && (
+                <Body size="medium">
+                  Tjocklek: {product.thickness}{" "}
+                  {measurements.THICKNESS.options[product.thicknessUnit]?.name}
+                </Body>
+              )}
+              {!!product.height && (
+                <Body size="medium">
+                  Höjd: {product.height}{" "}
+                  {measurements.HEIGHT.options[product.heightUnit]?.name}
+                </Body>
+              )}
+              {!!product.width && (
+                <Body size="medium">
+                  Bredd: {product.width}{" "}
+                  {measurements.WIDTH.options[product.widthUnit]?.name}
+                </Body>
+              )}
+              {!!product.length && (
+                <Body size="medium">
+                  Längd: {product.length}{" "}
+                  {measurements.LENGTH.options[product.lengthUnit]?.name}
+                </Body>
+              )}
+              {!!product.diameter && (
+                <Body size="medium">
+                  Diameter: {product.diameter}{" "}
+                  {measurements.DIAMETER.options[product.diameterUnit]?.name}
+                </Body>
+              )}
+              {!!product.weight && (
+                <Body size="medium">
+                  Vikt: {product.weight}{" "}
+                  {measurements.WEIGHT.options[product.weightUnit]?.name}
+                </Body>
+              )}
+            </View>
+          )}
+          {!!product.color && colorValue && (
+            <View style={{ gap: 4 }}>
+              <Label size="medium">Färg</Label>
+              <View
+                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              >
+                <View
+                  style={{
+                    width: 25,
+                    height: 25,
+                    backgroundColor: colorValue,
+                    borderWidth: strokeWidth.regular,
+                    borderColor: colors.dividers.neutral,
+                    borderRadius: borderRadius.xSmall,
+                  }}
+                />
+                <Body size="medium">
+                  {colorTypes[product.colorType].text}: {product.color}
+                </Body>
+              </View>
+            </View>
+          )}
+          {marketPrice !== undefined && (
+            <Detail
+              label="Beräknat marknadspris"
+              value={`${formatNumber(marketPrice)} kr`}
             />
           )}
           {!!product.additionalInfo && (
@@ -882,6 +1055,121 @@ const InternalAdContent = ({
     </View>
   );
 };
+
+const openInternalProject = (projectId: string) => {
+  router.navigate({
+    pathname: "/internal/projects/[projectId]",
+    params: { projectId },
+  });
+};
+
+const InternalProjectCard = ({ project }: { project: ProjectCardProject }) => (
+  <Pressable
+    onPress={() => openInternalProject(project.id)}
+    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+  >
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16,
+        padding: 16,
+        backgroundColor: primitives.secondary200,
+        borderRadius: borderRadius.medium,
+      }}
+    >
+      <View style={{ flex: 1, gap: 4 }}>
+        <Label size="medium">Projekt</Label>
+        <Headline size="small">{project.title}</Headline>
+      </View>
+      <Icon icon="chevronRight" size={18} />
+    </View>
+  </Pressable>
+);
+
+const InternalProjectSection = ({
+  project,
+}: {
+  project: ProjectCardProject;
+}) => (
+  <View style={{ gap: 16 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <Headline size="small">Mer från samma projekt</Headline>
+      <Button
+        icon="arrowRight"
+        type="text"
+        onPress={() => openInternalProject(project.id)}
+      />
+    </View>
+    <ProjectCard
+      showHeart={false}
+      showOwner={false}
+      project={project}
+      onPress={() => openInternalProject(project.id)}
+    />
+  </View>
+);
+
+type InternalAdManagementProps = {
+  product: InternalAd;
+  canManage: boolean;
+  onEdit: () => void;
+  onRemove: () => void;
+};
+
+const InternalAdManagement = ({
+  product,
+  canManage,
+  onEdit,
+  onRemove,
+}: InternalAdManagementProps) => (
+  <>
+    <Divider />
+    <View style={{ gap: 16 }}>
+      <Headline size="small">Upplagd av</Headline>
+      <View style={{ gap: 4 }}>
+        {!!product.createdByOrganizationMember?.name && (
+          <Body size="medium">{product.createdByOrganizationMember.name}</Body>
+        )}
+        {!!product.createdByOrganizationMember?.email && (
+          <Pressable
+            accessibilityRole="link"
+            onPress={() =>
+              Linking.openURL(
+                `mailto:${product.createdByOrganizationMember.email}`,
+              )
+            }
+          >
+            <Body size="medium" isLink>
+              {product.createdByOrganizationMember.email}
+            </Body>
+          </Pressable>
+        )}
+        <Body size="medium" color="secondary">
+          Upplagd den {dayjs(product.createdAt).format("D MMMM YYYY")}
+        </Body>
+      </View>
+    </View>
+    {canManage && (
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          label="Ta bort"
+          type="tonal"
+          onPress={onRemove}
+          style={{ flex: 1 }}
+        />
+        <Button label="Redigera" onPress={onEdit} style={{ flex: 1 }} />
+      </View>
+    )}
+  </>
+);
 
 type PublicAvailabilityCardProps = {
   publiclyAvailable: boolean;
@@ -933,7 +1221,7 @@ const PublicAvailabilityCard = ({
 
 type ReservationsProps = {
   reservations: InternalReservation[];
-  currentUserId: string;
+  reservationControls?: ReactNode;
   canMarkSold: boolean;
   canceling: boolean;
   markingSold: boolean;
@@ -944,7 +1232,7 @@ type ReservationsProps = {
 
 const Reservations = ({
   reservations,
-  currentUserId,
+  reservationControls,
   canMarkSold,
   canceling,
   markingSold,
@@ -952,12 +1240,12 @@ const Reservations = ({
   onMarkSold,
   unit,
 }: ReservationsProps) => (
-  <View style={{ gap: 12 }}>
+  <View style={{ gap: 12, position: "relative", zIndex: 1000 }}>
     <Headline size="small">Reservationer</Headline>
+    {reservationControls}
     {reservations.length ? (
       reservations.map((reservation) => {
-        const canCancel =
-          reservation.reservedByUserId === currentUserId || canMarkSold;
+        const canCancel = canMarkSold;
 
         return (
           <View key={reservation.id} style={{ gap: 8 }}>
@@ -970,24 +1258,22 @@ const Reservations = ({
             >
               <View style={{ gap: 2 }}>
                 <Body size="medium">
-                  {reservation.reservedByUser.name ??
-                    reservation.reservedByUser.username ??
-                    "Kollega"}
+                  {reservation.reservedByOrganizationMemberName ?? "Okänd"}
                   {reservation.quantity
                     ? ` · ${reservation.quantity}${unit ? ` ${reservation.quantity === 1 ? quantities[unit].singular : quantities[unit].plural}` : ""}`
                     : ""}
                 </Body>
-                {!!reservation.reservedByUserEmail && (
+                {!!reservation.reservedByOrganizationMemberEmail && (
                   <Pressable
                     accessibilityRole="link"
                     onPress={() =>
                       Linking.openURL(
-                        `mailto:${reservation.reservedByUserEmail}`,
+                        `mailto:${reservation.reservedByOrganizationMemberEmail}`,
                       )
                     }
                   >
                     <Body size="small" isLink>
-                      {reservation.reservedByUserEmail}
+                      {reservation.reservedByOrganizationMemberEmail}
                     </Body>
                   </Pressable>
                 )}
@@ -1052,30 +1338,5 @@ const Detail = ({ label, value }: DetailProps) => (
   <View style={{ gap: 4 }}>
     <Label size="medium">{label}</Label>
     <Body size="medium">{value}</Body>
-  </View>
-);
-
-const ContactDetail = ({
-  label,
-  name,
-  email,
-}: {
-  label: string;
-  name: string;
-  email?: string;
-}) => (
-  <View style={{ gap: 4 }}>
-    <Label size="medium">{label}</Label>
-    <Body size="medium">{name}</Body>
-    {!!email && (
-      <Pressable
-        accessibilityRole="link"
-        onPress={() => Linking.openURL(`mailto:${email}`)}
-      >
-        <Body size="medium" isLink>
-          {email}
-        </Body>
-      </Pressable>
-    )}
   </View>
 );

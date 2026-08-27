@@ -48,15 +48,30 @@ const PRODUCT_BOTTOM_SHEET_PROJECT_GET_PROJECT = gql`
     internalProject(projectId: $projectId) @include(if: $internalMode) {
       id
       title
+      address
+      location {
+        lat
+        lng
+      }
+      approximatePlace {
+        lat
+        lng
+        address
+      }
     }
   }
 `;
 
 export const NEW_PROJECT_ID = "NEW_PROJECT_ID";
 
+type ProjectFields = Pick<
+  ProductFields,
+  "address" | "approximatePlace" | "location" | "noProject" | "project"
+>;
+
 type Props = {
-  product: ProductFields;
-  update: (product: Partial<ProductFields>) => void;
+  product: ProjectFields;
+  update: (product: Partial<ProjectFields>) => void;
   internalMode?: boolean;
 };
 
@@ -105,13 +120,9 @@ export const ProjectChips = ({
     update({
       noProject: false,
       project: { id },
-      ...(internalMode
-        ? {}
-        : {
-            address: project.address,
-            location: project.location,
-            approximatePlace: project.approximatePlace,
-          }),
+      address: project.address,
+      location: project.location,
+      approximatePlace: project.approximatePlace,
     });
   };
 

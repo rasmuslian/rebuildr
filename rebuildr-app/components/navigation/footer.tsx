@@ -101,7 +101,7 @@ export default function Footer() {
                     const isLastRow = position === array.length - 1;
 
                     const article = entry.article;
-                    const title = article ? article.title : entry.label;
+                    const title = entry.label ?? article?.title;
                     const href: Href = article
                       ? {
                           pathname: "/(app)/article/[slug]",

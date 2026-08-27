@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { Product } from './product.entity';
-import { User } from './user.entity';
+import { OrganizationMember } from './organization-member.entity';
 
 @Entity()
 @ObjectType()
@@ -26,19 +26,37 @@ export class InternalAdReservation {
   })
   product: Product;
 
-  @Field()
-  @Column()
-  reservedByUserId: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  reservedByOrganizationMemberId?: string;
 
-  @ManyToOne(() => User, (user) => user.id)
-  reservedByUser: User;
+  @Field(() => OrganizationMember, { nullable: true })
+  @ManyToOne(() => OrganizationMember, { nullable: true, onDelete: 'SET NULL' })
+  reservedByOrganizationMember?: OrganizationMember;
 
   @Field({ nullable: true })
-  reservedByUserEmail?: string;
+  @Column({ nullable: true })
+  reservedByOrganizationMemberName?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  reservedByOrganizationMemberEmail?: string;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   quantity?: number;
+
+  @Column({ nullable: true, type: 'float' })
+  weightAtSale?: number | null;
+
+  @Column({ nullable: true, type: 'float' })
+  co2SavingBuyerAtSale?: number | null;
+
+  @Column({ nullable: true, type: 'float' })
+  co2SavingSellerAtSale?: number | null;
+
+  @Column({ nullable: true, type: 'int' })
+  marketValueAtSale?: number | null;
 
   @Field(() => Date)
   @CreateDateColumn({ type: 'timestamptz' })

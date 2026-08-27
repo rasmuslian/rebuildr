@@ -16,9 +16,18 @@ type Props = {
   onClose?: () => void;
   type?: "full" | "partial";
   footer?: ReactElement;
+  /** Card width in partial mode; defaults to the classic 620. */
+  width?: number;
 } & PropsWithChildren;
 
-export const Popup = ({ open, onClose, type, children, footer }: Props) => {
+export const Popup = ({
+  open,
+  onClose,
+  type,
+  children,
+  footer,
+  width = 620,
+}: Props) => {
   const isFull = type === "full";
   const contentAnimation = useRef(new Animated.Value(0)).current;
   const key = useMemo(() => `popup-${Math.random().toString(8)}`, []);
@@ -69,7 +78,7 @@ export const Popup = ({ open, onClose, type, children, footer }: Props) => {
         <View
           style={{
             flex: isFull ? 1 : undefined,
-            width: isFull ? "100%" : 620,
+            width: isFull ? "100%" : width,
             height: isFull ? "100%" : "auto",
             backgroundColor: primitives.neutrals100,
             borderRadius: !isFull ? 28 : 0,

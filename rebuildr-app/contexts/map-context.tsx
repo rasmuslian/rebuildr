@@ -134,7 +134,7 @@ export const MapProvider = ({
               northEast: state.bounds.northEast,
               southWest: state.bounds.southWest,
               zoom: state.zoom,
-              productsInput,
+              productsInput: effectiveProductsInput,
             },
           }
         : undefined,

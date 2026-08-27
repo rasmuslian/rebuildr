@@ -26,7 +26,8 @@
     "migration:show": "npm run typeorm migration:show -- -d ./src/ormconfig-migrations.ts",
     "migration:revert": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:revert -- -d ./src/ormconfig-migrations.ts",
     "migration:generate": "op run --env-file=\".env.local.1p\" -- npm run typeorm migration:generate -- -d ./src/ormconfig-migrations.ts",
-    "migration:create": "npm run typeorm migration:create"
+    "migration:create": "npm run typeorm migration:create",
+    "content:import-footer-v19": "ts-node -r tsconfig-paths/register src/scripts/import-footer-v19.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.81",
@@ -61,6 +62,7 @@
     "core-js": "^3.37.1",
     "dataloader": "^2.2.2",
     "dayjs": "^1.11.12",
+    "exceljs": "^4.4.0",
     "form-data": "^4.0.0",
     "graphql": "^16.9.0",
     "handlebars": "^4.7.8",

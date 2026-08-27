@@ -14,12 +14,14 @@ type Props = {
   address: string;
   location: { lat: number; lng: number };
   distanceFromLocation?: number | null;
+  showApproximateDisclaimer?: boolean;
 };
 
 export const PickupPosition = ({
   address,
   location,
   distanceFromLocation,
+  showApproximateDisclaimer = true,
 }: Props) => {
   const [showMap, setShowMap] = useState(false);
   const { isMobile } = useScreenType();
@@ -36,12 +38,20 @@ export const PickupPosition = ({
             style={{ height: 185 }}
           />
         </Pressable>
-        <Body size="medium" style={{ marginTop: 16, marginBottom: 12 }}>
+        <Body
+          size="medium"
+          style={{
+            marginTop: 16,
+            marginBottom: showApproximateDisclaimer ? 12 : 0,
+          }}
+        >
           {address}
         </Body>
-        <Body size="small" color="secondary">
-          Ungefärligt område. Adress visas först när ett köp har genomförts.
-        </Body>
+        {showApproximateDisclaimer && (
+          <Body size="small" color="secondary">
+            Ungefärligt område. Adress visas först när ett köp har genomförts.
+          </Body>
+        )}
         {!!distanceFromLocation && (
           <Body size="medium" style={{ marginTop: 16 }}>
             Avstånd från nuvarande plats:{" "}

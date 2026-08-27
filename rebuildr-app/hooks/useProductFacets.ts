@@ -1,8 +1,14 @@
 import { useQuery } from "@apollo/client";
 import { useMemo } from "react";
 
-import { ProductFacetsQuery, ProductFacetsQueryVariables } from "@/gql/graphql";
+import {
+  InternalProductFacetsQuery,
+  InternalProductFacetsQueryVariables,
+  ProductFacetsQuery,
+  ProductFacetsQueryVariables,
+} from "@/gql/graphql";
 import { PRODUCT_FACETS } from "@/queries";
+import { INTERNAL_PRODUCT_FACETS } from "@/queries/internal-projects";
 import {
   isOwnFilterScope,
   useFilterProductScope,
@@ -18,19 +24,29 @@ export const useProductFacets = () => {
   const scope = useFilterProductScope();
   const { filter } = useFilterProduct();
   const projectId = isOwnFilterScope(scope) ? scope.facetProjectId : undefined;
+  const internalFacets = isOwnFilterScope(scope) && scope.internalFacets;
+  const input = { projectId, searchString: filter.searchString };
 
-  const { data } = useQuery<ProductFacetsQuery, ProductFacetsQueryVariables>(
-    PRODUCT_FACETS,
-    {
-      variables: { input: { projectId, searchString: filter.searchString } },
-      skip: !projectId,
-      // A backend without this query must not take the filter lists down with it.
-      errorPolicy: "all",
-    },
-  );
+  const { data: publicData } = useQuery<
+    ProductFacetsQuery,
+    ProductFacetsQueryVariables
+  >(PRODUCT_FACETS, {
+    variables: { input },
+    skip: !projectId || internalFacets,
+    // A backend without this query must not take the filter lists down with it.
+    errorPolicy: "all",
+  });
+  const { data: internalData } = useQuery<
+    InternalProductFacetsQuery,
+    InternalProductFacetsQueryVariables
+  >(INTERNAL_PRODUCT_FACETS, {
+    variables: { input },
+    skip: !projectId || !internalFacets,
+    errorPolicy: "all",
+  });
 
   return useMemo(() => {
-    const facets = data?.productFacets;
+    const facets = (internalFacets ? internalData : publicData)?.productFacets;
     const categories = toCountMap(facets?.categories);
     const rootCategories = toCountMap(facets?.rootCategories);
     const brands = toCountMap(facets?.brands);
@@ -46,5 +62,5 @@ export const useProductFacets = () => {
       brandCount: (id: string) => brands.get(id) ?? 0,
       conditionCount: (id: string) => conditions.get(id) ?? 0,
     };
-  }, [projectId, data]);
+  }, [projectId, internalFacets, internalData, publicData]);
 };

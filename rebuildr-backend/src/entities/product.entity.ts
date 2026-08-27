@@ -30,6 +30,7 @@ import { Conversation } from './conversation.entity';
 import { CmsAdImportBatch } from './cms-ad-import-batch.entity';
 import { InternalAdImportBatch } from './internal-ad-import-batch.entity';
 import { InternalAdReservation } from './internal-ad-reservation.entity';
+import { OrganizationMember } from './organization-member.entity';
 
 export enum ProductConditionEnum {
   NEW = 'NEW',
@@ -219,6 +220,10 @@ export class Product {
   @Field({ nullable: true })
   @Column({ nullable: true })
   primaryQuantity?: number;
+
+  @Column({ nullable: true, type: 'float' })
+  initialPrimaryQuantity?: number | null;
+
   @Field(() => QuantityUnitEnum, { nullable: true })
   @Column({
     type: 'enum',
@@ -402,16 +407,11 @@ export class Product {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  createdByUserId?: string;
+  createdByOrganizationMemberId?: string;
 
-  @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.createdInternalProducts, {
-    nullable: true,
-  })
-  createdByUser?: User;
-
-  @Field({ nullable: true })
-  createdByUserEmail?: string;
+  @Field(() => OrganizationMember, { nullable: true })
+  @ManyToOne(() => OrganizationMember, { nullable: true, onDelete: 'SET NULL' })
+  createdByOrganizationMember?: OrganizationMember;
 
   @Field(() => [String])
   @Column('text', { array: true, default: [] })
