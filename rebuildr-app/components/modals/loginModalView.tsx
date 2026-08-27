@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { LoginModalContext } from "@context/loginModalContext";
 import Email from "@components/login/email";
 import ForgotPassword from "@components/login/forgotPassword";
@@ -62,7 +62,7 @@ const LoginModalView = () => {
   const [email, setEmail] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const [pendingApproval, setPendingApproval] = useState(false);
-  const { visible, setVisible } = useContext(LoginModalContext);
+  const { visible, setVisible, intent } = useContext(LoginModalContext);
   const [state, setState] = useState<
     | "email"
     | "register"
@@ -81,6 +81,20 @@ const LoginModalView = () => {
   const { logout } = useLogout();
   const [resetPassword] = useMutation(RESET_PASSWORD);
   const colors = useThemeColor();
+
+  // An intent set at open (onboarding's Företag/Privat buttons) skips the
+  // combined login screen. Guarded on "email" so it never yanks a user who is
+  // already mid-flow in verify/bankid/details.
+  useEffect(() => {
+    if (!visible || !intent) return;
+    if (state !== "email") return;
+    if (intent === "business") {
+      setIsBusinessRegistration(true);
+      setState("register-business");
+    } else {
+      setState("register");
+    }
+  }, [visible, intent, state]);
 
   const reset = () => {
     setState("email");

@@ -25,7 +25,10 @@ import {
 } from "react-native-safe-area-context";
 import { screenGrowStyle } from "@constants/layout";
 import { ScrollBehavior } from "@components/scroll-behavior/scroll-behavior";
-import { LoginModalContext } from "@context/loginModalContext";
+import {
+  LoginModalContext,
+  LoginModalIntent,
+} from "@context/loginModalContext";
 import LoginModalView from "@components/modals/loginModalView";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { HamburgerMenu } from "@components/hamburger/hamburger-menu";
@@ -89,6 +92,19 @@ const RootLayout = () => {
     createServerApolloClient,
   );
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalIntent, setLoginModalIntent] = useState<
+    LoginModalIntent | undefined
+  >(undefined);
+
+  const setLoginModalVisible = (
+    visible: boolean,
+    options?: { intent?: LoginModalIntent },
+  ) => {
+    // Closing always drops the intent, so the next plain open starts on the
+    // combined login screen rather than a leftover registration flow.
+    setLoginModalIntent(visible ? options?.intent : undefined);
+    setShowLoginModal(visible);
+  };
 
   useEffect(() => {
     initializeApollo()
@@ -106,7 +122,8 @@ const RootLayout = () => {
       <LoginModalContext.Provider
         value={{
           visible: showLoginModal,
-          setVisible: setShowLoginModal,
+          intent: loginModalIntent,
+          setVisible: setLoginModalVisible,
         }}
       >
         <LocationProvider>
